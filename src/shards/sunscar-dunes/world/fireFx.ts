@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferGeometry, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, type Group, type Object3D, type Vector3 } from 'three';
+import { AdditiveBlending, BufferGeometry, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, Vector4, type Group, type Object3D, type Vector3 } from 'three';
 import { WIND } from './dunes';
 
 /**
@@ -12,10 +12,10 @@ import { WIND } from './dunes';
  * - smoke: a tall billboard column that widens and leans downwind, lit warm at its foot;
  * - the pool: a warm additive disc draped on the sand round the brazier.
  */
-export interface FireSize { flame: number; glow: number; smoke: number; embers: number }
-export const WAYMARK_FIRE: FireSize = { flame: 2.6, glow: 2.6, smoke: 15, embers: 180 }; // mockup C: a roaring log fire, about one and a half bowls tall
+export interface FireSize { flame: number; glow: number; smoke: number; embers: number; /** a thin pale wisp (a cookfire), not the dark plume */ wisp?: boolean }
+export const WAYMARK_FIRE: FireSize = { flame: 2.6, glow: 1.7, smoke: 15, embers: 180 }; // mockup C: a roaring log fire, about one and a half bowls tall
 /** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
-export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 26, embers: 12 };
+export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 26, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon
 export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
 
 const time = { value: 0 };
@@ -73,9 +73,10 @@ void main() {
   gl_FragColor = vec4(c * body * 2.0 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
 }`,
 });
-const smokeMaterial = new ShaderMaterial({
+/** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */
+const smokeMaterialOf = (wisp: boolean): ShaderMaterial => new ShaderMaterial({
   uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: NormalBlending, fog: false,
-  vertexShader: `#define LEAN 0.36\n#define LEAN_WIDEN 2.6\n${BILLBOARD_Y}`,
+  vertexShader: wisp ? `#define LEAN 0.06\n#define LEAN_WIDEN 0.8\n${BILLBOARD_Y}` : `#define LEAN 0.36\n#define LEAN_WIDEN 2.6\n${BILLBOARD_Y}`,
   fragmentShader: /* glsl */ `
 uniform float uTime;
 varying vec2 vUv;
@@ -90,10 +91,11 @@ void main() {
   float puff = smoothstep(0.35, 0.75, n + 0.25 * (1.0 - y));
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
-  vec3 c = mix(vec3(0.3, 0.11, 0.035), vec3(0.02, 0.017, 0.02), smoothstep(0.02, 0.3, y)); // dark brown-grey, darker than the sky, warm at its foot
-  gl_FragColor = vec4(c, a * 0.85 * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
+  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.13, 0.05, 0.02), vec3(0.02, 0.017, 0.02), smoothstep(0.02, 0.25, y))'}; // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
+  gl_FragColor = vec4(c, a * ${wisp ? '0.45' : '0.85'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
+const smokeMaterial = smokeMaterialOf(false), wispMaterial = smokeMaterialOf(true);
 const glowMaterial = new ShaderMaterial({
   uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false,
   vertexShader: /* glsl */ `
@@ -176,7 +178,7 @@ const embers = (n: number): BufferGeometry => {
   return g;
 };
 /** The shared resources, for the level scope to own. */
-export const FIRE_RESOURCES = [flameMaterial, smokeMaterial, glowMaterial, emberMaterial, poolMaterial, quad, glowQuad] as const;
+export const FIRE_RESOURCES = [flameMaterial, smokeMaterial, wispMaterial, glowMaterial, emberMaterial, poolMaterial, quad, glowQuad] as const;
 export const fireGeometries = (): BufferGeometry[] => [...emberCache.values()];
 
 /**
@@ -190,9 +192,9 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   const inner = new Mesh(quad, flameMaterial); inner.scale.set(size.flame * 0.42, size.flame * 0.8, 1); inner.position.set(0.05, -0.05, 0.05); add(inner);
   const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
-  const smoke = new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * 0.09, size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
+  const smoke = new Mesh(quad, size.wisp === true ? wispMaterial : smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.025 : 0.07), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
   if (pool) {
-    const r = size.glow * 2.3, n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
+    const r = Math.max(size.glow * 2.3, size.flame * 2.4), n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
     const p = g.getAttribute('position');
     for (let i = 0; i < p.count; i++) p.setY(i, pool.groundAt(pool.at.x + p.getX(i), pool.at.z + p.getZ(i)) + 0.06 - pool.at.y);
     add(new Mesh(g, poolMaterial));
@@ -211,6 +213,22 @@ export function addLampGlow(group: Group, glow: number, ground: (lx: number, lz:
   for (let i = 0; i < p.count; i++) p.setY(i, ground(p.getX(i), p.getZ(i)) + 0.06);
   const pool = new Mesh(g, poolMaterial); pool.frustumCulled = false; group.add(pool);
 }
+
+/**
+ * Firelight on the hero brazier's own material (E399, council round 1: at the dusk the waymarks burn in, the key light
+ * is nearly gone and the brazier read black): a uniform of up to four fires, xyz the flame and w 1 while it burns. The
+ * brazier's shader warms its texture by the distance to each burning fire (world/meshes.ts), no light in the scene.
+ */
+export const FIRE_LIGHTS = { value: [new Vector4(), new Vector4(), new Vector4(), new Vector4()] };
+const fireLights = { next: 0 };
+/** Claims a firelight slot at `at`; the returned switch turns it on or off. */
+export function fireLight(at: Vector3): (lit: boolean) => void {
+  const v = FIRE_LIGHTS.value[fireLights.next % FIRE_LIGHTS.value.length] ?? new Vector4(); fireLights.next++;
+  v.set(at.x, at.y, at.z, 0);
+  return (lit) => { v.w = lit ? 1 : 0; };
+}
+/** Frees every slot (a level build starts with none). */
+export function resetFireLights(): void { fireLights.next = 0; for (const v of FIRE_LIGHTS.value) v.w = 0; }
 
 /** Advances every fire's shared clock (one uniform for all of them). */
 export function tickFires(t: number): void { time.value = t; }

@@ -19,7 +19,8 @@ export const BRAZIERS: readonly { x: number; z: number }[] = [{ x: 58, z: -34 },
 // (a 40 m flat pad read as a plateau)
 export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 9, lift: 11, ease: 64 }];
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
-export const PADS = [{ x: CARAVAN.x, z: CARAVAN.z, r: 14 }, { x: WELL.x, z: WELL.z, r: 12 }];
+// E399 (mockup C): each waymark on level sand too, its fire's pool flat round it
+export const PADS = [{ x: CARAVAN.x, z: CARAVAN.z, r: 22 }, { x: WELL.x, z: WELL.z, r: 12 }, ...BRAZIERS.map((b) => ({ x: b.x, z: b.z, r: 6 }))];
 /** The crest paths: spawn → tower (the first, the entry trail), spawn → caravan, spawn → well, tower → basin. */
 export const TRAIL: [number, number][][] = [
   [[SPAWN.x, SPAWN.z], [4, 0], [TOWER.x, TOWER.z + 6]],

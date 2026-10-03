@@ -1,4 +1,5 @@
-import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry } from 'three';
+import { DUSK, fillAt, keyAt } from './dusk';
+import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight } from 'three';
 import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { GROUND_HALF } from '../layout';
 import { WIND } from '../world/dunes';
@@ -13,8 +14,10 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 // loop 3: a deeper, redder key (ΔE00 of the lit sand against the H1–H4 targets: the game's was too pale and grey-blue)
 // E399: low (11 deg) and along the wind axis, so every dune splits into a lit slip face and a shaded windward face
 // (the mockups); the shade floor and the navy fill keep the shaded half readable, never black
-export const KEY = { dir: new Vector3(-0.78, 0.19, 0.6).normalize(), color: new Color(1, 0.55, 0.26), intensity: 3.1 } as const; // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(-0.93, 0.2, 0.3).normalize(), color: new Color(1, 0.55, 0.26), intensity: 3.4 } as const; // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
+/** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
+const DEEP_KEY = new Color(0.78, 0.42, 0.4);
 export const FOG = { color: 0x40304a, near: 80, far: 430 } as const; // loop 6: a deep dusk haze, not lilac
 // loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
 const SAND = new Color(0.58, 0.26, 0.1),
@@ -129,7 +132,7 @@ export function signalDunesLook(): LookStrategy {
   // The dusk dome is the backdrop's own sky layer (`SkyBackdrop.clouds`): the engine keeps it on the camera.
   // 120 m: the dome draws first with no depth test, so its size never occludes; at 300 m the far plane clipped it (an arc)
   const dome = new Mesh(new SphereGeometry(120, 48, 24), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
-    uniforms: { uSun: { value: SUN_GLOW.clone() } }, vertexShader: SKY_VERTEX, fragmentShader: SKY_FRAGMENT }));
+    uniforms: { uSun: { value: SUN_GLOW.clone() }, uDusk: DUSK }, vertexShader: SKY_VERTEX, fragmentShader: SKY_FRAGMENT }));
   dome.renderOrder = -1000; dome.frustumCulled = false;
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
@@ -142,11 +145,17 @@ export function signalDunesLook(): LookStrategy {
     // No sun disc or halo (G25): the sun has just set; the dome paints the afterglow.
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },
     backdrop: ({ sky }) => {
-      const clock = duskClock();
+      const clock = duskClock(), keyColor = new Color();
+      let hemi: HemisphereLight | null = null, hemiBase = 1;
       return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
         // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
-        bind: (targets) => { targets.disc.visible = false; }, update:() => { sky.setKeyLight(KEY.dir, KEY.color, KEY.intensity); },
+        bind: (targets) => { targets.disc.visible = false; hemi = targets.hemi; hemiBase = targets.hemi.intensity; },
+        // the dusk deepens with the quest (look/dusk.ts): the key dims and reddens, the sky fill drops
+        update: () => {
+          sky.setKeyLight(KEY.dir, keyColor.copy(KEY.color).lerp(DEEP_KEY, DUSK.value), KEY.intensity * keyAt(DUSK.value));
+          if (hemi) hemi.intensity = hemiBase * fillAt(DUSK.value);
+        },
         rebuild: () => undefined, attachPost: () => undefined });
     },
     terrainPainter: { build: (terrain, field, scope) => {

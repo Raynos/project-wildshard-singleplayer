@@ -40,6 +40,10 @@ export const SUNSCAR_DUNES: ShardManifest = {
     // E399 (the mockups): low hazy dune ranges at the horizon, warm and soft, no mountains
     { r: 470, base: 0, color: [0.2, 0.09, 0.06], top: [0.36, 0.17, 0.1], snowLine: 2, haze: 0.35, floor: -10,
       bands: [0, 45, 90, 135, 180, 225, 270, 315].map((azimuth, i) => ({ azimuth, spread: 50, height: [9, 13, 7, 11, 10, 14, 8, 12][i] ?? 10, rough: 0.15 })) },
+    // E399 (council round 1, D2: mockups A and D show layered blue-grey ranges past the dunes): a farther, taller ring,
+    // cool and hazed, its crests between the near ring's
+    { r: 540, base: 0, color: [0.13, 0.12, 0.2], top: [0.24, 0.22, 0.33], snowLine: 2, haze: 0.75, floor: -10,
+      bands: [20, 60, 100, 150, 200, 240, 285, 330].map((azimuth, i) => ({ azimuth, spread: 46, height: [24, 30, 21, 34, 26, 31, 22, 28][i] ?? 26, rough: 0.2 })) },
   ] },
   boundary: { visible: false },
   minimap: { palette: SIGNAL_DUNES_MINIMAP }, // the sand map: crests, slip faces, hollows, the ridges, the caravan tracks (look/minimap.ts)

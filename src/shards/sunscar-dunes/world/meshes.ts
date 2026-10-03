@@ -1,4 +1,5 @@
-import { loadRigFile } from '#engine';
+import { loadRigFile, patchShader, PATCH_ORDER } from '#engine';
+import { FIRE_LIGHTS } from './fireFx';
 import { DUNE_HD, DUNE_MESHES, duneHdUrl, duneMeshUrl, type DuneHdName, type DuneMeshName } from '../boot/files';
 import { Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, type BufferAttribute, type Object3D } from 'three';
 
@@ -43,6 +44,20 @@ async function load(name: DuneMeshName): Promise<void> {
 }
 
 const hd = new Map<DuneHdName, Object3D>();
+/** The brazier's texture warmed by each burning fire within ~4.5 m (fireFx.ts FIRE_LIGHTS): its own fire lights it. */
+function warmByFire(m: MeshStandardMaterial): void {
+  patchShader(m, 'sunscar.firelight', PATCH_ORDER.decorate, (shader) => {
+    shader.uniforms['uFireLights'] = FIRE_LIGHTS;
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vFireW;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\n  vFireW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec4 uFireLights[4];\nvarying vec3 vFireW;')
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+  for (int i = 0; i < 4; i++) {
+    float fireD = length(vFireW - uFireLights[i].xyz);
+    totalEmissiveRadiance += diffuseColor.rgb * vec3(1.0, 0.45, 0.16) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 4.5), 2.0) * 1.8;
+  }`);
+  });
+}
 /** A textured hero model: its scene as loaded (its own map on its own UVs), normals smoothed, matte. */
 async function loadHd(name: DuneHdName): Promise<void> {
   try {
@@ -54,6 +69,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
           m.metalness = 0; m.roughness = 0.85; m.flatShading = false;
           // E399 (mockup D): the glove dark worn leather with a soft sheen, not a saturated red-brown
           if (name === 'glove-hd') { m.color.setRGB(0.5, 0.42, 0.38); m.roughness = 0.55; }
+          if (name === 'brazier-hd') warmByFire(m);
           m.needsUpdate = true;
         }
       }

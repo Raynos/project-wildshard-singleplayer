@@ -9,7 +9,7 @@ import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellPart
 import { buildRocks } from './rocks';
 import { buildDressing } from './dressing';
 import { buildButtes } from './buttes';
-import { FIRE_RESOURCES, fireGeometries, tickFires } from './fireFx';
+import { FIRE_RESOURCES, fireGeometries, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 
 /** The quest's flags (persisted per shard by `Flags`). */
@@ -77,6 +77,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   if (flags.has(FLAG.oil)) { wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; wellParts.bucket.position.y = 1.85 - 0.5; wellParts.rope.scale.y = 0.2; }
 
   // The braziers: pour oil by hand, light with a crack.
+  resetFireLights();
   const braziers: Brazier[] = BRAZIERS.map((b, i) => {
     const parts = buildBrazier(b.x, b.z, groundAt); ctx.root.add(parts.root);
     ctx.piece({ id: `sunscar.brazier.${String(i)}`, name: STRINGS.waymark, category: 'props', file: file('places'), object: parts.root, colliders: parts.colliders, surface: 'stone' });
@@ -89,11 +90,11 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
       } },
       light: () => {
         if (brazier.lit || !brazier.oiled) return false;
-        brazier.lit = true; parts.fire.visible = true; brazier.spot.label = STRINGS.waymarkLit; flags.set(FLAG.brazier(i));
+        brazier.lit = true; parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; flags.set(FLAG.brazier(i));
         const n = braziers.filter((x) => x.lit).length; toast(ctx, n < braziers.length ? `${STRINGS.waymarkLit} · ${String(n)}/${String(braziers.length)}` : STRINGS.allLit);
         return true;
       } };
-    if (flags.has(FLAG.brazier(i))) { brazier.oiled = true; brazier.lit = true; parts.oil.visible = true; parts.fire.visible = true; brazier.spot.label = STRINGS.waymarkLit; }
+    if (flags.has(FLAG.brazier(i))) { brazier.oiled = true; brazier.lit = true; parts.oil.visible = true; parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; }
     else if (flags.has(FLAG.oil)) brazier.spot.label = STRINGS.pourOil;
     return brazier;
   });

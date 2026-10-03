@@ -6,7 +6,7 @@ const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); r
  * The wind (P2, review R2): it blows along `WIND` (x, z), so the crests run from far-left to near-right across the
  * spawn view (40° off it) and every slip face turns toward the key light, behind-left of the spawn view (style bible). Wavelength `WAVE` m; the lee (slip face) is the last `LEE` of it.
  */
-export const WIND = { x: -0.643, z: 0.766 } as const;
+export const WIND = { x: -0.985, z: -0.174 } as const;
 // loop 5 (the mockups: tall sweeping dunes, 10-30 m): 1.5x the wave and the height together, so the slip face keeps its
 // angle (every face stays under the player's max climb)
 const WAVE = 128, LEE = 0.5, AMP_MAX = 22; // E399: the mockups' dunes are big smooth forms (10-30 m)
@@ -44,7 +44,7 @@ function field(x: number, z: number, n: TerrainNoise['n']): { h: number; amp: nu
 }
 
 /** Flat spots levelled to their own dune height (+ `lift`), eased out over 2.4 × `r`. */
-const SPOTS = [...CRESTS.map((c) => ({ x: c.x, z: c.z, r: c.r, lift: c.lift, ease: c.ease })), ...PADS.map((p) => ({ x: p.x, z: p.z, r: p.r, lift: 0, ease: p.r * 2.4 }))];
+const SPOTS = [...CRESTS.map((c) => ({ x: c.x, z: c.z, r: c.r, lift: c.lift, ease: c.ease })), ...PADS.map((p) => ({ x: p.x, z: p.z, r: p.r, lift: 0, ease: Math.max(p.r * 4.6, 46) }))];
 const spotLevels = new WeakMap<TerrainNoise['n'], number[]>();
 
 /**

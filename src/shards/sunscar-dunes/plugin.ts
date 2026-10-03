@@ -6,6 +6,7 @@ import { STRINGS } from './strings';
 import { buildWorld, FLAG, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
 import { lastLightAll } from './look/light';
+import { setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes } from './world/meshes';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
@@ -22,6 +23,15 @@ declare module '#engine' {
   interface EquipmentSlotMap { 'sunscar-whip': true }
 }
 
+/** The dusk a quest step has reached (look/dusk.ts): 0 at the start, deeper with each step, 1 once the signal burns. */
+function duskOf(places: SignalWorld): number {
+  const f = places.flags;
+  if (f.has(FLAG.lit)) return 1;
+  const lit = places.braziers.filter((b) => b.lit).length;
+  if (lit > 0) return 0.5 + 0.12 * lit;
+  return f.has(FLAG.oil) ? 0.45 : f.has(FLAG.logbook) ? 0.32 : f.has(SCOUT_FLAG) ? 0.15 : 0;
+}
+
 export class SignalDunesPlugin extends ShardPlugin {
   readonly player = new Vector3(); whip: Bullwhip | null = null; quest: QuestState | null = null;
   fire: SignalFire | null = null; places: SignalWorld | null = null; creatures: ReturnType<typeof installCreatures> | null = null;
@@ -29,16 +39,22 @@ export class SignalDunesPlugin extends ShardPlugin {
   /** The dune ray now flying (captures drive it). */
   get ray(): Animal | null { return this.creatures?.ray() ?? null; }
   /**
-   * Quest state for a capture (E399, the mock-C-waymark view): sets the same flags a player sets in play, nothing else.
-   * 'waymarks-lit': Sefa met, the logbook read, the oil taken and the three waymark braziers oiled and lit (the quest's
-   * order: a player sees lit waymarks only after the steps before them).
+   * Quest state for a capture (E399; council round 1: run the player's own path, every side effect with it). Each step is
+   * what play does: Sefa's first talk sets her flag (her dialogue's only effect), the logbook's interact, the crank's
+   * pull and the jar's interact at the well, then per waymark the oil poured by hand and the crack that lights it.
+   * 'logbook': Sefa met (mock-B-logbook: the tracker at the logbook step). 'waymarks-lit': every step to the three lit
+   * waymarks, in the quest's order (mock-C-waymark). The dusk snaps to the staged step's (look/dusk.ts).
    */
   stage(name: string): void {
     const places = this.places; if (!places) return;
-    if (name === 'waymarks-lit') {
-      for (const f of [SCOUT_FLAG, FLAG.logbook, FLAG.oil]) places.flags.set(f);
-      for (const b of places.braziers) { b.oiled = true; b.light(); }
+    const steps = ['logbook', 'waymarks-lit'], upTo = steps.indexOf(name); if (upTo === -1) return;
+    places.flags.set(SCOUT_FLAG);
+    if (upTo >= 1) {
+      places.logbook.onInteract();
+      places.well.pull(); places.well.spot.onInteract();
+      for (const b of places.braziers) { b.spot.onInteract(); b.light(); }
     }
+    setDusk(duskOf(places), true);
   }
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
@@ -79,6 +95,12 @@ export class SignalDunesPlugin extends ShardPlugin {
     // The first frame looks a little down the spawn's slip face, over the dune rows to the tower (review H1).
     if (rt?.world) rt.world.player.pitch = -0.1;
     this.creatures = installCreatures(ctx, () => places !== null && !places.flags.has(SCOUT_FLAG));
+    // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.
+    if (places) {
+      setDusk(duskOf(places), true);
+      ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); } });
+      ctx.scope.onDispose(() => { setDusk(0, true); });
+    }
     ctx.debug.expose('sunscar', this);
   }
 }

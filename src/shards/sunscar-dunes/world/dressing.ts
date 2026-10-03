@@ -60,7 +60,7 @@ const C = {
 
 /** How many of each (one draw per kind). */
 // loop 5 (the mockups: big clean sand forms): far fewer rocks and pebbles, scrub kept to the hollows and trail edges
-export const DRESSING = { shrubs: 260, tufts: 2200, carcasses: 5, trees: 9, screePerRidge: 6, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 0, gravel: 0 } as const; // E399: no outcrops (none in the mockups)
+export const DRESSING = { shrubs: 0, tufts: 0, carcasses: 5, trees: 0, screePerRidge: 6, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 0, gravel: 0 } as const; // E399: no outcrops (none in the mockups)
 
 /** A saltbush, 0.9 m tall: four forked stems, dusty grey-green clumps at the tips. */
 function shrubGeometry(seed: number): BufferGeometry {

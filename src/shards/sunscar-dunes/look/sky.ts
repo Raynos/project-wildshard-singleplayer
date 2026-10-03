@@ -20,6 +20,7 @@ void main() {
  */
 export const SKY_FRAGMENT = /* glsl */ `
 uniform vec3 uSun;
+uniform float uDusk;
 varying vec3 vDir;
 float starHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 float vHash(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 15731.743); }
@@ -36,14 +37,16 @@ void main() {
   float toward = max(dot(normalize(vec3(d.x, 0.0, d.z)), normalize(vec3(uSun.x, 0.0, uSun.z))), 0.0);
   // Loop 5 (the mockups A-D): a clear dusk. A deep orange band hugs the horizon, brightest behind the tower; above it a
   // short dusty-rose fade into a deep indigo dome full of stars. Clouds are only a few thin dark streaks low in the band.
-  vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2));
+  vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2)) * (1.0 - 0.4 * uDusk);
   vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.17, 0.16, 0.32), indigo = vec3(0.065, 0.085, 0.2);
   // E399 (the mockups): a tall soft orange-gold band behind the tower, peach to rose, navy pushed higher
-  vec3 c = mix(band, rose, smoothstep(0.0, 0.08 + 0.07 * toward, h));
+  // E399 (look/dusk.ts): as the quest goes on the band sinks and dims, the rose turns violet, the indigo comes down
+  rose = mix(rose, vec3(0.3, 0.18, 0.3), uDusk);
+  vec3 c = mix(band, rose, smoothstep(0.0, (0.08 + 0.07 * toward) * (1.0 - 0.5 * uDusk), h));
   // wide overlapping blends: where one smoothstep ended flat as the next began, the eye read a hard arc (a Mach band)
-  c = mix(c, dusk, smoothstep(0.05, 0.36, h));
-  c = mix(c, indigo, smoothstep(0.08, 0.85, h));
-  c += vec3(1.0, 0.55, 0.2) * pow(toward, 4.0) * (1.0 - smoothstep(0.0, 0.1, h)) * 0.45;
+  c = mix(c, dusk, smoothstep(0.05 * (1.0 - 0.6 * uDusk), 0.36 - 0.18 * uDusk, h));
+  c = mix(c, indigo, smoothstep(0.08 - 0.05 * uDusk, 0.85 - 0.4 * uDusk, h));
+  c += vec3(1.0, 0.55, 0.2) * pow(toward, 4.0) * (1.0 - smoothstep(0.0, 0.1 - 0.05 * uDusk, h)) * 0.45 * (1.0 - 0.6 * uDusk);
   // Thin streaks: dark, under-lit on the glow side, only in the band (3-10 degrees up).
   float az = atan(d.z, d.x);
   float streak = vNoise(skyRing(az, 7.0, h * 140.0)) * 0.65 + vNoise(skyRing(az, 21.0, h * 300.0 + 3.1)) * 0.35;
@@ -55,7 +58,7 @@ void main() {
   vec3 cellP = d * 300.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;
   float starDot = 1.0 - smoothstep(0.0, 0.26, length(cellP - spot));
-  float star = step(0.992, starHash(cell)) * starDot * smoothstep(0.1, 0.35, h) * (1.0 - 0.7 * pow(toward, 2.0)) * (1.0 - cov);
+  float star = step(0.992, starHash(cell)) * starDot * smoothstep(0.1 - 0.05 * uDusk, 0.35 - 0.15 * uDusk, h) * (1.0 - 0.7 * pow(toward, 2.0)) * (1.0 - cov);
   c += vec3(0.85, 0.9, 1.0) * star * (1.2 + 1.8 * starHash(cell + 3.1));
   // dithered: a smooth gradient this dark crossed one 8-bit step in a visible line across the sky (the scorer's arc)
   c += (starHash(vec3(gl_FragCoord.xy, 7.0)) - 0.5) * 0.014;

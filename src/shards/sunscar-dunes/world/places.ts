@@ -1,6 +1,6 @@
-import { addFire, addLampGlow, COOKFIRE, WAYMARK_FIRE } from './fireFx';
+import { addFire, addLampGlow, COOKFIRE, fireLight, WAYMARK_FIRE } from './fireFx';
 import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
-  Quaternion, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
+  IcosahedronGeometry, Quaternion, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
 import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
 import { CARAVAN, SEED, WELL } from '../layout';
 import { WIND } from './dunes';
@@ -26,12 +26,19 @@ const box = (w: number, h: number, d: number, material: Material): Mesh => new M
 const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh => { mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
 
 /** The lantern on its pole, in the caravan's frame (metres): beside the tailboard (−Z), the glass `y` up. */
-const LANTERN = { x: 1.45, y: 1.7, z: -3.2 } as const;
+// E399 (mockup B): the lantern hangs in the wagon's back hoop, over the logbook on the tailboard
+const LANTERN = { x: 0.1, y: 1.8, z: -2.75 } as const;
 /** The cookfire beside the wagon, in the caravan's frame (mockup B's smoke). */
-const COOK = { x: -2.2, z: -4.6 } as const;
+const COOK = { x: -0.6, z: 5.2 } as const; // E399 (mockup B): in front of the wagon, its wisp rising behind it as you come up from the back
 
 /** Spilled cargo on the lee (−X) side, on the sand itself: x, z, half size, yaw. */
-const CARGO: readonly [number, number, number, number][] = [[-2.3, 0.7, 0.35, 0.3], [-2.8, -0.8, 0.3, -0.4], [-1.9, -2.4, 0.4, 0.9]];
+// E399 (mockup B): the crates stacked off the back corner on the left as you come up behind the wagon (+X)
+const CARGO: readonly [number, number, number, number][] = [[2.6, -2.6, 0.42, 0.25], [3.4, -3.3, 0.36, -0.35], [2.5, -3.7, 0.3, 0.8]];
+/** Grain sacks slumped against the crates (mockup B): x, z, size, yaw. */
+const SACKS: readonly [number, number, number, number][] = [[1.7, -3.5, 0.34, 0.4], [2.0, -4.0, 0.3, -0.6], [3.3, -4.1, 0.32, 1.2]];
+/** The caravan's tent, dark canvas pitched off the wagon's right as you come up behind it (mockup B). */
+const TENT = { x: -7.5, z: -1.5, yaw: 0.35, w: 3.2, h: 2.3, d: 3.8 } as const;
+const BURLAP = 0x8a7454, TENT_CANVAS = 0x2c2220;
 
 /** Sun-bleached crate planks (loop 3: the plain dark boxes read as black cubes against the afterglow). */
 const CRATE = 0x9a7352, CRATE_GLOW = 0x150b05, BARREL = 0x7e5a3e;
@@ -99,8 +106,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   // The lantern (loop 4, mockup B): on a leaning pole beside the tailboard, the logbook's warm light in the dusk.
   const lamp = new Group(); lamp.position.set(LANTERN.x, LANTERN.y, LANTERN.z); root.add(lamp);
   const iron = mat(IRON, { metalness: 0.4 });
-  const pole = box(0.07, LANTERN.y + 0.5, 0.07, wood); pole.rotation.z = -0.08; at(pole, 0.05, -(LANTERN.y + 0.5) / 2 + 0.45, 0, lamp);
-  const arm = box(0.32, 0.05, 0.05, wood); at(arm, -0.1, 0.42, 0, lamp);
+  at(box(0.025, 0.55, 0.025, iron), -0.22, 0.45, 0, lamp); // the hook rod up to the hoop
   at(box(0.2, 0.04, 0.2, iron), -0.22, 0.18, 0, lamp); at(box(0.2, 0.04, 0.2, iron), -0.22, -0.16, 0, lamp);
   at(box(0.13, 0.28, 0.13, new MeshBasicMaterial({ color: 0xffb24a })), -0.22, 0.01, 0, lamp);
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) at(box(0.02, 0.32, 0.02, iron), -0.22 + dx * 0.09, 0.01, dz * 0.09, lamp);
@@ -109,6 +115,14 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     const x = LANTERN.x + lx, z = LANTERN.z + lz; // the lamp's frame → the caravan's → the world (three's Ry)
     return groundAt(CARAVAN.x + x * cosY + z * sinY, CARAVAN.z - x * sinY + z * cosY) - (y + LANTERN.y);
   });
+  // The sacks (E399, mockup B): squashed burlap lumps against the crates.
+  const burlap = mat(BURLAP);
+  for (const [x, z, r, yaw] of SACKS) { const sack = new Mesh(new IcosahedronGeometry(r, 1), burlap); sack.scale.set(1, 0.72, 0.85); sack.rotation.y = yaw; at(sack, x, r * 0.55, z, root); }
+  // The tent (E399, mockup B): an A-frame of dark canvas on two poles, its ridge along the wagon.
+  const tent = new Group(), canvasDark = mat(TENT_CANVAS, { side: DoubleSide }), slope = Math.atan2(TENT.h, TENT.w / 2), side = Math.hypot(TENT.h, TENT.w / 2);
+  tent.position.set(TENT.x, 0, TENT.z); tent.rotation.y = TENT.yaw; root.add(tent);
+  for (const k of [-1, 1]) { const panel = box(0.04, side, TENT.d, canvasDark); panel.rotation.z = k * (Math.PI / 2 - slope); at(panel, k * TENT.w / 4, TENT.h / 2, 0, tent); }
+  for (const k of [-1, 1]) at(box(0.07, TENT.h + 0.2, 0.07, dark), 0, TENT.h / 2, k * (TENT.d / 2 + 0.05), tent);
   // Colliders: the wagon body and the cargo (world space).
   const world = (x: number, z: number): Vector3 => new Vector3(x, 0, z).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(root.position);
   // E399 (mockup B): a smouldering cookfire on the lee side, its thin smoke column rising behind the wagon
@@ -117,7 +131,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   const cw = world(COOK.x, COOK.z); addFire(cook, COOKFIRE, { at: new Vector3(cw.x, y + 0.15, cw.z), groundAt });
   const body = world(0, 0);
   colliders.push(boxDesc({ x: body.x, z: body.z, hw: 1.1, hd: 2.3, rot: -CARAVAN.yaw, yBottom: y - 1, yTop: y + 1.9 }, 'wood'));
-  const lampPost = world(LANTERN.x, LANTERN.z); colliders.push(boxDesc({ x: lampPost.x, z: lampPost.z, hw: 0.06, hd: 0.06, rot: 0, yBottom: y - 0.5, yTop: y + LANTERN.y + 0.5 }, 'wood'));
+  const tentAt = world(TENT.x, TENT.z); colliders.push(boxDesc({ x: tentAt.x, z: tentAt.z, hw: TENT.w / 2, hd: TENT.d / 2, rot: -(CARAVAN.yaw + TENT.yaw), yBottom: y - 0.5, yTop: y + TENT.h }, 'felt'));
   for (const [x, z, half] of CARGO) { const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + half * 1.8 }, 'wood')); }
   { // the caravan's marker, off the lee side (in the caravan's frame, -X)
     // E399 (mockup B shows the wagon alone): no marker pole at the caravan; the well keeps its
@@ -266,7 +280,7 @@ export function kindling(y: number, size = 1, crown = false): Group {
   return g;
 }
 
-export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Group; bowlAt: Vector3; oil: Mesh }
+export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Group; bowlAt: Vector3; oil: Mesh; glow: (lit: boolean) => void }
 
 /** A waymark brazier: a stone plinth, an iron post and bowl, and a hidden fire (`fireFx.ts`; no light). */
 export function buildBrazier(x: number, z: number, groundAt: (x: number, z: number) => number): BrazierParts {
@@ -339,5 +353,5 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
   const fire = new Group(); fire.position.set(0, bowl, 0); fire.visible = false; root.add(fire);
   // The fire (P2 #8): layered flame, glow, embers downwind, a smoke column and a warm pool on the sand.
   addFire(fire, WAYMARK_FIRE, { at: new Vector3(x, y + bowl, z), groundAt });
-  return { root, colliders, fire, bowlAt: new Vector3(x, y + 1.6 + P, z), oil };
+  return { root, colliders, fire, bowlAt: new Vector3(x, y + 1.6 + P, z), oil, glow: fireLight(new Vector3(x, y + bowl + 0.4, z)) };
 }

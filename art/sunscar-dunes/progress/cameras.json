@@ -79,27 +79,31 @@
   {
    "id": "mock-B-logbook",
    "mockup": "art/sunscar-dunes/round-9-review/B-quest-logbook.jpg",
-   "x": -78,
-   "z": 0,
-   "yaw": 180,
-   "pitch": -3
-  },
-  {
-   "id": "mock-D-hands",
-   "mockup": "art/sunscar-dunes/round-9-review/D-hands-whip.jpg",
-   "x": 0,
-   "z": 70,
-   "yaw": -8,
-   "pitch": 2
+   "x": -87.4,
+   "z": 12.7,
+   "yaw": -148.5,
+   "pitch": -3,
+   "stage": "logbook",
+   "settle": 11000
   },
   {
    "id": "mock-C-waymark",
    "mockup": "art/sunscar-dunes/round-9-review/C-waymark-fire.jpg",
-   "x": 58.6,
-   "z": -21.5,
-   "yaw": 2.7,
-   "pitch": -1,
+   "x": 65.1,
+   "z": -25.6,
+   "yaw": 37,
+   "pitch": -2,
    "stage": "waymarks-lit"
+  },
+  {
+   "id": "mock-D-hands",
+   "mockup": "art/sunscar-dunes/round-9-review/D-hands-whip.jpg",
+   "x": 118,
+   "z": 88,
+   "yaw": 48,
+   "pitch": -1,
+   "stage": "waymarks-lit",
+   "settle": 11000
   }
  ],
  "clip": {

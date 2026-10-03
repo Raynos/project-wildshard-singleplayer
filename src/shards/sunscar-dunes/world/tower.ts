@@ -1,13 +1,15 @@
 import { addFire, SIGNAL_FIRE } from './fireFx';
-import { BoxGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
+import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { TOWER } from '../layout';
 import { duneHd, duneMesh, fit } from './meshes';
-import { bannerGeometry, kindling, litDune, RAG, RAG_GLOW } from './places';
-import { WIND } from './dunes';
+import { kindling, litDune } from './places';
 
-// round 2 (R1C-2): a step lighter; the H4 deck's rail, post and brazier read black at dusk
-const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56; // check pass: the rail and posts measured 16/255
+// E399 (council round 1, D4: the mockups' tower is a tall dark steel lattice with an antenna, not pale wood): dark steel
+// with a warm sheen; the deck a grating a step lighter, so the H4 deck view still reads (round 2, R1C-2)
+const WOOD = 0x3a322e, WOOD_DARK = 0x2a2420, IRON = 0x6e5e56;
+/** The lattice crown over the deck (m): corner posts to a top frame, then the antenna. */
+export const CROWN = { posts: 3.6, antenna: 5.2 } as const;
 export const STAIR = { count: 22, run: 0.42, width: 1.3, x: 0.75 } as const;
 
 export interface TowerParts { root: Group; colliders: ColliderDesc[]; fire: Group; light: PointLight; brazierAt: Vector3; deckY: number }
@@ -42,8 +44,8 @@ function stairColliders(foot: Vector3, rise: number, groundAt: (x: number, z: nu
  */
 export function buildTower(y: number, groundAt: (x: number, z: number) => number): TowerParts {
   const root = new Group(), colliders: ColliderDesc[] = [];
-  const wood = new MeshStandardMaterial({ color: WOOD, roughness: 0.9, flatShading: true });
-  const dark = new MeshStandardMaterial({ color: WOOD_DARK, roughness: 0.95, flatShading: true });
+  const wood = new MeshStandardMaterial({ color: WOOD, roughness: 0.55, metalness: 0.5 });
+  const dark = new MeshStandardMaterial({ color: WOOD_DARK, roughness: 0.6, metalness: 0.5 });
   const iron = new MeshStandardMaterial({ color: IRON, roughness: 0.6, metalness: 0.4, flatShading: true });
   const { x: cx, z: cz, deck, half } = TOWER, deckY = y + deck;
   const add = (mesh: Mesh, x: number, my: number, z: number): Mesh => { mesh.position.set(cx + x, my, cz + z); root.add(mesh); return mesh; };
@@ -52,20 +54,25 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
     add(box(0.24, h, 0.24, wood), x, foot + h / 2, z);
     colliders.push(boxDesc({ x: cx + x, z: cz + z, hw: 0.12, hd: 0.12, rot: 0, yBottom: foot, yTop: deckY }, 'wood'));
   }
-  // Diagonal braces on the four faces, two tiers.
-  for (const tier of [0, 1]) {
-    const y0 = y + 0.6 + tier * 3.1, span = Math.hypot(half * 2, 3.1), tilt = Math.atan2(3.1, half * 2);
+  // The lattice (E399, D4): X braces on the four faces in three tiers, a strut at each tier's top.
+  const tierH = (deck - 0.6) / 3;
+  for (let tier = 0; tier < 3; tier++) {
+    const y0 = y + 0.6 + tier * tierH, span = Math.hypot(half * 2, tierH), tilt = Math.atan2(tierH, half * 2);
     for (const [side, along] of [[-1, 'x'], [1, 'x'], [-1, 'z'], [1, 'z']] as const) {
-      const brace = box(0.1, 0.12, span, dark);
-      if (along === 'x') { brace.rotation.set(0, Math.PI / 2, 0); brace.rotateX(tier === 0 ? -tilt : tilt); add(brace, 0, y0 + 1.55, side * half); }
-      else { brace.rotateX(tier === 0 ? -tilt : tilt); add(brace, side * half, y0 + 1.55, 0); }
+      for (const lean of [-tilt, tilt]) {
+        const brace = box(0.07, 0.09, span, dark);
+        if (along === 'x') { brace.rotation.set(0, Math.PI / 2, 0); brace.rotateX(lean); add(brace, 0, y0 + tierH / 2, side * half); }
+        else { brace.rotateX(lean); add(brace, side * half, y0 + tierH / 2, 0); }
+      }
+      const strut = box(along === 'x' ? half * 2 : 0.09, 0.09, along === 'x' ? 0.09 : half * 2, dark);
+      add(strut, along === 'x' ? 0 : side * half, y0 + tierH, along === 'x' ? side * half : 0);
     }
   }
   // The deck and its rail (open on the south, where the stair lands).
   // The deck: nine sun-weathered planks in three shades with thin gaps (round 1: one dark slab read as a flat brown floor
   // in the H4 view), on a dark frame.
   add(box(half * 2 + 0.6, 0.14, half * 2 + 0.6, dark), 0, deckY - 0.13, 0);
-  const plankShades = [0xb08c68, 0x9c7a58, 0xbe9a74].map((color) => new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true }));
+  const plankShades = [0x5a4c42, 0x4e423a, 0x64544a].map((color) => new MeshStandardMaterial({ color, roughness: 0.7, metalness: 0.35 }));
   const span = half * 2 + 0.6, plank = span / 9;
   for (let i = 0; i < 9; i++) add(box(plank - 0.025, 0.06, span, plankShades[(i * 2) % 3] ?? wood), -span / 2 + (i + 0.5) * plank, deckY - 0.03, 0);
   colliders.push(boxDesc({ x: cx, z: cz, hw: half + 0.3, hd: half + 0.3, rot: 0, yBottom: deckY - 0.2, yTop: deckY }, 'wood'));
@@ -75,12 +82,26 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
     colliders.push(boxDesc({ x: cx + x, z: cz + z, hw: Math.max(0.04, w / 2), hd: Math.max(0.04, d / 2), rot: 0, yBottom: deckY, yTop: deckY + railH }, 'wood'));
   }
   for (const [x, z] of [[-edge, -edge], [edge, -edge], [-edge, edge], [edge, edge], [-edge * 0.2, edge]] as const) add(box(0.1, railH, 0.1, dark), x, deckY + railH / 2, z);
-  // The mast and its crossbar over the north-east corner (round 1: on the north-west it stood in the deck view, H4).
-  add(box(0.14, 4.6, 0.14, wood), half - 0.2, deckY + 2.3, -half + 0.2);
-  add(box(1.3, 0.1, 0.1, wood), half - 0.2, deckY + 2.9, -half + 0.2);
-  // check pass (4): a long madder pennant off the mast, the tower's mark from the spawn and from above
-  const pennant = new Mesh(bannerGeometry(), new MeshStandardMaterial({ color: RAG, roughness: 0.9, side: DoubleSide, emissive: RAG_GLOW }));
-  pennant.scale.set(1.5, 1.1, 1.1); pennant.position.set(cx + half - 0.2, deckY + 4.55, cz - half + 0.2); pennant.rotation.y = Math.atan2(-WIND.z, WIND.x); root.add(pennant);
+  // The crown (E399, D4): four corner posts up from the rail to a top frame, X-braced on the three closed faces above the
+  // rail (the south face stays open over the stair), then the antenna with its crossbar and a red lamp.
+  const topY = deckY + CROWN.posts;
+  for (const [x, z] of [[-edge, -edge], [edge, -edge], [-edge, edge], [edge, edge]] as const) add(box(0.12, CROWN.posts - railH, 0.12, wood), x, deckY + railH + (CROWN.posts - railH) / 2, z);
+  for (const [x, z, w, d] of [[0, -edge, edge * 2, 0.1], [0, edge, edge * 2, 0.1], [-edge, 0, 0.1, edge * 2], [edge, 0, 0.1, edge * 2]] as const) add(box(w, 0.12, d, dark), x, topY, z);
+  const upH = CROWN.posts - railH, upSpan = Math.hypot(edge * 2, upH), upTilt = Math.atan2(upH, edge * 2);
+  for (const [side, along] of [[-1, 'x'], [-1, 'z'], [1, 'z']] as const) for (const lean of [-upTilt, upTilt]) {
+    const brace = box(0.06, 0.08, upSpan, dark);
+    if (along === 'x') { brace.rotation.set(0, Math.PI / 2, 0); brace.rotateX(lean); add(brace, 0, deckY + railH + upH / 2, side * edge); }
+    else { brace.rotateX(lean); add(brace, side * edge, deckY + railH + upH / 2, 0); }
+  }
+  // a pyramid of four rods from the top frame's corners to the antenna's foot
+  const apex = new Vector3(0, topY + 1.4, 0);
+  for (const [x, z] of [[-edge, -edge], [edge, -edge], [-edge, edge], [edge, edge]] as const) {
+    const from = new Vector3(x, topY, z), len = from.distanceTo(apex), rod = box(0.07, 0.07, len, wood);
+    rod.position.set(cx + (x + apex.x) / 2, (topY + apex.y) / 2, cz + (z + apex.z) / 2); rod.lookAt(cx + apex.x, apex.y, cz + apex.z); root.add(rod);
+  }
+  add(new Mesh(new CylinderGeometry(0.035, 0.06, CROWN.antenna, 6), wood), 0, apex.y + CROWN.antenna / 2, 0);
+  add(box(1.1, 0.05, 0.05, wood), 0, apex.y + CROWN.antenna * 0.62, 0);
+  add(new Mesh(new CylinderGeometry(0.09, 0.09, 0.14, 8), new MeshStandardMaterial({ color: 0x3a0a06, emissive: 0xff2a10, emissiveIntensity: 1.6 })), 0, apex.y + CROWN.antenna + 0.07, 0);
   // The south stair: 22 treads from the sand to the deck edge.
   const top = new Vector3(cx + STAIR.x, deckY, cz + edge), foot = new Vector3(top.x, 0, top.z + STAIR.count * STAIR.run);
   foot.y = groundAt(foot.x, foot.z);
