@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "gh-macos15",
-    "sha": "a28af631097f6f41bb92e0621c5d1a537054a804",
-    "build": "a28af63-muqcbvv3",
+    "sha": "f1507a5fb88334760d77a56197889313d0602acc",
+    "build": "f1507a5-mursar77",
     "shard": "nalati-grasslands",
     "tier": "phone",
     "viewport": {
@@ -4791,26 +4791,26 @@
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 95614.6000000001,
+    "playMs": 69862.70000000001,
     "stepMs": {
-      "renderer": 122,
-      "sky": 2599,
-      "terrain": 2520,
-      "cards": 191,
-      "forest": 288,
-      "physics": 38,
-      "edge": 229,
-      "grass": 897,
+      "renderer": 42,
+      "sky": 1495,
+      "terrain": 1531,
+      "cards": 547,
+      "forest": 232,
+      "physics": 10,
+      "edge": 189,
+      "grass": 911,
       "cabins": 0,
-      "props": 8863,
-      "animals": 430,
-      "weapon": 1,
-      "menu": 403,
-      "shaders": 19001,
-      "firstFrame": 7422,
-      "audio": 3954
+      "props": 7395,
+      "animals": 359,
+      "weapon": 0,
+      "menu": 499,
+      "shaders": 13940,
+      "firstFrame": 7270,
+      "audio": 3789
     },
-    "heapMB": 62.97563934326172
+    "heapMB": 64.27313232421875
   },
   "poses": {
     "camp": {
@@ -4822,10 +4822,10 @@
       ],
       "calls": 79,
       "tris": 1174948,
-      "fps": 18.772126541771023,
-      "frameP95Ms": 260.89999999990687,
-      "cpuP50Ms": 14.800000000046566,
-      "cpuP95Ms": 43.5,
+      "fps": 14.701384298132181,
+      "frameP95Ms": 260.8999999999651,
+      "cpuP50Ms": 22.79999999998836,
+      "cpuP95Ms": 73.60000000003492,
       "creatureBoxes": 2,
       "boxes": [
         [
@@ -4853,10 +4853,10 @@
       ],
       "calls": 90,
       "tris": 1279751,
-      "fps": 18.614064237260717,
-      "frameP95Ms": 282.39999999990687,
-      "cpuP50Ms": 11.600000000093132,
-      "cpuP95Ms": 24.5999999998603,
+      "fps": 16.794977287329463,
+      "frameP95Ms": 280.9000000000233,
+      "cpuP50Ms": 15.100000000034925,
+      "cpuP95Ms": 49.40000000002328,
       "creatureBoxes": 15,
       "boxes": [
         [
@@ -4962,10 +4962,10 @@
       ],
       "calls": 108,
       "tris": 1292909,
-      "fps": 16.0591494039793,
-      "frameP95Ms": 347.0999999998603,
-      "cpuP50Ms": 12.100000000093132,
-      "cpuP95Ms": 29.800000000046566,
+      "fps": 13.179309368808404,
+      "frameP95Ms": 396.9000000000233,
+      "cpuP50Ms": 19.599999999976717,
+      "cpuP95Ms": 81.79999999998836,
       "creatureBoxes": 17,
       "boxes": [
         [
@@ -5431,7 +5431,7 @@
         },
         "maxY": 0.021,
         "out": 0,
-        "seconds": 26.633333333336164,
+        "seconds": 26.633333333329457,
         "trace": [
           [
             0.033,
@@ -15021,7 +15021,7 @@
         },
         "maxY": 34.938,
         "out": 0,
-        "seconds": 3.4666666666676758,
+        "seconds": 3.4666666666661623,
         "trace": [
           [
             0.033,
@@ -16271,7 +16271,7 @@
         },
         "maxY": 54.119,
         "out": 0,
-        "seconds": 39.76666666667824,
+        "seconds": 39.76666666667566,
         "trace": [
           [
             0.033,
@@ -30830,7 +30830,7 @@
             "z": 213.4
           },
           "hp": 150,
-          "brain": "idle"
+          "brain": "graze"
         },
         {
           "id": "horse:22",
@@ -31264,7 +31264,7 @@
             "z": 213.4
           },
           "hp": 150,
-          "brain": "idle"
+          "brain": "graze"
         },
         {
           "id": "horse:22",
@@ -31651,16 +31651,16 @@
       "listeners": [
         "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4400/?chunk=nalati-grasslands&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
         "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4400/?chunk=nalati-grasslands&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:37:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:3194)\n    at F (http://127.0.0.1:4400/assets/bootTrace-D0PY2sLI.js:2:5163)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:2:2883",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:2:3937",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:2:4030"
+        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:3194)\n    at F (http://127.0.0.1:4400/assets/bootTrace-C3-8c70r.js:2:5163)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:2:2883",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:2:3937",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:2:4030"
       ],
       "timers": [
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:2:3920",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:3275)\n    at qe (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:80:5558",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:3375)\n    at qe (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:80:5558",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:3484)\n    at qe (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:80:5558",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:80:9021"
+        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:3897)\n    at e.combat (http://127.0.0.1:4400/assets/runtime-Ch2oIcIo.js:1809:56612)\n    at Oe.N.onHit (http://127.0.0.1:4400/assets/session-BYTNyqDF.js:11:10668)\n    at e.onHit (http://127.0.0.1:4400/assets/engine-Cpf6qfqK.js:2:10883)\n    at arrows.onHit (http://127.0.0.1:4400/assets/kit-QgpW59yR.js:10:26129)\n    at Go.testHit (http://127.0.0.1:4400/assets/engine-Cpf6qfqK.js:25:19791)\n    at Go.update (http://127.0.0.1:4400/assets/engine-Cpf6qfqK.js:25:17966)\n    at ii.update (http://127.0.0.1:4400/assets/kit-QgpW59yR.js:10:31899)\n    at sa.update (http://127.0.0.1:4400/assets/engine-Cpf6qfqK.js:2:15685)",
+        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:3897)\n    at http://127.0.0.1:4400/assets/runtime-Ch2oIcIo.js:1844:85081\n    at r (http://127.0.0.1:4400/assets/runtime-Dyllq7kc.js:1:91)\n    at http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:3958\n    at <anonymous>:30:83\n    at Object.run (<anonymous>:17:205)\n    at MessagePort.tick (<anonymous>:49:13)",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:2:3920",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:3275)\n    at qe (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:80:5555",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:3375)\n    at qe (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:80:5555"
       ]
     },
     "retained": [
@@ -31790,12 +31790,12 @@
         "retained": true
       },
       {
-        "key": "scene:e731ad4a-1f23-4c1b-a026-b42e8bd73f9d",
+        "key": "scene:bc4e9152-057f-424f-b8f0-6adfd95791b9",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:55117906-a3d6-4b95-b8c4-d3bb38b97257",
+        "key": "scene:24e24e5d-35fd-426c-98d0-e50db4fe61fd",
         "refs": 0,
         "retained": true
       },
@@ -32145,22 +32145,7 @@
         "retained": true
       },
       {
-        "key": "scene:609830e6-44b4-4b7b-8ebb-30c93191f130",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:fcc091c1-bc48-433d-ac24-f4ffe1de2f2a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a4040317-cc3d-42c3-b7bf-8e125e09042f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:8ecd771d-dd19-4d38-bb6c-107a71360e2b",
+        "key": "scene:a1a2e322-3860-456e-aa4f-281757b1f2de",
         "refs": 0,
         "retained": true
       },
@@ -32170,17 +32155,12 @@
         "retained": true
       },
       {
-        "key": "scene:d126acd6-8833-467d-b949-4ac436b569e4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:6877555d-e7fb-48c0-9294-77f19fe9f82f",
-        "refs": 0,
-        "retained": true
-      },
-      {
         "key": "scene:f3086b38-2404-4230-b971-5df5d3227f3c",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:dafa2fef-7644-4260-a504-49f11aa5ed74",
         "refs": 0,
         "retained": true
       },
@@ -32190,17 +32170,17 @@
         "retained": true
       },
       {
+        "key": "scene:5a7cc286-56c8-41d9-bd3d-b4edd78907d8",
+        "refs": 0,
+        "retained": true
+      },
+      {
         "key": "scene:9bb9afc9-7c24-45e8-b8f5-132947fad5e1",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:2805cc3e-d642-4291-9ffe-4e234e004924",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:3e1a51b6-017d-4a14-adf0-81b43a0b3480",
+        "key": "scene:574e8e95-0279-4e0d-aa93-c92c2abe315b",
         "refs": 0,
         "retained": true
       },
@@ -32210,12 +32190,32 @@
         "retained": true
       },
       {
-        "key": "scene:234be5c6-25ad-4083-b5ba-e7ae48d32299",
+        "key": "scene:bd075ea3-9bef-46e1-9b66-6f02f374753b",
         "refs": 0,
         "retained": true
       },
       {
         "key": "scene:8771288f-8894-4194-bef0-2710cf17b2c7",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:ea191068-0142-464c-bd4e-b750efa0d544",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:bb8d4587-9f99-4a08-83e4-e866b46ae91d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:609ee789-6173-48e6-8acb-4f720b8795bc",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:e660c67d-f1fa-4083-bd5c-1a68197bbf4a",
         "refs": 0,
         "retained": true
       },
@@ -32270,22 +32270,22 @@
         "retained": true
       },
       {
-        "key": "scene:957b7bf4-f460-40a7-a821-f19c37792b75",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2001b09d-874b-4896-983e-28d703be07de",
-        "refs": 0,
-        "retained": true
-      },
-      {
         "key": "scene:ecf43a91-3f34-4a20-9837-4c263916e2c5",
         "refs": 0,
         "retained": true
       },
       {
+        "key": "scene:957b7bf4-f460-40a7-a821-f19c37792b75",
+        "refs": 0,
+        "retained": true
+      },
+      {
         "key": "scene:7685eae4-bbe3-40f7-88fa-896b880d027c",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2001b09d-874b-4896-983e-28d703be07de",
         "refs": 0,
         "retained": true
       },
@@ -32325,47 +32325,47 @@
         "retained": true
       },
       {
-        "key": "scene:6a0979dc-9dd1-4857-baa9-633db446b853",
-        "refs": 0,
-        "retained": true
-      },
-      {
         "key": "scene:22e2e494-bb2d-4c72-8037-874816d10630",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:1428ec4c-f066-450e-889e-fc26b567eb9d",
+        "key": "scene:33d0c30d-1ed8-4359-a062-7d189dcf2aac",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:9530bc31-1b65-4f6b-a833-3483d1d95626",
+        "key": "scene:44396462-b842-4c0e-94a2-d99804847d47",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:4d3d702c-5b51-4dbe-a0c8-364ed71b577d",
+        "key": "scene:2e707a8b-c57e-4a61-b55c-99f383073852",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:ab9d27d4-2fe3-4bd2-a8b4-5eda9f46382b",
+        "key": "scene:953c7e5a-a2f2-41d8-a480-0ccca15a8723",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:d3f81d10-11c3-4f41-9ea8-f91c13224256",
+        "key": "scene:b9612098-397b-4955-9b6f-a85aa15c48ed",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:8cc7d87b-95fa-4190-942a-cd16a9859a65",
+        "key": "scene:3b6f77c5-181a-4b11-96ad-ea0cf72888e6",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:34b98418-3aae-4089-adf7-a064e3511868",
+        "key": "scene:6981e168-e327-42e8-a560-cb9e290f5afa",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a01803e7-39c3-4167-b54d-758120dc4a19",
         "refs": 0,
         "retained": true
       },
@@ -32545,47 +32545,47 @@
         "retained": true
       },
       {
-        "key": "scene:423d7342-db02-4d56-9640-0e948c4389d9",
-        "refs": 0,
-        "retained": true
-      },
-      {
         "key": "scene:812e53d7-60da-4e65-9221-8e35a10182ad",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:a27936f3-7da1-48b0-b8fb-9bc3beac363a",
+        "key": "scene:3e5b9b91-4339-4e88-a28c-681f4a70b073",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:aa026c80-3610-4578-9801-7ac2d5c92911",
+        "key": "scene:51ceb4da-39a6-47cf-8015-77127d0527ec",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:953c7e5a-a2f2-41d8-a480-0ccca15a8723",
+        "key": "scene:89132cec-fda1-446d-9a63-362aec88dbfb",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:b9612098-397b-4955-9b6f-a85aa15c48ed",
+        "key": "scene:5608c29c-05b2-48b1-b34d-fbab86b649b0",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3b6f77c5-181a-4b11-96ad-ea0cf72888e6",
+        "key": "scene:9e0fd9dd-6ee0-476b-beeb-6746b71b04dd",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:6981e168-e327-42e8-a560-cb9e290f5afa",
+        "key": "scene:a8ac82bd-1bab-48fa-ae21-428cb4ab860d",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:a01803e7-39c3-4167-b54d-758120dc4a19",
+        "key": "scene:d7eea1e5-ac52-4ea5-a86a-13d1c4c91e7d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:55380e3d-ad0b-41e9-818d-825f81d3cc1b",
         "refs": 0,
         "retained": true
       },
@@ -32875,32 +32875,32 @@
         "retained": true
       },
       {
-        "key": "scene:496ce385-ec68-4cdd-beba-c45e9863b6d4",
+        "key": "scene:b2ed0a77-b4ad-4d26-b965-a8eba5e71850",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:7793a3f7-5baf-4c25-a179-c5eca79c9389",
+        "key": "scene:c57995e9-60ed-4f99-9611-6f633e2dc08b",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:5c4f65e7-ea18-40d8-9b96-225d8235d71c",
+        "key": "scene:1483bc7a-6454-4eb7-801c-4fb29888a949",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:16a879f9-c1a4-4d5f-ae8d-91c3e652d2c7",
+        "key": "scene:2a8aac13-6542-4c48-99c9-cd58bc43f383",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:c1914be8-df59-4e19-a86e-53f104462324",
+        "key": "scene:6475949e-ad39-4a98-916d-6a60ad9470d4",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:b6a8fa0a-ab0a-4829-97b7-1c92b75033b9",
+        "key": "scene:5dee6e5f-8cb2-4192-9017-bcc60336d38f",
         "refs": 0,
         "retained": true
       },
@@ -33246,7 +33246,7 @@
         },
         {
           "type": "El",
-          "uuid": "fcc091c1-bc48-433d-ac24-f4ffe1de2f2a",
+          "uuid": "73a624ff-03c7-46e5-b149-83fb8676cbc2",
           "name": "hands-sleeve",
           "retained": true,
           "texture": false,
@@ -33257,7 +33257,7 @@
         },
         {
           "type": "El",
-          "uuid": "8ecd771d-dd19-4d38-bb6c-107a71360e2b",
+          "uuid": "dafa2fef-7644-4260-a504-49f11aa5ed74",
           "name": "hands-cuff",
           "retained": true,
           "texture": false,
@@ -33268,7 +33268,7 @@
         },
         {
           "type": "El",
-          "uuid": "d126acd6-8833-467d-b949-4ac436b569e4",
+          "uuid": "5a7cc286-56c8-41d9-bd3d-b4edd78907d8",
           "name": "hands-glove",
           "retained": true,
           "texture": false,
@@ -33279,7 +33279,7 @@
         },
         {
           "type": "Pa",
-          "uuid": "77e5a070-7fa8-42e7-94fd-790c145d0a33",
+          "uuid": "bb8d4587-9f99-4a08-83e4-e866b46ae91d",
           "name": "",
           "retained": true,
           "texture": false,
@@ -33467,17 +33467,6 @@
         },
         {
           "type": "Al",
-          "uuid": "423d7342-db02-4d56-9640-0e948c4389d9",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            35
-          ],
-          "image": {}
-        },
-        {
-          "type": "Al",
           "uuid": "812e53d7-60da-4e65-9221-8e35a10182ad",
           "name": "",
           "retained": true,
@@ -33489,7 +33478,7 @@
         },
         {
           "type": "Al",
-          "uuid": "a27936f3-7da1-48b0-b8fb-9bc3beac363a",
+          "uuid": "3e5b9b91-4339-4e88-a28c-681f4a70b073",
           "name": "",
           "retained": true,
           "texture": false,
@@ -33500,7 +33489,7 @@
         },
         {
           "type": "Al",
-          "uuid": "aa026c80-3610-4578-9801-7ac2d5c92911",
+          "uuid": "51ceb4da-39a6-47cf-8015-77127d0527ec",
           "name": "",
           "retained": true,
           "texture": false,
@@ -33511,7 +33500,7 @@
         },
         {
           "type": "Al",
-          "uuid": "953c7e5a-a2f2-41d8-a480-0ccca15a8723",
+          "uuid": "89132cec-fda1-446d-9a63-362aec88dbfb",
           "name": "",
           "retained": true,
           "texture": false,
@@ -33522,7 +33511,18 @@
         },
         {
           "type": "Al",
-          "uuid": "3b6f77c5-181a-4b11-96ad-ea0cf72888e6",
+          "uuid": "9e0fd9dd-6ee0-476b-beeb-6746b71b04dd",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            35
+          ],
+          "image": {}
+        },
+        {
+          "type": "Al",
+          "uuid": "a8ac82bd-1bab-48fa-ae21-428cb4ab860d",
           "name": "",
           "retained": true,
           "texture": false,
@@ -33566,7 +33566,7 @@
         },
         {
           "type": "Al",
-          "uuid": "b9612098-397b-4955-9b6f-a85aa15c48ed",
+          "uuid": "5608c29c-05b2-48b1-b34d-fbab86b649b0",
           "name": "",
           "retained": true,
           "texture": false,
@@ -33588,7 +33588,7 @@
         },
         {
           "type": "Al",
-          "uuid": "6981e168-e327-42e8-a560-cb9e290f5afa",
+          "uuid": "d7eea1e5-ac52-4ea5-a86a-13d1c4c91e7d",
           "name": "",
           "retained": true,
           "texture": false,
@@ -33611,12 +33611,23 @@
         },
         {
           "type": "Al",
-          "uuid": "a01803e7-39c3-4167-b54d-758120dc4a19",
+          "uuid": "55380e3d-ad0b-41e9-818d-825f81d3cc1b",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [
             35
+          ],
+          "image": {}
+        },
+        {
+          "type": "Al",
+          "uuid": "ad077231-bfeb-459d-81c1-ca206011cadd",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            39
           ],
           "image": {}
         },
@@ -33634,17 +33645,6 @@
         {
           "type": "Al",
           "uuid": "7bbce97d-1da7-409f-88bb-14f637aab37b",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            39
-          ],
-          "image": {}
-        },
-        {
-          "type": "Al",
-          "uuid": "ad077231-bfeb-459d-81c1-ca206011cadd",
           "name": "",
           "retained": true,
           "texture": false,
@@ -34150,7 +34150,7 @@
         },
         {
           "type": "Al",
-          "uuid": "496ce385-ec68-4cdd-beba-c45e9863b6d4",
+          "uuid": "b2ed0a77-b4ad-4d26-b965-a8eba5e71850",
           "name": "",
           "retained": true,
           "texture": false,
@@ -34461,12 +34461,12 @@
         },
         {
           "type": "e",
-          "uuid": "2001b09d-874b-4896-983e-28d703be07de",
+          "uuid": "957b7bf4-f460-40a7-a821-f19c37792b75",
           "name": "nalati-path",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "d0dcf818-f9ea-4105-9936-1f66b394997c",
+          "source": "0456991f-5f12-4ccb-b4b0-5f1d4cbfcf0d",
           "image": {
             "width": 512,
             "height": 512
@@ -34487,25 +34487,12 @@
         },
         {
           "type": "e",
-          "uuid": "7685eae4-bbe3-40f7-88fa-896b880d027c",
+          "uuid": "2001b09d-874b-4896-983e-28d703be07de",
           "name": "nalati-rock",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "1dd3e262-4fce-43c7-9e66-067bc5a14aa1",
-          "image": {
-            "width": 512,
-            "height": 512
-          }
-        },
-        {
-          "type": "e",
-          "uuid": "6a0979dc-9dd1-4857-baa9-633db446b853",
-          "name": "Image_0",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "95a37c12-f9fe-4991-905b-12ebf5695e16",
+          "source": "d0dcf818-f9ea-4105-9936-1f66b394997c",
           "image": {
             "width": 512,
             "height": 512
@@ -34526,12 +34513,12 @@
         },
         {
           "type": "e",
-          "uuid": "1428ec4c-f066-450e-889e-fc26b567eb9d",
+          "uuid": "33d0c30d-1ed8-4359-a062-7d189dcf2aac",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "f40dfe10-2e83-4c2c-93e5-67216ec675f4",
+          "source": "3c5ee6e3-0c37-4f14-a882-720e7c57c78a",
           "image": {
             "width": 512,
             "height": 512
@@ -34539,12 +34526,12 @@
         },
         {
           "type": "e",
-          "uuid": "9530bc31-1b65-4f6b-a833-3483d1d95626",
+          "uuid": "44396462-b842-4c0e-94a2-d99804847d47",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "b8866f31-106c-4c42-8fc3-6d5405399e48",
+          "source": "9530bc31-1b65-4f6b-a833-3483d1d95626",
           "image": {
             "width": 512,
             "height": 512
@@ -34552,12 +34539,12 @@
         },
         {
           "type": "e",
-          "uuid": "4d3d702c-5b51-4dbe-a0c8-364ed71b577d",
+          "uuid": "2e707a8b-c57e-4a61-b55c-99f383073852",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "53717ac1-a72b-4774-9d23-7dc912f2d7f6",
+          "source": "bc652530-3cab-4c7a-bd0d-04b8ae32b0bc",
           "image": {
             "width": 512,
             "height": 512
@@ -34565,12 +34552,25 @@
         },
         {
           "type": "e",
-          "uuid": "d3f81d10-11c3-4f41-9ea8-f91c13224256",
+          "uuid": "b9612098-397b-4955-9b6f-a85aa15c48ed",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "22e1af79-14ce-4d9b-ad3c-9871943db10d",
+          "source": "42903de2-9caa-42bc-9bb9-635b71584ca2",
+          "image": {
+            "width": 512,
+            "height": 512
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "3b6f77c5-181a-4b11-96ad-ea0cf72888e6",
+          "name": "Image_0",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "0785ee9d-b8bb-4f14-aa35-33e21397354b",
           "image": {
             "width": 512,
             "height": 512
@@ -34604,12 +34604,12 @@
         },
         {
           "type": "e",
-          "uuid": "ab9d27d4-2fe3-4bd2-a8b4-5eda9f46382b",
+          "uuid": "953c7e5a-a2f2-41d8-a480-0ccca15a8723",
           "name": "atlas",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "3e7777e2-129b-46e6-a35d-b8b07f1f9c0e",
+          "source": "3b2aae23-0add-42e8-a182-06d85cbe8441",
           "image": {
             "width": 512,
             "height": 512
@@ -34617,12 +34617,12 @@
         },
         {
           "type": "e",
-          "uuid": "8cc7d87b-95fa-4190-942a-cd16a9859a65",
+          "uuid": "6981e168-e327-42e8-a560-cb9e290f5afa",
           "name": "atlas",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "f459850c-33a8-4c98-ae78-ac485b741f69",
+          "source": "7901acde-ce49-4395-b4be-a8350a6eaf37",
           "image": {
             "width": 512,
             "height": 512
@@ -34630,12 +34630,25 @@
         },
         {
           "type": "e",
-          "uuid": "34b98418-3aae-4089-adf7-a064e3511868",
+          "uuid": "a01803e7-39c3-4167-b54d-758120dc4a19",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "51f89925-30c9-438b-a5a9-63e0e5924c47",
+          "source": "f16190af-7326-4542-9063-c6fd69b13595",
+          "image": {
+            "width": 512,
+            "height": 512
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "7ae75810-95ba-4284-aa45-cf2e1a9d76af",
+          "name": "atlas",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "21000030-a955-4d7d-832f-09dd558a363c",
           "image": {
             "width": 512,
             "height": 512
@@ -34668,19 +34681,6 @@
           }
         },
         {
-          "type": "e",
-          "uuid": "7ae75810-95ba-4284-aa45-cf2e1a9d76af",
-          "name": "atlas",
-          "retained": true,
-          "texture": true,
-          "programs": [],
-          "source": "21000030-a955-4d7d-832f-09dd558a363c",
-          "image": {
-            "width": 512,
-            "height": 512
-          }
-        },
-        {
           "type": "ys",
           "uuid": "4adab452-8c76-41fa-a793-f95d91f21a87",
           "name": "Image_0:wolf:wolf:alpha",
@@ -34695,12 +34695,12 @@
         },
         {
           "type": "e",
-          "uuid": "ebb33504-5352-433e-b8cd-d0c372d0ccee",
+          "uuid": "ef6eef14-8004-402d-b7de-8744b226a9bf",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "a8a68ba8-8f41-46ae-938a-af3fd04a3777",
+          "source": "ff2516fb-313b-464f-aee2-97bb8d73ca28",
           "image": {
             "width": 512,
             "height": 512
@@ -34760,12 +34760,12 @@
         },
         {
           "type": "e",
-          "uuid": "edfa5ab1-dfb5-4530-b113-a49ce9f03cf1",
+          "uuid": "5718e5a2-30a7-4f1a-a4cc-7597b5d470e1",
           "name": "atlas",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "56e64272-95a6-4735-a444-669d2599314d",
+          "source": "123fe785-2759-445a-95c6-37186f3e1196",
           "image": {
             "width": 512,
             "height": 512
@@ -34851,12 +34851,12 @@
         },
         {
           "type": "e",
-          "uuid": "5718e5a2-30a7-4f1a-a4cc-7597b5d470e1",
+          "uuid": "ebb33504-5352-433e-b8cd-d0c372d0ccee",
           "name": "atlas",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "123fe785-2759-445a-95c6-37186f3e1196",
+          "source": "a8a68ba8-8f41-46ae-938a-af3fd04a3777",
           "image": {
             "width": 512,
             "height": 512
@@ -34877,12 +34877,12 @@
         },
         {
           "type": "e",
-          "uuid": "55117906-a3d6-4b95-b8c4-d3bb38b97257",
+          "uuid": "24e24e5d-35fd-426c-98d0-e50db4fe61fd",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "8e823091-c092-45cf-9193-d9ca2fbda5c0",
+          "source": "efec2470-2fa4-4ab7-80c8-33782f774df8",
           "image": {
             "width": 512,
             "height": 512
@@ -34930,12 +34930,12 @@
         },
         {
           "type": "e",
-          "uuid": "957b7bf4-f460-40a7-a821-f19c37792b75",
+          "uuid": "ecf43a91-3f34-4a20-9837-4c263916e2c5",
           "name": "nalati-meadow",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "0456991f-5f12-4ccb-b4b0-5f1d4cbfcf0d",
+          "source": "f7457d41-2923-4f36-964a-5ba26d9ed047",
           "image": {
             "width": 512,
             "height": 512
@@ -34943,12 +34943,12 @@
         },
         {
           "type": "e",
-          "uuid": "ecf43a91-3f34-4a20-9837-4c263916e2c5",
+          "uuid": "7685eae4-bbe3-40f7-88fa-896b880d027c",
           "name": "nalati-gravel",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "f7457d41-2923-4f36-964a-5ba26d9ed047",
+          "source": "1dd3e262-4fce-43c7-9e66-067bc5a14aa1",
           "image": {
             "width": 512,
             "height": 512
@@ -35058,25 +35058,7 @@
         },
         {
           "type": "e",
-          "uuid": "ec79d1e2-6f03-4e11-9f1e-a6dae583a982",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "6318bfad-3f8a-4318-a8ce-a4e152b341ec",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [],
-          "image": {}
-        },
-        {
-          "type": "e",
-          "uuid": "d2bedaab-7029-453d-ac33-72d2373a7045",
+          "uuid": "ee899ba0-def2-40af-b9bc-b75624df39f2",
           "name": "",
           "retained": true,
           "texture": false,
@@ -35094,6 +35076,24 @@
         },
         {
           "type": "e",
+          "uuid": "d2bedaab-7029-453d-ac33-72d2373a7045",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "ec79d1e2-6f03-4e11-9f1e-a6dae583a982",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
           "uuid": "92c0b835-013d-4272-94af-104195161683",
           "name": "",
           "retained": true,
@@ -35103,7 +35103,7 @@
         },
         {
           "type": "e",
-          "uuid": "16cafa6b-8160-482c-9db5-a2a6ec582245",
+          "uuid": "a3b708a6-5b5e-41bc-a4ab-fdade240cdaf",
           "name": "",
           "retained": true,
           "texture": false,
@@ -35112,12 +35112,12 @@
         },
         {
           "type": "e",
-          "uuid": "3423f8b4-7fb4-40d8-8a88-c2b2e75d9a82",
+          "uuid": "d2ddd3b2-0acf-4bfd-bf86-ce73e011b1bb",
           "name": "atlas",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "44dd6bd1-713c-41ee-9dd9-ed22247bb65a",
+          "source": "0283261d-aaf1-405b-b9ce-af08472f2bff",
           "image": {
             "width": 512,
             "height": 512
@@ -35125,7 +35125,7 @@
         },
         {
           "type": "Al",
-          "uuid": "5c4f65e7-ea18-40d8-9b96-225d8235d71c",
+          "uuid": "1483bc7a-6454-4eb7-801c-4fb29888a949",
           "name": "",
           "retained": true,
           "texture": false,
@@ -35136,7 +35136,7 @@
         },
         {
           "type": "e",
-          "uuid": "a573b63f-cd64-445a-9827-4791ad31d0b1",
+          "uuid": "16cafa6b-8160-482c-9db5-a2a6ec582245",
           "name": "",
           "retained": true,
           "texture": false,
@@ -35156,12 +35156,12 @@
         },
         {
           "type": "e",
-          "uuid": "4e427d40-4a7f-4e9c-b884-1e2d9ea864ec",
+          "uuid": "3423f8b4-7fb4-40d8-8a88-c2b2e75d9a82",
           "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "f28773cf-b27d-44d3-ab81-d106b70291b8",
+          "source": "44dd6bd1-713c-41ee-9dd9-ed22247bb65a",
           "image": {
             "width": 512,
             "height": 512
@@ -35307,16 +35307,16 @@
         "listeners": [
           "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4400/?chunk=nalati-grasslands&tier=phone&skipintro=1&nolock=1&mute=1&sw=0&weather=storm&touch=1:36:16",
           "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4400/?chunk=nalati-grasslands&tier=phone&skipintro=1&nolock=1&mute=1&sw=0&weather=storm&touch=1:37:16",
-          "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:3194)\n    at F (http://127.0.0.1:4400/assets/bootTrace-D0PY2sLI.js:2:5163)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:2:2883",
-          "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:2:3937",
-          "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:2:4030"
+          "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:3194)\n    at F (http://127.0.0.1:4400/assets/bootTrace-C3-8c70r.js:2:5163)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:2:2883",
+          "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:2:3937",
+          "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:3194)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:2:4030"
         ],
         "timers": [
-          "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:3897)\n    at Hc (http://127.0.0.1:4400/assets/runtime-CNTDSn18.js:25:50395)\n    at c (http://127.0.0.1:4400/assets/runtime-CNTDSn18.js:25:52138)\n    at async http://127.0.0.1:4400/assets/runtime-CNTDSn18.js:25:52348\n    at async http://127.0.0.1:4400/assets/runtime-CNTDSn18.js:25:6108",
-          "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:3897)\n    at Hc (http://127.0.0.1:4400/assets/runtime-CNTDSn18.js:25:50395)\n    at c (http://127.0.0.1:4400/assets/runtime-CNTDSn18.js:25:52138)\n    at async http://127.0.0.1:4400/assets/runtime-CNTDSn18.js:25:52348\n    at async http://127.0.0.1:4400/assets/runtime-CNTDSn18.js:25:6108",
-          "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:2:3920",
-          "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:3275)\n    at qe (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:80:5558",
-          "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-B6WKnIqw.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:3375)\n    at qe (http://127.0.0.1:4400/assets/index-Boyd1-mN.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-Boyd1-mN.js:80:5558"
+          "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:2:3920",
+          "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:3275)\n    at qe (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:80:5555",
+          "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:3375)\n    at qe (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:80:5555",
+          "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:4166)\n    at He (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:3484)\n    at qe (http://127.0.0.1:4400/assets/index-CK5PrFZv.js:73:4569)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:80:5555",
+          "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:4400/assets/scope-DOlLqkeG.js:1:4166)\n    at http://127.0.0.1:4400/assets/index-CK5PrFZv.js:80:9020"
         ]
       },
       "retained": [
@@ -35446,12 +35446,12 @@
           "retained": true
         },
         {
-          "key": "scene:bc4e9152-057f-424f-b8f0-6adfd95791b9",
+          "key": "scene:609830e6-44b4-4b7b-8ebb-30c93191f130",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:24e24e5d-35fd-426c-98d0-e50db4fe61fd",
+          "key": "scene:e9328289-82e1-41d6-bdea-24fde3cca72c",
           "refs": 0,
           "retained": true
         },
@@ -35926,12 +35926,12 @@
           "retained": true
         },
         {
-          "key": "scene:ecf43a91-3f34-4a20-9837-4c263916e2c5",
+          "key": "scene:957b7bf4-f460-40a7-a821-f19c37792b75",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:957b7bf4-f460-40a7-a821-f19c37792b75",
+          "key": "scene:ecf43a91-3f34-4a20-9837-4c263916e2c5",
           "refs": 0,
           "retained": true
         },
@@ -35941,12 +35941,12 @@
           "retained": true
         },
         {
-          "key": "scene:02e020d8-d44e-4e93-9395-2a93e0f8a0a0",
+          "key": "scene:2001b09d-874b-4896-983e-28d703be07de",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:2001b09d-874b-4896-983e-28d703be07de",
+          "key": "scene:02e020d8-d44e-4e93-9395-2a93e0f8a0a0",
           "refs": 0,
           "retained": true
         },
@@ -35981,37 +35981,37 @@
           "retained": true
         },
         {
-          "key": "scene:423d7342-db02-4d56-9640-0e948c4389d9",
+          "key": "scene:6a0979dc-9dd1-4857-baa9-633db446b853",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:812e53d7-60da-4e65-9221-8e35a10182ad",
+          "key": "scene:f03dab63-a70f-44a3-a058-9a31ed10ce98",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:a27936f3-7da1-48b0-b8fb-9bc3beac363a",
+          "key": "scene:1428ec4c-f066-450e-889e-fc26b567eb9d",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:9530bc31-1b65-4f6b-a833-3483d1d95626",
+          "key": "scene:15f1fba0-7e95-41d5-829c-515de94ef0f6",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:4d3d702c-5b51-4dbe-a0c8-364ed71b577d",
+          "key": "scene:5ee41fc1-f4d0-430e-9a24-45088a2098c3",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:ab9d27d4-2fe3-4bd2-a8b4-5eda9f46382b",
+          "key": "scene:c6b516c9-8db9-428f-b3a8-55b96cedecd8",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:d3f81d10-11c3-4f41-9ea8-f91c13224256",
+          "key": "scene:55b16724-31b4-43aa-b025-2709cc461348",
           "refs": 0,
           "retained": true
         },
@@ -36021,12 +36021,12 @@
           "retained": true
         },
         {
-          "key": "scene:cd59f2b7-d095-4a11-915d-01fbd6024768",
+          "key": "scene:34b98418-3aae-4089-adf7-a064e3511868",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:e8db4850-a678-4fcd-b113-fdd7ed2f5547",
+          "key": "scene:9750bda7-e5f6-419c-a971-519c66b9b3f1",
           "refs": 0,
           "retained": true
         },
@@ -36186,52 +36186,52 @@
           "retained": true
         },
         {
-          "key": "scene:d7f6eb51-8ea0-49e2-9ce9-c46d6db4c5ff",
+          "key": "scene:b913afed-4b25-497f-8fb4-a912d551f3de",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:48a331d7-7156-415b-828c-2ee203a577fc",
+          "key": "scene:b396016d-46d0-448f-a073-d85c987f4ba8",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:7f72c13e-04c6-4b67-b0a3-c749a8884bf9",
+          "key": "scene:9de637f4-97b0-43b3-a9e5-f5d49b662d58",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:4da780cc-a053-4e6f-b342-2ea3a41bc2ea",
+          "key": "scene:423d7342-db02-4d56-9640-0e948c4389d9",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:3ea52222-1028-4741-b62b-37cdbcedb1b7",
+          "key": "scene:73f54122-a510-4369-9085-ed44540bb1a7",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:33df1152-4ef7-4452-8d5f-642e042e3445",
+          "key": "scene:a27936f3-7da1-48b0-b8fb-9bc3beac363a",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:aa026c80-3610-4578-9801-7ac2d5c92911",
+          "key": "scene:b8866f31-106c-4c42-8fc3-6d5405399e48",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:953c7e5a-a2f2-41d8-a480-0ccca15a8723",
+          "key": "scene:4d3d702c-5b51-4dbe-a0c8-364ed71b577d",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:b9612098-397b-4955-9b6f-a85aa15c48ed",
+          "key": "scene:ab9d27d4-2fe3-4bd2-a8b4-5eda9f46382b",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:3b6f77c5-181a-4b11-96ad-ea0cf72888e6",
+          "key": "scene:d3f81d10-11c3-4f41-9ea8-f91c13224256",
           "refs": 0,
           "retained": true
         },
@@ -36241,12 +36241,12 @@
           "retained": true
         },
         {
-          "key": "scene:b6e4cb3f-1a1d-413a-90ad-4da1a9412ad0",
+          "key": "scene:a01803e7-39c3-4167-b54d-758120dc4a19",
           "refs": 0,
           "retained": true
         },
         {
-          "key": "scene:7d4fa5c6-4fd8-45f3-962e-f82b9655845c",
+          "key": "scene:bec23d4b-0320-45b9-b1eb-716c8601ad40",
           "refs": 0,
           "retained": true
         },
@@ -37128,7 +37128,7 @@
           },
           {
             "type": "Al",
-            "uuid": "4da780cc-a053-4e6f-b342-2ea3a41bc2ea",
+            "uuid": "423d7342-db02-4d56-9640-0e948c4389d9",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37139,7 +37139,7 @@
           },
           {
             "type": "Al",
-            "uuid": "3ea52222-1028-4741-b62b-37cdbcedb1b7",
+            "uuid": "73f54122-a510-4369-9085-ed44540bb1a7",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37150,7 +37150,7 @@
           },
           {
             "type": "Al",
-            "uuid": "33df1152-4ef7-4452-8d5f-642e042e3445",
+            "uuid": "a27936f3-7da1-48b0-b8fb-9bc3beac363a",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37161,7 +37161,7 @@
           },
           {
             "type": "Al",
-            "uuid": "aa026c80-3610-4578-9801-7ac2d5c92911",
+            "uuid": "b8866f31-106c-4c42-8fc3-6d5405399e48",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37172,7 +37172,7 @@
           },
           {
             "type": "Al",
-            "uuid": "b9612098-397b-4955-9b6f-a85aa15c48ed",
+            "uuid": "4d3d702c-5b51-4dbe-a0c8-364ed71b577d",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37183,7 +37183,7 @@
           },
           {
             "type": "Al",
-            "uuid": "3b6f77c5-181a-4b11-96ad-ea0cf72888e6",
+            "uuid": "d3f81d10-11c3-4f41-9ea8-f91c13224256",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37216,7 +37216,7 @@
           },
           {
             "type": "Al",
-            "uuid": "7d4fa5c6-4fd8-45f3-962e-f82b9655845c",
+            "uuid": "bec23d4b-0320-45b9-b1eb-716c8601ad40",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37227,7 +37227,7 @@
           },
           {
             "type": "Al",
-            "uuid": "953c7e5a-a2f2-41d8-a480-0ccca15a8723",
+            "uuid": "ab9d27d4-2fe3-4bd2-a8b4-5eda9f46382b",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37238,7 +37238,7 @@
           },
           {
             "type": "Al",
-            "uuid": "48a331d7-7156-415b-828c-2ee203a577fc",
+            "uuid": "b396016d-46d0-448f-a073-d85c987f4ba8",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37260,7 +37260,7 @@
           },
           {
             "type": "Al",
-            "uuid": "7f72c13e-04c6-4b67-b0a3-c749a8884bf9",
+            "uuid": "9de637f4-97b0-43b3-a9e5-f5d49b662d58",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37272,7 +37272,7 @@
           },
           {
             "type": "Al",
-            "uuid": "b6e4cb3f-1a1d-413a-90ad-4da1a9412ad0",
+            "uuid": "a01803e7-39c3-4167-b54d-758120dc4a19",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37294,7 +37294,7 @@
           },
           {
             "type": "Al",
-            "uuid": "7bbce97d-1da7-409f-88bb-14f637aab37b",
+            "uuid": "ad077231-bfeb-459d-81c1-ca206011cadd",
             "name": "",
             "retained": true,
             "texture": false,
@@ -37305,7 +37305,7 @@
           },
           {
             "type": "Al",
-            "uuid": "ad077231-bfeb-459d-81c1-ca206011cadd",
+            "uuid": "7bbce97d-1da7-409f-88bb-14f637aab37b",
             "name": "",
             "retained": true,
             "texture": false,
@@ -38122,12 +38122,12 @@
           },
           {
             "type": "e",
-            "uuid": "957b7bf4-f460-40a7-a821-f19c37792b75",
+            "uuid": "ecf43a91-3f34-4a20-9837-4c263916e2c5",
             "name": "nalati-path",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "0456991f-5f12-4ccb-b4b0-5f1d4cbfcf0d",
+            "source": "f7457d41-2923-4f36-964a-5ba26d9ed047",
             "image": {
               "width": 512,
               "height": 512
@@ -38148,12 +38148,12 @@
           },
           {
             "type": "e",
-            "uuid": "02e020d8-d44e-4e93-9395-2a93e0f8a0a0",
+            "uuid": "2001b09d-874b-4896-983e-28d703be07de",
             "name": "nalati-rock",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "0173cab0-29ca-4b04-823d-c7ead633a65e",
+            "source": "d0dcf818-f9ea-4105-9936-1f66b394997c",
             "image": {
               "width": 512,
               "height": 512
@@ -38161,12 +38161,12 @@
           },
           {
             "type": "e",
-            "uuid": "423d7342-db02-4d56-9640-0e948c4389d9",
+            "uuid": "6a0979dc-9dd1-4857-baa9-633db446b853",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "9cc6850a-9a4f-4296-bcfe-d1ffb5142fef",
+            "source": "95a37c12-f9fe-4991-905b-12ebf5695e16",
             "image": {
               "width": 512,
               "height": 512
@@ -38174,12 +38174,12 @@
           },
           {
             "type": "e",
-            "uuid": "812e53d7-60da-4e65-9221-8e35a10182ad",
+            "uuid": "f03dab63-a70f-44a3-a058-9a31ed10ce98",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "73f54122-a510-4369-9085-ed44540bb1a7",
+            "source": "112265f6-fcad-4e68-95f4-5b22561f9f68",
             "image": {
               "width": 512,
               "height": 512
@@ -38187,12 +38187,12 @@
           },
           {
             "type": "e",
-            "uuid": "a27936f3-7da1-48b0-b8fb-9bc3beac363a",
+            "uuid": "1428ec4c-f066-450e-889e-fc26b567eb9d",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "46a13373-efdf-4d16-9ebe-0e9d204976c5",
+            "source": "f40dfe10-2e83-4c2c-93e5-67216ec675f4",
             "image": {
               "width": 512,
               "height": 512
@@ -38200,12 +38200,12 @@
           },
           {
             "type": "e",
-            "uuid": "9530bc31-1b65-4f6b-a833-3483d1d95626",
+            "uuid": "15f1fba0-7e95-41d5-829c-515de94ef0f6",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "b8866f31-106c-4c42-8fc3-6d5405399e48",
+            "source": "3e5b9b91-4339-4e88-a28c-681f4a70b073",
             "image": {
               "width": 512,
               "height": 512
@@ -38213,12 +38213,12 @@
           },
           {
             "type": "e",
-            "uuid": "ab9d27d4-2fe3-4bd2-a8b4-5eda9f46382b",
+            "uuid": "5ee41fc1-f4d0-430e-9a24-45088a2098c3",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "3e7777e2-129b-46e6-a35d-b8b07f1f9c0e",
+            "source": "258192ac-28ea-48c7-97f1-c0009eba04f2",
             "image": {
               "width": 512,
               "height": 512
@@ -38226,12 +38226,12 @@
           },
           {
             "type": "e",
-            "uuid": "d3f81d10-11c3-4f41-9ea8-f91c13224256",
+            "uuid": "55b16724-31b4-43aa-b025-2709cc461348",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "22e1af79-14ce-4d9b-ad3c-9871943db10d",
+            "source": "561e3180-f6da-4ae4-a6a1-825ddf1b17e2",
             "image": {
               "width": 512,
               "height": 512
@@ -38252,12 +38252,12 @@
           },
           {
             "type": "e",
-            "uuid": "e8db4850-a678-4fcd-b113-fdd7ed2f5547",
+            "uuid": "9750bda7-e5f6-419c-a971-519c66b9b3f1",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "714585f3-56ee-4dcb-afaf-749c707b3d34",
+            "source": "531be9cc-cefd-4b44-b515-306727ac4c24",
             "image": {
               "width": 512,
               "height": 512
@@ -38265,12 +38265,12 @@
           },
           {
             "type": "e",
-            "uuid": "4d3d702c-5b51-4dbe-a0c8-364ed71b577d",
+            "uuid": "c6b516c9-8db9-428f-b3a8-55b96cedecd8",
             "name": "atlas",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "53717ac1-a72b-4774-9d23-7dc912f2d7f6",
+            "source": "7415aecc-65f3-42ba-a205-a15220e7fb3c",
             "image": {
               "width": 512,
               "height": 512
@@ -38291,12 +38291,12 @@
           },
           {
             "type": "e",
-            "uuid": "cd59f2b7-d095-4a11-915d-01fbd6024768",
+            "uuid": "34b98418-3aae-4089-adf7-a064e3511868",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "9fe2d4de-b9f5-4cf2-987d-1edc595dfe46",
+            "source": "51f89925-30c9-438b-a5a9-63e0e5924c47",
             "image": {
               "width": 512,
               "height": 512
@@ -38317,12 +38317,12 @@
           },
           {
             "type": "e",
-            "uuid": "bab3807d-dee1-4fef-a620-650c650761c5",
+            "uuid": "7ae75810-95ba-4284-aa45-cf2e1a9d76af",
             "name": "atlas",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "65f7ccd6-fb33-492d-a620-23d6bce8b933",
+            "source": "21000030-a955-4d7d-832f-09dd558a363c",
             "image": {
               "width": 512,
               "height": 512
@@ -38330,12 +38330,12 @@
           },
           {
             "type": "e",
-            "uuid": "7ae75810-95ba-4284-aa45-cf2e1a9d76af",
+            "uuid": "bab3807d-dee1-4fef-a620-650c650761c5",
             "name": "atlas",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "21000030-a955-4d7d-832f-09dd558a363c",
+            "source": "65f7ccd6-fb33-492d-a620-23d6bce8b933",
             "image": {
               "width": 512,
               "height": 512
@@ -38356,12 +38356,12 @@
           },
           {
             "type": "e",
-            "uuid": "ebb33504-5352-433e-b8cd-d0c372d0ccee",
+            "uuid": "5718e5a2-30a7-4f1a-a4cc-7597b5d470e1",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "a8a68ba8-8f41-46ae-938a-af3fd04a3777",
+            "source": "123fe785-2759-445a-95c6-37186f3e1196",
             "image": {
               "width": 512,
               "height": 512
@@ -38512,12 +38512,12 @@
           },
           {
             "type": "e",
-            "uuid": "5718e5a2-30a7-4f1a-a4cc-7597b5d470e1",
+            "uuid": "ef6eef14-8004-402d-b7de-8744b226a9bf",
             "name": "atlas",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "123fe785-2759-445a-95c6-37186f3e1196",
+            "source": "ff2516fb-313b-464f-aee2-97bb8d73ca28",
             "image": {
               "width": 512,
               "height": 512
@@ -38538,12 +38538,12 @@
           },
           {
             "type": "e",
-            "uuid": "24e24e5d-35fd-426c-98d0-e50db4fe61fd",
+            "uuid": "e9328289-82e1-41d6-bdea-24fde3cca72c",
             "name": "Image_0",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "efec2470-2fa4-4ab7-80c8-33782f774df8",
+            "source": "d126acd6-8833-467d-b949-4ac436b569e4",
             "image": {
               "width": 512,
               "height": 512
@@ -38591,12 +38591,12 @@
           },
           {
             "type": "e",
-            "uuid": "ecf43a91-3f34-4a20-9837-4c263916e2c5",
+            "uuid": "957b7bf4-f460-40a7-a821-f19c37792b75",
             "name": "nalati-meadow",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "f7457d41-2923-4f36-964a-5ba26d9ed047",
+            "source": "0456991f-5f12-4ccb-b4b0-5f1d4cbfcf0d",
             "image": {
               "width": 512,
               "height": 512
@@ -38617,12 +38617,12 @@
           },
           {
             "type": "e",
-            "uuid": "2001b09d-874b-4896-983e-28d703be07de",
+            "uuid": "02e020d8-d44e-4e93-9395-2a93e0f8a0a0",
             "name": "nalati-snow",
             "retained": true,
             "texture": true,
             "programs": [],
-            "source": "d0dcf818-f9ea-4105-9936-1f66b394997c",
+            "source": "0173cab0-29ca-4b04-823d-c7ead633a65e",
             "image": {
               "width": 512,
               "height": 512
@@ -38719,7 +38719,7 @@
           },
           {
             "type": "e",
-            "uuid": "ec79d1e2-6f03-4e11-9f1e-a6dae583a982",
+            "uuid": "e8a606ea-caed-48ea-9644-72686c6212e3",
             "name": "",
             "retained": true,
             "texture": false,
@@ -38746,7 +38746,7 @@
           },
           {
             "type": "e",
-            "uuid": "e8a606ea-caed-48ea-9644-72686c6212e3",
+            "uuid": "ee899ba0-def2-40af-b9bc-b75624df39f2",
             "name": "",
             "retained": true,
             "texture": false,
@@ -38794,24 +38794,24 @@
     "boot.gpuBytes.renderbuffers": 0,
     "boot.gpuBytes.buffers": 0,
     "boot.gpuBytes.total": 0,
-    "boot.playMs": 10677.59999999986,
-    "boot.stepMs.renderer": 320,
-    "boot.stepMs.sky": 8541,
-    "boot.stepMs.terrain": 386,
-    "boot.stepMs.cards": 66,
-    "boot.stepMs.forest": 85,
-    "boot.stepMs.physics": 28,
-    "boot.stepMs.edge": 105,
-    "boot.stepMs.grass": 732,
-    "boot.stepMs.cabins": 5,
-    "boot.stepMs.props": 272,
-    "boot.stepMs.animals": 181,
-    "boot.stepMs.weapon": 21,
-    "boot.stepMs.menu": 431,
-    "boot.stepMs.shaders": 4839,
-    "boot.stepMs.firstFrame": 1088,
-    "boot.stepMs.audio": 360,
-    "boot.heapMB": 5.163673400878906,
+    "boot.playMs": 6591,
+    "boot.stepMs.renderer": 79,
+    "boot.stepMs.sky": 7079,
+    "boot.stepMs.terrain": 241,
+    "boot.stepMs.cards": 420,
+    "boot.stepMs.forest": 237,
+    "boot.stepMs.physics": 47,
+    "boot.stepMs.edge": 128,
+    "boot.stepMs.grass": 110,
+    "boot.stepMs.cabins": 0,
+    "boot.stepMs.props": 1600,
+    "boot.stepMs.animals": 101,
+    "boot.stepMs.weapon": 0,
+    "boot.stepMs.menu": 302,
+    "boot.stepMs.shaders": 3193,
+    "boot.stepMs.firstFrame": 2568,
+    "boot.stepMs.audio": 1507,
+    "boot.heapMB": 3.8546180725097656,
     "poses.camp.pos": [
       0,
       0,
@@ -38819,10 +38819,10 @@
     ],
     "poses.camp.calls": 0,
     "poses.camp.tris": 0,
-    "poses.camp.fps": 3.3413077026171862,
-    "poses.camp.frameP95Ms": 40.10000000009313,
-    "poses.camp.cpuP50Ms": 2,
-    "poses.camp.cpuP95Ms": 20.199999999953434,
+    "poses.camp.fps": 6.775069997953931,
+    "poses.camp.frameP95Ms": 63.699999999953434,
+    "poses.camp.cpuP50Ms": 11.900000000023283,
+    "poses.camp.cpuP95Ms": 106.59999999997672,
     "poses.camp.creatureBoxes": 0,
     "poses.camp.ssim": 0,
     "poses.bridge.pos": [
@@ -38832,10 +38832,10 @@
     ],
     "poses.bridge.calls": 0,
     "poses.bridge.tris": 0,
-    "poses.bridge.fps": 1.4779499874478894,
-    "poses.bridge.frameP95Ms": 47.0999999998603,
-    "poses.bridge.cpuP50Ms": 1,
-    "poses.bridge.cpuP95Ms": 21.899999999906868,
+    "poses.bridge.fps": 3.5581843843975705,
+    "poses.bridge.frameP95Ms": 57.29999999998836,
+    "poses.bridge.cpuP50Ms": 2.699999999953434,
+    "poses.bridge.cpuP95Ms": 11.200000000011642,
     "poses.bridge.creatureBoxes": 0,
     "poses.bridge.ssim": 0,
     "poses.plains.pos": [
@@ -38845,10 +38845,10 @@
     ],
     "poses.plains.calls": 0,
     "poses.plains.tris": 0,
-    "poses.plains.fps": 0.6153051645813008,
-    "poses.plains.frameP95Ms": 35.800000000046566,
-    "poses.plains.cpuP50Ms": 0.20000000018626451,
-    "poses.plains.cpuP95Ms": 5.100000000093132,
+    "poses.plains.fps": 1.882809201222127,
+    "poses.plains.frameP95Ms": 102.79999999998836,
+    "poses.plains.cpuP50Ms": 2.400000000023283,
+    "poses.plains.cpuP95Ms": 25.900000000023283,
     "poses.plains.creatureBoxes": 0,
     "poses.plains.ssim": 0,
     "budgets.camp.derived.draws": 0,
@@ -39031,7 +39031,7 @@
     "walk.legs.road-camp.end.z": 0,
     "walk.legs.road-camp.maxY": 0,
     "walk.legs.road-camp.out": 0,
-    "walk.legs.road-camp.seconds": 4.68247662865906e-12,
+    "walk.legs.road-camp.seconds": 0,
     "walk.legs.great-kurgan-door.stuck": [],
     "walk.legs.great-kurgan-door.end.x": 0,
     "walk.legs.great-kurgan-door.end.y": 0,
@@ -39045,7 +39045,7 @@
     "walk.legs.leopard-cave.end.z": 0,
     "walk.legs.leopard-cave.maxY": 0,
     "walk.legs.leopard-cave.out": 0,
-    "walk.legs.leopard-cave.seconds": 0,
+    "walk.legs.leopard-cave.seconds": 2.8776980798284058e-12,
     "walk.stuck": 0,
     "walk.sounds.event.footstep:gravel": 0,
     "walk.sounds.event.footstep:grass": 0,
@@ -39278,12 +39278,12 @@
     "leak.weather.gpu.retained.programs": 0
   },
   "selfMin": {
-    "camp": 0.9999436875050731,
+    "camp": 0.9999436875050693,
     "bridge": 0.9999382840448203,
     "plains": 0.9999640543884751
   },
   "harness": 2,
-  "sha": "a28af631097f6f41bb92e0621c5d1a537054a804",
-  "recorded": "2026-10-02T02:33:42.529Z",
+  "sha": "f1507a5fb88334760d77a56197889313d0602acc",
+  "recorded": "2026-10-03T02:47:41.411Z",
   "browser": "153.0.8010.12"
 }
