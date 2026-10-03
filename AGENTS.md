@@ -16,8 +16,8 @@
 - **[docs/SHARDS.md](docs/SHARDS.md)** is how to write a shard: copy `src/shards/_template/`, fill the manifest, the
   plugin verbs, weapons, creatures, the look, audio, budgets, saves, strings, and the checklist to `live`. Every shard
   folder has a `README.md` (what it declares, its custom code and why, budgets, look, open asks).
-- **The guards** ([ARCH-GUARDS](docs/plans/ARCH-GUARDS.md), `lint/wildshard-plugin.js`): `wildshard/layer` (public
-  indexes only), `shard-sandbox` (no globals, own settings and assets), `no-level-identity` and `no-shard-branch` (no
+- **The guards** ([ARCH-GUARDS](docs/plans/ARCH-GUARDS.md), `lint/wildshard-plugin.js`): `wildshard/layer` (imports
+  point down), `public-index` (public indexes only), `engine-words` (no shard vocabulary in engine code), `shard-sandbox` (no globals, own settings and assets), `no-level-identity` and `no-shard-branch` (no
   branching on a level's name or style outside its folder), the `no-raw-*` rules, the ratchet (`lint/ratchet.json`),
   the layout check (`scripts/check-shards.mjs`, `lint/shard-layout.json`) and the pre-commit runner
   (`scripts/precommit-guards.mjs`). ENGINE.md §24 lists them all.

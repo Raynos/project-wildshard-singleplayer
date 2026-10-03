@@ -426,7 +426,7 @@ See [ENGINE.md §20](ENGINE.md#20-the-game-layer-game) for options and the compl
 
 | Guard | Runs | Run it yourself |
 |---|---|---|
-| `wildshard/layer` | pre-commit, `pnpm test` | `node lint/ratchet.mjs`. Imports: `#engine`, `#engine/data`, `#game`, `#kit`, and `./` inside your folder. Nothing deeper, no other shard |
+| `wildshard/layer`, `wildshard/public-index` | pre-commit, `pnpm test` | `node lint/ratchet.mjs`. Imports: `#engine`, `#engine/data`, `#game`, `#kit`, and `./` inside your folder. Nothing deeper, no other shard |
 | `wildshard/shard-sandbox` | pre-commit, `pnpm test` | same. No `window` / `globalThis`, no window or document input listeners, only your own settings and asset folders |
 | `wildshard/no-level-identity`, `no-shard-branch` | pre-commit, lint | they guard the engine and game against branching on your slug; in your folder, keep identity checks out of shared helpers |
 | the hard rules (`no-raw-save`, `no-raw-input`, `no-raw-hud`, `no-raw-shader-patch`, `no-raw-animation-mixer`, `no-url-switch`) | lint, pre-commit | `pnpm exec oxlint src/shards/<slug>` |

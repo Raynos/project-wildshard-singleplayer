@@ -307,32 +307,43 @@ const globCall = (node) => {
   return callee?.type === 'MemberExpression' && ['glob', 'globEager'].includes(propName(callee)) && object?.type === 'MetaProperty' && object.meta.name === 'import' && object.property.name === 'meta';
 };
 
-const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', (context) => {
+// E405 AG2: one walk, three rules, so each ratchets on its own: `layer` (direction, shard ↔ shard, files and imports
+// outside the layers), `public-index` (cross-layer imports skip the public index) and `engine-words` (Wildshard
+// vocabulary in engine code; comments are not counted).
+const layerWalk = (kind) => (context) => {
   const own = layerOf(pathOf(context));
   // E405 AG23: every src file sits in a layer; a new top-level src/<dir>/ would escape all of them.
-  if (!own) return pathOf(context).startsWith('src/') ? { Program(node) { report(context, node, `File outside the engine / game / kit / shards layers: ${pathOf(context)}`); } } : {};
-  const words = (node, text) => {
-    for (const match of text.matchAll(WORDS)) {
-      const path = pathOf(context);
-      // F10's save protocol names a shard scope; its one-time reset table necessarily names historical keys.
-      if (match[0].toLowerCase() === 'shard' && (path.startsWith('src/engine/saves/') || (node.type === 'Literal' && node.value === 'shard' && node.parent?.type === 'Property' && (node.parent.key?.name === 'scope' || node.parent.key?.value === 'scope')))) continue;
-      if (path === 'src/engine/core/errorReport.ts' && node.type === 'Identifier' && node.name === 'shard' && node.parent?.type === 'Property' && node.parent.key === node) continue; // Required external telemetry tag; save failures use their namespace.
-      if (path === 'src/engine/saves/legacy.ts' && node.type === 'Literal' && typeof node.value === 'string' && node.value.startsWith('ws.')) continue;
-      report(context, node, `Engine contains Wildshard word: ${match[0]}`);
-    }
-  };
+  if (!own) return kind === 'layer' && pathOf(context).startsWith('src/') ? { Program(node) { report(context, node, `File outside the engine / game / kit / shards layers: ${pathOf(context)}`); } } : {};
+  if (kind === 'words') {
+    if (own.name !== 'engine') return {};
+    const words = (node, text) => {
+      for (const match of text.matchAll(WORDS)) {
+        const path = pathOf(context);
+        // F10's save protocol names a shard scope; its one-time reset table necessarily names historical keys.
+        if (match[0].toLowerCase() === 'shard' && (path.startsWith('src/engine/saves/') || (node.type === 'Literal' && node.value === 'shard' && node.parent?.type === 'Property' && (node.parent.key?.name === 'scope' || node.parent.key?.value === 'scope')))) continue;
+        if (path === 'src/engine/core/errorReport.ts' && node.type === 'Identifier' && node.name === 'shard' && node.parent?.type === 'Property' && node.parent.key === node) continue; // Required external telemetry tag; save failures use their namespace.
+        if (path === 'src/engine/saves/legacy.ts' && node.type === 'Literal' && typeof node.value === 'string' && node.value.startsWith('ws.')) continue;
+        report(context, node, `Engine contains Wildshard word: ${match[0]}`);
+      }
+    };
+    return {
+      Identifier(node) { words(node, node.name); },
+      Literal(node) { if (typeof node.value === 'string') words(node, node.value); },
+      TemplateElement(node) { words(node, node.value.cooked ?? node.value.raw); },
+    };
+  }
   const checkImport = (node, source, dynamic = false) => {
     if (typeof source !== 'string' || source === '') return;
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
     if (!target) {
-      if (targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
+      if (kind === 'layer' && targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
       return;
     }
     const publicPath = !dynamic && (new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath) || /^src\/engine\/(?:data|retry)(?:\.[jt]s)?$/u.test(targetPath));
     if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
-      report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
-    } else if (own.name !== target.name && ['engine', 'game', 'kit'].includes(target.name) && !publicPath) {
+      if (kind === 'layer') report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
+    } else if (kind === 'public' && own.name !== target.name && ['engine', 'game', 'kit'].includes(target.name) && !publicPath) {
       report(context, node, `Cross-layer imports use the public index: ${source}`);
     }
   };
@@ -345,19 +356,11 @@ const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', 
       const arg = unwrap(node.arguments[0]);
       for (const pattern of arg?.type === 'ArrayExpression' ? arg.elements : [arg]) checkImport(node, importPrefix(pattern)?.replace(/^!/u, ''));
     },
-    Identifier(node) { if (own.name === 'engine') words(node, node.name); },
-    Literal(node) { if (own.name === 'engine' && typeof node.value === 'string') words(node, node.value); },
-    TemplateElement(node) { if (own.name === 'engine') words(node, node.value.cooked ?? node.value.raw); },
-    Program(node) {
-      if (own.name !== 'engine') return;
-      for (const comment of context.sourceCode.getAllComments()) {
-        for (const match of comment.value.matchAll(WORDS)) {
-          context.report({ node, loc: comment.loc, message: `Engine comment contains Wildshard word: ${match[0]}` });
-        }
-      }
-    },
   };
-});
+};
+const layer = rule('Layer direction: imports point down, shards never import shards, every src file has a layer (E357, E405)', layerWalk('layer'));
+const publicIndex = rule('Cross-layer imports use the public index (E357, E405 AG2)', layerWalk('public'));
+const engineWordsRule = rule('Engine code carries no Wildshard vocabulary (E357, E405 AG2)', layerWalk('words'));
 
 export const SHARD_BRANCH = {
   identifiers: new Set(['isOcean', 'isNalati', 'isPine', 'isNine', 'LOOK_V2']),
@@ -700,7 +703,7 @@ const shardSandbox = rule('Shard services, globals, settings and assets stay ins
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
-    'no-url-switch': noUrlSwitch, layer, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
+    'no-url-switch': noUrlSwitch, layer, 'public-index': publicIndex, 'engine-words': engineWordsRule, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
     'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,
     'no-renderer-type': noRendererType, 'no-raw-shader-patch': noRawShaderPatch, 'sim-no-render': simNoRender,
     'no-hook-chain': noHookChain,

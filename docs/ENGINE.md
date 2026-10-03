@@ -1551,7 +1551,9 @@ in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that alrea
 
 | Rule | What it refuses | Status |
 |---|---|---|
-| `wildshard/layer` | import direction; shard ↔ shard; deep imports (`#engine/x/y`, relative ones too); engine words in `src/engine/**` | ratchet (per file) |
+| `wildshard/layer` | import direction (engine < game < kit < shards); shard ↔ shard; a file or import outside the four layers | ratchet (per file); hard at 0 (E405 AG28) |
+| `wildshard/public-index` | a cross-layer import skips the public index (`#engine/x/y`, relative ones too); `#engine/data` and `#engine/retry` are the sanctioned sub-entries | ratchet (per file) |
+| `wildshard/engine-words` | Wildshard vocabulary (shard names, species, items) in engine code; comments are not counted | ratchet (per file) |
 | `wildshard/no-shard-branch` | outside `src/shards/`: a branch on a slug or a style (`slug ===`, `style ===`, `isNalati`, a slug literal in a comparison or `case`) | hard error |
 | `wildshard/no-level-identity` | outside `src/shards/`: comparing, switching on, or keying a table by a level's `id`, `slug`, `kitLook`, `style`, `biome` … Pass a capability or a data strategy instead | ratchet (4 at HEAD) |
 | `wildshard/shard-sandbox` | in `src/shards/`: `window` / `globalThis` / `self` reads or writes, window or document input listeners, `setting(key)` for a key you don't own, an `/assets/…` path outside your `assetGlobs` and the shared folders | ratchet (new files at 0) |

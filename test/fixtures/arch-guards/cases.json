@@ -2,7 +2,7 @@
   {
     "id": "relative-deep",
     "file": "src/game/relative-deep.ts",
-    "rule": "layer",
+    "rule": "public-index",
     "code": "import { x } from '../engine/world/Sky';",
     "count": 1
   },
@@ -51,7 +51,7 @@
   {
     "id": "glob-array",
     "file": "src/kit/glob-array.ts",
-    "rule": "layer",
+    "rule": "public-index",
     "code": "const x = import.meta.glob(['../engine/world/*.ts', '../game/*.ts']);",
     "count": 2
   },
@@ -79,7 +79,7 @@
   {
     "id": "app-deep",
     "file": "src/deepProbe.ts",
-    "rule": "layer",
+    "rule": "public-index",
     "code": "import { x } from '#engine/world/Sky';",
     "count": 1
   },
@@ -331,14 +331,14 @@
   {
     "id": "retry-deep-refused",
     "file": "src/game/retry-deep.ts",
-    "rule": "layer",
+    "rule": "public-index",
     "code": "import { retried } from '#engine/boot/retry';",
     "count": 1
   },
   {
     "id": "retry-index-lookalike-refused",
     "file": "src/game/retry-lookalike.ts",
-    "rule": "layer",
+    "rule": "public-index",
     "code": "import { retried } from '#engine/retry/private';",
     "count": 1
   },

@@ -23,7 +23,7 @@
   {
     "id": "layer-deep",
     "file": "src/kit/deep.ts",
-    "rule": "layer",
+    "rule": "public-index",
     "code": "import { value } from '#engine/core/clock';",
     "count": 1
   },
@@ -51,23 +51,23 @@
   {
     "id": "layer-unlayered",
     "file": "src/main.ts",
-    "rule": "layer",
+    "rule": "public-index",
     "code": "import { value } from '#kit/item';",
     "count": 1
   },
   {
     "id": "words-code",
     "file": "src/engine/words.ts",
-    "rule": "layer",
+    "rule": "engine-words",
     "code": "const Bag = 'LOOT';",
     "count": 2
   },
   {
     "id": "words-comment",
     "file": "src/engine/comment.ts",
-    "rule": "layer",
+    "rule": "engine-words",
     "code": "// bear in mind\nexport const value = 1;",
-    "count": 1
+    "count": 0
   },
   {
     "id": "words-boundary",
@@ -79,7 +79,7 @@
   {
     "id": "words-template",
     "file": "src/engine/template.ts",
-    "rule": "layer",
+    "rule": "engine-words",
     "code": "const value = `horse ${1}`;",
     "count": 1
   },
@@ -506,7 +506,7 @@
   {
     "id": "layer-public-subpath-not-general",
     "file": "src/shards/sample/dataDeep.ts",
-    "rule": "layer",
+    "rule": "public-index",
     "code": "import { value } from '#engine/data/private';",
     "count": 1
   },

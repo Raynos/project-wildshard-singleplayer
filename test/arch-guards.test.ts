@@ -79,7 +79,7 @@ describe('AG14 generated vocabulary', () => {
     const found = (JSON.parse(result.stdout) as { diagnostics: Diagnostic[] }).diagnostics;
     expect(result.status, result.stderr).toBe(1);
     expect(found.filter((d) => d.filename === 'src/game/new-shard-branch.ts' && d.code === 'wildshard(no-shard-branch)')).toHaveLength(3);
-    expect(found.filter((d) => d.filename === 'src/engine/new-shard-words.ts' && d.code === 'wildshard(layer)')).toHaveLength(2);
+    expect(found.filter((d) => d.filename === 'src/engine/new-shard-words.ts' && d.code === 'wildshard(engine-words)')).toHaveLength(2);
     writeFileSync(file, '{}'); expect(() => genShardWords(root, true)).toThrow('stale');
   });
 });

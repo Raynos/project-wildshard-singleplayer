@@ -194,7 +194,7 @@ export function planMove(map, row = 'F6', root = process.cwd(), mapPath = '') {
   const manualLiterals = unmatchedLiterals.filter((entry) => entry.manual);
   const unmatched = unmatchedLiterals.filter((entry) => !entry.manual);
   const report = { row, counts, gitMoves, rewrites, missing, unresolvedImports, unmatchedLiterals: unmatched, manualLiterals, edges, edgeDetails,
-    collisions: collisionChecks, touchedPaths, manual: map.manual, ratchetCommand: 'node lint/ratchet.mjs --add-rule wildshard/layer',
+    collisions: collisionChecks, touchedPaths, manual: map.manual, ratchetCommand: 'node lint/ratchet.mjs --rebaseline-rule wildshard/public-index',
     ok: missing.length === 0 && unresolvedImports.length === 0 && collisionChecks.length === 0 && edges['shard → shard'] === 0 };
   return { report, contents };
 }
