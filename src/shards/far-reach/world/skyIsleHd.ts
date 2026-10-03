@@ -33,7 +33,8 @@ export type SkyIsleModel = (typeof SKY_ISLE_MODELS)[number];
  * stretch's limits.
  */
 // (row 1: the new models' paint is darker than round 21's; the mockups' crags read warm and hazed against the low sun)
-export const SKY_ISLE_HD = { selfLight: 0.22, tint: 1.0, turf: 0.2, stretch: [0.8, 1.35], rimBins: 48 } as const;
+/** `keelInset`: a playable island's keel is fitted so its widest rock under the cut stands at this share of the deck's radius. */
+export const SKY_ISLE_HD = { selfLight: 0.22, tint: 1.0, turf: 0.2, stretch: [0.8, 1.35], rimBins: 48, keelInset: 0.88 } as const;
 /**
  * The aerial haze on the sky isles (E399 round 6, measured on mockup A's isle band, x 0.1-0.9, y 0.27-0.42: its darkest
  * isle rock is a hazed mauve, 107,81,77, where ours read dark brown, 75,58,38): toward the warm haze over `near`..`far` metres, at most `max`.
@@ -48,13 +49,14 @@ const WEAR: Readonly<Record<string, readonly [SkyIsleModel, number]>> = {
   'sky.o1': ['isle-mass-hd', 0.2], 'sky.o2': ['isle-shelf-hd', 3.0], 'sky.o3': ['isle-twin-hd', 2.2], 'sky.o4': ['isle-canopy-hd', 4.4], 'sky.o5': ['isle-spire-hd', 5.1], 'sky.o6': ['isle-falls-hd', 0.7],
   'sky.b1': ['isle-twin-hd', 5.6], 'sky.b2': ['isle-spire-hd', 3.9], 'sky.b3': ['isle-mass-hd', 2.5], 'sky.b4': ['isle-canopy-hd', 4.9],
   // the playable islands' keels (clipped under their decks): the rock masses with root curtains
-  'keel.sunrest': ['isle-mass-hd', 1.1], 'keel.windmill': ['isle-canopy-hd', 0.3], 'keel.grove': ['isle-twin-hd', 2.4], 'keel.roost': ['isle-spire-hd', 4.0],
-  'keel.keeper': ['isle-shelf-hd', 5.0], 'keel.ruin': ['isle-mass-hd', 3.3], 'keel.step': ['isle-falls-hd', 0.9], 'keel.crown': ['isle-canopy-hd', 2.0],
+  'keel.sunrest': ['isle-mass-hd', 1.1], 'keel.windmill': ['isle-mass-hd', 0.3], 'keel.grove': ['isle-twin-hd', 2.4], 'keel.roost': ['isle-spire-hd', 4.0],
+  'keel.keeper': ['isle-shelf-hd', 5.0], 'keel.ruin': ['isle-mass-hd', 3.3], 'keel.step': ['isle-falls-hd', 0.9], 'keel.crown': ['isle-spire-hd', 2.0],
 };
 const FALLBACK: readonly SkyIsleModel[] = SKY_ISLE_MODELS;
 
 /** A model in its unit frame, with a probe of its turf and its rim radius per angle. */
-interface Unit { readonly geometry: BufferGeometry; readonly map: Texture; readonly depth: number; readonly rim: Float32Array; readonly probe: Mesh }
+/** `bulge`: the model's widest horizontal reach under its turf (deck radii), where its overhangs and bushes spill out. */
+interface Unit { readonly geometry: BufferGeometry; readonly map: Texture; readonly depth: number; readonly rim: Float32Array; readonly probe: Mesh; readonly bulge: number }
 
 const median = (v: number[]): number => { const s = [...v].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] ?? 0; };
 
@@ -80,11 +82,13 @@ function unit(geometry: BufferGeometry, map: Texture): Unit {
     rim[b] = Math.max(rim[b] ?? 0, Math.hypot(dx, dz));
   }
   const k = 1 / Math.max(1e-6, median([...rim].filter((r) => r > 0)));
+  let bulge = 0;
+  for (let i = 0; i < p.count; i++) if (p.getY(i) <= deck) bulge = Math.max(bulge, Math.hypot(p.getX(i) - tx, p.getZ(i) - tz) * k);
   geometry.translate(-tx, -deck, -tz); geometry.scale(k, k, k);
   for (let b = 0; b < bins; b++) rim[b] = (rim[b] ?? 0) * k;
   geometry.computeBoundingBox(); geometry.computeBoundingSphere();
   const depth = -(geometry.boundingBox?.min.y ?? -1);
-  return { geometry, map, depth, rim, probe };
+  return { geometry, map, depth, rim, probe, bulge };
 }
 
 /** A unit model's rim radius at a local angle (radians from +x), bins without a vertex borrowing the median. */
@@ -126,7 +130,7 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
     patchShader(material, 'far.sky-isle-rock', PATCH_ORDER.decorate, (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
   { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
-    float turf = smoothstep(0.02, 0.12, c.g - max(c.r, c.b) * 0.92);
+    float turf = ${clipTop ? '0.0' : 'smoothstep(0.02, 0.12, c.g - max(c.r, c.b) * 0.92)'};
     vec3 stone = vec3(l) * vec3(1.02, 0.96, 0.88) * (0.75 + 0.35 * smoothstep(0.15, 0.6, l));
     // (row 1, the lead: the canopies read olive-grey; the mockups' crowns are lush green lit warm by the low sun)
     vec3 leaf = mix(vec3(l), c, 1.35) * vec3(1.02, 1.12, 0.78) * 1.15;
@@ -145,8 +149,11 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
     }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun${clipTop ? '|clip' : ''}` });
     const mesh = new InstancedMesh(u.geometry, material, list.length); mesh.name = `far.sky-isles.${name}`;
     list.forEach((s, k) => {
-      const yaw = WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi, Math.max(lo, s.keel / (s.r * u.depth)));
-      q.setFromAxisAngle(up, yaw); m.compose(new Vector3(s.x, s.y, s.z), q, new Vector3(s.r, s.r * sy, s.r)); mesh.setMatrixAt(k, m);
+      // a keel tapers INSIDE its deck (round 13, seat C: the mill's keel bulged past its deck, a thin disc on a mossy bun):
+      // its widest rock under the cut fitted to keelInset of the deck's radius; its depth kept
+      const r = clipTop ? s.r * Math.min(1, SKY_ISLE_HD.keelInset / Math.max(1e-3, u.bulge)) : s.r;
+      const yaw = WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi * s.r / r, Math.max(lo, s.keel / (r * u.depth)));
+      q.setFromAxisAngle(up, yaw); m.compose(new Vector3(s.x, s.y, s.z), q, new Vector3(r, r * sy, r)); mesh.setMatrixAt(k, m);
       placed.set(s.id, { u, yaw, sy });
     });
     mesh.computeBoundingSphere(); group.add(mesh);

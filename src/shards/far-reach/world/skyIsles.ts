@@ -32,7 +32,7 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   // 10-20 deg up, at three depths so they overlap; clear of l4 (o3's keel ran through its deck) and of the storm
   // (round 9, the seats: 0.58 of A's width against the mockup's 0.80, and high): larger and lower, headings -17 to +12, their
   // keels down to ~6 deg, framing the mill's top and the low sun
-  isle('o1', -30, -148, 10.5, 60, 18, 0, Math.PI * 0.3), isle('o3', -4, -186, 12, 86, 20, 0, null), isle('o4', 20, -152, 9, 67, 16, 0, Math.PI * 0.8),
+  isle('o1', -30, -148, 10.5, 60, 18, 0, Math.PI * 0.3), isle('o3', -40, -214, 12, 86, 20, 0, null), isle('o4', 20, -152, 9, 67, 16, 0, Math.PI * 0.8),
   // (round 10, seat A: 'an overlapping cluster'; three separate crags left sky between them) two more, overlapping the three;
   // the modelled isles (top-10 row 1) carry their own bushy canopies, so no card firs, and are a fifth smaller so they read as
   // separate masses, overlapping (at round-10 sizes the new models made one dark wall); tiers at different heights and depths with sky between them (the lead: 'a wall of tops at one y'; mockup A

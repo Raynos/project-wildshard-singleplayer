@@ -1,0 +1,7 @@
+# Sky Reach top-10 row 5: volumetric cumulus (E407)
+
+Eight cumulus rendered as true Cycles volumes (scripts/blender/far-reach-clouds/clouds.py: seeded sphere unions warped by two noises, eroded, flat bases; Blender 5.2.1, Metal, 128 samples, ~3 min under the model lock), each lit twice: the sun behind the camera (front) and the low sun behind the cloud (back). atlas.py packs them into public/assets/far-reach/tex/cumulus.webp (4 x 4 cells of 512 x 256, straight alpha, 225 KB), replacing the codex-painted clouds.webp. look/puffs.ts blends a card's two lightings by its view's angle to the sun, grades them to the golden hour (lavender-peach bellies, warm crowns, a warm glow toward the sun) and hazes them into the fog colour with distance (140-760 m, at most 62 %). look/render.ts adds 56 seeded banks between and beyond the sky isles (170-560 m out, -4 to 26 m up, clear of every isle's rock, 90 m clear of the playable islands, out of a 12 deg cone toward the sun).
+
+- atlas-preview.jpg: the atlas over a sunset gradient (rows 1 and 3 front-lit, 2 and 4 back-lit).
+- board.jpg: mockup / round 13 / after, for A, C and proposal B. Measured (Rec. 709): top 1 % A 237.5 (mock 238.4), C 236.9 (235.7), proposal B 237.4 (238.8); share over 230 2.0 / 1.8 / 2.1 % (mock 2.1 / 1.9 / 3.8).
+- keels-aerial.jpg: the playable keels before / after (round 13 seat C: keels fitted inside their decks, rock only).

@@ -58,6 +58,33 @@ function keelPuffs(): [number, number, number, number][] {
   return out;
 }
 
+/**
+ * The cumulus banks between and beyond the sky isles (E407 top-10 row 5: the mockups stack sunlit cloud at many depths
+ * under and between their islands; ours sat in one painted sky): [x, y, z, size], seeded. Each clears every isle's rock
+ * (a cloud never cuts an island), the playable islands by `clear` metres (no bank in front of a player's face) and the
+ * sun's bearing by `sunCone` degrees (the sun patch in A and D stays open).
+ */
+export const BANKS = { count: 56, centre: [0, -110], ring: [170, 560], y: [-4, 26], size: [20, 48], clear: 90, sunCone: 12 } as const;
+export function cloudBanks(): [number, number, number, number][] {
+  const out: [number, number, number, number][] = [];
+  let a = 7717;
+  const rnd = (): number => { a = (a * 16807) % 2147483647; return a / 2147483647; };
+  const sun = Math.atan2(SUN_DIR.z, SUN_DIR.x), cone = (BANKS.sunCone * Math.PI) / 180;
+  for (let tries = 0; out.length < BANKS.count && tries < BANKS.count * 20; tries++) {
+    const ang = rnd() * Math.PI * 2, r = BANKS.ring[0] + (BANKS.ring[1] - BANKS.ring[0]) * Math.sqrt(rnd());
+    const x = BANKS.centre[0] + Math.cos(ang) * r, z = BANKS.centre[1] + Math.sin(ang) * r;
+    // nearer ones lower (below the decks), the far ones up to the isles' band
+    const y = BANKS.y[0] + (BANKS.y[1] - BANKS.y[0]) * (0.35 * rnd() + 0.65 * (r - BANKS.ring[0]) / (BANKS.ring[1] - BANKS.ring[0]));
+    const size = BANKS.size[0] + (BANKS.size[1] - BANKS.size[0]) * rnd();
+    if (Math.abs(Math.atan2(Math.sin(ang - sun), Math.cos(ang - sun))) < cone) continue;
+    if (ISLES.some((isle) => Math.hypot(x - isle.x, z - isle.z) < BANKS.clear + size)) continue;
+    // the card spans size either side and 0.9 size up: clear of every isle's deck-to-keel column
+    if ([...ISLES, ...SKY_ISLES].some((isle) => Math.hypot(x - isle.x, z - isle.z) < isle.r + size && y < isle.y + 4 && y + size * 0.9 > isle.y - isle.keel)) continue;
+    out.push([x, y, z, size]);
+  }
+  return out;
+}
+
 export async function skyReachLook(): Promise<LookStrategy> {
   const pano: Texture = await loadPanorama();
   const [cloudAtlas, seaPaint, vortex] = await Promise.all([loadPainted(TEX_URL.clouds, 'far.cumulus'), loadPainted(TEX_URL.cloudsea, 'far.cloudsea', true), loadPainted(TEX_URL.maelstrom, 'far.maelstrom')]);
@@ -107,7 +134,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
       }
       // cumulus over the sea (loop 5): the islands rise out of billowing cloud
       if (cloudAtlas !== null) {
-        const puffs = cumulus(SUN_DIR, cloudAtlas, keelPuffs()); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
+        const puffs = cumulus(SUN_DIR, cloudAtlas, keelPuffs(), cloudBanks(), new Color(SKY.fog)); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
       }
       return { chain };
     },
