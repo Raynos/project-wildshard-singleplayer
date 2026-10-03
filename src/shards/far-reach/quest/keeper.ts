@@ -1,6 +1,6 @@
 import { AdditiveBlending, BufferGeometry, CapsuleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3, type Object3D } from 'three';
 import { fit, hdMaterial, skyHd, skyMesh, splitTriangles } from '../world/meshes';
-import type { NpcDef } from '#engine';
+import { PATCH_ORDER, patchShader, type NpcDef } from '#engine';
 import { FLAGS } from './flags';
 import { STRINGS } from '../strings';
 import { SPAWN } from '../layout';
@@ -87,6 +87,13 @@ function textured(): Made | null {
   const g = fit(made.geometry, { size: KEEPER_MODEL.height, by: 'height', floor: 0, centre: 'base' }), A = KEEPER_HD.arm, [sx, sy, sz] = KEEPER_HD.shoulder;
   const [body, arm] = splitTriangles(g, (x, y) => y > A.y0 && y < A.y1 && x < A.a + A.b * y);
   const material = hdMaterial(made.map), group = new Group(), shoulder = new Group();
+  // his scarf and sash a warm rust-brown, not a loud red (council: 'the keeper's red scarf reads louder than the mockup's
+  // brown one'): strongly red texels pulled toward brown, everything else as painted
+  patchShader(material, 'far.keeper-scarf', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  { vec3 c = diffuseColor.rgb; float red = smoothstep(0.08, 0.25, c.r - max(c.g, c.b) * 1.1);
+    diffuseColor.rgb = mix(c, vec3(c.r * 0.72, c.r * 0.42, c.r * 0.24), red * 0.8); }`);
+  }, { key: (prior) => `${prior}|far.keeper-scarf` });
   group.add(new Mesh(body, material));
   shoulder.position.set(sx, sy, sz); group.add(shoulder);
   shoulder.add(new Mesh(arm.translate(-sx, -sy, -sz), material));
