@@ -33,9 +33,11 @@ uniform float uTime;
 varying vec2 vUv;
 varying float vFar;
 varying float vNear;
+varying float vSeed;
 void main() {
   vUv = uv;
   vec3 center = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+  vSeed = fract(center.x * 3.13 + center.z * 1.71 + center.y * 0.37);
   float sx = length(modelMatrix[0].xyz), sy = length(modelMatrix[1].xyz);
   vec3 toCam = cameraPosition - center; toCam.y = 0.0;
   // a camera inside the column (a player at the deck's brazier) sees through it, not a screen-filling quad
@@ -59,13 +61,14 @@ uniform float uTime;
 varying vec2 vUv;
 varying float vFar;
 varying float vNear;
+varying float vSeed;
 ${NOISE}
 void main() {
   // E399 (mockup C): a ragged log fire. Round 8 (the council: smooth cream tongues; mockup C 13 468 saturated-orange
   // pixels and 5 557 white-hot against our 2 679 and 370): many thin licks torn by three noise octaves, a hard edge,
   // deep saturated orange at moderate gain on the licks (AgX keeps it orange), a white-hot core low over the logs
   // pushed past 1 so the tone mapper whites it, and dark gaps between the tongues.
-  float y = vUv.y, x = vUv.x - 0.5;
+  float y = vUv.y, x = vUv.x - 0.5, uTime = uTime + vSeed * 17.0; // each tongue its own phase
   float n1 = fxNoise(vec2(x * 7.0, y * 3.4 - uTime * 4.2)), n2 = fxNoise(vec2(x * 15.0 + 4.0, y * 8.0 - uTime * 7.5));
   float n3 = fxNoise(vec2(x * 34.0 + 9.0, y * 16.0 - uTime * 11.0));
   float lick = (n1 - 0.5) * 0.3 * y + (n2 - 0.5) * 0.1 * y;
@@ -75,12 +78,12 @@ void main() {
   float d = abs(x + lick) / w;
   float top = y + (n1 - 0.5) * 0.6 + (n2 - 0.5) * 0.3 + (n3 - 0.5) * 0.12;
   float body = (1.0 - smoothstep(0.86, 0.96, d + (n3 - 0.5) * 0.3)) * (1.0 - smoothstep(0.7, 0.76, top)) * smoothstep(0.0, 0.14, y); // round 9: crisp lick tips
-  float core = (1.0 - smoothstep(0.07, 0.46, d)) * (1.0 - smoothstep(0.06, 0.4, top + (n2 - 0.5) * 0.2)); // round 10 (R9B-3: white-hot pixels 730 against the mockup's 5 557): a larger, hotter core low over the logs
+  float core = (1.0 - smoothstep(0.12, 0.6, d)) * (1.0 - smoothstep(0.1, 0.55, top + (n2 - 0.5) * 0.2)); // round 11 (C: pixels over 230 828 against 5 495): a broad hot region over the logs // round 10 (R9B-3: white-hot pixels 730 against the mockup's 5 557): a larger, hotter core low over the logs
   float heat = smoothstep(0.0, 0.55, 1.0 - d) * (1.0 - smoothstep(0.3, 0.8, top));
   // round 8b: AgX washes a bright saturated orange to peach (the sparks, at a moderate gain, stay orange): the licks at a
   // moderate gain from deep orange to yellow-orange, only the small core pushed white
   vec3 c = mix(vec3(0.9, 0.1, 0.0), vec3(1.0, 0.42, 0.02), heat) * 0.85; // round 9: redder licks (they read tan)
-  c = mix(c, vec3(1.0, 0.78, 0.45) * 3.4, core);
+  c = mix(c, vec3(1.0, 0.82, 0.52) * 4.2, core);
   // round 10 (the seats: a soft sprite; mockup C's fire is many thin flickering licks over burning logs): fine vertical
   // streaks rising through the body, and the base thin so the logs read through it
   float streak = fxNoise(vec2((x + lick) * 38.0, y * 5.0 - uTime * 6.5));
@@ -224,6 +227,8 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   const add = (o: Object3D): void => { o.frustumCulled = false; group.add(o); parts.push(o); };
   const flame = new Mesh(quad, flameMaterial); flame.scale.set(size.flame * 0.56, size.flame, 1); flame.position.y = -0.1; add(flame);
   const inner = new Mesh(quad, flameMaterial); inner.scale.set(size.flame * 0.34, size.flame * 0.8, 1); inner.position.set(0.05, -0.05, 0.05); add(inner);
+  // round 11 (round 10: graphic; the mockup's licks overlap): two narrower side tongues, offset and phase-shifted by their place
+  for (const k of [-1, 1]) { const side = new Mesh(quad, flameMaterial); side.scale.set(size.flame * 0.26, size.flame * (k > 0 ? 0.72 : 0.62), 1); side.position.set(k * size.flame * 0.11, -0.08, k * 0.07); add(side); }
   const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
   const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.03 : 0.26), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
