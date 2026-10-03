@@ -33,3 +33,8 @@ bowl; the glove neutral dark brown with sheen, the thumb patch fixed; sunset clo
 late skies blue-violet; the tent dark canvas; the far-sand stepped strip fixed; the wagon lit by its own lantern. Tried
 and rejected by the builder: the NEUTRAL tone mapper (it drove the sand's blue to about 0 and the skies to saturated plum
 under this look's colours), so AgX stays. Still weak by its own account: the plait reads beaded; dusk-fire's spread.
+
+All Signal Dunes commits between the round-4 and round-5 captures (added after seat C found a dusk change in plugin.ts, raising the dusk after Sefa's flag from 0.25 to 0.38, that re-lights the staged B view; it is real play state, not a breach):
+
+- 0d4101be0 the round-4 findings (shade faces, light, logs, glove, clouds, tent; the dusk change is in it)
+- 7f5d30dcb the caravan wagon lit by its own hanging lantern
