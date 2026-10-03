@@ -30,6 +30,16 @@ export const CRESTS: readonly { x: number; z: number; r: number; lift: number; e
  */
 export const CREST_LINES: readonly { a: [number, number]; b: [number, number]; lift: number; w: number; lee: number; fade: number; trough: number }[] = [
   // E407 row 1: none; the dune field itself carries the crests now (steep slip faces over long windward slopes)
+  // round 26 (TOP10-3 row 2, the lead after round 24: D's land a flat 35-40 from its stand, the mockup's dark bands 12-17;
+  // build them in the terrain that stand looks over, never by the camera): three low transverse ridges across D's view,
+  // 15, 27 and 42 m out from its stand (38, 122), 2 m over the field, their steep lee toward the stand (turned from the
+  // afterglow, so the late facing term darkens them), the gentle back toward the glow. Set 6 m east of the view line so their
+  // west ends stay off the stand dune's flank (centred, they stacked on its slope to 42 deg). D's eye unchanged (27.6 m).
+  // Varied (lengths 42-68 m, lifts 1.7-2.2 m, headings a few degrees apart, soft ends) so from above they read as the dune
+  // field's own rows, not a ladder of three.
+  { a: [21.3, 112.5], b: [70, 92.5], lift: 2, w: 15, lee: 7, fade: 0.22, trough: 0 },
+  { a: [17, 101.3], b: [58.5, 81.5], lift: 1.7, w: 13, lee: 6.5, fade: 0.25, trough: 0 },
+  { a: [11.5, 87.4], b: [62, 70.5], lift: 2.2, w: 16, lee: 7.5, fade: 0.22, trough: 0 },
 ];
 /**
  * The authored landforms (E407 row 1; the lead: author the composition the mockups show as explicit landforms, judged from

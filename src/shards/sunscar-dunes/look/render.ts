@@ -211,7 +211,9 @@ export function signalDunesLook(): LookStrategy {
           // round 22: the fog keeps the horizon sky's lighter violet-blue at every step (it went toward the near-black DUSK_FOG late)
           fogOf?.().color.set(FOG.color);
           // row 10: the sun-side tint at a third (with the thicker distance fog it lit the far land toward the glow)
-          fogSun?.copy(fogSunBase).multiplyScalar(0.35 * (1 - 0.8 * late));
+          // round 26 (seat B after round 25: D's far ranges, hazed toward the dark fog colour, cut the glow line, 15-17 against
+          // 160): the sun-side tint no longer dims late, so the ranges toward the glow take its colour (the late fog is thin)
+          fogSun?.copy(fogSunBase).multiplyScalar(0.35 * (1 + 2.5 * late)); // brighter toward the glow as the land darkens (a lift, never toward black; the spawn pair at dusk 0 unchanged)
           // round 21b: the far ranges' haze full at the sunset step (A's ranges 36 against 70) and falling to 15 % by the late
           // waymarks (D's land under the horizon 56 against 17)
           const hz = Math.min(1, Math.max(0, (DUSK.value - 0.55) / 0.3));
@@ -373,7 +375,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // forms): the key's response on the terrain's own normal a short ramp at the terminator and a flatter lit side
     // (0.12 + 0.88 N.L past the ramp, against plain Lambert), so the line between lit and shaded faces reads sharp
     float tN = max(dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)})), 0.0);
-    reflectedLight.directDiffuse *= smoothstep(0.0, 0.045, tN) * 0.27 * pow(tN / 0.35, 1.6) / max(tN, 0.02); // round 25 (seats B and C: flat near sand 75-88 against 56-68, the lit faces pale): the same at a face turned to the key (tN 0.35), ~40 % less on flat sand (0.2) // round 11 (R10B-2: the near field over both mockups, dusk-fire 82.5 / 73.8); round 12: the spawn mockups disagree by 16 on the same ground (A 57, dusk-fire 74), so split them (lead: A 78 the biggest measured gap)
+    reflectedLight.directDiffuse *= smoothstep(0.0, 0.045, tN) * mix((0.12 + 0.88 * tN) * 0.63, 0.27 * pow(tN / 0.35, 1.6), smoothstep(0.3, 0.5, length(normalize(vSandN).xz))) / max(tN, 0.02); // round 26 (seat B after round 25: the steeper curve brightened the gentle near ground too, A 97 / 68): steep faces only (over ~18-30 deg), the gentle ground keeps round 24's // round 25 (seats B and C: flat near sand 75-88 against 56-68, the lit faces pale): the same at a face turned to the key (tN 0.35), ~40 % less on flat sand (0.2) // round 11 (R10B-2: the near field over both mockups, dusk-fire 82.5 / 73.8); round 12: the spawn mockups disagree by 16 on the same ground (A 57, dusk-fire 74), so split them (lead: A 78 the biggest measured gap)
   }
   // round 6 (seat C: the mean is right, the contrast must come from darker shade AND brighter crests): faces grazing the key
   float sandGraze = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
