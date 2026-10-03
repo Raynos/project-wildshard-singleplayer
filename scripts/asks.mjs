@@ -71,7 +71,7 @@ export function checkAsk(id, text, exists = inTree) {
   if (a.state === 'folded into' || a.state === 'superseded by') {
     const t = a.target;
     // a plan may be live (docs/plans/) or archived (project/archive/<date>-<name>.md)
-    const found = t !== null && [`${ASKS}/${t}.md`, `${PLANS}/${t}.md`].some((path) => exists(path) === true);
+    const found = t !== null && [`${ASKS}/${t}.md`, `${PLANS}/${t}.md`].some((path) => exists(path));
     if (!found) out.push(`"${a.state}" must name an existing ask (E123) or plan (NINE-DRAGON-STACK)`);
   }
   const seen = new Set();
