@@ -218,6 +218,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 ## Folders
 
 - [blender/](./blender/)
+- [deploy-backstop/](./deploy-backstop/)
 - [docs/](./docs/)
 - [gpu-gate/](./gpu-gate/)
 - [gpu-perf/](./gpu-perf/)
