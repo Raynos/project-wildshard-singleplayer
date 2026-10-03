@@ -22,7 +22,7 @@ export const PAINT = {
   /** its direction: the anti-sun heading, lifted this much (y before normalising) */
   bounceLift: 0.55,
   /** the rim's colour × strength */
-  rim: [1.8, 1.22, 0.7],
+  rim: [2.6, 1.7, 0.85],
   /** the shade floor's colour (a share of albedo) */
   floor: [0.3, 0.22, 0.22],
 } as const;

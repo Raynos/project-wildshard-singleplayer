@@ -221,8 +221,9 @@ export class SkyReachPlugin extends ShardPlugin {
   }
   /**
    * Fight state for a capture (E399, shard-progress `stage`, through `__wildshard.shard.farReach`): only what a player
-   * reaches in play. 'roc-stalk': the Storm Roc, first phase, stalking in over the dais at a player at the arena's
-   * entrance (mockup D): its circle's height, the line every stalk from the far side of its circle flies. 'quest-crown':
+   * reaches in play. 'roc-stalk': the Storm Roc, first phase, at a point ON its 13 m circle over the dais (the far side,
+   * 3 m west), turning in on a stalk toward a player at the arena's entrance (mockup D): its circle's height, a spot every
+   * lap passes and every stalk from there starts at. 'quest-crown':
    * the quest as a player has it in the arena (finished, the bridge raised, its reward paid; council round 1's should-fix),
    * staged on the shot before so its toasts are long gone.
    */
@@ -231,7 +232,7 @@ export class SkyReachPlugin extends ShardPlugin {
     if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
     // and a strike in the storm behind it (its lightning comes every 3.5-8 s; mockup D shows a bolt), just before the frame
     if (name === 'roc-stalk') this.built?.storm.strike(0.15);
-    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - 18 }, { x: CROWN.x, z: CROWN.z + CROWN.r });
+    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }
   /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */
   gustVanes(from: Vector3, dir: Vector3, toast: (text: string) => void = () => undefined): number {

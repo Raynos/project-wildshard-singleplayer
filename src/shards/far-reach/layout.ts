@@ -16,7 +16,7 @@ export function ropeSag(length: number, s: number): number {
  * The grassy rise at the spawn bridge head (E399, proposal B; world/knoll.ts): a convex cap `h` metres high over a
  * `base` radius on Sunrest, right of the rope bridge's landing, clear of its lane. Steepest at its foot: asin(base/R), 37 deg.
  */
-export const KNOLL = { x: 5, z: -11, base: 4, h: 1.4 } as const;
+export const KNOLL = { x: 7.6, z: -11.5, base: 4, h: 1.4 } as const;
 const KNOLL_R = (KNOLL.base * KNOLL.base + KNOLL.h * KNOLL.h) / (2 * KNOLL.h);
 /** The knoll's height above Sunrest's deck at a world point (0 off it). */
 export function knollHeight(x: number, z: number): number {

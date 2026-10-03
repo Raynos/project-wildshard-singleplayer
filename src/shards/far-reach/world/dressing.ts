@@ -120,7 +120,7 @@ export const HERO_STONES: readonly (readonly [number, number, number, number, nu
   // the spawn meadow, looking west (H1 left): a big rock left of centre, a low outcrop at your feet
   [-4.2, -7.9, DECK, 1.1, 0.5], [-2.6, -8.5, DECK, 0.75, 0.3], [-3.3, -10.1, DECK, 0.5, 0.22],
   // looking east (H1 right): an outcrop on the left edge, a rock in the bottom middle
-  [3.9, -10.4, DECK, 1.2, 0.5], [5.2, -10.9, DECK, 0.9, 0.42], [2.5, -8.9, DECK, 0.6, 0.28],
+  [2.5, -8.9, DECK, 0.6, 0.28],
   // the windmill isle's west lip (H2 left): rocks bottom left and a ledge on the right
   [-10.8, -54.6, DECK, 0.8, 0.3], [-9.8, -55.3, DECK, 0.55, 0.25], [-12.6, -58.1, DECK, 1.0, 0.45],
   // the high step (H3 front): right of the walk from the updraft to the crown bridge
