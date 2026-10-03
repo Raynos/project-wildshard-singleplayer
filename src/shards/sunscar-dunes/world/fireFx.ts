@@ -17,7 +17,7 @@ export const WAYMARK_FIRE: FireSize = { flame: 3.4, glow: 1.7, smoke: 11, embers
 /** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
 export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 14, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon; round 10 (the seats: a straight pale column): it curls, widens and fades
 /** The keeper's lamp in the tower's top (mockup dusk-fire): a small open flame in its cage, no plume to speak of. */
-export const KEEPER_LAMP: FireSize = { flame: 1.8, glow: 2.4, smoke: 0.01, embers: 4 }; // round 9: 1.3 read as a dot at 145 m
+export const KEEPER_LAMP: FireSize = { flame: 2.6, glow: 1.2, smoke: 0.01, embers: 6 }; // round 12 (round 11: unreadable at 145 m, its halo 2.6 m) // round 9: 1.3 read as a dot at 145 m
 export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
 
 const time = { value: 0 };
@@ -77,7 +77,8 @@ void main() {
   float w = (0.47 * pow(1.0 - y, 0.7) + 0.02) * mix(1.0, tongues, smoothstep(0.1, 0.5, y)) * mix(0.6, 1.0, smoothstep(0.0, 0.18, y));
   float d = abs(x + lick) / w;
   float top = y + (n1 - 0.5) * 0.6 + (n2 - 0.5) * 0.3 + (n3 - 0.5) * 0.12;
-  float body = (1.0 - smoothstep(0.86, 0.96, d + (n3 - 0.5) * 0.3)) * (1.0 - smoothstep(0.7, 0.76, top)) * smoothstep(0.0, 0.14, y); // round 9: crisp lick tips
+  // round 12 (round 11: long smooth orange contours): the edge torn by the fine octave twice over
+  float body = (1.0 - smoothstep(0.84, 0.94, d + (n3 - 0.5) * 0.55 + (n2 - 0.5) * 0.25)) * (1.0 - smoothstep(0.7, 0.76, top)) * smoothstep(0.0, 0.14, y); // round 9: crisp lick tips
   float core = (1.0 - smoothstep(0.12, 0.6, d)) * (1.0 - smoothstep(0.1, 0.55, top + (n2 - 0.5) * 0.2)); // round 11 (C: pixels over 230 828 against 5 495): a broad hot region over the logs // round 10 (R9B-3: white-hot pixels 730 against the mockup's 5 557): a larger, hotter core low over the logs
   float heat = smoothstep(0.0, 0.55, 1.0 - d) * (1.0 - smoothstep(0.3, 0.8, top));
   // round 8b: AgX washes a bright saturated orange to peach (the sparks, at a moderate gain, stay orange): the licks at a

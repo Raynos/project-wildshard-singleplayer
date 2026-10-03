@@ -90,7 +90,7 @@ float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 5.0 + 1.7) - 1.0
   // code-built plaited coil (weapons/whipModel.ts plaitedCoil) runs through the fist in their place
   if (vGloveP.x < -0.45 || (vGloveP.y > 0.55 && vGloveP.x < 0.2) || (vGloveP.y < -0.25 && vGloveP.x < 0.15)) discard;
   // round 8 (mockup D: a warm mid-brown, ours read grey): more of the paint's own hue, warmer, darker in the creases
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.4) * vec3(1.14, 0.94, 0.8) * 1.3 * (0.78 + 0.36 * gloveCrinkle(vGloveP)); // round 11 (round 10: the albedo creases read as white flecks) // round 10 (R9B-4: the creases did not register, glove fine 3.2 against 7.7): worn ridges lighter, folds darker
+  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.45) * vec3(1.14, 0.94, 0.8) * 1.55 * (0.78 + 0.36 * gloveCrinkle(vGloveP)); // round 11 (round 10: the albedo creases read as white flecks) // round 10 (R9B-4: the creases did not register, glove fine 3.2 against 7.7): worn ridges lighter, folds darker
   {
     vec3 gp = vGloveP; float whip = 0.0;
     // the gauntlet's stitching (council rounds 3-5: no seams read on the generated glove): two dashed seams along the back of
@@ -195,7 +195,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
           m.metalness = 0; m.roughness = 0.85; m.flatShading = false;
           // E399 (mockup D): the glove dark worn leather with a soft sheen, not a saturated red-brown
           if (name === 'glove-hd' || name === 'glove-hd2') {
-            m.color.setRGB(1, 1, 1); m.roughness = 0.42; /* round 8: glove-hd2's 0.26 caught the key (now in front) as a white streak along the cuff */ m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
+            m.color.setRGB(1, 1, 1); m.roughness = 0.34; /* round 12 (every seat: glove p95 43 against 72, no glancing highlights) */ /* round 8: glove-hd2's 0.26 caught the key (now in front) as a white streak along the cuff */ m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
             wornLeather(m, name === 'glove-hd'); // glove-hd2 is painted dark leather with its seams: no ramp
           }
           // round 8 (the council since round 5: the wagon's canvas one even self-lit orange with blown white patches; mockup B:

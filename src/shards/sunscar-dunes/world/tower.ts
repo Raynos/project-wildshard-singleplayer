@@ -115,7 +115,7 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   keeperLamp.add(new Mesh(new BoxGeometry(0.6, 0.75, 0.6), glass));
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) { const bar = box(0.06, 0.85, 0.06, iron); bar.position.set(dx * 0.32, 0, dz * 0.32); keeperLamp.add(bar); }
   { const cap = box(0.8, 0.1, 0.8, iron); cap.position.y = 0.45; keeperLamp.add(cap); }
-  addLampGlow(keeperLamp, 2.6, () => deckY - (topY + 0.45));
+  addLampGlow(keeperLamp, 1.1, () => deckY - (topY + 0.45)); // round 12: 2.6 m read as a wash, not a lamp
   { const flame = new Group(); flame.position.y = 0.5; keeperLamp.add(flame); addFire(flame, KEEPER_LAMP); } // round 10 (R9B-8): the open flame over the cap (inside the glass it read as a pale box) // its flame (a lit glass alone read as a pale dot)
   // The south stair: 22 treads from the sand to the deck edge.
   const top = new Vector3(cx + STAIR.x, deckY, cz + edge), foot = new Vector3(top.x, 0, top.z + STAIR.count * STAIR.run);
