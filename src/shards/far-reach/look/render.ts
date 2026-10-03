@@ -1,4 +1,4 @@
-import { Color, Fog, Mesh, type Object3D, type Texture } from 'three';
+import { Color, Fog, Mesh, Vector3, type Object3D, type Texture } from 'three';
 import { ToneMappingMode } from 'postprocessing';
 import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { FOG, SKY, SUN_DIR } from './sun';
@@ -60,26 +60,28 @@ function keelPuffs(): [number, number, number, number][] {
 
 /**
  * The cumulus banks between and beyond the sky isles (E407 top-10 row 5: the mockups stack sunlit cloud at many depths
- * under and between their islands; ours sat in one painted sky): [x, y, z, size], seeded. Each clears every isle's rock
- * (a cloud never cuts an island), the playable islands by `clear` metres (no bank in front of a player's face) and the
- * sun's bearing by `sunCone` degrees (the sun patch in A and D stays open).
+ * under and between their islands; ours sat in one painted sky): [x, y, z, size] in look/puffs.ts' painted cumulus,
+ * seeded. Each clears every isle's rock (a cloud never cuts an island) and the playable islands by `clear` metres (no
+ * bank in front of a player's face), and leaves the sun disc open from the spawn and from the crown: no bank within its
+ * own angular size plus `sunGap` degrees of the sun from either.
  */
-export const BANKS = { count: 56, centre: [0, -110], ring: [170, 560], y: [-4, 26], size: [20, 48], clear: 90, sunCone: 12 } as const;
+export const BANKS = { count: 48, centre: [0, -110], ring: [170, 560], y: [-2, 34], size: [22, 44], clear: 90, sunGap: 5 } as const;
 export function cloudBanks(): [number, number, number, number][] {
   const out: [number, number, number, number][] = [];
   let a = 7717;
   const rnd = (): number => { a = (a * 16807) % 2147483647; return a / 2147483647; };
-  const sun = Math.atan2(SUN_DIR.z, SUN_DIR.x), cone = (BANKS.sunCone * Math.PI) / 180;
+  const eyes = ISLES.filter((isle) => isle.id === 'sunrest' || isle.id === 'crown').map((isle) => new Vector3(isle.x, isle.y + 1.7, isle.z));
+  const to = new Vector3(), gap = (BANKS.sunGap * Math.PI) / 180;
   for (let tries = 0; out.length < BANKS.count && tries < BANKS.count * 20; tries++) {
     const ang = rnd() * Math.PI * 2, r = BANKS.ring[0] + (BANKS.ring[1] - BANKS.ring[0]) * Math.sqrt(rnd());
     const x = BANKS.centre[0] + Math.cos(ang) * r, z = BANKS.centre[1] + Math.sin(ang) * r;
-    // nearer ones lower (below the decks), the far ones up to the isles' band
+    // nearer ones lower (under the decks), the far ones up into the isles' band
     const y = BANKS.y[0] + (BANKS.y[1] - BANKS.y[0]) * (0.35 * rnd() + 0.65 * (r - BANKS.ring[0]) / (BANKS.ring[1] - BANKS.ring[0]));
     const size = BANKS.size[0] + (BANKS.size[1] - BANKS.size[0]) * rnd();
-    if (Math.abs(Math.atan2(Math.sin(ang - sun), Math.cos(ang - sun))) < cone) continue;
     if (ISLES.some((isle) => Math.hypot(x - isle.x, z - isle.z) < BANKS.clear + size)) continue;
-    // the card spans size either side and 0.9 size up: clear of every isle's deck-to-keel column
-    if ([...ISLES, ...SKY_ISLES].some((isle) => Math.hypot(x - isle.x, z - isle.z) < isle.r + size && y < isle.y + 4 && y + size * 0.9 > isle.y - isle.keel)) continue;
+    // a puff card spans 0.75 size either side and size up and down round its centre: clear of every isle's deck-to-keel column
+    if ([...ISLES, ...SKY_ISLES].some((isle) => Math.hypot(x - isle.x, z - isle.z) < isle.r + size * 0.75 && y - size < isle.y + 4 && y + size > isle.y - isle.keel)) continue;
+    if (eyes.some((eye) => { to.set(x, y, z).sub(eye); const d = to.length(); return to.angleTo(SUN_DIR) < Math.atan(size / d) + gap; })) continue;
     out.push([x, y, z, size]);
   }
   return out;
@@ -134,7 +136,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
       }
       // cumulus over the sea (loop 5): the islands rise out of billowing cloud
       if (cloudAtlas !== null) {
-        const puffs = cumulus(SUN_DIR, cloudAtlas, keelPuffs(), cloudBanks(), new Color(SKY.fog)); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
+        const puffs = cumulus(SUN_DIR, cloudAtlas, keelPuffs(), cloudBanks()); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
       }
       return { chain };
     },
