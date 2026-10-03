@@ -1,6 +1,6 @@
 # SKY-REACH — shard 6's full content (E374)
 
-**State:** `blocked` 2026-10-03 — built, and it **passed the mockup council at 7.00** (round 14: 7.0 / 7.2 / 6.8, `d7f4278a7`, Jake's 7.0 bar); SKY-REACH-TOP10 is archived and its leftovers are built (E410 done: final capture `progress/far-reach/20261003-0952-6066f959`). The one row left is P6: Jake plays it on his iPhone and signs off (boards in `art/far-reach/round-1[2-5]-*`); then this plan archives.
+**State:** `in progress` 2026-10-03 — built, and it **passed the mockup council at 7.00** (round 14: 7.0 / 7.2 / 6.8, `d7f4278a7`, Jake's 7.0 bar); SKY-REACH-TOP10 is archived and its leftovers are built (E410 done: final capture `progress/far-reach/20261003-0952-6066f959`). Open: P6 (Jake plays it on his iPhone and signs off), P10 (closing captures: hero re-shoot + parity baselines, E423) and P11 (three polish notes, E421); boards in `art/far-reach/round-1[2-5]-*`. Then this plan archives.
 
 Shard 6, slug `far-reach`, Jake's pick **B · Sky Reach** (E364): floating islands above the clouds at golden hour, a
 war fan (SWING slashes, GUST blows creatures back and off edges), a flying manta; Jake's rule: **some bridges are
@@ -45,6 +45,8 @@ Jake, 2026-10-01, after playing both on his iPhone: "they look absolutely nothin
 | P6 | **Jake plays it**: a board per loop round and a final 3×3 per hero scene for his sign-off | open: Jake's sign-off (boards per loop in `art/far-reach/round-1[2-5]-*`) |
 | P7 | **Done = two council rounds** (Jake 2026-10-02: "keep going autonomously until you're happy … have a council, do two rounds of reviewing it to see if it matches the quality of the other four shards"): `project/archive/2026-10-02-shard-polish-council/` (ledger, battery, brief, register). The builder loops on each round's findings; the shard is done when round 2's seats find it at the bar | done (council round 2, 020f8713: seats B and C at the bar, no row not fixed or regressed; `project/archive/2026-10-02-shard-polish-council/outcome.md`) |
 | P8 | **Progress photos, clips and time-lapses every loop** (E389): `scripts/shard-progress.mjs` + `scripts/shard-timelapse.py` → `progress/<slug>/` | done every loop; newest capture `progress/far-reach/20261002-0204-3ff49dd6/` |
+| P10 | **Closing captures** (folded from E400 and E382 by E423): once the look stops moving, re-shoot the portrait title hero with the same cameras (`art/hero-images/round-5-stage-band/far-reach/views.json`, `scripts/hero-shots.mjs`) and record the parity baselines on both lanes (m5 phone + desktop with `scripts/parity.mjs --record`; gh-macos15 phone with `gh workflow run gpu-gate -f record=true`). Today neither lane has a far-reach baseline | open |
+| P11 | **Polish notes** the E410 builders left (folded from E421 by E423): the keeper's raised cuff reads squarish up close (in mockup B the sleeve falls back down the arm); the mill's ivy faces away from the spawn (mockup A has it on the tower's left); side-on the Roc spans ~0.6 of D's frame where the mockup's eagle spans ~0.95 (a glide-pose model, head forward of the breast) | open; none blocks P6 |
 
 ## Loop 5 gap list: council round 1 (seats B and C), form and subject first
 
