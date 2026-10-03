@@ -357,6 +357,7 @@ export const WOLF_SPECIES: SpeciesDef = {
   lockable: true,
   rigContract: { skeleton: 'wolf.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'wolf',
+  trampleRadius: 0.45,
   label: engineString('s_8e59a599f422'),
   fur: NO_FUR,
   aggressive: true,

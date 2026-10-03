@@ -345,8 +345,6 @@
     "src/engine/debug/probe.ts": 10,
     "src/engine/entities/Animal.ts": 3,
     "src/engine/entities/AnimalFactory.ts": 3,
-    "src/engine/entities/AnimalManager.ts": 13,
-    "src/engine/entities/fightRules.ts": 2,
     "src/engine/entities/species/deer.ts": 11,
     "src/engine/entities/species/elk.ts": 11,
     "src/engine/explore/Explore.ts": 1,

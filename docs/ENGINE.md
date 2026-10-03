@@ -1371,7 +1371,9 @@ ctx.answer('death.checkpoint', (value) => boss.onPlayerDeath() || value === true
 ```
 
 **Ports for the legacy creature manager:** `AnimalManager`, `Animal`, `HuntTuning`, `registerSpecies`, `speciesDef`,
-`variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`. `runtime.play.animals.spawn(kind,
+`variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`. A species carries its own fight numbers
+(`chargeWindup`, `ringRadius`, `trampleRadius`); `setCreatureSoundDefaults` (`CreatureSoundDefaults`) installs the calls a
+species with no `sounds` falls back on, by temperament (the kit's `installKitSpecies` does; E405). `runtime.play.animals.spawn(kind,
 x, z, yaw, variant?, placement?)` and `.retire(animal)` are how the template spawns today. `variant` is an id
 or a weighted list of ids. Optional `placement` has shape `{ y?: number; fromY?: number }`, in world metres.
 Without `y`, spawn queries the first non-sensor **WORLD** floor below `(x, fromY, z)`; creature bodies are ignored.
@@ -1599,7 +1601,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-689 exports, grouped by the module they come from.
+691 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1731,7 +1733,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
 - `./ai/flight`: `SpeciesFlight`
 - `./entities/species/look`: `speciesWithLook`, `SpeciesLook`, `CreatureHull`, `EyeSpot`, `SpeciesService`
-- `./entities/species/registry`: `registerSpecies`, `speciesDef`, `variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`, `RigAnimCtx`, `FurStyle`, `ThinkCtx`, `EnemyWorld`, `AnimalDims`, `VariantMods`
+- `./entities/species/registry`: `registerSpecies`, `setCreatureSoundDefaults`, `speciesDef`, `variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`, `CreatureSoundDefaults`, `RigAnimCtx`, `FurStyle`, `ThinkCtx`, `EnemyWorld`, `AnimalDims`, `VariantMods`
 - `./entities/species/loft`: `loft`, `tube`, `skinPlain`, `S`, `boneIndex`, `srgb`, `mix`, `speciesSstep`, `paintNoise`, `setShag`, `isLowPoly`, `registerToonPaint`, `toonPaint`, `paletteColors`, `Paint`, `ToonPaint`, `SpeciesRGB`, `setShapeFn`, `Station`
 - `./entities/lowpoly`: `crestSpikes`
 - `./fx/groundFx`: `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`

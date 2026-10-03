@@ -166,7 +166,7 @@ export { loadQuest } from './quest/contentApi';
 export { deriveSpecies, type SpeciesRow, type SpeciesVariant } from './ai/species';
 export type { SpeciesFlight } from './ai/flight';
 export { speciesWithLook, type SpeciesLook, type CreatureHull, type EyeSpot } from './entities/species/look';
-export { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef, type VariantDef, type AnimalSpecies, type BoneDef } from './entities/species/registry';
+export { registerSpecies, setCreatureSoundDefaults, speciesDef, variantDef, hasSpecies, type SpeciesDef, type VariantDef, type AnimalSpecies, type BoneDef, type CreatureSoundDefaults } from './entities/species/registry';
 export type { HuntTuning } from './entities/AnimalManager';
 export { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep as speciesSstep, paintNoise, setShag, isLowPoly, registerToonPaint, toonPaint, paletteColors, type Paint, type ToonPaint, type RGB as SpeciesRGB } from './entities/species/loft';
 export { crestSpikes } from './entities/lowpoly';

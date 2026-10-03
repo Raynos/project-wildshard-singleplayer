@@ -53,8 +53,8 @@ export function reengage(o: ReengageIn): Reengage {
   return 'circle';
 }
 
-/** the ring (m from the player) a charger circles on while it waits its turn / its cooldown — inside its charge distance */
-export const RING: Record<string, number> = { boar: 6.5, bear: 7.5 };
+/** the ring (m from the player) a charger circles on while it waits its turn / its cooldown — inside its charge distance;
+ *  a species sets its own (SpeciesDef.ringRadius) */
 export const RING_DEFAULT = 6.5;
 /** how far past the ring a charger backs off after a charge (m), and the most time it spends backing off (s) */
 export const BACKOFF_PAST = 1.0, BACKOFF_MAX_T = 2.2;

@@ -17,6 +17,7 @@ import { Rng } from '../core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, hasPond, POND, streamAt } from '../world/Heightfield';
 import type { Forest } from '../world/forest/Forest';
 import type { Sky } from '../world/Sky';
+import { creatureSoundDefaults } from './species/registry';
 import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalModel, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
 import { Animal, damageFor } from './Animal';
 import { creatureFloor } from './creatureFloor';
@@ -30,7 +31,7 @@ import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
 import { practiceRoom } from '../core/practiceRoom';
 import { AnimalGroup } from './animalMatrices';
-import { reengage, backoffPoint, aroundPoint, RING, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
+import { reengage, backoffPoint, aroundPoint, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
 /** the live WORLD physics, read in one place (blood decals, the spawn floor) */
 const worldPhysics = (): ReturnType<typeof activePhysics> => activePhysics();
 
@@ -128,10 +129,8 @@ declare module '../events/maps' {
  */
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
-export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'bear_growl' | 'bear_roar' | 'bear_hurt'
-  | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land'
-  | 'eagle_cry' | 'leopard_growl' // Nalati's eagle + snow leopard (they borrowed the monkey's and the bear's)
-  | 'king_call' | 'king_hurt'; // the Golden King's own voice (NALATI-MERGE A1; it borrowed Pine's bear + Driftwood's drowned sailor)
+/** a species' own sound id (SpeciesDef.sounds); the engine names none (E405) */
+export type AnimalSound = string;
 
 export interface Herd { kind: AnimalKind; cx: number; cz: number; members: Animal[] }
 
@@ -228,15 +227,17 @@ export const BOAR_TUNING: HuntTuning = {
   impactSpook: 7, impactAlert: 18,
 };
 
-const DEER_WALK = 1.3, BOAR_WALK = 1.1, BOAR_CHARGE = 7.5, CHARGE_HIT_DIST = 1.4;   // species defaults (SpeciesDef.walkSpeed / chargeSpeed override)
+const GRAZER_WALK = 1.3, CHARGER_WALK = 1.1, BOAR_CHARGE = 7.5, CHARGE_HIT_DIST = 1.4;   // species defaults (SpeciesDef.walkSpeed / chargeSpeed override)
 const CHARGE_WHEN_HIT_DIST = 25;   // a wounded boar this close turns on you instead of running
 /** melee shards (see the header): the charge wind-up per species (s), the contact arc (half-angle, rad), the self-thinking species' strike arc, the turn cap while attacking */
-const CHARGE_WINDUP: Record<string, number> = { boar: 0.55, bear: 0.65 }, CHARGE_WINDUP_DEFAULT = 0.5;
+const CHARGE_WINDUP_DEFAULT = 0.5;
+/** a species with no `sounds`: the installed default call / hurt for its temperament (installKitSpecies); none installed: '' */
+const fallbackSound = (charger: boolean, which: 'call' | 'hurt'): string => creatureSoundDefaults()?.[charger ? 'charger' : 'grazer'][which] ?? '';
 const CHARGE_ARC = THREE.MathUtils.degToRad(50), HURT_ARC = THREE.MathUtils.degToRad(70), ATTACK_TURN = 1.5;
 const CHARGE_COMMIT = 4.5, CHARGE_COMMIT_TURN = 1.1;   // m from the player inside which a charge stops tracking, and its turn rate there (rad/s)
 const ANIM_LOD = 140;
 /** E297 fight rules: the stalk a boar gets when it has none (it comes for you instead of bolting); its circling / back-off speeds (m/s) */
-const RULES_STALK: NonNullable<HuntTuning['stalk']> = { detect: 0, speed: 3.0, giveUp: 45, rechargeCd: RULES_CD_HIT, huffMin: 2.5, huffMax: 5, roar: 'boar_grunt', fleeBelowHp: BREAK_OFF_HP, fleeChance: BREAK_OFF_CHANCE };
+const RULES_STALK: NonNullable<HuntTuning['stalk']> = { detect: 0, speed: 3.0, giveUp: 45, rechargeCd: RULES_CD_HIT, huffMin: 2.5, huffMax: 5, roar: '', fleeBelowHp: BREAK_OFF_HP, fleeChance: BREAK_OFF_CHANCE };
 const CIRCLE_SPEED = 1.7, BACKOFF_SPEED = 4.2;
 /** E297: a charger turns to within this of you (rad) before its wind-up starts */
 const FACE_BEFORE_CHARGE = 0.6;
@@ -398,7 +399,6 @@ interface FarRig extends FarMember {
 /** the bearings `steerNav` tries round a blocked heading (rad, each side) */
 const NAV_FAN = [0.4, 0.8, 1.2, 1.6, 2.1, 2.6];
 /** E322 F-L4: the grass a body parts (m, the trample's radius) */
-const TRAMPLE_R: Partial<Record<AnimalKind, number>> = { deer: 0.5, elk: 0.65, boar: 0.45, bear: 0.75, wolf: 0.45, horse: 0.8 };
 
 export class AnimalManager {
   /** the animals' own world-matrix pass: a still, far animal's bones are not recomputed (animalMatrices.ts) */
@@ -616,7 +616,7 @@ export class AnimalManager {
     const over = activeLevel().faunaTuning?.[a.kind];
     let t = over !== undefined ? { ...base, ...over, stalk: over.stalk ?? base.stalk } : base;   // ShardManifest.faunaTuning: the shard's overrides (Driftwood's far-sighted beach boars)
     // E297 fight rules: a charger without a stalk (the boar) gets one — it comes for you instead of bolting
-    if (this.rules !== null && sp.aggressive === true && sp.think === undefined && t.stalk === undefined) t = { ...t, stalk: { ...RULES_STALK, roar: sp.sounds?.call ?? 'boar_grunt' } };
+    if (this.rules !== null && sp.aggressive === true && sp.think === undefined && t.stalk === undefined) t = { ...t, stalk: { ...RULES_STALK, roar: sp.sounds?.call ?? fallbackSound(true, 'call') } };
     this.tuningCache.set(a.kind, t);
     return t;
   }
@@ -723,7 +723,7 @@ export class AnimalManager {
       if (!a.alive || a.hidden || Math.abs(a.speed) < 0.4) continue;
       const dx = a.position.x - p.x, dz = a.position.z - p.z;
       if (dx * dx + dz * dz > 70 * 70) continue;
-      const r = TRAMPLE_R[a.kind] ?? 0.4;
+      const r = speciesDef(a.kind).trampleRadius ?? 0.4;
       app.world.trample?.push(a.position.x, a.position.z, r, Math.min(1, 0.35 + Math.abs(a.speed) / 5), Math.sin(a.yaw) * a.speed, Math.cos(a.yaw) * a.speed);
     }
   }
@@ -878,7 +878,7 @@ export class AnimalManager {
     c.dt = dt; c.t = app.clock.now; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
     c.calm = this.unaware; c.herd = herd?.members ?? null; c.world = this.enemyWorld;
     c.hurt = (damage) => { if ((!this.melee || this.facing(a, player, HURT_ARC)) && this.canReach(a, player)) this.onCharge?.(a, damage); };
-    c.sound = (name) => { this.onSound?.(name as AnimalSound, a.position); };
+    c.sound = (name) => { this.onSound?.(name, a.position); };
     return c;
   }
 
@@ -906,7 +906,7 @@ export class AnimalManager {
     if (a.stunned) { br.chargeCd = Math.max(0, br.chargeCd - dt); a.setMotion(a.yaw, 0, 1); a.lookTarget.copy(player); a.lookWeight = 1; this.confine(a); return; }   // staggered by a sword blow (Animal.stagger): the AI holds (the charge cooldown still ticks)
     const rng = this.rng;
     const sp = speciesDef(a.kind);
-    const boar = a.aggressive;                    // charges instead of only fleeing
+    const charger = a.aggressive;                 // charges instead of only fleeing
     const T = this.tuningFor(a);
     const M = a.mods;
     const dx = player.x - a.position.x, dz = player.z - a.position.z;
@@ -938,7 +938,7 @@ export class AnimalManager {
     }
     br.sensed = rate > 0;
     br.awareness = br.sensed ? Math.min(1, br.awareness + rate * dt) : Math.max(0, br.awareness - T.forgetRate * dt);
-    const panic = !this.unaware && dPlayer < T.panicDist * (boar ? M.chargeDist : 1);   // for chargers this is the charge trigger
+    const panic = !this.unaware && dPlayer < T.panicDist * (charger ? M.chargeDist : 1);   // for chargers this is the charge trigger
 
     // ambient calls
     br.callT -= dt;
@@ -947,12 +947,12 @@ export class AnimalManager {
       br.callT = every !== undefined ? rng.range(every[0], every[1]) : rng.range(20, 90);
       // species may limit the call to some variants (elk: only bulls bugle) and it is a CALM sound — not mid-flight
       const caller = sp.sounds?.callVariants === undefined || sp.sounds.callVariants.includes(a.variant);
-      if (caller && dPlayer < 80 && a.state !== 'flee' && a.state !== 'charge') this.onSound?.((sp.sounds?.call ?? (boar ? 'boar_grunt' : 'deer_call')) as AnimalSound, a.position);
+      if (caller && dPlayer < 80 && a.state !== 'flee' && a.state !== 'charge') this.onSound?.((sp.sounds?.call ?? fallbackSound(charger, 'call')), a.position);
     }
 
     const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
     // the player is inside the charge distance: chargers charge (hunters stalk while the charge cools down), the rest bolt
-    const engage = (): void => { if (boar && br.chargeCd <= 0) this.enter(a, br, 'charge'); else if (T.stalk !== undefined) this.enter(a, br, 'stalk'); else { br.spooked = true; this.enter(a, br, 'flee'); } };
+    const engage = (): void => { if (charger && br.chargeCd <= 0) this.enter(a, br, 'charge'); else if (T.stalk !== undefined) this.enter(a, br, 'stalk'); else { br.spooked = true; this.enter(a, br, 'flee'); } };
 
     switch (a.state) {
       case 'idle': case 'graze': case 'wander': {
@@ -963,7 +963,7 @@ export class AnimalManager {
           const tdx = br.tx - a.position.x, tdz = br.tz - a.position.z;
           const td = Math.hypot(tdx, tdz);
           if (td < 1.2 || br.timer <= 0) { this.enter(a, br, rng.next() < 0.6 ? 'graze' : 'idle'); break; }
-          this.steerTo(a, br, br.tx, br.tz, sp.walkSpeed ?? (boar ? BOAR_WALK : DEER_WALK), 1.8, 4);
+          this.steerTo(a, br, br.tx, br.tz, sp.walkSpeed ?? (charger ? CHARGER_WALK : GRAZER_WALK), 1.8, 4);
         } else {
           a.setMotion(a.desiredYaw, 0, 1.5);
           if (br.timer <= 0) {
@@ -1021,7 +1021,7 @@ export class AnimalManager {
           a.lookTarget.copy(player); a.lookWeight = 1;
         }
         br.timer -= dt;
-        if (br.timer <= 0) { br.timer = rng.range(st.huffMin, st.huffMax); if (dPlayer < 80) this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position); }
+        if (br.timer <= 0) { br.timer = rng.range(st.huffMin, st.huffMax); if (dPlayer < 80) this.onSound?.((sp.sounds?.call ?? fallbackSound(true, 'call')), a.position); }
         break;
       }
       case 'charge': break; // Wind-up, movement and contact run on the body clock.
@@ -1037,7 +1037,7 @@ export class AnimalManager {
   private chargeHit(a: Animal, br: Brain): void {
     const T = this.tuningFor(a), sp = speciesDef(a.kind);
     this.onCharge?.(a, a.mods.chargeDamage);
-    this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
+    this.onSound?.((sp.sounds?.call ?? fallbackSound(true, 'call')), a.position);
     br.chargeCd = this.rules !== null ? Math.max(RULES_CD_HIT, T.stalk?.rechargeCd ?? 0) : T.stalk !== undefined ? T.stalk.rechargeCd : a.mods.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
     this.enter(a, br, T.stalk !== undefined ? 'stalk' : 'flee');
   }
@@ -1055,7 +1055,7 @@ export class AnimalManager {
   }
 
   /** E297: the ring a charger circles on (m from the player): RING by kind, a little wider for a big one */
-  private ringFor(a: Animal): number { return (RING[a.kind] ?? RING_DEFAULT) * Math.max(1, a.scale * 0.6); }
+  private ringFor(a: Animal): number { return (speciesDef(a.kind).ringRadius ?? RING_DEFAULT) * Math.max(1, a.scale * 0.6); }
 
   /** E297: back off past the ring (fightRules.backoffPoint), arcing round you — the other way from last time */
   private startBackoff(a: Animal, br: Brain): void {
@@ -1189,14 +1189,14 @@ export class AnimalManager {
       case 'alert':
         br.freeze = rng.range(T.freezeMin, T.freezeMax); br.timer = T.relaxAfter;
         a.setMotion(a.desiredYaw, 0, 2);
-        if (a.aggressive && rng.next() < 0.5) this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
+        if (a.aggressive && rng.next() < 0.5) this.onSound?.((sp.sounds?.call ?? fallbackSound(true, 'call')), a.position);
         // one head coming up makes the herd glance (awareness nudge) — only a BOLT brings every head up (alertHerd)
         if (from !== 'flee' && from !== 'alert') this.alertHerd(a, false);
         break;
       case 'flee':
         br.fleeT = 0; br.fleeUntil = rng.range(T.fleeUntil, T.fleeUntilMax);
         br.wary = T.waryTime; br.awareness = 1; br.spooked = false;
-        if (!a.aggressive && rng.next() < 0.3) this.onSound?.((sp.sounds?.call ?? 'deer_call') as AnimalSound, a.position);
+        if (!a.aggressive && rng.next() < 0.3) this.onSound?.((sp.sounds?.call ?? fallbackSound(false, 'call')), a.position);
         if (from !== 'charge') this.alertHerd(a, true);
         break;
       case 'stalk':
@@ -1205,9 +1205,9 @@ export class AnimalManager {
       case 'charge':
         br.timer = a.mods.relentless ? 12 : 4; br.wary = T.waryTime; br.committed = false; br.backoff = 0;
         // melee shard: the charge opens with a readable wind-up (think 'charge'; the roar below is its cue)
-        br.windup = this.melee ? CHARGE_WINDUP[a.kind] ?? CHARGE_WINDUP_DEFAULT : 0;
+        br.windup = this.melee ? sp.chargeWindup ?? CHARGE_WINDUP_DEFAULT : 0;
         if (br.windup > 0) { a.startAttack(br.windup); a.setMotion(a.yaw, 0, 3); }
-        this.onSound?.((T.stalk?.roar ?? sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
+        this.onSound?.((T.stalk?.roar ?? sp.sounds?.call ?? fallbackSound(true, 'call')), a.position);
         break;
       case 'attack': case 'dead': case 'hide': case 'perch': case 'rise': case 'sidestep': break;
       // no default
@@ -1452,7 +1452,7 @@ export class AnimalManager {
   private damaged = (a: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean): void => {
     const sp = speciesDef(a.kind);
     if (sp.blood !== false) this.blood.burst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
-    this.onSound?.((sp.sounds?.hurt ?? (a.aggressive ? 'boar_squeal' : 'deer_call')) as AnimalSound, a.position);
+    this.onSound?.((sp.sounds?.hurt ?? fallbackSound(a.aggressive, 'hurt')), a.position);
     // headshot = the hit point sits inside the head sphere (a hair of slack for the ray step)
     a.headWorld(_p);
     const headshot = _p.distanceToSquared(hitPoint) < (a.dims.headRadius * a.scale + 0.06) ** 2;

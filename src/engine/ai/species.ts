@@ -12,6 +12,8 @@ export interface SpeciesRow {
   id: string; kind: string; label: string; parent?: SpeciesRow;
   variants: SpeciesVariant[]; spawnOnly?: SpeciesVariant[];
   aggressive?: boolean; walkSpeed?: number; chargeSpeed?: number; chargeDamage?: number;
+  /** s / m / m: the charge's wind-up, the ring a charger circles on, the grass track it flattens (SpeciesDef) */
+  chargeWindup?: number; ringRadius?: number; trampleRadius?: number;
   tuning?: HuntTuning;
   sounds?: { call: string; hurt: string; callVariants?: string[]; callEvery?: [number, number] };
   think?: (animal: Animal, ctx: ThinkCtx) => void;

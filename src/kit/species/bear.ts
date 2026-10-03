@@ -13,6 +13,7 @@ export const BEAR_TUNING: HuntTuning = {
 export const BEAR: SpeciesRow = {
   lockable: true,
   id: 'kit.creature.bear', kind: 'bear', label: 'Bear', aggressive: true,
+  chargeWindup: 0.65, ringRadius: 7.5, trampleRadius: 0.75,
   walkSpeed: 1.0, chargeSpeed: 9, chargeDamage: 35, tuning: BEAR_TUNING,
   sounds: { call: 'bear_growl', hurt: 'bear_hurt' },
   variants: [

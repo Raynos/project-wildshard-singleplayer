@@ -1,4 +1,4 @@
-import { registerSpecies, speciesWithLook } from '#engine';
+import { registerSpecies, setCreatureSoundDefaults, speciesWithLook } from '#engine';
 import { BOAR } from './boar';
 import { BEAR } from './bear';
 import { BOAR_LOOK } from './view/boar';
@@ -6,6 +6,8 @@ import { BEAR_LOOK } from './view/bear';
 
 /** Composition root defaults for legacy shards and standalone model tools. Plugins add scoped child rows. */
 export function installKitSpecies(): void {
+  // the calls a species with no `sounds` falls back on: a charger grunts like a boar, a grazer calls like a deer
+  setCreatureSoundDefaults({ charger: { call: 'boar_grunt', hurt: 'boar_squeal' }, grazer: { call: 'deer_call', hurt: 'deer_call' } });
   registerSpecies(speciesWithLook(BOAR, BOAR_LOOK));
   registerSpecies(speciesWithLook(BEAR, BEAR_LOOK));
 }

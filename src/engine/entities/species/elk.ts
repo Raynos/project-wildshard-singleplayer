@@ -311,6 +311,7 @@ export const ELK_TUNING: HuntTuning = {
 registerSpecies({
   rigContract: { skeleton: 'quadruped.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'elk',
+  trampleRadius: 0.65,
   label: engineString('s_9b55fa90a42c'),
   fur: {
     texSeed: 103, tex: { contrast: 0.85, grizzle: 0.2, normalStrength: 1.7, bristle: 0.1, strandLen: 28, root: 0.16 },

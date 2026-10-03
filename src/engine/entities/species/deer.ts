@@ -266,6 +266,7 @@ function buildDeer(v: VariantDef, _rng: Rng): AnimalSpecies {
 registerSpecies({
   rigContract: { skeleton: 'quadruped.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'deer',
+  trampleRadius: 0.5,
   label: engineString('s_ba8af0f48026'),
   fur: {
     texSeed: 101, tex: { contrast: 0.8, grizzle: 0.15, normalStrength: 1.6, bristle: 0, strandLen: 24, root: 0.14 },

@@ -1,7 +1,9 @@
 // E297 (DRIFTWOOD-TOP10 row 1): one set of fight rules for every enemy on Driftwood — at most 2 attack at once (attack
 // tokens), engaged boars circle back and charge again instead of fleeing (reengage). Each shard may declare its own cap.
+import { BOAR } from '#kit/species/boar';
+import { BEAR } from '#kit/species/bear';
 import { describe, expect, it } from 'vitest';
-import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, RING, BACKOFF_PAST, type ReengageIn } from '#engine/entities/fightRules';
+import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, BACKOFF_PAST, type ReengageIn } from '#engine/entities/fightRules';
 import { SHARDS } from '#game/shard/registry';
 import { AggressionDirector } from '#engine/ai/director';
 import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
@@ -109,7 +111,7 @@ describe('reengage (E297: boars circle back instead of fleeing)', () => {
 describe('the back-off and the ring (E297)', () => {
   it('backs off to just past the ring, arcing to one side, and the other side next time', () => {
     const o = { x: 0, z: 0 };
-    const ring = RING['boar'] ?? 6.5;
+    const ring = BOAR.ringRadius ?? 6.5;
     backoffPoint(0, 0, 0, 1.2, ring, 1, o);   // a boar 1.2 m north of you after the charge
     expect(Math.hypot(o.x, o.z)).toBeCloseTo(ring + BACKOFF_PAST, 5);
     expect(o.z).toBeGreaterThan(0);          // away from you, on its own side
@@ -119,8 +121,8 @@ describe('the back-off and the ring (E297)', () => {
   });
 
   it('the ring sits inside the charge distance (a boar on it can charge from there)', () => {
-    expect(RING['boar']).toBeLessThan(10); // BOAR_TUNING.panicDist
-    expect(RING['bear']).toBeLessThan(14); // BEAR_TUNING.panicDist
+    expect((BOAR.ringRadius ?? 6.5)).toBeLessThan(10); // BOAR_TUNING.panicDist
+    expect((BEAR.ringRadius ?? 6.5)).toBeLessThan(14); // BEAR_TUNING.panicDist
   });
 
   it('aroundPoint on top of the player picks a direction instead of NaN', () => {

@@ -244,6 +244,12 @@ export interface SpeciesDef {
   build: (variant: VariantDef, rng: Rng) => AnimalSpecies;
   /** true = turns on the player (charges) instead of only fleeing (boar, bear) */
   aggressive?: boolean;
+  /** s: a charge's readable wind-up on a melee level (default 0.5) */
+  chargeWindup?: number;
+  /** m: the ring a charger circles on while it waits its turn (default 6.5; a big one a little wider) */
+  ringRadius?: number;
+  /** m: how wide a track it flattens through trampled grass (default 0.4) */
+  trampleRadius?: number;
   /** m/s while wandering (default: 1.1 aggressive / 1.3 not) */
   walkSpeed?: number;
   /** m/s of a charge (default 7.5) */
@@ -291,6 +297,13 @@ export interface SpeciesDef {
 const SPECIES = new Map<string, SpeciesDef>();
 let resolveSpecies: ((kind: string) => SpeciesDef | undefined) | undefined;
 /** The composition root supplies active, scoped rows; legacy tooling can keep its standalone catalog. */
+/** The calls a species with no `sounds` falls back on, by temperament: the composition root installs them (the kit's,
+ *  installKitSpecies), so the engine names no creature sound (E405); none installed = silent */
+export interface CreatureSoundDefaults { charger: { call: string; hurt: string }; grazer: { call: string; hurt: string } }
+let soundDefaults: CreatureSoundDefaults | null = null;
+export function setCreatureSoundDefaults(defaults: CreatureSoundDefaults | null): void { soundDefaults = defaults; }
+export function creatureSoundDefaults(): CreatureSoundDefaults | null { return soundDefaults; }
+
 export function setSpeciesResolver(resolve: (kind: string) => SpeciesDef | undefined): void { resolveSpecies = resolve; }
 
 /** All creature collision adapters need these bones, including custom and flying rigs. */
