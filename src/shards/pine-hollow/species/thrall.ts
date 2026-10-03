@@ -1,4 +1,4 @@
-import type { RigAnimCtx, VariantDef } from '#engine';
+import type { RGB, RigAnimCtx, VariantDef } from '#engine';
 
 /**
  * The Antler King's thralls (PINE-HOLLOW-REMASTER PH-U9 / PH-M2): moss-grown, glassy-eyed elk and boar he calls from the
@@ -28,3 +28,9 @@ export function thrallPose(c: RigAnimCtx): void {
   const moving = Math.min(1, Math.abs(c.speed) / 1.2);
   if (body) body.rotation.z += 0.05 * moving * Math.sin(c.phase * Math.PI * 2);
 }
+
+/** the King's thrall (PH-M2): a dead, damp coat gone olive; the moss, lichen and eyes are the hull's coat (pineCoats.ts) */
+export const ELK_THRALL_TINT: Record<string, RGB> = {
+  body: [0.30, 0.28, 0.20], bodyDark: [0.20, 0.19, 0.13], neck: [0.12, 0.11, 0.07], mane: [0.08, 0.09, 0.05], belly: [0.16, 0.14, 0.10],
+  rump: [0.42, 0.42, 0.32], legDark: [0.14, 0.12, 0.09],
+};

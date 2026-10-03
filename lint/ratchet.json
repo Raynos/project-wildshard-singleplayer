@@ -346,8 +346,6 @@
     "src/engine/debug/probe.ts": 10,
     "src/engine/entities/Animal.ts": 3,
     "src/engine/entities/AnimalFactory.ts": 3,
-    "src/engine/entities/species/deer.ts": 11,
-    "src/engine/entities/species/elk.ts": 11,
     "src/engine/explore/Explore.ts": 1,
     "src/engine/explore/SetExplorer.ts": 2,
     "src/engine/explore/catalog.ts": 1,

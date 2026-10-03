@@ -1,10 +1,7 @@
-import { engineString } from '#engine/strings';
+// The elk, a kit creature (moved from the engine's species folder, E405 LAYER-PURITY); installKitSpecies registers it.
+// A level adds its own spawn-only variants (Pine Hollow's thrall: src/shards/pine-hollow/species/rows.ts).
 import * as THREE from 'three';
-import type { Rng } from '../../core/rng';
-import type { HuntTuning } from '../AnimalManager';
-import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint, type RGB } from './loft';
-import { THRALL_TRAITS, thrallPose } from './thrall';
+import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint, type RGB, type Rng, type HuntTuning, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesDef } from '#engine';
 
 /**
  * Elk (wapiti) — a much bigger beast than the deer: 1.5 m at the shoulder, ~2.4 m of body, a heavy neck
@@ -38,12 +35,6 @@ const PALE_TINT: Record<string, RGB> = {
 };
 
 /** the Imperial bull: a warmer, gold-cast coat with an even darker mane; the glow is in the fur override */
-/** the King's thrall (PH-M2): a dead, damp coat gone olive; the moss, lichen and eyes are the hull's coat (pineCoats.ts) */
-const THRALL_TINT: Record<string, RGB> = {
-  body: [0.30, 0.28, 0.20], bodyDark: [0.20, 0.19, 0.13], neck: [0.12, 0.11, 0.07], mane: [0.08, 0.09, 0.05], belly: [0.16, 0.14, 0.10],
-  rump: [0.42, 0.42, 0.32], legDark: [0.14, 0.12, 0.09],
-};
-
 const IMPERIAL_TINT: Record<string, RGB> = {
   body: [0.52, 0.40, 0.24], bodyDark: [0.40, 0.30, 0.17],
   neck: [0.22, 0.15, 0.09], mane: [0.14, 0.10, 0.07], belly: [0.28, 0.21, 0.14], rump: [0.92, 0.84, 0.62],
@@ -308,11 +299,11 @@ export const ELK_TUNING: HuntTuning = {
   impactSpook: 10, impactAlert: 30,
 };
 
-registerSpecies({
+export const ELK: SpeciesDef = {
   rigContract: { skeleton: 'quadruped.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'elk',
   trampleRadius: 0.65,
-  label: engineString('s_9b55fa90a42c'),
+  label: 'Elk',
   fur: {
     texSeed: 103, tex: { contrast: 0.85, grizzle: 0.2, normalStrength: 1.7, bristle: 0.1, strandLen: 28, root: 0.16 },
     roughness: 0.86, sheen: 0.22, sheenColor: [0.42, 0.33, 0.22], envMapIntensity: 0.55, rim: [1.0, 0.78, 0.48], shellLen: 0.065, shag: 0.008,
@@ -323,24 +314,19 @@ registerSpecies({
   // bulls bugle (AnimalManager: sounds.callVariants / callEvery); a hit gets the deer's bark
   sounds: { call: 'elk_bugle', hurt: 'deer_call', callVariants: ['bull', 'big-bull', 'imperial'], callEvery: [40, 120] },
   pose: { grazeNeck: 0.9, gallopTail: 0.4 },
-  postPose: thrallPose,   // a no-op but on the thrall (its stiff gait)
   // weights sum to 100: cow 50 % · bull 38 % · Royal bull 8 % · pale 3 % · Imperial 1 %; every variant's body hits do ×0.8 (hide)
   variants: [
-    { id: 'cow', label: engineString('s_f49ab67dca4b'), weight: 50, rarity: 'common', scale: [0.95, 1.05], hp: 160, mods: { damageTaken: 0.8 } },
-    { id: 'bull', label: engineString('s_327c1c946fd3'), weight: 38, rarity: 'common', scale: [1.05, 1.15], hp: 200, traits: { antlers: 1 }, mods: { damageTaken: 0.8 } },
-    { id: 'big-bull', label: engineString('s_4db12c9101d6'), weight: 8, rarity: 'uncommon', scale: [1.25, 1.25], hp: 260, traits: { antlers: 1, antlerScale: 1.2 }, mods: { damageTaken: 0.8 } },
-    { id: 'pale', label: engineString('s_dedc0e34a47b'), weight: 3, rarity: 'rare', scale: [0.95, 1.1], hp: 160, tint: PALE_TINT, mods: { damageTaken: 0.8 } },
+    { id: 'cow', label: 'Elk cow', weight: 50, rarity: 'common', scale: [0.95, 1.05], hp: 160, mods: { damageTaken: 0.8 } },
+    { id: 'bull', label: 'Bull elk', weight: 38, rarity: 'common', scale: [1.05, 1.15], hp: 200, traits: { antlers: 1 }, mods: { damageTaken: 0.8 } },
+    { id: 'big-bull', label: 'Royal bull', weight: 8, rarity: 'uncommon', scale: [1.25, 1.25], hp: 260, traits: { antlers: 1, antlerScale: 1.2 }, mods: { damageTaken: 0.8 } },
+    { id: 'pale', label: 'Pale elk', weight: 3, rarity: 'rare', scale: [0.95, 1.1], hp: 160, tint: PALE_TINT, mods: { damageTaken: 0.8 } },
     {
-      id: 'imperial', label: engineString('s_eda885a0009b'), weight: 1, rarity: 'legendary', scale: [1.4, 1.4], hp: 340,
+      id: 'imperial', label: 'Imperial bull', weight: 1, rarity: 'legendary', scale: [1.4, 1.4], hp: 340,
       tint: IMPERIAL_TINT, traits: { antlers: 1, antlerScale: 1.4 },
       // faint golden backlit rim + self-glow so it reads at dusk; outruns everything
       fur: { rim: [1.0, 0.86, 0.45], emissive: [0.55, 0.40, 0.12], emissiveIntensity: 0.06, sheenColor: [0.75, 0.60, 0.30] },
       mods: { speed: 1.15, damageTaken: 0.8 },
     },
   ],
-  // the Antler King's thrall (PH-U9 / PH-M2): spawned by id at night / in his fight, never rolled (species/thrall.ts)
-  spawnOnly: [
-    { id: 'thrall', label: engineString('s_08190a304bd6'), weight: 1, rarity: 'rare', scale: [1.1, 1.2], hp: 220, tint: THRALL_TINT, traits: { antlers: 1, ...THRALL_TRAITS }, mods: { damageTaken: 0.8, speed: 0.9 } },
-  ],
   build: buildElk,
-});
+};

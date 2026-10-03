@@ -2,7 +2,7 @@ import { speciesDef, type SpeciesLook } from '#engine';
 import { BOAR_LOOK, BEAR_LOOK } from '#kit';
 import { PINE_BOAR, PINE_BEAR } from './rows';
 import { preloadPineCreatures, skinPineHull } from './hulls';
-import { THRALL_TRAITS, thrallPose } from './thrall';
+import { ELK_THRALL_TINT, THRALL_TRAITS, thrallPose } from './thrall';
 
 export const PINE_BOAR_LOOK: SpeciesLook = {
   ...BOAR_LOOK, id: 'pine.look.boar', species: PINE_BOAR.id,
@@ -29,7 +29,12 @@ const legacyLook = (kind: string): SpeciesLook => ({
   preload: preloadPineCreatures,
   skin: (v, bones, eyes) => skinPineHull(kind, v.id, bones, eyes, v),
 });
-export function pineLooks(): SpeciesLook[] { return [PINE_BOAR_LOOK, PINE_BEAR_LOOK, legacyLook('deer'), legacyLook('elk'), legacyLook('antler-king')]; }
+/** Pine's elk look: the kit elk's, plus the thrall's dead olive coat, glass eyes and moss (its traits) and its stiff gait */
+export function pineElkLook(): SpeciesLook {
+  const look = legacyLook('elk');
+  return { ...look, postPose: thrallPose, variants: { ...look.variants, thrall: { tint: ELK_THRALL_TINT, traits: { antlers: 1, ...THRALL_TRAITS } } } };
+}
+export function pineLooks(): SpeciesLook[] { return [PINE_BOAR_LOOK, PINE_BEAR_LOOK, legacyLook('deer'), pineElkLook(), legacyLook('antler-king')]; }
 
 /** King registers its bespoke body at prewarm; only the hull strategy must be declared at kit. */
 export const KING_HULL_LOOK: Pick<SpeciesLook, 'preload' | 'skin'> = {

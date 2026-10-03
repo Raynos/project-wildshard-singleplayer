@@ -40,6 +40,10 @@ installNalatiSpeciesForTests();
 const { PINE_BOAR } = await import('#shards/pine-hollow/species/rows');
 const { PINE_BOAR_LOOK } = await import('#shards/pine-hollow/species/looks');
 registerSpecies(speciesWithLook(PINE_BOAR, PINE_BOAR_LOOK));
+// and its elk thrall (E405: Pine's, derived from the kit's elk)
+const { pineElk } = await import('#shards/pine-hollow/species/rows');
+const { pineElkLook } = await import('#shards/pine-hollow/species/looks');
+registerSpecies(speciesWithLook(pineElk(), pineElkLook()));
 // Pure inventory fixtures explicitly install the authored item catalogs.
 const { registerItemRow } = await import('#game/bag/itemCatalog');
 const { KIT_ITEMS } = await import('#kit/bag/items');
