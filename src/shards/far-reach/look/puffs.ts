@@ -11,12 +11,13 @@ import { InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry,
 /** `spiral`: puffs laid on three log-spiral arms round the storm crown, under its deck (the H4 god-view targets). */
 export const PUFFS = { spiral: { count: 420, x: 0, z: -190, y: [-12, 12], r: [26, 150] }, count: 380, ring: [10, 600], y: [-22, 4], size: [24, 62], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
 
-export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeometry, ShaderMaterial> {
+/** `keelPuffs`: [x, y, z, size] puffs hugging the islands' undersides (the targets' clouds wrap the keels). */
+export function cumulus(sun: Vector3, atlas: Texture, keelPuffs: readonly (readonly [number, number, number, number])[] = []): Mesh<InstancedBufferGeometry, ShaderMaterial> {
   let a = 9317 >>> 0;
   const rnd = (): number => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   const base = new PlaneGeometry(2, 2), g = new InstancedBufferGeometry();
   g.index = base.index; g.setAttribute('position', base.getAttribute('position')); g.setAttribute('uv', base.getAttribute('uv'));
-  const ns = PUFFS.spiral.count, n = PUFFS.count + ns, at = new Float32Array(n * 4), cell = new Float32Array(n * 2);
+  const ns = PUFFS.spiral.count, nk = keelPuffs.length, n = PUFFS.count + ns + nk, at = new Float32Array(n * 4), cell = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) {
     let ang = rnd() * Math.PI * 2, r = PUFFS.ring[0] + (PUFFS.ring[1] - PUFFS.ring[0]) * Math.sqrt(rnd());
     // clear of the maelstrom (look/cloudSea.ts MAELSTROM) so its spiral reads from above: pushed out past its rim
@@ -35,6 +36,10 @@ export function cumulus(sun: Vector3, atlas: Texture): Mesh<InstancedBufferGeome
     at.set([PUFFS.spiral.x + Math.cos(ang) * rr, PUFFS.spiral.y[0] + (PUFFS.spiral.y[1] - PUFFS.spiral.y[0]) * Math.min(1, f * 1.6) * (0.7 + 0.3 * rnd()), PUFFS.spiral.z + Math.sin(ang) * rr, 16 + rnd() * 18 + f * 20], k * 4);
     const c = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]); cell.set([c % PUFFS.cells[0], Math.floor(c / PUFFS.cells[0])], k * 2);
   }
+  keelPuffs.forEach((k, i) => {
+    const j = PUFFS.count + ns + i, c = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]);
+    at.set([k[0], k[1], k[2], k[3]], j * 4); cell.set([c % PUFFS.cells[0], Math.floor(c / PUFFS.cells[0])], j * 2);
+  });
   g.setAttribute('aAt', new InstancedBufferAttribute(at, 4)); g.setAttribute('aCell', new InstancedBufferAttribute(cell, 2)); g.instanceCount = n;
   const material = new ShaderMaterial({ transparent: true, depthWrite: false, fog: false,
     uniforms: { uSun: { value: sun }, uAtlas: { value: atlas } },
