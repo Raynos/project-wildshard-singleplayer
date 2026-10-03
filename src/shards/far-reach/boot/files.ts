@@ -15,8 +15,8 @@ export const skyMeshUrl = (name: SkyMeshName): string => URLS[name];
  * 2048 paint, decimated, the paint kept as a 1024 WebP map on its UVs (the faceted vertex-colour path reads low-poly up
  * close). The faceted models above stay the fallback.
  */
-export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd' | 'hand-hd' | 'isle-mass-hd' | 'isle-canopy-hd' | 'isle-falls-hd' | 'isle-spire-hd' | 'isle-twin-hd' | 'isle-shelf-hd';
-export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd', 'hand-hd', 'isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd'];
+export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd' | 'hand-hd' | 'isle-mass-hd' | 'isle-canopy-hd' | 'isle-falls-hd' | 'isle-spire-hd' | 'isle-twin-hd' | 'isle-shelf-hd' | 'tree-pine-tall' | 'tree-pine-wide' | 'tree-pine-young' | 'tree-oak' | 'tree-bush';
+export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd', 'hand-hd', 'isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd', 'tree-pine-tall', 'tree-pine-wide', 'tree-pine-young', 'tree-oak', 'tree-bush'];
 const HD_URLS: Readonly<Record<SkyHdName, string>> = {
   'keeper-hd': '/assets/far-reach/models/keeper-hd/keeper-hd.glb', 'roc-hd': '/assets/far-reach/models/roc-hd/roc-hd.glb',
   'post-hd': '/assets/far-reach/models/post-hd/post-hd.glb',
@@ -29,6 +29,12 @@ const HD_URLS: Readonly<Record<SkyHdName, string>> = {
   'isle-spire-hd': '/assets/far-reach/models/isle-spire-hd/isle-spire-hd.glb',
   'isle-twin-hd': '/assets/far-reach/models/isle-twin-hd/isle-twin-hd.glb',
   'isle-shelf-hd': '/assets/far-reach/models/isle-shelf-hd/isle-shelf-hd.glb',
+  // the trees (world/trees.ts; top-10 row 2, art/far-reach/round-26-trees/)
+  'tree-pine-tall': '/assets/far-reach/models/trees/tree-pine-tall.glb',
+  'tree-pine-wide': '/assets/far-reach/models/trees/tree-pine-wide.glb',
+  'tree-pine-young': '/assets/far-reach/models/trees/tree-pine-young.glb',
+  'tree-oak': '/assets/far-reach/models/trees/tree-oak.glb',
+  'tree-bush': '/assets/far-reach/models/trees/tree-bush.glb',
 };
 export const skyHdUrl = (name: SkyHdName): string => HD_URLS[name];
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */

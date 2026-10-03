@@ -60,7 +60,7 @@ After each row: commit, capture, send 'ready for round N'.
 | # | Owner | State | Evidence |
 |---|---|---|---|
 | 1 | sky-reach | landed (first pass) | six Hunyuan3D-2 island models from mockup crops (`art/far-reach/round-25-isles/`, 12k tris, 0.3-0.38 MB each), the 20 sky isles and the 8 playable islands' keels (clipped under their decks); the cluster crags a fifth smaller so they read as masses, not a wall; board-cluster.jpg |
-| 2 | sky-reach | open | |
+| 2 | sky-reach | landed (first pass) | five Hunyuan3D-2 trees from the mockups' trees (`art/far-reach/round-26-trees/`: tall, wide and young pines, an oak, a bush; 6k tris, 130-187 KB each) on every tree spot by a seeded share, own yaw, scale and lean, bark pulled to brown (world/trees.ts); the card firs stay the fallback |
 | 3 | sky-reach | open | |
 | 4 | sky-reach | open | |
 | 5 | sky-reach | open | |

@@ -1,0 +1,3 @@
+# Sky Reach top-10 row 2: modelled trees (E407)
+
+Codex references of the mockups' trees on white (refs/gen.py: pine-tall and oak from mockup A, pine-wide from C, pine-young from D, bush from A), BiRefNet, Hunyuan3D-2 turbo + paint, finish.sh (6k tris, 512 WebP, meshopt): public/assets/far-reach/models/trees/tree-*.glb (130-187 KB). world/trees.ts places them on every tree spot (one instanced draw per model; a seeded share per spot: 30 % tall pine, 25 % wide pine, 15 % young pine, 15 % oak, 15 % bush; own yaw, scale 0.8-1.2, a slight lean), the bark's magenta paint pulled to brown in the shader. turntable-*.jpg: ref + 8 views each. board-views.jpg: the five mockups over the game views.

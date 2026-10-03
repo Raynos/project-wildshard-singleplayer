@@ -68,6 +68,9 @@ export class StormRocBrain extends CreatureBrain<RocState> {
    * rest timer was never reset, so the take-off did not replay). */
   restart(): void {
     this.strikes.cancel(); this.actor.cancelAttack(); this.current = null; this.rest = 2; this.takeoff = 0; this.wasFighting = false; this.transition('circle');
+    // back on its perch (round 12, the lead: a retry left it wherever it was), facing the arena's entrance
+    const perch = PERCH(); this.angle = Math.atan2(perch.z - ROC.z, perch.x - ROC.x);
+    this.actor.place(perch.x, perch.z, 0, perch.y); this.actor.yaw = yawTo(this.actor, DAIS.x, DAIS.z + 40);
   }
   stageOpening(): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
