@@ -1,6 +1,6 @@
 import { manifestClosure } from '../scripts/gen-shards.mjs';
 import { execFileSync } from 'node:child_process';
-import { readdirSync, statSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readdirSync, statSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { contentNamed, hashTree } from './assetHashes';
 import { copyRapierWasm } from './rapier';
@@ -89,6 +89,7 @@ function writeArtModule() {
 
 
 export function generateBootTables(): void {
+  mkdirSync('src/game/boot', { recursive: true }); // the tables' folder holds only generated (untracked) files
   copyRapierWasm();
   copyBasisTranscoder();
   writeBytesModule();

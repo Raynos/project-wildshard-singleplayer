@@ -29,7 +29,7 @@
 //   node --import ./scripts/bake-loader.mjs scripts/bake-packs.mjs [--check]
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, unlinkSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -142,6 +142,6 @@ const prev = existsSync(OUT_TS) ? readFileSync(OUT_TS, 'utf8') : '';
 if (CHECK) {
   if (prev !== ts) { console.error('[pack] src/game/boot/packs.generated.ts is stale — run the build'); process.exit(1); }
 } else {
-  if (prev !== ts) writeFileSync(OUT_TS, ts);
+  if (prev !== ts) { mkdirSync(dirname(OUT_TS), { recursive: true }); writeFileSync(OUT_TS, ts); }
   for (const f of readdirSync(PACK_DIR)) if (!keep.has(f)) unlinkSync(resolve(PACK_DIR, f)); // a changed file made a new hash
 }
