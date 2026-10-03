@@ -1656,20 +1656,20 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "4c50424b9b72a87a3c60f4afa8e4309590a3f1a1",
-      "reason": "E407 Signal Dunes rows 1 and 3, measured (m5 109.75 MB, +0.005 MB: the new glove-hd3, 18.9 k triangles against glove-hd2 15 k, row 4; and earlier +0.75 MB, the dune shadow map 640 -> 896 texels to cover the skirt to +-520 m), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "commit": "04f5b02d79d9e425d7e8503bed47b1504666d8e5",
+      "reason": "E407 Signal Dunes row 10, measured (m5 109.887 MB, +0.137 MB: the learned LUT's 33x33x33 RGBA8 3D texture, 144 KB, art/sunscar-dunes/round-24-lut), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
       "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
-      "captureSha": "042c219c99fdd311d17d0ebf32e579a1464a8ef6",
-      "captureSha256": "46f5b185eb005be30dbf94bdfb99499d87ebeb7d46fb8ce9c4359f4350f5b5e8",
+      "captureSha": "04f5b02d79d9e425d7e8503bed47b1504666d8e5",
+      "captureSha256": "532a71046a2689aeea13c7a570a7316b1505580fa7afc08d196baf1145343443",
       "ceilings": {
-        "sunscar-dunes.phone.spawn.gpuMB": 109.7502498626709,
-        "sunscar-dunes.phone.whip.gpuMB": 109.7502498626709,
-        "sunscar-dunes.phone.ray.gpuMB": 109.7502498626709,
-        "sunscar-dunes.phone.quest.gpuMB": 109.7502498626709,
-        "sunscar-dunes.phone.tower.gpuMB": 109.7502498626709,
-        "sunscar-dunes.phone.current.gpuMB": 109.7502498626709
+        "sunscar-dunes.phone.spawn.gpuMB": 109.88733863830566,
+        "sunscar-dunes.phone.whip.gpuMB": 109.88733863830566,
+        "sunscar-dunes.phone.ray.gpuMB": 109.88733863830566,
+        "sunscar-dunes.phone.quest.gpuMB": 109.88733863830566,
+        "sunscar-dunes.phone.tower.gpuMB": 109.88733863830566,
+        "sunscar-dunes.phone.current.gpuMB": 109.88733863830566
       }
     },
     {

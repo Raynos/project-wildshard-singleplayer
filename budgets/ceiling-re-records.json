@@ -40,8 +40,8 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "4c50424b9b72a87a3c60f4afa8e4309590a3f1a1",
-      "reason": "E407 Signal Dunes rows 1 and 3, measured (m5 109.75 MB, +0.005 MB: the new glove-hd3, 18.9 k triangles against glove-hd2 15 k, row 4; and earlier +0.75 MB, the dune shadow map 640 -> 896 texels to cover the skirt to +-520 m), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "04f5b02d79d9e425d7e8503bed47b1504666d8e5",
+      "reason": "E407 Signal Dunes row 10, measured (m5 109.887 MB, +0.137 MB: the learned LUT's 33x33x33 RGBA8 3D texture, 144 KB, art/sunscar-dunes/round-24-lut), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     },
     {
       "shard": "sunscar-dunes",
