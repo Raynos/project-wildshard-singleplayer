@@ -76,7 +76,19 @@ try {
     });
   });
   const hud = (on) => page.evaluate((v) => { const h = document.getElementById('hud'); if (h) h.style.visibility = v ? '' : 'hidden'; }, on);
+  const staged = {};
   for (const s of CAMS.shots) {
+    // E399: a shot may stage real quest state first (`stage`), through the shard's exposed handle (`expose` at the top of
+    // cameras.json): e.g. the waymarks lit, the state a player reaches. Recorded in meta.json for the council to check.
+    if (s.stage !== undefined) {
+      const ok = await page.evaluate(([name, stage]) => {
+        const h = window.__wildshard.shard?.[name];
+        if (typeof h?.stage !== 'function') return false;
+        h.stage(stage); return true;
+      }, [CAMS.expose, s.stage]);
+      if (!ok) errors.push(`shot ${s.id}: no stage() on __wildshard.shard.${String(CAMS.expose)}`);
+      staged[s.id] = s.stage;
+    }
     if (s.god) {
       await page.evaluate((g) => { window.__prog = g; }, { fov: 72, ...s.god }); await hud(false);
     } else {
@@ -117,7 +129,7 @@ try {
   }
   // the compiled programs after every view was drawn (E397: a program-key collision shows up as a lower count)
   const programs = await page.evaluate(() => window.__wildshard.world.game.renderer?.info?.programs?.length ?? null).catch(() => null);
-  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, pageErrors: errors }, null, 1)}\n`);
+  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, staged, pageErrors: errors }, null, 1)}\n`);
   console.log(`progress: ${OUT.slice(ROOT.length + 1)} · ${shots.length} shots${CLIP && CAMS.clip ? ' + clip' : ''} · load ${loadS} s${errors.length > 0 ? ` · ${errors.length} page errors` : ''}`);
 } finally {
   await browser.close();
