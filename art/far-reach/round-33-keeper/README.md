@@ -17,6 +17,7 @@ the Hunyuan takes kept the coat, scarf, satchel, staff and the carved post.
 | refs/ref-lantern.jpg | the iron-and-brass lantern with amber panes |
 | turntable-keeper.jpg, turntable-lectern.jpg, turntable-lantern.jpg | each model: ref + 4 views (front, sides, back) |
 | board-b.jpg | A mockup B / B round 14 (progress 20261003-0823) / C new, full frame and the keeper crop |
+| board-h1.jpg | h1 (the bridge view) before and after, and the stand's crop: the carved post, the iron arm, the lit lantern on its hook |
 | board-close.jpg | a 4.7 m close-up of the set (x -1.2, z -9.6, yaw 12, pitch -8), before (HEAD cad1be5b9) and after |
 
 Numbers (measured on the fitted models, the code reads them):
