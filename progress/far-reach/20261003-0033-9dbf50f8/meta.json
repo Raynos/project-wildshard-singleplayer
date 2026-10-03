@@ -1,0 +1,177 @@
+{
+ "shard": "far-reach",
+ "sha": "9dbf50f82c70f005b5988c2f44a4376bce0db30b",
+ "when": "20261003-0033",
+ "label": "mockup council round 5",
+ "loadSeconds": 8,
+ "shots": [
+  "first-frame",
+  "h1-sunrest",
+  "h2-windmill",
+  "h3-grove-high-step",
+  "mock-proposal-B",
+  "mock-A-spawn-look",
+  "mock-B-quest-start",
+  "mock-C-hands-fan",
+  "h4-crown",
+  "mock-D-crown-arena",
+  "aerial-spawn",
+  "aerial-overview"
+ ],
+ "clip": true,
+ "programs": 100,
+ "staged": {
+  "h4-crown": "quest-crown",
+  "mock-D-crown-arena": "roc-stalk"
+ },
+ "camAt": {
+  "h1-sunrest": {
+   "pos": [
+    0,
+    31.7,
+    -9
+   ],
+   "dir": [
+    0,
+    -0.07,
+    -0.998
+   ],
+   "fov": 72
+  },
+  "h2-windmill": {
+   "pos": [
+    -8,
+    31.68,
+    -54
+   ],
+   "dir": [
+    0.747,
+    0.139,
+    -0.65
+   ],
+   "fov": 72
+  },
+  "h3-grove-high-step": {
+   "pos": [
+    -3,
+    31.7,
+    -56
+   ],
+   "dir": [
+    0.043,
+    0.174,
+    -0.984
+   ],
+   "fov": 72
+  },
+  "mock-proposal-B": {
+   "pos": [
+    7.6,
+    33.09,
+    -11.5
+   ],
+   "dir": [
+    -0.136,
+    -0.208,
+    -0.969
+   ],
+   "fov": 72
+  },
+  "mock-A-spawn-look": {
+   "pos": [
+    0,
+    31.7,
+    -10
+   ],
+   "dir": [
+    0,
+    -0.059,
+    -0.998
+   ],
+   "fov": 72
+  },
+  "mock-B-quest-start": {
+   "pos": [
+    -0.3,
+    31.7,
+    -4.8
+   ],
+   "dir": [
+    -0.07,
+    -0.044,
+    -0.997
+   ],
+   "fov": 72
+  },
+  "mock-C-hands-fan": {
+   "pos": [
+    3.2,
+    31.7,
+    -11
+   ],
+   "dir": [
+    -0.208,
+    0.052,
+    -0.977
+   ],
+   "fov": 72
+  },
+  "h4-crown": {
+   "pos": [
+    0,
+    45.7,
+    -172
+   ],
+   "dir": [
+    0,
+    0.105,
+    -0.995
+   ],
+   "fov": 72
+  },
+  "mock-D-crown-arena": {
+   "pos": [
+    0,
+    45.68,
+    -172.5
+   ],
+   "dir": [
+    0,
+    0.07,
+    -0.998
+   ],
+   "fov": 72
+  },
+  "aerial-spawn": {
+   "pos": [
+    0,
+    62,
+    41
+   ],
+   "dir": [
+    0,
+    -0.416,
+    -0.909
+   ],
+   "fov": 72
+  },
+  "aerial-overview": {
+   "pos": [
+    0,
+    130,
+    90
+   ],
+   "dir": [
+    0,
+    -0.466,
+    -0.885
+   ],
+   "fov": 72
+  }
+ },
+ "active": [
+  "mock-D-crown-arena"
+ ],
+ "cameras": "fe325fc8dec4ca0c0e5f9eaebc7f360a4993b681",
+ "pageErrors": []
+}
