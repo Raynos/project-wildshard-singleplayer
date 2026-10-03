@@ -31,14 +31,15 @@ id for id. design.md owns intent and Jake's words; spec.json owns the numbers. -
 
 ## §run (06 §10.7)
 - mode: guided | zero-shot · until: P<n> (the bound, if any) · P0's answers
-- step: P<n> · waitingOn: jake | codex-quota (with its time) · resentAt · next: …
+- step: P<n> (the machine block's `run.stage`: one value, written together) · waitingOn: jake | codex-quota (with its time) · resentAt · next: …
 - stop: continue | done | blocked | quota(<reset>) (set before a session exits)
+- the pending board and question · queued commands
 - the last build SHA · the live page's URL · the frames folder
 
 ## Verdict log
 - P<n>: "<Jake's words, verbatim>" (ask id).
 
-## The checkpoints (§2b; one entry per pinned place or slice)
+## The checkpoints (§2b; one entry per pinned place)
 - <place>: the accepted camera, the assets, the gate evidence, the rejected variants, the next place.
 
 ```json worldclaw

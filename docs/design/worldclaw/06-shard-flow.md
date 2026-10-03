@@ -37,7 +37,7 @@ The order:
 
 **The mode comes from the skill** (D62): `worldclaw-auto` is zero-shot ("zero-shot …", optionally "… until P<n>", §8);
 `worldclaw-interactive` is guided. **The mode, the `until` bound and P0's answers are saved in §run** (§10.7), so a resumed run keeps them;
-a new invocation on an existing shard (P19's "until P8" on P18's shard) updates the bound and continues.
+a new invocation on a zero-shot run's shard (P19's "until P8" on P18's shard) updates the bound and continues.
 
 **The slug** is picked from the vision's sentence at P0 and never renamed.
 
@@ -271,7 +271,7 @@ and on the final board; Jake can overturn it with a note.
 |---|---|---|
 | P10 look | the bible as shard data (ground, sky, fog, grade, light, `LookStrategy`, the kit look, the model post recipe); LOOK-LOOP against the targets on every seen band, close first (D60); two domes; a 12-frame orbit strip | each target's ΔE00 reported; the judges sign off (R29) |
 | P11 catalog | 04 §7: anchors first; per place by `catalogMode`; scatter by `scatter-sources.json`; texture caps; walk-inside buildings as code; the style check (an asset that fails its ladder is not placed); provenance | every placed asset passes the style check |
-| P12 places | 04 §8: per place and per route leg on every seen band, close first (D60); in interactive, a checkpoint per place (§2b of the plan; D63, D78); compositions conditioned on the P9b target; T8 placement through the physics query layer with support binding; object pads; T9; Sets with targets | T9 clean; judges' must-fix empty (≤ 3 rounds a place) |
+| P12 places | 04 §8: per place and per route leg on every seen band, close first (D60); in interactive, a checkpoint per place (§2b of the plan; D63, D78); compositions conditioned on the P9b target; T8 placement through the physics query layer with support binding; object pads; T9; Sets with targets | T9 clean; judges' must-fix empty (one that stays climbs §10.4's ladder) |
 | P13 content + audio | 04 §11: creature, NPC and boss models; the weapon's final model; dressing and signals; quest props; **score, ambience, SFX, credits**; card art | T16 plays the golden path and the slice in the final look |
 | P14 budgets | T10 at every place's 9 cameras and every 10 m of every route; a Simulator **pre-check** | within R28's gate |
 | P15 final judges | F1's fun rules, L1–L9, look and slop, on the final strips | the R6 pass mark; no must-fix |
@@ -298,7 +298,6 @@ and on the final board; Jake can overturn it with a note.
 - **Pass / fail gates** (one option: P8, P9b fidelity, P10, P15): pass when **J1 and J2 both pass every line and no
   evidenced must-fix stands**. A line one passes and the other fails gets J3 on that line, and its call counts.
 - **Must-fixes:** one backed by a frame and a number blocks until fixed or disproved by a re-measure.
-- **Batching:** style checks at ≤ 10 sheets per run.
 - **Log:** everything goes in `decisions.md`.
 
 **Rubrics** (T12): pitch, direction, concept, map, mockup / target, level, and look and slop.
@@ -351,7 +350,7 @@ and on the final board; Jake can overturn it with a note.
 
 **The invocations** name the skill, so a fresh session finds it [R4-B7, R4-C8]:
 - a new run: `/worldclaw-auto zero-shot <sentence> [as <slug>] [until P<n>]`;
-- an existing shard, a new bound (P19): `/worldclaw-auto zero-shot <slug> until P<n>`;
+- a zero-shot run, a new bound (P19): `/worldclaw-auto zero-shot <slug> until P<n>`;
 - a relaunch: `/worldclaw-auto resume <slug>`.
 
 No questions.

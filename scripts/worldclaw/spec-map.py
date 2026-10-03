@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The light front's plan map (WORLDCLAW-SHARD §2c, row L2): a shard's spec.json drawn as a plan (places as discs with
+"""T6's helper (E406), the plan map: a shard's spec.json drawn as a plan (places as discs with
 their role and height, routes as typed legs, gates), for shards whose overhead capture shows roofs, not floors (a vertical
 city). Usage: python3 scripts/worldclaw/spec-map.py <spec.json> <out.png> [<design.md>]
 Coordinates: x east, z south (north up); the frame fits the places and routes with a margin of one place radius."""

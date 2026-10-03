@@ -39,5 +39,5 @@ rounds; outline).
 4. **Everything it makes lands in our primitives.** Objects are `defineModel` models, regions are named places and
    Sets, terrain and scatter are World. It is reviewed in the Model, Set and World Explorers and bounded by the phone
    budgets.
-5. **Three flows (Jake):** autonomous (planned in full), iterative high-quality (Nine Dragon's checkpoints), and sketch
+5. **Three flows (Jake):** autonomous (planned in full), iterative high-quality (the checkpoint per place; it came from Nine Dragon's loop), and sketch
    (fast low-poly for quick steering). **Plan only: nothing is built until GAME-NORMALIZATION is archived.**

@@ -189,8 +189,7 @@ D63):
    - the D25 musts.
 
    Then the bakes, the walk legs and reach.
-8. **Compare** target vs built at the same camera, with two domes. The judges list must-fixes (≤ 3 rounds a place;
-   then 06 §10.4's ladder).
+8. **Compare** target vs built at the same camera, with two domes. The judges list must-fixes (one that stays climbs 06 §10.4's ladder).
 
 ## 9. The judges
 

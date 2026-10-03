@@ -16,8 +16,9 @@ Binding docs: `docs/design/worldclaw/06-shard-flow.md` (§8 zero-shot, §10.7 wa
    (P19: `"/worldclaw-auto zero-shot <slug> until P8"`), and report. T18 runs each worker as
    `env -u HERDR_PANE_ID WORLDCLAW_WORKER=1 claude -p --permission-mode bypassPermissions "<invocation>"`; a worker never
    sets the status line and never starts T18.
-2. **Zero-shot on an existing shard** (`zero-shot <slug> until P<n>`): set §run's `until` to the new bound, keep
-   `mode: zero-shot`, then resume.
+2. **A new bound on a zero-shot run** (`zero-shot <slug> until P<n>`, the shard's §run has `mode: zero-shot`): set
+   §run's `until` to the new bound, then resume. A slug that is a shard without `design/design.md` is a shipped
+   shard: stop (D90, it follows its own plan).
 3. **Resume** (`resume <slug>`): read §run (`mode`, `until`, `step`, `waitingOn`, `next`) and the last Handoff.
    `waitingOn: codex-quota` before its reset → stop with `stop: quota(<reset>)`; after it → clear and continue.
    Otherwise continue at `next`; at `until`, or after P16's board, stop with `stop: done`.
@@ -38,7 +39,8 @@ Binding docs: `docs/design/worldclaw/06-shard-flow.md` (§8 zero-shot, §10.7 wa
   on a kit stand-in, ≤ +3 agent-days of adds in all; prefer quest-board mechanics the engine already has (D73).
 - **The gates:** P8 as interactive; P9 is judged from the route strips and T16's log; P9b as interactive.
 - **The build:** each place runs the four checkpoint gates internally (Frame · Form · Play · Pin, WORLDCLAW-SHARD §2b); the
-  judges decide every gate, no boards go to Jake, the next place is the golden path's next (06 §5: rungs 3–4 are the
+  judges decide every gate from frame strips and numbers (Play's moving capture as a strip with the walk legs, R6), no
+  boards go to Jake, the next place is the golden path's next (06 §5: rungs 3–4 are the
   judges', logged).
 - **Delivery:** nothing goes to Jake until the end, unless the invocation asked to follow along. "until P<n>" stops
   there with a partial board. At P16 the final board and the time-lapse go to Jake as one set; P17 (his first walk)

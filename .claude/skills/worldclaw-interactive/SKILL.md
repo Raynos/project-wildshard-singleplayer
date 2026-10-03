@@ -33,7 +33,8 @@ first-walk notes (06 §10.5). Content and world are designed together and get eq
 4. **A new run:**
    - check P0's needs (06 §10.2), and stop naming any missing row;
    - claim the ask (`scripts/ask-new.sh "<the user's words>"` in the main checkout; read the id);
-   - pick the slug from the sentence (never renamed);
+   - pick the slug from the sentence (never renamed); a slug that is already a shard (`src/shards/<slug>/` exists) →
+     stop and say so: WorldClaw builds new shards only (D90), a shipped shard follows its own plan;
    - create the shard as a draft on the drafts site (WORLDCLAW-TOOLS §2, W13; how-to: `drafts/README.md`):
      `drafts/shards/<slug>/draft.json` (name, one spoiler-free line, `run`) and `content.json` (empty lists), then
      `node drafts/tools/atlas.ts <slug>`; the game's title shows its COMING SOON card from the next game deploy (W9). The
@@ -157,7 +158,7 @@ concepts, boards and views that show the verb. Two "dull" → cut.
    phases and its summon, quest steps, happenings (E7), the slice, and the shard's mechanics from the quest boards.
 3. The bakes run (E10).
 4. **Hard gates (06 §10.4):** T5's walk legs and every other leg's test; `physics-baseline --mode=walk` (and
-   `--trails`) 0 stuck; reach; every place ≥ 80 % under 30°; **T16 runs the slice** and beats the boss by real strike
+   `--trails`) 0 stuck; reach; every place's pad walkable (R5), its gentle-ground share reported; **T16 runs the slice** and beats the boss by real strike
    inputs under `bossGod` when the scope holds it; sightlines; T9.
 5. **The judges** (§J): the level rubric on the route strips + T5's numbers + T16's log; report the phone-tier fps.
 
@@ -177,7 +178,7 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
 
 - **Polish every seen band** (D60), place by place in golden-path order (D83): `reach --bands` gives each place's close,
   mid and far bands and the cameras.
-- **The checkpoint per place** (P12; WORLDCLAW-SHARD §2b, the merged SHARD-CHECKPOINTS loop, D77–D84). Four gates, as many
+- **The checkpoint per place** (P12; WORLDCLAW-SHARD §2b, the merged SHARD-CHECKPOINTS loop, D77–D83). Four gates, as many
   boards as the place needs (D78; there is no one-board rule):
   - **Frame:** a live portrait capture with the real HUD, the P9b target, the plausible in-engine next view at the same
     camera; ask for a look direction only when taste is needed.
@@ -185,15 +186,20 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
     registered in the Model Explorer; the rest were approved in P11's catalog (D82). Never approve from the hero angle.
   - **Play:** a moving capture and a playable build: collisions, controls, hit or miss, landings; World / HUD Explorer
     evidence where it applies. A still frame alone is not a pass.
-  - **Pin:** your measurements (D81): T10's census at the place's cameras against the budget gate (R28), the phone
-    tier's frame rate there, `scripts/sim-memory.mjs` (the 1.8 / 1.0 GB caps), the load time (`scripts/bench-load.mjs`);
-    the four CI gates; a physical-iPhone reading when the place changes rendering, batching or memory policy
-    (AGENTS.md); a before / current / target board; Jake approves or revises. Commit; the next deploy ships it, hidden
+  - **Pin:** your measurements (D81), recorded with the cameras and the build: T10 on the phone tier at the place's
+    cameras (triangles, draws, GPU MB against the budget gate, R28; the frame time per camera, reported, not gated);
+    `scripts/sim-memory.mjs` inside `scripts/sim-lane.sh run` with `--url=<build> --shards=<slug>` (the 1.8 / 1.0 GB
+    caps); `scripts/bench-load.mjs --query='chunk=<slug>&tier=phone&skipintro=1'` (the load time, reported); the four CI
+    gates; a before / current / target board; Jake approves or revises. The physical-iPhone reading is P16's; an engine
+    change for the live shards is the engine lead's, with its own reading (AGENTS.md ▸ Rendering). Commit; the next deploy ships it, hidden
     in the new shard (D79).
   - Then propose the next place along the golden path (the session slice first) and let Jake pick (D83); inside a place
     its bands go close → mid → far, and the route leg into it is part of its checkpoint. Before his pick, start only
     work that doesn't depend on it (the proposed place's captures).
-  - Content that later lands on a pinned place (P13) re-runs its Play and Pin.
+  - Content that later lands on a pinned place (P13) re-runs its Form for every new or changed model, then Play and
+    Pin; a shard-wide pass (the score, ambience, SFX, credits) re-pins no place: P14 and P15 check it once.
+  - A place whose only open failure is a blocked branch (R16) pins as `pinned (blocked: <id>)`, deploys hidden, and the
+    next place opens; the branch is P16's question.
   - `worldclaw-auto` runs these gates internally: the judges decide from frame strips and numbers (Play's moving capture
     as a strip with the walk legs), no boards go to Jake.
   - A rejected variant goes with its Debug row; internal nine-angle sheets are evidence, not nine decisions; a failed
@@ -229,7 +235,7 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
   `docs/audits/physical-shard-memory-baseline-2026-09-28.json`.
 - **P17:** Jake's first walk; notes through the inbox; drain-inbox makes one ask per note; size every note L / S / M
   with a reason, freeze the baseline and record the slop score; an over-limit reading reopens P14; fix S / M notes
-  ( out of the exemption every fix re-records the gate baseline); **on Jake's word, the status becomes
+  (out of the exemption, every fix re-records the gate baseline); **on Jake's word, the status becomes
   `experimental`**.
 - **Polish rounds** (the old iterative flow, D62): after P17, Jake picks an area or a note; one place at a time: a
   composition + a built view at the same camera → his GO or revision → bakes + walk + budgets. Leftovers stay asks.

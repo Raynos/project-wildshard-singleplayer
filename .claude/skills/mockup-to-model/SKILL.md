@@ -1,6 +1,6 @@
 ---
 name: mockup-to-model
-description: Make one Wildshard model (a prop, building, rock, plant, creature, NPC or weapon) from a mockup or reference image, end to end. Covers the mockup in the game's own frame, a reference sheet with a detail list, picking the pipeline (three.js code, TRELLIS.2, Hunyuan3D-2, a Blender script or CC0), building it, LODs and phone tiers, registering it for physics and the Model Explorer, self-review, and Jake's portrait board or spin clip. Use it when asked to "model", "add", "replace", "remaster" or "generate" a thing in a shard, or to turn an image into a three.js model. Not for an area's overall look (docs/design/LOOK-LOOP.md), a shard slice (worldclaw-interactive's checkpoint), render bugs or HUD work.
+description: Make one Wildshard model (a prop, building, rock, plant, creature, NPC or weapon) from a mockup or reference image, end to end. Covers the mockup in the game's own frame, a reference sheet with a detail list, picking the pipeline (three.js code, TRELLIS.2, Hunyuan3D-2, a Blender script or CC0), building it, LODs and phone tiers, registering it for physics and the Model Explorer, self-review, and Jake's portrait board or spin clip. Use it when asked to "model", "add", "replace", "remaster" or "generate" a thing in a shard, or to turn an image into a three.js model. Not for an area's overall look (docs/design/LOOK-LOOP.md), a place of a new WorldClaw shard (worldclaw-interactive's checkpoint), a slice of a shipped shard (that shard's own plan, D90), render bugs or HUD work.
 ---
 
 # Mockup to model

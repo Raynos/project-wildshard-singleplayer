@@ -24,3 +24,5 @@ Walk each scenario through: `docs/plans/WORLDCLAW-SHARD.md` (§0.2 D77–D88, §
 | 14 | (added by C) An in-progress commit on live Pine Hollow moves its look: the next push's gpu-gate and the players' build | R1 | FAIL (C) | | | |
 
 **After round 2 (Jake, D89 / D90):** scenarios 1, 4, 6, 9, 10, 11, 12 and 14 test the existing-shard path, which is withdrawn; they are retired (kept, marked `retired`). Round 3 walks 2, 3, 5, 7, 8, 13.
+
+**Round 3:** 3 and 5 pass in all seats; 2, 7, 8, 13 failed on MC38, MC40, MC41, MC42 (fixed). Added: 15 (B, C: a director's §S on Nine Dragon, MC36), 16 (B, C: WorldClaw on a shipped slug, MC44), 17 (C: a shard-wide P13 pass, MC42), 18 (A: S1 after the pilot, MC35), 19 (A: Thin Ice's P17 caps, MC39).

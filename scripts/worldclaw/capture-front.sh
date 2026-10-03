@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The light front's captures (WORLDCLAW-SHARD §2c, row L2): World Explorer views of a live shard through the harness params
+# T6's helper (E406): World Explorer views of a shard through the harness params
 # (`chunk`, `explore=world`, `cam`), one PNG per camera, into the round's art folder. Pair it with spec-map.py for the plan
 # map (a vertical shard's overhead view shows roofs, not floors).
 #
