@@ -86,6 +86,19 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
     float crown = smoothstep(0.6, 1.0, abs(sa) * abs(sb));
     vec3 strand = vec3(0.36, 0.15, 0.05) * (0.7 + 0.9 * crown);
     diffuseColor.rgb = mix(diffuseColor.rgb, mix(strand, vec3(0.03, 0.018, 0.012), gap), whip);
+    // the gauntlet's stitching (council rounds 3-5: no seams read on the generated glove): two dashed seams along the back of
+    // the hand and a stitched ring at the cuff edge, in pale thread over a dark welt, in the model's own space
+    vec3 axd = normalize(vec3(-0.57, 0.72, -0.39)), rel = gp - vec3(0.81, -0.77, 0.16);
+    float along = dot(rel, axd);
+    vec3 perp = rel - along * axd, nx = normalize(cross(axd, vec3(0.0, 0.0, 1.0))), ny = cross(axd, nx);
+    float ang = atan(dot(perp, ny), dot(perp, nx)), rad = length(perp);
+    float seamL = min(abs(ang + 0.95), abs(ang + 1.3)) * rad;
+    float dash = step(0.45, fract(along * 70.0));
+    float dashR = step(0.45, fract(ang * rad * 70.0));
+    float welt = (1.0 - smoothstep(0.015, 0.028, seamL)) * step(0.15, along) * step(along, 1.3) + (1.0 - smoothstep(0.012, 0.022, abs(along - 0.5)));
+    diffuseColor.rgb *= 1.0 - 0.45 * clamp(welt, 0.0, 1.0) * (1.0 - whip);
+    float thread = clamp((1.0 - smoothstep(0.008, 0.015, seamL)) * step(0.15, along) * step(along, 1.3) * dash + (1.0 - smoothstep(0.006, 0.012, abs(along - 0.5))) * dashR, 0.0, 1.0);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.5, 0.38, 0.26), thread * (1.0 - whip) * 0.85);
   }`)
       // a light from the viewer side, so the held glove reads as lit leather, never a cut-out against the dusk (mockup D: the lit
       // fist; the key is behind it now): faces lit, edges falling off, more as the dusk deepens
