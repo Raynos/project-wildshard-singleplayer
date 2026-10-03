@@ -236,7 +236,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // E399 (mockups A, D): fine low-contrast ripples near the camera, the bold stripes only at middle distance
   float sandNear = mix(1.05, 0.7, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge); round 8: deeper near (A: troughs to ~20, crowns to ~115)
   // round 8 (mockup B: the late sand dim and soft; ours carried bold dark ripple stripes): the ripples' contrast falls with the dusk
-  sandNear *= 1.0 - 0.45 * smoothstep(0.2, 0.6, uDusk);
+  sandNear *= 1.0 - 0.45 * smoothstep(0.2, 0.6, uDusk) - 0.2 * smoothstep(0.6, 0.9, uDusk); // round 9 (seat A: D's near ripples where the mockup's sand is smooth)
   sandRip1 *= sandNear; sandRip2 *= sandNear;
   // E399 (judge, mockup A): the near ripples' troughs read dark (the key runs along the crests, so the bump alone barely shows)
   diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3
@@ -303,7 +303,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
   reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.95, 0.85, 0.9), uDusk) * mix(1.05, 1.15, uDusk) + vec3(0.016, 0.013, 0.02) * sandShade * (1.0 - uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
   // the dusk's lavender sky floor (R2B-1: the late views' sand measures dim warm brown-violet, not black or pure orange)
-  reflectedLight.indirectDiffuse += uDusk * vec3(0.013, 0.008, 0.009) + smoothstep(0.15, 0.5, uDusk) * vec3(0.012, 0.008, 0.006); // round 8: the key from behind the tower backlights the late views (B, D measured a third under their mockups)
+  reflectedLight.indirectDiffuse += uDusk * vec3(0.013, 0.008, 0.009) + smoothstep(0.15, 0.5, uDusk) * vec3(0.006, 0.004, 0.003); // round 8: the key from behind the tower backlights the late views (B, D measured a third under their mockups)
   // round 8 (mockup C: the waymark's fire lights the sand orange out to the camera; ours stopped at its 6 m pool, the near
   // sand 20 against the mockup's 32): each burning fire (and the caravan's lantern, at its share) lights the sand round it
   for (int i = 0; i < 4; i++) {
