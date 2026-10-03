@@ -128,7 +128,9 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
   { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
     float turf = smoothstep(0.02, 0.12, c.g - max(c.r, c.b) * 0.92);
     vec3 stone = vec3(l) * vec3(1.02, 0.96, 0.88) * (0.75 + 0.35 * smoothstep(0.15, 0.6, l));
-    diffuseColor.rgb = mix(stone, c * vec3(0.82, 0.95, 0.72), turf); }`).replace('#include <dithering_fragment>', `#include <dithering_fragment>
+    // (row 1, the lead: the canopies read olive-grey; the mockups' crowns are lush green lit warm by the low sun)
+    vec3 leaf = mix(vec3(l), c, 1.35) * vec3(1.02, 1.12, 0.78) * 1.15;
+    diffuseColor.rgb = mix(stone, clamp(leaf, 0.0, 1.0), turf); }`).replace('#include <dithering_fragment>', `#include <dithering_fragment>
   // the low sun behind them catches their edges gold (round 9, the seats: 'pale flat mesas'; mockup A's crags are dark
   // masses with sunlit gold rims)
   // strongest on the sun's side (round 10, seat B: every edge lit alike), a share on the rest (round 12: sun-side only

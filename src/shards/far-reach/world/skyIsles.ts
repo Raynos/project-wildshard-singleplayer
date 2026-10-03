@@ -32,12 +32,13 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   // 10-20 deg up, at three depths so they overlap; clear of l4 (o3's keel ran through its deck) and of the storm
   // (round 9, the seats: 0.58 of A's width against the mockup's 0.80, and high): larger and lower, headings -17 to +12, their
   // keels down to ~6 deg, framing the mill's top and the low sun
-  isle('o1', -30, -148, 10.5, 68, 18, 0, Math.PI * 0.3), isle('o3', -4, -170, 11, 74, 19, 0, null), isle('o4', 20, -150, 9, 66, 16, 0, Math.PI * 0.8),
+  isle('o1', -30, -148, 10.5, 60, 18, 0, Math.PI * 0.3), isle('o3', -4, -186, 12, 86, 20, 0, null), isle('o4', 20, -152, 9, 67, 16, 0, Math.PI * 0.8),
   // (round 10, seat A: 'an overlapping cluster'; three separate crags left sky between them) two more, overlapping the three;
   // the modelled isles (top-10 row 1) carry their own bushy canopies, so no card firs, and are a fifth smaller so they read as
-  // separate masses, overlapping (at round-10 sizes the new models made one dark wall); o6 out of
+  // separate masses, overlapping (at round-10 sizes the new models made one dark wall); tiers at different heights and depths with sky between them (the lead: 'a wall of tops at one y'; mockup A
+  // tiers its crags, ~10-18 deg up from the spawn); o6 out of
   // the arena's airspace with its waterfall (round 11, the lead: at (9, -186) it hung over the crown)
-  isle('o5', -16, -162, 8, 71, 15, 0, null), isle('o6', 34, -175, 9.5, 78, 17, 0, Math.PI * 1.2),
+  isle('o5', -14, -138, 8, 76, 15, 0, null), isle('o6', 34, -175, 9.5, 74, 17, 0, Math.PI * 1.2),
   isle('o2', 30, -290, 12, 40, 20, 4, Math.PI * 0.7),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),
