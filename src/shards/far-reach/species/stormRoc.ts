@@ -235,7 +235,7 @@ function rocHd(m: SkyHd): AnimalSpecies {
 /** The body: the textured model when it loaded, else the faceted generated one, else the code one. */
 export const rocBody = (): AnimalSpecies => { const t = skyHd('roc-hd'); if (t) return rocHd(t); const g = skyMesh('storm-roc'); return g ? rocMesh(g) : rocCode(); };
 /** The soaring wings' raised V (radians): level, from the arena they read edge-on; raised, their undersides face a viewer below. */
-const ROC_DIHEDRAL = 0.3;
+const ROC_DIHEDRAL = 0.1;
 export const STORM_ROC_LOOK: SpeciesLook = { id: 'far.look.stormRoc', species: STORM_ROC.id, kind: 'stormRoc', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'far.stormRoc', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
   build: () => rocBody(),
