@@ -4,7 +4,7 @@ import { Boundary } from '#engine/world/Boundary';
 import { Horizon } from '#engine/world/Horizon';
 import { configureLevel } from '#engine/level/selection';
 import { toLevelSpec } from '#game/shard/spec';
-import { SHARDS } from '#game/shard/shards.generated';
+import { SHARDS } from '../../src/shards.generated';
 
 vi.mock('#engine/world/Heightfield', () => ({ heightAt: () => 0, waterLevel: () => 0, pondMask: () => 0, streamAt: () => null }));
 

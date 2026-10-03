@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { ShardManifest } from '#game';
-import { SHARDS } from '#game/shard/shards.generated';
+import { SHARDS } from '../../src/shards.generated';
 import { toLevelSpec } from '#game/shard/spec';
 
 describe('node-safe manifest to engine level boundary', () => {

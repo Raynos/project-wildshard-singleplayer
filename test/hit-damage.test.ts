@@ -3,7 +3,8 @@ import { terrainFor, hitDamage } from '#game/shard/manifest';
 // enemy needs ~5 hits to kill you; the other shards stay uncapped. And the brown bear lives off the quest paths.
 import { describe, expect, it } from 'vitest';
 import { loadSpecies } from './species';
-import { SHARDS, playable, findChunk } from '#game/shard/registry';
+import { SHARDS } from '../src/shards.generated';
+import { playable, findChunk } from '#game/shard/registry';
 import { DRIFTWOOD_ISLE, PATHS, WRECK, SHRINE, HUT, LOOKOUT, OCEAN } from '#shards/driftwood-isle/manifest';
 import { speciesDef, variantMods } from '#engine/entities/species/registry';
 

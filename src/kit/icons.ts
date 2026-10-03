@@ -1,3 +1,4 @@
+import type { BagIcons } from '#game';
 import { iconParts, registerIcons } from '#engine';
 
 /**
@@ -276,3 +277,6 @@ export function installKitIcons(): void {
     ironhide: svg(`<g transform="translate(-4 -6) scale(1.14)">${BOAR}<path d="M4 46 L-2 52 L5 50 Z" transform="translate(4 -4)"/></g>`),
   });
 }
+
+/** the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4) */
+export const BAG_ICONS: BagIcons = { gear: 'sword', finds: 'seaglass', coin: 'coin', charm: 'charm', glass: 'seaglass' };

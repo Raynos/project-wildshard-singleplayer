@@ -2,7 +2,8 @@ import { terrainFor, type ShardManifest } from '#game/shard/manifest';
 // Every authored shard satisfies the ShardManifest contract; the original world-grid shards retain their entry roads.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
-import { SHARDS, playable, DEFAULT_CHUNK, chunkSlugFromUrl, chunkUrl, findChunk, getActiveChunk, onActiveChunkChange, setActiveChunk } from '#game/shard/registry';
+import { SHARDS } from '../src/shards.generated';
+import { playable, chunkSlugFromUrl, chunkUrl, findChunk, getActiveChunk, onActiveChunkChange, setActiveChunk, defaultChunk } from '#game/shard/registry';
 import { landscapeHash } from '#engine/world/terrainField';
 import { hasSpecies, speciesDef } from '#engine/entities/species/registry';
 import * as config from '#engine/core/config';
@@ -26,7 +27,7 @@ describe('chunk registry data', () => {
       expect(c.slug).toMatch(/^[a-z0-9-]+$/u);
       expect(c.slug).toMatch(/^[a-z0-9-]+$/);
     }
-    expect(findChunk(DEFAULT_CHUNK)).toBeDefined();
+    expect(findChunk(defaultChunk())).toBeDefined();
   });
 
   it('seeds are distinct integers and picker fields are filled', () => {
@@ -139,14 +140,14 @@ describe('chunk terrain', () => {
 describe('chunk registry switching', () => {
   it('reads ?chunk= from a query string, defaulting to Driftwood Isle', () => {
     expect(chunkSlugFromUrl('?chunk=driftwood-isle&x=3')).toBe('driftwood-isle');
-    expect(chunkSlugFromUrl('?x=3')).toBe(DEFAULT_CHUNK);
-    expect(chunkSlugFromUrl('')).toBe(DEFAULT_CHUNK);
+    expect(chunkSlugFromUrl('?x=3')).toBe(defaultChunk());
+    expect(chunkSlugFromUrl('')).toBe(defaultChunk());
   });
 
   it('boots Driftwood from the PWA root, while explicit chunk URLs take precedence', () => {
-    expect(chunkSlugFromUrl()).toBe(DEFAULT_CHUNK);
+    expect(chunkSlugFromUrl()).toBe(defaultChunk());
     expect(chunkSlugFromUrl('?chunk=pine-hollow')).toBe('pine-hollow');
-    expect(chunkSlugFromUrl('')).toBe(DEFAULT_CHUNK);
+    expect(chunkSlugFromUrl('')).toBe(defaultChunk());
   });
 
   it('chunkUrl sets the chunk and keeps the other params', () => {
@@ -157,9 +158,9 @@ describe('chunk registry switching', () => {
   });
 
   it('setActiveChunk rebinds config and notifies listeners only on a real switch; unknown slugs fall back', () => {
-    const other = PLAYABLE_SHARDS.find((c) => c.slug !== DEFAULT_CHUNK);
+    const other = PLAYABLE_SHARDS.find((c) => c.slug !== defaultChunk());
     if (other === undefined) throw new Error('needs a second shard');
-    expect(getActiveChunk().slug).toBe(DEFAULT_CHUNK); // location is stubbed with no ?chunk=
+    expect(getActiveChunk().slug).toBe(defaultChunk()); // location is stubbed with no ?chunk=
     const seen = vi.fn<(def: ShardManifest) => void>();
     onActiveChunkChange(seen);
 
@@ -170,7 +171,7 @@ describe('chunk registry switching', () => {
     expect(seen).toHaveBeenCalledTimes(1);
 
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    expect(setActiveChunk('atlantis').slug).toBe(DEFAULT_CHUNK);
+    expect(setActiveChunk('atlantis').slug).toBe(defaultChunk());
     expect(warn).toHaveBeenCalledTimes(1);
     expect(seen).toHaveBeenCalledTimes(2);
     expect(config.SEED).toBe(getActiveChunk().seed);

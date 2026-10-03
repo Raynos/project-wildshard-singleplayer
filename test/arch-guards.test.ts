@@ -164,7 +164,7 @@ describe('AG20 staged content isolation', () => {
 describe('AG7 layer graph', () => {
   it('names layers and refuses a shard reached from outside except the generated table and its own manifest import()', () => {
     expect([layerOf('src/engine/a.ts'), layerOf('src/shards/x/a/b.ts'), layerOf('src/main.ts'), layerOf('test/a.ts')]).toEqual(['engine', 'shards/x', 'root', null]);
-    expect(reachViolation('src/game/shard/shards.generated.ts', 'src/shards/x/manifest.ts', false)).toBeNull();
+    expect(reachViolation('src/shards.generated.ts', 'src/shards/x/manifest.ts', false)).toBeNull();
     expect(reachViolation('src/shards/x/manifest.ts', 'src/shards/x/plugin.ts', true)).toBeNull();
     expect(reachViolation('src/shards/x/manifest.ts', 'src/shards/x/plugin.ts', false)).toMatch(/statically/u);
     expect(reachViolation('src/game/a.ts', 'src/shards/x/plugin.ts', true)).toMatch(/reaches into/u);

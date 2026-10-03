@@ -2,7 +2,7 @@
 // its fauna spawns is some roster model's species (the Explorer's species list, not the live animals), the ids are unique
 // and every entry is a defined model in a known tab; shared/… models are the ones several shards list.
 import { describe, expect, it } from 'vitest';
-import { SHARDS } from '#game/shard/shards.generated';
+import { SHARDS } from '../src/shards.generated';
 import type { ShardManifest } from '#game/shard/manifest';
 import type { RosterEntry } from '#engine/models/live';
 import { definedModels } from '#engine/models/model';

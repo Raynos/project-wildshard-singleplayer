@@ -198,5 +198,5 @@
       "rules": { "import/unambiguous": "off" } // ambient module declarations have no import/export by design
     }
   ],
-  "ignorePatterns": ["test/fixtures/", "dist/", "dist-native/", "ios/", "android/", ".native-build/", "node_modules/", "public/", "src/game/boot/bytes.generated.ts", "progress/", "art/", "sources/", "docs/"]
+  "ignorePatterns": ["test/fixtures/", ".tsc-layers/", "dist/", "dist-native/", "ios/", "android/", ".native-build/", "node_modules/", "public/", "src/game/boot/bytes.generated.ts", "progress/", "art/", "sources/", "docs/"]
 }

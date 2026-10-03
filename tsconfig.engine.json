@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": ".tsc-layers/engine",
+    "tsBuildInfoFile": ".tsc-layers/engine.tsbuildinfo"
+  },
+  "include": ["src/engine", "budgets/desktop-reference.json"]
+}

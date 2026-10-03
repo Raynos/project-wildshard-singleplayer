@@ -13,8 +13,8 @@ async function load(tier: 'phone' | 'desktop') {
   vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${tier}`));
   const { initializeTier } = await import('#engine/core/tier');
   await initializeTier();
-  const [{ SHARDS, playable }, sp, { bootFiles, extraFetches }, { bootFetches }, { packFor }, { versionedUrl }, { PACKS }] = await Promise.all([
-    import('#game/shard/registry'),
+  const [{ SHARDS }, { playable }, sp, { bootFiles, extraFetches }, { bootFetches }, { packFor }, { versionedUrl }, { PACKS }] = await Promise.all([
+    import('../src/shards.generated'), import('#game/shard/registry'),
     import('#engine/boot/shardPrefetch'),
     import('#engine/boot/extras'),
     import('#engine/boot/prefetch'),

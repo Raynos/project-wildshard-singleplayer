@@ -6,7 +6,7 @@ import { QUEUE_KEY, reportError, type LoadFailure } from '#engine/core/errorRepo
 import { captureBrowserError } from '#engine/telemetry/browserErrors';
 import { showLoadFailure } from '#engine/ui/errorScreen';
 import { runShardLoad, withShardHooks } from '#game/shard/load';
-import { SHARDS } from '#game/shard/shards.generated';
+import { SHARDS } from '../src/shards.generated';
 import type { ShardManifest } from '#game/shard/manifest';
 
 const fixtures = saveStorageFixture('device');

@@ -16,7 +16,9 @@ import { listenDom, app, isDev } from '#engine';
  * Cards use the generated, node-safe manifests; world builders remain lazy.
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
-import { SHARDS, type ShardSlug } from './shard/shards.generated';
+import { shards } from './shard/registry';
+import type { ShardSlug } from './shard/slugs.generated';
+import type { ShardManifest } from './shard/manifest';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
@@ -40,9 +42,9 @@ export interface TitleCard {
 
 /** Developer mode reveals hidden levels after every player-facing card. */
 export function titleCards(showHidden = isDev()): readonly TitleCard[] {
-  const hidden = (m: typeof SHARDS[number]): boolean => m.status === 'hidden' || m.slug.startsWith('_');
-  const visible = SHARDS.filter((m) => !hidden(m));
-  const manifests = showHidden ? [...visible, ...SHARDS.filter(hidden)] : visible;
+  const hidden = (m: ShardManifest): boolean => m.status === 'hidden' || m.slug.startsWith('_');
+  const visible = shards().filter((m) => !hidden(m));
+  const manifests = showHidden ? [...visible, ...shards().filter(hidden)] : visible;
   return manifests.map((m): TitleCard => {
     const card: TitleCard = {
     slug: m.slug, name: m.name, label: m.biome,
@@ -167,7 +169,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   summary.className = 'ws-title-summary';
   summary.setAttribute('aria-label', GAME_STRINGS.summary.label);
   const paintSummary = (card: DeckEntry): void => {
-    const view = summaryView(readSummary(), SHARDS);
+    const view = summaryView(readSummary(), shards());
     const lines = new Map(view.lines.map((entry) => [entry.slug, entry] as const));
     const line = lines.get(card.slug);
     const selected = document.createElement('div'); selected.className = 'ws-title-summary-line';

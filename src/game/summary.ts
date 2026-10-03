@@ -1,7 +1,8 @@
 import * as v from 'valibot';
 import { app, type SaveStore } from '#engine';
 import { progressSave } from './saves';
-import { SHARDS, type ShardSlug } from './shard/shards.generated';
+import { shards as installedShards } from './shard/registry';
+import type { ShardSlug } from './shard/slugs.generated';
 
 const count = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(0));
@@ -34,7 +35,7 @@ export function summaryStore(store: SaveStore, read: (slug: string) => SummaryPr
   const current = (): WildshardSummary => {
     const saved = slot.peek();
     if (saved !== null) return saved;
-    const rebuilt = buildSummary(SHARDS.filter((shard) => shard.status !== 'hidden'), read); slot.write(rebuilt); return rebuilt;
+    const rebuilt = buildSummary(installedShards().filter((shard) => shard.status !== 'hidden'), read); slot.write(rebuilt); return rebuilt;
   };
   return {
     read: current,

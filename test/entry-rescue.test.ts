@@ -1,53 +1,25 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+// The entry's first decision after a page restart (src/bootRoute.ts): a pure function, tested without mocking the
+// entry's imports (E422).
+import { describe, expect, it } from 'vitest';
+import { bootRoute } from '../src/bootRoute';
 
-const mocks = vi.hoisted(() => ({ line: '', telemetry: vi.fn(), guard: vi.fn(), title: vi.fn(), three: vi.fn(), main: vi.fn() }));
-vi.mock('#engine/telemetry/runtime', () => ({ startTelemetry: mocks.telemetry }));
-vi.mock('#engine/boot/stuck', () => ({ guardBoot: mocks.guard }));
-vi.mock('#engine/boot/bootTrace', () => ({ inspectPreviousBoot: vi.fn(), previousBootLine: () => mocks.line, previousBootLevel: () => 'nine-dragon-stack' }));
-vi.mock('#engine/ui/StartTitle', () => ({ showStartTitle: mocks.title }));
-// E405: the entry hands the game's deck to the title; the title-only path loads the deck module, never the game
-vi.mock('#game/titleDeck', () => ({ buildTitleDeck: vi.fn(), titleCards: vi.fn(() => []), travel: vi.fn() }));
-vi.mock('three', () => { mocks.three(); return {}; });
-vi.mock('../src/main', () => { mocks.main(); return {}; });
-
-const titleClass = { add: vi.fn() };
-const resumeClass = { remove: vi.fn() };
-const replaced = vi.fn((_state: unknown, _unused: string, url: URL) => { vi.stubGlobal('location', new URL(url)); });
-
-beforeEach(() => {
-  vi.resetModules();
-  mocks.line = '';
-  mocks.telemetry.mockClear(); mocks.guard.mockClear(); mocks.title.mockClear(); mocks.three.mockClear(); mocks.main.mockClear();
-  titleClass.add.mockClear(); resumeClass.remove.mockClear(); replaced.mockClear();
-  vi.stubGlobal('document', { documentElement: { classList: titleClass }, querySelector: () => ({ classList: resumeClass }) });
-  vi.stubGlobal('history', { state: null, replaceState: replaced });
-});
+const q = (s: string): URLSearchParams => new URLSearchParams(s);
+const abrupt = { line: 'Abrupt previous page: Nine Dragon firstFrame 95% (cause unknown)', level: 'nine-dragon-stack' };
+const clean = { line: '', level: '' };
 
 describe('entry after a Nine Dragon page restart', () => {
-  it('rescues an abrupt Nine retry to the static title before importing the game', async () => {
-    mocks.line = 'Abrupt previous page: Nine Dragon firstFrame 95% (cause unknown)';
-    vi.stubGlobal('location', new URL('https://wildshard.example/?chunk=nine-dragon-stack&glreload=1&v=old'));
-    const entry = await import('../src/entry');
-    await entry.entered;
-    expect(mocks.telemetry).toHaveBeenCalledOnce();
-    expect(replaced).toHaveBeenCalledOnce();
-    expect(location.href).toBe('https://wildshard.example/');
-    expect(titleClass.add).toHaveBeenCalledWith('title-first');
-    expect(resumeClass.remove).toHaveBeenCalledWith('show');
-    expect(mocks.title).toHaveBeenCalledOnce();
-    expect(mocks.three).not.toHaveBeenCalled();
-    expect(mocks.main).not.toHaveBeenCalled();
+  it('rescues an abrupt retry of the same level to the title', () => {
+    expect(bootRoute(q('?chunk=nine-dragon-stack&glreload=1&v=old'), abrupt)).toEqual({ rescue: true, titleOnly: true });
   });
-
-  it('loads Nine normally after an intentional title choice', async () => {
-    vi.stubGlobal('location', new URL('https://wildshard.example/?chunk=nine-dragon-stack'));
-    const entry = await import('../src/entry');
-    await entry.entered;
-    expect(mocks.telemetry).toHaveBeenCalledOnce();
-    expect(replaced).not.toHaveBeenCalled();
-    expect(titleClass.add).not.toHaveBeenCalled();
-    expect(mocks.title).not.toHaveBeenCalled();
-    expect(mocks.three).toHaveBeenCalledOnce();
-    expect(mocks.main).toHaveBeenCalledOnce();
+  it('loads the level normally after an intentional choice (no abrupt record)', () => {
+    expect(bootRoute(q('?chunk=nine-dragon-stack'), clean)).toEqual({ rescue: false, titleOnly: false });
+  });
+  it('loads another level normally even after an abrupt end', () => {
+    expect(bootRoute(q('?chunk=pine-hollow'), abrupt)).toEqual({ rescue: false, titleOnly: false });
+  });
+  it('a bare URL, or only ?v=, is the title', () => {
+    expect(bootRoute(q(''), clean).titleOnly).toBe(true);
+    expect(bootRoute(q('?v=abc'), clean).titleOnly).toBe(true);
+    expect(bootRoute(q('?v=abc&chunk=pine-hollow'), clean).titleOnly).toBe(false);
   });
 });

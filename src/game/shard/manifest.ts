@@ -1,5 +1,5 @@
 import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand } from '#engine';
-import type { ShardSlug } from './shards.generated';
+import type { ShardSlug } from './slugs.generated';
 import { terrainFieldFor } from '#engine/data';
 import type { ShardPlugin } from './plugin';
 /**
@@ -596,7 +596,7 @@ export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }
 
 /** Four authored shards; F9 generates this union from the registry. */
-export type { ShardSlug } from './shards.generated';
+export type { ShardSlug } from './slugs.generated';
 
 /** Explore entry art is owned by its shard and imported without world code. */
 export type { ExploreSpec } from '#engine';

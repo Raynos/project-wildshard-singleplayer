@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": ".tsc-layers/game",
+    "tsBuildInfoFile": ".tsc-layers/game.tsbuildinfo"
+  },
+  "references": [{ "path": "./tsconfig.engine.json" }],
+  "include": ["src/game", "src/engine/**/*.d.ts"]
+}

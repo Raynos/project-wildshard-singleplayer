@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { registerGlobalDebugAction } from '#engine';
 import { levelDebugRows } from '#engine/ui/debugOptions';
-import { SHARDS } from '#game/shard/shards.generated';
+import { SHARDS } from '../../src/shards.generated';
 import { toLevelSpec } from '#game';
 
 describe('global developer action lifecycle', () => {

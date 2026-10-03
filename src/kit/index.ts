@@ -42,7 +42,7 @@ export { BEAR, BEAR_TUNING } from './species/bear';
 export { BOAR_LOOK, BOAR_PALETTE } from './species/view/boar';
 export { BEAR_LOOK, BEAR_PALETTE } from './species/view/bear';
 export { installKitSpecies } from './species/install';
-export { installKitIcons } from './icons';
+export { installKitIcons, BAG_ICONS } from './icons';
 export { installKitPickups } from './models/pickups';
 export { installKitProps, INTERACT_PROPS } from './models/interact';
 

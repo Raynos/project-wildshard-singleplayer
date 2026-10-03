@@ -24,6 +24,7 @@ vi.stubGlobal('location', new URL('http://localhost:5173/'));
 
 // the app identity and asset tables first: save keys, the probe's handles and the boot read them (E405 E414 / E415)
 await import('../src/identity');
+await import('../src/shardList');
 const { registerAchievements } = await import('#game/achievements');
 const { PINE_FEATS } = await import('#shards/pine-hollow/feats');
 const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('#shards/driftwood-isle/quest/rows');

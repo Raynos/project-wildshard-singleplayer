@@ -21,7 +21,7 @@ const output = byteWriter(check, 'bake-sky');
 const magick = toolVersion('magick', ['-version']);
 if (!magick) console.log('bake-check: sky pair skipped (no magick)');
 
-const { SHARDS } = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/shards.generated.ts')).href);
+const { SHARDS } = await import(pathToFileURL(resolve(ROOT, 'src/shards.generated.ts')).href);
 for (const def of SHARDS) {
   if (!def.ground.terrain || def.ground.structures || !def.sky?.hdri) continue;
     const hdrPath = resolve(ROOT, `public/assets/hdri/${def.sky.hdri}_2k.hdr`);

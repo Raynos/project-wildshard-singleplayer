@@ -86,7 +86,7 @@ const { initializeTier } = await import('../src/engine/core/tier.ts');
 initializeTier('phone');
 const { pathToFileURL } = await import('node:url');
 const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
-const { SHARDS } = await imp('src/game/shard/shards.generated.ts');
+const { SHARDS } = await imp('src/shards.generated.ts');
 const { playable } = await imp('src/game/shard/registry.ts');
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 const { BARK_LAYERS } = await imp('src/engine/world/forest/treeSet.ts');

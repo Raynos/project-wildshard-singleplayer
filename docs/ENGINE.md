@@ -1593,6 +1593,7 @@ Debug-row count has its own cap (`debugRows`).
 | Check | When | What it checks |
 |---|---|---|
 | `scripts/precommit-guards.mjs` (`.githooks/pre-commit`) | every `git commit` | the commit's own files: oxlint, the custom rules against the ratchet, the shard layout when `src/shards/**` is touched, `gen-shards --check` when a manifest is touched |
+| `tsc -b tsconfig.layers.json` (AG4) | `pnpm typecheck` (CI), the push gate | the layers as TypeScript projects (`tsconfig.engine.json` → `.game` → `.kit` → `.shards`, declarations to the gitignored `.tsc-layers/`): an import that reaches up a layer in any syntax (type-only, `import()` types, a JSON file) fails with TS6307. The shard list is the composition root's (`src/shards.generated.ts`, installed by `src/shardList.ts` into `#game/shard/list`); the game sees only `ShardSlug` (`src/game/shard/slugs.generated.ts`); content icons reach the game as data (`BagIcons` from the kit, a compendium skin's `icon`) |
 | `scripts/check-graph.mjs` (AG7) | pre-commit (`--paths`: the edges the staged files add), `pnpm test` (CI, push gate) | cross-layer import counts per pair in `lint/layer-edges.json` (`shards/pine-hollow → engine 349`): a new pair, a rising count or a two-way pair fails, `--update` lowers; only `src/game/shard/shards.generated.ts` imports a shard (its manifest), and a plugin loads only by `import()` from its own manifest |
 | `scripts/gen-shards.mjs --check` (AG10) | push gate, `pnpm test` (`test/gen-shards.test.ts`) | the manifest contract: `load` is `() => import('./plugin')` and nothing imports `./plugin` statically; the manifest's static closure stays within `lint/manifest-closure-budget.json` (may only fall; `default` for a new shard); every `ShardManifest` field is read by the engine, the game or the tooling |
 | `scripts/check-shards.mjs` (AG9) | pre-commit, `pnpm test` via `check-paths` | the folder layout in `lint/shard-layout.json`: required files, canonical folders, slug = folder name, `manifest.slug` = folder |
@@ -1845,7 +1846,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#game` (`src/game/index.ts`)
 
-112 exports, grouped by the module they come from.
+113 exports, grouped by the module they come from.
 
 - `./equipmentTypes`: `EquipmentRow`
 - `./shard/plugin`: `ShardPlugin`
@@ -1880,11 +1881,12 @@ sections above describe what to use; this list is the complete inventory.
 - `./Elite`: `GroundTell`, `GroundTellWedgeStyle`
 - `./quest/presentation`: `installQuestPresentation`, `presentQuest`, `QuestPresentation`, `QuestPresentationContext`, `QuestPresentationHost`, `QuestPresentationOptions`, `QuestTarget`, `QuestPresentationNpc`, `PresentedQuestDef`, `PresentedQuestStep`
 - `./quest/reward`: `QuestRewardBeat`, `QuestRewardSpec`, `QuestRewardHost`, `QuestRewardPlayer`
+- `./bag/tabs`: `BagIcons`
 - `(local)`: `GAME_API`
 
 ### `#kit` (`src/kit/index.ts`)
 
-140 exports, grouped by the module they come from.
+141 exports, grouped by the module they come from.
 
 - `./weapons/ui`: `SWAP_GLYPHS`
 - `./weapons/equipment`: `SWORD`, `WOODEN_SWORD`, `IRON_SWORD`
@@ -1918,7 +1920,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./species/view/boar`: `BOAR_LOOK`, `BOAR_PALETTE`
 - `./species/view/bear`: `BEAR_LOOK`, `BEAR_PALETTE`
 - `./species/install`: `installKitSpecies`
-- `./icons`: `installKitIcons`
+- `./icons`: `installKitIcons`, `BAG_ICONS`
 - `./models/pickups`: `installKitPickups`
 - `./models/interact`: `installKitProps`, `INTERACT_PROPS`
 - `./npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigureFrame`, `NpcFigureBones`, `NpcFigureRig`

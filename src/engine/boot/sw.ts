@@ -63,11 +63,7 @@ export interface WsSw {
   version: () => Promise<SwVersion | null>;
 }
 
-declare global {
-  interface Window {
-    __ws_sw?: WsSw;
-  }
-}
+// the page's service-worker handle is declared in ./swGlobal.d.ts (an ambient file every layer's project sees)
 
 const sw = typeof navigator === 'undefined' ? null : navigator.serviceWorker;
 

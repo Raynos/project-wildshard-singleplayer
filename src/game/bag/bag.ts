@@ -1,3 +1,4 @@
+import type { BagIcons } from './tabs';
 import { uiScope, type Scope } from '#engine';
 /**
  * The Bag's GEAR and FINDS panels (E314 L5, Jake's picks: board 6 C, a paper doll; board 7 B, a sticker book). One
@@ -98,6 +99,8 @@ export interface GearOpts {
   onEquip: (id: string) => void;
   onWearSkin: (id: string) => void;
   onWear: (id: string) => void;
+  /** the coin / charm glyphs (BagIcons, the kit's) */
+  icons?: Pick<BagIcons, 'coin' | 'charm'>;
 }
 
 export function renderGear(p: HTMLElement, o: GearOpts): void {
@@ -141,8 +144,8 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
   if (loot?.charms) {
     const c = loot.charms;
     right.append(c.owned > 0
-      ? slot('r', 'charm', 'charm', `Sea glass charm ${ROMAN[c.owned] ?? ''}`, pips(c.owned, 3))
-      : slot('r', 'charm', 'charm', 'Charm', `<span class="ws-gmenu-kitsub">${c.next !== null ? `${c.next} sea glass` : 'Sea glass'}</span>`, true));
+      ? slot('r', 'charm', o.icons?.charm ?? 'laurel', `Sea glass charm ${ROMAN[c.owned] ?? ''}`, pips(c.owned, 3))
+      : slot('r', 'charm', o.icons?.charm ?? 'laurel', 'Charm', `<span class="ws-gmenu-kitsub">${c.next !== null ? `${c.next} sea glass` : 'Sea glass'}</span>`, true));
   }
   if (held) right.append(weaponSlot(held, 'r'));
   doll.append(left, fig, right);
@@ -184,11 +187,11 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
   }
   // the purse (Driftwood)
   if (loot?.coins !== undefined) {
-    p.append(el('ws-gmenu-purse', `<i class="ws-gmenu-kiticon">${icon('coin')}</i><span class="ws-gmenu-kitname">Purse</span><b class="ws-gmenu-pursenum">${loot.coins}</b>`));
+    p.append(el('ws-gmenu-purse', `<i class="ws-gmenu-kiticon">${icon(o.icons?.coin ?? 'star')}</i><span class="ws-gmenu-kitname">Purse</span><b class="ws-gmenu-pursenum">${loot.coins}</b>`));
   }
 }
 
-export function renderFinds(p: HTMLElement, v: FindsView, scope: Scope = uiScope('finds')): void {
+export function renderFinds(p: HTMLElement, v: FindsView, scope: Scope = uiScope('finds'), icons?: Pick<BagIcons, 'glass'>): void {
   p.replaceChildren();
   if (v.open) {
     const o = v.open;
@@ -221,7 +224,7 @@ export function renderFinds(p: HTMLElement, v: FindsView, scope: Scope = uiScope
   p.append(el('ws-gmenu-label', 'Sea glass'));
   const chips = el('ws-gmenu-glass');
   for (const g of v.glass) {
-    const c = el(`ws-gmenu-glasschip${g.found ? ' found' : ''}`, icon('seaglass'), 'i');
+    const c = el(`ws-gmenu-glasschip${g.found ? ' found' : ''}`, icon(icons?.glass ?? 'poi'), 'i');
     if (g.found) c.style.color = g.color;
     chips.append(c);
   }

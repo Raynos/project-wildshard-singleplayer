@@ -5,6 +5,8 @@
 /// <reference path="../../src/engine/types/meshopt-simplifier.d.ts" />
 // oxlint-disable-next-line typescript/triple-slash-reference -- Ambient module scripts have no exports to import; scripts need their declarations.
 /// <reference path="../../src/engine/physics/rapier-bg.d.ts" />
+// oxlint-disable-next-line typescript/triple-slash-reference -- Ambient module scripts have no exports to import; scripts need their declarations.
+/// <reference path="../../src/engine/boot/swGlobal.d.ts" />
 import type { EngineProbe as ScriptProbe, HarnessPins as ScriptPins } from '../../src/engine/debug/probe';
 import type { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 

@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": ".tsc-layers/shards",
+    "tsBuildInfoFile": ".tsc-layers/shards.tsbuildinfo"
+  },
+  "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.game.json" }, { "path": "./tsconfig.kit.json" }],
+  "include": ["src/shards", "src/engine/**/*.d.ts"]
+}

@@ -71,12 +71,16 @@ const optional = async (path) => {
     throw error;
   }
 };
-const [{ installAppIdentity }, { WILDSHARD_IDENTITY }, { installAssetTables }, bytes, versions, audio, packs] = await Promise.all([
+const [{ installAppIdentity }, { WILDSHARD_IDENTITY }, { installAssetTables }, { installShards }, bytes, versions, audio, packs] = await Promise.all([
   import(here('../src/engine/app/identity.ts')), import(here('../src/game/identity.ts')), import(here('../src/engine/boot/tables.ts')),
+  import(here('../src/game/shard/list.ts')),
   optional('../src/game/boot/bytes.generated.ts'), optional('../src/game/boot/versions.generated.ts'),
   optional('../src/game/boot/audio.generated.ts'), optional('../src/game/boot/packs.generated.ts'),
 ]);
 installAppIdentity(WILDSHARD_IDENTITY);
+// the shard list (AG4) once it is generated: a manifest's imports are node-safe, the game's registry reads it
+const list = await optional('../src/shards.generated.ts');
+if (Array.isArray(list.SHARDS)) installShards(list.SHARDS);
 installAssetTables({
   bytes: bytes.PUBLIC_BYTES ?? {}, versions: versions.ASSET_VERSIONS ?? {},
   music: audio.MUSIC_MANIFESTS ?? {}, sfx: audio.SFX_MANIFESTS ?? {}, packs: packs.PACKS ?? {},

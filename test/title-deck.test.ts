@@ -2,7 +2,8 @@
 // say what the ChunkDefs say (the title's list may not import a def: it is written out, so this keeps it honest).
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SHARDS, findChunk } from '#game/shard/registry';
+import { SHARDS } from '../src/shards.generated';
+import { findChunk } from '#game/shard/registry';
 import { isDev, setDev } from '#engine';
 import { buildTitleDeck, titleCards } from '#game/titleDeck';
 

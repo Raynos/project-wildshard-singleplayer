@@ -6,6 +6,6 @@ import { genShards } from './gen-shards.mjs';
 export async function readShards(root = resolve(import.meta.dirname, '..')) {
   await import('./bake-loader.mjs');
   genShards(root);
-  const { SHARDS } = await import(pathToFileURL(resolve(root, 'src/game/shard/shards.generated.ts')).href);
+  const { SHARDS } = await import(pathToFileURL(resolve(root, 'src/shards.generated.ts')).href);
   return SHARDS;
 }

@@ -109,6 +109,14 @@ export const JOURNAL_SKIN: CompendiumSkin = {
   tabs: [{ id: 'beasts', label: 'Beasts' }, { id: 'elites', label: 'Elites' }, { id: 'places', label: 'Places' }, { id: 'trophies', label: 'Trophies' }],
   trophyTab: 'trophies',
   stamp: (e) => (e.kind === 'place' ? 'Visited' : 'Taken'),
+  // the FINDS stickers: each beast its own glyph, the elites and the King theirs (the game draws a pin / dot otherwise)
+  icon: (e) => {
+    const kind = e.match?.kind ?? '';
+    if (e.kind === 'boss') return 'antlers';
+    if (e.kind === 'elite' && kind === 'deer') return 'ghost';
+    if (e.kind === 'elite' && kind === 'boar') return 'ironhide';
+    return kind === 'deer' || kind === 'boar' || kind === 'elk' || kind === 'bear' ? kind : undefined;
+  },
   stats: (e: EntryDef, s: EntryStats) => {
     const known = s.state !== 'unknown';
     if (e.kind === 'place') {

@@ -32,7 +32,7 @@ const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES } = await import(pathToFileURL(resol
 const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/terrainField.ts')).href);
 
 // every chunk module that exports a ShardManifest (has slug + terrain); the registry itself needs `location`
-const { SHARDS } = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/shards.generated.ts')).href);
+const { SHARDS } = await import(pathToFileURL(resolve(ROOT, 'src/shards.generated.ts')).href);
 
 const registry = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/registry.ts')).href);
 const heightfield = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/Heightfield.ts')).href);

@@ -50,6 +50,7 @@ run check-css node scripts/check-css.mjs
 run gen pnpm gen --check-budgets
 run gen-check node scripts/gen-shards.mjs --check
 run typecheck pnpm exec tsc --noEmit
+run typecheck-layers pnpm exec tsc -b tsconfig.layers.json   # E362 AG4: no layer reaches up, in any syntax
 run typecheck-api pnpm exec tsc --noEmit -p api
 run typecheck-scripts pnpm exec tsc --noEmit -p scripts   # CI runs it in pnpm typecheck; fc043dfe went red there with this gate green
 run oxlint pnpm exec oxlint

@@ -1,31 +1,31 @@
 /** Generated shard discovery and the legacy active-shard bridge (removed by shard phases). */
 import type { ShardManifest } from './manifest';
-import { SHARDS } from './shards.generated';
 import { _applyChunkConstants } from '#engine/core/config';
 import { onOwnerDispose } from '#engine/app/ownership';
 import { configureLevel } from '#engine';
 import { toLevelSpec } from './spec';
+import { shards } from './list';
 
-export { SHARDS } from './shards.generated';
+export { installShards, shards } from './list';
 export { SHARD_API } from './api';
-/** a bare URL boots the first shard by `order` (SHARDS is sorted by it) */
-export const DEFAULT_SHARD: string = (() => {
-  const first = SHARDS[0];
+/** a bare URL boots the first shard by `order` (the list is sorted by it) */
+export function defaultShard(): string {
+  const first = shards()[0];
   if (first === undefined) throw new Error('No shard manifests were generated');
   return first.slug;
-})();
+}
 export const playable = (manifest: ShardManifest): boolean => manifest.status !== 'hidden';
 
 export function shardSlugFromUrl(search?: string): string {
   const named = new URLSearchParams(search ?? (typeof location === 'undefined' ? '' : location.search)).get('chunk');
-  return named ?? DEFAULT_SHARD;
+  return named ?? defaultShard();
 }
 
-export function findShard(slug: string): ShardManifest | undefined { return new Map<string, ShardManifest>(SHARDS.map((manifest) => [manifest.slug, manifest])).get(slug); }
+export function findShard(slug: string): ShardManifest | undefined { return new Map<string, ShardManifest>(shards().map((manifest) => [manifest.slug, manifest])).get(slug); }
 
 function initialShard(): ShardManifest {
-  const manifest = findShard(shardSlugFromUrl()) ?? findShard(DEFAULT_SHARD);
-  if (manifest === undefined) throw new Error(`Missing default shard ${DEFAULT_SHARD}`);
+  const manifest = findShard(shardSlugFromUrl()) ?? findShard(defaultShard());
+  if (manifest === undefined) throw new Error(`Missing default shard ${defaultShard()}`);
   return manifest;
 }
 
@@ -41,9 +41,9 @@ export function getActiveChunk(): ShardManifest { return game.shard; }
 /** Select a chunk by slug. Unknown slugs fall back to the default (and warn). */
 export function setActiveChunk(slug: string): ShardManifest {
   const def = findShard(slug);
-  if (!def) console.warn(`[chunks] unknown chunk "${slug}", using ${DEFAULT_SHARD}`);
-  const next = def ?? findShard(DEFAULT_SHARD);
-  if (next === undefined) throw new Error(`Missing default shard ${DEFAULT_SHARD}`);
+  if (!def) console.warn(`[chunks] unknown chunk "${slug}", using ${defaultShard()}`);
+  const next = def ?? findShard(defaultShard());
+  if (next === undefined) throw new Error(`Missing default shard ${defaultShard()}`);
   if (next !== game.shard) {
     game.shard = next;
     _applyChunkConstants(game.shard);
@@ -65,4 +65,4 @@ export function chunkUrl(slug: string, from: string = location.href): string {
   return url.toString();
 }
 
-export { findShard as findChunk, shardSlugFromUrl as chunkSlugFromUrl, DEFAULT_SHARD as DEFAULT_CHUNK };
+export { findShard as findChunk, shardSlugFromUrl as chunkSlugFromUrl, defaultShard as defaultChunk };

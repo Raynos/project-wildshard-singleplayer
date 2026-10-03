@@ -58,3 +58,4 @@ export { GroundTell, type GroundTellWedgeStyle } from './Elite';
 
 export { installQuestPresentation, presentQuest, type QuestPresentation, type QuestPresentationContext, type QuestPresentationHost, type QuestPresentationOptions, type QuestTarget, type QuestPresentationNpc, type PresentedQuestDef, type PresentedQuestStep } from './quest/presentation';
 export { QuestRewardBeat, type QuestRewardSpec, type QuestRewardHost, type QuestRewardPlayer } from './quest/reward';
+export type { BagIcons } from './bag/tabs';

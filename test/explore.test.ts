@@ -3,7 +3,8 @@
 import { describe, expect, it } from 'vitest';
 import { exploreArt } from '#engine/level/data';
 import { reproUrl } from '#engine/ui/Feedback';
-import { SHARDS, playable, findChunk } from '#game/shard/registry';
+import { SHARDS } from '../src/shards.generated';
+import { playable, findChunk } from '#game/shard/registry';
 import { CHUNK_HALF } from '#engine/core/config';
 import { registeredModels } from '#engine/explore/registry';
 import { activeRegistry } from '#engine/world/registry';

@@ -9,7 +9,7 @@ import { DRIFTWOOD_COIN_VALUES } from '#shards/driftwood-isle/loot/tables';
 import { driftwoodFinds, nextCharmAt } from '#shards/driftwood-isle/loot/finds';
 import { DRIFTWOOD_PLACES } from '#shards/driftwood-isle/quest/Places';
 import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
-import { SHARDS } from '#game/shard/registry';
+import { SHARDS } from '../src/shards.generated';
 
 const DRIFT = 'chunk://local/driftwood-isle';
 const PINE = 'chunk://local/pine-hollow';

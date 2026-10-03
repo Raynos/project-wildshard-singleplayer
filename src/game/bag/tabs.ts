@@ -1,4 +1,4 @@
-import { engineString, icon, type GameMenu, type TabSpec, type TabFragment, type KitEntry, type SkinRow } from '#engine';
+import { engineString, icon, type IconId, type GameMenu, type TabSpec, type TabFragment, type KitEntry, type SkinRow } from '#engine';
 import type { Inventory, ItemId } from '../Inventory';
 import type { Progress } from '../Progress';
 import { completeEntry } from '../complete/ShardComplete';
@@ -15,8 +15,13 @@ export interface BagMenuOptions {
   onWearSkin?: (id: string) => void;
   skinsTitle?: string;
   pack?: { note: string; hint: string; gearHint?: string; line: (id: ItemId) => string | null };
+  /** the bag's glyphs (the kit's, through the session's KitPorts); the engine's generic ones when absent */
+  icons?: BagIcons;
   tools?: () => GearTool[];
 }
+/** the glyphs the bag draws for its tabs and the loot it shows: content's, so the composition root hands them in (E362 AG4) */
+export interface BagIcons { gear: IconId; finds: IconId; coin: IconId; charm: IconId; glass: IconId }
+const GENERIC_ICONS: BagIcons = { gear: 'pack', finds: 'book', coin: 'star', charm: 'laurel', glass: 'poi' };
 export interface BagLoot { gear: () => GearLoot | null; finds: (() => FindsView) | null; wear: (id: string) => void }
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
@@ -25,6 +30,7 @@ const installed = new WeakMap<BagHost, BagMenu>();
 
 /** Game-owned renderers register through the same TabSpecs/fragments as authored content. */
 export class BagMenu {
+  private get icons(): BagIcons { return this.opts.icons ?? GENERIC_ICONS; }
   private readonly lootRows = new Map<string, BagLoot>();
   private readonly findsRows = new Map<string, () => FindsView>();
   private findsFragments = 0;
@@ -33,7 +39,7 @@ export class BagMenu {
     if (installed.has(menu)) throw new Error('Bag tabs already installed');
     installed.set(menu, this);
     menu.scope.onDispose(() => { installed.delete(menu); });
-    this.register({ id: 'gear', title: engineString('s_d6eaec65e742'), icon: 'sword', order: 10,
+    this.register({ id: 'gear', title: engineString('s_d6eaec65e742'), icon: this.icons.gear, order: 10,
       get hint() { return opts.pack?.gearHint ?? engineString('s_d6a37d4c0ef4'); } }, (p) => { this.renderGear(p); });
     if (opts.inventory.slots > 0 && this.allows('pack', 'inventory')) this.register({ id: 'inventory', title: engineString('s_80dc21673e55'), icon: 'pack', order: 30,
       get hint() { return opts.pack?.hint ?? engineString('s_f60c27a1ad27'); } }, (p) => { this.renderInventory(p); });
@@ -55,7 +61,7 @@ export class BagMenu {
     if (this.menu.scope.disposed || !this.allows('finds')) return;
     if ((this.findsView !== null || this.findsFragments > 0) && this.findsOff === null) {
       const hint = (): string => this.findsView?.().hint ?? engineString('s_77fb830f183c');
-      this.findsOff = this.register({ id: 'finds', title: engineString('s_e0c3d922cd87'), icon: 'seaglass', order: 20,
+      this.findsOff = this.register({ id: 'finds', title: engineString('s_e0c3d922cd87'), icon: this.icons.finds, order: 20,
         get hint() { return hint(); } }, (p) => { this.renderFinds(p); });
     } else if (this.findsView === null && this.findsFragments === 0 && this.findsOff !== null) { this.findsOff(); this.findsOff = null; }
     if (this.menu.isOpen) this.menu.refresh();
@@ -95,6 +101,7 @@ export class BagMenu {
       onEquip: (id) => { this.opts.onEquip?.(id); this.menu.refresh(); },
       onWearSkin: (id) => { this.opts.onWearSkin?.(id); this.menu.refresh(); },
       onWear: (id) => { this.loot?.wear(id); this.menu.refresh(); },
+      icons: this.icons,
     });
 
   }
@@ -106,7 +113,7 @@ export class BagMenu {
     p.replaceChildren();
     for (const source of sources) {
       const host = sources.length === 1 ? p : document.createElement('div');
-      renderFinds(host, source(), this.menu.scope);
+      renderFinds(host, source(), this.menu.scope, this.icons);
       if (host !== p) p.append(host);
     }
 

@@ -2,7 +2,7 @@
 // scripts/check-models.mjs) is read from its own source, and every place in it must be named by some set's
 // `place: '<slug>/<id>'`; once a shard is enforced (PLACES_ENFORCED), a place without one fails check-models.
 import { describe, expect, it } from 'vitest';
-import { SHARDS } from '#game/shard/registry';
+import { SHARDS } from '../src/shards.generated';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node test checks optional authored lists against the exported tree.
 import { existsSync } from 'node:fs';
 import { checkModels, NAMED_PLACES, PLACES_ENFORCED } from '../scripts/check-models.mjs';

@@ -455,7 +455,8 @@
     "src/shards/pine-hollow/world/trophyWall.ts": 5,
     "src/shards/pine-hollow/world/undergrowth.ts": 10,
     "src/shards/pine-hollow/world/undergrowthKit.ts": 2,
-    "src/shards/pine-hollow/world/weather.ts": 12
+    "src/shards/pine-hollow/world/weather.ts": 12,
+    "src/shardList.ts": 1
   },
   "wildshard/shard-sandbox": {
     "src/shards/driftwood-isle/boot/sources.ts": 2,

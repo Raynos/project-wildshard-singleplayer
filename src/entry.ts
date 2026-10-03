@@ -22,6 +22,7 @@ import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '#engin
 import { setting } from '#engine/ui/Settings';
 import { Scope } from '#engine/app/scope';
 import { retried } from '#engine/retry';
+import { bootRoute } from './bootRoute';
 
 const entryScope = new Scope('entry');
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
@@ -33,17 +34,17 @@ const search = new URLSearchParams(location.search);
 inspectPreviousBoot();
 // Safari may reload the same document after WebContent dies. Keep that automatic retry on the
 // renderer-free title until the player chooses a shard again.
-const rescueBoot = previousBootLine() !== '' && search.get('chunk') === previousBootLevel();
+const { rescue: rescueBoot, titleOnly } = bootRoute(search, { line: previousBootLine(), level: previousBootLevel() });
 if (rescueBoot) {
   history.replaceState(history.state, '', new URL('/', location.origin));
   // index.html picked the loading shell from the original URL before this module ran.
   document.documentElement.classList.add('title-first');
   document.querySelector<HTMLElement>('.ws-resume')?.classList.remove('show');
 }
-const titleOnly = rescueBoot || search.size === 0 || (search.size === 1 && search.has('v'));
 
 /** resolves once the title or the selected shard's entry has been evaluated */
 export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('#engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? (async () => {
+  await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
   const [{ showStartTitle }, { buildTitleDeck, titleCards, travel }] = await retried(() => Promise.all([import('#engine/ui/StartTitle'), import('#game/titleDeck')]));
   // the composition root wires the game's deck into the engine's title (E405)
   showStartTitle(({ settings, notice }) => buildTitleDeck({
@@ -63,6 +64,7 @@ guardBoot(entered);
 
 /** Composition root: select authored content and inject reusable kit recipes. */
 export async function start(): Promise<void> {
+  await retried(() => import('./shardList')); // the shard list before #game reads it (AG4)
   const [{ game }, kit, { loadBootRuntime }, { sharedCombatCues }] = await Promise.all([
     retried(() => import('#game')), retried(() => import('#kit')), retried(() => import('#engine')), retried(() => import('#kit/audio/combatCues')),
   ]);
@@ -77,5 +79,6 @@ export async function start(): Promise<void> {
     items: kit.KIT_ITEMS,
     tools: [kit.HOVERBOARD_TOOL],
     combatCues: (audio, silent) => sharedCombatCues(kit.sharedWeaponVoices(audio), silent),
+    bagIcons: kit.BAG_ICONS,
   });
 }

@@ -5,7 +5,7 @@
 //                                            the shard other than as the plan allows, fails
 //   node scripts/check-graph.mjs --update   record today's counts in lint/layer-edges.json (they may only fall)
 //   node scripts/check-graph.mjs --paths <file…>   pre-commit: the edges those files add against HEAD's copies
-// A shard is reached from outside only as src/game/shard/shards.generated.ts → its manifest (static), and its
+// A shard is reached from outside only as src/shards.generated.ts → its manifest (static), and its
 // plugin.ts only by `import()` from its own manifest. The layer rule (`wildshard/layer`) says which way imports
 // point; this counts how much crosses, so a new crossing is a visible, reviewed change.
 import { execFileSync } from 'node:child_process';
@@ -16,7 +16,7 @@ import { parseSync } from 'vite';
 
 const ROOT = resolve(fileURLToPath(new URL('../', import.meta.url)));
 const EDGES_FILE = 'lint/layer-edges.json';
-const GENERATED_TABLE = 'src/game/shard/shards.generated.ts';
+const GENERATED_TABLE = 'src/shards.generated.ts';
 const SOURCE = /\.[cm]?[jt]sx?$/u;
 
 /** the layer a src path belongs to: engine, game, kit, shards/<slug>, root */

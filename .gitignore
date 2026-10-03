@@ -52,3 +52,6 @@ src/**/*.generated.*
 # E389: time-lapses are rebuilt from the per-capture folders (scripts/shard-timelapse.py); only the captures are committed
 /progress/*/timelapse-*.mp4
 /progress/*/clips.mp4
+
+# E362 AG4: the layered TypeScript build's declaration output (tsc -b tsconfig.layers.json)
+.tsc-layers/

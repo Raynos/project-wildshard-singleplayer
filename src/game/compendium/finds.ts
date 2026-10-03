@@ -12,15 +12,9 @@ import type { IconId } from '#engine/ui/icons';
 import type { CompendiumState } from './state';
 import type { EntryDef } from './types';
 
-const ANIMAL: Partial<Record<string, IconId>> = { deer: 'deer', boar: 'boar', elk: 'elk', bear: 'bear' };
-/** a sticker's glyph: the animal it matches (the elites and the King by theirs), a pin for a place */
-function iconOf(e: EntryDef): IconId {
-  if (e.kind === 'place') return 'pin';
-  if (e.kind === 'boss') return 'antlers';
-  const kind = e.match?.kind ?? '';
-  if (e.kind === 'elite' && kind === 'deer') return 'ghost';
-  if (e.kind === 'elite' && kind === 'boar') return 'ironhide';
-  return ANIMAL[kind] ?? 'poi';
+/** a sticker's glyph: the content's (the skin's `icon`), a pin for a place, a dot otherwise */
+function iconOf(skin: CompendiumState['def']['skin'], e: EntryDef): IconId {
+  return skin.icon?.(e) ?? (e.kind === 'place' ? 'pin' : 'poi');
 }
 
 export function compendiumFinds(state: CompendiumState, open: (entryId?: string) => void): FindsView {
@@ -35,13 +29,13 @@ export function compendiumFinds(state: CompendiumState, open: (entryId?: string)
     const places = list.every((e) => e.kind === 'place');
     // animals count TAKEN (the journal's stamp), places VISITED
     counters.push({ label: t.label, n: places ? list.filter(found).length : state.count(t.id, 'taken'), of: list.length });
-    sections.push({ title: t.label, dense: list.length > 12, items: list.map((e) => ({ id: e.id, label: e.name, icon: iconOf(e), found: found(e) })) });
+    sections.push({ title: t.label, dense: list.length > 12, items: list.map((e) => ({ id: e.id, label: e.name, icon: iconOf(skin, e), found: found(e) })) });
   }
   const slots = state.def.trophies ?? [];
   if (slots.length > 0) {
     const items = slots.flatMap((s) => {
       const e = state.entry(s.entry);
-      return e ? [{ id: e.id, label: e.name, icon: iconOf(e), found: state.state(e.id) === 'taken' }] : [];
+      return e ? [{ id: e.id, label: e.name, icon: iconOf(skin, e), found: state.state(e.id) === 'taken' }] : [];
     });
     counters.push({ label: skin.tabs.find((t) => t.id === skin.trophyTab)?.label ?? 'Trophies', n: items.filter((i) => i.found).length, of: items.length });
     sections.push({ title: 'Trophy wall', items });

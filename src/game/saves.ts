@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { app, type SaveSlot } from '#engine';
-import type { ShardSlug } from './shard/shards.generated';
+import type { ShardSlug } from './shard/slugs.generated';
 
 const finite = v.pipe(v.number(), v.finite());
 const numbers = v.record(v.string(), finite);

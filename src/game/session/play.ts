@@ -74,6 +74,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     kit: () => weapons.available.map((w) => { const worn = skins.wearing(w.id); return equipmentEntry(w, weapons.current, worn ? ` · ${worn.name}` : ''); }),
     onEquip: (id) => weapons.select(id as WeaponId),
     tools: () => toolEntries(weapons.tools, (key) => app.levelRegistrations.findText(key) ?? key),
+    icons: kit.bagIcons,
     ...boot.runtime.menu,
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume

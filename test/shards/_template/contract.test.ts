@@ -5,7 +5,8 @@ import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } fr
 import { Vector3 } from 'three';
 import { STARTER_EFFECTS } from '#kit';
 import { summaryStore } from '#game/summary';
-import { SHARDS, playable } from '#game/shard/registry';
+import { SHARDS } from '../../../src/shards.generated';
+import { playable } from '#game/shard/registry';
 import manifest from '#shards/_template/manifest';
 import { TemplatePlugin } from '#shards/_template/plugin';
 import { TemplateWhip } from '#shards/_template/weapons/TemplateWhip';

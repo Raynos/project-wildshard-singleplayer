@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { toLevelSpec } from '#game';
-import { SHARDS, playable } from '#game/shard/registry';
+import { SHARDS } from '../../../src/shards.generated';
+import { playable } from '#game/shard/registry';
 import { PUBLIC_BYTES } from '#game/boot/bytes.generated';
 import { PACKS } from '#game/boot/packs.generated';
 import { gpuUrl } from '#engine/boot/bytes';

@@ -2,7 +2,7 @@ import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
 import { retried, type BootRuntime, type LevelContext, type LevelSequence, type SkinDef } from '#engine';
 import { toLevelSpec, shardContext, type ShardManifest, type GameServices, type ShardContext } from '../index';
-import { SHARDS, playable, findChunk } from '../shard/registry';
+import { shards, playable, findChunk } from '../shard/registry';
 import { ART_URL_BYTES } from '../shard/art.generated';
 import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage } from '../shard/load';
 import type { KitPorts, BuiltWorld, SessionState, StagedBoot, SessionContext } from './context';
@@ -20,7 +20,7 @@ export async function startSession(manifest: ShardManifest, engine: BootRuntime,
   const { app, pageSeed, consumeTitleArrival, Scope, enterOwner, setAliveSource,
     textureBytes, installErrorModal, markBootHandledError, showError, setBootCatalog } = engine;
   // the boot and the background download read the registry through the engine's catalog (E405: no engine → game import)
-  setBootCatalog({ levels: SHARDS, playable: SHARDS.filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
+  setBootCatalog({ levels: shards(), playable: shards().filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   installErrorModal();
   const session: SessionState = { music: null, arrival: null, fatalShown: false };
   try {

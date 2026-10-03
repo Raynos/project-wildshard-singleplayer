@@ -17,6 +17,8 @@ export interface PlayerHealthPorts {
   impulse?: (worldVelocityMps: Vector3) => void;
 }
 /** Health is level-owned. A fall deliberately leaves the six-second regeneration clock unchanged. */
+/** what the death fade tells the health model: whether it runs, and its step (bound by the session) */
+export interface HealthLifecycle { fading: () => boolean; updateFade: (dt: number) => void }
 export class PlayerHealth implements Actor {
   readonly id = 'actor.player';
   readonly tags = ['actor.player'] as const;
@@ -24,8 +26,8 @@ export class PlayerHealth implements Actor {
   readonly attributes: HealthAttributes = { health: 100, maxHealth: 100, incomingCap: Infinity };
   lastHurt = 0;
   cause: DeathCause | undefined;
-  private lifecycle: { fading: () => boolean; updateFade: (dt: number) => void } | null = null;
-  bindLifecycle(ports: NonNullable<PlayerHealth['lifecycle']>): void { this.lifecycle = ports; }
+  private lifecycle: HealthLifecycle | null = null;
+  bindLifecycle(ports: HealthLifecycle): void { this.lifecycle = ports; }
   private readonly events: Events;
   private previousMode: PlayerMode;
   /** Immediate motor state; the change event is sampled during update. */

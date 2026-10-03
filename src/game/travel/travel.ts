@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { app, markUnload, setTitleArrival, type SaveSlot } from '#engine';
-import { chunkUrl, findShard } from '../shard/registry';
-import { SHARDS, type ShardSlug } from '../shard/shards.generated';
+import { chunkUrl, findShard, shards } from '../shard/registry';
+import type { ShardSlug } from '../shard/slugs.generated';
 import type { SpawnPose } from '../shard/manifest';
 import { isItemId, ITEMS, type Inventory, type ItemId } from '../Inventory';
 import type { ItemRow } from '../bag/items';
@@ -12,7 +12,7 @@ export interface TravelHandoff {
   arrive: SpawnPose | null; carry: readonly { id: ItemId; count: number }[]; at: number;
 }
 const finite = v.pipe(v.number(), v.finite());
-const slug = v.custom<ShardSlug>((value) => typeof value === 'string' && SHARDS.map((entry) => entry.slug).includes(value as ShardSlug));
+const slug = v.custom<ShardSlug>((value) => typeof value === 'string' && shards().map((entry) => entry.slug).includes(value as ShardSlug));
 const item = v.custom<ItemId>((value) => typeof value === 'string' && isItemId(value));
 const schema: v.GenericSchema<unknown, TravelHandoff | null> = v.nullable(v.object({
   v: v.literal(1), from: v.nullable(slug), to: slug, mode: v.picklist(['enter', 'explore', 'arena']),
