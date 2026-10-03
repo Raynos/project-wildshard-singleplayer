@@ -1,0 +1,3 @@
+# Sky Reach top-10 row 10 (grade half): the shard LUT (E407)
+
+One learned LUT fitted from the council's five mockups (mockups/mockup-{n}-*.jpg, 390x844) against the game's mock-* captures without the LUT at e0e4b837c (rows 1-4, 7, 8 in): python3 scripts/fit-lut.py --shard far-reach --regions art/far-reach/round-29-lut/regions.json art/far-reach/round-29-lut/mockups '<captures>/{n}.png' public/assets/lut/far-reach.bin. Regions: sky, storm sky, low sky, isles, meadow (the stone region dropped: too few pixels, dE00 20). Predicted dE00 per region after the LUT: sky 2.1, storm sky 3.3, low sky 2.1, isles 4.8, meadow 1.0. Global, never per view; look/render.ts loads it (loadLUT) and the engine applies it as the last grade step. board-pred.jpg: mockups / captures / predicted.
