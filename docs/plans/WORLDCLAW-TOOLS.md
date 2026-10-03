@@ -1,6 +1,7 @@
 # WorldClaw tools: Draft mode, the drafts site, and the Explorers a shard needs before it is a world
 
 **State:** `in progress` 2026-10-02 — the draft side is built and live (https://wildshard-drafts.vercel.app): the title, STAGES with decision boards and lineage comparison, Draft Explore (models, sets, world + camera check, beats, measured coverage), the design docs, Map Lab, the prototypes' cards, offline on the home screen with the reload pill; the artifact page auto-made; Thin Ice's COMING SOON card in the game. Open on the draft side: W7's playable prototypes (the next run's P7 makes them), W6's terrain re-stamp (T3–T5, J61), physical-iPhone readings. Later, just in time (J71): the game's Explore tools W10, W11, W12, W14. Audit: E395 (Codex + own). Design: J1–J71.
+**Reviews:** [worldclaw-tools](../reviews/worldclaw-tools.md) · [thin-ice-draft](../reviews/thin-ice-draft.md)
 
 ## 0. Read this first
 

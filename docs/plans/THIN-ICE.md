@@ -1,6 +1,7 @@
 # Thin Ice: the frozen fjord, WorldClaw's pilot shard
 
 **State:** `draft` 2026-10-01 — a plan only; the pilot of [WORLDCLAW-SHARD](WORLDCLAW-SHARD.md) (D74). GAME-NORMALIZATION is archived (2026-10-01); the rows start with WORLDCLAW-SHARD N0 on Jake's go, and TI0 waits for WorldClaw's N / F / X / E / T rows. Done: the fjord dry run's front, reviewed by Jake (pitch C · Thin Ice, "Aurora, kept simple", 18 concepts, map A revision 2, 11 first-person views, content rounds 1–2: `worldclaw@aebb69d8:prototypes/worldclaw/front/`). The slug is `thin-ice` (Jake). Open: the wave-2 view fixes (redone at the real P6); Jake's go with WORLDCLAW-SHARD's ("Not yet, I'll review the pages"). Page: [Thin Ice](https://claude.ai/artifact/1v5EE7bt75m3dGFAkVh7P1) (the plan and the dry run). On `main` since 2026-10-01 (merged from branch `worldclaw`; the prototypes and the review copies at the local tag `worldclaw-archive`, D76).
+**Reviews:** [thin-ice-draft](../reviews/thin-ice-draft.md)
 
 ## 0. Why
 

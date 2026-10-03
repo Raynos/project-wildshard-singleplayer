@@ -55,6 +55,20 @@ for f in docs/plans/*.md; do
 done
 [ "$found" = 1 ] || echo "(none)"
 echo ""
+# pages for Jake to read (E408, docs/reviews/README.md): unread / reading; a read one is archived, so every file here is open
+echo "-- reviews for Jake (docs/reviews/*.md: unread / reading; read ones move to project/archive/reviews/) --"
+found=0
+for f in docs/reviews/*.md; do
+  [ -f "$f" ] || continue
+  [ "$(basename "$f")" = README.md ] && continue
+  found=1
+  st="$(grep -m1 -E '^\*\*Status:\*\*' "$f" | sed -E 's/^\*\*Status:\*\* *//' | cut -c1-140 || true)"
+  plan="$(grep -m1 -E '^\*\*Plan:\*\*' "$f" | sed -E 's/^\*\*Plan:\*\* *//' | cut -d' ' -f1 || true)"
+  link="$(grep -m1 -E '^\*\*Link:\*\*' "$f" | sed -E 's/^\*\*Link:\*\* *//' || true)"
+  printf '%s | %s | plan %s | %s\n' "$(basename "$f" .md)" "${st:-(no Status line)}" "${plan:-?}" "$link"
+done
+[ "$found" = 1 ] || echo "(none)"
+echo ""
 node scripts/telemetry-brief.mjs 2>/dev/null || true
 echo "-- recent commits --"
 git log --oneline -8 2>/dev/null || true

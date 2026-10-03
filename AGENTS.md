@@ -227,6 +227,15 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
 - Moving a plan: fix the links to it in docs and code comments; `docs/tasks/ASKS.md` rows keep the
   old path (they are history).
 
+## Reviews: pages for Jake to read (Jake, E408, 2026-10-03)
+
+- A page you make for Jake to read (an artifact report, an audit, research, a decision page) gets a file
+  `docs/reviews/<slug>.md` in the commit that links it: Status (`unread` / `reading`), Link, Plan, Made by. The rules
+  are in [docs/reviews/README.md](docs/reviews/README.md). The plan links its open reviews under its State line.
+- A plan overview shows the plans **and** their open reviews; the session brief prints both.
+- Only Jake's words make a review `read`; then it moves to `project/archive/reviews/` in the same commit. Revising a
+  page sets it back to `unread` with a line on what changed.
+
 ## Council rounds (Jake, E361, 2026-10-01)
 
 When Jake says "do N council rounds on X", it means the protocol in [docs/process/COUNCIL.md](docs/process/COUNCIL.md):

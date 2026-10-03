@@ -1,6 +1,7 @@
 # Plan: DECISION-MODELS — Clef / Jev as fast, typed judges in the agent tooling (E394)
 
 **State:** `in progress` 2026-10-03 — D1–D4 done. Capture status runs in `shard-progress.mjs` (a flagged shot is re-taken once; meta.json `qa`) and `decide.sh qa` for any capture; render-glitch and garbled-text checks failed D3 and stay with Opus's eye. Open: D5 / D6 stay proposals, no ask for them.
+**Reviews:** [clef-in-wildshard](../reviews/clef-in-wildshard.md)
 
 ## Summary
 
