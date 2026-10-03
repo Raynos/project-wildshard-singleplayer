@@ -435,8 +435,14 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // round 23 (seats B and C after round 21: B's lantern pool pink, h356-3, the lit sand red where the mockups' is gold,
     // h15-22): 1.6, not 2.5 (scaling about the luma drags every warm light toward red: at 2.5 the lantern pool came out h3,
     // dusk-fire's lit sand h16; unboosted, h12 / h24 and A's h26 against 21)
-    reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, 1.6), vec3(0.0));
+    // round 24: the sunset's light more saturated than the blue hour's (2.5 at the spawn's sunset, the spawn pair's lit sand
+    // closest to its mockups there; 1.6 from the logbook's dusk, where the lantern pool must stay amber)
+    reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, mix(2.5, 1.6, smoothstep(0.2, 0.5, uDusk))), vec3(0.0));
+    vec3 fillOwn = reflectedLight.indirectDiffuse;
     reflectedLight.indirectDiffuse = mix(vec3(iL) * vec3(0.93, 0.92, 1.2), reflectedLight.indirectDiffuse, 0.4); // round 19 (seat B: the shade measured A 0.45 against 0.31)
+    // round 24 (seats B and C: the spawn pair's lit sand s 0.44-0.49 against the mockups' 0.67): on the faces the key reaches,
+    // at the sunset, the fill keeps the sand's own warm hue, not the violet-grey; the shade stays violet
+    reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, fillOwn * vec3(1.1, 0.9, 0.65), (1.0 - sandShade) * 0.85 * (1.0 - smoothstep(0.2, 0.5, uDusk)));
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
