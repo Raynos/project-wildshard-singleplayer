@@ -67,12 +67,12 @@ function landforms(x: number, z: number, out: [number, number][]): number {
     // a knife-edge crest: the windward face convex (eased), the slip face near-linear; the two blend over 16 m across the
     // crest line (a hard side switch made a crease past the crest's ends)
     const leeW = smooth(0.5 + c.leeSide * side / 16), kl = Math.min(1, best / c.lee), kw = Math.min(1, best / c.w);
-    const width = c.lee * leeW + c.w * (1 - leeW);
     const prof = leeW * (1 - (0.75 * kl + 0.25 * smooth(kl))) + (1 - leeW) * (1 - smooth(kw) * (2 - smooth(kw)) * 0.5 - 0.5 * kw);
-    // the crest owns its footprint: its profile (crest down to the trough level) replaces the field there, blending back
-    // to the field over half its width beyond (a max let the field's own slopes win, so the authored faces never showed)
-    const shape = c.trough + (ch - c.trough) * Math.max(0, prof), weight = (1 - smooth((best - width) / width)) * ends;
-    if (weight > 0) out.push([shape, weight]);
+    // round 14 (the lead: replacing the field over the crest's whole width flattened a 140 m band into a plain, dropped
+    // waymark 0 by 9 m and left h4 a flat sheet): the field is pulled up to the crest by the face profile only, so past
+    // the faces the dune sea keeps its own relief
+    const weight = Math.max(0, prof) * ends;
+    if (weight > 0) out.push([ch, weight]);
   }
   for (const m of LANDFORMS.mounds) {
     const r = Math.hypot(x - m.x, z - m.z); if (r >= m.r) continue;
@@ -111,10 +111,10 @@ export function duneHeight(x: number, z: number, { n }: TerrainNoise): number {
   // the authored landforms first (crests own their footprint, then the mounds by a max), so the pads still level on them
   const crestShapes: [number, number][] = [];
   const mound = landforms(x, z, crestShapes);
-  for (const [shape, weight] of crestShapes) h += (shape - h) * weight;
+  for (const [crest, weight] of crestShapes) h += Math.max(0, crest - h) * weight;
   h = Math.max(h, mound);
   let levels = spotLevels.get(n);
-  if (levels === undefined) { levels = SPOTS.map((p) => { const cs: [number, number][] = [], m = landforms(p.x, p.z, cs); let lh = field(p.x, p.z, n).h; for (const [sh, w] of cs) lh += (sh - lh) * w; return Math.max(lh, m) + p.lift; }); spotLevels.set(n, levels); }
+  if (levels === undefined) { levels = SPOTS.map((p) => { const cs: [number, number][] = [], m = landforms(p.x, p.z, cs); let lh = field(p.x, p.z, n).h; for (const [sh, w] of cs) lh += Math.max(0, sh - lh) * w; return Math.max(lh, m) + p.lift; }); spotLevels.set(n, levels); }
   for (const [i, p] of SPOTS.entries()) {
     const d = Math.hypot(x - p.x, z - p.z); if (d > p.r + p.ease) continue;
     h += ((levels[i] ?? h) - h) * (1 - smooth((d - p.r) / p.ease));

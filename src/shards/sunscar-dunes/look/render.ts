@@ -20,7 +20,7 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 // luma grid correlated with each mockup's: A +0.18 at best for any, dusk-fire +0.39 from the NNW, +0.25 from round 9's WNW;
 // round 9's seats: the WNW key lit A's left, which the mockup shades): the NNW, with the crest line (layout CREST_LINES)
 // and a crisp terminator; dusk-fire's clean-patch sand 73 / mockup 72, A's 78 / 56 (the two mockups' known disagreement)
-export const KEY = { dir: new Vector3(-0.45, 0.2, -0.87).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.05 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(0.75, 0.2, -0.62).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.05 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -360,7 +360,8 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     float toGlow = dot(normalize(vSandN).xz, glowXZ);
     // (no distance gate: the lead after round 12, the clip's ground fell to 6-9 with black blots at the gate)
     // a tilted face only (flat sand has no facing; ungated, the near flats went dark too: B 26 / 39.7)
-    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.05, 0.2, toGlow)) * smoothstep(0.05, 0.2, length(normalize(vSandN).xz));
+    // round 14 (the lead: it cut flat ground ~40 %, C's near sand 18 / 33): clearly turned away (toGlow < -0.1) and clearly tilted (> ~12 deg) only
+    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.3, -0.1, toGlow)) * smoothstep(0.2, 0.35, length(normalize(vSandN).xz));
     reflectedLight.indirectDiffuse *= 1.0 - 0.45 * away; reflectedLight.directDiffuse *= 1.0 - 0.45 * away;
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);

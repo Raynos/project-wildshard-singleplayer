@@ -39,7 +39,9 @@ export const CREST_LINES: readonly { a: [number, number]; b: [number, number]; l
  * foot on the horizon and fills dusk-fire's middle band (its big dome).
  */
 export const LANDFORMS = {
-  crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }],
+  // round 14 (the lead): from the frame's right edge, far, down and left to near centre; windward face toward the camera,
+  // slip face behind (north-west, downwind of the crest's own wind), the key crossing it
+  crests: [{ pts: [[70, -50, 30], [38, -8, 24], [8, 26, 14]] as [number, number, number][], w: 80, lee: 56, leeSide: 1, fade: 0.25, trough: 3 }],
   mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }],
 } as const;
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
