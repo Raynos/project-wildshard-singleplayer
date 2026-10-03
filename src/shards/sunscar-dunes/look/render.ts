@@ -270,7 +270,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
   reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.95, 0.85, 0.9), uDusk) * mix(1.0, 1.15, uDusk) + vec3(0.016, 0.013, 0.02) * sandShade * (1.0 - uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
   // the dusk's lavender sky floor (R2B-1: the late views' sand measures dim warm brown-violet, not black or pure orange)
-  reflectedLight.indirectDiffuse += uDusk * vec3(0.008, 0.005, 0.009);
+  reflectedLight.indirectDiffuse += uDusk * vec3(0.017, 0.012, 0.011);
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
       const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;
