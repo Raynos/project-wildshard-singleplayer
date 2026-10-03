@@ -49,8 +49,15 @@ export function parseAsk(text) {
 const days = (from, to = Date.now()) => (to - Date.parse(`${from}T00:00:00Z`)) / 86_400_000;
 
 /** Every rule a staged ask file must pass; returns the problems as strings. */
-export function checkAsk(id, text, exists = (t) => existsSync(resolve(ROOT, t))
-  || (t.startsWith(`${PLANS}/`) && readdirSync(resolve(ROOT, 'project/archive')).some((f) => f.toLowerCase().includes(basename(t, '.md').toLowerCase())))) {
+/** A path exists in the tree; a plan path also counts when the plan is archived (project/archive/<date>-<name>.md). */
+function inTree(t) {
+  if (existsSync(resolve(ROOT, t))) return true;
+  if (!t.startsWith(`${PLANS}/`)) return false;
+  const name = basename(t, '.md').toLowerCase();
+  return readdirSync(resolve(ROOT, 'project/archive')).some((f) => f.toLowerCase().includes(name));
+}
+
+export function checkAsk(id, text, exists = inTree) {
   const a = parseAsk(text);
   const out = [];
   if (a.title !== id) out.push(`first line must be "# ${id}" (create asks with scripts/ask-new.sh)`);
@@ -64,7 +71,7 @@ export function checkAsk(id, text, exists = (t) => existsSync(resolve(ROOT, t))
   if (a.state === 'folded into' || a.state === 'superseded by') {
     const t = a.target;
     // a plan may be live (docs/plans/) or archived (project/archive/<date>-<name>.md)
-    const found = t !== null && (exists(`${ASKS}/${t}.md`) || exists(`${PLANS}/${t}.md`));
+    const found = t !== null && [`${ASKS}/${t}.md`, `${PLANS}/${t}.md`].some((path) => exists(path) === true);
     if (!found) out.push(`"${a.state}" must name an existing ask (E123) or plan (NINE-DRAGON-STACK)`);
   }
   const seen = new Set();
@@ -90,7 +97,7 @@ function check() {
   }
   if (bad > 0) {
     console.error('\nBLOCKED by scripts/asks.mjs check (E423): the ask rules are in docs/process/ASKS.md.');
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
@@ -113,7 +120,7 @@ function commitMsg(file) {
 but the commit does not touch ${missing.map((n) => `${PLANS}/${n}.md`).join(', ')}.
 Tick the row / rewrite the State line in the same commit, or, when the plan really is unchanged, add the trailer
     Plan-State: unchanged`);
-  process.exit(1);
+  process.exitCode = 1;
 }
 
 function brief() {
@@ -125,7 +132,7 @@ function brief() {
     const id = basename(f, '.md');
     let flag = '';
     if (a.state === 'in flight') {
-      const last = Math.max(a.date ? Date.parse(`${a.date}T23:59:59Z`) : 0, Number(git('log', '-1', '--format=%ct', '--', `${ASKS}/${f}`).trim() || 0) * 1000);
+      const last = Math.max(a.date ? Date.parse(`${a.date}T23:59:59Z`) : 0, Number(git('log', '-1', '--format=%ct', '--', `${ASKS}/${f}`).trim()) * 1000);
       if ((now - last) / 3_600_000 > LEASE_HOURS) flag = ` !! CLAIM EXPIRED (no commit in ${LEASE_HOURS} h): anyone may take it`;
     }
     if (a.state === 'needs pick' && a.date && days(a.date, now) > PICK_DAYS) flag = ` !! PICK EXPIRED (${PICK_DAYS} d): drop it as "Jake approved none"`;
@@ -133,7 +140,7 @@ function brief() {
     rows.push(`${id} | ${a.status.slice(0, 90)}${flag} | ${a.ask.slice(0, 120)}`);
   }
   console.log('-- asks still unanswered (docs/tasks/asks/: receipts of Jake\'s words; the work queue is docs/plans/) --');
-  console.log(rows.length ? rows.join('\n') : '(none)');
+  console.log(rows.length > 0 ? rows.join('\n') : '(none)');
   console.log('');
   console.log('-- live plans (docs/plans/*.md State line) --');
   const log = git('log', '--since=30.days', '--format=%cs%x09%h%x09%s');
@@ -154,5 +161,5 @@ else if (mode === 'commit-msg' && arg) commitMsg(arg);
 else if (mode === 'brief') brief();
 else if (import.meta.url === `file://${process.argv[1]}`) {
   console.error('usage: node scripts/asks.mjs brief | check | commit-msg <file>');
-  process.exit(2);
+  process.exitCode = 2;
 }
