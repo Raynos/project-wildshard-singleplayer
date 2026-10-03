@@ -174,7 +174,7 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     float tuft = farMN(q * 3.1);
     // E399 (the council: 'sparse blades on a flat yellow plane'): the ground between the blades is the shade down in the
     // sward, a deeper green, so the gaps read as depth in the grass, not bare yellow ground
-    diffuseColor.rgb = mix(diffuseColor.rgb, mt * (0.42 + 0.8 * swell) * (0.75 + 0.35 * tuft) * vec3(0.78, 0.82, 0.6), 0.9);
+    diffuseColor.rgb = mix(diffuseColor.rgb, mt * (0.42 + 0.8 * swell) * (0.75 + 0.35 * tuft) * vec3(0.62, 0.66, 0.58), 0.9);
 #endif
     vec2 cell = floor(q * 2.2); float pick = farMH(cell);
     float dot2 = 1.0 - smoothstep(0.12, 0.3, length(fract(q * 2.2) - 0.5));

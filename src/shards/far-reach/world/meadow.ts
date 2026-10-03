@@ -241,7 +241,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         lit *= ${glslColor(0xfff6ec)} * 1.1;
         // olive-gold, not lime (council round 3: the meadow's blue measured 16-27 of 255 against the mockups' 39-47):
         // toward a warm grey of the same brightness, a shade darker
-        lit = mix(lit, vec3(dot(lit, vec3(0.3, 0.59, 0.11))) * vec3(1.0, 0.86, 0.58), 0.52) * 0.86;
+        lit = mix(lit, vec3(dot(lit, vec3(0.3, 0.59, 0.11))) * vec3(1.0, 0.9, 0.78), 0.48) * 0.86;
         float f = clamp((length(vWorld - uCam) - ${FOG.near.toFixed(1)}) / ${(FOG.far - FOG.near).toFixed(1)}, 0.0, 1.0) * ${FOG.max.toFixed(2)};
         gl_FragColor = vec4(mix(lit, ${glslColor(SKY.fog)}, f), 1.0);
       }` });
