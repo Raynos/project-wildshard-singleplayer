@@ -140,6 +140,8 @@ activation ledger (`src/engine/native/updates.ts`, 52 unit tests in `test/native
       token scoped to `wildshard-updates` (or raynos-projects), then `gh secret set VERCEL_UPDATES_TOKEN -R
       Raynos/project-wildshard-singleplayer`. Until then the workflow's first step fails and says so.
 - [ ] Installed-app OTA drills (A → B, rollback, bad signature, offline) on both simulators once a real promote exists.
+- [ ] A review note sent from the native iOS / Android build lands in the inbox (`pnpm inbox:pull`) with its screenshot
+      (was ask E30, folded here by E423; the native inbox code is `1e46950`, the end-to-end proof is not).
 - **Store policy:** Play allows JS/WebView updates within policy. Apple §2.5.2 does not allow downloaded code that adds
   or changes features: on iOS, OTA carries **fixes, tuning, art and content**; a new shard, weapon or mode goes
   through review, and the review notes say the mechanism exists.

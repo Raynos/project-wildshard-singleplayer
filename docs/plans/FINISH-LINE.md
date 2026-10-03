@@ -94,6 +94,17 @@ Four read-only audits on build `f86b4c3` gave the same answer from four directio
 | M2 | **Titles and trophies that carry across shards.** Finishing one shard's story lights up the next. | M |
 | M3 | **(The HUD half done: E154, `50a29525`, one shared base HUD on every shard.)** **One controls and HUD spec for every shard.** Same verbs, same buttons, the weapon strip everywhere, one phone layout. | M |
 
+## Ship checklist: Jake's own steps before a public release (E423 decision 22)
+
+Real-world steps only Jake can take. They are not nagged in the session brief; they matter when he decides to ship.
+
+| # | Step | Why | Was |
+|---|---|---|---|
+| SC1 | Enrol Apple Developer ($99/yr) and Play Console ($25); create the `VERCEL_UPDATES_TOKEN` Actions secret | the native apps' only blocker (NATIVE-APPS N2) | E24 |
+| SC2 | Register Wildshard with Stability AI for commercial use (Stable Audio 3 Medium: free under USD 1M revenue) | a licence condition for the shipped SFX takes | E56 |
+| SC3 | Listen on the phone: veto any MiniMax music auto-pick and the re-scored trailers (the round-2 listening page) | the score ships as auto-picked until he vetoes | E57 |
+| SC4 | Watch (and listen to) the 45 s Steam trailer, 15 s per shard | the Steam wishlist page | E168 |
+
 ## Docs to fix (found by the audit; not built here)
 
 - **Pine Hollow is described as the whole game.** `README.md`, `docs/SUBAGENT-BRIEF.md` and `docs/SHARDS.md` still describe "a pine forest, three cabins, a crossbow".
