@@ -176,11 +176,3 @@ export function vane(): { group: Group; rotor: Object3D } {
   }
   return { group, rotor };
 }
-/** The bridge-keeper's notes: a weathered lectern with a pinned page. */
-export function lectern(): Group {
-  const group = new Group(), wood = flat(PALETTE.trunk);
-  const stand = new Mesh(new BoxGeometry(0.4, 1.05, 0.4), wood); stand.position.y = 0.52; group.add(stand);
-  const top = new Mesh(new BoxGeometry(0.8, 0.08, 0.6), wood); top.position.y = 1.1; top.rotation.x = -0.35; group.add(top);
-  const page = new Mesh(new BoxGeometry(0.5, 0.02, 0.38), flat(0xefe6d2)); page.position.set(0, 1.16, 0.02); page.rotation.x = -0.35; group.add(page);
-  return group;
-}

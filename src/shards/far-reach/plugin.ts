@@ -3,7 +3,7 @@ import { installSilentScore } from '#kit';
 import type { Animal, Flags, QuestState } from '#engine';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from './strings';
-import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, WISP_HOMES, apothem, type Home } from './layout';
+import { CROWN, DAIS, GOATS, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, WISP_HOMES, apothem, type Home } from './layout';
 import { buildWorld, type BuiltWorld } from './world/build';
 import { gustFx } from './world/windFx';
 import { FALL_TIME } from './world/distant';
@@ -218,12 +218,12 @@ export class SkyReachPlugin extends ShardPlugin {
   }
   /**
    * Fight state for a capture (E399, shard-progress `stage`, through `__wildshard.shard.farReach`): only what a player
-   * reaches in play. 'roc-far-side': the Storm Roc, first phase, on the far side of its circle over the dais, the way the
-   * arena's entrance sees it pass every lap (mockup D).
+   * reaches in play. 'roc-stalk': the Storm Roc, first phase, stalking in over the dais at a player at the arena's
+   * entrance (mockup D): its circle's height, the line every stalk from the far side of its circle flies.
    */
   stage(name: string): void {
     const roc = this.roc, body = roc ? rocBrain(roc) : null;
-    if (name === 'roc-far-side' && body !== null) body.stageOnCircle(-Math.PI / 2 - 0.15, 6);
+    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x, z: DAIS.z - 13 }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }
   /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */
   gustVanes(from: Vector3, dir: Vector3, toast: (text: string) => void = () => undefined): number {

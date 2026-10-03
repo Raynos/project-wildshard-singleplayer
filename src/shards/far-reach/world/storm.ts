@@ -68,8 +68,8 @@ const FRAGMENT = /* glsl */`
     c = under + ${hex(STORM_COLORS.bolt)} * flash * (exp(-r * 3.5) * 1.4 + 0.25) * 0.8;
     alpha = rim * (1.0 - smoothstep(0.4, 0.68, r)) * (seed > 1.0 ? 0.55 : 0.96);
     // the low sun stays clear (mockup D: the vortex above, the sun and its gold horizon below its edge), the edge gilded
-    float sunClear = smoothstep(0.955, 0.995, toward);
-    c += ${hex(STORM_COLORS.gold)} * smoothstep(0.9, 0.97, toward) * 0.35;
+    float sunClear = smoothstep(0.976, 0.997, toward);
+    c += ${hex(STORM_COLORS.gold)} * smoothstep(0.93, 0.98, toward) * 0.35;
     alpha *= 1.0 - sunClear * 0.95;
 #endif
 #ifdef FAR_STORM_PAINT

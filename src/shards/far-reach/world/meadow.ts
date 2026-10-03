@@ -1,6 +1,6 @@
 import { BufferAttribute, Color, DoubleSide, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, ShaderMaterial, Vector2, Vector3, Vector4 } from 'three';
 import { DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle } from '../layout';
-import { KEEPER_AT } from '../quest/keeper';
+import { KEEPER_AT, KEEPER_STAND } from '../quest/keeper';
 import { crownStones } from './crown';
 import { NEST, SPIRES, spireAt } from './roost';
 import { WINCH_HOUSE } from './winchHouse';
@@ -37,7 +37,7 @@ export const MEADOW = {
 
 /** Where grass never grows: discs (x, z, radius) round the structures and pieces you stand at. */
 export function meadowHoles(): Vector4[] {
-  const holes: [number, number, number][] = [[MILL.x, MILL.z, 2.9], [WINCH.x, WINCH.z, 1.3], [NOTES.x, NOTES.z, 0.8], [KEEPER_AT.x, KEEPER_AT.z, 0.7], [DAIS.x, DAIS.z, DAIS.r + 0.4]];
+  const holes: [number, number, number][] = [[MILL.x, MILL.z, 2.9], [WINCH.x, WINCH.z, 1.3], [NOTES.x, NOTES.z, 0.8], [KEEPER_AT.x, KEEPER_AT.z, 0.7], [KEEPER_STAND.x, KEEPER_STAND.z, 0.45], [DAIS.x, DAIS.z, DAIS.r + 0.4]];
   for (const v of VANES) holes.push([v.x, v.z, 1]);
   for (const st of crownStones()) holes.push([st.x, st.z, 0.85]);
   holes.push([NEST.x, NEST.z, NEST.r + 0.2], [WINCH_HOUSE.x, WINCH_HOUSE.z, WINCH_HOUSE.w * 0.75]);
@@ -155,8 +155,9 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         vec2 toCam = normalize(uCam.xz - p + 1e-3);
         // flowers: clustered drifts (daisies, buttercup patches), a few strays; never on a path
         float drift = smoothstep(0.36, 0.64, mfbm(p * 0.16 + 4.0));
-        float flower = step(fract(r * 91.7), (0.01 + 0.1 * drift) * worn) * step(0.6, dist);
-        float kind = (mn(p * 0.45 + 20.0) + 0.35 * fract(r * 17.3)) > 0.78 ? 2.0 : 1.0;
+        // (E399 seat: 'an even field of large white daisies'; the mockups' flowers are sparse, small, white and yellow)
+        float flower = step(fract(r * 91.7), (0.004 + 0.035 * drift) * worn) * step(0.6, dist);
+        float kind = (mn(p * 0.45 + 20.0) + 0.35 * fract(r * 17.3)) > 0.64 ? 2.0 : 1.0;
         vec2 wind = normalize(vec2(0.6, 0.8));
         float sway = (0.16 + 0.1 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);
         vec3 world = vec3(p.x, y, p.y);
@@ -165,7 +166,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         if (flower > 0.5) {
           // a stem in the grass, the head a kite tilted half up, half to you (a daisy reads round, a buttercup a cup)
           float stem = mix(0.14, 0.36, fract(r * 5.7));
-          float R = (kind > 1.5 ? 0.026 : 0.042) * mix(0.8, 1.2, fract(r * 7.9)) * clamp(dist / 5.0, 1.0, 1.8);
+          float R = (kind > 1.5 ? 0.022 : 0.03) * mix(0.8, 1.2, fract(r * 7.9)) * clamp(dist / 6.0, 1.0, 1.4);
           vec3 sideV = vec3(-toCam.y, 0.0, toCam.x), upV = normalize(mix(vec3(0.0, 1.0, 0.0), vec3(-toCam.x, 0.0, -toCam.y), 0.5));
           vec2 nod = dir * stem * 0.12 + wind * sway * stem * 0.3;
           vec3 head = world + vec3(nod.x, stem, nod.y);

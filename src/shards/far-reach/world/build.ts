@@ -1,7 +1,7 @@
 import { boxDesc, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, PINES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
+import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
@@ -11,7 +11,9 @@ import { firSheet, firs } from './fir';
 import { SKY_ISLES } from './skyIsles';
 import { winchHouse } from './winchHouse';
 import { skyline } from './distant';
-import { PALETTE, flat, lectern, pines, plankBridge, vane, windmill, winch } from './shapes';
+import { PALETTE, flat, pines, plankBridge, vane, windmill, winch } from './shapes';
+import { BOOK_STAND, bookStand } from './bookStand';
+import { KEEPER_STAND } from '../quest/keeper';
 import { ownPrimitives } from './resources';
 import { STORM, crownStorm, type CrownStorm } from './storm';
 import { updraftFx, type UpdraftFx } from './windFx';
@@ -150,9 +152,13 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const winchAt = new Vector3(WINCH.x, WINCH.y + 1.2, WINCH.z);
   const handle: Interactable = { label: STRINGS.turnWinch, position: winchAt, radius: 3, onInteract: () => { if (!state.raised) state.raising = true; } };
 
-  const page = lectern(); page.position.set(NOTES.x, NOTES.y, NOTES.z); page.rotation.y = 0.6; root.add(page);
+  const page = bookStand(false); page.position.set(NOTES.x, NOTES.y, NOTES.z); page.rotation.y = 0.6; root.add(page);
   ctx.piece({ id: 'far.notes', name: STRINGS.notesName, category: 'props', file: FILE, object: page,
     colliders: [boxDesc({ x: NOTES.x, z: NOTES.z, hw: 0.3, hd: 0.3, rot: 0.6, yBottom: NOTES.y, yTop: NOTES.y + 1.1 }, 'wood')], surface: 'wood' });
+  // the keeper's own book stand and lantern beside him at the spawn (E399, mockup B)
+  const stand = bookStand(true); stand.position.set(KEEPER_STAND.x, SUNREST.y, KEEPER_STAND.z); stand.rotation.y = KEEPER_STAND.yaw; root.add(stand);
+  ctx.piece({ id: 'far.keeper.stand', name: STRINGS.notesName, category: 'props', file: FILE, object: stand,
+    colliders: [boxDesc({ x: KEEPER_STAND.x, z: KEEPER_STAND.z, hw: BOOK_STAND.footprint, hd: BOOK_STAND.footprint, rot: KEEPER_STAND.yaw, yBottom: stand.position.y, yTop: stand.position.y + BOOK_STAND.height }, 'wood')], surface: 'wood' });
   const notesAt = new Vector3(NOTES.x, NOTES.y + 1.3, NOTES.z);
   const notes: Interactable = { label: STRINGS.readNotes, position: notesAt, radius: 2.6, onInteract: () => undefined };
 

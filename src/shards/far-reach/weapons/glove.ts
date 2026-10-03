@@ -57,7 +57,7 @@ export function gloveHand(armDir: Vector3): Group {
   // the sleeve (council round 2: "a plain cream tube"): loose linen in soft folds, the fold valleys shaded, a woven
   // teal-and-gold border at the cuff end
   const sleeveGeo = new CylinderGeometry(0.041, 0.058, 0.34, 20, 10), sp = sleeveGeo.getAttribute('position'), sc: number[] = [];
-  const cream = new Color(0xece2cc), shadow = new Color(0xb9ab92), teal = new Color(0x2f8a8c), gold = new Color(0xc79a4a), out = new Color();
+  const cream = new Color(0xa89a84), shadow = new Color(0x6f6252), teal = new Color(0x2f8a8c), gold = new Color(0xc79a4a), out = new Color();
   for (let i = 0; i < sp.count; i++) {
     const x = sp.getX(i), y = sp.getY(i), z = sp.getZ(i), a = Math.atan2(z, x), fold = Math.sin(a * 5 + y * 14) * 0.5 + 0.5;
     const k = 1 + 0.09 * fold; sp.setXYZ(i, x * k, y, z * k);

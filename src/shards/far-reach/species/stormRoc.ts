@@ -41,14 +41,13 @@ export class StormRocBrain extends CreatureBrain<RocState> {
   /** The altitude the Roc holds in this phase: high in the storm, a wall-height hover, or standing on the dais. */
   private altitude(): number { return this.phase === 0 ? ROC.y : this.phase === 1 ? CROWN.y + 7 : CROWN.y + DAIS.h + 0.05; }
   /**
-   * Capture staging (E399, the mock-D view): the circling Roc of the first phase put at `angle` on its circle over the
-   * dais (it passes every point of it each lap, about every 8 s) and kept circling `hold` seconds before it stalks.
+   * Capture staging (E399, the mock-D view): a first-phase stalk under way, the Roc at `at` at its circle's height, flying
+   * in at `face`. Real flight state, nothing else.
    */
-  stageOnCircle(angle: number, hold: number): void {
+  stageStalk(at: { x: number; z: number }, face: { x: number; z: number }): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
-    this.angle = angle; this.rest = hold; this.strikes.cancel(); a.cancelAttack(); this.current = null; this.transition('circle');
-    const x = ROC.x + Math.cos(angle) * ROC.r, z = ROC.z + Math.sin(angle) * ROC.r;
-    a.place(x, z, 0, ROC.y); a.yaw = yawTo(a, x - Math.sin(angle), z + Math.cos(angle));
+    this.rest = 0; this.strikes.cancel(); a.cancelAttack(); this.current = null; this.transition('stalk');
+    a.place(at.x, at.z, 0, ROC.y); a.yaw = yawTo(a, face.x, face.z);
   }
   override think(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
@@ -139,7 +138,9 @@ function paintUnderside(g: BufferGeometry): void {
   if (!g.hasAttribute('color')) return;
   if (!g.hasAttribute('normal')) g.computeVertexNormals();
   const p = g.getAttribute('position'), n = g.getAttribute('normal'), c = g.getAttribute('color');
-  const cream = new Color(0xe9dcc2), slate = new Color(0x3c3446), rust = new Color(0x9a5a34), out = new Color();
+  // E399 (mockup D: a great eagle, dark brown wings with paler barred flight feathers, a cream breast; it is seen from
+  // below against the low sun, so the old cream-and-slate underside read as a grey blur)
+  const cream = new Color(0xe9dcc2), slate = new Color(0x3c3446), rust = new Color(0x9a5a34), brown = new Color(0x5e4230), barred = new Color(0xb39572), dusk = new Color(0x2b221c), out = new Color();
   for (let i = 0; i < p.count; i++) {
     const down = -n.getY(i); if (down < 0.25) continue;
     const x = p.getX(i), z = p.getZ(i), ax = Math.abs(x), k = Math.min(1, (down - 0.25) / 0.4);
@@ -150,7 +151,7 @@ function paintUnderside(g: BufferGeometry): void {
     } else {
       // the wings: barred flight feathers, the tips dark
       const bar = ((ax * 1.7) % 1 + 1) % 1 < 0.28, tip = ax > ROC_SPAN * 0.42;
-      out.copy(cream).lerp(slate, tip ? 0.85 : bar ? 0.6 : 0.1);
+      out.copy(tip ? dusk : bar ? barred : brown);
     }
     c.setXYZ(i, c.getX(i) + (out.r - c.getX(i)) * k, c.getY(i) + (out.g - c.getY(i)) * k, c.getZ(i) + (out.b - c.getZ(i)) * k);
   }

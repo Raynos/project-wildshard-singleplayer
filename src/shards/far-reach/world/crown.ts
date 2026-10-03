@@ -9,9 +9,9 @@ import { CROWN, DAIS } from '../layout';
  * replaces the loop-1 hexagonal pillars that read as one stray post from the arena's entrance.
  */
 /** The ring stands close round the dais (loop 5: at the crown's centre and 12.5 m out the arena's entrance framed one stone; at 7.8 m it frames five to seven). */
-export const CROWN_RING = { radius: 7, stones: 7, width: 1.4, depth: 0.8 } as const;
+export const CROWN_RING = { radius: 8, stones: 5, width: 1.4, depth: 0.8 } as const;
 /** Stone heights (metres), one per stone round the ring; tallest opposite the entrance, framing the dais. */
-const HEIGHTS = [3.4, 4.0, 4.6, 5.0, 4.5, 3.9, 3.3] as const;
+const HEIGHTS = [3.6, 4.3, 5.0, 4.4, 3.7] as const;
 
 export interface Stone { readonly x: number; readonly z: number; readonly h: number; readonly yaw: number }
 /** The stones in world space (the colliders and the meadow's holes read the same list). */
@@ -19,9 +19,9 @@ export function crownStones(): Stone[] {
   const n = CROWN_RING.stones;
   // E392 (mockup D): an arc behind the dais, from the left round to the right, open toward the bridge (+z) so the
   // arena's entrance looks across the dais to the stones, the cloud sea and the sun between them
-  // E399 (mockup D, the portrait frame from the entrance): a tighter arc, 7 m round the dais from 1.12 pi to 1.88 pi,
-  // so five stones stand in the frame behind it, not two with the rest past its edges
-  const from = Math.PI * 1.12, to = Math.PI * 1.88;
+  // E399 (mockup D, the portrait frame from the entrance): five stones on an 8 m arc behind the dais, 1.15 pi to 1.85 pi,
+  // all in the frame and spaced so the cloud sea and the far isles show between them
+  const from = Math.PI * 1.15, to = Math.PI * 1.85;
   return Array.from({ length: n }, (_, i) => {
     const a = from + (to - from) * (i / (n - 1)), x = DAIS.x + Math.cos(a) * CROWN_RING.radius, z = DAIS.z + Math.sin(a) * CROWN_RING.radius;
     // each stone's carved face turns to the dais
@@ -49,7 +49,8 @@ function stoneGeometry(h: number, seed: number): BufferGeometry {
     p.setXYZ(i, x * taper * (1 + n * 0.16), y - shear * h * 0.12, z * taper * (1 + n * 0.22));
   }
   g.computeVertexNormals();
-  const stone = rgb(0x7a7084), warm = rgb(0xa8927c), lichen = rgb(0x9a9a52), dark = rgb(0x4c4456);
+  // weathered grey with lichen (E399 seat on mockup D: 'violet-tinted slabs'; the mockup's are grey, lichen-crusted)
+  const stone = rgb(0x878478), warm = rgb(0xa8987f), lichen = rgb(0x9a9a52), dark = rgb(0x4e4b45);
   return paint(g, (x, y, z) => {
     const t = y / h, n = hash(Math.round(x * 6) + seed * 3, Math.round(y * 5) + Math.round(z * 6) * 3);
     let c = lerp3(dark, stone, Math.min(1, 0.45 + t)); c = lerp3(c, warm, n * 0.45);
@@ -74,7 +75,7 @@ function daisGeometry(): BufferGeometry {
   const R = DAIS.r, H = DAIS.h;
   const pos: number[] = [], col: number[] = [];
   const tri = (a: number[], b: number[], c: number[], color: [number, number, number]): void => { pos.push(...a, ...b, ...c); col.push(...color, ...color, ...color); };
-  const slab = rgb(0xa79c95), joint = rgb(0x7c7078), rim = rgb(0x8d8189), light = rgb(0xe6dccb), shade = rgb(0x6e6273), inlay = rgb(0xcdb38a);
+  const slab = rgb(0xa49d92), joint = rgb(0x787368), rim = rgb(0x8c867b), light = rgb(0xe6dccb), shade = rgb(0x66615a), inlay = rgb(0xcdb38a);
   // the top: 4 rings of fitted slabs, alternate slabs a shade apart
   const rings = [0, 1.4, 2.6, 3.8, R - 0.45], segs = [8, 12, 18, 24];
   for (let k = 0; k < 4; k++) {

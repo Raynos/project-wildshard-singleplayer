@@ -11,6 +11,12 @@ export const KEEPER_AT = { x: -1.6, z: -13.6, yaw: Math.atan2(SPAWN.x + 1.6, SPA
 export const WAVE_RANGE = 16;
 
 /** The keeper's lines: the first whose condition holds is what he says; his first talk is the quest's first step. */
+/**
+ * His book stand and lantern (E399, mockup B): a step behind him and to his right as the spawn sees him, left of the
+ * bridge's line (the spawn and bridge-head views keep the bridge clear), its book turned to the spawn.
+ */
+const STAND_X = KEEPER_AT.x + 0.6, STAND_Z = KEEPER_AT.z - 1.0;
+export const KEEPER_STAND = { x: STAND_X, z: STAND_Z, yaw: Math.atan2(SPAWN.x - STAND_X, SPAWN.z - STAND_Z) } as const;
 export const KEEPER_NPC: NpcDef = {
   id: 'far.keeper', name: STRINGS.keeperName,
   dialogue: [
