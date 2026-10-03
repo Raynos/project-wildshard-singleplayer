@@ -252,9 +252,9 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
    skipped, logged, when the design has no machine block. Any other missing file → stop and name it.
 3. Targets are needed only from P10 on. Write only the stage's outputs, log them, hand back with the evidence.
 4. A slice-scoped P8 gates the slice's legs, reach and T16, and logs the rest as untested. Never create a second shard.
-5. On a shipped shard the outputs are the director's: they land, ship and are gated by that shard's own plan; grey or
-   stand-in content stays behind that shard's own default-off Debug row (`ctx.debugRow`) until its plan accepts it.
-   No checkpoint, no drafts-site step, no §run (D91, MC48).
+5. On a shipped shard the outputs ship as built (D92): no per-content Debug row. A partial shard says partial or
+   experimental in its status and sits behind the Developer menu, which shows it to players as COMING SOON. No
+   checkpoint, no drafts-site step, no §run (D91).
 
 ## J. The judges (R6; 06 §6)
 
