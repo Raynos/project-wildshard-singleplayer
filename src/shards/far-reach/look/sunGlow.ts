@@ -7,7 +7,12 @@ import { AdditiveBlending, DoubleSide, Group, Mesh, PlaneGeometry, ShaderMateria
  * Camera-facing in the shader; a shard-side stand-in until the engine's god-ray pass can take a shard's light source
  * (ENGINE REQUEST to the lead, 2026-10-02).
  */
-export const SUN_GLOW = { distance: 820, bloom: 230, wide: 900, shafts: 11, shaftLength: 620, shaftWidth: 26 } as const;
+/**
+ * `order`: drawn after the cumulus puffs (look/puffs.ts, -5; they write no depth), so the low sun burns through a cloud
+ * bank as mockups A and D paint it, while the isles and the world (depth) still hide it (E399 round 6: from the spawn the
+ * crown's cloud bank covered the whole disc).
+ */
+export const SUN_GLOW = { distance: 820, bloom: 230, wide: 900, shafts: 11, shaftLength: 620, shaftWidth: 26, order: -4 } as const;
 
 const VERTEX = /* glsl */`
   uniform vec3 uSun; uniform float uDist; uniform vec2 uSize; uniform float uAngle;
@@ -41,7 +46,7 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
         // gold, not white (E399 seats: 'the sun white'): a warm disc in an amber-orange bloom
         gl_FragColor = vec4(vec3(1.0, 0.9, 0.66) * disc * 1.5 + vec3(1.0, 0.74, 0.4) * (core * 3.2 + halo * 1.0), 1.0);
       }` });
-  const bloomMesh = new Mesh(plane, bloom); bloomMesh.frustumCulled = false; bloomMesh.renderOrder = -9; group.add(bloomMesh);
+  const bloomMesh = new Mesh(plane, bloom); bloomMesh.frustumCulled = false; bloomMesh.renderOrder = SUN_GLOW.order; group.add(bloomMesh);
   // a wide, faint gold over the sky round the sun (E399, the mockups' golden air toward the low sun)
   const wide = new ShaderMaterial({ transparent: true, depthWrite: false, depthTest: true, blending: AdditiveBlending, fog: false, side: DoubleSide,
     uniforms: { uSun: { value: sun }, uDist: { value: SUN_GLOW.distance }, uSize: { value: [SUN_GLOW.wide, SUN_GLOW.wide] }, uAngle: { value: 0 } },
@@ -49,7 +54,7 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
     fragmentShader: /* glsl */`
       varying vec2 vUv;
       void main(){ float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(vec3(1.0, 0.78, 0.46) * exp(-d * 2.4) * (1.0 - smoothstep(0.75, 1.0, d)) * 0.1, 1.0); }` });
-  const wideMesh = new Mesh(plane, wide); wideMesh.frustumCulled = false; wideMesh.renderOrder = -9; group.add(wideMesh);
+  const wideMesh = new Mesh(plane, wide); wideMesh.frustumCulled = false; wideMesh.renderOrder = SUN_GLOW.order; group.add(wideMesh);
   const shafts: ShaderMaterial[] = [];
   for (let i = 0; i < SUN_GLOW.shafts; i++) {
     const angle = Math.PI * (0.62 + 0.76 * (i / (SUN_GLOW.shafts - 1))) + Math.sin(i * 7.3) * 0.08;   // fanned downward
@@ -63,7 +68,7 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
           float a = smoothstep(0.0, 1.0, across) * (1.0 - along) * smoothstep(0.0, 0.08, along) * 0.13 * uPulse;
           gl_FragColor = vec4(vec3(1.0, 0.82, 0.55) * a, 1.0);
         }` });
-    const mesh = new Mesh(plane, m); mesh.frustumCulled = false; mesh.renderOrder = -9; group.add(mesh); shafts.push(m);
+    const mesh = new Mesh(plane, m); mesh.frustumCulled = false; mesh.renderOrder = SUN_GLOW.order; group.add(mesh); shafts.push(m);
   }
   return { group, geometry: plane, materials: [bloom, wide, ...shafts], update: (t) => { shafts.forEach((m, i) => { const u = m.uniforms['uPulse']; if (u) u.value = 0.75 + 0.25 * Math.sin(t * 0.3 + i * 1.7); }); } };
 }

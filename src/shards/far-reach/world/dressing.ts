@@ -2,7 +2,7 @@ import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute
 import { PATCH_ORDER, patchShader } from '#engine';
 import { paintIsleMaterial } from './isle';
 import { meadowHoles, meadowPaths } from './meadow';
-import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, UPDRAFT, apothem, type Isle, type Span } from '../layout';
+import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, apothem, type Isle, type Span } from '../layout';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): what makes an island top read as a meadow and its
@@ -124,7 +124,7 @@ export const HERO_STONES: readonly (readonly [number, number, number, number, nu
   // the windmill isle's west lip (H2 left): rocks bottom left and a ledge on the right
   [-10.8, -54.6, DECK, 0.8, 0.3], [-9.8, -55.3, DECK, 0.55, 0.25], [-12.6, -58.1, DECK, 1.0, 0.45],
   // the high step (H3 front): right of the walk from the updraft to the crown bridge
-  [-4.2, -120.3, HIGH, 0.9, 0.42], [-4.9, -118.6, HIGH, 0.55, 0.25],
+  [STEP.x + 3.8, STEP.z + 1.7, HIGH, 0.9, 0.42], [STEP.x + 3.1, STEP.z + 3.4, HIGH, 0.55, 0.25],
   // the crown's south lip (H4 left): either side of the view, beyond the walk in from the bridge
   [-5.8, -172.6, HIGH, 0.9, 0.42], [-5.8, -175.9, HIGH, 1.1, 0.5],
   // ahead of the entrance, either side of the walk to the dais (E399 mockup D: mossy rocks in the meadow's foreground)

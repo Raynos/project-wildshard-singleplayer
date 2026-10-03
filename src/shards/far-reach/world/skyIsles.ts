@@ -15,7 +15,7 @@ const isle = (id: string, x: number, z: number, r: number, y: number, keel: numb
 
 export const SKY_ISLES: readonly SkyIsle[] = [
   // the spawn view's frame: left of the windmill isle, near and high, then farther and lower
-  isle('l1', -42, -92, 9, 50, 16, 3, Math.PI * 0.2), isle('l2', -70, -128, 13, 58, 22, 4, null),
+  isle('l1', -42, -92, 9, 50, 16, 3, Math.PI * 0.2), isle('l2', -84, -136, 13, 58, 22, 4, null),
   isle('l3', -105, -95, 10, 40, 18, 3, Math.PI * 0.1), isle('l4', -58, -175, 15, 66, 26, 5, Math.PI * 0.35),
   isle('l5', -130, -170, 18, 46, 30, 6, 0.4),
   // right of it
@@ -29,5 +29,5 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   isle('o3', -34, -166, 9, 70, 16, 3, null),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),
-  isle('b3', 20, 95, 16, 60, 26, 5, Math.PI * 1.5), isle('b4', -40, -255, 20, 62, 32, 6, Math.PI * 1.2),
+  isle('b3', 20, 95, 16, 60, 26, 5, Math.PI * 1.5), isle('b4', -95, -250, 20, 62, 32, 6, Math.PI * 1.2),
 ];

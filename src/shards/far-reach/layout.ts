@@ -40,8 +40,11 @@ export const ROOST: Isle = { id: 'roost', x: 60, z: -12, r: 13, y: 34, keel: 18 
 export const KEEPER: Isle = { id: 'keeper', x: -58, z: -60, r: 12, y: 32.5, keel: 18 };
 export const RUIN: Isle = { id: 'ruin', x: 65, z: -72, r: 13, y: 28, keel: 20 };
 // Round 2 (council R1A-1 / R1C-9: the isles still sat on a straight spine): the high step stands west of the line
-// from Sunrest to the crown, so the updraft and the crown bridge run on diagonals.
-export const STEP: Isle = { id: 'step', x: -8, z: -122, r: 13, y: HIGH, keel: 20 };
+// from Sunrest to the crown, so the updraft and the crown bridge run on diagonals. E399 round 6 (every council round:
+// 'a rear house and stacked land behind the mill'; none of the five mockups has land behind the windmill, and four put
+// the low sun at its left, where the step's deck and winch house hid it): 36 m further west, just past the left edge of
+// the spawn's portrait view, so the sky behind the mill is open and the sun shows under the overhead isles.
+export const STEP: Isle = { id: 'step', x: -44, z: -126, r: 13, y: HIGH, keel: 20 };
 export const CROWN: Isle = { id: 'crown', x: 0, z: -190, r: 20, y: HIGH, keel: 34 };
 export const ISLES: readonly Isle[] = [SUNREST, WINDMILL, GROVE, ROOST, KEEPER, RUIN, STEP, CROWN];
 /** The apothem of an island's 12-gon top: where the rim edge is nearest the centre. */
@@ -100,9 +103,10 @@ export interface Home { readonly x: number; readonly z: number; readonly r: numb
 export const RAY_HOMES: readonly Home[] = [{ x: 24, z: -64, r: 14, y: DECK + 9 }];
 export const ROOST_RAYS: readonly Home[] = [0, 1, 2].map((i) => ({ x: ROOST.x, z: ROOST.z, r: 12 + i * 3, y: ROOST.y + 10 + i * 2 }));
 export const WISP_HOMES: readonly Home[] = [{ x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 }, { x: STEP.x, z: STEP.z, r: 7, y: HIGH + 3 }, { x: RUIN.x, z: RUIN.z, r: 8, y: RUIN.y + 3 }];
-/** Sky goats graze where they spawn, inside their island's rim. */
+/** Sky goats graze where they spawn, inside their island's rim (E399 round 6: the first one off the bridge's landing, where it stood
+ * under the crosshair of every spawn view with its name tag up). */
 export const GOATS: readonly { readonly isle: Isle; readonly dx: number; readonly dz: number }[] = [
-  { isle: WINDMILL, dx: -6, dz: 4 }, { isle: WINDMILL, dx: -3, dz: -8 }, { isle: RUIN, dx: 3, dz: 4 }, { isle: RUIN, dx: -5, dz: -1 }, { isle: GROVE, dx: 2, dz: 3 },
+  { isle: WINDMILL, dx: 10, dz: -8 }, { isle: WINDMILL, dx: -3, dz: -8 }, { isle: RUIN, dx: 3, dz: 4 }, { isle: RUIN, dx: -5, dz: -1 }, { isle: GROVE, dx: 2, dz: 3 },
 ];
 /**
  * The Storm Roc's circle over the crown. Loop 5 (council R1B-5 / R1C-11): lower and round the dais, so from the arena's
