@@ -1,5 +1,5 @@
 {
-  "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 Sunrest rim, H2 the windmill isle, H3 the high step, H4 the crown) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z). E399: one mock-* view per council mockup (docs/plans/mockup-council/ledger.md), at the mockup's camera: proposal B and mockup A down the spawn bridge to the windmill, B the quest start at the spawn (the keeper left of the axis), C the fan with the windmill behind, D the crown arena under the Roc. The spawn mock views come before the crown (its boss bar) and the aerials (a god view hides the viewmodel). Re-aimed to the mockups' cameras (E399 round notes): B 5.5 m from the keeper with the windmill just right of him; C from the bridge head, the windmill about 48 m off; D from 18 m before the dais, the Roc staged mid-stalk over the dais (stage 'roc-stalk', settle 0.3 s).",
+  "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 Sunrest rim, H2 the windmill isle, H3 the high step, H4 the crown) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z). E399: one mock-* view per council mockup (docs/plans/mockup-council/ledger.md), at the mockup's camera: proposal B and mockup A down the spawn bridge to the windmill, B the quest start at the spawn (the keeper left of the axis), C the fan with the windmill behind, D the crown arena under the Roc. The spawn mock views come before the crown (its boss bar) and the aerials (a god view hides the viewmodel). Re-aimed to the mockups' cameras (E399 round notes): B 5.5 m from the keeper with the windmill just right of him; proposal B, A and C on the bridge's axis before its posts, out of the keeper's 3.5 m talk range and the phone's ~24 deg-wide frame; D from 18 m before the dais, the Roc staged mid-stalk over the dais (stage 'roc-stalk', settle 0.3 s).",
   "shots": [
     {
       "id": "h1-sunrest",
@@ -28,10 +28,10 @@
     {
       "id": "mock-proposal-B",
       "mockup": "art/far-reach/round-1-proposals/B-sky-reach.jpg",
-      "x": 2.2,
+      "x": 0,
       "y": 30,
-      "z": -8,
-      "yaw": 6,
+      "z": -9.5,
+      "yaw": 0,
       "pitch": -12
     },
     {
@@ -39,7 +39,7 @@
       "mockup": "art/far-reach/round-11-review/mockup-A-spawn-look.jpg",
       "x": 0,
       "y": 30,
-      "z": -9,
+      "z": -10,
       "yaw": 0,
       "pitch": -3.4
     },
@@ -49,17 +49,17 @@
       "x": 0,
       "y": 30,
       "z": -5.5,
-      "yaw": 2,
+      "yaw": 5,
       "pitch": -3
     },
     {
       "id": "mock-C-hands-fan",
       "mockup": "art/far-reach/round-18-council-mockups/mockup-C-hands-fan-painterly.jpg",
-      "x": 0,
+      "x": 0.6,
       "y": 30,
-      "z": -18.5,
+      "z": -10.2,
       "yaw": 3,
-      "pitch": 0
+      "pitch": 4
     },
     {
       "id": "h4-crown",

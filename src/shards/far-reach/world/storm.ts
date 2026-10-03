@@ -13,14 +13,14 @@ import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttri
  * `lean`: the disc tips its underside toward the arena (rad about x; the near, south rim up and the far rim down), so
  * from the entrance the spiral reads round, a funnel leaning over the crown, not squashed into streaks.
  * `gather`: the camera's distance from the storm's centre (m) over which it fades in. `ahead`: how far north of the crown
- * (-z) its eye hangs (E399, mockup D: from the arena's entrance the vortex fills the sky behind the dais, about 25 deg up;
- * centred over the crown it hung 53 deg up, out of the portrait frame, and only its edge showed, as streaks).
+ * (-z) its eye hangs (E399, mockup D: from the arena's entrance the vortex fills the sky behind the dais, its eye about
+ * 15 deg up in the phone's 50 deg-tall portrait view; centred over the crown it hung 53 deg up, out of the frame).
  */
-export const STORM = { lift: 30, ahead: 45, lean: -0.5, radius: 92, gather: [55, 100], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
+export const STORM = { lift: 23, ahead: 90, lean: -0.5, radius: 92, gather: [110, 170], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
-export const STORM_COLORS = { belly: 0x3c384e, mid: 0x9a8a98, top: 0xe8c6a8, gold: 0xffc983, bolt: 0xe2d6ff, haze: 0xedc9b0 } as const;
+export const STORM_COLORS = { belly: 0x343046, mid: 0x7e7286, top: 0xe8c6a8, gold: 0xffc983, bolt: 0xe2d6ff, haze: 0xedc9b0 } as const;
 
 const FRAGMENT = /* glsl */`
   uniform sampler2D tex, paint; uniform float time, flash, twist, spin, seed; uniform vec3 sunDir, centre; varying vec3 wp; varying vec2 lp;

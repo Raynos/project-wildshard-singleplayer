@@ -104,7 +104,8 @@ const wing = (side: number, bone: number): { geometry: ConeGeometry; bone: numbe
 /** Where a wing starts (metres off the centre line): outboard of it a facet rides its wing bone. */
 const ROC_WING_ROOT = 1.1;
 /** The Roc's wingspan (metres). */
-const ROC_SPAN = 11;
+// E399 (mockup D: a great eagle whose wings span the portrait frame from the arena's entrance; it was 11 m)
+const ROC_SPAN = 15;
 const ROC_BONES = (head: number, headY: number, tail: number): BoneDef[] => [{ name: 'body', parent: null, pos: [0, 1.6, 0] },
   { name: 'head', parent: 'body', pos: [0, headY, head] }, { name: 'wingL', parent: 'body', pos: [ROC_WING_ROOT, 1.7, 0] },
   { name: 'wingR', parent: 'body', pos: [-ROC_WING_ROOT, 1.7, 0] }, { name: 'tail', parent: 'body', pos: [0, 1.5, tail] }];

@@ -124,6 +124,8 @@ export const HERO_STONES: readonly (readonly [number, number, number, number, nu
   [-4.2, -120.3, HIGH, 0.9, 0.42], [-4.9, -118.6, HIGH, 0.55, 0.25],
   // the crown's south lip (H4 left): either side of the view, beyond the walk in from the bridge
   [-5.8, -172.6, HIGH, 0.9, 0.42], [-5.8, -175.9, HIGH, 1.1, 0.5],
+  // ahead of the entrance, either side of the walk to the dais (E399 mockup D: mossy rocks in the meadow's foreground)
+  [-3.6, -181.4, HIGH, 1.0, 0.45], [-4.8, -183.2, HIGH, 0.6, 0.28], [3.9, -182.0, HIGH, 0.8, 0.36],
 ];
 
 /** True when (x, z) lies on a bridge's lane, or within 3 m past either end of it (kept clear so the walkway reads). */

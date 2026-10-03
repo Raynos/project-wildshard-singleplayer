@@ -6,16 +6,18 @@ import { STRINGS } from '../strings';
 import { SPAWN } from '../layout';
 
 /** Where the bridge-keeper stands: at Sunrest's north rim, left of the rope bridge's posts, facing the spawn (mockup B). */
-export const KEEPER_AT = { x: -1.6, z: -13.6, yaw: Math.atan2(SPAWN.x + 1.6, SPAWN.z + 13.6) } as const;
+// E399: 0.8 m further left than loop 5's spot, so the views down the bridge's axis (mockups A and proposal B) frame the
+// bridge between its posts with him and his stand outside the portrait frame; from the spawn he stands 16.5 deg left
+export const KEEPER_AT = { x: -2.4, z: -13.6, yaw: Math.atan2(SPAWN.x + 2.4, SPAWN.z + 13.6) } as const;
 /** He waves while the player is this close (metres), as Wendell does. */
 export const WAVE_RANGE = 16;
 
 /** The keeper's lines: the first whose condition holds is what he says; his first talk is the quest's first step. */
 /**
- * His book stand and lantern (E399, mockup B): a step behind him and to his right as the spawn sees him, left of the
- * bridge's line (the spawn and bridge-head views keep the bridge clear), its book turned to the spawn.
+ * His book stand and lantern (E399, mockup B): a step behind him and to his right as the spawn sees him, outside the
+ * views down the bridge's axis, its book turned to the spawn.
  */
-const STAND_X = KEEPER_AT.x + 0.6, STAND_Z = KEEPER_AT.z - 1.0;
+const STAND_X = KEEPER_AT.x + 0.5, STAND_Z = KEEPER_AT.z - 1.2;
 export const KEEPER_STAND = { x: STAND_X, z: STAND_Z, yaw: Math.atan2(SPAWN.x - STAND_X, SPAWN.z - STAND_Z) } as const;
 export const KEEPER_NPC: NpcDef = {
   id: 'far.keeper', name: STRINGS.keeperName,

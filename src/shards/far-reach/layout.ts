@@ -65,8 +65,8 @@ export const DAIS = { x: CROWN.x, z: CROWN.z - 6, r: 5, h: 0.3 };
 /**
  * The spawn stands on Sunrest facing the rope bridge north (mockup A: the bridge posts ahead, the windmill isle beyond).
  * Loop 5 (council R1C-8 / R1B-3): 3.5 m further back than loop 2's rim spot, so the bridge-keeper (quest/keeper.ts) stands
- * 13° left of the view's axis, inside the portrait view's ±18.6° and clear of the HOVER tab, and more than the quest
- * chip's 6 m (engine QuestChip) away, so the chip reads "KEEPER n M" from the first frame.
+ * left of the view's axis (16.5° since E399 moved him clear of the bridge's axis views), inside the portrait view's ±18.6°,
+ * and more than the quest chip's 6 m (engine QuestChip) away, so the chip reads "KEEPER n M" from the first frame.
  */
 export const SPAWN = { x: 0, z: -5.5, yaw: 0 };
 /** Flying homes: centre, circle radius and altitude (world metres). The roost's three rays are quest step 2. */

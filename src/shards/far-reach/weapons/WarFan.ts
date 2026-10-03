@@ -8,7 +8,8 @@ export interface FanTarget { readonly position: Vector3; readonly actor: Actor |
 export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldown: 0.45, heavyCooldown: 0.85 } as const;
 /** The idle hold (mockup B / C): the fan open at a three-quarter angle, lower right, the hand under it; never over the discs. */
 /** Loop 5 (council R1C-14): raised so the grip and the hand sit above the GUST / DODGE / JUMP cluster. */
-export const HOLD = { x: 0.15, y: -0.105, z: -0.6, pitch: 0.18, yaw: -0.38, roll: -0.42, scale: 0.52 } as const;
+/** E399 (the council mockups A, C and proposal B): lower and turned open, face-on to you, its tassel hanging free. */
+export const HOLD = { x: 0.13, y: -0.145, z: -0.6, pitch: 0.22, yaw: -0.18, roll: -0.5, scale: 0.52 } as const;
 export const GUST = { reach: 9, halfAngle: 0.6, push: 15, lift: 4, damage: 4, cooldown: 1.6 } as const;
 
 /** A viewmodel offset from HOLD (metres, radians). */

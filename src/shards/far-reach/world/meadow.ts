@@ -28,11 +28,11 @@ export const MEADOW = {
    */
   layers: 5, near: 7.5,
   /** blade height range (metres) */
-  low: 0.16, high: 0.72,
-  /** an island's grass height scale (1 when absent): the crown is a trodden arena, short enough that the dais reads */
-  grass: { crown: 0.6 } as Readonly<Record<string, number>>,
-  /** the share of blades an island keeps (1 when absent): the crown's arena is trodden thin (round 2: a carpet of chips) */
-  keep: { crown: 0.45 } as Readonly<Record<string, number>>,
+  low: 0.14, high: 0.62,
+  /** an island's grass height scale (1 when absent): the crown's arena a little shorter, so the dais reads (E399: mockup D's meadow is lush to the dais) */
+  grass: { crown: 0.85 } as Readonly<Record<string, number>>,
+  /** the share of blades an island keeps (1 when absent): the crown a little thinner (round 2's carpet of chips was the old wide blades) */
+  keep: { crown: 0.85 } as Readonly<Record<string, number>>,
 } as const;
 
 /** Where grass never grows: discs (x, z, radius) round the structures and pieces you stand at. */
@@ -146,7 +146,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; worn = min(worn, smoothstep(0.15, 0.7, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
         float pt = mfbm(p * 0.23);
         // varied heights (E392: the mockups' meadow is tall drifts and short lawn, a few stalks over it, never one even wall)
-        float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.2, 0.8, pt) * 0.55 + r * 0.45) * mix(0.55, 1.2, mn(p * 0.37 + 11.0));
+        float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.2, 0.8, pt) * 0.55 + r * 0.45) * mix(0.4, 1.25, mn(p * 0.37 + 11.0));
         h *= 1.0 + 0.55 * step(0.9, fract(r * 23.3));
         h *= tall * (1.0 - 0.55 * smoothstep(0.82, 1.0, rim)) * clear * mix(0.4, 1.0, worn);
         h *= 1.0 - smoothstep(layer > 0.5 ? NEAR - 2.5 : RANGE * 0.55, layer > 0.5 ? NEAR : RANGE, dist + (layer > 0.5 ? 1.5 * mn(p * 0.9) : 0.0));
@@ -209,8 +209,9 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           lit = c * (0.95 + 0.2 * back);
         } else {
           // dark roots (the shade under the sward), a yellow-green body by patch, gold-cream lit tips
-          vec3 rootC = ${glslColor(0x25310f)}, lowC = ${glslColor(0x48631e)}, greenC = ${glslColor(0x789a2e)}, goldC = ${glslColor(0xa8a83a)}, tipC = ${glslColor(0xd2cf6c)};
-          vec3 body = mix(greenC, goldC, smoothstep(0.45, 0.85, vTone + (vShade - 0.85) * 0.6));
+          vec3 rootC = ${glslColor(0x25310f)}, lowC = ${glslColor(0x48631e)}, greenC = ${glslColor(0x86993a)}, goldC = ${glslColor(0xbea84a)}, tipC = ${glslColor(0xe6cf7a)};
+          // E399 (the council: 'even, bright green'; the mockups' meadow is golden-hour olive and straw)
+          vec3 body = mix(greenC, goldC, smoothstep(0.35, 0.78, vTone + (vShade - 0.85) * 0.6));
           vec3 c = mix(rootC, lowC, smoothstep(0.0, 0.22, vH));
           c = mix(c, body, smoothstep(0.18, 0.62, vH));
           c = mix(c, tipC, smoothstep(0.7, 1.0, vH) * 0.45);
