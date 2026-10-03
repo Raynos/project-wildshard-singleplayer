@@ -10,8 +10,13 @@
    - Signal Dunes: `art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg` (Jake's pick) and
      `art/sunscar-dunes/round-9-review/A-spawn-dusk-light.jpg`, `B-quest-logbook.jpg`, `C-waymark-fire.jpg`,
      `D-hands-whip.jpg`.
-   - Sky Reach: `art/far-reach/round-1-proposals/B-sky-reach.jpg` and `art/far-reach/round-11-review/mockup-A-spawn-look.jpg`,
-     `mockup-B-quest-start.jpg`, `mockup-C-hands-fan.jpg`, `mockup-D-crown-arena.jpg`.
+   - Sky Reach: `art/far-reach/round-1-proposals/B-sky-reach.jpg`, `art/far-reach/round-11-review/mockup-A-spawn-look.jpg`
+     and `mockup-D-crown-arena.jpg`, and `art/far-reach/round-18-council-mockups/mockup-B-quest-start-painterly.jpg` and
+     `mockup-C-hands-fan-painterly.jpg`. The round-11 B and C were in the shard's old flat low-poly purple look, while the
+     other three are the painterly golden hour it is built to (its own style: Jake, 2026-10-01), so no one build could
+     match both. The lead (not the builder, so nobody sets their own exam) restyled B and C to proposal B's style with
+     codex image_gen, keeping their composition, subjects, hand, fan and HUD exactly, with no less detail (2026-10-02,
+     on sky-reach's flag; Jake can overrule).
 4. **The score.** Each seat scores each mockup 0–10 for how much the game, at the matching view, looks like it:
    composition and subject, forms and silhouettes, materials and detail, light and colour, density and depth, the
    hands / weapon / HUD where the mockup shows them. A shard's seat score is the mean of its five mockups. **A shard
