@@ -355,6 +355,9 @@ on his laptop.
   the load (~60–120 s headless); `screenshot`; `close`). Save it in the session scratchpad and pass it
   with `-i`. codex then **edits** that frame, so the world, the camera and the existing HUD stay true
   and only the new thing is invented. Shots in `progress/` have no HUD, so they are poor UI references.
+  `scripts/decide/decide.sh qa <png …>` (≈ 1 s a frame, local model, E394) says whether a capture landed in the 3D
+  world or caught a loading screen, title card, menu or blank frame: run it instead of opening a frame just to check
+  that it loaded. It cannot judge HUD text or render glitches, so read the frames you build on.
 - **One image per headless run, runs in parallel** (one `&` per variant, then `wait`; 4–6 at once is
   fine, each takes a few minutes):
 

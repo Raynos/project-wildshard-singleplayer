@@ -8,6 +8,7 @@ Jev a spread statistic, so thresholds would not port), and the set's flags.
 
     decide.sh run   <set> [--image a.jpg …] [--state TEXT | --state-file F]
     decide.sh batch <set> --images <list.txt | dir | items.jsonl> [--out results.jsonl]
+    decide.sh qa [--set capture-status] <image | dir> …   capture QA: writes <frame>.qa.json, exit 3 if any is flagged
 
 Run it through scripts/decide/decide.sh (the venv + the machine-wide model lock). One process loads the model once
 and answers the whole batch. Every answer is also appended to ~/.cache/wildshard-decide/log.jsonl.
@@ -168,6 +169,36 @@ def list_items(arg: str, state) -> list[tuple[list[str], object]]:
     return [([resolve(line)], state) for line in lines]
 
 
+def run_qa(model: Model, spec: dict, args, outs) -> int:
+    """One sidecar per frame, `<frame>.qa.json`: the answers, the flags, and `flagged`. A summary line per frame goes to
+    stdout (and DECIDE_OUT). 0 = nothing flagged, 3 = something flagged."""
+    paths = []
+    for arg in args.images:
+        path = Path(arg)
+        paths += sorted(f for f in path.rglob("*") if f.suffix.lower() in IMAGE_EXT) if path.is_dir() else [path]
+    any_flagged = False
+    for path in paths:
+        record = answer_one(model, spec, spec.get("state", ""), [str(path)])
+        forced = path.stem in args.force_flag
+        flagged = bool(record["flags"]["any"]) or forced
+        any_flagged = any_flagged or flagged
+        sidecar = {"set": spec["name"], "version": spec["version"], "model": record["model"], "flagged": flagged,
+                   "forced": forced, "flags": record["flags"], "answers": record["answers"],
+                   "at": time.strftime("%Y-%m-%dT%H:%M:%S")}
+        path.with_suffix(".qa.json").write_text(json.dumps(sidecar, ensure_ascii=False, indent=1) + "\n")
+        first = next(iter(record["answers"].values()))
+        verdict = (f"{first['choice']} {first['probabilities'][first['choice']]:.2f}" if "choice" in first
+                   else f"{first.get('noul', first.get('score'))}")
+        line = f"{'FLAG' if flagged else 'ok  '} {path} · {verdict}{' (forced)' if forced else ''}"
+        print(line, flush=True)
+        for out in outs:
+            out.write(line + "\n")
+            out.flush()
+    for out in outs:
+        out.close()
+    return 3 if any_flagged else 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="decide", description=__doc__.split("\n\n")[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -182,6 +213,12 @@ def main() -> None:
                        help="a dir (recursive), a file with one path per line, or a .jsonl of {images, state}")
     batch.add_argument("--state", help="the same state for every item (default: the set's 'state')")
     batch.add_argument("--out", help="also write the JSON lines here")
+    qa = sub.add_parser("qa", help="capture QA: did each frame land in the 3D world? Writes <frame>.qa.json next to "
+                                   "each frame and prints one line per frame; exit 3 when any is flagged")
+    qa.add_argument("images", nargs="+", help="image files or dirs (recursive)")
+    qa.add_argument("--set", default="capture-status")
+    qa.add_argument("--force-flag", action="append", default=[], metavar="STEM",
+                    help="treat the frame with this file stem as flagged (exercises a caller's re-take path)")
     args = parser.parse_args()
 
     spec = load_set(args.set)
@@ -190,6 +227,9 @@ def main() -> None:
 
     # decide.sh sets DECIDE_OUT: run-locked.sh sends stdout to its log, so the answers come back through a file
     outs = [open(path, "w") for path in {os.environ.get("DECIDE_OUT"), getattr(args, "out", None)} if path]
+
+    if args.cmd == "qa":
+        sys.exit(run_qa(model, spec, args, outs))
 
     if args.cmd == "run":
         state = Path(args.state_file).read_text() if args.state_file else (args.state or spec.get("state", ""))

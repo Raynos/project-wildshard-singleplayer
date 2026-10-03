@@ -8,6 +8,8 @@ Reads every progress/<slug>/<YYYYMMDD-HHMM>-<sha8>/ (oldest first) and writes, i
   timelapse-<shot>.mp4  one per shot id (first frame, each hero, the aerials)
   clips.mp4             every capture's orbit clip, one after another, captioned
 All 540 px wide portrait H.264 (Claude iOS plays them inline; ~1 Mb/s, the memory note on SendUserFile sizes).
+A frame the capture's QA still flagged after its re-take (meta.json `qa`, E394: a loading screen, title card, menu or
+blank frame) is left out.
 """
 import glob, json, os, subprocess, sys, tempfile
 from PIL import Image, ImageDraw, ImageFont
@@ -26,6 +28,10 @@ metas = [json.load(open(os.path.join(d, 'meta.json'))) for d in caps]
 FONT = '/System/Library/Fonts/Supplemental/Arial Bold.ttf'
 font, small = ImageFont.truetype(FONT, 26), ImageFont.truetype(FONT, 20)
 W, H = 540, 1168  # 390x844 portrait at 540 wide (even)
+
+def flagged(m, s):
+    """capture QA (E394): shard-progress.mjs could not get this shot to show the 3D world, even after a re-take"""
+    return bool(((m.get('qa') or {}).get('shots') or {}).get(s, {}).get('flagged'))
 
 def caption(m, extra=''):
     w = m['when']
@@ -65,14 +71,14 @@ for i, (d, m) in enumerate(zip(caps, metas)):
     g = Image.new('RGB', (W, H - 70), '#05070c'); cw, ch = W // 2, (H - 70) // 2
     for k, s in enumerate(heroes):
         p = os.path.join(d, f'{s}.jpg')
-        if os.path.exists(p):
+        if os.path.exists(p) and not flagged(m, s):
             im = Image.open(p).convert('RGB'); im.thumbnail((cw, ch)); g.paste(im, ((k % 2) * cw + (cw - im.width) // 2, (k // 2) * ch))
     grid.append(frame(g, m, i, len(caps), f'{SLUG} · the four hero views'))
 encode(grid, os.path.join(BASE, 'timelapse-heroes.mp4'))
 # one per shot
 for s in shot_ids:
     frames = [frame(Image.open(os.path.join(d, f'{s}.jpg')).convert('RGB'), m, i, len(caps), f'{SLUG} · {s}')
-              for i, (d, m) in enumerate(zip(caps, metas)) if os.path.exists(os.path.join(d, f'{s}.jpg'))]
+              for i, (d, m) in enumerate(zip(caps, metas)) if os.path.exists(os.path.join(d, f'{s}.jpg')) and not flagged(m, s)]
     if frames: encode(frames, os.path.join(BASE, f'timelapse-{s}.mp4'))
 # the clips, captioned, one after another
 clips = [(d, m) for d, m in zip(caps, metas) if os.path.exists(os.path.join(d, 'clip.mp4'))]

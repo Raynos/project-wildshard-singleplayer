@@ -9,12 +9,18 @@
 //
 //   scripts/serve-build.sh --name prog          # → http://127.0.0.1:<port>/ (or serve an export of an older SHA)
 //   scripts/browser-lane.sh --max 20 node scripts/shard-progress.mjs --shard=sunscar-dunes --url=http://127.0.0.1:<port> \
-//     --sha=<sha the build is> [--label="loop 3"] [--no-clip]
+//     --sha=<sha the build is> [--label="loop 3"] [--no-clip] [--no-qa] [--qa-wait=120] [--qa-force=<shot id>]
+//
+// Capture QA (E394): after the shots, scripts/decide/decide.sh asks the local Clef-flash model whether each frame shows
+// the 3D world or a loading screen, title card, menu or blank frame (~1 s a frame, under the model lock). A flagged shot is
+// re-taken once with a longer settle and checked again; meta.json's `qa` records each shot's answer and the re-takes.
+// The check is skipped (and says so in meta.json) when the model or its venv is missing or the lock stays busy past
+// --qa-wait seconds. --qa-force=<id> treats one shot as flagged, to exercise the re-take path.
 //
 // Output: progress/<slug>/<YYYYMMDD-HHMM>-<sha8>/<shot>.jpg (780×1688, ≤ ~300 KB), clip.mp4 (540 px wide), meta.json.
 // The stamp is the commit's date (git), so a back-filled old SHA sorts where it belongs.
-import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { saveFixture } from './debug-settings.mjs';
@@ -29,6 +35,9 @@ if (!SLUG || !URL_BASE) { console.error('usage: shard-progress.mjs --shard=<slug
 const SHA = execFileSync('git', ['rev-parse', flag('sha', 'HEAD')], { cwd: ROOT, encoding: 'utf8' }).trim();
 const LABEL = flag('label', '');
 const CLIP = !argv.includes('--no-clip');
+const QA = !argv.includes('--no-qa');
+const QA_WAIT = Number(flag('qa-wait', '120'));
+const QA_FORCE = argv.filter((a) => a.startsWith('--qa-force=')).map((a) => a.slice('--qa-force='.length));
 /** --cameras=<file>: another cameras file (a test of the harness); default the shard's committed one */
 const CAMS = JSON.parse(readFileSync(flag('cameras', join(ROOT, 'art', SLUG, 'progress', 'cameras.json')), 'utf8'));
 const when = execFileSync('git', ['show', '-s', '--format=%cd', '--date=format:%Y%m%d-%H%M', SHA], { cwd: ROOT, encoding: 'utf8' }).trim();
@@ -45,6 +54,31 @@ const D = Math.PI / 180;
 const store = (png, name) => {
   const src = join(TMP, `${name}.png`); writeFileSync(src, png);
   execFileSync('sips', ['-Z', '1688', '-s', 'format', 'jpeg', '-s', 'formatOptions', '80', src, '--out', join(OUT, `${name}.jpg`)], { stdio: 'ignore' });
+};
+
+/**
+ * Capture QA (E394): decide.sh's `qa` over the named frames. Returns per-shot answers, or a reason the check was skipped.
+ * The sidecars it writes (<shot>.qa.json) are folded into meta.json and removed, so the progress folder keeps its shape.
+ * @param {string[]} ids @param {string[]} force
+ * @returns {{ skipped: string | null, shots: Record<string, { screen: string, pWorld: number, flagged: boolean }> }}
+ */
+const checkFrames = (ids, force) => {
+  const decide = join(ROOT, 'scripts', 'decide', 'decide.sh');
+  const args = ['qa', ...force.flatMap((id) => ['--force-flag', id]), ...ids.map((id) => join(OUT, `${id}.jpg`))];
+  const r = spawnSync(decide, args, { encoding: 'utf8', env: { ...process.env, DECIDE_LOCK_WAIT: String(QA_WAIT) } });
+  if (r.status !== 0 && r.status !== 3) {
+    return { skipped: r.status === 75 ? `the model lock stayed busy for ${QA_WAIT} s` : `decide.sh exited ${String(r.status)}: ${r.stderr.trim().slice(0, 200)}`, shots: {} };
+  }
+  /** @type {Record<string, { screen: string, pWorld: number, flagged: boolean }>} */
+  const shots = {};
+  for (const id of ids) {
+    const side = join(OUT, `${id}.qa.json`);
+    if (!existsSync(side)) continue;
+    const q = JSON.parse(readFileSync(side, 'utf8'));
+    shots[id] = { screen: q.answers.screen.choice, pWorld: q.answers.screen.probabilities.world, flagged: q.flagged };
+    rmSync(side);
+  }
+  return { skipped: null, shots };
 };
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -97,7 +131,9 @@ try {
   // each shot's real camera (round 4: a new knoll lifted a view 1.1 m with no cameras.json change, so the round's camera
   // list missed it); the council's camera diff compares these, not only the requested poses
   const camAt = {};
-  for (const s of CAMS.shots) {
+  /** one progress shot: stage, pose (or a free camera), settle, check the floor, store; a re-take passes a longer settle
+   * @param {any} s @param {number} [settle] */
+  const shoot = async (s, settle) => {
     // creatures are calmed so they don't fill the frame; a shot whose subject IS a creature in action (a boss's stalk)
     // sets `"calm": false`, since calm cancels the behaviour (mockup council round 1, seat A)
     await page.evaluate((calm) => { try { window.__wildshard.world.animals.calm = calm; } catch { /* no animals */ } }, s.calm !== false);
@@ -119,13 +155,31 @@ try {
         { x: s.x, z: s.z, yaw: s.yaw * D, pitch: (s.pitch ?? -4) * D, ...(s.y === undefined ? {} : { y: s.y }) });
       await hud(true);
     }
-    await sleep(s.settle ?? 3000);
+    await sleep(settle ?? s.settle ?? 3000);
     if (!s.god) { // a pose with no floor under it falls and respawns: flag it rather than store a wrong frame silently
       const at = await page.evaluate(() => { const q = window.__wildshard.world.player.position; return [q.x, q.z]; });
       if (Math.hypot(at[0] - s.x, at[1] - s.z) > 4) errors.push(`shot ${s.id}: the player is at (${at.map((v) => v.toFixed(1)).join(', ')}), not (${s.x}, ${s.z}): no floor there?`);
     }
     camAt[s.id] = await page.evaluate(() => { const c = window.__wildshard.world.game.camera, d = c.getWorldDirection(c.position.clone()); return { pos: [c.position.x, c.position.y, c.position.z].map((v) => Math.round(v * 100) / 100), dir: [d.x, d.y, d.z].map((v) => Math.round(v * 1000) / 1000), fov: Math.round(c.fov * 10) / 10 }; }).catch(() => null);
-    store(await page.screenshot({ type: 'png' }), s.id); shots.push(s.id);
+    store(await page.screenshot({ type: 'png' }), s.id);
+  };
+  for (const s of CAMS.shots) { await shoot(s); shots.push(s.id); }
+  // capture QA (E394): a frame that is not the 3D world is re-taken once, with a longer settle
+  /** @type {{ set: string, skipped: string | null, retaken: string[], shots: Record<string, any> }} */
+  const qa = { set: 'capture-status', skipped: QA ? null : '--no-qa', retaken: [], shots: {} };
+  if (QA) {
+    const first = checkFrames(shots, QA_FORCE);
+    qa.skipped = first.skipped; qa.shots = first.shots;
+    // first-frame is the spawn view before any pose, so it is recorded but not re-taken
+    const again = CAMS.shots.filter((/** @type {any} */ x) => first.shots[x.id]?.flagged);
+    for (const s of again) { await shoot(s, (s.settle ?? 3000) * 2 + 3000); qa.retaken.push(s.id); }
+    if (again.length > 0) {
+      const second = checkFrames(qa.retaken, []);
+      for (const id of qa.retaken) qa.shots[id] = { ...second.shots[id], firstTake: first.shots[id] };
+      if (second.skipped) qa.skipped = `re-take check: ${second.skipped}`;
+    }
+    const still = Object.entries(qa.shots).filter(([, v]) => v.flagged).map(([k]) => k);
+    if (still.length > 0) errors.push(`capture QA: not the 3D world after a re-take: ${still.join(', ')}`);
   }
   // the clip: a slow orbit, recorded from the canvas at its real resolution
   if (CLIP && CAMS.clip) {
@@ -153,8 +207,8 @@ try {
   }
   // the compiled programs after every view was drawn (E397: a program-key collision shows up as a lower count)
   const programs = await page.evaluate(() => window.__wildshard.world.game.renderer?.info?.programs?.length ?? null).catch(() => null);
-  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, staged, camAt, active: CAMS.shots.filter((x) => x.calm === false).map((x) => x.id), cameras: execFileSync('git', ['hash-object', flag('cameras', join(ROOT, 'art', SLUG, 'progress', 'cameras.json'))], { encoding: 'utf8' }).trim(), pageErrors: errors }, null, 1)}\n`);
-  console.log(`progress: ${OUT.slice(ROOT.length + 1)} · ${shots.length} shots${CLIP && CAMS.clip ? ' + clip' : ''} · load ${loadS} s${errors.length > 0 ? ` · ${errors.length} page errors` : ''}`);
+  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, staged, camAt, qa, active: CAMS.shots.filter((x) => x.calm === false).map((x) => x.id), cameras: execFileSync('git', ['hash-object', flag('cameras', join(ROOT, 'art', SLUG, 'progress', 'cameras.json'))], { encoding: 'utf8' }).trim(), pageErrors: errors }, null, 1)}\n`);
+  console.log(`progress: ${OUT.slice(ROOT.length + 1)} · ${shots.length} shots${CLIP && CAMS.clip ? ' + clip' : ''} · load ${loadS} s · qa ${qa.skipped ? `skipped (${qa.skipped})` : `${Object.values(qa.shots).filter((v) => v.flagged).length} flagged, re-taken: ${qa.retaken.join(', ') || 'none'}`}${errors.length > 0 ? ` · ${errors.length} page errors` : ''}`);
 } finally {
   await browser.close();
   rmSync(TMP, { recursive: true, force: true });
