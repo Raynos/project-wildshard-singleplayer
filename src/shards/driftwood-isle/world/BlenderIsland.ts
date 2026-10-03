@@ -1,6 +1,6 @@
 /**
  * The Blender-built island (DRIFTWOOD-REMASTER X2, E52): on Driftwood it always replaces the procedural spawn cove —
- * terrain, palms, bushes, shore boulders, ground cover inside `area` (blenderArea.ts) — with the one scripts/blender/
+ * terrain, palms, bushes, shore boulders, ground cover inside `area` (./blenderArea.ts) — with the one scripts/blender/
  * builds in Blender and bakes in Cycles (the user's pick, E7; the switch is gone since E136). The procedural cove is still
  * built underneath: it is what the Blender one sits on, and the fallback when it fails to load (main.ts).
  *
@@ -34,7 +34,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { area, inArea, CELL, blenderModelsBase } from '#engine/world/blenderArea';
+import { CELL } from '#engine/data';
+import { area, inArea, BLENDER_MODELS } from './blenderArea';
 import { CHUNK_HALF, TERRAIN_RES } from '#engine/core/config';
 import { TIER } from '#engine/core/tier';
 import type { Sky } from '#engine/world/Sky';
@@ -49,7 +50,7 @@ import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
 import { PATCH_ORDER, patchShader } from '#engine';
 
-const BASE = blenderModelsBase('driftwood-isle'); // Driftwood's build: its palms / toon / sea are this file's own
+const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are this file's own
 /** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */
 const CT = TIER === 'phone' ? 6 : 3, VT = TIER === 'phone' ? 8 : 4;
 /** the phone's share of the small ground cover (the palms, rocks and logs always build) */

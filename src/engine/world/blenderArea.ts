@@ -1,56 +1,26 @@
 /**
- * The part of each shard the Blender-built terrain covers (DRIFTWOOD-REMASTER X2, E52; per shard since
- * PINE-HOLLOW-REMASTER PH-0.3). Shared by the Blender pipeline (`scripts/blender/lib/export-scene.mjs --chunk <slug>`) and
- * the game (src/shards/driftwood-isle/world/BlenderIsland.ts), so both clip at exactly the same lines.
- *
- * - Driftwood Isle (`area`, the one BlenderIsland.ts builds): the spawn cove, the crescent beach, the plank stair and the
- *   hut plateau.
- * Additional levels declare their Blender coverage in `blender.area`, in world metres.
+ * The part of a level the Blender-built terrain covers (E52; per level since PH-0.3). A level declares it in its
+ * manifest's `blender.area`, in world metres; the Blender pipeline (`scripts/blender/lib/export-scene.mjs --chunk <id>`)
+ * and the level's own loader read the same rectangle, so both clip at exactly the same lines.
  *
  * The edges sit on the procedural terrain's own grid lines (TERRAIN_RES² over CHUNK_SIZE), so the procedural mesh loses
  * whole cells and the Blender terrain — sampled from the same heights along those lines — meets it without a seam.
  * The Blender grid is twice as fine (STEP = half a procedural cell).
  */
-import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '../core/config';
+import { CHUNK_SIZE, TERRAIN_RES } from '../core/config';
 
 /** one procedural terrain cell, metres */
 export const CELL = CHUNK_SIZE / (TERRAIN_RES - 1);
 /** the Blender terrain's grid step, metres */
 export const STEP = CELL / 2;
 
-/** a shard's Blender area: world bounds in metres (or, in `CELLS`, procedural cell indices) */
+/** a level's Blender area: world bounds in metres */
 export interface BlenderArea { x0: number; x1: number; z0: number; z1: number }
 
-/** Driftwood Isle: x cells 71…184, z cells 18…117 → x −110.8 … 110.8, z −214.7 … −20.6 */
-const DRIFTWOOD: BlenderArea = { x0: 71, x1: 184, z0: 18, z1: 117 };
-
-/** each shard's area as procedural cell-index bounds */
-const CELLS: Readonly<Partial<Record<string, BlenderArea>>> = {
-  'driftwood-isle': DRIFTWOOD,
-};
-
-const toWorld = (I: BlenderArea): BlenderArea => ({
-  x0: -CHUNK_HALF + I.x0 * CELL, x1: -CHUNK_HALF + I.x1 * CELL,
-  z0: -CHUNK_HALF + I.z0 * CELL, z1: -CHUNK_HALF + I.z1 * CELL,
-});
-
-/** a shard's Blender area in world metres; null when the shard has none */
-export function blenderAreaFor(level: string | { slug: string; blender?: { area: BlenderArea } }): BlenderArea | null {
-  if (typeof level !== 'string' && level.blender !== undefined) return level.blender.area;
-  const slug = typeof level === 'string' ? level : level.slug;
-  const I = CELLS[slug];
-  return I ? toWorld(I) : null;
+/** a level's Blender area in world metres; null when it has none */
+export function blenderAreaFor(level: { blender?: { area: BlenderArea } }): BlenderArea | null {
+  return level.blender?.area ?? null;
 }
 
-/** a shard's build folder name when it is not `<slug>-blender` (Driftwood's predates the per-shard pipeline) */
-const MODEL_DIRS: Readonly<Partial<Record<string, string>>> = { 'driftwood-isle': 'driftwood-blender' };
-
-/** where a shard's Blender island build lands (a public URL, trailing slash; scripts/blender/build.sh <slug>/island, targets.json) */
-export function blenderModelsBase(slug: string): string { return `/assets/models/${MODEL_DIRS[slug] ?? `${slug}-blender`}/`; }
-
-/** Driftwood Isle's area (x −110.8 … 110.8, z −214.7 … −20.6) — the one BlenderIsland.ts builds */
-export const area: BlenderArea = toWorld(DRIFTWOOD);
-
-export function inArea(x: number, z: number, margin = 0): boolean {
-  return x > area.x0 + margin && x < area.x1 - margin && z > area.z0 + margin && z < area.z1 - margin;
-}
+/** where a level's Blender island build lands (a public URL, trailing slash; scripts/blender/build.sh <id>/island, targets.json) */
+export function blenderModelsBase(id: string): string { return `/assets/models/${id}-blender/`; }

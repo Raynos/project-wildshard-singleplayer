@@ -1802,7 +1802,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine/data` (`src/engine/data.ts`)
 
-21 exports, grouped by the module they come from.
+23 exports, grouped by the module they come from.
 
 - `./core/config`: `CHUNK_HALF`
 - `./core/noise`: `smoothstep`, `clamp`, `lerp`
@@ -1815,6 +1815,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./core/tier`: `Tier`
 - `./boot/gpuFiles`: `TexMode`
 - `./level/data`: `TerrainNoise`, `Vec2`
+- `./world/blenderArea`: `CELL`, `BlenderArea`
 - `./world/water/body`: `swellBody`, `basinBody`, `WaterBody`
 - `./world/water/view`: `surfaceReflect`, `WaterView`
 

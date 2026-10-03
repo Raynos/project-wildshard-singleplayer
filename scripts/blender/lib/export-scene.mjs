@@ -18,7 +18,7 @@
 //
 // Heights come from the BAKED grid (public/assets/baked/<slug>/terrain.bin → Heightfield's bilinear lookups), i.e.
 // exactly the surface Player.groundAt() walks, so the Blender terrain never floats or sinks against collision. The area
-// is the shard's entry in src/world/blenderArea.ts.
+// is the shard manifest's `blender.area` (blenderAreaFor in src/engine/world/blenderArea.ts).
 //
 //   node --import ./scripts/bake-loader.mjs scripts/blender/lib/export-scene.mjs [--chunk <slug>] [cacheDir]
 //   (--chunk defaults to driftwood-isle; cacheDir to ~/.cache/wildshard-blender/<slug>)

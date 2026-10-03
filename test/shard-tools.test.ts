@@ -1,7 +1,8 @@
 // PINE-HOLLOW-REMASTER PH-0.3: the house pipelines' per-shard lookups — Driftwood keeps exactly what it had, Pine Hollow
 // gets a Blender area and nothing else yet (no LUT file, no painted horizon, no adventure).
 import { describe, expect, it } from 'vitest';
-import { area, blenderAreaFor, blenderModelsBase, CELL } from '#engine/world/blenderArea';
+import { blenderAreaFor, blenderModelsBase, CELL } from '#engine/world/blenderArea';
+import { area } from '#shards/driftwood-isle/world/blenderArea';
 import { lutUrl } from '#engine/world/lut';
 import { horizonStrips } from '#engine/world/HorizonMatte';
 import { CHUNK_HALF } from '#engine/core/config';
@@ -10,7 +11,7 @@ import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
 
 describe('per-shard pipeline lookups (PH-0.3)', () => {
   it('Blender areas: Driftwood unchanged, Pine Hollow provisional, others none', () => {
-    const dw = blenderAreaFor('driftwood-isle');
+    const dw = blenderAreaFor(DRIFTWOOD_ISLE);
     expect(dw).toEqual(area);
     expect(area.x0).toBeCloseTo(-CHUNK_HALF + 71 * CELL, 9);
     expect(area.z1).toBeCloseTo(-CHUNK_HALF + 117 * CELL, 9);
@@ -24,8 +25,7 @@ describe('per-shard pipeline lookups (PH-0.3)', () => {
       expect(ph.x1).toBeGreaterThan(ph.x0);
       expect(ph.z1).toBeGreaterThan(ph.z0);
     }
-    expect(blenderAreaFor('no-such-shard')).toBeNull();
-    expect(blenderModelsBase('driftwood-isle')).toBe('/assets/models/driftwood-blender/');
+    expect(blenderAreaFor({})).toBeNull();
     expect(blenderModelsBase('pine-hollow')).toBe('/assets/models/pine-hollow-blender/');
   });
 

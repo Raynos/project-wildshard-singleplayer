@@ -1,4 +1,5 @@
 import { DRIFTWOOD_BUDGET_INPUTS } from './budgets';
+import { area as BLENDER_AREA } from './world/blenderArea';
 import { DRIFTWOOD_FAUNA_PLANS } from './creatures/tables';
 import exploreWorld from './explore/world-driftwood-isle.webp';
 import exploreModels from './explore/models-driftwood-isle.webp';
@@ -118,6 +119,8 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   api: 1,
   kitLook: 'toon',
   hands: 'toon',
+  // the Blender-baked cove (./world/blenderArea.ts): the export and BlenderIsland.ts clip at its lines
+  blender: { area: BLENDER_AREA, models: [] },
   // the painted band above the sea (HorizonMatte); the engine keeps no per-shard strips table (E405 AG25)
   horizonStrips: { day: '/assets/horizon/driftwood-isle-day.webp', night: '/assets/horizon/driftwood-isle-night.webp', elMin: -4, elMax: 24 },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true },
