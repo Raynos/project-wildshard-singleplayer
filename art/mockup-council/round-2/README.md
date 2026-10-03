@@ -8,6 +8,7 @@
 - `mock-C-waymark`: (65.1, -25.6), yaw 37, pitch -2; each waymark now stands on a level pad; the next waymark is behind a
   dune, so the tower is in view instead; staged `waymarks-lit`.
 - `mock-D-hands`: (118, 88), yaw 42, on the east crest; staged `waymarks-lit`.
+- `mock-dusk-fire`: yaw -16 → -10 (named in cb48ab8f's message; the README missed it, seat B).
 - `mock-B` and `mock-D` settle 11 s so the staged toasts fade (mockup C shows its toasts).
 - The cameras file at capture: blob `b213ad79` (meta.json `cameras`).
 
