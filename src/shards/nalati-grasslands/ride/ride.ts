@@ -1,4 +1,4 @@
-import { type LevelContext, type Player, type Forest, type AnimalManager, type AnimalSoundId as AnimalSound, type Animal, heightAt, type Interactable } from '#engine';
+import { type LevelContext, type Player, type Forest, type AnimalManager, type AnimalSoundId as AnimalSound, type Animal, heightAt, type Interactable, practiceRoom } from '#engine';
 import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
 import { Mount } from './Mount';
@@ -97,6 +97,8 @@ export function wireRide(ctx: RideCtx): Ride {
     if (h === null) return;
     if (name === 'rider-bitten') mount.panic(x, z, 0.9);
     else if (name === 'scare' || name === 'lightning') {   // a strike (Wildlife.scare) · the Storm Titan's bolts (stormTitan.ts)
+      // the steppe's storm strikes the grass 3 km under a practice room (the horse track rides over the same x / z): not near (E353)
+      if (practiceRoom.open) return;
       const d = Math.hypot(h.position.x - x, h.position.z - z);
       if (d < BOLT_PANIC && mount.panic(x, z, d < 12 ? 2.2 : 1.5)) play?.toast(`${h.label} panics at the lightning — hold on`);
     }
