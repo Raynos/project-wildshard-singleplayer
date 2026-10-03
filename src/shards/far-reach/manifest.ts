@@ -4,7 +4,7 @@ import { BUDGETS } from './budgets';
 import { CROWN, DECK, HIGH, KEEPER, ROOST, SPAWN, STEP, WINDMILL } from './layout';
 import { SKY_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';
-import { bootFiles, bootSources } from './boot/files';
+import { bootFiles, bootSources, lateReads } from './boot/files';
 import { SKY_REACH_MINIMAP } from './look/minimap';
 
 export const SKY_REACH: ShardManifest = {
@@ -37,7 +37,7 @@ export const SKY_REACH: ShardManifest = {
   tiers: { phone: { 'far.meadowBlades': 1600, godRays: true, ao: false }, desktop: { 'far.meadowBlades': 3200, godRays: true, ao: false } },
   loot: { coins: true },
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./audio/cues')).CUES },
-  boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
+  boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: { eye: [SPAWN.x, DECK + 1.7, SPAWN.z], feet: [SPAWN.x, DECK, SPAWN.z], yaw: 0, pitch: 0, mockup: 'art/far-reach/round-1-proposals/B-sky-reach.jpg', frame: 'Spawn: Sunrest, the windmill isle across the gap' },
     hover: { eye: [12, DECK + 1.7, -2.5], feet: [12, DECK, -2.5], yaw: 80, pitch: -6, mockup: '', frame: 'The hover bridge to the Roost' },
