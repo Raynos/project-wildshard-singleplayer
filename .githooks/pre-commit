@@ -39,6 +39,8 @@ Save them as JPEG / WebP instead:
 EOF
   exit 1
 fi
+# E362 AG7: the layer edges the staged src files add against HEAD (counts may only fall; no new shard reach).
+node scripts/check-graph.mjs --paths $(git diff --cached --name-only --diff-filter=ACMR -- src) || exit 1
 # E362 AG20: the commit's temporary/private index, so unrelated agents' WIP never participates.
 node scripts/precommit-guards.mjs || exit 1
 exit 0

@@ -13,6 +13,7 @@ import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
 import { checkShardLayout, checkShards, shardEntries, type ShardLayout } from '../scripts/check-shards.mjs';
 import { genShardWords, shardWordData } from '../scripts/gen-shard-words.mjs';
 import { CAPTURE_SHELL_FILES, TIME_ALLOW } from '../lint/wildshard-plugin.js';
+import { compareEdges, graph, layerOf, reachViolation } from '../scripts/check-graph.mjs';
 
 interface Case { id: string; file: string; rule: string; code: string; count: number }
 interface Diagnostic { code: string; filename: string; message: string }
@@ -157,5 +158,34 @@ describe('AG20 staged content isolation', () => {
     const inventory = readFileSync(join(f.root, 'lint/shard-words.generated.json'), 'utf8');
     put(f.root, 'lint/shard-words.generated.json', inventory.replaceAll('Emberfall Desert', 'Stale Desert')); f.git('add', '--', 'lint/shard-words.generated.json');
     const stale = f.run(); expect(stale.status).toBe(1); expect(stale.stderr).toContain('stale');
+  });
+});
+
+describe('AG7 layer graph', () => {
+  it('names layers and refuses a shard reached from outside except the generated table and its own manifest import()', () => {
+    expect([layerOf('src/engine/a.ts'), layerOf('src/shards/x/a/b.ts'), layerOf('src/main.ts'), layerOf('test/a.ts')]).toEqual(['engine', 'shards/x', 'root', null]);
+    expect(reachViolation('src/game/shard/shards.generated.ts', 'src/shards/x/manifest.ts', false)).toBeNull();
+    expect(reachViolation('src/shards/x/manifest.ts', 'src/shards/x/plugin.ts', true)).toBeNull();
+    expect(reachViolation('src/shards/x/manifest.ts', 'src/shards/x/plugin.ts', false)).toMatch(/statically/u);
+    expect(reachViolation('src/game/a.ts', 'src/shards/x/plugin.ts', true)).toMatch(/reaches into/u);
+    expect(reachViolation('src/shards/y/a.ts', 'src/shards/x/a.ts', false)).toMatch(/reaches into/u);
+  });
+  it('counts cross-layer edges once per file and target, and fails a new pair, a rise and a two-way pair', () => {
+    const files: Record<string, string> = {
+      'src/kit/a.ts': "import { x } from '#engine'; import type { Y } from '#engine'; import './b';",
+      'src/kit/b.ts': '',
+      'src/engine/index.ts': "export const x = 1; export type Y = 1;",
+    };
+    const g = graph(Object.keys(files), (p) => files[p] ?? '', (p) => p in files);
+    expect(g).toEqual({ edges: { 'kit → engine': 1 }, violations: [] });
+    expect(compareEdges({ 'kit → engine': 1 }, { 'kit → engine': 2 }).failures).toEqual(['kit → engine rose 1 → 2']);
+    expect(compareEdges({}, { 'game → kit': 1 }).failures[0]).toMatch(/new layer pair/u);
+    expect(compareEdges({ 'kit → engine': 1, 'engine → kit': 1 }, { 'kit → engine': 1, 'engine → kit': 1 }).failures[0]).toMatch(/cycle/u);
+    expect(compareEdges({ 'kit → engine': 3 }, { 'kit → engine': 2 }).fell).toEqual(['kit → engine fell 3 → 2']);
+  });
+  it('holds the real tree against lint/layer-edges.json', () => {
+    const r = spawnSync(execPath, ['scripts/check-graph.mjs'], { encoding: 'utf8' });
+    expect(r.stderr).not.toMatch(/failed/u);
+    expect(r.status).toBe(0);
   });
 });

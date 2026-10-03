@@ -1590,6 +1590,7 @@ Debug-row count has its own cap (`debugRows`).
 | Check | When | What it checks |
 |---|---|---|
 | `scripts/precommit-guards.mjs` (`.githooks/pre-commit`) | every `git commit` | the commit's own files: oxlint, the custom rules against the ratchet, the shard layout when `src/shards/**` is touched, `gen-shards --check` when a manifest is touched |
+| `scripts/check-graph.mjs` (AG7) | pre-commit (`--paths`: the edges the staged files add), `pnpm test` (CI, push gate) | cross-layer import counts per pair in `lint/layer-edges.json` (`shards/pine-hollow → engine 349`): a new pair, a rising count or a two-way pair fails, `--update` lowers; only `src/game/shard/shards.generated.ts` imports a shard (its manifest), and a plugin loads only by `import()` from its own manifest |
 | `scripts/check-shards.mjs` (AG9) | pre-commit, `pnpm test` via `check-paths` | the folder layout in `lint/shard-layout.json`: required files, canonical folders, slug = folder name, `manifest.slug` = folder |
 | `scripts/gen-shards.mjs --check` | gate | the generated registry and the shard word list are current |
 | `scripts/check-lock.mjs` (`.githooks/commit-msg`) | every commit | the E357 lock: only reopened shards' allowlists, unless `E357-Lead: yes` |
