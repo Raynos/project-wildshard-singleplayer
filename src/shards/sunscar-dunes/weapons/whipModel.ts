@@ -142,7 +142,10 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
 // round 23 (seat B after round 21: one turn ~0.25 wide, its top near y 0.66; A, B and C hold TWO coils ~0.5 wide, tops near
 // 0.60): the fist on the coil's right side, two turns stepped apart, a thicker cord; A / B / C: ~0.5 wide, tops 0.57-0.60
 // (D's and dusk-fire's mockups hang smaller coils: one hold serves every view, three of five hold the big pair)
-export const LOOP = { cord: 0.075, from: [-0.613, 0.922, -0.537], start: -0.1, rx: 0.9, ry: 0.92, face: 0.4, turns: 2, step: [0.3, -0.04, 0.1], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
+// round 24 (seats B and C after round 23: the coils sat ~0.22 too far left, x 0.11-0.60 against the mockups' 0.33-0.86,
+// covering C's plinth, and D's and dusk-fire's mockups hang smaller loops): the handle's top at the coil's upper left
+// (start 2.0), so the two turns hang to the right of it and behind the fist, smaller (rx 0.8, ry 0.85): x ~0.45-0.85, top ~0.6
+export const LOOP = { cord: 0.075, from: [-0.613, 0.922, -0.537], start: 2.0, rx: 0.8, ry: 0.85, face: 0.4, turns: 2, step: [0.18, -0.03, 0.08], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
 
 /**
  * The coil (LOOP) as one plaited tube. Round 15 (the lead after round 14: an open hook with a kink, the strands crossing

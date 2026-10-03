@@ -422,7 +422,9 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.45, -0.05, toGlow)) * smoothstep(0.08, 0.3, length(normalize(vSandN).xz)); // round 15 (the lead: hard-edged dark ovals on the dune faces in the clip): windows widened; round 17 (seat C: round 15's reached faces toward the glow and nearly flat ground): back near round 14's, still soft
     // round 23 (TOP10-3 row 2: D's land a smooth 39-46 where its mockup alternates troughs 13-20 with lit rims 54-60): the
     // faces turned from the afterglow fall to a quarter, from gentler slopes (the flat crests and rims keep their light)
-    reflectedLight.indirectDiffuse *= 1.0 - 0.75 * away; reflectedLight.directDiffuse *= 1.0 - 0.75 * away;
+    // round 24 (seats B and C after round 23: x0.25 put 21 % of D's land under luma 8, near-black blots in the late clip,
+    // p5 3.4 against round 22's 16.4): darker troughs, not black, x0.45
+    reflectedLight.indirectDiffuse *= 1.0 - 0.55 * away; reflectedLight.directDiffuse *= 1.0 - 0.55 * away;
     // (round 15's late far-land darkening by distance from the camera is gone: the lead's hard rule after round 15, darkening
     // comes from facing, height, occlusion or the engine fog only)
   }
