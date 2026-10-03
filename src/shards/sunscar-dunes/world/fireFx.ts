@@ -13,7 +13,7 @@ import { WIND } from './dunes';
  * - the pool: a warm additive disc draped on the sand round the brazier.
  */
 export interface FireSize { flame: number; glow: number; smoke: number; embers: number; /** a thin pale wisp (a cookfire), not the dark plume */ wisp?: boolean }
-export const WAYMARK_FIRE: FireSize = { flame: 2.6, glow: 1.7, smoke: 15, embers: 180 }; // mockup C: a roaring log fire, about one and a half bowls tall
+export const WAYMARK_FIRE: FireSize = { flame: 2.6, glow: 1.7, smoke: 11, embers: 180 }; // mockup C: a roaring log fire, about one and a half bowls tall
 /** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
 export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 15, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon
 export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
@@ -91,7 +91,7 @@ void main() {
   float puff = smoothstep(0.35, 0.75, n + 0.25 * (1.0 - y));
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
-  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.2, 0.1, 0.055), vec3(0.07, 0.06, 0.07), smoothstep(0.02, 0.4, y))'}; // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
+  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.17, 0.075, 0.035), vec3(0.022, 0.018, 0.022), smoothstep(0.02, 0.35, y))'}; // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
   gl_FragColor = vec4(c, a * ${wisp ? '0.45' : '0.85'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });

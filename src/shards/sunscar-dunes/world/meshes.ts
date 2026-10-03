@@ -1,5 +1,6 @@
 import { loadRigFile, patchShader, PATCH_ORDER } from '#engine';
 import { FIRE_LIGHTS } from './fireFx';
+import { DUSK } from '../look/dusk';
 import { DUNE_HD, DUNE_MESHES, duneHdUrl, duneMeshUrl, type DuneHdName, type DuneMeshName } from '../boot/files';
 import { Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, type BufferAttribute, type Object3D } from 'three';
 
@@ -65,13 +66,15 @@ function warmByFire(m: MeshStandardMaterial): void {
  */
 function wornLeather(m: MeshStandardMaterial): void {
   patchShader(m, 'sunscar.leather', PATCH_ORDER.decorate, (shader) => {
-    shader.fragmentShader = shader.fragmentShader
+    shader.uniforms['uDusk'] = DUSK;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uDusk;')
       .replace('#include <map_fragment>', `#include <map_fragment>
   float leatherL = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
   // the texture's light and dark (braid, creases) kept, mapped onto a warm tan leather ramp (mockups A-C; the map is near-black red)
-  diffuseColor.rgb = mix(vec3(0.035, 0.02, 0.012), vec3(0.58, 0.35, 0.18), smoothstep(0.03, 0.17, leatherL));`)
-      // a warm self-fill, so the held glove never drops to a black cut-out against the dusk (mockup D: the fist still reads)
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += diffuseColor.rgb * vec3(0.24, 0.17, 0.12);');
+  diffuseColor.rgb = mix(vec3(0.1, 0.06, 0.035), vec3(0.6, 0.36, 0.19), smoothstep(0.02, 0.15, leatherL));`)
+      // a light from the viewer side, so the held glove reads as lit leather, never a cut-out against the dusk (mockup D: the lit
+      // fist; the key is behind it now): faces lit, edges falling off, more as the dusk deepens
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += diffuseColor.rgb * vec3(0.62, 0.46, 0.34) * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk); ');
   });
 }
 /** A textured hero model: its scene as loaded (its own map on its own UVs), normals smoothed, matte. */
