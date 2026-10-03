@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # session-brief.sh — cold-pickup orientation, printed into context at SessionStart (.claude/settings.json).
-# Pure read, fast, never fails the session: open asks → live plans → recent commits. Relay open asks to the user first.
+# Pure read, fast, never fails the session: unanswered asks + live plans (scripts/asks.mjs) → reviews → recent commits.
 # Run by hand: bash .claude/hooks/session-brief.sh
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -12,27 +12,9 @@ if [ -f project/archive/2026-10-01-game-normalization.md ] && sed -n 3p project/
   reopened="$(node -e 'try{const l=require("./.github/lock.json");console.log(Object.keys(l.reopened||{}).join(", ")||"none")}catch{console.log("?")}' 2>/dev/null || echo '?')"
   echo "  reopened shard folders (.github/lock.json): $reopened"
 fi
-echo "-- open asks (docs/tasks/asks/<ID>.md: every file whose Status is not done/dropped) --"
-open=""
-for f in docs/tasks/asks/*.md; do
-  [ -f "$f" ] || continue
-  st="$(grep -m1 -E '^\*\*Status:\*\*' "$f" | sed -E 's/^\*\*Status:\*\* *//' || true)"
-  printf '%s' "$st" | grep -qiE '^(done|dropped|closed)' && continue
-  ask="$(grep -m1 -E '^\*\*Ask:\*\*' "$f" | sed -E 's/^\*\*Ask:\*\* *//' | cut -c1-160 || true)"
-  open="$open$(basename "$f" .md) | ${st:-(no Status line)} | $ask"$'\n'
-done
-# the legacy table (docs/tasks/ASKS.md) is history; a row still open there was never moved to its own file
-legacy=""
-if [ -f docs/tasks/ASKS.md ]; then
-  while IFS= read -r row; do
-    id="$(printf '%s' "$row" | cut -d'|' -f2 | tr -d ' ')"
-    [ -f "docs/tasks/asks/$id.md" ] && continue # moved: the file is the live copy
-    legacy="$legacy$(printf '%s' "$row" | cut -d'|' -f2-4)"$'\n'
-  done < <(grep -E '^\| [A-Z0-9-]+ \|' docs/tasks/ASKS.md | grep -vE '^\| # ' | grep -vE '\| \*\*(done|dropped|closed)' || true)
-fi
-[ -n "$open" ] && printf '%s' "$open"
-[ -n "$legacy" ] && printf 'legacy ASKS.md rows still open (move each to docs/tasks/asks/<ID>.md):\n%s' "$legacy"
-[ -z "$open$legacy" ] && echo "(none open)"
+# asks still unanswered (with expired claims and picks) and the live plans' State lines: scripts/asks.mjs (E423)
+node scripts/asks.mjs brief 2>/dev/null || echo "(scripts/asks.mjs brief failed)"
+echo ""
 # client error reports (E133, api/errors.ts): how many reached the server since the last `pnpm inbox:pull` (.review/errors-seen),
 # plus any pulled but not yet handled. One small request, capped at 3 s; silent without a REVIEW_PASSWORD or a network.
 pw="${REVIEW_PASSWORD:-$(grep -m1 -E '^REVIEW_PASSWORD=' .env.local 2>/dev/null | sed -E 's/^REVIEW_PASSWORD="?([^"]*)"?$/\1/')}"
@@ -44,16 +26,6 @@ if [ -n "$pw" ] && command -v curl >/dev/null 2>&1; then
 fi
 pulled="$(grep -l '"category": "error"' .review/inbox/*.json 2>/dev/null | wc -l | tr -d ' ')"
 [ "${pulled:-0}" != 0 ] && echo "!! $pulled client error report(s) pulled into .review/inbox/, not yet handled"
-echo ""
-echo "-- live plans (docs/plans/*.md State line; finished ones belong in project/archive/) --"
-found=0
-for f in docs/plans/*.md; do
-  [ -f "$f" ] || continue
-  found=1
-  st="$(grep -m1 -E '^\*\*State:\*\*' "$f" | sed -E 's/^\*\*State:\*\* *//' || true)"
-  printf '%s | %s\n' "$(basename "$f" .md)" "${st:-(no State line — add one, see AGENTS.md → Plans)}"
-done
-[ "$found" = 1 ] || echo "(none)"
 echo ""
 # pages for Jake to read (E408, docs/reviews/README.md): unread / reading; a read one is archived, so every file here is open
 echo "-- reviews for Jake (docs/reviews/*.md: unread / reading; read ones move to project/archive/reviews/) --"
@@ -77,4 +49,4 @@ if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then
   echo "!! git hooks are OFF in this checkout: run  git config core.hooksPath .githooks  (AGENTS.md → Version control)"
 fi
 echo ""
-echo "Next: relay the open asks if non-empty; every new ask gets its own file before you start it: scripts/ask-new.sh \"<the user's words>\""
+echo "Next: relay the unanswered asks and any !! flags. A request for work gets its own file first: scripts/ask-new.sh \"<the user's words>\" (docs/process/ASKS.md)"
