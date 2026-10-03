@@ -11,7 +11,8 @@ export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldow
 /** E399 (the council mockups A, C and proposal B): lower, smaller (the seats: 'twice the mockup's size') and turned open, face-on to you, its tassel hanging free. */
 export const HOLD = { x: 0.125, y: -0.178, z: -0.6, pitch: 0.22, yaw: -0.18, roll: -0.5, scale: 0.52 } as const;
 /** The painted silk's tint (E399 seats: 'plain and bright'): mockup C's silk is a muted, deeper teal. */
-export const SILK_TINT = 0xb4c4c0;
+// E399 seats: the mockups' silk is a lighter sea-green with pale cloud swirls
+export const SILK_TINT = 0xdfece6;
 export const GUST = { reach: 9, halfAngle: 0.6, push: 15, lift: 4, damage: 4, cooldown: 1.6 } as const;
 
 /** A viewmodel offset from HOLD (metres, radians). */

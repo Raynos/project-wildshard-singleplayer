@@ -80,7 +80,7 @@ function whiten(g: BufferGeometry): void {
 export const KEEPER_HD = { arm: { a: -0.45, b: 0.155, y0: 0.7, y1: 1.52 }, shoulder: [-0.24, 1.45, 0] as const, lantern: [0.3, 1.4, 0.59] as const } as const;
 interface Made { group: Group; shoulder: Group; glow: Mesh<SphereGeometry, MeshBasicMaterial> }
 /** The lantern's warm halo: a ball, not a Sprite (the shard's global light patch reaches every material and a sprite's vertex shader lacks `transformed`). */
-const halo = (): Mesh<SphereGeometry, MeshBasicMaterial> => new Mesh(new SphereGeometry(0.24, 12, 8), new MeshBasicMaterial({ color: 0xffb860, transparent: true, opacity: 0.3, blending: AdditiveBlending, depthWrite: false }));
+const halo = (): Mesh<SphereGeometry, MeshBasicMaterial> => new Mesh(new SphereGeometry(0.13, 12, 8), new MeshBasicMaterial({ color: 0xffb860, transparent: true, opacity: 0.2, blending: AdditiveBlending, depthWrite: false }));
 /** The textured keeper (Hunyuan3D-2's painted wizard): body + the waving right arm on its shoulder pivot, and the lantern glow. */
 function textured(): Made | null {
   const made = skyHd('keeper-hd'); if (made === null) return null;
@@ -128,7 +128,8 @@ export function keeper(y: number): Keeper {
     shoulder.rotation.z += (-lift - shoulder.rotation.z) * 0.15;
     // a slow breath of a turn, and the lantern's flicker
     group.rotation.y = KEEPER_AT.yaw + Math.sin(t * 0.6) * 0.03;
-    glow.material.opacity = 0.3 + Math.sin(t * 9) * 0.04 + Math.sin(t * 23) * 0.03;
+    // a small warm flicker round the glass (E399 seat: a big orange disc over him)
+    glow.material.opacity = 0.2 + Math.sin(t * 9) * 0.03 + Math.sin(t * 23) * 0.02;
   } };
 }
 

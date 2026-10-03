@@ -114,6 +114,8 @@ export function clearOfWalks(x: number, z: number, r: number): boolean {
  * Each is checked against `clearOfWalks`; one that fails is dropped.
  */
 export const HERO_STONES: readonly (readonly [number, number, number, number, number])[] = [
+  // the spawn bridge head (E399, mockup A: mossy boulders at the posts' feet, either side of the lane)
+  [-3.4, -11.6, DECK, 0.9, 0.42], [3.3, -11.9, DECK, 1.0, 0.45], [2.4, -9.6, DECK, 0.55, 0.25], [-2.8, -9.2, DECK, 0.5, 0.22],
   // the spawn meadow, looking west (H1 left): a big rock left of centre, a low outcrop at your feet
   [-4.2, -7.9, DECK, 1.1, 0.5], [-2.6, -8.5, DECK, 0.75, 0.3], [-3.3, -10.1, DECK, 0.5, 0.22],
   // looking east (H1 right): an outcrop on the left edge, a rock in the bottom middle

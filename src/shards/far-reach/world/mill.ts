@@ -294,7 +294,7 @@ export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; 
   const { frame, cloth } = sail();
   // the worn canvas: the painted cloth once it lands (a coarse weave and water stains in the shader until then), frayed
   // edges and a torn-away corner on two sails cut in the shader, a faint warm glow where the low sun comes through
-  const clothMat = new MeshStandardMaterial({ color: 0xece0c6, roughness: 0.95, metalness: 0, side: DoubleSide, emissive: 0x5a4c38, alphaTest: 0.5 });
+  const clothMat = new MeshStandardMaterial({ color: 0xece0c6, roughness: 0.95, metalness: 0, side: DoubleSide, emissive: 0x302820, alphaTest: 0.5 });
   painted(MILL_TEX.canvas, (t) => { clothMat.map = t; clothMat.emissiveMap = t; clothMat.color.set(0xffffff); clothMat.needsUpdate = true; });
   patchShader(clothMat, 'far.mill-canvas', PATCH_ORDER.decorate, (shader) => {
     shader.vertexShader = `attribute vec3 farCloth;\nvarying vec3 vFarCloth;\n${shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vFarCloth = farCloth;')}`;
@@ -313,7 +313,8 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     diffuseColor.a *= 1.0 - torn;
 #ifdef USE_MAP
     // the painted canvas is a warm beige swatch: toward the targets' sun-bleached cream
-    diffuseColor.rgb = min(vec3(1.0), mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), 0.35) * vec3(1.42, 1.38, 1.3));
+    diffuseColor.rgb = min(vec3(1.0), mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), 0.25) * vec3(1.12, 1.06, 0.96));
+    // (E399 seats: the sails 'read like pale glass panes'; the mockups' canvas is a weathered tan between dark frames)
 #else
     float weave = 0.92 + 0.08 * sin(q.x * 300.0) * sin(q.y * 700.0);
     diffuseColor.rgb *= weave * mix(1.0, 0.8, smoothstep(0.62, 0.8, n)) * mix(0.8, 1.0, smoothstep(0.0, 0.3, q.y));
