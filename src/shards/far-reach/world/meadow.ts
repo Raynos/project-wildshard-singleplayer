@@ -76,7 +76,11 @@ function glslColor(hex: number): string { const c = new Color(hex); return `vec3
 export interface Meadow { readonly mesh: Mesh<InstancedBufferGeometry, ShaderMaterial>; update: (camera: Vector3, t: number) => void }
 
 /** Build the meadow with `blades` blades per tile (a tier knob), seeded so every load grows the same field. */
-export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] = ISLES): Meadow {
+/**
+ * `rocks`: discs (x, z, radius) where the grass only grows short, round the foreground boulders (E399: the 0.5 m rocks
+ * hid in 0.6 m grass; the mockups' rocks stand out of a lower sward round them).
+ */
+export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] = ISLES, rocks: readonly (readonly [number, number, number])[] = []): Meadow {
   // one blade = 7 vertices (three pairs up the blade and the tip), 5 triangles: it tapers and bends (council R1C-15 / R1A-7);
   // a flower reuses the same 7: a thin stem (the root pair to the head's bottom pair), then a kite head whose round middle is the flower (its corners are drawn as green sepals)
   const verts = blades * 7, root = new Float32Array(verts * 3), shape = new Float32Array(verts * 2), index = new Uint32Array(blades * 15);
@@ -105,7 +109,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
   g.setAttribute('aTile', new InstancedBufferAttribute(tiles, 3)); g.instanceCount = count;
 
   const isleU = isles.map((isle) => new Vector4(isle.x, isle.z, apothem(isle) * 0.97, isle.y));
-  const holes = meadowHoles(), paths = meadowPaths(isles);
+  const holes = [...meadowHoles(), ...rocks.map(([x, z, r]) => new Vector4(x, z, r, 1))], paths = meadowPaths(isles);
   const uniforms = {
     uOrigin: { value: new Vector2() }, uCam: { value: new Vector3() }, uTime: { value: 0 }, uSun: { value: sunDir },
     uIsles: { value: isleU }, uIsleGrass: { value: isles.map((isle) => MEADOW.grass[isle.id] ?? 1) }, uIsleKeep: { value: isles.map((isle) => MEADOW.keep[isle.id] ?? 1) }, uHoles: { value: holes }, uPaths: { value: paths },
@@ -141,7 +145,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           // an island's trodden arena (the crown) is trodden only in its middle: the outer ring stays a full meadow
           if (d < edge) { y = s.w; rim = d / edge; float wild = smoothstep(0.55, 0.8, rim); tall = mix(uIsleGrass[i], 1.0, wild); keep = mix(uIsleKeep[i], 1.0, wild); } }
         float clear = 1.0, worn = 1.0;
-        for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; clear = min(clear, smoothstep(h.z, h.z + 0.6, distance(p, h.xy))); }
+        for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; float o = smoothstep(h.z, h.z + 0.6, distance(p, h.xy)); clear = min(clear, h.w > 0.5 ? mix(0.3, 1.0, o) : o); }
         // a worn path keeps a short, thin sward (E392 foreground: a cleared path showed the bare ground as a grey band)
         for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; worn = min(worn, smoothstep(0.15, 0.7, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
         float pt = mfbm(p * 0.23);

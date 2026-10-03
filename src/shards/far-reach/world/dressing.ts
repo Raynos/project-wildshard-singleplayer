@@ -115,7 +115,8 @@ export function clearOfWalks(x: number, z: number, r: number): boolean {
  */
 export const HERO_STONES: readonly (readonly [number, number, number, number, number])[] = [
   // the spawn bridge head (E399, mockup A: mossy boulders at the posts' feet, either side of the lane)
-  [-3.4, -11.6, DECK, 0.9, 0.42], [3.3, -11.9, DECK, 1.0, 0.45], [2.4, -9.6, DECK, 0.55, 0.25], [-2.8, -9.2, DECK, 0.5, 0.22],
+  // (just outside the keeper's clearing and the bridge lane's 1 m margin, which dropped the first spots)
+  [-4.2, -11.0, DECK, 1.15, 0.5], [4.5, -12.2, DECK, 1.2, 0.5], [2.6, -9.4, DECK, 0.7, 0.32], [-3.1, -8.9, DECK, 0.6, 0.26],
   // the spawn meadow, looking west (H1 left): a big rock left of centre, a low outcrop at your feet
   [-4.2, -7.9, DECK, 1.1, 0.5], [-2.6, -8.5, DECK, 0.75, 0.3], [-3.3, -10.1, DECK, 0.5, 0.22],
   // looking east (H1 right): an outcrop on the left edge, a rock in the bottom middle
@@ -129,6 +130,11 @@ export const HERO_STONES: readonly (readonly [number, number, number, number, nu
   // ahead of the entrance, either side of the walk to the dais (E399 mockup D: mossy rocks in the meadow's foreground)
   [-3.6, -181.4, HIGH, 1.0, 0.45], [-4.8, -183.2, HIGH, 0.6, 0.28], [3.9, -182.0, HIGH, 0.8, 0.36],
 ];
+
+/** The hero boulders that are placed (clear of every walk), as discs for the meadow's short grass round them. */
+export function heroStoneDiscs(): [number, number, number][] {
+  return HERO_STONES.filter(([x, z, , sc]) => clearOfWalks(x, z, sc * 1.2)).map(([x, z, , sc]) => [x, z, sc * 0.75]);
+}
 
 /** True when (x, z) lies on a bridge's lane, or within 3 m past either end of it (kept clear so the walkway reads). */
 function onLane(x: number, z: number): boolean {
