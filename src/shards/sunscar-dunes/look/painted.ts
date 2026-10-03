@@ -69,9 +69,9 @@ void main() {
   // its colour averaged over +-4 deg of heading at the true elevation (held at >= 1.2 deg, over the painted ranges), so the
   // bright line just above the horizon keeps its peak (seat C: D 125 against 166 under a 3 deg hold)
   vec3 low = vec3(0.0);
-  float v3 = (max(elev, 1.2) - ${PAINTED.elevBottom.toFixed(1)}) / ${(PAINTED.elevTop - PAINTED.elevBottom).toFixed(1)};
-  for (int k = -4; k <= 4; k++) { vec2 q = vec2(heading + float(k) / 360.0, v3); low += mix(strip(uEarly, q) * 0.64, strip(uLate, q), wL); }
-  c = mix(low / 9.0, c, smoothstep(3.0, 5.0, elev));
+  float v3 = (max(elev, 0.8) - ${PAINTED.elevBottom.toFixed(1)}) / ${(PAINTED.elevTop - PAINTED.elevBottom).toFixed(1)};
+  for (int k = -4; k <= 4; k++) { vec2 q = vec2(heading + float(k) / 720.0, v3); low += mix(strip(uEarly, q) * 0.64, strip(uLate, q), wL); }
+  c = mix(low / 9.0, c, smoothstep(2.0, 4.0, elev)); // round 21: +-2 deg, held at 0.8 deg (seat C: D's peak 129 against 166, h3 a flat violet band)
   // round 19 (seat B: h3 showed a ragged electric-blue seam where the painting ends at 45 deg, its top row's stars
   // stretched upward): from 38 deg the sky eases into the strips' top averaged round the heading, a little darker to the zenith
   vec3 top = vec3(0.0);

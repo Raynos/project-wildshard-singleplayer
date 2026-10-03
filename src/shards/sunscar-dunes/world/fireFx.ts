@@ -131,7 +131,8 @@ void main() {
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */
 const smokeMaterialOf = (wisp: boolean): ShaderMaterial => new ShaderMaterial({
   uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: NormalBlending, fog: false,
-  vertexShader: wisp ? `#define LEAN 0.1\n#define LEAN_WIDEN 6.0\n#define SWAY 2.4\n${BILLBOARD_Y}` : `#define LEAN 0.36\n#define LEAN_WIDEN 2.6\n#define SWAY 0.15\n${BILLBOARD_Y}`,
+  // round 21 (seat C: B's smoke rose right of the wagon, not over it): the cookfire's wisp barely leans on the breeze
+  vertexShader: wisp ? `#define LEAN 0.025\n#define LEAN_WIDEN 6.0\n#define SWAY 2.4\n${BILLBOARD_Y}` : `#define LEAN 0.36\n#define LEAN_WIDEN 2.6\n#define SWAY 0.15\n${BILLBOARD_Y}`,
   fragmentShader: /* glsl */ `
 uniform float uTime;
 varying vec2 vUv;
@@ -266,8 +267,8 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   for (const k of [-1, 1]) { const side = new Mesh(quad, flameMaterial); side.scale.set(size.flame * 0.26, size.flame * (k > 0 ? 0.72 : 0.62), 1); side.position.set(k * size.flame * 0.11, -0.08, k * 0.07); add(side); }
   const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
-  // round 18b (the lead: a broad pale column; mockup C's plume is thin): half as wide
-  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.03 : 0.13), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
+  // round 18b (the lead: a broad pale column; mockup C's plume is thin): narrower; round 21 (seat C: C's plume a straight even ribbon where the mockup billows): wider, 0.2
+  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.03 : 0.2), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
   if (pool) {
     const r = Math.max(size.glow * 2.3, size.flame * 2.4), n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
     const p = g.getAttribute('position');

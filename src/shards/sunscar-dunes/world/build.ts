@@ -39,7 +39,7 @@ const TOWER_LIGHT = 14;
 /** The waymark fire's point light (candela; physical decay over its 10 m reach). */
 const WAY_LIGHT = 14;
 /** The caravan lantern's share of the same light: a lantern, not a fire. */
-const LANTERN_LIGHT = 4;
+const LANTERN_LIGHT = 3;
 
 export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   const terrain = ctx.manifest.ground.terrain, groundAt = (x: number, z: number): number => terrain?.heightAt(x, z) ?? 0;
@@ -147,6 +147,8 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
       for (const b of braziers) { if (!b.lit) continue; const d = b.parts.bowlAt.distanceToSquared(me); if (d < best) { best = d; near = b.parts.bowlAt; gain = WAY_LIGHT; } }
       if (caravan.lampAt.distanceToSquared(me) < best) { near = caravan.lampAt; gain = LANTERN_LIGHT; }
     }
+    // round 21 (seat C: the fire's orange turned the violet sand under B's wagon red-pink): the lantern's light amber-yellow
+    wayLight.color.setHex(gain === WAY_LIGHT ? 0xff7a30 : 0xffb766);
     if (near) { wayLight.position.copy(near).setY(near.y + (gain === WAY_LIGHT ? 0.5 : 0)); wayLight.intensity = gain * (1 + Math.sin(t * 11) * 0.07 + Math.sin(t * 23 + 0.7) * 0.05); } else wayLight.intensity = 0;
     // The bucket rides up over 1.2 s once pulled.
     if (well.raised && lift.t < 1) { lift.t = Math.min(1, lift.t + dt / 1.2); wellParts.bucket.position.y = 1.85 - wellParts.drop + (wellParts.drop - 0.5) * lift.t; wellParts.rope.scale.y = 1 - lift.t * 0.8; wellParts.crank.rotation.x = lift.t * 12; }
