@@ -81,8 +81,13 @@ void main() {
   // moderate gain from deep orange to yellow-orange, only the small core pushed white
   vec3 c = mix(vec3(0.9, 0.1, 0.0), vec3(1.0, 0.42, 0.02), heat) * 0.85; // round 9: redder licks (they read tan)
   c = mix(c, vec3(1.0, 0.78, 0.45) * 3.4, core);
+  // round 10 (the seats: a soft sprite; mockup C's fire is many thin flickering licks over burning logs): fine vertical
+  // streaks rising through the body, and the base thin so the logs read through it
+  float streak = fxNoise(vec2((x + lick) * 38.0, y * 5.0 - uTime * 6.5));
+  c *= 0.65 + 0.7 * streak;
   float fade = smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25);
-  gl_FragColor = vec4(c * body * fade, body * fade * 0.9);
+  float base = mix(0.45, 1.0, smoothstep(0.08, 0.3, y));
+  gl_FragColor = vec4(c * body * fade * base, body * fade * 0.9 * base);
 }`,
 });
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */
@@ -104,7 +109,7 @@ void main() {
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
   vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.25, 0.1, 0.04), vec3(0.05, 0.03, 0.032), smoothstep(0.02, 0.2, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
-  gl_FragColor = vec4(c, a * ${wisp ? '0.45' : '0.7'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
+  gl_FragColor = vec4(c, a * ${wisp ? '0.45' : '0.9'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
 const smokeMaterial = smokeMaterialOf(false), wispMaterial = smokeMaterialOf(true);
@@ -221,7 +226,7 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   const inner = new Mesh(quad, flameMaterial); inner.scale.set(size.flame * 0.34, size.flame * 0.8, 1); inner.position.set(0.05, -0.05, 0.05); add(inner);
   const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
-  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.03 : 0.17), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
+  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.03 : 0.26), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
   if (pool) {
     const r = Math.max(size.glow * 2.3, size.flame * 2.4), n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
     const p = g.getAttribute('position');
