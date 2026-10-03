@@ -42,3 +42,11 @@ shards only (D90); D84–D86, §2c, the skill's §X, 06 §11 and rows L2 / L3 ar
 project/archive/2026-10-03-shard-checkpoints.md`: did MC25–MC34 land as `register.md` says, and did the unwind leave a
 dangling reference to the existing-shard path (a § that no longer exists, a mode, a row, a skill step); and (b) **the
 battery's live scenarios** (2, 3, 5, 7, 8, 13 and the seats' additions that are about new shards). Same bar, same output.
+
+## Round 4 (the last): after MC35–MC46 and D91
+Jake answered MC36 with D91: a director's single stage (§S) runs on **any shard**, Nine Dragon included, the one
+exception to D90 (`ledger.md`). Review (a) **the diff since round 3**: `git diff 086ce1afb HEAD -- docs/plans/WORLDCLAW-SHARD.md
+docs/design/worldclaw/ .claude/skills/ scripts/worldclaw/ test/worldclaw-formats.test.ts`: did MC35–MC46 land as
+`register.md` says, and did they or D91 break something nearby (D91 against the new dispatch guards of MC44 is the obvious
+place to look); and (b) **the battery's live scenarios** (2, 3, 5, 7, 8, 13, 15–19). Same bar, same output. This is the
+last round: anything open goes to Jake as a decision, so give each must-fix one recommended answer.

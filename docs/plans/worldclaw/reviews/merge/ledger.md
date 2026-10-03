@@ -17,3 +17,5 @@ line, a quote, a source) that it is wrong; preference is not evidence.
 - **Amended after round 2 (Jake, 2026-10-03):** D89 "No I don't think we can do nine dragon worldclaw it's too much of a
   partial shard" (slices: none) and D90 "New shards only": D84–D86 are withdrawn and the existing-shard path is out of
   scope. A finding that asks for it back is not a finding.
+- **Amended after round 3 (Jake, 2026-10-03):** D91 "Any shard": a director's single stage runs on any shard, Nine
+  Dragon included, the exception to D90.
