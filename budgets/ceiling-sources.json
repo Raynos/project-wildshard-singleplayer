@@ -1656,15 +1656,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "1c1d6ae1fd9d92f9ccdf5dad710ceecc8a8dcb94",
-      "reason": "E399 Signal Dunes council round-1 fixes and the round-2 hands, measured (m5 102.75 MB; the runner read 102.72 at 0dd9e191); inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lattice tower, the wagon's props, the brazier firelight and glove leather patches, the far range ring, the cookfire wisp and the re-shaped dune terrain",
+      "commit": "b69c79d16772c61ea6722b9eb109155074413e59",
+      "reason": "E399 Signal Dunes council round-2 fixes, measured (m5 108.28 MB); inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the caravan's generated pack horse (1024 WebP map), the cloud deck and the re-lit dunes, on top of round 1's lattice tower, wagon props and patches",
       "ask": "E357",
       "approvedBy": "wildshard-9",
       "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
-      "captureSha": "1c1d6ae1fd9d92f9ccdf5dad710ceecc8a8dcb94",
-      "captureSha256": "6ce66b6492731e20e99edd8943398201974cb4f07a63bded619f9b8aa1baee8c",
+      "captureSha": "b69c79d16772c61ea6722b9eb109155074413e59",
+      "captureSha256": "f92b5a1162d3a0fdf14f37a3243ce86d6621d9c3b973f943719216f7cfeaf51e",
       "ceilings": {
-        "sunscar-dunes.phone.current.gpuMB": 102.74893951416016
+        "sunscar-dunes.phone.current.gpuMB": 108.28093719482422
       }
     },
     {

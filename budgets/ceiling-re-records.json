@@ -40,8 +40,8 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "1c1d6ae1fd9d92f9ccdf5dad710ceecc8a8dcb94",
-      "reason": "E399 Signal Dunes council round-1 fixes and the round-2 hands, measured (m5 102.75 MB; the runner read 102.72 at 0dd9e191); inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lattice tower, the wagon's props, the brazier firelight and glove leather patches, the far range ring, the cookfire wisp and the re-shaped dune terrain"
+      "commit": "b69c79d16772c61ea6722b9eb109155074413e59",
+      "reason": "E399 Signal Dunes council round-2 fixes, measured (m5 108.28 MB); inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the caravan's generated pack horse (1024 WebP map), the cloud deck and the re-lit dunes, on top of round 1's lattice tower, wagon props and patches"
     },
     {
       "shard": "sunscar-dunes",
