@@ -13,7 +13,7 @@ import { LowPolyKit, log, beam, plank, rock, rope } from '../lowpolyKit';
 const C = {
   wood: '#8a6440', woodDark: '#5f432a', woodLight: '#a88157', iron: '#3b3d42', ironLight: '#62656d', brass: '#d8a640',
   stone: '#8d8f94', stoneDark: '#62656b', moss: '#5c8f3c', rope: '#b9a57a', gold: '#f2c44d', red: '#a83a2a',
-  sand: '#cdb58a', ember: '#ff9a3a', flame: '#ffcf6a', glass: '#6fe0c8', shard: '#8fe8ff', char: '#2d2622',
+  sand: '#cdb58a', ember: '#ff9a3a', flame: '#ffcf6a', glass: '#6fe0c8', char: '#2d2622',
 };
 
 const M = new THREE.Matrix4();

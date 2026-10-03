@@ -226,14 +226,14 @@ export class Feedback {
     // Explore World notes (src/engine/explore/Explore.ts context) describe the viewer: mode, camera, what is on the turntable / selected
     const exploring = typeof c['explore'] === 'string';
     const kv: [string, string][] = exploring ? [
-      ['Shard', String(c['shard'] ?? '—')],
+      [engineString('s_level_word'), String(c['shard'] ?? '—')],
       ['Explore', String(c['explore'])],
       ['Camera', Array.isArray(cam) ? `${Math.round(cam[0] ?? 0)} · ${Math.round(cam[1] ?? 0)} · ${Math.round(cam[2] ?? 0)}` : '—'],
       ['Heading', Array.isArray(cam) && typeof cam[3] === 'number' ? `${headingDeg(cam[3])}°` : '—'],
       ['Model', String(c['model'] ?? c['selected'] ?? '—')],
       ['Tier', String(c['tier'] ?? '—')],
     ] : [
-      ['Shard', String(c['shard'] ?? '—')],
+      [engineString('s_level_word'), String(c['shard'] ?? '—')],
       ['Pos', Array.isArray(pos) ? `${Math.round(pos[0] ?? 0)} · ${Math.round(pos[2] ?? 0)}` : '—'],
       ['Heading', typeof c['yaw'] === 'number' ? `${headingDeg(c['yaw'])}°` : '—'],
       ['Weapon', String(c['weapon'] ?? '—')],

@@ -212,7 +212,7 @@ export class Perf {
     const where = pos instanceof THREE.Vector3 ? `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}` : '?';
     return [
       `WILDSHARD PROBE · ${new Date().toISOString()} · build ${build}`,
-      `shard ${activeLevel().id} · tier ${TIER} · canvas ${String(cv.width)}×${String(cv.height)} · dpr ${String(devicePixelRatio)} · screen ${String(screen.width)}×${String(screen.height)} · ${String(navigator.hardwareConcurrency)} cores`,
+      `${engineString('s_level_word_lower')} ${activeLevel().id} · tier ${TIER} · canvas ${String(cv.width)}×${String(cv.height)} · dpr ${String(devicePixelRatio)} · screen ${String(screen.width)}×${String(screen.height)} · ${String(navigator.hardwareConcurrency)} cores`,
       `ua ${navigator.userAgent}`,
       `player at ${where} · calls ${String(g.lastFrame.calls)} · tris ${String(g.lastFrame.triangles)} · programs ${String(info.programs?.length ?? 0)} · textures ${String(info.memory.textures)} · geometries ${String(info.memory.geometries)}`,
       `settings ${settings}`,

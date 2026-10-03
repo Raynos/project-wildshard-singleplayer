@@ -1,5 +1,18 @@
 {
   "allow": {
+    "wildshard/engine-words": {
+      "src/engine/boot/bootTrace.ts": "the boot trace record field `shard` reports carry (E405 wire contract)",
+      "src/engine/boot/stuck.ts": "the stuck-boot report context field `shard` (E405 wire contract)",
+      "src/engine/core/perfLap.ts": "the perf-lap report field `shard` (E405 wire contract)",
+      "src/engine/debug/probe.ts": "the harness probe API: `__wildshard.shard`, the fingerprint field `shard` and `harness.shard.<id>` keys the scripts read (E405 wire contract)",
+      "src/engine/models/interact.ts": "the model id `shared/shard-altar` the parity baselines read (E405 wire contract)",
+      "src/engine/telemetry/bootInbox.ts": "the boot inbox report context field `shard` the API stores (E405 wire contract)",
+      "src/engine/telemetry/browserErrors.ts": "the Sentry tag and context field `shard`: the error dashboards filter on it (E405, Jake: wire contracts keep their names)",
+      "src/engine/ui/ErrorModal.ts": "the error report payload field `shard` (E405 wire contract)",
+      "src/engine/ui/Feedback.ts": "the feedback payload field `shard` the inbox server stores (E405 wire contract)",
+      "src/engine/ui/perfLap.ts": "the perf-lap report field `shard` (E405 wire contract)",
+      "src/engine/ui/perfLapSummary.ts": "the perf-lap report field `shard` (E405 wire contract)"
+    },
     "wildshard/no-raw-random-time": {
       "src/engine/audio/SetScore.ts": "performance.now measures decode elapsed cost only; never gameplay state.",
       "src/engine/boot/bootTrace.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
@@ -337,35 +350,9 @@
     "src/shards/pine-hollow/world/weather.ts": 12
   },
   "wildshard/engine-words": {
-    "src/engine/boot/bootTrace.ts": 1,
-    "src/engine/boot/steps.ts": 4,
-    "src/engine/boot/stuck.ts": 1,
-    "src/engine/core/Game.ts": 2,
-    "src/engine/core/GpuRecovery.ts": 1,
-    "src/engine/core/perfLap.ts": 1,
-    "src/engine/debug/probe.ts": 10,
-    "src/engine/explore/Explore.ts": 1,
-    "src/engine/explore/SetExplorer.ts": 2,
-    "src/engine/explore/catalog.ts": 1,
-    "src/engine/models/interact.ts": 2,
-    "src/engine/models/model.ts": 1,
-    "src/engine/models/roster.ts": 1,
-    "src/engine/physics/debug.ts": 1,
     "src/engine/player/TouchControls.ts": 6,
     "src/engine/player/viewmodelTextures.ts": 3,
-    "src/engine/telemetry/bootInbox.ts": 1,
-    "src/engine/telemetry/browserErrors.ts": 5,
-    "src/engine/ui/ErrorModal.ts": 8,
-    "src/engine/ui/Feedback.ts": 6,
-    "src/engine/ui/Menu.ts": 16,
-    "src/engine/ui/Perf.ts": 1,
-    "src/engine/ui/Resume.ts": 5,
-    "src/engine/ui/StartTitle.ts": 1,
-    "src/engine/ui/debugOptions.ts": 1,
-    "src/engine/ui/perfLap.ts": 2,
-    "src/engine/ui/perfLapSummary.ts": 2,
-    "src/engine/world/interact/models.ts": 1,
-    "src/engine/world/interact/validate.ts": 1
+    "src/engine/ui/Menu.ts": 16
   },
   "wildshard/no-active-singleton": {
     "src/engine/core/bootstrap.ts": 1,

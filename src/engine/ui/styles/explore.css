@@ -29,7 +29,7 @@
 .ws-x[data-mode="hub"] .ws-x-hub { display: flex; }
 .ws-x-hub-list { display: flex; flex-direction: column; gap: 14px; width: min(560px, 100%); margin: auto auto 0; }
 .ws-x-hub-heading[hidden] { display: none; }
-.ws-x-hub-shard { margin-top: 8px; }
+.ws-x-hub-level { margin-top: 8px; }
 .ws-x-hub-heading { align-self: flex-start; padding: 5px 8px; color: var(--ws-cyan); background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-faint); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
 .ws-x-card { position: relative; display: flex; flex: 0 0 auto; align-items: center; box-sizing: border-box; height: clamp(98px, 12dvh, 118px); gap: 16px; padding: 8px; text-align: left; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
 .ws-x-card[hidden] { display: none; }

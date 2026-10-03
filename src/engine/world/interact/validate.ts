@@ -56,7 +56,7 @@ function rowChecks(d: InteractDef, where: string, items: readonly string[] | und
     case 'chest':
       if (d.contents.length === 0) e.push(`${where}: an empty chest`);
       for (const l of d.contents) if ('item' in l && items && !items.includes(l.item)) e.push(`${where}: unknown item '${l.item}'`);
-      for (const l of d.contents) if ('item' in l && l.n !== undefined && !(Number.isInteger(l.n) && l.n > 0 && l.n <= 99)) e.push(`${where}: loot count out of range`);
+      for (const l of d.contents) if ('item' in l && l.n !== undefined && !(Number.isInteger(l.n) && l.n > 0 && l.n <= 99)) e.push(`${where}: item count out of range`);
       break;
     case 'pickup': if (d.item !== undefined && items && !items.includes(d.item)) e.push(`${where}: unknown item '${d.item}'`); break;
     case 'altar': if (d.fills.length === 0 || d.fills.length > 8) e.push(`${where}: 1–8 sockets`); break;

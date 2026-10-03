@@ -113,9 +113,9 @@ export class SetExplorer implements ExplorePane {
 
   constructor(private readonly explore: Explore, private readonly world: World, private readonly entries: readonly CatalogEntry[]) {
     this.el = html('div', 'ws-x-sets');
-    const shard = explore.title.name;
+    const levelName = explore.title.name;
     this.listEl = html('div', 'ws-x-setlist', `
-      <div class="ws-x-setlist-head"><span>Sets · ${esc(shard)}</span><b class="ws-x-setcount"></b></div>
+      <div class="ws-x-setlist-head"><span>Sets · ${esc(levelName)}</span><b class="ws-x-setcount"></b></div>
       <p class="ws-x-setlist-blurb">Every named place, camp and square: the models placed there. Each opens where it stands in the world.</p>
       <div class="ws-x-setsort">${ORDERS.map(([o, l]) => `<button type="button" data-o="${o}">${l}</button>`).join('')}</div>
       <div class="ws-x-setcards"></div>`);

@@ -217,9 +217,9 @@ function memoryReadout(): string {
   const pm: unknown = Reflect.get(performance, 'memory'), used: unknown = typeof pm === 'object' && pm !== null ? Reflect.get(pm, 'usedJSHeapSize') : undefined;
   const dm: unknown = Reflect.get(navigator, 'deviceMemory');
   const heap = typeof used === 'number' ? `${Math.round(used / 1e6)} MB` : 'n/a';
-  const shards = m === null ? ['no shard host'] : m.levels.map((x, i) => `${i + 1}. ${x.id}${x.running ? ' (playing)' : ''} · textures ~${Math.round(x.textureMB)} MB`);
+  const levels = m === null ? [`no ${engineString('s_level_word_lower')} host`] : m.levels.map((x, i) => `${i + 1}. ${x.id}${x.running ? ' (playing)' : ''} · textures ~${Math.round(x.textureMB)} MB`);
   // E179: why the page last reloaded (src/engine/boot/lastEnd.ts: the reason the game gave, or "ended unexpectedly")
-  return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`, lastEndLine()].join('\n');
+  return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...levels, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`, lastEndLine()].join('\n');
 }
 /** E172: a few live lines under a row (by row id), re-read while the row can be seen — in both menus */
 export const DEBUG_READOUTS: Readonly<Partial<Record<string, () => string>>> = { tex: memoryReadout, storage: storageReadout };

@@ -1,5 +1,9 @@
 /** Existing content labels/markup used by legacy engine views; installed before those views evaluate. */
 export const ENGINE_CONTENT_STRINGS = {
+  // the game's word for a level (E405: the engine says "level" and asks the game)
+  "s_level_word": "Shard",
+  "s_level_word_lower": "shard",
+  "s_returned_to_select": "Returned to shard select. Choose a world when ready.",
   "s_32d65e5cf8be": "Camp · kurgans · herds · the Storm Titan",
   "s_f862cea32c63": "Crossbow · lever-action · longbow",
   "s_e7fc1dad792d": "Herds · deer · boar · elk · bears",

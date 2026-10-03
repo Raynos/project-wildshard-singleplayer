@@ -801,8 +801,8 @@ export class Game {
     this.levelScope.dispose();
     this.engineScope.dispose();
     this.scene.traverse((o) => { (o as Partial<THREE.Mesh>).geometry?.dispose(); });
-    try { this._composer?.dispose(); } catch (e) { console.warn('[shard] the composer did not dispose', e); }
-    try { this.lookStrategy?.dispose?.(); } catch (e) { console.warn('[shard] the render strategy did not dispose', e); }
+    try { this._composer?.dispose(); } catch (e) { console.warn('[level] the composer did not dispose', e); }
+    try { this.lookStrategy?.dispose?.(); } catch (e) { console.warn('[level] the render strategy did not dispose', e); }
     this.renderer.renderLists.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();

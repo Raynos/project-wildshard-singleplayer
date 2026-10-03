@@ -250,7 +250,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
 
   scope.listen(canvas, 'webglcontextlost', (e) => {
     e.preventDefault();
-    if (host.parked?.() === true) { console.warn('[gl] a parked shard lost its context'); host.onLostParked?.(); return; }
+    if (host.parked?.() === true) { console.warn('[gl] a parked level lost its context'); host.onLostParked?.(); return; }
     lose('context lost');
   });
   scope.listen(canvas, 'webglcontextrestored', () => { if (host.parked?.() !== true) void restore(); });

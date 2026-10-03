@@ -307,6 +307,19 @@ const globCall = (node) => {
   return callee?.type === 'MemberExpression' && ['glob', 'globEager'].includes(propName(callee)) && object?.type === 'MetaProperty' && object.meta.name === 'import' && object.property.name === 'meta';
 };
 
+const ratchetFile = process.env.WILDSHARD_RATCHET_FILE ?? new URL('ratchet.json', import.meta.url);
+const contractAllow = existsSync(ratchetFile) ? JSON.parse(readFileSync(ratchetFile, 'utf8')).allow?.['wildshard/engine-words'] ?? {} : {};
+/** a property name or key (`{ shard: … }`, `x.shard`, `c['shard']`, `T['shard']`), a `harness.shard.<id>` debug key or a model id
+ *  (`shared/shard-altar`): a contract's field, not code */
+function contractField(node) {
+  const p = node.parent;
+  if (node.type === 'Identifier') return (['Property', 'TSPropertySignature', 'PropertyDefinition', 'MethodDefinition'].includes(p?.type) && p.key === node) || (p?.type === 'MemberExpression' && p.property === node);
+  if (node.type === 'Literal') return (p?.type === 'MemberExpression' && p.property === node) || (p?.type === 'Property' && p.key === node)
+    || (p?.type === 'TSLiteralType' && p.parent?.type === 'TSIndexedAccessType')   // Probe['shard']
+    || (typeof node.value === 'string' && /^shared\/[a-z-]+$/u.test(node.value));   // a model id
+  if (node.type === 'TemplateElement') return (node.value.cooked ?? '').startsWith('harness.shard.');
+  return false;
+}
 // E405 AG2: one walk, three rules, so each ratchets on its own: `layer` (direction, shard ↔ shard, files and imports
 // outside the layers), `public-index` (cross-layer imports skip the public index) and `engine-words` (Wildshard
 // vocabulary in engine code; comments are not counted).
@@ -323,6 +336,9 @@ const layerWalk = (kind) => (context) => {
         if (match[0].toLowerCase() === 'shard' && (path.startsWith('src/engine/saves/') || (node.type === 'Literal' && node.value === 'shard' && node.parent?.type === 'Property' && (node.parent.key?.name === 'scope' || node.parent.key?.value === 'scope')))) continue;
         if (path === 'src/engine/core/errorReport.ts' && node.type === 'Identifier' && node.name === 'shard' && node.parent?.type === 'Property' && node.parent.key === node) continue; // Required external telemetry tag; save failures use their namespace.
         if (path === 'src/engine/saves/legacy.ts' && node.type === 'Literal' && typeof node.value === 'string' && node.value.startsWith('ws.')) continue;
+        // E405 (Jake): a wire contract's field is still named `shard` (telemetry tags, reports, the harness probe) — only as a
+        // property name or key, only in the files lint/ratchet.json `allow['wildshard/engine-words']` lists with the reason
+        if (match[0].toLowerCase() === 'shard' && Object.hasOwn(contractAllow, path) && contractField(node)) continue;
         report(context, node, `Engine contains Wildshard word: ${match[0]}`);
       }
     };
@@ -426,7 +442,6 @@ export const TIME_ALLOW = Object.fromEntries([
   'src/engine/boot/plan.ts', 'src/engine/boot/timing.ts', 'src/engine/render/precompile.ts', 'src/engine/core/lifeTrace.ts',
   'src/engine/core/errorReport.ts', 'src/engine/boot/bootTrace.ts', 'src/engine/boot/gpuTrace.ts',
 ].map((path) => [path, 'performance.now measures elapsed cost or diagnostic timing; never gameplay state.']));
-const ratchetFile = process.env.WILDSHARD_RATCHET_FILE ?? new URL('ratchet.json', import.meta.url);
 const measurementAllow = existsSync(ratchetFile) ? JSON.parse(readFileSync(ratchetFile, 'utf8')).allow?.['wildshard/no-raw-random-time'] ?? TIME_ALLOW : TIME_ALLOW;
 const noRawRandomTime = rule('Randomness and time use engine services (E357)', (context) => {
   const path = pathOf(context);

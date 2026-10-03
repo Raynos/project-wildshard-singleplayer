@@ -37,19 +37,19 @@ export const STEP_INFO: Record<BootStep, StepInfo> = { ...BASE_INFO };
 /** The steps in declared order. */
 export const BOOT_STEPS = STEP_ROWS.map((row) => row[0]) as readonly BootStep[];
 
-let shard: string | null = null;
+let level: string | null = null;
 let ownBytes: Readonly<Partial<Record<ByteKey, string>>> | undefined;
 /**
  * The active shard's nouns + weights over the table (main.ts, before the boot plan is made). A shard without its own
  * rows keeps the shared table exactly, and its load timings stay under the shared key (`shardTimingKey`).
  */
 export function useShardSteps(slug: string, steps?: Readonly<Record<string, { label: string; weight: number }>>, bytes?: Readonly<Partial<Record<ByteKey, string>>>): void {
-  shard = steps !== undefined ? slug : null;
+  level = steps !== undefined ? slug : null;
   ownBytes = bytes;
   for (const k of BOOT_STEPS) STEP_INFO[k] = { label: steps?.[k]?.label ?? BASE_INFO[k].label, weight: steps?.[k]?.weight ?? BASE_INFO[k].weight };
 }
 /** '' for the shared table, else `:<slug>` — the timing store keys a shard with its own steps separately */
-export const shardTimingKey = (): string => (shard ? `:${shard}` : '');
+export const shardTimingKey = (): string => (level ? `:${level}` : '');
 
 /**
  * DOWNLOAD byte sources: the bytes boot awaits, each reported by the reader that reads them and

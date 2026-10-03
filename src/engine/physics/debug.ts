@@ -47,7 +47,7 @@ export function installPhysicsDebug(physics: Physics, scene: THREE.Scene, params
  */
 function installNavmeshDebug(scene: THREE.Scene): void {
   const layer = activeNavmesh()?.layers[0];
-  if (layer === undefined) { console.warn('[navmesh] ?navmesh=debug: this shard has no navmesh'); return; }
+  if (layer === undefined) { console.warn('[navmesh] ?navmesh=debug: this level has no navmesh'); return; }
   void (async () => {
     const { createNavMeshHelper } = await import('navcat/three');
     const { object } = createNavMeshHelper(layer.mesh);

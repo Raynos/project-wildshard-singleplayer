@@ -81,11 +81,11 @@ describe('probe contract', () => {
     const probe = installProbe(world, deps);
     expect(probe.shard['cabins']).toBe(handles.cabins);
     expect(probe.shard['pineLife']).toBe(handles.pineLife);
-    expect(probe.state().quest).toEqual({ adventure: deps.quest(), pine: ['first', 'second'] });
+    expect(probe.state().quest).toEqual({ adventure: deps.quest(), level: ['first', 'second'] });
     expect(flags).toEqual(['second', 'first']);
     expect(inactive).not.toHaveBeenCalled();
     scope.dispose();
-    expect(probe.state().quest).toEqual({ adventure: deps.quest(), pine: [] });
+    expect(probe.state().quest).toEqual({ adventure: deps.quest(), level: [] });
     expect(debug.snapshot()).not.toHaveProperty(`harness.shard.${slug}`);
   });
   it('returns every disposal failure alongside the post-unload census instead of rejecting the leak probe', async () => {

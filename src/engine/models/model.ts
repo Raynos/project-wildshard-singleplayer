@@ -104,7 +104,7 @@ export interface ModelContext {
 export function modelContext(sky: Sky | null, renderer: Renderer | null = null): ModelContext {
   const memo = new Map<string, unknown>();
   return {
-    get sky(): Sky { if (sky === null) throw new Error('modelContext: this shard has no Sky (its models take their look from `once`)'); return sky; },
+    get sky(): Sky { if (sky === null) throw new Error('modelContext: this level has no Sky (its models take their look from `once`)'); return sky; },
     renderer,
     once: <T>(key: string, make: () => T): T => {
       if (memo.has(key)) return memo.get(key) as T;

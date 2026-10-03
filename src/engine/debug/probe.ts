@@ -323,9 +323,9 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
     land(); pl.pitch = p.pitch ?? 0; pl.velocity.set(0, 0, 0); game.app.input.clear();
     await new Promise<void>((resolve) => { app.engineScope.raf(() => { resolve(); }); });
   };
-  const shard: WildshardProbe['shard'] = { slug: world.game.level.id };
+  const handles: WildshardProbe['shard'] = { slug: world.game.level.id };
   const authored: unknown = app.debug.snapshot()[`harness.shard.${world.game.level.id}`];
-  if (authored !== null && typeof authored === 'object') Object.assign(shard, authored);
+  if (authored !== null && typeof authored === 'object') Object.assign(handles, authored);
   const probe: WildshardProbe<W> = {
     app: Object.freeze({
       get state() { return app.state; },
@@ -339,7 +339,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
       get rngSeed() { return app.rng.seedValue; },
       get census() { return Object.freeze({ engine: Object.freeze(app.engineScope.census), level: Object.freeze(game.levelScope.census) }); },
     }),
-    version: 1, world, get shard() { return { ...shard, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
+    version: 1, world, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
     boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     budgets: (poses = []) => poseBudgets(world.game.level.id, TIER, world.game.level.budgets, poses),
     leak: async () => {
@@ -403,7 +403,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): W
       player: { pos: point(world.player.position), yaw: world.player.yaw, pitch: world.player.pitch, vel: point(world.player.velocity), health: deps.health() },
       weapon: { id: world.weapons.current.id, state: { ...world.weapons.current.state }, ammo: world.weapons.current.state.ammo ?? null },
       creatures: world.animals.animals.map((a, i) => ({ id: `${a.kind}:${i}`, kind: a.kind, pos: point(a.position), hp: a.hp, brain: a.state })).sort((a, b) => a.id.localeCompare(b.id)),
-      quest: { adventure: deps.quest(), pine: authoredQuestFlags(world) },
+      quest: { adventure: deps.quest(), level: authoredQuestFlags(world) },
     }),
     onResume: (fn) => { requireHarness(); resume = fn; }, saves,
     sounds: () => { const log = { event: events, ambient: [...ambient].sort() }; events = {}; ambient.clear(); return log; },

@@ -1,4 +1,5 @@
 import { app } from '../app/runtime';
+import { engineString } from '../strings';
 import { onDev } from '../core/devMode';
 import { uiScope, mountUi } from './ownership';
 /** Renderer-free opening title: the shared title deck (src/game/titleDeck.ts, E318 — the same deck "Exit to main" shows).
@@ -21,7 +22,7 @@ export function showStartTitle(buildDeck: StartTitleDeck): void {
     deck?.root.remove(); deck?.dispose();
     deck = buildDeck({
       settings: () => { void import('./BootSettings').then(({ openBootSettings }) => openBootSettings()); },
-      ...(interrupted ? { notice: `${interrupted}\nReturned to shard select. Choose a world when ready.` } : {}),
+      ...(interrupted ? { notice: `${interrupted}\n${engineString('s_returned_to_select')}` } : {}),
     });
     mountUi(deck.root, scope, hud);
     const index = deck.cards.map((card): string => card.slug).indexOf(selected ?? '');

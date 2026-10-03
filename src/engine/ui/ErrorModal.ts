@@ -219,12 +219,12 @@ function showChip(sent: Promise<ReportOutcome>): void {
 
 function report(system: string, error: unknown, flags: { fatal?: boolean; disabled?: boolean }): Promise<ReportOutcome> {
   if (system !== 'lifecycle') {
-    let shard = '';
-    try { shard = activeLevel().id; } catch { /* the registry may not be ready during early boot */ }
+    let level = '';
+    try { level = activeLevel().id; } catch { /* the registry may not be ready during early boot */ }
     captureBrowserError(error, {
       system,
       build: buildId(),
-      shard,
+      shard: level,
       bootStage: document.querySelector<HTMLElement>('.ws-load')?.dataset['step'] ?? loopState(),
       fatal: flags.fatal === true,
       diagnostic: bootDiagnostic(),
@@ -251,10 +251,10 @@ export function showError(message: string, stack = ''): void {
 
 function context(): Record<string, string | number | boolean | number[] | null> {
   const pose = currentPose();
-  let shard = ''; try { shard = activeLevel().id; } catch { /* before the registry */ }
+  let level = ''; try { level = activeLevel().id; } catch { /* before the registry */ }
   const touch = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) || new URLSearchParams(location.search).has('touch');
   return {
-    build: buildId(), shard, tier: TIER, touch, url: safeUrl(location.href),
+    build: buildId(), shard: level, tier: TIER, touch, url: safeUrl(location.href),
     pos: pose ? [pose.x, pose.y, pose.z] : null, yaw: pose?.yaw ?? null, pitch: pose?.pitch ?? null,
     viewport: `${innerWidth}x${innerHeight}`, loop: loopState(),
     bootDiagnostic: bootDiagnosticJson(),

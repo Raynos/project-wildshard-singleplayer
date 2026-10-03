@@ -36,8 +36,8 @@
   display: flex; flex-direction: column; align-items: center; gap: 12px; width: 240px;
 }
 .ws-resume-line { font-size: 11px; line-height: 1.5; letter-spacing: 0.32em; text-indent: 0.32em; text-transform: uppercase; color: var(--ws-cyan); text-align: center; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6); }
-.ws-resume-shard { font-size: 9px; letter-spacing: 0.26em; text-indent: 0.26em; text-transform: uppercase; color: rgba(230, 242, 248, 0.7); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6); }
-.ws-resume-shard:empty { display: none; }
+.ws-resume-level { font-size: 9px; letter-spacing: 0.26em; text-indent: 0.26em; text-transform: uppercase; color: rgba(230, 242, 248, 0.7); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6); }
+.ws-resume-level:empty { display: none; }
 
 /* the hairline: fills with a fraction, or (`busy`) a short segment sweeps it */
 .ws-resume-bar { position: relative; width: 100%; height: 1px; overflow: hidden; background: rgba(143, 227, 255, 0.18); }

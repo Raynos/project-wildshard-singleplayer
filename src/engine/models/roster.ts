@@ -36,6 +36,6 @@ export async function listShardModels(o: ShardModelsOptions): Promise<void> {
     const roster = await o.roster?.();
     if (roster) listRoster(roster, ctx, o.animals, o.registry);
   } catch (error) {
-    console.warn('[models] the shard roster did not load; its creatures show from the live animals only', error);
+    console.warn('[models] the level roster did not load; its creatures show from the live animals only', error);
   }
 }

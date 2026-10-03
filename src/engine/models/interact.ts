@@ -98,7 +98,7 @@ export const bench = defineModel<Record<string, never>>({
 
 export interface AltarParams { readonly sockets: number }
 export const shardAltar = defineModel<AltarParams>({
-  id: 'shared/shard-altar', name: 'Shard altar', category: 'props', pipeline: 'code', file: FILE, surface: 'stone', defaults: { sockets: 3 },
+  id: 'shared/shard-altar', name: 'Glyph altar', category: 'props', pipeline: 'code', file: FILE, surface: 'stone', defaults: { sockets: 3 },
   // its sockets empty: a shard sits in one once its quest is done
   build: (ctx, p) => [lit(ctx, Mdl.altar(p.sockets, SEED))],
 });

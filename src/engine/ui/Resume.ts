@@ -19,7 +19,7 @@ const savedStorage = saveStorage('session');
  *   resumeScreen().progress(0.4)      // a fraction: the boot plan's setup, or the in-place shader rebuild
  *   resumeScreen().hide()             // fades out (fast)
  */
-export const RESUME_HTML = '<div class="ws-resume-shot"></div><div class="ws-resume-hero"></div><div class="ws-resume-word">Project <b>Wildshard</b></div><div class="ws-resume-card"><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><div class="ws-resume-shard"></div><button type="button" class="ws-resume-btn">Reload</button></div>';
+export const RESUME_HTML = '<div class="ws-resume-shot"></div><div class="ws-resume-hero"></div><div class="ws-resume-word">Project <b>Wildshard</b></div><div class="ws-resume-card"><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><div class="ws-resume-level"></div><button type="button" class="ws-resume-btn">Reload</button></div>';
 
 /** sessionStorage key of the last still (a small JPEG data URL) — survives the recovery reload */
 export const SHOT_KEY = 'resume.shot';
@@ -59,8 +59,8 @@ class ResumeScreen {
 
   /** the shard this page plays: its name under the hairline and its portrait title art */
   brand(name: string, hero: string): void {
-    const shard = this.root.querySelector('.ws-resume-shard');
-    if (shard) shard.textContent = name;
+    const level = this.root.querySelector('.ws-resume-level');
+    if (level) level.textContent = name;
     const art = this.root.querySelector<HTMLElement>('.ws-resume-hero');
     if (art && hero !== '') {
       art.style.backgroundImage = `url("${hero}")`;

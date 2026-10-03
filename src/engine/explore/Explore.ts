@@ -207,7 +207,7 @@ export class Explore {
       <button class="ws-x-card" type="button" data-m="sets"><span class="ws-x-card-art${hubArt?.sets === undefined ? ' ws-x-sets-art' : ''}" style="background-image:url('${setsArt}')"></span><span class="ws-x-card-text"><b>Set explorer</b><small>Camps, squares, fields: groups of models where they stand</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${worldArt}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${this.title.name} in god mode</small></span><span class="ws-x-card-go">›</span></button>
       <button class="ws-x-card" type="button" data-m="practice" data-dev><span class="ws-x-card-art ws-x-practice-art" style="background-image:url('${practiceArt}')"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>
-      ${playgrounds.length > 0 ? `<div class="ws-x-hub-heading ws-x-hub-shard" data-dev>${this.title.name} · playgrounds</div>${pgCards}` : ''}</div>`);
+      ${playgrounds.length > 0 ? `<div class="ws-x-hub-heading ws-x-hub-level" data-dev>${this.title.name} · playgrounds</div>${pgCards}` : ''}</div>`);
     this.hubEl.dataset['scroll'] = ''; // index.html swallows touchmove outside [data-scroll]: without it the list can't scroll on a phone
     // the developer-only entries: the Practice arena and the playgrounds (Settings ▸ Developer, live)
     const devOnly = [...this.hubEl.querySelectorAll<HTMLElement>('[data-dev]')];
