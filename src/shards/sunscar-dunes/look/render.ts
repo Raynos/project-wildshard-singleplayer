@@ -233,9 +233,9 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3
     + smoothstep(0.82, 0.95, sandTex.r) * 0.9 * (1.0 - smoothstep(3.0, 18.0, sandFar)) // grain glints near the camera (mockup A)
     // a finer grain octave underfoot (round 5: the near sand's fine detail a third of the mockups')
-    + (texture2D(uSandGrain, vSandPos.xz * 2.3 + 0.37).r - 0.5) * 1.2 * (1.0 - smoothstep(4.0, 22.0, sandFar))
-    + (texture2D(uSandGrain, vSandPos.xz * 0.9 + 0.71).r - 0.5) * 0.8 * (1.0 - smoothstep(6.0, 30.0, sandFar))
-    + (texture2D(uSandGrain, vSandPos.xz * 0.28 + 0.13).r - 0.5) * 1.1 * (1.0 - smoothstep(8.0, 40.0, sandFar)); // cm-scale speckle (mockup dusk-fire)
+    + (texture2D(uSandGrain, vSandPos.xz * 2.3 + 0.37).r - 0.5) * 1.8 * (1.0 - smoothstep(4.0, 22.0, sandFar))
+    + (texture2D(uSandGrain, vSandPos.xz * 0.9 + 0.71).r - 0.5) * 1.3 * (1.0 - smoothstep(6.0, 30.0, sandFar))
+    + (texture2D(uSandGrain, vSandPos.xz * 0.28 + 0.13).r - 0.5) * 1.6 * (1.0 - smoothstep(8.0, 40.0, sandFar)); // cm-scale speckle (mockup dusk-fire)
   // loop 4, surface variety (the council's baseline: the near sand read as one flat brown): broad tonal drifts (tens of
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
