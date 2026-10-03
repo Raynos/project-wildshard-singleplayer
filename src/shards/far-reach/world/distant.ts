@@ -45,10 +45,17 @@ function fallMaterial(): ShaderMaterial {
         float down = -vP.y, across = vP.x;
         // streaks: narrow columns of foam, each scrolling down at its own pace
         float streak = n(vec2(across * 26.0, down * 3.0 - uTime * 1.6)) * 0.6 + n(vec2(across * 60.0, down * 7.0 - uTime * 2.6)) * 0.4;
-        float edge = 1.0 - smoothstep(0.32, 0.5, abs(across) + (n(vec2(down * 4.0, uTime * 0.3)) - 0.5) * 0.12);
-        float fray = 1.0 - smoothstep(0.55, 1.0, down) * (0.4 + 0.6 * n(vec2(across * 9.0, down * 5.0 - uTime)));
-        float a = edge * fray * (0.35 + 0.55 * smoothstep(0.35, 0.8, streak));
-        vec3 c = mix(vec3(0.62, 0.78, 0.86), vec3(0.97, 0.98, 1.0), smoothstep(0.4, 0.85, streak));
+        // E399 (the council: 'a flat pale blue strip'): narrow at the lip, spreading as it falls; a deep blue-teal body
+        // with bright foam ropes, gaps between them, breaking into mist toward the bottom
+        float spread = 0.2 + 0.18 * down;
+        float edge = 1.0 - smoothstep(spread * 0.7, spread, abs(across) + (n(vec2(down * 4.0, uTime * 0.3)) - 0.5) * 0.1);
+        float fray = 1.0 - smoothstep(0.5, 1.0, down) * (0.35 + 0.65 * n(vec2(across * 9.0, down * 5.0 - uTime)));
+        float ropes = smoothstep(0.42, 0.78, streak);
+        float a = edge * fray * (0.18 + 0.8 * ropes);
+        vec3 c = mix(vec3(0.3, 0.5, 0.58), vec3(1.0, 0.98, 0.94), ropes);
+        // the plunge's mist: a soft white bloom over the last third
+        float mist = smoothstep(0.62, 1.0, down) * (1.0 - smoothstep(0.25, 0.5, abs(across))) * (0.5 + 0.5 * n(vec2(across * 4.0, down * 2.0 - uTime * 0.4)));
+        c = mix(c, vec3(1.0, 0.97, 0.92), mist * 0.7); a = max(a, mist * 0.55);
         // the lip's mist
         a = max(a, edge * (1.0 - smoothstep(0.0, 0.05, down)) * 0.7);
         gl_FragColor = vec4(c, a * 0.85);

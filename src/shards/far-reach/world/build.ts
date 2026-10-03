@@ -119,7 +119,9 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const sky = skyline(ISLES); root.add(sky);
 
   const plank = flat(PALETTE.plank), rope = flat(PALETTE.rope);
-  const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.5, transparent: true, opacity: 0.5, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 });
+  // faint glass while you walk (E399, the council: 'translucent rectangles' over the windmill isle from the spawn): the glowing
+  // frame shows the path; the plugin fills the glass in while you ride
+  const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.16, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 });
   for (const span of SPANS) {
     const hover = span.kind === 'hover', length = spanLength(span), bridge = plankBridge(length, span.width, hover ? hoverDeck : plank, hover ? null : rope);
     bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ'); root.add(bridge);

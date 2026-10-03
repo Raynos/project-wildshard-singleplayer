@@ -153,7 +153,7 @@ export class SkyReachPlugin extends ShardPlugin {
     // Dressing: the hover decks glow while you ride; the mill and the turned vanes spin; the updraft's rings rise.
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {
       const riding = this.board();
-      built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.5; built.hoverDeck.opacity = riding ? 0.75 : 0.5;
+      built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
       const cam = rt?.world?.game.camera; if (cam && this.meadow) this.meadow.update(cam.position, t);
       built.millHub.rotation.z += dt * 0.35; FALL_TIME.value = t; built.storm.update(dt, t); built.wind.update(t);
       for (const v of built.vanes) v.rotor.rotation.y += dt * (flags.has(vaneFlag(v.id)) ? 6 : 0.25);

@@ -178,7 +178,9 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
 #endif
     vec2 cell = floor(q * 2.2); float pick = farMH(cell);
     float dot2 = 1.0 - smoothstep(0.12, 0.3, length(fract(q * 2.2) - 0.5));
-    if (pick > 0.93) diffuseColor.rgb = mix(diffuseColor.rgb, pick > 0.975 ? vec3(0.95, 0.78, 0.25) : vec3(0.95, 0.94, 0.9), dot2 * 0.85);
+    // painted daisies for the far view only: near the camera the meadow draws real flowers, and these read as bare tan discs
+    float farDots = smoothstep(14.0, 26.0, length(farWP - cameraPosition));
+    if (pick > 0.93) diffuseColor.rgb = mix(diffuseColor.rgb, pick > 0.975 ? vec3(0.95, 0.78, 0.25) : vec3(0.95, 0.94, 0.9), dot2 * 0.85 * farDots);
   } else {
     // the rock: toward a cool grey-brown (E392 targets), keeping a little of its warm strata
     float lum = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));

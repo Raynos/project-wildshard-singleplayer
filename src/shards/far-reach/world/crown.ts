@@ -121,7 +121,8 @@ function daisGeometry(): BufferGeometry {
 /** Pennant ropes between neighbouring stone tops (not across the entrance): a sagging cord, triangular flags hanging off it. */
 function pennants(stones: readonly Stone[]): { rope: BufferGeometry; flags: BufferGeometry } {
   const rope: number[] = [], flag: number[] = [], fcol: number[] = [];
-  const colors = [rgb(0x3f8f9a), rgb(0xf1e7d2), rgb(0x2f4f7a), rgb(0xd9a441)];
+  // muted navy, cream and faded teal and ochre (E399, mockup D's weathered pennants)
+  const colors = [rgb(0x4f7a7c), rgb(0xd9cdb4), rgb(0x34405a), rgb(0xb08a4a)];
   let f = 0;
   for (let i = 0; i + 1 < stones.length; i++) {
     const a = stones[i], b = stones[i + 1]; if (a === undefined || b === undefined) continue;
