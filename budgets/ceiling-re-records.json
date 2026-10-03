@@ -56,16 +56,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "8512344bd2073ad2b8abe2eef2431da37f7992a6",
-      "reason": "E407 top-10 rows 3, 4, 7, 8, 10 (fan leaf, meadow atlas, crown set, roc-hd 1024 map, LUT): measured at 8512344bd, phone limits 1.8 GB / 1.0 GB"
+      "commit": "822192931cf58252f1e17455149a540c09bf9a05",
+      "reason": "E410 Sky Reach leftovers built: the keeper set (lectern 1024 + lantern 512 maps) and the modelled windmill (tower + foot 1024 maps), measured at 822192931; inside the phone's 1.8 GB / 1.0 GB"
     },
     {
       "shard": "far-reach",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "8512344bd2073ad2b8abe2eef2431da37f7992a6",
-      "reason": "E407 top-10 rows 3, 4, 7, 8, 10 (fan leaf, meadow atlas, crown set, roc-hd 1024 map, LUT): measured at 8512344bd, phone limits 1.8 GB / 1.0 GB"
+      "commit": "822192931cf58252f1e17455149a540c09bf9a05",
+      "reason": "E410 Sky Reach leftovers built: the keeper set (lectern 1024 + lantern 512 maps) and the modelled windmill (tower + foot 1024 maps), measured at 822192931; inside the phone's 1.8 GB / 1.0 GB"
     }
   ]
 }
