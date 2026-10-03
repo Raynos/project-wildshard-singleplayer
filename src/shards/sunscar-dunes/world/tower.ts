@@ -9,7 +9,7 @@ import { kindling, litDune } from './places';
 // with a warm sheen; the deck a grating a step lighter, so the H4 deck view still reads (round 2, R1C-2)
 const WOOD = 0x3a322e, WOOD_DARK = 0x2a2420, IRON = 0x6e5e56;
 /** The lattice crown over the deck (m): corner posts to a top frame, then the antenna. */
-export const CROWN = { posts: 3.6, antenna: 5.2 } as const;
+export const CROWN = { posts: 7.5, antenna: 4.2 } as const; // E399 (council round 1, D4: the mockups' tower is about twice ours): ~20 m to the lamp
 export const STAIR = { count: 22, run: 0.42, width: 1.3, x: 0.75 } as const;
 
 export interface TowerParts { root: Group; colliders: ColliderDesc[]; fire: Group; light: PointLight; brazierAt: Vector3; deckY: number }
@@ -87,12 +87,17 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   const topY = deckY + CROWN.posts;
   for (const [x, z] of [[-edge, -edge], [edge, -edge], [-edge, edge], [edge, edge]] as const) add(box(0.12, CROWN.posts - railH, 0.12, wood), x, deckY + railH + (CROWN.posts - railH) / 2, z);
   for (const [x, z, w, d] of [[0, -edge, edge * 2, 0.1], [0, edge, edge * 2, 0.1], [-edge, 0, 0.1, edge * 2], [edge, 0, 0.1, edge * 2]] as const) add(box(w, 0.12, d, dark), x, topY, z);
-  const upH = CROWN.posts - railH, upSpan = Math.hypot(edge * 2, upH), upTilt = Math.atan2(upH, edge * 2);
-  for (const [side, along] of [[-1, 'x'], [-1, 'z'], [1, 'z']] as const) for (const lean of [-upTilt, upTilt]) {
-    const brace = box(0.06, 0.08, upSpan, dark);
-    if (along === 'x') { brace.rotation.set(0, Math.PI / 2, 0); brace.rotateX(lean); add(brace, 0, deckY + railH + upH / 2, side * edge); }
-    else { brace.rotateX(lean); add(brace, side * edge, deckY + railH + upH / 2, 0); }
+  // two tiers of X braces above the rail, a strut between them on all four faces
+  const upH = (CROWN.posts - railH) / 2, upSpan = Math.hypot(edge * 2, upH), upTilt = Math.atan2(upH, edge * 2);
+  for (let tier = 0; tier < 2; tier++) {
+    const mid = deckY + railH + upH * (tier + 0.5);
+    for (const [side, along] of [[-1, 'x'], [-1, 'z'], [1, 'z']] as const) for (const lean of [-upTilt, upTilt]) {
+      const brace = box(0.06, 0.08, upSpan, dark);
+      if (along === 'x') { brace.rotation.set(0, Math.PI / 2, 0); brace.rotateX(lean); add(brace, 0, mid, side * edge); }
+      else { brace.rotateX(lean); add(brace, side * edge, mid, 0); }
+    }
   }
+  for (const [x, z, w, d] of [[0, -edge, edge * 2, 0.08], [0, edge, edge * 2, 0.08], [-edge, 0, 0.08, edge * 2], [edge, 0, 0.08, edge * 2]] as const) add(box(w, 0.09, d, dark), x, deckY + railH + upH, z);
   // a pyramid of four rods from the top frame's corners to the antenna's foot
   const apex = new Vector3(0, topY + 1.4, 0);
   for (const [x, z] of [[-edge, -edge], [edge, -edge], [-edge, edge], [edge, edge]] as const) {
