@@ -38,7 +38,7 @@ void main() {
   // Loop 5 (the mockups A-D): a clear dusk. A deep orange band hugs the horizon, brightest behind the tower; above it a
   // short dusty-rose fade into a deep indigo dome full of stars. Clouds are only a few thin dark streaks low in the band.
   vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2)) * (1.0 - 0.4 * uDusk);
-  vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.17, 0.16, 0.32), indigo = vec3(0.065, 0.085, 0.2);
+  vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.2, 0.16, 0.27), indigo = vec3(0.08, 0.076, 0.16);
   // E399 (the mockups): a tall soft orange-gold band behind the tower, peach to rose, navy pushed higher
   // E399 (look/dusk.ts): as the quest goes on the band sinks and dims, the rose turns violet, the indigo comes down
   rose = mix(rose, vec3(0.3, 0.18, 0.3), uDusk);
@@ -51,18 +51,18 @@ void main() {
   // Thin streaks: dark, under-lit on the glow side, only in the band (3-10 degrees up).
   float az = atan(d.z, d.x);
   float streak = vNoise(skyRing(az, 7.0, h * 140.0)) * 0.65 + vNoise(skyRing(az, 21.0, h * 300.0 + 3.1)) * 0.35;
-  float cloud = smoothstep(0.58, 0.9, streak) * smoothstep(0.04, 0.08, h) * (1.0 - smoothstep(0.16, 0.3, h)) * 0.85; // mockup A: pink-lit streaks over the band
+  float cloud = smoothstep(0.58, 0.9, streak) * smoothstep(0.04, 0.08, h) * (1.0 - smoothstep(0.16, 0.3, h)) * 0.85 * (1.0 - smoothstep(0.1, 0.3, uDusk)); // mockup A: pink-lit streaks over the band; gone in the later steps (B, D)
   vec3 belly = mix(vec3(0.78, 0.36, 0.34), vec3(1.0, 0.52, 0.3), pow(toward, 2.0));
   c = mix(c, mix(vec3(0.22, 0.14, 0.2), belly, 0.55 + 0.4 * toward), cloud * 0.4);
   // E399 (council round 2: mockups A and dusk-fire have orange cloud banks lit from below; B-D are clear): a broken
   // deck projected on a flat layer, patchy, lit orange-gold toward the glow and rose away from it, dark cores; it clears
   // as the dusk deepens (look/dusk.ts), so the later steps' skies are clear as their mockups show.
   vec2 cp = d.xz / (h + 0.09);
-  cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(0.7, 1.9);
+  cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(2.0, 4.6); // small broken patches (mockup A), not smears
   float cn = vNoise(cp * 1.3) * 0.5 + vNoise(cp * 2.9 + 3.1) * 0.3 + vNoise(cp * 6.7 + 7.3) * 0.2;
-  float cov = smoothstep(0.54, 0.7, cn) * smoothstep(0.03, 0.07, h) * (1.0 - smoothstep(0.28, 0.5, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
+  float cov = smoothstep(0.58, 0.7, cn) * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.14, 0.3, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
   vec2 sunward = normalize(vec2(uSun.x, uSun.z) + 1e-4) * 0.18 / (h + 0.09);
-  vec2 cq = (cp + sunward * vec2(0.7, 1.9));
+  vec2 cq = (cp + sunward * vec2(2.0, 4.6));
   float cn2 = vNoise(cq * 1.3) * 0.5 + vNoise(cq * 2.9 + 3.1) * 0.3 + vNoise(cq * 6.7 + 7.3) * 0.2;
   float lit = clamp((cn - cn2) * 6.0 + 0.55, 0.0, 1.0);
   float hot = pow(toward, 1.4) * (1.0 - smoothstep(0.05, 0.3, h));

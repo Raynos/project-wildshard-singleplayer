@@ -105,7 +105,7 @@ export function rayGeometry(): BufferGeometry {
 }
 
 /** The ray's hide on the Matriarch's generated body (round 1): a lighter sand-brown back, a pale bone belly. */
-const RAY_TINT: MantaTint = { top: [1.55, 1.4, 1.25], belly: [0.62, 0.5, 0.4], bellyMix: 0.85 };
+const RAY_TINT: MantaTint = { top: [0.62, 0.52, 0.5], belly: [0.42, 0.3, 0.24], bellyMix: 0.7 }; // council round 2: a dark silhouette, not a pale card
 
 export const DUNE_RAY_LOOK: SpeciesLook = { id: 'sunscar.look.duneRay', species: DUNE_RAY.id, kind: 'duneRay', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'sunscar.duneRay', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
