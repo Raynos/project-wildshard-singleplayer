@@ -1,4 +1,5 @@
-import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
+import { ropeSag } from '../layout';
 import { fit, hdMaterial, skyHd, skyMesh, splitAbove } from './meshes';
 import { towerMill } from './mill';
 
@@ -77,23 +78,37 @@ function glassDeck(length: number, width: number, glass: MeshStandardMaterial): 
   return [slab, ...bars];
 }
 
+const ONE = new Vector3(1, 1, 1);
+/** The plank's tilt at `s` along the sag: its forward end follows the curve down then up. */
+function sagTilt(sag: (s: number) => number, s: number): Quaternion {
+  const ds = 0.05, slope = (sag(s + ds) - sag(s - ds)) / (2 * ds);
+  return new Quaternion().setFromEuler(new Euler(-Math.atan(slope), 0, 0));
+}
+/** A rope hung `at` metres over the deck line at `x`, sagging `k` times the deck's sag. */
+function hungRope(length: number, sag: (s: number) => number, x: number, at: number, k: number, radius: number): TubeGeometry {
+  const pts: Vector3[] = [];
+  for (let i = 0; i <= 16; i++) { const s = (i / 16) * length; pts.push(new Vector3(x, at - sag(s) * k, -s)); }
+  return new TubeGeometry(new CatmullRomCurve3(pts), 48, radius, 6, false);
+}
 /** A plank bridge along a local -Z run of `length` metres, `width` wide, deck top at local y 0. */
-export function plankBridge(length: number, width: number, material: MeshStandardMaterial, rails: MeshStandardMaterial | null): Group {
+export function plankBridge(length: number, width: number, material: MeshStandardMaterial, rails: MeshStandardMaterial | null, hangs = true): Group {
+  // a rigid deck (the crown's drawbridge swings up whole) does not sag
+  const sag = (s: number): number => hangs ? ropeSag(length, s) : 0;
   const group = new Group(), step = 0.62, count = Math.max(1, Math.floor(length / step)), m = new Matrix4();
   if (rails === null) { group.add(...glassDeck(length, width, material)); return group; }
-  // a rope bridge lays the generated plank segments when the kit loaded
-  const kit = kitDeck(length, width);
+  // a rope bridge lays the generated plank segments when the kit loaded, hanging along its sag (layout ropeSag)
+  const kit = kitDeck(length, width, sag);
   if (kit !== null) group.add(kit);
   else {
     const planks = new InstancedMesh(new BoxGeometry(width, 0.08, 0.5), material, count);
-    for (let i = 0; i < count; i++) { m.makeTranslation(0, -0.06, -(i + 0.5) * (length / count)); planks.setMatrixAt(i, m); }
+    for (let i = 0; i < count; i++) { const s = (i + 0.5) * (length / count); m.compose(new Vector3(0, -0.06 - sag(s), -s), sagTilt(sag, s), ONE); planks.setMatrixAt(i, m); }
     planks.computeBoundingSphere(); group.add(planks);
   }
   const posts = kitPosts(width, length);
   if (posts !== null) group.add(posts);
   for (const side of [-1, 1]) {
-    const rope = new Mesh(new BoxGeometry(0.06, 0.06, length), rails); rope.position.set(side * width / 2, 1, -length / 2); group.add(rope);
-    const low = new Mesh(new BoxGeometry(0.05, 0.05, length), rails); low.position.set(side * width / 2, 0.45, -length / 2); group.add(low);
+    // the hand ropes hang from post to post a little deeper than the planks (a rope sags more than a deck)
+    group.add(new Mesh(hungRope(length, sag, side * width / 2, 1, 1.1, 0.035), rails), new Mesh(hungRope(length, sag, side * width / 2, 0.45, 1.03, 0.028), rails));
     if (posts === null) for (const z of [0, -length]) { const post = new Mesh(new BoxGeometry(0.16, 1.3, 0.16), flat(PALETTE.trunk)); post.position.set(side * width / 2, 0.55, z); group.add(post); }
   }
   return group;
@@ -113,7 +128,7 @@ function greyWood(g: BufferGeometry): BufferGeometry {
 /** The rope-bridge kit (Hunyuan3D-2 from `art/far-reach/round-9-bridge/ref-bridge-*.jpg`): a plank deck segment about this long, and an anchor post this tall. */
 const DECK_SEGMENT = 4.8, POST_HEIGHT = 1.6;
 /** The generated deck segments laid end to end along local −Z, top at y 0, stretched to the span's width; null without the kit. */
-function kitDeck(length: number, width: number): InstancedMesh | null {
+function kitDeck(length: number, width: number, sag: (s: number) => number): InstancedMesh | null {
   const source = skyMesh('bridge-deck'); if (source === null) return null;
   // fitted along its long axis (x), then turned so that axis runs down the span
   const g = fit(source, { size: DECK_SEGMENT, by: 'span', floor: 0 }); g.rotateY(Math.PI / 2); g.computeBoundingBox();
@@ -124,7 +139,7 @@ function kitDeck(length: number, width: number): InstancedMesh | null {
   // weathered wood (E392: the mockups' planks are grey-brown, ours read saturated orange)
   greyWood(g);
   const mesh = new InstancedMesh(g, flat(0xffffff, { vertexColors: true }), n), m = new Matrix4();
-  for (let i = 0; i < n; i++) { m.makeTranslation(0, 0, -(i + 0.5) * seg); mesh.setMatrixAt(i, m); }
+  for (let i = 0; i < n; i++) { const s = (i + 0.5) * seg; m.compose(new Vector3(0, -sag(s), -s), sagTilt(sag, s), ONE); mesh.setMatrixAt(i, m); }
   mesh.computeBoundingSphere(); return mesh;
 }
 /**

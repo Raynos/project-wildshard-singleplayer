@@ -1,5 +1,17 @@
 /** Every coordinate in Sky Reach. Islands float over the cloud sea; each walkable top sits at its own `y`. */
 export const DECK = 30;
+/**
+ * A rope bridge's sag (E399, the council: 'a short level bridge'; the mockups' rope bridges hang in a curve over the
+ * drop): how far below the straight deck line the planks hang `s` metres along a span of `length`. Level for the first
+ * and last `ends` metres (over the rims), a sine dip between, `depth` of the length deep at most `max` metres; the
+ * steepest plank is ~9 degrees, far under the 40 degree climb.
+ */
+export const ROPE_SAG = { depth: 0.045, max: 1.6, ends: 1.6 } as const;
+export function ropeSag(length: number, s: number): number {
+  const run = length - 2 * ROPE_SAG.ends; if (run <= 0) return 0;
+  const t = Math.min(1, Math.max(0, (s - ROPE_SAG.ends) / run));
+  return Math.min(ROPE_SAG.max, ROPE_SAG.depth * length) * Math.sin(Math.PI * t);
+}
 /** The high islands: the step above the windmill and the storm crown. */
 export const HIGH = 44;
 /** How far a hover deck's collider starts clear of an island rim (Jake: a hover deck never touches a rim). */

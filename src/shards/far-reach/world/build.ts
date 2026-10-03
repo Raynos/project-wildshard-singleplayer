@@ -1,7 +1,7 @@
 import { boxDesc, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, type Isle, type Span } from '../layout';
+import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
@@ -47,6 +47,22 @@ function spanBox(span: Span, centre: [number, number, number], half: [number, nu
 export function deckCollider(span: Span): ColliderDesc {
   const len = spanLength(span);
   return spanBox(span, [0, -0.15, -len / 2], [span.width / 2, 0.15, len / 2], 'wood');
+}
+/**
+ * A rope span's deck and rails along its sag (layout ropeSag), as ~2 m chords, each its own short sloped span, overlapping
+ * a little so the joins have no seam (a chord sits at most a few mm above the curve).
+ */
+function saggedColliders(span: Span): ColliderDesc[] {
+  const len = spanLength(span), n = Math.max(1, Math.ceil(len / 2)), out: ColliderDesc[] = [];
+  const at = (s: number): { x: number; y: number; z: number } => {
+    const f = s / len; return { x: span.x0 + (span.x1 - span.x0) * f, y: span.y + (span.y1 - span.y) * f - ropeSag(len, s), z: span.z0 + (span.z1 - span.z0) * f };
+  };
+  for (let i = 0; i < n; i++) {
+    const a = at(Math.max(0, (i / n) * len - 0.05)), b = at(Math.min(len, ((i + 1) / n) * len + 0.05));
+    const chord: Span = { ...span, x0: a.x, z0: a.z, y: a.y, x1: b.x, z1: b.z, y1: b.y };
+    out.push(deckCollider(chord), ...railColliders(chord));
+  }
+  return out;
 }
 /** Rope rails along both long sides of a span. */
 function railColliders(span: Span): ColliderDesc[] {
@@ -126,7 +142,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
     const hover = span.kind === 'hover', length = spanLength(span), bridge = plankBridge(length, span.width, hover ? hoverDeck : plank, hover ? null : rope);
     bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ'); root.add(bridge);
     ctx.piece({ id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
-      colliders: hover ? [deckCollider(span)] : [deckCollider(span), ...railColliders(span)], surface: 'wood', ...(hover ? { active: isBoard } : {}) });
+      colliders: hover ? [deckCollider(span)] : saggedColliders(span), surface: 'wood', ...(hover ? { active: isBoard } : {}) });
   }
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
@@ -139,7 +155,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
   const state = { raised: false, raising: false };
-  const fallen = new Group(), deck = plankBridge(spanLength(FALLEN_BRIDGE), FALLEN_BRIDGE.width, plank, rope);
+  const fallen = new Group(), deck = plankBridge(spanLength(FALLEN_BRIDGE), FALLEN_BRIDGE.width, plank, rope, false);
   fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0); fallen.rotation.set(FALLEN_ANGLE, spanYaw(FALLEN_BRIDGE), 0, 'YXZ'); root.add(fallen);
   ctx.piece({ id: FALLEN_BRIDGE.id, name: STRINGS.fallen, category: 'buildings', file: FILE, object: fallen,
     colliders: [deckCollider(FALLEN_BRIDGE), ...railColliders(FALLEN_BRIDGE)], surface: 'wood', active: () => state.raised });
