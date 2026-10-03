@@ -1,5 +1,9 @@
 import { get, number, object, string } from './value.mjs';
 
+/** Jake (E424, 2026-10-03): GPU memory never trips below 500 MB, on any shard, in CI or locally. The recorded gpuMB
+ * ceilings stay as information; the enforced limit is never under this floor (the device limits are 1.8 GB / 1.0 GB). */
+export const GPU_MB_FLOOR = 500;
+
 /** Budget thresholds are class D. Metadata is information; pending/quarantine/ignore cannot hide a breach.
  * @param {import('./value.mjs').RecordValue} current */
 export function budgetChecks(current) {
@@ -7,8 +11,9 @@ export function budgetChecks(current) {
   for (const [pose, value] of Object.entries(object(current.budgets))) {
     const spec = object(value), derived = object(spec.derived), ceiling = object(spec.ceiling);
     for (const metric of ['draws', 'tris', 'programs', 'gpuMB']) {
-      const limit = ceiling[metric] ?? derived[metric];
-      if (limit === undefined || limit === null) continue;
+      const recorded = ceiling[metric] ?? derived[metric];
+      if (recorded === undefined || recorded === null) continue;
+      const limit = metric === 'gpuMB' ? Math.max(number(recorded), GPU_MB_FLOOR) : recorded;
       const path = metric === 'draws' ? `poses.${pose}.calls` : metric === 'tris' ? `poses.${pose}.tris` : metric === 'programs' ? 'boot.render.programs' : 'boot.gpuBytes.total';
       const specific = object(spec.observed)[metric];
       const observed = specific === undefined ? number(get(current, path)) / (metric === 'gpuMB' ? 2 ** 20 : 1) : number(specific);

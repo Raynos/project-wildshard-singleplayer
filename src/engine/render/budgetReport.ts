@@ -38,6 +38,9 @@ export function poseBudgets(id: string, tier: 'phone' | 'desktop', inputs: Budge
   }));
 }
 
+/** Jake (E424, 2026-10-03): GPU memory never trips below 500 MB; the recorded gpuMB ceilings stay as information. */
+export const GPU_MB_FLOOR = 500;
+
 /** Live readouts have no pinned pose; report the largest allowed recorded pose rather than a universal constant. */
 export function frameBudget(id: string, tier: 'phone' | 'desktop', inputs: BudgetInputs): BudgetLimits {
   const rows = Object.values(poseBudgets(id, tier, inputs, ['current']));
@@ -45,5 +48,6 @@ export function frameBudget(id: string, tier: 'phone' | 'desktop', inputs: Budge
     const limits = rows.map((row) => row.ceiling?.[metric] ?? row.derived?.[metric]).filter((n): n is number => typeof n === 'number');
     return limits.length === 0 ? null : Math.max(...limits);
   };
-  return { draws: max('draws'), tris: max('tris'), programs: max('programs'), gpuMB: max('gpuMB') };
+  const gpu = max('gpuMB');
+  return { draws: max('draws'), tris: max('tris'), programs: max('programs'), gpuMB: gpu === null ? null : Math.max(gpu, GPU_MB_FLOOR) };
 }
