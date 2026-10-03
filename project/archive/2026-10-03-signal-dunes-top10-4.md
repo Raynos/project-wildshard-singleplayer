@@ -1,6 +1,6 @@
 # Signal Dunes: the fourth top-10, toward 8/10 (E407, E409)
 
-**State:** `in progress` 2026-10-03: written by the lead after Signal Dunes passed Jake's 7.0 bar in round 25 (7.00). The active /goal still names **8/10** ("don't stop until 8/10"), so work continues toward 8.0 until Jake says to stop at 7. Built from round 25's frames (20261003-1458-a37cbc42) and its three seats. It supersedes SIGNAL-DUNES-TOP10-3 (archived).
+**State:** `dropped` 2026-10-03, archived the same day. Jake: "I just want both shards to finish the original top10" and "don't do a second top 10". Signal Dunes passed the 7.0 bar in round 25; work goes back to the original SIGNAL-DUNES-TOP10's open rows (7, the caravan camp as a modelled set; 10, the LUT re-fit).
 
 ## What separates 7.0 from 8.0 (zoom-out)
 

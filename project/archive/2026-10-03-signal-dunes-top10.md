@@ -64,11 +64,11 @@ terrain). Then rows 5 and 6, then rows 7–10. After each row: commit, capture, 
 |---|---|---|---|
 | 1 | signal-dunes | landed (round 15, redone again) | 662e6e99b: the WIND blows away from the spawn view (windward faces toward the camera, slip faces shaded beyond: toward the camera every slip face faced it in its own shade); the crest across the wind, ~50 m ahead and under the eye, crossing A's frame as its lit diagonal, peak 25 m; a dune behind the caravan; the caravan pad's ease 55 m (101 m levelled B's skyline). Dune-band shade share L/R: A 34/38 % (mockup 23/40), dusk-fire 39/36 % (mockup 19/45). Overlay: art/sunscar-dunes/round-22-landforms/overlay-A-duskfire-r15.jpg |
 | 2 | signal-dunes | landed (round 14) | look/render.ts: ripples only on gentle faces (gone on slip faces > ~26 deg) and fading out past 35-110 m; macro albedo at the dunes' scale (pale swept, warm deep, 0.9-1.1); a grazing-light sheen on lit faces; late-dusk facing darkening gated by tilt; keyAt d^0.7 (monotonic). Clean patch mockup / now: dusk-fire 73.8 / 74.6, A 57.4 / 77.0, B 39.7 / 32.4, C 32.3 / 34.8, D 34.5 / 36.8 |
-| 3 | signal-dunes | open | |
+| 3 | signal-dunes | landed (round 13) | 5ba40cc0b: the dune shadow re-baked on the new field, extended to +-520 m, sharper penumbra |
 | 4 | signal-dunes | landed (round 14; round 15 fit) | glove-hd3 via mockup-to-model (art/sunscar-dunes/round-23-glove: ref from mockup D, Hunyuan3D-2 full beat TRELLIS.2 (broken handle), its backdrop card cut in Blender, 18.9 k tris, 171 KB); ONE loose plaited loop as a code tube from the handle's top (whipModel LOOP), the double ring removed; the hold 0.22 m, lower right; board.jpg; round 15 (662e6e99b): 0.7 size, turned toward 3/4, the loop a closed ellipse beside the fist above DODGE / JUMP |
-| 5 | signal-dunes | open | |
-| 6 | signal-dunes | open | |
-| 7 | signal-dunes | open | |
-| 8 | signal-dunes | open | |
+| 5 | signal-dunes | landed (round 18, TOP10-2 row 2) | dc811cc20 and later: the painted dusk skies |
+| 6 | signal-dunes | landed (round 18, TOP10-2 row 3) | 653a4296f: the Mantaflow flipbook fire, glowing logs, smoke, the plinth's light |
+| 7 | signal-dunes | OPEN, the finish (Jake 2026-10-03: finish the original top-10) | so far lighting and smoke only (the lantern pool, the plume over the wagon); the modelled wagon, crates and horse are still to do |
+| 8 | signal-dunes | landed (round 19, TOP10-2 row 5) | 5baedc054: the ray's dusk patrol round the tower |
 | 9 | signal-dunes | landed (round 15) | quest/scout.ts SCOUT_AT: Sefa beside the spawn, 5 m right and a little behind (was 8 m ahead in the first frame); her pin and wave bring the player round; the shard README notes it |
 | 10 | signal-dunes | landed (round 16) | the learned LUT (public/assets/lut/sunscar-dunes.bin via loadLUT, a late read), fitted from the five mockups against round 15's frames: worst palette ΔE00 5.8 -> 2.9 measured on the captures (sunset sky 5.8 -> 2.9); art/sunscar-dunes/round-24-lut (README, regions, board-pred.jpg). Aerial perspective / dust haze stay with rows 3 and 5 |
