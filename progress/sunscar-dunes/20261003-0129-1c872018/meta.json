@@ -1,0 +1,176 @@
+{
+ "shard": "sunscar-dunes",
+ "sha": "1c872018f2bbec91c3492435bef1021f667df35e",
+ "when": "20261003-0129",
+ "label": "E399 round 6",
+ "loadSeconds": 6,
+ "shots": [
+  "first-frame",
+  "h1-spawn-crest",
+  "h2-caravan",
+  "h3-waymark",
+  "h4-tower-deck",
+  "aerial-spawn",
+  "aerial-overview",
+  "mock-dusk-fire",
+  "mock-A-spawn",
+  "mock-B-logbook",
+  "mock-C-waymark",
+  "mock-D-hands"
+ ],
+ "clip": true,
+ "programs": 54,
+ "staged": {
+  "mock-B-logbook": "logbook",
+  "mock-C-waymark": "waymarks-lit",
+  "mock-D-hands": "waymarks-lit"
+ },
+ "camAt": {
+  "h1-spawn-crest": {
+   "pos": [
+    0,
+    13.01,
+    70
+   ],
+   "dir": [
+    0,
+    -0.105,
+    -0.995
+   ],
+   "fov": 72
+  },
+  "h2-caravan": {
+   "pos": [
+    -64,
+    10.59,
+    38
+   ],
+   "dir": [
+    -0.809,
+    -0.105,
+    -0.578
+   ],
+   "fov": 72
+  },
+  "h3-waymark": {
+   "pos": [
+    56.6,
+    2.72,
+    -40.4
+   ],
+   "dir": [
+    0.21,
+    0.156,
+    0.965
+   ],
+   "fov": 72
+  },
+  "h4-tower-deck": {
+   "pos": [
+    8.4,
+    25.21,
+    -73
+   ],
+   "dir": [
+    -0.318,
+    -0.208,
+    -0.925
+   ],
+   "fov": 72
+  },
+  "aerial-spawn": {
+   "pos": [
+    0,
+    58,
+    125
+   ],
+   "dir": [
+    0,
+    -0.514,
+    -0.857
+   ],
+   "fov": 72
+  },
+  "aerial-overview": {
+   "pos": [
+    0,
+    250,
+    165
+   ],
+   "dir": [
+    0,
+    -0.773,
+    -0.634
+   ],
+   "fov": 72
+  },
+  "mock-dusk-fire": {
+   "pos": [
+    0,
+    13.01,
+    70
+   ],
+   "dir": [
+    0.171,
+    -0.174,
+    -0.97
+   ],
+   "fov": 72
+  },
+  "mock-A-spawn": {
+   "pos": [
+    0,
+    13.01,
+    70
+   ],
+   "dir": [
+    0,
+    -0.156,
+    -0.988
+   ],
+   "fov": 72
+  },
+  "mock-B-logbook": {
+   "pos": [
+    -58.8,
+    10.6,
+    42.1
+   ],
+   "dir": [
+    -0.806,
+    -0.052,
+    -0.59
+   ],
+   "fov": 72
+  },
+  "mock-C-waymark": {
+   "pos": [
+    -53.9,
+    5.86,
+    -17.2
+   ],
+   "dir": [
+    0.933,
+    -0.017,
+    -0.358
+   ],
+   "fov": 72
+  },
+  "mock-D-hands": {
+   "pos": [
+    118.02,
+    11.08,
+    87.99
+   ],
+   "dir": [
+    -0.719,
+    -0.017,
+    -0.695
+   ],
+   "fov": 72
+  }
+ },
+ "active": [],
+ "cameras": "d78968c7b3a011f4e320415406300cfe3f899fbb",
+ "pageErrors": []
+}
