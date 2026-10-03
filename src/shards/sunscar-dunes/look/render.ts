@@ -1,6 +1,6 @@
 import { DUSK, fillAt, keyAt } from './dusk';
 import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight } from 'three';
-import { DayCycle, loadLUT, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
+import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { GROUND_HALF } from '../layout';
 import { WIND } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
@@ -93,7 +93,13 @@ function sandGrainTexture(): DataTexture {
     data[i * 4 + 2] = Math.round(255 * Math.min(1, Math.max(0, 0.5 + dz * 0.9)));
     data[i * 4 + 3] = 255;
   }
+  // round 17 (the lead's restated rule: no term may change brightness by camera distance; seat B measured the grain fades
+  // 3.4 % dark at the camera): the shader subtracts the tile's own means, so every distance-faded grain term is zero-mean
+  let sumR = 0, sumGlint = 0;
+  const step01 = (a: number, b: number, v: number): number => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+  for (let i = 0; i < n * n; i++) { const r = (data[i * 4] ?? 0) / 255; sumR += r; sumGlint += step01(0.82, 0.95, r) - step01(0.82, 0.95, 1 - r); }
   const tex = new DataTexture(data, n, n, RGBAFormat, UnsignedByteType);
+  tex.userData['meanR'] = sumR / (n * n); tex.userData['meanGlint'] = sumGlint / (n * n);
   tex.wrapS = RepeatWrapping; tex.wrapT = RepeatWrapping; tex.magFilter = LinearFilter; tex.minFilter = LinearMipmapLinearFilter;
   tex.generateMipmaps = true; tex.anisotropy = 8; tex.needsUpdate = true; // round 5: at the grazing near view the plain mips blurred the grain to grey
   return tex;
@@ -158,17 +164,17 @@ export function signalDunesLook(): LookStrategy {
     },
     // No sun disc or halo (G25): the sun has just set; the dome paints the afterglow.
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },
-    backdrop: async ({ sky }) => {
-      // E407 row 10: the shard's learned grade, fitted from the five council mockups against round 15's frames
-      // (art/sunscar-dunes/round-24-lut)
-      const lut = await loadLUT('sunscar-dunes');
+    backdrop: ({ sky }) => {
+      // E407 row 10's learned grade (art/sunscar-dunes/round-24-lut) is out of the grade until the landforms settle (the lead
+      // and seat B after round 16: fitted before the wind went back, it dropped B's and dusk-fire's near sand ~7); its file
+      // stays a declared late read (boot/files.ts) for the re-fit
       const clock = duskClock(), keyColor = new Color();
       let hemi: HemisphereLight | null = null, hemiBase = 1;
       // round 10 (R9B-2: under every dusk horizon the far land is 2-4x the mockups', which put near-black land under a thin
       // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens
       let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null, fogDistBase = 0;
       const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x110b16);
-      return { clock, horizon: new Color(FOG.color), lut, clouds: dome,
+      return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
         // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
         bind: (targets) => {
@@ -187,7 +193,7 @@ export function signalDunesLook(): LookStrategy {
           // round 12 (D: a pale haze strip on the far land under the ranges; the mockup's land there near-black): thinner late
           if (fogDist) fogDist.value = fogDistBase * (1 - 0.8 * late);
         },
-        rebuild: () => undefined, attachPost: () => undefined };
+        rebuild: () => undefined, attachPost: () => undefined });
     },
     terrainPainter: { build: (terrain, field, scope) => {
       // 256: the baked height grid's own spacing (1.95 m; round 1, R1C-5: 192 blunted the crests)
@@ -205,6 +211,7 @@ export function signalDunesLook(): LookStrategy {
       const shadow = bakeDuneShadow((x, z) => skirtAt(gridAt, x, z)); scope.own(shadow);
       const trail = bakeTrail((x, z) => field.trailDistance(x, z)); scope.own(trail);
       const grain = sandGrainTexture(); scope.own(grain);
+      const grainMean = Number(grain.userData['meanR']).toFixed(4), glintMean = Number(grain.userData['meanGlint']).toFixed(4);
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i), z = pos.getZ(i), h = pos.getY(i);
         // Hollow vs crest: this vertex against the mean of a 14 m ring around it.
@@ -272,12 +279,12 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // round 16 (the lead's hard rule: no shader term may darken by distance from the camera): every term faded by distance is
   // zero-mean, so the fade changes only the detail, never the ground's brightness: the troughs' weighting carries its own
   // mean (0.7 / pi) back, the glints pair with as many dark specks
-  diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0 + 0.2228) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3
-    + (smoothstep(0.82, 0.95, sandTex.r) - smoothstep(0.82, 0.95, 1.0 - sandTex.r)) * 0.9 * (1.0 - smoothstep(3.0, 18.0, sandFar)) // grain glints near the camera (mockup A)
+  diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0 + 0.2228) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - ${grainMean}) * 0.3
+    + (smoothstep(0.82, 0.95, sandTex.r) - smoothstep(0.82, 0.95, 1.0 - sandTex.r) - ${glintMean}) * 0.9 * (1.0 - smoothstep(3.0, 18.0, sandFar)) // grain glints near the camera (mockup A)
     // a finer grain octave underfoot (round 5: the near sand's fine detail a third of the mockups')
-    + (texture2D(uSandGrain, vSandPos.xz * 2.3 + 0.37).r - 0.5) * 1.8 * (1.0 - smoothstep(4.0, 22.0, sandFar))
-    + (texture2D(uSandGrain, vSandPos.xz * 0.9 + 0.71).r - 0.5) * 1.3 * (1.0 - smoothstep(6.0, 30.0, sandFar))
-    + (texture2D(uSandGrain, vSandPos.xz * 0.28 + 0.13).r - 0.5) * 1.6 * (1.0 - smoothstep(8.0, 40.0, sandFar)); // cm-scale speckle (mockup dusk-fire)
+    + (texture2D(uSandGrain, vSandPos.xz * 2.3 + 0.37).r - ${grainMean}) * 1.8 * (1.0 - smoothstep(4.0, 22.0, sandFar))
+    + (texture2D(uSandGrain, vSandPos.xz * 0.9 + 0.71).r - ${grainMean}) * 1.3 * (1.0 - smoothstep(6.0, 30.0, sandFar))
+    + (texture2D(uSandGrain, vSandPos.xz * 0.28 + 0.13).r - ${grainMean}) * 1.6 * (1.0 - smoothstep(8.0, 40.0, sandFar)); // cm-scale speckle (mockup dusk-fire)
   // round 8 (the council since round 1: the near sand's fine detail half the mockups', 4.5 against 9 on the clean patch; the
   // grain tile's mips smear it): crisp procedural grain clumps in world space, ~1 and ~2 cm cells (the phone frame is
   // ~8 mm a pixel underfoot), each octave kept only while a pixel spans under a cell (no sparkle far off), and a rare
@@ -289,7 +296,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     float grainDusk = 1.0 - 0.75 * smoothstep(0.2, 0.6, uDusk);
     gA *= grainDusk; gB *= grainDusk;
     float grains = (sandN(gc) - 0.5) * 0.75 * gA + (sandN(gc2) - 0.5) * 0.7 * gB; // round 9: a quarter less (fine 12.6 against the mockups' 9)
-    float glint = step(0.985, sandH(floor(gc2))) * gB * 0.9;
+    float glint = (step(0.985, sandH(floor(gc2))) - 0.015) * gB * 0.9; // round 17: zero-mean (a hash's 1.5 % over 0.985)
     diffuseColor.rgb *= max(0.2, 1.0 + grains + glint);
   }
   // loop 4, surface variety (the council's baseline: the near sand read as one flat brown): broad tonal drifts (tens of
@@ -375,7 +382,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // (no distance gate: the lead after round 12, the clip's ground fell to 6-9 with black blots at the gate)
     // a tilted face only (flat sand has no facing; ungated, the near flats went dark too: B 26 / 39.7)
     // round 14 (the lead: it cut flat ground ~40 %, C's near sand 18 / 33): clearly turned away (toGlow < -0.1) and clearly tilted (> ~12 deg) only
-    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.65, 0.15, toGlow)) * smoothstep(0.06, 0.5, length(normalize(vSandN).xz)); // round 15 (the lead: hard-edged dark ovals on the dune faces in the clip): both windows widened, so the darkening rolls on with the facing
+    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.45, -0.05, toGlow)) * smoothstep(0.12, 0.4, length(normalize(vSandN).xz)); // round 15 (the lead: hard-edged dark ovals on the dune faces in the clip): windows widened; round 17 (seat C: round 15's reached faces toward the glow and nearly flat ground): back near round 14's, still soft
     reflectedLight.indirectDiffuse *= 1.0 - 0.45 * away; reflectedLight.directDiffuse *= 1.0 - 0.45 * away;
     // (round 15's late far-land darkening by distance from the camera is gone: the lead's hard rule after round 15, darkening
     // comes from facing, height, occlusion or the engine fog only)

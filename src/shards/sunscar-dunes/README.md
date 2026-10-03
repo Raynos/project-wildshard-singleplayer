@@ -15,7 +15,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `status`, `order` | `experimental`, 50 |
 | `style`, `kitLook` | `dusk`, `pbr` |
 | `uses` | `quests`, `coins`, `loot`, `hover` |
-| `ground` | `buildTerrain` over transverse dunes (`world/dunes.ts`), ±200 m playable: slip faces ~30° over long windward slopes, the wind blowing toward the spawn view (the far slip faces in shade, as the mockups draw them), authored landforms (`layout.ts` LANDFORMS: a crest across the wind from far-left to near-right, the tower's mound, a dune behind the caravan, waymark 0's rise; E407 row 1), a crest under the spawn, flat pads at the caravan and the well, the boss basin (a 56 m sand bowl), four crest trails |
+| `ground` | `buildTerrain` over transverse dunes (`world/dunes.ts`), ±200 m playable: slip faces ~30° over long windward slopes, the wind blowing toward the spawn view (the far slip faces in shade, as the mockups draw them), authored landforms (`layout.ts` LANDFORMS: round 13's low crest, mostly under the field so its receding rows show; the tower's mound; a dune 150 m out along B's view; waymark 0's 18 m rise; E407 row 1), a crest under the spawn, flat pads at the caravan and the well, the boss basin (a 56 m sand bowl), four crest trails |
 | `horizon`, `boundary` | two low dune rings in shadowed sand; no cloud sea; the drawn edge hidden (containment stays) |
 | `loadout` | the bullwhip (held) and the kit hoverboard |
 | `species` | `duneRay` (flying), `sandSkitterer` (burrowing packs), `duneStrider` (charger), `duneMatriarch` (the boss, flying): each its own brain |
@@ -24,7 +24,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `assets` | `public/assets/sunscar-dunes/models/` (C6: the caravan, the dry well, the waymark brazier and the dune strider, Hunyuan3D-2 GLBs, 240 KB); card art is a bundled SVG, every other model is code |
 | `dev.poses` | spawn, whip, ray, quest (standing) and the tower deck (eye only), in degrees |
 | saves | `sunscar.signal` (the quest reward was paid), the quest flags (`Flags`), the Matriarch's `bossesSave` entry |
-| quest start | Sefa the caravan scout stands beside the spawn, 5 m to the right and a little behind (`quest/scout.ts` SCOUT_AT; E407 row 9): the first look is the empty dune vista and the tower, as the mockups show; her pin and wave bring the player round to her |
+| quest start | Sefa the caravan scout stands beside the spawn, 8 m to the right and behind (round 17: at 5 m the tracker dropped her distance) (`quest/scout.ts` SCOUT_AT; E407 row 9): the first look is the empty dune vista and the tower, as the mockups show; her pin and wave bring the player round to her |
 
 ## Its custom code, and why
 

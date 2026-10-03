@@ -39,13 +39,14 @@ export const CREST_LINES: readonly { a: [number, number]; b: [number, number]; l
  * foot on the horizon and fills dusk-fire's middle band (its big dome).
  */
 export const LANDFORMS = {
-  // round 16 (the lead after round 15: put the shade where the mockups have it, against round 13's A at +0.49): ACROSS
-  // the wind, from far-left (20 m) to near-right (27 m), its slip face (downwind, toward the camera) 30 m wide. The dune
-  // band's 10 x 7 luma grid correlates with mock A at +0.50 and with dusk-fire at +0.25 (round 15: -0.08 / -0.28)
-  // the tower's mound; a dune behind the caravan (mock B), 21 m so it stays under the glow; waymark 0's rise (mock C's
-  // far brazier burns on it, 24 m)
-  crests: [{ pts: [[-46.9, -60.8, 20], [14.4, -9.3, 23.5], [75.7, 42.1, 27]] as [number, number, number][], w: 80, lee: 30, leeSide: 1, fade: 0.35, trough: 3 }],
-  mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }, { x: -118, z: -30, h: 21, r: 60 }, { x: BRAZIERS[0]?.x ?? 0, z: BRAZIERS[0]?.z ?? 0, h: 24, r: 66 }],
+  // round 17 (the lead and seat B after round 16: the 20-27 m crest stood over the 23 m eye, one shaded wall; the camera
+  // must look DOWN on receding lit crests, the tower's mound showing): round 13's low crest (the closest A by eye, its
+  // 7-13.5 m line mostly under the field, so the field's own receding rows show), measured inside the dune band only:
+  // in-band r A +0.23 / dusk-fire +0.30 (round 16: -0.01 / -0.51), A's lit box 52 (16: 32), lit share 19-22 % (mockups
+  // 15-25 %). Mounds: the tower's; a dune 150 m out along B's view, 17 m, under its glow; waymark 0's rise, 18 m (mock
+  // C's far brazier burns on it, under the glow)
+  crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }],
+  mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }, { x: -165, z: -64, h: 17, r: 60 }, { x: BRAZIERS[0]?.x ?? 0, z: BRAZIERS[0]?.z ?? 0, h: 18, r: 46 }],
 } as const;
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 // E399 (mockup C): each waymark on level sand too, its fire's pool flat round it
