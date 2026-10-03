@@ -154,7 +154,7 @@ const ROC_WING_ROOT = 1.1;
 /** The Roc's wingspan (metres). */
 // E399 (mockup D: a great eagle whose wings span the portrait frame from the arena's entrance; it was 11 m)
 // (round 7, the seats: mockup D's eagle spans ~0.96 of the portrait frame from the arena; at its lap ~33 m out that is ~20 m)
-const ROC_SPAN = 19;
+const ROC_SPAN = 16;
 const ROC_BONES = (head: number, headY: number, tail: number): BoneDef[] => [{ name: 'body', parent: null, pos: [0, 1.6, 0] },
   { name: 'head', parent: 'body', pos: [0, headY, head] }, { name: 'wingL', parent: 'body', pos: [ROC_WING_ROOT, 1.7, 0] },
   { name: 'wingR', parent: 'body', pos: [-ROC_WING_ROOT, 1.7, 0] }, { name: 'tail', parent: 'body', pos: [0, 1.5, tail] }];
@@ -229,10 +229,12 @@ function rocMesh(source: BufferGeometry): AnimalSpecies {
  * talons), generated from straight below in one plane, so it is pitched forward to fly with its painted side down. Its own paint is the map (the vertex colours stay white), fed back a little as emissive so
  * it reads against the low sun; rigged like the faceted one, so the wings flap.
  */
-const ROC_HD = { pitch: Math.PI / 2, selfLight: 0.35 } as const;
+// (top-10 row 8, art/far-reach/round-27-roc: the eagle from mockup D, modelled from the front: pitched into flight and
+// turned so its head leads)
+const ROC_HD = { pitch: 0.45, yaw: 0, selfLight: 0.35 } as const;
 function rocHd(m: SkyHd): AnimalSpecies {
   const g = m.geometry.toNonIndexed(); m.geometry.dispose();
-  fit(g, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: ROC_HD.pitch });
+  g.rotateY(ROC_HD.yaw); fit(g, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: ROC_HD.pitch });
   g.setAttribute('color', new Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
   const { bones, len } = rocRig(g);
   return { bones, furParts: [], eyeParts: [], hardParts: [g], dims: rocDims(len), map: m.map, facetJitter: 0, selfLight: ROC_HD.selfLight };

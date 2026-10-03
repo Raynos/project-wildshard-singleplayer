@@ -1,0 +1,3 @@
+# Sky Reach top-10 row 8: the hero Storm Roc (E407)
+
+Round 12: head-on the Roc did not read as an eagle (no head or beak, a flat bar of wings, grey lumps for feet). Codex refs of mockup D's eagle on white (refs/gen.py: eagle, front; eagle-b, three-quarter), BiRefNet, Hunyuan3D-2 turbo + paint, finish.sh 12k tris / 1024 WebP. The front one ships as public/assets/far-reach/models/roc-hd/roc-hd.glb (277 KB): its wings lie level along x, so the shard's auto-rig (rocRig) flaps them. It flies pitched 0.45 rad (head up, as mockup D shows its eagle), span 16 m. board-d.jpg: mockup D, then mock-D at settles 3.0 / 3.3 / 3.7 s (stage roc-opening: the fight's take-off toward the entrance). eagle-b (turntable only) lost to the front take.
