@@ -30,7 +30,9 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   // the cluster over the mill (round 8, the lead's ruling: the world follows mockup A, one broad overlapping cluster over
   // the windmill, which B and C see too and are scored on its finish): three crags at headings -9, -2 and +4 from the spawn,
   // 10-20 deg up, at three depths so they overlap; clear of l4 (o3's keel ran through its deck) and of the storm
-  isle('o1', -22, -150, 11, 72, 19, 4, Math.PI * 0.3), isle('o3', -6, -166, 12, 81, 18, 3, null), isle('o4', 11, -152, 9, 74, 16, 2, Math.PI * 0.8),
+  // (round 9, the seats: 0.58 of A's width against the mockup's 0.80, and high): larger and lower, headings -17 to +12, their
+  // keels down to ~6 deg, framing the mill's top and the low sun
+  isle('o1', -30, -148, 13, 66, 20, 4, Math.PI * 0.3), isle('o3', -4, -170, 14, 72, 22, 3, null), isle('o4', 20, -150, 11, 64, 18, 2, Math.PI * 0.8),
   isle('o2', 30, -290, 12, 40, 20, 4, Math.PI * 0.7),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),
