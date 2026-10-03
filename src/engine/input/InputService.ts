@@ -132,7 +132,9 @@ export class InputService {
       if (!(event instanceof KeyboardEvent)) return;
       if (this.keyCapture !== undefined && on) { event.preventDefault(); event.stopImmediatePropagation(); const run = this.keyCapture; this.keyCapture = undefined; run(event.code); return; }
       const target = event.target;
-      if (event.code !== 'Escape' && target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
+      // a key typed into a text field never presses an action; its release always lands, so a key held when a field took
+      // focus (W walking into a name box) is not stuck down after it (E355)
+      if (on && event.code !== 'Escape' && target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
       if (on && (event.repeat || event.metaKey || event.ctrlKey)) return;
       if (on) this.gesture();
       if (on) this.physical.add(event.code); else this.physical.delete(event.code); this.refresh();
