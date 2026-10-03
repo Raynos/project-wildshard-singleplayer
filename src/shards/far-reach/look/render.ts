@@ -1,6 +1,6 @@
 import { Color, Fog, Mesh, type Object3D, type Texture } from 'three';
 import { ToneMappingMode } from 'postprocessing';
-import { DayCycle, loadLUT, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
+import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
@@ -116,13 +116,13 @@ export async function skyReachLook(): Promise<LookStrategy> {
     // god rays from the painted sun (E398): the disc stays out of the frame, only the rays' source; the engine compass
     // faces (-sin az, cos az), the panorama heading (sin h, -cos h), so az = h + 180
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false, rays: { azimuth: (PANO_SUN.heading + 180) % 360, elevation: PANO_SUN.elevation } } },
-    // the shard grade (top-10 row 10): one learned LUT fitted from the five council mockups (scripts/fit-lut.py,
-    // art/far-reach/round-29-lut/), global; null while there is no file or Debug ▸ Look ▸ Learned LUT is Off
-    backdrop: async ({ sky }) => {
-      const clock = createDay(), key = new Color(SKY.key), lut = await loadLUT('far-reach');
-      return { clock, horizon: new Color(SKY.horizon), lut,
+    // no learned LUT (top-10 row 10): the first fit (art/far-reach/round-29-lut/) greyed C's sky and pushed C's and D's
+    // near ground and A's and C's highlights past their mockups when measured live (round 13), so it is out until a refit
+    backdrop: ({ sky }) => {
+      const clock = createDay(), key = new Color(SKY.key);
+      return Promise.resolve({ clock, horizon: new Color(SKY.horizon), lut: null,
         bind: () => undefined, update: (dt: number) => { clock.update(dt); sky.setKeyLight(SUN_DIR, key, 2); if (seaTime !== null) { seaTime.value += dt; glowUpdate?.(seaTime.value); } },
-        rebuild: () => undefined, attachPost: () => undefined };
+        rebuild: () => undefined, attachPost: () => undefined });
     },
   };
 }

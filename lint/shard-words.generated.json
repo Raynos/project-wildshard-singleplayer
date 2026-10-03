@@ -23,6 +23,7 @@
     "pine-hollow",
     "pine.creature.bear",
     "pine.creature.boar",
+    "pine.creature.elk",
     "Signal Dunes",
     "Sky Reach",
     "species.nalati.balbal",
@@ -153,6 +154,7 @@
       "ids": [
         "pine.creature.bear",
         "pine.creature.boar",
+        "pine.creature.elk",
         "weapon.crossbow",
         "weapon.lever",
         "weapon.longbow"
