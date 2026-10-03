@@ -9,6 +9,7 @@ import { CROWN_RING, crownArena, crownStones } from './crown';
 import { roost } from './roost';
 import { firSheet, firs } from './fir';
 import { SKY_ISLES } from './skyIsles';
+import { skyIsleModels } from './skyIsleHd';
 import { winchHouse } from './winchHouse';
 import { skyline } from './distant';
 import { PALETTE, flat, pines, plankBridge, vane, windmill, winch } from './shapes';
@@ -115,15 +116,20 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   // the sky around the archipelago (E392): decorative isles from the same builder, their own seeded stream
   let skySeed = 9001;
   const skyRnd = (): number => { skySeed = (skySeed * 16807) % 2147483647; return skySeed / 2147483647; };
+  // E392/E399: the textured floating-island models (world/skyIsleHd.ts) where they loaded, the code builder for the rest
   const skyGroup = new Group(); skyGroup.name = 'far.sky-isles';
+  const skyHd = skyIsleModels(SKY_ISLES); skyGroup.add(skyHd.group);
   for (const s of SKY_ISLES) {
-    const mesh = islandMesh(s, skyRnd); mesh.position.set(s.x, s.y, s.z); skyGroup.add(mesh);
+    const code = skyHd.fallback.includes(s);
+    if (code) { const mesh = islandMesh(s, skyRnd); mesh.position.set(s.x, s.y, s.z); skyGroup.add(mesh); }
     for (let k = 0; k < s.pines; k++) {
-      const a = skyRnd() * Math.PI * 2, d = s.r * (0.2 + skyRnd() * 0.55);
-      pineAt.push([s.x + Math.cos(a) * d, s.y, s.z + Math.sin(a) * d, 0.7 + skyRnd() * 0.5]);
+      const a = skyRnd() * Math.PI * 2, d = s.r * (0.2 + skyRnd() * 0.55), x = s.x + Math.cos(a) * d, z = s.z + Math.sin(a) * d, size = 0.7 + skyRnd() * 0.5;
+      // on a model, the fir stands on its turf (a little sunk), or not at all where the turf is not
+      const y = code ? s.y : skyHd.topAt(s, x, z); if (y !== null) pineAt.push([x, code ? y : y - 0.2, z, size]);
     }
   }
-  const skyDress = dressIslands(SKY_ISLES, 7321, false, 0.35); skyGroup.add(skyDress.group); root.add(skyGroup);
+  if (skyHd.fallback.length > 0) skyGroup.add(dressIslands(skyHd.fallback, 7321, false, 0.35).group);
+  root.add(skyGroup);
   ctx.piece({ id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE, object: skyGroup });
   // the card-branch firs when the branch sheet loaded (E392), else the code pines
   const sheet = firSheet(), forest = sheet !== null ? firs(pineAt, sheet) : pines(pineAt); root.add(forest);
@@ -132,7 +138,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const dress = dressIslands(); root.add(dress.group);
   ctx.piece({ id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE, object: dress.group });
   // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
-  const sky = skyline(ISLES); root.add(sky);
+  const sky = skyline(ISLES, (isle, a) => skyHd.lipAt(isle, a)); root.add(sky);
 
   const plank = flat(PALETTE.plank), rope = flat(PALETTE.rope);
   // faint glass while you walk (E399, the council: 'translucent rectangles' over the windmill isle from the spawn): the glowing

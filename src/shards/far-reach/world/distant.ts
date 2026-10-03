@@ -62,14 +62,17 @@ function fallMaterial(): ShaderMaterial {
       }` });
 }
 
-/** The falls, one instanced draw: each sheet hangs from its isle's lip, facing out. */
-export function skyline(isles: readonly Isle[]): Group {
+/**
+ * The falls, one instanced draw: each sheet hangs from its isle's lip, facing out. `lip` gives a modelled isle's rim
+ * radius at an angle (world/skyIsleHd.ts; null: the code isle's 12-gon), and the sheet hangs just inside it, under the turf.
+ */
+export function skyline(isles: readonly Isle[], lip: (isle: Isle, a: number) => number | null = () => null): Group {
   const group = new Group(), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
   const sky = SKY_ISLES.flatMap((s) => s.fall === null ? [] : [{ isle: s, a: s.fall, length: s.keel * 1.3 }]);
   const at = [...FALLS.flatMap(([id, a, length]) => { const isle = isles.find((i) => i.id === id); return isle === undefined ? [] : [{ isle, a, length }]; }), ...sky];
   const fall = fallGeometry(1, 1), falls = new InstancedMesh(fall, fallMaterial(), at.length);
   at.forEach(({ isle, a, length }, k) => {
-    const r = isle.r * Math.cos(Math.PI / 12) * 0.9, width = 1.8 + isle.r * 0.04;
+    const r = (lip(isle, a) ?? isle.r * Math.cos(Math.PI / 12)) * 0.9, width = 1.8 + isle.r * 0.04;
     q.setFromAxisAngle(up, Math.atan2(Math.cos(a), Math.sin(a)));
     m.compose(new Vector3(isle.x + Math.cos(a) * r, isle.y - 1.1, isle.z + Math.sin(a) * r), q, new Vector3(width, length, 1)); falls.setMatrixAt(k, m);
   });
