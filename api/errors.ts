@@ -13,7 +13,7 @@
  * `pnpm inbox:pull` (scripts/inbox-pull.mjs), which drops them into `.review/inbox/` as category `error`.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { get, list, put, type ListBlobResult } from '@vercel/blob';
+import { blobStore, type BlobPage } from './_blobStore';
 
 export const MAX_ERROR_BODY_BYTES = 16 * 1024;
 export const MAX_MESSAGE_CHARS = 500;
@@ -144,7 +144,7 @@ export async function POST(req: Request): Promise<Response> {
   const id = newId();
   const record = errorRecord(body, id, req.headers.get('user-agent') ?? '');
   if (!record) return json(req, 400, { error: 'empty message' });
-  await put(`${PREFIX}${id}.json`, JSON.stringify(record, null, 2), { access: 'private', addRandomSuffix: false, contentType: 'application/json' });
+  await blobStore().put(`${PREFIX}${id}.json`, JSON.stringify(record, null, 2), { access: 'private', addRandomSuffix: false, contentType: 'application/json' });
   return json(req, 200, { id });
 }
 
@@ -152,7 +152,7 @@ async function listIds(): Promise<{ id: string; uploadedAt: string; size: number
   const out: { id: string; uploadedAt: string; size: number }[] = [];
   let cursor: string | undefined = undefined;
   do {
-    const page: ListBlobResult = await list({ prefix: PREFIX, limit: 1000, ...(cursor === undefined ? {} : { cursor }) });
+    const page: BlobPage = await blobStore().list({ prefix: PREFIX, limit: 1000, ...(cursor === undefined ? {} : { cursor }) });
     for (const b of page.blobs) {
       const id = /^errors\/(?<id>.+)\.json$/u.exec(b.pathname)?.groups?.['id'];
       if (id !== undefined) out.push({ id, uploadedAt: new Date(b.uploadedAt).toISOString(), size: b.size });
@@ -175,7 +175,7 @@ export async function GET(req: Request): Promise<Response> {
     return json(req, 200, { entries });
   }
   if (!ID_RE.test(id)) return json(req, 400, { error: 'bad id' });
-  const hit = await get(`${PREFIX}${id}.json`, { access: 'private', useCache: false });
+  const hit = await blobStore().get(`${PREFIX}${id}.json`, { access: 'private', useCache: false });
   if (!hit?.stream) return json(req, 404, { error: 'not found' });
   return new Response(hit.stream, { status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...corsHeaders(req) } });
 }

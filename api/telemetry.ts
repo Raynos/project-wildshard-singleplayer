@@ -1,6 +1,6 @@
 /** Anonymous session/analytics records, private Blob reads and rolling thirty-day retention (E357 X8). */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { del, get, list, put, type ListBlobResult } from '@vercel/blob';
+import { blobStore, type BlobPage } from './_blobStore';
 
 const PREFIX = 'telemetry/';
 const DAY = 86_400_000;
@@ -63,11 +63,11 @@ export function cleanRecord(body: unknown, now = new Date()): TelemetryRecord | 
   }
   return { ...base, kind: 'analytics', events };
 }
-async function blobs(): Promise<ListBlobResult['blobs']> {
-  const result: ListBlobResult['blobs'] = [];
+async function blobs(): Promise<BlobPage['blobs']> {
+  const result: BlobPage['blobs'] = [];
   let cursor: string | undefined = undefined;
   do {
-    const page: ListBlobResult = await list({ prefix: PREFIX, limit: 1000, ...(cursor === undefined ? {} : { cursor }) });
+    const page: BlobPage = await blobStore().list({ prefix: PREFIX, limit: 1000, ...(cursor === undefined ? {} : { cursor }) });
     result.push(...page.blobs); cursor = page.hasMore ? page.cursor : undefined;
   } while (cursor !== undefined);
   return result;
@@ -81,9 +81,9 @@ export async function POST(req: Request): Promise<Response> {
   if (!process.env['BLOB_READ_WRITE_TOKEN']) return json(req, 503, { error: 'telemetry not configured' });
   if (limited(req)) return json(req, 429, { error: 'slow down' });
   const id = `${now.toISOString().replaceAll(':', '-')}-${randomBytes(4).toString('hex')}`;
-  await put(`${PREFIX}${now.toISOString().slice(0, 10)}/${id}.json`, JSON.stringify(record), { access: 'private', addRandomSuffix: false, contentType: 'application/json' });
+  await blobStore().put(`${PREFIX}${now.toISOString().slice(0, 10)}/${id}.json`, JSON.stringify(record), { access: 'private', addRandomSuffix: false, contentType: 'application/json' });
   const expired = (await blobs()).filter((blob) => new Date(blob.uploadedAt).getTime() < now.getTime() - 30 * DAY).map((blob) => blob.pathname);
-  if (expired.length > 0) await del(expired);
+  if (expired.length > 0) await blobStore().del(expired);
   return json(req, 200, { id });
 }
 export function buildRates(records: readonly TelemetryRecord[], n: number): { build: string; sessions: number; crashFree: number }[] {
@@ -111,7 +111,7 @@ export async function GET(req: Request): Promise<Response> {
   const records: TelemetryRecord[] = [];
   for (const blob of await blobs()) {
     if (day !== null && !blob.pathname.startsWith(`${PREFIX}${day}/`)) continue;
-    const hit = await get(blob.pathname, { access: 'private', useCache: false });
+    const hit = await blobStore().get(blob.pathname, { access: 'private', useCache: false });
     if (!hit?.stream) continue;
     const value: unknown = await new Response(hit.stream).json();
     if (object(value) && typeof value['receivedAt'] === 'string') {

@@ -1,11 +1,13 @@
 // api/inbox.ts — the review inbox's guards (password, rate limit, body caps, JPEG sniff); Vercel Blob is mocked.
 import { Buffer } from 'node:buffer';
+import { POST, OPTIONS, clientIp, decodeScreenshot, newId, parseCategory, passwordOk, rateLimited, resetRateLimit, MAX_BODY_BYTES } from '../api/inbox';
+import { useBlobStore } from '../api/_blobStore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const put = vi.fn<(path: string, body: unknown, opts: unknown) => Promise<unknown>>(() => Promise.resolve({}));
-vi.mock('@vercel/blob', () => ({ put, list: vi.fn(), get: vi.fn() }));
+// the API's blob store is installed here, not mocked (E422: api/_blobStore.ts)
+useBlobStore({ put, list: vi.fn(() => Promise.resolve({ blobs: [], hasMore: false })), get: vi.fn(() => Promise.resolve(null)), del: vi.fn(() => Promise.resolve()) });
 
-const { POST, OPTIONS, clientIp, decodeScreenshot, newId, parseCategory, passwordOk, rateLimited, resetRateLimit, MAX_BODY_BYTES } = await import('../api/inbox');
 
 const PW = 'test-pass-42';
 const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10]).toString('base64');

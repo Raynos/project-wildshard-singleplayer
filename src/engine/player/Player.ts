@@ -4,7 +4,7 @@ import { dodgeFx, dodgeEnv } from './dodge';
 import * as THREE from 'three';
 import { heightAt } from '../world/Heightfield';
 import { app } from '../app/runtime';
-import { WaterLine } from './WaterLine';
+import { WaterLine, type WaterLineView } from './WaterLine';
 import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
 import { getNumber } from '../ui/Settings';
 import { lockOn, targetRadius } from './AimTargets';
@@ -145,7 +145,7 @@ export class Player {
   /** one swim stroke while moving through water (audio) */
   onStroke?: () => void;
   private inWater = false; private strokeTime = 0; private climbTo: number | null = null; private climbCooldown = 0; private entryKeep = 0.3;
-  private readonly waterLine = new WaterLine();
+  private readonly waterLine: WaterLineView;
   /** Ground grace window, authored by the active level. */
   coyoteMs = 100;
   private groundedAgo = Infinity;
@@ -211,7 +211,9 @@ export class Player {
   get dodging(): boolean { return this.dodgeT > 0; }
   private dodgeT = 0;
 
-  constructor(public camera: THREE.PerspectiveCamera, private readonly physics: Physics, private canvas: HTMLCanvasElement) {
+  /** `waterLine`: the swimming water-line view (the DOM WaterLine by default; a test or a headless tool passes its own) */
+  constructor(public camera: THREE.PerspectiveCamera, private readonly physics: Physics, private canvas: HTMLCanvasElement, views: { waterLine?: WaterLineView } = {}) {
+    this.waterLine = views.waterLine ?? new WaterLine();
     this.motor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner: this, weight: 80 });
   }
 

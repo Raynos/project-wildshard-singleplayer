@@ -44,7 +44,10 @@ const ABOVE = 'linear-gradient(180deg, rgba(20,90,110,0) 42%, rgba(24,110,130,0.
 const UNDER = 'linear-gradient(180deg, rgba(40,170,190,0.18) 0%, rgba(18,120,150,0.24) 55%, rgba(8,70,100,0.34) 100%)';
 const HINTS = ['', '<b>Space</b>Dive', '<b>Space</b>Dive <b>Shift</b>Surface'] as const;
 
-export class WaterLine {
+/** what the player drives: the eye's height over the surface each frame, and the dive hint */
+export interface WaterLineView { update: (eyeAboveSurface: number, dt: number) => void; setHint: (state: 0 | 1 | 2) => void }
+
+export class WaterLine implements WaterLineView {
   readonly scope = uiScope('waterLine');
   private el: HTMLDivElement;
   private deep: HTMLElement;

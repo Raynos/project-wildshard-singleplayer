@@ -1,17 +1,19 @@
 // api/errors.ts — client error reports: open POST (capped, clamped, rate-limited), password-gated reads; Vercel Blob is mocked.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { POST, GET, OPTIONS, cleanContext, errorRecord, errorRateLimited, resetErrorRateLimit, MAX_ERROR_BODY_BYTES, MAX_STACK_CHARS, ERROR_RATE_PER_MIN } from '../api/errors';
+import { useBlobStore } from '../api/_blobStore';
 
 const put = vi.fn<(path: string, body: unknown, opts: unknown) => Promise<unknown>>(() => Promise.resolve({}));
 const list = vi.fn(() => Promise.resolve({
   blobs: [
-    { pathname: 'errors/2026-09-25T10-00-00.000Z-aaaaaaaa.json', uploadedAt: '2026-09-25T10:00:00Z', size: 10 },
-    { pathname: 'errors/2026-09-25T11-00-00.000Z-bbbbbbbb.json', uploadedAt: '2026-09-25T11:00:00Z', size: 20 },
+    { pathname: 'errors/2026-09-25T10-00-00.000Z-aaaaaaaa.json', uploadedAt: new Date('2026-09-25T10:00:00Z'), size: 10 },
+    { pathname: 'errors/2026-09-25T11-00-00.000Z-bbbbbbbb.json', uploadedAt: new Date('2026-09-25T11:00:00Z'), size: 20 },
   ],
   hasMore: false,
 }));
-vi.mock('@vercel/blob', () => ({ put, list, get: vi.fn() }));
+// the API's blob store is installed here, not mocked (E422: api/_blobStore.ts)
+useBlobStore({ put, list, get: vi.fn(() => Promise.resolve(null)), del: vi.fn(() => Promise.resolve()) });
 
-const { POST, GET, OPTIONS, cleanContext, errorRecord, errorRateLimited, resetErrorRateLimit, MAX_ERROR_BODY_BYTES, MAX_STACK_CHARS, ERROR_RATE_PER_MIN } = await import('../api/errors');
 
 const PW = 'test-pass-42';
 const post = (body: unknown, ip = '1.2.3.4'): Request =>

@@ -12,7 +12,7 @@
  * `src/ui/Feedback.ts`; the pull side is `scripts/inbox-pull.mjs` (`pnpm inbox:pull`). Ported from trials-gauntlet.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { get, list, put, type ListBlobResult } from '@vercel/blob';
+import { blobStore, type BlobPage } from './_blobStore';
 
 export const MAX_BODY_BYTES = 1024 * 1024;
 export const MAX_NOTE_CHARS = 4000;
@@ -136,8 +136,8 @@ export async function POST(req: Request): Promise<Response> {
     ip: clientIp(req),
     ua: req.headers.get('user-agent') ?? '',
   };
-  await put(`${PREFIX}${id}.json`, JSON.stringify(record, null, 2), { access: 'private', addRandomSuffix: false, contentType: 'application/json' });
-  if (jpg) await put(`${PREFIX}${id}.jpg`, jpg, { access: 'private', addRandomSuffix: false, contentType: 'image/jpeg' });
+  await blobStore().put(`${PREFIX}${id}.json`, JSON.stringify(record, null, 2), { access: 'private', addRandomSuffix: false, contentType: 'application/json' });
+  if (jpg) await blobStore().put(`${PREFIX}${id}.jpg`, jpg, { access: 'private', addRandomSuffix: false, contentType: 'image/jpeg' });
   return json(req, 200, { id });
 }
 
@@ -145,7 +145,7 @@ async function listEntries(): Promise<InboxEntry[]> {
   const byId = new Map<string, InboxEntry>();
   let cursor: string | undefined = undefined;
   do {
-    const page: ListBlobResult = await list({ prefix: PREFIX, limit: 1000, ...(cursor === undefined ? {} : { cursor }) });
+    const page: BlobPage = await blobStore().list({ prefix: PREFIX, limit: 1000, ...(cursor === undefined ? {} : { cursor }) });
     for (const b of page.blobs) {
       const m = /^inbox\/(?<id>.+)\.(?<ext>json|jpg)$/u.exec(b.pathname);
       const id = m?.groups?.['id'];
@@ -170,7 +170,7 @@ export async function GET(req: Request): Promise<Response> {
   if (id === null) return json(req, 200, { entries: await listEntries() });
   if (!ID_RE.test(id)) return json(req, 400, { error: 'bad id' });
   const file = url.searchParams.get('file') === 'jpg' ? 'jpg' : 'json';
-  const hit = await get(`${PREFIX}${id}.${file}`, { access: 'private', useCache: false });
+  const hit = await blobStore().get(`${PREFIX}${id}.${file}`, { access: 'private', useCache: false });
   if (!hit?.stream) return json(req, 404, { error: 'not found' });
   return new Response(hit.stream, {
     status: 200,

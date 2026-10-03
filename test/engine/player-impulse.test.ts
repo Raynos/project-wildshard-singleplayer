@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, afterAll } from 'vitest';
+import { describe, expect, it, afterAll } from 'vitest';
 import { overrideTerrain } from '#engine/world/Heightfield';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { app, PlayerHealth, Scope } from '#engine';
@@ -12,14 +12,13 @@ import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 // a flat, dry world through the terrain port, not a module mock (E422)
 const restoreTerrain = overrideTerrain({ heightAt: () => 0 });
 afterAll(restoreTerrain);
-vi.mock('#engine/player/WaterLine', () => ({ WaterLine: class { readonly visible = false; } }));
 
 async function fixture(board: boolean, wall = false, ceiling = false) {
   const R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()), physics = new Physics(R);
   physics.world.createCollider(R.ColliderDesc.cuboid(50, 0.5, 50).setTranslation(0, -0.5, 0).setCollisionGroups(groups('WORLD')));
   if (wall) physics.world.createCollider(R.ColliderDesc.cuboid(0.1, 20, 10).setTranslation(1, 10, 0).setCollisionGroups(groups('WORLD')));
   if (ceiling) physics.world.createCollider(R.ColliderDesc.cuboid(10, 0.1, 10).setTranslation(0, 3, 0).setCollisionGroups(groups('WORLD')));
-  const player = new Player(new PerspectiveCamera(), physics, legacyDouble<HTMLCanvasElement>({}));
+  const player = new Player(new PerspectiveCamera(), physics, legacyDouble<HTMLCanvasElement>({}), { waterLine: { update: () => undefined, setHint: () => undefined } });
   player.spawn(0, 0, 0, board ? 0.45 : 0.02); player.setHover(board);
   const scope = new Scope('player-impulse'), previous = app.levelScope;
   app.levelScope = scope;

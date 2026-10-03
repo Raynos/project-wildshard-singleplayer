@@ -1,4 +1,4 @@
-import { expect, it, vi, afterAll } from 'vitest';
+import { expect, it, afterAll } from 'vitest';
 import { overrideTerrain } from '#engine/world/Heightfield';
 import { PerspectiveCamera } from 'three';
 import { Events, Scope } from '#engine';
@@ -13,14 +13,13 @@ import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 // a flat, dry world through the terrain port, not a module mock (E422)
 const restoreTerrain = overrideTerrain({ heightAt: () => 0 });
 afterAll(restoreTerrain);
-vi.mock('#engine/player/WaterLine', () => ({ WaterLine: class { readonly visible = false; } }));
 
 async function fixture(crouchEnabled = true) {
   const R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()), physics = new Physics(R);
   physics.world.createCollider(R.ColliderDesc.cuboid(50, 0.5, 50).setTranslation(0, -0.5, 0).setCollisionGroups(groups('WORLD')));
   physics.step();
   let now = 0, jumps = 0; const launches: number[] = [];
-  const input = new InputService(() => now), player = new Player(new PerspectiveCamera(), physics, legacyDouble<HTMLCanvasElement>({}));
+  const input = new InputService(() => now), player = new Player(new PerspectiveCamera(), physics, legacyDouble<HTMLCanvasElement>({}), { waterLine: { update: () => undefined, setHint: () => undefined } });
   const events = new Events(), scope = new Scope('test-crouch');
   player.traversalEvents = events;
   if (crouchEnabled) events.answer('player.crouch', () => ({ allowed: true, latched: false }), scope);
