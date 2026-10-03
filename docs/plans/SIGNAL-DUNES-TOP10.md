@@ -1,6 +1,6 @@
 # Signal Dunes: the top 10 levers to the mockups (E407)
 
-**State:** `in progress` 2026-10-03: written by the lead from the zoom-out audit (Jake: "when in doubt, zoom out … go big or go home"); the signal-dunes builder works it row by row in place of the council's small fixes; the council keeps scoring each batch (bar 7.0, ledger 4 as amended).
+**State:** `in progress` 2026-10-03: rows 1-4 landed (authored landforms with the wind flipped, the re-baked dune shadow, the sand material, the glove and loop) and row 9 (Sefa beside the spawn view); council round 15 6.57 (bar 7.0). **Phase: detail** (E409: the first batch is in, so the seats' ranked findings are the work list); rows 5-8 and 10 wait for the next zoom-out. Sky Reach passed and is archived.
 
 ## Why the game sits at 6.6 when the mockups are the target (first principles)
 
