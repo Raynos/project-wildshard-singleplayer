@@ -1,6 +1,6 @@
 ---
 name: worldclaw-interactive
-description: DRAFT (E359). Usable once WORLDCLAW-SHARD's N/F/X/E/T rows land. New shards only (D90): existing shards keep their own plans. Build a WorldClaw shard WITH Jake in the loop (guided) - the start questions; the front on images (three pitches, art direction + style bible, concepts, the map in two waves from a 3D blockout, the content boards with a 2x2 board per quest step, first-person views); the verb gate after the mockups; the grey session-slice gate; re-targeting; the build with a checkpoint per place (Frame · Form · Play · Pin), WorldClaw's techniques on every seen band; the final board, Jake's first walk and polish rounds. It absorbed shard-checkpoints (D80: its build is a checkpoint per place). Also a director's single-stage entry and resume. Use when asked to "make / build / WorldClaw a shard (with me)", "resume <slug>" on a guided shard, or by a director for one stage. Zero-shot runs use worldclaw-auto; fast low-poly big-picture rounds use worldclaw-sketch; single models use mockup-to-model.
+description: DRAFT (E359). Usable once WORLDCLAW-SHARD's N/F/X/E/T rows land. New shards only (D90): existing shards keep their own plans; the one exception is a director's single stage, on any shard (D91). Build a WorldClaw shard WITH Jake in the loop (guided) - the start questions; the front on images (three pitches, art direction + style bible, concepts, the map in two waves from a 3D blockout, the content boards with a 2x2 board per quest step, first-person views); the verb gate after the mockups; the grey session-slice gate; re-targeting; the build with a checkpoint per place (Frame · Form · Play · Pin), WorldClaw's techniques on every seen band; the final board, Jake's first walk and polish rounds. It absorbed shard-checkpoints (D80: its build is a checkpoint per place). Also a director's single-stage entry and resume. Use when asked to "make / build / WorldClaw a shard (with me)", "resume <slug>" on a guided shard, or by a director for one stage. Zero-shot runs use worldclaw-auto; fast low-poly big-picture rounds use worldclaw-sketch; single models use mockup-to-model.
 ---
 
 # WorldClaw, interactive: Jake's vision to a fun, polished shard
@@ -21,7 +21,7 @@ first-walk notes (06 §10.5). Content and world are designed together and get eq
 
 ## 0. Dispatch, in this order
 
-1. **Single stage:** a director asked for one stage → §S, even when the shard already has a `design.md`.
+1. **Single stage:** a director asked for one stage → §S, on any shard (D91), even when the shard already has a `design.md`.
 2. **Zero-shot** (`zero-shot …`, or `resume <slug>` of a shard whose §run `mode` is zero-shot) → use `worldclaw-auto`.
 3. **Resume** (`resume <slug>`, or any invocation naming a shard whose `src/shards/<slug>/design/design.md` exists) →
    read §run (`mode`, P0's answers, `step`, `waitingOn`, `next`) and the last Handoff.
@@ -240,7 +240,7 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
 - **Polish rounds** (the old iterative flow, D62): after P17, Jake picks an area or a note; one place at a time: a
   composition + a built view at the same camera → his GO or revision → bakes + walk + budgets. Leftovers stay asks.
 
-## S. Single-stage entry (a director's call; 06 §9, §10.2)
+## S. Single-stage entry (a director's call, on any shard; D91; 06 §9, §10.2)
 
 1. **Input:** the slug, the stage, the region or slice.
 2. Read the stage's **files** from 06 §10.2. On a director's shard without a `spec.json`, write a slice spec

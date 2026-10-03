@@ -419,7 +419,7 @@ The shard's `docs/SHARDS.md` section links `design.md` (plan §7 Q2).
 | P14–P17 | T10, T11, T12, T13, drain-inbox | the build | board, time-lapse, reading, score |
 | P18 | S1's draft, T12, T18 | a sentence | a judged front ("until P5") |
 | P19 | P18's shard, T18 | P18's design.md | a P8-clean grey shard + board ("until P8") |
-| **Single stage** | the stage's rows | **the stage's files**. On a director's shard without a `spec.json`: write a **slice spec** (`spec-check --scope slice`, T1) from the director's design, and **keep the shard's existing terrain** (T17 runs content-only). A content-only P8 reads the slice spec and the shard's existing terrain (no region weights); twin-check is skipped, logged, when the design has no machine block [R4-B8, R4-C10]. Any other missing file → stop and name it. Targets are needed only from P10 on | the stage's writes only, logged in the verdict log; a slice-scoped P8 gates the slice's legs, reach and T16, and logs the rest as untested |
+| **Single stage** (any shard, D91) | the stage's rows | **the stage's files**. On a director's shard without a `spec.json`: write a **slice spec** (`spec-check --scope slice`, T1) from the director's design, and **keep the shard's existing terrain** (T17 runs content-only). A content-only P8 reads the slice spec and the shard's existing terrain (no region weights); twin-check is skipped, logged, when the design has no machine block [R4-B8, R4-C10]. Any other missing file → stop and name it. Targets are needed only from P10 on | the stage's writes only, logged in the verdict log; a slice-scoped P8 gates the slice's legs, reach and T16, and logs the rest as untested |
 
 **spec-check's rules** (T1):
 - the required roles;
