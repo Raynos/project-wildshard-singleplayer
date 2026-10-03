@@ -177,6 +177,9 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     // (round 6: between the tufts its pale patches read as the crudest surface at the bottom of C, D and proposal B)
     diffuseColor.rgb = mix(diffuseColor.rgb, mt * (0.5 + 0.45 * swell) * (0.85 + 0.2 * tuft) * vec3(0.5, 0.58, 0.4), 0.9);
 #endif
+    // E407 row 4: the ground under the nearest sward (world/meadow.ts, its dense inner tiles) lies in the blades' shade, so its
+    // gaps read as depth in the grass (the mockups' dark roots), not lit flat ground; past the blades it is the lit top
+    diffuseColor.rgb *= mix(0.72, 1.0, smoothstep(4.0, 12.0, length(farWP.xz - cameraPosition.xz)));
     vec2 cell = floor(q * 2.2); float pick = farMH(cell);
     float dot2 = 1.0 - smoothstep(0.12, 0.3, length(fract(q * 2.2) - 0.5));
     // painted daisies for the far view only: near the camera the meadow draws real flowers, and these read as bare tan discs

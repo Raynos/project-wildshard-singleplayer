@@ -12,8 +12,9 @@ import { SWARD_ATLAS, swardAtlas } from './swardAtlas';
  * that travels with the camera. One 8 m tile of blades is drawn as a grid of instances around the camera (the vertex
  * shader snaps the grid to the tile lattice, so nothing is uploaded per frame); a blade survives only on an island top,
  * off the bridge landings, the worn paths and the structures, and it shortens to nothing at the field's edge so the
- * grid's border never shows. Unlit-by-the-rig, painted in the shader: olive roots to gold tips, a warm back-light glow
- * when you look toward the low sun, the shard's rose fog. No colliders; the island dressing's clumps carry the far view.
+ * grid's border never shows. Unlit-by-the-rig, painted in the shader (E407 row 4): three grasses by noise and slope,
+ * dark green roots to warm lit tips, some strands catching the low sun, the sun through the blades when you look toward
+ * it, the shard's rose fog. No colliders; the island dressing's clumps carry the far view.
  */
 export const MEADOW = {
   /** a tile's side (metres) */
@@ -28,8 +29,6 @@ export const MEADOW = {
    * the inner tiles' 8 m reach), and a frustum test drops every blade off screen before its island and hole loops
    */
   layers: 4, near: 7.5,
-  /** blade height range (metres) */
-  low: 0.24, high: 0.74,
   /** an island's grass height scale (1 when absent): the crown's arena a little shorter, so the dais reads (E399: mockup D's meadow is lush to the dais) */
   // (round 6: the seats: 'cut to 0.42 against mockup D's lush meadow'; from the rise's top the dais clears ~0.9 m of grass)
   grass: { crown: 0.85 } as Readonly<Record<string, number>>,
@@ -37,8 +36,19 @@ export const MEADOW = {
   keep: { crown: 1 } as Readonly<Record<string, number>>,
 } as const;
 
-/** The sward's paint (sRGB) and size (E399): a tuft card's height scale, the root-to-tip ramp, the backlit glow, and how far toward grey the whole field is pulled. */
-export const SWARD = { scale: 0.9, root: 0x14140e, low: 0x30341f, green: 0x565c33, gold: 0x857845, tip: 0xc2b48e, glow: 0xd8b860, grey: 0.0 } as const;
+/**
+ * The sward (E407 row 4, a green, varied meadow): three grasses (world/swardAtlas.ts), each its own height (metres, at the
+ * tuft's full size) and body green, on one root-to-tip ramp (sRGB): dark roots, green bodies, warm tips. `light`: the
+ * shade floor deep in the sward, the gain up the blade, the sun through the blades when you look toward it (one term for
+ * every distance: the round-6-to-10 glow coefficients and their near/far split are gone) and the sun-side edge of a
+ * broad blade. `share`: where the noise field turns lawn into broad blades, and broad blades into the wild grass.
+ */
+export const SWARD = {
+  height: { lawn: [0.2, 0.38], broad: [0.34, 0.6], wild: [0.5, 0.9] },
+  share: [0.3, 0.62],
+  root: 0x141c18, low: 0x2a4234, lawn: 0x6a845c, broad: 0x5e7c56, wild: 0x7e805c, tip: 0xe8c098, sun: 0xf0d8b8,
+  light: { floor: 0.03, gain: 0.36, through: 1.8, edge: 0.8, top: 0.45 },
+} as const;
 
 /** Where grass never grows: discs (x, z, radius) round the structures and pieces you stand at. */
 export function meadowHoles(): Vector4[] {
@@ -124,6 +134,10 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
   const uniforms = {
     uOrigin: { value: new Vector2() }, uCam: { value: new Vector3() }, uTime: { value: 0 }, uSun: { value: sunDir },
     uAtlas: { value: atlas }, uIsles: { value: isleU }, uIsleGrass: { value: isles.map((isle) => MEADOW.grass[isle.id] ?? 1) }, uIsleKeep: { value: isles.map((isle) => MEADOW.keep[isle.id] ?? 1) }, uHoles: { value: holes }, uPaths: { value: paths },
+    // the paint as uniforms (constant: set once here; a capture sweep can read them back off the material)
+    uRootC: { value: new Color(SWARD.root) }, uLowC: { value: new Color(SWARD.low) }, uLawnC: { value: new Color(SWARD.lawn) }, uBroadC: { value: new Color(SWARD.broad) },
+    uWildC: { value: new Color(SWARD.wild) }, uTipC: { value: new Color(SWARD.tip) }, uSunC: { value: new Color(SWARD.sun) },
+    uLight: { value: new Vector4(SWARD.light.floor, SWARD.light.gain, SWARD.light.through, SWARD.light.edge) }, uTop: { value: SWARD.light.top },
   };
   const material = new ShaderMaterial({ uniforms, side: DoubleSide,
     vertexShader: /* glsl */`
@@ -136,10 +150,10 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
       uniform vec2 uOrigin; uniform vec3 uCam; uniform float uTime;
       uniform vec4 uIsles[NI]; uniform float uIsleGrass[NI]; uniform float uIsleKeep[NI]; uniform vec4 uHoles[NH]; uniform vec4 uPaths[NP];
       attribute vec3 aRoot; attribute vec2 aShape; attribute vec3 aTile;
-      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist;
+      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist; varying float vSpecies;
       ${MEADOW_GLSL}
       ${KNOLL_GLSL}
-      void cull(){ gl_Position = vec4(0.0, 0.0, 2.0, 1.0); vH = 0.0; vTone = 0.0; vWorld = vec3(0.0); vShade = 0.0; vFlower = 0.0; vPetal = vec2(0.0); vAcross = 0.0; vUv = vec2(0.0); vDist = 0.0; }
+      void cull(){ gl_Position = vec4(0.0, 0.0, 2.0, 1.0); vH = 0.0; vTone = 0.0; vWorld = vec3(0.0); vShade = 0.0; vFlower = 0.0; vPetal = vec2(0.0); vAcross = 0.0; vUv = vec2(0.0); vDist = 0.0; vSpecies = 0.0; }
       void main(){
         // a layer above 0 is the same tile's blades shuffled (offset, mirrored), so the near field thickens without a seam
         float layer = aTile.z; vec2 j = aRoot.xy; float r = aRoot.z;
@@ -148,7 +162,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         // tufts (E399, every seat: 'even upright blades'; the mockups' sward grows in clumps of mixed height with darker gaps):
         // three blades in four lean in toward their cell's tuft centre, and each tuft has its own height
         vec2 tCell = floor(p * 1.4); vec2 tCentre = (tCell + 0.25 + 0.5 * vec2(mh(tCell), mh(tCell + 7.1))) / 1.4;
-        p = mix(p, tCentre, step(0.25, fract(r * 61.3)) * 0.45);
+        p = mix(p, tCentre, step(0.25, fract(r * 61.3)) * 0.25);
         float tuftK = 0.7 + 0.7 * mh(tCell + 3.3);
         float dist = distance(p, uCam.xz);
         // off screen (behind, or a metre past either side) or out of reach: drop it before the loops
@@ -170,10 +184,14 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         // (the seats: A's foreground, on the bridge landing's apron, read as mown; mockup A's meadow grows to the posts): faint
         for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; worn = min(worn, smoothstep(0.15, 0.7, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
         float pt = mfbm(p * 0.23);
-        // varied heights (E392: the mockups' meadow is tall drifts and short lawn, a few stalks over it, never one even wall)
-        float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.2, 0.8, pt) * 0.55 + r * 0.45) * mix(0.72, 1.2, mn(p * 0.37 + 11.0));
-        h *= 1.0 + 0.55 * step(0.9, fract(r * 23.3));
-        h *= tall * tuftK * (1.0 - 0.3 * smoothstep(0.85, 1.0, rim)) * clear * mix(0.8, 1.0, worn);
+        // three grasses (E407 row 4): placed by a noise field, the lawn on the slopes of the rises and the worn ground, the
+        // wild grass toward the rims; each its own height, the patches of one grass running into the next
+        vec2 kd = vec2(farKnoll(p + vec2(0.4, 0.0)) - farKnoll(p - vec2(0.4, 0.0)), farKnoll(p + vec2(0.0, 0.4)) - farKnoll(p - vec2(0.0, 0.4))) / 0.8;
+        float spN = mfbm(p * 0.19 + 31.0) + 0.3 * (fract(r * 37.7) - 0.5) - 0.6 * min(length(kd), 0.6) - 0.15 * (1.0 - worn) + 0.1 * smoothstep(0.8, 1.0, rim);
+        float species = spN < ${SWARD.share[0].toFixed(2)} ? 0.0 : spN < ${SWARD.share[1].toFixed(2)} ? 1.0 : 2.0;
+        vec2 hr = species < 0.5 ? vec2(${SWARD.height.lawn.map((v) => v.toFixed(2)).join(', ')}) : species < 1.5 ? vec2(${SWARD.height.broad.map((v) => v.toFixed(2)).join(', ')}) : vec2(${SWARD.height.wild.map((v) => v.toFixed(2)).join(', ')});
+        float h = mix(hr.x, hr.y, smoothstep(0.2, 0.8, pt) * 0.4 + r * 0.6) * mix(0.85, 1.15, mn(p * 0.37 + 11.0));
+        h *= tall * mix(0.85, 1.15, (tuftK - 0.7) / 0.7) * (1.0 - 0.3 * smoothstep(0.85, 1.0, rim)) * clear * mix(0.8, 1.0, worn);
         h *= 1.0 - smoothstep(layer > 0.5 ? NEAR - 2.5 : RANGE * 0.55, layer > 0.5 ? NEAR : RANGE, dist + (layer > 0.5 ? 1.5 * mn(p * 0.9) : 0.0));
         if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep * mix(0.88, 1.0, worn)) { cull(); return; }
         float ang = r * 40.0; vec2 dir = vec2(cos(ang), sin(ang));
@@ -184,17 +202,19 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         // (E399 seat: 'an even field of large white daisies'; the mockups' flowers are sparse, small, white and yellow)
         // (round 6, seat A: 'fewer, smaller round flower heads')
         // (round 10, seat A: 'small embedded daisy groups'): tighter, denser drifts, the heads small and low
-        float flower = step(fract(r * 91.7), (0.001 + 0.2 * drift * drift) * worn) * step(0.6, dist);
-        float kind = (mn(p * 0.45 + 20.0) + 0.35 * fract(r * 17.3)) > 0.82 ? 2.0 : 1.0;
+        // (E407 row 4, mockups A, B and D: small white daisies in clumps all through the near meadow, a yellow and an
+        // orange wildflower among them)
+        float flower = step(fract(r * 91.7), (0.004 + 0.3 * drift * drift) * worn) * step(0.6, dist);
+        float kind = (mn(p * 0.45 + 20.0) + 0.35 * fract(r * 17.3)) > 0.82 ? (fract(r * 41.9) > 0.6 ? 3.0 : 2.0) : 1.0;
         vec2 wind = normalize(vec2(0.6, 0.8));
         float sway = (0.16 + 0.1 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);
         vec3 world = vec3(p.x, y, p.y);
         float t = aShape.y;
-        vShade = 0.55 + 0.45 * fract(r * 3.3); vTone = pt; vFlower = 0.0; vPetal = vec2(0.0, -3.0); vAcross = aShape.x; vUv = vec2(0.0); vDist = dist;
+        vShade = 0.55 + 0.45 * fract(r * 3.3); vTone = pt; vSpecies = 0.0; vFlower = 0.0; vPetal = vec2(0.0, -3.0); vAcross = aShape.x; vUv = vec2(0.0); vDist = dist;
         if (flower > 0.5) {
           // a stem in the grass, the head a kite tilted half up, half to you (a daisy reads round, a buttercup a cup)
-          float stem = mix(0.1, 0.26, fract(r * 5.7));
-          float R = (kind > 1.5 ? 0.016 : 0.021) * mix(0.8, 1.2, fract(r * 7.9)) * clamp(dist / 6.0, 1.0, 1.4);
+          float stem = mix(0.07, 0.18, fract(r * 5.7));
+          float R = (kind > 1.5 ? 0.017 : 0.021) * mix(0.8, 1.2, fract(r * 7.9)) * clamp(dist / 6.0, 1.0, 1.4);
           vec3 sideV = vec3(-toCam.y, 0.0, toCam.x), upV = normalize(mix(vec3(0.0, 1.0, 0.0), vec3(-toCam.x, 0.0, -toCam.y), 0.5));
           vec2 nod = dir * stem * 0.12 + wind * sway * stem * 0.3;
           vec3 head = world + vec3(nod.x, stem, nod.y);
@@ -207,28 +227,32 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           // blade maps onto it: its pairs at 0 / 0.34 / 0.68 become the card's bottom, middle and top, the tip folds onto
           // the top right corner (a degenerate triangle)
           float cy = t < 0.2 ? 0.0 : t < 0.5 ? 0.5 : 1.0, cx = t > 0.9 ? 1.0 : sign(aShape.x);
-          float wCard = mix(0.45, 0.7, fract(r * 13.7)) * mix(0.9, 1.25, smoothstep(2.0, 12.0, dist));
+          float wCard = (species < 0.5 ? mix(0.5, 0.75, fract(r * 13.7)) : species < 1.5 ? mix(0.4, 0.62, fract(r * 13.7)) : mix(0.36, 0.55, fract(r * 13.7))) * mix(0.9, 1.25, smoothstep(2.0, 12.0, dist));
           vec2 face = normalize(mix(dir, toCam, 0.85)), side = vec2(-face.y, face.x);
           float bend = 0.1 + 0.25 * fract(r * 7.1);
           vec2 lean = dir * bend + wind * sway;
-          h *= ${SWARD.scale.toFixed(2)} * mix(0.8, 1.0, smoothstep(0.5, 3.0, dist));
+          h *= mix(0.8, 1.0, smoothstep(0.5, 3.0, dist));
           // seen from above (D's rise, the aerials) an upright card squashes to a dark blot: its top leans back, away from
           // the camera, by how steeply the camera looks down on it, so the tuft's face stays toward you
           float down = clamp((uCam.y - y) / max(dist, 0.5) - 0.15, 0.0, 1.2);
           world.xz += side * cx * wCard * 0.5 + lean * h * cy * cy - toCam * h * cy * down * 0.8;
           world.y += h * cy - 0.04;
-          vUv = vec2(floor(fract(r * 29.3) * ${SWARD_ATLAS.variants.toFixed(1)}) + (cx * 0.5 + 0.5) * (fract(r * 5.1) > 0.5 ? 1.0 : -1.0) + (fract(r * 5.1) > 0.5 ? 0.0 : 1.0), cy);
-          vH = cy; vAcross = 0.0;
+          vUv = vec2(species * ${SWARD_ATLAS.perSpecies.toFixed(1)} + floor(fract(r * 29.3) * ${SWARD_ATLAS.perSpecies.toFixed(1)}) + (cx * 0.5 + 0.5) * (fract(r * 5.1) > 0.5 ? 1.0 : -1.0) + (fract(r * 5.1) > 0.5 ? 0.0 : 1.0), cy);
+          vH = cy; vAcross = 0.0; vSpecies = species;
         }
         vWorld = world;
         gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
       }`,
     fragmentShader: /* glsl */`
       uniform vec3 uCam; uniform vec3 uSun; uniform sampler2D uAtlas;
-      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist;
+      uniform vec3 uRootC; uniform vec3 uLowC; uniform vec3 uLawnC; uniform vec3 uBroadC; uniform vec3 uWildC; uniform vec3 uTipC; uniform vec3 uSunC; uniform vec4 uLight; uniform float uTop;
+      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist; varying float vSpecies;
       void main(){
         vec3 view = normalize(vWorld - uCam);
         float back = pow(max(dot(view, uSun), 0.0), 3.0);
+        // the sun through a blade: a tight forward-scattering lobe (E407 row 4), so the grass you look along toward the low
+        // sun glows and the grass at your feet, seen from above, does not (one term at every distance)
+        float through = pow(max(dot(view, uSun), 0.0), 8.0);
         vec3 lit;
         if (vFlower > 0.5 && (vPetal.y < -0.96 || length(vPetal) > 0.74)) {
           // a flower's stem, and the kite's corners round the round head: a thin dark green, lit like the blades round it
@@ -236,7 +260,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         } else if (vFlower > 0.5) {
           // the head: a daisy's white petal ring round a gold eye, or a buttercup's glossy yellow cup
           float d = length(vPetal) / 0.74, a = atan(vPetal.y, vPetal.x);
-          vec3 petal = vFlower > 1.5 ? ${glslColor(0xf4c21f)} : ${glslColor(0xfbf7ee)};
+          vec3 petal = vFlower > 2.5 ? ${glslColor(0xf08a1c)} : vFlower > 1.5 ? ${glslColor(0xf4c21f)} : ${glslColor(0xfbf7ee)};
           petal *= 0.82 + 0.18 * cos(a * (vFlower > 1.5 ? 5.0 : 13.0)) * smoothstep(0.25, 0.6, d);
           petal *= 1.0 - 0.25 * smoothstep(0.75, 1.05, d);
           vec3 eye = vFlower > 1.5 ? ${glslColor(0xe0a114)} : ${glslColor(0xe8b52a)};
@@ -247,29 +271,31 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           // mips, so the cut-off eases with distance
           vec4 tx = texture2D(uAtlas, vec2(vUv.x / ${SWARD_ATLAS.variants.toFixed(1)}, vUv.y));
           if (tx.a < mix(0.5, 0.22, smoothstep(3.0, 16.0, vDist))) discard;
-          float along = tx.g, sh = tx.r;
-          // shaded roots deep in the sward, olive-green bodies by patch, straw-gold lit tips (the mockups' backlit meadow)
-          vec3 rootC = ${glslColor(SWARD.root)}, lowC = ${glslColor(SWARD.low)}, greenC = ${glslColor(SWARD.green)}, goldC = ${glslColor(SWARD.gold)}, tipC = ${glslColor(SWARD.tip)};
-          vec3 body = mix(greenC, goldC, smoothstep(0.45, 0.95, vTone + (vShade - 0.8) * 0.5 + (sh - 0.75) * 0.4));
+          // the data channels are 0 off the strands, so a filtered (far, mipped) texel holds them scaled by its coverage:
+          // divide it back out (E407 row 4: without it the far sward read as roots, dark and unlit, and no strand caught the sun)
+          vec3 dat = min(tx.rgb / max(tx.a, 0.004), vec3(1.0));
+          float along = dat.g, sh = dat.r, across = dat.b;
+          // E407 row 4: dark roots deep in the sward, each grass its own green body (patches warmer by the tone field), warm
+          // lit tips; the sun-side edge of a broad blade catches the light, the sun shines through the blades toward it
+          vec3 body = vSpecies < 0.5 ? uLawnC : vSpecies < 1.5 ? uBroadC : uWildC;
+          body = mix(body, uTipC * vec3(0.78, 0.74, 0.5), smoothstep(0.5, 1.0, vTone + (vShade - 0.8) * 0.4) * 0.45);
           float up = along * mix(0.55, 1.0, vH);
-          vec3 c = mix(rootC, lowC, smoothstep(0.0, 0.25, up));
+          vec3 c = mix(uRootC, uLowC, smoothstep(0.0, 0.25, up));
           c = mix(c, body, smoothstep(0.2, 0.6, up));
-          c = mix(c, tipC, smoothstep(0.6, 1.0, up) * 0.8);
-          // round 6 (seat A: 'match the luminance spread, not only the mean'): deep gaps, lit blades
-          lit = c * (0.13 + 0.8 * up) * (0.38 + 0.95 * sh) * (0.8 + 0.4 * vTone);
-          // the sun through the blades: the tips and the upper strands glow gold when you look toward it
-          float glow = back * smoothstep(0.35, 1.0, up);
-          // the backlit blades catch gold (the mockups' 95th percentile is a gold 160-178; ours stopped near 100)
-          // (round 9, seats B and C: at 0.8 / 0.4 the highlights left A, B and proposal B: back to round 8's)
-          // the backlight glow fades in the nearest metres (round 10, seat B: one global number flipped three rounds; C's and D's
-          // nearest grass read straw, A's mid-field highlights need it): full from ~6 m, a third at the eye's feet
-          float glowNear = mix(0.35, 1.0, smoothstep(2.0, 6.0, vDist));
-          lit += (${glslColor(SWARD.glow)} * glow * 1.4 * sh * sh + ${glslColor(SKY.sun)} * back * up * up * up * 0.7 * sh) * glowNear;
+          c = mix(c, uTipC, smoothstep(0.8, 1.0, up) * 0.5);
+          lit = c * (uLight.x + uLight.y * up) * (0.3 + 1.0 * sh) * (0.85 + 0.3 * vTone);
+          lit *= 1.0 + uLight.w * smoothstep(0.62, 1.0, across) * up;
+          // the low sun on the sward's top layer, whatever way you look (the blades below lie in their neighbours' shade):
+          // the mockups' gold-lit tips over green bodies
+          // only some strands catch it (by each strand's own shade), so the field is green blades and gold blades side by
+          // side, as the mockups' sward is, not one even olive-gold
+          float catchS = smoothstep(0.62, 0.95, sh);
+          lit += uSunC * uTipC * smoothstep(0.3, 0.9, up) * catchS * uTop;
+          // the light through a blade glows at its thin edges and tip (the mockups' backlit sward: dark bodies, gold rims)
+          float rimB = smoothstep(0.5, 1.0, abs(across * 2.0 - 1.0));
+          lit += uSunC * through * up * up * (0.2 + 0.8 * catchS) * uLight.z * (0.3 + 0.7 * rimB);
         }
         lit *= ${glslColor(0xfff6ec)} * 1.1;
-        // olive-gold, not lime (council round 3: the meadow's blue measured 16-27 of 255 against the mockups' 39-47):
-        // toward a warm grey of the same brightness, a shade darker
-        if (vFlower < 0.5) lit = mix(lit, vec3(dot(lit, vec3(0.2126, 0.7152, 0.0722))) * vec3(1.0, 0.94, 0.8), ${SWARD.grey.toFixed(2)});
         float f = clamp((length(vWorld - uCam) - ${FOG.near.toFixed(1)}) / ${(FOG.far - FOG.near).toFixed(1)}, 0.0, 1.0) * ${FOG.max.toFixed(2)};
         gl_FragColor = vec4(mix(lit, ${glslColor(SKY.fog)}, f), 1.0);
       }` });

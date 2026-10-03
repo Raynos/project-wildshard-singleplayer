@@ -17,8 +17,8 @@ import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, apothem, knollH
  *
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
-/** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range); `flowerHandoff` the same for a flower. */
-export const DRESS = { clumpsPerM2: 1.6, flowersPerM2: 0.07, stonesPerIsle: 9, rootsPerM: 0, lipPerM: 0.9, cragsPerIsle: 0, bridgeClear: 0.3, handoff: [15, 22], flowerHandoff: [9, 13] } as const;
+/** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range); `flowerHandoff` the same for a flower; `rockGroupsPerM2` the meadow's scattered rock groups (`meadowRocks`). */
+export const DRESS = { clumpsPerM2: 1.6, flowersPerM2: 0.07, stonesPerIsle: 9, rootsPerM: 0, lipPerM: 0.9, cragsPerIsle: 0, bridgeClear: 0.3, handoff: [15, 22], flowerHandoff: [9, 13], rockGroupsPerM2: 0.006 } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -28,7 +28,7 @@ function seeded(seed: number): () => number {
 /** One clump: five bent blades fanned round the centre, 1 m tall before scaling. */
 export function clumpGeometry(): BufferGeometry {
   // E392 foreground: thin blades in the near meadow's ramp (dark root, yellow-green body, gold tip), not lime cards
-  const pos: number[] = [], col: number[] = [], nor: number[] = [], root = new Color(0x34441a), mid = new Color(0x86a336), tip = new Color(0xd6c672);
+  const pos: number[] = [], col: number[] = [], nor: number[] = [], root = new Color(0x2c4030), mid = new Color(0x6a8a40), tip = new Color(0xd8b878);
   const push = (x: number, y: number, z: number, c: Color): void => { pos.push(x, y, z); col.push(c.r, c.g, c.b); nor.push(0, 1, 0); };
   // twelve blades over a patch about 0.6 m across (fewer, fuller instances: the instance matrices are the GPU cost)
   for (let i = 0; i < 12; i++) {
@@ -139,9 +139,36 @@ export const HERO_STONES: readonly (readonly [number, number, number, number, nu
   [-2.4, -9.6, DECK, 0.75, 0.36], [-1.0, -10.6, DECK, 0.5, 0.24],
 ];
 
-/** The hero boulders that are placed (clear of every walk), as discs for the meadow's short grass round them. */
+/**
+ * The meadow's scattered rocks (E407 row 4; mockups A-D: grey lichened rocks stand out of the grass all through the
+ * meadow, not only at the hero spots): small groups placed by noise over every walkable island, each ≤ 0.4 m above the
+ * grass (no collider), clear of every walk and of each other. World x, z, the deck, scale, height over the grass.
+ */
+export function meadowRocks(isles: readonly Isle[] = ISLES): (readonly [number, number, number, number, number])[] {
+  const rnd = seeded(9137), out: [number, number, number, number, number][] = [];
+  const taken = HERO_STONES.map(([x, z, , sc]) => [x, z, sc] as const);
+  for (const isle of isles) {
+    const ap = apothem(isle), groups = Math.round(Math.PI * ap * ap * DRESS.rockGroupsPerM2);
+    for (let g = 0; g < groups; g++) {
+      const gr = ap * (0.25 + 0.6 * Math.sqrt(rnd())), ga = rnd() * Math.PI * 2, gx = isle.x + Math.cos(ga) * gr, gz = isle.z + Math.sin(ga) * gr;
+      const n = 1 + Math.floor(rnd() * 3);
+      for (let i = 0; i < n; i++) {
+        const x = gx + (rnd() - 0.5) * 2.4, z = gz + (rnd() - 0.5) * 2.4, sc = (i === 0 ? 0.45 : 0.28) + rnd() * 0.3, top = Math.min(0.4, sc * (0.3 + 0.25 * rnd()));
+        if (Math.hypot(x - isle.x, z - isle.z) > ap * 0.88 || !clearOfWalks(x, z, sc * 1.2)) continue;
+        if (taken.some(([tx, tz, ts]) => Math.hypot(x - tx, z - tz) < (sc + ts) * 1.1)) continue;
+        taken.push([x, z, sc]); out.push([x, z, isle.y, sc, top]);
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * The hero boulders and the meadow's larger rocks that are placed (clear of every walk), as discs for the meadow's short
+ * grass round them (each disc is a loop step for every blade in the meadow's vertex shader: the small rocks go without).
+ */
 export function heroStoneDiscs(): [number, number, number][] {
-  return HERO_STONES.filter(([x, z, , sc]) => clearOfWalks(x, z, sc * 1.2)).map(([x, z, , sc]) => [x, z, sc * 0.75]);
+  return [...HERO_STONES.filter(([x, z, , sc]) => clearOfWalks(x, z, sc * 1.2)), ...meadowRocks().filter((rock) => rock[3] >= 0.55)].map(([x, z, , sc]) => [x, z, sc * 0.75]);
 }
 
 /** True when (x, z) lies on a bridge's lane, or within 3 m past either end of it (kept clear so the walkway reads). */
@@ -220,7 +247,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
   // the hero spots' foreground boulders, embedded so each stands its own height above the grass
   const stone = stoneGeometry(); stone.computeBoundingBox();
   const stoneTop = (stone.boundingBox?.max.y ?? 1) * STONE_SQUASH;
-  if (landings) for (const [x, z, deck, sc, top] of HERO_STONES) {
+  if (landings) for (const [x, z, deck, sc, top] of [...HERO_STONES, ...meadowRocks(isles)]) {
     if (!clearOfWalks(x, z, sc * 1.2)) continue;
     stones.push({ x, y: deck + knollHeight(x, z) + top - stoneTop * sc, z, s: sc, yaw: rnd() * 6.28 });
   }
@@ -253,7 +280,9 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
   }, { key: (prior) => `${prior}|far.clump-handoff` });
   place(new InstancedMesh(clumpGeometry(), clumpMaterial, clumps.length), clumps);
   // the lip clumps: each turned so its blades lean out over the edge (yaw = the rim angle, then tipped about the tangent)
-  const lipMesh = new InstancedMesh(clumpGeometry(), new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0 }), lips.length);
+  // (E407 row 4: they shrink away near the camera like the clumps, where the near meadow's blades own the rim: up close
+  // their wide lime blades stood out of a shorter sward by the bridge heads)
+  const lipMesh = new InstancedMesh(clumpGeometry(), clumpMaterial, lips.length);
   const tq = new Quaternion(), ax = new Vector3();
   lips.forEach((it, i) => {
     ax.set(-Math.sin(it.yaw), 0, Math.cos(it.yaw)); tq.setFromAxisAngle(ax, -it.tilt);
@@ -297,10 +326,11 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
 #endif
       rockC *= 1.0 - 0.35 * smoothstep(0.0, -0.6, bn.y);
       // pale lichen flecks (round 6, seat A: 'lichened rocks'; the mockups' boulders are grey with pale lichen, little moss)
-      rockC = mix(rockC, vec3(0.42, 0.4, 0.28), smoothstep(0.86, 0.95, n3 * (0.7 + 0.6 * n1)) * 0.22);
+      // (E407 row 4: grey rocks with pale lichen patches standing out of the green; a dark moss cap read as more grass)
+      rockC = mix(rockC, vec3(0.42, 0.4, 0.3), smoothstep(0.8, 0.93, n3 * (0.7 + 0.6 * n1)) * 0.4);
       // a moss cap on the flattest tops, its edge broken by noise
-      float mossK = smoothstep(0.86, 0.99, bn.y + 0.35 * (n2 - 0.5) + 0.2 * (n1 - 0.5)) * 0.55;
-      vec3 mossC = vec3(0.075, 0.11, 0.025) * (0.75 + 0.5 * n3);
+      float mossK = smoothstep(0.88, 0.99, bn.y + 0.35 * (n2 - 0.5) + 0.2 * (n1 - 0.5)) * 0.3;
+      vec3 mossC = vec3(0.1, 0.12, 0.05) * (0.75 + 0.5 * n3);
       diffuseColor.rgb = mix(rockC, mossC, mossK);
     }
     #include <roughnessmap_fragment>`);
