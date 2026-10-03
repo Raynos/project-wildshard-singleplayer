@@ -1,6 +1,6 @@
 import { Color, Fog, Mesh, Vector3, type Object3D, type Texture } from 'three';
 import { ToneMappingMode } from 'postprocessing';
-import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
+import { DayCycle, loadLUT, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
@@ -145,13 +145,14 @@ export async function skyReachLook(): Promise<LookStrategy> {
     // god rays from the painted sun (E398): the disc stays out of the frame, only the rays' source; the engine compass
     // faces (-sin az, cos az), the panorama heading (sin h, -cos h), so az = h + 180
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false, rays: { azimuth: (PANO_SUN.heading + 180) % 360, elevation: PANO_SUN.elevation } } },
-    // no learned LUT (top-10 row 10): the first fit (art/far-reach/round-29-lut/) greyed C's sky and pushed C's and D's
-    // near ground and A's and C's highlights past their mockups when measured live (round 13), so it is out until a refit
-    backdrop: ({ sky }) => {
-      const clock = createDay(), key = new Color(SKY.key);
-      return Promise.resolve({ clock, horizon: new Color(SKY.horizon), lut: null,
+    // the shard grade (top-10 row 10): one learned LUT, global, the engine's last grade step (Debug ▸ Look ▸ Learned LUT
+    // Off skips it). The second fit (art/far-reach/round-32-lut/): each mockup's sky its own region, eased to identity in
+    // the highlights (the first, round-29-lut, greyed C's sky and overshot the highlights when measured live)
+    backdrop: async ({ sky }) => {
+      const clock = createDay(), key = new Color(SKY.key), lut = await loadLUT('far-reach');
+      return { clock, horizon: new Color(SKY.horizon), lut,
         bind: () => undefined, update: (dt: number) => { clock.update(dt); sky.setKeyLight(SUN_DIR, key, 2); if (seaTime !== null) { seaTime.value += dt; glowUpdate?.(seaTime.value); } },
-        rebuild: () => undefined, attachPost: () => undefined });
+        rebuild: () => undefined, attachPost: () => undefined };
     },
   };
 }
