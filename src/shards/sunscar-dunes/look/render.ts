@@ -164,7 +164,10 @@ export function signalDunesLook(): LookStrategy {
   let painted: { material: ShaderMaterial; textures: readonly Texture[] } | null = null;
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
-      scene.fog = new Fog(new Color(FOG.color), FOG.near, FOG.far);
+      // round 22 (seat C after round 21: a new Fog here orphaned the one the backdrop had bound, so the update's fog edits
+      // never drew): the scene's own fog is edited in place
+      if (scene.fog instanceof Fog) { scene.fog.color.set(FOG.color); scene.fog.near = FOG.near; scene.fog.far = FOG.far; }
+      else scene.fog = new Fog(new Color(FOG.color), FOG.near, FOG.far);
       const chain = engineChain('clean');
       // E399: the engine's AgX stays (tried NEUTRAL, the lead's lever: it drove the sand's blue channel to ~0 and every sky to a
       // saturated plum, since this look's colours are tuned under AgX's highlight desaturation)
@@ -190,14 +193,14 @@ export function signalDunesLook(): LookStrategy {
       let hemi: HemisphereLight | null = null, hemiBase = 1;
       // round 10 (R9B-2: under every dusk horizon the far land is 2-4x the mockups', which put near-black land under a thin
       // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens
-      let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null;
-      const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color();
+      let fogOf: (() => Fog) | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null;
+      const fogSunBase = new Color(), hazeBase = new Color();
       return { clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
         // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
         bind: (targets) => {
           targets.disc.visible = false; hemi = targets.hemi; hemiBase = targets.hemi.intensity;
-          fog = targets.fog; fogBase.copy(targets.fog.color); fogSun = targets.fogU.fogSunColor.value; fogSunBase.copy(fogSun);
+          fogOf = () => targets.fog; fogSun = targets.fogU.fogSunColor.value; fogSunBase.copy(fogSun); // targets.fog is live (the scene's current fog): read per update
           haze = targets.far.uHazeCol.value; hazeBase.copy(haze); fogDist = targets.fogU.fogDistDensity;
         },
         // the dusk deepens with the quest (look/dusk.ts): the key dims and reddens, the sky fill drops
@@ -206,7 +209,7 @@ export function signalDunesLook(): LookStrategy {
           if (hemi) hemi.intensity = hemiBase * fillAt(DUSK.value);
           const late = Math.min(1, Math.max(0, (DUSK.value - 0.2) / 0.5));
           // round 22: the fog keeps the horizon sky's lighter violet-blue at every step (it went toward the near-black DUSK_FOG late)
-          fog?.color.copy(fogBase);
+          fogOf?.().color.set(FOG.color);
           // row 10: the sun-side tint at a third (with the thicker distance fog it lit the far land toward the glow)
           fogSun?.copy(fogSunBase).multiplyScalar(0.35 * (1 - 0.8 * late));
           // round 21b: the far ranges' haze full at the sunset step (A's ranges 36 against 70) and falling to 15 % by the late
