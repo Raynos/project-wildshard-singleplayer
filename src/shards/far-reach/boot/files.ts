@@ -15,8 +15,8 @@ export const skyMeshUrl = (name: SkyMeshName): string => URLS[name];
  * 2048 paint, decimated, the paint kept as a 1024 WebP map on its UVs (the faceted vertex-colour path reads low-poly up
  * close). The faceted models above stay the fallback.
  */
-export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd' | 'hand-hd' | 'isle-mass-hd' | 'isle-canopy-hd' | 'isle-falls-hd' | 'isle-spire-hd' | 'isle-twin-hd' | 'isle-shelf-hd' | 'tree-pine-tall' | 'tree-pine-wide' | 'tree-pine-young' | 'tree-oak' | 'tree-bush' | 'crown-stone' | 'crown-stone-b' | 'crown-dais';
-export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd', 'hand-hd', 'isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd', 'tree-pine-tall', 'tree-pine-wide', 'tree-pine-young', 'tree-oak', 'tree-bush', 'crown-stone', 'crown-stone-b', 'crown-dais'];
+export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd' | 'hand-hd' | 'isle-mass-hd' | 'isle-canopy-hd' | 'isle-falls-hd' | 'isle-spire-hd' | 'isle-twin-hd' | 'isle-shelf-hd' | 'tree-pine-tall' | 'tree-pine-wide' | 'tree-pine-young' | 'tree-oak' | 'tree-bush' | 'crown-stone' | 'crown-stone-b' | 'crown-dais' | 'lectern-hd' | 'lantern-hd';
+export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd', 'hand-hd', 'isle-mass-hd', 'isle-canopy-hd', 'isle-falls-hd', 'isle-spire-hd', 'isle-twin-hd', 'isle-shelf-hd', 'tree-pine-tall', 'tree-pine-wide', 'tree-pine-young', 'tree-oak', 'tree-bush', 'crown-stone', 'crown-stone-b', 'crown-dais', 'lectern-hd', 'lantern-hd'];
 const HD_URLS: Readonly<Record<SkyHdName, string>> = {
   'keeper-hd': '/assets/far-reach/models/keeper-hd/keeper-hd.glb', 'roc-hd': '/assets/far-reach/models/roc-hd/roc-hd.glb',
   'post-hd': '/assets/far-reach/models/post-hd/post-hd.glb',
@@ -38,6 +38,8 @@ const HD_URLS: Readonly<Record<SkyHdName, string>> = {
   // the crown arena's carved set (world/crown.ts; top-10 row 7, art/far-reach/round-28-crown/)
   'crown-stone': '/assets/far-reach/models/crown/crown-stone.glb', 'crown-stone-b': '/assets/far-reach/models/crown/crown-stone-b.glb',
   'crown-dais': '/assets/far-reach/models/crown/crown-dais.glb',
+  // the keeper's carved lectern and its hanging lantern (world/bookStand.ts; top-10 row 10, art/far-reach/round-33-keeper/)
+  'lectern-hd': '/assets/far-reach/models/lectern-hd/lectern-hd.glb', 'lantern-hd': '/assets/far-reach/models/lantern-hd/lantern-hd.glb',
 };
 export const skyHdUrl = (name: SkyHdName): string => HD_URLS[name];
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */
