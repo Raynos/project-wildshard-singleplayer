@@ -35,5 +35,9 @@
    - **Staged state is real state:** a view may stage quest state the mockup shows (a shot's `stage` in cameras.json,
      e.g. the waymarks lit), only state a player reaches by playing; every staged shot is listed in the capture's
      `meta.json` (`staged`), and a seat checks that the stage is reachable.
+   - **A staged frame is a real play frame** (round 2, seat C on Sky Reach's `fan-gust`): it may not freeze a pose a
+     player only sees for an instant, or drop the effects that come with it (a GUST's streaks and petals). Capture the
+     real moment with its effects, or make the pose one the player can actually hold in the game. A view that breaks this
+     scores void for that mockup until it is re-captured.
 6. **Builders:** the top-level Claude Opus agents `signal-dunes` and `sky-reach`. Never Codex / GPT for building.
 7. **Seats:** three per round (COUNCIL.md): a Codex seat and two fresh Claude seats, clean room, never the conversation.
