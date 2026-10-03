@@ -124,15 +124,17 @@ function duskClock(): DayCycle {
  */
 export function signalDunesLook(): LookStrategy {
   // The dusk dome is the backdrop's own sky layer (`SkyBackdrop.clouds`): the engine keeps it on the camera.
-  const dome = new Mesh(new SphereGeometry(300, 32, 16), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
+  // 120 m: the dome draws first with no depth test, so its size never occludes; at 300 m the far plane clipped it (an arc)
+  const dome = new Mesh(new SphereGeometry(120, 48, 24), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
     uniforms: { uSun: { value: SUN_GLOW.clone() } }, vertexShader: SKY_VERTEX, fragmentShader: SKY_FRAGMENT }));
   dome.renderOrder = -1000; dome.frustumCulled = false;
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
       scene.fog = new Fog(new Color(FOG.color), FOG.near, FOG.far);
+      const chain = engineChain('clean');
       scope.own(dome.geometry); scope.own(dome.material);
       scope.onDispose(() => { dome.removeFromParent(); scene.fog = null; });
-      return { chain: engineChain('clean') };
+      return { chain };
     },
     // No sun disc or halo (G25): the sun has just set; the dome paints the afterglow.
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },

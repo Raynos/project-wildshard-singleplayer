@@ -1,5 +1,5 @@
 import { DoubleSide, Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
-import { Rng } from '#engine';
+import { PATCH_ORDER, Rng, patchShader } from '#engine';
 import { GROUND_HALF, SEED } from '../layout';
 import { Soup, type RGB, type V3 } from './dressing';
 
@@ -67,7 +67,31 @@ const BUTTE_HEIGHT = 0.65;
 export interface Buttes { root: Group; count: number }
 
 export function buildButtes(): Buttes {
-  const root = new Group(), material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true, side: DoubleSide });
+  const root = new Group(), material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.92, flatShading: true, side: DoubleSide });
+  // loop 5 (the targets: weathered layered sandstone, not plastic prisms): a rock surface in the shader, in world space
+  // (the instances share it): thin wavy strata bands, vertical erosion streaks down the walls, a fine grain, a darker
+  // foot where talus and shade gather, and a sun-bleached cap.
+  patchShader(material, 'sunscar.butte', PATCH_ORDER.decorate, (shader) => {
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vRockPos;\nvarying vec3 vRockN;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvec4 rockW = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\nrockW = instanceMatrix * rockW;\n#endif\nvRockPos = (modelMatrix * rockW).xyz;\nvRockN = normalize(mat3(modelMatrix) * objectNormal);');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
+varying vec3 vRockPos;
+varying vec3 vRockN;
+float rkHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float rkNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(rkHash(i), rkHash(i + vec2(1.0, 0.0)), f.x), mix(rkHash(i + vec2(0.0, 1.0)), rkHash(i + vec2(1.0, 1.0)), f.x), f.y); }`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+  {
+    float around = atan(vRockPos.z, vRockPos.x) * 120.0;
+    float y = vRockPos.y + (rkNoise(vec2(around * 0.08, vRockPos.y * 0.05)) - 0.5) * 2.5;
+    float strata = sin(y * 1.35) * 0.5 + sin(y * 3.7 + 1.3) * 0.25 + sin(y * 0.41) * 0.35;
+    float streak = rkNoise(vec2(around * 0.9, vRockPos.y * 0.03)) * 0.7 + rkNoise(vec2(around * 3.1, vRockPos.y * 0.09)) * 0.3;
+    float grain = rkNoise(vRockPos.xz * 1.7 + vRockPos.y * 0.9) * 0.5 + rkNoise(vRockPos.xy * 4.3) * 0.5;
+    float wall = 1.0 - abs(normalize(vRockN).y);
+    diffuseColor.rgb *= 1.0 + 0.16 * strata * wall + (streak - 0.5) * 0.36 * wall + (grain - 0.5) * 0.22;
+    diffuseColor.rgb *= mix(0.72, 1.0, smoothstep(-6.0, 6.0, vRockPos.y));
+  }`);
+  }, {});
   const m = new Matrix4(), q = new Quaternion(), p = new Vector3(), sc = new Vector3(), up = new Vector3(0, 1, 0);
   SHAPES.forEach((shape, i) => {
     const list = BUTTES.filter((b) => b.shape === i && Math.max(Math.abs(b.x), Math.abs(b.z)) > GROUND_HALF);

@@ -37,10 +37,11 @@ void main() {
   // Loop 5 (the mockups A-D): a clear dusk. A deep orange band hugs the horizon, brightest behind the tower; above it a
   // short dusty-rose fade into a deep indigo dome full of stars. Clouds are only a few thin dark streaks low in the band.
   vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2));
-  vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.17, 0.16, 0.32), indigo = vec3(0.05, 0.07, 0.17);
+  vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.17, 0.16, 0.32), indigo = vec3(0.065, 0.085, 0.2);
   vec3 c = mix(band, rose, smoothstep(0.0, 0.07 + 0.05 * toward, h));
-  c = mix(c, dusk, smoothstep(0.06, 0.24, h));
-  c = mix(c, indigo, smoothstep(0.2, 0.7, h));
+  // wide overlapping blends: where one smoothstep ended flat as the next began, the eye read a hard arc (a Mach band)
+  c = mix(c, dusk, smoothstep(0.03, 0.4, h));
+  c = mix(c, indigo, smoothstep(0.08, 0.85, h));
   c += vec3(1.0, 0.55, 0.2) * pow(toward, 4.0) * (1.0 - smoothstep(0.0, 0.1, h)) * 0.45;
   // Thin streaks: dark, under-lit on the glow side, only in the band (3-10 degrees up).
   float az = atan(d.z, d.x);
@@ -54,5 +55,7 @@ void main() {
   float starDot = 1.0 - smoothstep(0.0, 0.26, length(cellP - spot));
   float star = step(0.992, starHash(cell)) * starDot * smoothstep(0.1, 0.35, h) * (1.0 - 0.7 * pow(toward, 2.0));
   c += vec3(0.85, 0.9, 1.0) * star * (1.2 + 1.8 * starHash(cell + 3.1));
-  gl_FragColor = vec4(pow(c, vec3(2.2)), 1.0);
+  // dithered: a smooth gradient this dark crossed one 8-bit step in a visible line across the sky (the scorer's arc)
+  c += (starHash(vec3(gl_FragCoord.xy, 7.0)) - 0.5) * 0.014;
+  gl_FragColor = vec4(pow(max(c, vec3(0.0)), vec3(2.2)), 1.0);
 }`;
