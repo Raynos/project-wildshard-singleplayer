@@ -1,6 +1,6 @@
 # Plan: ARCH-GUARDS — static analysis that holds the engine / game / kit / shard split (E362)
 
-**State:** `in progress` 2026-10-03 — batch 1 built (897baa67, data 68fbb592) and AG8 (e94b842d); the E405 review found holes H1–H6, now rows AG23–AG27, plus AG28 the engine eviction (Jake picked 1A / 2A / evict, 10-03, arch-guards agent); batch 2 (AG2, AG3, AG4, AG7, AG10, AG18) is E379, open
+**State:** `in progress` 2026-10-03 — batch 1 built (897baa67), AG8 (e94b842d), and the E405 holes AG23–AG27 (6d30ee6d, 064795009; `no-level-identity` hard at 0). Open: AG28 the engine eviction (in flight, arch-guards agent, Jake 10-03) and batch 2 (AG2, AG3, AG4, AG7, AG10, AG18) as E379
 
 ## Summary
 
@@ -258,11 +258,11 @@ private-index commit recipe (`commit-tree`) skips hooks. The pre-push gate is th
 
 | Id | Status | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
 |---|---|---|---|---|---|---|---|---|---|
-| AG23 | open (E405) | **Every `src` file has a layer** | H1 | `wildshard/layer`: a file under `src/<dir>/` that is not one of the four layers is refused, and so is an import of one. Only `src/{entry,main,pageServices}.ts` are `app` | 0 s | PC, PP, CI | 0 sites → hard | none | **yes** |
-| AG24 | open (E405) | **No dead exemptions** | H2 | Delete the legacy paths from `no-shard-branch`, `no-raw-input` and `TIME_ALLOW`; a test fails when a path a rule exempts doesn't exist | 0 s | PP, CI | 0 sites | none | **yes** |
-| AG25 | open (E405) | **`no-level-identity` sees through aliases**, and the engine's 4 sites move to data | H3; the 4 sites | Track destructured and aliased identity fields and const strings; flag `[…].includes(field)`, `Map.get(field)` and `regex.test(field)`. Jake's pick 1A: the level spec gets a `hands` field (`Hands.ts`), Driftwood sets its own `horizonStrips` and `HorizonMatte`'s table goes, shards expose their probe keys with `ctx.debug.expose` (`probe.ts`'s `SHARD_KEYS` goes) | 0 s | PC, PP, CI | 4 → 0, then hard | medium (genuine enum dispatch: a data-filled strategy table stays legal) | **yes** |
-| AG26 | open (E405) | **`shard-sandbox`: page-level `document` and bare globals** | H4 | Jake's pick 2A: flag `document.body` / `title` / `documentElement`, `getElementById`, pointer lock, `dispatchEvent`, and bare `innerWidth` / `innerHeight` / `devicePixelRatio` / `navigator` / `location` in shards. `createElement` stays legal | 0 s | PC, PP, CI | Ratchet today's ~30 | low | **yes** |
-| AG27 | open (E405) | **`layer` reads string-concat `import()`** | H6 | The specifier's leading string of a `+` chain is resolved like a template prefix | 0 s | PC, PP, CI | 0 sites → hard | none | **yes** |
+| AG23 | built 6d30ee6d | **Every `src` file has a layer** | H1 | `wildshard/layer`: a file under `src/<dir>/` that is not one of the four layers is refused, and so is an import of one. Only `src/{entry,main,pageServices}.ts` are `app` | 0 s | PC, PP, CI | 0 sites → hard | none | **yes** |
+| AG24 | built 6d30ee6d | **No dead exemptions** | H2 | Delete the legacy paths from `no-shard-branch`, `no-raw-input` and `TIME_ALLOW`; a test fails when a path a rule exempts doesn't exist | 0 s | PP, CI | 0 sites | none | **yes** |
+| AG25 | built 6d30ee6d + 064795009 (hard at 0) | **`no-level-identity` sees through aliases**, and the engine's 4 sites move to data | H3; the 4 sites | Track destructured and aliased identity fields and const strings; flag `[…].includes(field)`, `Map.get(field)` and `regex.test(field)`. Jake's pick 1A: the level spec gets a `hands` field (`Hands.ts`), Driftwood sets its own `horizonStrips` and `HorizonMatte`'s table goes, shards expose their probe keys with `ctx.debug.expose` (`probe.ts`'s `SHARD_KEYS` goes) | 0 s | PC, PP, CI | 4 → 0, then hard | medium (genuine enum dispatch: a data-filled strategy table stays legal) | **yes** |
+| AG26 | built 6d30ee6d | **`shard-sandbox`: page-level `document` and bare globals** | H4 | Jake's pick 2A: flag `document.body` / `title` / `documentElement`, `getElementById`, pointer lock, `dispatchEvent`, and bare `innerWidth` / `innerHeight` / `devicePixelRatio` / `navigator` / `location` in shards. `createElement` stays legal | 0 s | PC, PP, CI | Ratchet today's ~30 | low | **yes** |
+| AG27 | built 6d30ee6d | **`layer` reads string-concat `import()`** | H6 | The specifier's leading string of a `+` chain is resolved like a template prefix | 0 s | PC, PP, CI | 0 sites → hard | none | **yes** |
 
 ## 3. Recommended first batch
 
@@ -281,5 +281,5 @@ Eight levers, all fast. **All eight are built** (897baa67, 10-01). In order:
 
 **Batch 2 (E379, open):** AG2 split `layer`, AG18 `no-raw-input` helpers, AG7 the graph check, AG10 manifest contract, then AG3's deep-import sweep (it touches every shard, so it waits until the shard agents are idle) and AG4's engine project once the 7 engine files in 1.4 have moved. AG8 is built (e94b842d). AG21 is mostly done by docs/ENGINE.md and `test/engine-docs.test.ts`.
 
-**E405 rows (in flight):** AG23, AG24, AG27 (0 sites, hard), AG25 (the 4 engine sites to data, then hard), AG26 (ratcheted), AG28 (the engine eviction, Jake 10-03).
+**E405 rows:** AG23, AG24, AG26, AG27 built (6d30ee6d; AG26 ratcheted 88 → 121); AG25 built and `no-level-identity` hard at 0 (064795009). AG28, the engine eviction (Jake 10-03), is in flight.
 
