@@ -1188,5 +1188,10 @@
     "path": "src/engine/audio/score/wildshard-theme.ts",
     "file": "scripts/decide/layer-purity-pilot.mjs",
     "why": "E405 LP6: a historical path the Clef pilot reads from git (git show <commit>^:path), the engine file before LAYER-PURITY moved it out; it no longer exists by design."
+  },
+  {
+    "path": "src/engine/world/interact/models.ts",
+    "file": "scripts/decide/layer-purity-pilot.mjs",
+    "why": "E405 LP6: a historical path the Clef pilot reads from git (git show <commit>^:path), the engine file before E417 moved the props to src/kit/props/interact.ts; it no longer exists by design."
   }
 ]

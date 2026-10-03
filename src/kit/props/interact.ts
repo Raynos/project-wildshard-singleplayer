@@ -1,14 +1,15 @@
 /**
- * Interactables kit — the low-poly models. Every part is a non-indexed, vertex-coloured, flat-normal geometry built
- * with LowPolyKit (src/engine/world/lowpolyKit.ts) in a local frame: origin on the floor under the part's pivot, +Z = the
- * front, +Y up. The runtime (Interactables.ts) adds each geometry once to one of two BatchedMeshes (lit: the shared
+ * The interactables' props (E405 E417: content, the kit's; moved from the engine, which keeps the runtime and asks for
+ * these through `registerInteractProps`, installed by `installKitProps`). Every part is a non-indexed, vertex-coloured,
+ * flat-normal geometry built with LowPolyKit (#engine) in a local frame: origin on the floor under the part's pivot,
+ * +Z = the front, +Y up. The runtime (src/engine/world/interact/Interactables.ts) adds each geometry once to one of two BatchedMeshes (lit: the shared
  * `lowPolyMaterial`; glow: unlit, for keys, flames and the pickups content registers) and poses instances.
  *
  * Moving parts carry their pivot at the origin: a chest lid hinges about +X at its back edge, a lever handle about +X
  * at its root, a plank door about +Y at its hinge edge, a grate / sluice slides along +Y.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, beam, plank, rock, rope } from '../lowpolyKit';
+import { LowPolyKit, log, beam, plank, rock, rope, type ChestDims } from '#engine';
 
 const C = {
   wood: '#8a6440', woodDark: '#5f432a', woodLight: '#a88157', iron: '#3b3d42', ironLight: '#62656d', brass: '#d8a640',
@@ -27,7 +28,6 @@ function done(kit: LowPolyKit, ao: boolean, floorY = 0): THREE.BufferGeometry {
 
 // ── chests ───────────────────────────────────────────────────────────────────────────────────────
 
-export interface ChestDims { w: number; d: number; h: number; lidH: number }
 export const CHEST_DIMS: Record<'chest' | 'strongbox' | 'treasure', ChestDims> = {
   chest: { w: 0.92, d: 0.56, h: 0.42, lidH: 0.2 },
   treasure: { w: 0.8, d: 0.5, h: 0.38, lidH: 0.2 },

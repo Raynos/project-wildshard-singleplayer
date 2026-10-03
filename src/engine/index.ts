@@ -262,7 +262,7 @@ export { waveHeight } from './world/waves';
 
 export { impact, synthKit } from './audio/gen';
 export { icon, registerIcons, iconParts } from './ui/icons';
-export { registerPickupLook, type PickupLook, type PickupPart } from './world/interact/types';
+export { registerPickupLook, registerInteractProps, type PickupLook, type PickupPart, type InteractProps, type ChestLook, type DoorLook, type ChestDims } from './world/interact/types';
 export { interactParts, pickupModel } from './world/interact/kit';
 export { LowPolyKit } from './world/lowpolyKit';
 

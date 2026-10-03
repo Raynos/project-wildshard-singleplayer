@@ -133,7 +133,13 @@ function main(argv) {
     const present = paths.filter((p) => staged(p) !== '');
     const now = graph(present, staged, exists), before = graph(paths.filter((p) => head(p) !== ''), head, exists);
     const failures = [];
-    for (const [key, n] of Object.entries(now.edges)) if (n > (before.edges[key] ?? 0)) failures.push(`${key} rises by ${n - (before.edges[key] ?? 0)} in this commit`);
+    // a rise the same commit records in lint/layer-edges.json (`--update`, a reviewed crossing) passes
+    const recorded = (read) => { try { return JSON.parse(read(EDGES_FILE)).edges ?? {}; } catch { return {}; } };
+    const headRec = recorded(head), stagedRec = recorded(staged);
+    for (const [key, n] of Object.entries(now.edges)) {
+      const rise = n - (before.edges[key] ?? 0), allowed = (stagedRec[key] ?? 0) - (headRec[key] ?? 0);
+      if (rise > 0 && rise > allowed) failures.push(`${key} rises by ${rise} in this commit (record a reviewed crossing with node scripts/check-graph.mjs --update)`);
+    }
     const old = new Set(before.violations);
     failures.push(...now.violations.filter((v) => !old.has(v)));
     if (failures.length > 0) { console.error(`check-graph (AG7):\n  ${failures.join('\n  ')}`); return 1; }

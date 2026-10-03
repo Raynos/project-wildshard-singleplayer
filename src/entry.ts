@@ -68,6 +68,7 @@ export async function start(): Promise<void> {
   kit.installKitSpecies();
   kit.installKitIcons();
   kit.installKitPickups();
+  kit.installKitProps();
   const engine = await retried(loadBootRuntime);
   const { startSession } = await retried(() => import('#game/session/session'));
   await startSession(manifest, engine, {

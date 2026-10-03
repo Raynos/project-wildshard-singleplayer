@@ -14,7 +14,7 @@ const CONTENT = [   // [the commit that moved it out, the engine path before]
 ];
 const GENERIC = [   // at HEAD: the cleaned files, and engine files E405 never touched
   'src/engine/audio/gen.ts', 'src/engine/ui/icons.ts', 'src/engine/world/blenderArea.ts', 'src/engine/ui/HurtArc.ts',
-  'src/engine/world/forest/treeSpecies.ts', 'src/engine/audio/score/score.ts', 'src/engine/world/interact/models.ts', 'src/engine/entities/AnimalManager.ts',
+  'src/engine/world/forest/treeSpecies.ts', 'src/engine/audio/score/score.ts', 'src/engine/world/interact/types.ts', 'src/engine/entities/AnimalManager.ts',
   'src/engine/physics/query.ts', 'src/engine/core/rng.ts', 'src/engine/world/lowpolyKit.ts', 'src/engine/input/InputService.ts',
 ];
 const show = (rev, path) => execFileSync('git', ['show', `${rev}:${path}`], { encoding: 'utf8', maxBuffer: 1 << 26 });

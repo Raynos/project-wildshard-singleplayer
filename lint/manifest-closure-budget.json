@@ -3,11 +3,14 @@
   "budgets": {
     "default": 40,
     "_template": 23,
-    "driftwood-isle": 271,
+    "driftwood-isle": 272,
     "far-reach": 16,
-    "nalati-grasslands": 226,
-    "nine-dragon-stack": 269,
+    "nalati-grasslands": 225,
+    "nine-dragon-stack": 270,
     "pine-hollow": 42,
     "sunscar-dunes": 32
+  },
+  "raised": {
+    "driftwood-isle 271 → 272, nine-dragon-stack 269 → 270": "E417 (2026-10-03): the engine's one props file became the kit's props + models files; same code, one more module, because these manifests import the whole #kit index at cold boot (the real cost: ~200 kit files)"
   }
 }

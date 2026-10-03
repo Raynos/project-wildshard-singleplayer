@@ -682,6 +682,7 @@ Bows use manual hold/release draw on both devices; the automatic-shot action has
 | `HudVerbs`, `VerbSlotOpts` | the scoped verbs on `ctx.hud` |
 | `TabRegistry`, `TabId`, `TabSpec`, `TabFragment` | the Bag / menu tab registry the game builds on; game-owned GEAR / FINDS / PACK / FEATS renderers register TabSpecs and ordered fragments. Menu options carry Settings capabilities rather than Bag kit / skins / tools / pack data |
 | `registerPickupLook`, `PickupLook`, `PickupPart`, `pickupModel`, `interactParts`, `LowPolyKit` | a pickup row's look is registered content (its batched model and the parts drawn up close); `LowPolyKit` builds their flat-shaded geometry (E405) |
+| `registerInteractProps`, `InteractProps`, `ChestLook`, `DoorLook`, `ChestDims` | the props the interaction runtime draws (chest, key, door, lever, plate, barrel, brazier, bench, altar: each part's geometry, and the catalog model it places a kind's rows as) are registered content; the engine keeps the kinds, poses, colliders and prompts (E405 E417; the kit's: `installKitProps`) |
 | `IconId`, `IconMap`, `icon`, `registerIcons`, `iconParts` | the icon registry: the engine's UI glyphs (lock, check, map pins, the Bag's tabs); a content library merges its ids into `IconMap` on `#engine/ui/icons` and registers SVGs drawn with `iconParts` (the kit's `installKitIcons`; E405) |
 | `BossBar`, `EliteBar` | the shared encounter bars (decision 91: one boss bar look) |
 | `HUD`, `GameMenu`, `GameMenuOptions`, `FullMap`, `FullMapPoi`, `MapQuest`, `MapMark`, `MapPoi`, `MapOverlay`, `MinimapPalette`, `FirstHints`, `Feedback`, `KitEntry` | **ports**: the legacy HUD, menu and map types `runtime.play` hands over |
@@ -1492,7 +1493,7 @@ The kit holds content that 2+ shards use (the rule of two). Content one shard us
 | `weapons/thrown` | `Thrown`, `ThrownProfile` |
 | `weapons/ui` | `SWAP_GLYPHS` |
 | `viewmodel` | `WeaponHands`, `HandHold`, `BUCKSKIN`, `HANDS_MATERIAL`, `coatMaterialParams`, `holdDef`, `withHunterPalette`, `blendGrip`, `gripPose`, `ARM_CLIPS`, `SWIM_CLIPS`, `armClipNames` |
-| `species` | `BOAR`, `BOAR_TUNING`, `BOAR_LOOK`, `BOAR_PALETTE`, `BEAR`, `BEAR_TUNING`, `BEAR_LOOK`, `BEAR_PALETTE`, `installKitSpecies`; `installKitIcons` (the creature, item and weapon icons, moved from the engine, E405); `installKitPickups` (the pickup looks a pickup row names: flint, coin, sea glass, resin, token, glyph shard; moved from the engine's interactables, E405) |
+| `species` | `BOAR`, `BOAR_TUNING`, `BOAR_LOOK`, `BOAR_PALETTE`, `BEAR`, `BEAR_TUNING`, `BEAR_LOOK`, `BEAR_PALETTE`, `installKitSpecies`; `installKitIcons` (the creature, item and weapon icons, moved from the engine, E405); `installKitProps` (the interactables' props and models, `INTERACT_PROPS`, moved from the engine, E417); `installKitPickups` (the pickup looks a pickup row names: flint, coin, sea glass, resin, token, glyph shard; moved from the engine's interactables, E405) |
 | `effects` | `STARTER_EFFECTS`, `STARTER_CHOICES`, `StarterChoice`, `starterId`, `installStarterEffects` |
 | `npc` | `NpcRig`, `NpcRow`, `NpcModel`, `NpcFace`, `rigLegs`, `legRigOf`, `legBones`, `legPose`, `footPlan`, `LEG_BONE_NAMES`, `WALK`, `LegBuilt`, `NpcRigProfile`, `fitNpcFigure`, `mergeNpcFigures`, `NpcFigureFrame`, `NpcFigureBones`, `NpcFigureRig`, `stepNpcFigure`, `npcFigurePose`, `NpcFigureState`, `NpcFigureMotionProfile`, `faceHead`, `loadFaceHead`, `FaceHead` |
 | `tools` | `Hoverboard`, `HOVERBOARD_TOOL` (all four shards; its `board` movement mode stays engine) |
@@ -1609,7 +1610,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-711 exports, grouped by the module they come from.
+716 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1721,7 +1722,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./core/tier`: `TIER_CONFIG`, `TIER`, `buildTier`
 - `./boot/plan`: `macrotask`, `slicer`, `StepRunner`, `StepProgress`
 - `./models/weld`: `twoSidedPositions`, `WeldBuild`
-- `./world/interact/types`: `Interactable`, `PoiId`, `Place`, `registerPickupLook`, `PickupLook`, `PickupPart`
+- `./world/interact/types`: `Interactable`, `PoiId`, `Place`, `registerPickupLook`, `registerInteractProps`, `PickupLook`, `PickupPart`, `InteractProps`, `ChestLook`, `DoorLook`, `ChestDims`
 - `./core/bootstrap`: `World`
 - `./entities/AnimalManager`: `AnimalManager`, `HuntTuning`
 - `./audio/Audio`: `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind`
@@ -1878,7 +1879,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#kit` (`src/kit/index.ts`)
 
-138 exports, grouped by the module they come from.
+140 exports, grouped by the module they come from.
 
 - `./weapons/ui`: `SWAP_GLYPHS`
 - `./weapons/equipment`: `SWORD`, `WOODEN_SWORD`, `IRON_SWORD`
@@ -1914,6 +1915,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./species/install`: `installKitSpecies`
 - `./icons`: `installKitIcons`
 - `./models/pickups`: `installKitPickups`
+- `./models/interact`: `installKitProps`, `INTERACT_PROPS`
 - `./npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigureFrame`, `NpcFigureBones`, `NpcFigureRig`
 - `./npc/figureMotion`: `stepNpcFigure`, `npcFigurePose`, `NpcFigureState`, `NpcFigureMotionProfile`
 - `./bag/items`: `KIT_ITEMS`

@@ -35,9 +35,7 @@ import { castSegment, lineOfSight } from '../../physics/query';
 import { activeBodies, overlapBox, type Body, type BodySpec } from '../../physics/bodies';
 import { waterLevel } from '../Heightfield';
 import { test, type Flags } from './flags';
-import { autoFlag, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
-import * as Mdl from './models';
-import * as Models from '../../models/interact';
+import { autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
 import { modelContext, type ModelDef, type Placement } from '../../models/model';
 import { place, type Placed } from '../../models/place';
 
@@ -299,15 +297,15 @@ export class Interactables {
         placed.push(place(this.def, this.pls, { ctx, draw: 'batched', drawnInto: { object: batches[this.batch], boxes: Float32Array.from(this.boxes) }, piece: { id: `interact:${this.def.id}` } }));
       }
     }
-    const chest = new Rows(Models.seaChest, 'lit'), key = new Rows(Models.holdKey, 'glow'), door = new Rows(Models.door, 'lit');
-    const lever = new Rows(Models.lever, 'lit'), plate = new Rows(Models.pressurePlate, 'lit'), barrel = new Rows(Models.puzzleBarrel, 'lit');
-    const beacon = new Rows(Models.beacon, 'lit'), bench = new Rows(Models.bench, 'lit'), altar = new Rows(Models.shardAltar, 'lit');
+    const chest = new Rows(interactProps().models.seaChest, 'lit'), key = new Rows(interactProps().models.holdKey, 'glow'), door = new Rows(interactProps().models.door, 'lit');
+    const lever = new Rows(interactProps().models.lever, 'lit'), plate = new Rows(interactProps().models.pressurePlate, 'lit'), barrel = new Rows(interactProps().models.puzzleBarrel, 'lit');
+    const beacon = new Rows(interactProps().models.beacon, 'lit'), bench = new Rows(interactProps().models.bench, 'lit'), altar = new Rows(interactProps().models.shardAltar, 'lit');
     const pickups = new Map<string, Rows<Record<string, never>>>();   // per registered look (registerPickupLook)
     const small = [0.25, 0.25, 0.25] as const;
     for (const lv of this.lives) {
       const d = lv.def;
       switch (d.kind) {
-        case 'chest': { const look = d.look ?? 'chest', D = Mdl.CHEST_DIMS[look]; chest.add(lv, { look, locked: d.lock !== undefined }, [D.w / 2, (D.h + D.lidH) / 2, D.w / 2], 0, look); break; }
+        case 'chest': { const look = d.look ?? 'chest', D = interactProps().CHEST_DIMS[look]; chest.add(lv, { look, locked: d.lock !== undefined }, [D.w / 2, (D.h + D.lidH) / 2, D.w / 2], 0, look); break; }
         case 'key': key.add(lv, {}, [0.2, 0.2, 0.2], 0.9); break;
         case 'pickup': {
           const look = pickupLook(d.look);
@@ -364,15 +362,15 @@ export class Interactables {
     const d = lv.def, still = (_: Live, __: number, out: THREE.Matrix4) => { out.identity(); };
     switch (d.kind) {
       case 'chest': {
-        const look = d.look ?? 'chest', D = Mdl.CHEST_DIMS[look];
-        this.part(lv, this.geo(`chest:${look}`, 'lit', () => Mdl.chestBase(look, this.s())), 'lit', still);
-        this.part(lv, this.geo(`lid:${look}`, 'lit', () => Mdl.chestLid(look, this.s())), 'lit', (l, _t, out) => T(0, D.h, -D.d / 2, out, -1.95 * ease(l.anim)), { animated: true });
-        this.part(lv, this.geo(`glint:${look}`, 'glow', () => Mdl.chestGlint(look, this.s())), 'glow', still, { when: (l) => l.anim > 0.3, glow: (_l, t) => 1.4 + 0.3 * Math.sin(t * 5) });
-        if (d.lock !== undefined) this.part(lv, this.geo('padlock', 'lit', () => Mdl.padlock(this.s())), 'lit', (_l, _t, out) => T(0, D.h - 0.12, D.d / 2 + 0.05, out), { when: (l) => l.anim === 0 && !this.host.flags.has(`open:${l.def.id}`) });
+        const look = d.look ?? 'chest', D = interactProps().CHEST_DIMS[look];
+        this.part(lv, this.geo(`chest:${look}`, 'lit', () => interactProps().chestBase(look, this.s())), 'lit', still);
+        this.part(lv, this.geo(`lid:${look}`, 'lit', () => interactProps().chestLid(look, this.s())), 'lit', (l, _t, out) => T(0, D.h, -D.d / 2, out, -1.95 * ease(l.anim)), { animated: true });
+        this.part(lv, this.geo(`glint:${look}`, 'glow', () => interactProps().chestGlint(look, this.s())), 'glow', still, { when: (l) => l.anim > 0.3, glow: (_l, t) => 1.4 + 0.3 * Math.sin(t * 5) });
+        if (d.lock !== undefined) this.part(lv, this.geo('padlock', 'lit', () => interactProps().padlock(this.s())), 'lit', (_l, _t, out) => T(0, D.h - 0.12, D.d / 2 + 0.05, out), { when: (l) => l.anim === 0 && !this.host.flags.has(`open:${l.def.id}`) });
         break;
       }
       case 'key':
-        this.part(lv, this.geo('key', 'glow', () => Mdl.keyModel(this.s())), 'glow', bob(0.9, 0.08, 1.6), { animated: true, glow: pulse(1.5) });
+        this.part(lv, this.geo('key', 'glow', () => interactProps().keyModel(this.s())), 'glow', bob(0.9, 0.08, 1.6), { animated: true, glow: pulse(1.5) });
         break;
       case 'pickup': {
         for (const part of pickupLook(d.look)?.parts ?? []) {
@@ -384,41 +382,41 @@ export class Interactables {
       }
       case 'door': {
         const { w, h, look } = d;
-        this.part(lv, this.geo(`frame:${look}:${w}:${h}`, 'lit', () => Mdl.doorFrame(look, w, h, this.s())), 'lit', still);
-        const pk = this.geo(`panel:${look}:${w}:${h}`, 'lit', () => Mdl.doorPanel(look, w, h, this.s()));
+        this.part(lv, this.geo(`frame:${look}:${w}:${h}`, 'lit', () => interactProps().doorFrame(look, w, h, this.s())), 'lit', still);
+        const pk = this.geo(`panel:${look}:${w}:${h}`, 'lit', () => interactProps().doorPanel(look, w, h, this.s()));
         if (look === 'plank') this.part(lv, pk, 'lit', (l, _t, out) => T(-w / 2, 0, 0, out, 0, -1.75 * ease(l.anim)), { animated: true });
         else this.part(lv, pk, 'lit', (l, _t, out) => T(0, (h + 0.05) * ease(l.anim), 0, out), { animated: true });
         break;
       }
       case 'lever':
-        this.part(lv, this.geo('lever-base', 'lit', () => Mdl.leverBase(this.s())), 'lit', still);
-        this.part(lv, this.geo('lever-handle', 'lit', () => Mdl.leverHandle(this.s())), 'lit', (l, _t, out) => T(0, 0.34, 0, out, 0.7 - 1.4 * ease(l.anim)), { animated: true });
+        this.part(lv, this.geo('lever-base', 'lit', () => interactProps().leverBase(this.s())), 'lit', still);
+        this.part(lv, this.geo('lever-handle', 'lit', () => interactProps().leverHandle(this.s())), 'lit', (l, _t, out) => T(0, 0.34, 0, out, 0.7 - 1.4 * ease(l.anim)), { animated: true });
         break;
       case 'plate': {
         const sz = d.size;
-        this.part(lv, this.geo(`plate-rim:${sz}`, 'lit', () => Mdl.plateRim(sz, this.s())), 'lit', still);
-        this.part(lv, this.geo(`plate:${sz}`, 'lit', () => Mdl.plateSlab(sz, this.s())), 'lit', (l, _t, out) => T(0, -0.06 * l.anim, 0, out), { animated: true });
+        this.part(lv, this.geo(`plate-rim:${sz}`, 'lit', () => interactProps().plateRim(sz, this.s())), 'lit', still);
+        this.part(lv, this.geo(`plate:${sz}`, 'lit', () => interactProps().plateSlab(sz, this.s())), 'lit', (l, _t, out) => T(0, -0.06 * l.anim, 0, out), { animated: true });
         break;
       }
       case 'barrel':
-        this.part(lv, this.geo('barrel', 'lit', () => Mdl.barrel(this.s())), 'lit', still);
+        this.part(lv, this.geo('barrel', 'lit', () => interactProps().barrel(this.s())), 'lit', still);
         break;
       case 'beacon':
-        this.part(lv, this.geo('brazier', 'lit', () => Mdl.brazier(this.s())), 'lit', still);
-        this.part(lv, this.geo('flame', 'glow', () => Mdl.flame(this.s())), 'glow', (l, t, out) => {
+        this.part(lv, this.geo('brazier', 'lit', () => interactProps().brazier(this.s())), 'lit', still);
+        this.part(lv, this.geo('flame', 'glow', () => interactProps().flame(this.s())), 'glow', (l, t, out) => {
           const f = ease(l.anim), fl = 1 + 0.12 * Math.sin(t * 13) + 0.07 * Math.sin(t * 29 + 1);
           out.compose(_v.set(0, 0.95, 0), _q.setFromEuler(_e.set(0, t * 0.7, 0)), _s.set(f * (1 + 0.05 * Math.sin(t * 17)), f * fl, f));
         }, { when: (l) => l.anim > 0.01, glow: (_l, t) => 2.2 + 0.4 * Math.sin(t * 11), animated: true });
         break;
       case 'bench':
-        this.part(lv, this.geo('bench', 'lit', () => Mdl.bench(this.s())), 'lit', still);
+        this.part(lv, this.geo('bench', 'lit', () => interactProps().bench(this.s())), 'lit', still);
         break;
       case 'altar': {
         const n = d.fills.length;
-        this.part(lv, this.geo(`altar:${n}`, 'lit', () => Mdl.altar(n, this.s())), 'lit', still);
+        this.part(lv, this.geo(`altar:${n}`, 'lit', () => interactProps().altar(n, this.s())), 'lit', still);
         const socket = pickupLook(d.socketLook)?.parts[0];   // what fills a socket: a registered pickup look's first part
         if (socket !== undefined) d.fills.forEach((f, i) => {
-          const s = Mdl.altarSocket(i, n);
+          const s = interactProps().altarSocket(i, n);
           this.part(lv, this.geo(socket.key, socket.batch, () => socket.geometry(this.s())), socket.batch, (_l, t, out) => T(s.x, s.y + Math.sin(t * 1.3 + i) * 0.04, s.z, out, 0, t * 0.8 + i, 0, 0.8),
             { animated: true, when: (l) => this.host.flags.has(`used:${l.def.id}`) && this.host.flags.has(f), glow: pulse(2.4) });
         });
@@ -435,7 +433,7 @@ export class Interactables {
     // colliders
     const box = (hw: number, hd: number, h: number): Collider => ({ x: p.x, z: p.z, hw, hd, rot: -p.yaw, yTop: p.y + h, yBottom: p.y - 0.5 });
     switch (d.kind) {
-      case 'chest': { const D = Mdl.CHEST_DIMS[d.look ?? 'chest']; lv.collider = box(D.w / 2, D.d / 2, D.h + D.lidH); break; }
+      case 'chest': { const D = interactProps().CHEST_DIMS[d.look ?? 'chest']; lv.collider = box(D.w / 2, D.d / 2, D.h + D.lidH); break; }
       case 'door': lv.collider = box(d.w / 2 + 0.05, 0.16, d.h); break;
       case 'barrel': {
         // a free dynamic cylinder the player's capsule tips and rolls (PHYSICS P7-L1); a static box where there is no world (tests)
@@ -482,7 +480,7 @@ export class Interactables {
   private sightSlack(lv: Live): number {
     const d = lv.def;
     switch (d.kind) {
-      case 'chest': { const D = Mdl.CHEST_DIMS[d.look ?? 'chest']; return Math.max(D.w, D.d) / 2 + 0.2; }
+      case 'chest': { const D = interactProps().CHEST_DIMS[d.look ?? 'chest']; return Math.max(D.w, D.d) / 2 + 0.2; }
       case 'door': return d.w / 2 + 0.25;
       case 'beacon': return 0.7;
       case 'altar': return 0.9;
