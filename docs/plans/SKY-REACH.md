@@ -1,6 +1,6 @@
 # SKY-REACH — shard 6's full content (E374)
 
-**State:** `blocked` 2026-10-02 — built and council-passed: council round 2 (020f8713) put Sky Reach at the bar and every outcome.md extra is cleared (newest capture `progress/far-reach/20261002-0204-3ff49dd6/`); the one open row is P6, Jake's sign-off on his iPhone.
+**State:** `in progress` 2026-10-03 — built; reopened by E399 (Jake: don't stop until the council scores 8/10 against the mockups), so P6 (Jake's iPhone sign-off) comes after the bar. Council round 9: seats 6.4 / 6.6 / 6.4, mean **6.47** (round 8 6.33); round 10's surface is captured (`20261003-0516-750b533a`) and waiting for the seats. Open: the round-9 should-fixes (h3 turned away from the step, the roc opening unseen from D's spot and not replayed on retry).
 
 Shard 6, slug `far-reach`, Jake's pick **B · Sky Reach** (E364): floating islands above the clouds at golden hour, a
 war fan (SWING slashes, GUST blows creatures back and off edges), a flying manta; Jake's rule: **some bridges are

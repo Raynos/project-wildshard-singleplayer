@@ -1,6 +1,6 @@
 # SIGNAL-DUNES — shard 5's full content (E374)
 
-**State:** `in progress` 2026-10-02 — C1–C7 built; polish loops 1–4 and the council's fixes landed (the `signal-dunes` top-level Opus agent). The council is used up: rounds 1 and 2 and the check pass (`docs/plans/shard-polish-council/outcome.md`) all judged it below the bar, closer each time; the builder works the lead's seven overnight items (sky seam, lit braziers, the wagon, the route from above, the glove, the pull, these lines); Jake plays it in the morning and decides.
+**State:** `in progress` 2026-10-03 — C1–C7 built; polish continues under E399 (Jake: don't stop until the council scores 8/10 against the mockups), the lead + builder loop, Handoff in the shard's notes. Council round 11: seats 6.3 / 6.9 / 6.7, mean **6.63** (round 9 6.47, round 10 6.57). Open from round 11: A's mirrored landform light, C / D far land, the fill bump at B's dusk.
 
 Shard 5, slug `sunscar-dunes`, Jake's pick **C · Signal Dunes** (E363 round 2): realistic dusk dunes, an orange band under
 indigo, first stars, cool blue hollows; a braided leather bullwhip; a ray-like flyer; "Light the signal fire". No
