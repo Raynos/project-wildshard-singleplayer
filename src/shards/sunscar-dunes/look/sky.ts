@@ -37,10 +37,10 @@ void main() {
   // round 8b (measured, Rec. 709 bands: the band at 30-36 % of the frame 168 in A and 140 in dusk-fire against the mockups' 97
   // and 84, and too yellow, 224,156,107 against 154,83,60): a deeper, redder afterglow
   // and the afterglow holds as the dusk deepens (mockups B-D's low band 87-116 against ours 71-82; it used to fade by 40 %)
-  vec3 band = mix(vec3(0.62, 0.25, 0.12), vec3(0.78, 0.34, 0.14), pow(toward, 1.2)) * (0.78 + 0.3 * uDusk);
+  vec3 band = mix(vec3(0.62, 0.25, 0.12), vec3(0.78, 0.34, 0.14), pow(toward, 1.2)) * (0.5 + 0.58 * uDusk); // round 11 (R10B-1: dusk-fire's band 140 / ~123)
   // round 8 (measured, Rec. 709 bands: mockup A's mid sky 81,58,76 against ours 74,46,69, its top 40,37,65 against 48,35,61):
   // a dusty rose-peach above the band and a bluer, less plum dome
-  vec3 rose = vec3(0.5, 0.32, 0.32), dusk = vec3(0.24, 0.2, 0.29), indigo = vec3(0.1, 0.09, 0.19);
+  vec3 rose = vec3(0.44, 0.29, 0.3), dusk = vec3(0.24, 0.2, 0.29), indigo = vec3(0.1, 0.09, 0.19);
   // E399 (the mockups): a tall soft orange-gold band behind the tower, peach to rose, navy pushed higher
   // E399 (look/dusk.ts): as the quest goes on the band sinks and dims, the rose turns violet, the indigo comes down
   rose = mix(rose, vec3(0.42, 0.3, 0.42), uDusk);
@@ -52,7 +52,9 @@ void main() {
   c = mix(c, indigo, smoothstep(0.08 - 0.05 * uDusk, 0.5, h)); // round 8b: the dome's indigo lower at sunset (A's sky at 15 % of the frame 72,54,74 against 40,37,65)
   c += vec3(1.0, 0.5, 0.2) * pow(toward, 9.0) * (1.0 - smoothstep(0.0, 0.16 - 0.08 * uDusk, h)) * 0.5 * (1.0 - 0.6 * uDusk); // round 10 (R9B-5: A's glow flat across; the mockup's hot spot right of the tower)
   // round 10 (R9B-2: every mockup puts a thin bright glow line just over a near-black horizon): the last ~1 deg of the band
-  c += vec3(1.0, 0.62, 0.38) * (1.0 - smoothstep(0.0, 0.02, h)) * (0.25 + 0.45 * uDusk) * (0.4 + 0.6 * pow(toward, 0.7));
+  // round 11 (R10B-1 / R10B-4: at dusk 0 neither spawn mockup has a line, and D's is a broad peach band ~3 deg, not a spike):
+  // late dusk only, wider and lower
+  c += vec3(0.95, 0.62, 0.42) * (1.0 - smoothstep(0.0, 0.055, h)) * 0.4 * smoothstep(0.3, 0.75, uDusk) * (0.4 + 0.6 * pow(toward, 0.7));
   float az = atan(d.z, d.x);
   // E399 (council round 2: mockups A and dusk-fire have orange cloud banks lit from below; B-D are clear): a broken
   // deck projected on a flat layer, patchy, lit orange-gold toward the glow and rose away from it, dark cores; it clears
@@ -69,7 +71,7 @@ void main() {
   vec2 cq = vec2(az * 9.0, h * 38.0);
   float cn = vNoise(cq * 0.45 + 11.0) * 0.35 + vNoise(cq) * 0.33 + vNoise(cq * vec2(2.3, 2.0) + 3.1) * 0.2 + vNoise(cq * vec2(6.0, 4.0) + 7.3) * 0.12;
   float azG = atan(uSun.z, uSun.x), rel = az - azG; rel -= 6.2831853 * floor((rel + 3.1415927) / 6.2831853);
-  float bank = smoothstep(0.06, 0.2, rel) * (1.0 - smoothstep(0.75, 1.15, rel)) + 0.6 * smoothstep(-1.1, -0.75, rel) * (1.0 - smoothstep(-0.22, -0.1, rel));
+  float bank = smoothstep(0.06, 0.2, rel) * (1.0 - smoothstep(0.75, 1.15, rel)) + 0.3 * smoothstep(-1.1, -0.75, rel) * (1.0 - smoothstep(-0.22, -0.1, rel)); // round 11 (R10B-1: thinner on the left)
   float cov = smoothstep(0.52, 0.64, cn) * bank * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.2, 0.28, h)) * (1.0 - smoothstep(2.7, 2.95, abs(az))) * (1.0 - smoothstep(0.03, 0.14, uDusk));
   // lit from below (the set sun): where the bank thins downward its belly takes the glow, its top stays dark
   vec2 cqb = cq - vec2(0.0, 0.35);

@@ -20,7 +20,7 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 // luma grid correlated with each mockup's: A +0.18 at best for any, dusk-fire +0.39 from the NNW, +0.25 from round 9's WNW;
 // round 9's seats: the WNW key lit A's left, which the mockup shades): the NNW, with the crest line (layout CREST_LINES)
 // and a crisp terminator; dusk-fire's clean-patch sand 73 / mockup 72, A's 78 / 56 (the two mockups' known disagreement)
-export const KEY = { dir: new Vector3(-0.45, 0.2, -0.87).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.3 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(-0.45, 0.2, -0.87).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.05 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -248,7 +248,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // E399 (mockups A, D): fine low-contrast ripples near the camera, the bold stripes only at middle distance
   float sandNear = mix(1.05, 0.7, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge); round 8: deeper near (A: troughs to ~20, crowns to ~115)
   // round 8 (mockup B: the late sand dim and soft; ours carried bold dark ripple stripes): the ripples' contrast falls with the dusk
-  sandNear *= 1.0 - 0.45 * smoothstep(0.2, 0.6, uDusk) - 0.2 * smoothstep(0.6, 0.9, uDusk); // round 9 (seat A: D's near ripples where the mockup's sand is smooth)
+  sandNear *= 1.0 - 0.55 * smoothstep(0.2, 0.6, uDusk) - 0.2 * smoothstep(0.6, 0.9, uDusk); // round 11 (R10 8: late ripples too regular and contrasty) // round 9 (seat A: D's near ripples where the mockup's sand is smooth)
   sandRip1 *= sandNear; sandRip2 *= sandNear;
   // E399 (judge, mockup A): the near ripples' troughs read dark (the key runs along the crests, so the bump alone barely shows)
   diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3
@@ -306,7 +306,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // forms): the key's response on the terrain's own normal a short ramp at the terminator and a flatter lit side
     // (0.12 + 0.88 N.L past the ramp, against plain Lambert), so the line between lit and shaded faces reads sharp
     float tN = max(dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)})), 0.0);
-    reflectedLight.directDiffuse *= smoothstep(0.0, 0.045, tN) * (0.12 + 0.88 * tN) / max(tN, 0.02) * 0.82;
+    reflectedLight.directDiffuse *= smoothstep(0.0, 0.045, tN) * (0.12 + 0.88 * tN) / max(tN, 0.02) * 0.72; // round 11 (R10B-2: the near field over both mockups, dusk-fire 82.5 / 73.8)
   }
   // round 6 (seat C: the mean is right, the contrast must come from darker shade AND brighter crests): faces grazing the key
   float sandGraze = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
@@ -332,8 +332,10 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   {
     // round 10 (R9B-2: mockups B, C and D put near-black land under the glow, 13-19 against our 47-74, the far land darker
     // than the near): in the late dusk the far dunes fall toward silhouette with distance
-    float sil = smoothstep(8.0, 60.0, sandFar) * smoothstep(0.3, 0.75, uDusk) * 0.75;
-    reflectedLight.directDiffuse *= 1.0 - sil; reflectedLight.indirectDiffuse *= 1.0 - sil;
+    // round 11 (round 10's ledger note: a fade to black from 8 m flattened D's bands and the late clip's ground): the sky fill
+    // only, from 30 m, so the key's bands still read on the far land
+    float sil = smoothstep(30.0, 200.0, sandFar) * smoothstep(0.3, 0.75, uDusk) * 0.6;
+    reflectedLight.indirectDiffuse *= 1.0 - sil;
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });

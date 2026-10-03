@@ -4,7 +4,7 @@ import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
 // round 9 (seat C: A, B and C hold big rings rising from the bottom edge, dusk-fire one low loose loop, only D a raised
 // fist): the one idle hold lower, toward the four
-export const HD_GLOVE = { size: 0.3, pos: [0.06, -0.27, 0] as [number, number, number], rot: [-0.45, 0, 0.3] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
+export const HD_GLOVE = { size: 0.3, pos: [0.06, -0.245, 0] as [number, number, number], rot: [-0.45, 0, 0.3] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
 // rising from the bottom edge, dusk-fire one low loose loop, only D a raised fist): the one idle hold lower, toward the four // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */

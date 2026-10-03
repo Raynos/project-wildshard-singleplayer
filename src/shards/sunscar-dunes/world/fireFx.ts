@@ -13,7 +13,7 @@ import { WIND } from './dunes';
  * - the pool: a warm additive disc draped on the sand round the brazier.
  */
 export interface FireSize { flame: number; glow: number; smoke: number; embers: number; /** a thin pale wisp (a cookfire), not the dark plume */ wisp?: boolean }
-export const WAYMARK_FIRE: FireSize = { flame: 3.6, glow: 1.7, smoke: 11, embers: 260 }; // round 9 (the seats: half the mockup's fire): taller, more embers // mockup C: a roaring log fire, about one and a half bowls tall
+export const WAYMARK_FIRE: FireSize = { flame: 3.0, glow: 1.7, smoke: 11, embers: 260 }; // round 9 (the seats: half the mockup's fire): taller, more embers // mockup C: a roaring log fire, about one and a half bowls tall
 /** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
 export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 14, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon; round 10 (the seats: a straight pale column): it curls, widens and fades
 /** The keeper's lamp in the tower's top (mockup dusk-fire): a small open flame in its cage, no plume to speak of. */
@@ -87,7 +87,7 @@ void main() {
   c *= 0.65 + 0.7 * streak;
   float fade = smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25);
   float base = mix(0.45, 1.0, smoothstep(0.08, 0.3, y));
-  gl_FragColor = vec4(c * body * fade * base, body * fade * 0.9 * base);
+  gl_FragColor = vec4(c * body * fade * base, body * fade * base); // round 11 (R10B-5): denser
 }`,
 });
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */
@@ -141,7 +141,7 @@ void main() {
 });
 /** A lamp's halo (round 9, the seats: no lantern glow at the camp, a dot on the tower): the fire's halo shader at a lamp's
  *  own gain, which the fire's (dimmed so it no longer washed its flame) left invisible. */
-const lampGlowMaterial = glowMaterial.clone(); lampGlowMaterial.uniforms = { uTime: time }; lampGlowMaterial.depthTest = false; // round 10 (R9B-9): the canvas hid the caravan lantern's halo
+const lampGlowMaterial = glowMaterial.clone(); lampGlowMaterial.uniforms = { uTime: time }; // round 11 (round 10's ledger note: drawn with no depth test it showed through the wagon and dunes): depth-tested, small
 lampGlowMaterial.fragmentShader = lampGlowMaterial.fragmentShader.replace('g * 0.14 * flick', 'g * 0.42 * flick');
 const emberMaterial = new ShaderMaterial({
   uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false,
