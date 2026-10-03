@@ -33,8 +33,7 @@ import { prepareBootAudio } from './audioInventory';
  * `window.__ws_prefetch` (the bench / tests): `{ state, done }` — `done` resolves with the final report.
  */
 import { setting } from '../ui/Settings';
-import type { ShardManifest } from '#game/shard/manifest';
-import { SHARDS, playable, findChunk } from '#game/shard/registry';
+import { bootCatalog, type BootLevel } from './catalog';
 import { bootFiles } from './extras';
 import { bootParts, packFor } from './pack';
 import { gpuUrl, versionedUrl } from './bytes';
@@ -47,8 +46,6 @@ import { horizonStrips } from '../world/HorizonMatte';
 
 const savedStorage = saveStorage('device');
 
-const PLAYABLE_SHARDS = SHARDS.filter(playable);
-
 /** files in flight at once: the worker's fetches share the pipe with anything the game still asks for */
 const CONCURRENCY = 2;
 /** after playable: the title's first frames, the menu's first taps and the shader warm-up go first */
@@ -57,7 +54,7 @@ const START_DELAY_MS = 4000;
 const REPLY_TIMEOUT_MS = 180_000;
 
 /** Every URL `def`'s boot requests on this tier, in the order the boot asks for them, as the network sees them. */
-export function shardBootRequests(def: ShardManifest, tex: TexMode = texMode()): string[] {
+export function shardBootRequests(def: BootLevel, tex: TexMode = texMode()): string[] {
   const files = bootFiles(def, tex);
   const whole = packFor(def), pack = whole ? bootParts(whole, files) : null;
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
@@ -71,7 +68,7 @@ export function shardBootRequests(def: ShardManifest, tex: TexMode = texMode()):
  * NPCs / trophy-wall chalk, Nalati's camp people). Not in `bootFiles` (plan.done() would wait on them), so the bench found them: the first switch still
  * downloaded ~1–4 MB of them. Each name comes from the module that loads it; a file the build does not ship is left out.
  */
-export function lateReads(def: ShardManifest, tex: TexMode = texMode()): string[] {
+export function lateReads(def: BootLevel, tex: TexMode = texMode()): string[] {
   const out: string[] = [...(def.boot?.lateReads?.(TIER, tex) ?? [])];
   const lut = lutUrl(def.slug);
   if (lut !== null) out.push(lut);
@@ -83,7 +80,7 @@ export function lateReads(def: ShardManifest, tex: TexMode = texMode()): string[
 }
 
 /** What the background download fetches for `def`: its boot's requests, then what the world reads as it comes up. */
-export function shardPrefetchList(def: ShardManifest, tex: TexMode = texMode()): string[] {
+export function shardPrefetchList(def: BootLevel, tex: TexMode = texMode()): string[] {
   return [...new Set([...shardBootRequests(def, tex), ...lateReads(def, tex)])];
 }
 
@@ -91,7 +88,7 @@ export function shardPrefetchList(def: ShardManifest, tex: TexMode = texMode()):
  * E157 B: a shard's KTX2 set for this tier — every KTX2 stand-in its KTX2 boot and world read (the files an images boot
  * does not), plus the Basis transcoder they need. Empty when the tier has no stand-ins (both tiers are baked since E173).
  */
-export function ktx2Set(def: ShardManifest): string[] {
+export function ktx2Set(def: BootLevel): string[] {
   const own = shardPrefetchList(def, 'ktx2').filter((u) => u.startsWith('/assets/gpu/'));
   return own.length === 0 ? [] : [...new Set([...own, `${BASIS_PATH}basis_transcoder.js`, `${BASIS_PATH}basis_transcoder.wasm`])];
 }
@@ -104,18 +101,18 @@ export function setHash(files: readonly string[]): string {
 /** the marker the background download writes once the worker holds every file of the set (localStorage: read synchronously at boot) */
 export const ktx2MarkerKey = (slug: string): string => `ktx2set:${slug}.${TIER}`;
 /** Auto (src/engine/boot/gpuFiles.ts): this shard's KTX2 set for this tier is cached — the marker names the current set */
-export function ktx2Ready(def: ShardManifest): boolean {
+export function ktx2Ready(def: BootLevel): boolean {
   const set = ktx2Set(def);
   if (set.length === 0) return false;
   try { return savedStorage.getItem(ktx2MarkerKey(def.slug)) === setHash(set); } catch { return false; }
 }
-function markKtx2(def: ShardManifest, complete: boolean, hash: string): void {
+function markKtx2(def: BootLevel, complete: boolean, hash: string): void {
   try {
     if (complete) savedStorage.setItem(ktx2MarkerKey(def.slug), hash);
     else savedStorage.removeItem(ktx2MarkerKey(def.slug));
   } catch { /* private mode: Auto stays on images */ }
 }
-setAutoKtx2Check((slug) => { const def = findChunk(slug); return def !== undefined && ktx2Ready(def); });
+setAutoKtx2Check((slug) => { const def = bootCatalog().find(slug); return def !== undefined && ktx2Ready(def); });
 
 export interface PrefetchEnv {
   /** pause ▸ Settings ▸ Debug ▸ Download in background is Off */
@@ -204,7 +201,7 @@ const visible = (): Promise<void> => new Promise((resolve) => {
  * Start the background download: `active` (the shard on screen) first, then every other shard in title order. Call once
  * the shard is playable. Returns the handle it also puts on `window.__ws_prefetch`.
  */
-export function startShardPrefetch(active: ShardManifest): PrefetchHandle {
+export function startShardPrefetch(active: BootLevel): PrefetchHandle {
   const state: PrefetchState = { status: 'waiting', startedAt: 0, endedAt: 0, shards: {}, ktx2: {}, tex: texModeWhy() };
   const veto = prefetchVeto({ off: setting('prefetch') === 'off', controlled: 'serviceWorker' in navigator && navigator.serviceWorker.controller !== null, ...connection() });
   const finish = (status: PrefetchState['status'], reason?: string): PrefetchState => {
@@ -220,14 +217,14 @@ export function startShardPrefetch(active: ShardManifest): PrefetchHandle {
     await sleep(START_DELAY_MS);
     // A phone keeps only one shard in play. Cache this shard (including its KTX2 set for the next launch),
     // but do not download the other worlds while the iOS WebContent process is under memory pressure.
-    const order = TIER === 'phone' ? [active] : [active, ...PLAYABLE_SHARDS.filter((c) => c !== active)];
+    const order = TIER === 'phone' ? [active] : [active, ...bootCatalog().playable.filter((c) => c !== active)];
     await Promise.all(order.filter((def) => def !== active).map((def) => prepareBootAudio(def.boot)));
     await Promise.all(order.map(async (def) => { if (def.ktx2 !== undefined) registerGpuFiles((await def.ktx2()).GPU_FILES); }));
     const jobs: { slug: string; url: string; set: 'boot' | 'ktx2' }[] = [];
     // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the pick, or Auto's — images until the
     //    shard's KTX2 set is cached. The page's own shard first: what its boot fetched before the worker controlled it.
     const picked = setting('tex');
-    const modeFor = (def: ShardManifest): TexMode => (picked !== 'auto' ? picked : ktx2Ready(def) ? 'ktx2' : 'img');
+    const modeFor = (def: BootLevel): TexMode => (picked !== 'auto' ? picked : ktx2Ready(def) ? 'ktx2' : 'img');
     for (const def of order) {
       const urls = shardPrefetchList(def, def === active ? texMode() : modeFor(def));
       state.shards[def.slug] = { files: urls.length, hit: 0, stored: 0, failed: 0, bytes: 0 };
@@ -258,7 +255,7 @@ export function startShardPrefetch(active: ShardManifest): PrefetchHandle {
         const k = job.set === 'ktx2' ? state.ktx2[job.slug] : undefined;
         if (k?.hit !== undefined && k.hit + k.stored + k.failed === k.files) { // the set's last reply: mark it (or unmark a set that lost a file)
           k.complete = k.failed === 0;
-          const def = findChunk(job.slug), hash = hashes.get(job.slug);
+          const def = bootCatalog().find(job.slug), hash = hashes.get(job.slug);
           if (def && hash !== undefined) markKtx2(def, k.complete, hash);
         }
       }

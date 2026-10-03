@@ -95,8 +95,8 @@ describe('ratchet CLI', () => {
     expect(f.read().debugRows).toEqual({ max: 2, raisedBy: ['E357'] });
     expect(f.run('--add-rule', 'wildshard/no-raw-save').status).toBe(1);
     expect(f.run('--add-rule', 'wildshard/missing').status).toBe(1);
-    expect(f.run('--add-rule', 'wildshard/layer').stderr).toContain('promote');
-    expect(f.run('--add-rule', 'wildshard/layer').status).toBe(1);
+    expect(f.run('--add-rule', 'wildshard/engine-words').stderr).toContain('promote');
+    expect(f.run('--add-rule', 'wildshard/engine-words').status).toBe(1);
   });
   it('rebaselines only an explicitly named existing widened rule', () => {
     const f = fixture(); expect(f.run('--init').status).toBe(0);

@@ -24,6 +24,9 @@ async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: st
   const { prepareShardAssets } = await import('#game/shard/load');
   const { registerGpuFiles } = await import('#engine/boot/gpuFiles');
   await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
+  // E405: the session installs the registry into the engine's boot catalog; so does the test
+  const [{ setBootCatalog }, { findChunk }, { ART_URL_BYTES }] = await Promise.all([import('#engine/boot/catalog'), import('#game/shard/registry'), import('#game/shard/art.generated')]);
+  setBootCatalog({ levels: SHARDS, playable: SHARDS.filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   const PLAYABLE_SHARDS = SHARDS.filter(playable);
   const selected = SHARDS.find((manifest) => manifest.slug === chunk);
   gf.setTexturePolicy(selected?.tiers?.[opts.tier ?? 'phone']?.textures);

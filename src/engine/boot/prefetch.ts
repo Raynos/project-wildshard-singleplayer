@@ -15,7 +15,7 @@
  * DOWNLOAD track moves as the bytes really arrive. Installed after the service worker controls the page, so
  * every response still lands in its cache (the second launch stays all-cache).
  */
-import type { ShardManifest } from '#game/shard/manifest';
+import type { BootSpec } from '../level/spec';
 import type { ChunkFiles } from './bytes';
 
 const CONCURRENCY = 6;
@@ -31,7 +31,7 @@ const EXTRA_CONCURRENCY = 16;
  * them lists only what it reads), else the boot manifest's (src/engine/boot/manifest.ts) — prefetching the whole
  * engine-fixed manifest once downloaded a small level's boot plus 14 MB of another's.
  */
-export function bootFetches(def: ShardManifest, files: ChunkFiles): string[] {
+export function bootFetches(def: { boot?: Pick<BootSpec, 'sources'> | undefined }, files: ChunkFiles): string[] {
   if (def.boot?.sources !== undefined) return [...files.sky, ...files.baked, ...files.terrain, ...files.trees, ...files.cabins, ...files.props];
   return [...files.sky, ...files.baked, ...files.terrain, ...files.trees, ...files.cabins, ...files.props]; // not files.physics: Rapier fetches its own WASM at boot start (streamed compile), outside the uncompressed pack
 }

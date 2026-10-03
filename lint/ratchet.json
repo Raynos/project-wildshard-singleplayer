@@ -26,12 +26,6 @@
       "E357"
     ]
   },
-  "wildshard/layer": {
-    "src/engine/boot/extras.ts": 3,
-    "src/engine/boot/pack.ts": 1,
-    "src/engine/boot/prefetch.ts": 1,
-    "src/engine/boot/shardPrefetch.ts": 2
-  },
   "wildshard/public-index": {
     "src/entry.ts": 11,
     "src/game/Boss.ts": 4,
@@ -344,10 +338,6 @@
   "wildshard/engine-words": {
     "src/engine/audio/gen.ts": 18,
     "src/engine/boot/bootTrace.ts": 1,
-    "src/engine/boot/extras.ts": 3,
-    "src/engine/boot/pack.ts": 1,
-    "src/engine/boot/prefetch.ts": 1,
-    "src/engine/boot/shardPrefetch.ts": 2,
     "src/engine/boot/steps.ts": 4,
     "src/engine/boot/stuck.ts": 1,
     "src/engine/core/Game.ts": 2,

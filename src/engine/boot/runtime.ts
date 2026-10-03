@@ -110,6 +110,7 @@ export { setPoseProvider } from '../ui/ReloadPrompt';
 export { lockOn as lockState } from '../player/AimTargets';
 export { releaseByteCounter } from '../boot/bytes';
 export { startShardPrefetch } from '../boot/shardPrefetch';
+export { setBootCatalog } from '../boot/catalog';
 export { textureBytes } from '../render/textureBytes';
 export { pageSeed } from '../core/rng';
 export { consumeTitleArrival } from '../boot/titleArrival';

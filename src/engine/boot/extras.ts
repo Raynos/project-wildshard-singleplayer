@@ -26,10 +26,9 @@
  *                           decoding serialized after the loader fades and the world starts (E246 memory A/B).
  */
 import { texMode, type TexMode } from './gpuFiles';
-import type { ShardManifest } from '#game/shard/manifest';
+import { bootCatalog, type BootLevel } from './catalog';
 import { chunkFiles } from './manifest';
 import { addBytes, type ChunkFiles } from './bytes';
-import { ART_URL_BYTES } from '#game/shard/art.generated';
 import { PUBLIC_BYTES } from './bytes.generated';
 import { macrotask, type StepProgress } from './plan';
 import { audioFiles, musicDir, sfxDir } from './audioFiles';
@@ -37,7 +36,6 @@ import { whenPrefetched } from './prefetch';
 import { decodeBytes, type SfxBank } from '../audio/preload';
 import type { StyleBank } from '../audio/Stems';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
-import { SHARDS } from '#game/shard/registry';
 import { TIER } from '../core/tier';
 import { NO_AUDIO, type LevelAudioProfile, type LevelAudioBank } from '../audio/levelAudio';
 import { bootAudioFiles } from './audioInventory';
@@ -49,15 +47,19 @@ const pathOf = (url: string): string => { try { return new URL(url, location.hre
 const cardArt = new Set<string>();
 const publicArtBytes: Readonly<Record<string, number>> = PUBLIC_BYTES;
 
-function artFor(def: ShardManifest): { urls: string[]; bytes: Record<string, number> } {
+function artFor(def: BootLevel): { urls: string[]; bytes: Record<string, number> } {
   const urls: string[] = [], bytes: Record<string, number> = {};
-  const cards = SHARDS.flatMap((card) => [card.card.thumb, card.card.portrait, ...(TIER === 'desktop' || card === def ? [card.card.landscape] : [])]);
+  const cards: string[] = [];
+  for (const level of bootCatalog().levels) {
+    cards.push(level.card.thumb, level.card.portrait);
+    if (TIER === 'desktop' || level === def) cards.push(level.card.landscape);
+  }
   const cardUrls = new Set(cards);
   for (const url of new Set([...cards, ...(def.boot?.explore?.art ?? []), ...(def.boot?.precache ?? [])])) {
     if (url.startsWith('data:')) continue; // inlined into the bundle: nothing to fetch
     const p = pathOf(url);
     // Shards may keep card / Explore / precache art in their public asset folder instead of importing it.
-    const size = ART_URL_BYTES[url] ?? publicArtBytes[p];
+    const size = bootCatalog().artBytes[url] ?? publicArtBytes[p];
     if (size === undefined || Object.hasOwn(bytes, p)) continue;
     urls.push(p); bytes[p] = size;
     if (cardUrls.has(url)) cardArt.add(p);
@@ -68,7 +70,7 @@ function artFor(def: ShardManifest): { urls: string[]; bytes: Record<string, num
 /** this shard's declared files: the boot manifest's sources plus the bundled title / explore art */
 const audioPriority = new WeakMap<ChunkFiles, ReadonlySet<string>>();
 
-export function bootFiles(def: ShardManifest, tex: TexMode = texMode(), profile?: LevelAudioProfile): ChunkFiles {
+export function bootFiles(def: BootLevel, tex: TexMode = texMode(), profile?: LevelAudioProfile): ChunkFiles {
   const art = artFor(def);
   addBytes(art.bytes);
   const audio = profile?.files() ?? bootAudioFiles(def.boot) ?? audioFiles();
@@ -99,7 +101,7 @@ function counter(total: number): { tick: () => void; attach: (p: StepProgress, l
 const keep: HTMLImageElement[] = [];
 /** every card's pictures pointed at their in-memory copies (the title menu reads them when it builds its deck) */
 function swapCardArt(blobs: ReadonlyMap<string, string>): void {
-  for (const c of SHARDS) {
+  for (const c of bootCatalog().levels) {
     c.card.thumb = blobs.get(pathOf(c.card.thumb)) ?? c.card.thumb;
     c.card.portrait = blobs.get(pathOf(c.card.portrait)) ?? c.card.portrait;
     c.card.landscape = blobs.get(pathOf(c.card.landscape)) ?? c.card.landscape;
@@ -111,7 +113,7 @@ export interface Preload<T> { wait: (p: StepProgress) => Promise<T> }
 /** pictures already in memory (E155: a shard built later in the page, or rebuilt, finds the cards' art decoded) */
 const artLoaded = new Set<string>();
 
-export function startMenuPreload(files: ChunkFiles, def: ShardManifest): Preload<void> {
+export function startMenuPreload(files: ChunkFiles, def: BootLevel): Preload<void> {
   const art = files.art;
   const c = counter(art.length + (def.boot?.explore === undefined ? 1 : 2));
   const blobs = new Map<string, string>();
@@ -157,7 +159,7 @@ const downloaded = new Set<string>();
 export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; profile?: LevelAudioBank }
 
 /** Nine Dragon's phone boot: count/cache every file, then decode the selected banks after the world starts. */
-export function startDeferredAudioPreload(files: ChunkFiles, _def: ShardManifest, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
+export function startDeferredAudioPreload(files: ChunkFiles, _def: BootLevel, profile?: LevelAudioProfile): Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks> } {
   const style = getMusicStyle(), set = getSfxSet();
   // E357 G19: an asset-free level omits audio.preload (ENGINE §15)
   const selected = new Set((profile ?? NO_AUDIO).bootFiles(style));
@@ -208,7 +210,7 @@ export function startDeferredAudioPreload(files: ChunkFiles, _def: ShardManifest
   };
 }
 
-export function startAudioPreload(files: ChunkFiles, def: ShardManifest, profile?: LevelAudioProfile): Preload<AudioBanks> {
+export function startAudioPreload(files: ChunkFiles, def: BootLevel, profile?: LevelAudioProfile): Preload<AudioBanks> {
   const preload = startDeferredAudioPreload(files, def, profile);
   return { wait: async (p) => { await preload.wait(p); return preload.decode(); } };
 }

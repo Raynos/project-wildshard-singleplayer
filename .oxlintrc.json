@@ -160,7 +160,9 @@
         "wildshard/no-active-chunk": "error",
         "wildshard/no-raw-hud": "error",
         "wildshard/no-raw-animation-mixer": "error",
-        "wildshard/no-level-identity": "error"
+        "wildshard/no-level-identity": "error",
+        // E405 AG28: imports point down; the engine knows no game, kit, shard or app module
+        "wildshard/layer": "error"
       }
     },
     {

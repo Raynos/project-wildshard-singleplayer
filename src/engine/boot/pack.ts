@@ -22,7 +22,6 @@
  * Debug ▸ Loading & memory ▸ Boot pack Off boots file by file (the per-file prefetch) — the A/B for this module.
  */
 import { DefaultLoadingManager } from 'three';
-import type { ShardManifest } from '#game/shard/manifest';
 import type { Plan } from './plan';
 import type { BootStep, ByteKey } from './steps';
 import { tierUrl, versionedUrl, type ChunkFiles } from './bytes';
@@ -35,7 +34,7 @@ const pathOf = (url: string): string => { try { return new URL(url, location.hre
 
 /** This shard's pack for this tier, when the build has one and pause ▸ Settings ▸ Debug ▸ Boot pack isn't Off (E162; the
  *  KTX2 record run, scripts/gpu-texmem.mjs --record, turns it off through the saved settings to see each file's URL). */
-export function packFor(def: ShardManifest): PackDef | null {
+export function packFor(def: { slug: string }): PackDef | null {
   if (setting('bootPack') === 'off') return null;
   return PACKS[def.slug]?.[TIER] ?? null;
 }
