@@ -108,7 +108,7 @@ describe('the crags Jake picked (E322 F-L2 B)', () => {
       return back / Math.max(1e-9, area);
     };
     expect(folded()).toBeLessThan(0.059);
-  });
+  }, 20_000); // builds three 64 m skin tiles: well under 1 s locally, over 5 s under CI coverage (9e0db1430; assertions unchanged)
 });
 
 describe('the bear cave', () => {
