@@ -10,7 +10,9 @@ import { kindling, litDune } from './places';
 const WOOD = 0x3a322e, WOOD_DARK = 0x2a2420, IRON = 0x6e5e56;
 /** The lattice crown over the deck (m): corner posts to a top frame, then the antenna. */
 export const CROWN = { posts: 7.5, antenna: 4.2 } as const; // E399 (council round 1, D4: the mockups' tower is about twice ours): ~20 m to the lamp
-export const STAIR = { count: 22, run: 0.42, width: 1.3, x: 0.75 } as const;
+// round 20 (the walk test: the dunes round the tower moved, so 22 treads from the sand at 19.2 m to the deck rose 0.42 m
+// each, over the player's 0.35 m step; leg waymark-west-tower stuck at the foot): 30 treads, ~0.32 m each
+export const STAIR = { count: 30, run: 0.42, width: 1.3, x: 0.75 } as const;
 
 export interface TowerParts { root: Group; colliders: ColliderDesc[]; fire: Group; light: PointLight; brazierAt: Vector3; deckY: number }
 
@@ -117,7 +119,7 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   { const cap = box(0.8, 0.1, 0.8, iron); cap.position.y = 0.45; keeperLamp.add(cap); }
   addLampGlow(keeperLamp, 1.1, () => deckY - (topY + 0.45)); // round 12: 2.6 m read as a wash, not a lamp
   { const flame = new Group(); flame.position.y = 0.5; keeperLamp.add(flame); addFire(flame, KEEPER_LAMP); } // round 10 (R9B-8): the open flame over the cap (inside the glass it read as a pale box) // its flame (a lit glass alone read as a pale dot)
-  // The south stair: 22 treads from the sand to the deck edge.
+  // The south stair: STAIR.count treads from the sand to the deck edge.
   const top = new Vector3(cx + STAIR.x, deckY, cz + edge), foot = new Vector3(top.x, 0, top.z + STAIR.count * STAIR.run);
   foot.y = groundAt(foot.x, foot.z);
   const rise = (top.y - foot.y) / STAIR.count;

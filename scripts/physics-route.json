@@ -2358,7 +2358,7 @@
     "x": 0,
     "z": 70,
     "yaw": 0,
-    "y": 13.11
+    "y": 21.66
    },
    "waypoints": [
     {
@@ -2371,9 +2371,9 @@
     }
    ],
    "expect": {
-    "y": 4.97
+    "y": 14.83
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on the round-20 terrain (ground + 0.3 m)"
   },
   {
    "name": "caravan-well",
@@ -2381,7 +2381,7 @@
     "x": -70,
     "z": 32,
     "yaw": 0,
-    "y": 4.97
+    "y": 14.83
    },
    "waypoints": [
     {
@@ -2402,9 +2402,9 @@
     }
    ],
    "expect": {
-    "y": 11.08
+    "y": 15.99
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on the round-20 terrain (ground + 0.3 m)"
   },
   {
    "name": "well-waymark-east",
@@ -2412,7 +2412,7 @@
     "x": 78,
     "z": -2,
     "yaw": 0,
-    "y": 11.08
+    "y": 15.99
    },
    "waypoints": [
     {
@@ -2425,9 +2425,9 @@
     }
    ],
    "expect": {
-    "y": 7.61
+    "y": 25.3
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on the round-20 terrain (ground + 0.3 m)"
   },
   {
    "name": "waymark-east-west",
@@ -2435,7 +2435,7 @@
     "x": 58,
     "z": -31,
     "yaw": 0,
-    "y": 7.61
+    "y": 25.3
    },
    "waypoints": [
     {
@@ -2456,9 +2456,9 @@
     }
    ],
    "expect": {
-    "y": 7.73
+    "y": 18.11
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on the round-20 terrain (ground + 0.3 m)"
   },
   {
    "name": "waymark-west-tower",
@@ -2466,7 +2466,7 @@
     "x": -41,
     "z": -21,
     "yaw": 0,
-    "y": 7.73
+    "y": 18.11
    },
    "waypoints": [
     {
@@ -2478,14 +2478,14 @@
      "z": -30
     },
     {
-     "x": 8,
-     "z": -68
+     "x": 7.0,
+     "z": -66
     }
    ],
    "expect": {
-    "y": 13.3
+    "y": 19.76
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on the round-20 terrain (ground + 0.3 m); its last waypoint 1 m west of the south stair (x 8.1-9.4): at x 8 the autopilot ground along the treads' solid side"
   },
   {
    "name": "tower-waymark-north",
@@ -2493,7 +2493,7 @@
     "x": 8,
     "z": -68,
     "yaw": 0,
-    "y": 13.3
+    "y": 19.76
    },
    "waypoints": [
     {
@@ -2510,9 +2510,9 @@
     }
    ],
    "expect": {
-    "y": 11.47
+    "y": 9.4
    },
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on the round-20 terrain (ground + 0.3 m)"
   },
   {
    "name": "waymark-north-basin",
@@ -2520,7 +2520,7 @@
     "x": 32,
     "z": -99,
     "yaw": 0,
-    "y": 11.47
+    "y": 9.4
    },
    "waypoints": [
     {
@@ -2540,7 +2540,7 @@
      "z": -140
     }
    ],
-   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on e8b3838f (ground + 0.3 m) after the 020ce61f dunes; 7 legs, 0 stuck"
+   "notes": "E374 Signal Dunes content route (its agent: max grade 26°, nearest collider ≥ 2.5 m on a node build) · start heights re-measured on the round-20 terrain (ground + 0.3 m)"
   }
  ],
  "far-reach": [

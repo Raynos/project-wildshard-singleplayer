@@ -25,11 +25,13 @@ import { loadPaintedSky, paintedSkyMaterial } from './painted';
 // tower; the key is one global art-directed direction that lights the faces the mockups light. Tested on round 13's
 // landform (row-mean-removed r of the dune band): 20 deg left of north gave dusk-fire +0.42, A +0.13 (15 deg: +0.45 / +0.10;
 // 27 deg: +0.36 / +0.13; west and behind-left: -0.18 to +0.09); A does not pass +0.3 under any one key
-export const KEY = { dir: new Vector3(-0.34, 0.2, -0.92).normalize(), color: new Color(1, 0.8, 0.44), intensity: 2.05 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(-0.34, 0.2, -0.92).normalize(), color: new Color(1, 0.76, 0.4), intensity: 1.85 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
-export const FOG = { color: 0x40304a, near: 80, far: 430 } as const; // loop 6: a deep dusk haze, not lilac
+export const FOG = { color: 0x221d36, near: 80, far: 430 } as const;
+/** The distance fog's density (the engine's exponential fog, per metre): row 10's aerial perspective. */
+const AERIAL_FOG = 0.0028; // loop 6: a deep dusk haze, not lilac; E409 second top-10 row 10 (aerial perspective: the mockups' far dunes go violet-blue, blue/red 0.62-0.72 against the game's 0.34-0.60): a violet-blue haze
 // loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
 // E399 (council round 2, R2B-1: the mockups' ground measures warm brown, R/B ~3): less blue in every tone
 const SAND = new Color(0.5, 0.23, 0.075),
@@ -186,15 +188,15 @@ export function signalDunesLook(): LookStrategy {
       let hemi: HemisphereLight | null = null, hemiBase = 1;
       // round 10 (R9B-2: under every dusk horizon the far land is 2-4x the mockups', which put near-black land under a thin
       // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens
-      let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null, fogDistBase = 0;
-      const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x110b16);
+      let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null;
+      const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x0d0b1c);
       return { clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
         // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
         bind: (targets) => {
           targets.disc.visible = false; hemi = targets.hemi; hemiBase = targets.hemi.intensity;
           fog = targets.fog; fogBase.copy(targets.fog.color); fogSun = targets.fogU.fogSunColor.value; fogSunBase.copy(fogSun);
-          haze = targets.far.uHazeCol.value; hazeBase.copy(haze); fogDist = targets.fogU.fogDistDensity; fogDistBase = fogDist.value;
+          haze = targets.far.uHazeCol.value; hazeBase.copy(haze); fogDist = targets.fogU.fogDistDensity;
         },
         // the dusk deepens with the quest (look/dusk.ts): the key dims and reddens, the sky fill drops
         update: () => {
@@ -202,10 +204,14 @@ export function signalDunesLook(): LookStrategy {
           if (hemi) hemi.intensity = hemiBase * fillAt(DUSK.value);
           const late = Math.min(1, Math.max(0, (DUSK.value - 0.2) / 0.5));
           fog?.color.copy(fogBase).lerp(DUSK_FOG, late);
-          fogSun?.copy(fogSunBase).multiplyScalar(1 - 0.8 * late);
+          // row 10: the sun-side tint at a third (with the thicker distance fog it lit the far land toward the glow)
+          fogSun?.copy(fogSunBase).multiplyScalar(0.35 * (1 - 0.8 * late));
           haze?.copy(hazeBase).multiplyScalar(1 - 0.75 * late);
           // round 12 (D: a pale haze strip on the far land under the ranges; the mockup's land there near-black): thinner late
-          if (fogDist) fogDist.value = fogDistBase * (1 - 0.8 * late);
+          // E409 second top-10 row 10 (aerial perspective): the engine's exponential distance fog thick enough to carry the far
+          // dunes toward its violet-blue (~35 % at 150 m; it was ~3 %, thinned late since round 12 when the haze was lilac and
+          // paled D's far land), the same at every dusk step
+          if (fogDist) fogDist.value = AERIAL_FOG;
         },
         rebuild: () => undefined, attachPost: () => undefined };
     },
@@ -407,7 +413,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // light saturated, the sky fill desaturated and cooled toward violet-grey
     vec3 W3 = vec3(0.2126, 0.7152, 0.0722);
     float dL = dot(reflectedLight.directDiffuse, W3), iL = dot(reflectedLight.indirectDiffuse, W3);
-    reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, 2.1), vec3(0.0));
+    reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, 2.5), vec3(0.0));
     reflectedLight.indirectDiffuse = mix(vec3(iL) * vec3(0.93, 0.92, 1.2), reflectedLight.indirectDiffuse, 0.4); // round 19 (seat B: the shade measured A 0.45 against 0.31)
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);

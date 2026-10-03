@@ -29,6 +29,10 @@ def blur(im):
 
 L = np.asarray(late).astype(np.float64)
 ratio = (blur(e2) + 4.0) / (blur(late) + 4.0)
+# round 19b (seat B: B's horizon band came out magenta, not orange): the re-colour may warm, not blue: its blue ratio held
+# at or under 1, its green pulled toward its red
+ratio[..., 2] = np.minimum(ratio[..., 2], 1.0)
+ratio[..., 1] = 0.5 * (ratio[..., 1] + ratio[..., 0])
 H, HOR, PPD = L.shape[0], int(1024 * 0.88), 1536 / 100.0
 elev = (HOR - np.arange(H)) / PPD
 t = np.clip((elev - 5.0) / 9.0, 0, 1)
