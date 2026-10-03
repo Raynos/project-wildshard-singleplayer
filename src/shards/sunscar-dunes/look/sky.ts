@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
  * Where the afterglow is brightest: the sun 4° under the horizon behind the signal tower (−Z, a little left). The key
  * light is art-directed apart from it (`render.ts` KEY, style bible): the band frames the tower, the key rakes the dunes.
  */
-export const SUN_GLOW = new Vector3(0.12, -0.07, -0.99).normalize(); // round 9: just right of the tower (mockup A's afterglow peaks right of it; ours peaked left)
+export const SUN_GLOW = new Vector3(0.2, -0.07, -0.98).normalize(); // round 9: just right of the tower (mockup A's afterglow peaks right of it; ours peaked left)
 
 export const SKY_VERTEX = /* glsl */ `
 varying vec3 vDir;
@@ -50,7 +50,9 @@ void main() {
   // wide overlapping blends: where one smoothstep ended flat as the next began, the eye read a hard arc (a Mach band)
   c = mix(c, dusk, smoothstep(0.05 * (1.0 - 0.6 * uDusk), 0.36 - 0.18 * uDusk, h));
   c = mix(c, indigo, smoothstep(0.08 - 0.05 * uDusk, 0.5, h)); // round 8b: the dome's indigo lower at sunset (A's sky at 15 % of the frame 72,54,74 against 40,37,65)
-  c += vec3(1.0, 0.5, 0.2) * pow(toward, 4.0) * (1.0 - smoothstep(0.0, 0.1 - 0.05 * uDusk, h)) * 0.28 * (1.0 - 0.6 * uDusk);
+  c += vec3(1.0, 0.5, 0.2) * pow(toward, 9.0) * (1.0 - smoothstep(0.0, 0.16 - 0.08 * uDusk, h)) * 0.5 * (1.0 - 0.6 * uDusk); // round 10 (R9B-5: A's glow flat across; the mockup's hot spot right of the tower)
+  // round 10 (R9B-2: every mockup puts a thin bright glow line just over a near-black horizon): the last ~1 deg of the band
+  c += vec3(1.0, 0.62, 0.38) * (1.0 - smoothstep(0.0, 0.02, h)) * (0.25 + 0.45 * uDusk) * (0.4 + 0.6 * pow(toward, 0.7));
   float az = atan(d.z, d.x);
   // E399 (council round 2: mockups A and dusk-fire have orange cloud banks lit from below; B-D are clear): a broken
   // deck projected on a flat layer, patchy, lit orange-gold toward the glow and rose away from it, dark cores; it clears
@@ -66,7 +68,7 @@ void main() {
   float cn = vNoise(cq) * 0.5 + vNoise(cq * vec2(2.3, 2.0) + 3.1) * 0.3 + vNoise(cq * vec2(6.0, 4.0) + 7.3) * 0.2;
   float azG = atan(uSun.z, uSun.x), rel = az - azG; rel -= 6.2831853 * floor((rel + 3.1415927) / 6.2831853);
   float bank = smoothstep(0.06, 0.2, rel) * (1.0 - smoothstep(0.75, 1.15, rel)) + 0.6 * smoothstep(-1.1, -0.75, rel) * (1.0 - smoothstep(-0.22, -0.1, rel));
-  float cov = smoothstep(0.54, 0.68, cn) * bank * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.13, 0.2, h)) * (1.0 - smoothstep(2.7, 2.95, abs(az))) * (1.0 - smoothstep(0.03, 0.14, uDusk));
+  float cov = smoothstep(0.54, 0.68, cn) * bank * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.2, 0.28, h)) * (1.0 - smoothstep(2.7, 2.95, abs(az))) * (1.0 - smoothstep(0.03, 0.14, uDusk));
   // lit from below (the set sun): where the bank thins downward its belly takes the glow, its top stays dark
   vec2 cqb = cq - vec2(0.0, 0.35);
   float cBelow = vNoise(cqb) * 0.5 + vNoise(cqb * vec2(2.3, 2.0) + 3.1) * 0.3 + vNoise(cqb * vec2(6.0, 4.0) + 7.3) * 0.2;

@@ -108,8 +108,9 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
     const dx = (h[y * n + (x + 1) % n] ?? 0) - (h[y * n + (x + n - 1) % n] ?? 0), dy = (h[((y + 1) % n) * n + x] ?? 0) - (h[((y + n - 1) % n) * n + x] ?? 0);
     // sRGB leather: near-black creases, a dark brown strand, a warmer worn crown
     const k = Math.min(1, Math.max(0, c)), base = 0.55 + 0.45 * k, w = 0.85 + 0.3 * t;
-    map[i * 4] = Math.round(Math.min(255, (12 + 84 * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (8 + 56 * base * k) * w));
-    map[i * 4 + 2] = Math.round(Math.min(255, (7 + 40 * base * k) * w)); map[i * 4 + 3] = 255;
+    // round 10 (R9B-4: the crowns' sheen read 51 against the mockup's 103): a lighter copper-brown crown for the light to catch
+    map[i * 4] = Math.round(Math.min(255, (14 + 140 * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (9 + 88 * base * k) * w));
+    map[i * 4 + 2] = Math.round(Math.min(255, (7 + 56 * base * k) * w)); map[i * 4 + 3] = 255;
     const s = 4.0, nx = -dx * s, ny = -dy * s, l = Math.hypot(nx, ny, 1);
     nor[i * 4] = Math.round(255 * (0.5 + 0.5 * nx / l)); nor[i * 4 + 1] = Math.round(255 * (0.5 + 0.5 * ny / l)); nor[i * 4 + 2] = Math.round(255 * (0.5 + 0.5 / l)); nor[i * 4 + 3] = 255;
     rough[i * 4 + 1] = Math.round(255 * (0.92 - 0.68 * k * k)); rough[i * 4 + 3] = 255; // round 9: a sheen on each crown (strand p99 56 against the mockup's ~140)

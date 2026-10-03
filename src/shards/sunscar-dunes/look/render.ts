@@ -16,11 +16,11 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 // E399: low (11 deg) and along the wind axis, so every dune splits into a lit slip face and a shaded windward face
 // (the mockups); the shade floor and the navy fill keep the shaded half readable, never black
 // round 8 (the council since round 5: a vertical terminator smeared down the tower's dome, the shade a baked blob): the key
-// from behind the tower; round 9 (the seats: every camera-facing face then fell into shade, A one dark dome; mockup A lights
-// every face turned west and shades every face turned east): from the west-north-west, on round 8's broad low tower dune
-// (layout CRESTS) the dome's west half lit and its east half shaded, the near slopes lit (measured on the seats' clean patch:
-// A 58 / mockup 56, dusk-fire 54 / mockup 72 at 2.0, so 2.3 splits the two mockups' disagreement on the same ground)
-export const KEY = { dir: new Vector3(-0.8, 0.2, -0.6).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.3 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+// from behind the tower; round 10 (a sweep of six azimuths, west round to east, on round 9's terrain, the dune band's 10x7
+// luma grid correlated with each mockup's: A +0.18 at best for any, dusk-fire +0.39 from the NNW, +0.25 from round 9's WNW;
+// round 9's seats: the WNW key lit A's left, which the mockup shades): the NNW, with the crest line (layout CREST_LINES)
+// and a crisp terminator; dusk-fire's clean-patch sand 73 / mockup 72, A's 78 / 56 (the two mockups' known disagreement)
+export const KEY = { dir: new Vector3(-0.45, 0.2, -0.87).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.3 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -271,7 +271,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   {
     // The ripples' slopes along the wind (a long gentle stoss, a short steep lee) and the grain's bumps, as a
     // world-space tilt of the normal, turned to view space.
-    float s1 = (cos(sandPhase) + 0.4 * cos(2.0 * sandPhase)) * 0.2 * sandRip1;
+    float s1 = (cos(sandPhase) + 0.4 * cos(2.0 * sandPhase)) * mix(0.14, 0.2, smoothstep(4.0, 20.0, sandFar)) * sandRip1; // round 10 (R9B-6): the near ripples' relief less (fine detail 11-12 against 9)
     float s2 = cos(sandPhase2) * 0.05 * sandRip2;
     vec2 sandBump = (sandTex.gb - 0.5) * 0.5 * (1.0 - smoothstep(8.0, 40.0, sandFar));
     // round 8 (the mockups' near grain is lumps lit on one side, not specks of paint, which foreshorten into streaks): the
@@ -289,6 +289,13 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   float sandVis = smoothstep(0.25, 0.75, texture2D(uSandShadow, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r);
   sandVis = max(sandVis, smoothstep(${(GROUND_HALF - 6).toFixed(1)}, ${GROUND_HALF.toFixed(1)}, max(abs(vSandPos.x), abs(vSandPos.z)))); // round 4: the stepped strip past the map
   reflectedLight.directDiffuse *= mix(0.45, 1.0, sandVis); // round 7: the map's cast edge ran straight along its axis; N.L draws the curve
+  {
+    // round 10 (seat C round 9: the broad mound shades as one soft wedge; the mockups' light/shade lines are crisp along the
+    // forms): the key's response on the terrain's own normal a short ramp at the terminator and a flatter lit side
+    // (0.12 + 0.88 N.L past the ramp, against plain Lambert), so the line between lit and shaded faces reads sharp
+    float tN = max(dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)})), 0.0);
+    reflectedLight.directDiffuse *= smoothstep(0.0, 0.045, tN) * (0.12 + 0.88 * tN) / max(tN, 0.02) * 0.82;
+  }
   // round 6 (seat C: the mean is right, the contrast must come from darker shade AND brighter crests): faces grazing the key
   float sandGraze = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
   reflectedLight.directDiffuse *= 1.0 + 0.9 * smoothstep(0.0, 0.08, sandGraze) * (1.0 - smoothstep(0.1, 0.22, sandGraze)) * sandVis; // the crest band only // the key mostly gone in cast shade; the fill below keeps it violet-brown (round 4: black slabs)

@@ -134,7 +134,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   const iron = mat(IRON, { metalness: 0.4 });
   at(box(0.025, 0.55, 0.025, iron), -0.22, 0.45, 0, lamp); // the hook rod up to the hoop
   at(box(0.2, 0.04, 0.2, iron), -0.22, 0.18, 0, lamp); at(box(0.2, 0.04, 0.2, iron), -0.22, -0.16, 0, lamp);
-  at(box(0.13, 0.28, 0.13, new MeshBasicMaterial({ color: 0xffb24a })), -0.22, 0.01, 0, lamp);
+  { const glass = new MeshBasicMaterial({ color: 0xffb24a }); glass.color.multiplyScalar(3.2); at(box(0.13, 0.28, 0.13, glass), -0.22, 0.01, 0, lamp); } // round 10 (R9B-9: the lantern peaked at 183, the mockup's 252): a hot centre
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) at(box(0.02, 0.32, 0.02, iron), -0.22 + dx * 0.09, 0.01, dz * 0.09, lamp);
   const cosY = Math.cos(CARAVAN.yaw), sinY = Math.sin(CARAVAN.yaw);
   addLampGlow(lamp, 2.4, (lx, lz) => {

@@ -75,12 +75,12 @@ void main() {
   float d = abs(x + lick) / w;
   float top = y + (n1 - 0.5) * 0.6 + (n2 - 0.5) * 0.3 + (n3 - 0.5) * 0.12;
   float body = (1.0 - smoothstep(0.86, 0.96, d + (n3 - 0.5) * 0.3)) * (1.0 - smoothstep(0.7, 0.76, top)) * smoothstep(0.0, 0.14, y); // round 9: crisp lick tips
-  float core = (1.0 - smoothstep(0.05, 0.38, d)) * (1.0 - smoothstep(0.05, 0.32, top + (n2 - 0.5) * 0.2)); // round 9: a hot core low over the logs, small (larger read cream)
+  float core = (1.0 - smoothstep(0.07, 0.46, d)) * (1.0 - smoothstep(0.06, 0.4, top + (n2 - 0.5) * 0.2)); // round 10 (R9B-3: white-hot pixels 730 against the mockup's 5 557): a larger, hotter core low over the logs
   float heat = smoothstep(0.0, 0.55, 1.0 - d) * (1.0 - smoothstep(0.3, 0.8, top));
   // round 8b: AgX washes a bright saturated orange to peach (the sparks, at a moderate gain, stay orange): the licks at a
   // moderate gain from deep orange to yellow-orange, only the small core pushed white
   vec3 c = mix(vec3(0.9, 0.1, 0.0), vec3(1.0, 0.42, 0.02), heat) * 0.85; // round 9: redder licks (they read tan)
-  c = mix(c, vec3(1.0, 0.66, 0.24) * 2.4, core);
+  c = mix(c, vec3(1.0, 0.78, 0.45) * 3.4, core);
   float fade = smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25);
   gl_FragColor = vec4(c * body * fade, body * fade * 0.9);
 }`,
@@ -103,7 +103,7 @@ void main() {
   float puff = smoothstep(0.35, 0.75, n + 0.25 * (1.0 - y));
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
-  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.25, 0.1, 0.04), vec3(0.07, 0.05, 0.045), smoothstep(0.02, 0.2, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
+  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.25, 0.1, 0.04), vec3(0.05, 0.03, 0.032), smoothstep(0.02, 0.2, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
   gl_FragColor = vec4(c, a * ${wisp ? '0.45' : '0.7'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
@@ -136,7 +136,7 @@ void main() {
 });
 /** A lamp's halo (round 9, the seats: no lantern glow at the camp, a dot on the tower): the fire's halo shader at a lamp's
  *  own gain, which the fire's (dimmed so it no longer washed its flame) left invisible. */
-const lampGlowMaterial = glowMaterial.clone(); lampGlowMaterial.uniforms = { uTime: time };
+const lampGlowMaterial = glowMaterial.clone(); lampGlowMaterial.uniforms = { uTime: time }; lampGlowMaterial.depthTest = false; // round 10 (R9B-9): the canvas hid the caravan lantern's halo
 lampGlowMaterial.fragmentShader = lampGlowMaterial.fragmentShader.replace('g * 0.14 * flick', 'g * 0.42 * flick');
 const emberMaterial = new ShaderMaterial({
   uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false,
@@ -188,7 +188,7 @@ void main() {
   float flick = 0.85 + 0.1 * sin(uTime * 11.0) + 0.05 * sin(uTime * 23.0);
   // loop 5 (mockup C): the fire floods the sand round it orange: a broad pool, hot near the brazier
   // E399 (mockup C): the fire floods the sand round it orange, hot near the brazier, fading over a few metres
-  gl_FragColor = vec4(vec3(1.0, 0.3, 0.04) * (pow(max(0.0, 1.0 - r), 1.8) * 0.16 + pow(max(0.0, 1.0 - r), 6.0) * 0.3) * flick, 1.0); // round 8: redder (it read cream on the sand)
+  gl_FragColor = vec4(vec3(1.0, 0.3, 0.04) * (pow(max(0.0, 1.0 - r), 1.8) * 0.1 + pow(max(0.0, 1.0 - r), 6.0) * 0.24) * flick, 1.0); // round 10: dimmer (pool 59 against 40); round 8: redder (it read cream on the sand)
 }`,
 });
 const quad = new PlaneGeometry(1, 1); quad.translate(0, 0.5, 0);
