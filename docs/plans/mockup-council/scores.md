@@ -8,6 +8,7 @@ A shard passes at a three-seat mean of 8.0 or more (ledger 4). One row per shard
 | 1 | Sky Reach | `progress/far-reach/20261002-2149-7ec2c737` | 4.4 | 4.6 | 5.0 | **4.67** | no |
 | 2 | Signal Dunes | `progress/sunscar-dunes/20261002-2243-cb48ab8f` | 5.2 | 5.3 | 5.1 | **5.20** | no |
 | 2 | Sky Reach | `progress/far-reach/20261002-2249-1b278da3` | (hung) | 5.1 | 5.6 | **5.35** (2 seats) | no |
+| 3 | Sky Reach | `progress/far-reach/20261002-2333-b69c79d1` | 5.5 | 5.7 | 6.0 | **5.73** | no |
 
 Notes:
 - Round 1: seat A accepts its numbers as diagnosis only, since two staged shots did not reach the real state (the harness
