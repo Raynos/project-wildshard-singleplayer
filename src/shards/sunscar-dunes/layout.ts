@@ -57,7 +57,15 @@ export const LANDFORMS = {
   // second crest turned so its west end stands highest (20.3 m falling to 10.8 m), its lit edge high on the left and low
   // on the right; edge trace x 0.1-0.5 0.41 0.40 0.40 0.42 0.42 (round 20 rose; the mockup 0.37 0.39 0.40 0.42 0.44).
   // Row-mean-removed r: A +0.61, dusk-fire +0.31; climb 39.1 deg
-  crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }, { pts: [[-23, -17, 20.3], [0, 0.6, 13.9], [14.3, 18.3, 10.8]] as [number, number, number][], w: 50, lee: 18, leeSide: 1, fade: 0.2, trough: 3 }],
+  // round 23 (TOP10-3 row 1: the faces the mockups light were dark, A's diagonal 46 h353 against 97 h20): under the shipped
+  // key (low, ahead) a face is seen lit only as a flank turned west toward it, so the second crest is a ridge running from
+  // the spawn's right toward the tower, its slip face west (leeSide -1), its lit flank seen side-on. Shaped by a per-pixel
+  // predictor (each pixel's ray to the ground, the sand shader's wrap term and a shadow march toward the key, correlated
+  // with A's and dusk-fire's mockups; hill-climbed under a 39 deg cap), then captured. Seat B's windows (mockup / round 22
+  // / now): A's diagonal 96.5 h20 / 46.2 h353 / 86.9 h24, A's lee 42.5 / 32.6 / 47.5, dusk-fire's shoulder 83.7 / 68.0 /
+  // 74.2, its saddle 49.5 / 39.6 / 30.9. Row-mean-removed r: dusk-fire +0.56, A +0.47. Climb 39.1 deg (the field's own,
+  // elsewhere); walk 0 stuck (progress/physics/sd-r23-b-muspl0kj.json)
+  crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }, { pts: [[-34.3, -11.8, 16.4], [-3.6, -6, 18.8], [11.6, 54.4, 20.8]] as [number, number, number][], w: 22, lee: 40, leeSide: -1, fade: 0.1, trough: 3 }],
   mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }, { x: -165, z: -64, h: 24, r: 66 }, { x: BRAZIERS[0]?.x ?? 0, z: BRAZIERS[0]?.z ?? 0, h: 25, r: 80 }],
 } as const;
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
