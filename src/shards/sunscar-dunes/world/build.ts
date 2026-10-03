@@ -43,7 +43,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   const tower = buildTower(groundAt(TOWER.x, TOWER.z), groundAt);
   ctx.root.add(tower.root);
   ctx.piece({ id: 'sunscar.tower', name: STRINGS.tower, category: 'buildings', file: file('tower'), object: tower.root, colliders: tower.colliders, surface: 'wood' });
-  const caravan = buildCaravan(groundAt); ctx.root.add(caravan.root);
+  const caravan = buildCaravan(groundAt); ctx.root.add(caravan.root); for (const t of caravan.textures) ctx.scope.own(t);
   ctx.piece({ id: 'sunscar.caravan', name: STRINGS.caravan, category: 'props', file: file('places'), object: caravan.root, colliders: caravan.colliders, surface: 'wood' });
   const wellParts = buildWell(groundAt); ctx.root.add(wellParts.root);
   ctx.piece({ id: 'sunscar.well', name: STRINGS.well, category: 'buildings', file: file('places'), object: wellParts.root, colliders: wellParts.colliders, surface: 'stone' });

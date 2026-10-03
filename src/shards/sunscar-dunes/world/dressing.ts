@@ -297,8 +297,8 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
     m.compose(p.set(c.x, groundAt(c.x, c.z) - 0.32, c.z), tilt.multiply(q.setFromAxisAngle(up, c.yaw)), sc.set(s, s, s)); carcasses.setMatrixAt(i, m);
   });
 
-  // Dead acacias in the low ground: a few landmarks off the paths (two framing the caravan and the well).
-  const treeSpots: { x: number; z: number }[] = [{ x: CARAVAN.x - 14, z: CARAVAN.z - 10 }, { x: WELL.x + 12, z: WELL.z - 9 }];
+  // Dead acacias in the low ground: a landmark framing the well (E399: none at the caravan, mockup B shows none).
+  const treeSpots: { x: number; z: number }[] = [{ x: WELL.x + 12, z: WELL.z - 9 }];
   for (let tries = 0; treeSpots.length < DRESSING.trees && tries < 400; tries++) {
     const x = range(PLAY_HALF - 20), z = range(PLAY_HALF - 20);
     if (hollow(x, z) < 0.8 || trailDistance(x, z) < 10 || !clear(x, z, 8) || treeSpots.some((t) => Math.hypot(t.x - x, t.z - z) < 45)) continue;

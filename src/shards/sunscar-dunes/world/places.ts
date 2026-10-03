@@ -1,6 +1,7 @@
 import { addFire, addLampGlow, COOKFIRE, fireLight, WAYMARK_FIRE } from './fireFx';
-import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
-  IcosahedronGeometry, Quaternion, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
+import { BoxGeometry, BufferGeometry, CapsuleGeometry, CylinderGeometry, DataTexture, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, LinearFilter,
+  LinearMipmapLinearFilter, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Quaternion, RGBAFormat, SphereGeometry, SRGBColorSpace, TorusGeometry,
+  UnsignedByteType, Vector3, type Material } from 'three';
 import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
 import { CARAVAN, SEED, WELL } from '../layout';
 import { WIND } from './dunes';
@@ -40,21 +41,40 @@ const SACKS: readonly [number, number, number, number][] = [[1.7, -3.5, 0.34, 0.
 const TENT = { x: -7.5, z: -1.5, yaw: 0.35, w: 3.2, h: 2.3, d: 3.8 } as const;
 /** The pack horse, tethered between the tent and the wagon (mockup B): in the caravan's frame, its head toward the wagon's front. */
 const HORSE = { x: -5.0, z: 1.6, yaw: Math.PI / 2, h: 1.62 } as const;
-const BURLAP = 0x8a7454, TENT_CANVAS = 0x6a5644; // council round 2: 0x2c2220 read as a pure-black wedge
+const BURLAP = 0xa48a62, TENT_CANVAS = 0x6a5644; // council round 2: 0x2c2220 read as a pure-black wedge
 
 /** Sun-bleached crate planks (loop 3: the plain dark boxes read as black cubes against the afterglow). */
-const CRATE = 0x9a7352, CRATE_GLOW = 0x150b05, BARREL = 0x7e5a3e;
-const crateMaterial = (): MeshStandardMaterial => new MeshStandardMaterial({ color: CRATE, vertexColors: true, roughness: 0.9, flatShading: true, emissive: CRATE_GLOW });
-/** A crate of four planks a side: each plank band a shade of its own, the frame boards at top and bottom darker. */
-function crateGeometry(half: number): BoxGeometry {
-  const g = new BoxGeometry(half * 2, half * 2, half * 2, 1, 4, 1), p = g.getAttribute('position'), colors = new Float32Array(p.count * 3);
-  for (let i = 0; i < p.count; i++) {
-    const band = Math.min(3, Math.floor((p.getY(i) / (half * 2) + 0.5) * 4 - 1e-4)), shade = [0.72, 0.95, 0.84, 0.7][Math.max(0, band)] ?? 0.8;
-    colors[i * 3] = shade; colors[i * 3 + 1] = shade * 0.97; colors[i * 3 + 2] = shade * 0.92;
+const CRATE_GLOW = 0x150b05, BARREL = 0x7e5a3e;
+/**
+ * The crates' planks (E399, council round 2: the mockup's crates are planked and stencilled, ours read as plain boxes): a
+ * 64² tile per face, four planks with dark seams and grain streaks inside a darker frame of boards, a nail at each frame
+ * corner and a faded stencilled mark in the middle. The caravan returns it (`CaravanParts.textures`) for the level scope.
+ */
+function crateTexture(): DataTexture {
+  const n = 64, data = new Uint8Array(n * n * 4), rng = new Rng(SEED + 77);
+  const plankShade = [0.86, 1.0, 0.9, 0.8].map((v) => v * rng.range(0.92, 1.05));
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const frame = x < 6 || x > n - 7 || y < 6 || y > n - 7, plank = Math.min(3, Math.floor((y - 6) / ((n - 12) / 4)));
+    const seam = !frame && (y - 6) % Math.round((n - 12) / 4) === 0;
+    const grain = 0.9 + 0.1 * Math.sin(x * 0.55 + Math.sin(y * 1.7) * 2.2 + plank * 3.1);
+    let v = frame ? 0.62 : (plankShade[Math.max(0, plank)] ?? 0.9) * grain;
+    if (seam) v *= 0.35;
+    const nail = (Math.abs(x - 3) < 1.5 || Math.abs(x - (n - 4)) < 1.5) && (Math.abs(y - 3) < 1.5 || Math.abs(y - (n - 4)) < 1.5);
+    if (nail) v = 0.25;
+    // the stencil: a faded dark rectangle with an arrow, as cargo marks go
+    const sx = x - n / 2, sy = y - n / 2, inBox = Math.abs(sx) < 12 && Math.abs(sy) < 8 && !(Math.abs(sx) < 10 && Math.abs(sy) < 6);
+    const arrow = Math.abs(sx) < 1.6 && sy > -4 && sy < 4 || (sy > 1 && sy < 4 && Math.abs(sx) < 4 - (sy - 1));
+    if (!frame && (inBox || arrow)) v *= 0.55;
+    const i = (y * n + x) * 4;
+    data[i] = Math.round(Math.min(1, v) * 168); data[i + 1] = Math.round(Math.min(1, v) * 118); data[i + 2] = Math.round(Math.min(1, v) * 78); data[i + 3] = 255;
   }
-  g.setAttribute('color', new Float32BufferAttribute(colors, 3));
-  return g;
+  const tex = new DataTexture(data, n, n, RGBAFormat, UnsignedByteType);
+  tex.colorSpace = SRGBColorSpace; tex.magFilter = LinearFilter; tex.minFilter = LinearMipmapLinearFilter; tex.generateMipmaps = true; tex.needsUpdate = true;
+  return tex;
 }
+const crateMaterial = (map: DataTexture): MeshStandardMaterial => new MeshStandardMaterial({ map, roughness: 0.9, emissive: CRATE_GLOW });
+/** A crate: a box whose six faces each carry the plank tile (`crateTexture`). */
+function crateGeometry(half: number): BoxGeometry { return new BoxGeometry(half * 2, half * 2, half * 2); }
 
 /**
  * A tall marker pole with a long madder pennant downwind (after the check pass: the caravan and the well could not be
@@ -69,7 +89,7 @@ function markerPole(parent: Group, lx: number, lz: number, groundY: number, h: n
   colliders.push(boxDesc({ x: wx, z: wz, hw: 0.07, hd: 0.07, rot: 0, yBottom: worldY - 0.3, yTop: worldY + h }, 'wood'));
 }
 
-export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; logbook: Mesh }
+export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; logbook: Mesh; textures: DataTexture[] }
 
 /**
  * The half-buried caravan: a covered wagon sunk to its axles and tipped by the drift, its canvas torn off the front
@@ -94,7 +114,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     wagon.add(new Mesh(body, painted)); coverHoops(wagon);
   }
   else buildCodeWagon(wagon, wood, dark);
-  const crateWood = crateMaterial();
+  const crateMap = crateTexture(), crateWood = crateMaterial(crateMap);
   CARGO.forEach(([x, z, half, yaw]) => { const crate = new Mesh(crateGeometry(half), crateWood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root); });
   // The barrel (loop 4: it was a plain near-black cylinder): sun-bleached staves, a bulge, two iron hoops.
   const barrel = new Group(); barrel.rotation.set(0, 0.6, Math.PI / 2); barrel.position.set(-2.4, 0.25, 2.3); root.add(barrel);
@@ -118,8 +138,12 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     return groundAt(CARAVAN.x + x * cosY + z * sinY, CARAVAN.z - x * sinY + z * cosY) - (y + LANTERN.y);
   });
   // The sacks (E399, mockup B): squashed burlap lumps against the crates.
-  const burlap = mat(BURLAP);
-  for (const [x, z, r, yaw] of SACKS) { const sack = new Mesh(new IcosahedronGeometry(r, 1), burlap); sack.scale.set(1, 0.72, 0.85); sack.rotation.y = yaw; at(sack, x, r * 0.55, z, root); }
+  const burlap = new MeshStandardMaterial({ color: BURLAP, roughness: 0.97 });
+  for (const [x, z, r, yaw] of SACKS) {
+    const sack = new Mesh(new CapsuleGeometry(r * 0.62, r * 1.3, 4, 10), burlap); sack.scale.set(1, 1, 0.8); sack.rotation.set(0, yaw, Math.PI / 2 - 0.12); at(sack, x, r * 0.5, z, root);
+    const neck = new Mesh(new CylinderGeometry(r * 0.16, r * 0.3, r * 0.4, 8), burlap); neck.rotation.set(0, yaw, Math.PI / 2 - 0.12);
+    neck.position.set(x + Math.cos(yaw) * r * 1.35, r * 0.62, z - Math.sin(yaw) * r * 1.35); root.add(neck);
+  }
   // The tent (E399, mockup B): an A-frame of dark canvas on two poles, its ridge along the wagon.
   const tent = new Group(), canvasDark = mat(TENT_CANVAS, { side: DoubleSide }), slope = Math.atan2(TENT.h, TENT.w / 2), side = Math.hypot(TENT.h, TENT.w / 2);
   tent.position.set(TENT.x, 0, TENT.z); tent.rotation.y = TENT.yaw; root.add(tent);
@@ -145,7 +169,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     // E399 (mockup B shows the wagon alone): no marker pole at the caravan; the well keeps its
     void markerPole;
   }
-  return { root, colliders, logbookAt, logbook };
+  return { root, colliders, logbookAt, logbook, textures: [crateMap] };
 }
 
 /**
