@@ -1270,6 +1270,8 @@ the engine queries WORLD physics below the flyer about every 0.2 seconds, smooth
 and adds the requested altitude. A missing floor or one more than 200 metres below uses world altitude.
 Use `above: 'world'` to fly over a void at an absolute height. Climb/dive rates cap vertical movement;
 species without `flight` retain their ground body. Dead flyers descend to the sampled floor (or keep falling over a void).
+`bank` (radians, 0 to π/2, optional) rolls a live flyer into its turns by the coordinated-turn angle atan(speed × yaw rate / g),
+capped at `bank`; without it the body flies level. A live flyer never tilts to the slope of the ground below it.
 
 **Lock eligibility.** `SpeciesRow.lockable?: boolean` controls LOCK and target taps for any authored species.
 Set `lockable: true` on a ground species to opt in; omitted ground rows default to false. Omitted flight rows

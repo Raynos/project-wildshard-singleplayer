@@ -502,7 +502,10 @@ export class Animal {
       let dy = this.desiredYaw - this.yaw;
       dy = Math.atan2(Math.sin(dy), Math.cos(dy));
       const maxTurn = (this.attackT >= 0 ? Math.min(this.turnRate, this.attackTurnCap) : this.turnRate) * dt;
-      this.yaw += THREE.MathUtils.clamp(dy, -maxTurn, maxTurn);
+      const turn = THREE.MathUtils.clamp(dy, -maxTurn, maxTurn);
+      this.yaw += turn;
+      // a flier rolls into its turn (SpeciesFlight.bank); applyTerrain eases the body toward it
+      if (this.flight !== null) this.tiltRollT = this.flight.bank(this.speed, dt > 0 ? turn / dt : 0);
       const accel = this.desiredSpeed > this.speed ? 7 : 11;
       this.speed += THREE.MathUtils.clamp(this.desiredSpeed - this.speed, -accel * dt, accel * dt);
       if (this.speed > 0.01) {
@@ -595,7 +598,9 @@ export class Animal {
     if (this.attackT >= 0) this.attackT += dt;
 
     if (!near) {
-      // far LOD: just move the root; skip pose maths (skeleton keeps its last pose)
+      // far LOD: just move the root; skip pose maths (skeleton keeps its last pose). A flier still eases into its bank:
+      // it is seen against the sky from far off
+      if (this.flight !== null) this.easeTilt(Math.min(1, dt * 5));
       this.applyRoot();
       this.poseFrozen = true;
       return;
@@ -873,6 +878,8 @@ export class Animal {
   /** Sample the slope under the body (called by the manager at 10 Hz — heightAt is not free). */
   sampleTerrain(): void {
     if (this.levelGround) { this.tiltPitchT = 0; this.tiltRollT = 0; this.footDeltaT.fill(0); return; }
+    // a live flier's body follows its own turn (update), not the slope of the ground far below it
+    if (this.flight !== null && this.alive) { this.tiltPitchT = 0; this.footDeltaT.fill(0); return; }
     const d = this.model.dims;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     const L = d.bodyHalfLen * 0.9 * this.scale, W = d.halfWidth * this.scale;
@@ -895,10 +902,13 @@ export class Animal {
   }
   private tiltPitchT = 0; private tiltRollT = 0; private footDeltaT = new Float32Array(4);
 
-  private applyTerrain(dt: number): void {
-    const k = Math.min(1, dt * 5);
+  private easeTilt(k: number): void {
     this.tiltPitch += (this.tiltPitchT - this.tiltPitch) * k;
     this.tiltRoll += (this.tiltRollT - this.tiltRoll) * k;
+  }
+  private applyTerrain(dt: number): void {
+    const k = Math.min(1, dt * 5);
+    this.easeTilt(k);
     let minD = 0;
     for (let i = 0; i < 4; i++) {
       this.footDelta[i] = (this.footDelta[i] ?? 0) + ((this.footDeltaT[i] ?? 0) - (this.footDelta[i] ?? 0)) * k;
