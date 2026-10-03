@@ -38,7 +38,7 @@ export function nalatiLook(def: SpeciesDef): SpeciesLook {
     preload: preloadCreatureGlbs,
     hasSkin: v => creatureHull(def.kind, v.id) !== null,
     loadSkin: async v => { const name = creatureHull(def.kind, v.id); if (name !== null) await loadCreatureRig(name); },
-    skin: (v, bones) => { const hull = skinCreatureGlb(def.kind, v.id, bones); return hull === null ? null : { ...hull, normalMap: null, thrall: false }; },
+    skin: (v, bones) => { const hull = skinCreatureGlb(def.kind, v.id, bones); return hull === null ? null : { ...hull, normalMap: null, overgrown: false }; },
   };
 }
 export const NALATI_SPECIES = NALATI_DEFINITIONS.map(nalatiRow);

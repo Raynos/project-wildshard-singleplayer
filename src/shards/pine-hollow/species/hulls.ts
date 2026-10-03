@@ -6,7 +6,7 @@ import { loadRigFile, retainCachedResources, variantDef, type BoneDef, type Vari
  *
  *   await preloadPineCreatures();                                   // the animals boot step: every rig, before a herd spawns
  *   const h = skinPineHull(kind, variant, bones, eyes);             // null → keep the procedural mesh
- *   h.geometry (position, normal, uv, color, skinIndex, skinWeight[, aThrall]; one group)  h.map  h.normalMap  h.bones
+ *   h.geometry (position, normal, uv, color, skinIndex, skinWeight[, aOvergrown]; one group)  h.map  h.normalMap  h.bones
  *
  * The rigs are baked offline by `scripts/creature-rig-bake.mjs --chunk pine-hollow` (src/engine/entities/creatureRigBake.ts):
  * each photoreal TRELLIS.2 hull (art/pine-hollow/round-9-creature-refs/) fitted to its species' skeleton, its stance
@@ -15,7 +15,7 @@ import { loadRigFile, retainCachedResources, variantDef, type BoneDef, type Vari
  * only used when its joint names match the variant's bones (in order); the model then takes the rig's joint positions.
  * Every variant of a hull wears it, in its own coat (pineCoats.ts). The King's thralls (VariantDef.traits.thrall, PH-M2)
  * also get glowing glass eyes and a few rigid fern clumps on the spine (`thrallExtras`): geometry in the same single draw,
- * flagged per vertex by `aThrall` (x = own vertex colour instead of the atlas, y = glow).
+ * flagged per vertex by `aOvergrown` (x = own vertex colour instead of the atlas, y = glow).
  */
 import * as THREE from 'three';
 import { pineCreatureRigUrl, PINE_CREATURE_RIGS, type PineRigName } from './rigs';
@@ -78,8 +78,8 @@ export interface PineHull {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null;
   /** the skeleton the hull is bound to: the variant's bones at the rig's joint positions */
   bones: BoneDef[];
-  /** a thrall: the geometry carries `aThrall` (the factory's glow patch reads it) */
-  thrall: boolean;
+  /** a thrall: the geometry carries `aOvergrown` (the factory's overgrown patch reads it) */
+  overgrown: boolean;
   /** the fur material's sheen and backlit rim for this coat, over the variant's own (E322 F-M2's fixed bears) */
   fur?: { rim: RGB; sheenColor: RGB };
 }
@@ -184,7 +184,7 @@ export function skinPineHull(kind: string, variant: string, bones: readonly Bone
     geometry = g;
   }
   const fur = fix ? BEAR_FIX_FUR[variant] : undefined;
-  return { geometry, map, normalMap: rig.normalMap, bones: out, thrall, ...(fur !== undefined ? { fur } : {}) };
+  return { geometry, map, normalMap: rig.normalMap, bones: out, overgrown: thrall, ...(fur !== undefined ? { fur } : {}) };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
@@ -284,7 +284,7 @@ function fernPart(at: THREE.Vector3, up: THREE.Vector3, size: number, fronds: nu
   return part;
 }
 
-/** the hull geometry + a thrall's eyes and fern clumps, `aThrall` = (own colour, glow) per vertex */
+/** the hull geometry + a thrall's eyes and fern clumps, `aOvergrown` = (own colour, glow) per vertex */
 function withThrallExtras(hull: THREE.BufferGeometry, bones: readonly BoneDef[], eyes: readonly EyeSpot[], v: VariantDef): THREE.BufferGeometry {
   const box = hull.boundingBox ?? new THREE.Box3().setFromBufferAttribute(hull.getAttribute('position') as THREE.BufferAttribute);
   const H = box.max.y - box.min.y, halfW = Math.max(0.05, (box.max.x - box.min.x) * 0.5);
@@ -306,7 +306,7 @@ function withThrallExtras(hull: THREE.BufferGeometry, bones: readonly BoneDef[],
       if (top) parts.push(fernPart(top.addScaledVector(up, -0.01 * H), up, size * (k === 0 ? 1.1 : 0.9), fronds, 977 + k * 131, boneIdx(bones, bone)));
     });
   }
-  // merge: the hull's attributes + the parts (uv: a small patch — the aThrall.x = 1 texels ignore the atlas and its normals)
+  // merge: the hull's attributes + the parts (uv: a small patch — the aOvergrown.x = 1 texels ignore the atlas and its normals)
   const n0 = hull.getAttribute('position').count;
   const extra = parts.reduce((s, p) => s + p.pos.length / 3, 0);
   const n = n0 + extra;
@@ -335,7 +335,7 @@ function withThrallExtras(hull: THREE.BufferGeometry, bones: readonly BoneDef[],
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
-  g.setAttribute('aThrall', new THREE.BufferAttribute(thr, 2));
+  g.setAttribute('aOvergrown', new THREE.BufferAttribute(thr, 2));
   g.setIndex(idx);
   g.addGroup(0, idx.length, 0);
   g.computeBoundingBox();

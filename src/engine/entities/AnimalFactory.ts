@@ -111,8 +111,8 @@ export interface AnimalModel {
   /** the fur's backlit rim colour (FurStyle.rim), needed to re-patch a cloned fur material; absent in 'toon' */
   rim?: THREE.Color;
   /** 'pbr' on a generated hull (Pine Hollow, pineCreatures.ts): one group, the fur material over the hull's PBR atlas +
-   *  normal map, no fur shells; `thrall` = its eyes glow and its fern clumps take their vertex colour (aThrall) */
-  hull?: { thrall: boolean };
+   *  normal map, no fur shells; `overgrown` = its eyes glow and its moss clumps take their vertex colour (aOvergrown) */
+  hull?: { overgrown: boolean };
   /** 'painterly' with a generated hull (glbCreatures.ts): the hull's atlas, set as every instance's `map` */
   map?: THREE.Texture | null;
   /** the hull is thin sheets (the eagle's wings): every instance's material is double-sided */
@@ -313,7 +313,7 @@ export class AnimalFactory {
     setLowPoly(false);
     validateCreatureBones(kind, sp.bones.map((bone) => bone.name));
     if (sp.bones[0]?.name !== 'body') throw new Error(`species '${kind}': bones[0] must be 'body'`);
-    // the procedural eyes, where a thrall's glowing eyes go on a generated hull
+    // the procedural eyes, where an overgrown hull's glowing eyes go
     const eyes: EyeSpot[] = [];
     for (const g of sp.eyeParts) { g.computeBoundingSphere(); const bs = g.boundingSphere; if (bs !== null) eyes.push({ centre: bs.center.clone(), radius: bs.radius }); }
     let geometry = mergeAnimalGeometry(sp.furParts, sp.hardParts, sp.eyeParts);
@@ -377,9 +377,9 @@ export class AnimalFactory {
       const selfLight = Number(v.traits?.['selfLight'] ?? 0);
       if (selfLight > 0) { fur.emissiveMap = hull.map; fur.emissive.setRGB(1, 1, 1); fur.emissiveIntensity = selfLight; }
       const rim = col3(style.rim);
-      this.patchFur(fur, rim, undefined, -1, hull.thrall);
+      this.patchFur(fur, rim, undefined, -1, hull.overgrown);
       this.sky.setupMaterial(fur);
-      m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry: hull.geometry, bones: hull.bones, dims: sp.dims, fur, hard: fur, eye: new THREE.MeshPhysicalMaterial(), shells: [], rim, hull: { thrall: hull.thrall } };
+      m = { kind, variant: v.id, style: 'pbr', render: DEFAULT_CREATURE_RENDER, species, variantDef: v, geometry: hull.geometry, bones: hull.bones, dims: sp.dims, fur, hard: fur, eye: new THREE.MeshPhysicalMaterial(), shells: [], rim, hull: { overgrown: hull.overgrown } };
       this.models.set(key, m);
       return m;
     }
@@ -422,25 +422,25 @@ export class AnimalFactory {
    * skinned normal by furLen x layer length (combed down/back by gravity), a strand cross-section is
    * alpha-tested so hairs thin out toward the outer layers, and inner layers are darkened (root AO).
    * The patched source has no per-species text, so one program serves every kind (see customProgramCacheKey).
-   * `thrall` (a generated hull's thrall, PH-M2): the `aThrall` attribute's x takes the vertex colour instead of the atlas
-   * and its normal map (the fern clumps), y glows cyan (the glass eyes) — one more program, only while a thrall exists.
+   * `overgrown` (a generated hull's overgrown variant): the `aOvergrown` attribute's x takes the vertex colour instead of the
+   * atlas and its normal map (the moss clumps), y glows cyan (the glass eyes) — one more program, only while one exists.
    */
-  private patchFur(fur: THREE.MeshPhysicalMaterial, rim: THREE.Color, shell?: ShellLayer, shellIndex = -1, thrall = false): void {
+  private patchFur(fur: THREE.MeshPhysicalMaterial, rim: THREE.Color, shell?: ShellLayer, shellIndex = -1, overgrown = false): void {
     patchShader(fur, 'engine.animal-fur', PATCH_ORDER.material, (shader) => {
-      if (thrall) {
+      if (overgrown) {
         shader.vertexShader = shader.vertexShader
           .replace('#include <clipping_planes_pars_vertex>', `#include <clipping_planes_pars_vertex>
-            attribute vec2 aThrall; varying vec2 vThrall;`)
+            attribute vec2 aOvergrown; varying vec2 vOvergrown;`)
           .replace('#include <begin_vertex>', `#include <begin_vertex>
-            vThrall = aThrall;`);
+            vOvergrown = aOvergrown;`);
         shader.fragmentShader = shader.fragmentShader
           .replace('#include <clipping_planes_pars_fragment>', `#include <clipping_planes_pars_fragment>
-            varying vec2 vThrall;`)
+            varying vec2 vOvergrown;`)
           .replace('#include <map_fragment>', `#include <map_fragment>
-            diffuseColor.rgb = mix( diffuseColor.rgb, diffuse, vThrall.x );`)
-          .replace('mapN.xy *= normalScale;', 'mapN.xy *= normalScale * ( 1.0 - vThrall.x );')
+            diffuseColor.rgb = mix( diffuseColor.rgb, diffuse, vOvergrown.x );`)
+          .replace('mapN.xy *= normalScale;', 'mapN.xy *= normalScale * ( 1.0 - vOvergrown.x );')
           .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-            totalEmissiveRadiance += vec3( 0.45, 0.95, 1.1 ) * 2.6 * vThrall.y;`);
+            totalEmissiveRadiance += vec3( 0.45, 0.95, 1.1 ) * 2.6 * vOvergrown.y;`);
       }
       attachFogUniforms(shader);
       shader.uniforms['furRimColor'] = { value: rim };
@@ -483,7 +483,7 @@ export class AnimalFactory {
             if ( strand < shellT ) discard;
             diffuseColor.rgb *= shellDark;`);
       }
-    }, { mode: 'replace', key: `animal-fur${shell !== undefined ? `-shell${shellIndex}` : ''}${thrall ? '-thrall' : ''}` });
+    }, { mode: 'replace', key: `animal-fur${shell !== undefined ? `-shell${shellIndex}` : ''}${overgrown ? '-overgrown' : ''}` });
   }
 
   /** Fur-shell meshes for one rig: SHELL_LAYERS SkinnedMeshes sharing geometry + skeleton, parented to the body mesh, all hidden. [] in 'toon'. */
@@ -503,10 +503,10 @@ export class AnimalFactory {
   /**
    * The far herd's material for `model` (farHerd.ts, PINE-HOLLOW PH-P2): the rig's own fur (cloned, patched and set up
    * exactly as `instantiate` does — the same program) in white, the per-animal tint going into the batch's vertex
-   * colours. null where a batch would not draw the rig's pixels: low-poly rigs and thralls (their shader reads the colour).
+   * colours. null where a batch would not draw the rig's pixels: low-poly rigs and overgrown hulls (their shader reads the colour).
    */
   farMaterial(model: AnimalModel): THREE.Material | null {
-    if (!model.render.furRim || model.rim === undefined || model.hull?.thrall === true) return null;
+    if (!model.render.furRim || model.rim === undefined || model.hull?.overgrown === true) return null;
     const fur = model.fur.clone();
     if (!(fur instanceof THREE.MeshPhysicalMaterial)) return null;
     this.patchFur(fur, model.rim, undefined, -1, false);
@@ -540,7 +540,7 @@ export class AnimalFactory {
     if (model.map) fur.map = model.map;
     if (model.doubleSided === true) fur.side = THREE.DoubleSide;
     if (model.render.furRim && model.rim !== undefined) {
-      this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim, undefined, -1, model.hull?.thrall ?? false);   // clone() does not carry onBeforeCompile
+      this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim, undefined, -1, model.hull?.overgrown ?? false);   // clone() does not carry onBeforeCompile
     }
     if (model.render.lowPoly && model.geometry.hasAttribute('aGlow') && fur instanceof THREE.MeshStandardMaterial) patchEyeGlow(fur, model.eye.emissive, model.eye.emissiveIntensity);
     const v = (tint - 0.5) * model.render.tintRange;

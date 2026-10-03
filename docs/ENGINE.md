@@ -1197,7 +1197,7 @@ once with that cause. A shard may call it for an authored pit instead of supplyi
 | `StrikeRunner`, `StrikeSpec`, `StrikeContext`, `StrikeActor`, `StrikePhase`, `UtilityScore` | strikes as data: `pick(specs, ctx)`, `start(spec, actor, target)`, `update(dt, ctx)` |
 | `canReach`, `ReachActor` | occlusion only: a WORLD ray from target feet + 1.2 m to the creature aim point; no navmesh test |
 | `Hfsm`, `StateDef`, `StateChange` | the hierarchical state machine under the brains |
-| `GroupBrain`, `GroupMember`, `NightBrain`, `NightActor`, `NightSpec`, `NightPorts` | herds and night spawns |
+| `GroupBrain`, `GroupMember` | herds (Pine Hollow's night spawns moved into its folder: src/shards/pine-hollow/quest/nightBrain.ts, E405) |
 | `WeightedTable`, `WeightedRow`, `TableDrop`, `TableSpec` | spawn and loot tables (`mode: 'weighted' \| 'each'`) |
 | `inspectBrain`, `pinBrain`, `brainInspection`, `BrainInspection`, `installAiDebug`, `AiDebugHost`, `AiDebugView` | the AI debug overlay |
 
@@ -1602,7 +1602,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-702 exports, grouped by the module they come from.
+698 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1727,7 +1727,6 @@ sections above describe what to use; this list is the complete inventory.
 - `./ai/inspect`: `inspectBrain`, `pinBrain`, `brainInspection`, `BrainInspection`
 - `./ai/view/DebugOverlay`: `installAiDebug`, `AiDebugHost`, `AiDebugView`
 - `./ai/weighted`: `WeightedTable`, `WeightedRow`, `TableDrop`, `TableSpec`
-- `./ai/NightBrain`: `NightBrain`, `NightActor`, `NightSpec`, `NightPorts`
 - `./quest/core`: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`, `CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`
 - `./quest/view`: `QuestChip`, `NpcTalk`
 - `./quest/contentApi`: `loadQuest`

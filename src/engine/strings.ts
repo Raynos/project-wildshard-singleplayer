@@ -76,7 +76,6 @@ export const ENGINE_STRINGS = {
   "s_ee788727f152": "Hind",
   "s_d1761c145199": "Qyran the Storm-Wing",
   "s_c0752fe7f23a": "Golden eagle",
-  "s_08190a304bd6": "Thrall",
   "s_eda885a0009b": "Imperial bull",
   "s_4db12c9101d6": "Royal bull",
   "s_d77473617820": "Qara Batyr",

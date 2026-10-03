@@ -8,7 +8,7 @@ import type { Scope } from '../../app/scope';
 export interface EyeSpot { centre: THREE.Vector3; radius: number }
 export interface CreatureHull {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null;
-  bones: BoneDef[]; thrall: boolean; doubleSided?: boolean; fur?: Partial<FurStyle>;
+  bones: BoneDef[]; overgrown: boolean; doubleSided?: boolean; fur?: Partial<FurStyle>;
 }
 export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'build' | 'pose' | 'gait' | 'postPose' | 'rig' | 'animate' | 'damageMul' | 'eyeGlow' | 'eyeGlowIntensity'> {
   id: string; species: string; kind: string;

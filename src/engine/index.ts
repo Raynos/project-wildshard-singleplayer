@@ -156,7 +156,6 @@ export { inspectBrain, pinBrain, brainInspection, type BrainInspection } from '.
 export { installAiDebug, type AiDebugHost, type AiDebugView } from './ai/view/DebugOverlay';
 
 export { WeightedTable, type WeightedRow, type TableDrop, type TableSpec } from './ai/weighted';
-export { NightBrain, type NightActor, type NightSpec, type NightPorts } from './ai/NightBrain';
 
 export { QuestState, QuestLine, lineFor, validateQuest, CHIP_MAX, type QuestDef, type QuestStep, type QuestMarker, type NpcDef, type DialogueEntry } from './quest/core';
 export type { QuestChip, NpcTalk } from './quest/view';

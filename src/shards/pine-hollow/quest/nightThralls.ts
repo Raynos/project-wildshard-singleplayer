@@ -13,7 +13,7 @@
  * The thrall models are the King's (antlerKing.ts builds one of each kind at boot), so nothing here compiles mid-play.
  */
 import * as THREE from 'three';
-import { NightBrain } from '#engine';
+import { NightBrain } from './nightBrain';
 import type { Animal } from '#engine/entities/Animal';
 import type { AnimalManager } from '#engine/entities/AnimalManager';
 import { variantDef } from '#engine/entities/species/registry';

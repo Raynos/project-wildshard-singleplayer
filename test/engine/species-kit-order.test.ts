@@ -31,7 +31,7 @@ describe('creature hulls follow the kit rows', () => {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     geometry.computeBoundingSphere();
     const map = new THREE.DataTexture(new Uint8Array(4), 1, 1);
-    const skin = vi.fn((_v: unknown, bones: CreatureHull['bones']): CreatureHull => ({ geometry, map, normalMap: null, bones: [...bones], thrall: false }));
+    const skin = vi.fn((_v: unknown, bones: CreatureHull['bones']): CreatureHull => ({ geometry, map, normalMap: null, bones: [...bones], overgrown: false }));
     const look: SpeciesLook = { ...registeredSpecies('deer'), variants: {}, id: 'r1.look.deer', species: 'r1.deer', kind: 'deer', preload, skin: (v, bones) => skin(v, [...bones]) };
     app.levelScope = scope;
     try {
@@ -40,7 +40,7 @@ describe('creature hulls follow the kit rows', () => {
       await factory.ready;
       expect(preload).toHaveBeenCalledTimes(1);
       const model = factory.model('deer', 'hind');
-      expect(model.hull).toEqual({ thrall: false });
+      expect(model.hull).toEqual({ overgrown: false });
       expect(model.shells).toEqual([]);
       expect(model.geometry).toBe(geometry);
       expect(factory.model('deer', 'hind')).toBe(model);

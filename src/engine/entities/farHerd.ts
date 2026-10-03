@@ -32,7 +32,7 @@ import { markGpuOnly } from '../core/gpuOnly';
 /** what a batch needs from an animal */
 export interface FarMember {
   readonly mesh: THREE.SkinnedMesh;
-  /** the rig's fur colour (the per-animal tint): read live, a later tint (a thrall's moss) follows */
+  /** the rig's fur colour (the per-animal tint): read live, a later tint (an overgrown coat's moss) follows */
   readonly tint: THREE.Color;
 }
 

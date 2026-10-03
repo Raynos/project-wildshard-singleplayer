@@ -1,4 +1,6 @@
-import type { BrainPoint } from './strikes';
+// Pine Hollow's night thralls' brain (moved from the engine's ai folder, E405 LAYER-PURITY: the engine knows no thrall).
+/** a position */
+interface BrainPoint { x: number; y: number; z: number }
 
 export interface NightActor {
   position: BrainPoint; alive: boolean; hp: number; maxHp: number; lookWeight: number;
