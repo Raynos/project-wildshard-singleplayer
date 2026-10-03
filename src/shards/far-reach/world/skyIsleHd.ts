@@ -34,7 +34,8 @@ export type SkyIsleModel = (typeof SKY_ISLE_MODELS)[number];
  */
 // (row 1: the new models' paint is darker than round 21's; the mockups' crags read warm and hazed against the low sun)
 /** `keelInset`: a playable island's keel is fitted so its widest rock under the cut stands at this share of the deck's radius. */
-export const SKY_ISLE_HD = { selfLight: 0.22, tint: 1.0, turf: 0.2, stretch: [0.8, 1.35], rimBins: 48, keelInset: 0.88 } as const;
+/** `shade`: the light on a face by its turn to the low sun, [turned away, facing it] (top-10 row 9). */
+export const SKY_ISLE_HD = { selfLight: 0.14, shade: [0.7, 1.18], tint: 1.0, turf: 0.2, stretch: [0.8, 1.35], rimBins: 48, keelInset: 0.88 } as const;
 /**
  * The aerial haze on the sky isles (E399 round 6, measured on mockup A's isle band, x 0.1-0.9, y 0.27-0.42: its darkest
  * isle rock is a hazed mauve, 107,81,77, where ours read dark brown, 75,58,38): toward the warm haze over `near`..`far` metres, at most `max`.
@@ -140,6 +141,10 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
   // strongest on the sun's side (round 10, seat B: every edge lit alike), a share on the rest (round 12: sun-side only
   // left the crags facing the spawn dark)
   { float farRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 3.0) * (0.4 + 0.6 * smoothstep(-0.1, 0.5, dot(normalize(normal), normalize((viewMatrix * vec4(${SUN_DIR.x.toFixed(4)}, ${SUN_DIR.y.toFixed(4)}, ${SUN_DIR.z.toFixed(4)}, 0.0)).xyz))));
+    // (top-10 row 9: the mockups light their isles from behind: the masses turned from the low sun fall into a soft
+    // shade, the faces toward it brighten, so each reads as a lit volume, not a flat beige cut-out)
+    float farSunTurn = smoothstep(-0.45, 0.65, dot(normalize(normal), normalize((viewMatrix * vec4(${SUN_DIR.x.toFixed(4)}, ${SUN_DIR.y.toFixed(4)}, ${SUN_DIR.z.toFixed(4)}, 0.0)).xyz)));
+    gl_FragColor.rgb *= mix(${SKY_ISLE_HD.shade[0].toFixed(2)}, ${SKY_ISLE_HD.shade[1].toFixed(2)}, farSunTurn);
     gl_FragColor.rgb = gl_FragColor.rgb * 0.95 + vec3(1.0, 0.7, 0.36) * farRim * 0.55; }
   gl_FragColor.rgb = mix(gl_FragColor.rgb, ${linear(SKY_ISLE_HAZE.color)}, clamp((length(vViewPosition) - ${SKY_ISLE_HAZE.near.toFixed(1)}) / ${(SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1)}, 0.0, 1.0) * ${SKY_ISLE_HAZE.max.toFixed(2)});`);
       if (clipTop) {

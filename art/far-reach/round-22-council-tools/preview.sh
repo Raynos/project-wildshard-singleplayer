@@ -30,4 +30,6 @@ if echo "$lint" | grep -qE "^ *(x|×)|error (typescript|eslint|oxc|unicorn|impor
 if [ -f "$SCR/port-$N" ]; then bash scripts/serve-build.sh stop "$(cat "$SCR/port-$N")" >/dev/null 2>&1 || true; fi
 url=$(bash scripts/serve-build.sh --name "far-$N" --hours 6 2>&1 | grep -o 'http://127.0.0.1:[0-9]*/')
 echo "${url%/}" | grep -o '[0-9]*$' > "$SCR/port-$N"
+# serve-build prints the URL before the server answers: wait for it (a capture started at once fails to navigate)
+for _ in $(seq 1 60); do curl -s -m 2 -o /dev/null "${url}version.json" && break; sleep 0.5; done
 echo "$url"

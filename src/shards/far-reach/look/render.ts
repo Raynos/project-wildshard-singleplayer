@@ -8,7 +8,7 @@ import { bakeSeaTexture, cloudSea, maelstrom, paintedMaelstrom, paintedSea } fro
 import { cumulus } from './puffs';
 import { sunGlow } from './sunGlow';
 import { PANO_SUN } from './panoramaData';
-import { ISLES } from '../layout';
+import { ISLES, SPANS } from '../layout';
 import { SKY_ISLES } from '../world/skyIsles';
 import { loadPainted } from './image';
 import { TEX_URL } from '../boot/files';
@@ -42,6 +42,19 @@ function keelPuffs(): [number, number, number, number][] {
       out.push([isle.x + Math.cos(ang) * r, y, isle.z + Math.sin(ang) * r, isle.r * (0.4 + rnd() * 0.35)]);
     }
   }
+  // cloud in the gaps the rope bridges cross, just under deck level (E410: mockup A's bridge runs over billowing lit
+  // cumulus; ours crossed open air to a flat sea far below): puffs either side of each span's middle, their tops under it
+  let c = 2203;
+  const rndC = (): number => { c = (c * 16807) % 2147483647; return c / 2147483647; };
+  for (const span of SPANS) {
+    if (span.kind !== 'rope') continue;
+    const len = Math.hypot(span.x1 - span.x0, span.z1 - span.z0), ux = (span.x1 - span.x0) / len, uz = (span.z1 - span.z0) / len;
+    for (let i = 0; i < 6; i++) {
+      const t = 0.15 + 0.7 * rndC(), side = (rndC() < 0.5 ? -1 : 1) * (5 + rndC() * 10), size = 7 + rndC() * 6;
+      const deck = span.y + (span.y1 - span.y) * t;
+      out.push([span.x0 + ux * len * t - uz * side, deck - 3 - size - rndC() * 4, span.z0 + uz * len * t + ux * side, size]);
+    }
+  }
   // a cumulus bank round the storm crown a little under its deck (E399 round 2, seat B: 'no cloud sea behind the stones';
   // from the arena the true sea, 52 m down, only shows past ~740 m): it reads as the sea just past the rim
   // its own random stream (round 9: sharing the keels' let every sky isle added or moved re-roll the whole bank; o4 put
@@ -49,11 +62,15 @@ function keelPuffs(): [number, number, number, number][] {
   let b = 9137;
   const rndB = (): number => { b = (b * 16807) % 2147483647; return b / 2147483647; };
   const crown = ISLES.find((isle) => isle.id === 'crown');
+  const to = new Vector3();
   if (crown !== undefined) for (let i = 0; i < 34; i++) {
     const ang = (i / 34) * Math.PI * 2 + rndB() * 0.15, r = crown.r + 14 + rndB() * 60;
-    // none toward the low sun (round 10, seat B: the lit puffs under the sun were D's hot band, whatever the seed)
-    if (Math.cos(ang) * SUN_DIR.x + Math.sin(ang) * SUN_DIR.z > 0.85 * Math.hypot(SUN_DIR.x, SUN_DIR.z)) continue;
-    out.push([crown.x + Math.cos(ang) * r, crown.y - 9 + rndB() * 5, crown.z + Math.sin(ang) * r, 14 + rndB() * 16]);
+    const x = crown.x + Math.cos(ang) * r, y = crown.y - 9 + rndB() * 5, z = crown.z + Math.sin(ang) * r, size = 14 + rndB() * 16;
+    // only the sun disc stays clear, seen from the arena (E410: mockup D's stone gaps are full of lit cumulus tops; the
+    // round-10 cone of ~32 deg toward the sun emptied D's whole view)
+    to.set(x - crown.x, y - crown.y - 2.4, z - crown.z);
+    if (to.angleTo(SUN_DIR) < Math.atan(size / to.length()) + (4 * Math.PI) / 180) continue;
+    out.push([x, y, z, size]);
   }
   return out;
 }

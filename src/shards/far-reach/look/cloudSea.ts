@@ -160,7 +160,9 @@ export function paintedSea(painted: Texture, time: { value: number }, upper = fa
         vec3 c = mix(a, b, 0.35);
         // value contrast (the judge: the sea reads flat-bright): lavender valleys, warm crowns
         float lum = dot(c, vec3(0.3, 0.59, 0.11));
-        c = mix(c * vec3(0.66, 0.64, 0.84), c * vec3(1.1, 1.06, 0.98), smoothstep(0.42, 0.8, lum));
+        // the shaded hollows a peach-lavender, not violet (E410: under the slimmer keels the sea read lavender where the
+        // mockups' cloud below the isles is gold-lit; was 0.66, 0.64, 0.84)
+        c = mix(c * vec3(0.84, 0.74, 0.82), c * vec3(1.12, 1.06, 0.96), smoothstep(0.38, 0.8, lum));
         // the eye a dark lavender well
         c = mix(c * vec3(0.62, 0.6, 0.78), c, smoothstep(${MAELSTROM.eye.toFixed(1)}, ${(MAELSTROM.eye * 3.5).toFixed(1)}, mr));
         float d = length(wp.xz - cameraPosition.xz);

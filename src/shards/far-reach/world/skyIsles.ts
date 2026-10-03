@@ -40,6 +40,9 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   // the arena's airspace with its waterfall (round 11, the lead: at (9, -186) it hung over the crown)
   isle('o5', -14, -138, 8, 76, 15, 0, null), isle('o6', 34, -175, 9.5, 74, 17, 0, Math.PI * 1.2),
   isle('o2', 30, -290, 12, 40, 20, 4, Math.PI * 0.7),
+  // the far isles past the crown (E410: mockup D shows floating isles in the gaps between the standing stones; A's
+  // cluster gains depth behind it): every one at least 8 deg off the sun disc from the spawn and from the arena
+  isle('n1', 20, -330, 10, 70, 18, 3, null), isle('n2', 55, -360, 12, 80, 20, 4, Math.PI * 0.5), isle('n3', -110, -380, 14, 60, 24, 4, null),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),
   isle('b3', 20, 95, 16, 60, 26, 5, Math.PI * 1.5), isle('b4', -95, -250, 20, 62, 32, 6, Math.PI * 1.2),
