@@ -213,16 +213,18 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   float sandFlat = smoothstep(0.78, 0.96, normalize(vSandN).y);
   // loop 3: the ripples come in patches (wind-scoured fields and smooth swales), not one even corduroy over every dune
   float sandPatch = clamp(0.5 + 0.6 * sin(sandV * 0.31 + sin(sandU * 0.19) * 1.7) * sin(sandU * 0.27 + sandV * 0.07 + 1.3), 0.12, 1.0);
+  sandPatch = max(sandPatch, 0.8 * (1.0 - smoothstep(6.0, 30.0, sandFar))); // E399: always rippled underfoot (mockup A)
   float sandRip1 = sandAA(sandPhase) * (0.3 + 0.7 * sandFlat) * sandPatch, sandRip2 = sandAA(sandPhase2) * sandFlat * (0.4 + 0.6 * sandPatch);
   vec4 sandTex = texture2D(uSandGrain, vSandPos.xz * 0.55);
   // round 2 (R1C-5 / seat B: the trails were soft smears from above): a baked 0.75 m trail mask, trodden darker and smooth
   float sandTrod = texture2D(uSandTrail, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r;
-  sandRip1 *= 1.0 - sandTrod; sandRip2 *= 1.0 - sandTrod;
+  sandRip1 *= 1.0 - 0.5 * sandTrod; sandRip2 *= 1.0 - 0.5 * sandTrod; // E399: the trail keeps half its ripples (mockup A: rippled to the bottom edge at the spawn)
   // E399 (mockups A, D): fine low-contrast ripples near the camera, the bold stripes only at middle distance
   float sandNear = mix(0.75, 0.7, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge)
   sandRip1 *= sandNear; sandRip2 *= sandNear;
   // E399 (judge, mockup A): the near ripples' troughs read dark (the key runs along the crests, so the bump alone barely shows)
-  diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3;
+  diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3
+    + smoothstep(0.82, 0.95, sandTex.r) * 0.9 * (1.0 - smoothstep(3.0, 18.0, sandFar)); // grain glints near the camera (mockup A)
   // loop 4, surface variety (the council's baseline: the near sand read as one flat brown): broad tonal drifts (tens of
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
