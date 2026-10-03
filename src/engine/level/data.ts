@@ -4,7 +4,7 @@ import type { LookReplaceContext } from '../render/look';
 import type { Sky } from '../world/Sky';
 import type { TreeFactory } from '../world/TreeFactory';
 import type { Noise2D } from '../core/noise';
-import type { SpeciesWeights } from '../world/forest/treeSpecies';
+import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '../world/forest/treeSpecies';
 // Engine-owned level data; structurally compatible with the transitional manifests.
 export type Vec2 = [number, number];
 export type RGB = [number, number, number];
@@ -48,6 +48,8 @@ export interface TreeSpec {
   twigAtlas?: string;
   noun: string;
   set?: string;
+  /** the set's variants, in its GLB's order (the level's own: Pine Hollow's PINE_TREE_SET) */
+  setVariants?: readonly TreeSetVariant[];
   drawnBy?: 'model';
 }
 export interface ForestSpec {
@@ -63,6 +65,8 @@ export interface ForestSpec {
   density?: (x: number, z: number) => number;
   scale?: (x: number, z: number) => number;
   species?: (x: number, z: number) => SpeciesWeights;
+  /** how each species of the set is planted, in draw order (needed with `species`) */
+  speciesTraits?: readonly TreeSpeciesTraits[];
   understory?: { ferns: number; shrubs: number; fernCanopy: boolean };
   infill?: { x: number; z: number; r: number };
   mask?: (x: number, z: number) => number;

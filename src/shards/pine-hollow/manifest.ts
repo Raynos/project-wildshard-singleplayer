@@ -8,6 +8,7 @@ import compareHamletLive from './explore/pine-hamlet-live.jpg';
 import compareHamletTarget from './explore/pine-hamlet-target.jpg';
 import { PINE_STEPS, PINE_BYTES } from './boot/steps';
 import { PINE_TREE_ASSETS } from './world/treeAssets';
+import { PINE_TREE_SPECIES } from './world/treeSet';
 import { bootFiles, bootSources, BAKED_UNREAD } from './boot/files';
 import exploreWorld from './explore/world-pine-hollow.webp';
 import exploreModels from './explore/models-pine-hollow.webp';
@@ -109,7 +110,7 @@ export const PINE_HOLLOW: ShardManifest = {
     density: forestDensity,
     /** the old-growth's pines and firs stand a quarter taller (its giants are their own species, PH-B4) */
     scale: (x, z) => 1 + oldGrowthMask(x, z) * 0.25,
-    species: speciesMix,
+    species: speciesMix, speciesTraits: PINE_TREE_SPECIES,
     // PH-L8: the boreal understory — bilberry shrubs and ferns. E143: back from the look loop's round 3 (shrubs × 12 over the
     // open floor, ferns × 1.5 filling the dense shade) to shrubs × 2.5 and ferns × 1 in their clusters, so the floor reads
     // and a deer's legs show; the Hollow's second tree grid (`infill`, PH-L1 round 2) is gone with its grove

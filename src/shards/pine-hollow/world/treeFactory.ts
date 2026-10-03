@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loadTexture, loadPBR, loadPBRArray, Rng, attachFogUniforms, TIER_CONFIG, loadBakedCards, exportCardTextures, macrotask, markGpuOnly, TREE_SPECS, TREE_SPECS_V2, BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, TreeFactory, patchFade, patchWind, treeSetOf, PUBLIC_BYTES, type FadeBand, type LookReplaceContext, PATCH_ORDER, patchShader } from '#engine';
+import { loadTexture, loadPBR, loadPBRArray, Rng, attachFogUniforms, TIER_CONFIG, loadBakedCards, exportCardTextures, macrotask, markGpuOnly, TREE_SPECS, BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, TreeFactory, patchFade, patchWind, treeSetOf, PUBLIC_BYTES, type FadeBand, type LookReplaceContext, PATCH_ORDER, patchShader } from '#engine';
+import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 import { PINE_TREE_ASSETS } from './treeAssets';
 
 export interface PineTreeFactoryOptions { bark?: string; twigAtlas?: string; set?: string | null }

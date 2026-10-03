@@ -976,7 +976,7 @@ rigContract: { skeleton: 'template.greyBlob', sockets: ['body', 'head'], clips: 
 | Fog | `attachFogUniforms`, `addFogUniforms`, `fogUniforms`; your `FogModel`; weather fog `weatherFog`, `WeatherFog`, `WeatherFogSpec` (E390: a second exponential fog over the level's own, compiled only when the manifest sets `atmosphere.weather: true`; `set(strength 0..1)` each time it changes, cleared when the scope ends; it composes with a backdrop's clock and the underwater blend) | `const storm = weatherFog(ctx.scope, { dist: 0.05, color: 0x8a5238 }); storm.set(eased)` (Signal Dunes' sand storm) |
 | Wind | `wind`, `WIND_DIR`, `windGustAt`, `windUniforms`, `WindField` | grass, trees and arrow drift read it |
 | Placement and models | `defineModel`, `ModelDef`, `modelContext`, `ModelContext`, `ModelPart`, `live`, `listModel`, `RosterEntry`, `twoSidedPositions`, `WeldBuild`, `markGpuOnly` | `defineModel({ id: '_template/lantern', pipeline: 'code', build: () => … })` |
-| Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchFade`, `patchWind`, `TREE_SPECS`, `TREE_SPECS_V2`, `TREE_SPECIES`, `SpeciesWeights`, `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `loadBakedCards`, `exportCardTextures` | |
+| Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchFade`, `patchWind`, `TREE_SPECS`, `TreeSpeciesTraits` (a species' planting: scale, growth, girth, spacing, hue), `TreeSetVariant` (a tree set's variant), `SpeciesWeights` (the level's own set and traits: `TreeSpec.setVariants`, `ForestSpec.speciesTraits`; E405), `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `loadBakedCards`, `exportCardTextures` | |
 | Geometry kit | `log`, `beam`, `rope`, `sagLine`, `rock`, `plank`, `tris`, `wobble`, `pole`, `blob`, `lathe`, `revolve`, `revolveUV`, `mergeVerticesByPos`, `voxelAO`, `aoTint`, `hemisphere`, `VoxelAOParams`, `HemiRing`, `HemiDir`, `lin` | |
 | Interactables | `Interactable`, `Interactables`, `InteractEvent`, `Flags`, `Place`, `PoiId` | the template's hut door |
 | Bounds and layout | `installBounds`, `layoutFauna` (`#engine/data`), `CHUNK_*` | |
@@ -1602,7 +1602,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-701 exports, grouped by the module they come from.
+702 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1752,7 +1752,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./boot/bytes.generated`: `PUBLIC_BYTES`
 - `./boot/lastEnd`: `markUnload`
 - `./boot/titleArrival`: `setTitleArrival`, `TitleArrival`
-- `./world/forest/treeSpecies`: `TREE_SPECS_V2`
+- `./world/forest/treeSpecies`: `TreeSpeciesTraits`, `TreeSetVariant`
 - `./combat/targets`: `authoredTargets`, `RayTargets`
 - `./meadowApi`: `loadMeadow`
 - `./practice/playground/Playground`: `PlaygroundHost`, `Playground`
@@ -1807,14 +1807,14 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine/data` (`src/engine/data.ts`)
 
-23 exports, grouped by the module they come from.
+24 exports, grouped by the module they come from.
 
 - `./core/config`: `CHUNK_HALF`
 - `./core/noise`: `smoothstep`, `clamp`, `lerp`
 - `./world/terrainField`: `buildTerrain`
 - `./world/groundField`: `terrainFieldFor`
 - `./world/faunaLayout`: `layoutFauna`
-- `./world/forest/treeSpecies`: `TREE_SPECIES`, `SpeciesWeights`
+- `./world/forest/treeSpecies`: `SpeciesWeights`, `TreeSpeciesTraits`, `TreeSetVariant`
 - `./boot/filePolicy`: `filePolicy`, `PUBLIC_BYTES`
 - `./boot/bytes`: `ChunkFiles`
 - `./core/tier`: `Tier`

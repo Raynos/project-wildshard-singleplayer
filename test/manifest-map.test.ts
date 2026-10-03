@@ -3462,6 +3462,15 @@ function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['dat
   projected['atmosphere'] = atmosphere;
   // The lazy shard factory replaces the historical selector; authored assets stay exact.
   if (typeof m.trees.factory === 'function') projected['trees'] = { ...m.trees, factory: fixture.trees.factory };
+  // E405: a tree set's variants and its species' traits moved from the engine into the level's own data.
+  if (typeof projected['trees'] === 'object' && projected['trees'] !== null && 'setVariants' in projected['trees']) {
+    const { setVariants: _setVariants, ...trees } = projected['trees'] as Record<string, unknown>;
+    projected['trees'] = trees;
+  }
+  if (m.forest?.speciesTraits !== undefined) {
+    const { speciesTraits: _speciesTraits, ...forest } = m.forest;
+    projected['forest'] = forest;
+  }
   // Nalati's palette moved from the engine map into its manifest. Other map data stays frozen.
   if (minimap !== undefined) {
     const { palette: _palette, openWater: _openWater, outside: _outside, ...map } = minimap;

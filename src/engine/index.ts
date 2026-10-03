@@ -196,7 +196,7 @@ export { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, p
 export { PUBLIC_BYTES } from './boot/bytes.generated';
 export { markUnload } from './boot/lastEnd';
 export { setTitleArrival } from './boot/titleArrival';
-export { TREE_SPECS_V2 } from './world/forest/treeSpecies';
+export type { TreeSpeciesTraits, TreeSetVariant } from './world/forest/treeSpecies';
 
 export type { AnimalSound, HoofSurface, ImpactKind } from './audio/Audio';
 

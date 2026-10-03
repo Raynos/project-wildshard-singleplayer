@@ -20,10 +20,10 @@ import { Rng } from '../../core/rng';
 import { Noise2D, smoothstep, lerp } from '../../core/noise';
 import { heightAt, normalAt, splatAt, trailDistance, cabinMask, inChunk, pondMask, waterLevel, POND } from '../Heightfield';
 import { activeLevel } from '../../level/selection';
-import { TREE_SPECIES, TREE_SPECS_V2, type TreeSpecies, type SpeciesWeights } from './treeSpecies';
+import type { TreeSpecies, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from './treeSpecies';
 
 export { TREE_SPECS, treeSetOf } from './treeSpec';
-export { TREE_SPECIES, TREE_SPECS_V2, type TreeSpecies, type SpeciesWeights } from './treeSpecies';
+export type { TreeSpecies, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from './treeSpecies';
 
 export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color; species?: TreeSpecies | undefined }
 
@@ -31,9 +31,9 @@ export interface TreeInstance { x: number; y: number; z: number; r: number; vari
 export interface PlantSpec { trunkRadius: number; height: number; species?: TreeSpecies | undefined; collider?: number | undefined }
 
 /** The variants placement plants for a shard's trees (the bakes; TreeFactory builds the same list with geometry). */
-export function plantSpecs(trees: { factory: TreeSpec['factory']; set?: string | undefined }): PlantSpec[] {
+export function plantSpecs(trees: { factory: TreeSpec['factory']; set?: string | undefined; setVariants?: readonly TreeSetVariant[] | undefined }): PlantSpec[] {
   if (trees.factory === 'none') return [];
-  if (treeSetOf(trees) !== null) return TREE_SPECS_V2.map((s) => ({ trunkRadius: s.trunk, height: s.height, species: s.species, collider: s.collider }));
+  if (treeSetOf(trees) !== null) return (trees.setVariants ?? []).map((s) => ({ trunkRadius: s.trunk, height: s.height, species: s.species, collider: s.collider }));
   return TREE_SPECS.map((s) => ({ trunkRadius: s.trunk, height: s.height }));
 }
 
@@ -80,30 +80,33 @@ export function placeForest(variants: readonly PlantSpec[]): { trees: TreeInstan
   for (let i = candidates.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); const a = candidates[i], b = candidates[j]; if (a && b) { candidates[i] = b; candidates[j] = a; } }
 
   // PH-B4: a species set picks each tree's species from the chunk's zone mix, then one of that species' variants
-  const mix = F.species && variants.every((v) => v.species !== undefined) ? F.species : null;
+  const mix = F.species && F.speciesTraits && variants.every((v) => v.species !== undefined) ? F.species : null;
+  const traits: readonly TreeSpeciesTraits[] = F.speciesTraits ?? [];
+  const traitOf = new Map(traits.map((t) => [t.id, t]));
   const bySpecies = new Map<TreeSpecies, number[]>();
   variants.forEach((v, i) => { if (v.species) bySpecies.set(v.species, [...(bySpecies.get(v.species) ?? []), i]); });
   const plantSpecies = (x: number, y: number, z: number, w: SpeciesWeights): void => {
     let total = 0;
-    for (const s of TREE_SPECIES) total += bySpecies.has(s) ? Math.max(0, w[s] ?? 0) : 0;
+    for (const { id: s } of traits) total += bySpecies.has(s) ? Math.max(0, w[s] ?? 0) : 0;
     if (total <= 0) return;
-    let r = rng.next() * total, species: TreeSpecies = 'pine';
-    for (const s of TREE_SPECIES) { const k = bySpecies.has(s) ? Math.max(0, w[s] ?? 0) : 0; if (r < k) { species = s; break; } r -= k; }
+    let r = rng.next() * total, species: TreeSpecies = traits[0]?.id ?? '';
+    for (const { id: s } of traits) { const k = bySpecies.has(s) ? Math.max(0, w[s] ?? 0) : 0; if (r < k) { species = s; break; } r -= k; }
     const list = bySpecies.get(species) ?? [];
     const variant = list[rng.int(0, list.length - 1)] ?? 0;
     const v = variants[variant];
     if (!v) throw new Error(`[forest] no tree variant ${variant}`);
-    const giant = species === 'giant';
-    const grows = species === 'pine' || species === 'fir';
-    const scale = giant ? rng.range(0.88, 1.08) : species === 'sapling' ? rng.range(0.7, 1.3) : rng.range(0.8, 1.2) * (grows && F.scale ? F.scale(x, z) : 1);
-    const r0 = v.trunkRadius * scale * (v.collider ?? 1) + (species === 'sapling' ? 0.04 : 0.15);
+    const trait = traitOf.get(species);
+    if (trait === undefined) throw new Error(`[forest] no traits for species '${species}'`);
+    const scale = rng.range(trait.scale[0], trait.scale[1]) * (trait.grows && F.scale ? F.scale(x, z) : 1);
+    const r0 = v.trunkRadius * scale * (v.collider ?? 1) + trait.girth;
     // no trunk inside another's: a giant keeps its neighbours off its buttresses and out from under its limbs
     for (const o of grid.nearby(x, z, r0 + 8)) {
-      const gap = giant || o.species === 'giant' ? 3.5 : species === 'sapling' || o.species === 'sapling' ? 0.6 : 1.2;
+      const other = o.species === undefined ? undefined : traitOf.get(o.species)?.spacing;
+      const gap = trait.spacing === 'wide' || other === 'wide' ? 3.5 : trait.spacing === 'tight' || other === 'tight' ? 0.6 : 1.2;
       if (Math.hypot(o.x - x, o.z - z) < o.r + r0 + gap) return;
     }
     const h = F.tintHue + rng.range(F.tintHueJitter[0], F.tintHueJitter[1]);
-    const tint = new THREE.Color().setHSL(h + (species === 'birch' ? -0.03 : 0), rng.range(0.1, 0.3), rng.range(0.8, 0.95));
+    const tint = new THREE.Color().setHSL(h + (trait.hue ?? 0), rng.range(0.1, 0.3), rng.range(0.8, 0.95));
     const t: TreeInstance = { x, y: y - 0.25, z, r: r0, variant, scale, rot: rng.range(0, Math.PI * 2), height: v.height * scale, tint, species };
     trees.push(t);
     grid.add(t);

@@ -1,4 +1,5 @@
-import { smoothstep, clamp, lerp, CHUNK_HALF, buildTerrain, TREE_SPECIES, type SpeciesWeights, type TerrainNoise, type Vec2 } from '#engine/data';
+import { smoothstep, clamp, lerp, CHUNK_HALF, buildTerrain, type SpeciesWeights, type TerrainNoise, type Vec2 } from '#engine/data';
+import { PINE_TREE_IDS } from './treeSet';
 import { CABIN_SITES, RIDGE, ridgeFootZ, LOOKOUT, ZIPLINE, POND, ISLET, WATERFALL, RIDGE_STREAM, CREEK, CREEK_BED, CREEK_BRIDGE, DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS, GRADED, BEAVER_POOL, nearestOnPolyline, creekBedAt, creekWaterAt, beaverPoolBed, inBeaverPool } from '../layout';
 /** a smooth min / max (k = the blend width in metres): the creek's banks and the dry-land floor meet the ground without a crease */
 function smin(a: number, b: number, k: number): number { const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.min(a, b) - h * h * k * 0.25; }
@@ -170,7 +171,7 @@ export function forestDensity(x: number, z: number): number {
 function mixW(a: SpeciesWeights, b: SpeciesWeights, t: number): SpeciesWeights {
   if (t <= 0) return a;
   const out: SpeciesWeights = {};
-  for (const k of TREE_SPECIES) out[k] = lerp(a[k] ?? 0, b[k] ?? 0, t);
+  for (const k of PINE_TREE_IDS) out[k] = lerp(a[k] ?? 0, b[k] ?? 0, t);
   return out;
 }
 

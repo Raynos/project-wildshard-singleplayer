@@ -22,7 +22,7 @@ import type { ShardPlugin } from './plugin';
 import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { Noise2D } from '#engine/core/noise';
 import type { HuntTuning } from '#engine/entities/AnimalManager';
-import type { SpeciesWeights } from '#engine/world/forest/treeSpecies';
+import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '#engine/world/forest/treeSpecies';
 import type { WorldRegistry } from '#engine/world/registry';
 import type { Sky } from '#engine/world/Sky';
 import type { Forest } from '#engine/world/forest/Forest';
@@ -174,6 +174,8 @@ export interface ChunkTrees {
    * `ChunkForest.species`. Omitted (or a build without its files): the runtime pines.
    */
   set?: string;
+  /** the set's variants, in its GLB's order (E405: the level's own; Pine Hollow's PINE_TREE_SET) */
+  setVariants?: readonly TreeSetVariant[];
   /**
    * `'model'`: the shard's own tree model draws the forest (`place`, E315: Pine Hollow's forest tree,
    * src/shards/pine-hollow/world/drawnModels.ts) — the core Forest places the trees and hands the model its view, and
@@ -209,6 +211,8 @@ export interface ChunkForest {
   scale?: (x: number, z: number) => number;
   /** with a species set (`ChunkTrees.set`): the species mix at (x, z), relative weights (src/engine/world/forest/placement.ts) */
   species?: (x: number, z: number) => SpeciesWeights;
+  /** how each species of the set is planted, in draw order (needed with `species`; E405: the level's own) */
+  speciesTraits?: readonly TreeSpeciesTraits[];
   /**
    * The understory (src/engine/world/forest/placement.ts placeUndergrowth; PINE-HOLLOW PH-L8): × the fern and shrub caps (and their
    * candidate counts); `fernCanopy` lets ferns fill the dense shade outside the fern-cluster noise (≥ 5 trunks in 12 m).

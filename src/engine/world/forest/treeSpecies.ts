@@ -1,29 +1,17 @@
 /**
- * PH-B4 (Jake's PH-U17): the Blender-built photoreal species set — the names the rest of the game shares. A leaf module
- * (no imports): the chunk defs name species weights, placement.ts plants them, TreeFactory builds them.
+ * A tree set's species (PH-B4; E405: the set is content — Pine Hollow's is src/shards/pine-hollow/world/treeSet.ts): a
+ * level names its species, how each is planted (ForestSpec.speciesTraits, in draw order) and the set's variants
+ * (TreeSpec.setVariants). A leaf module (no imports).
  */
-export type TreeSpecies = 'pine' | 'fir' | 'giant' | 'birch' | 'snag' | 'sapling';
+export type TreeSpecies = string;
 export type SpeciesWeights = Partial<Record<TreeSpecies, number>>;
-export const TREE_SPECIES: readonly TreeSpecies[] = ['pine', 'fir', 'giant', 'birch', 'snag', 'sapling'];
 
-/**
- * The variants of the Blender set (scripts/blender/pine-hollow/trees/treegen.py SPECS, the same order: the GLB's meshes are named by
- * `name`; test/tree-species.test.ts holds the two together through the set's trees.json). `collider` scales the trunk
- * capsule over the trunk radius (the giants' buttresses stand out past it; the twin birch's two stems).
- */
-export const TREE_SPECS_V2 = [
-  { name: 'pine-a', species: 'pine', height: 22, trunk: 0.42, collider: 1 },
-  { name: 'pine-b', species: 'pine', height: 17, trunk: 0.34, collider: 1 },
-  { name: 'pine-c', species: 'pine', height: 26, trunk: 0.5, collider: 1 },
-  { name: 'pine-young', species: 'pine', height: 13, trunk: 0.27, collider: 1 },
-  { name: 'fir-a', species: 'fir', height: 24, trunk: 0.45, collider: 1 },
-  { name: 'fir-b', species: 'fir', height: 30, trunk: 0.56, collider: 1 },
-  { name: 'giant-a', species: 'giant', height: 44, trunk: 2.0, collider: 1.2 },
-  { name: 'giant-b', species: 'giant', height: 52, trunk: 2.4, collider: 1.2 },
-  { name: 'birch-a', species: 'birch', height: 16, trunk: 0.2, collider: 1 },
-  { name: 'birch-twin', species: 'birch', height: 13, trunk: 0.16, collider: 1.6 },
-  { name: 'snag-a', species: 'snag', height: 14, trunk: 0.38, collider: 1 },
-  { name: 'snag-b', species: 'snag', height: 10, trunk: 0.3, collider: 1 },
-  { name: 'sapling-pine', species: 'sapling', height: 3.2, trunk: 0.06, collider: 1 },
-  { name: 'sapling-fir', species: 'sapling', height: 4.5, trunk: 0.08, collider: 1 },
-] as const satisfies readonly { name: string; species: TreeSpecies; height: number; trunk: number; collider: number }[];
+/** how a species is planted: its scale range; whether it follows the zone's growth (ForestSpec.scale); the trunk's extra
+ *  girth (m); its spacing — 'wide' keeps every neighbour 3.5 m off (a giant's buttresses), 'tight' 0.6 m (a sapling),
+ *  else 1.2 m; a hue shift of its tint */
+export interface TreeSpeciesTraits {
+  readonly id: TreeSpecies; readonly scale: readonly [number, number]; readonly grows: boolean; readonly girth: number;
+  readonly spacing: 'wide' | 'normal' | 'tight'; readonly hue?: number;
+}
+/** one variant of a tree set: its mesh name in the set's GLB, its species, height and trunk (m), the trunk collider's scale */
+export interface TreeSetVariant { readonly name: string; readonly species: TreeSpecies; readonly height: number; readonly trunk: number; readonly collider: number }
