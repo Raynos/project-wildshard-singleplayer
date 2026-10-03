@@ -5,13 +5,11 @@ const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); r
 /**
  * The wind (P2, review R2): it blows along `WIND` (x, z), so the crests run from far-left to near-right across the
  * spawn view (40° off it). Wavelength `WAVE` m; the lee (slip face) is the last `LEE` of it.
- * Round 15 (the lead after round 14: the key stays inside the sky's glow, ahead of the spawn view, and the crests show
- * their lit windward faces toward the camera with the slip faces shaded downwind): the wind blows AWAY from the spawn
- * view (north-east, toward the glow), so every windward face turns to the camera and every slip face falls away from it.
- * Blowing toward the camera, each crest's slip face faced the camera in its own shade: 84-97 % of A's and dusk-fire's
- * dune band in shade against the mockups' 19-45 % (round 15's measure, art/sunscar-dunes/round-22-landforms).
+ * Round 16: the wind blows toward the spawn view again, so the far faces the camera sees are slip faces in shade, as the
+ * mockups draw them. Round 15 flipped it, and the far land right of the tower turned to a pale sheet of lit windward
+ * faces (dusk-fire 74 against the mockup's 46; with the wind back, 35, the key and the sheen unchanged).
  */
-export const WIND = { x: 0.643, z: -0.766 } as const;
+export const WIND = { x: -0.643, z: 0.766 } as const;
 // loop 5 (the mockups: tall sweeping dunes, 10-30 m): 1.5x the wave and the height together, so the slip face keeps its
 // angle (every face stays under the player's max climb)
 const WAVE = 150, LEE = 0.3, AMP_MAX = 24, SPAWN_P = 0.69; // E399: the mockups' dunes are big smooth forms (10-30 m)

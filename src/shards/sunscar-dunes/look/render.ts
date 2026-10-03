@@ -263,13 +263,17 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // E399 (mockups A, D): fine low-contrast ripples near the camera, the bold stripes only at middle distance
   // round 15 (the lead after round 14: the near ripples twice the mockups' contrast close to the camera, 18.5-19.2 % vs
   // 10 %; the distance fade works): the near amplitude halved, the middle distance as it was
-  float sandNear = mix(0.52, 0.7, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge); round 8: deeper near (A: troughs to ~20, crowns to ~115)
+  // round 16 (seat B after round 15: the near ripples match, the middle distance's are 2.3-3.1x the mockups' contrast)
+  float sandNear = mix(0.52, 0.26, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge); round 8: deeper near (A: troughs to ~20, crowns to ~115)
   // round 8 (mockup B: the late sand dim and soft; ours carried bold dark ripple stripes): the ripples' contrast falls with the dusk
   sandNear *= 1.0 - 0.55 * smoothstep(0.2, 0.6, uDusk) - 0.2 * smoothstep(0.6, 0.9, uDusk); // round 11 (R10 8: late ripples too regular and contrasty) // round 9 (seat A: D's near ripples where the mockup's sand is smooth)
   sandRip1 *= sandNear; sandRip2 *= sandNear;
   // E399 (judge, mockup A): the near ripples' troughs read dark (the key runs along the crests, so the bump alone barely shows)
-  diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3
-    + smoothstep(0.82, 0.95, sandTex.r) * 0.9 * (1.0 - smoothstep(3.0, 18.0, sandFar)) // grain glints near the camera (mockup A)
+  // round 16 (the lead's hard rule: no shader term may darken by distance from the camera): every term faded by distance is
+  // zero-mean, so the fade changes only the detail, never the ground's brightness: the troughs' weighting carries its own
+  // mean (0.7 / pi) back, the glints pair with as many dark specks
+  diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0 + 0.2228) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3
+    + (smoothstep(0.82, 0.95, sandTex.r) - smoothstep(0.82, 0.95, 1.0 - sandTex.r)) * 0.9 * (1.0 - smoothstep(3.0, 18.0, sandFar)) // grain glints near the camera (mockup A)
     // a finer grain octave underfoot (round 5: the near sand's fine detail a third of the mockups')
     + (texture2D(uSandGrain, vSandPos.xz * 2.3 + 0.37).r - 0.5) * 1.8 * (1.0 - smoothstep(4.0, 22.0, sandFar))
     + (texture2D(uSandGrain, vSandPos.xz * 0.9 + 0.71).r - 0.5) * 1.3 * (1.0 - smoothstep(6.0, 30.0, sandFar))
@@ -299,7 +303,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   diffuseColor.rgb *= (1.0 + 0.08 * sandDrift) * mix(0.8, 1.0, smoothstep(0.0, 0.3, uDusk)); // (round 12's B-tuned bell at dusk 0.5 removed: the sand brightened as the sun set) // round 12: the sunset step's sand a step darker (the A / dusk-fire split; the later steps unchanged)
   // check pass (4): the path brightens with distance, so the route reads from above; underfoot it stays a subtle trodden bed
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.1, 1.05, 0.98), sandTrod * 0.6); // a faint trodden bed (E399: brighter read as a light column)
-  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.18, 1.12, 1.02), sandStreak * 0.55 * (1.0 - smoothstep(60.0, 140.0, sandFar)));`)
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.18, 1.12, 1.02), sandStreak * 0.55); // round 16: at every distance (the hard rule)`)
           .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
   {
     // The ripples' slopes along the wind (a long gentle stoss, a short steep lee) and the grain's bumps, as a
@@ -369,11 +373,8 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // round 14 (the lead: it cut flat ground ~40 %, C's near sand 18 / 33): clearly turned away (toGlow < -0.1) and clearly tilted (> ~12 deg) only
     float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.65, 0.15, toGlow)) * smoothstep(0.06, 0.5, length(normalize(vSandN).xz)); // round 15 (the lead: hard-edged dark ovals on the dune faces in the clip): both windows widened, so the darkening rolls on with the facing
     reflectedLight.indirectDiffuse *= 1.0 - 0.45 * away; reflectedLight.directDiffuse *= 1.0 - 0.45 * away;
-    // round 15 (the lead after round 14: the land under the dusk horizon too bright in B, C and D; C's measured 55 / 27 and
-    // D's 42 / 17 under the mockups' glow, dunes 30-60 m out): past 15 m, rolling on smoothly to 70 m (no gate, the near bands keep their key),
-    // the late land falls toward silhouette; off before the logbook's dusk (B's far land already measures right)
-    float farLate = smoothstep(0.55, 0.85, uDusk) * smoothstep(15.0, 70.0, sandFar);
-    reflectedLight.indirectDiffuse *= 1.0 - 0.7 * farLate; reflectedLight.directDiffuse *= 1.0 - 0.7 * farLate;
+    // (round 15's late far-land darkening by distance from the camera is gone: the lead's hard rule after round 15, darkening
+    // comes from facing, height, occlusion or the engine fog only)
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });

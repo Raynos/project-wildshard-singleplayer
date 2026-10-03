@@ -5,8 +5,9 @@ import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 // round 9 (seat C: A, B and C hold big rings rising from the bottom edge, dusk-fire one low loose loop, only D a raised
 // fist): the one idle hold lower, toward the four
 // round 15 (the lead after round 14: a big smooth fist, knuckles to the camera; the loop under the HUD): 0.7 of its size,
-// turned toward the reference's three-quarter view, the fist and its loop above the DODGE / JUMP buttons
-export const HD_GLOVE = { size: 0.155, pos: [0, -0.13, 0] as [number, number, number], rot: [-0.2, 0.85, 0.15] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
+// the fist and its loop above the DODGE / JUMP buttons; round 16 (seat B: the fingers still to the camera): turned the
+// other way (y -0.4), the back of the hand and the cuff to the camera, the fingers round the handle, as mockup D
+export const HD_GLOVE = { size: 0.155, pos: [0.02, -0.19, 0] as [number, number, number], rot: [-0.2, -0.4, 0.15] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
 // rising from the bottom edge, dusk-fire one low loose loop, only D a raised fist): the one idle hold lower, toward the four // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
@@ -132,7 +133,7 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
  * frame (it spans ~2 units, ~0.13 m a unit; the handle's top at (-0.53, 0.95, 0.19)): the cord leaves the handle's top
  * into a closed coil beside the fist (round 15: see plaitedLoop), and the fall drops out of the frame behind the hand.
  */
-export const LOOP = { cord: 0.06, from: [-0.53, 0.95, 0.19], c: [-1.4, 0.3, -0.25], rx: 0.48, ry: 0.56, face: 0.6, turns: 2, step: [0.05, -0.04, 0.05], tail: [[-0.95, -0.75, -0.45], [-0.75, -1.7, -0.5]] } as const;
+export const LOOP = { cord: 0.06, from: [-0.53, 0.95, 0.19], c: [-1.4, 0.3, -0.25], rx: 0.48, ry: 0.56, face: -0.35, turns: 2, step: [0.05, -0.04, 0.05], tail: [[-0.75, -0.9, -0.75], [-0.35, -1.9, -0.85]] } as const;
 
 /**
  * The coil (LOOP) as one plaited tube. Round 15 (the lead after round 14: an open hook with a kink, the strands crossing
