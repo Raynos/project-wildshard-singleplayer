@@ -49,7 +49,11 @@ export const LANDFORMS = {
   // in-band r A +0.23 / dusk-fire +0.30 (round 16: -0.01 / -0.51), A's lit box 52 (16: 32), lit share 19-22 % (mockups
   // 15-25 %). Mounds: the tower's; a dune 150 m out along B's view, 24 m, under its glow; waymark 0's rise, 25 m (mock
   // C's far brazier burns on it, under the glow)
-  crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }],
+  // round 20 (seat B after round 19: A's lit diagonal 46 against 97, under the SHIPPED key; checked on A, dusk-fire and h1):
+  // a second crest across the wind on A's diagonal, 30-50 m out and under the eye, its slip face toward the camera and
+  // its key-lit back seen from above; kept short of dusk-fire's lit left shoulder (a full-length line dropped dusk-fire to
+  // +0.13). Row-mean-removed r of the dune band: dusk-fire +0.42 (held), A +0.23 (from +0.13); climb 39.1 deg
+  crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }, { pts: [[2, 27, 17.5], [12, 36.5, 14.5], [26, 49.5, 11]] as [number, number, number][], w: 55, lee: 28, leeSide: 1, fade: 0.4, trough: 3 }],
   mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }, { x: -165, z: -64, h: 24, r: 66 }, { x: BRAZIERS[0]?.x ?? 0, z: BRAZIERS[0]?.z ?? 0, h: 25, r: 80 }],
 } as const;
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
