@@ -14,9 +14,9 @@ import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttri
  * from the entrance the spiral reads round, a funnel leaning over the crown, not squashed into streaks.
  * `gather`: the camera's distance from the storm's centre (m) over which it fades in. `ahead`: how far north of the crown
  * (-z) its eye hangs (E399, mockup D: from the arena's entrance the vortex fills the sky behind the dais, its eye about
- * 15 deg up in the phone's 50 deg-tall portrait view; centred over the crown it hung 53 deg up, out of the frame).
+ * 22 deg up, above the boss bar, in the phone portrait view; centred over the crown it hung 53 deg up, out of the frame).
  */
-export const STORM = { lift: 23, ahead: 90, lean: -0.5, radius: 92, gather: [110, 170], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
+export const STORM = { lift: 38, ahead: 90, lean: -0.5, radius: 92, gather: [110, 170], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
@@ -127,8 +127,8 @@ export interface CrownStorm {
   readonly group: Group;
   /** Turn the vortex and fire the lightning; `t` is the shard's play clock (seconds). */
   readonly update: (dt: number, t: number) => void;
-  /** Strike on the next update (captures and tests use it through `__wildshard.shard.farReach`). */
-  readonly strike: () => void;
+  /** Strike `delay` seconds from the next update (captures and tests use it through `__wildshard.shard.farReach`). */
+  readonly strike: (delay?: number) => void;
 }
 
 let PAINT: Texture | null = null;
@@ -154,8 +154,10 @@ export function crownStorm(sun: Vector3, tex: Texture, random: () => number): Cr
   });
   // the lightning schedule: a strike every 3.5–8 s, a double flicker, one bolt shown
   let next = 2, strike = -10, which = 0;
-  return { group, strike: () => { next = 0; }, update: (dt, t) => {
+  let pending: number | null = null;
+  return { group, strike: (delay = 0) => { pending = delay; }, update: (dt, t) => {
     time.value += dt; group.getWorldPosition(centre);
+    if (pending !== null) { next = t + pending; pending = null; }
     if (t >= next) { strike = t; which = Math.floor(random() * bolts.length); next = t + 3.5 + random() * 4.5; }
     const s = t - strike, k = s < 0.08 ? 1 : s < 0.14 ? 0.15 : s < 0.24 ? 0.8 : Math.max(0, 1 - (s - 0.24) / 0.5) * 0.3;
     flash.value = k;

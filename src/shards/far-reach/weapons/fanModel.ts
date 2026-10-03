@@ -69,7 +69,8 @@ export function fanParts(): FanParts {
   const tuft = new Mesh(new ConeGeometry(0.014, 0.07, 6), red); tuft.position.y = -0.09; tassel.add(tuft);
   group.add(fan);
   // the gloved hand closes round the grip (loop 5, weapons/glove.ts: fingers, thumb, a studded bracer, a wrapped sleeve)
-  const hand = gloveHand(new Vector3(0.35, -0.55, 1)); hand.position.y = -FAN.grip * 0.35; group.add(hand);
+  // the forearm runs out to the frame's right edge (E399 seats: 'a long cylinder up through the GUST / JUMP / LOOK buttons')
+  const hand = gloveHand(new Vector3(0.85, -0.42, 0.8)); hand.position.y = -FAN.grip * 0.35; group.add(hand);
   return { group, fan, tassel, silk };
 }
 
