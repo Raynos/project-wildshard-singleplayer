@@ -37,7 +37,9 @@ Binding docs: `docs/design/worldclaw/06-shard-flow.md` (§8 zero-shot, §10.7 wa
 - **Existing verbs and controls only:** no P7, no moved toys. **Content caps:** a kit weapon, ≤ 1 new species, the boss
   on a kit stand-in, ≤ +3 agent-days of adds in all; prefer quest-board mechanics the engine already has (D73).
 - **The gates:** P8 as interactive; P9 is judged from the route strips and T16's log; P9b as interactive.
-- **The build:** no checkpoints per place; the judges decide (06 §5: rungs 3–4 are the judges', logged).
+- **The build:** each place runs the four checkpoint gates internally (Frame · Form · Play · Pin, WORLDCLAW-SHARD §2b); the
+  judges decide every gate, no boards go to Jake, the next place is the golden path's next (06 §5: rungs 3–4 are the
+  judges', logged).
 - **Delivery:** nothing goes to Jake until the end, unless the invocation asked to follow along. "until P<n>" stops
   there with a partial board. At P16 the final board and the time-lapse go to Jake as one set; P17 (his first walk)
   and the `experimental` status need him.

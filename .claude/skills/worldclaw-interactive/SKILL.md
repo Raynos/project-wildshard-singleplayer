@@ -1,6 +1,6 @@
 ---
 name: worldclaw-interactive
-description: DRAFT (E359; plan stage, usable only after GAME-NORMALIZATION is archived and WORLDCLAW-SHARD's N/F/X/E/T rows land). Build a WorldClaw shard WITH Jake in the loop (guided) - the start questions; the front on images (three pitches, art direction + style bible, concepts, the map in two waves from a 3D blockout, the content boards with a 2x2 board per quest step, first-person views); the verb gate after the mockups; the grey session-slice gate; re-targeting; the build with a checkpoint board per place, WorldClaw's techniques on every seen band; the final board, Jake's first walk and polish rounds. Also an existing shard's light front and its checkpoints (it absorbed shard-checkpoints, D80), a director's single-stage entry and resume. Use when asked to "make / build / WorldClaw a shard (with me)", "resume <slug>" on a guided shard, or by a director for one stage. Zero-shot runs use worldclaw-auto; fast low-poly big-picture rounds use worldclaw-sketch; single models use mockup-to-model.
+description: DRAFT (E359). Its new-shard flow is usable once WORLDCLAW-SHARD's N/F/X/E/T rows land; its existing-shard path (§X: a light front, then checkpoints) is usable now (D86). Build a WorldClaw shard WITH Jake in the loop (guided) - the start questions; the front on images (three pitches, art direction + style bible, concepts, the map in two waves from a 3D blockout, the content boards with a 2x2 board per quest step, first-person views); the verb gate after the mockups; the grey session-slice gate; re-targeting; the build with a checkpoint per place (Frame · Form · Play · Pin), WorldClaw's techniques on every seen band; the final board, Jake's first walk and polish rounds. Also an existing shard's light front and its checkpoints (it absorbed shard-checkpoints, D80), a director's single-stage entry and resume. Use when asked to "make / build / WorldClaw a shard (with me)", to grow an existing shard ("the next slice of Nine Dragon", a light front), "resume <slug>" on a guided shard, or by a director for one stage. Zero-shot runs use worldclaw-auto; fast low-poly big-picture rounds use worldclaw-sketch; single models use mockup-to-model.
 ---
 
 # WorldClaw, interactive: Jake's vision to a fun, polished shard
@@ -21,7 +21,9 @@ first-walk notes (06 §10.5). Content and world are designed together and get eq
 
 ## 0. Dispatch, in this order
 
-1. **Single stage:** a director asked for one stage → §S, even when the shard already has a `design.md`.
+1. **Existing shard** (a shard that is already in the game: Nine Dragon, Pine Hollow, Nalati, Driftwood, the Dunes, Sky
+   Reach; or a resume of one whose §run `mode` is `existing`) → §X. This comes first: it never starts a new run (MC1).
+1b. **Single stage:** a director asked for one stage → §S, even when the shard already has a `design.md`.
 2. **Zero-shot** (`zero-shot …`, or `resume <slug>` of a shard whose §run `mode` is zero-shot) → use `worldclaw-auto`.
 3. **Resume** (`resume <slug>`, or any invocation naming a shard whose `src/shards/<slug>/design/design.md` exists) →
    read §run (`mode`, P0's answers, `step`, `waitingOn`, `next`) and the last Handoff.
@@ -130,7 +132,7 @@ anchored on the approved style views. Boards of ≤ 4 per group; approve / strik
    **mechanics (NEW = engine work, priced)**; slots 2–4 wildcards for what the step means (a first-person moment, a
    second moment, a character or object model sheet, a fight), with the code minimap.
 3. **Side content** (side quests, feats, secrets, happenings, enemy pockets) and **the session slice** on the map.
-4. One set (overview first). Jake approves or revises a step or a slot (≤ 2 rounds, then "go with gaps"). New
+4. One set (overview first). Jake approves or revises a step or a slot (or says "go with gaps"). New
    mechanics he adds (a rope to grab, a tool refused on a surface) go on the boards and into the estimate.
 
 ### P6. First-person views, wave 2 (06 §3.7)
@@ -144,7 +146,7 @@ anchored on the approved style views. Boards of ≤ 4 per group; approve / strik
 ### E9b + P7. The verb gate, after the mockups (06 §3.8; D57, R13)
 Only for a new verb or a moved toy. A moved toy takes its kit move (E9b). Build the verb in grey in the pilot's
 playground (`ctx.playground`) on `verb.1` / `verb.2`, with its leg test on E9's contract (`leg-test.mjs`); deploy (R22)
-and send the taps. Jake plays ≤ 10 min. Yes → P8. No → P2's verb line; the places, the bible and the map stay; redo the
+and send the taps. Jake plays it. Yes → P8. No → P2's verb line; the places, the bible and the map stay; redo the
 concepts, boards and views that show the verb. Two "dull" → cut.
 
 ## GATES: play in grey (06 §4; D41)
@@ -175,8 +177,8 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
 
 ## BUILD (06 §5): a checkpoint per place (WORLDCLAW-SHARD §2b; D63, D78); the judges decide the rest
 
-- **Polish every seen band, close first** (D60): `reach --bands` gives the order and the cameras; close-band places and
-  legs first, then mid and far compositions from crests and vistas.
+- **Polish every seen band** (D60), place by place in golden-path order (D83): `reach --bands` gives each place's close,
+  mid and far bands and the cameras.
 - **The checkpoint per place** (P12; WORLDCLAW-SHARD §2b, the merged SHARD-CHECKPOINTS loop, D77–D84). Four gates, as many
   boards as the place needs (D78; there is no one-board rule):
   - **Frame:** a live portrait capture with the real HUD, the P9b target, the plausible in-engine next view at the same
@@ -185,11 +187,13 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
     registered in the Model Explorer; the rest were approved in P11's catalog (D82). Never approve from the hero angle.
   - **Play:** a moving capture and a playable build: collisions, controls, hit or miss, landings; World / HUD Explorer
     evidence where it applies. A still frame alone is not a pass.
-  - **Pin:** your own measurements (iOS Simulator and the phone tier: load, frame rate, memory; D81), the four CI gates,
-    a before / current / target board; Jake approves or revises. Commit; the next deploy ships it, hidden in the new
-    shard (D79).
-  - Then propose the next place along the golden path (the session slice first, each place's close band first) and let
-    Jake pick (D83). Start the next place's independent work before asking.
+  - **Pin:** your measurements (D81) against the shard's own gate: `scripts/bench-load.mjs` (phone tier), `scripts/sim-memory.mjs`
+    (the 1.8 / 1.0 GB caps), its budget ceilings; the four CI gates; a before / current / target board; Jake approves or
+    revises. Commit; the next deploy ships it, hidden in the new shard (D79).
+  - Then propose the next place along the golden path (the session slice first) and let Jake pick (D83); inside a place
+    its bands go close → mid → far, and the route leg into it is part of its checkpoint. Before his pick, start only
+    work that doesn't depend on it (the proposed place's captures).
+  - Content that later lands on a pinned place (P13) re-runs its Play and Pin.
   - A rejected variant goes with its Debug row; internal nine-angle sheets are evidence, not nine decisions; a failed
     gate shrinks or polishes the same place, never opens a new one. After the pin, `design.md` records the camera, the
     assets, the evidence, the rejected variants and the next place.
@@ -233,11 +237,17 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
 For a shard that already exists (Nine Dragon first, then Pine Hollow, Nalati, Driftwood, the Dunes, Sky Reach):
 1. **Pause** the slice in flight (record where it stands in the shard's plan and ask file).
 2. **The light front** (D85): `src/shards/<slug>/design/design.md` + `spec.json` written from the live shard (places, routes
-   as typed legs, the critical path, the verbs, the slice as it stands) in T1's formats (D87); a top-down map and World
-   Explorer views captured from the live build (no painting: the world exists). No pitch round, no drafts-site history.
+   as typed legs, the critical path, the verbs, the slice as it stands) in T1's formats (D87; template
+   `scripts/worldclaw/design-template.md`, schema `scripts/worldclaw/spec.ts`, §run `mode: existing`); the captures by
+   `scripts/worldclaw/capture-front.sh` (the top-down map, the plan's hero cameras, a section view per built level) into
+   `art/<slug>/round-<n>-light-front/`. No pitch round, no drafts site (skip the step-boundary drafts steps).
 3. **One pass with Jake:** he confirms the pillars and names the next slices; his words go in the verdict log.
-4. **Each slice is a checkpoint** (BUILD above). On a live shard the slice in progress is public as it is built (D84);
-   the pin is Jake's approval. The shard's own plan keeps its scope and rows.
+4. **Each slice is a checkpoint** (BUILD above) with the existing-shard inputs: Frame's target is the plan's approved
+   mockup for the camera or a new mockup edited from a live capture; Form uses the shard's registered models (new ones by
+   `mockup-to-model`); Pin re-records the gpu-gate baseline (`node scripts/parity.mjs --rebaseline=<slug>`) and needs a
+   physical-iPhone reading when the slice changes rendering, batching or memory policy (AGENTS.md). On a live shard the
+   slice in progress is public as it is built (D84); the pin is Jake's approval. A hard failure climbs 06 §10.4's "from
+   P9 on" rows, then a question to Jake. The shard's own plan keeps its scope and rows.
 
 ## S. Single-stage entry (a director's call; 06 §9, §10.2)
 
@@ -254,6 +264,6 @@ For a shard that already exists (Nine Dragon first, then Pine Hollow, Nalati, Dr
 - **Seats:** J1, a fresh Claude subagent; J2, `codex exec -i`; J3, a fresh Claude, on splits only.
 - **They read:** strips, boards, sheets, T5's numbers, T16's log, `design.md`, the bible, the targets,
   `docs/design/fun-rules.md` and the rubric. Never video.
-- **Scores:** every judge scores every option on every line (1–10). **Picks:** the J1 + J2 mean wins within < 1, else
+- **Scores:** every judge scores every option on every line (1–10). **Picks:** the J1 + J2 mean wins when both rank it first, else
   the median of three; ties: the first rubric line, then lower cost, then the option id. **Gates:** every line's mean
-  ≥ 6 and no evidenced must-fix. Style checks at ≤ 10 sheets per run; log everything in `decisions.md`.
+  passes when J1 and J2 both pass every line (J3 on a split line) and no evidenced must-fix stands (R6). Style checks batched; log everything in `decisions.md`.

@@ -244,7 +244,7 @@ These are **the build's targets** (E4). The judges check fidelity (R6 pass mark)
 | far, > 80 m | ~22 % | full polish, third (D60): compositions from crests and vistas |
 | never seen | ~6 % | nothing |
 
-The bands set the order and plan the cameras; every seen m² gets full polish (D60). In `worldclaw-interactive` each place
+The bands set the order inside a place and plan the cameras; every seen m² gets full polish (D60); the places go in golden-path order, Jake picking the next (D83). In `worldclaw-interactive` each place
 is a **checkpoint** (WORLDCLAW-SHARD §2b: Frame · Form · Play · Pin, as many boards as needed; D63, D78): the agent measures it (D81), Jake pins it, the next deploy ships it hidden (D79), and Jake picks the next place along the golden path (D83).
 
 **Jake's notes** (D36, R21; §10.3 for precedence) are read at every step boundary from chat (the pages are read-only:
@@ -274,7 +274,7 @@ and on the final board; Jake can overturn it with a note.
 | P12 places | 04 §8: per place and per route leg on every seen band, close first (D60); in interactive, a checkpoint per place (§2b of the plan; D63, D78); compositions conditioned on the P9b target; T8 placement through the physics query layer with support binding; object pads; T9; Sets with targets | T9 clean; judges' must-fix empty (≤ 3 rounds a place) |
 | P13 content + audio | 04 §11: creature, NPC and boss models; the weapon's final model; dressing and signals; quest props; **score, ambience, SFX, credits**; card art | T16 plays the golden path and the slice in the final look |
 | P14 budgets | T10 at every place's 9 cameras and every 10 m of every route; a Simulator **pre-check** | within R28's gate |
-| P15 final judges | F1's fun rules, L1–L9, look and slop, on the final strips | the R6 pass mark; no must-fix (≤ 2 rounds) |
+| P15 final judges | F1's fun rules, L1–L9, look and slop, on the final strips | the R6 pass mark; no must-fix |
 
 ## 6. The judges (R6)
 
@@ -344,7 +344,7 @@ and on the final board; Jake can overturn it with a note.
   - drain-inbox makes one ask per note, linked from the run's ask (which E359 links);
   - each note is sized (§10.5) before the baseline freezes;
   - the slop score and the reading are recorded. An over-limit reading reopens P14;
-  - S and M notes are fixed in this run (≤ 2 rounds). Leftovers stay asks.
+  - S and M notes are fixed in this run. Leftovers stay asks.
 - **On Jake's word after the walk**, the status becomes `experimental`, in either mode.
 
 ## 8. Zero-shot (D51, R18)
@@ -420,6 +420,8 @@ The shard's `docs/SHARDS.md` section links `design.md` (plan §7 Q2).
 | P14–P17 | T10, T11, T12, T13, drain-inbox | the build | board, time-lapse, reading, score |
 | P18 | S1's draft, T12, T18 | a sentence | a judged front ("until P5") |
 | P19 | P18's shard, T18 | P18's design.md | a P8-clean grey shard + board ("until P8") |
+| **Light front** (an existing shard, §11) | L1 (T1's formats); L2b's checks when they exist | the live shard's code and its plan | design.md + spec.json, the captures, §run `mode: existing` |
+| **Existing-shard checkpoint** (§11) | the light front confirmed by Jake; no T / E / W row | design.md, the shard's plan, its mockups and registered models | the pinned slice, design.md's checkpoint entry |
 | **Single stage** | the stage's rows | **the stage's files**. On a director's shard without a `spec.json`: write a **slice spec** (`spec-check --scope slice`, T1) from the director's design, and **keep the shard's existing terrain** (T17 runs content-only). A content-only P8 reads the slice spec and the shard's existing terrain (no region weights); twin-check is skipped, logged, when the design has no machine block [R4-B8, R4-C10]. Any other missing file → stop and name it. Targets are needed only from P10 on | the stage's writes only, logged in the verdict log; a slice-scoped P8 gates the slice's legs, reach and T16, and logs the rest as untested |
 
 **spec-check's rules** (T1):
@@ -542,6 +544,8 @@ codex runs 4–6 at once (AGENTS.md ▸ Mockups): T14 adds `--max-parallel` to `
 job at once and ignores unknown flags.
 
 ### 10.7 Waiting and resume (R23)
+
+§run's `mode` is `guided`, `zero-shot` or **`existing`** (an existing shard after its light front, WORLDCLAW-SHARD §2c; a resume of it goes to the skill's §X; MC1).
 
 - **`design.md` §run holds:**
   - `mode` (guided / zero-shot), `until` (the bound, if any), and P0's answers;

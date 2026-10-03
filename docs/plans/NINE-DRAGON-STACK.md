@@ -294,6 +294,9 @@ draws, C2 15 / 12, C1 8 / 6, B1/D1 13 / 12, viewmodel 25 / 24, post 39 / 38, fac
 
 ## 7. How we build (the method the fragment proved)
 
+> **Since 2026-10-03 (E406):** Nine Dragon grows by WORLDCLAW-SHARD's checkpoints (its §2b: Frame · Form · Play · Pin)
+> after its light front (§2c, rows L2–L3); the method below is the history that loop was merged from (SHARD-CHECKPOINTS).
+
 For every area (a stratum, a hero space):
 
 1. **Mockups first**, on a fresh live capture of the baseline HUD (codex image_gen edits; 2–4 variants; Jake picks).

@@ -292,7 +292,7 @@ round?, spoiler, teaser }`.
 | Composition, a World mode (J33, J43) | the game's Explore | P9b, P10, P12, P15–P16 | W10 | ~2.5 |
 | Coverage tab (J34, J35, J43) | the game's Explore | P8, P12–P17 | W11 | ~2 |
 | Beats tab (J42) | the game's Explore | P8–P9, P17 | W14 | ~2 |
-| The place checkpoint board (J3) | chat (interactive) | P12 | W12 | ~0.5 |
+| The place checkpoint board (J3) | chat (interactive) | P12 | W12 | **The place checkpoint** (J3, `worldclaw-interactive`; WORLDCLAW-SHARD §2b, D78): the boards of each place's four gates (Frame · Form · Play · Pin), as many as the place needs, built from W10's data and sent to chat (J21) | a fixture place's gate boards reach chat; an approve and a "revise one thing" both route | todo |
 | Weight gate + splash (J15, J41) | CI + drafts site | every stage | W15 | ~1 |
 | Skill wiring | the three skills | every step | W13 | ~1 |
 
