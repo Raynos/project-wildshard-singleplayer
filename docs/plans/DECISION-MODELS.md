@@ -173,6 +173,16 @@ many frame strips, so it may climb this list once T12 exists. #1, #2 and #4 all 
 an agent's hot path. A resident 7 GB Clef (a rule exception) or hosted Workers AI Clef ($0.24 / M input) is the enabler
 to decide first.
 
+## Top uses overall, not only token savings (2026-10-03, Jake approved none)
+
+| # | Use | What Clef decides | Why it matters | Confidence |
+|---|---|---|---|---|
+| 1 | **A playtest bot that plays a shard.** It reads the game state from `window.__wildshard` (position, quest step, nearby things, health) and picks the next action ~3 times a second | `choice` of action, `noul` "am I stuck?" | Fun levels, not dioramas: finds stuck spots, unreachable quest steps and dead stretches the way a player would, beyond today's scripted walk routes. TypeSafe's demos played Doom and wiki races this way | medium-low. A new kind of test, untested here; text state only, so no lock on images |
+| 2 | **QA gates on every unattended pipeline** (built for progress captures, D4): council captures, physics-walk screenshots, WorldClaw zero-shot strips | the `capture-status` set, plus per-pipeline `noul`s | a junk frame never reaches a judge, a time-lapse or Jake | high for loaded / not loaded (D3); the rest untested |
+| 3 | **WorldClaw J0 pre-scores** (D5): every option scored on every rubric line before J1 / J2; only close calls and fails go to the LLM judges | `score` per rubric line | makes zero-shot runs affordable at "every placed asset" scale, with calibrated, repeatable scores | low-medium. Style is subtle; try the 27B first |
+| 4 | **Triage of Jake's in-game notes and error reports** (drain-inbox): owner area, severity, duplicate, already fixed at this build | `choice` of area, `score` severity, `noul` duplicate | Jake's feedback reaches the right agent faster | medium. Text plus screenshot; untested |
+| 5 | **3D model sanity checks** (mockup-to-model): which way the front faces after TRELLIS, floating parts, the better of TRELLIS vs Hunyuan | `choice` of facing, `noul`s per defect over the four-view sheet | catches TRELLIS's random facing and broken meshes before a human looks | medium. Coarse vision, like the D3 pass |
+
 ## Picks for Jake
 
 1. **Go on D4, capture status only?** Recommended. The capture scripts check and re-take their own frames, and agents
