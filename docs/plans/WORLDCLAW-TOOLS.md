@@ -1,6 +1,6 @@
 # WorldClaw tools: Draft mode, the drafts site, and the Explorers a shard needs before it is a world
 
-**State:** `in progress` 2026-10-02 — the draft side is built and live (https://wildshard-drafts.vercel.app): the title, STAGES with decision boards and lineage comparison, Draft Explore (models, sets, world + camera check, beats, measured coverage), the design docs, Map Lab, the prototypes' cards, offline on the home screen with the reload pill; the artifact page auto-made; Thin Ice's COMING SOON card in the game. Open on the draft side: W7's playable prototypes (the next run's P7 makes them), W6's terrain re-stamp (T3–T5, J61), physical-iPhone readings. Later, just in time (J71): the game's Explore tools W10, W11, W12, W14. Audit: E395 (Codex + own). Design: J1–J71.
+**State:** `in progress` 2026-10-03 — the draft side is built and live (https://wildshard-drafts.vercel.app): the title, STAGES with decision boards and lineage comparison, Draft Explore (models, sets, world + camera check, beats, measured coverage), the design docs, Map Lab, the prototypes' cards, offline on the home screen with the reload pill; the artifact page auto-made; Thin Ice's COMING SOON card in the game. Open on the draft side: W7's playable prototypes (the next run's P7 makes them), W6's terrain re-stamp (T3–T5, J61), physical-iPhone readings. Later, just in time (J71): the game's Explore tools W10, W11, W12, W14. **New (E413, §9): how those tools land in the game's Explore on every shard, new and existing** (one data contract, a tab API, the draft → engine handover, rows W19–W23); waits on Jake's Q-E413a (scope) and Q-E413b (timing). Audit: E395 (Codex + own). Design: J1–J71.
 **Reviews:** [worldclaw-tools](../reviews/worldclaw-tools.md) · [thin-ice-draft](../reviews/thin-ice-draft.md)
 
 ## 0. Read this first
@@ -432,3 +432,100 @@ state; P0 creates the draft and its card; P9's PLAY; the three skills (D62); P7 
 first (D60); the place checkpoint (D63, W12). **New with J21–J44:** each stage goes to Jake in chat as one titled set
 (J21) and to the drafts site at every step boundary (J26); P5 reviews the map variants with Map Lab's checks (J31); P6's
 views carry the camera check in Draft Explore's WORLD (J44, J46); P8 onward uses the game's Beats and Coverage tabs (J42, J43).
+
+## 9. In engine: the game's Explore tools on every shard (E413, 2026-10-03; proposed, waits on Jake)
+
+> "the majority of the tools in World Claude Tools are actually tools that go into the World Explorer. And that
+> impacts, you know, all the new shards coming up. But it also impacts existing shards. … at some point, a shard will
+> migrate from draft to in-engine. And once we go in in-engine, we have to look at all the new tools that we want to add
+> to the Game Explorer as part of the World Claude in-engine flows." (Jake, E413)
+
+### 9.1 The gap
+
+- **The in-engine rows read only WorldClaw files.** W10 (Composition), W11 (Coverage), W12 (place checkpoint) and W14 (Beats)
+  read `design/cams/*.json`, `design/objects/*.placed.json`, `coverage.png` and `spec.json`'s critical path (§3.5–3.7).
+  No existing shard has a `design/` folder, and WorldClaw builds new shards only (WORLDCLAW-SHARD D90). As written, the
+  tabs would be empty on Driftwood, Pine Hollow, Nalati, Nine Dragon, Signal Dunes and Sky Reach.
+- **There is no tab API.** Explore's tabs are a fixed HTML string (`src/engine/explore/Explore.ts`, the bar and keys
+  1·2·3); `ExploreMode` is `'hub' | 'world' | 'model' | 'sets'`. A fourth or fifth tab, and J51's DEV row, mean widening
+  that by hand.
+- **Nothing defines the handover.** §2.2 says a Draft Explore tab "links to its built twin once it exists" (J44), but
+  not when a twin counts as existing, what moves into the game, or what stays on the drafts site.
+- **Two tools already overlap.** Explore's COMPARE (`Compare.ts`, a static live-vs-mockup slider on `explore.compare`)
+  is W10's Target-vs-Built at one camera, done by hand.
+
+### 9.2 What existing shards already have (the tools can read it today)
+
+| Tool | WorldClaw source (new shards) | What every existing shard already has |
+|---|---|---|
+| Beats (W14) | `spec.json`'s critical path, T16's slice runner, E9's `leg-test.mjs` | the walk legs in `scripts/physics-route.json` (Driftwood 8, Pine Hollow 7, Nalati 12, Nine Dragon 19, Signal Dunes 7, Sky Reach 6), replayed by `physics-baseline.mjs --mode=walk` (pass / stuck); the quest steps (`QuestDef.steps`); Pine Hollow's beats with start spots and flags (`quest/beats.ts`); `travel()` for PLAY FROM HERE |
+| Composition (W10) | `design/cams/*.json`, compositions, `*.placed.json` (T6, T8) | every shard's `dev.poses` (each with a `mockup` and a `frame`); `explore.compare` targets (Driftwood, Pine Hollow, Nalati, Nine Dragon); the mockup-loop cameras under `art/<slug>/…/cameras*.json` (Signal Dunes, Sky Reach) |
+| Coverage (W11) | T5's bands and `coverage.png`, T10's `budgets.json`, P12 / P15 statuses | the navmesh (T5's reach and bands run on it), the POIs and place Sets (`pois`, `world/places.ts`), the mockup cameras above (which cells a mock-up shows), the budget census per pose (T10 runs on any shard's `capturePoses`) |
+| Model card provenance (E3), a Set's target beside built (E4), World channels (E5) | — | engine features: every shard gets them once built |
+
+### 9.3 Lead resolutions (proposed; Jake or a council may reopen any)
+
+| # | Resolution | Why |
+|---|---|---|
+| WT10 | **The tools are engine features, not WorldClaw features: every shard gets them.** D90 limits the WorldClaw *workflow* to new shards; the Explore tabs are `#engine` code and show on any shard that gives them data. A shard with no data for a tab doesn't show that tab | Jake (E413): "it also impacts existing shards" |
+| WT11 | **One data contract, two sources.** The engine reads one shape per tool: `ExploreBeats` (legs, beats), `ExploreCameras` (pose, fov, target image, and optionally capture, composition and objects) and `ExploreCoverage` (bands, statuses, the census). A new shard's are **generated** from `design/` (`explore/tools.generated.ts`). An existing shard's are **written** from what it has (§9.2) in its own `explore/tools.ts`. The manifest gets one lazy, node-safe field, `explore.tools: () => Promise<ExploreTools>` | the engine never reads `design/` or names a shard (`engine-words`, `shard-sandbox`); one renderer for every shard |
+| WT12 | **A tab API before any tool.** `registerExploreTab({ id, label, row: 'main' \| 'dev', pane })`, with the pane a lazy import; MODELS · SETS · WORLD move onto it; the DEV row (J51) holds BEATS · COVERAGE, developer-only. A player's Explore is unchanged (J51) | the hard-coded bar can't take three more tools and their sub-modes |
+| WT13 | **COMPARE folds into Composition.** `explore.compare` targets become `ExploreCameras` entries; Composition's Target-vs-Built slider at a camera renders the live view from the pose (not a stored image) beside the target; `Compare.ts` is retired once every shard's targets moved | two tools for one question; Compare's stored "live" image goes stale |
+| WT14 | **Map Lab stops at the drafts site; its layers live on in Coverage.** Once a shard is in the engine its terrain is real, so the slope, walkable, sightline and band layers become layers on Coverage's map, computed from the real terrain and navmesh. The drag-a-place what-if stays a drafts-site tool | the numbers after P8 must be the built world's (WT6) |
+| WT15 | **Target images stay off the game build.** Composition's targets on a new shard are the draft's Blob phone copies (the URLs in `atlas.json`), fetched lazily and developer-only; an existing shard's are its `art/` mockups' phone copies, uploaded the same way (W2's publisher) | J15 / W15: drafts cost the game nothing; `art/` is not deployed |
+| WT16 | **Memory: one tool's data at a time.** Each tab is its own lazy chunk; leaving a tab frees its textures; Explorer peak ≤ 1.0 GB on the iPhone with any tab open (Done-when 6) | AGENTS.md memory targets |
+
+### 9.4 The handover: when a draft goes in engine
+
+The handover starts the day the manifest lands (P7's playground or P8's grey world: WT4) and runs per item, not all at
+once:
+
+| Draft Explore tab | It hands over when | Then the game shows | The drafts site keeps |
+|---|---|---|---|
+| MODELS | a model is `live` in the shard's roster | its Model Explorer card, with the concept as provenance (E3) | the concept, marked MODEL ✓ · IN GAME ✓ |
+| SETS | its `placeSet` exists | the Set Explorer, the aerial concept beside the built set (E4) | the planned members, with built counts beside them |
+| WORLD | a world view's camera is in `ExploreCameras` | Composition at that camera: the mock-up as Target, the live view as Built | the views and the camera check |
+| BEATS | the critical path's legs exist in the world | the Beats tab, its legs walk-tested, PLAY FROM HERE | the 2x2 boards and the mechanics tracker |
+| COVERAGE | P8's first T5 run | the Coverage tab on J35's ladder from the built world | the mock-up coverage as P0–P7's history |
+
+- **The flow of data is one-way per step.** `atlas.mjs` reads the shard's generated `explore/tools.generated.ts` inputs
+  (JSON, not `src/` code: J57) to set each draft item's IN GAME chip; the game reads the draft's Blob URLs for its
+  targets. Neither site imports the other's code.
+- **The deck** keeps the COMING SOON card (J19); with Developer on, the hidden shard's ENTER WORLD / EXPLORE WORLD appear
+  beside DRAFT MODE (`titleCards(isDev())`, already built).
+- **After P17** the draft is the shard's history; the game's tabs are the live truth.
+
+### 9.5 Day one on the existing shards (what each tab would show)
+
+| Shard | Beats | Composition | Coverage |
+|---|---|---|---|
+| Driftwood Isle | 8 walk legs + the quest line's steps | its 3 COMPARE targets + dev poses | bands + mocked-up cells from its cameras |
+| Pine Hollow | 7 legs + the 9 beats with start spots (the best fit) | 3 targets (ridge, den, hamlet) + poses | as Driftwood |
+| Nalati | 12 legs + its quest steps | 3 targets + poses | as Driftwood |
+| Nine Dragon | 19 legs | 2 targets + its mockup cameras | as Driftwood (no POIs yet: it needs some for the map) |
+| Signal Dunes | 7 legs + its quest | its council's mockup cameras (no compare targets yet) | as Driftwood |
+| Sky Reach | 6 legs + its quest | its council's `cameras9.json` | as Driftwood |
+
+"Composed" and "signed off" exist only where a WorldClaw build or a director's stage (D91) wrote them; an existing shard's
+Coverage shows unseen · to do · mocked up.
+
+### 9.6 Rows (proposed; added to §4 on Jake's go)
+
+| Row | What | Done when | State |
+|---|---|---|---|
+| W19 | **The tab API + the DEV row** (WT12): `registerExploreTab`, MODELS · SETS · WORLD moved onto it, J51's second row; ENGINE.md §22 | every shard's Explore is identical for a player (captures); a test tab on the template shows only with Developer on | proposed |
+| W20 | **The tools contract** (WT11): `ExploreBeats`, `ExploreCameras`, `ExploreCoverage` in `#engine/data`; `explore.tools` on the manifest; `atlas.mjs`'s generator for a new shard's `tools.generated.ts` | the Thin Ice fixture generates; a shard with no `tools` loads unchanged | proposed |
+| W21 | **Existing shards' `explore/tools.ts`** (§9.5): written from each shard's legs, quest, poses, targets and cameras; their mockups' phone copies on Blob (WT15) | all six shards fill Beats and Composition; each shard's owner agent told over herdr first | proposed |
+| W22 | **COMPARE into Composition** (WT13) | every compare target opens in Composition; `Compare.ts` deleted | proposed |
+| W23 | **The handover** (§9.4): the IN GAME chips in Draft Explore, the game's targets from the draft's Blob URLs | on the fixture, a model going `live` flips its chip at the next drafts deploy | proposed |
+| W10, W11, W14 | as §4, reading W20's contract instead of `design/` directly; W11 gains Map Lab's layers (WT14) | as §4, on every shard with data | todo |
+
+**Order:** W19 → W20 → W14 (Beats: the most data already exists) → W21 → W22 + W10 → W11 → W23 → W12. The
+`no-shard-branch` and `engine-words` guards hold throughout: the engine never names a shard.
+
+### 9.7 Open for Jake
+
+- **Q-E413a, scope:** the tools on every shard (WT10), or on WorldClaw shards only (as §3–§4 are written)?
+- **Q-E413b, timing:** J71 builds the game's tools just in time for Thin Ice's P8 / P9b, which is waiting on N0's go.
+  Building W19 → W20 → W14 now would first serve the six shards (Signal Dunes and Sky Reach are polishing today), and
+  would test the tools on real data before Thin Ice needs them.
