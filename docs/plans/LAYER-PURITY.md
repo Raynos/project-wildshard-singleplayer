@@ -25,6 +25,7 @@ per layer that ends as a hard error at 0. It carries out ARCH-GUARDS AG28 and is
 | LP2e | ↳ the pine tree species into `#kit` (world/forest) | ~13 | | open |
 | LP3 | Game code names no particular shard | shard names in `src/game`: ~14 lines (session/play.ts, engineStrings.ts, Inventory.ts, session/finish.ts, bag/tabs.ts) | new `wildshard/shard-names` (game + kit: slugs, display names, unique stems, shard-scoped ids) | open |
 | LP4 | Kit code names no particular shard | shard names in `src/kit`: 0 today | `wildshard/shard-names` | open (hard from day one) |
+| LP6 | Clef pilot (Jake's idea, E394's decision model): an advisory `layer-purity` decision set asks per touched file "does this depend on a particular shard's details?" (engine: "on game content?"), for what word lists can't see. Scored on a labelled set from this session's real moves; adopted only if it catches misses with no false alarms; runs at push, skips when the model lock is busy (`DECIDE_LOCK_WAIT`), never blocks | precision / recall on the labelled set | advisory only | open, after LP2–LP4 |
 | LP5 | The docs say it: ENGINE.md's layer table and §24, AGENTS.md's engine-layers section, SHARDS.md | — | — | open |
 
 **Done when:** `layer`, `engine-words` and `shard-names` are all on in `.oxlintrc.json` at 0; the full vitest, both
