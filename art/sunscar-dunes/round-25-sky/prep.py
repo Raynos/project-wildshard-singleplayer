@@ -17,6 +17,19 @@ OUT = os.path.join(REPO, 'public/assets/sunscar-dunes/sky')
 os.makedirs(OUT, exist_ok=True)
 for stage in ('early', 'late'):  # round 18: two stages (the mid painting fit no mockup; early is early_fix.py's)
     im = Image.open(os.path.join(HERE, stage, 'panorama.png')).convert('RGB')
+    if stage == 'early':
+        # round 24 (TOP10-3 row 8: B's mockup a clean starry gradient; B, at the logbook's dusk, shows mostly the early
+        # painting): toward B's heading (303 deg, full within +-15, easing out by +-45, clear of A's 0 and dusk-fire's 352)
+        # the early sky above 6 deg is its own colour averaged over +-25 deg of heading, as the late sky is everywhere
+        a = np.asarray(im).astype(np.float64); n = int(25 * PPD); pad = n + 1
+        w = np.concatenate([a[:, -pad:], a, a[:, :pad]], axis=1)
+        c = np.cumsum(np.concatenate([np.zeros((w.shape[0], 1, 3)), w], axis=1), axis=1)
+        sm = ((c[:, 2 * n + 1:] - c[:, :-2 * n - 1]) / (2 * n + 1))[:, pad - n:pad - n + a.shape[1]]
+        el = (HOR - np.arange(a.shape[0])) / PPD; hd = np.arange(a.shape[1]) / PPD
+        def ease(x): x = np.clip(x, 0, 1); return x * x * (3 - 2 * x)
+        dh = np.abs((hd - 303.0 + 180.0) % 360.0 - 180.0)
+        t = (ease((el - 6.0) / 4.0)[:, None] * ease((45.0 - dh) / 30.0)[None, :])[..., None]
+        im = Image.fromarray(np.clip(a * (1 - t) + sm * t, 0, 255).astype(np.uint8))
     if stage == 'late':
         # round 22 (the lead after round 21: D's sky crossed by pink cloud streaks, its mockup a clean gradient; seats B and
         # C: B's and D's mockups keep the late sky clean and starry): above 5 deg the late sky is its own colour averaged
