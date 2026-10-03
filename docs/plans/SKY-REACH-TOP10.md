@@ -61,7 +61,7 @@ After each row: commit, capture, send 'ready for round N'.
 |---|---|---|---|
 | 1 | sky-reach | landed (first pass) | six Hunyuan3D-2 island models from mockup crops (`art/far-reach/round-25-isles/`, 12k tris, 0.3-0.38 MB each), the 20 sky isles and the 8 playable islands' keels (clipped under their decks); the cluster crags a fifth smaller so they read as masses, not a wall; board-cluster.jpg |
 | 2 | sky-reach | landed (first pass) | five Hunyuan3D-2 trees from the mockups' trees (`art/far-reach/round-26-trees/`: tall, wide and young pines, an oak, a bush; 6k tris, 130-187 KB each) on every tree spot by a seeded share, own yaw, scale and lean, bark pulled to brown (world/trees.ts); the card firs stay the fallback |
-| 3 | sky-reach | open | |
+| 3 | sky-reach (fan subagent) | done 2026-10-03, `a9454b567` | Chamfered angular guards, pierced plates, deeper pleats, new cloud-silk leaf, the tassel plumb from the pivot; a layered Hunyuan glove with a lamellar bracer. One hold for all views; measured (exact projected mask, 390x844): left 171→201, top ~456→~480, share 7.8→6.6 %; IoU with the mockups' fans C 0.33→0.45, A 0.35→0.67, B 0.22→0.46, proposal B 0.48→0.53. C's 13.6 % hero framing is reached by no ordinary pose, so the modest hold stays. Board: `art/far-reach/round-23-fan-glove/` |
 | 4 | sky-reach | open | |
 | 5 | sky-reach | open | |
 | 6 | sky-reach | open | |
