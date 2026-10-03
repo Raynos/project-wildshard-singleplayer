@@ -40,9 +40,10 @@ describe('shard generation', () => {
       expect(manifestClosure(root)['new-shard']).toEqual(['src/shards/new-shard/data.ts', 'src/shards/new-shard/manifest.ts', 'src/shards/new-shard/more.ts']);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
+  // it parses every real shard's closure: under 2 s alone, over 5 s under coverage (CI), like pine-crags
   it('AG10: holds the manifest contract on every real shard (lazy plugin, closure budget, every field read)', () => {
     expect(manifestContract(resolve('.'), manifestClosure(resolve('.')), true)).toEqual([]);
-  });
+  }, 20_000);
   it('AG10: refuses a static plugin, a missing lazy load and a closure over budget', () => {
     const root = mkdtempSync(join(tmpdir(), 'manifest-contract-'));
     try {
