@@ -182,6 +182,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     }
   }
   // boulders at every rope landing (mockup A: rocks and flowers round the bridge posts), either side of the lane
+  const holes = meadowHoles();
   for (const sp of landings ? SPANS : []) {
     if (sp.kind !== 'rope') continue;
     const dx = sp.x1 - sp.x0, dz = sp.z1 - sp.z0, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len;
@@ -189,8 +190,10 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     for (const [ex, ez, ey, inward] of [[sp.x0, sp.z0, sp.y, -1], [sp.x1, sp.z1, sp.y1, 1]] as const) {
       for (const side of [-1, 1]) {
         const lat = side * (sp.width / 2 + 1.1 + rnd() * 0.8), back = inward * (1.6 + rnd() * 1.4);
-        const x = ex + ux * back - uz * lat, z = ez + uz * back + ux * lat;
-        stones.push({ x, y: ey - 0.15, z, s: 0.95 + rnd() * 0.5, yaw: rnd() * 6.28 });
+        const x = ex + ux * back - uz * lat, z = ez + uz * back + ux * lat, sc = 0.95 + rnd() * 0.5;
+        // never under the keeper, his stand or a structure's clearing (E399: the keeper stood up on one)
+        if (holes.some((h) => Math.hypot(x - h.x, z - h.y) < h.z + sc + 0.3)) continue;
+        stones.push({ x, y: ey - 0.15, z, s: sc, yaw: rnd() * 6.28 });
         flowers.push({ x: x + (rnd() - 0.5) * 1.2, y: ey, z: z + (rnd() - 0.5) * 1.2, s: 1, yaw: rnd() * 6.28, c: 0xf6f1e4 });
       }
     }

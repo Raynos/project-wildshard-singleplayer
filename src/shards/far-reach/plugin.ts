@@ -54,6 +54,8 @@ export class SkyReachPlugin extends ShardPlugin {
   /** Is the player riding the hoverboard? Hover decks and the updraft collide only then (ENGINE §5 `app.player.mode`). */
   private board: () => boolean = () => false;
   flags: Flags | null = null;
+  /** Sets the quest as a player has it at the crown (capture staging, `stage`). */
+  private questFinished: (() => void) | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
   /** The near meadow that travels with the camera (loop 4). */
@@ -114,8 +116,8 @@ export class SkyReachPlugin extends ShardPlugin {
     const loot = rt?.play && rt.world ? installLoot({ ctx, manifest: ctx.manifest, owned: rt.play.owned, scene: rt.world.game.scene,
       player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,
       presentation: { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt.play?.cues.cue('cue.swap'); } } }) : null;
-    const { quest, flags, burst } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
-    this.quest = quest; this.flags = flags;
+    const { quest, flags, burst, finished } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
+    this.quest = quest; this.flags = flags; this.questFinished = finished;
     if (rt) rt.hooks.questFlags = () => quest.isComplete ? [FLAGS.complete] : [];
 
     ctx.inputContext({ id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
@@ -219,10 +221,15 @@ export class SkyReachPlugin extends ShardPlugin {
   /**
    * Fight state for a capture (E399, shard-progress `stage`, through `__wildshard.shard.farReach`): only what a player
    * reaches in play. 'roc-stalk': the Storm Roc, first phase, stalking in over the dais at a player at the arena's
-   * entrance (mockup D): its circle's height, the line every stalk from the far side of its circle flies.
+   * entrance (mockup D): its circle's height, the line every stalk from the far side of its circle flies. 'quest-crown':
+   * the quest as a player has it in the arena (finished, the bridge raised, its reward paid; council round 1's should-fix),
+   * staged on the shot before so its toasts are long gone. 'fan-gust': the fan held at its GUST thrust (mockup C).
    */
   stage(name: string): void {
     const roc = this.roc, body = roc ? rocBrain(roc) : null;
+    // 'fan-gust': the fan held at its GUST thrust, open and face-on out to the centre (mockup C's fan)
+    if (name === 'fan-gust') this.fan?.stageHold('gust', 0.36, 2.5);
+    if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
     if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x, z: DAIS.z - 13 }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }
   /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */

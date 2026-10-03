@@ -42,7 +42,7 @@ const PLACES = [
  *   2. clear the roost of drift rays · 3. turn the three wind vanes with GUST · 4. raise the bridge at the winch
  */
 export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share: number) => void):
-  { quest: QuestState; flags: Flags; burst: (count: number, toast: string) => void; view: QuestPresentation | null } {
+  { quest: QuestState; flags: Flags; burst: (count: number, toast: string) => void; view: QuestPresentation | null; finished: () => void } {
   const flags = new Flags(ctx.manifest.slug), rewarded = ctx.app.saves.define(REWARDED);
   const quest = new QuestState({ id: 'far.quest', title: STRINGS.quest, completeFlag: FLAGS.complete, steps: [
     { id: 'notes', objective: STRINGS.talkKeeperStep, chip: STRINGS.chipKeeper, hint: STRINGS.hintKeeper, done: { all: [FLAGS.notes] },
@@ -69,11 +69,10 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
   // The keeper at the spawn: he waves within 16 m and gestures while he talks.
   const npc = keeper(DECK); ctx.root.add(npc.group); ownPrimitives(npc.group, ctx.scope);
   ctx.system({ id: 'far.keeper', phase: 'update', run: (_dt, t) => { npc.update(t, player); } });
-  const alreadyPaid = rewarded.read(ctx.manifest.slug);
   const live = ctx.game.runtime?.world && ctx.game.runtime.play ? ctx.game.runtime : null;
   const view = live === null ? null : installQuestPresentation(ctx, quest, { flags, places: [...PLACES], introTitle: STRINGS.quest,
     npc: { npc: KEEPER_NPC, at: npc.head, label: STRINGS.talkKeeper, speaker: npc.speaker, radius: 3.5 },
-    reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete,
+    reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !rewarded.read(ctx.manifest.slug) && quest.isComplete,
       at: REWARD_VIEW.at, yaw: REWARD_VIEW.yaw, pitch: REWARD_VIEW.pitch, holdSeconds: 5, finish: pay } });
   // Headless (tests, a node bake): no presentation, the reward pays at once.
   if (view === null) ctx.scope.onDispose(quest.observe({ complete: () => { pay(); } }));
@@ -81,5 +80,15 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
   ctx.system({ id: 'far.vanes', phase: 'update', run: () => {
     if (!flags.has(FLAGS.vanes) && VANES.every((vane) => flags.has(vaneFlag(vane.id)))) flags.set(FLAGS.vanes);
   } });
-  return { quest, flags, burst, view };
+  /**
+   * The quest as a player has it by the time they stand in the arena (E399 capture staging, the council's should-fix: the
+   * tracker read TALK TO THE KEEPER at the crown): the notes read, the roost cleared, the vanes turned, the bridge raised,
+   * and its reward already paid (so no reward beat plays now).
+   */
+  const finished = (): void => {
+    rewarded.write(true, ctx.manifest.slug);
+    for (const vane of VANES) flags.set(vaneFlag(vane.id));
+    for (const flag of [FLAGS.notes, FLAGS.roost, FLAGS.vanes, FLAGS.raised]) flags.set(flag);
+  };
+  return { quest, flags, burst, view, finished };
 }

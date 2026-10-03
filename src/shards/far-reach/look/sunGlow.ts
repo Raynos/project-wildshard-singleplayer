@@ -7,7 +7,7 @@ import { AdditiveBlending, DoubleSide, Group, Mesh, PlaneGeometry, ShaderMateria
  * Camera-facing in the shader; a shard-side stand-in until the engine's god-ray pass can take a shard's light source
  * (ENGINE REQUEST to the lead, 2026-10-02).
  */
-export const SUN_GLOW = { distance: 820, bloom: 230, shafts: 11, shaftLength: 620, shaftWidth: 26 } as const;
+export const SUN_GLOW = { distance: 820, bloom: 230, wide: 900, shafts: 11, shaftLength: 620, shaftWidth: 26 } as const;
 
 const VERTEX = /* glsl */`
   uniform vec3 uSun; uniform float uDist; uniform vec2 uSize; uniform float uAngle;
@@ -41,6 +41,14 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
         gl_FragColor = vec4(vec3(1.0, 0.97, 0.88) * disc * 1.6 + vec3(1.0, 0.86, 0.58) * (core * 2.6 + halo * 1.0), 1.0);
       }` });
   const bloomMesh = new Mesh(plane, bloom); bloomMesh.frustumCulled = false; bloomMesh.renderOrder = -9; group.add(bloomMesh);
+  // a wide, faint gold over the sky round the sun (E399, the mockups' golden air toward the low sun)
+  const wide = new ShaderMaterial({ transparent: true, depthWrite: false, depthTest: true, blending: AdditiveBlending, fog: false, side: DoubleSide,
+    uniforms: { uSun: { value: sun }, uDist: { value: SUN_GLOW.distance }, uSize: { value: [SUN_GLOW.wide, SUN_GLOW.wide] }, uAngle: { value: 0 } },
+    vertexShader: VERTEX,
+    fragmentShader: /* glsl */`
+      varying vec2 vUv;
+      void main(){ float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(vec3(1.0, 0.78, 0.46) * exp(-d * 2.4) * (1.0 - smoothstep(0.75, 1.0, d)) * 0.32, 1.0); }` });
+  const wideMesh = new Mesh(plane, wide); wideMesh.frustumCulled = false; wideMesh.renderOrder = -9; group.add(wideMesh);
   const shafts: ShaderMaterial[] = [];
   for (let i = 0; i < SUN_GLOW.shafts; i++) {
     const angle = Math.PI * (0.62 + 0.76 * (i / (SUN_GLOW.shafts - 1))) + Math.sin(i * 7.3) * 0.08;   // fanned downward
@@ -56,5 +64,5 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
         }` });
     const mesh = new Mesh(plane, m); mesh.frustumCulled = false; mesh.renderOrder = -9; group.add(mesh); shafts.push(m);
   }
-  return { group, geometry: plane, materials: [bloom, ...shafts], update: (t) => { shafts.forEach((m, i) => { const u = m.uniforms['uPulse']; if (u) u.value = 0.75 + 0.25 * Math.sin(t * 0.3 + i * 1.7); }); } };
+  return { group, geometry: plane, materials: [bloom, wide, ...shafts], update: (t) => { shafts.forEach((m, i) => { const u = m.uniforms['uPulse']; if (u) u.value = 0.75 + 0.25 * Math.sin(t * 0.3 + i * 1.7); }); } };
 }

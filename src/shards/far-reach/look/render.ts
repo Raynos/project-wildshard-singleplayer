@@ -20,6 +20,8 @@ export function createDay(): DayCycle {
     sun: { maxElevation: 20, azimuthOffset: 300 }, fixed: { midday: 12, golden: 17.5, sunset: 18.5, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 17.5, night: 0 } });
 }
 function primitive(object: Object3D): object is Mesh { return object instanceof Mesh; }
+/** E399 (the council: 'no golden haze toward the sun'): how far the air toward the low sun goes gold over distance. */
+const SUN_HAZE = 0.35;
 
 /**
  * Sky Reach's look (extend; the style bible is docs/design/far-reach/style-bible.md): the engine's clean chain, a painted
@@ -60,7 +62,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
           patchShader(material, 'far.rose-fog', PATCH_ORDER.decorate, (shader) => {
             shader.uniforms['farHaze'] = { value: haze };
             shader.fragmentShader = `#ifndef FAR_HAZE\n#define FAR_HAZE\nuniform sampler2D farHaze;\n${HEADING_GLSL}\n#endif\n${shader.fragmentShader.replace('#include <fog_fragment>',
-              `#ifdef USE_FOG\n vec3 farV=vFogWorldPos-cameraPosition; gl_FragColor.rgb=mix(gl_FragColor.rgb,texture2D(farHaze,vec2(farHeading(farV),0.5)).rgb,clamp((length(farV)-${FOG.near.toFixed(1)})/${(FOG.far - FOG.near).toFixed(1)},0.0,1.0)*${FOG.max.toFixed(2)});\n#endif`)}`;
+              `#ifdef USE_FOG\n vec3 farV=vFogWorldPos-cameraPosition; gl_FragColor.rgb=mix(gl_FragColor.rgb,texture2D(farHaze,vec2(farHeading(farV),0.5)).rgb,clamp((length(farV)-${FOG.near.toFixed(1)})/${(FOG.far - FOG.near).toFixed(1)},0.0,1.0)*${FOG.max.toFixed(2)});\n float farSun=pow(max(dot(normalize(farV),vec3(${SUN_DIR.x.toFixed(4)},${SUN_DIR.y.toFixed(4)},${SUN_DIR.z.toFixed(4)})),0.0),24.0); gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(1.0,0.8,0.52),farSun*clamp((length(farV)-15.0)/160.0,0.0,1.0)*${SUN_HAZE.toFixed(2)});\n#endif`)}`;
           }, { scope });
         }
       });
