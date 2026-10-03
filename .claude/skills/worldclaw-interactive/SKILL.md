@@ -22,8 +22,10 @@ first-walk notes (06 §10.5). Content and world are designed together and get eq
 ## 0. Dispatch, in this order
 
 1. **Single stage:** a director asked for one stage → §S, on any shard (D91), even when the shard already has a `design.md`.
+   **A WorldClaw run** below means a shard whose `design/design.md` machine block has `scope: "full"` (MC47); a
+   slice-scope design (a director's §S) is never resumed or taken over.
 2. **Zero-shot** (`zero-shot …`, or `resume <slug>` of a shard whose §run `mode` is zero-shot) → use `worldclaw-auto`.
-3. **Resume** (`resume <slug>`, or any invocation naming a shard whose `src/shards/<slug>/design/design.md` exists) →
+3. **Resume** (`resume <slug>`, or any invocation naming a WorldClaw run's shard) →
    read §run (`mode`, P0's answers, `step`, `waitingOn`, `next`) and the last Handoff.
    - `waitingOn: jake`: look for his answer in chat. None → hold: work only on what doesn't depend on it; older than
      48 h with no `resentAt` → re-send the set once and record `resentAt`; `resentAt` older than 48 h → stop with a
@@ -33,8 +35,8 @@ first-walk notes (06 §10.5). Content and world are designed together and get eq
 4. **A new run:**
    - check P0's needs (06 §10.2), and stop naming any missing row;
    - claim the ask (`scripts/ask-new.sh "<the user's words>"` in the main checkout; read the id);
-   - pick the slug from the sentence (never renamed); a slug that is already a shard (`src/shards/<slug>/` exists) →
-     stop and say so: WorldClaw builds new shards only (D90), a shipped shard follows its own plan;
+   - pick the slug from the sentence (never renamed); a slug that is already a shard (`src/shards/<slug>/` exists) and
+     not a WorldClaw run → stop and say so: WorldClaw builds new shards only (D90), a shipped shard follows its own plan;
    - create the shard as a draft on the drafts site (WORLDCLAW-TOOLS §2, W13; how-to: `drafts/README.md`):
      `drafts/shards/<slug>/draft.json` (name, one spoiler-free line, `run`) and `content.json` (empty lists), then
      `node drafts/tools/atlas.ts <slug>`; the game's title shows its COMING SOON card from the next game deploy (W9). The
@@ -187,9 +189,10 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
   - **Play:** a moving capture and a playable build: collisions, controls, hit or miss, landings; World / HUD Explorer
     evidence where it applies. A still frame alone is not a pass.
   - **Pin:** your measurements (D81), recorded with the cameras and the build: T10 on the phone tier at the place's
-    cameras (triangles, draws, GPU MB against the budget gate, R28; the frame time per camera, reported, not gated);
-    `scripts/sim-memory.mjs` inside `scripts/sim-lane.sh run` with `--url=<build> --shards=<slug>` (the 1.8 / 1.0 GB
-    caps); `scripts/bench-load.mjs --query='chunk=<slug>&tier=phone&skipintro=1'` (the load time, reported); the four CI
+    cameras (triangles, draws, GPU MB against the budget gate, R28; the frame time per camera, a Mac headless reading, reported, not gated);
+    `scripts/sim-lane.sh run wildshard-iphone node scripts/sim-memory.mjs --url=<build> --shards=<slug>` (the 1.8 /
+    1.0 GB caps); `scripts/browser-lane.sh node scripts/bench-load.mjs --url=<build> --query='chunk=<slug>&tier=phone&skipintro=1'`
+    (the load time on the same build, reported); the four CI
     gates; a before / current / target board; Jake approves or revises. The physical-iPhone reading is P16's; an engine
     change for the live shards is the engine lead's, with its own reading (AGENTS.md ▸ Rendering). Commit; the next deploy ships it, hidden
     in the new shard (D79).
@@ -243,12 +246,15 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
 ## S. Single-stage entry (a director's call, on any shard; D91; 06 §9, §10.2)
 
 1. **Input:** the slug, the stage, the region or slice.
-2. Read the stage's **files** from 06 §10.2. On a director's shard without a `spec.json`, write a slice spec
-   (`spec-check --scope slice`) from the director's design and keep the shard's terrain (T17 content-only; no region
-   weights); twin-check is skipped, logged, when the design has no machine block. Any other missing file → stop and
-   name it.
+2. Read the stage's **files** from 06 §10.2. On a shipped shard (no full-scope design), write `design/design.md` from
+   the director's plan with a **slice-scope** machine block (`scope: "slice"`, no `run`), and a slice spec
+   (`spec-check --scope slice`), and keep the shard's terrain (T17 content-only; no region weights); twin-check is
+   skipped, logged, when the design has no machine block. Any other missing file → stop and name it.
 3. Targets are needed only from P10 on. Write only the stage's outputs, log them, hand back with the evidence.
 4. A slice-scoped P8 gates the slice's legs, reach and T16, and logs the rest as untested. Never create a second shard.
+5. On a shipped shard the outputs are the director's: they land, ship and are gated by that shard's own plan; grey or
+   stand-in content stays behind that shard's own default-off Debug row (`ctx.debugRow`) until its plan accepts it.
+   No checkpoint, no drafts-site step, no §run (D91, MC48).
 
 ## J. The judges (R6; 06 §6)
 

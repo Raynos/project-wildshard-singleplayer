@@ -34,6 +34,17 @@ describe('T1 formats on Thin Ice', () => {
     const tpl = readFileSync(join(ROOT, 'scripts/worldclaw/design-template.md'), 'utf8');
     expect(() => parseMachine(machineBlock(tpl.replaceAll('<slug>', 'example').replaceAll('<id>', 'spawn').replaceAll('<name>', 'Spawn').replaceAll('<beat>', 'arrive')))).not.toThrow();
   });
+  it('a slice (a director\'s single stage, D91) has no run; a full scope must have one', () => {
+    const slice = { ...machine, scope: 'slice', run: undefined };
+    expect(parseMachine(slice).run).toBeUndefined();
+    expect(() => parseMachine({ ...machine, scope: 'slice' })).toThrow(/a full scope has a run/);
+    expect(() => parseMachine({ ...machine, run: undefined })).toThrow(/a full scope has a run/);
+  });
+  it('a lift leg gives its heights; a walk leg may stay on x, z', () => {
+    const lift = { id: 'well', legs: [{ mode: 'lift', pts: [[0, 0, 0], [0, 40, 0]] }, { mode: 'walk', pts: [[0, 0], [10, 0]] }] };
+    expect(parseSpec({ ...spec, routes: [lift] }).routes[0]?.legs).toHaveLength(2);
+    expect(() => parseSpec({ ...spec, routes: [{ id: 'well', legs: [{ mode: 'lift', pts: [[0, 0], [0, 0]] }] }] })).toThrow(/stair or lift leg/);
+  });
   it('a design.md without a machine block is refused', () => {
     expect(() => machineBlock('# no block')).toThrow(/no ```json worldclaw block/);
   });

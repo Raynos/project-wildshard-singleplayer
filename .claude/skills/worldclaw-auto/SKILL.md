@@ -11,14 +11,15 @@ Binding docs: `docs/design/worldclaw/06-shard-flow.md` (§8 zero-shot, §10.7 wa
 ## 0. Dispatch, in this order
 
 1. **Launcher:** this session has no `WORLDCLAW_WORKER=1` → don't run the shard here. Take the named shard's slug,
-   else pick one from the sentence, start **T18** in a herdr pane or with `run_in_background`:
+   else pick one from the sentence; a slug that is already a shard and not a WorldClaw run (its machine block's `scope`
+   is not `full`) → stop and say so (D90, MC49), before T18 starts. Otherwise start **T18** in a herdr pane or with `run_in_background`:
    `scripts/worldclaw/zero-shot.sh "/worldclaw-auto zero-shot <sentence> as <slug> [until P<n>]" <slug>`
    (P19: `"/worldclaw-auto zero-shot <slug> until P8"`), and report. T18 runs each worker as
    `env -u HERDR_PANE_ID WORLDCLAW_WORKER=1 claude -p --permission-mode bypassPermissions "<invocation>"`; a worker never
    sets the status line and never starts T18.
-2. **A new bound on a zero-shot run** (`zero-shot <slug> until P<n>`, the shard's §run has `mode: zero-shot`): set
-   §run's `until` to the new bound, then resume. A slug that is a shard without `design/design.md` is a shipped
-   shard: stop (D90, it follows its own plan).
+2. **A new bound on a zero-shot run** (`zero-shot <slug> until P<n>`, a WorldClaw run, `scope: "full"`, whose §run has `mode: zero-shot`): set
+   §run's `until` to the new bound, then resume. Any other existing slug is a shipped shard: stop (D90, it
+   follows its own plan).
 3. **Resume** (`resume <slug>`): read §run (`mode`, `until`, `step`, `waitingOn`, `next`) and the last Handoff.
    `waitingOn: codex-quota` before its reset → stop with `stop: quota(<reset>)`; after it → clear and continue.
    Otherwise continue at `next`; at `until`, or after P16's board, stop with `stop: done`.

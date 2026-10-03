@@ -2,7 +2,8 @@
 
 <!-- T1's human twin (WORLDCLAW-SHARD T1, R15, D87). Copy to src/shards/<slug>/design/design.md. The prose sections are for
 people; the ```json worldclaw block at the end is for the checks (spec-check, twin-check) and must agree with spec.json
-id for id. design.md owns intent and Jake's words; spec.json owns the numbers. -->
+id for id. design.md owns intent and Jake's words; spec.json owns the numbers. A WorldClaw run is `"scope": "full"`
+with a `run`; a director's single stage on a shipped shard (§S, D91) writes `"scope": "slice"` and no `run`. -->
 
 ## Vision (P1, Jake, verbatim)
 "<the sentence>"

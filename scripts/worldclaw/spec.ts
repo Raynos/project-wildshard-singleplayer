@@ -7,12 +7,21 @@
 import * as v from 'valibot';
 
 const Id = v.pipe(v.string(), v.regex(/^[a-z0-9][a-z0-9-]*$/, 'ids are lower-case kebab'));
-const XZ = v.tuple([v.number(), v.number()]);
+const XZ = v.strictTuple([v.number(), v.number()]);
+/** a route point with its height: a lift or a stair climbs at (nearly) the same x, z (MC33, reopened by D91) */
+const XYZ = v.strictTuple([v.number(), v.number(), v.number()]);
 
 /** Place roles (06 §10.2's required roles are a subset: spawn, hub, landmark, boss). */
 export const ROLES = ['spawn', 'hub', 'landmark', 'objective', 'arena', 'boss', 'secret', 'vista', 'camp', 'traversal', 'discovery'] as const;
 /** Route leg modes: how the player moves on the leg (the eye paths of R11). */
 export const LEG_MODES = ['walk', 'climb', 'ride', 'glide', 'swim', 'grapple', 'zipline', 'rope', 'sled', 'hover', 'stair', 'lift'] as const;
+/** the leg modes whose points must carry their height ([x, y, z]); any other leg may */
+export const VERTICAL_LEGS: readonly string[] = ['stair', 'lift'];
+
+const Leg = v.pipe(
+  v.strictObject({ mode: v.picklist(LEG_MODES), pts: v.pipe(v.array(v.union([XZ, XYZ])), v.minLength(2)) }),
+  v.check((l) => !VERTICAL_LEGS.includes(l.mode) || l.pts.every((p) => p.length === 3), 'a stair or lift leg gives every point as [x, y, z]'),
+);
 
 export const SpecSchema = v.strictObject({
   version: v.literal(1),
@@ -35,7 +44,7 @@ export const SpecSchema = v.strictObject({
   })),
   routes: v.array(v.strictObject({
     id: Id,
-    legs: v.pipe(v.array(v.strictObject({ mode: v.picklist(LEG_MODES), pts: v.pipe(v.array(XZ), v.minLength(2)) })), v.minLength(1)),
+    legs: v.pipe(v.array(Leg), v.minLength(1)),
   })),
   /** the entry roads to the neighbouring shards, one per edge (D67) */
   gates: v.array(v.strictObject({ edge: v.picklist(['N', 'E', 'S', 'W']), x: v.number(), z: v.number(), to: v.optional(v.string()) })),
@@ -49,9 +58,10 @@ export type Spec = v.InferOutput<typeof SpecSchema>;
 
 /** The machine block of design.md: one fenced ```json worldclaw block (R15, as amended by L1: JSON, not YAML, so the checks
  * need no parser beyond JSON). It carries every id twin-check compares and the intent spec.json does not hold. */
-export const MachineSchema = v.strictObject({
+export const MachineSchema = v.pipe(v.strictObject({
   slug: Id,
-  /** `full` for a run's shard; `slice` for a director's single stage (spec-check --scope slice, 06 §10.2) */
+  /** `full`: a WorldClaw run's shard, the only kind the dispatches resume (MC47). `slice`: a director's single stage on
+   * any shard (D91; spec-check --scope slice, 06 §10.2); it has no `run` and is never resumed. */
   scope: v.picklist(['full', 'slice']),
   places: v.array(v.strictObject({ id: Id, role: v.picklist(ROLES), name: v.string(), beat: v.string() })),
   happenings: v.array(v.strictObject({ id: Id, name: v.string(), seenFrom: v.array(Id) })),
@@ -65,8 +75,9 @@ export const MachineSchema = v.strictObject({
   gates: v.array(v.picklist(['N', 'E', 'S', 'W'])),
   /** the session slice: place ids in play order */
   slice: v.array(Id),
-  run: v.strictObject({ mode: v.picklist(['guided', 'zero-shot']), stage: v.string(), until: v.optional(v.string()) }),
-});
+  /** the run's state (§run's `step` is `stage`, one value); a full scope only */
+  run: v.optional(v.strictObject({ mode: v.picklist(['guided', 'zero-shot']), stage: v.string(), until: v.optional(v.string()) })),
+}), v.check((m) => (m.scope === 'full') === (m.run !== undefined), 'a full scope has a run; a slice has none'));
 export type Machine = v.InferOutput<typeof MachineSchema>;
 
 /** The machine block's JSON, read from a design.md. */
