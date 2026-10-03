@@ -33,3 +33,12 @@ docs/plans/WORLDCLAW-TOOLS.md docs/plans/NINE-DRAGON-STACK.md scripts/worldclaw/
 did each fix in `register.md` (MC1–MC24) land as its resolution says, and did it break something nearby; and (b) **the
 battery** (now 14 scenarios). A finding outside the diff counts only if it is must-fix with evidence. Don't re-raise a closed
 register row without new evidence.
+
+## Round 3: after Jake's D89 / D90
+Jake cut the existing-shard path after round 2: Nine Dragon is not a WorldClaw shard (D89) and WorldClaw builds new
+shards only (D90); D84–D86, §2c, the skill's §X, 06 §11 and rows L2 / L3 are withdrawn (`register.md` MC26, MC34). Review
+(a) **the diff since round 2**: `git diff 21d5e913c HEAD -- docs/plans/WORLDCLAW-SHARD.md docs/design/worldclaw/06-shard-flow.md
+.claude/skills/ docs/plans/WORLDCLAW-TOOLS.md docs/plans/NINE-DRAGON-STACK.md scripts/worldclaw/ test/worldclaw-formats.test.ts
+project/archive/2026-10-03-shard-checkpoints.md`: did MC25–MC34 land as `register.md` says, and did the unwind leave a
+dangling reference to the existing-shard path (a § that no longer exists, a mode, a row, a skill step); and (b) **the
+battery's live scenarios** (2, 3, 5, 7, 8, 13 and the seats' additions that are about new shards). Same bar, same output.
