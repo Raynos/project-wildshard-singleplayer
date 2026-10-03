@@ -120,9 +120,9 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   const skyGroup = new Group(); skyGroup.name = 'far.sky-isles';
   const skyHd = skyIsleModels(SKY_ISLES); skyGroup.add(skyHd.group);
   // the playable islands' keels in the same painted rock (E399 round 2, seat C: 'under the bridge a flat sage-green cliff
-  // wall'): a model under each island, its turf just under the walkable top and a little wider, so the rim's lip and
+  // wall'): a model under each island, its turf 1.8 m under the walkable top (its turf mounds poked up through the arena floor at 0.7 m), so
   // the rock below are the textured ones; the code top and its colliders are unchanged, nothing here collides
-  const keels = skyIsleModels(ISLES.map((isle) => ({ ...isle, id: `keel.${isle.id}`, y: isle.y - 0.7, r: isle.r * 0.99, pines: 0, fall: null })));
+  const keels = skyIsleModels(ISLES.map((isle) => ({ ...isle, id: `keel.${isle.id}`, y: isle.y - 1.8, r: isle.r * 0.97, pines: 0, fall: null })));
   keels.group.name = 'far.isle-keels'; skyGroup.add(keels.group);
   for (const s of SKY_ISLES) {
     const code = skyHd.fallback.includes(s);

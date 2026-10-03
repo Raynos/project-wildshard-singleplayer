@@ -116,7 +116,7 @@ export function clearOfWalks(x: number, z: number, r: number): boolean {
 export const HERO_STONES: readonly (readonly [number, number, number, number, number])[] = [
   // the spawn bridge head (E399, mockup A: mossy boulders at the posts' feet, either side of the lane)
   // (just outside the keeper's clearing and the bridge lane's 1 m margin, which dropped the first spots)
-  [-4.2, -11.0, DECK, 1.15, 0.5], [4.5, -12.2, DECK, 1.2, 0.5], [2.6, -9.4, DECK, 0.7, 0.32], [-3.1, -8.9, DECK, 0.6, 0.26],
+  [-4.2, -11.0, DECK, 1.15, 0.5], [2.6, -9.4, DECK, 0.7, 0.32], [-3.1, -8.9, DECK, 0.6, 0.26],
   // the spawn meadow, looking west (H1 left): a big rock left of centre, a low outcrop at your feet
   [-4.2, -7.9, DECK, 1.1, 0.5], [-2.6, -8.5, DECK, 0.75, 0.3], [-3.3, -10.1, DECK, 0.5, 0.22],
   // looking east (H1 right): an outcrop on the left edge, a rock in the bottom middle
