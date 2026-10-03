@@ -135,6 +135,21 @@ export function viewerLit(m: MeshStandardMaterial, gain: readonly [number, numbe
   totalEmissiveRadiance += diffuseColor.rgb * vec3(${gain.map((g) => g.toFixed(3)).join(', ')}) * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
   });
 }
+/**
+ * The wagon's canvas a pale weathered cloth (round 10, the seats since round 5: one even dark-orange shell; mockup B's
+ * cover is grey-beige, torn, its folds and tears dark): the texture's light parts mapped onto a pale cloth ramp, its dark
+ * parts (wood, tears, shadow) kept dark.
+ */
+function paleCloth(m: MeshStandardMaterial): void {
+  patchShader(m, 'sunscar.paleCloth', PATCH_ORDER.decorate, (shader) => {
+    // the cover only: above the bed (model y ~0; the model spans -0.65..0.65), so the tailboard and wheels stay dark wood
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying float vClothY;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vClothY = position.y;');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vClothY;').replace('#include <map_fragment>', `#include <map_fragment>
+  float clothL = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+  vec3 clothC = mix(diffuseColor.rgb * 0.9, vec3(0.42, 0.37, 0.32) * (0.6 + 1.4 * clothL), smoothstep(0.08, 0.22, clothL));
+  diffuseColor.rgb = mix(diffuseColor.rgb * 0.8, clothC, smoothstep(-0.02, 0.08, vClothY));`);
+  });
+}
 /** A texture's colour pulled `amount` of the way to its own grey (the wagon's canvas: sun-bleached cloth, not orange). */
 function greyed(m: MeshStandardMaterial, amount: number): void {
   patchShader(m, 'sunscar.greyed', PATCH_ORDER.decorate, (shader) => {
@@ -158,7 +173,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
           }
           // round 8 (the council since round 5: the wagon's canvas one even self-lit orange with blown white patches; mockup B:
           // a backlit wagon, its cloth grey-beige, the lantern's light inside): its texture taken down to the cloth's value
-          if (name === 'wagon-hd') { m.color.setRGB(0.6, 0.55, 0.52); greyed(m, 0.5); }
+          if (name === 'wagon-hd') { m.color.setRGB(1, 1, 1); paleCloth(m); }
           // round 8 (the council since round 4: a copper bowl and twisted copper post on a clean tan plinth; mockup C: soot-dark
           // iron and weathered stone, warm only where the fire lights it)
           if (name === 'brazier-hd') { m.color.setRGB(0.5, 0.46, 0.44); greyed(m, 0.8); } // round 10 (R9B-7: the post still red copper, R/G 8.4 against 2.3)

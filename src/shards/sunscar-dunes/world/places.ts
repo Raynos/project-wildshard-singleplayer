@@ -15,7 +15,7 @@ export const RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
 const MARK = { h: 6.5 } as const;
 /** The textured hero models' fitted sizes (metres): the wagon's span and turn, the brazier's height and its bowl's
  *  height as a share of it. */
-export const HD = { wagon: 6.4, wagonYaw: 0, brazier: 2.5, bowlAt: 0.86 } as const;
+export const HD = { wagon: 6.4, wagonYaw: Math.PI, brazier: 2.5, bowlAt: 0.86 } as const;
 const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide; emissive: number }> = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true, ...extra });
 /** A generated model's painted material a step lighter (round 2, R1C-2: the iron brazier and the well read black at dusk). */
@@ -28,7 +28,7 @@ const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh =>
 
 /** The lantern on its pole, in the caravan's frame (metres): beside the tailboard (−Z), the glass `y` up. */
 // E399 (mockup B): the lantern hangs in the wagon's back hoop, over the logbook on the tailboard
-const LANTERN = { x: 0.1, y: 1.8, z: -2.75 } as const;
+const LANTERN = { x: -0.6, y: 1.8, z: -2.75 } as const;
 /** The cookfire beside the wagon, in the caravan's frame (mockup B's smoke). */
 const COOK = { x: -0.6, z: 5.2 } as const; // E399 (mockup B): in front of the wagon, its wisp rising behind it as you come up from the back
 
@@ -137,7 +137,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   { const glass = new MeshBasicMaterial({ color: 0xffb24a }); glass.color.multiplyScalar(3.2); at(box(0.13, 0.28, 0.13, glass), -0.22, 0.01, 0, lamp); } // round 10 (R9B-9: the lantern peaked at 183, the mockup's 252): a hot centre
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) at(box(0.02, 0.32, 0.02, iron), -0.22 + dx * 0.09, 0.01, dz * 0.09, lamp);
   const cosY = Math.cos(CARAVAN.yaw), sinY = Math.sin(CARAVAN.yaw);
-  addLampGlow(lamp, 2.4, (lx, lz) => {
+  addLampGlow(lamp, 0.9, (lx, lz) => { // round 10: drawn over the canvas, 2.4 washed the whole wagon
     const x = LANTERN.x + lx, z = LANTERN.z + lz; // the lamp's frame → the caravan's → the world (three's Ry)
     return groundAt(CARAVAN.x + x * cosY + z * sinY, CARAVAN.z - x * sinY + z * cosY) - (y + LANTERN.y);
   });
