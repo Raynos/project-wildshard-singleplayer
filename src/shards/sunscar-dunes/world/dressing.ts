@@ -60,7 +60,7 @@ const C = {
 
 /** How many of each (one draw per kind). */
 // loop 5 (the mockups: big clean sand forms): far fewer rocks and pebbles, scrub kept to the hollows and trail edges
-export const DRESSING = { posts: 0, shrubs: 0, tufts: 0, carcasses: 5, trees: 0, screePerRidge: 6, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 0, gravel: 0 } as const; // E399: no outcrops (none in the mockups)
+export const DRESSING = { posts: 0, cairns: 0, shrubs: 0, tufts: 0, carcasses: 5, trees: 0, screePerRidge: 6, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 0, gravel: 0 } as const; // E399: no outcrops (none in the mockups)
 
 /** A saltbush, 0.9 m tall: four forked stems, dusty grey-green clumps at the tips. */
 function shrubGeometry(seed: number): BufferGeometry {
@@ -257,10 +257,11 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
     }
     const [sx, sz] = line[0] ?? [0, 0], [s2x, s2z] = line[1] ?? [0, 0], [ex, ez] = line[line.length - 1] ?? [0, 0], [e2x, e2z] = line[line.length - 2] ?? [0, 0];
     const ls = Math.hypot(s2x - sx, s2z - sz), le = Math.hypot(ex - e2x, ez - e2z);
-    // the departure cairn 9 m out, 2.6 m to the side (the spawn view stays clear); the arrival cairn 10 m short
+    // the departure cairn 9 m out, 2.6 m to the side (the spawn view stays clear); the arrival cairn 10 m short. E399: the
+    // mockups show no trail markers (a cairn's red rag lay in mock-B's foreground): `cairns` caps them, now none
     const dep = { x: sx + (s2x - sx) / ls * 9 + (s2z - sz) / ls * 2.6, z: sz + (s2z - sz) / ls * 9 - (s2x - sx) / ls * 2.6 };
-    if (clear(dep.x, dep.z)) cairnSpots.push(dep);
-    cairnSpots.push({ x: ex - (ex - e2x) / le * 10 + (ez - e2z) / le * 2.6, z: ez - (ez - e2z) / le * 10 - (ex - e2x) / le * 2.6 });
+    if (cairnSpots.length < DRESSING.cairns && clear(dep.x, dep.z)) cairnSpots.push(dep);
+    if (cairnSpots.length < DRESSING.cairns) cairnSpots.push({ x: ex - (ex - e2x) / le * 10 + (ez - e2z) / le * 2.6, z: ez - (ez - e2z) / le * 10 - (ex - e2x) / le * 2.6 });
   }
   const posts = new InstancedMesh(postGeometry(), material(0), postSpots.length);
   postSpots.forEach((s, i) => {

@@ -79,9 +79,9 @@
   {
    "id": "mock-B-logbook",
    "mockup": "art/sunscar-dunes/round-9-review/B-quest-logbook.jpg",
-   "x": -65.5,
-   "z": 48.5,
-   "yaw": 31.5,
+   "x": -58.8,
+   "z": 42.1,
+   "yaw": 53.8,
    "pitch": -3,
    "stage": "logbook",
    "settle": 11000

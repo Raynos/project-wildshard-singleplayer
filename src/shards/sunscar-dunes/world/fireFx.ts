@@ -77,7 +77,7 @@ void main() {
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */
 const smokeMaterialOf = (wisp: boolean): ShaderMaterial => new ShaderMaterial({
   uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: NormalBlending, fog: false,
-  vertexShader: wisp ? `#define LEAN 0.06\n#define LEAN_WIDEN 0.8\n#define SWAY 1.3\n${BILLBOARD_Y}` : `#define LEAN 0.36\n#define LEAN_WIDEN 2.6\n#define SWAY 0.15\n${BILLBOARD_Y}`,
+  vertexShader: wisp ? `#define LEAN 0.06\n#define LEAN_WIDEN 3.2\n#define SWAY 1.3\n${BILLBOARD_Y}` : `#define LEAN 0.36\n#define LEAN_WIDEN 2.6\n#define SWAY 0.15\n${BILLBOARD_Y}`,
   fragmentShader: /* glsl */ `
 uniform float uTime;
 varying vec2 vUv;
