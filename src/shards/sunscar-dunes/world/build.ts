@@ -1,4 +1,4 @@
-import type { Vector3 } from 'three';
+import { PointLight, type Vector3 } from 'three';
 import type { Flags, Interactable } from '#engine';
 import type { ShardContext } from '#game';
 import { BRAZIERS, TOWER } from '../layout';
@@ -9,7 +9,7 @@ import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellPart
 import { buildRocks } from './rocks';
 import { buildDressing } from './dressing';
 import { buildButtes } from './buttes';
-import { FIRE_RESOURCES, fireGeometries, fireLight, resetFireLights, tickFires } from './fireFx';
+import { FIRE_RESOURCES, fireGeometries, fireLight, loadFireBook, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 
 /** The quest's flags (persisted per shard by `Flags`). */
@@ -36,6 +36,9 @@ const TOWER_LIGHT = 14;
  * Signal Dunes' places (C1): the signal tower, the half-buried caravan, the dry well, three waymark braziers and the
  * wind-cut rock field. The quest state lives in `flags`, so a later visit finds the world as it was left.
  */
+/** The waymark fire's point light (candela; physical decay over its 10 m reach). */
+const WAY_LIGHT = 14;
+
 export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   const terrain = ctx.manifest.ground.terrain, groundAt = (x: number, z: number): number => terrain?.heightAt(x, z) ?? 0;
   const trailDistance = (x: number, z: number): number => terrain?.trailDistance(x, z) ?? 99;
@@ -128,8 +131,16 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   ownPrimitives(ctx.root, ctx.scope);
   for (const r of FIRE_RESOURCES) ctx.scope.own(r);
   ctx.scope.onDispose(() => { for (const g of fireGeometries()) g.dispose(); });
+  ctx.scope.onDispose(loadFireBook()); // E407 row 6: the flame's flipbook, freed with the shard
+  // round 18 (row 3: a warm light pool on the sand AND the plinth, from a real light): one short-range point light rides to
+  // the lit waymark nearest the player and flickers; one light for all three keeps the shaders' light count fixed (it is
+  // in the scene from the start, dark until a waymark burns)
+  const wayLight = new PointLight(0xff7a30, 0, 10, 2); ctx.root.add(wayLight);
   ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
     tickFires(t); dressing.tick(t);
+    const me = ctx.game.runtime?.world?.player.position; let near: BrazierParts | null = null, best = Infinity;
+    if (me) for (const b of braziers) { if (!b.lit) continue; const d = b.parts.bowlAt.distanceToSquared(me); if (d < best) { best = d; near = b.parts; } }
+    if (near) { wayLight.position.copy(near.bowlAt).setY(near.bowlAt.y + 0.5); wayLight.intensity = WAY_LIGHT * (1 + Math.sin(t * 11) * 0.07 + Math.sin(t * 23 + 0.7) * 0.05); } else wayLight.intensity = 0;
     // The bucket rides up over 1.2 s once pulled.
     if (well.raised && lift.t < 1) { lift.t = Math.min(1, lift.t + dt / 1.2); wellParts.bucket.position.y = 1.85 - wellParts.drop + (wellParts.drop - 0.5) * lift.t; wellParts.rope.scale.y = 1 - lift.t * 0.8; wellParts.crank.rotation.x = lift.t * 12; }
     if (!fire.lit) return;

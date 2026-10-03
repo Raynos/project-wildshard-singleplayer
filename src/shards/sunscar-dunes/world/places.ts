@@ -307,7 +307,10 @@ export function bannerGeometry(): BufferGeometry {
  */
 export function kindling(y: number, size = 1, crown = false): Group {
   // the crown's logs glow at the ember (council round 2: unlit, they read as a black tent inside the flame)
-  const g = new Group(), wood = crown ? new MeshStandardMaterial({ color: CHARRED, roughness: 0.95 }) : mat(KINDLING), n = crown ? 11 : 5;
+  // round 18 (row 3, mockup C: the logs burn orange inside the flame): the crown's charred wood carries an ember glow the
+  // brazier switches on when lit (`userData.ember`)
+  const g = new Group(), wood = crown ? new MeshStandardMaterial({ color: CHARRED, roughness: 0.95, emissive: 0xff4a10, emissiveIntensity: 0 }) : mat(KINDLING), n = crown ? 11 : 5;
+  if (crown) g.userData['ember'] = wood;
   // round 8 (mockup C): the crown adds four logs laid low across the bowl at odd angles, charred dark inside the flame (a
   // steep teepee read as a Λ against the flame's core)
   for (let i = 0; i < n; i++) {
@@ -360,7 +363,8 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
     at(new Mesh(new CylinderGeometry(0.42, 0.18, 0.32, 8, 1, true), mat(IRON, { metalness: 0.4 })), 0, 1.6 + P, 0, root);
   }
   const oil = at(new Mesh(new CylinderGeometry(0.33, 0.33, 0.04, 8), new MeshStandardMaterial({ color: 0x1a120c, roughness: 0.2 })), 0, bowl, 0, root);
-  root.add(hdBrazier ? kindling(bowl - 0.15, 1.6, true) : kindling(bowl - 0.08));
+  const sticks = hdBrazier ? kindling(bowl - 0.15, 1.6, true) : kindling(bowl - 0.08); root.add(sticks);
+  const ember: unknown = sticks.userData['ember'];
   oil.visible = false;
   colliders.push(boxDesc({ x, z, hw: 0.45, hd: 0.45, rot: 0, yBottom: y + P * 0.5, yTop: y + 1.75 + P }, 'stone'));
   // Round 1 (R1C-1 / R1B-12): the unlit waymark reads from afar: a ring of fieldstones round its foot, and a tall
@@ -395,5 +399,8 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
   const fire = new Group(); fire.position.set(0, bowl, 0); fire.visible = false; root.add(fire);
   // The fire (P2 #8): layered flame, glow, embers downwind, a smoke column and a warm pool on the sand.
   addFire(fire, WAYMARK_FIRE, { at: new Vector3(x, y + bowl, z), groundAt });
-  return { root, colliders, fire, bowlAt: new Vector3(x, y + 1.6 + P, z), oil, glow: fireLight(new Vector3(x, y + bowl + 0.4, z)) };
+  const light = fireLight(new Vector3(x, y + bowl + 0.4, z));
+  return { root, colliders, fire, bowlAt: new Vector3(x, y + 1.6 + P, z), oil, glow: (lit: boolean) => {
+    light(lit); if (ember instanceof MeshStandardMaterial) ember.emissiveIntensity = lit ? 1.1 : 0;
+  } };
 }

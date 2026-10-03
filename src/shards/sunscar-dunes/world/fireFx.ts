@@ -1,5 +1,6 @@
-import { AdditiveBlending, BufferGeometry, CustomBlending, OneFactor, OneMinusSrcAlphaFactor, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, Vector4, type Group, type Object3D, type Vector3 } from 'three';
+import { AdditiveBlending, BufferGeometry, CustomBlending, LinearFilter, LinearMipmapLinearFilter, OneFactor, OneMinusSrcAlphaFactor, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, SRGBColorSpace, Texture, Vector4, type Group, type Object3D, type Vector3 } from 'three';
 import { WIND } from './dunes';
+import { FIRE_BOOK_URL } from '../boot/files';
 
 /**
  * Fire, embers and smoke (review R5 / TOP-15 #8, style bible FX): shard-local, since no flame / ember / smoke particle
@@ -21,6 +22,12 @@ export const KEEPER_LAMP: FireSize = { flame: 2.6, glow: 1.2, smoke: 0.01, ember
 export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
 
 const time = { value: 0 };
+/**
+ * E407 row 6 (the audit: 'real fire'): the flame plays a flipbook of a Blender gas sim's fire (Mantaflow, a burning log
+ * pile, 32 frames rendered emission-only; art/sunscar-dunes/round-26-fire fire.py / pack.py), 8 x 4 cells of 256 x 512,
+ * premultiplied over black. It loads after the boot (loadFireBook); the procedural flame burns until it lands.
+ */
+const book: { value: Texture | null } = { value: null }, hasBook = { value: 0 };
 const NOISE = /* glsl */ `
 float fxHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float fxNoise(vec2 p) {
@@ -54,16 +61,35 @@ void main() {
 // round 8b (measured: the flame's bright pixels carried the sky's blue, B 105-203 against mockup C's 69-173: an additive
 // flame over a violet sky reads peach): premultiplied alpha, so the flame's body covers the sky behind it
 const flameMaterial = new ShaderMaterial({
-  uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: CustomBlending, blendSrc: OneFactor, blendDst: OneMinusSrcAlphaFactor, fog: false,
+  uniforms: { uTime: time, uBook: book, uHasBook: hasBook }, transparent: true, depthWrite: false, blending: CustomBlending, blendSrc: OneFactor, blendDst: OneMinusSrcAlphaFactor, fog: false,
   vertexShader: `#define LEAN 0.06\n#define LEAN_WIDEN 0.0\n#define SWAY 0.15\n${BILLBOARD_Y}`,
   fragmentShader: /* glsl */ `
 uniform float uTime;
+uniform sampler2D uBook;
+uniform float uHasBook;
 varying vec2 vUv;
 varying float vFar;
 varying float vNear;
 varying float vSeed;
 ${NOISE}
+// cell i of the 8 x 4 flipbook at the quad's uv (row 0 at the image's top; the bitmap is flipped at decode)
+vec3 bookAt(float i, vec2 uv) { float col = mod(i, 8.0), row = floor(i / 8.0); return texture2D(uBook, vec2((col + uv.x) / 8.0, (3.0 - row + uv.y) / 4.0)).rgb; }
 void main() {
+  float fade = smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25);
+  if (uHasBook > 0.5) {
+    // 16 frames a second, each billboard its own phase, the next frame cross-faded in (the 32-frame loop is 2 s)
+    float ft = uTime * 16.0 + vSeed * 32.0, i0 = mod(floor(ft), 32.0), k = fract(ft);
+    vec2 uv = clamp(vUv, vec2(0.004), vec2(0.996));
+    vec3 c = mix(bookAt(i0, uv), bookAt(mod(i0 + 1.0, 32.0), uv), k);
+    float lum = max(c.r, max(c.g, c.b));
+    // the render is light over black: its coverage from its brightness, the hottest core pushed past 1 so AgX whites it
+    float cover = clamp(lum * 1.7, 0.0, 1.0);
+    // mockup C: saturated orange tongues, white only in the core over the logs (the render's yellow-white bleached them)
+    c = pow(c, vec3(1.0, 1.35, 1.9)) * vec3(1.2, 0.95, 0.75);
+    c *= 1.0 + 1.4 * smoothstep(0.8, 1.0, lum);
+    gl_FragColor = vec4(c * fade, cover * fade);
+    return;
+  }
   // E399 (mockup C): a ragged log fire. Round 8 (the council: smooth cream tongues; mockup C 13 468 saturated-orange
   // pixels and 5 557 white-hot against our 2 679 and 370): many thin licks torn by three noise octaves, a hard edge,
   // deep saturated orange at moderate gain on the licks (AgX keeps it orange), a white-hot core low over the logs
@@ -89,7 +115,6 @@ void main() {
   // streaks rising through the body, and the base thin so the logs read through it
   float streak = fxNoise(vec2((x + lick) * 38.0, y * 5.0 - uTime * 6.5));
   c *= 0.65 + 0.7 * streak;
-  float fade = smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25);
   float base = mix(0.45, 1.0, smoothstep(0.08, 0.3, y));
   gl_FragColor = vec4(c * body * fade * base, body * fade * base); // round 11 (R10B-5): denser
 }`,
@@ -112,7 +137,7 @@ void main() {
   float puff = smoothstep(0.35, 0.75, n + 0.25 * (1.0 - y));
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
-  vec3 c = ${wisp ? 'mix(vec3(0.16, 0.11, 0.1), vec3(0.09, 0.08, 0.12), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.25, 0.1, 0.04), vec3(0.05, 0.03, 0.032), smoothstep(0.02, 0.2, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
+  vec3 c = ${wisp ? 'mix(vec3(0.16, 0.11, 0.1), vec3(0.09, 0.08, 0.12), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.42, 0.2, 0.08), vec3(0.13, 0.1, 0.1), smoothstep(0.02, 0.3, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 18 (row 3: near-black, it vanished against the late sky; mockup C's billow reads grey-brown): lifted; round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
   gl_FragColor = vec4(c, a * ${wisp ? '0.55' : '0.9'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
@@ -272,3 +297,23 @@ export function resetFireLights(): void { fireLights.next = 0; for (const v of F
 
 /** Advances every fire's shared clock (one uniform for all of them). */
 export function tickFires(t: number): void { time.value = t; }
+
+let bookGen = 0;
+/** Fetch the flame's flipbook (off the boot path); returns the dispose to run when the shard unloads. */
+export function loadFireBook(): () => void {
+  const gen = ++bookGen;
+  void (async () => {
+    try {
+      const response = await fetch(FIRE_BOOK_URL);
+      if (!response.ok) throw new Error(`${String(response.status)} ${FIRE_BOOK_URL}`);
+      const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: 'flipY' });
+      const tex = new Texture(bitmap); tex.colorSpace = SRGBColorSpace; tex.name = 'sunscar.fire.book';
+      tex.generateMipmaps = true; tex.minFilter = LinearMipmapLinearFilter; tex.magFilter = LinearFilter; tex.needsUpdate = true;
+      if (gen !== bookGen) { tex.dispose(); return; }
+      book.value = tex; hasBook.value = 1;
+    } catch (error: unknown) {
+      console.warn('[sunscar-dunes] fire flipbook not loaded:', error);
+    }
+  })();
+  return () => { bookGen++; book.value?.dispose(); book.value = null; hasBook.value = 0; };
+}
