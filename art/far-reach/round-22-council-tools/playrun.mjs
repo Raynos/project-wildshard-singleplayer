@@ -30,7 +30,8 @@ try {
   await page.goto(`${URL_BASE}/?chunk=far-reach&tier=phone&touch=1&mute=1&nolock=1&sw=0&skipintro=1`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__wildshard?.world?.player) && document.querySelector('.ws-load') === null, undefined, { timeout: 480000, polling: 1000 });
   await sleep(4000);
-  await page.evaluate(() => { window.__wildshard.shard?.farReach?.stage?.('quest-winch'); try { window.__wildshard.world.animals.calm = true; } catch { /* */ } });
+  // creatures live (round 9, the lead: the run calmed them without saying so): the rays, goats and wisps act as in play
+  await page.evaluate(() => { window.__wildshard.shard?.farReach?.stage?.('quest-winch'); try { window.__wildshard.world.animals.calm = false; } catch { /* */ } });
   const here = () => page.evaluate(() => { const p = window.__wildshard.world.player; return { x: p.position.x, y: p.position.y, z: p.position.z, yaw: p.yaw }; });
   for (const leg of LEGS) {
     let at = await here();

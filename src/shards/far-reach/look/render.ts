@@ -44,10 +44,14 @@ function keelPuffs(): [number, number, number, number][] {
   }
   // a cumulus bank round the storm crown a little under its deck (E399 round 2, seat B: 'no cloud sea behind the stones';
   // from the arena the true sea, 52 m down, only shows past ~740 m): it reads as the sea just past the rim
+  // its own random stream (round 9: sharing the keels' let every sky isle added or moved re-roll the whole bank; o4 put
+  // lit puffs behind the stones next to the sun, D's glare 10.0 -> 12.6 % of the middle band)
+  let b = 9137;
+  const rndB = (): number => { b = (b * 16807) % 2147483647; return b / 2147483647; };
   const crown = ISLES.find((isle) => isle.id === 'crown');
   if (crown !== undefined) for (let i = 0; i < 34; i++) {
-    const ang = (i / 34) * Math.PI * 2 + rnd() * 0.15, r = crown.r + 14 + rnd() * 60;
-    out.push([crown.x + Math.cos(ang) * r, crown.y - 9 + rnd() * 5, crown.z + Math.sin(ang) * r, 14 + rnd() * 16]);
+    const ang = (i / 34) * Math.PI * 2 + rndB() * 0.15, r = crown.r + 14 + rndB() * 60;
+    out.push([crown.x + Math.cos(ang) * r, crown.y - 9 + rndB() * 5, crown.z + Math.sin(ang) * r, 14 + rndB() * 16]);
   }
   return out;
 }

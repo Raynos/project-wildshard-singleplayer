@@ -19,7 +19,8 @@ export const SWEEP: StrikeSpec = { id: 'far.roc.sweep', shape: { kind: 'arc', ra
 export const ROC_GALE = { shove: 14, lift: 2 } as const;
 export const ROC_SPEED = { circle: 10, stalk: 12, dive: 20, walk: 2.4 } as const;
 /** The take-off as a fight begins: its seconds, its slow speed out from the perch (m/s) and how far it rises (m). */
-export const ROC_TAKEOFF = { seconds: 1.5, speed: 2.5, rise: 4 } as const;
+// (round 9, the lead: the fight starts at the bridge landing; a player walks into the arena's view in ~3.1 s)
+export const ROC_TAKEOFF = { seconds: 4, speed: 1.6, rise: 5 } as const;
 /** The Roc's perch: the top of the ring's tallest stone (world/crown.ts), the one opposite the arena's entrance. */
 const PERCH = (): { x: number; y: number; z: number } => {
   const tallest = crownStones().reduce((best, st) => (st.h > best.h ? st : best));
@@ -63,12 +64,17 @@ export class StormRocBrain extends CreatureBrain<RocState> {
    * tallest stone as the boss begins, its first 2 s rest running; it lifts off along its lap, then turns in on its first
    * stalk at the player. What every fight shows in its first seconds, from wherever the player entered the arena.
    */
+  /** A fight restart (the boss's retry or checkpoint): the first rest and the take-off run again (round 9: on a retry the
+   * rest timer was never reset, so the take-off did not replay). */
+  restart(): void {
+    this.strikes.cancel(); this.actor.cancelAttack(); this.current = null; this.rest = 2; this.takeoff = 0; this.wasFighting = false; this.transition('circle');
+  }
   stageOpening(): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
     const perch = PERCH();
     this.strikes.cancel(); a.cancelAttack(); this.current = null; this.rest = 2; this.transition('circle');
     this.angle = Math.atan2(perch.z - ROC.z, perch.x - ROC.x);
-    a.place(perch.x, perch.z, 0, perch.y); a.yaw = yawTo(a, DAIS.x, DAIS.z + 40); this.takeoff = ROC_TAKEOFF.seconds; this.wasFighting = true;
+    a.place(perch.x, perch.z, 0, perch.y); a.yaw = yawTo(a, DAIS.x, DAIS.z + 40); this.takeoff = ROC_TAKEOFF.seconds; this.rest = ROC_TAKEOFF.seconds + 0.5; this.wasFighting = true;
   }
   stageStalk(at: { x: number; z: number }, face: { x: number; z: number }): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
@@ -77,7 +83,8 @@ export class StormRocBrain extends CreatureBrain<RocState> {
   }
   override think(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
-    if (this.fighting && !this.wasFighting && this.phase === 0) this.takeoff = ROC_TAKEOFF.seconds;
+    // the take-off, then the first rest: the stalk waits until the Roc is off its perch
+    if (this.fighting && !this.wasFighting && this.phase === 0) { this.takeoff = ROC_TAKEOFF.seconds; this.rest = Math.max(this.rest, ROC_TAKEOFF.seconds + 0.5); }
     this.wasFighting = this.fighting;
     if (!this.fighting || ctx.calm) { if (this.state !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.current = null; this.transition('circle'); } return; }
     this.rest -= ctx.dt;

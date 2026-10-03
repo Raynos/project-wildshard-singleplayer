@@ -20,7 +20,7 @@ export class StormRocBoss extends BossBrain {
     const at = new Vector3(DAIS.x, CROWN.y + DAIS.h, DAIS.z), body = roc ? rocBrain(roc) : null;
     const script: BossScript = {
       inArena: (p) => Math.hypot(p.x - CROWN.x, p.z - CROWN.z) < CROWN.r * 0.9 && p.y > CROWN.y - 2,
-      reset: (checkpoint) => { hp = PHASES[clampPhase(checkpoint)]; if (body) { body.phase = clampPhase(checkpoint); body.fighting = false; }
+      reset: (checkpoint) => { hp = PHASES[clampPhase(checkpoint)]; if (body) { body.phase = clampPhase(checkpoint); body.fighting = false; body.restart(); }
         if (roc) { roc.hp = hp * roc.maxHp; roc.alive = true; } },
       seal: () => undefined, intro: () => at,
       begin: (next) => { if (body) { body.phase = clampPhase(next); body.fighting = true; } },

@@ -134,8 +134,8 @@ export const ROC = { x: DAIS.x, z: DAIS.z, r: 13, y: HIGH + 11 } as const;
 /** Pine positions per island, as offsets from its centre, with a scale. */
 export const PINES: Readonly<Record<string, readonly (readonly [number, number, number])[]>> = {
   sunrest: [[-11, -6, 1], [-9, 6, 0.8], [11, 7, 0.9], [10, -12, 1.0], [-4, 12, 0.7]],
-  // (round 6: four pines in a symmetric row read regular in every spawn view; mockup A clusters them left of the mill, one right)
-  windmill: [[-7, -4, 1.05], [-4.5, -1.5, 0.8], [-10.5, 1, 0.9], [9, -1, 1]],
+  // (round 6: four pines in a symmetric row read regular in every spawn view; mockup A clusters them left of the mill, one right; round 9: the outer one 2.5 m south, out of h3's sightline to the high step)
+  windmill: [[-7, -4, 1.05], [-4.5, -1.5, 0.8], [-11.5, 3.5, 0.9], [9, -1, 1]],
   roost: [[-4, -7, 0.9], [5, 6, 1.1], [7, -4, 0.8]],
   grove: [[-5, -4, 1.2], [-2, 6, 1], [4, 6, 0.9], [6, 1, 0.8], [-7, 3, 0.7]],
   keeper: [[5, -5, 0.9], [-6, 5, 0.8]],
