@@ -56,16 +56,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "8e707af7b3fb8b9df4329a8533795f09c4d09480",
-      "reason": "E407 top-10 rows 1-2 (sky-reach): six modelled island maps (1024 WebP) and five tree maps (512); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "8512344bd2073ad2b8abe2eef2431da37f7992a6",
+      "reason": "E407 top-10 rows 3, 4, 7, 8, 10 (fan leaf, meadow atlas, crown set, roc-hd 1024 map, LUT): measured at 8512344bd, phone limits 1.8 GB / 1.0 GB"
     },
     {
       "shard": "far-reach",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "8e707af7b3fb8b9df4329a8533795f09c4d09480",
-      "reason": "E407 top-10 rows 1-2 (sky-reach): six modelled island maps (1024 WebP) and five tree maps (512); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "8512344bd2073ad2b8abe2eef2431da37f7992a6",
+      "reason": "E407 top-10 rows 3, 4, 7, 8, 10 (fan leaf, meadow atlas, crown set, roc-hd 1024 map, LUT): measured at 8512344bd, phone limits 1.8 GB / 1.0 GB"
     }
   ]
 }

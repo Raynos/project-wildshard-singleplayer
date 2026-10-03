@@ -1693,15 +1693,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "8e707af7b3fb8b9df4329a8533795f09c4d09480",
-      "reason": "E407 top-10 rows 1-2 (sky-reach): six modelled island maps (1024 WebP) and five tree maps (512); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "commit": "8512344bd2073ad2b8abe2eef2431da37f7992a6",
+      "reason": "E407 top-10 rows 3, 4, 7, 8, 10 (fan leaf, meadow atlas, crown set, roc-hd 1024 map, LUT): measured at 8512344bd, phone limits 1.8 GB / 1.0 GB",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E407 top-10 rows 1-2 (sky-reach): six modelled island maps (1024 WebP) and five tree maps (512); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
-      "captureSha": "8e707af7b3fb8b9df4329a8533795f09c4d09480",
-      "captureSha256": "b642eac3ff35d2efb5b66c547dc360a86779fc77277f1adab7f186d60f7eb8c5",
+      "approval": "E407 top-10 rows 3, 4, 7, 8, 10 (fan leaf, meadow atlas, crown set, roc-hd 1024 map, LUT): measured at 8512344bd, phone limits 1.8 GB / 1.0 GB",
+      "captureSha": "8512344bd2073ad2b8abe2eef2431da37f7992a6",
+      "captureSha256": "ca946a8a96f0ee8f0b06dc2277c966bf8bda21dd0caf2d03e0008fb232522a5b",
       "ceilings": {
-        "far-reach.phone.current.gpuMB": 234.38562965393066
+        "far-reach.phone.current.gpuMB": 249.1324291229248
       }
     },
     {
@@ -1709,15 +1709,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "8e707af7b3fb8b9df4329a8533795f09c4d09480",
-      "reason": "E407 top-10 rows 1-2 (sky-reach): six modelled island maps (1024 WebP) and five tree maps (512); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "commit": "8512344bd2073ad2b8abe2eef2431da37f7992a6",
+      "reason": "E407 top-10 rows 3, 4, 7, 8, 10 (fan leaf, meadow atlas, crown set, roc-hd 1024 map, LUT): measured at 8512344bd, phone limits 1.8 GB / 1.0 GB",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E407 top-10 rows 1-2 (sky-reach): six modelled island maps (1024 WebP) and five tree maps (512); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
-      "captureSha": "8e707af7b3fb8b9df4329a8533795f09c4d09480",
-      "captureSha256": "7785247f1f48aeb7cceebd905f48680c86cd2df2e53192be62540251e5394757",
+      "approval": "E407 top-10 rows 3, 4, 7, 8, 10 (fan leaf, meadow atlas, crown set, roc-hd 1024 map, LUT): measured at 8512344bd, phone limits 1.8 GB / 1.0 GB",
+      "captureSha": "8512344bd2073ad2b8abe2eef2431da37f7992a6",
+      "captureSha256": "0185a446645fcbdcd7102ee0b172b99c1ea182ac7eb3b1832f1491be177d0755",
       "ceilings": {
-        "far-reach.desktop.current.gpuMB": 348.8395175933838
+        "far-reach.desktop.current.gpuMB": 363.58631706237793
       }
     }
   ]
