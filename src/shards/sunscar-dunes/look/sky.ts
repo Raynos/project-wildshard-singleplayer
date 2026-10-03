@@ -37,19 +37,23 @@ void main() {
   float toward = max(dot(normalize(vec3(d.x, 0.0, d.z)), normalize(vec3(uSun.x, 0.0, uSun.z))), 0.0);
   // Loop 5 (the mockups A-D): a clear dusk. A deep orange band hugs the horizon, brightest behind the tower; above it a
   // short dusty-rose fade into a deep indigo dome full of stars. Clouds are only a few thin dark streaks low in the band.
-  vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2)) * (1.0 - 0.4 * uDusk);
+  // round 8b (measured, Rec. 709 bands: the band at 30-36 % of the frame 168 in A and 140 in dusk-fire against the mockups' 97
+  // and 84, and too yellow, 224,156,107 against 154,83,60): a deeper, redder afterglow
+  // and the afterglow holds as the dusk deepens (mockups B-D's low band 87-116 against ours 71-82; it used to fade by 40 %)
+  vec3 band = mix(vec3(0.62, 0.25, 0.12), vec3(0.78, 0.34, 0.14), pow(toward, 1.2)) * (0.78 + 0.3 * uDusk);
   // round 8 (measured, Rec. 709 bands: mockup A's mid sky 81,58,76 against ours 74,46,69, its top 40,37,65 against 48,35,61):
   // a dusty rose-peach above the band and a bluer, less plum dome
-  vec3 rose = vec3(0.5, 0.32, 0.32), dusk = vec3(0.24, 0.2, 0.29), indigo = vec3(0.09, 0.1, 0.21);
+  vec3 rose = vec3(0.5, 0.32, 0.32), dusk = vec3(0.24, 0.2, 0.29), indigo = vec3(0.1, 0.09, 0.19);
   // E399 (the mockups): a tall soft orange-gold band behind the tower, peach to rose, navy pushed higher
   // E399 (look/dusk.ts): as the quest goes on the band sinks and dims, the rose turns violet, the indigo comes down
   rose = mix(rose, vec3(0.42, 0.3, 0.42), uDusk);
-  indigo = mix(indigo, vec3(0.13, 0.15, 0.33), uDusk); // round 8: bluer (mockup B's sky 49,46,92; ours read plum) // blue-violet (round 4: plum at half the mockups' value) // the late zenith a muted lavender (R2B-1), not navy
+  indigo = mix(indigo, vec3(0.15, 0.155, 0.31), uDusk); // round 8: a touch bluer (mockup B's sky 49,46,92; ours read plum)
+  dusk = mix(dusk, vec3(0.27, 0.22, 0.41), uDusk); // round 8b: the blue hour's mid sky a lighter lavender (mockup D 60,53,100; ours 42,41,82) // blue-violet (round 4: plum at half the mockups' value) // the late zenith a muted lavender (R2B-1), not navy
   vec3 c = mix(band, rose, smoothstep(0.0, (0.08 + 0.07 * toward) * (1.0 - 0.5 * uDusk), h));
   // wide overlapping blends: where one smoothstep ended flat as the next began, the eye read a hard arc (a Mach band)
   c = mix(c, dusk, smoothstep(0.05 * (1.0 - 0.6 * uDusk), 0.36 - 0.18 * uDusk, h));
-  c = mix(c, indigo, smoothstep(0.08 - 0.05 * uDusk, 0.85 - 0.4 * uDusk, h));
-  c += vec3(1.0, 0.55, 0.2) * pow(toward, 4.0) * (1.0 - smoothstep(0.0, 0.1 - 0.05 * uDusk, h)) * 0.45 * (1.0 - 0.6 * uDusk);
+  c = mix(c, indigo, smoothstep(0.08 - 0.05 * uDusk, 0.5, h)); // round 8b: the dome's indigo lower at sunset (A's sky at 15 % of the frame 72,54,74 against 40,37,65)
+  c += vec3(1.0, 0.5, 0.2) * pow(toward, 4.0) * (1.0 - smoothstep(0.0, 0.1 - 0.05 * uDusk, h)) * 0.28 * (1.0 - 0.6 * uDusk);
   float az = atan(d.z, d.x);
   // E399 (council round 2: mockups A and dusk-fire have orange cloud banks lit from below; B-D are clear): a broken
   // deck projected on a flat layer, patchy, lit orange-gold toward the glow and rose away from it, dark cores; it clears
