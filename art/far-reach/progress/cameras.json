@@ -1,5 +1,5 @@
 {
-  "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 Sunrest rim, H2 the windmill isle, H3 the high step, H4 the crown) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z). E399: one mock-* view per council mockup (docs/plans/mockup-council/ledger.md), at the mockup's camera: proposal B and mockup A down the spawn bridge to the windmill, B the quest start at the spawn (the keeper left of the axis), C the fan with the windmill behind, D the crown arena under the Roc.",
+  "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 Sunrest rim, H2 the windmill isle, H3 the high step, H4 the crown) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z). E399: one mock-* view per council mockup (docs/plans/mockup-council/ledger.md), at the mockup's camera: proposal B and mockup A down the spawn bridge to the windmill, B the quest start at the spawn (the keeper left of the axis), C the fan with the windmill behind, D the crown arena under the Roc. The spawn mock views come before the crown (its boss bar) and the aerials (a god view hides the viewmodel).",
   "shots": [
     {
       "id": "h1-sunrest",
@@ -24,44 +24,6 @@
       "z": -56,
       "yaw": -2.5,
       "pitch": 10
-    },
-    {
-      "id": "h4-crown",
-      "x": 0,
-      "y": 44,
-      "z": -172,
-      "yaw": 0,
-      "pitch": 6
-    },
-    {
-      "id": "aerial-spawn",
-      "god": {
-        "pos": [
-          0,
-          62,
-          41
-        ],
-        "look": [
-          0,
-          30,
-          -29
-        ]
-      }
-    },
-    {
-      "id": "aerial-overview",
-      "god": {
-        "pos": [
-          0,
-          130,
-          90
-        ],
-        "look": [
-          0,
-          30,
-          -100
-        ]
-      }
     },
     {
       "id": "mock-proposal-B",
@@ -100,6 +62,14 @@
       "pitch": -2
     },
     {
+      "id": "h4-crown",
+      "x": 0,
+      "y": 44,
+      "z": -172,
+      "yaw": 0,
+      "pitch": 6
+    },
+    {
       "id": "mock-D-crown-arena",
       "mockup": "art/far-reach/round-11-review/mockup-D-crown-arena.jpg",
       "x": 0,
@@ -107,6 +77,36 @@
       "z": -174,
       "yaw": 0,
       "pitch": 2
+    },
+    {
+      "id": "aerial-spawn",
+      "god": {
+        "pos": [
+          0,
+          62,
+          41
+        ],
+        "look": [
+          0,
+          30,
+          -29
+        ]
+      }
+    },
+    {
+      "id": "aerial-overview",
+      "god": {
+        "pos": [
+          0,
+          130,
+          90
+        ],
+        "look": [
+          0,
+          30,
+          -100
+        ]
+      }
     }
   ],
   "clip": {
