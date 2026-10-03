@@ -5,7 +5,7 @@
  * the island keeps spawning and drawing every copy as before.
  */
 import { live, type RosterEntry } from '#engine/models/live';
-import { bear, boar } from '#engine/models/creatures';
+import { bear, boar } from '#kit/models/creatures';
 import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './models/creatures';
 import { castaway } from './models/people';
 import { GEAR } from './models/gear';

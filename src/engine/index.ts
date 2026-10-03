@@ -81,7 +81,7 @@ export { bladeBlocked, bladeContact, type Clang } from './player/MeleeSweep';
 export { worldTime } from './core/time';
 export { CameraFX } from './player/CameraFX';
 export { Impacts } from './fx/Impacts';
-export { defineModel, type ModelContext, type ModelPart } from './models/model';
+export { defineModel, type ModelContext, type ModelPart, type ModelDef } from './models/model';
 export { DayCycle, type DayCycleSpec, type DayCycleClock, type DayKeys, type DayPhase, type TimePick, type LightPreset } from './world/dayCycle';
 export { Weather, type WeatherProfile, type WeatherNumbers } from './world/weather';
 

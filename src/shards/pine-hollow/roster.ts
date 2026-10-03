@@ -8,7 +8,7 @@
  * birds) is its generator alone.
  */
 import { live, type RosterEntry } from '#engine/models/live';
-import { bear, boar, deer } from '#engine/models/creatures';
+import { bear, boar, deer } from '#kit/models/creatures';
 import { elk } from './models/creatures';
 import { antlerKing } from './models/antlerKing';
 import { owl, raven, woodpecker } from './models/birds';
