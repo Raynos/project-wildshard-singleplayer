@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "m5",
-    "sha": "011e46d7bc2ebe041b48abbc3b847089c2fc7ab6",
-    "build": "011e46d-musjmzui",
+    "sha": "c1e7577c291ab9df8ab794576613e796398936d2",
+    "build": "c1e7577-muslno8d",
     "shard": "sunscar-dunes",
     "tier": "phone",
     "viewport": {
@@ -417,7 +417,7 @@
         "solidFloor": false,
         "follows": false,
         "shapes": {
-          "cuboid": 32,
+          "cuboid": 40,
           "ball": 0,
           "capsule": 0,
           "convex": 0,
@@ -450,11 +450,11 @@
       "fixed": 0,
       "kinematic": 0,
       "dynamic": 0,
-      "colliders": 137
+      "colliders": 144
     },
     "scene": {
       "totals": {
-        "mesh": 390,
+        "mesh": 398,
         "instanced": 17,
         "instances": 123,
         "skinned": 13,
@@ -504,17 +504,17 @@
     },
     "render": {
       "programs": 57,
-      "programKeys": "8b5810a442ebe1fd196e686af36d5f7ddac5f585127ccc70200f654ebbe91628",
+      "programKeys": "00c409cae4b02b9bea207e074683aea9fe35de87e1af438d8c12c7d3dcff180e",
       "memory": {
-        "geometries": 236,
+        "geometries": 244,
         "textures": 56
       }
     },
     "gpuBytes": {
       "textures": 146012284,
       "renderbuffers": 0,
-      "buffers": 11218132,
-      "total": 157230416
+      "buffers": 11224852,
+      "total": 157237136
     },
     "audio": {
       "requests": [
@@ -2250,26 +2250,26 @@
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 1751.3999996185303,
+    "playMs": 1939.4000000953674,
     "stepMs": {
-      "renderer": 10,
-      "sky": 35,
-      "terrain": 616,
-      "cards": 0,
-      "forest": 5,
-      "physics": 28,
-      "edge": 6,
+      "renderer": 12,
+      "sky": 40,
+      "terrain": 696,
+      "cards": 1,
+      "forest": 6,
+      "physics": 33,
+      "edge": 7,
       "grass": 0,
       "cabins": 0,
-      "props": 53,
+      "props": 61,
       "animals": 1,
       "weapon": 0,
-      "menu": 6,
-      "shaders": 145,
-      "firstFrame": 102,
+      "menu": 5,
+      "shaders": 159,
+      "firstFrame": 109,
       "audio": 0
     },
-    "heapMB": 50.608341217041016
+    "heapMB": 47.93528747558594
   },
   "poses": {
     "spawn": {
@@ -2279,19 +2279,19 @@
         21.365508601291797,
         69.99046689533134
       ],
-      "calls": 188,
-      "tris": 279003,
-      "fps": 1215.3344218262912,
-      "frameP95Ms": 2.3000001907348633,
-      "cpuP50Ms": 0.6000003814697266,
-      "cpuP95Ms": 1,
+      "calls": 192,
+      "tris": 269475,
+      "fps": 1039.0516066692242,
+      "frameP95Ms": 2.0999999046325684,
+      "cpuP50Ms": 0.8000001907348633,
+      "cpuP95Ms": 1.1999998092651367,
       "creatureBoxes": 5,
       "boxes": [
         [
-          0,
-          264,
-          22,
-          464
+          216,
+          361,
+          237,
+          416
         ],
         [
           58,
@@ -2318,7 +2318,7 @@
           501
         ]
       ],
-      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity18/retry/sunscar-dunes.phone.spawn.jpg",
+      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity20/retry/sunscar-dunes.phone.spawn.jpg",
       "ssim": 1
     },
     "whip": {
@@ -2328,20 +2328,14 @@
         20.34722944864622,
         65.98766284396334
       ],
-      "calls": 70,
-      "tris": 260155,
-      "fps": 1324.4444444444446,
-      "frameP95Ms": 2,
-      "cpuP50Ms": 0.40000009536743164,
-      "cpuP95Ms": 0.5999999046325684,
-      "creatureBoxes": 8,
+      "calls": 68,
+      "tris": 242155,
+      "fps": 1246.8619246861924,
+      "frameP95Ms": 2.4000000953674316,
+      "cpuP50Ms": 0.5,
+      "cpuP95Ms": 0.8999996185302734,
+      "creatureBoxes": 7,
       "boxes": [
-        [
-          47,
-          186,
-          216,
-          389
-        ],
         [
           110,
           387,
@@ -2385,7 +2379,7 @@
           437
         ]
       ],
-      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity18/retry/sunscar-dunes.phone.whip.jpg",
+      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity20/retry/sunscar-dunes.phone.whip.jpg",
       "ssim": 1
     },
     "ray": {
@@ -2395,22 +2389,46 @@
         21.365508601291797,
         69.99046689533134
       ],
-      "calls": 85,
-      "tris": 267921,
-      "fps": 1548.856544250193,
-      "frameP95Ms": 1.5,
-      "cpuP50Ms": 0.40000009536743164,
-      "cpuP95Ms": 0.5999999046325684,
-      "creatureBoxes": 1,
+      "calls": 195,
+      "tris": 270099,
+      "fps": 1161.3406105398458,
+      "frameP95Ms": 2.3000001907348633,
+      "cpuP50Ms": 0.6999998092651367,
+      "cpuP95Ms": 1.0999999046325684,
+      "creatureBoxes": 5,
       "boxes": [
         [
-          226,
-          585,
-          272,
-          665
+          247,
+          432,
+          268,
+          487
+        ],
+        [
+          88,
+          507,
+          120,
+          573
+        ],
+        [
+          92,
+          508,
+          123,
+          573
+        ],
+        [
+          120,
+          511,
+          149,
+          574
+        ],
+        [
+          114,
+          509,
+          145,
+          574
         ]
       ],
-      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity18/retry/sunscar-dunes.phone.ray.jpg",
+      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity20/retry/sunscar-dunes.phone.ray.jpg",
       "ssim": 1
     },
     "quest": {
@@ -2420,15 +2438,22 @@
         18.962891171230737,
         -62.9868300166745
       ],
-      "calls": 161,
-      "tris": 242431,
-      "fps": 1500.5035289959467,
-      "frameP95Ms": 1.4000000953674316,
-      "cpuP50Ms": 0.40000009536743164,
-      "cpuP95Ms": 0.5999999046325684,
-      "creatureBoxes": 0,
-      "boxes": [],
-      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity18/retry/sunscar-dunes.phone.quest.jpg",
+      "calls": 157,
+      "tris": 259183,
+      "fps": 1374.5387441781713,
+      "frameP95Ms": 1.299999713897705,
+      "cpuP50Ms": 0.5999999046325684,
+      "cpuP95Ms": 0.8000001907348633,
+      "creatureBoxes": 1,
+      "boxes": [
+        [
+          21,
+          0,
+          390,
+          400
+        ]
+      ],
+      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity20/retry/sunscar-dunes.phone.quest.jpg",
       "ssim": 1
     }
   },
@@ -2441,29 +2466,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 109.88733863830566
+        "gpuMB": 149.9466094970703
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "spawn": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "whip": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "ray": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "quest": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "tower": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               }
             },
             "desktop": {
@@ -2561,29 +2586,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 109.88733863830566
+        "gpuMB": 149.9466094970703
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "spawn": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "whip": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "ray": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "quest": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "tower": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               }
             },
             "desktop": {
@@ -2681,29 +2706,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 109.88733863830566
+        "gpuMB": 149.9466094970703
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "spawn": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "whip": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "ray": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "quest": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "tower": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               }
             },
             "desktop": {
@@ -2801,29 +2826,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 109.88733863830566
+        "gpuMB": 149.9466094970703
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "spawn": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "whip": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "ray": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "quest": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "tower": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               }
             },
             "desktop": {
@@ -2921,29 +2946,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 109.88733863830566
+        "gpuMB": 149.9466094970703
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "spawn": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "whip": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "ray": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "quest": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "tower": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               }
             },
             "desktop": {
@@ -3033,10 +3058,10 @@
       "gpuM5Ms": 1.6041025641025641,
       "downloadBytes": null,
       "observed": {
-        "draws": 99,
-        "tris": 240630,
+        "draws": 106,
+        "tris": 240518,
         "programs": 57,
-        "gpuMB": 149.9466094970703
+        "gpuMB": 149.95301818847656
       }
     },
     "current": {
@@ -3047,29 +3072,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 109.88733863830566
+        "gpuMB": 149.9466094970703
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "spawn": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "whip": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "ray": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "quest": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               },
               "tower": {
-                "gpuMB": 109.88733863830566
+                "gpuMB": 149.9466094970703
               }
             },
             "desktop": {
@@ -3159,10 +3184,10 @@
       "gpuM5Ms": 1.6041025641025641,
       "downloadBytes": null,
       "observed": {
-        "draws": 99,
-        "tris": 240630,
+        "draws": 106,
+        "tris": 240518,
         "programs": 57,
-        "gpuMB": 149.9466094970703
+        "gpuMB": 149.95301818847656
       }
     }
   },
@@ -3234,9 +3259,9 @@
           "id": "duneRay:0",
           "kind": "duneRay",
           "pos": {
-            "x": -18,
-            "y": 26.855,
-            "z": 30.008
+            "x": 8,
+            "y": 32.261,
+            "z": -74.992
           },
           "hp": 70,
           "brain": "idle"
@@ -3246,7 +3271,7 @@
           "kind": "duneStrider",
           "pos": {
             "x": 100,
-            "y": 14.349,
+            "y": 17.682,
             "z": -49.992
           },
           "hp": 150,
@@ -3312,7 +3337,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 59.022,
-            "y": 3.515,
+            "y": 12.232,
             "z": 13.361
           },
           "hp": 24,
@@ -3323,7 +3348,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 63.399,
-            "y": 4.215,
+            "y": 13.78,
             "z": 9.167
           },
           "hp": 24,
@@ -3334,7 +3359,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 57.579,
-            "y": 5.311,
+            "y": 14.59,
             "z": 7.473
           },
           "hp": 24,
@@ -3417,9 +3442,9 @@
           "id": "duneRay:0",
           "kind": "duneRay",
           "pos": {
-            "x": -18,
-            "y": 26.855,
-            "z": 30.008
+            "x": 8,
+            "y": 32.261,
+            "z": -74.992
           },
           "hp": 70,
           "brain": "idle"
@@ -3429,7 +3454,7 @@
           "kind": "duneStrider",
           "pos": {
             "x": 100,
-            "y": 14.349,
+            "y": 17.682,
             "z": -49.992
           },
           "hp": 150,
@@ -3495,7 +3520,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 59.022,
-            "y": 3.515,
+            "y": 12.232,
             "z": 13.361
           },
           "hp": 24,
@@ -3506,7 +3531,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 63.399,
-            "y": 4.215,
+            "y": 13.78,
             "z": 9.167
           },
           "hp": 24,
@@ -3517,7 +3542,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 57.579,
-            "y": 5.311,
+            "y": 14.59,
             "z": 7.473
           },
           "hp": 24,
@@ -3679,18 +3704,18 @@
     },
     "stacks": {
       "listeners": [
-        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:51070/?chunk=sunscar-dunes&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
-        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:51070/?chunk=sunscar-dunes&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:37:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:51070/assets/scope-BdUNy8vn.js:1:3194)\n    at F (http://127.0.0.1:51070/assets/bootTrace-CWR102Lj.js:2:5163)\n    at http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:2:2889",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:51070/assets/scope-BdUNy8vn.js:1:3194)\n    at http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:2:3945",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:51070/assets/scope-BdUNy8vn.js:1:3194)\n    at http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:2:4039"
+        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:58107/?chunk=sunscar-dunes&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
+        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:58107/?chunk=sunscar-dunes&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:37:16",
+        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:58107/assets/scope-RBxH8mAX.js:1:3194)\n    at F (http://127.0.0.1:58107/assets/bootTrace-Dckdd0U-.js:2:5163)\n    at http://127.0.0.1:58107/assets/index-2zZtf59G.js:2:2889",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:58107/assets/scope-RBxH8mAX.js:1:3194)\n    at http://127.0.0.1:58107/assets/index-2zZtf59G.js:2:3945",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:58107/assets/scope-RBxH8mAX.js:1:3194)\n    at http://127.0.0.1:58107/assets/index-2zZtf59G.js:2:4039"
       ],
       "timers": [
-        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:51070/assets/scope-BdUNy8vn.js:1:3897)\n    at Hs (http://127.0.0.1:51070/assets/runtime-C0DGb_eu.js:25:55858)\n    at c (http://127.0.0.1:51070/assets/runtime-C0DGb_eu.js:25:57601)\n    at async http://127.0.0.1:51070/assets/runtime-C0DGb_eu.js:25:57811\n    at async http://127.0.0.1:51070/assets/runtime-C0DGb_eu.js:25:5659",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:51070/assets/scope-BdUNy8vn.js:1:4166)\n    at http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:2:3928",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:51070/assets/scope-BdUNy8vn.js:1:4166)\n    at mt (http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:73:10821)\n    at yt (http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:73:12122)\n    at http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:80:5568",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:51070/assets/scope-BdUNy8vn.js:1:4166)\n    at mt (http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:73:10921)\n    at yt (http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:73:12122)\n    at http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:80:5568",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:51070/assets/scope-BdUNy8vn.js:1:4166)\n    at mt (http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:73:11030)\n    at yt (http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:73:12122)\n    at http://127.0.0.1:51070/assets/index-wFxDhJZ5.js:80:5568"
+        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:58107/assets/scope-RBxH8mAX.js:1:3897)\n    at Hs (http://127.0.0.1:58107/assets/runtime-DQrT4DNA.js:25:55860)\n    at c (http://127.0.0.1:58107/assets/runtime-DQrT4DNA.js:25:57603)\n    at async http://127.0.0.1:58107/assets/runtime-DQrT4DNA.js:25:57813\n    at async http://127.0.0.1:58107/assets/runtime-DQrT4DNA.js:25:5659",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:58107/assets/scope-RBxH8mAX.js:1:4166)\n    at http://127.0.0.1:58107/assets/index-2zZtf59G.js:2:3928",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:58107/assets/scope-RBxH8mAX.js:1:4166)\n    at mt (http://127.0.0.1:58107/assets/index-2zZtf59G.js:73:10821)\n    at yt (http://127.0.0.1:58107/assets/index-2zZtf59G.js:73:12122)\n    at http://127.0.0.1:58107/assets/index-2zZtf59G.js:80:5568",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:58107/assets/scope-RBxH8mAX.js:1:4166)\n    at mt (http://127.0.0.1:58107/assets/index-2zZtf59G.js:73:10921)\n    at yt (http://127.0.0.1:58107/assets/index-2zZtf59G.js:73:12122)\n    at http://127.0.0.1:58107/assets/index-2zZtf59G.js:80:5568",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:58107/assets/scope-RBxH8mAX.js:1:4166)\n    at mt (http://127.0.0.1:58107/assets/index-2zZtf59G.js:73:11030)\n    at yt (http://127.0.0.1:58107/assets/index-2zZtf59G.js:73:12122)\n    at http://127.0.0.1:58107/assets/index-2zZtf59G.js:80:5568"
       ]
     },
     "retained": [
@@ -3755,57 +3780,12 @@
         "retained": true
       },
       {
-        "key": "scene:1855bbbf-81ab-4603-9987-2e87925d751d",
+        "key": "scene:54a4f3df-9b6d-42d8-9547-b52e2e7b6541",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:7ee157d2-8174-4135-80a8-4a29b1052197",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:eee79f4b-9ebe-4dd4-a7a6-4b01c8df5011",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:47dcc4c4-2d16-422a-a428-eebef1b53f1b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:902d01c4-51da-42f2-8385-0be95c5da862",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a63e1ec0-3dff-446d-b3e8-404d06fe99f4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:fd6b2c82-1127-4d9e-a8ad-e3e1610fce5c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f09acfc1-5872-42e0-b0e8-cc2bc0199753",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:76b6dfbc-2858-46e7-b52d-3eff7b5331c3",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:70ce7399-ba9e-4189-95f8-c5c8ee33fb9f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:bd1465b7-038e-49b3-ad6a-7350ce560d86",
+        "key": "scene:005fa6d3-af6f-48b4-8eaf-c5d44c6c480f",
         "refs": 0,
         "retained": true
       },
@@ -3815,27 +3795,22 @@
         "retained": true
       },
       {
-        "key": "scene:9f9a334f-6548-4cd8-a304-23e9074038be",
+        "key": "scene:e22ce845-bf2d-4cac-9a55-7395ed86666a",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:d19b33ba-768f-46a6-8149-d8aa7b9aaed3",
+        "key": "scene:66d1b6de-d55a-4662-bb28-bbfd50a79bec",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:ca336363-acc4-4c8f-aa8b-6c02b77f0577",
+        "key": "scene:f3de4504-7bba-4f0b-bc13-5f9f56cbf99a",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:1f1b67a6-d680-41a4-8b7e-562f7fa26bed",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:abd93302-4b6d-4c70-8f90-71d085aa0439",
+        "key": "scene:d0d2904e-6140-4f36-b9b7-2369e981a0b7",
         "refs": 0,
         "retained": true
       },
@@ -3845,22 +3820,27 @@
         "retained": true
       },
       {
-        "key": "scene:b95b808e-e118-43db-aefd-8b7cbcd5e4a9",
+        "key": "scene:aae7ba20-4e5a-4f2b-a47e-6c68b853ff56",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:ba6b394c-dd42-4a2d-acac-4393fbc7a21e",
+        "key": "scene:b36f03bc-ad90-44fa-98a7-03c874d71c2e",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:d05a9daa-4414-4f7e-a5f6-e893415fd042",
+        "key": "scene:38e709d1-a9e0-45c6-99d2-1b60e8f89916",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:dcde5920-32dd-40a1-a6f2-77454144c7f3",
+        "key": "scene:8a499b4e-fe3e-4766-8adf-a9f9e4bdd72a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:66150efb-cc37-444a-8306-03acccf1ab05",
         "refs": 0,
         "retained": true
       },
@@ -3870,12 +3850,7 @@
         "retained": true
       },
       {
-        "key": "scene:9b9c1aa2-45a8-407a-beba-ee20b0ef77c4",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:bcff4280-499f-4c3f-ae83-4a72cca3178b",
+        "key": "scene:c993be09-ec8d-4c88-bcb7-e7b9b2e34aec",
         "refs": 0,
         "retained": true
       },
@@ -3885,17 +3860,42 @@
         "retained": true
       },
       {
-        "key": "scene:a7683ef0-345d-4b8b-b1ae-4ea7f13abee3",
+        "key": "scene:483bd8ae-1c78-4ad4-ba31-29bd3dc97647",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:2bd926c4-6ea8-40f6-843d-44fc7af93140",
+        "key": "scene:0a4214de-4cf6-432d-a664-b716e0b71fbd",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:cd53ff26-1741-475f-a37f-d0c7ad48433e",
+        "key": "scene:667b7823-6df5-4b7c-bc1d-cab4177aa4e5",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:ba6b394c-dd42-4a2d-acac-4393fbc7a21e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:11e5b538-3205-45f0-886b-8dc48ac25703",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:dcde5920-32dd-40a1-a6f2-77454144c7f3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:66a8939c-6990-402c-a996-6dc3bc434b17",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4fad9c1f-c3c1-4f05-95c1-1ceb04c1407b",
         "refs": 0,
         "retained": true
       },
@@ -3905,27 +3905,12 @@
         "retained": true
       },
       {
-        "key": "scene:22746107-ca20-4f72-8ac5-1048aee239e3",
+        "key": "scene:c0f73479-cd47-4685-841a-5a8ffbb54af6",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:408bf085-0d2c-4dac-a884-73b593e65f5b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a92edd6c-75eb-449f-9e44-8bfde070d238",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:13ebf4b1-2dad-4b0d-9a51-4b4fa929311b",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:0dd8f41b-5041-4780-874c-9bd882dc2198",
+        "key": "scene:1dba7f9a-dc21-42c7-bcbf-144abad957e2",
         "refs": 0,
         "retained": true
       },
@@ -3940,17 +3925,12 @@
         "retained": true
       },
       {
-        "key": "scene:fca771e6-5582-45e1-82dc-e98871ca866d",
+        "key": "scene:05d9e35f-415c-4df9-a119-33ec08d7dffa",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:0af10662-3827-4ca5-9974-278479811eb2",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:cb7552e7-e7e5-4567-a2e3-48d2dca904f4",
+        "key": "scene:11bbd6d4-c643-4447-be75-d850549633b7",
         "refs": 0,
         "retained": true
       },
@@ -3960,62 +3940,52 @@
         "retained": true
       },
       {
-        "key": "scene:36a4ba27-22d1-4b4d-8ade-ff554195b27b",
+        "key": "scene:7f07bc82-f3e6-4442-9770-e388f33fa539",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:9d0b4f1e-08e0-4fe1-a72b-14ec0f5f8958",
+        "key": "scene:26505fb4-6cf2-4cd7-b84d-c4aa70d69132",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:aa0a629a-962d-41e7-9229-f637bcfd0a04",
+        "key": "scene:6ac4d5dd-b209-4676-b468-dae146768774",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:733b84ae-ab00-4cf2-8625-bda0c1a3198d",
+        "key": "scene:f358dac3-a3cf-4e29-ab84-1aec788e7723",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:d146b0fd-fce0-4d91-a484-4bf06370e038",
+        "key": "scene:2e1a3af5-9303-48c6-a44c-81827bfe22dd",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:aef08051-fb53-4dec-bd84-a7849e710113",
+        "key": "scene:087ebf12-c02c-4ed3-8d88-20cb910e1043",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:1d20053a-c13d-46b8-9ab8-99f47eb1d4e8",
+        "key": "scene:cb9cb9b9-d7ea-4d3f-b920-6c2457d239fe",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:56ea34dd-189a-4ebe-80ec-71c014512307",
+        "key": "scene:180dc8ee-0bfc-4b62-b67f-2307e2920599",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:c90d0e5a-45ce-4e95-9422-b7b734dc6f9e",
+        "key": "scene:f723697a-06d6-4cfc-b949-e719138a3ea7",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:6e1ea0d4-5721-4b45-9dce-0b35e8ee0929",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2be92eed-967c-4720-959f-2aad73e31ed0",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:7d172a55-1d05-414f-bf8e-1a6d6933edec",
+        "key": "scene:b02b21f9-1688-4b06-869a-aced83a00703",
         "refs": 0,
         "retained": true
       },
@@ -4025,12 +3995,17 @@
         "retained": true
       },
       {
-        "key": "scene:c51f5410-f9e7-43b7-a723-3706a5b5d917",
+        "key": "scene:6e1ea0d4-5721-4b45-9dce-0b35e8ee0929",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:29e9722d-2753-4698-b952-22c54a73f56d",
+        "key": "scene:05def011-58f1-46bc-b62f-e618c1792d25",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:c3f5f675-73eb-45ff-8766-722e265c8592",
         "refs": 0,
         "retained": true
       },
@@ -4040,27 +4015,77 @@
         "retained": true
       },
       {
+        "key": "scene:468fe48e-a182-4656-95ca-20ff2abff759",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:7ee157d2-8174-4135-80a8-4a29b1052197",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d951feea-db41-497b-81d8-07e77e6d82ba",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a63e1ec0-3dff-446d-b3e8-404d06fe99f4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:abd93302-4b6d-4c70-8f90-71d085aa0439",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d05a9daa-4414-4f7e-a5f6-e893415fd042",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1b4f912d-456b-4a3e-9580-8270fd3cd904",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:249b93d0-6cdf-488b-ae6c-e39985349e36",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:c5810233-74e5-4888-a4b5-e6eb04045bb4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b4033adb-68c7-49c0-ad3e-10eb919a728e",
+        "refs": 0,
+        "retained": true
+      },
+      {
         "key": "scene:undefined",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:b4724ffe-c2b2-4942-b1d6-a63f437b2ec6",
+        "key": "scene:72c8015d-eaa0-4d7b-942c-04076942d804",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3de4d28c-898c-48b7-9697-0b2d4357dca4",
+        "key": "scene:6b67545c-1c36-43a1-821e-ea2064c4147a",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:5ac6c86f-4854-4edd-962c-b774cdfa51df",
+        "key": "scene:b2cc5bef-4eba-4228-afc3-cd0f8901301d",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:41b0cbb6-7337-4bda-b3f9-e4eadab0a3a3",
+        "key": "scene:92d2068b-85a7-45f8-9175-e632a13155b3",
         "refs": 0,
         "retained": true
       },
@@ -4070,67 +4095,47 @@
         "retained": true
       },
       {
-        "key": "scene:783e4d38-a310-4b67-8475-4362b13049a7",
+        "key": "scene:1f90dfc2-27f0-4957-a8a3-aa3f1ccd4bd1",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3d9b3d1c-6700-43cd-a510-f16d44550d33",
+        "key": "scene:82da35f1-3a7b-4917-8d70-617c531527eb",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:91c72537-7449-4906-9dc9-c6547d3bfdd2",
+        "key": "scene:f7fdf468-9c89-4629-aee2-32b25cfe9af3",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:2dad2bcc-f187-4f53-a797-f36fe4e6fb6d",
+        "key": "scene:df1333d7-3552-4176-a143-78154ba78b95",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:5b590438-a9c4-4b31-a558-e8c3621860c8",
+        "key": "scene:dd7956ef-ec58-47eb-a2bc-32faa6345512",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:0b5c2657-a2f4-4740-b2b7-9237557f77d5",
+        "key": "scene:7e807e26-a8f7-4358-a2c4-4f39201bd3c5",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:a5a35ea5-46d9-4c94-858c-ebc1ff42d40e",
+        "key": "scene:6a2126c9-b7a8-4e8d-9d00-8d30bbb5ca11",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:4a649dd6-721d-4c6c-b046-78d690c26213",
+        "key": "scene:9d03444f-cf8a-4908-880b-95753a23fe93",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:74708617-4cf8-4ba7-99e2-852f19522bbd",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2e78de73-9712-4f76-8603-f7f79c738d2d",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:3c469cc5-118a-4b05-8581-f41e3a583362",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:fc7e43ea-7ffb-4855-9fd8-1b1e7643f83e",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:b6990456-09a3-47ad-a984-ad4d9957f971",
+        "key": "scene:49de880a-44e9-4205-9ddb-dc9cba2f1d67",
         "refs": 0,
         "retained": true
       },
@@ -4140,47 +4145,12 @@
         "retained": true
       },
       {
-        "key": "scene:cafa12bb-e946-4f31-b4ff-4e3466645c8e",
+        "key": "scene:6c01e624-054c-4f66-85e4-72d80e6befce",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:167a730c-e172-42e6-b076-004b39ff160c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:693fe8c5-ab22-49f1-9a42-c51e2a52aba5",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:3705f180-cc4a-4186-92e8-6d97aad980cf",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:11f58f48-36bd-4d74-ba30-c71cb159142c",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:9ac82968-0a14-4be4-b261-34477d6cb274",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:1356d56f-5013-4101-8019-b3b52d196e7f",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:43d158d1-98fa-43a1-a2ff-076f3fecc32a",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:4a54d01c-c7dd-4dc4-80c7-f4c1cc6616a8",
+        "key": "scene:9aa663ac-343c-4d53-ada5-6bd4a76bf37f",
         "refs": 0,
         "retained": true
       },
@@ -4190,7 +4160,22 @@
         "retained": true
       },
       {
-        "key": "scene:729f09ac-369d-486e-9840-c9c42a7c6e19",
+        "key": "scene:693fe8c5-ab22-49f1-9a42-c51e2a52aba5",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2977e315-5e77-4c51-8ebf-0ad58851209f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:72510948-7033-4af6-8009-d699f08e5519",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9e1edc8a-f44a-4037-83e6-8588ec6b6990",
         "refs": 0,
         "retained": true
       },
@@ -4200,62 +4185,102 @@
         "retained": true
       },
       {
-        "key": "scene:f49892bb-cde9-4a80-9560-330d9fe0a3a1",
+        "key": "scene:be605a02-a629-4a36-971d-adbb0829eb19",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:f66a5196-7246-4636-8838-5414795a61f1",
+        "key": "scene:ab37fc9c-6da2-40d0-b404-6011c3a6526b",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:25dc3660-fb01-4284-a821-55a5b2b104a5",
+        "key": "scene:65556f1a-b6c7-403c-8664-5d03972b474d",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:4bc93ebf-b152-4584-b42a-9e2f1a8f62f3",
+        "key": "scene:8408ca33-65f9-4579-a370-5c103be4c412",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:62015c0e-d330-4d7c-b56b-d417c9a2f929",
+        "key": "scene:abc88bc2-f14f-44af-aa24-ea7bb3fb2526",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:0687bbe8-fa5b-47c8-adb7-54d26d44a2ca",
+        "key": "scene:1a4e14db-a1a2-4390-aecf-0d73d6d1686d",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:1a193f1a-fc20-4186-95b4-0587fc636b30",
+        "key": "scene:7310c59d-9b58-4ced-944f-cb1717c41bd1",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:30a8f3d4-0108-449b-85bf-2d48bf241678",
+        "key": "scene:1f0f68d6-a56a-42ea-8116-8564d609909c",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:60ee91d7-8c64-4c41-a26d-88613170287b",
+        "key": "scene:db20530d-a657-4e1b-9637-00e87befd22a",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:af4707d0-0d27-4b9e-b68c-155f4da76abb",
+        "key": "scene:97c47e88-c976-47d2-aea9-6123366c95da",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:ac1de7c7-bb2d-4c6c-9365-083e2f74f498",
+        "key": "scene:4b15f2f0-d1db-44fb-967a-f47cb15c5542",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:6c64b5c2-a497-42c3-bf35-bab576d325e6",
+        "key": "scene:9c272e9c-61f1-428b-ae14-6285816ea5dc",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a7b8d5a8-ff8d-4d3a-96ea-e33f3098d321",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:07a7d432-54ee-424b-b03d-324bf7d08e52",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2dad2bcc-f187-4f53-a797-f36fe4e6fb6d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:91c72537-7449-4906-9dc9-c6547d3bfdd2",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:021898d3-2a30-4cbc-9bd5-1bf4600dc165",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:056f0a9c-7258-483c-bcad-47490c4c7ab4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:80005cf1-cfbf-4338-91b6-6afb99536cc9",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:3d39a679-8b05-47c3-9f2c-d9e16f96fc75",
         "refs": 0,
         "retained": true
       },
@@ -4265,7 +4290,7 @@
         "retained": true
       },
       {
-        "key": "scene:34afbbe6-efcd-4a54-a3dd-b2f2ed49dc25",
+        "key": "scene:03036459-3480-49ad-90f9-a6d17102d324",
         "refs": 0,
         "retained": true
       },
@@ -4335,52 +4360,42 @@
         "retained": true
       },
       {
-        "key": "scene:799abc4e-55f2-446b-9de6-36f980ad5ace",
+        "key": "scene:42fb49b6-4f6a-414f-9fd0-34dea6488bb5",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:3149516a-10e3-46fc-a7e5-099031b6ca9b",
+        "key": "scene:5f1ab808-c91c-4746-a806-f3d303fc10b4",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:13d5dc7c-9754-4eda-8933-47f7f16be163",
+        "key": "scene:374b7afa-7a89-4a00-b8eb-b0d72d3c89c2",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:14cc2603-16ae-4403-9190-24f8607286f5",
+        "key": "scene:e0d81320-9443-4239-8739-16e75a8037e3",
         "refs": 0,
         "retained": true
       },
       {
-        "key": "scene:a21f86db-0413-4d47-a211-b476b2231c60",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:20d24377-b6a2-4c75-ab04-2b9df1438709",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:2f6cb2a5-477d-48e3-8ba0-b72a24461a18",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:f28a1680-9f29-46ae-88c4-1d02fac59679",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:a0b355d4-4264-4ff6-998e-fa935d4dde71",
+        "key": "scene:517d160f-8a98-43f4-8559-4f771c0ac7f6",
         "refs": 0,
         "retained": true
       },
       {
         "key": "scene:d65325a1-70d6-42e1-8b97-ce6639df079f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1745089a-c630-42c9-b706-f1d4a9a9d2e2",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:12f0b065-600f-4e5c-8683-206af7bfa241",
         "refs": 0,
         "retained": true
       },
@@ -4425,16 +4440,6 @@
         "retained": true
       },
       {
-        "key": "scene:6bad242a-d62a-45a1-991c-bd54f3d2c8cf",
-        "refs": 0,
-        "retained": true
-      },
-      {
-        "key": "scene:3c2a30ac-e17f-4190-80c3-1496c0a880fa",
-        "refs": 0,
-        "retained": true
-      },
-      {
         "key": "scene:dd918e6b-248c-49df-ae1c-c96370c9adbb",
         "refs": 0,
         "retained": true
@@ -4445,7 +4450,27 @@
         "retained": true
       },
       {
-        "key": "scene:3c05aba2-4332-43fc-8cf0-71239f180308",
+        "key": "scene:ce83cc1c-9b5b-47dd-a511-ffaae75a6be3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:78cd63fa-e9b7-4e2d-bfbe-86d7864971f2",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:c89bca26-2082-4232-8db0-35a47a6299c1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:388b290b-d407-4a1f-85d7-f494ed2917cc",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:783e4d38-a310-4b67-8475-4362b13049a7",
         "refs": 0,
         "retained": true
       }
@@ -4471,12 +4496,12 @@
         },
         {
           "type": "e",
-          "uuid": "b4724ffe-c2b2-4942-b1d6-a63f437b2ec6",
+          "uuid": "72c8015d-eaa0-4d7b-942c-04076942d804",
           "name": "EffectComposer.Buffer",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "575cf95d-368b-48c5-8a97-1b67401d3151",
+          "source": "3d9b3d1c-6700-43cd-a510-f16d44550d33",
           "image": {
             "width": 780,
             "height": 1688
@@ -4484,12 +4509,12 @@
         },
         {
           "type": "xs",
-          "uuid": "3de4d28c-898c-48b7-9697-0b2d4357dca4",
+          "uuid": "6b67545c-1c36-43a1-821e-ea2064c4147a",
           "name": "EffectComposer.InputDepth",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "a7b8d5a8-ff8d-4d3a-96ea-e33f3098d321",
+          "source": "6e1015c2-552f-4ceb-bc0e-f17081f064aa",
           "image": {
             "width": 780,
             "height": 1688
@@ -4508,39 +4533,6 @@
         },
         {
           "type": "Tl",
-          "uuid": "cd53ff26-1741-475f-a37f-d0c7ad48433e",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            2
-          ],
-          "image": {}
-        },
-        {
-          "type": "Tl",
-          "uuid": "22746107-ca20-4f72-8ac5-1048aee239e3",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            2
-          ],
-          "image": {}
-        },
-        {
-          "type": "Tl",
-          "uuid": "a92edd6c-75eb-449f-9e44-8bfde070d238",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            2
-          ],
-          "image": {}
-        },
-        {
-          "type": "Tl",
           "uuid": "1bdeadea-06b9-43f3-9301-d1f7e896df45",
           "name": "",
           "retained": true,
@@ -4551,8 +4543,41 @@
           "image": {}
         },
         {
+          "type": "Tl",
+          "uuid": "11bbd6d4-c643-4447-be75-d850549633b7",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            2
+          ],
+          "image": {}
+        },
+        {
+          "type": "Tl",
+          "uuid": "7f07bc82-f3e6-4442-9770-e388f33fa539",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            2
+          ],
+          "image": {}
+        },
+        {
+          "type": "Tl",
+          "uuid": "2e1a3af5-9303-48c6-a44c-81827bfe22dd",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            2
+          ],
+          "image": {}
+        },
+        {
           "type": "Pa",
-          "uuid": "0af10662-3827-4ca5-9974-278479811eb2",
+          "uuid": "cb9cb9b9-d7ea-4d3f-b920-6c2457d239fe",
           "name": "",
           "retained": true,
           "texture": false,
@@ -4564,7 +4589,7 @@
         },
         {
           "type": "Pa",
-          "uuid": "1e7db31f-f1d6-4621-b706-85a5785c0226",
+          "uuid": "f723697a-06d6-4cfc-b949-e719138a3ea7",
           "name": "",
           "retained": true,
           "texture": false,
@@ -4575,7 +4600,7 @@
         },
         {
           "type": "El",
-          "uuid": "9d0b4f1e-08e0-4fe1-a72b-14ec0f5f8958",
+          "uuid": "8de0fc72-8d4e-471d-ae71-f8ee2f6293a2",
           "name": "hands-sleeve",
           "retained": true,
           "texture": false,
@@ -4586,7 +4611,7 @@
         },
         {
           "type": "El",
-          "uuid": "1d20053a-c13d-46b8-9ab8-99f47eb1d4e8",
+          "uuid": "468fe48e-a182-4656-95ca-20ff2abff759",
           "name": "hands-cuff",
           "retained": true,
           "texture": false,
@@ -4597,7 +4622,7 @@
         },
         {
           "type": "El",
-          "uuid": "c90d0e5a-45ce-4e95-9422-b7b734dc6f9e",
+          "uuid": "d951feea-db41-497b-81d8-07e77e6d82ba",
           "name": "hands-glove",
           "retained": true,
           "texture": false,
@@ -4608,7 +4633,7 @@
         },
         {
           "type": "Pa",
-          "uuid": "7c87201b-980b-499f-88e7-412e8b0c236a",
+          "uuid": "b4033adb-68c7-49c0-ad3e-10eb919a728e",
           "name": "",
           "retained": true,
           "texture": false,
@@ -4685,7 +4710,7 @@
         },
         {
           "type": "Tl",
-          "uuid": "799abc4e-55f2-446b-9de6-36f980ad5ace",
+          "uuid": "42fb49b6-4f6a-414f-9fd0-34dea6488bb5",
           "name": "",
           "retained": true,
           "texture": false,
@@ -4696,29 +4721,7 @@
         },
         {
           "type": "Tl",
-          "uuid": "a21f86db-0413-4d47-a211-b476b2231c60",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            36
-          ],
-          "image": {}
-        },
-        {
-          "type": "Tl",
-          "uuid": "a0b355d4-4264-4ff6-998e-fa935d4dde71",
-          "name": "",
-          "retained": true,
-          "texture": false,
-          "programs": [
-            36
-          ],
-          "image": {}
-        },
-        {
-          "type": "Tl",
-          "uuid": "d65325a1-70d6-42e1-8b97-ce6639df079f",
+          "uuid": "517d160f-8a98-43f4-8559-4f771c0ac7f6",
           "name": "",
           "retained": true,
           "texture": false,
@@ -4817,6 +4820,17 @@
         },
         {
           "type": "Tl",
+          "uuid": "dd918e6b-248c-49df-ae1c-c96370c9adbb",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            36
+          ],
+          "image": {}
+        },
+        {
+          "type": "Tl",
           "uuid": "d42458c1-dfe0-4f57-88ab-8800e24a5c3d",
           "name": "",
           "retained": true,
@@ -4828,7 +4842,18 @@
         },
         {
           "type": "Tl",
-          "uuid": "3c05aba2-4332-43fc-8cf0-71239f180308",
+          "uuid": "388b290b-d407-4a1f-85d7-f494ed2917cc",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            36
+          ],
+          "image": {}
+        },
+        {
+          "type": "Tl",
+          "uuid": "783e4d38-a310-4b67-8475-4362b13049a7",
           "name": "",
           "retained": true,
           "texture": false,
@@ -4839,7 +4864,7 @@
         },
         {
           "type": "M",
-          "uuid": "783e4d38-a310-4b67-8475-4362b13049a7",
+          "uuid": "1f90dfc2-27f0-4957-a8a3-aa3f1ccd4bd1",
           "name": "CopyMaterial",
           "retained": true,
           "texture": false,
@@ -4850,7 +4875,7 @@
         },
         {
           "type": "Tt",
-          "uuid": "a5a35ea5-46d9-4c94-858c-ebc1ff42d40e",
+          "uuid": "6a2126c9-b7a8-4e8d-9d00-8d30bbb5ca11",
           "name": "EffectMaterial",
           "retained": true,
           "texture": false,
@@ -4861,7 +4886,7 @@
         },
         {
           "type": "Cl",
-          "uuid": "5b590438-a9c4-4b31-a558-e8c3621860c8",
+          "uuid": "dd7956ef-ec58-47eb-a2bc-32faa6345512",
           "name": "ViewmodelDepthMerge",
           "retained": true,
           "texture": false,
@@ -4872,7 +4897,7 @@
         },
         {
           "type": "Tt",
-          "uuid": "4bc93ebf-b152-4584-b42a-9e2f1a8f62f3",
+          "uuid": "9c272e9c-61f1-428b-ae14-6285816ea5dc",
           "name": "EffectMaterial",
           "retained": true,
           "texture": false,
@@ -4896,12 +4921,12 @@
         },
         {
           "type": "oo",
-          "uuid": "bcff4280-499f-4c3f-ae83-4a72cca3178b",
+          "uuid": "1200523e-ee2a-4012-9c1c-06cf35f7c926",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "a096e0db-bc10-42e2-ab79-b39686162306",
+          "source": "22746107-ca20-4f72-8ac5-1048aee239e3",
           "image": {
             "width": 128,
             "height": 128
@@ -4909,12 +4934,12 @@
         },
         {
           "type": "oo",
-          "uuid": "adc6add8-b47c-4942-be15-c968d0a11c67",
+          "uuid": "c0f73479-cd47-4685-841a-5a8ffbb54af6",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "fe9d48e2-3e0d-4d9d-b3a9-f2413a7c3faa",
+          "source": "ed1ca0c6-2d9b-4260-b6ff-63c19de44317",
           "image": {
             "width": 128,
             "height": 128
@@ -4922,12 +4947,12 @@
         },
         {
           "type": "oo",
-          "uuid": "a7683ef0-345d-4b8b-b1ae-4ea7f13abee3",
+          "uuid": "1dba7f9a-dc21-42c7-bcbf-144abad957e2",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "0a4214de-4cf6-432d-a664-b716e0b71fbd",
+          "source": "408bf085-0d2c-4dac-a884-73b593e65f5b",
           "image": {
             "width": 128,
             "height": 128
@@ -4935,12 +4960,12 @@
         },
         {
           "type": "oo",
-          "uuid": "aa0a629a-962d-41e7-9229-f637bcfd0a04",
+          "uuid": "6e1ea0d4-5721-4b45-9dce-0b35e8ee0929",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "8ac0fb4b-e4b0-48d7-9d17-8360bf5d0b51",
+          "source": "a69843f9-9f9a-4933-9182-8786384fe82d",
           "image": {
             "width": 1,
             "height": 1
@@ -4948,12 +4973,12 @@
         },
         {
           "type": "oo",
-          "uuid": "733b84ae-ab00-4cf2-8625-bda0c1a3198d",
+          "uuid": "05def011-58f1-46bc-b62f-e618c1792d25",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "151dd02f-a5e1-40af-b180-ae60c5099543",
+          "source": "2be92eed-967c-4720-959f-2aad73e31ed0",
           "image": {
             "width": 1,
             "height": 1
@@ -4961,12 +4986,12 @@
         },
         {
           "type": "oo",
-          "uuid": "d146b0fd-fce0-4d91-a484-4bf06370e038",
+          "uuid": "c3f5f675-73eb-45ff-8766-722e265c8592",
           "name": "",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "6709a462-6800-4a59-8d78-71a8ffe56bd8",
+          "source": "7d172a55-1d05-414f-bf8e-1a6d6933edec",
           "image": {
             "width": 1,
             "height": 1
@@ -5013,12 +5038,12 @@
         },
         {
           "type": "e",
-          "uuid": "ac1de7c7-bb2d-4c6c-9365-083e2f74f498",
+          "uuid": "80005cf1-cfbf-4338-91b6-6afb99536cc9",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "5aa43848-d135-4c44-9d04-78200ef606ed",
+          "source": "f2282057-6132-4ef9-99df-78688c3464b5",
           "image": {
             "width": 1024,
             "height": 1024
@@ -5026,12 +5051,12 @@
         },
         {
           "type": "oo",
-          "uuid": "34afbbe6-efcd-4a54-a3dd-b2f2ed49dc25",
+          "uuid": "03036459-3480-49ad-90f9-a6d17102d324",
           "name": "DFG_LUT",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "f524d37e-0a2f-463a-ad2c-78c5d1de855c",
+          "source": "aab0319a-e22a-46f0-99f4-00113388c06f",
           "image": {
             "width": 16,
             "height": 16
@@ -5059,12 +5084,12 @@
         },
         {
           "type": "e",
-          "uuid": "91c72537-7449-4906-9dc9-c6547d3bfdd2",
+          "uuid": "f7fdf468-9c89-4629-aee2-32b25cfe9af3",
           "name": "",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "3144304a-6c63-4e3e-a989-62f60e9248c8",
+          "source": "59500ef7-4f21-4b4e-abe6-2f6b6ae15879",
           "image": {
             "width": 780,
             "height": 1688
@@ -5072,7 +5097,7 @@
         },
         {
           "type": "e",
-          "uuid": "0b5c2657-a2f4-4740-b2b7-9237557f77d5",
+          "uuid": "7e807e26-a8f7-4358-a2c4-4f39201bd3c5",
           "name": "",
           "retained": true,
           "texture": false,
@@ -5081,12 +5106,12 @@
         },
         {
           "type": "e",
-          "uuid": "167a730c-e172-42e6-b076-004b39ff160c",
+          "uuid": "72510948-7033-4af6-8009-d699f08e5519",
           "name": "LuminancePass.Target",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "6c01e624-054c-4f66-85e4-72d80e6befce",
+          "source": "89db8a49-4217-4ae2-9d69-7a3eb6bb44f5",
           "image": {
             "width": 780,
             "height": 1688
@@ -5103,7 +5128,7 @@
         },
         {
           "type": "xe",
-          "uuid": "cafa12bb-e946-4f31-b4ff-4e3466645c8e",
+          "uuid": "2977e315-5e77-4c51-8ebf-0ad58851209f",
           "name": "LuminanceMaterial",
           "retained": true,
           "texture": false,
@@ -5114,12 +5139,12 @@
         },
         {
           "type": "e",
-          "uuid": "11f58f48-36bd-4d74-ba30-c71cb159142c",
+          "uuid": "be605a02-a629-4a36-971d-adbb0829eb19",
           "name": "Downsampling.Mipmap0",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "72510948-7033-4af6-8009-d699f08e5519",
+          "source": "e992d6d3-ca7e-4949-8f92-34227e0c2656",
           "image": {
             "width": 390,
             "height": 844
@@ -5127,7 +5152,7 @@
         },
         {
           "type": "Te",
-          "uuid": "e586e639-6465-469f-905c-03098151966b",
+          "uuid": "1a4e14db-a1a2-4390-aecf-0d73d6d1686d",
           "name": "DownsamplingMaterial",
           "retained": true,
           "texture": false,
@@ -5138,12 +5163,12 @@
         },
         {
           "type": "e",
-          "uuid": "9ac82968-0a14-4be4-b261-34477d6cb274",
+          "uuid": "ab37fc9c-6da2-40d0-b404-6011c3a6526b",
           "name": "Downsampling.Mipmap1",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "8edf0ac8-e00f-471d-bba4-e37f14d8e894",
+          "source": "5298333e-f9a1-4402-8299-975154339c4f",
           "image": {
             "width": 195,
             "height": 422
@@ -5151,12 +5176,12 @@
         },
         {
           "type": "e",
-          "uuid": "1356d56f-5013-4101-8019-b3b52d196e7f",
+          "uuid": "65556f1a-b6c7-403c-8664-5d03972b474d",
           "name": "Downsampling.Mipmap2",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "be605a02-a629-4a36-971d-adbb0829eb19",
+          "source": "fc80d6ad-cada-44ec-9fca-6787b47c0a47",
           "image": {
             "width": 98,
             "height": 211
@@ -5164,12 +5189,12 @@
         },
         {
           "type": "e",
-          "uuid": "43d158d1-98fa-43a1-a2ff-076f3fecc32a",
+          "uuid": "8408ca33-65f9-4579-a370-5c103be4c412",
           "name": "Downsampling.Mipmap3",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "ab37fc9c-6da2-40d0-b404-6011c3a6526b",
+          "source": "469ac998-9150-4125-ac97-e0ce8b9ab87f",
           "image": {
             "width": 49,
             "height": 106
@@ -5177,12 +5202,12 @@
         },
         {
           "type": "e",
-          "uuid": "4a54d01c-c7dd-4dc4-80c7-f4c1cc6616a8",
+          "uuid": "abc88bc2-f14f-44af-aa24-ea7bb3fb2526",
           "name": "Upsampling.Mipmap2",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "8408ca33-65f9-4579-a370-5c103be4c412",
+          "source": "d18cae4a-dcad-48f9-b902-5f954087013f",
           "image": {
             "width": 98,
             "height": 211
@@ -5190,7 +5215,7 @@
         },
         {
           "type": "Oe",
-          "uuid": "693fe8c5-ab22-49f1-9a42-c51e2a52aba5",
+          "uuid": "9e1edc8a-f44a-4037-83e6-8588ec6b6990",
           "name": "UpsamplingMaterial",
           "retained": true,
           "texture": false,
@@ -5201,12 +5226,12 @@
         },
         {
           "type": "e",
-          "uuid": "3705f180-cc4a-4186-92e8-6d97aad980cf",
+          "uuid": "f44a4a2a-4d2e-43b5-b7ca-e9dfaa013daa",
           "name": "Upsampling.Mipmap1",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "65556f1a-b6c7-403c-8664-5d03972b474d",
+          "source": "5d36c350-f251-45cf-bec3-24b02396e336",
           "image": {
             "width": 195,
             "height": 422
@@ -5214,12 +5239,12 @@
         },
         {
           "type": "e",
-          "uuid": "4a649dd6-721d-4c6c-b046-78d690c26213",
+          "uuid": "9d03444f-cf8a-4908-880b-95753a23fe93",
           "name": "Upsampling.Mipmap0",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "9aa663ac-343c-4d53-ada5-6bd4a76bf37f",
+          "source": "9ac82968-0a14-4be4-b261-34477d6cb274",
           "image": {
             "width": 390,
             "height": 844
@@ -5227,12 +5252,12 @@
         },
         {
           "type": "e",
-          "uuid": "5ac6c86f-4854-4edd-962c-b774cdfa51df",
+          "uuid": "b2cc5bef-4eba-4228-afc3-cd0f8901301d",
           "name": "EffectComposer.Buffer",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "be374f64-538f-4d9c-89bf-6497c94363c4",
+          "source": "97a06d1c-3274-4f89-8015-0bd1ed827699",
           "image": {
             "width": 780,
             "height": 1688
@@ -5240,12 +5265,12 @@
         },
         {
           "type": "e",
-          "uuid": "0687bbe8-fa5b-47c8-adb7-54d26d44a2ca",
+          "uuid": "07a7d432-54ee-424b-b03d-324bf7d08e52",
           "name": "SMAA.Edges",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "741ab964-5c6d-4618-9eee-f047cf56481a",
+          "source": "27c10503-2d99-49ea-b3fe-aebca451b221",
           "image": {
             "width": 780,
             "height": 1688
@@ -5253,7 +5278,7 @@
         },
         {
           "type": "st",
-          "uuid": "1a193f1a-fc20-4186-95b4-0587fc636b30",
+          "uuid": "2dad2bcc-f187-4f53-a797-f36fe4e6fb6d",
           "name": "EdgeDetectionMaterial",
           "retained": true,
           "texture": false,
@@ -5264,12 +5289,12 @@
         },
         {
           "type": "e",
-          "uuid": "62015c0e-d330-4d7c-b56b-d417c9a2f929",
+          "uuid": "a7b8d5a8-ff8d-4d3a-96ea-e33f3098d321",
           "name": "SMAA.Weights",
           "retained": true,
           "texture": false,
           "programs": [],
-          "source": "4b15f2f0-d1db-44fb-967a-f47cb15c5542",
+          "source": "3d5203ae-12d6-4ca2-87d7-20be912b1bd2",
           "image": {
             "width": 780,
             "height": 1688
@@ -5277,7 +5302,7 @@
         },
         {
           "type": "ut",
-          "uuid": "30a8f3d4-0108-449b-85bf-2d48bf241678",
+          "uuid": "91c72537-7449-4906-9dc9-c6547d3bfdd2",
           "name": "SMAAWeightsMaterial",
           "retained": true,
           "texture": false,
@@ -5288,12 +5313,12 @@
         },
         {
           "type": "e",
-          "uuid": "af4707d0-0d27-4b9e-b68c-155f4da76abb",
+          "uuid": "056f0a9c-7258-483c-bcad-47490c4c7ab4",
           "name": "SMAA.Area",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "ae9292cd-3b16-48e8-8ba7-362e9ddd02e2",
+          "source": "bfa93776-5c01-486e-9e5f-175b5ba8bec2",
           "image": {
             "width": 160,
             "height": 560,
@@ -5302,12 +5327,12 @@
         },
         {
           "type": "e",
-          "uuid": "60ee91d7-8c64-4c41-a26d-88613170287b",
+          "uuid": "021898d3-2a30-4cbc-9bd5-1bf4600dc165",
           "name": "SMAA.Search",
           "retained": true,
           "texture": true,
           "programs": [],
-          "source": "f872db15-7245-41e7-876f-a9a74994e466",
+          "source": "bd2c8d59-ebf2-4517-907d-11e57cbaccfa",
           "image": {
             "width": 64,
             "height": 16,
@@ -5405,9 +5430,9 @@
               "id": "duneRay:0",
               "kind": "duneRay",
               "pos": {
-                "x": -18,
-                "y": 26.855,
-                "z": 30.008
+                "x": 8,
+                "y": 32.261,
+                "z": -74.992
               },
               "hp": 70,
               "brain": "idle"
@@ -5417,7 +5442,7 @@
               "kind": "duneStrider",
               "pos": {
                 "x": 100,
-                "y": 14.349,
+                "y": 17.682,
                 "z": -49.992
               },
               "hp": 150,
@@ -5483,7 +5508,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 59.022,
-                "y": 3.515,
+                "y": 12.232,
                 "z": 13.361
               },
               "hp": 24,
@@ -5494,7 +5519,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 63.399,
-                "y": 4.215,
+                "y": 13.78,
                 "z": 9.167
               },
               "hp": 24,
@@ -5505,7 +5530,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 57.579,
-                "y": 5.311,
+                "y": 14.59,
                 "z": 7.473
               },
               "hp": 24,
@@ -5588,9 +5613,9 @@
               "id": "duneRay:0",
               "kind": "duneRay",
               "pos": {
-                "x": -18,
-                "y": 26.855,
-                "z": 30.008
+                "x": 8,
+                "y": 32.261,
+                "z": -74.992
               },
               "hp": 70,
               "brain": "idle"
@@ -5600,7 +5625,7 @@
               "kind": "duneStrider",
               "pos": {
                 "x": 100,
-                "y": 14.349,
+                "y": 17.682,
                 "z": -49.992
               },
               "hp": 150,
@@ -5666,7 +5691,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 59.022,
-                "y": 3.515,
+                "y": 12.232,
                 "z": 13.361
               },
               "hp": 24,
@@ -5677,7 +5702,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 63.399,
-                "y": 4.215,
+                "y": 13.78,
                 "z": 9.167
               },
               "hp": 24,
@@ -5688,7 +5713,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 57.579,
-                "y": 5.311,
+                "y": 14.59,
                 "z": 7.473
               },
               "hp": 24,
@@ -5966,7 +5991,7 @@
     {
       "field": "budgets.spawn.draws",
       "baseline": 1831,
-      "now": 188,
+      "now": 192,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -5974,7 +5999,7 @@
     {
       "field": "budgets.spawn.tris",
       "baseline": 18779873,
-      "now": 279003,
+      "now": 269475,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -5989,16 +6014,16 @@
     },
     {
       "field": "budgets.spawn.gpuMB",
-      "baseline": 109.88733863830566,
-      "now": 149.9466094970703,
+      "baseline": 149.9466094970703,
+      "now": 149.95301818847656,
       "class": "D",
-      "band": "≤ 109.88733863830566",
+      "band": "≤ 149.9466094970703",
       "verdict": "red"
     },
     {
       "field": "budgets.whip.draws",
       "baseline": 1831,
-      "now": 70,
+      "now": 68,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -6006,7 +6031,7 @@
     {
       "field": "budgets.whip.tris",
       "baseline": 18779873,
-      "now": 260155,
+      "now": 242155,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6021,16 +6046,16 @@
     },
     {
       "field": "budgets.whip.gpuMB",
-      "baseline": 109.88733863830566,
-      "now": 149.9466094970703,
+      "baseline": 149.9466094970703,
+      "now": 149.95301818847656,
       "class": "D",
-      "band": "≤ 109.88733863830566",
+      "band": "≤ 149.9466094970703",
       "verdict": "red"
     },
     {
       "field": "budgets.ray.draws",
       "baseline": 1831,
-      "now": 85,
+      "now": 195,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -6038,7 +6063,7 @@
     {
       "field": "budgets.ray.tris",
       "baseline": 18779873,
-      "now": 267921,
+      "now": 270099,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6053,16 +6078,16 @@
     },
     {
       "field": "budgets.ray.gpuMB",
-      "baseline": 109.88733863830566,
-      "now": 149.9466094970703,
+      "baseline": 149.9466094970703,
+      "now": 149.95301818847656,
       "class": "D",
-      "band": "≤ 109.88733863830566",
+      "band": "≤ 149.9466094970703",
       "verdict": "red"
     },
     {
       "field": "budgets.quest.draws",
       "baseline": 1831,
-      "now": 161,
+      "now": 157,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -6070,7 +6095,7 @@
     {
       "field": "budgets.quest.tris",
       "baseline": 18779873,
-      "now": 242431,
+      "now": 259183,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6085,16 +6110,16 @@
     },
     {
       "field": "budgets.quest.gpuMB",
-      "baseline": 109.88733863830566,
-      "now": 149.9466094970703,
+      "baseline": 149.9466094970703,
+      "now": 149.95301818847656,
       "class": "D",
-      "band": "≤ 109.88733863830566",
+      "band": "≤ 149.9466094970703",
       "verdict": "red"
     },
     {
       "field": "budgets.tower.draws",
       "baseline": 1831,
-      "now": 99,
+      "now": 106,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -6102,7 +6127,7 @@
     {
       "field": "budgets.tower.tris",
       "baseline": 18779873,
-      "now": 240630,
+      "now": 240518,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6117,16 +6142,16 @@
     },
     {
       "field": "budgets.tower.gpuMB",
-      "baseline": 109.88733863830566,
-      "now": 149.9466094970703,
+      "baseline": 149.9466094970703,
+      "now": 149.95301818847656,
       "class": "D",
-      "band": "≤ 109.88733863830566",
+      "band": "≤ 149.9466094970703",
       "verdict": "red"
     },
     {
       "field": "budgets.current.draws",
       "baseline": 1831,
-      "now": 99,
+      "now": 106,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -6134,7 +6159,7 @@
     {
       "field": "budgets.current.tris",
       "baseline": 18779873,
-      "now": 240630,
+      "now": 240518,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6149,10 +6174,10 @@
     },
     {
       "field": "budgets.current.gpuMB",
-      "baseline": 109.88733863830566,
-      "now": 149.9466094970703,
+      "baseline": 149.9466094970703,
+      "now": 149.95301818847656,
       "class": "D",
-      "band": "≤ 109.88733863830566",
+      "band": "≤ 149.9466094970703",
       "verdict": "red"
     },
     {
@@ -6189,14 +6214,14 @@
     },
     {
       "field": "boot.sha",
-      "now": "011e46d7bc2ebe041b48abbc3b847089c2fc7ab6",
+      "now": "c1e7577c291ab9df8ab794576613e796398936d2",
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.build",
-      "now": "011e46d-musjmzui",
+      "now": "c1e7577-muslno8d",
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -6700,7 +6725,7 @@
           "solidFloor": false,
           "follows": false,
           "shapes": {
-            "cuboid": 32,
+            "cuboid": 40,
             "ball": 0,
             "capsule": 0,
             "convex": 0,
@@ -6766,14 +6791,14 @@
     },
     {
       "field": "boot.physics.colliders",
-      "now": 137,
+      "now": 144,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "boot.scene.totals.mesh",
-      "now": 390,
+      "now": 398,
       "class": "A",
       "band": "exact",
       "verdict": "new"
@@ -6879,14 +6904,14 @@
     },
     {
       "field": "boot.render.programKeys",
-      "now": "8b5810a442ebe1fd196e686af36d5f7ddac5f585127ccc70200f654ebbe91628",
+      "now": "00c409cae4b02b9bea207e074683aea9fe35de87e1af438d8c12c7d3dcff180e",
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "boot.render.memory.geometries",
-      "now": 236,
+      "now": 244,
       "class": "A",
       "band": "exact",
       "verdict": "new"
@@ -6914,14 +6939,14 @@
     },
     {
       "field": "boot.gpuBytes.buffers",
-      "now": 11218132,
+      "now": 11224852,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "boot.gpuBytes.total",
-      "now": 157230416,
+      "now": 157237136,
       "class": "A",
       "band": "exact",
       "verdict": "new"
@@ -8698,56 +8723,56 @@
     },
     {
       "field": "boot.playMs",
-      "now": 1751.3999996185303,
+      "now": 1939.4000000953674,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.renderer",
-      "now": 10,
+      "now": 12,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.sky",
-      "now": 35,
+      "now": 40,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.terrain",
-      "now": 616,
+      "now": 696,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.cards",
-      "now": 0,
+      "now": 1,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.forest",
-      "now": 5,
+      "now": 6,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.physics",
-      "now": 28,
+      "now": 33,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.edge",
-      "now": 6,
+      "now": 7,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8768,7 +8793,7 @@
     },
     {
       "field": "boot.stepMs.props",
-      "now": 53,
+      "now": 61,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8789,21 +8814,21 @@
     },
     {
       "field": "boot.stepMs.menu",
-      "now": 6,
+      "now": 5,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.shaders",
-      "now": 145,
+      "now": 159,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.firstFrame",
-      "now": 102,
+      "now": 109,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8817,7 +8842,7 @@
     },
     {
       "field": "boot.heapMB",
-      "now": 50.608341217041016,
+      "now": 47.93528747558594,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8842,42 +8867,42 @@
     },
     {
       "field": "poses.spawn.calls",
-      "now": 188,
+      "now": 192,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.spawn.tris",
-      "now": 279003,
+      "now": 269475,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.spawn.fps",
-      "now": 1215.3344218262912,
+      "now": 1039.0516066692242,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.spawn.frameP95Ms",
-      "now": 2.3000001907348633,
+      "now": 2.0999999046325684,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.spawn.cpuP50Ms",
-      "now": 0.6000003814697266,
+      "now": 0.8000001907348633,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.spawn.cpuP95Ms",
-      "now": 1,
+      "now": 1.1999998092651367,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8893,10 +8918,10 @@
       "field": "poses.spawn.boxes",
       "now": [
         [
-          0,
-          264,
-          22,
-          464
+          216,
+          361,
+          237,
+          416
         ],
         [
           58,
@@ -8929,7 +8954,7 @@
     },
     {
       "field": "poses.spawn.shot",
-      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity18/retry/sunscar-dunes.phone.spawn.jpg",
+      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity20/retry/sunscar-dunes.phone.spawn.jpg",
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8961,49 +8986,49 @@
     },
     {
       "field": "poses.whip.calls",
-      "now": 70,
+      "now": 68,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.whip.tris",
-      "now": 260155,
+      "now": 242155,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.whip.fps",
-      "now": 1324.4444444444446,
+      "now": 1246.8619246861924,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.whip.frameP95Ms",
-      "now": 2,
+      "now": 2.4000000953674316,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.whip.cpuP50Ms",
-      "now": 0.40000009536743164,
+      "now": 0.5,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.whip.cpuP95Ms",
-      "now": 0.5999999046325684,
+      "now": 0.8999996185302734,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.whip.creatureBoxes",
-      "now": 8,
+      "now": 7,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -9011,12 +9036,6 @@
     {
       "field": "poses.whip.boxes",
       "now": [
-        [
-          47,
-          186,
-          216,
-          389
-        ],
         [
           110,
           387,
@@ -9066,7 +9085,7 @@
     },
     {
       "field": "poses.whip.shot",
-      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity18/retry/sunscar-dunes.phone.whip.jpg",
+      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity20/retry/sunscar-dunes.phone.whip.jpg",
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -9098,49 +9117,49 @@
     },
     {
       "field": "poses.ray.calls",
-      "now": 85,
+      "now": 195,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.ray.tris",
-      "now": 267921,
+      "now": 270099,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.ray.fps",
-      "now": 1548.856544250193,
+      "now": 1161.3406105398458,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.ray.frameP95Ms",
-      "now": 1.5,
+      "now": 2.3000001907348633,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.ray.cpuP50Ms",
-      "now": 0.40000009536743164,
+      "now": 0.6999998092651367,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.ray.cpuP95Ms",
-      "now": 0.5999999046325684,
+      "now": 1.0999999046325684,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.ray.creatureBoxes",
-      "now": 1,
+      "now": 5,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -9149,10 +9168,34 @@
       "field": "poses.ray.boxes",
       "now": [
         [
-          226,
-          585,
-          272,
-          665
+          247,
+          432,
+          268,
+          487
+        ],
+        [
+          88,
+          507,
+          120,
+          573
+        ],
+        [
+          92,
+          508,
+          123,
+          573
+        ],
+        [
+          120,
+          511,
+          149,
+          574
+        ],
+        [
+          114,
+          509,
+          145,
+          574
         ]
       ],
       "class": "C",
@@ -9161,7 +9204,7 @@
     },
     {
       "field": "poses.ray.shot",
-      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity18/retry/sunscar-dunes.phone.ray.jpg",
+      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity20/retry/sunscar-dunes.phone.ray.jpg",
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -9193,63 +9236,70 @@
     },
     {
       "field": "poses.quest.calls",
-      "now": 161,
+      "now": 157,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.quest.tris",
-      "now": 242431,
+      "now": 259183,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.quest.fps",
-      "now": 1500.5035289959467,
+      "now": 1374.5387441781713,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.quest.frameP95Ms",
-      "now": 1.4000000953674316,
+      "now": 1.299999713897705,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.quest.cpuP50Ms",
-      "now": 0.40000009536743164,
-      "class": "C",
-      "band": "information",
-      "verdict": "info"
-    },
-    {
-      "field": "poses.quest.cpuP95Ms",
       "now": 0.5999999046325684,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
+      "field": "poses.quest.cpuP95Ms",
+      "now": 0.8000001907348633,
+      "class": "C",
+      "band": "information",
+      "verdict": "info"
+    },
+    {
       "field": "poses.quest.creatureBoxes",
-      "now": 0,
+      "now": 1,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.quest.boxes",
-      "now": [],
+      "now": [
+        [
+          21,
+          0,
+          390,
+          400
+        ]
+      ],
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.quest.shot",
-      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity18/retry/sunscar-dunes.phone.quest.jpg",
+      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity20/retry/sunscar-dunes.phone.quest.jpg",
       "class": "C",
       "band": "information",
       "verdict": "info"

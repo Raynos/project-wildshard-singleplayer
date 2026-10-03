@@ -40,8 +40,8 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "011e46d7bc2ebe041b48abbc3b847089c2fc7ab6",
-      "reason": "E409 Signal Dunes second top-10 rows 1-4, measured (m5 149.947 MB, +40.06 MB: the two painted dusk skies, 4096 x 603 RGBA without mips, about 19.8 MB, row 2; the fire's flipbook, a 2048 x 2048 atlas with mips, about 22.4 MB, row 3; glove-hd4's 1024 texture in place of glove-hd3's, row 4), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "c1e7577c291ab9df8ab794576613e796398936d2",
+      "reason": "E409 Signal Dunes round 20, measured (m5 149.953 MB, +0.0064 MB: the tower's south stair 30 treads instead of 22, so each rise is under the 0.35 m step; the walk test, 7 legs 0 stuck), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     },
     {
       "shard": "sunscar-dunes",
