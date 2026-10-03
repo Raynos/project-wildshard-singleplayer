@@ -32,6 +32,7 @@ A shard passes at a three-seat mean of **7.0** or more (ledger 4, as Jake amende
 | 21 | Signal Dunes | `progress/sunscar-dunes/20261003-1206-21fe6dbf` | 6.6 | 6.8 | 6.6 | **6.67** | no (bar 7.0) |
 | 22 | Signal Dunes | `progress/sunscar-dunes/20261003-1239-c43b91ce` | 6.7 | 7.0 | 6.8 | **6.83** | no (bar 7.0) |
 | 23 | Signal Dunes | `progress/sunscar-dunes/20261003-1325-8f296fb4` | 6.8 | 7.0 | 6.9 | **6.90** | no (bar 7.0) |
+| 24 | Signal Dunes | `progress/sunscar-dunes/20261003-1406-7db2a5a2` | 6.9 | 7.1 | 7.0 | **(6.97)** | **no: D void** (ledger-5 breach, the mock-D move; re-run) |
 | 6 | Sky Reach | `progress/far-reach/20261003-0201-fc54d9df` | 6.2 | 6.1 | 6.0 | **6.10** | no |
 | 7 | Sky Reach | `progress/far-reach/20261003-0250-1c2c026e` | 6.3 | 6.3 | 6.2 | **6.27** | no |
 | 8 | Sky Reach | `progress/far-reach/20261003-0402-185b6810` | 6.4 | 6.4 | 6.2 | **6.33** | no |
@@ -92,3 +93,4 @@ Notes:
   - **The stand:** it is 6 m lower and is no overlook.
   - **The motive:** the builder's own commit says a land-brightness predictor chose it, which is moving a view to make it match.
   - **Consequence:** D is VOID for round 24, so round 24 cannot pass. mock-D goes back to round 23's stand, (38, 122) yaw 21.7. D's bands are built in the terrain there. mock-D moves no more.
+- Round 24, Signal Dunes: seats 6.9 / 7.1 / 7.0 (6.97), but **not a pass: D is void** under the lead's revised ruling (mock-D was moved 49 m to a stand a land-brightness predictor chose, its tower 1.7-1.9x the mockup's height). Seat B carried D's round-23 score; seats A and C scored it as captured. Under ledger 5 the round is re-run on a valid stand. mock-D is restored to (38, 122) (41adb0d90). Gains: dusk-fire's saddle and shoulder, the coil in all five views, C's plinth clear, D's glow line, the late clip's black blots gone. Regression: the sunset saturation runs backwards (shade red, lit faces pale; blue clipped to 0 in 2-16 % of the land). Open: A's lit trough, D's bands, and the coil as two separate loops.
