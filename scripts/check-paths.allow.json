@@ -780,7 +780,7 @@
     "why": "E357 F6m: source-export scratch directory under WORK, not the game source tree."
   },
   {
-    "path": "shared (src/world, src/player, src/entities, \u2026)",
+    "path": "shared (src/world, src/player, src/entities, …)",
     "file": "scripts/check-models.mjs",
     "why": "E357 F6m: human-readable report area label, not three repository paths; the actual model folder rules remain manual F6 edits."
   },
@@ -1163,5 +1163,30 @@
     "path": "src/chunks/",
     "file": "scripts/normalize/classify.mjs",
     "why": "Classifier re-derives ownership from original source paths in the committed pre-F6 map; moved paths are verified separately."
+  },
+  {
+    "path": "src/engine/entities/species/elk.ts",
+    "file": "scripts/decide/layer-purity-pilot.mjs",
+    "why": "E405 LP6: a historical path the Clef pilot reads from git (git show <commit>^:path), the engine file before LAYER-PURITY moved it out; it no longer exists by design."
+  },
+  {
+    "path": "src/engine/ai/NightBrain.ts",
+    "file": "scripts/decide/layer-purity-pilot.mjs",
+    "why": "E405 LP6: a historical path the Clef pilot reads from git (git show <commit>^:path), the engine file before LAYER-PURITY moved it out; it no longer exists by design."
+  },
+  {
+    "path": "src/engine/entities/species/deer.ts",
+    "file": "scripts/decide/layer-purity-pilot.mjs",
+    "why": "E405 LP6: a historical path the Clef pilot reads from git (git show <commit>^:path), the engine file before LAYER-PURITY moved it out; it no longer exists by design."
+  },
+  {
+    "path": "src/engine/models/creatures.ts",
+    "file": "scripts/decide/layer-purity-pilot.mjs",
+    "why": "E405 LP6: a historical path the Clef pilot reads from git (git show <commit>^:path), the engine file before LAYER-PURITY moved it out; it no longer exists by design."
+  },
+  {
+    "path": "src/engine/audio/score/wildshard-theme.ts",
+    "file": "scripts/decide/layer-purity-pilot.mjs",
+    "why": "E405 LP6: a historical path the Clef pilot reads from git (git show <commit>^:path), the engine file before LAYER-PURITY moved it out; it no longer exists by design."
   }
 ]
