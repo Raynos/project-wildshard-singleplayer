@@ -405,7 +405,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     float fireD = length(vSandPos - uFireLights[i].xyz);
     // round 23 (seats B and C after round 21: B's lantern pool pink, h356, where the mockup warms the sand amber): a lamp
     // (a fraction of a fire's gain) lights amber, a fire orange
-    reflectedLight.indirectDiffuse += diffuseColor.rgb * mix(vec3(1.0, 0.72, 0.32), vec3(1.0, 0.42, 0.14), step(0.5, uFireLights[i].w)) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 11.0), 2.0) * 0.12;
+    reflectedLight.indirectDiffuse += diffuseColor.rgb * mix(vec3(1.0, 0.72, 0.32), vec3(1.0, 0.42, 0.14), step(0.5, uFireLights[i].w)) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 10.0), 3.0) * 0.17; // round 24 (seat C: the pool right-sized, the ground past it 49 against 34): a tighter falloff
   }
   {
     // round 10 (R9B-2: mockups B, C and D put near-black land under the glow, 13-19 against our 47-74, the far land darker
