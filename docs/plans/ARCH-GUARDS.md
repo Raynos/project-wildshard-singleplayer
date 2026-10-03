@@ -1,6 +1,6 @@
 # Plan: ARCH-GUARDS — static analysis that holds the engine / game / kit / shard split (E362)
 
-**State:** `draft` 2026-10-01 — proposal for E362; Jake approved none yet
+**State:** `in progress` 2026-10-03 — the first batch of 8 is built and live in the gates (E362 under E357 J5: `897baa67`, ratchet data `68fbb592`): AG16, AG17, AG1, AG14, AG13, AG11, AG20 (the pre-commit runner, ~0.25 s), AG9. Open: the second batch (Jake's P1 pick: after the first), ask E379, unowned — AG2, AG18, AG8, AG7, AG21, AG10, then AG3's deep-import sweep and AG4's engine project. AG5, AG6, AG12, AG15, AG19 and AG22 are later or ride along.
 
 ## Summary
 
