@@ -7,11 +7,13 @@ export const DUNE_MESHES: readonly DuneMeshName[] = ['caravan', 'dry-well', 'way
  * The hero models kept TEXTURED (loop 6, toward the mockups B-D): Hunyuan3D-2 shape + 2048 paint, decimated, the paint
  * kept as a 1024 WebP map on its UVs (the facet-colour path above reads low-poly and blotchy up close).
  */
-export type DuneHdName = 'wagon-hd' | 'brazier-hd' | 'glove-hd' | 'glove-hd2' | 'glove-hd3' | 'horse-hd' | 'mesa-butte' | 'mesa-mesa' | 'mesa-spire';
+export type DuneHdName = 'wagon-hd' | 'brazier-hd' | 'glove-hd' | 'glove-hd2' | 'glove-hd3' | 'glove-hd4' | 'horse-hd' | 'mesa-butte' | 'mesa-mesa' | 'mesa-spire';
 // E399: the mesas are not preloaded while the world shows none (the mockups have low dune ranges at the horizon)
 // E399 (council round 3): the held glove is glove-hd2 (a stitched gauntlet with a cuff, framed as mockup D); glove-hd stays on disk
 // E407 row 4: the held glove is glove-hd3 (the glove alone gripping its handle; the loop is a code tube); glove-hd2 stays on disk
-export const DUNE_HD: readonly DuneHdName[] = ['wagon-hd', 'brazier-hd', 'glove-hd3', 'horse-hd'];
+// round 18: the held glove is glove-hd4 (the back of the hand and the cuff toward the camera, as mockups D and dusk-fire);
+// glove-hd3 stays on disk
+export const DUNE_HD: readonly DuneHdName[] = ['wagon-hd', 'brazier-hd', 'glove-hd4', 'horse-hd'];
 const HD_URLS: Readonly<Record<DuneHdName, string>> = {
   'wagon-hd': '/assets/sunscar-dunes/models/wagon-hd/wagon-hd.glb', 'brazier-hd': '/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb',
   'glove-hd': '/assets/sunscar-dunes/models/glove-hd/glove-hd.glb',
@@ -19,6 +21,8 @@ const HD_URLS: Readonly<Record<DuneHdName, string>> = {
   'glove-hd2': '/assets/sunscar-dunes/models/glove-hd2/glove-hd2.glb',
   // the leather glove alone, its fist round a short plaited handle (art/sunscar-dunes/round-23-glove; Hunyuan3D-2, its backdrop card cut)
   'glove-hd3': '/assets/sunscar-dunes/models/glove-hd3/glove-hd3.glb',
+  // the same glove re-posed: the back of the hand to the camera (art/sunscar-dunes/round-27-glove; Hunyuan3D-2 from the mockups' hands)
+  'glove-hd4': '/assets/sunscar-dunes/models/glove-hd4/glove-hd4.glb',
   // the caravan's pack horse, tethered by the tent (mockup B; art/sunscar-dunes/round-19-horse)
   'horse-hd': '/assets/sunscar-dunes/models/horse-hd/horse-hd.glb',
   // the far sandstone (art/sunscar-dunes/round-18-mesas): a tall butte, a broad mesa, a spire-and-hoodoo cluster

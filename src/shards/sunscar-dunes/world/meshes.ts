@@ -197,7 +197,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
           // E407 row 4: the new glove keeps its own painted leather (no discard, no hd2 seams): matte with a soft sheen, the
           // viewer-side light so the backlit fist never reads as a cut-out
           // round 16 (seat C after round 15: the smaller fist's leather flatter than round 14's, p95 47 against 83.5): lighter, glossier, more viewer light
-          if (name === 'glove-hd3') { m.color.setRGB(0.92, 0.84, 0.76); m.roughness = 0.34; m.fog = false; m.userData['sunscarNoRim'] = true; viewerLit(m, [0.58, 0.47, 0.38], 0.22); }
+          if (name === 'glove-hd3' || name === 'glove-hd4') { m.color.setRGB(0.92, 0.84, 0.76); m.roughness = 0.34; m.fog = false; m.userData['sunscarNoRim'] = true; viewerLit(m, [0.58, 0.47, 0.38], 0.22); }
           if (name === 'glove-hd' || name === 'glove-hd2') {
             m.color.setRGB(1, 1, 1); m.roughness = 0.34; /* round 12 (every seat: glove p95 43 against 72, no glancing highlights) */ /* round 8: glove-hd2's 0.26 caught the key (now in front) as a white streak along the cuff */ m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
             wornLeather(m, name === 'glove-hd'); // glove-hd2 is painted dark leather with its seams: no ramp

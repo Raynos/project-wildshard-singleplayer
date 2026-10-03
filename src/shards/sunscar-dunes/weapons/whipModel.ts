@@ -9,7 +9,9 @@ import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 // other way (y -0.4), the back of the hand and the cuff to the camera, the fingers round the handle, as mockup D
 // round 17 (seat B, R15B-7: an upright fist with a ring hanging beside it; the mockups hold it low in the corner, leaning,
 // the loop a teardrop rising from it): rolled 0.5 so the handle leans up and left, a touch larger and lower
-export const HD_GLOVE = { size: 0.17, pos: [0.04, -0.205, 0] as [number, number, number], rot: [-0.2, -0.4, 0.5] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
+// round 18 (the lead: re-pose it through mockup-to-model): glove-hd4, the same glove modelled with the back of the hand and
+// the cuff toward the camera (art/sunscar-dunes/round-27-glove); its own frame, so a new fit
+export const HD_GLOVE = { size: 0.14, pos: [0.0, -0.16, 0] as [number, number, number], rot: [0, 0.5, 0.2] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
 // rising from the bottom edge, dusk-fire one low loose loop, only D a raised fist): the one idle hold lower, toward the four // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
@@ -131,11 +133,11 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
 
 /**
  * E407 row 4 (the lead after round 14: every mockup shows a compact gloved fist low in the corner holding a ROUND coil of
- * plaited whip, one to two fists across; a thin cord rising from the fist read as nothing): a real coil in glove-hd3's own
+ * plaited whip, one to two fists across; a thin cord rising from the fist read as nothing): a real coil in the held glove's own
  * frame (it spans ~2 units, ~0.13 m a unit; the handle's top at (-0.53, 0.95, 0.19)): the cord leaves the handle's top
  * into a closed coil beside the fist (round 15: see plaitedLoop), and the fall drops out of the frame behind the hand.
  */
-export const LOOP = { cord: 0.06, from: [-0.435, 0.95, 0.156], start: -0.97, rx: 0.4, ry: 0.62, face: -0.35, turns: 2, step: [0.05, -0.04, 0.05], tail: [[-0.45, -0.55, -0.65], [-0.2, -1.8, -0.75]] } as const;
+export const LOOP = { cord: 0.06, from: [-0.613, 0.922, -0.537], start: -0.97, rx: 0.44, ry: 0.54, face: 0.4, turns: 2, step: [0.05, -0.04, 0.05], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
 
 /**
  * The coil (LOOP) as one plaited tube. Round 15 (the lead after round 14: an open hook with a kink, the strands crossing
@@ -265,13 +267,11 @@ export function buildWhipModel(): WhipParts {
   const tip = new Vector3(0, made === null ? 0.15 : made.top, 0).applyEuler(grip.rotation);
   // loop 6 (mockup D): the textured hero glove-and-coiled-whip when it loaded, posed as the reference shows it (the fist
   // at the lower right, the coils held up beside it); it replaces the facet glove and the code coil at rest
-  const hd = duneHd('glove-hd3', { size: HD_GLOVE.size, by: 'span' });
+  const hd = duneHd('glove-hd4', { size: HD_GLOVE.size, by: 'span' });
   if (hd !== null) {
     hd.position.set(...HD_GLOVE.pos); hd.rotation.set(...HD_GLOVE.rot); root.add(hd);
     // the code coil in the glove model's own frame (duneHd: out → holder (scaled) → turn (centred) → the scene)
     const turn = hd.children[0]?.children[0];
-    // the glove fitted, not a mitten (the lead after round 14): its width and depth 0.82 (the coil keeps its own scale)
-    for (const child of turn?.children ?? []) child.scale.set(0.82, 1, 0.82);
     turn?.add(plaitedLoop());
     grip.visible = false; coil.visible = false;
   }
