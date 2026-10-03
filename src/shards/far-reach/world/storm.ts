@@ -16,7 +16,9 @@ import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttri
  * (-z) its eye hangs (E399, mockup D: from the arena's entrance the vortex fills the sky behind the dais, its eye about
  * 22 deg up, between the coins and the minimap above the boss bar, in the phone portrait view; centred over the crown it hung 53 deg up, out of the frame).
  */
-export const STORM = { lift: 36, ahead: 90, lean: -0.5, radius: 92, gather: [110, 170], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
+// (round 6, seat A: 'the storm eye higher': mockup D's eye sits above the boss bar, ~29 deg up from the arena's rise; ours
+// was ~18 deg) closer and higher over the crown
+export const STORM = { lift: 55, ahead: 70, lean: -0.5, radius: 92, gather: [110, 170], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */

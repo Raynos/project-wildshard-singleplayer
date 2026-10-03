@@ -1,6 +1,6 @@
 import { ShardPlugin, installLoot, type ShardContext } from '#game';
 import { installSilentScore } from '#kit';
-import type { Animal, Flags, QuestState } from '#engine';
+import { PATCH_ORDER, patchShader, type Animal, type Flags, type QuestState } from '#engine';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from './strings';
 import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, WISP_HOMES, apothem, type Home } from './layout';
@@ -190,6 +190,16 @@ export class SkyReachPlugin extends ShardPlugin {
     } });
     for (const home of WISP_HOMES) { const a = spawn('galeWisp', 'gale', home, home.x + home.r, home.z); if (a) this.wisps.push(a); }
     this.roc = spawn('stormRoc', 'storm', ROC, ROC.x + ROC.r, ROC.z);
+    // the Roc's plumage to mockup D (E399 round 6, seat A: 'a slate / white split'; the generated texture's wings and back are
+    // a warm brown): the browns turn slate grey, the white head and belly and the yellow beak and talons stay
+    if (this.roc !== null) for (const mat of Array.isArray(this.roc.mesh.material) ? this.roc.mesh.material : [this.roc.mesh.material]) {
+      patchShader(mat, 'far.roc-slate', PATCH_ORDER.decorate, (shader) => {
+        shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+    float brown = clamp((c.r - c.b) * 4.0, 0.0, 1.0) * (1.0 - smoothstep(0.8, 0.92, c.g / max(c.r, 1e-3)));
+    diffuseColor.rgb = mix(c, vec3(l) * vec3(0.84, 0.9, 1.02) * 1.15, brown * 0.85); }`);
+      }, { key: (prior) => `${prior}|far.roc-slate`, scope: ctx.scope });
+    }
     ctx.scope.onDispose(() => { for (const a of [...this.rays, ...this.roostRays, ...this.goats, ...this.wisps, ...(this.roc ? [this.roc] : [])]) animals?.retire(a); });
     // Step 2: the roost is clear when its three rays are down.
     ctx.system({ id: 'far.roost', phase: 'update', run: () => {

@@ -129,6 +129,11 @@ export const HERO_STONES: readonly (readonly [number, number, number, number, nu
   [-5.8, -172.6, HIGH, 0.9, 0.42], [-5.8, -175.9, HIGH, 1.1, 0.5],
   // ahead of the entrance, either side of the walk to the dais (E399 mockup D: mossy rocks in the meadow's foreground)
   [-3.6, -181.4, HIGH, 1.0, 0.45], [-4.8, -183.2, HIGH, 0.6, 0.28], [3.9, -182.0, HIGH, 0.8, 0.36],
+  // round 6 (seat A: 'lichened arena rocks'; mockup D's lower left and right): down the crown rise's north slope, in the
+  // frame from its top (the rocks above sat outside it once D stood on the rise)
+  [-1.6, -182.2, HIGH, 0.75, 0.34], [-2.7, -183.6, HIGH, 0.5, 0.24], [1.9, -184.2, HIGH, 0.6, 0.28],
+  // and mockup B's lower left: rocks in the spawn meadow below the keeper, 3-4 m ahead of the quest-start view
+  [-1.7, -8.4, DECK, 0.6, 0.28], [-1.0, -7.5, DECK, 0.42, 0.2],
 ];
 
 /** The hero boulders that are placed (clear of every walk), as discs for the meadow's short grass round them. */

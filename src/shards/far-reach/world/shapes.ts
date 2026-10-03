@@ -1,4 +1,5 @@
 import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '#engine';
 import { ropeSag } from '../layout';
 import { fit, hdMaterial, skyHd, skyMesh, splitAbove } from './meshes';
@@ -7,7 +8,7 @@ import { towerMill } from './mill';
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
 export const PALETTE = {
   grass: 0x7d9640, grassLight: 0xa6ad55, dirt: 0x8a6446, rock: 0x8a7468, rockDark: 0x6a5560,
-  pine: 0x3f5a3c, trunk: 0x5a3f2e, plank: 0x8d6a4c, rope: 0x7d6444, tower: 0xd8cfc2, sail: 0xe8dcc4, glow: 0x9fe6f2,
+  pine: 0x3f5a3c, trunk: 0x5a3f2e, plank: 0x8d6a4c, rope: 0x6a5c4a, tower: 0xd8cfc2, sail: 0xe8dcc4, glow: 0x9fe6f2,
 } as const;
 
 type Tri = (a: Vector3, b: Vector3, c: Vector3, color: number, vary?: number) => void;
@@ -114,8 +115,16 @@ export function plankBridge(length: number, width: number, material: MeshStandar
   const posts = kitPosts(width, length);
   if (posts !== null) group.add(posts);
   for (const side of [-1, 1]) {
-    // the hand ropes hang from post to post a little deeper than the planks (a rope sags more than a deck)
-    group.add(new Mesh(hungRope(length, sag, side * width / 2, 1, 1.1, 0.022), rails), new Mesh(hungRope(length, sag, side * width / 2, 0.45, 1.03, 0.018), rails));
+    // the hand ropes (E399 round 6, seat A: 'tied rails'; the seats since round 5: 'smooth orange ropes in deep unsupported
+    // curves'): a thick top rope from the post heads, drawn tighter than the deck, a lighter mid rope, and ties from the top
+    // rope down to the deck's edge every 1.25 m, as the mockups' bridges are netted
+    const x = side * width / 2, topAt = 1.45, topK = 0.7, ties: BufferGeometry[] = [];
+    for (let t = 1.25; t < length - 0.6; t += 1.25) {
+      const deckY = -sag(t), ropeY = topAt - sag(t) * topK, tie = new CylinderGeometry(0.016, 0.016, ropeY - deckY, 4, 1);
+      tie.translate(x, (ropeY + deckY) / 2, -t); ties.push(tie.toNonIndexed());
+    }
+    group.add(new Mesh(hungRope(length, sag, x, topAt, topK, 0.045), rails), new Mesh(hungRope(length, sag, x, 0.7, 0.88, 0.026), rails));
+    if (ties.length > 0) { group.add(new Mesh(mergeGeometries(ties), rails)); for (const g of ties) g.dispose(); }
     if (posts === null) for (const z of [0, -length]) { const post = new Mesh(new BoxGeometry(0.16, 1.3, 0.16), flat(PALETTE.trunk)); post.position.set(side * width / 2, 0.55, z); group.add(post); }
   }
   return group;
@@ -167,7 +176,8 @@ function kitDeck(length: number, width: number, sag: (s: number) => number): Ins
   const b = g.boundingBox; if (b === null) return null;
   const n = Math.max(1, Math.round(length / DECK_SEGMENT)), seg = length / n;
   g.translate(-(b.min.x + b.max.x) / 2, -b.max.y, -(b.min.z + b.max.z) / 2);
-  g.scale(width / Math.max(1e-3, b.max.x - b.min.x), 1, seg / Math.max(1e-3, b.max.z - b.min.z)); g.computeVertexNormals();
+  // (round 6, seat A: 'thinner plank wedges'; the seats: 'a solid dark near edge'): half the kit's plank depth, the walking top unchanged
+  g.scale(width / Math.max(1e-3, b.max.x - b.min.x), 0.5, seg / Math.max(1e-3, b.max.z - b.min.z)); g.computeVertexNormals();
   // weathered wood (E392: the mockups' planks are grey-brown, ours read saturated orange)
   greyWood(g);
   const mesh = new InstancedMesh(g, deckWood(), n), m = new Matrix4();
