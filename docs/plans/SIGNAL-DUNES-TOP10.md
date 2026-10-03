@@ -44,7 +44,7 @@ So the levers are **form, assets and composition, built once and global**, not m
 |---|---|---|---|
 | 1 | **An authored dune field.** | A, dusk-fire, D (and every hero view) | Replace the noise and the crest-line patches with one sculpted macro heightmap. Use the mockups' composition: a long descending diagonal crest from the spawn toward the tower, the tower on a broad separate mound, a saddle, and long transverse bands toward D's overlook, with 20–40 m relief and sharp crests over steep slip faces. Generate it with a dune-erosion pass (a Blender or numpy wind-deposition sim) or sculpt it in Blender from a top-down sketch of the mockups. Commit the script and bake it as the terrain. Climbs stay under 40°; re-bake the navmesh. |
 | 2 | **A new sand material.** | all five | Remove the uniform ripple normal. Add macro albedo variation (crests lighter, troughs warmer), wind-aligned ripples that fade on slip faces, on crests and with distance, fine grain near the camera, sparse glints, and a grazing-light sheen. Generate the detail maps with Qwen-Image or Blender, tileable, as real textures. |
-| 3 | **Long dune shadows at dusk** (engine) | A, dusk-fire, D, C | A baked terrain horizon map or a low-res heightfield shadow map for the low sun, so crests shade the troughs past the cascades out to the horizon. The lead builds it as an engine feature: any shard with a heightfield and a low sun gets it. |
+| 3 | **Long dune shadows on the new dunes** | A, dusk-fire, D, C | The shard already bakes a dune self-shadow (look/render.ts bakeDuneShadow: a march toward the key out to about 600 m on a 0.75 m-texel map over the 480 m ground), so the cascades' 80 m reach is not the limit. Re-bake it over row 1's dune field, sharpen the penumbra with distance, extend it to the far ring beyond the 480 m ground so distant crests shade too, and re-bake it per dusk stage if the key moves. (The lead checked: no engine feature is needed; it was first listed as engine work.) |
 | 4 | **Rebuild the viewmodel.** | all five (~20 % of every frame) | One modelled leather glove (seams, knuckle folds, worn cuff) and one loosely coiled single loop, held low in the lower right, as in A, C, D and dusk-fire. It replaces the code-built double ring. Use `mockup-to-model` with mockups D and C as references. |
 | 5 | **A painted dusk sky at infinity.** | all five (40 % of the frame) | One seamless 360° matte-painted sky per dusk stage (early, mid, late), made from the mockups' skies: the sunset glow on the right azimuth, the cloud banks, the stars coming out. Blend between them by dusk value. It is allowed because it sits at infinity (one panorama, no seams). It replaces the procedural cloud and glow tuning. |
 | 6 | **Real fire.** | C (and B's cookfire, the signal fire) | A flipbook fire made from a Blender fire sim or generated frames: a hot core, torn tongues and burning logs. Add embers as particles drifting downwind, a smoke column that widens with height, and a flickering light pool on the ground. Rebuild the brazier as an iron bowl on a fieldstone plinth. |
@@ -55,8 +55,8 @@ So the levers are **form, assets and composition, built once and global**, not m
 
 ## Order of work
 
-Rows 1, 2 and 4 come first. They change the most pixels in the most views. Row 3 is the lead's engine work and
-runs in parallel. Then rows 5 and 6, then rows 7–10. After each row: commit, capture, send 'ready for round N'.
+Rows 1, 2 and 4 come first. They change the most pixels in the most views. Row 3 follows row 1 (it re-bakes on the new
+terrain). Then rows 5 and 6, then rows 7–10. After each row: commit, capture, send 'ready for round N'.
 
 ## Status
 
@@ -64,7 +64,7 @@ runs in parallel. Then rows 5 and 6, then rows 7–10. After each row: commit, c
 |---|---|---|---|
 | 1 | signal-dunes | open | |
 | 2 | signal-dunes | open | |
-| 3 | wildshard-9 (engine) | open | |
+| 3 | signal-dunes | open | |
 | 4 | signal-dunes | open | |
 | 5 | signal-dunes | open | |
 | 6 | signal-dunes | open | |

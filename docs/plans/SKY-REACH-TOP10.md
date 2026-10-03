@@ -47,7 +47,7 @@ So the levers are **real assets and layered depth, built once and global**, not 
 | 6 | **The windmill set and the spawn island.** | A, C, proposal B | Model the windmill on its stone outcrop with its waterfall and stone base, plus the rope-post bridge heads, from mockups A and C. The bridge stays as built. |
 | 7 | **The crown arena as a carved set.** | D | A carved stone dais with steps and an inlaid compass, sculpted standing stones with cut spiral runes, scattered boulders, a few trees at the rim, and pennant cloth that moves in the wind. Everything modelled from mockup D. |
 | 8 | **A hero Roc.** | D | A modelled eagle Roc from mockup D: separated feather layers, a white head, a slate-and-white wing split, and talons. Animate it with a soaring and banking flight (the engine bank exists) whose ordinary approach comes toward the player at the arena entrance. |
-| 9 | **Golden-hour light with depth.** | all five | Sun shadows from the islands across the cloud sea and the other islands (the engine's horizon or heightfield shadow work, row 3 of SIGNAL-DUNES-TOP10, applies), warm rim light on silhouettes, the existing sun rays, and aerial perspective. Set the exposure once, after rows 1–5. |
+| 9 | **Golden-hour light with depth.** | all five | Self-shading on the new island masses (the mockups light them from behind: the camera-side faces fall into soft shade, the rims catch the sun), warm rim light on silhouettes, the existing sun rays, and aerial perspective. Set the exposure once, after rows 1–5. |
 | 10 | **The keeper set and one shard grade.** | B, all five | Model the keeper (cloth layers, face, an open wave) and the carved lectern with its hanging lantern from mockup B. Then one shard LUT derived from the five mockups (histogram transfer), global and never per view, for their painterly warmth. |
 
 ## Order of work
@@ -67,5 +67,5 @@ After each row: commit, capture, send 'ready for round N'.
 | 6 | sky-reach | open | |
 | 7 | sky-reach | open | |
 | 8 | sky-reach | open | |
-| 9 | sky-reach + wildshard-9 (engine) | open | |
+| 9 | sky-reach | open | |
 | 10 | sky-reach | open | |
