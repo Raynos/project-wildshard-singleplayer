@@ -41,6 +41,13 @@ function keelPuffs(): [number, number, number, number][] {
       out.push([isle.x + Math.cos(ang) * r, y, isle.z + Math.sin(ang) * r, isle.r * (0.4 + rnd() * 0.35)]);
     }
   }
+  // a cumulus bank round the storm crown a little under its deck (E399 round 2, seat B: 'no cloud sea behind the stones';
+  // from the arena the true sea, 52 m down, only shows past ~740 m): it reads as the sea just past the rim
+  const crown = ISLES.find((isle) => isle.id === 'crown');
+  if (crown !== undefined) for (let i = 0; i < 34; i++) {
+    const ang = (i / 34) * Math.PI * 2 + rnd() * 0.15, r = crown.r + 14 + rnd() * 60;
+    out.push([crown.x + Math.cos(ang) * r, crown.y - 9 + rnd() * 5, crown.z + Math.sin(ang) * r, 14 + rnd() * 16]);
+  }
   return out;
 }
 
