@@ -138,6 +138,38 @@ export function viewerLit(m: MeshStandardMaterial, gain: readonly [number, numbe
   });
 }
 /**
+ * Round 19 (seat C after round 18: glove-hd4's leather detail 2.1 against mockup D's 8.3; its paint is one 1024 map): fine
+ * leather in the model's own space, creases and a pebbled grain, as albedo and as a bump on the normal (screen-space
+ * derivatives, so no tangents). The model spans ~2 units across a 0.14 m hand: creases ~5 mm, grain ~1.5 mm.
+ */
+function leatherDetail(m: MeshStandardMaterial): void {
+  patchShader(m, 'sunscar.leatherDetail', PATCH_ORDER.decorate, (shader) => {
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vLeatherP;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLeatherP = position;');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
+varying vec3 vLeatherP;
+float lHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float lNoise(vec3 p) {
+  vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(lHash(i), lHash(i + vec3(1, 0, 0)), f.x), mix(lHash(i + vec3(0, 1, 0)), lHash(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(lHash(i + vec3(0, 0, 1)), lHash(i + vec3(1, 0, 1)), f.x), mix(lHash(i + vec3(0, 1, 1)), lHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+float leatherH() {
+  float crease = 1.0 - abs(lNoise(vLeatherP * vec3(9.0, 22.0, 9.0)) * 2.0 - 1.0);
+  return 0.55 * pow(crease, 6.0) + 0.45 * lNoise(vLeatherP * 46.0);
+}`).replace('#include <map_fragment>', `#include <map_fragment>
+  float leatherA = leatherH();
+  diffuseColor.rgb *= 0.8 + 0.36 * (1.0 - leatherA);`).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+  {
+    vec3 dpx = dFdx(-vViewPosition), dpy = dFdy(-vViewPosition);
+    float dhx = dFdx(leatherA), dhy = dFdy(leatherA);
+    vec3 r1 = cross(dpy, normal), r2 = cross(normal, dpx);
+    float det = dot(dpx, r1);
+    // the height in view-space metres: the creases ~0.6 mm deep on the held hand
+    normal = normalize(abs(det) * normal - sign(det) * (dhx * r1 + dhy * r2) * 0.0006);
+  }`);
+  });
+}
+/**
  * The wagon's canvas a pale weathered cloth (round 10, the seats since round 5: one even dark-orange shell; mockup B's
  * cover is grey-beige, torn, its folds and tears dark): the texture's light parts mapped onto a pale cloth ramp, its dark
  * parts (wood, tears, shadow) kept dark.
@@ -197,7 +229,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
           // E407 row 4: the new glove keeps its own painted leather (no discard, no hd2 seams): matte with a soft sheen, the
           // viewer-side light so the backlit fist never reads as a cut-out
           // round 16 (seat C after round 15: the smaller fist's leather flatter than round 14's, p95 47 against 83.5): lighter, glossier, more viewer light
-          if (name === 'glove-hd3' || name === 'glove-hd4') { m.color.setRGB(0.92, 0.84, 0.76); m.roughness = 0.34; m.fog = false; m.userData['sunscarNoRim'] = true; viewerLit(m, [0.58, 0.47, 0.38], 0.22); }
+          if (name === 'glove-hd3' || name === 'glove-hd4') { m.color.setRGB(0.92, 0.84, 0.76); m.roughness = 0.34; m.fog = false; m.userData['sunscarNoRim'] = true; viewerLit(m, [0.58, 0.47, 0.38], 0.22); if (name === 'glove-hd4') leatherDetail(m); }
           if (name === 'glove-hd' || name === 'glove-hd2') {
             m.color.setRGB(1, 1, 1); m.roughness = 0.34; /* round 12 (every seat: glove p95 43 against 72, no glancing highlights) */ /* round 8: glove-hd2's 0.26 caught the key (now in front) as a white streak along the cuff */ m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
             wornLeather(m, name === 'glove-hd'); // glove-hd2 is painted dark leather with its seams: no ramp

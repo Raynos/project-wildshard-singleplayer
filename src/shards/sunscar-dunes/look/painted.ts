@@ -12,7 +12,9 @@ import { PAINTED_STAGES, paintedUrl, type PaintedStage } from '../boot/files';
 // round 18: two stages. Sampled at the five mock cameras, the late painting fits every mockup's sky bands best (the first
 // early and mid paintings painted the afterglow too tall); early is the late painting re-coloured twenty minutes earlier
 // (art/sunscar-dunes/round-25-sky early_fix.py). Early up to Sefa's dusk, late from just past the logbook's (B prefers it).
-export const PAINTED = { dusk: [0.5, 0.54] as const, elevTop: 45, elevBottom: -8 } as const;
+// round 19 (seat C: the 0.50-0.54 window swapped the whole sky's palette in about 2 s of play): one slow, continuous change
+// over the quest, Sefa's dusk to the last waymark's
+export const PAINTED = { dusk: [0.45, 0.86] as const, elevTop: 45, elevBottom: -8 } as const;
 
 /** A painted strip as an sRGB texture, decoded off the main thread; null when it cannot be had (offline, a test page). */
 async function loadStrip(stage: PaintedStage): Promise<Texture | null> {
@@ -50,14 +52,21 @@ void main() {
   vec3 d = normalize(vDir);
   float heading = fract(atan(d.x, -d.z) / 6.2831853 + 1.0);
   float elev = degrees(asin(clamp(d.y, -1.0, 1.0)));
-  float v = clamp((elev - ${PAINTED.elevBottom.toFixed(1)}) / ${(PAINTED.elevTop - PAINTED.elevBottom).toFixed(1)}, 0.002, 0.998);
+  // round 19 (seat C: the painted ranges floated above the real 3-D ranges, a second violet horizon): under 2.5 deg the sky
+  // holds the painting's colour at 2.5 deg, so the 3-D horizon rings own the silhouette
+  float v = clamp((max(elev, 2.5) - ${PAINTED.elevBottom.toFixed(1)}) / ${(PAINTED.elevTop - PAINTED.elevBottom).toFixed(1)}, 0.002, 0.998);
   vec2 uv = vec2(heading, v);
   // the stages by the dusk: early up to its own dusk, late past its own
   // round 18b (the lead: A's sky 1.4-1.9x the mockup's, 134 against 97 at the band, 76 against 40 at the top): the early
   // stage at 0.64
   vec3 c = mix(strip(uEarly, uv) * 0.64, strip(uLate, uv), smoothstep(${PAINTED.dusk[0].toFixed(2)}, ${PAINTED.dusk[1].toFixed(2)}, uDusk));
-  // above the strip its top row carries on to the zenith, a little darker
-  c *= 1.0 - 0.3 * smoothstep(${PAINTED.elevTop.toFixed(1)}, 90.0, elev);
+  // round 19 (seat B: h3 showed a ragged electric-blue seam where the painting ends at 45 deg, its top row's stars
+  // stretched upward): from 38 deg the sky eases into the strips' top averaged round the heading, a little darker to the zenith
+  float w = smoothstep(${PAINTED.dusk[0].toFixed(2)}, ${PAINTED.dusk[1].toFixed(2)}, uDusk);
+  vec3 top = vec3(0.0);
+  for (int k = 0; k < 8; k++) { vec2 q = vec2(heading + float(k) / 8.0, 0.96); top += mix(strip(uEarly, q) * 0.64, strip(uLate, q), w); }
+  top /= 8.0;
+  c = mix(c, top, smoothstep(38.0, 45.0, elev)) * (1.0 - 0.3 * smoothstep(${PAINTED.elevTop.toFixed(1)}, 90.0, elev));
   // crisp stars where the painted sky is dark (the mockups' stars are sharp white points; the strip is magnified ~3x)
   vec3 cellP = d * 300.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;

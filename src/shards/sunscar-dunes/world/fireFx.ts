@@ -92,7 +92,7 @@ void main() {
     float cover = clamp(lum * 1.7, 0.0, 1.0);
     // mockup C: saturated orange tongues, white only in the core over the logs (the render's yellow-white bleached them)
     c = pow(c, vec3(1.0, 1.35, 1.9)) * vec3(1.2, 0.95, 0.75);
-    c *= 1.0 + 1.4 * smoothstep(0.8, 1.0, lum);
+    c *= 1.0 + 2.8 * smoothstep(0.62, 1.0, lum); // round 19 (seat B: the white-hot core 121 px against mockup C's 2 722)
     gl_FragColor = vec4(c * fade, cover * fade);
     return;
   }
@@ -143,7 +143,7 @@ void main() {
   float puff = smoothstep(0.35, 0.75, n + 0.25 * (1.0 - y));
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
-  vec3 c = ${wisp ? 'mix(vec3(0.16, 0.11, 0.1), vec3(0.09, 0.08, 0.12), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.24, 0.12, 0.06), vec3(0.075, 0.06, 0.058), smoothstep(0.02, 0.3, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 18 (row 3: near-black, it vanished against the late sky; mockup C's billow reads grey-brown): lifted; round 18b (the lead: too pale, a column up the sky): back toward a dark grey-brown; round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
+  vec3 c = ${wisp ? 'mix(vec3(0.16, 0.11, 0.1), vec3(0.09, 0.08, 0.12), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.3, 0.14, 0.06), vec3(0.024, 0.02, 0.022), smoothstep(0.0, 0.18, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 18 (row 3: near-black, it vanished against the late sky; mockup C's billow reads grey-brown): lifted; round 18b (the lead: too pale, a column up the sky): back toward a dark grey-brown; round 19 (seat C: a fixed colour, 55 against the sky's 16 beside it): lit warm only at its foot where the fire catches it, dark against the night above; round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
   gl_FragColor = vec4(c, a * ${wisp ? '0.55' : '0.9'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });

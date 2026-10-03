@@ -408,7 +408,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     vec3 W3 = vec3(0.2126, 0.7152, 0.0722);
     float dL = dot(reflectedLight.directDiffuse, W3), iL = dot(reflectedLight.indirectDiffuse, W3);
     reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, 2.1), vec3(0.0));
-    reflectedLight.indirectDiffuse = mix(vec3(iL) * vec3(0.95, 0.94, 1.14), reflectedLight.indirectDiffuse, 0.62);
+    reflectedLight.indirectDiffuse = mix(vec3(iL) * vec3(0.93, 0.92, 1.2), reflectedLight.indirectDiffuse, 0.4); // round 19 (seat B: the shade measured A 0.45 against 0.31)
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
