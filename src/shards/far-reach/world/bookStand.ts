@@ -8,6 +8,9 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
  * keeper's isle (quest step 1) is the same stand. Vertex-coloured, three meshes; `footprint` is its collider half-size.
  */
 export const BOOK_STAND = { height: 1.12, footprint: 0.3 } as const;
+/** The reading box's tilt (radians about x): its reader's (+z) edge low, so the open pages face the reader (round 8: at -0.42
+ * the reader's edge stood high and mockup B's view saw the book's back). */
+const BOOK_TILT = 0.42;
 
 function tint(g: BufferGeometry, hex: number, jitter = 0.06, seed = 1): BufferGeometry {
   const geo = g.index ? g.toNonIndexed() : g, n = geo.getAttribute('position').count, c = new Color(hex), out: number[] = [];
@@ -28,14 +31,14 @@ export function bookStand(withLantern: boolean): Group {
   wood.push(tint(new BoxGeometry(0.48, 0.14, 0.38).translate(0, 0.23, 0), 0x6a4630, 0.06, 2));
   wood.push(tint(new BoxGeometry(0.17, 0.62, 0.17).translate(0, 0.61, 0), 0x6a4630, 0.08, 3));
   for (const [y, w] of [[0.33, 0.22], [0.88, 0.21]] as const) wood.push(tint(new BoxGeometry(w, 0.05, w).translate(0, y, 0), 0x4d3220, 0.05, 4));
-  const box = new BoxGeometry(0.66, 0.12, 0.5); box.rotateX(-0.42); box.translate(0, 0.98, 0); wood.push(tint(box, 0x6e4a32, 0.05, 5));
-  const lip = new BoxGeometry(0.66, 0.07, 0.04); lip.rotateX(-0.42); lip.translate(0, 0.95, 0.24); wood.push(tint(lip, 0x4d3220, 0.04, 6));
+  const box = new BoxGeometry(0.66, 0.12, 0.5); box.rotateX(BOOK_TILT); box.translate(0, 0.98, 0); wood.push(tint(box, 0x6e4a32, 0.05, 5));
+  const lip = new BoxGeometry(0.66, 0.07, 0.04); lip.rotateX(BOOK_TILT); lip.translate(0, 0.95, 0.24); wood.push(tint(lip, 0x4d3220, 0.04, 6));
   // the open book: dark red leather boards, two page blocks fanned up from the spine, a ribbon
-  const cover = new BoxGeometry(0.62, 0.02, 0.42); cover.rotateX(-0.42); cover.translate(0, 1.05, 0.005); wood.push(tint(cover, 0x6b2a22, 0.04, 7));
+  const cover = new BoxGeometry(0.62, 0.02, 0.42); cover.rotateX(BOOK_TILT); cover.translate(0, 1.05, 0.005); wood.push(tint(cover, 0x6b2a22, 0.04, 7));
   for (const side of [-1, 1]) {
-    const pages = new BoxGeometry(0.29, 0.045, 0.39); pages.rotateZ(side * 0.1); pages.rotateX(-0.42); pages.translate(side * 0.15, 1.08, 0.0); paper.push(tint(pages, 0xf4ecd8, 0.03, 8 + side));
+    const pages = new BoxGeometry(0.29, 0.045, 0.39); pages.rotateZ(side * 0.1); pages.rotateX(BOOK_TILT); pages.translate(side * 0.15, 1.08, 0.0); paper.push(tint(pages, 0xf4ecd8, 0.03, 8 + side));
   }
-  const ribbon = new BoxGeometry(0.02, 0.005, 0.24); ribbon.rotateX(-0.42); ribbon.translate(0.01, 1.105, 0.2); wood.push(tint(ribbon, 0x9a2a1e, 0, 9));
+  const ribbon = new BoxGeometry(0.02, 0.005, 0.24); ribbon.rotateX(BOOK_TILT); ribbon.translate(0.01, 1.105, 0.2); wood.push(tint(ribbon, 0x9a2a1e, 0, 9));
   // the lantern's arm: a bracket out of the post's side, a hook at its end
   wood.push(tint(new BoxGeometry(0.3, 0.035, 0.035).translate(0.22, 0.8, 0.02), 0x4d3220, 0.04, 13));
   const woodMesh = new Mesh(mergeGeometries(wood), new MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, flatShading: true }));
