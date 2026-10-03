@@ -1688,15 +1688,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "ff06b22bb2ea0bb4ba86d539db5d6b756b7f7093",
-      "reason": "E392 Sky Reach toward the mockups, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted textures (cloud sea, rock, meadow, cumulus atlas, fir branches), the sky isles and the firs",
+      "commit": "00206afd5de4943e4cb9235009d1cca6cae2f6fd",
+      "reason": "E392/E399 loops 18-20: the god-ray pass (E398) and the painted windmill stone, canvas and ivy and the painted maelstrom; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E392 Sky Reach toward the mockups, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted textures (cloud sea, rock, meadow, cumulus atlas, fir branches), the sky isles and the firs",
-      "captureSha": "ff06b22bb2ea0bb4ba86d539db5d6b756b7f7093",
-      "captureSha256": "33279460409816a79492c19c260680137d8c1fa8b83ee50e6bb76a058e76d38d",
+      "approval": "E392/E399 loops 18-20: the god-ray pass (E398) and the painted windmill stone, canvas and ivy and the painted maelstrom; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "captureSha": "00206afd5de4943e4cb9235009d1cca6cae2f6fd",
+      "captureSha256": "0ceb5910f89685a735e73d1357268d55665ed585337b558183d35b40e7b29b01",
       "ceilings": {
-        "far-reach.phone.current.gpuMB": 122.6595687866211
+        "far-reach.phone.current.gpuMB": 157.95073699951172
       }
     },
     {
@@ -1704,15 +1704,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "ff06b22bb2ea0bb4ba86d539db5d6b756b7f7093",
-      "reason": "E392 Sky Reach toward the mockups, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted textures (cloud sea, rock, meadow, cumulus atlas, fir branches), the sky isles and the firs",
+      "commit": "00206afd5de4943e4cb9235009d1cca6cae2f6fd",
+      "reason": "E392/E399 loops 18-20: the god-ray pass (E398) and the painted windmill stone, canvas and ivy and the painted maelstrom; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E392 Sky Reach toward the mockups, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the painted textures (cloud sea, rock, meadow, cumulus atlas, fir branches), the sky isles and the firs",
-      "captureSha": "ff06b22bb2ea0bb4ba86d539db5d6b756b7f7093",
-      "captureSha256": "48d94834877cf279f965a088e0f63854708d1b9d5e00291e12b44174a86e2c48",
+      "approval": "E392/E399 loops 18-20: the god-ray pass (E398) and the painted windmill stone, canvas and ivy and the painted maelstrom; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "captureSha": "00206afd5de4943e4cb9235009d1cca6cae2f6fd",
+      "captureSha256": "fbd5962542bc79d654d83721f6e244298c9e3449fe04a38620a53ea62ae216d6",
       "ceilings": {
-        "far-reach.desktop.current.gpuMB": 227.22667694091797
+        "far-reach.desktop.current.gpuMB": 272.40462493896484
       }
     }
   ]
