@@ -72,15 +72,20 @@ void main() {
   float cn = vNoise(cq * 0.45 + 11.0) * 0.35 + vNoise(cq) * 0.33 + vNoise(cq * vec2(2.3, 2.0) + 3.1) * 0.2 + vNoise(cq * vec2(6.0, 4.0) + 7.3) * 0.12;
   float azG = atan(uSun.z, uSun.x), rel = az - azG; rel -= 6.2831853 * floor((rel + 3.1415927) / 6.2831853);
   float bank = smoothstep(0.06, 0.2, rel) * (1.0 - smoothstep(0.75, 1.15, rel)) + 0.3 * smoothstep(-1.1, -0.75, rel) * (1.0 - smoothstep(-0.22, -0.1, rel)); // round 11 (R10B-1: thinner on the left)
-  float cov = smoothstep(0.52, 0.64, cn) * bank * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.2, 0.28, h)) * (1.0 - smoothstep(2.7, 2.95, abs(az))) * (1.0 - smoothstep(0.03, 0.14, uDusk));
+  // round 11 (round 10: soft caramel clumps; the mockups' banks are thin overlapping filaments with holes): a fine
+  // stretched filament octave and holes cut by a mid octave
+  float fil = vNoise(vec2(az * 60.0, h * 260.0) + 5.0), holes = smoothstep(0.32, 0.5, vNoise(vec2(az * 20.0, h * 90.0) + 9.0));
+  float cov = smoothstep(0.49, 0.62, cn) * (0.35 + 0.65 * smoothstep(0.35, 0.65, fil)) * holes * bank * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.2, 0.28, h)) * (1.0 - smoothstep(2.7, 2.95, abs(az))) * (1.0 - smoothstep(0.03, 0.14, uDusk));
   // lit from below (the set sun): where the bank thins downward its belly takes the glow, its top stays dark
   vec2 cqb = cq - vec2(0.0, 0.35);
   float cBelow = vNoise(cqb * 0.45 + 11.0) * 0.35 + vNoise(cqb) * 0.33 + vNoise(cqb * vec2(2.3, 2.0) + 3.1) * 0.2 + vNoise(cqb * vec2(6.0, 4.0) + 7.3) * 0.12;
   float lit = clamp((cn - cBelow) * -6.0 + 0.7, 0.0, 1.0);
   float hot = pow(toward, 1.4) * (1.0 - smoothstep(0.1, 0.4, h));
-  vec3 cLit = mix(mix(vec3(0.82, 0.36, 0.26), vec3(0.95, 0.44, 0.22), hot), vec3(1.0, 0.58, 0.3), hot * lit * 0.6);
+  vec3 cLit = mix(mix(vec3(0.9, 0.32, 0.18), vec3(0.98, 0.42, 0.18), hot), vec3(1.0, 0.56, 0.26), hot * lit * 0.6);
   vec3 cDark = mix(vec3(0.2, 0.15, 0.22), vec3(0.3, 0.17, 0.16), hot);
-  c = mix(c, mix(cDark, cLit, clamp(lit * (0.75 + 0.25 * hot) + 0.2 * hot, 0.0, 1.0)), cov * 0.9);
+  // the banks' cores darker than their lit edges (round 10: a darker interior)
+  float core = smoothstep(0.62, 0.78, cn);
+  c = mix(c, mix(cDark, cLit, clamp(lit * (0.75 + 0.25 * hot) + 0.2 * hot - 0.5 * core, 0.0, 1.0)), cov * 0.9);
   // Stars: soft points round a jittered spot in each cell, many overhead, fading into the band and the glow.
   vec3 cellP = d * 300.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;
