@@ -231,7 +231,7 @@ export class SkyReachPlugin extends ShardPlugin {
     if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
     // and a strike in the storm behind it (its lightning comes every 3.5-8 s; mockup D shows a bolt), just before the frame
     if (name === 'roc-stalk') this.built?.storm.strike(0.15);
-    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x, z: DAIS.z - 27 }, { x: CROWN.x, z: CROWN.z + CROWN.r });
+    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - 18 }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }
   /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */
   gustVanes(from: Vector3, dir: Vector3, toast: (text: string) => void = () => undefined): number {
