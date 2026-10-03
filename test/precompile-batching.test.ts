@@ -1,8 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { BatchedMesh, BoxGeometry, Color, Group, Mesh, MeshStandardMaterial, Scene } from 'three';
 import { sceneJobs, shadowJobs } from '#engine/boot/precompile';
 
-vi.mock('#engine/boot/perflog', () => ({ PERFLOAD: false }));
 
 function fixture(): Scene {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();

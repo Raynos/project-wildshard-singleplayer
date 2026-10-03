@@ -2,14 +2,11 @@ import * as THREE from 'three';
 import { afterEach, describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '#engine/world/Heightfield';
 import { Scope } from '#engine';
-import type * as Engine from '#engine';
 import { Enemies } from '#shards/driftwood-isle/creatures/Enemies';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { invokeLegacy } from '../fake/legacyActor';
 import { manager } from '../fake/manager';
 
-vi.mock('#engine', async (original) => ({ ...await original<typeof Engine>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], terrainWaterLevel: (): number => -100, streamAt: (): null => null }));
 // a flat, dry world through the terrain port, not a module mock (E422)
 const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
 afterAll(restoreTerrain);

@@ -1,14 +1,12 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
+import { app } from '#engine/app/runtime';
+import { buildSavePanel } from '#engine/ui/SavePanel';
 import * as v from 'valibot';
 import { Scope } from '#engine/app/scope';
 import { SaveStore } from '#engine/saves/store';
 import { MemoryStorage } from '../setup';
 
-vi.mock('#engine/app/ownership', () => ({ currentOwner: () => null }));
-vi.mock('#engine/boot/lastEnd', () => ({ markUnload: vi.fn() }));
-const { app } = await import('#engine/app/runtime');
-const { buildSavePanel } = await import('#engine/ui/SavePanel');
 afterEach(() => { document.body.replaceChildren(); });
 it('exports gameplay saves and imports a picked file with skipped reasons and reload affordance', async () => {
   const local = new MemoryStorage(), store = new SaveStore({ local, session: null });

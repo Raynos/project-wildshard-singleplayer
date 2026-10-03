@@ -164,7 +164,8 @@ export class Audio extends PlayerVoices {
     this.worldMuted = true;
   }
 
-  constructor(private readonly profile: { bed?: string; samples?: SfxDecodePolicy } = {}) {
+  /** `decode`: the sample decoder when no scope installed one (the offline cache's by default; a test passes its own) */
+  constructor(private readonly profile: { bed?: string; samples?: SfxDecodePolicy; decode?: (set: SfxSet) => Promise<SfxBank> } = {}) {
     super();
     this.bed = profile.bed ?? '';
     onSfxSet((v) => { this.switchSet(v); });
@@ -260,7 +261,7 @@ export class Audio extends PlayerVoices {
   private switchSet(v: SfxSet): void {
     if (v === this.sfxSet) return;
     this.sfxSet = v;
-    const decoded = this.sampleDecoder?.(v) ?? decodeSfxSet(v, this.bed, cachedBytes, undefined, undefined, this.profile.samples);
+    const decoded = this.sampleDecoder?.(v) ?? this.profile.decode?.(v) ?? decodeSfxSet(v, this.bed, cachedBytes, undefined, undefined, this.profile.samples);
     void (async () => { this.useSamples(await trackBusy('sfx', decoded)); })();
   }
   private sampleDecoder: ((set: SfxSet) => Promise<SfxBank>) | undefined;

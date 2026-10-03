@@ -12,7 +12,6 @@ import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
 import { Rifle } from '#kit/weapons/firearm/Rifle';
 import { legacyActor } from '../fake/legacyActor';
 
-vi.mock('#engine/app/legacyCapture', () => ({ currentScope: () => null }));
 let scope: Scope;
 const parked = hudSlots.snapshot();
 beforeEach(() => {

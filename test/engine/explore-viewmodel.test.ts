@@ -8,13 +8,6 @@ import type { Game } from '#engine/core/Game';
 import type { World } from '#engine/core/bootstrap';
 import { FakeGame, legacyDouble } from '../fake/FakeGame';
 
-vi.mock('#engine/explore/catalog', () => ({ catalogEntries: () => [] }));
-vi.mock('#engine/explore/Compare', () => ({ hasCompareTargets: () => false }));
-vi.mock('#engine/explore/SetExplorer', () => ({ SetExplorer: class {
-  readonly el = document.createElement('div');
-  show(): void { /* no scene required for the lifecycle test */ }
-  hide(): void { /* no scene required for the lifecycle test */ }
-} }));
 
 const previousScope = app.levelScope;
 afterEach(() => { app.levelScope?.dispose(); app.levelScope = previousScope; document.body.replaceChildren(); });
@@ -23,7 +16,7 @@ function fixture(): { explore: Explore; game: FakeGame; onExit: ReturnType<typeo
   app.levelScope = new Scope('explore-viewmodel-test');
   const game = new FakeGame(), canvas = document.createElement('canvas');
   game.camera.add(game.viewmodel); game.scene.add(game.camera);
-  const hostGame = legacyDouble<Game>({ app, camera: game.camera, viewmodel: game.viewmodel, canvas,
+  const hostGame = legacyDouble<Game>({ app, camera: game.camera, viewmodel: game.viewmodel, canvas, scene: game.scene,
     level: legacyDouble<Game['level']>({ id: 'test', spawn: { x: 0, z: 0, yaw: 0 }, pois: [], explore: { world: '', models: '', sets: '', practice: '' }, creatureStyle: 'pbr' }),
     onUpdate: vi.fn<Game['onUpdate']>(),
   });
