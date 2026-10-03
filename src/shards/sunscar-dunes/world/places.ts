@@ -28,7 +28,8 @@ const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh =>
 
 /** The lantern on its pole, in the caravan's frame (metres): beside the tailboard (−Z), the glass `y` up. */
 // E399 (mockup B): the lantern hangs in the wagon's back hoop, over the logbook on the tailboard
-const LANTERN = { x: -0.6, y: 1.8, z: -2.75 } as const;
+// row 7: wagon-hd2's bed runs ~0.3 m further back, so the lantern hangs at the back hoop's opening, not inside the canvas
+const LANTERN = { x: -0.45, y: 2.0, z: -3.05 } as const;
 /** The cookfire beside the wagon, in the caravan's frame (mockup B's smoke). */
 // E399 (mockup B): in front of the wagon, its wisp rising behind it as you come up from the back; round 24 (seats B and C:
 // the plume rose right of the wagon, x 0.71, where the mockup's rises over the canvas, x 0.53): on the approach's sight line
@@ -110,7 +111,9 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   wagon.position.set(0, -0.55, 0); wagon.rotation.set(-0.1, 0, 0.13); root.add(wagon);
   // C6: the generated wagon (Hunyuan3D-2 from `ref-caravan.jpg`; its shafts lie along −X, turned to +Z), else the code one.
   // loop 6 (mockup B): the textured hero wagon when it loaded, else the facet-painted one, else the code wagon
-  const hdWagon = duneHd('wagon-hd', { size: HD.wagon, by: 'span', yaw: HD.wagonYaw });
+  // the original top-10's row 7 (art/sunscar-dunes/round-28-camp): wagon-hd2 from mockup B, torn canvas over bare hoops, a
+  // planked tailboard, spoked wheels (turned like wagon-hd, its tailboard to the logbook's approach); wagon-hd if it did not load
+  const hdWagon = duneHd('wagon-hd2', { size: HD.wagon, by: 'span', yaw: HD.wagonYaw }) ?? duneHd('wagon-hd', { size: HD.wagon, by: 'span', yaw: HD.wagonYaw });
   const generated = hdWagon ? null : duneMesh('caravan');
   if (hdWagon) wagon.add(hdWagon);
   else if (generated) {
@@ -122,7 +125,10 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   else buildCodeWagon(wagon, wood, dark);
   // round 8 (the council: the cargo read as black slabs; the mockup lights it warm): the lantern lights the cargo too
   const crateMap = crateTexture(), crateWood = crateMaterial(crateMap); warmByFire(crateWood);
-  CARGO.forEach(([x, z, half, yaw], i) => { const crate = new Mesh(crateGeometry(half), crateWood); crate.rotation.y = yaw; at(crate, x, i === 2 ? 0.84 + half - 0.05 : half - 0.04, z, root); });
+  // row 7: the modelled crate pair (a crate stacked on a larger one, mockup B) where the code stack stood; the code crates if it did not load
+  const cratesHd = duneHd('crates-hd', { size: 1.36, by: 'height', yaw: 0.25 });
+  if (cratesHd) { const [cx, cz] = CARGO[0] ?? [2.6, -2.6]; cratesHd.position.set(cx, -0.04, cz); root.add(cratesHd); }
+  else CARGO.forEach(([x, z, half, yaw], i) => { const crate = new Mesh(crateGeometry(half), crateWood); crate.rotation.y = yaw; at(crate, x, i === 2 ? 0.84 + half - 0.05 : half - 0.04, z, root); });
   // The barrel (loop 4: it was a plain near-black cylinder): sun-bleached staves, a bulge, two iron hoops.
   const barrel = new Group(); barrel.rotation.set(0, 0.6, Math.PI / 2); barrel.position.set(-2.4, 0.25, 2.3); root.add(barrel);
   const staves = mat(BARREL, { emissive: CRATE_GLOW }); warmByFire(staves); // no vertex colours on a cylinder: a plain material, not the crates'
@@ -146,7 +152,10 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   });
   // The sacks (E399, mockup B): squashed burlap lumps against the crates.
   const burlap = new MeshStandardMaterial({ color: BURLAP, roughness: 0.97, emissive: 0x241a10 }); warmByFire(burlap);
-  for (const [x, z, r, yaw] of SACKS) {
+  // row 7: the modelled sack pile (three tied burlap sacks and a strapped bedroll, mockup B) against the crates
+  const sacksHd = duneHd('sacks-hd', { size: 0.78, by: 'height', yaw: 0.5 });
+  if (sacksHd) { sacksHd.position.set(2.0, -0.04, -3.85); root.add(sacksHd); }
+  else for (const [x, z, r, yaw] of SACKS) {
     const sack = new Mesh(new CapsuleGeometry(r * 0.62, r * 1.3, 4, 10), burlap); sack.scale.set(1, 1, 0.8); sack.rotation.set(0, yaw, Math.PI / 2 - 0.12); at(sack, x, r * 0.5, z, root);
     const neck = new Mesh(new CylinderGeometry(r * 0.16, r * 0.3, r * 0.4, 8), burlap); neck.rotation.set(0, yaw, Math.PI / 2 - 0.12);
     neck.position.set(x + Math.cos(yaw) * r * 1.35, r * 0.62, z - Math.sin(yaw) * r * 1.35); root.add(neck);
@@ -171,7 +180,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     const at2 = world(HORSE.x, HORSE.z); colliders.push(boxDesc({ x: at2.x, z: at2.z, hw: 0.35, hd: 1.1, rot: -CARAVAN.yaw, yBottom: y - 0.3, yTop: y + HORSE.h }, 'flesh'));
   }
   const tentAt = world(TENT.x, TENT.z); colliders.push(boxDesc({ x: tentAt.x, z: tentAt.z, hw: TENT.w / 2, hd: TENT.d / 2, rot: -(CARAVAN.yaw + TENT.yaw), yBottom: y - 0.5, yTop: y + TENT.h }, 'felt'));
-  for (const [i, [x, z, half]] of CARGO.entries()) { if (i === 2) continue; const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + (i === 0 ? 0.84 + 0.52 : half * 2) }, 'wood')); } // the stacked crate rides on the first's collider
+  for (const [i, [x, z, half]] of CARGO.entries()) { if (i === 2 || (i === 1 && cratesHd)) continue; const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + (i === 0 ? 0.84 + 0.52 : half * 2) }, 'wood')); } // the stacked crate rides on the first's collider
   { // the caravan's marker, off the lee side (in the caravan's frame, -X)
     // E399 (mockup B shows the wagon alone): no marker pole at the caravan; the well keeps its
     void markerPole;

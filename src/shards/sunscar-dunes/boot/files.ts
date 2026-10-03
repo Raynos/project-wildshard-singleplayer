@@ -7,15 +7,20 @@ export const DUNE_MESHES: readonly DuneMeshName[] = ['caravan', 'dry-well', 'way
  * The hero models kept TEXTURED (loop 6, toward the mockups B-D): Hunyuan3D-2 shape + 2048 paint, decimated, the paint
  * kept as a 1024 WebP map on its UVs (the facet-colour path above reads low-poly and blotchy up close).
  */
-export type DuneHdName = 'wagon-hd' | 'brazier-hd' | 'glove-hd' | 'glove-hd2' | 'glove-hd3' | 'glove-hd4' | 'horse-hd' | 'mesa-butte' | 'mesa-mesa' | 'mesa-spire';
+export type DuneHdName = 'wagon-hd' | 'wagon-hd2' | 'crates-hd' | 'sacks-hd' | 'brazier-hd' | 'glove-hd' | 'glove-hd2' | 'glove-hd3' | 'glove-hd4' | 'horse-hd' | 'mesa-butte' | 'mesa-mesa' | 'mesa-spire';
 // E399: the mesas are not preloaded while the world shows none (the mockups have low dune ranges at the horizon)
 // E399 (council round 3): the held glove is glove-hd2 (a stitched gauntlet with a cuff, framed as mockup D); glove-hd stays on disk
 // E407 row 4: the held glove is glove-hd3 (the glove alone gripping its handle; the loop is a code tube); glove-hd2 stays on disk
 // round 18: the held glove is glove-hd4 (the back of the hand and the cuff toward the camera, as mockups D and dusk-fire);
 // glove-hd3 stays on disk
-export const DUNE_HD: readonly DuneHdName[] = ['wagon-hd', 'brazier-hd', 'glove-hd4', 'horse-hd'];
+// the original top-10's row 7: the camp as a modelled set from mockup B (art/sunscar-dunes/round-28-camp): wagon-hd2 (torn
+// canvas over bare hoops, a planked tailboard, spoked wheels), the crate pair and the sack pile; wagon-hd stays on disk
+export const DUNE_HD: readonly DuneHdName[] = ['wagon-hd2', 'crates-hd', 'sacks-hd', 'brazier-hd', 'glove-hd4', 'horse-hd'];
 const HD_URLS: Readonly<Record<DuneHdName, string>> = {
-  'wagon-hd': '/assets/sunscar-dunes/models/wagon-hd/wagon-hd.glb', 'brazier-hd': '/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb',
+  'wagon-hd': '/assets/sunscar-dunes/models/wagon-hd/wagon-hd.glb',
+  // the camp from mockup B (art/sunscar-dunes/round-28-camp; Hunyuan3D-2)
+  'wagon-hd2': '/assets/sunscar-dunes/models/wagon-hd2/wagon-hd2.glb', 'crates-hd': '/assets/sunscar-dunes/models/crates-hd/crates-hd.glb',
+  'sacks-hd': '/assets/sunscar-dunes/models/sacks-hd/sacks-hd.glb', 'brazier-hd': '/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb',
   'glove-hd': '/assets/sunscar-dunes/models/glove-hd/glove-hd.glb',
   // the stitched gauntlet glove and its coiled plaited whip (art/sunscar-dunes/round-20-glove)
   'glove-hd2': '/assets/sunscar-dunes/models/glove-hd2/glove-hd2.glb',

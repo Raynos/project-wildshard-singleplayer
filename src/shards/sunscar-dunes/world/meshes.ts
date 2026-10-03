@@ -240,7 +240,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
           // round 8 (the council since round 4: a copper bowl and twisted copper post on a clean tan plinth; mockup C: soot-dark
           // iron and weathered stone, warm only where the fire lights it)
           if (name === 'brazier-hd') { m.color.setRGB(0.5, 0.46, 0.44); greyed(m, 0.8); fieldstoneBase(m); } // round 10 (R9B-7: the post still red copper, R/G 8.4 against 2.3)
-          if (name === 'brazier-hd' || name === 'wagon-hd') warmByFire(m);
+          if (name === 'brazier-hd' || name === 'wagon-hd' || name === 'wagon-hd2' || name === 'crates-hd' || name === 'sacks-hd') warmByFire(m); // the camp: the lantern and the cookfire light it
           m.needsUpdate = true;
         }
       }
