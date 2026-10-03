@@ -51,6 +51,8 @@ function keelPuffs(): [number, number, number, number][] {
   const crown = ISLES.find((isle) => isle.id === 'crown');
   if (crown !== undefined) for (let i = 0; i < 34; i++) {
     const ang = (i / 34) * Math.PI * 2 + rndB() * 0.15, r = crown.r + 14 + rndB() * 60;
+    // none toward the low sun (round 10, seat B: the lit puffs under the sun were D's hot band, whatever the seed)
+    if (Math.cos(ang) * SUN_DIR.x + Math.sin(ang) * SUN_DIR.z > 0.85 * Math.hypot(SUN_DIR.x, SUN_DIR.z)) continue;
     out.push([crown.x + Math.cos(ang) * r, crown.y - 9 + rndB() * 5, crown.z + Math.sin(ang) * r, 14 + rndB() * 16]);
   }
   return out;

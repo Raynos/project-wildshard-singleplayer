@@ -4,7 +4,7 @@ import type { Isle } from '../layout';
 import { PATCH_ORDER, patchShader } from '#engine';
 import { hdMaterial, skyHd } from './meshes';
 import type { SkyIsle } from './skyIsles';
-import { SKY } from '../look/sun';
+import { SKY, SUN_DIR } from '../look/sun';
 
 /** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */
 function linear(hex: number): string { const c = new Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }
@@ -120,10 +120,11 @@ export function skyIsleModels(isles: readonly SkyIsle[]): SkyIsleHd {
     diffuseColor.rgb = mix(stone, c * vec3(0.82, 0.95, 0.72), turf); }`).replace('#include <dithering_fragment>', `#include <dithering_fragment>
   // the low sun behind them catches their edges gold (round 9, the seats: 'pale flat mesas'; mockup A's crags are dark
   // masses with sunlit gold rims)
-  { float farRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 3.0);
+  // only the edges on the sun's side (round 10, seat B: every edge lit alike, whichever side the sun was on)
+  { float farRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 3.0) * smoothstep(-0.1, 0.5, dot(normalize(normal), normalize((viewMatrix * vec4(${SUN_DIR.x.toFixed(4)}, ${SUN_DIR.y.toFixed(4)}, ${SUN_DIR.z.toFixed(4)}, 0.0)).xyz)));
     gl_FragColor.rgb = gl_FragColor.rgb * 0.95 + vec3(1.0, 0.7, 0.36) * farRim * 0.55; }
   gl_FragColor.rgb = mix(gl_FragColor.rgb, ${linear(SKY_ISLE_HAZE.color)}, clamp((length(vViewPosition) - ${SKY_ISLE_HAZE.near.toFixed(1)}) / ${(SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1)}, 0.0, 1.0) * ${SKY_ISLE_HAZE.max.toFixed(2)});`);
-    }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim` });
+    }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun` });
     const mesh = new InstancedMesh(u.geometry, material, list.length); mesh.name = `far.sky-isles.${name}`;
     list.forEach((s, k) => {
       const yaw = WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi, Math.max(lo, s.keel / (s.r * u.depth)));

@@ -13,7 +13,7 @@ export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldow
 // upper left on its pivot, the gloved hand, wrist and tassel in plain view at the lower right, as mockup C sweeps it
 // (round 7: a larger, more central hold, for mockup C, covered A's bridge and D's dais, where mockups A, B, D and proposal B
 // hold it small at the lower right: the hold stays)
-export const HOLD = { x: 0.11, y: -0.205, z: -0.6, pitch: 0.22, yaw: -0.2, roll: 0.95, scale: 0.47 } as const;
+export const HOLD = { x: 0.135, y: -0.205, z: -0.6, pitch: 0.22, yaw: -0.2, roll: 0.95, scale: 0.46 } as const;
 /** The painted silk's tint (E399 seats: 'plain and bright'): mockup C's silk is a muted, deeper teal. */
 // E399 seats: the mockups' silk is a lighter sea-green with pale cloud swirls
 export const SILK_TINT = 0xdfece6;

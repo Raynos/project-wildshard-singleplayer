@@ -20,7 +20,7 @@ export const ROC_GALE = { shove: 14, lift: 2 } as const;
 export const ROC_SPEED = { circle: 10, stalk: 12, dive: 20, walk: 2.4 } as const;
 /** The take-off as a fight begins: its seconds, its slow speed out from the perch (m/s) and how far it rises (m). */
 // (round 9, the lead: the fight starts at the bridge landing; a player walks into the arena's view in ~3.1 s)
-export const ROC_TAKEOFF = { seconds: 4, speed: 1.6, rise: 5 } as const;
+export const ROC_TAKEOFF = { seconds: 4, speed: 1.6, rise: 2 } as const;
 /** The Roc's perch: the top of the ring's tallest stone (world/crown.ts), the one opposite the arena's entrance. */
 const PERCH = (): { x: number; y: number; z: number } => {
   const tallest = crownStones().reduce((best, st) => (st.h > best.h ? st : best));
@@ -105,7 +105,9 @@ export class StormRocBrain extends CreatureBrain<RocState> {
       // the take-off: a slow rise over the perch, turning out toward its lap
       this.takeoff = Math.max(0, this.takeoff - ctx.dt);
       const k = 1 - this.takeoff / ROC_TAKEOFF.seconds;
-      ctx.flight.steer(a, yawTo(a, ROC.x + Math.cos(this.angle) * ROC.r, ROC.z + Math.sin(this.angle) * ROC.r), ROC_TAKEOFF.speed, Math.min(this.altitude(), PERCH().y + ROC_TAKEOFF.rise * k), 2);
+      // (round 10, seat B: it flew away from the arena's entrance) it launches out over the dais toward the entrance, at
+      // whoever walks in, then banks into its lap
+      ctx.flight.steer(a, yawTo(a, DAIS.x, CROWN.z + CROWN.r), ROC_TAKEOFF.speed, Math.min(this.altitude(), PERCH().y + ROC_TAKEOFF.rise * k), 2);
       return;
     }
     if (this.state === 'circle' || this.state === 'rest') {
