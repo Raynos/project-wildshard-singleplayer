@@ -1,4 +1,4 @@
-import { CreatureBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
+import { CreatureBrain, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
 import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
 
@@ -287,14 +287,14 @@ export const CRAB: SpeciesRow = {
   lockable: true,
   id: 'creature.crab',
   kind: 'crab',
-  label: engineString('s_c93f43169fdc'),
+  label: 'Reef crab',
   aggressive: true,
   walkSpeed: 0.5,
   chargeDamage: SNAP_DAMAGE,
   sounds: { call: 'crab_click', hurt: 'crab_click', callEvery: [8, 25] },
   variants: [
-    { id: 'small', label: engineString('s_c93f43169fdc'), weight: 75, rarity: 'common', scale: [0.78, 0.95], hp: 25 },
-    { id: 'big', label: engineString('s_b339c41ffdc1'), weight: 25, rarity: 'uncommon', scale: [1.7, 1.9], hp: 70, mods: { chargeDamage: 14 } },
+    { id: 'small', label: 'Reef crab', weight: 75, rarity: 'common', scale: [0.78, 0.95], hp: 25 },
+    { id: 'big', label: 'Big reef crab', weight: 25, rarity: 'uncommon', scale: [1.7, 1.9], hp: 70, mods: { chargeDamage: 14 } },
   ],
   tick: 'ai',
   act: actCrab,

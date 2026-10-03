@@ -715,6 +715,32 @@ const shardSandbox = rule('Shard services, globals, settings and assets stay ins
   };
 });
 
+
+// E405 LP3 / LP4: the game knows shards exist, the kit is reusable content; neither names a particular shard. The names
+// come from the shards themselves (lint/shard-words.generated.json): slugs, display names, their camelCase forms, the
+// distinctive slug stems, and the ids a shard declares in its own namespace. Comments are not counted.
+const camelOf = (s) => s.toLowerCase().replaceAll(/[-\s]+([a-z])/gu, (_m, c) => c.toUpperCase());
+const SHARD_DISPLAY = shardWords.words.filter((w) => /\s/u.test(w));
+const COMMON_STEMS = new Set(['driftwood', 'far', 'nine', 'pine']);   // ordinary words: kit content may say them
+const SHARD_STEMS = [...new Set(shardWords.slugs.map((s) => s.split('-')[0] ?? ''))].filter((s) => s.length >= 6 && !COMMON_STEMS.has(s));
+const SHARD_IDS = shardWords.words.filter((w) => w.includes('.') && !w.startsWith('weapon.'));
+const SHARD_NAME_TERMS = [...shardWords.slugs, ...shardWords.slugs.map((s) => s.replaceAll('-', ' ')), ...SHARD_DISPLAY, ...shardWords.slugs.map(camelOf), ...SHARD_DISPLAY.map(camelOf), ...SHARD_STEMS, ...SHARD_IDS];
+const SHARD_NAMES = new RegExp(`(?<![A-Za-z0-9])(?:${SHARD_NAME_TERMS.map(escapeRegex).join('|')})(?![A-Za-z0-9])`, 'iu');
+const shardNames = rule('The game and the kit name no particular shard (E405 LAYER-PURITY)', (context) => {
+  const own = layerOf(pathOf(context));
+  if (own?.name !== 'game' && own?.name !== 'kit') return {};
+  const check = (node, text) => {
+    const m = SHARD_NAMES.exec(text);
+    if (m) report(context, node, `${own.name === 'game' ? 'Game' : 'Kit'} code names a shard: ${m[0]} (it belongs in that shard's folder)`);
+  };
+  return {
+    // an identifier's camelCase words (`nalatiFlags` → `nalati Flags`, `pineHollowMix` → `pine Hollow Mix`)
+    Identifier(node) { check(node, node.name.replaceAll(/([a-z0-9])([A-Z])/gu, '$1 $2')); },
+    Literal(node) { if (typeof node.value === 'string') check(node, node.value); },
+    TemplateElement(node) { check(node, node.value.cooked ?? node.value.raw); },
+  };
+});
+
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
@@ -729,6 +755,7 @@ const plugin = {
     'no-raw-animation-mixer': noRawAnimationMixer,
     'no-level-identity': noLevelIdentity,
     'shard-sandbox': shardSandbox,
+    'shard-names': shardNames,
   },
 };
 export default plugin; // oxlint loads a JS plugin from its default export

@@ -577,7 +577,7 @@ export const HORSE_SPECIES: SpeciesDef = {
   rigContract: { skeleton: 'horse.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'horse',
   trampleRadius: 0.8,
-  label: engineString('s_5b662777562c'),
+  label: 'Wild horse',
   fur: NO_FUR,
   aggressive: false,
   walkSpeed: HORSE_SPEED.walk,
@@ -595,10 +595,10 @@ export const HORSE_SPECIES: SpeciesDef = {
     { id: 'foal-bay', label: engineString('s_154390447871'), weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_BAY, traits: { foal: 1, mane: 0.6 } },
     { id: 'foal-chestnut', label: engineString('s_154390447871'), weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_CHESTNUT, traits: { foal: 1, mane: 0.6 } },
     {
-      id: 'camp-bay', label: engineString('s_b9756aee1a04'), weight: 0, rarity: 'common', scale: [1.0, 1.0], traits: { tack: 1 },
+      id: 'camp-bay', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.0, 1.0], traits: { tack: 1 },
     },
     { id: 'tulpar', label: engineString('s_58a74ea825dc'), weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK, traits: { tack: 1, mane: 1.7, stallion: 1 } },
-    { id: 'camp-black', label: engineString('s_b9756aee1a04'), weight: 0, rarity: 'common', scale: [1.02, 1.02], tint: BLACK, traits: { tack: 1, blaze: 1, mane: 1.3 } },
+    { id: 'camp-black', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.02, 1.02], tint: BLACK, traits: { tack: 1, blaze: 1, mane: 1.3 } },
     {
       id: 'stallion', label: engineString('s_1f0c0753155f'), weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK,
       traits: { mane: 1.7, stallion: 1 }, mods: { chargeDamage: 25 },

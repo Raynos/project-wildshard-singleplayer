@@ -25,6 +25,7 @@
     "wildshard/no-inline-ui-string": "error",
     "wildshard/no-raw-animation-mixer": "error",
     "wildshard/no-level-identity": "error",
-    "wildshard/shard-sandbox": "error"
+    "wildshard/shard-sandbox": "error",
+    "wildshard/shard-names": "error"
   }
 }

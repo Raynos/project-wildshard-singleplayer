@@ -53,7 +53,7 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
 
 export const PACK_SLOTS = 12;
 /** Nalati (E314 C) and Nine Dragon (E314 A): no pack — nothing enters it, the Bag has no PACK tab */
-const isNoPackChunk = (chunkId: string): boolean => findShard(saveSlug(chunkId))?.bag?.pack.slots === 0 || chunkId.endsWith('nalati-grasslands');
+const isNoPackChunk = (chunkId: string): boolean => findShard(saveSlug(chunkId))?.bag?.pack.slots === 0; // a level with no pack declares 0 slots (its manifest's bag)
 
 export class Inventory {
   private counts: Partial<Record<ItemId, number>>;

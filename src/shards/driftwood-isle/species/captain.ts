@@ -1,4 +1,4 @@
-import { CreatureBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp } from '#engine';
+import { CreatureBrain, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp } from '#engine';
 import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
 import { captainMeshFor, captainMeshLoaded } from './captainMesh';
@@ -311,14 +311,14 @@ export const CAPTAIN: SpeciesRow = {
   lockable: true,
   id: 'creature.captain',
   kind: 'captain',
-  label: engineString('s_b9afc02e9fda'),
+  label: 'The Drowned Captain',
   aggressive: true,
   walkSpeed: 1.2,
   chargeDamage: SWING_DMG,
   corpseFade: 90,
   sounds: { call: 'sailor_groan', hurt: 'sailor_groan', callEvery: [8, 20] },
   variants: [
-    { id: 'captain', label: engineString('s_b9afc02e9fda'), weight: 100, rarity: 'uncommon', scale: [1.35, 1.35], hp: 320 },
+    { id: 'captain', label: 'The Drowned Captain', weight: 100, rarity: 'uncommon', scale: [1.35, 1.35], hp: 320 },
   ],
   // The authored fight keeps its 10 Hz decision windows; contact is applied by the body step.
   act: actCaptain,

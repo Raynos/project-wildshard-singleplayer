@@ -467,5 +467,61 @@
     "rule": "shard-sandbox",
     "code": "export const el = document.createElement('div');\nexport const o = { location: 1 };",
     "count": 0
+  },
+  {
+    "id": "lp3-game-slug",
+    "file": "src/game/lp3-slug.ts",
+    "rule": "shard-names",
+    "code": "export const s = 'pine-hollow';",
+    "count": 1
+  },
+  {
+    "id": "lp3-game-display",
+    "file": "src/game/lp3-display.ts",
+    "rule": "shard-names",
+    "code": "export const s = 'Respawning in Driftwood Isle';",
+    "count": 1
+  },
+  {
+    "id": "lp3-game-stem",
+    "file": "src/game/lp3-stem.ts",
+    "rule": "shard-names",
+    "code": "export const nalatiFlags: string[] = [];",
+    "count": 1
+  },
+  {
+    "id": "lp3-game-camel",
+    "file": "src/game/lp3-camel.ts",
+    "rule": "shard-names",
+    "code": "export const pineHollowMix = 1;",
+    "count": 1
+  },
+  {
+    "id": "lp4-kit-name",
+    "file": "src/kit/lp4-name.ts",
+    "rule": "shard-names",
+    "code": "export const where = 'Signal Dunes';",
+    "count": 1
+  },
+  {
+    "id": "lp3-comment-ok",
+    "file": "src/game/lp3-comment.ts",
+    "rule": "shard-names",
+    "code": "// Pine Hollow first used this\nexport const x = 1;",
+    "count": 0
+  },
+  {
+    "id": "lp3-common-words-ok",
+    "file": "src/kit/lp3-common.ts",
+    "rule": "shard-names",
+    "code": "export const tree = 'pine'; export const log = 'driftwood';",
+    "count": 0
+  },
+  {
+    "id": "lp3-in-shard-ok",
+    "file": "src/shards/nalati-grasslands/lp3-own.ts",
+    "rule": "shard-names",
+    "code": "export const me = 'nalati-grasslands';",
+    "count": 0
   }
 ]

@@ -358,7 +358,7 @@ export const WOLF_SPECIES: SpeciesDef = {
   rigContract: { skeleton: 'wolf.v1', clips: [], sockets: ['body', 'head'] },
   kind: 'wolf',
   trampleRadius: 0.45,
-  label: engineString('s_8e59a599f422'),
+  label: 'Steppe wolf',
   fur: NO_FUR,
   aggressive: true,
   walkSpeed: 1.6,
@@ -375,10 +375,10 @@ export const WOLF_SPECIES: SpeciesDef = {
     waryTime: 30, waryBoost: 1.3, herdAlertRadius: 40, herdBoltDelayMin: 0.2, herdBoltDelayMax: 0.6, impactSpook: 0, impactAlert: 25,
   },
   variants: [
-    { id: 'grey', label: engineString('s_8e59a599f422'), weight: 50, rarity: 'common', scale: [0.95, 1.05] },
-    { id: 'tawny', label: engineString('s_8e59a599f422'), weight: 30, rarity: 'common', scale: [0.92, 1.02], tint: TAWNY_TINT },
-    { id: 'dark', label: engineString('s_1373184f3989'), weight: 8, rarity: 'uncommon', scale: [1.0, 1.08], tint: DARK_TINT },
-    { id: 'scout', label: engineString('s_cf97501bf755'), weight: 12, rarity: 'common', scale: [0.84, 0.86], hp: 55, tint: SCOUT_TINT, traits: { ruff: 0.8 } },
+    { id: 'grey', label: 'Steppe wolf', weight: 50, rarity: 'common', scale: [0.95, 1.05] },
+    { id: 'tawny', label: 'Steppe wolf', weight: 30, rarity: 'common', scale: [0.92, 1.02], tint: TAWNY_TINT },
+    { id: 'dark', label: 'Dark wolf', weight: 8, rarity: 'uncommon', scale: [1.0, 1.08], tint: DARK_TINT },
+    { id: 'scout', label: 'Young wolf', weight: 12, rarity: 'common', scale: [0.84, 0.86], hp: 55, tint: SCOUT_TINT, traits: { ruff: 0.8 } },
     {
       id: 'alpha', label: engineString('s_92e75ea269b1'), weight: 0, rarity: 'rare', scale: [1.16, 1.16], hp: 110, tint: ALPHA_TINT,
       traits: { scar: 1, ruff: 1.25 }, mods: { chargeDamage: 18 },

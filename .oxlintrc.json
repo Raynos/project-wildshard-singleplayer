@@ -164,7 +164,9 @@
         // E405 AG28: imports point down; the engine knows no game, kit, shard or app module
         "wildshard/layer": "error",
         // E405 LP2: engine code names no shard, creature, item or game word (wire contracts: lint/ratchet.json allow)
-        "wildshard/engine-words": "error"
+        "wildshard/engine-words": "error",
+        // E405 LP3 / LP4: the game and the kit name no particular shard
+        "wildshard/shard-names": "error"
       }
     },
     {

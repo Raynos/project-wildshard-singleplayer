@@ -1,5 +1,5 @@
 import { faceHead, loadFaceHead, type FaceHead } from '#kit';
-import { CreatureBrain, engineString, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
+import { CreatureBrain, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
 import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
 
@@ -351,14 +351,14 @@ export const SAILOR: SpeciesRow = {
   lockable: true,
   id: 'creature.sailor',
   kind: 'sailor',
-  label: engineString('s_1ed5511c9838'),
+  label: 'Drowned sailor',
   aggressive: true,
   walkSpeed: SHAMBLE,
   chargeDamage: SWING_DAMAGE,
   corpseFade: 60, // was 2.5 s — gone before you could reach it; now it lies a minute to be looted (harvesting dissolves it at once)
   sounds: { call: 'sailor_groan', hurt: 'sailor_groan', callEvery: [12, 30] },
   variants: [
-    { id: 'sailor', label: engineString('s_1ed5511c9838'), weight: 100, rarity: 'uncommon', scale: [1.0, 1.05], hp: 60 },
+    { id: 'sailor', label: 'Drowned sailor', weight: 100, rarity: 'uncommon', scale: [1.0, 1.05], hp: 60 },
   ],
   tick: 'ai',
   act: actSailor,
