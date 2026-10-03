@@ -40,8 +40,8 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "c1e7577c291ab9df8ab794576613e796398936d2",
-      "reason": "E409 Signal Dunes round 20, measured (m5 149.953 MB, +0.0064 MB: the tower's south stair 30 treads instead of 22, so each rise is under the 0.35 m step; the walk test, 7 legs 0 stuck), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "feb9691392d31eaa94f61defb3b6ce6420b79e65",
+      "reason": "E409 Signal Dunes, the original top-10's row 7, measured (m5 152.92 MB, +2.97 MB: the caravan camp as a modelled set from mockup B, wagon-hd2 at 1024 and the crate pair and sack pile at 512 WebP, art/sunscar-dunes/round-28-camp; the walk test 7 legs 0 stuck), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     },
     {
       "shard": "sunscar-dunes",
