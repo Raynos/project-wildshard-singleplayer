@@ -46,8 +46,13 @@ export const MEADOW = {
 export const SWARD = {
   height: { lawn: [0.2, 0.38], broad: [0.34, 0.6], wild: [0.5, 0.9] },
   share: [0.3, 0.62],
-  root: 0x141c18, low: 0x2a4234, lawn: 0x6a845c, broad: 0x5e7c56, wild: 0x7e805c, tip: 0xe8c098, sun: 0xf0d8b8,
+  root: 0x141c18, low: 0x2a4234, lawn: 0x6a845c, broad: 0x5e7c56, wild: 0x7e805c, tip: 0xdcc887, sun: 0xf0d8b8,
   light: { floor: 0.03, gain: 0.36, through: 1.8, edge: 0.8, top: 0.45 },
+  // how far the bodies of the warm-toned patches, and every blade's tip, turn toward `tip` (round 14 prep: at 0.45 / 0.5
+  // with a peach tip the near sward read pale straw where the mockups' is green with gold-lit tips)
+  straw: { body: 0.25, tip: 0.3 },
+  // the colour light takes through a blade (a leaf passes yellow-green): the backlit sward glows green-gold, not cream
+  leaf: 0xc8e070,
 } as const;
 
 /** Where grass never grows: discs (x, z, radius) round the structures and pieces you stand at. */
@@ -278,11 +283,11 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           // E407 row 4: dark roots deep in the sward, each grass its own green body (patches warmer by the tone field), warm
           // lit tips; the sun-side edge of a broad blade catches the light, the sun shines through the blades toward it
           vec3 body = vSpecies < 0.5 ? uLawnC : vSpecies < 1.5 ? uBroadC : uWildC;
-          body = mix(body, uTipC * vec3(0.78, 0.74, 0.5), smoothstep(0.5, 1.0, vTone + (vShade - 0.8) * 0.4) * 0.45);
+          body = mix(body, uTipC * vec3(0.78, 0.74, 0.5), smoothstep(0.5, 1.0, vTone + (vShade - 0.8) * 0.4) * ${SWARD.straw.body.toFixed(2)});
           float up = along * mix(0.55, 1.0, vH);
           vec3 c = mix(uRootC, uLowC, smoothstep(0.0, 0.25, up));
           c = mix(c, body, smoothstep(0.2, 0.6, up));
-          c = mix(c, uTipC, smoothstep(0.8, 1.0, up) * 0.5);
+          c = mix(c, uTipC, smoothstep(0.8, 1.0, up) * ${SWARD.straw.tip.toFixed(2)});
           lit = c * (uLight.x + uLight.y * up) * (0.3 + 1.0 * sh) * (0.85 + 0.3 * vTone);
           lit *= 1.0 + uLight.w * smoothstep(0.62, 1.0, across) * up;
           // the low sun on the sward's top layer, whatever way you look (the blades below lie in their neighbours' shade):
@@ -293,7 +298,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           lit += uSunC * uTipC * smoothstep(0.3, 0.9, up) * catchS * uTop;
           // the light through a blade glows at its thin edges and tip (the mockups' backlit sward: dark bodies, gold rims)
           float rimB = smoothstep(0.5, 1.0, abs(across * 2.0 - 1.0));
-          lit += uSunC * through * up * up * (0.2 + 0.8 * catchS) * uLight.z * (0.3 + 0.7 * rimB);
+          lit += uSunC * ${glslColor(SWARD.leaf)} * through * up * up * (0.2 + 0.8 * catchS) * uLight.z * (0.3 + 0.7 * rimB);
         }
         lit *= ${glslColor(0xfff6ec)} * 1.1;
         float f = clamp((length(vWorld - uCam) - ${FOG.near.toFixed(1)}) / ${(FOG.far - FOG.near).toFixed(1)}, 0.0, 1.0) * ${FOG.max.toFixed(2)};

@@ -151,6 +151,8 @@ const DECK_SEGMENT = 4.8, POST_HEIGHT = 1.6;
  * smooth-shaded, a grain of fine streaks along each plank (the local x runs across the deck, z along it), a tone per plank
  * across the deck, silvered wear down the middle where feet go, darker toward the plank ends.
  */
+/** How far the bridge timber is greyed toward weathered silver: the deck's planks (plus their worn middle) and the post's wood. */
+const WEATHER = { deck: 0.6, post: 0.8 } as const;
 function deckWood(): MeshStandardMaterial {
   const m = flat(0xffffff, { vertexColors: true, flatShading: false, roughness: 0.9 });
   patchShader(m, 'far.deck-wood', PATCH_ORDER.decorate, (shader) => {
@@ -166,7 +168,9 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     float tone = 0.78 + 0.32 * farDH(vec2(plank, 3.7));
     float wear = 1.0 - smoothstep(0.15, 0.9, abs(q.x) / 1.3);
     diffuseColor.rgb *= tone * (0.82 + 0.3 * grain);
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))) * vec3(1.05, 1.0, 0.94), wear * 0.35);
+    // weathered grey-brown timber, silvered most down the walked middle (round 14 prep: C's deck read orange, 120/87/58
+    // over the mockup's grey-brown bridge)
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))) * vec3(1.05, 1.0, 0.94), ${WEATHER.deck.toFixed(2)} + wear * 0.3);
   }`)}`;
   }, { key: (prior) => `${prior}|far.deck-wood` });
   return m;
@@ -195,7 +199,16 @@ const HD_POST = { height: 1.9, out: 0.3 } as const;
 /** The textured posts at the span's four corners, their hanging rope ends turned outward; null when it did not load. */
 function hdPosts(width: number, length: number): InstancedMesh | null {
   const source = skyHd('post-hd'); if (source === null) return null;
-  const g = fit(source.geometry, { size: HD_POST.height, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, hdMaterial(source.map), 4);
+  const material = hdMaterial(source.map);
+  // the timber weathered to the mockups' silver-grey (its paint came out orange-brown); the gold hemp and the iron band,
+  // brighter or bluer than the wood, kept
+  patchShader(material, 'far.post-weather', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
+    float wood = (1.0 - smoothstep(0.32, 0.5, l)) * smoothstep(0.0, 0.04, c.r - c.b);
+    diffuseColor.rgb = mix(c, vec3(l) * vec3(1.06, 1.0, 0.92), wood * ${WEATHER.post.toFixed(2)}); }`);
+  }, { key: (prior) => `${prior}|far.post-weather` });
+  const g = fit(source.geometry, { size: HD_POST.height, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, material, 4);
   const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), one = new Vector3(1, 1, 1);
   let i = 0;
   for (const side of [-1, 1]) for (const z of [0, -length]) {

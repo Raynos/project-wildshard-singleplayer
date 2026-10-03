@@ -8,3 +8,5 @@ Measured live (Rec. 709, 390x844; mockup / LUT off (round 14) / this LUT):
 - meadow: proposal B 102/90/64 / 74/63/29 / 85/72/37; A 95/76/42 / 76/62/29 / 87/71/37; B 96/80/50 / 83/69/38 / 94/78/46; C 95/80/43 / 110/80/51 / 120/87/58 (further); D 107/85/52 / 100/79/43 / 112/87/51.
 
 board.jpg: rows mockup / LUT off / this LUT; columns proposal B, A, B, C, D.
+
+board-heroes.jpg (the lead's condition: the LUT must hold away from the frames it was fitted on): h1, h2, h3, h4, aerial-spawn, aerial-overview; top row LUT off (round 14), bottom row this LUT (cap63, also the weathered bridge and greener sward). p99 / share over 230 / mean luminance: h1 238.1 -> 238.5 / 2.2 -> 2.4 % / 99 -> 106; h2 213.9 -> 224.6 / 0.3 -> 0.8 % / 90 -> 99; h3 230.2 -> 231.4 / 1.0 -> 1.1 % / 91 -> 99; h4 228.5 -> 229.5 / 0.9 -> 1.0 % / 91 -> 97; aerial-spawn 236.3 -> 236.5 / 2.3 -> 2.6 % / 131 -> 140; aerial-overview 236.6 -> 236.9 / 3.0 -> 3.4 % / 164 -> 172.
