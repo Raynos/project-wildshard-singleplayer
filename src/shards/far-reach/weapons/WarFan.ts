@@ -9,7 +9,9 @@ export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldow
 /** The idle hold (mockup B / C): the fan open at a three-quarter angle, lower right, the hand under it; never over the discs. */
 /** Loop 5 (council R1C-14): raised so the grip and the hand sit above the GUST / DODGE / JUMP cluster. */
 /** E399 (the council mockups A, C and proposal B): lower, smaller (the seats: 'twice the mockup's size') and turned open, face-on to you, its tassel hanging free. */
-export const HOLD = { x: 0.125, y: -0.178, z: -0.6, pitch: 0.22, yaw: -0.18, roll: -0.5, scale: 0.52 } as const;
+// round 2 (seat B: 'upright, half the leaf past the right edge, the hand behind GUST/DODGE'): in from the edge and up,
+// the leaf laid over on a diagonal so the whole fan and the gloved hand show, as every mockup holds it
+export const HOLD = { x: 0.085, y: -0.13, z: -0.6, pitch: 0.3, yaw: -0.3, roll: 0.25, scale: 0.5 } as const;
 /** The painted silk's tint (E399 seats: 'plain and bright'): mockup C's silk is a muted, deeper teal. */
 // E399 seats: the mockups' silk is a lighter sea-green with pale cloud swirls
 export const SILK_TINT = 0xdfece6;
@@ -69,8 +71,6 @@ export class WarFan extends Weapon {
   private cooldown = 0; private gustCooldown = 0; private wasHeld = false; private held = 0;
   /** The move playing and how far through it (0…1; 1 = done). */
   motion: Motion = 'swing'; motionK = 1;
-  /** A held frame (capture staging, `stageHold`): seconds the move's progress stays put (cut short by the next move). */
-  private frozen = 0;
   private readonly app: App; private readonly targets: () => readonly FanTarget[];
   private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
   private readonly vm = blocks.viewmodel({ gain: 0.01, clampYaw: 0.1, clampPitch: 0.1, k: 50, c: 12 });
@@ -134,16 +134,14 @@ export class WarFan extends Weapon {
     }
     return blown;
   }
-  private play(motion: Motion): void { this.motion = motion; this.motionK = 0; this.frozen = 0; }
-  /** Capture staging (E399, mock C): hold the fan at `k` of `motion`, a frame of a move every player makes, for `seconds`. */
-  stageHold(motion: Motion, k: number, seconds: number): void { this.motion = motion; this.motionK = k; this.frozen = seconds; }
+  private play(motion: Motion): void { this.motion = motion; this.motionK = 0; }
   override update(dt: number): void {
     this.cooldown = Math.max(0, this.cooldown - dt); this.gustCooldown = Math.max(0, this.gustCooldown - dt);
     if (!this.enabled || this.holster > 0.001) { this.wasHeld = false; this.held = 0; }
     else if (this.adsHeld) this.held += dt;
     else if (this.wasHeld) { this.cooldown = 0; this.swing(true); this.held = 0; }
     this.wasHeld = this.enabled && this.holster <= 0.001 && this.adsHeld;
-    if (this.frozen > 0) this.frozen = Math.max(0, this.frozen - dt); else this.motionK = Math.min(1, this.motionK + dt / MOTIONS[this.motion].seconds);
+    this.motionK = Math.min(1, this.motionK + dt / MOTIONS[this.motion].seconds);
     this.vm.step(this.spring, new Vector2(), dt);
     // idle: a slow breath and the tassel swinging; a move plays its key poses; holding for HEAVY draws the fan up and back
     this.time += dt; const pose = motionPose(this.motion, this.motionK), c = this.motionK >= 1 ? this.charge : 0, breath = Math.sin(this.time * 1.3);

@@ -61,7 +61,8 @@ const FRAGMENT = /* glsl */`
     // glowing eye, lightning), the whole spiral inside the inner 60 %, turning slowly; the disc past it fades out, so the
     // sky and the low sun stay clear below it; the upper layer only a faint second turn
     vec2 pq = rot(lp, time * spin * 0.35 + seed) * (seed > 1.0 ? 0.7 : 0.83) + 0.5;
-    vec3 under = texture2D(paint, pq).rgb;
+    // a shade darker than the painting (round 2, seat B: 'lighter than the mockup's dark spiral')
+    vec3 under = texture2D(paint, pq).rgb * vec3(0.78, 0.76, 0.84);
     // a strike lights the eye and the arms near it, not the whole sky (a flat flash washed the vortex out; the bolts carry it)
     c = under + ${hex(STORM_COLORS.bolt)} * flash * exp(-r * 4.0) * 0.6;
     alpha = rim * (1.0 - smoothstep(0.5, 0.75, r)) * (seed > 1.0 ? 0.0 : 0.97);

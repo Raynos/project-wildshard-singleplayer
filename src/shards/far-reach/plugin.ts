@@ -224,16 +224,14 @@ export class SkyReachPlugin extends ShardPlugin {
    * reaches in play. 'roc-stalk': the Storm Roc, first phase, stalking in over the dais at a player at the arena's
    * entrance (mockup D): its circle's height, the line every stalk from the far side of its circle flies. 'quest-crown':
    * the quest as a player has it in the arena (finished, the bridge raised, its reward paid; council round 1's should-fix),
-   * staged on the shot before so its toasts are long gone. 'fan-gust': the fan held at its GUST thrust (mockup C).
+   * staged on the shot before so its toasts are long gone.
    */
   stage(name: string): void {
     const roc = this.roc, body = roc ? rocBrain(roc) : null;
-    // 'fan-gust': the fan held at its GUST thrust, open and face-on out to the centre (mockup C's fan)
-    if (name === 'fan-gust') this.fan?.stageHold('gust', 0.36, 2.5);
     if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
     // and a strike in the storm behind it (its lightning comes every 3.5-8 s; mockup D shows a bolt), just before the frame
     if (name === 'roc-stalk') this.built?.storm.strike(0.15);
-    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x, z: DAIS.z - 13 }, { x: CROWN.x, z: CROWN.z + CROWN.r });
+    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x, z: DAIS.z - 27 }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }
   /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */
   gustVanes(from: Vector3, dir: Vector3, toast: (text: string) => void = () => undefined): number {

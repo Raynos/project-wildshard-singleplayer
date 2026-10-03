@@ -39,7 +39,7 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
         float disc = 1.0 - smoothstep(0.085, 0.115, d);
         float core = exp(-d * d * 60.0), halo = exp(-d * 3.2) * (1.0 - smoothstep(0.7, 1.0, d));
         // gold, not white (E399 seats: 'the sun white'): a warm disc in an amber-orange bloom
-        gl_FragColor = vec4(vec3(1.0, 0.9, 0.66) * disc * 1.5 + vec3(1.0, 0.74, 0.4) * (core * 2.4 + halo * 1.1), 1.0);
+        gl_FragColor = vec4(vec3(1.0, 0.9, 0.66) * disc * 1.5 + vec3(1.0, 0.74, 0.4) * (core * 2.4 + halo * 0.6), 1.0);
       }` });
   const bloomMesh = new Mesh(plane, bloom); bloomMesh.frustumCulled = false; bloomMesh.renderOrder = -9; group.add(bloomMesh);
   // a wide, faint gold over the sky round the sun (E399, the mockups' golden air toward the low sun)
@@ -48,7 +48,7 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
     vertexShader: VERTEX,
     fragmentShader: /* glsl */`
       varying vec2 vUv;
-      void main(){ float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(vec3(1.0, 0.78, 0.46) * exp(-d * 2.4) * (1.0 - smoothstep(0.75, 1.0, d)) * 0.2, 1.0); }` });
+      void main(){ float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(vec3(1.0, 0.78, 0.46) * exp(-d * 2.4) * (1.0 - smoothstep(0.75, 1.0, d)) * 0.1, 1.0); }` });
   const wideMesh = new Mesh(plane, wide); wideMesh.frustumCulled = false; wideMesh.renderOrder = -9; group.add(wideMesh);
   const shafts: ShaderMaterial[] = [];
   for (let i = 0; i < SUN_GLOW.shafts; i++) {

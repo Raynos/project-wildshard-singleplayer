@@ -17,13 +17,14 @@ import { SUN_DIR } from './sun';
  */
 export const PAINT = {
   /** the bounce's colour × strength (linear, in the material's diffuse units) */
-  bounce: [0.5, 0.34, 0.22],
+  // E399 round 2 (seat C: 'front-lit, a strong warm fill from behind the camera'): less fill, more rim, warmer shade
+  bounce: [0.32, 0.21, 0.15],
   /** its direction: the anti-sun heading, lifted this much (y before normalising) */
   bounceLift: 0.55,
   /** the rim's colour × strength */
-  rim: [1.25, 0.88, 0.55],
+  rim: [1.8, 1.22, 0.7],
   /** the shade floor's colour (a share of albedo) */
-  floor: [0.34, 0.26, 0.27],
+  floor: [0.3, 0.22, 0.22],
 } as const;
 
 const v3 = (v: readonly number[]): string => `vec3(${v.map((n) => n.toFixed(4)).join(',')})`;

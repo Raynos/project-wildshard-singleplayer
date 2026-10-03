@@ -213,8 +213,9 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           lit = c * (0.95 + 0.2 * back);
         } else {
           // dark roots (the shade under the sward), a yellow-green body by patch, gold-cream lit tips
-          vec3 rootC = ${glslColor(0x25310f)}, lowC = ${glslColor(0x48631e)}, greenC = ${glslColor(0x86993a)}, goldC = ${glslColor(0xbea84a)}, tipC = ${glslColor(0xe6cf7a)};
-          // E399 (the council: 'even, bright green'; the mockups' meadow is golden-hour olive and straw)
+          vec3 rootC = ${glslColor(0x25310f)}, lowC = ${glslColor(0x48631e)}, greenC = ${glslColor(0x6f7d34)}, goldC = ${glslColor(0xa69048)}, tipC = ${glslColor(0xd2b86e)};
+          // E399 (the council: 'even, bright green', round 2: 'far more saturated yellow-green than the mockups' darker
+          // olive-gold'): olive bodies, straw-gold tips
           vec3 body = mix(greenC, goldC, smoothstep(0.35, 0.78, vTone + (vShade - 0.85) * 0.6));
           vec3 c = mix(rootC, lowC, smoothstep(0.0, 0.22, vH));
           c = mix(c, body, smoothstep(0.18, 0.62, vH));
