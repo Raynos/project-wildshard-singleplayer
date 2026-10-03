@@ -39,7 +39,10 @@ function crestLines(x: number, z: number): number {
     // which side: the cross product's sign against the segment (west is the side with the smaller x across it)
     const side = dx * (z - az) - dz * (x - ax), width = side > 0 ? c.lee : c.w; // round 10: the steep lee faces the spawn (mockup A: the camera-facing slope in shade under a lit crest)
     const ends = smooth(t / c.fade) * smooth((1 - t) / c.fade);
-    lift = Math.max(lift, c.lift * (1 - smooth(d / width)) * ends);
+    // round 10: behind the crest (the far side) a trough `trough` m deep about `w` m out, so the tower dune stands apart
+    // (mockup A: a ridge, a shaded hollow, then the tower's dune; without it the far face ran on up the tower's slope)
+    const dip = side > 0 ? 0 : c.trough * Math.sin(Math.PI * Math.min(1, d / (2 * c.w))) ** 2;
+    lift = Math.max(lift, c.lift * (1 - smooth(d / width)) * ends) - dip * ends;
   }
   return lift;
 }
