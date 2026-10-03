@@ -77,8 +77,10 @@ function whiten(g: BufferGeometry): void {
  * and `y1` (the sleeve hangs out and down from the shoulder to the hand at his hip), its shoulder pivot, and the lantern on
  * his staff (+x) measured off the file's paint.
  */
-export const KEEPER_HD = { arm: { a: -0.45, b: 0.155, y0: 0.7, y1: 1.52 }, shoulder: [-0.24, 1.45, 0] as const, lantern: [0.3, 1.4, 0.59] as const } as const;
-interface Made { group: Group; shoulder: Group; glow: Mesh<SphereGeometry, MeshBasicMaterial> }
+export const KEEPER_HD = { arm: { a: -0.45, b: 0.155, y0: 0.7, y1: 1.52 }, shoulder: [-0.24, 1.45, 0] as const, lantern: [0.3, 1.4, 0.59] as const,
+  /** the elbow (round 8, seat A: 'an open waving hand'; mockup B raises the forearm, palm out): the forearm is the arm below it */
+  elbow: [-0.36, 1.08, 0] as const } as const;
+interface Made { group: Group; shoulder: Group; elbow: Group; glow: Mesh<SphereGeometry, MeshBasicMaterial> }
 /** The lantern's warm halo: a ball, not a Sprite (the shard's global light patch reaches every material and a sprite's vertex shader lacks `transformed`). */
 const halo = (): Mesh<SphereGeometry, MeshBasicMaterial> => new Mesh(new SphereGeometry(0.13, 12, 8), new MeshBasicMaterial({ color: 0xffb860, transparent: true, opacity: 0.2, blending: AdditiveBlending, depthWrite: false }));
 /** The textured keeper (Hunyuan3D-2's painted wizard): body + the waving right arm on its shoulder pivot, and the lantern glow. */
@@ -96,9 +98,13 @@ function textured(): Made | null {
   }, { key: (prior) => `${prior}|far.keeper-scarf` });
   group.add(new Mesh(body, material));
   shoulder.position.set(sx, sy, sz); group.add(shoulder);
-  shoulder.add(new Mesh(arm.translate(-sx, -sy, -sz), material));
+  // the arm split again at the elbow: the upper arm rides the shoulder, the forearm and hand the elbow
+  const [ex, ey, ez] = KEEPER_HD.elbow, [upper, fore] = splitTriangles(arm, (_x, y) => y < ey), elbow = new Group();
+  shoulder.add(new Mesh(upper.translate(-sx, -sy, -sz), material));
+  elbow.position.set(ex - sx, ey - sy, ez - sz); shoulder.add(elbow);
+  elbow.add(new Mesh(fore.translate(-ex, -ey, -ez), material));
   const glow = halo(); glow.position.set(...KEEPER_HD.lantern); group.add(glow);
-  return { group, shoulder, glow };
+  return { group, shoulder, elbow, glow };
 }
 
 /** The generated keeper (loop 3; `art/far-reach/round-13-loop-3/`): body + a waving right arm on a shoulder pivot, and a lantern glow. */
@@ -114,7 +120,8 @@ function generated(): Made | null {
   shoulder.position.set(sx, sy, sz); group.add(shoulder);
   shoulder.add(new Mesh(arm.translate(-sx, -sy, -sz), material));
   const glow = halo(); glow.position.copy(lantern); group.add(glow);
-  return { group, shoulder, glow };
+  const elbow = new Group(); shoulder.add(elbow);
+  return { group, shoulder, elbow, glow };
 }
 
 /**
@@ -125,14 +132,17 @@ function generated(): Made | null {
 export function keeper(y: number): Keeper {
   const made = generated();
   if (made === null) return codeKeeper(y);
-  const { group, shoulder, glow } = made;
+  const { group, shoulder, elbow, glow } = made;
   group.position.set(KEEPER_AT.x, y, KEEPER_AT.z); group.rotation.y = KEEPER_AT.yaw;
   const head = new Vector3(KEEPER_AT.x, y + 1.8, KEEPER_AT.z), speaker = { talking: false };
   return { group, head, speaker, update: (t, player) => {
     const near = Math.hypot(player.x - KEEPER_AT.x, player.z - KEEPER_AT.z) < WAVE_RANGE;
     // his right arm (−x) lifts out sideways: a wave near, an open-hand gesture while he talks
-    const lift = speaker.talking ? 0.9 + Math.sin(t * 2.2) * 0.2 : near ? 2.3 + Math.sin(t * 7) * 0.3 : 0;
+    // (round 8: mockup B's wave is the upper arm out to his side and the forearm raised, palm out, not a straight raised arm)
+    const lift = speaker.talking ? 0.9 + Math.sin(t * 2.2) * 0.2 : near ? 1.2 + Math.sin(t * 3) * 0.05 : 0;
+    const bend = speaker.talking ? 0.5 : near ? 2.0 + Math.sin(t * 7) * 0.25 : 0;
     shoulder.rotation.z += (-lift - shoulder.rotation.z) * 0.15;
+    elbow.rotation.z += (-bend - elbow.rotation.z) * 0.15;
     // a slow breath of a turn, and the lantern's flicker
     group.rotation.y = KEEPER_AT.yaw + Math.sin(t * 0.6) * 0.03;
     // a small warm flicker round the glass (E399 seat: a big orange disc over him)
