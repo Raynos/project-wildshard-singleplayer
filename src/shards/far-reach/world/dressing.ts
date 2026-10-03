@@ -1,7 +1,8 @@
 import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
 import { PATCH_ORDER, patchShader } from '#engine';
 import { paintIsleMaterial } from './isle';
-import { DECK, ISLES, SPANS, SPAWN, apothem, type Isle } from '../layout';
+import { meadowHoles, meadowPaths } from './meadow';
+import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, UPDRAFT, apothem, type Isle, type Span } from '../layout';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): what makes an island top read as a meadow and its
@@ -16,8 +17,8 @@ import { DECK, ISLES, SPANS, SPAWN, apothem, type Isle } from '../layout';
  *
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
-/** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range). */
-export const DRESS = { clumpsPerM2: 1.1, flowersPerM2: 0.14, stonesPerIsle: 9, rootsPerM: 2.2, lipPerM: 0.9, cragsPerIsle: 4, bridgeClear: 0.3, handoff: [15, 22] } as const;
+/** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range); `flowerHandoff` the same for a flower. */
+export const DRESS = { clumpsPerM2: 1.1, flowersPerM2: 0.14, stonesPerIsle: 9, rootsPerM: 2.2, lipPerM: 0.9, cragsPerIsle: 4, bridgeClear: 0.3, handoff: [15, 22], flowerHandoff: [9, 13] } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -26,11 +27,12 @@ function seeded(seed: number): () => number {
 
 /** One clump: five bent blades fanned round the centre, 1 m tall before scaling. */
 export function clumpGeometry(): BufferGeometry {
-  const pos: number[] = [], col: number[] = [], nor: number[] = [], root = new Color(0x667f36), mid = new Color(0xa0ab4c), tip = new Color(0xdcc068);
+  // E392 foreground: thin blades in the near meadow's ramp (dark root, yellow-green body, gold tip), not lime cards
+  const pos: number[] = [], col: number[] = [], nor: number[] = [], root = new Color(0x34441a), mid = new Color(0x86a336), tip = new Color(0xd6c672);
   const push = (x: number, y: number, z: number, c: Color): void => { pos.push(x, y, z); col.push(c.r, c.g, c.b); nor.push(0, 1, 0); };
   // twelve blades over a patch about 0.6 m across (fewer, fuller instances: the instance matrices are the GPU cost)
   for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2 + i * 0.4, dx = Math.cos(a), dz = Math.sin(a), w = 0.07, lean = 0.28 + (i % 2) * 0.12, h = 0.75 + (i % 3) * 0.15;
+    const a = (i / 12) * Math.PI * 2 + i * 0.4, dx = Math.cos(a), dz = Math.sin(a), w = 0.032, lean = 0.22 + (i % 3) * 0.14, h = 0.5 + (i % 4) * 0.16;
     const ox = Math.cos(i * 2.4) * 0.3 * ((i % 4) / 3), oz = Math.sin(i * 2.4) * 0.3 * ((i % 4) / 3);
     const px = -dz * w, pz = dx * w, mx = ox + dx * lean * 0.45, mz = oz + dz * lean * 0.45;
     // two quads up the blade, then the tip triangle: root → mid → tip, leaning outward
@@ -42,34 +44,87 @@ export function clumpGeometry(): BufferGeometry {
   g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.setAttribute('normal', new Float32BufferAttribute(nor, 3));
   return g;
 }
-/** A flower: a flat four-petal star 0.16 m across on a short stem, facing up. */
+/**
+ * A daisy (E392 foreground): eight white petals round a gold eye, 0.1 m across, facing up on a short stem. Vertex-coloured,
+ * so an instance colour tints it: white keeps the daisy, yellow makes a buttercup (its eye a deeper gold).
+ */
 export function flowerGeometry(): BufferGeometry {
-  const pos: number[] = [], nor: number[] = [], y = 0.42, r = 0.08;
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2, b = a + 0.5, c = a - 0.5;
-    pos.push(0, y, 0, Math.cos(c) * r * 0.45, y, Math.sin(c) * r * 0.45, Math.cos(a) * r, y + 0.01, Math.sin(a) * r);
-    pos.push(0, y, 0, Math.cos(a) * r, y + 0.01, Math.sin(a) * r, Math.cos(b) * r * 0.45, y, Math.sin(b) * r * 0.45);
+  const pos: number[] = [], col: number[] = [], y = 0.3, r = 0.05, eye = new Color(0xe8b52a), petal = new Color(0xffffff), stem = new Color(0x4e6a22);
+  const push = (x: number, py: number, z: number, c: Color): void => { pos.push(x, py, z); col.push(c.r, c.g, c.b); };
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2, b = a + Math.PI / 4, m = a + Math.PI / 8, w = 0.16;
+    // the eye: an octagon fan, a hair above the petals
+    push(0, y + 0.006, 0, eye); push(Math.cos(b) * r * 0.32, y + 0.006, Math.sin(b) * r * 0.32, eye); push(Math.cos(a) * r * 0.32, y + 0.006, Math.sin(a) * r * 0.32, eye);
+    // a petal: a narrow kite from the eye out to the rim, its tip cupped up a little
+    const px = Math.cos(m), pz = Math.sin(m), qx = -pz * w * r, qz = px * w * r;
+    push(px * r * 0.25, y, pz * r * 0.25, petal); push(px * r * 0.62 - qx, y + 0.003, pz * r * 0.62 - qz, petal); push(px * r, y + 0.012, pz * r, petal);
+    push(px * r * 0.25, y, pz * r * 0.25, petal); push(px * r, y + 0.012, pz * r, petal); push(px * r * 0.62 + qx, y + 0.003, pz * r * 0.62 + qz, petal);
   }
-  pos.push(-0.008, 0, 0, 0.008, 0, 0, 0, y, 0);
-  for (let i = 0; i < pos.length / 3; i++) nor.push(0, 1, 0);
-  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new Float32BufferAttribute(nor, 3));
+  push(-0.005, 0, 0, stem); push(0.005, 0, 0, stem); push(0, y, 0, stem);
+  const nor = pos.map((_, i) => (i % 3 === 1 ? 1 : 0));
+  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.setAttribute('normal', new Float32BufferAttribute(nor, 3));
   return g;
 }
 
-/** A boulder: a subdivided icosahedron, lumped by noise, warm grey with moss on its top and lichen spots. */
+/**
+ * A boulder: a subdivided icosahedron lumped by three octaves of noise, its underside flattened (it sits embedded), all
+ * grey: the islands' rock paint gives it the cliff texture and moss on every facet that faces up (E392: a green vertex
+ * colour took the painted meadow, a flat olive slab with daisies on it).
+ */
 export function stoneGeometry(): BufferGeometry {
   const g = new IcosahedronGeometry(1, 1).toNonIndexed(), p = g.getAttribute('position'), col: number[] = [];
-  const grey = new Color(0x857b78), warm = new Color(0x9f8e7c), moss = new Color(0x5f6e32), dark = new Color(0x5a5060), c = new Color();
+  const grey = new Color(0x8a8580), warm = new Color(0x9a8f84), dark = new Color(0x5c5856), c = new Color();
   for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), y = p.getY(i), z = p.getZ(i), n = Math.sin(x * 3.1 + z * 2.3) * 0.5 + Math.sin(y * 4.7 - x * 1.9) * 0.5;
-    const k = 1 + 0.16 * n; p.setXYZ(i, x * k, y * k, z * k);
-    c.copy(grey).lerp(warm, 0.5 + 0.5 * n).lerp(dark, Math.max(0, -y) * 0.6);
-    if (y > 0.45) c.lerp(moss, Math.min(1, (y - 0.45) * 2.2));
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const n = Math.sin(x * 2.3 + z * 1.7 + 0.4) * 0.5 + Math.sin(y * 3.1 - x * 1.3) * 0.3 + Math.sin(z * 6.7 + y * 5.3 - x * 4.1) * 0.2;
+    // chunky facets: big lumps, a low crown, a flat bottom where it sits in the ground
+    const k = 1 + 0.28 * n;
+    p.setXYZ(i, x * k * (1 + 0.18 * Math.sin(z * 1.9)), Math.max(-0.35, y * k > 0.7 ? 0.7 + (y * k - 0.7) * 0.4 : y * k), z * k);
+    c.copy(grey).lerp(warm, 0.5 + 0.5 * n).lerp(dark, Math.max(0, -y) * 0.7);
     col.push(c.r, c.g, c.b);
   }
   g.setAttribute('color', new Float32BufferAttribute(col, 3)); g.computeVertexNormals();
   return g;
 }
+
+/** Every lane a walker or a rider crosses: the bridges, the updraft and the fallen bridge (its walk once raised). */
+const LANES: readonly Span[] = [...SPANS, UPDRAFT, FALLEN_BRIDGE];
+
+/**
+ * True when a boulder of radius `r` at (x, z) keeps clear of every walk: a metre off each lane (and 3 m past its ends),
+ * off the worn paths in from the landings, and outside every structure's clearing.
+ */
+export function clearOfWalks(x: number, z: number, r: number): boolean {
+  for (const s of LANES) {
+    const dx = s.x1 - s.x0, dz = s.z1 - s.z0, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len;
+    const along = (x - s.x0) * ux + (z - s.z0) * uz, across = Math.abs((x - s.x0) * -uz + (z - s.z0) * ux);
+    if (along > -3 - r && along < len + 3 + r && across < s.width / 2 + 1 + r) return false;
+  }
+  for (const s of meadowPaths()) {
+    const ax = s.z - s.x, az = s.w - s.y, t = Math.max(0, Math.min(1, ((x - s.x) * ax + (z - s.y) * az) / Math.max(1e-6, ax * ax + az * az)));
+    if (Math.hypot(x - s.x - ax * t, z - s.y - az * t) < 1.2 + r) return false;
+  }
+  for (const h of meadowHoles()) if (Math.hypot(x - h.x, z - h.y) < h.z + 0.5 + r) return false;
+  return true;
+}
+
+/**
+ * The hero spots' foreground boulders (E392, mockups A-D: mossy grey rocks embedded at the screen's edges): world x, z,
+ * the deck they sit on, their scale and how far they stand above the grass (≤ 0.5 m, so no collider: you step over).
+ * Each is checked against `clearOfWalks`; one that fails is dropped.
+ */
+export const HERO_STONES: readonly (readonly [number, number, number, number, number])[] = [
+  // the spawn meadow, looking west (H1 left): a big rock left of centre, a low outcrop at your feet
+  [-4.2, -7.9, DECK, 1.1, 0.5], [-2.6, -8.5, DECK, 0.75, 0.3], [-3.3, -10.1, DECK, 0.5, 0.22],
+  // looking east (H1 right): an outcrop on the left edge, a rock in the bottom middle
+  [3.9, -10.4, DECK, 1.2, 0.5], [5.2, -10.9, DECK, 0.9, 0.42], [2.5, -8.9, DECK, 0.6, 0.28],
+  // the windmill isle's west lip (H2 left): rocks bottom left and a ledge on the right
+  [-10.8, -54.6, DECK, 0.8, 0.3], [-9.8, -55.3, DECK, 0.55, 0.25], [-12.6, -58.1, DECK, 1.0, 0.45],
+  // the high step (H3 front): right of the walk from the updraft to the crown bridge
+  [-4.2, -120.3, HIGH, 0.9, 0.42], [-4.9, -118.6, HIGH, 0.55, 0.25],
+  // the crown's south lip (H4 left): either side of the view, beyond the walk in from the bridge
+  [-5.8, -172.6, HIGH, 0.9, 0.42], [-5.8, -175.9, HIGH, 1.1, 0.5],
+];
 
 /** True when (x, z) lies on a bridge's lane, or within 3 m past either end of it (kept clear so the walkway reads). */
 function onLane(x: number, z: number): boolean {
@@ -82,6 +137,8 @@ function onLane(x: number, z: number): boolean {
 }
 
 interface Place { x: number; y: number; z: number; s: number; yaw: number }
+/** A boulder's height to width (they are low, lumped mounds). */
+const STONE_SQUASH = 0.68;
 
 export interface Dressing { readonly group: Group; readonly meshes: readonly InstancedMesh[] }
 
@@ -96,10 +153,13 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
       const [x, z] = inside(0.95); if (onLane(x, z) && rnd() < 0.85) continue;
       clumps.push({ x, y: isle.y, z, s: 0.45 + rnd() * 0.5, yaw: rnd() * 6.28 });
     }
+    // drifts: flowers cluster round a few seeds per island, each drift mostly daisies or mostly buttercups
+    const seeds = Array.from({ length: 6 }, () => { const [x, z] = inside(0.85); return { x, z, gold: rnd() < 0.35 }; });
     for (let i = 0; i < area * DRESS.flowersPerM2 * density; i++) {
-      const [x, z] = inside(0.94); if (onLane(x, z)) continue;
-      // drifts: flowers cluster round a few seeds per island
-      flowers.push({ x, y: isle.y, z, s: 0.8 + rnd() * 0.6, yaw: rnd() * 6.28, c: rnd() < 0.6 ? 0xf6f1e4 : 0xf2cf55 });
+      const drift = seeds[i % seeds.length]; if (drift === undefined) continue;
+      const rr = 2.8 * Math.sqrt(-Math.log(1 - rnd() * 0.95)), aa = rnd() * Math.PI * 2, x = drift.x + Math.cos(aa) * rr, z = drift.z + Math.sin(aa) * rr;
+      if (Math.hypot(x - isle.x, z - isle.z) > ap * 0.92 || onLane(x, z)) continue;
+      flowers.push({ x, y: isle.y, z, s: 0.8 + rnd() * 0.5, yaw: rnd() * 6.28, c: (rnd() < 0.8) === drift.gold ? 0xf2c43a : 0xffffff });
     }
     for (let i = 0; i < DRESS.stonesPerIsle; i++) {
       const a = rnd() * Math.PI * 2, r = ap * (0.7 + rnd() * 0.26), x = isle.x + Math.cos(a) * r, z = isle.z + Math.sin(a) * r;
@@ -133,10 +193,12 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
       }
     }
   }
-  // the spawn meadow's boulders (E392, mockup A): a few mossy rocks in the lower third, off the walk to the bridge
-  if (landings) for (const [dx, dz, sc] of [[-3.4, -6.4, 1.3], [-5.2, -4.8, 1.0], [3.7, -6.0, 1.15], [5.6, -4.2, 1.4], [-6.4, -7.6, 0.8]] as const) {
-    stones.push({ x: SPAWN.x + dx, y: DECK - 0.2, z: SPAWN.z + dz, s: sc, yaw: rnd() * 6.28 });
-    flowers.push({ x: SPAWN.x + dx + 0.8, y: DECK, z: SPAWN.z + dz + 0.6, s: 1, yaw: rnd() * 6.28, c: 0xf2cf55 });
+  // the hero spots' foreground boulders, embedded so each stands its own height above the grass
+  const stone = stoneGeometry(); stone.computeBoundingBox();
+  const stoneTop = (stone.boundingBox?.max.y ?? 1) * STONE_SQUASH;
+  if (landings) for (const [x, z, deck, sc, top] of HERO_STONES) {
+    if (!clearOfWalks(x, z, sc * 1.2)) continue;
+    stones.push({ x, y: deck + top - stoneTop * sc, z, s: sc, yaw: rnd() * 6.28 });
   }
   // the grassy lip (E392, the aerial targets: tops roll over their rim in a fringe of grass): clumps leaning outward
   // round every rim, a little below the deck, tilted over the edge
@@ -174,10 +236,51 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     m.compose(p.set(it.x, it.y, it.z), tq, s.set(it.s * 1.3, it.s, it.s * 1.3)); lipMesh.setMatrixAt(i, m);
   });
   lipMesh.computeBoundingSphere(); group.add(lipMesh); meshes.push(lipMesh);
-  const flowerMesh = new InstancedMesh(flowerGeometry(), new MeshStandardMaterial({ side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 }), flowers.length);
+  // the near meadow draws its own flowers (world/meadow.ts): these grow in past it, a little larger far off so a drift
+  // still reads as white and gold flecks across an island
+  const flowerMaterial = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 });
+  patchShader(flowerMaterial, 'far.flower-handoff', PATCH_ORDER.decorate, (shader) => {
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      #ifdef USE_INSTANCING
+      { vec3 farAt = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz; float farD = distance(farAt.xz, cameraPosition.xz);
+        transformed *= smoothstep(${DRESS.flowerHandoff[0].toFixed(1)}, ${DRESS.flowerHandoff[1].toFixed(1)}, farD) * clamp(farD / 12.0, 1.0, 2.2); }
+      #endif`);
+  }, { key: (prior) => `${prior}|far.flower-handoff` });
+  const flowerMesh = new InstancedMesh(flowerGeometry(), flowerMaterial, flowers.length);
   place(flowerMesh, flowers); const fc = new Color(); flowers.forEach((f, i) => { flowerMesh.setColorAt(i, fc.setHex(f.c)); });
   // the boulders wear the islands' painted rock and moss (E392: flat olive blobs up close)
-  place(new InstancedMesh(stoneGeometry(), paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 })), stones.length), stones, 0.55);
+  const stoneMaterial = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }));
+  // the near detail over the islands' paint (E392 foreground: the paint's 8 m rock tile read as a smooth grey blob at
+  // 2 m): cracks, lichen flecks and a fuzzy-edged moss cap on the upward facets, at a boulder's own scale
+  patchShader(stoneMaterial, 'far.boulder-detail', PATCH_ORDER.decorate + 10, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', `{
+      vec3 bw = (inverse(viewMatrix) * vec4(-vViewPosition, 1.0)).xyz;
+      vec3 bn = normalize(cross(dFdx(bw), dFdy(bw)));
+      vec3 bq = bw * 2.6;
+      float n1 = sin(bq.x * 1.7 + bq.z * 2.9) * sin(bq.y * 3.3 - bq.x * 1.1) * 0.5 + 0.5;
+      float n2 = sin(bw.x * 7.3 + bw.y * 5.1) * sin(bw.z * 6.7 - bw.y * 4.3) * 0.5 + 0.5;
+      float n3 = sin(bw.x * 19.0 - bw.z * 13.0 + bw.y * 7.0) * sin(bw.z * 17.0 + bw.x * 11.0) * 0.5 + 0.5;
+      float crack = 1.0 - smoothstep(0.0, 0.07, abs(sin(bw.x * 3.1 + bw.z * 2.3 + sin(bw.y * 4.0) * 1.5)));
+      // grey stone from the paint's light and dark (its tint dropped: the paint's moss covers every up face), darker below
+      float bl = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
+      // (linear values: a mid grey is 0.2, not 0.5)
+      vec3 rockC = vec3(0.2, 0.195, 0.185) * (0.55 + 0.9 * bl) * (0.75 + 0.4 * n2) * (0.92 + 0.16 * n1) * (1.0 - 0.5 * crack);
+#ifdef FAR_ROCK_TEX
+      // the painted cliff rock again, triplanar at a boulder's scale (a 1.4 m tile, not the cliffs' 8 m)
+      vec3 btw = pow(abs(bn), vec3(4.0)); btw /= (btw.x + btw.y + btw.z);
+      vec3 bt = texture2D(farRock, bw.zy * 0.7).rgb * btw.x + texture2D(farRock, bw.xz * 0.7).rgb * btw.y + texture2D(farRock, bw.xy * 0.7).rgb * btw.z;
+      rockC = vec3(dot(bt, vec3(0.3, 0.59, 0.11))) * vec3(1.0, 0.98, 0.94) * (0.8 + 0.4 * n2) * (1.0 - 0.5 * crack);
+#endif
+      rockC *= 1.0 - 0.35 * smoothstep(0.0, -0.6, bn.y);
+      rockC = mix(rockC, vec3(0.42, 0.4, 0.28), step(0.85, n3) * 0.5);
+      // a moss cap on the flattest tops, its edge broken by noise
+      float mossK = smoothstep(0.62, 0.9, bn.y + 0.35 * (n2 - 0.5) + 0.2 * (n1 - 0.5)) * 0.85;
+      vec3 mossC = vec3(0.075, 0.11, 0.025) * (0.75 + 0.5 * n3);
+      diffuseColor.rgb = mix(rockC, mossC, mossK);
+    }
+    #include <roughnessmap_fragment>`);
+  }, { key: (prior) => `${prior}|far.boulder-detail` });
+  place(new InstancedMesh(stone, stoneMaterial, stones.length), stones, STONE_SQUASH);
   // a strand 1 m long, tip down: its wide end at y 0 hangs from the rim band; instances stretch it to their length
   const strand = new ConeGeometry(0.16, 1, 5, 1, true); strand.rotateX(Math.PI); strand.translate(0, -0.5, 0);
   // roots and vines: dark roots with moss-green vine strands among them

@@ -21,8 +21,14 @@ export const MEADOW = {
   across: 7,
   /** where the blades have shrunk to nothing (metres from the camera) */
   range: 24,
+  /**
+   * E392 foreground: the inner 3 × 3 tiles are drawn `layers` more times with the blades shuffled, so the near field is
+   * (1 + layers) × as dense with no more blades in the buffer; the extra layers shrink away by `near` metres (inside
+   * the inner tiles' 8 m reach), and a frustum test drops every blade off screen before its island and hole loops
+   */
+  layers: 5, near: 7.5,
   /** blade height range (metres) */
-  low: 0.32, high: 0.78,
+  low: 0.16, high: 0.72,
   /** an island's grass height scale (1 when absent): the crown is a trodden arena, short enough that the dais reads */
   grass: { crown: 0.6 } as Readonly<Record<string, number>>,
   /** the share of blades an island keeps (1 when absent): the crown's arena is trodden thin (round 2: a carpet of chips) */
@@ -71,7 +77,8 @@ export interface Meadow { readonly mesh: Mesh<InstancedBufferGeometry, ShaderMat
 
 /** Build the meadow with `blades` blades per tile (a tier knob), seeded so every load grows the same field. */
 export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] = ISLES): Meadow {
-  // one blade = 7 vertices (three pairs up the blade and the tip), 5 triangles: it tapers and bends (council R1C-15 / R1A-7)
+  // one blade = 7 vertices (three pairs up the blade and the tip), 5 triangles: it tapers and bends (council R1C-15 / R1A-7);
+  // a flower reuses the same 7: a thin stem (the root pair to the head's bottom pair), then a kite head whose round middle is the flower (its corners are drawn as green sepals)
   const verts = blades * 7, root = new Float32Array(verts * 3), shape = new Float32Array(verts * 2), index = new Uint32Array(blades * 15);
   let a = 6417 >>> 0;
   const rnd = (): number => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -89,9 +96,13 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
   g.setAttribute('position', new BufferAttribute(new Float32Array(verts * 3), 3));
   g.setAttribute('aRoot', new BufferAttribute(root, 3)); g.setAttribute('aShape', new BufferAttribute(shape, 2));
   g.setIndex(new BufferAttribute(index, 1));
-  const n = MEADOW.across, half = (n - 1) / 2, tiles = new Float32Array(n * n * 2);
-  for (let i = 0; i < n * n; i++) { tiles[i * 2] = (i % n) - half; tiles[i * 2 + 1] = Math.floor(i / n) - half; }
-  g.setAttribute('aTile', new InstancedBufferAttribute(tiles, 2)); g.instanceCount = n * n;
+  // the tiles: every tile once (layer 0), then the inner 3 × 3 again per extra layer
+  const n = MEADOW.across, half = (n - 1) / 2, count = n * n + 9 * MEADOW.layers, tiles = new Float32Array(count * 3);
+  for (let i = 0; i < n * n; i++) { tiles[i * 3] = (i % n) - half; tiles[i * 3 + 1] = Math.floor(i / n) - half; }
+  for (let l = 1; l <= MEADOW.layers; l++) for (let k = 0; k < 9; k++) {
+    const i = n * n + (l - 1) * 9 + k; tiles[i * 3] = (k % 3) - 1; tiles[i * 3 + 1] = Math.floor(k / 3) - 1; tiles[i * 3 + 2] = l;
+  }
+  g.setAttribute('aTile', new InstancedBufferAttribute(tiles, 3)); g.instanceCount = count;
 
   const isleU = isles.map((isle) => new Vector4(isle.x, isle.z, apothem(isle) * 0.97, isle.y));
   const holes = meadowHoles(), paths = meadowPaths(isles);
@@ -103,68 +114,114 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
     vertexShader: /* glsl */`
       #define TILE ${MEADOW.tile.toFixed(1)}
       #define RANGE ${MEADOW.range.toFixed(1)}
+      #define NEAR ${MEADOW.near.toFixed(1)}
       #define NI ${isleU.length}
       #define NH ${holes.length}
       #define NP ${paths.length}
       uniform vec2 uOrigin; uniform vec3 uCam; uniform float uTime;
       uniform vec4 uIsles[NI]; uniform float uIsleGrass[NI]; uniform float uIsleKeep[NI]; uniform vec4 uHoles[NH]; uniform vec4 uPaths[NP];
-      attribute vec3 aRoot; attribute vec2 aShape; attribute vec2 aTile;
-      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower;
+      attribute vec3 aRoot; attribute vec2 aShape; attribute vec3 aTile;
+      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross;
       ${MEADOW_GLSL}
+      void cull(){ gl_Position = vec4(0.0, 0.0, 2.0, 1.0); vH = 0.0; vTone = 0.0; vWorld = vec3(0.0); vShade = 0.0; vFlower = 0.0; vPetal = vec2(0.0); vAcross = 0.0; }
       void main(){
-        vec2 p = uOrigin + (aTile + aRoot.xy) * TILE;
-        float r = aRoot.z, y = -1.0e4, rim = 1.0, tall = 1.0, keep = 1.0;
-        for (int i = 0; i < NI; i++) { vec4 s = uIsles[i]; float d = distance(p, s.xy);
-          // a ragged edge: the meadow stops a little short of the rim, by noise
-          float edge = s.z * (0.9 + 0.08 * mn(p * 0.6));
-          if (d < edge) { y = s.w; rim = d / edge; tall = uIsleGrass[i]; keep = uIsleKeep[i]; } }
-        float clear = 1.0;
-        for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; clear = min(clear, smoothstep(h.z, h.z + 0.6, distance(p, h.xy))); }
-        for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; clear = min(clear, smoothstep(0.1, 0.55, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
+        // a layer above 0 is the same tile's blades shuffled (offset, mirrored), so the near field thickens without a seam
+        float layer = aTile.z; vec2 j = aRoot.xy; float r = aRoot.z;
+        if (layer > 0.5) { j = fract((mod(layer, 2.0) > 0.5 ? j.yx : j) + vec2(0.6180, 0.3819) * layer); r = fract(r + 0.2718 * layer); }
+        vec2 p = uOrigin + (aTile.xy + j) * TILE;
         float dist = distance(p, uCam.xz);
+        // off screen (behind, or a metre past either side) or out of reach: drop it before the loops
+        vec4 probe = projectionMatrix * viewMatrix * vec4(p.x, uCam.y - 1.5, p.y, 1.0);
+        if (dist > (layer > 0.5 ? NEAR : RANGE) || probe.w < -1.0 || abs(probe.x) > probe.w + 3.0) { cull(); return; }
+        float y = -1.0e4, rim = 1.0, tall = 1.0, keep = 1.0;
+        for (int i = 0; i < NI; i++) { vec4 s = uIsles[i]; float d = distance(p, s.xy);
+          // a ragged edge: the meadow stops a little short of the rim, by noise (E392 foreground: close enough that no bare
+          // band shows between the blades and the grassy lip)
+          float edge = s.z * (0.925 + 0.05 * mn(p * 0.6));
+          // an island's trodden arena (the crown) is trodden only in its middle: the outer ring stays a full meadow
+          if (d < edge) { y = s.w; rim = d / edge; float wild = smoothstep(0.55, 0.8, rim); tall = mix(uIsleGrass[i], 1.0, wild); keep = mix(uIsleKeep[i], 1.0, wild); } }
+        float clear = 1.0, worn = 1.0;
+        for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; clear = min(clear, smoothstep(h.z, h.z + 0.6, distance(p, h.xy))); }
+        // a worn path keeps a short, thin sward (E392 foreground: a cleared path showed the bare ground as a grey band)
+        for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; worn = min(worn, smoothstep(0.15, 0.7, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
         float pt = mfbm(p * 0.23);
-        // tall drifts and short lawn by noise; shorter toward the rim and the paths; shrinks to nothing at RANGE
-        // varied heights (E392: the mockups' meadow is tall drifts and short patches, never one even wall)
-        float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.25, 0.8, pt) * 0.7 + r * 0.3) * mix(0.55, 1.15, mn(p * 0.37 + 11.0));
-        h *= tall * (1.0 - 0.55 * smoothstep(0.82, 1.0, rim)) * clear * (1.0 - smoothstep(RANGE * 0.55, RANGE, dist));
-        if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep) { gl_Position = vec4(0.0, 0.0, 2.0, 1.0); return; }
-        // the blade faces half toward the camera so it never vanishes edge-on
+        // varied heights (E392: the mockups' meadow is tall drifts and short lawn, a few stalks over it, never one even wall)
+        float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.2, 0.8, pt) * 0.55 + r * 0.45) * mix(0.55, 1.2, mn(p * 0.37 + 11.0));
+        h *= 1.0 + 0.55 * step(0.9, fract(r * 23.3));
+        h *= tall * (1.0 - 0.55 * smoothstep(0.82, 1.0, rim)) * clear * mix(0.4, 1.0, worn);
+        h *= 1.0 - smoothstep(layer > 0.5 ? NEAR - 2.5 : RANGE * 0.55, layer > 0.5 ? NEAR : RANGE, dist + (layer > 0.5 ? 1.5 * mn(p * 0.9) : 0.0));
+        if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep * mix(0.7, 1.0, worn)) { cull(); return; }
         float ang = r * 40.0; vec2 dir = vec2(cos(ang), sin(ang));
-        vec2 toCam = normalize(uCam.xz - p + 1e-3); vec2 face = normalize(mix(dir, toCam, 0.55));
-        vec2 side = vec2(-face.y, face.x);
-        // a few blades in the drifts are daisies: a short stem with a wide pale head (white, some yellow)
-        // flowers in drifts, rarer at your feet (the near band read as white tulips)
-        float flower = step(fract(r * 91.7), (0.03 + 0.12 * smoothstep(0.3, 0.65, mfbm(p * 0.11 + 4.0))) * smoothstep(2.0, 7.0, distance(p, uCam.xz)));
-        h *= mix(1.0, 0.7, flower);
-        // the nearest band is shorter, so a blade at your feet never fills a sixth of the frame (council R1C-15)
-        h *= mix(0.55, 1.0, smoothstep(0.8, 4.0, dist));
-        // the nearest blades narrower too (the judge: giant flat cards at your feet)
-        float t = aShape.y, w = mix(0.022, 0.04, fract(r * 13.7)) * mix(0.45, 1.0, smoothstep(0.6, 3.5, dist)) * mix(1.0, 4.6, flower * step(0.62, t));
-        // wind: a slow swell along the prevailing wind with a quick flutter, more at the tip
+        vec2 toCam = normalize(uCam.xz - p + 1e-3);
+        // flowers: clustered drifts (daisies, buttercup patches), a few strays; never on a path
+        float drift = smoothstep(0.36, 0.64, mfbm(p * 0.16 + 4.0));
+        float flower = step(fract(r * 91.7), (0.01 + 0.1 * drift) * worn) * step(0.6, dist);
+        float kind = (mn(p * 0.45 + 20.0) + 0.35 * fract(r * 17.3)) > 0.78 ? 2.0 : 1.0;
         vec2 wind = normalize(vec2(0.6, 0.8));
-        float sway = (0.18 + 0.12 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);
-        vec2 lean = dir * (0.12 + 0.18 * fract(r * 7.1)) + wind * sway;
+        float sway = (0.16 + 0.1 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);
         vec3 world = vec3(p.x, y, p.y);
-        world.xz += side * aShape.x * w * (1.0 - t * 0.35) + lean * h * t * t;
-        world.y += h * t * (1.0 - 0.15 * t * t);
-        vH = t; vTone = pt; vWorld = world; vFlower = flower * (fract(r * 17.3) < 0.7 ? 1.0 : 2.0);
-        vShade = 0.72 + 0.28 * fract(r * 3.3);
+        float t = aShape.y;
+        vShade = 0.55 + 0.45 * fract(r * 3.3); vTone = pt; vFlower = 0.0; vPetal = vec2(0.0, -3.0); vAcross = aShape.x;
+        if (flower > 0.5) {
+          // a stem in the grass, the head a kite tilted half up, half to you (a daisy reads round, a buttercup a cup)
+          float stem = mix(0.14, 0.36, fract(r * 5.7));
+          float R = (kind > 1.5 ? 0.026 : 0.042) * mix(0.8, 1.2, fract(r * 7.9)) * clamp(dist / 5.0, 1.0, 1.8);
+          vec3 sideV = vec3(-toCam.y, 0.0, toCam.x), upV = normalize(mix(vec3(0.0, 1.0, 0.0), vec3(-toCam.x, 0.0, -toCam.y), 0.5));
+          vec2 nod = dir * stem * 0.12 + wind * sway * stem * 0.3;
+          vec3 head = world + vec3(nod.x, stem, nod.y);
+          vec2 q = t < 0.2 ? vec2(aShape.x * 0.1, -3.0) : t < 0.5 ? vec2(sign(aShape.x) * 0.16, -0.97) : t < 0.9 ? vec2(sign(aShape.x) * 1.05, -0.05) : vec2(0.0, 1.05);
+          world = t < 0.2 ? world + sideV * q.x * R : head + sideV * q.x * R + upV * q.y * R;
+          vH = t; vPetal = q; vFlower = kind;
+        } else {
+          // thin blades (the judge: oversized lime cards), widening with distance so a far blade never falls under a pixel
+          float w = mix(0.008, 0.017, fract(r * 13.7)) * clamp(dist / 4.0, 1.0, 3.2);
+          vec2 face = normalize(mix(dir, toCam, 0.55)), side = vec2(-face.y, face.x);
+          // some blades stand, some arch over (the mockups' grass bends and crosses), and the wind leans them all
+          float bend = 0.15 + 0.6 * fract(r * 7.1);
+          vec2 lean = dir * bend + wind * sway;
+          h *= mix(0.75, 1.0, smoothstep(0.5, 3.0, dist));
+          world.xz += side * aShape.x * w * (1.0 - t * 0.35) + lean * h * t * t;
+          world.y += h * t * (1.0 - 0.3 * bend * t * t);
+          vH = t;
+        }
+        vWorld = world;
         gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
       }`,
     fragmentShader: /* glsl */`
       uniform vec3 uCam; uniform vec3 uSun;
-      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower;
+      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross;
       void main(){
-        // olive roots, a fresh-green to golden body by patch, warm straw tips
-        vec3 rootC = ${glslColor(0x46602a)}, greenC = ${glslColor(0x8fa85a)}, goldC = ${glslColor(0xa9bb66)}, tipC = ${glslColor(0xc8c25a)};
-        vec3 body = mix(greenC, goldC, smoothstep(0.5, 0.85, vTone));
-        vec3 c = mix(rootC, body, smoothstep(0.0, 0.55, vH));
-        c = mix(c, tipC, smoothstep(0.72, 1.0, vH) * 0.45);
-        if (vFlower > 0.5) c = mix(c, vFlower > 1.5 ? ${glslColor(0xf3cf4e)} : ${glslColor(0xf7f2e6)}, smoothstep(0.45, 0.6, vH));
-        // the light: a warm sky fill, plus a back-light glow through the blades when you look toward the low sun
         vec3 view = normalize(vWorld - uCam);
         float back = pow(max(dot(view, uSun), 0.0), 3.0);
-        vec3 lit = c * (0.52 + 0.45 * vH) * vShade + ${glslColor(SKY.sun)} * back * vH * vH * 0.3;
+        vec3 lit;
+        if (vFlower > 0.5 && (vPetal.y < -0.96 || length(vPetal) > 0.74)) {
+          // a flower's stem, and the kite's corners round the round head: a thin dark green, lit like the blades round it
+          lit = ${glslColor(0x5a7a26)} * (0.55 + 0.25 * vH) * vShade + ${glslColor(0xc9dc5c)} * back * 0.2;
+        } else if (vFlower > 0.5) {
+          // the head: a daisy's white petal ring round a gold eye, or a buttercup's glossy yellow cup
+          float d = length(vPetal) / 0.74, a = atan(vPetal.y, vPetal.x);
+          vec3 petal = vFlower > 1.5 ? ${glslColor(0xf4c21f)} : ${glslColor(0xfbf7ee)};
+          petal *= 0.82 + 0.18 * cos(a * (vFlower > 1.5 ? 5.0 : 13.0)) * smoothstep(0.25, 0.6, d);
+          petal *= 1.0 - 0.25 * smoothstep(0.75, 1.05, d);
+          vec3 eye = vFlower > 1.5 ? ${glslColor(0xe0a114)} : ${glslColor(0xe8b52a)};
+          vec3 c = mix(eye, petal, smoothstep(0.24, 0.34, d));
+          lit = c * (0.95 + 0.2 * back);
+        } else {
+          // dark roots (the shade under the sward), a yellow-green body by patch, gold-cream lit tips
+          vec3 rootC = ${glslColor(0x25310f)}, lowC = ${glslColor(0x48631e)}, greenC = ${glslColor(0x789a2e)}, goldC = ${glslColor(0xa8a83a)}, tipC = ${glslColor(0xd2cf6c)};
+          vec3 body = mix(greenC, goldC, smoothstep(0.45, 0.85, vTone + (vShade - 0.85) * 0.6));
+          vec3 c = mix(rootC, lowC, smoothstep(0.0, 0.22, vH));
+          c = mix(c, body, smoothstep(0.18, 0.62, vH));
+          c = mix(c, tipC, smoothstep(0.7, 1.0, vH) * 0.45);
+          // a lighter midrib
+          c *= 0.82 + 0.18 * (1.0 - abs(vAcross));
+          // the light: a warm sky fill, then the sun through the blades (translucent gold-green) when you look toward it
+          // patches: the drifts' shaded hollows and sunlit swells, then each blade its own shade
+          lit = c * (0.42 + 0.6 * vH) * vShade * (0.78 + 0.4 * vTone);
+          // the sun through the blades glows on their edges first (translucency), the tips catch it
+          float glow = back * smoothstep(0.25, 1.0, vH) * (0.25 + 0.6 * abs(vAcross));
+          lit += ${glslColor(0xc9dc5c)} * glow * 0.45 + ${glslColor(SKY.sun)} * back * vH * vH * vH * 0.25;
+        }
         lit *= ${glslColor(0xfff6ec)} * 1.1;
         float f = clamp((length(vWorld - uCam) - ${FOG.near.toFixed(1)}) / ${(FOG.far - FOG.near).toFixed(1)}, 0.0, 1.0) * ${FOG.max.toFixed(2)};
         gl_FragColor = vec4(mix(lit, ${glslColor(SKY.fog)}, f), 1.0);
