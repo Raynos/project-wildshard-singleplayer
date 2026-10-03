@@ -9,7 +9,7 @@ import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellPart
 import { buildRocks } from './rocks';
 import { buildDressing } from './dressing';
 import { buildButtes } from './buttes';
-import { FIRE_RESOURCES, fireGeometries, resetFireLights, tickFires } from './fireFx';
+import { FIRE_RESOURCES, fireGeometries, fireLight, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 
 /** The quest's flags (persisted per shard by `Flags`). */
@@ -98,6 +98,8 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
     else if (flags.has(FLAG.oil)) brazier.spot.label = STRINGS.pourOil;
     return brazier;
   });
+  // the caravan's lantern lights its own wagon (the fourth firelight slot; always burning)
+  fireLight(caravan.lampAt)(true);
   const allLit = (): boolean => braziers.every((b) => b.lit);
 
   // The signal fire on the tower deck: lit by hand once the three waymarks burn.

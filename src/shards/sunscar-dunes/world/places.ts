@@ -89,7 +89,7 @@ function markerPole(parent: Group, lx: number, lz: number, groundY: number, h: n
   colliders.push(boxDesc({ x: wx, z: wz, hw: 0.07, hd: 0.07, rot: 0, yBottom: worldY - 0.3, yTop: worldY + h }, 'wood'));
 }
 
-export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; logbook: Mesh; textures: DataTexture[] }
+export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; logbook: Mesh; textures: DataTexture[]; lampAt: Vector3 }
 
 /**
  * The half-buried caravan: a covered wagon sunk to its axles and tipped by the drift, its canvas torn off the front
@@ -169,7 +169,8 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     // E399 (mockup B shows the wagon alone): no marker pole at the caravan; the well keeps its
     void markerPole;
   }
-  return { root, colliders, logbookAt, logbook, textures: [crateMap] };
+  const lampAt = new Vector3(LANTERN.x, LANTERN.y, LANTERN.z).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(root.position);
+  return { root, colliders, logbookAt, logbook, textures: [crateMap], lampAt };
 }
 
 /**

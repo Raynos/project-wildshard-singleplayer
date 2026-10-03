@@ -92,7 +92,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
             m.color.setRGB(1, 1, 1); m.roughness = 0.42; m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
             wornLeather(m, name === 'glove-hd'); // glove-hd2 is painted dark leather with its seams: no ramp
           }
-          if (name === 'brazier-hd') warmByFire(m);
+          if (name === 'brazier-hd' || name === 'wagon-hd') warmByFire(m);
           m.needsUpdate = true;
         }
       }
