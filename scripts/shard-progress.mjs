@@ -88,6 +88,9 @@ try {
   const hud = (on) => page.evaluate((v) => { const h = document.getElementById('hud'); if (h) h.style.visibility = v ? '' : 'hidden'; }, on);
   const staged = {};
   for (const s of CAMS.shots) {
+    // creatures are calmed so they don't fill the frame; a shot whose subject IS a creature in action (a boss's stalk)
+    // sets `"calm": false`, since calm cancels the behaviour (mockup council round 1, seat A)
+    await page.evaluate((calm) => { try { window.__wildshard.world.animals.calm = calm; } catch { /* no animals */ } }, s.calm !== false);
     // E399: a shot may stage real quest state first (`stage`), through the shard's exposed handle (`expose` at the top of
     // cameras.json): e.g. the waymarks lit, the state a player reaches. Recorded in meta.json for the council to check.
     if (s.stage !== undefined) {
@@ -139,7 +142,7 @@ try {
   }
   // the compiled programs after every view was drawn (E397: a program-key collision shows up as a lower count)
   const programs = await page.evaluate(() => window.__wildshard.world.game.renderer?.info?.programs?.length ?? null).catch(() => null);
-  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, staged, pageErrors: errors }, null, 1)}\n`);
+  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, staged, active: CAMS.shots.filter((x) => x.calm === false).map((x) => x.id), cameras: execFileSync('git', ['hash-object', flag('cameras', join(ROOT, 'art', SLUG, 'progress', 'cameras.json'))], { encoding: 'utf8' }).trim(), pageErrors: errors }, null, 1)}\n`);
   console.log(`progress: ${OUT.slice(ROOT.length + 1)} · ${shots.length} shots${CLIP && CAMS.clip ? ' + clip' : ''} · load ${loadS} s${errors.length > 0 ? ` · ${errors.length} page errors` : ''}`);
 } finally {
   await browser.close();
