@@ -1,5 +1,5 @@
 import type { TerrainNoise } from '#engine/data';
-import { BASIN, CREST_LINES, CRESTS, PADS, SPAWN } from '../layout';
+import { BASIN, CREST_LINES, CRESTS, LANDFORMS, PADS, SPAWN } from '../layout';
 
 const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 /**
@@ -47,6 +47,40 @@ function crestLines(x: number, z: number): number {
   return lift;
 }
 
+/** The authored landforms at (x, z): the crests' [shape, weight] pairs and the mounds' max height (layout LANDFORMS). */
+function landforms(x: number, z: number, out: [number, number][]): number {
+  let h = -Infinity;
+  for (const c of LANDFORMS.crests) {
+    // the nearest point on the polyline: its height, and which side of the segment (x, z) lies
+    let best = Infinity, ch = 0, side = 0, along = 0, total = 0;
+    const segLen: number[] = [];
+    for (let i = 0; i + 1 < c.pts.length; i++) { const [ax, az] = c.pts[i] ?? [0, 0], [bx, bz] = c.pts[i + 1] ?? [0, 0]; segLen.push(Math.hypot(bx - ax, bz - az)); }
+    for (const l of segLen) total += l;
+    let run = 0;
+    for (let i = 0; i + 1 < c.pts.length; i++) {
+      const [ax, az, ah] = c.pts[i] ?? [0, 0, 0], [bx, bz, bh] = c.pts[i + 1] ?? [0, 0, 0], dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz;
+      const t = Math.min(1, Math.max(0, ((x - ax) * dx + (z - az) * dz) / l2)), px = ax + dx * t, pz = az + dz * t, d = Math.hypot(x - px, z - pz);
+      if (d < best) { best = d; ch = ah + (bh - ah) * t; side = (dx * (z - az) - dz * (x - ax)) / Math.sqrt(l2); along = run + t * (segLen[i] ?? 0); }
+      run += segLen[i] ?? 0;
+    }
+    const u = along / total, ends = smooth(u / c.fade) * smooth((1 - u) / c.fade);
+    // a knife-edge crest: the windward face convex (eased), the slip face near-linear; the two blend over 16 m across the
+    // crest line (a hard side switch made a crease past the crest's ends)
+    const leeW = smooth(0.5 + c.leeSide * side / 16), kl = Math.min(1, best / c.lee), kw = Math.min(1, best / c.w);
+    const width = c.lee * leeW + c.w * (1 - leeW);
+    const prof = leeW * (1 - (0.75 * kl + 0.25 * smooth(kl))) + (1 - leeW) * (1 - smooth(kw) * (2 - smooth(kw)) * 0.5 - 0.5 * kw);
+    // the crest owns its footprint: its profile (crest down to the trough level) replaces the field there, blending back
+    // to the field over half its width beyond (a max let the field's own slopes win, so the authored faces never showed)
+    const shape = c.trough + (ch - c.trough) * Math.max(0, prof), weight = (1 - smooth((best - width) / width)) * ends;
+    if (weight > 0) out.push([shape, weight]);
+  }
+  for (const m of LANDFORMS.mounds) {
+    const r = Math.hypot(x - m.x, z - m.z); if (r >= m.r) continue;
+    h = Math.max(h, m.h * (0.5 + 0.5 * Math.cos(Math.PI * r / m.r)));
+  }
+  return h;
+}
+
 /** One field of barchan-like crescent dunes: transverse crests bowed into crescents, amplitude varying along them. */
 function field(x: number, z: number, n: TerrainNoise['n']): { h: number; amp: number } {
   const u0 = x * WIND.x + z * WIND.z, v = -x * WIND.z + z * WIND.x;
@@ -74,8 +108,13 @@ const spotLevels = new WeakMap<TerrainNoise['n'], number[]>();
  */
 export function duneHeight(x: number, z: number, { n }: TerrainNoise): number {
   let { h } = field(x, z, n);
+  // the authored landforms first (crests own their footprint, then the mounds by a max), so the pads still level on them
+  const crestShapes: [number, number][] = [];
+  const mound = landforms(x, z, crestShapes);
+  for (const [shape, weight] of crestShapes) h += (shape - h) * weight;
+  h = Math.max(h, mound);
   let levels = spotLevels.get(n);
-  if (levels === undefined) { levels = SPOTS.map((p) => field(p.x, p.z, n).h + p.lift); spotLevels.set(n, levels); }
+  if (levels === undefined) { levels = SPOTS.map((p) => { const cs: [number, number][] = [], m = landforms(p.x, p.z, cs); let lh = field(p.x, p.z, n).h; for (const [sh, w] of cs) lh += (sh - lh) * w; return Math.max(lh, m) + p.lift; }); spotLevels.set(n, levels); }
   for (const [i, p] of SPOTS.entries()) {
     const d = Math.hypot(x - p.x, z - p.z); if (d > p.r + p.ease) continue;
     h += ((levels[i] ?? h) - h) * (1 - smooth((d - p.r) / p.ease));

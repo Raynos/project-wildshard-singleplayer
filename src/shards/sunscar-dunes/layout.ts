@@ -17,7 +17,7 @@ export const BRAZIERS: readonly { x: number; z: number }[] = [{ x: 58, z: -34 },
  *  none: the dunes are phased so a crest runs through it (P2), and it looks down over the rows to the tower. */
 // E399 (mockups A, dusk-fire): the tower stands on a rounded dune peak, a small flat top easing out over `ease` m
 // (a 40 m flat pad read as a plateau)
-export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 14, ease: 80 }]; // council round 3: the tower crowns a big dune; round 8: a broad low mound (lift 13 over 58 m stood a tall narrow dome; both spawn mockups show a wide low rise, A a small far tower)
+export const CRESTS: readonly { x: number; z: number; r: number; lift: number; ease: number }[] = []; // E407 row 1: the tower's ground is the authored mound (LANDFORMS) // council round 3: the tower crowns a big dune; round 8: a broad low mound (lift 13 over 58 m stood a tall narrow dome; both spawn mockups show a wide low rise, A a small far tower)
 /**
  * Crest lines (round 9, mockup A and the seats since round 1: between the spawn and the tower the mockup shows a near
  * diagonal crest before a separate tower dune, lit on its west flank; ours fell from the spawn crest to one trough at the
@@ -27,6 +27,21 @@ export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 14, ease: 80 }]; //
 export const CREST_LINES: readonly { a: [number, number]; b: [number, number]; lift: number; w: number; lee: number; fade: number; trough: number }[] = [
   // E407 row 1: none; the dune field itself carries the crests now (steep slip faces over long windward slopes)
 ];
+/**
+ * The authored landforms (E407 row 1; the lead: author the composition the mockups show as explicit landforms, judged from
+ * the spawn). Absolute heights in metres, combined with the dune field by a max, so they are real terrain everywhere.
+ * - `crests`: a sharp dune crest along a polyline, `h` at each point, a gentle windward profile `w` m wide on one side and
+ *   a steep slip face `lee` m wide on the other (`leeSide` +1: the side to the left of a -> b, seen from above with z
+ *   down; the spawn's side here), its ends rounded off over `fade` of its length.
+ * - `mounds`: a broad rounded dome, `h` at its centre, falling to the field over radius `r` (a cosine profile).
+ * From the spawn eye (21.1 m, pitch -12.5 deg): the crest runs from the frame's x 0.3 at y 0.40 to the right edge at y
+ * 0.47 with its slip face toward the camera (mockup A's lit diagonal over a shaded face); the mound puts the tower's
+ * foot on the horizon and fills dusk-fire's middle band (its big dome).
+ */
+export const LANDFORMS = {
+  crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }],
+  mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }],
+} as const;
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 // E399 (mockup C): each waymark on level sand too, its fire's pool flat round it
 // round 8 (mockup C: the waymark stands on open ground over a low horizon; ours sat in a bowl, the dunes 11-13 deg over the

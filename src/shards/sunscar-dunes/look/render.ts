@@ -33,8 +33,9 @@ const SAND = new Color(0.5, 0.23, 0.075),
 const SHADOW_MARCH = { first: 0.8, grow: 1.22, steps: 26 } as const;
 const WIND_GLSL = `${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}`;
 
-/** The baked dune-shadow map's size (texels a side over the 480 m ground: 0.75 m a texel, 3.3× the terrain grid). */
-const SHADOW_TEX = 640;
+/** The baked dune-shadow map's size and reach (E407 row 3: it covered only the 480 m ground; the far skirt's dunes, out to
+ *  the range rings, cast no shade): 896 texels a side over +-520 m, 1.16 m a texel. */
+const SHADOW_TEX = 896, SHADOW_HALF = 520;
 
 /**
  * Dune self-shadow, baked (R1; loop 2 sharpens it): per texel, march toward the key over the terrain grid's heights;
@@ -42,12 +43,12 @@ const SHADOW_TEX = 640;
  * shadow edge is drawn at 0.75 m, not smeared across the 2.5 m grid (no shadow map ever reaches 200 m on the phone).
  */
 function bakeDuneShadow(heightAt: (x: number, z: number) => number): DataTexture {
-  const n = SHADOW_TEX, data = new Uint8Array(n * n), texel = (GROUND_HALF * 2) / n;
+  const n = SHADOW_TEX, data = new Uint8Array(n * n), texel = (SHADOW_HALF * 2) / n;
   const flat = Math.hypot(KEY.dir.x, KEY.dir.z), sx = KEY.dir.x / flat, sz = KEY.dir.z / flat, rise = KEY.dir.y / flat;
   for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
-    const x0 = -GROUND_HALF + (ix + 0.5) * texel, z0 = -GROUND_HALF + (iz + 0.5) * texel, h0 = heightAt(x0, z0) + 0.12;
+    const x0 = -SHADOW_HALF + (ix + 0.5) * texel, z0 = -SHADOW_HALF + (iz + 0.5) * texel, h0 = heightAt(x0, z0) + 0.12;
     let d = SHADOW_MARCH.first, over = 0;
-    for (let k = 0; k < SHADOW_MARCH.steps; k++, d *= SHADOW_MARCH.grow) over = Math.max(over, (heightAt(x0 + sx * d, z0 + sz * d) - (h0 + rise * d)) / (0.3 + d * 0.025));
+    for (let k = 0; k < SHADOW_MARCH.steps; k++, d *= SHADOW_MARCH.grow) over = Math.max(over, (heightAt(x0 + sx * d, z0 + sz * d) - (h0 + rise * d)) / (0.25 + d * 0.012)); // E407 row 3: the penumbra grows half as fast (crisp long shadows)
     data[iz * n + ix] = Math.round(255 * (1 - Math.min(1, Math.max(0, over))));
   }
   const tex = new DataTexture(data, n, n, RedFormat, UnsignedByteType);
@@ -104,18 +105,21 @@ const SKIRT = { out: 520, cell: 8 } as const;
  * square it sits 2 m under the ground (hidden); on the edge it meets the ground's own heights; outside it eases into
  * smooth swells along the wind.
  */
+/** The skirt's height past the ground's edge (its edge heights easing into swells along the wind); inside, `heightAt`. */
+function skirtAt(heightAt: (x: number, z: number) => number, x: number, z: number): number {
+  const edge = GROUND_HALF, out = Math.max(Math.abs(x), Math.abs(z)) - edge;
+  if (out < -0.5) return heightAt(x, z);
+  const cx = Math.max(-edge, Math.min(edge, x)), cz = Math.max(-edge, Math.min(edge, z));
+  const t = Math.min(1, Math.max(0, out / 60)), e = t * t * (3 - 2 * t);
+  const u = (x * WIND.x + z * WIND.z) / 64, v = (-x * WIND.z + z * WIND.x) / 90;
+  return heightAt(cx, cz) * (1 - e) + (2.5 + 3 * Math.sin((u + Math.sin(v) * 0.4) * Math.PI * 2)) * e - 0.05;
+}
 function skirtGeometry(heightAt: (x: number, z: number) => number): BufferGeometry {
   const n = (SKIRT.out * 2) / SKIRT.cell, g = new PlaneGeometry(SKIRT.out * 2, SKIRT.out * 2, n, n); g.rotateX(-Math.PI / 2);
   const p = g.getAttribute('position'), col = new Float32Array(p.count * 3), c = new Color().copy(SAND).lerp(HOLLOW, 0.25), edge = GROUND_HALF;
-  const swell = (x: number, z: number): number => {
-    const u = (x * WIND.x + z * WIND.z) / 64, v = (-x * WIND.z + z * WIND.x) / 90;
-    return 2.5 + 3 * Math.sin((u + Math.sin(v) * 0.4) * Math.PI * 2);
-  };
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), z = p.getZ(i), out = Math.max(Math.abs(x), Math.abs(z)) - edge;
-    const cx = Math.max(-edge, Math.min(edge, x)), cz = Math.max(-edge, Math.min(edge, z));
-    const t = Math.min(1, Math.max(0, out / 60)), e = t * t * (3 - 2 * t);
-    const y = out < -0.5 ? heightAt(x, z) - 2 : heightAt(cx, cz) * (1 - e) + swell(x, z) * e - 0.05;
+    const y = out < -0.5 ? heightAt(x, z) - 2 : skirtAt(heightAt, x, z);
     p.setY(i, y); col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
   }
   g.setAttribute('color', new Float32BufferAttribute(col, 3));
@@ -194,7 +198,7 @@ export function signalDunesLook(): LookStrategy {
         const ix = Math.floor(fx), iz = Math.floor(fz), u = fx - ix, w = fz - iz, at = (a: number, b: number): number => pos.getY(b * side + a);
         return (at(ix, iz) * (1 - u) + at(ix + 1, iz) * u) * (1 - w) + (at(ix, iz + 1) * (1 - u) + at(ix + 1, iz + 1) * u) * w;
       };
-      const shadow = bakeDuneShadow(gridAt); scope.own(shadow);
+      const shadow = bakeDuneShadow((x, z) => skirtAt(gridAt, x, z)); scope.own(shadow);
       const trail = bakeTrail((x, z) => field.trailDistance(x, z)); scope.own(trail);
       const grain = sandGrainTexture(); scope.own(grain);
       for (let i = 0; i < pos.count; i++) {
@@ -277,7 +281,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
   float sandStreak = smoothstep(0.55, 0.95, sin(sandV * 1.9 + sin(sandU * 0.07) * 3.0) * sin(sandV * 0.37 + 0.6)) * (0.4 + 0.6 * sandFlat);
-  diffuseColor.rgb *= (1.0 + 0.08 * sandDrift) * mix(0.8, 1.0, smoothstep(0.0, 0.3, uDusk)) * (1.0 + 0.5 * exp(-pow((uDusk - 0.5) / 0.1, 2.0))); // round 12: B's step (mockup B's sand 39.7) in the sand, not the sky fill // round 12: the sunset step's sand a step darker (the A / dusk-fire split; the later steps unchanged)
+  diffuseColor.rgb *= (1.0 + 0.08 * sandDrift) * mix(0.8, 1.0, smoothstep(0.0, 0.3, uDusk)); // (round 12's B-tuned bell at dusk 0.5 removed: the sand brightened as the sun set) // round 12: the sunset step's sand a step darker (the A / dusk-fire split; the later steps unchanged)
   // check pass (4): the path brightens with distance, so the route reads from above; underfoot it stays a subtle trodden bed
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.1, 1.05, 0.98), sandTrod * 0.6); // a faint trodden bed (E399: brighter read as a light column)
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.18, 1.12, 1.02), sandStreak * 0.55 * (1.0 - smoothstep(60.0, 140.0, sandFar)));`)
@@ -300,9 +304,9 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   }`)
           .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
   // The baked dune shadow (a ${String(SHADOW_TEX)}² map, sharpened) takes only the key (direct) light; the cool sky fill stays.
-  float sandVis = smoothstep(0.25, 0.75, texture2D(uSandShadow, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r);
-  sandVis = max(sandVis, smoothstep(${(GROUND_HALF - 6).toFixed(1)}, ${GROUND_HALF.toFixed(1)}, max(abs(vSandPos.x), abs(vSandPos.z)))); // round 4: the stepped strip past the map
-  reflectedLight.directDiffuse *= mix(0.45, 1.0, sandVis); // round 7: the map's cast edge ran straight along its axis; N.L draws the curve
+  float sandVis = smoothstep(0.25, 0.75, texture2D(uSandShadow, (vSandPos.xz + ${SHADOW_HALF.toFixed(1)}) / ${(SHADOW_HALF * 2).toFixed(1)}).r);
+  sandVis = max(sandVis, smoothstep(${(SHADOW_HALF - 8).toFixed(1)}, ${SHADOW_HALF.toFixed(1)}, max(abs(vSandPos.x), abs(vSandPos.z)))); // round 4: the stepped strip past the map
+  reflectedLight.directDiffuse *= mix(0.28, 1.0, sandVis); // E407 row 3: long dune shadows across the troughs, deeper (0.45) // round 7: the map's cast edge ran straight along its axis; N.L draws the curve
   {
     // round 10 (seat C round 9: the broad mound shades as one soft wedge; the mockups' light/shade lines are crisp along the
     // forms): the key's response on the terrain's own normal a short ramp at the terminator and a flatter lit side
@@ -336,14 +340,13 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // than the near): in the late dusk the far dunes fall toward silhouette with distance
     // round 11 (round 10's ledger note: a fade to black from 8 m flattened D's bands and the late clip's ground): the sky fill
     // only, from 30 m, so the key's bands still read on the far land
-    float sil = smoothstep(30.0, 200.0, sandFar) * smoothstep(0.3, 0.75, uDusk) * 0.6;
-    reflectedLight.indirectDiffuse *= 1.0 - sil;
     // round 12 (seat C R11-2: D's late land lit rising slopes; the mockup's flat dark bands with one lit stripe): in the late
     // dusk the faces turned from the afterglow fall dark, the faces toward it (the crests' far sides) keep their light
     vec2 glowXZ = normalize(vec2(${SUN_GLOW.x.toFixed(3)}, ${SUN_GLOW.z.toFixed(3)}));
     float toGlow = dot(normalize(vSandN).xz, glowXZ);
-    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(0.02, 0.22, toGlow)) * smoothstep(12.0, 50.0, sandFar);
-    reflectedLight.indirectDiffuse *= 1.0 - 0.7 * away; reflectedLight.directDiffuse *= 1.0 - 0.7 * away;
+    // (no distance gate: the lead after round 12, the clip's ground fell to 6-9 with black blots at the gate)
+    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.05, 0.2, toGlow));
+    reflectedLight.indirectDiffuse *= 1.0 - 0.45 * away; reflectedLight.directDiffuse *= 1.0 - 0.45 * away;
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
