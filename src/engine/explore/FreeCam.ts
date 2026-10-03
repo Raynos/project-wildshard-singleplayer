@@ -1,5 +1,5 @@
 import { app } from '../app/runtime';
-import { listenDom } from '../input/dom';
+import { listenDom, listenPage } from '../input/dom';
 /**
  * FreeCam — Unity scene-view camera controls (the Explore World god camera on desktop).
  *
@@ -118,8 +118,8 @@ export class FreeCam {
     listenDom(this.scope, dom, 'pointerdown', this.onPointerDown);
     listenDom(this.scope, dom, 'wheel', this.onWheel, { passive: false });
     listenDom(this.scope, dom, 'contextmenu', this.onContextMenu);
-    listenDom(this.scope, window, 'pointermove', this.onPointerMove);
-    listenDom(this.scope, window, 'pointerup', this.onPointerUp);
+    listenPage(this.scope, 'pointermove', this.onPointerMove);
+    listenPage(this.scope, 'pointerup', this.onPointerUp);
     app.input.onReset(() => { this.drag = 'none'; this.releaseLock(); }, this.scope);
     listenDom(this.scope, document, 'pointerlockchange', this.onPointerLockChange);
   }

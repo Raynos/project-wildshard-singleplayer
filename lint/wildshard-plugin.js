@@ -456,7 +456,13 @@ const noRawRandomTime = rule('Randomness and time use engine services (E357)', (
 const INPUT_EVENTS = new Set('keydown keyup keypress pointerdown pointerup pointermove pointercancel mousedown mouseup mousemove wheel contextmenu touchstart touchmove touchend touchcancel'.split(' '));
 const noRawInput = rule('Input listeners belong in the input service (E357)', (context) => {
   if (pathOf(context).startsWith('src/engine/input/')) return {};
-  return { CallExpression(node) { if (calleeName(node.callee) === 'addEventListener' && INPUT_EVENTS.has(stringOf(node.arguments[0]))) report(context, node, 'Use the input service instead of a raw input listener'); } };
+  // E362 AG18: a helper (`scope.listen(window, 'keydown')`, `listenDom(scope, document, 'pointermove')`) is the same raw
+  // page-wide listener; a widget's listener on its own element stays legal.
+  const page = (n) => { const u = unwrap(n); return u?.type === 'Identifier' && (u.name === 'window' || u.name === 'document'); };
+  return { CallExpression(node) {
+    if (calleeName(node.callee) === 'addEventListener' && INPUT_EVENTS.has(stringOf(node.arguments[0]))) report(context, node, 'Use the input service instead of a raw input listener');
+    else if (node.arguments.some(page) && node.arguments.some((a) => INPUT_EVENTS.has(stringOf(a)))) report(context, node, 'A page-wide input listener goes through listenPage (#engine) or the input service');
+  } };
 });
 const noRendererType = rule('Renderer types stay inside rendering (E357)', (context) => {
   if (/^src\/engine\/(?:render\/|core\/(?:Game|bootstrap)\.ts$)/u.test(pathOf(context))) return {};

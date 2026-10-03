@@ -1,4 +1,5 @@
 import { mountUi } from './ownership';
+import { listenPage } from '../input/dom';
 import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 import { saveStorage } from '#engine/saves/slots';
@@ -121,11 +122,11 @@ export class FirstHints {
 
     // ── uses the system sees for itself: a touch on the control, its key, the player's jump / dodge ──
     scope.onDispose(() => { this.ring.remove(); this.tag.remove(); });
-    scope.listen(document, 'pointerdown', (e) => {
+    listenPage(scope, 'pointerdown', (e) => {
       const t = e.target;
       if (!(t instanceof Element)) return;
       for (const c of Object.keys(ANCHOR) as HintControl[]) if (c !== 'move' && t.closest(ANCHOR[c]) !== null) this.used(c);
-    }, { capture: true });
+    }, { capture: true, on: 'document' });
     for (const control of ['attack', 'lock', 'use'] as const) app.input.bind(control, () => { this.used(control); }, scope);
     const onJump = player.onJump;
     player.onJump = () => { onJump?.(); this.used('jump'); };

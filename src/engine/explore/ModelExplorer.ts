@@ -1,4 +1,4 @@
-import { listenDom } from '../input/dom';
+import { listenDom, listenPage } from '../input/dom';
 import { engineString } from '#engine/strings';
 /**
  * Model Explorer (project/archive/2026-09-23-explore-world.md X3; mockups round-3 p04 catalog, p03 turntable, p17 close-up): the Explore pane that
@@ -234,9 +234,9 @@ export class ModelExplorer implements ExplorePane {
 
     const canvas = world.game.canvas;
     listenDom(this.uiScope, canvas, 'pointerdown', this.onDown);
-    listenDom(this.uiScope, window, 'pointermove', this.onMove);
-    listenDom(this.uiScope, window, 'pointerup', this.onUp);
-    listenDom(this.uiScope, window, 'pointercancel', this.onUp);
+    listenPage(this.uiScope, 'pointermove', this.onMove);
+    listenPage(this.uiScope, 'pointerup', this.onUp);
+    listenPage(this.uiScope, 'pointercancel', this.onUp);
     listenDom(this.uiScope, canvas, 'wheel', this.onWheel, { passive: false });
     this.renderGrid();
   }

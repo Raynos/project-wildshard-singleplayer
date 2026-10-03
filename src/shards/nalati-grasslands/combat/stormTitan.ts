@@ -1,5 +1,5 @@
 import { NALATI_STRIKES, sampleArena } from './strikes';
-import { app, type Game, type Player, type TargetAnimal, type TargetHit, wind, type Animal, type AnimalManager, type Interactable, type AimTarget, BossBar, heightAt, terrainNormal as normalAt, setEliteDamage, TIER, PATCH_ORDER, patchShader } from '#engine';
+import { app, listenPage, type Game, type Player, type TargetAnimal, type TargetHit, wind, type Animal, type AnimalManager, type Interactable, type AimTarget, BossBar, heightAt, terrainNormal as normalAt, setEliteDamage, TIER, PATCH_ORDER, patchShader } from '#engine';
 import * as THREE from 'three';
 
 
@@ -1032,11 +1032,11 @@ export class StormTitan {
     // the horse refuses the storm wall and the fire line
     const mount = play.ride?.mount;
     if (mount) { const prev = mount.refuse; mount.refuse = (x, z) => this.fight.refuses(x, z) || (prev?.(x, z) ?? false); }
-    game.levelScope.listen(window, 'keydown', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = true; });
-    game.levelScope.listen(window, 'keyup', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = false; });
-    game.levelScope.listen(window, 'pointerdown', () => { this.skipTouch = true; });
-    game.levelScope.listen(window, 'pointerup', () => { this.skipTouch = false; });
-    game.levelScope.listen(window, 'pointercancel', () => { this.skipTouch = false; });
+    listenPage(game.levelScope, 'keydown', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = true; });
+    listenPage(game.levelScope, 'keyup', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipEnter = false; });
+    listenPage(game.levelScope, 'pointerdown', () => { this.skipTouch = true; });
+    listenPage(game.levelScope, 'pointerup', () => { this.skipTouch = false; });
+    listenPage(game.levelScope, 'pointercancel', () => { this.skipTouch = false; });
     // dev: `?boss=storm-titan` — a storm, mounted at the cairn, the strip tied; `&bossPhase=2|3` at that checkpoint
     if (play.params.get('boss') === 'storm-titan') {
       this.ctx.weather.weather.force('storm', 0.1);

@@ -1,4 +1,4 @@
-import { listenDom } from '../input/dom';
+import { listenDom, listenPage } from '../input/dom';
 import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 /**
@@ -54,8 +54,8 @@ export function holdButton(b: HTMLElement, onHold: (held: boolean) => void): voi
     if (!ids.delete(e.pointerId) || ids.size > 0) return;
     b.classList.remove('on'); onHold(false);
   };
-  listenDom(scope, window, 'pointerup', up, true);
-  listenDom(scope, window, 'pointercancel', up, true);
+  listenPage(scope, 'pointerup', up, { capture: true });
+  listenPage(scope, 'pointercancel', up, { capture: true });
 }
 
 interface PendingTap { btn: HTMLButtonElement; x: number; y: number; shared: boolean }
@@ -75,9 +75,9 @@ class MultiTouchTaps {
   private relayed: { btn: HTMLElement; until: number } | null = null;
 
   constructor(private readonly overlay: HTMLElement) {
-    listenDom(this.uiScope, window, 'pointerdown', this.onDown, true);
-    listenDom(this.uiScope, window, 'pointerup', this.onUp, true);
-    listenDom(this.uiScope, window, 'pointercancel', this.onCancel, true);
+    listenPage(this.uiScope, 'pointerdown', this.onDown, { capture: true });
+    listenPage(this.uiScope, 'pointerup', this.onUp, { capture: true });
+    listenPage(this.uiScope, 'pointercancel', this.onCancel, { capture: true });
     listenDom(this.uiScope, window, 'click', this.onClick, true);
     listenDom(this.uiScope, document, 'visibilitychange', this.onHidden);
   }
@@ -146,9 +146,9 @@ export class TouchFly {
     this.taps = new MultiTouchTaps(host.closest<HTMLElement>('.ws-x') ?? host);
     listenDom(this.uiScope, this.stick, 'pointerdown', this.onStickDown);
     listenDom(this.uiScope, surface, 'pointerdown', this.onDown);
-    listenDom(this.uiScope, window, 'pointermove', this.onMove);
-    listenDom(this.uiScope, window, 'pointerup', this.onUp);
-    listenDom(this.uiScope, window, 'pointercancel', this.onUp);
+    listenPage(this.uiScope, 'pointermove', this.onMove);
+    listenPage(this.uiScope, 'pointerup', this.onUp);
+    listenPage(this.uiScope, 'pointercancel', this.onUp);
     this.uiScope.onDispose(() => { this.taps.dispose(); this.stick.remove(); this.fingers.clear(); this.stickId = null; this.cam.move.set(0, 0, 0); });
   }
 

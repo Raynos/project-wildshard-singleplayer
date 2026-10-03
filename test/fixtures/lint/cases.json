@@ -301,6 +301,20 @@
     "count": 0
   },
   {
+    "id": "input-helper",
+    "file": "src/ui/helper.ts",
+    "rule": "no-raw-input",
+    "code": "scope.listen(window, 'keydown', fn); listenDom(scope, document, 'pointermove', fn);",
+    "count": 2
+  },
+  {
+    "id": "input-widget-own",
+    "file": "src/ui/widget.ts",
+    "rule": "no-raw-input",
+    "code": "scope.listen(button, 'pointerdown', fn); listenDom(scope, window, 'resize', fn);",
+    "count": 0
+  },
+  {
     "id": "input-owned",
     "file": "src/engine/input/listeners.ts",
     "rule": "no-raw-input",

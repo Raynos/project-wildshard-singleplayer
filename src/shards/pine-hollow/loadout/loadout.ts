@@ -1,5 +1,5 @@
 import { AMMO_ROWS } from './effects';
-import { saves, type CombatCues, type EquipmentService, type Scope, app, type Sky, fixIBL, VIEWMODEL_GROUP, worldHit } from '#engine';
+import { saves, listenPage, type CombatCues, type EquipmentService, type Scope, app, type Sky, fixIBL, VIEWMODEL_GROUP, worldHit } from '#engine';
 import { pineCombatCues } from '../audio/combatCues';
 import * as valibot from 'valibot';
 import * as THREE from 'three';
@@ -165,11 +165,11 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   app.input.push('crossbow.bolts', h.scope);
   app.input.bind('bolt.cycle', () => { weapons.current.ammoSelect?.(); }, h.scope, () => weapons.enabled && weapons.current.ammoSelect !== undefined);
 
-  h.scope.listen(document, 'pointerdown', (e) => {
+  listenPage(h.scope, 'pointerdown', (e) => {
     const t = e.target;
     if (!(t instanceof Element) || t.closest('.ws-game-bolts') === null || weapons.current.ammoSelect === undefined || !weapons.enabled) return;
     e.stopPropagation(); weapons.current.ammoSelect();
-  }, { capture: true });
+  }, { capture: true, on: 'document' });
 
   // ── sounds (chained over main.ts's: the held weapon decides) ──
   const cues = h.cues;

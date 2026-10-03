@@ -1,4 +1,5 @@
 import { app } from '../app/runtime';
+import { listenPage } from '../input/dom';
 import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
 import { BindingTable } from '../input/bindingTable';
@@ -19,7 +20,7 @@ export function installKeyHelp(scope: Scope): void {
   let open: Scope | null = null;
   const close = (): void => { open?.dispose(); open = null; };
   // F1 opens the browser's own help page unless the game takes it
-  scope.listen(window, 'keydown', (e: KeyboardEvent) => { if (e.code === 'F1') e.preventDefault(); });
+  listenPage(scope, 'keydown', (e: KeyboardEvent) => { if (e.code === 'F1') e.preventDefault(); });
   const show = (): void => {
     if (open !== null) { close(); return; }
     if (!desktop.matches || app.state !== 'play' || app.ui.blocking) return;
@@ -49,8 +50,8 @@ export function installKeyHelp(scope: Scope): void {
     s.listen(root, 'pointerdown', close);
     // the key that opened it reaches this listener too: it arms on that key's release, so only a later press closes it
     let armed = false;
-    s.listen(window, 'keyup', () => { armed = true; });
-    s.listen(window, 'keydown', (e: KeyboardEvent) => {
+    listenPage(s, 'keyup', () => { armed = true; });
+    listenPage(s, 'keydown', (e: KeyboardEvent) => {
       if (e.code === 'Escape' || (armed && (e.code === 'F1' || e.code === 'Slash'))) { e.preventDefault(); close(); }
     });
   };

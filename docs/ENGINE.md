@@ -589,7 +589,10 @@ if (!notes.read(ctx.manifest.slug)) notes.write(true, ctx.manifest.slug);
 ## 10. Input
 
 `app.input` (`InputService`) owns every input listener. A shard never adds a DOM input listener
-(`wildshard/no-raw-input`, and `wildshard/shard-sandbox` for window / document listeners).
+(`wildshard/no-raw-input`, and `wildshard/shard-sandbox` for window / document listeners). A page-wide one (a drag
+that leaves its widget, "a touch anywhere" that skips or dismisses, a key a panel takes first) goes through
+`listenPage(scope, type, fn, { capture?, on?: 'window' | 'document' })` from `input/dom`, the one place such
+listeners attach (E362 AG18); `no-raw-input` also refuses the helper form (`scope.listen(window, 'keydown')`).
 
 | Export | What it is |
 |---|---|
@@ -1563,7 +1566,7 @@ in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that alrea
 | `wildshard/no-level-identity` | outside `src/shards/`: comparing, switching on, or keying a table by a level's `id`, `slug`, `kitLook`, `style`, `biome` … Pass a capability or a data strategy instead | ratchet (4 at HEAD) |
 | `wildshard/shard-sandbox` | in `src/shards/`: `window` / `globalThis` / `self` reads or writes, window or document input listeners, `setting(key)` for a key you don't own, an `/assets/…` path outside your `assetGlobs` and the shared folders | ratchet (new files at 0) |
 | `wildshard/no-raw-save` | `localStorage` / `sessionStorage` outside the save store | hard error |
-| `wildshard/no-raw-input` | DOM input listeners outside `src/engine/input` | hard error |
+| `wildshard/no-raw-input` | DOM input listeners outside `src/engine/input`, including a helper call given `window` / `document` and an input event (AG18) | hard error |
 | `wildshard/no-raw-shader-patch` | `onBeforeCompile` / `customProgramCacheKey` outside `src/engine/render` | hard error |
 | `wildshard/no-raw-hud` | appending to `#hud` / `document.body` outside the HUD slots | hard error |
 | `wildshard/no-raw-animation-mixer` | `new AnimationMixer` outside `src/engine/anim` | hard error |
@@ -1604,7 +1607,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-709 exports, grouped by the module they come from.
+711 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1799,7 +1802,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./ui/layers`: `UiLayers`, `UiLayer`, `UiView`, `UiHandle`
 - `./ui/tabs`: `TabRegistry`, `TabId`, `TabSpec`, `TabFragment`
 - `./input/weaponActions`: `weaponActionGate`
-- `./input/dom`: `listenDom`
+- `./input/dom`: `listenDom`, `listenPage`, `PageInputEvent`
 - `./ui/authoredDebugRows`: `registerGlobalDebugAction`, `GlobalDebugActionSpec`
 - `./models/live`: `live`, `listModel`, `RosterEntry`
 - `./combat/view/slashTrail`: `SlashTrail`, `SlashTrailProfile`

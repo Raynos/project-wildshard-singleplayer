@@ -290,7 +290,7 @@ export { UiLayers, type UiLayer, type UiView, type UiHandle } from './ui/layers'
 
 export { TabRegistry, type TabId, type TabSpec, type TabFragment } from './ui/tabs';
 export { weaponActionGate } from './input/weaponActions';
-export { listenDom } from './input/dom';
+export { listenDom, listenPage, type PageInputEvent } from './input/dom';
 
 export { registerGlobalDebugAction, type GlobalDebugActionSpec } from './ui/authoredDebugRows';
 

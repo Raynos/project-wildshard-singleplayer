@@ -1,4 +1,4 @@
-import { listenDom } from '../input/dom';
+import { listenDom, listenPage } from '../input/dom';
 import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 /**
@@ -151,9 +151,9 @@ export class SetExplorer implements ExplorePane {
 
     const canvas = world.game.canvas;
     listenDom(this.uiScope, canvas, 'pointerdown', this.onDown);
-    listenDom(this.uiScope, window, 'pointermove', this.onMove);
-    listenDom(this.uiScope, window, 'pointerup', this.onUp);
-    listenDom(this.uiScope, window, 'pointercancel', this.onUp);
+    listenPage(this.uiScope, 'pointermove', this.onMove);
+    listenPage(this.uiScope, 'pointerup', this.onUp);
+    listenPage(this.uiScope, 'pointercancel', this.onUp);
     listenDom(this.uiScope, canvas, 'wheel', this.onWheel, { passive: false });
     new ResizeObserver(() => { this.refit(); }).observe(this.sheet);
   }

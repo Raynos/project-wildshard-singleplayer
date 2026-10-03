@@ -1,5 +1,5 @@
 import { NALATI_STRIKES, sampleStrike, sampleArena } from './strikes';
-import { app, type Game, type Sky, type Player, type AnimalManager, type Animal, type ThinkCtx, type Interactable, BossBar, canReach, type WorldRegistry } from '#engine';
+import { app, listenPage, type Game, type Sky, type Player, type AnimalManager, type Animal, type ThinkCtx, type Interactable, BossBar, canReach, type WorldRegistry } from '#engine';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
 
@@ -698,11 +698,11 @@ export class KurganBoss {
     this.fight.reset(0);
     this.fight.setPresent(false);
     if (this.boss.rewardTaken && play.bow) { play.upgradeBow(this.golden); }
-    game.levelScope.listen(window, 'keydown', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = true; });
-    game.levelScope.listen(window, 'keyup', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = false; });
-    game.levelScope.listen(window, 'pointerdown', () => { this.skipTouch = true; });
-    game.levelScope.listen(window, 'pointerup', () => { this.skipTouch = false; });
-    game.levelScope.listen(window, 'pointercancel', () => { this.skipTouch = false; });
+    listenPage(game.levelScope, 'keydown', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = true; });
+    listenPage(game.levelScope, 'keyup', event => { if (event instanceof KeyboardEvent && event.code === 'Enter') this.skipKeys = false; });
+    listenPage(game.levelScope, 'pointerdown', () => { this.skipTouch = true; });
+    listenPage(game.levelScope, 'pointerup', () => { this.skipTouch = false; });
+    listenPage(game.levelScope, 'pointercancel', () => { this.skipTouch = false; });
     game.app.addSystem({ id: 'shard.nalati-grasslands.bind', phase: 'update', after: ['hud.combat'], before: ['first hints', 'main.frame'], run: (dt) => this.golden?.update(dt) }, game.levelScope);
     // dev: `?boss=golden-king` — start at the chamber door; `&bossPhase=2|3` at that checkpoint
     if (play.params.get('boss') === 'golden-king') {
