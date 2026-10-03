@@ -783,7 +783,7 @@ before frame updates. These are shared live objects: copy/set their values in pl
 | `lights` | `DirectionalLight[]` | Engine key-light shadow cascades; a clock may set their color/intensity |
 | `lightDirection` | `Vector3` | Shadow rig direction (opposite the direction toward the sun); separate from continuous `sunDir` so shadow stepping can be held |
 | `hemi` | `HemisphereLight` | Ambient sky/ground colors and intensity |
-| `fog` | `Fog` | Scene linear fog color, near and far; defer changes while `underwater()` is true |
+| `fog` | `Fog` | Scene linear fog color, near and far; defer changes while `underwater()` is true. Read live: it returns the scene's current `Fog`, so read `targets.fog` in each update rather than keeping it from `bind`. A look that sets its own fog should edit the existing `scene.fog` fields in `compose`; replacing the object leaves anything that kept the old one turning a fog nobody draws |
 | `fogU` | `{ fogSunDir: { value: Vector3 }, fogSunColor: { value: Color }, fogDistDensity: { value: number }, fogHeightDensity: { value: number } }` | Atmosphere shader's sun direction/color and distance/height fog densities |
 | `underwater` | `() => boolean` | Whether the eye is underwater; the atmosphere owns fog then |
 | `disc` | `Mesh` | Engine visible sun surface, with child corona; engine positions it along `sunDir`. `visible = false` hides both. The dressing's disc flag controls its material |

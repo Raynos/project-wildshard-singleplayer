@@ -146,8 +146,13 @@ export class SkyRig {
     else this.visual.buildClouds();
     // the backdrop's clock turns every knob above from here on
     if (backdrop && fog instanceof THREE.Fog) {
+      // `fog` is read live: a look that replaces scene.fog after this bind (in its compose) would otherwise leave the
+      // backdrop turning a fog nobody draws (E399 council round 21: a dusk fade that never reached the screen)
+      const scene = this.scene;
+      const liveFog = (): THREE.Fog => (scene.fog instanceof THREE.Fog ? scene.fog : fog);
       backdrop.bind({
-        sunDir: this.sunDir, sunColor: this.sunColor, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
+        sunDir: this.sunDir, sunColor: this.sunColor, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi,
+        get fog() { return liveFog(); },
         fogU: fogUniforms, underwater: isUnderwater, disc: this.sunDisc, halo: halo instanceof THREE.Sprite ? halo : null,
         cloud: this.cloudUniforms, far: horizonLight, planet: this.giantUniforms,
         shadowBusy: () => this.shadowFade?.busy ?? false,
