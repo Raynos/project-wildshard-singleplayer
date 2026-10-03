@@ -40,9 +40,15 @@ for name, width in (('panorama.webp', W), ('panorama.phone.webp', 4096)):
     print(name, padded.shape, os.path.getsize(os.path.join(out_dir, name)) // 1024, 'KB')
 
 # the painted sun: the centroid of the brightest pixels
-lum = src.mean(axis=2)
-lum[int(hor) - 8:] = 0  # the disc only: not its glitter on the cloud sea below the horizon
-ys, xs = np.nonzero(lum > np.percentile(lum, 99.97))
+# (E399 round 6: the near-white disc pixels round the whitest one; a percentile of the whole strip's brightness took cloud
+# rims elsewhere once the bloom round the disc turned orange, and the glow card drew 1.3 deg off the painted disc)
+white = src.min(axis=2)
+white[int(hor) - 8:] = 0  # the disc only: not its glitter on the cloud sea below the horizon
+my, mx = np.unravel_index(np.argmax(white), white.shape)
+ys, xs = np.nonzero(white > 222)
+dx = (xs - mx + W / 2) % W - W / 2
+keep = np.hypot(dx, ys - my) < 45
+ys, xs = ys[keep], xs[keep]
 # circular mean of x
 ang = xs / W * 2 * np.pi
 sx = (np.degrees(np.arctan2(np.sin(ang).mean(), np.cos(ang).mean())) + 360) % 360

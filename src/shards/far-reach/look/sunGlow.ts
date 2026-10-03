@@ -46,7 +46,7 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
         // gold, not white (E399 seats: 'the sun white'): a warm disc in an amber-orange bloom
         // round 6 (the seats: 'a hollow pink ring in a soft wash', 66-76 % of the frame's over-230 pixels in the sun's blur
         // against the mockups' 46-62 %, D's halo 15 % of its middle band over 230 vs 5 %): one solid hot disc, a fainter halo
-        gl_FragColor = vec4(vec3(1.0, 0.92, 0.72) * disc * 3.0 + vec3(1.0, 0.74, 0.4) * (exp(-d * d * 140.0) * 1.6 + halo * 0.2), 1.0);
+        gl_FragColor = vec4(vec3(1.0, 0.95, 0.82) * disc * 6.0 + vec3(1.0, 0.62, 0.26) * (exp(-d * d * 140.0) * 1.8 + halo * 0.2), 1.0);
       }` });
   const bloomMesh = new Mesh(plane, bloom); bloomMesh.frustumCulled = false; bloomMesh.renderOrder = SUN_GLOW.order; group.add(bloomMesh);
   // a wide, faint gold over the sky round the sun (E399, the mockups' golden air toward the low sun)

@@ -104,8 +104,13 @@ export interface BuiltWorld {
   readonly state: { raised: boolean; raising: boolean };
 }
 
-/** How far under its deck a playable island's code keel is cut away (the textured keel model carries the rock below). */
+/**
+ * How far under its deck a playable island's code keel is cut away (the textured keel model carries the rock below), and
+ * where that model's turf sits under the deck. The windmill isle (round 6: under A's bridge a dark wall where the mockups
+ * show lit cloud; they stand the mill on a rooted spur): a short lip over a narrower keel that overlaps it.
+ */
 const ISLE_CUT = 3.2;
+const CUT: Readonly<Record<string, { cut: number; keelTop: number; keelScale: number }>> = { windmill: { cut: 1.6, keelTop: 1.3, keelScale: 0.78 } };
 export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorld {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
@@ -116,7 +121,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
     // mockups show open cloud'): the textured keel model below (far.isle-keels) is the rock you see, narrower, with sky
     // round it; the top, the lip and every collider are unchanged
     patchShader(mesh.material, 'far.isle-cut', PATCH_ORDER.decorate, (shader) => {
-      shader.uniforms['farCut'] = { value: isle.y - ISLE_CUT };
+      shader.uniforms['farCut'] = { value: isle.y - (CUT[isle.id]?.cut ?? ISLE_CUT) };
       shader.fragmentShader = `uniform float farCut;\n${shader.fragmentShader.replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
   if ((inverse(viewMatrix) * vec4(-vViewPosition, 1.0)).y < farCut) discard;`)}`;
     }, { key: (prior) => `${prior}|far.isle-cut` });
@@ -140,7 +145,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   // the playable islands' keels in the same painted rock (E399 round 2, seat C: 'under the bridge a flat sage-green cliff
   // wall'): a model under each island, its turf 1.8 m under the walkable top (its turf mounds poked up through the arena floor at 0.7 m), so
   // the rock below are the textured ones; the code top and its colliders are unchanged, nothing here collides
-  const keels = skyIsleModels(ISLES.map((isle) => ({ ...isle, id: `keel.${isle.id}`, y: isle.y - 1.8, r: isle.r * 0.97, pines: 0, fall: null })));
+  const keels = skyIsleModels(ISLES.map((isle) => ({ ...isle, id: `keel.${isle.id}`, y: isle.y - (CUT[isle.id]?.keelTop ?? 1.8), r: isle.r * (CUT[isle.id]?.keelScale ?? 0.97), pines: 0, fall: null })));
   keels.group.name = 'far.isle-keels'; skyGroup.add(keels.group);
   for (const s of SKY_ISLES) {
     const code = skyHd.fallback.includes(s);
