@@ -25,7 +25,7 @@ export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 9, ease: 75 }]; // 
  * side and a steeper one `lee` m wide on the east, faded over the last `fade` of its length at each end.
  */
 export const CREST_LINES: readonly { a: [number, number]; b: [number, number]; lift: number; w: number; lee: number; fade: number; trough: number }[] = [
-  { a: [-34, -52], b: [22, 16], lift: 11, w: 28, lee: 22, fade: 0.2, trough: 5 }, // the terrain build smooths a ridge this narrow to ~60 %
+  { a: [-24, -52], b: [52, 40], lift: 10, w: 28, lee: 22, fade: 0.14, trough: 5 }, // the terrain build smooths a ridge this narrow to ~60 %
 ];
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 // E399 (mockup C): each waymark on level sand too, its fire's pool flat round it
