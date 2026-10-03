@@ -158,7 +158,8 @@ void main() {
   float r = length(vUv - 0.5) * 2.0;
   float flick = 0.85 + 0.1 * sin(uTime * 11.0) + 0.05 * sin(uTime * 23.0);
   // loop 5 (mockup C): the fire floods the sand round it orange: a broad pool, hot near the brazier
-  gl_FragColor = vec4(vec3(0.85, 0.24, 0.03) * (pow(max(0.0, 1.0 - r), 2.2) * 0.16 + pow(max(0.0, 1.0 - r), 8.0) * 0.28) * flick, 1.0);
+  // E399 (mockup C): the fire floods the sand round it orange, hot near the brazier, fading over a few metres
+  gl_FragColor = vec4(vec3(1.0, 0.36, 0.06) * (pow(max(0.0, 1.0 - r), 1.8) * 0.42 + pow(max(0.0, 1.0 - r), 6.0) * 0.5) * flick, 1.0);
 }`,
 });
 const quad = new PlaneGeometry(1, 1); quad.translate(0, 0.5, 0);

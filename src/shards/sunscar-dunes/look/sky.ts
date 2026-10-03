@@ -55,7 +55,8 @@ void main() {
   vec2 cp = d.xz / (h + 0.09);
   cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(0.7, 1.9);
   float cn = vNoise(cp * 1.3) * 0.5 + vNoise(cp * 2.9 + 3.1) * 0.3 + vNoise(cp * 6.7 + 7.3) * 0.2;
-  float cov = smoothstep(0.52, 0.66, cn) * smoothstep(0.02, 0.06, h) * (1.0 - smoothstep(0.35, 0.6, h));
+  // E399: the mockups' skies are clear and starry: only a few thin banks low in the glow band, none overhead
+  float cov = smoothstep(0.6, 0.72, cn) * smoothstep(0.02, 0.05, h) * (1.0 - smoothstep(0.1, 0.18, h)) * (0.35 + 0.65 * toward);
   vec2 sunward = normalize(vec2(uSun.x, uSun.z) + 1e-4) * 0.18 / (h + 0.09);
   float cn2 = vNoise((cp + sunward * vec2(0.7, 1.9)) * 1.3) * 0.5 + vNoise((cp + sunward * vec2(0.7, 1.9)) * 2.9 + 3.1) * 0.3 + vNoise((cp + sunward * vec2(0.7, 1.9)) * 6.7 + 7.3) * 0.2;
   float lit = clamp((cn - cn2) * 6.0 + 0.5, 0.0, 1.0);

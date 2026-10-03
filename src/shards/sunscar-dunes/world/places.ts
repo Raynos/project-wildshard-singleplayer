@@ -313,21 +313,25 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
     q.setFromAxisAngle(up, a * 1.7); m.compose(new Vector3(sx, groundAt(x + sx, z + sz2) - y - sz * 0.4, sz2), q, new Vector3(sz * 1.2, sz, sz)); stones.setMatrixAt(i, m);
   }
   stones.instanceMatrix.needsUpdate = true; stones.computeBoundingSphere(); root.add(stones);
-  const poleX = WAYMARK.ring * 0.8, poleZ = -WAYMARK.ring * 0.5, poleY = groundAt(x + poleX, z + poleZ) - y;
-  const wood = mat(POLE);
-  const pole = box(0.09, WAYMARK.pole, 0.09, wood); pole.rotation.z = -0.04; at(pole, poleX, poleY + WAYMARK.pole / 2 - 0.3, poleZ, root);
-  const bar = box(0.7, 0.06, 0.06, wood); at(bar, poleX, poleY + WAYMARK.pole - 0.55, poleZ, root);
-  const banner = new Mesh(bannerGeometry(), new MeshStandardMaterial({ color: RAG, roughness: 0.9, side: DoubleSide, emissive: RAG_GLOW }));
-  banner.position.set(poleX, poleY + WAYMARK.pole - 0.5, poleZ); banner.rotation.y = Math.atan2(-WIND.z, WIND.x); root.add(banner);
-  colliders.push(boxDesc({ x: x + poleX, z: z + poleZ, hw: 0.06, hd: 0.06, rot: 0, yBottom: y + poleY - 0.3, yTop: y + poleY + WAYMARK.pole }, 'wood'));
-  // round 2 (R1C-1, seat B: 'a built, lit structure'): a small lantern hangs off the crossbar, its halo and a warm pool
-  // on the sand, so the waymark reads lit before its fire is
-  const lampY = poleY + WAYMARK.pole - 1.0, lampX = poleX - 0.3, lamp = new Group(); lamp.position.set(lampX, lampY, poleZ); root.add(lamp);
-  const iron = mat(IRON, { metalness: 0.4 });
-  at(box(0.16, 0.035, 0.16, iron), 0, 0.15, 0, lamp); at(box(0.16, 0.035, 0.16, iron), 0, -0.13, 0, lamp);
-  at(box(0.1, 0.22, 0.1, new MeshBasicMaterial({ color: 0xffb24a })), 0, 0.01, 0, lamp);
-  at(box(0.012, 0.42, 0.012, iron), 0, 0.37, 0, lamp);
-  addLampGlow(lamp, 0.55, (lx, lz) => groundAt(x + lampX + lx, z + poleZ + lz) - (y + lampY)); // a small halo: 1.6 filled the sky at 5 m
+  // E399 (mockup C: the waymark is the brazier on its plinth, nothing else): the banner pole and lantern only with the
+  // stand-in brazier, which needs them to read from afar
+  if (hdBrazier === null) {
+    const poleX = WAYMARK.ring * 0.8, poleZ = -WAYMARK.ring * 0.5, poleY = groundAt(x + poleX, z + poleZ) - y;
+    const wood = mat(POLE);
+    const pole = box(0.09, WAYMARK.pole, 0.09, wood); pole.rotation.z = -0.04; at(pole, poleX, poleY + WAYMARK.pole / 2 - 0.3, poleZ, root);
+    const bar = box(0.7, 0.06, 0.06, wood); at(bar, poleX, poleY + WAYMARK.pole - 0.55, poleZ, root);
+    const banner = new Mesh(bannerGeometry(), new MeshStandardMaterial({ color: RAG, roughness: 0.9, side: DoubleSide, emissive: RAG_GLOW }));
+    banner.position.set(poleX, poleY + WAYMARK.pole - 0.5, poleZ); banner.rotation.y = Math.atan2(-WIND.z, WIND.x); root.add(banner);
+    colliders.push(boxDesc({ x: x + poleX, z: z + poleZ, hw: 0.06, hd: 0.06, rot: 0, yBottom: y + poleY - 0.3, yTop: y + poleY + WAYMARK.pole }, 'wood'));
+    // round 2 (R1C-1, seat B: 'a built, lit structure'): a small lantern hangs off the crossbar, its halo and a warm pool
+    // on the sand, so the waymark reads lit before its fire is
+    const lampY = poleY + WAYMARK.pole - 1.0, lampX = poleX - 0.3, lamp = new Group(); lamp.position.set(lampX, lampY, poleZ); root.add(lamp);
+    const iron = mat(IRON, { metalness: 0.4 });
+    at(box(0.16, 0.035, 0.16, iron), 0, 0.15, 0, lamp); at(box(0.16, 0.035, 0.16, iron), 0, -0.13, 0, lamp);
+    at(box(0.1, 0.22, 0.1, new MeshBasicMaterial({ color: 0xffb24a })), 0, 0.01, 0, lamp);
+    at(box(0.012, 0.42, 0.012, iron), 0, 0.37, 0, lamp);
+    addLampGlow(lamp, 0.55, (lx, lz) => groundAt(x + lampX + lx, z + poleZ + lz) - (y + lampY)); // a small halo: 1.6 filled the sky at 5 m
+  }
   const fire = new Group(); fire.position.set(0, bowl, 0); fire.visible = false; root.add(fire);
   // The fire (P2 #8): layered flame, glow, embers downwind, a smoke column and a warm pool on the sand.
   addFire(fire, WAYMARK_FIRE, { at: new Vector3(x, y + bowl, z), groundAt });

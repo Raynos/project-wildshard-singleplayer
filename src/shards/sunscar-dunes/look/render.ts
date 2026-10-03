@@ -205,6 +205,9 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   // round 2 (R1C-5 / seat B: the trails were soft smears from above): a baked 0.75 m trail mask, trodden darker and smooth
   float sandTrod = texture2D(uSandTrail, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r;
   sandRip1 *= 1.0 - sandTrod; sandRip2 *= 1.0 - sandTrod;
+  // E399 (mockups A, D): fine low-contrast ripples near the camera, the bold stripes only at middle distance
+  float sandNear = mix(0.35, 1.0, smoothstep(4.0, 26.0, sandFar));
+  sandRip1 *= sandNear; sandRip2 *= sandNear;
   diffuseColor.rgb *= 1.0 + 0.06 * sin(sandPhase) * sandRip1 + 0.02 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.24;
   // loop 4, surface variety (the council's baseline: the near sand read as one flat brown): broad tonal drifts (tens of
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
