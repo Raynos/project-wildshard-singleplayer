@@ -31,7 +31,7 @@ export const SPEAR: EquipmentRow = {
     "swapIcon": SWAP_GLYPHS.spear,
     "name": "Spear",
     "icon": "sword",
-    "touch": "spear",
+    "touch": "throwing",
     "lockOn": true,
     "melee": true,
     "tracers": false,

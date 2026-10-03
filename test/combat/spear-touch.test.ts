@@ -23,7 +23,7 @@ it('renders the spear touch row with working JUMP and THROW, and no BRACE', () =
     new TouchControls(f.player, weapons, true);
     const root = document.querySelector('.ws-touch');
     if (!(root instanceof HTMLElement)) throw new Error('touch root missing');
-    root.classList.add('spear', 'lockable');
+    root.classList.add('throwing', 'lockable');
     const jump = root.querySelector('.jump'), throwButton = root.querySelector('.throw');
     if (!(jump instanceof HTMLElement) || !(throwButton instanceof HTMLElement)) throw new Error('spear row missing');
     expect(root.querySelector('.brace')).toBeNull(); expect(root.textContent).not.toContain('Brace');

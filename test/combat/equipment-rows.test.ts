@@ -20,14 +20,14 @@ describe('C2 concrete weapon and UI row contracts', () => {
       expect(row.id.startsWith('weapon.')).toBe(true); expect(row.ui.name).not.toBe('');
       expect(row.ui.icon).not.toBe(''); expect(row.ui.swapIcon).not.toBe('');
       for (const key of ['lockOn', 'melee', 'tracers'] as const) expect(row.ui[key]).toBeTypeOf('boolean');
-      expect(['melee', 'spear', 'bow', 'ranged']).toContain(row.ui.touch);
+      expect(['melee', 'throwing', 'bow', 'ranged']).toContain(row.ui.touch);
       expect(row.meta.category).toBe('weapon'); expect(row.meta.name).not.toBe('');
       if (row.ui.ammo !== undefined) { expect(row.ui.ammo.label).not.toBe(''); expect(row.ui.ammo.segments).toBeGreaterThan(0); }
     }
     expect(rows.map((row) => [row.id, row.ui.touch, row.ui.lockOn, row.ui.melee, row.ui.tracers, row.ui.ammo?.segments ?? 0])).toEqual([
       ['weapon.sword', 'melee', true, true, false, 0], ['weapon.sword-iron', 'melee', true, true, false, 0],
       ['weapon.jian', 'melee', true, true, false, 0], ['weapon.sabre', 'melee', true, true, false, 0],
-      ['weapon.spear', 'spear', true, true, false, 3], ['weapon.bow', 'bow', false, false, false, 4],
+      ['weapon.spear', 'throwing', true, true, false, 3], ['weapon.bow', 'bow', false, false, false, 4],
       ['weapon.rifle', 'ranged', false, false, true, 6], ['weapon.crossbow', 'ranged', false, false, true, 4],
       ['weapon.longbow', 'bow', false, false, false, 4], ['weapon.lever', 'ranged', false, false, true, 7],
     ]);

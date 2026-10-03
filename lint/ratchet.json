@@ -350,7 +350,6 @@
     "src/shards/pine-hollow/world/weather.ts": 12
   },
   "wildshard/engine-words": {
-    "src/engine/player/TouchControls.ts": 6,
     "src/engine/player/viewmodelTextures.ts": 3,
     "src/engine/ui/Menu.ts": 16
   },

@@ -215,11 +215,11 @@
 .ws-touch-use.down { background: rgba(143, 227, 255, 0.34); }
 /* The spear keeps JUMP; its held THROW disc takes the fourth slot. */
 .ws-touch-disc.throw { display: none; }
-.ws-touch.spear .ws-touch-disc.aim { display: none; }
+.ws-touch.throwing .ws-touch-disc.aim { display: none; }
 /* the spear's ATTACK is its thrust: it reads ATTACK (no heavy: a hold is THROW's), not FIRE */
-.ws-touch.spear .ws-touch-attack svg.melee, .ws-touch.spear .ws-touch-attack span.melee { display: block; }
-.ws-touch.spear:not(.melee) .ws-touch-attack .ranged { display: none; }
-.ws-touch.spear .ws-touch-disc.throw { display: flex; }
+.ws-touch.throwing .ws-touch-attack svg.melee, .ws-touch.throwing .ws-touch-attack span.melee { display: block; }
+.ws-touch.throwing:not(.melee) .ws-touch-attack .ranged { display: none; }
+.ws-touch.throwing .ws-touch-disc.throw { display: flex; }
 .ws-touch-disc.throw svg { width: 42%; height: 42%; }
 /* Nalati's bow held (.bow, NALATI-MERGE H4 / N18): FIRE is hold-to-draw — "HOLD = DRAW" under FIRE, the ring fills with
    the draw (weapons.current.charge, Bow.ts) while .on and glows at full (.ready); lifting early lets the arrow down

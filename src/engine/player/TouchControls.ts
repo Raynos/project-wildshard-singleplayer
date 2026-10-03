@@ -134,7 +134,7 @@ export class TouchControls {
   private cdShown = -1; // the DODGE disc's cooldown sweep (--cd) as last painted
   private lockShown = ''; private orbitShown = 0; // the lock-on state / the lit ORBIT arc as last painted (E50)
   private readonly flick = new FlickTracker(); private lookT0 = 0; private lookDown = { x: 0, y: 0 }; private lookInBar = false;
-  private wasSpear = false; // THROW replaces AIM while the spear is held
+  private wasThrowing = false; // THROW replaces AIM while a throwing weapon is held (touch mode 'throwing')
   private wasLockable = false; // the LOCK disc shows while a weapon that locks is held (LOCK_WEAPONS: the swords, Nalati's sabre + spear)
   private lockLinger = 0; private lockIdle = false; // E319: s left before LOCK hides with nothing to lock / `.lock-idle` as last painted
   private wasRiding = false; // in Nalati's saddle MOVE steers the horse: it never reads ORBIT (`.riding`)
@@ -200,9 +200,9 @@ export class TouchControls {
       if (weapons.enabled && lockOn.state !== 'locked') assist.update(dt, player, weapons.adsHeld, this.lookSpeed); // locked (E50): the lock aims, not the assist
       // AIM (ranged latch) and the ATTACK hold-heavy (melee) share `weapons.adsHeld`; crossing between the two drops it, so a
       // sword never comes up charging and a crossbow never comes up sighted from the other's latch
-      const melee = this.touchMode === 'melee', spear = this.touchMode === 'spear';
-      if (melee !== this.wasMelee || spear !== this.wasSpear) {
-        this.wasMelee = melee; this.wasSpear = spear; root.classList.toggle('melee', melee); root.classList.toggle('spear', spear);
+      const melee = this.touchMode === 'melee', throwing = this.touchMode === 'throwing';
+      if (melee !== this.wasMelee || throwing !== this.wasThrowing) {
+        this.wasMelee = melee; this.wasThrowing = throwing; root.classList.toggle('melee', melee); root.classList.toggle('throwing', throwing);
         if (weapons.adsHeld) weapons.adsHeld = false;
         if (weapons.altHeld) weapons.altHeld = false;
         this.heavyHeld = false;
@@ -386,7 +386,7 @@ export class TouchControls {
     this.player.onHoverChange = (on) => { hover.classList.toggle('on', on); prevHover?.(on); };
     hover.classList.toggle('on', this.player.hover);
     btn('.jump', () => { app.input.press('jump'); });
-    // the spear (Nalati): THROW = hold to wind a javelin up, release to throw
+    // a throwing weapon (touch mode 'throwing'): THROW = hold to wind a javelin up, release to throw
     btn('.throw', () => { if (this.weapons.enabled) this.weapons.adsHeld = true; }, () => { this.weapons.adsHeld = false; });
     // DIVE replaces JUMP while swimming: a held control (down = held), released on up / cancel / leave
     btn('.dive', () => { this.player.touchDive = true; }, () => { this.player.touchDive = false; });
