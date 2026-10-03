@@ -22,6 +22,8 @@ export const STORM = { lift: 55, ahead: 70, lean: -0.5, radius: 92, gather: [110
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
+/** The painted vortex toward mockup D's smoky slate: how far it greys, how much it lifts, how dark its eye. */
+export const STORM_SLATE = { grey: 0.35, lift: 1.3, eye: 0.75 } as const;
 export const STORM_COLORS = { belly: 0x343046, mid: 0x7e7286, top: 0xe8c6a8, gold: 0xffc983, bolt: 0xe2d6ff, haze: 0xedc9b0 } as const;
 
 const FRAGMENT = /* glsl */`
@@ -65,6 +67,10 @@ const FRAGMENT = /* glsl */`
     vec2 pq = rot(lp, time * spin * 0.35 + seed) * (seed > 1.0 ? 0.7 : 0.83) + 0.5;
     // a shade darker than the painting (round 2, seat B: 'lighter than the mockup's dark spiral')
     vec3 under = texture2D(paint, pq).rgb * vec3(0.78, 0.76, 0.84);
+    // smoky slate masses, not a violet pinwheel, the eye a shade darker, not lit (Codex round 13 finding 4: mockup D's
+    // storm 108/91/93, saturation 32; ours 100/79/83, 35)
+    under = mix(under, vec3(dot(under, vec3(0.2126, 0.7152, 0.0722))) * vec3(1.02, 0.97, 1.0), ${STORM_SLATE.grey.toFixed(2)}) * ${STORM_SLATE.lift.toFixed(2)};
+    under *= mix(${STORM_SLATE.eye.toFixed(2)}, 1.0, smoothstep(0.0, 0.22, r));
     // a strike lights the eye and the arms near it, not the whole sky (a flat flash washed the vortex out; the bolts carry it)
     c = under + ${hex(STORM_COLORS.bolt)} * flash * exp(-r * 4.0) * 0.6;
     alpha = rim * (1.0 - smoothstep(0.5, 0.75, r)) * (seed > 1.0 ? 0.0 : 0.97);
