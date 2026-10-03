@@ -1,0 +1,243 @@
+{
+ "shard": "sunscar-dunes",
+ "sha": "8c70feaf2cf8cbb3c5877e084cfac5dfed341b4e",
+ "when": "20261003-0947",
+ "label": "mockup council round 17",
+ "loadSeconds": 6,
+ "shots": [
+  "first-frame",
+  "h1-spawn-crest",
+  "h2-caravan",
+  "h3-waymark",
+  "h4-tower-deck",
+  "aerial-spawn",
+  "aerial-overview",
+  "mock-dusk-fire",
+  "mock-A-spawn",
+  "mock-B-logbook",
+  "mock-C-waymark",
+  "mock-D-hands"
+ ],
+ "clip": true,
+ "programs": 59,
+ "staged": {
+  "mock-B-logbook": "logbook",
+  "mock-C-waymark": "waymarks-lit",
+  "mock-D-hands": "waymarks-lit"
+ },
+ "camAt": {
+  "h1-spawn-crest": {
+   "pos": [
+    0,
+    23.05,
+    70
+   ],
+   "dir": [
+    0,
+    -0.105,
+    -0.995
+   ],
+   "fov": 72
+  },
+  "h2-caravan": {
+   "pos": [
+    -64,
+    16.23,
+    38
+   ],
+   "dir": [
+    -0.809,
+    -0.105,
+    -0.578
+   ],
+   "fov": 72
+  },
+  "h3-waymark": {
+   "pos": [
+    56.6,
+    19.69,
+    -40.4
+   ],
+   "dir": [
+    0.21,
+    0.156,
+    0.965
+   ],
+   "fov": 72
+  },
+  "h4-tower-deck": {
+   "pos": [
+    8.4,
+    26.76,
+    -73
+   ],
+   "dir": [
+    -0.318,
+    -0.208,
+    -0.925
+   ],
+   "fov": 72
+  },
+  "aerial-spawn": {
+   "pos": [
+    0,
+    58,
+    125
+   ],
+   "dir": [
+    0,
+    -0.514,
+    -0.857
+   ],
+   "fov": 72
+  },
+  "aerial-overview": {
+   "pos": [
+    0,
+    250,
+    165
+   ],
+   "dir": [
+    0,
+    -0.773,
+    -0.634
+   ],
+   "fov": 72
+  },
+  "mock-dusk-fire": {
+   "pos": [
+    0,
+    23.05,
+    70
+   ],
+   "dir": [
+    0.136,
+    -0.216,
+    -0.967
+   ],
+   "fov": 72
+  },
+  "mock-A-spawn": {
+   "pos": [
+    0,
+    23.05,
+    70
+   ],
+   "dir": [
+    0,
+    -0.216,
+    -0.976
+   ],
+   "fov": 72
+  },
+  "mock-B-logbook": {
+   "pos": [
+    -58.8,
+    16.23,
+    42.1
+   ],
+   "dir": [
+    -0.835,
+    -0.052,
+    -0.548
+   ],
+   "fov": 72
+  },
+  "mock-C-waymark": {
+   "pos": [
+    -53.9,
+    19.3,
+    -17.2
+   ],
+   "dir": [
+    0.933,
+    -0.017,
+    -0.358
+   ],
+   "fov": 72
+  },
+  "mock-D-hands": {
+   "pos": [
+    37.99,
+    27.59,
+    121.99
+   ],
+   "dir": [
+    -0.37,
+    -0.035,
+    -0.929
+   ],
+   "fov": 72
+  }
+ },
+ "qa": {
+  "set": "capture-status",
+  "skipped": null,
+  "retaken": [],
+  "shots": {
+   "first-frame": {
+    "screen": "world",
+    "pWorld": 0.9352,
+    "flagged": false
+   },
+   "h1-spawn-crest": {
+    "screen": "world",
+    "pWorld": 0.9387,
+    "flagged": false
+   },
+   "h2-caravan": {
+    "screen": "world",
+    "pWorld": 0.9341,
+    "flagged": false
+   },
+   "h3-waymark": {
+    "screen": "world",
+    "pWorld": 0.934,
+    "flagged": false
+   },
+   "h4-tower-deck": {
+    "screen": "world",
+    "pWorld": 0.9387,
+    "flagged": false
+   },
+   "aerial-spawn": {
+    "screen": "world",
+    "pWorld": 0.9493,
+    "flagged": false
+   },
+   "aerial-overview": {
+    "screen": "world",
+    "pWorld": 0.9426,
+    "flagged": false
+   },
+   "mock-dusk-fire": {
+    "screen": "world",
+    "pWorld": 0.9363,
+    "flagged": false
+   },
+   "mock-A-spawn": {
+    "screen": "world",
+    "pWorld": 0.9374,
+    "flagged": false
+   },
+   "mock-B-logbook": {
+    "screen": "world",
+    "pWorld": 0.9342,
+    "flagged": false
+   },
+   "mock-C-waymark": {
+    "screen": "world",
+    "pWorld": 0.9113,
+    "flagged": false
+   },
+   "mock-D-hands": {
+    "screen": "world",
+    "pWorld": 0.9384,
+    "flagged": false
+   }
+  }
+ },
+ "active": [],
+ "cameras": "a4219aa37c0736888c027e90feb0ceee947d37c3",
+ "pageErrors": []
+}
