@@ -62,7 +62,8 @@ const FRAGMENT = /* glsl */`
     // sky and the low sun stay clear below it; the upper layer only a faint second turn
     vec2 pq = rot(lp, time * spin * 0.35 + seed) * (seed > 1.0 ? 0.7 : 0.83) + 0.5;
     vec3 under = texture2D(paint, pq).rgb;
-    c = under + ${hex(STORM_COLORS.bolt)} * flash * (exp(-r * 3.5) * 1.4 + 0.25) * 0.8;
+    // a strike lights the eye and the arms near it, not the whole sky (a flat flash washed the vortex out; the bolts carry it)
+    c = under + ${hex(STORM_COLORS.bolt)} * flash * exp(-r * 4.0) * 0.6;
     alpha = rim * (1.0 - smoothstep(0.5, 0.75, r)) * (seed > 1.0 ? 0.0 : 0.97);
     // the low sun stays clear (mockup D: the vortex above, the sun and its gold horizon below its edge), the edge gilded
     float sunClear = smoothstep(0.993, 0.999, toward);
