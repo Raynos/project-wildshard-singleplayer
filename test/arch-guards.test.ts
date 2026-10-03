@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the actual lint and pre-commit binaries against isolated fixtures.
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixtures own their temporary directories and never mutate shared source files.
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Temporary fixture repositories are outside the shared tree.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Platform independent fixture paths.
@@ -12,6 +12,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
 import { checkShardLayout, checkShards, shardEntries, type ShardLayout } from '../scripts/check-shards.mjs';
 import { genShardWords, shardWordData } from '../scripts/gen-shard-words.mjs';
+import { CAPTURE_SHELL_FILES, TIME_ALLOW } from '../lint/wildshard-plugin.js';
 
 interface Case { id: string; file: string; rule: string; code: string; count: number }
 interface Diagnostic { code: string; filename: string; message: string }
@@ -27,6 +28,15 @@ const diagnostics = (JSON.parse(lint.stdout) as { diagnostics: Diagnostic[] }).d
 describe('E362 AST guards through oxlint', () => {
   it('loads the real plugin', () => { expect(lint.status).toBe(1); expect(lint.stderr).toBe(''); });
   it.each(cases)('$id', (item) => { expect(diagnostics.filter((d) => d.filename === item.file && d.code === `wildshard(${item.rule})`), item.code).toHaveLength(item.count); });
+});
+
+describe('E405 AG24 no dead exemptions', () => {
+  it('names only files that exist', () => {
+    const ratchet = JSON.parse(readFileSync('lint/ratchet.json', 'utf8')) as { allow?: Record<string, Record<string, string>> };
+    const allowed = Object.values(ratchet.allow ?? {}).flatMap((paths) => Object.keys(paths));
+    const missing = [...Object.keys(TIME_ALLOW), ...CAPTURE_SHELL_FILES, ...allowed].filter((path) => !existsSync(path));
+    expect(missing).toEqual([]);
+  });
 });
 
 describe('AG16 and AG17', () => {

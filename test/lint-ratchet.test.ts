@@ -44,7 +44,7 @@ function fixture(code = "localStorage.getItem('x');"): {
   run: (...args: string[]) => ReturnType<typeof spawnSync>;
 } {
   const root = temp(), file = join(root, 'ratchet.json');
-  put(root, 'src/ui/example.ts', code);
+  put(root, 'src/engine/ui/example.ts', code);
   return {
     root, file,
     read: () => JSON.parse(readFileSync(file, 'utf8')) as Baseline,
@@ -55,7 +55,7 @@ function fixture(code = "localStorage.getItem('x');"): {
 describe('ratchet CLI', () => {
   it('initializes once and rejects missing baselines and unknown options', () => {
     const f = fixture(); expect(f.run().status).toBe(1); expect(f.run('--init').status).toBe(0);
-    expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/ui/example.ts': 1 });
+    expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/engine/ui/example.ts': 1 });
     expect(f.run('--init').status).toBe(1); expect(f.run('--oops').status).toBe(1);
     expect(f.run('--init', '--update').status).toBe(1);
   });
@@ -63,35 +63,35 @@ describe('ratchet CLI', () => {
     const f = fixture(); expect(f.run('--init').status).toBe(0);
     f.write({ ...f.read(), 'wildshard/no-raw-input': { 'src/deleted.ts': 4 } });
     const before = readFileSync(f.file, 'utf8');
-    put(f.root, 'src/ui/example.ts', "localStorage.getItem('x'); sessionStorage.getItem('y');");
+    put(f.root, 'src/engine/ui/example.ts', "localStorage.getItem('x'); sessionStorage.getItem('y');");
     const result = f.run('--update'); expect(result.status).toBe(1);
-    expect(result.stderr).toContain('src/ui/example.ts: wildshard/no-raw-save was 1, now 2');
+    expect(result.stderr).toContain('src/engine/ui/example.ts: wildshard/no-raw-save was 1, now 2');
     expect(readFileSync(f.file, 'utf8')).toBe(before);
   });
   it('rejects a new file with a violation even if an old file was deleted', () => {
     const f = fixture(); expect(f.run('--init').status).toBe(0);
-    rmSync(join(f.root, 'src/ui/example.ts')); put(f.root, 'src/ui/new.ts', "localStorage.getItem('x');");
-    expect(f.run().stderr).toContain('src/ui/new.ts: wildshard/no-raw-save was 0, now 1');
+    rmSync(join(f.root, 'src/engine/ui/example.ts')); put(f.root, 'src/engine/ui/new.ts', "localStorage.getItem('x');");
+    expect(f.run().stderr).toContain('src/engine/ui/new.ts: wildshard/no-raw-save was 0, now 1');
   });
   it('lowers counts, removes zero/deleted files and preserves all non-file entries', () => {
     const f = fixture("localStorage.getItem('x'); sessionStorage.getItem('y');"); expect(f.run('--init').status).toBe(0);
     const baseline = f.read();
     baseline.budgets = { 'sample.phone.spawn.gpuMs': 12 };
     baseline.debugRows = { max: 5, raisedBy: ['E357'], note: 'keep me' };
-    baseline.allow = { 'wildshard/no-raw-random-time': { 'src/ui/perf.ts': 'measurement only' } };
+    baseline.allow = { 'wildshard/no-raw-random-time': { 'src/engine/ui/perf.ts': 'measurement only' } };
     baseline['wildshard/no-raw-save'] = { ...baseline['wildshard/no-raw-save'], 'src/deleted.ts': 3 };
-    f.write(baseline); put(f.root, 'src/ui/example.ts', "localStorage.getItem('x');");
+    f.write(baseline); put(f.root, 'src/engine/ui/example.ts', "localStorage.getItem('x');");
     expect(f.run('--update').status).toBe(0);
-    expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/ui/example.ts': 1 });
+    expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/engine/ui/example.ts': 1 });
     expect(f.read().allow).toEqual(baseline.allow); expect(f.read().budgets).toEqual(baseline.budgets);
     expect(f.read().debugRows).toEqual({ ...baseline.debugRows, max: 0 });
-    put(f.root, 'src/ui/example.ts', 'export const x = 1;'); expect(f.run('--update').status).toBe(0);
+    put(f.root, 'src/engine/ui/example.ts', 'export const x = 1;'); expect(f.run('--update').status).toBe(0);
     expect(f.read()['wildshard/no-raw-save']).toBeUndefined();
   });
   it('adds one configured rule exactly once and leaves non-file sections untouched', () => {
     const f = fixture(); f.write({ budgets: { 'sample.desktop.spawn.draws': 3 }, debugRows: { max: 2, raisedBy: ['E357'] } });
     expect(f.run('--add-rule', 'wildshard/no-raw-save').status).toBe(0);
-    expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/ui/example.ts': 1 });
+    expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/engine/ui/example.ts': 1 });
     expect(f.read().debugRows).toEqual({ max: 2, raisedBy: ['E357'] });
     expect(f.run('--add-rule', 'wildshard/no-raw-save').status).toBe(1);
     expect(f.run('--add-rule', 'wildshard/missing').status).toBe(1);
@@ -102,11 +102,11 @@ describe('ratchet CLI', () => {
     const f = fixture(); expect(f.run('--init').status).toBe(0);
     const baseline = f.read();
     baseline['wildshard/no-raw-random-time'] = { 'src/other.ts': 2 };
-    baseline['wildshard/no-raw-save'] = { 'src/ui/example.ts': 1, 'src/old.ts': 3 };
+    baseline['wildshard/no-raw-save'] = { 'src/engine/ui/example.ts': 1, 'src/old.ts': 3 };
     f.write(baseline);
-    put(f.root, 'src/ui/example.ts', "localStorage.getItem('x'); sessionStorage.getItem('y');");
+    put(f.root, 'src/engine/ui/example.ts', "localStorage.getItem('x'); sessionStorage.getItem('y');");
     expect(f.run('--rebaseline-rule', 'wildshard/no-raw-save').status).toBe(0);
-    expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/ui/example.ts': 2, 'src/old.ts': 3 });
+    expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/engine/ui/example.ts': 2, 'src/old.ts': 3 });
     expect(f.read()['wildshard/no-raw-random-time']).toEqual(baseline['wildshard/no-raw-random-time']);
     expect(f.run('--rebaseline-rule', 'wildshard/missing').status).toBe(1);
     expect(f.run('--rebaseline-rule', 'wildshard/no-raw-hud').status).toBe(1);
@@ -117,22 +117,22 @@ describe('ratchet CLI', () => {
     expect(f.run('--init').status).toBe(0);
     f.write({ ...f.read(), debugRows: { max: 10, raisedBy: [] } });
     expect(f.run('--update').status).toBe(0); expect(f.read().debugRows?.max).toBe(3);
-    put(f.root, 'src/ui/example.ts', 'export const DEBUG_ROWS = [opt(), opt(), { id: "x" }]; ctx.debugRow({});');
+    put(f.root, 'src/engine/ui/example.ts', 'export const DEBUG_ROWS = [opt(), opt(), { id: "x" }]; ctx.debugRow({});');
     const before = readFileSync(f.file, 'utf8');
     expect(f.run('--update').stderr).toContain('debugRows: was 3, now 4'); expect(readFileSync(f.file, 'utf8')).toBe(before);
   });
   it('honors reasoned measurement allowances only for performance.now', () => {
     const f = fixture('performance.now(); Math.random();');
-    f.write({ allow: { 'wildshard/no-raw-random-time': { 'src/ui/example.ts': 'diagnostic stopwatch' } } });
+    f.write({ allow: { 'wildshard/no-raw-random-time': { 'src/engine/ui/example.ts': 'diagnostic stopwatch' } } });
     expect(f.run('--add-rule', 'wildshard/no-raw-random-time').status).toBe(0);
-    expect(f.read()['wildshard/no-raw-random-time']).toEqual({ 'src/ui/example.ts': 1 });
+    expect(f.read()['wildshard/no-raw-random-time']).toEqual({ 'src/engine/ui/example.ts': 1 });
   });
   it.each(['{broken', '{"budgets":{"x":-1}}', '{"debugRows":{"max":"1","raisedBy":[]}}', '{"wildshard/layer":{"x":1.5}}'])('fails closed on malformed data: %s', (data) => {
     const f = fixture(); writeFileSync(f.file, data); expect(f.run('--update').status).toBe(1); expect(readFileSync(f.file, 'utf8')).toBe(data);
   });
   it('fails closed on parse errors instead of lowering a count', () => {
     const f = fixture(); expect(f.run('--init').status).toBe(0);
-    const before = readFileSync(f.file, 'utf8'); put(f.root, 'src/ui/example.ts', 'const = ;');
+    const before = readFileSync(f.file, 'utf8'); put(f.root, 'src/engine/ui/example.ts', 'const = ;');
     expect(f.run('--update').status).toBe(1); expect(readFileSync(f.file, 'utf8')).toBe(before);
   });
 });

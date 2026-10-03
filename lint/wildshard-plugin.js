@@ -42,7 +42,7 @@ const ALLOWED = new Set([...allowlist.harness, ...allowlist.legacy]);
 const READERS = new Map(Object.entries(allowlist.readers ?? {}));
 
 const FIX =
-  'A variant, look, tuning or feature toggle goes in pause ▸ Settings ▸ Debug (src/ui/Settings.ts OPTION_VALUES + one row in the registry src/ui/debugOptions.ts, under its group), ' +
+  'A variant, look, tuning or feature toggle goes in pause ▸ Settings ▸ Debug (a shard\'s own ctx.debugRow, or an engine-wide src/engine/ui/Settings.ts OPTION_VALUES key + one row in src/engine/ui/debugOptions.ts, under its group), ' +
   'never in the query string: Jake plays the iOS home-screen PWA and has no address bar. Harness params are a fixed allowlist in ' +
   'lint/url-params.json; adding one needs Jake\'s explicit OK. See AGENTS.md "No URL switches".';
 const MSG_NAME = (name) => `No URL switches, ever (Jake, 2026-09-25): \`?${name}\` is not an allowed query param. ${FIX}`;
@@ -292,7 +292,16 @@ const importsVisitor = (fn) => ({
   ExportAllDeclaration: fn,
   ImportExpression: fn,
 });
-const importPrefix = (node) => stringOf(node) ?? (unwrap(node)?.type === 'TemplateLiteral' ? unwrap(node).quasis[0]?.value.cooked : null);
+const importPrefix = (node) => {
+  const x = unwrap(node);
+  // E405 AG27: a '+' chain resolves by its leading string, like a template literal's first quasi.
+  if (x?.type === 'BinaryExpression' && x.operator === '+') return importPrefix(x.left);
+  return stringOf(x) ?? (x?.type === 'TemplateLiteral' ? x.quasis[0]?.value.cooked : null);
+};
+const computedSpecifier = (node) => {
+  const x = unwrap(node);
+  return (x?.type === 'TemplateLiteral' && x.expressions.length > 0) || (x?.type === 'BinaryExpression' && x.operator === '+');
+};
 const globCall = (node) => {
   const callee = unwrap(node.callee), object = unwrap(callee?.object);
   return callee?.type === 'MemberExpression' && ['glob', 'globEager'].includes(propName(callee)) && object?.type === 'MetaProperty' && object.meta.name === 'import' && object.property.name === 'meta';
@@ -300,7 +309,8 @@ const globCall = (node) => {
 
 const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', (context) => {
   const own = layerOf(pathOf(context));
-  if (!own) return {};
+  // E405 AG23: every src file sits in a layer; a new top-level src/<dir>/ would escape all of them.
+  if (!own) return pathOf(context).startsWith('src/') ? { Program(node) { report(context, node, `File outside the engine / game / kit / shards layers: ${pathOf(context)}`); } } : {};
   const words = (node, text) => {
     for (const match of text.matchAll(WORDS)) {
       const path = pathOf(context);
@@ -315,7 +325,10 @@ const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', 
     if (typeof source !== 'string' || source === '') return;
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
-    if (!target) return;
+    if (!target) {
+      if (targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
+      return;
+    }
     const publicPath = !dynamic && (new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath) || /^src\/engine\/(?:data|retry)(?:\.[jt]s)?$/u.test(targetPath));
     if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
       report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
@@ -325,7 +338,7 @@ const layer = rule('Layer direction, public APIs and engine vocabulary (E357)', 
   };
   return {
     ...importsVisitor((node) => {
-      checkImport(node, importPrefix(node.source), unwrap(node.source)?.type === 'TemplateLiteral' && unwrap(node.source).expressions.length > 0);
+      checkImport(node, importPrefix(node.source), computedSpecifier(node.source));
     }),
     CallExpression(node) {
       if (!globCall(node)) return;
@@ -369,7 +382,7 @@ const isReference = (node) => {
 };
 const noShardBranch = rule('Shard decisions belong in plugins (E357)', (context) => {
   const path = pathOf(context);
-  if (/^src\/(?:shards\/|chunks\/(?:driftwood-isle|nalati-grasslands|pine-hollow|nine-dragon-stack)(?:\/|\.ts$)|nalati\/|pinehollow\/)/u.test(path)) return {};
+  if (path.startsWith('src/shards/')) return {};
   const hits = new Set();
   return {
     Identifier(node) { if (SHARD_BRANCH.identifiers.has(node.name) && isReference(node)) hits.add(node); },
@@ -402,19 +415,19 @@ const noShardBranch = rule('Shard decisions belong in plugins (E357)', (context)
 });
 
 const noRawSave = rule('Storage access belongs in saves (E357)', (context) => {
-  if (/^src\/(?:engine\/(?:saves|native)|native)\//u.test(pathOf(context))) return {};
+  if (/^src\/engine\/(?:saves|native)\//u.test(pathOf(context))) return {};
   return { Identifier(node) { if (['localStorage', 'sessionStorage'].includes(node.name)) report(context, node, 'Use the save service instead of raw storage'); } };
 });
 export const TIME_ALLOW = Object.fromEntries([
-  'src/core/frameCost.ts', 'src/ui/perfHud.ts', 'src/ui/perfProbe.ts', 'src/ui/perfLap.ts', 'src/ui/Perf.ts',
-  'src/boot/plan.ts', 'src/boot/timing.ts', 'src/boot/precompile.ts', 'src/core/lifeTrace.ts',
-  'src/core/errorReport.ts', 'src/boot/bootTrace.ts', 'src/boot/gpuTrace.ts',
+  'src/engine/core/frameCost.ts', 'src/engine/ui/perfHud.ts', 'src/engine/ui/perfProbe.ts', 'src/engine/ui/perfLap.ts', 'src/engine/ui/Perf.ts',
+  'src/engine/boot/plan.ts', 'src/engine/boot/timing.ts', 'src/engine/render/precompile.ts', 'src/engine/core/lifeTrace.ts',
+  'src/engine/core/errorReport.ts', 'src/engine/boot/bootTrace.ts', 'src/engine/boot/gpuTrace.ts',
 ].map((path) => [path, 'performance.now measures elapsed cost or diagnostic timing; never gameplay state.']));
 const ratchetFile = process.env.WILDSHARD_RATCHET_FILE ?? new URL('ratchet.json', import.meta.url);
 const measurementAllow = existsSync(ratchetFile) ? JSON.parse(readFileSync(ratchetFile, 'utf8')).allow?.['wildshard/no-raw-random-time'] ?? TIME_ALLOW : TIME_ALLOW;
 const noRawRandomTime = rule('Randomness and time use engine services (E357)', (context) => {
   const path = pathOf(context);
-  if (/^src\/(?:core\/(?:rng|time)\.ts|engine\/core\/(?:rng|clock)\.ts)$/u.test(path)) return {};
+  if (/^src\/engine\/core\/(?:rng|clock)\.ts$/u.test(path)) return {};
   return { MemberExpression(node) {
     const object = unwrap(node.object), property = propName(node) ?? stringOf(node.property);
     if (object?.type !== 'Identifier') return;
@@ -424,11 +437,11 @@ const noRawRandomTime = rule('Randomness and time use engine services (E357)', (
 });
 const INPUT_EVENTS = new Set('keydown keyup keypress pointerdown pointerup pointermove pointercancel mousedown mouseup mousemove wheel contextmenu touchstart touchmove touchend touchcancel'.split(' '));
 const noRawInput = rule('Input listeners belong in the input service (E357)', (context) => {
-  if (/^src\/(?:core|engine)\/input\//u.test(pathOf(context))) return {};
+  if (pathOf(context).startsWith('src/engine/input/')) return {};
   return { CallExpression(node) { if (calleeName(node.callee) === 'addEventListener' && INPUT_EVENTS.has(stringOf(node.arguments[0]))) report(context, node, 'Use the input service instead of a raw input listener'); } };
 });
 const noRendererType = rule('Renderer types stay inside rendering (E357)', (context) => {
-  if (/^src\/(?:engine\/render\/|(?:engine\/)?core\/(?:Game|bootstrap)\.ts$)/u.test(pathOf(context))) return {};
+  if (/^src\/engine\/(?:render\/|core\/(?:Game|bootstrap)\.ts$)/u.test(pathOf(context))) return {};
   return { Identifier(node) { if (node.name === 'WebGLRenderer') report(context, node, 'Renderer types belong in engine/render'); } };
 });
 const SHADER_HOOKS = new Set(['onBeforeCompile', 'customProgramCacheKey']);
@@ -481,7 +494,7 @@ const noActiveChunk = rule('Current content data belongs in the game layer (E357
 });
 
 // Page overlays remain outside legacy level capture (legacyCapture's SHELL selector).
-const CAPTURE_SHELL_FILES = new Set(['Loading', 'Resume', 'RotateGate', 'Update', 'ReloadPrompt', 'ErrorModal', 'BootSettings', 'errorScreen'].map((name) => `src/engine/ui/${name}.ts`));
+export const CAPTURE_SHELL_FILES = new Set(['Loading', 'Resume', 'RotateGate', 'Update', 'ReloadPrompt', 'ErrorModal', 'BootSettings', 'errorScreen'].map((name) => `src/engine/ui/${name}.ts`));
 const CAPTURE_CALLS = new Set(['addEventListener', 'setTimeout', 'setInterval', 'requestAnimationFrame']);
 const noGlobalListenerPatch = rule('Legacy global registrations migrate to explicit Scopes (E357 F11)', (context) => {
   const path = pathOf(context);
@@ -569,10 +582,12 @@ const noRawHud = rule('HUD nodes mount through scope-owned numbered slots (E357 
 });
 
 const LEVEL_FIELDS = new Set(['id', 'slug', 'levelId', 'kitLook', 'style', 'creatureStyle', 'look', 'biome']);
+// E405 AG25: these names mean a level's identity or look on any receiver (`current.kitLook`).
+const LEVEL_ONLY_FIELDS = new Set(['levelId', 'kitLook', 'creatureStyle']);
 const LEVEL_NAMES = new Set(['level', 'spec', 'manifest', 'chunk', 'def']);
-const noLevelIdentity = rule('Level identity and style dispatch belong in content data (E362 AG13)', (context) => {
+const noLevelIdentity = rule('Level identity and style dispatch belong in content data (E362 AG13, E405 AG25)', (context) => {
   if (pathOf(context).startsWith('src/shards/')) return {};
-  const aliases = new Set(), tables = new Set();
+  const aliases = new Set(), tables = new Set(), lists = new Set(), fields = new Set(), strings = new Map();
   const levelValue = (raw) => {
     const n = unwrap(raw);
     return n?.type === 'Identifier' ? LEVEL_NAMES.has(n.name) || aliases.has(n.name)
@@ -581,31 +596,58 @@ const noLevelIdentity = rule('Level identity and style dispatch belong in conten
   };
   const identity = (raw) => {
     const n = unwrap(raw);
-    return n?.type === 'MemberExpression' && LEVEL_FIELDS.has(propName(n) ?? stringOf(n.property)) && levelValue(n.object);
+    if (n?.type === 'Identifier') return fields.has(n.name);
+    if (n?.type !== 'MemberExpression') return false;
+    const field = propName(n) ?? stringOf(n.property);
+    return LEVEL_ONLY_FIELDS.has(field) || (LEVEL_FIELDS.has(field) && levelValue(n.object));
+  };
+  const literal = (raw) => stringOf(raw) !== null || (unwrap(raw)?.type === 'Identifier' && strings.has(unwrap(raw).name));
+  const stringList = (raw) => {
+    const n = unwrap(raw);
+    return n?.type === 'Identifier' ? lists.has(n.name) : n?.type === 'ArrayExpression' && n.elements.length > 0 && n.elements.every((e) => stringOf(e) !== null);
   };
   const hit = (node) => report(context, node, 'Pass capabilities or a data-provided strategy instead of dispatching on level identity/style');
   return {
     VariableDeclarator(node) {
+      const init = unwrap(node.init);
+      if (node.id.type === 'ObjectPattern' && levelValue(init)) {
+        for (const p of node.id.properties) {
+          const key = p.type === 'Property' ? (p.key?.name ?? stringOf(p.key)) : null;
+          if (key !== null && LEVEL_FIELDS.has(key) && unwrap(p.value)?.type === 'Identifier') fields.add(unwrap(p.value).name);
+        }
+      }
       if (node.id.type !== 'Identifier') return;
-      if (levelValue(node.init)) aliases.add(node.id.name);
-      if (unwrap(node.init)?.type === 'ObjectExpression' && ['Program', 'ExportNamedDeclaration'].includes(node.parent?.parent?.type)) tables.add(node.id.name);
+      if (levelValue(init)) aliases.add(node.id.name);
+      if (identity(init)) fields.add(node.id.name);
+      if (stringOf(init) !== null) strings.set(node.id.name, stringOf(init));
+      const topLevel = ['Program', 'ExportNamedDeclaration'].includes(node.parent?.parent?.type);
+      if (topLevel && init?.type === 'ObjectExpression') tables.add(node.id.name);
+      if (topLevel && init?.type === 'NewExpression' && ['Map', 'Set'].includes(nameOf(init.callee)) && unwrap(init.arguments[0])?.type === 'ArrayExpression') tables.add(node.id.name);
+      if (topLevel && stringList(init)) lists.add(node.id.name);
     },
     BinaryExpression(node) {
-      if (['===', '!==', '==', '!='].includes(node.operator) && ((identity(node.left) && stringOf(node.right) !== null) || (identity(node.right) && stringOf(node.left) !== null))) hit(node);
+      if (['===', '!==', '==', '!='].includes(node.operator) && ((identity(node.left) && literal(node.right)) || (identity(node.right) && literal(node.left)))) hit(node);
     },
-    SwitchStatement(node) { if (identity(node.discriminant) && node.cases.some((c) => stringOf(c.test) !== null)) hit(node); },
+    SwitchStatement(node) { if (identity(node.discriminant) && node.cases.some((c) => c.test && literal(c.test))) hit(node); },
     CallExpression(node) {
       const callee = unwrap(node.callee);
-      if (callee?.type !== 'MemberExpression' || !['includes', 'startsWith', 'endsWith', 'indexOf', 'match'].includes(propName(callee) ?? stringOf(callee.property))) return;
-      const receiver = unwrap(callee.object);
-      const styleTag = receiver?.type === 'MemberExpression' && (propName(receiver) ?? stringOf(receiver.property)) === 'tags' && levelValue(receiver.object) && ['ocean', 'toon', 'painterly', 'pbr'].includes(stringOf(node.arguments[0]));
-      if (identity(receiver) || styleTag) hit(node);
+      if (callee?.type !== 'MemberExpression') return;
+      const method = propName(callee) ?? stringOf(callee.property);
+      const receiver = unwrap(callee.object), arg = node.arguments[0];
+      if (['includes', 'startsWith', 'endsWith', 'indexOf', 'match'].includes(method)) {
+        const styleTag = receiver?.type === 'MemberExpression' && (propName(receiver) ?? stringOf(receiver.property)) === 'tags' && levelValue(receiver.object) && ['ocean', 'toon', 'painterly', 'pbr'].includes(stringOf(arg));
+        if (identity(receiver) || styleTag || (['includes', 'indexOf'].includes(method) && stringList(receiver) && identity(arg))) hit(node);
+      } else if (['get', 'has'].includes(method) && identity(arg) && tables.has(nameOf(receiver))) hit(node);
+      else if (method === 'test' && receiver?.type === 'Literal' && receiver.regex && identity(arg)) hit(node);
     },
     MemberExpression(node) { if (node.computed && identity(node.property) && (tables.has(nameOf(node.object)) || unwrap(node.object)?.type === 'ObjectExpression')) hit(node); },
   };
 });
 
 const GLOBAL_OBJECTS = new Set(['window', 'globalThis', 'self']);
+// E405 AG26 (Jake 2A): page-level document reach and bare window globals; building DOM (createElement) stays legal.
+const PAGE_DOCUMENT = new Set(['body', 'head', 'title', 'documentElement', 'getElementById', 'querySelector', 'querySelectorAll', 'pointerLockElement', 'exitPointerLock', 'dispatchEvent']);
+const BARE_GLOBALS = new Set(['innerWidth', 'innerHeight', 'devicePixelRatio', 'navigator', 'location']);
 const globalObject = (raw) => { const n = unwrap(raw); return n?.type === 'Identifier' && GLOBAL_OBJECTS.has(n.name); };
 const shardSandbox = rule('Shard services, globals, settings and assets stay inside their context (E362 AG11)', (context) => {
   const own = layerOf(pathOf(context));
@@ -632,7 +674,11 @@ const shardSandbox = rule('Shard services, globals, settings and assets stay ins
       const value = text(node.init);
       if (value !== null) strings.set(node.id.name, value);
     },
-    MemberExpression(node) { if (isGlobal(node.object)) hit(node, 'global member access'); },
+    MemberExpression(node) {
+      if (isGlobal(node.object)) hit(node, 'global member access');
+      else if (unwrap(node.object)?.type === 'Identifier' && isDocument(node.object) && PAGE_DOCUMENT.has(propName(node) ?? stringOf(node.property))) hit(node, `page-level document.${propName(node) ?? stringOf(node.property)}`);
+    },
+    Identifier(node) { if (BARE_GLOBALS.has(node.name) && isReference(node)) hit(node, `bare global ${node.name}`); },
     AssignmentExpression(node) { if (isGlobal(node.left)) hit(node, 'global write'); },
     CallExpression(node) {
       const name = calleeName(node.callee);

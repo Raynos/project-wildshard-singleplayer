@@ -197,7 +197,7 @@
   },
   {
     "id": "branch-legacy",
-    "file": "src/chunks/nine-dragon-stack/look.ts",
+    "file": "src/shards/nine-dragon-stack/look.ts",
     "rule": "no-shard-branch",
     "code": "if (isNine) run();",
     "count": 0
@@ -211,14 +211,14 @@
   },
   {
     "id": "branch-pine",
-    "file": "src/pinehollow/look.ts",
+    "file": "src/shards/pine-hollow/look.ts",
     "rule": "no-shard-branch",
     "code": "if (isPine) run();",
     "count": 0
   },
   {
     "id": "branch-nalati",
-    "file": "src/nalati/look.ts",
+    "file": "src/shards/nalati-grasslands/look.ts",
     "rule": "no-shard-branch",
     "code": "if (isNalati) run();",
     "count": 0
@@ -239,7 +239,7 @@
   },
   {
     "id": "save-native",
-    "file": "src/native/storage.ts",
+    "file": "src/engine/native/legacyStorage.ts",
     "rule": "no-raw-save",
     "code": "localStorage.getItem('x');",
     "count": 0
@@ -309,7 +309,7 @@
   },
   {
     "id": "input-legacy",
-    "file": "src/core/input/listeners.ts",
+    "file": "src/engine/input/legacyListeners.ts",
     "rule": "no-raw-input",
     "code": "window.addEventListener('keyup', fn);",
     "count": 0
