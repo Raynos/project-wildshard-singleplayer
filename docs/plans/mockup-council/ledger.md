@@ -26,5 +26,8 @@
      the baseline HUD (no hiding or restyling it for the shot), 30 fps phone budget and the memory limits (1.8 GB
      loading / 1.0 GB Explorer) held.
    - **No narrowing:** the rest of the shard (other places, the quest, combat) must not regress to make the views better.
+   - **Staged state is real state:** a view may stage quest state the mockup shows (a shot's `stage` in cameras.json,
+     e.g. the waymarks lit), only state a player reaches by playing; every staged shot is listed in the capture's
+     `meta.json` (`staged`), and a seat checks that the stage is reachable.
 6. **Builders:** the top-level Claude Opus agents `signal-dunes` and `sky-reach`. Never Codex / GPT for building.
 7. **Seats:** three per round (COUNCIL.md): a Codex seat and two fresh Claude seats, clean room, never the conversation.
