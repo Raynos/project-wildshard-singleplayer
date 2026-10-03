@@ -4,7 +4,8 @@ import { resolve } from 'node:path';
 /** Docs are deliberately excluded from Vercel; publish their IDs with the build inputs. */
 export function genAskIds(root = process.cwd()) {
   const legacy = resolve(root, 'project/archive/2026-09-22-asks-table.md');
-  if (!existsSync(legacy)) return;
+  // a Vercel tree has no docs/: keep the committed inventory
+  if (!existsSync(legacy) || !existsSync(resolve(root, 'docs/tasks/asks'))) return;
   const ids = new Set([...readFileSync(legacy, 'utf8').matchAll(/^\| (E\d+) \|/gmu)].map((match) => match[1]));
   // the ask files are docs: a Vercel-shaped tree (.vercelignore drops /docs) has none, and keeps the committed inventory
   const asks = resolve(root, 'docs/tasks/asks');
