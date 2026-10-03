@@ -63,14 +63,15 @@ void main() {
   float n1 = fxNoise(vec2(x * 6.0, y * 3.2 - uTime * 3.8)), n2 = fxNoise(vec2(x * 13.0 + 4.0, y * 7.5 - uTime * 7.0));
   float lick = (n1 - 0.5) * 0.28 * y + (n2 - 0.5) * 0.08 * y;
   float tongues = 0.55 + 0.45 * sin((x + lick) * 30.0 + n1 * 3.0 + uTime * 1.7);
-  float w = (0.46 * pow(1.0 - y, 0.75) + 0.02) * mix(1.0, tongues, smoothstep(0.12, 0.55, y));
+  // the base tapers into the bowl (council round 2: a wide base cut by the quad's edge drew a rectangle)
+  float w = (0.46 * pow(1.0 - y, 0.75) + 0.02) * mix(1.0, tongues, smoothstep(0.12, 0.55, y)) * mix(0.55, 1.0, smoothstep(0.0, 0.2, y));
   float d = abs(x + lick) / w;
   float top = y + (n1 - 0.5) * 0.55 + (n2 - 0.5) * 0.25;
-  float body = (1.0 - smoothstep(0.7, 1.0, d)) * (1.0 - smoothstep(0.62, 0.9, top)) * smoothstep(0.0, 0.05, y);
+  float body = (1.0 - smoothstep(0.7, 1.0, d)) * (1.0 - smoothstep(0.62, 0.9, top)) * smoothstep(0.0, 0.16, y);
   float core = (1.0 - smoothstep(0.15, 0.55, d)) * (1.0 - smoothstep(0.12, 0.42, top));
   vec3 c = mix(vec3(0.85, 0.14, 0.01), vec3(1.0, 0.45, 0.06), smoothstep(0.05, 0.6, 1.0 - d) * (1.0 - smoothstep(0.35, 0.9, top)));
   c = mix(c, vec3(1.0, 0.66, 0.2), core * 0.65); // council round 2: the flame read cream-white; orange with a yellow core
-  gl_FragColor = vec4(c * body * 1.55 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
+  gl_FragColor = vec4(c * body * 1.15 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
 }`,
 });
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */
@@ -136,7 +137,7 @@ void main() {
   vec3 p = vec3(cos(a) * 0.22 * (1.0 + life * 3.0), life * 5.5, sin(a) * 0.22 * (1.0 + life * 3.0)) * s;
   p.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life * (0.6 + life) * 3.5 * s;
   vec4 mv = viewMatrix * vec4((modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz + p, 1.0);
-  gl_PointSize = clamp((1.0 - life) * 90.0 * (0.6 + fract(seed * 13.1)) / -mv.z, 2.0, 7.0) * (1.0 - smoothstep(35.0, 60.0, -mv.z));
+  gl_PointSize = clamp((1.0 - life) * 60.0 * (0.6 + fract(seed * 13.1)) / -mv.z, 1.5, 4.0) * (1.0 - smoothstep(35.0, 60.0, -mv.z));
   gl_Position = projectionMatrix * mv;
 }`,
   fragmentShader: /* glsl */ `
@@ -144,7 +145,7 @@ varying float vLife;
 void main() {
   float r = length(gl_PointCoord - 0.5) * 2.0;
   float a = (1.0 - smoothstep(0.2, 1.0, r)) * (1.0 - smoothstep(0.6, 1.0, vLife));
-  gl_FragColor = vec4(mix(vec3(1.0, 0.55, 0.15), vec3(0.9, 0.16, 0.02), vLife) * a * 2.2, 1.0); // orange-red sparks (mockup C)
+  gl_FragColor = vec4(mix(vec3(1.0, 0.45, 0.1), vec3(0.85, 0.12, 0.02), vLife) * a * 2.0, 1.0); // orange-red sparks (mockup C)
 }`,
 });
 const poolMaterial = new ShaderMaterial({

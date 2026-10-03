@@ -301,7 +301,8 @@ export function bannerGeometry(): BufferGeometry {
  * `crown`: charred logs splaying out over the rim instead (E399, mockup C: the hero brazier's log fire).
  */
 export function kindling(y: number, size = 1, crown = false): Group {
-  const g = new Group(), wood = mat(crown ? CHARRED : KINDLING), n = crown ? 7 : 5;
+  // the crown's logs glow at the ember (council round 2: unlit, they read as a black tent inside the flame)
+  const g = new Group(), wood = crown ? new MeshStandardMaterial({ color: CHARRED, roughness: 0.9, emissive: 0x6a1c04 }) : mat(KINDLING), n = crown ? 7 : 5;
   for (let i = 0; i < n; i++) {
     // a teepee: each stick leans in from the bowl's edge, the tips meeting above the rim, so it reads at eye level
     const a = (i / n) * Math.PI * 2 + (crown ? (i % 2) * 0.3 : 0), lean = crown ? -0.42 - (i % 3) * 0.1 : 0.5, len = (crown ? 0.5 + (i % 2) * 0.12 : 0.6) * size;
