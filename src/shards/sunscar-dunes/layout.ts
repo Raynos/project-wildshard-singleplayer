@@ -20,7 +20,12 @@ export const BRAZIERS: readonly { x: number; z: number }[] = [{ x: 58, z: -34 },
 export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 9, ease: 75 }]; // council round 3: the tower crowns a big dune; round 8: a broad low mound (lift 13 over 58 m stood a tall narrow dome; both spawn mockups show a wide low rise, A a small far tower)
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 // E399 (mockup C): each waymark on level sand too, its fire's pool flat round it
-export const PADS = [{ x: CARAVAN.x, z: CARAVAN.z, r: 22 }, { x: WELL.x, z: WELL.z, r: 12 }, ...BRAZIERS.map((b) => ({ x: b.x, z: b.z, r: 6 }))];
+// round 8 (mockup C: the waymark stands on open ground over a low horizon; ours sat in a bowl, the dunes 11-13 deg over the
+// eye from every spot round it): the west waymark (the hero brazier's, mock-C's) on a rise `lift` m over its own dune
+// height, a signal seen from afar; the other two keep their ground (the east one stands in the spawn views, the south
+// one's rise would reach the tower's dune)
+export const PADS: readonly { x: number; z: number; r: number; lift?: number }[] = [{ x: CARAVAN.x, z: CARAVAN.z, r: 22 }, { x: WELL.x, z: WELL.z, r: 12 },
+  ...BRAZIERS.map((b, i) => ({ x: b.x, z: b.z, r: 6, lift: i === 1 ? 10 : 0 }))];
 /** The crest paths: spawn → tower (the first, the entry trail), spawn → caravan, spawn → well, tower → basin. */
 export const TRAIL: [number, number][][] = [
   [[SPAWN.x, SPAWN.z], [4, 0], [TOWER.x, TOWER.z + 6]],

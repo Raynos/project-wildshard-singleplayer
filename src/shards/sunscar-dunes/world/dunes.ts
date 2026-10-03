@@ -44,7 +44,7 @@ function field(x: number, z: number, n: TerrainNoise['n']): { h: number; amp: nu
 }
 
 /** Flat spots levelled to their own dune height (+ `lift`), eased out over 2.4 × `r`. */
-const SPOTS = [...CRESTS.map((c) => ({ x: c.x, z: c.z, r: c.r, lift: c.lift, ease: c.ease })), ...PADS.map((p) => ({ x: p.x, z: p.z, r: p.r, lift: 0, ease: Math.max(p.r * 4.6, 46) }))];
+const SPOTS = [...CRESTS.map((c) => ({ x: c.x, z: c.z, r: c.r, lift: c.lift, ease: c.ease })), ...PADS.map((p) => ({ x: p.x, z: p.z, r: p.r, lift: p.lift ?? 0, ease: Math.max(p.r * 4.6, 46) }))];
 const spotLevels = new WeakMap<TerrainNoise['n'], number[]>();
 
 /**
