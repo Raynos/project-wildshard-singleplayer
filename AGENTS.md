@@ -10,6 +10,13 @@
 
 - The code is four layers: `src/engine/` (`#engine`, plus the node-safe `#engine/data`) → `src/game/` (`#game`) →
   `src/kit/` (`#kit`) → `src/shards/<slug>/`. Imports point down the arrow only; a shard never imports another shard.
+- **What each layer knows** (Jake, E405 [LAYER-PURITY](docs/plans/LAYER-PURITY.md)): the **engine** knows rendering,
+  physics, input, audio, boot and levels in general — never the game, Wildshard, that shards exist, or any content (it
+  says "level"; content arrives as data: species rows, pickup looks, icons, scores, tree sets). The **game** knows it is
+  Wildshard and that shards run arbitrary content, never a particular shard. The **kit** is reusable content (creatures,
+  weapons, items, icons, pickups) any shard uses, never a particular shard. Everything particular to one shard lives in
+  its folder. Hard errors: `wildshard/layer`, `wildshard/engine-words` (wire-contract field names are listed exceptions
+  in `lint/ratchet.json` `allow`), `wildshard/shard-names` (game and kit).
 - **[docs/ENGINE.md](docs/ENGINE.md)** is the public API of the three layers, one section per 01-architecture §.
   `test/engine-docs.test.ts` fails when an index export is missing from it: after an index change, run
   `ENGINE_DOC_WRITE=1 pnpm exec vitest run test/engine-docs.test.ts` and describe the new API in its section.
@@ -17,7 +24,7 @@
   plugin verbs, weapons, creatures, the look, audio, budgets, saves, strings, and the checklist to `live`. Every shard
   folder has a `README.md` (what it declares, its custom code and why, budgets, look, open asks).
 - **The guards** ([ARCH-GUARDS](docs/plans/ARCH-GUARDS.md), `lint/wildshard-plugin.js`): `wildshard/layer` (imports
-  point down), `public-index` (public indexes only), `engine-words` (no shard vocabulary in engine code), `shard-sandbox` (no globals, own settings and assets), `no-level-identity` and `no-shard-branch` (no
+  point down), `public-index` (public indexes only), `engine-words` (no shard vocabulary in engine code), `shard-names` (game and kit name no shard), `shard-sandbox` (no globals, own settings and assets), `no-level-identity` and `no-shard-branch` (no
   branching on a level's name or style outside its folder), the `no-raw-*` rules, the ratchet (`lint/ratchet.json`),
   the layout check (`scripts/check-shards.mjs`, `lint/shard-layout.json`) and the pre-commit runner
   (`scripts/precommit-guards.mjs`). ENGINE.md §24 lists them all.
