@@ -125,22 +125,25 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
 }
 
 /**
- * E407 row 4 (the audit: the big double ring in the middle of every frame; mockups A, C, D and dusk-fire hold ONE loose
- * loop low beside a gloved fist): one loop of plaited cord in glove-hd3's own frame (it spans ~2 units, the handle's top
- * at (-0.53, 0.95, 0.19)): the cord leaves the handle's top, swings out and down round one loose loop beside the fist, and
- * the fall hangs below the frame.
+ * E407 row 4 (the lead after round 14: every mockup shows a compact gloved fist low in the corner holding a ROUND coil of
+ * plaited whip, one to two fists across; a thin cord rising from the fist read as nothing): a real coil in glove-hd3's own
+ * frame (it spans ~2 units, ~0.13 m a unit; the handle's top at (-0.53, 0.95, 0.19)): the cord leaves the handle's top,
+ * runs down outside the fist into two near-circular turns beside and below it, and the fall drops out of the frame.
  */
-export const LOOP = { cord: 0.04, from: [-0.53, 0.95, 0.19], c: [-1.05, -0.1, 0.32], rx: 0.62, ry: 0.95, tail: [[-0.5, -1.0, 0.36], [-0.38, -1.9, 0.42], [-0.3, -2.9, 0.46]] } as const;
+export const LOOP = { cord: 0.048, from: [-0.53, 0.95, 0.19], c: [-1.0, 0.05, -0.15], r: 0.55, turns: 2, step: [0.1, -0.08, 0.09], tail: [[-0.55, -1.5, 0.5], [-0.45, -2.4, 0.55]] } as const;
 
-/** The single loose loop (LOOP) as a plaited tube. */
+/** The coil (LOOP) as one plaited tube. */
 function plaitedLoop(): Mesh {
-  const pts: Vector3[] = [new Vector3(...LOOP.from), new Vector3(LOOP.from[0] - 0.18, LOOP.from[1] + 0.16, LOOP.from[2] + 0.04)];
-  // round the loop from its top, counter-clockwise as seen from the camera, a slight twist out of plane
-  for (let i = 0; i <= 56; i++) {
-    const a = Math.PI * 0.42 + (i / 56) * Math.PI * 1.85;
-    pts.push(new Vector3(LOOP.c[0] + Math.cos(a) * LOOP.rx, LOOP.c[1] + Math.sin(a) * LOOP.ry, LOOP.c[2] + Math.sin(a * 0.5) * 0.12));
+  const [fx, fy, fz] = LOOP.from, [cx, cy, cz] = LOOP.c;
+  const pts: Vector3[] = [new Vector3(fx, fy, fz), new Vector3(fx - 0.22, fy - 0.05, fz + 0.06), new Vector3(cx + 0.1, cy + LOOP.r * 0.95, cz)];
+  // the turns, clockwise as the camera sees them, each a little offset from the last so the coil's rings part
+  const n = 40 * LOOP.turns;
+  for (let i = 1; i <= n; i++) {
+    const t = i / n, a = Math.PI * 0.5 - t * Math.PI * 2 * LOOP.turns, k = t * (LOOP.turns - 1);
+    const r = LOOP.r * (1 - 0.05 * Math.sin(a * 3 + 0.7));
+    pts.push(new Vector3(cx + Math.cos(a) * r + LOOP.step[0] * k, cy + Math.sin(a) * r + LOOP.step[1] * k, cz + LOOP.step[2] * k + Math.sin(a) * 0.06));
   }
-  for (const p of LOOP.tail) pts.push(new Vector3(p[0], p[1], p[2]));
+  for (const q of LOOP.tail) pts.push(new Vector3(q[0], q[1], q[2]));
   return plaitedTube(pts, LOOP.cord);
 }
 
@@ -251,7 +254,10 @@ export function buildWhipModel(): WhipParts {
   if (hd !== null) {
     hd.position.set(...HD_GLOVE.pos); hd.rotation.set(...HD_GLOVE.rot); root.add(hd);
     // the code coil in the glove model's own frame (duneHd: out → holder (scaled) → turn (centred) → the scene)
-    hd.children[0]?.children[0]?.add(plaitedLoop());
+    const turn = hd.children[0]?.children[0];
+    // the glove fitted, not a mitten (the lead after round 14): its width and depth 0.82 (the coil keeps its own scale)
+    for (const child of turn?.children ?? []) child.scale.set(0.82, 1, 0.82);
+    turn?.add(plaitedLoop());
     grip.visible = false; coil.visible = false;
   }
   return { root, grip, coil, lash, tip, glove: made?.mesh ?? null, hd };
