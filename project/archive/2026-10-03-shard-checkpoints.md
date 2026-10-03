@@ -1,6 +1,6 @@
 # Plan: Shard checkpoints — the repeatable review loop (E206)
 
-**State:** `archived` 2026-10-03 (merged, not finished) — merged into [WORLDCLAW-SHARD](../../docs/plans/WORLDCLAW-SHARD.md) by Jake's grill (E406, D77–D88): its four gates are that plan's checkpoint (§2b), its existing-shard path the light front (§2c), its skill folded into `worldclaw-interactive` (D80). Nine Dragon's slice continues as WORLDCLAW-SHARD rows L2–L3. Leftovers: none here; they live in WORLDCLAW-SHARD.
+**State:** `archived` 2026-10-03 (merged, not finished) — merged into [WORLDCLAW-SHARD](../../docs/plans/WORLDCLAW-SHARD.md) by Jake's grill (E406, D77–D88): its four gates are that plan's checkpoint (§2b), its skill folded into `worldclaw-interactive` (D80); WorldClaw builds new shards only (D90), and Nine Dragon keeps its own plan (D89). Leftovers: none here; they live in WORLDCLAW-SHARD.
 
 ## Purpose
 

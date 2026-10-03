@@ -25,3 +25,11 @@ finding. You may add a scenario (mark it "added by <seat>").
 **Output:** your file `round-<n>-seat-<X>.md` in `docs/plans/worldclaw/reviews/merge/`: a findings table (ID-less:
 the lead assigns IDs; columns: severity, location, finding, evidence, fix), then the battery table (scenario #, PASS /
 FAIL, the finding it maps to), then one last line `Verdict: <clean | N must-fix, M should-fix>`. At most 120 lines.
+
+## Round 2 (and later): the surface shrinks
+From round 2 a seat reviews (a) **the diff since the last round**: `git diff 1ea79c334 HEAD -- docs/plans/WORLDCLAW-SHARD.md
+docs/design/worldclaw/06-shard-flow.md .claude/skills/worldclaw-interactive/SKILL.md .claude/skills/worldclaw-auto/SKILL.md
+docs/plans/WORLDCLAW-TOOLS.md docs/plans/NINE-DRAGON-STACK.md scripts/worldclaw/ src/shards/nine-dragon-stack/design/`:
+did each fix in `register.md` (MC1–MC24) land as its resolution says, and did it break something nearby; and (b) **the
+battery** (now 14 scenarios). A finding outside the diff counts only if it is must-fix with evidence. Don't re-raise a closed
+register row without new evidence.

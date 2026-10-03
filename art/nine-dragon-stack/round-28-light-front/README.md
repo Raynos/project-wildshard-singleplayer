@@ -5,7 +5,7 @@ E406 (2026-10-03), WORLDCLAW-SHARD §2c, row L2. Nine Dragon as it is, captured 
 - **Made with:** `scripts/worldclaw/capture-front.sh` (World Explorer through the harness params; the cameras in
   `src/shards/nine-dragon-stack/design/front-cams.json` = mockupCameras.ts A–D + an overhead) on a served build of
   `7bffc07a6`; `scripts/worldclaw/spec-map.py` (the plan from `design/spec.json`).
-- **Verdict:** waiting on Jake's pass (the pillars, the next slices).
+- **Verdict:** Jake (2026-10-03): "No I don't think we can do nine dragon worldclaw it's too much of a partial shard"; the design files were removed, these captures stay as history (WORLDCLAW-SHARD D89).
 
 ## Files
 

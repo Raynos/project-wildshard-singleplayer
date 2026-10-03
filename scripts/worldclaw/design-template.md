@@ -29,8 +29,11 @@ id for id. design.md owns intent and Jake's words; spec.json owns the numbers. -
 ## The session slice (P9)
 <place ids in play order, with the time it takes>
 
-## §run
-mode: guided | zero-shot | existing · stage: P<n> · waiting on: … · next: …
+## §run (06 §10.7)
+- mode: guided | zero-shot · until: P<n> (the bound, if any) · P0's answers
+- step: P<n> · waitingOn: jake | codex-quota (with its time) · resentAt · next: …
+- stop: continue | done | blocked | quota(<reset>) (set before a session exits)
+- the last build SHA · the live page's URL · the frames folder
 
 ## Verdict log
 - P<n>: "<Jake's words, verbatim>" (ask id).

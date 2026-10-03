@@ -420,8 +420,6 @@ The shard's `docs/SHARDS.md` section links `design.md` (plan §7 Q2).
 | P14–P17 | T10, T11, T12, T13, drain-inbox | the build | board, time-lapse, reading, score |
 | P18 | S1's draft, T12, T18 | a sentence | a judged front ("until P5") |
 | P19 | P18's shard, T18 | P18's design.md | a P8-clean grey shard + board ("until P8") |
-| **Light front** (an existing shard, §11) | L1 (T1's formats); L2b's checks when they exist | the live shard's code and its plan | design.md + spec.json, the captures, §run `mode: existing` |
-| **Existing-shard checkpoint** (§11) | the light front confirmed by Jake; no T / E / W row | design.md, the shard's plan, its mockups and registered models | the pinned slice, design.md's checkpoint entry |
 | **Single stage** | the stage's rows | **the stage's files**. On a director's shard without a `spec.json`: write a **slice spec** (`spec-check --scope slice`, T1) from the director's design, and **keep the shard's existing terrain** (T17 runs content-only). A content-only P8 reads the slice spec and the shard's existing terrain (no region weights); twin-check is skipped, logged, when the design has no machine block [R4-B8, R4-C10]. Any other missing file → stop and name it. Targets are needed only from P10 on | the stage's writes only, logged in the verdict log; a slice-scoped P8 gates the slice's legs, reach and T16, and logs the rest as untested |
 
 **spec-check's rules** (T1):
@@ -545,8 +543,6 @@ job at once and ignores unknown flags.
 
 ### 10.7 Waiting and resume (R23)
 
-§run's `mode` is `guided`, `zero-shot` or **`existing`** (an existing shard after its light front, WORLDCLAW-SHARD §2c; a resume of it goes to the skill's §X; MC1).
-
 - **`design.md` §run holds:**
   - `mode` (guided / zero-shot), `until` (the bound, if any), and P0's answers;
   - `step`, `waitingOn` (with its time) and `resentAt`, `next`;
@@ -572,9 +568,3 @@ job at once and ignores unknown flags.
 - **A codex quota stop** records the reset time in §run (`waitingOn: codex-quota`, `stop: quota(<reset>)`) and stops. The next session resumes
   after the reset.
 
-## 11. Existing shards (WORLDCLAW-SHARD §2c; D77, D84–D87)
-
-An existing shard enters at the build: a **light front** (its `design.md` + `spec.json` written from the live shard in
-T1's formats, a top-down map and World Explorer views captured from the live build, one pass with Jake for its pillars
-and next slices), then **one checkpoint per slice** (§5 and the plan's §2b). On a live shard the slice in progress is
-public as it is built (D84). Nine Dragon is first (D86).

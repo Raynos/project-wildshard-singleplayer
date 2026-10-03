@@ -22,3 +22,5 @@ Walk each scenario through: `docs/plans/WORLDCLAW-SHARD.md` (§0.2 D77–D88, §
 | 12 | (added by C) At the light front Jake names a slice other than the paused one: F2's half-ported grapple, E281's round 3 | R1 | FAIL (C) | | | |
 | 13 | (added by C) The village was pinned at P12; P13 then makes Sigrun's NPC moment and the winch work | R1 | FAIL (C) | | | |
 | 14 | (added by C) An in-progress commit on live Pine Hollow moves its look: the next push's gpu-gate and the players' build | R1 | FAIL (C) | | | |
+
+**After round 2 (Jake, D89 / D90):** scenarios 1, 4, 6, 9, 10, 11, 12 and 14 test the existing-shard path, which is withdrawn; they are retired (kept, marked `retired`). Round 3 walks 2, 3, 5, 7, 8, 13.

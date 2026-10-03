@@ -51,7 +51,7 @@ export type Spec = v.InferOutput<typeof SpecSchema>;
  * need no parser beyond JSON). It carries every id twin-check compares and the intent spec.json does not hold. */
 export const MachineSchema = v.strictObject({
   slug: Id,
-  /** `full` for a new shard; `slice` for an existing shard's light front (spec-check --scope slice) */
+  /** `full` for a run's shard; `slice` for a director's single stage (spec-check --scope slice, 06 §10.2) */
   scope: v.picklist(['full', 'slice']),
   places: v.array(v.strictObject({ id: Id, role: v.picklist(ROLES), name: v.string(), beat: v.string() })),
   happenings: v.array(v.strictObject({ id: Id, name: v.string(), seenFrom: v.array(Id) })),
@@ -65,7 +65,7 @@ export const MachineSchema = v.strictObject({
   gates: v.array(v.picklist(['N', 'E', 'S', 'W'])),
   /** the session slice: place ids in play order */
   slice: v.array(Id),
-  run: v.strictObject({ mode: v.picklist(['guided', 'zero-shot', 'existing']), stage: v.string(), until: v.optional(v.string()) }),
+  run: v.strictObject({ mode: v.picklist(['guided', 'zero-shot']), stage: v.string(), until: v.optional(v.string()) }),
 });
 export type Machine = v.InferOutput<typeof MachineSchema>;
 

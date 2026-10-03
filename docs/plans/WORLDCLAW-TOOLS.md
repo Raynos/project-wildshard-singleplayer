@@ -292,7 +292,7 @@ round?, spoiler, teaser }`.
 | Composition, a World mode (J33, J43) | the game's Explore | P9b, P10, P12, P15–P16 | W10 | ~2.5 |
 | Coverage tab (J34, J35, J43) | the game's Explore | P8, P12–P17 | W11 | ~2 |
 | Beats tab (J42) | the game's Explore | P8–P9, P17 | W14 | ~2 |
-| The place checkpoint board (J3) | chat (interactive) | P12 | W12 | **The place checkpoint** (J3, `worldclaw-interactive`; WORLDCLAW-SHARD §2b, D78): the boards of each place's four gates (Frame · Form · Play · Pin), as many as the place needs, built from W10's data and sent to chat (J21) | a fixture place's gate boards reach chat; an approve and a "revise one thing" both route | todo |
+| The place checkpoint (J3, D78) | chat (interactive) | P12 | W12 | ~0.5 |
 | Weight gate + splash (J15, J41) | CI + drafts site | every stage | W15 | ~1 |
 | Skill wiring | the three skills | every step | W13 | ~1 |
 
@@ -370,7 +370,7 @@ State per row: `todo` · `in flight (<owner>)` · `done (<commit>)` · `needs pi
 | W9 | **The game's COMING SOON card** (J19, J38): `card.json` read by the deck; day zero, key art, Developer on (DRAFT MODE opens the drafts site); its image a lazy Blob URL | Done-when 3 and 7; a deck with no draft is identical | done (d81c093a) |
 | W10 | **Composition mode in World** (§3.5; J33, J43); T8 writes `*.placed.json` | Done-when 5 on a fixture place; Explorer memory ≤ 1.0 GB (Simulator pre-check) | todo |
 | W11 | **The Coverage tab** (§3.6; J34, J35, J43); T5 writes `coverage.png` / `.json`, T10 `budgets.json`; `coverage.mjs` | Done-when 6 on the fixture fjord; a status change after a fixture P12 step shows up | todo |
-| W12 | **The place checkpoint board** (J3, `worldclaw-interactive`): built from W10's data at the end of each place's P12, sent to chat (J21) | a fixture place's board reaches chat; GO and "revise one thing" both route | todo |
+| W12 | **The place checkpoint** (J3, `worldclaw-interactive`; WORLDCLAW-SHARD §2b, D78): the boards of each place's four gates (Frame · Form · Play · Pin), as many as the place needs, built from W10's data, sent to chat (J21) | a fixture place's gate boards reach chat; an approve and a "revise one thing" both route | todo |
 | W13 | **Skill wiring**: the three skills publish at every step (W2), deploy the drafts site at every step boundary (J26), republish the artifact page (J25), send each stage to chat as one titled set (J21) | a dry run of P0–P2 on a fixture: the draft shows the vision, the pitch board, the answer | done (`worldclaw-interactive` step boundary; `-auto` inherits it) |
 | W14 | **The Beats tab** (§3.7; J42) | the fixture slice's legs listed with their tests; PLAY FROM HERE starts at a leg | todo |
 | W15 | **The weight gate + the splash** (J15, J41): `drafts/tools/weight.mjs` in CI: the game build has no draft file; the key-art splash | with no draft, the game's entry bundle and boot list are identical to main's; with Thin Ice's card, only the card's data and its lazy Blob image are added; the splash shows the key art while the first screen loads | done (`drafts/test/weight.test.ts` + the splash, 05f9badc) |

@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `in progress` 2026-10-03 — **paused for its light front** (WORLDCLAW-SHARD §2c, rows L2–L3, ask E406, Jake: "Now, pausing the slice"): the WorldClaw tools agent writes `src/shards/nine-dragon-stack/design/design.md` + `spec.json` from the live shard in T1's formats and captures its map and views; Jake then confirms its pillars and names the next slices, and each slice runs as a WorldClaw checkpoint (Frame · Form · Play · Pin). Paused until then: E380 (the re-plan, which the light front feeds), E281 round 3, the F3 trailer review, F8, F9's physical retest, F10. The fragment stays playable and live; the full nine-stratum shard (P1 onward) is unbuilt.
+**State:** `in progress` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). Unowned. Next: E380, the re-plan for the new engine (decision 66); then the fragment's open rows (E281 round 3, F3 trailer review, F8, F9's physical retest with E264's caps, F10). The fragment stays playable and live; the full nine-stratum shard (P1 onward) is unbuilt. Not a WorldClaw shard (Jake, E406: "too much of a partial shard").
 
 ## 0. Read this first
 
@@ -293,9 +293,6 @@ culler run from the drawn camera, the crowd LOD (~550 k → ~60 k), the lantern 
 draws, C2 15 / 12, C1 8 / 6, B1/D1 13 / 12, viewmodel 25 / 24, post 39 / 38, facade dressing ~28 / 20 (instanced; merge kits and cull, never multi-draw).
 
 ## 7. How we build (the method the fragment proved)
-
-> **Since 2026-10-03 (E406):** Nine Dragon grows by WORLDCLAW-SHARD's checkpoints (its §2b: Frame · Form · Play · Pin)
-> after its light front (§2c, rows L2–L3); the method below is the history that loop was merged from (SHARD-CHECKPOINTS).
 
 For every area (a stratum, a hero space):
 
