@@ -38,10 +38,10 @@ The key is fixed by the lead's ruling, and the shade share matches. The **landfo
 
 | # | Owner | State | Evidence |
 |---|---|---|---|
-| 1 | signal-dunes | open | |
-| 2 | signal-dunes | open | |
-| 3 | signal-dunes | open | |
-| 4 | signal-dunes | open | |
+| 1 | signal-dunes | done (ready r23) | 0add5da36: the ridge from the spawn's right, lit flank west; A diag 86.9 h24 (96.5 h20), df r +0.56, A r +0.47; walk sd-r23-b-muspl0kj.json, 0 stuck; df saddle 30.9 (49.5) worse |
+| 2 | signal-dunes | partial | 8f296fb4b: the late away-term x0.25; D land 35 (17), C far 31 (27); D needs landform (two ridge trials dropped) |
+| 3 | signal-dunes | partial | the near-left slope via row 1 (shoulder 74 / 84); the ray's route unchanged |
+| 4 | signal-dunes | done (ready r23) | a1563f4a9: +-10 deg full, easing to +-70; red step per 3 deg 21.2 -> 3.7 |
 | 5 | signal-dunes | queued | aab0d0a2f |
 | 6 | signal-dunes | queued | aab0d0a2f |
 | 7 | signal-dunes | partly queued | aab0d0a2f |
