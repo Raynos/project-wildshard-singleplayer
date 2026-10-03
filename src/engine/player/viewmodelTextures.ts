@@ -9,9 +9,11 @@ import { smoothstep } from '../core/noise';
  *   const p = makePixels('walnut');   // { w, h, col, nrm, arm } — RGBA8 rows, row 0 = v 0 (DataTexture order)
  */
 export interface Noise { hash: (x: number, y: number) => number; n: (x: number, y: number) => number; fbm: (x: number, y: number, oct?: number) => number }
-export type SetName = 'walnut' | 'steel-xbow' | 'leather' | 'cord' | 'bolt' | 'anodised' | 'polymer' | 'steel-rifle';
-export const CROSSBOW_SETS: readonly SetName[] = ['walnut', 'steel-xbow', 'leather', 'cord', 'bolt'];
-export const RIFLE_SETS: readonly SetName[] = ['anodised', 'polymer', 'steel-rifle'];
+export type SetName = 'walnut' | 'brushed-steel' | 'leather' | 'cord' | 'bolt' | 'anodised' | 'polymer' | 'gunmetal';
+/** the procedural material sets by kind: wood, brushed steel, leather, cord and fletching; anodised aluminium, polymer and
+ *  gunmetal (a weapon names the sets it wears: viewmodelTexSet) */
+export const CLASSIC_SETS: readonly SetName[] = ['walnut', 'brushed-steel', 'leather', 'cord', 'bolt'];
+export const MODERN_SETS: readonly SetName[] = ['anodised', 'polymer', 'gunmetal'];
 /** RGBA8 colour (sRGB), normal and ARM (ao · roughness · metalness; absent for the cord) planes, `w × h` */
 export interface Pixels { w: number; h: number; col: Uint8Array; nrm: Uint8Array; arm: Uint8Array | null }
 
@@ -244,8 +246,8 @@ function polymer(seed: number): Pixels {
 /** One named set, drawn here and now (`canvas2d` only for the steel sets' scratches and pits). */
 export function makePixels(name: SetName, canvas2d: (w: number, h: number) => Ctx2D): Pixels {
   const make: Record<SetName, () => Pixels> = {
-    'walnut': () => walnut(11), 'steel-xbow': () => steel(23, canvas2d), 'leather': () => leather(31), 'cord': () => cord(), 'bolt': () => bolt(41),
-    'anodised': () => anodised(53), 'polymer': () => polymer(59), 'steel-rifle': () => steel(61, canvas2d),
+    'walnut': () => walnut(11), 'brushed-steel': () => steel(23, canvas2d), 'leather': () => leather(31), 'cord': () => cord(), 'bolt': () => bolt(41),
+    'anodised': () => anodised(53), 'polymer': () => polymer(59), 'gunmetal': () => steel(61, canvas2d),
   };
   return make[name]();
 }

@@ -219,7 +219,7 @@ interface LeverBuild { readonly brassMat: THREE.MeshPhysicalMaterial; readonly w
 function buildLever(sky: Sky, model: LeverModel | null, woodFrom: THREE.Object3D | null): LeverBuild {
   // ── materials: the viewmodels' shared lit program (MeshPhysical + vertex colours + the five map slots) ──
   const std = (name: string, t: TexSet, extra: THREE.MeshPhysicalMaterialParameters) => viewmodelMaterial(sky, name, { map: t.map, normalMap: t.normalMap, aoMap: t.armMap, roughnessMap: t.armMap, metalnessMap: t.armMap, roughness: 1, metalness: 1, ...extra });
-  const steelTex = viewmodelTexSet('steel-rifle'); // the brass's (the cartridges' tiled UVs), and the procedural build's steel
+  const steelTex = viewmodelTexSet('gunmetal'); // the brass's (the cartridges' tiled UVs), and the procedural build's steel
   for (const t of [steelTex.map, steelTex.normalMap, steelTex.armMap]) t.repeat.set(2, 2);
   const brassMat = std('lever-brass', steelTex, { normalScale: new THREE.Vector2(0.25, 0.25), color: new THREE.Color(0.95, 0.7, 0.34), roughness: 0.75, envMapIntensity: 1.1 });
   let woodMat: THREE.MeshPhysicalMaterial, steelMat: THREE.MeshPhysicalMaterial, parts: LeverParts;

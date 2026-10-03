@@ -305,7 +305,7 @@ export interface CrossbowParts {
  */
 export function buildCrossbow(sky: Sky, into: { readonly model: THREE.Group; readonly peep: THREE.Group; readonly peepRing: THREE.Group }): CrossbowParts {
   const { model, peep, peepRing } = into;
-  const walnut = viewmodelTexSet('walnut'), steel = viewmodelTexSet('steel-xbow'), leather = viewmodelTexSet('leather'), cord = makeCord();
+  const walnut = viewmodelTexSet('walnut'), steel = viewmodelTexSet('brushed-steel'), leather = viewmodelTexSet('leather'), cord = makeCord();
   walnut.map.repeat.set(1, 4); walnut.normalMap.repeat.set(1, 4); walnut.armMap.repeat.set(1, 4);
   // Every lit material below is the SAME program: MeshPhysical + vertex colours, the same map slots (map, normal,
   // ao, roughness, metalness — the ARM texture feeds the last three, a 1×1 ARM where a set has none) and the same

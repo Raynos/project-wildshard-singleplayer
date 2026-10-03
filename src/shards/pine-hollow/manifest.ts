@@ -55,7 +55,7 @@ export const PINE_HOLLOW: ShardManifest = {
   api: 1,
   audio: { bed: FOREST_AUDIO.bed, samples: FOREST_AUDIO.samples, ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./audio/files').then((m) => m.createPineAudio()) },
   load: () => import('./plugin'),
-  boot: { viewmodelSets: ['walnut', 'steel-xbow', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'steel-rifle'], audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
+  boot: { viewmodelSets: ['walnut', 'brushed-steel', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'gunmetal'], audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
   kitLook: 'pbr',
   loadout: { weapons: ['weapon.crossbow', 'weapon.lever-rifle', 'weapon.longbow'], tools: ['tool.hoverboard'], start: ['weapon.crossbow', 'tool.hoverboard'] },
   fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: false },

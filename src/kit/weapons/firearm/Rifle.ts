@@ -81,7 +81,7 @@ export interface RifleParts {
   readonly aluMat: THREE.MeshPhysicalMaterial; readonly polyMat: THREE.MeshPhysicalMaterial; readonly steelMat: THREE.MeshPhysicalMaterial; readonly brassMat: THREE.MeshPhysicalMaterial;
 }
 export function buildRifleParts(sky: Sky): RifleParts {
-  const alu = viewmodelTexSet('anodised'), poly = viewmodelTexSet('polymer'), steel = viewmodelTexSet('steel-rifle'); // drawn in a worker during the boot (Crossbow.ts startViewmodelTextures)
+  const alu = viewmodelTexSet('anodised'), poly = viewmodelTexSet('polymer'), steel = viewmodelTexSet('gunmetal'); // drawn in a worker during the boot (Crossbow.ts startViewmodelTextures)
   alu.map.repeat.set(3, 1); alu.normalMap.repeat.set(3, 1); alu.armMap.repeat.set(3, 1);
   steel.map.repeat.set(2, 2); steel.normalMap.repeat.set(2, 2); steel.armMap.repeat.set(2, 2);
   // no program of its own: every material is the viewmodels' shared lit one (Crossbow.viewmodelMaterial — MeshPhysical

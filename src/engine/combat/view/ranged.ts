@@ -9,7 +9,7 @@ import type { ImpactSurface } from '#engine/combat/Weapon';
 import { castSegment, sweepBall, type Hit } from '#engine/physics/query';
 import { attachFogUniforms } from '#engine/world/Atmosphere';
 import type { Material } from '#engine/physics/surface';
-import { makePixels, clamp01, CROSSBOW_SETS, RIFLE_SETS, type Pixels, type SetName, type Ctx2D } from '#engine/player/viewmodelTextures';
+import { makePixels, clamp01, CLASSIC_SETS, MODERN_SETS, type Pixels, type SetName, type Ctx2D } from '#engine/player/viewmodelTextures';
 import { PATCH_ORDER, patchShader } from '../../render/shaderPatches';
 import { ParticlePool, pointScale } from '../../fx/ParticlePool';
 
@@ -74,7 +74,7 @@ const WORKER_TIMEOUT_MS = 20000;
 
 export function startViewmodelTextures(requested: boolean | readonly SetName[]): void {
   
-  const names = typeof requested === 'boolean' ? (requested ? [...CROSSBOW_SETS, ...RIFLE_SETS] : [...RIFLE_SETS]) : requested;
+  const names = typeof requested === 'boolean' ? (requested ? [...CLASSIC_SETS, ...MODERN_SETS] : [...MODERN_SETS]) : requested;
   const sets = names.filter((n) => !pixelCache.has(n));
   if (sets.length === 0) { texturesReady = Promise.resolve(); return; }
   texturesReady = (async () => {
