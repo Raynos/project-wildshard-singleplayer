@@ -30,3 +30,11 @@ sunset views, clearing with the dusk; the glove without the dusk rim (no X-ray),
 and diagonal; the flame orange with a yellow core, a dark smoke plume, embers that drift shorter and fade (no streaks); the
 caravan's tent lit canvas, a pack horse (a generated model), no trail stakes. Not done yet, by the builder's own account:
 crate textures, stitching and a cuff on the glove.
+
+**Correction (from the cameras.json diff between the round-2 and round-3 captures; seats B and C found the list above wrong):**
+
+- `mock-B-logbook`: x -90.5 → -65.5; yaw -148.5 → 31.5; z 7.5 → 48.5
+- `mock-C-waymark`: pitch -2 → -1; x 65.1 → -53.9; yaw 37 → -69; z -25.6 → -17.2
+- `mock-D-hands`: yaw 42 → 50
+
+`mock-dusk-fire` did not change this round (its -10 was round 2). From round 4 on, this list is generated from the cameras blobs in meta.json, never from the builder's messages.
