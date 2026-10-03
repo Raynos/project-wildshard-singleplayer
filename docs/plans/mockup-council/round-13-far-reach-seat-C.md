@@ -6,7 +6,7 @@ Surface:
 - The Sky Reach section of `art/mockup-council/round-13/README.md` and the five sheets.
 - `progress/far-reach/20261003-0719-8512344b/`: all 12 frames, `clip.mp4` (1 fps tiles) and `meta.json`.
 - Round 12's capture `20261003-0608-591bd5b5`: every frame side by side, and a band-by-band pixel diff.
-- The five ledger mockups at full resolution, and `docs/plans/SKY-REACH-TOP10.md`.
+- The five ledger mockups at full resolution, and `project/archive/2026-10-03-sky-reach-top10.md`.
 - `git show` of the nine shard commits between the captures. I read:
   - the LUT path: `look/render.ts`, `src/engine/world/lut.ts`, `Game.ts`'s chain, `scripts/fit-lut.py`, `art/far-reach/round-29-lut/`, `scripts/serve-build.sh` and `vite/gen.ts`;
   - the placement: `world/skyIsles.ts` (073a0e7ed) and `world/dressing.ts` / `world/meadow.ts` (e0e4b837c);

@@ -1,6 +1,6 @@
 # Sky Reach: the top 10 levers to the mockups (E407)
 
-**State:** `archived` 2026-10-03 (finished 2026-10-03; the leftovers are open in docs/tasks/asks/E410.md): Sky Reach passed the mockup council at 7.00 in round 14 (Codex 7.0, B 7.2, C 6.8; recorded at d7f4278a7; was 6.70 when this plan started). Landed: rows 1 (modelled isles), 2 (trees), 3 (fan and glove), 4 (meadow), 5 (painted cumulus banks), 7 (crown set), 8 (eagle Roc, repaired), 10's shard LUT (second fit, c1b820c30). Open, all in [E410](../tasks/asks/E410.md): row 6 (windmill set), row 9 (light), row 10's keeper set, and the seats' leftovers (the Roc's face, C's upper sky, D's stone gap with no cloud tops, the lavender sea under the slimmer keels, the perch turn favouring D's camera).
+**State:** `archived` 2026-10-03 (finished 2026-10-03; the leftovers are open in docs/tasks/asks/E410.md): Sky Reach passed the mockup council at 7.00 in round 14 (Codex 7.0, B 7.2, C 6.8; recorded at d7f4278a7; was 6.70 when this plan started). Landed: rows 1 (modelled isles), 2 (trees), 3 (fan and glove), 4 (meadow), 5 (painted cumulus banks), 7 (crown set), 8 (eagle Roc, repaired), 10's shard LUT (second fit, c1b820c30). Open, all in [E410](../../docs/tasks/asks/E410.md): row 6 (windmill set), row 9 (light), row 10's keeper set, and the seats' leftovers (the Roc's face, C's upper sky, D's stone gap with no cloud tops, the lavender sea under the slimmer keels, the perch turn favouring D's camera).
 
 ## Why the game sits at 6.6 when the mockups are the target (first principles)
 

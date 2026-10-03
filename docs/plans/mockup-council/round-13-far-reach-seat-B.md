@@ -7,7 +7,7 @@ Surface:
 - `progress/far-reach/20261003-0719-8512344b/`: every `mock-*`, h1–h4, both aerials, `clip.mp4` (0.5 fps tiles) and `meta.json`.
 - Round 12's capture `20261003-0608-591bd5b5`, for before and after.
 - The five ledger mockups at full resolution.
-- `docs/plans/SKY-REACH-TOP10.md` and the row boards' READMEs (`art/far-reach/round-23` to `round-29`).
+- `project/archive/2026-10-03-sky-reach-top10.md` and the row boards' READMEs (`art/far-reach/round-23` to `round-29`).
 - `git diff 591bd5b5d 8512344bd -- src/shards/far-reach`, read for `stormRoc.ts`, `skyIsles.ts`, `skyIsleHd.ts`,
   `WarFan.ts` and `isle.ts`. Also read the engine's LUT path (`world/lut.ts`, `world/skyRig.ts`, `core/Game.ts`) and
   `public/assets/lut/far-reach.bin`.

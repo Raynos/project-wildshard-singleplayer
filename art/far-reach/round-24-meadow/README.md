@@ -1,6 +1,6 @@
 # Sky Reach round 24: a green, varied meadow (E407 top-10 row 4)
 
-The board for plan row 4 (`docs/plans/SKY-REACH-TOP10.md`). BEFORE is the round-12 surface
+The board for plan row 4 (`project/archive/2026-10-03-sky-reach-top10.md`). BEFORE is the round-12 surface
 `progress/far-reach/20261003-0608-591bd5b5`. AFTER is a phone-tier iPhone-portrait capture of HEAD plus the row-4 files.
 The AFTER hero and aerial views also show other agents' work that landed on HEAD in between (the islands, the fan), so
 compare the grass there, not the islands.

@@ -55,7 +55,7 @@ No camera was re-aimed. The terrain and navmesh are re-baked. Dusk: keyAt is d^0
 
 ## Sky Reach (far-reach), round 14
 
-**The bar is 7.0.** The phase in force is zoom-out: docs/plans/SKY-REACH-TOP10.md. The lead's rulings in scores.md apply.
+**The bar is 7.0.** The phase in force is zoom-out: project/archive/2026-10-03-sky-reach-top10.md. The lead's rulings in scores.md apply.
 
 The capture is the builder's: `20261003-0823-ce11353e`, build ce11353ef. It was built after scripts/gen.mjs, so it shows what ships.
 

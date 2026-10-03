@@ -1,6 +1,6 @@
 # Sky Reach round 23: the war fan and the layered glove (top-10 row 3, E407 / E392)
 
-Plan: `docs/plans/SKY-REACH-TOP10.md` row 3. Targets: mockup C (`round-18-council-mockups/mockup-C-hands-fan-painterly.jpg`)
+Plan: `project/archive/2026-10-03-sky-reach-top10.md` row 3. Targets: mockup C (`round-18-council-mockups/mockup-C-hands-fan-painterly.jpg`)
 for the model, mockups A, B, D and proposal B for the hold (modest, lower right).
 
 ## Files

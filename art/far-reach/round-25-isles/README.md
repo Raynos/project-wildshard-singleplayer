@@ -1,6 +1,6 @@
 # Sky Reach top-10 row 1: modelled floating islands (E407)
 
-The zoom-out audit (docs/plans/SKY-REACH-TOP10.md): the islands were 'pancakes' (flat grassy tops over a keel). These
+The zoom-out audit (project/archive/2026-10-03-sky-reach-top10.md): the islands were 'pancakes' (flat grassy tops over a keel). These
 six follow the mockups' islands: rounded rock masses, bushy canopies over the rim, overhangs, root and vine curtains.
 
 - `refs/gen.py`: six codex image_gen references on white, each from an island in a mockup (mass, canopy, twin: mockup A's

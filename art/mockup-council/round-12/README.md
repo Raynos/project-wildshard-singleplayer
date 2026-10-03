@@ -58,4 +58,4 @@ All shard commits between the captures:
 - **The fan hold** sits 2.5 cm right, so D's dais row is clear to x 0.50 (it was 0.43). The crag rims are lit only on their sun side.
 - **Dense fir stands** on the cluster's caps, 6-9 each.
 
-**After this round** both builders work the lead's top-10 lever plans (docs/plans/SIGNAL-DUNES-TOP10.md and SKY-REACH-TOP10.md, E407) instead of council micro-fixes.
+**After this round** both builders work the lead's top-10 lever plans (docs/plans/SIGNAL-DUNES-TOP10.md and project/archive/2026-10-03-sky-reach-top10.md, E407) instead of council micro-fixes.

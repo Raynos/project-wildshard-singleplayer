@@ -57,7 +57,7 @@ Judge the forms from the hero views and the aerials too: they must be real dunes
 
 ## Sky Reach (far-reach), round 13
 
-This is the first round on the lead's top-10 lever plan (docs/plans/SKY-REACH-TOP10.md, E407). **The bar is 7.0.** The lead's rulings in scores.md apply: A's cluster over the mill, and the sky band following mockups A and C.
+This is the first round on the lead's top-10 lever plan (project/archive/2026-10-03-sky-reach-top10.md, E407). **The bar is 7.0.** The lead's rulings in scores.md apply: A's cluster over the mill, and the sky band following mockups A and C.
 
 The capture is the builder's: `20261003-0719-8512344b`, build 8512344bd.
 

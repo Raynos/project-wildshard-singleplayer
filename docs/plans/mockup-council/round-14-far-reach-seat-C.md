@@ -7,7 +7,7 @@ Surface:
 - `progress/far-reach/20261003-0823-ce11353e/`: all 12 frames, `clip.mp4` (1 fps tiles) and `meta.json`.
 - Round 13's capture `20261003-0719-8512344b`: every frame side by side with a per-band pixel diff, both clips tiled.
 - The five ledger mockups at full resolution, `art/far-reach/round-31-roc-fix/` (README and board) and row 5 of
-  `docs/plans/SKY-REACH-TOP10.md`.
+  `project/archive/2026-10-03-sky-reach-top10.md`.
 - `git show` of 3000a8b71 (cumulus banks), 7119cb4ae (keels, meadow shade, o3) and 8138fabd4 (the Roc). I read
   `look/puffs.ts`, `look/render.ts` (`cloudBanks`, `keelPuffs`), `world/skyIsleHd.ts`, `world/isle.ts`,
   `species/stormRoc.ts` and `species/rig.ts` (`yawTo`).
