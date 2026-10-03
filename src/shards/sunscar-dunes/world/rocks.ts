@@ -3,7 +3,7 @@ import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL } from '../layout';
 
 /** The rock counts (instanced: one draw each, never multi-draw); the shrubs and grass are `dressing.ts`. */
-export const SCATTER = { boulders: 14, bigBoulder: 1.1 } as const; // loop 5: clean sand (the mockups)
+export const SCATTER = { boulders: 0, bigBoulder: 1.1 } as const; // E399: clean sand (the mockups show no loose rocks)
 const SANDSTONE = 0x8c4c2e, SANDSTONE_DARK = 0x6a3826;
 
 export interface RockField { root: Group; colliders: ColliderDesc[]; ridges: number; boulders: number }

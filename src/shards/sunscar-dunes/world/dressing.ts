@@ -60,7 +60,7 @@ const C = {
 
 /** How many of each (one draw per kind). */
 // loop 5 (the mockups: big clean sand forms): far fewer rocks and pebbles, scrub kept to the hollows and trail edges
-export const DRESSING = { shrubs: 260, tufts: 2200, carcasses: 5, trees: 9, screePerRidge: 6, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 8, gravel: 0 } as const;
+export const DRESSING = { shrubs: 260, tufts: 2200, carcasses: 5, trees: 9, screePerRidge: 6, postEvery: 22, postSide: 3.6, postEnds: 14, outcrops: 0, gravel: 0 } as const; // E399: no outcrops (none in the mockups)
 
 /** A saltbush, 0.9 m tall: four forked stems, dusty grey-green clumps at the tips. */
 function shrubGeometry(seed: number): BufferGeometry {
@@ -155,7 +155,8 @@ export interface Dressing { root: Group; colliders: ColliderDesc[]; counts: Reco
 
 /** The places the dressing keeps clear of (metres), and the trail bed (graded sand: nothing grows on it). */
 const KEEP_CLEAR: readonly { x: number; z: number; r: number }[] = [
-  { x: SPAWN.x, z: SPAWN.z, r: 5 }, { x: TOWER.x, z: TOWER.z, r: 14 }, { x: CARAVAN.x, z: CARAVAN.z - 12, r: 26 }, { x: WELL.x, z: WELL.z, r: 6 },
+  { x: SPAWN.x, z: SPAWN.z, r: 30 }, // E399 (mockup A): clean sand round the spawn
+  { x: TOWER.x, z: TOWER.z, r: 14 }, { x: CARAVAN.x, z: CARAVAN.z - 12, r: 26 }, { x: WELL.x, z: WELL.z, r: 6 },
   { x: BASIN.x, z: BASIN.z, r: BASIN.r - 4 }, ...BRAZIERS.map((b) => ({ x: b.x, z: b.z, r: 4 })),
 ];
 const clear = (x: number, z: number, pad = 0): boolean => KEEP_CLEAR.every((c) => Math.hypot(x - c.x, z - c.z) > c.r + pad);
@@ -255,7 +256,8 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
     const [sx, sz] = line[0] ?? [0, 0], [s2x, s2z] = line[1] ?? [0, 0], [ex, ez] = line[line.length - 1] ?? [0, 0], [e2x, e2z] = line[line.length - 2] ?? [0, 0];
     const ls = Math.hypot(s2x - sx, s2z - sz), le = Math.hypot(ex - e2x, ez - e2z);
     // the departure cairn 9 m out, 2.6 m to the side (the spawn view stays clear); the arrival cairn 10 m short
-    cairnSpots.push({ x: sx + (s2x - sx) / ls * 9 + (s2z - sz) / ls * 2.6, z: sz + (s2z - sz) / ls * 9 - (s2x - sx) / ls * 2.6 });
+    const dep = { x: sx + (s2x - sx) / ls * 9 + (s2z - sz) / ls * 2.6, z: sz + (s2z - sz) / ls * 9 - (s2x - sx) / ls * 2.6 };
+    if (clear(dep.x, dep.z)) cairnSpots.push(dep);
     cairnSpots.push({ x: ex - (ex - e2x) / le * 10 + (ez - e2z) / le * 2.6, z: ez - (ez - e2z) / le * 10 - (ex - e2x) / le * 2.6 });
   }
   const posts = new InstancedMesh(postGeometry(), material(0), postSpots.length);

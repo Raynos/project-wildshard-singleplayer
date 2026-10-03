@@ -95,10 +95,10 @@
   {
    "id": "mock-C-waymark",
    "mockup": "art/sunscar-dunes/round-9-review/C-waymark-fire.jpg",
-   "x": 58.4,
-   "z": -25,
-   "yaw": 2.5,
-   "pitch": 3,
+   "x": 58.6,
+   "z": -21.5,
+   "yaw": 2.7,
+   "pitch": -1,
    "stage": "waymarks-lit"
   }
  ],

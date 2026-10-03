@@ -50,7 +50,12 @@ async function loadHd(name: DuneHdName): Promise<void> {
     gltf.scene.traverse((o) => {
       if (!isMesh(o)) return;
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
-        if (m instanceof MeshStandardMaterial) { m.metalness = 0; m.roughness = 0.85; m.flatShading = false; m.needsUpdate = true; }
+        if (m instanceof MeshStandardMaterial) {
+          m.metalness = 0; m.roughness = 0.85; m.flatShading = false;
+          // E399 (mockup D): the glove dark worn leather with a soft sheen, not a saturated red-brown
+          if (name === 'glove-hd') { m.color.setRGB(0.5, 0.42, 0.38); m.roughness = 0.55; }
+          m.needsUpdate = true;
+        }
       }
     });
     hd.set(name, gltf.scene);

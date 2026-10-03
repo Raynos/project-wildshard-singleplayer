@@ -39,17 +39,17 @@ void main() {
   vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2));
   vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.17, 0.16, 0.32), indigo = vec3(0.065, 0.085, 0.2);
   // E399 (the mockups): a tall soft orange-gold band behind the tower, peach to rose, navy pushed higher
-  vec3 c = mix(band, rose, smoothstep(0.0, 0.16 + 0.1 * toward, h));
+  vec3 c = mix(band, rose, smoothstep(0.0, 0.08 + 0.07 * toward, h));
   // wide overlapping blends: where one smoothstep ended flat as the next began, the eye read a hard arc (a Mach band)
-  c = mix(c, dusk, smoothstep(0.08, 0.45, h));
+  c = mix(c, dusk, smoothstep(0.05, 0.36, h));
   c = mix(c, indigo, smoothstep(0.08, 0.85, h));
   c += vec3(1.0, 0.55, 0.2) * pow(toward, 4.0) * (1.0 - smoothstep(0.0, 0.1, h)) * 0.45;
   // Thin streaks: dark, under-lit on the glow side, only in the band (3-10 degrees up).
   float az = atan(d.z, d.x);
   float streak = vNoise(skyRing(az, 7.0, h * 140.0)) * 0.65 + vNoise(skyRing(az, 21.0, h * 300.0 + 3.1)) * 0.35;
-  float cloud = smoothstep(0.55, 0.95, streak) * smoothstep(0.025, 0.06, h) * (1.0 - smoothstep(0.1, 0.2, h)) * 0.6; // soft wisps
-  vec3 belly = mix(vec3(0.5, 0.24, 0.2), vec3(0.95, 0.5, 0.28), pow(toward, 2.0));
-  c = mix(c, mix(vec3(0.14, 0.1, 0.16), belly, 0.35 + 0.4 * toward), cloud * 0.8);
+  float cloud = smoothstep(0.58, 0.9, streak) * smoothstep(0.04, 0.08, h) * (1.0 - smoothstep(0.16, 0.3, h)) * 0.85; // mockup A: pink-lit streaks over the band
+  vec3 belly = mix(vec3(0.78, 0.36, 0.34), vec3(1.0, 0.52, 0.3), pow(toward, 2.0));
+  c = mix(c, mix(vec3(0.22, 0.14, 0.2), belly, 0.55 + 0.4 * toward), cloud * 0.85);
   float cov = 0.0; // E399: no cloud deck (the mockups' skies are clear)
   // Stars: soft points round a jittered spot in each cell, many overhead, fading into the band and the glow.
   vec3 cellP = d * 300.0, cell = floor(cellP);

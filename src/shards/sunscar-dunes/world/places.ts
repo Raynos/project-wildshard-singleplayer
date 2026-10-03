@@ -240,7 +240,7 @@ export function buildWell(groundAt: (x: number, z: number) => number): WellParts
 /** The waymark's dressing (metres): stones in its ring, the ring's radius, the marker pole's height, the plinth's. */
 const WAYMARK = { stones: 9, ring: 1.45, pole: 4.4, plinth: 0.75 } as const;
 const PLINTH_STONE = 0x9a6a4c, PLINTH_BASE = 0x6e4634, PLINTH_LIGHT = 0xa87a58;
-const KINDLING = 0x6e4a2e;
+const KINDLING = 0x6e4a2e, CHARRED = 0x1c120c;
 /** A long banner hanging from the crossbar, streaming along +x and sagging, in two kinked panels. */
 export function bannerGeometry(): BufferGeometry {
   const pts = [[0, 0, 0], [0, -0.75, 0], [0.55, -0.12, 0.06], [0.5, -0.82, 0.05], [1.1, -0.3, -0.04], [1.0, -0.9, -0.03]];
@@ -250,12 +250,15 @@ export function bannerGeometry(): BufferGeometry {
   return g;
 }
 
-/** A crossed stack of kindling for a brazier's bowl (round 1: the unlit bowls read empty and black); `y` the bowl's floor. */
-export function kindling(y: number, size = 1): Group {
-  const g = new Group(), wood = mat(KINDLING);
-  for (let i = 0; i < 5; i++) {
+/**
+ * A crossed stack of kindling for a brazier's bowl (round 1: the unlit bowls read empty and black); `y` the bowl's floor.
+ * `crown`: charred logs splaying out over the rim instead (E399, mockup C: the hero brazier's log fire).
+ */
+export function kindling(y: number, size = 1, crown = false): Group {
+  const g = new Group(), wood = mat(crown ? CHARRED : KINDLING), n = crown ? 7 : 5;
+  for (let i = 0; i < n; i++) {
     // a teepee: each stick leans in from the bowl's edge, the tips meeting above the rim, so it reads at eye level
-    const a = (i / 5) * Math.PI * 2, lean = 0.5, len = 0.6 * size;
+    const a = (i / n) * Math.PI * 2 + (crown ? (i % 2) * 0.3 : 0), lean = crown ? -0.42 - (i % 3) * 0.1 : 0.5, len = (crown ? 0.5 + (i % 2) * 0.12 : 0.6) * size;
     const log = new Mesh(new CylinderGeometry(0.03 * size, 0.04 * size, len, 5), wood);
     log.rotation.order = 'YXZ'; log.rotation.set(-lean, a, 0);
     log.position.set(Math.sin(a) * Math.sin(lean) * len * 0.5, y + Math.cos(lean) * len * 0.5, Math.cos(a) * Math.sin(lean) * len * 0.5); g.add(log);
@@ -301,7 +304,7 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
     at(new Mesh(new CylinderGeometry(0.42, 0.18, 0.32, 8, 1, true), mat(IRON, { metalness: 0.4 })), 0, 1.6 + P, 0, root);
   }
   const oil = at(new Mesh(new CylinderGeometry(0.33, 0.33, 0.04, 8), new MeshStandardMaterial({ color: 0x1a120c, roughness: 0.2 })), 0, bowl, 0, root);
-  if (!hdBrazier) root.add(kindling(bowl - 0.08));
+  root.add(hdBrazier ? kindling(bowl - 0.15, 1.6, true) : kindling(bowl - 0.08));
   oil.visible = false;
   colliders.push(boxDesc({ x, z, hw: 0.45, hd: 0.45, rot: 0, yBottom: y + P * 0.5, yTop: y + 1.75 + P }, 'stone'));
   // Round 1 (R1C-1 / R1B-12): the unlit waymark reads from afar: a ring of fieldstones round its foot, and a tall
@@ -313,7 +316,7 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
     const sx = Math.sin(a) * r, sz2 = Math.cos(a) * r;
     q.setFromAxisAngle(up, a * 1.7); m.compose(new Vector3(sx, groundAt(x + sx, z + sz2) - y - sz * 0.4, sz2), q, new Vector3(sz * 1.2, sz, sz)); stones.setMatrixAt(i, m);
   }
-  stones.instanceMatrix.needsUpdate = true; stones.computeBoundingSphere(); root.add(stones);
+  stones.instanceMatrix.needsUpdate = true; stones.computeBoundingSphere(); stones.visible = hdBrazier === null; root.add(stones);
   // E399 (mockup C: the waymark is the brazier on its plinth, nothing else): the banner pole and lantern only with the
   // stand-in brazier, which needs them to read from afar
   if (hdBrazier === null) {
