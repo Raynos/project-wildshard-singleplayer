@@ -135,7 +135,8 @@ export const HERO_STONES: readonly (readonly [number, number, number, number, nu
   // walk and at the right edge)
   [-2.4, -186.0, HIGH, 1.15, 0.5], [-3.6, -188.8, HIGH, 0.8, 0.38], [3.2, -188.5, HIGH, 0.95, 0.45],
   // and mockup B's lower left: rocks in the spawn meadow below the keeper, 3-4 m ahead of the quest-start view
-  [-1.7, -8.4, DECK, 0.9, 0.42], [-1.0, -7.4, DECK, 0.6, 0.3],
+  // (round 8: 2.6-3.9 m from B's camera they swamped the frame; mockup B's are 4-6 m out, smaller, lit on top)
+  [-2.4, -9.6, DECK, 0.75, 0.36], [-1.0, -10.6, DECK, 0.5, 0.24],
 ];
 
 /** The hero boulders that are placed (clear of every walk), as discs for the meadow's short grass round them. */
@@ -296,7 +297,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
 #endif
       rockC *= 1.0 - 0.35 * smoothstep(0.0, -0.6, bn.y);
       // pale lichen flecks (round 6, seat A: 'lichened rocks'; the mockups' boulders are grey with pale lichen, little moss)
-      rockC = mix(rockC, vec3(0.42, 0.4, 0.28), smoothstep(0.86, 0.95, n3 * (0.7 + 0.6 * n1)) * 0.45);
+      rockC = mix(rockC, vec3(0.42, 0.4, 0.28), smoothstep(0.86, 0.95, n3 * (0.7 + 0.6 * n1)) * 0.22);
       // a moss cap on the flattest tops, its edge broken by noise
       float mossK = smoothstep(0.86, 0.99, bn.y + 0.35 * (n2 - 0.5) + 0.2 * (n1 - 0.5)) * 0.55;
       vec3 mossC = vec3(0.075, 0.11, 0.025) * (0.75 + 0.5 * n3);
