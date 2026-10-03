@@ -30,8 +30,12 @@ import { installSkyCues } from './audio/cues';
 
 declare module '#engine' {
   interface ActionMap { 'far.gust': true }
-  interface EquipmentSlotMap { 'far-fan': true }
   interface TierKnobMap { 'far.meadowBlades': number }
+}
+// the slot merges into its defining module, as src/game/equipmentTypes.ts does: a merge through the #engine re-export
+// depends on file order (E405: tsc -p scripts lost it)
+declare module '#engine/combat/Equipment' {
+  interface EquipmentSlotMap { 'far-fan': true }
 }
 
 /** The touch icons (council R1B-11: every primary and verb carries one): an open fan for SWING (the attack disc's own

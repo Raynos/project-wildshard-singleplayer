@@ -150,9 +150,14 @@ the template's `plugin.ts`:
 declare module '#engine' {
   interface TierKnobMap { 'template.propCount': number }
   interface ActionMap { 'template.lantern.toggle': true }
+}
+declare module '#engine/combat/Equipment' {
   interface EquipmentSlotMap { 'template-whip': true }
 }
 ```
+
+`EquipmentSlotMap` merges into its defining module, `#engine/combat/Equipment`. A merge through the `#engine` re-export
+depends on the order TypeScript reads files, and one program (`tsc -p scripts`) lost it (E405).
 
 Use them through the scoped verbs:
 
