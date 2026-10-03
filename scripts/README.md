@@ -233,3 +233,4 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [steam-trailer/](./steam-trailer/)
 - [trailer/](./trailer/)
 - [types/](./types/)
+- [worldclaw/](./worldclaw/)
