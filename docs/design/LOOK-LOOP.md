@@ -303,6 +303,35 @@ can bring every region's ΔE00 down on a frame that still looks empty (Driftwood
 - If geometry moved: `physics-baseline.mjs --mode=walk` (and `--trails`) must show 0 stuck, and re-bake the navmesh.
 - A lab page reports ms/frame at 1206×2622 and draws (`__nd.bench`).
 
+## Two kinds of round, alternating (Jake, 2026-10-03, E409)
+
+A look loop alternates two phases. Neither works alone. Detail rounds alone plateau: Signal Dunes and Sky Reach went
++0.5 a round early, then +0.1, then flat, with the same coefficients flipping back and forth. Zoom-out plans alone
+leave regressions and rough edges that only a close review catches. (In E407's first top-10 batch, a crest was built
+along the key light, and a glove read as a mitten.)
+
+1. **Detail phase: the review rounds.** Each round: capture → council or gap list → the builder fixes the ranked
+   findings → re-capture. This is how the first rounds of a loop run, and how a zoom-out batch gets cleaned up.
+2. **Zoom-out phase: the top-10.** The lead stops scoring details and audits from first principles. Put every mockup
+   beside its game frame and ask why the game is behind: form, assets, composition, depth and the viewmodel, not
+   coefficients. Then write `docs/plans/<SHARD>-TOP10[-<n>].md`: the ten biggest levers, ranked by the frame area and
+   the number of views they move. Each lever is global and one world, and assets go through `mockup-to-model`. The
+   builder works its rows *instead of* the reviewers' small fixes. The council still scores each batch.
+
+**When to switch** (the rule, so nobody has to decide it again):
+
+- **Detail → zoom-out** when the detail phase plateaus: two rounds in a row with a mean gain under +0.15, or any
+  round that regresses. Also after **three detail rounds in a row**, whichever comes first.
+- **Zoom-out → detail** when the top-10's first batch has landed: its rows 1–4, or every row the lead marked
+  first-batch. The next detail rounds clean up that batch's regressions and claims, then the clock above restarts.
+- **Every zoom-out writes a new top-10** from fresh eyes on the latest frames, never a re-run of the last one. Rows
+  still open in the previous plan carry over only if they still rank.
+- The phase in force goes on the plan's State line and in the council's scores file, so the builders know which kind
+  of work the next round wants.
+
+Precedent: E399's council ran detail rounds 1–12 (4.7 → 6.7). E407's first top-10 followed. Its first batch moved Sky
+Reach +0.13 in one round (6.70 → 6.83), the biggest step since round 4.
+
 ## The loop and when to stop
 
 - Re-shoot the same `cameras.json` after each round of fixes. Refit the LUT, re-run palette-delta, and rebuild the board
