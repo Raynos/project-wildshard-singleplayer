@@ -1,6 +1,6 @@
 # SKY-REACH — shard 6's full content (E374)
 
-**State:** `blocked` 2026-10-03 — built, and it **passed the mockup council at 7.00** (round 14: 7.0 / 7.2 / 6.8, `d7f4278a7`, Jake's 7.0 bar); SKY-REACH-TOP10 is archived and its leftovers are open in E410 (row 6 windmill set, row 9 light, row 10's keeper set, the seats' leftovers). The one row left is P6: Jake plays it on his iPhone and signs off (boards in `art/far-reach/round-1[2-5]-*`); then this plan archives.
+**State:** `blocked` 2026-10-03 — built, and it **passed the mockup council at 7.00** (round 14: 7.0 / 7.2 / 6.8, `d7f4278a7`, Jake's 7.0 bar); SKY-REACH-TOP10 is archived and its leftovers are built (E410 done: final capture `progress/far-reach/20261003-0952-6066f959`). The one row left is P6: Jake plays it on his iPhone and signs off (boards in `art/far-reach/round-1[2-5]-*`); then this plan archives.
 
 Shard 6, slug `far-reach`, Jake's pick **B · Sky Reach** (E364): floating islands above the clouds at golden hour, a
 war fan (SWING slashes, GUST blows creatures back and off edges), a flying manta; Jake's rule: **some bridges are
