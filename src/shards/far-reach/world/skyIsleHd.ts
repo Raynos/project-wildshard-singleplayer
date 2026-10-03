@@ -1,6 +1,7 @@
 import { Box3, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
 import type { SkyHdName } from '../boot/files';
 import type { Isle } from '../layout';
+import { PATCH_ORDER, patchShader } from '#engine';
 import { hdMaterial, skyHd } from './meshes';
 import type { SkyIsle } from './skyIsles';
 
@@ -100,6 +101,15 @@ export function skyIsleModels(isles: readonly SkyIsle[]): SkyIsleHd {
     const u = units.get(name); if (u === undefined) continue;
     const material: MeshStandardMaterial = hdMaterial(u.map);
     material.color.setScalar(SKY_ISLE_HD.tint); material.emissiveMap = u.map; material.emissive.setScalar(1); material.emissiveIntensity = SKY_ISLE_HD.selfLight;
+    // the rock grey-brown, the turf kept green (E399: from below the paint read olive-yellow; the mockups' undersides are
+    // sandy-grey stone with darker crevices)
+    patchShader(material, 'far.sky-isle-rock', PATCH_ORDER.decorate, (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
+    float turf = smoothstep(0.02, 0.12, c.g - max(c.r, c.b) * 0.92);
+    vec3 stone = vec3(l) * vec3(1.02, 0.96, 0.88) * (0.75 + 0.35 * smoothstep(0.15, 0.6, l));
+    diffuseColor.rgb = mix(stone, c * vec3(0.82, 0.95, 0.72), turf); }`);
+    }, { key: (prior) => `${prior}|far.sky-isle-rock` });
     const mesh = new InstancedMesh(u.geometry, material, list.length); mesh.name = `far.sky-isles.${name}`;
     list.forEach((s, k) => {
       const yaw = WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi, Math.max(lo, s.keel / (s.r * u.depth)));
