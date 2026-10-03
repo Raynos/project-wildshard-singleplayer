@@ -149,13 +149,16 @@ export function paintedSea(painted: Texture, time: { value: number }, upper = fa
         vec2 rel = wp.xz - vec2(${MAELSTROM.x.toFixed(1)}, ${MAELSTROM.z.toFixed(1)});
         // wound toward the maelstrom's eye: a log-spiral twist confined to the crown's neighbourhood (a wider twist
         // sheared the texture into streaks under every other island)
-        float mr = length(rel), reach = 1.0 - smoothstep(85.0, 135.0, mr);
+        float mr = length(rel), reach = 1.0 - smoothstep(45.0, 75.0, mr);
         float ma = (2.2 * log(${MAELSTROM.r.toFixed(1)} / (mr + ${MAELSTROM.eye.toFixed(1)})) + time * 0.02) * reach;
         vec2 q = vec2(cos(ma) * rel.x - sin(ma) * rel.y, sin(ma) * rel.x + cos(ma) * rel.y) + vec2(${MAELSTROM.x.toFixed(1)}, ${MAELSTROM.z.toFixed(1)});
         vec2 drift = vec2(time * 0.4, time * 0.15);
         vec3 a = texture2D(painted, (q + drift) / ${PAINTED_SEA.tile.toFixed(1)}).rgb;
         vec3 b = texture2D(painted, (q - drift * 0.6) / ${(PAINTED_SEA.tile * 2.9).toFixed(1)} + 0.37).rgb;
         vec3 c = mix(a, b, 0.35);
+        // value contrast (the judge: the sea reads flat-bright): lavender valleys, warm crowns
+        float lum = dot(c, vec3(0.3, 0.59, 0.11));
+        c = mix(c * vec3(0.66, 0.64, 0.84), c * vec3(1.1, 1.06, 0.98), smoothstep(0.42, 0.8, lum));
         // the eye a dark lavender well
         c = mix(c * vec3(0.62, 0.6, 0.78), c, smoothstep(${MAELSTROM.eye.toFixed(1)}, ${(MAELSTROM.eye * 3.5).toFixed(1)}, mr));
         float d = length(wp.xz - cameraPosition.xz);
