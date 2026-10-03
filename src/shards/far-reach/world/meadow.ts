@@ -114,7 +114,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
   }
   g.setAttribute('aTile', new InstancedBufferAttribute(tiles, 3)); g.instanceCount = count;
 
-  const isleU = isles.map((isle) => new Vector4(isle.x, isle.z, apothem(isle) * 0.97, isle.y));
+  const isleU = isles.map((isle) => new Vector4(isle.x, isle.z, apothem(isle), isle.y));
   const holes = [...meadowHoles(), ...rocks.map(([x, z, r]) => new Vector4(x, z, r, 1))], paths = meadowPaths(isles);
   const uniforms = {
     uOrigin: { value: new Vector2() }, uCam: { value: new Vector3() }, uTime: { value: 0 }, uSun: { value: sunDir },
@@ -151,9 +151,10 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         if (dist > (layer > 0.5 ? NEAR : RANGE) || probe.w < -1.0 || abs(probe.x) > probe.w + 3.0) { cull(); return; }
         float y = -1.0e4, rim = 1.0, tall = 1.0, keep = 1.0;
         for (int i = 0; i < NI; i++) { vec4 s = uIsles[i]; float d = distance(p, s.xy);
-          // a ragged edge: the meadow stops a little short of the rim, by noise (E392 foreground: close enough that no bare
-          // band shows between the blades and the grassy lip)
-          float edge = s.z * (0.99 + 0.03 * mn(p * 0.6));
+          // a ragged edge just short of the rim, by noise (E392 foreground: close enough that no bare band shows between the
+          // blades and the grassy lip). The rim is the 12-gon's (layout rimAlong: a vertex every 30 deg from +x), not a circle:
+          // round the apothem the corners stayed bare, a band C's camera saw 4-5 m ahead as a smooth olive dome (round 6)
+          float edge = s.z / cos(mod(atan(p.y - s.y, p.x - s.x), 0.5236) - 0.2618) * (0.975 + 0.02 * mn(p * 0.6));
           // an island's trodden arena (the crown) is trodden only in its middle: the outer ring stays a full meadow
           if (d < edge) { y = s.w; rim = d / edge; float wild = smoothstep(0.55, 0.8, rim); tall = mix(uIsleGrass[i], 1.0, wild); keep = mix(uIsleKeep[i], 1.0, wild); } }
         // the grassy rises (layout KNOLLS)

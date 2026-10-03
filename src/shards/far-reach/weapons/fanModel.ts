@@ -1,5 +1,6 @@
 import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, ExtrudeGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Shape, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { PATCH_ORDER, patchShader } from '#engine';
 import { gloveHand, heroHand } from './glove';
 
 /**
@@ -12,6 +13,8 @@ import { gloveHand, heroHand } from './glove';
  * −Y into the fist.
  */
 export const FAN = { panels: 9, reach: 0.31, spread: Math.PI * 0.68, grip: 0.07, leaf: 0.42 } as const;
+/** The silk's grade: how much of the paint's saturation stays, the lift after it and a tint toward blue (measured against the mockups' leaf, where blue >= green). */
+export const SILK = { saturation: 0.8, lift: 2.6, tint: [0.94, 1.0, 1.16] } as const;
 
 /**
  * The leaf (loop 4): each panel is a real pleat, two strips meeting at a raised crease, mapped polar onto the painted silk
@@ -73,7 +76,9 @@ function stick(a: number, stations: readonly Station[], z0: number, z1: number, 
 export function fanSticks(): BufferGeometry {
   const pos: number[] = [], col: number[] = [], from = -FAN.spread / 2, step = FAN.spread / FAN.panels;
   // a brown wood, not near-black (the seats read the rim-lit black lacquer as red ribs; the mockups' are slim brown wood)
-  const root = new Color(0x2a2018), wood = new Color(0x4a3a2a), grain = new Color(0x5c4834), tip = new Color(0x8a6a3a);
+  // E399 round 6 (the seats: 'flat matte brown sticks', read red-brown under the warm rim): mockup C's sticks are a dark,
+  // cool lacquered wood with lighter edges
+  const root = new Color(0x1c1814), wood = new Color(0x302a24), grain = new Color(0x463e34), tip = new Color(0x7a6644);
   for (let i = 0; i <= FAN.panels; i++) {
     const a = from + i * step, guard = i === 0 || i === FAN.panels;
     if (guard) {
@@ -107,21 +112,38 @@ export function fanParts(): FanParts {
   const group = new Group(), fan = new Group();
   // untextured (the Model Explorer, before the leaf loads) the silk is a muted teal; `setLeaf` paints it
   const silk = new MeshStandardMaterial({ vertexColors: true, color: 0x2f7c7a, roughness: 0.8, metalness: 0, side: 2, emissive: 0x041212 });
+  // the painted silk toward the mockups' muted, lighter teal (E399 round 6, measured in the leaf region: mockup C's median
+  // 47,91,97 and A's 55,71,77 against ours 2,48,49, its red channel at 0-2): part-way to grey, then lifted
+  patchShader(silk, 'far.fan-silk', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), diffuseColor.rgb, ${SILK.saturation.toFixed(2)}) * ${SILK.lift.toFixed(2)} * vec3(${SILK.tint.map((v) => v.toFixed(2)).join(', ')});`);
+  }, { key: (prior) => `${prior}|far.fan-silk` });
   const lacquer = new MeshStandardMaterial({ vertexColors: true, roughness: 0.5, metalness: 0.1, side: 2 });
   const bronze = new MeshStandardMaterial({ color: 0x7a5c32, roughness: 0.42, metalness: 0.55, emissive: 0x0a0602 });
   const wrap = new MeshStandardMaterial({ color: 0x2c1c14, roughness: 0.85, metalness: 0 });
   const red = new MeshStandardMaterial({ color: 0xa8201a, roughness: 0.75, metalness: 0, emissive: 0x1e0403 });
   fan.add(new Mesh(fanPanels(), silk), new Mesh(fanSticks(), lacquer));
-  // the guards' bronze: an ornate plate at each end and where the leaf starts, studs between
-  const from = -FAN.spread / 2, plates: BufferGeometry[] = [];
+  // the guards' metal (E399 round 6, mockup C: 'riveted metal guards with engraved end caps', every seat since round 3):
+  // each guard sheathed in a dark iron strap from the grip to past the leaf, riveted along its length, an engraved bronze
+  // cap at its tip and a smaller one at its root; a bronze stud on every stick where the leaf starts
+  const from = -FAN.spread / 2, plates: BufferGeometry[] = [], straps: BufferGeometry[] = [];
+  const along = (a: number, r: number, z: number): [number, number, number] => [Math.sin(a) * r * FAN.reach, Math.cos(a) * r * FAN.reach, z];
   for (const a of [from, -from]) {
-    for (const [r, l, w] of [[0.78, 0.095, 0.03], [0.05, 0.05, 0.022]] as const) {
-      const p = guardPlate(l, w); p.rotateZ(-a); p.translate(Math.sin(a) * r * FAN.reach, Math.cos(a) * r * FAN.reach, 0.015); plates.push(p);
+    for (const [r, l, w] of [[0.84, 0.13, 0.044], [0.05, 0.05, 0.026]] as const) {
+      const p = guardPlate(l, w); p.rotateZ(-a); p.translate(...along(a, r, 0.017)); plates.push(p);
     }
-    for (const r of [0.3, FAN.leaf + 0.04, 0.6]) {
-      const stud = new SphereGeometry(0.0042, 6, 5); stud.scale(1, 1, 0.6); stud.translate(Math.sin(a) * r * FAN.reach, Math.cos(a) * r * FAN.reach, 0.017); plates.push(stud);
+    const strap = new CylinderGeometry(0.0155, 0.0155, (0.86 - 0.18) * FAN.reach, 4, 1); strap.scale(1, 1, 0.22); strap.rotateY(Math.PI / 4);
+    strap.translate(0, (0.18 + 0.86) / 2 * FAN.reach, 0.016); strap.rotateZ(-a); straps.push(strap.toNonIndexed());
+    for (let r = 0.22; r < 0.84; r += 0.09) {
+      const stud = new SphereGeometry(0.0034, 6, 4); stud.scale(1, 1, 0.6); stud.translate(...along(a, r, 0.0195)); plates.push(stud);
     }
   }
+  for (let i = 1; i < FAN.panels; i++) {
+    const a = from + i * (FAN.spread / FAN.panels), stud = new SphereGeometry(0.0036, 6, 4); stud.scale(1, 1, 0.55); stud.translate(...along(a, FAN.leaf + 0.03, 0.012)); plates.push(stud);
+  }
+  const iron = new MeshStandardMaterial({ color: 0x34302c, roughness: 0.45, metalness: 0.7, emissive: 0x050403 });
+  fan.add(new Mesh(mergeGeometries(straps), iron));
+  for (const g of straps) g.dispose();
   // the gilt rim along the leaf's outer edge (mockup C's lit edge)
   const rim: Vector3[] = [];
   for (let i = 0; i <= 24; i++) { const a = from + (i / 24) * FAN.spread; rim.push(new Vector3(Math.sin(a) * FAN.reach, Math.cos(a) * FAN.reach, 0.004)); }
