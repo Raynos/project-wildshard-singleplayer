@@ -90,7 +90,7 @@ float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 5.0 + 1.7) - 1.0
   // code-built plaited coil (weapons/whipModel.ts plaitedCoil) runs through the fist in their place
   if (vGloveP.x < -0.45 || (vGloveP.y > 0.55 && vGloveP.x < 0.2) || (vGloveP.y < -0.25 && vGloveP.x < 0.15)) discard;
   // round 8 (mockup D: a warm mid-brown, ours read grey): more of the paint's own hue, warmer, darker in the creases
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.45) * vec3(1.18, 0.93, 0.76) * 1.3 * (0.8 + 0.3 * gloveCrinkle(vGloveP));
+  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.45) * vec3(1.18, 0.93, 0.76) * 1.3 * (0.62 + 0.7 * gloveCrinkle(vGloveP)); // round 10 (R9B-4: the creases did not register, glove fine 3.2 against 7.7): worn ridges lighter, folds darker
   {
     vec3 gp = vGloveP; float whip = 0.0;
     // the gauntlet's stitching (council rounds 3-5: no seams read on the generated glove): two dashed seams along the back of
@@ -112,7 +112,7 @@ float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 5.0 + 1.7) - 1.0
       .replace('#include <normal_fragment_maps>', ramp ? '#include <normal_fragment_maps>' : `#include <normal_fragment_maps>
   {
     // the crinkle as a bump (derivative bump mapping, three's perturbNormalArb): creases the key and the viewer light pick out
-    float gh = gloveCrinkle(vGloveP) * 0.0055;
+    float gh = gloveCrinkle(vGloveP) * 0.009;
     vec2 dH = vec2(dFdx(gh), dFdy(gh));
     vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx);
     float det = dot(sx, r1);

@@ -4,7 +4,7 @@ import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
 // round 9 (seat C: A, B and C hold big rings rising from the bottom edge, dusk-fire one low loose loop, only D a raised
 // fist): the one idle hold lower, toward the four
-export const HD_GLOVE = { size: 0.3, pos: [0.06, -0.3, 0] as [number, number, number], rot: [-0.45, 0, 0.3] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
+export const HD_GLOVE = { size: 0.3, pos: [0.06, -0.27, 0] as [number, number, number], rot: [-0.45, 0, 0.3] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
 // rising from the bottom edge, dusk-fire one low loose loop, only D a raised fist): the one idle hold lower, toward the four // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
@@ -109,8 +109,8 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
     // sRGB leather: near-black creases, a dark brown strand, a warmer worn crown
     const k = Math.min(1, Math.max(0, c)), base = 0.55 + 0.45 * k, w = 0.85 + 0.3 * t;
     // round 10 (R9B-4: the crowns' sheen read 51 against the mockup's 103): a lighter copper-brown crown for the light to catch
-    map[i * 4] = Math.round(Math.min(255, (14 + 140 * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (9 + 88 * base * k) * w));
-    map[i * 4 + 2] = Math.round(Math.min(255, (7 + 56 * base * k) * w)); map[i * 4 + 3] = 255;
+    map[i * 4] = Math.round(Math.min(255, (13 + 118 * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (8 + 72 * base * k) * w));
+    map[i * 4 + 2] = Math.round(Math.min(255, (7 + 48 * base * k) * w)); map[i * 4 + 3] = 255;
     const s = 4.0, nx = -dx * s, ny = -dy * s, l = Math.hypot(nx, ny, 1);
     nor[i * 4] = Math.round(255 * (0.5 + 0.5 * nx / l)); nor[i * 4 + 1] = Math.round(255 * (0.5 + 0.5 * ny / l)); nor[i * 4 + 2] = Math.round(255 * (0.5 + 0.5 / l)); nor[i * 4 + 3] = 255;
     rough[i * 4 + 1] = Math.round(255 * (0.92 - 0.68 * k * k)); rough[i * 4 + 3] = 255; // round 9: a sheen on each crown (strand p99 56 against the mockup's ~140)
