@@ -12,6 +12,19 @@ export function ropeSag(length: number, s: number): number {
   const t = Math.min(1, Math.max(0, (s - ROPE_SAG.ends) / run));
   return Math.min(ROPE_SAG.max, ROPE_SAG.depth * length) * Math.sin(Math.PI * t);
 }
+/**
+ * The grassy rise at the spawn bridge head (E399, proposal B; world/knoll.ts): a convex cap `h` metres high over a
+ * `base` radius on Sunrest, right of the rope bridge's landing, clear of its lane. Steepest at its foot: asin(base/R), 37 deg.
+ */
+export const KNOLL = { x: 5, z: -11, base: 4, h: 1.4 } as const;
+const KNOLL_R = (KNOLL.base * KNOLL.base + KNOLL.h * KNOLL.h) / (2 * KNOLL.h);
+/** The knoll's height above Sunrest's deck at a world point (0 off it). */
+export function knollHeight(x: number, z: number): number {
+  const d = Math.hypot(x - KNOLL.x, z - KNOLL.z); if (d >= KNOLL.base) return 0;
+  return Math.sqrt(KNOLL_R * KNOLL_R - d * d) - (KNOLL_R - KNOLL.h);
+}
+/** The knoll as GLSL: `farKnoll(p)` is its height at a world xz. */
+export const KNOLL_GLSL = `float farKnoll(vec2 p){ float d = distance(p, vec2(${KNOLL.x.toFixed(2)}, ${KNOLL.z.toFixed(2)})); return d >= ${KNOLL.base.toFixed(2)} ? 0.0 : sqrt(${(KNOLL_R * KNOLL_R).toFixed(4)} - d * d) - ${(KNOLL_R - KNOLL.h).toFixed(4)}; }`;
 /** The high islands: the step above the windmill and the storm crown. */
 export const HIGH = 44;
 /** How far a hover deck's collider starts clear of an island rim (Jake: a hover deck never touches a rim). */

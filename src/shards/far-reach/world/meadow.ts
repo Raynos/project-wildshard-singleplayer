@@ -1,5 +1,5 @@
 import { BufferAttribute, Color, DoubleSide, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, ShaderMaterial, Vector2, Vector3, Vector4 } from 'three';
-import { DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle } from '../layout';
+import { DAIS, FALLEN_BRIDGE, ISLES, KNOLL_GLSL, MILL, NOTES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle } from '../layout';
 import { KEEPER_AT, KEEPER_STAND } from '../quest/keeper';
 import { crownStones } from './crown';
 import { NEST, SPIRES, spireAt } from './roost';
@@ -127,6 +127,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
       attribute vec3 aRoot; attribute vec2 aShape; attribute vec3 aTile;
       varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross;
       ${MEADOW_GLSL}
+      ${KNOLL_GLSL}
       void cull(){ gl_Position = vec4(0.0, 0.0, 2.0, 1.0); vH = 0.0; vTone = 0.0; vWorld = vec3(0.0); vShade = 0.0; vFlower = 0.0; vPetal = vec2(0.0); vAcross = 0.0; }
       void main(){
         // a layer above 0 is the same tile's blades shuffled (offset, mirrored), so the near field thickens without a seam
@@ -149,6 +150,8 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           float edge = s.z * (0.925 + 0.05 * mn(p * 0.6));
           // an island's trodden arena (the crown) is trodden only in its middle: the outer ring stays a full meadow
           if (d < edge) { y = s.w; rim = d / edge; float wild = smoothstep(0.55, 0.8, rim); tall = mix(uIsleGrass[i], 1.0, wild); keep = mix(uIsleKeep[i], 1.0, wild); } }
+        // the grassy rise at the spawn bridge head (layout KNOLL)
+        if (y > -1.0e3) y += farKnoll(p);
         float clear = 1.0, worn = 1.0;
         for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; float o = smoothstep(h.z, h.z + 0.6, distance(p, h.xy)); clear = min(clear, h.w > 0.5 ? mix(0.3, 1.0, o) : o); }
         // a worn path keeps a short, thin sward (E392 foreground: a cleared path showed the bare ground as a grey band)

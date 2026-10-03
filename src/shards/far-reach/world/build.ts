@@ -1,7 +1,7 @@
 import { boxDesc, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
+import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, KNOLL, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
@@ -10,6 +10,7 @@ import { roost } from './roost';
 import { firSheet, firs } from './fir';
 import { SKY_ISLES } from './skyIsles';
 import { skyIsleModels } from './skyIsleHd';
+import { knollHull, knollMesh } from './knoll';
 import { winchHouse } from './winchHouse';
 import { skyline } from './distant';
 import { PALETTE, flat, pines, plankBridge, vane, windmill, winch } from './shapes';
@@ -111,6 +112,10 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
     const mesh = islandMesh(isle, rnd); mesh.position.set(isle.x, isle.y, isle.z); root.add(mesh);
     ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: mesh, colliders: islandColliders(isle), surface: 'grass' });
   }
+  // the grassy rise at the spawn bridge head (E399, proposal B), walkable on its convex hull
+  const knoll = knollMesh(); root.add(knoll);
+  ctx.piece({ id: 'far.sunrest.knoll', name: STRINGS.sunrest, category: 'ground', file: FILE, object: knoll,
+    colliders: [{ kind: 'hull', x: KNOLL.x, y: SUNREST.y, z: KNOLL.z, points: knollHull(), surface: 'grass' }], surface: 'grass' });
   const pineAt: [number, number, number, number][] = [];
   for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
   // the sky around the archipelago (E392): decorative isles from the same builder, their own seeded stream
