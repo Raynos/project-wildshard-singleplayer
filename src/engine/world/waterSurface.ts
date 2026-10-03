@@ -31,8 +31,11 @@ import type { TreeInstance } from './forest/placement';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { waterView } from './water/view';
 
-/** the skyline texture's encoding: R = occluder top above the water (/ SKY_TOP m), G = its distance (/ SKY_DIST m) */
-const SKY_TOP = 80, SKY_DIST = 400, SKY_BINS = 512;
+/** the skyline texture's encoding: R = occluder top above the water (/ SKY_TOP m), G = its distance (/ SKY_DIST m),
+ *  B = the bank's albedo where the occluder is the ground (/ BANK_MAX; 0 = a tree crown, drawn with the forest's albedo) */
+const SKY_TOP = 80, SKY_DIST = 400, SKY_BINS = 512, BANK_MAX = 0.5;
+/** the shore's albedo in the reflection where the ground is the occluder: a bank's earth, a cliff's rock (E401) */
+const BANK_EARTH = 0.12, BANK_ROCK = 0.3;
 
 export interface WaterMaterialOptions {
   /** the pond's skyline probe (null: running water, the elevation cutoff instead) */
@@ -58,9 +61,11 @@ const FRAG_PARS = /* glsl */`
   uniform sampler2D uSkyline; uniform vec4 uSkyC; uniform float uForestSinEl; uniform vec3 uForestAlbedo;
   uniform vec3 uShallow; uniform vec3 uDeep; uniform float uRainRings; uniform float uFade; uniform float uTopDown;
   varying vec4 vWaterA; varying vec3 vWaterW; varying float vGust;
-  vec2 waterSkyAt( vec2 p ) {
+  /** the occluder's albedo where the reflected ray meets the shore (waterOcclusion sets it): the trees', or the bank's */
+  vec3 waterShoreAlb = vec3( 0.0 );
+  vec3 waterSkyAt( vec2 p ) {
     float az = atan( p.y, p.x ) * 0.1591549 + 0.5;
-    return texture2D( uSkyline, vec2( az, 0.5 ) ).rg * vec2( ${SKY_TOP.toFixed(1)}, ${SKY_DIST.toFixed(1)} );
+    return texture2D( uSkyline, vec2( az, 0.5 ) ).rgb * vec3( ${SKY_TOP.toFixed(1)}, ${SKY_DIST.toFixed(1)}, ${BANK_MAX.toFixed(2)} );
   }
   /** 0 = the reflected ray sees the sky, 1 = it hits the shore's trees / the Ridge / the gully's banks */
   float waterOcclusion( vec3 P, vec3 R ) {
@@ -68,7 +73,7 @@ const FRAG_PARS = /* glsl */`
     if ( uSkyC.w > 0.5 ) {
       vec2 o = P.xz - uSkyC.xy;
       vec2 d = horiz > 1e-4 ? R.xz / horiz : vec2( 1.0, 0.0 );
-      vec2 s = waterSkyAt( d );
+      vec3 s = waterSkyAt( d );
       float t = 0.0;
       for ( int i = 0; i < 2; i ++ ) {
         float b = dot( o, d ), c = dot( o, o ) - s.y * s.y;
@@ -77,8 +82,12 @@ const FRAG_PARS = /* glsl */`
         s = waterSkyAt( dot( hit, hit ) > 1e-6 ? hit : d );
       }
       float yAt = ( P.y - uSkyC.z ) + R.y / max( horiz, 1e-3 ) * t;
+      // the Ridge's rock and the banks' earth mirror at their own brightness, not the pines' (E401: the grey cliff came
+      // back near-black in the pond from low angles); the bins' linear filter blends the two at a crown's edge
+      waterShoreAlb = max( uForestAlbedo, vec3( 1.0, 0.95, 0.88 ) * s.z );
       return smoothstep( s.x + 1.6, s.x - 1.2, yAt );
     }
+    waterShoreAlb = uForestAlbedo;
     return smoothstep( uForestSinEl + 0.07, uForestSinEl - 0.07, R.y );
   }
   float waterFoamMask = 0.0;
@@ -150,9 +159,9 @@ const SKYLINE_GLSL = /* glsl */`
     // the trees facing the water: lit by the same sky (irradiance from over the pond) and the sun on their crowns
     vec3 nTw = normalize( vec3( - Rw.x, 0.35, - Rw.z ) );
     vec3 nTv = normalize( ( viewMatrix * vec4( nTw, 0.0 ) ).xyz );
-    vec3 forest = uForestAlbedo * getIBLIrradiance( nTv ) * RECIPROCAL_PI;
+    vec3 forest = waterShoreAlb * getIBLIrradiance( nTv ) * RECIPROCAL_PI;
     #if NUM_DIR_LIGHTS > 0
-      forest += uForestAlbedo * RECIPROCAL_PI * directionalLights[ 0 ].color * max( dot( nTv, directionalLights[ 0 ].direction ), 0.0 ) * 0.6;
+      forest += waterShoreAlb * RECIPROCAL_PI * directionalLights[ 0 ].color * max( dot( nTv, directionalLights[ 0 ].direction ), 0.0 ) * 0.6;
     #endif
     radiance = mix( radiance, forest, occ );
   }
@@ -299,19 +308,26 @@ function blankTexture(): THREE.DataTexture {
 /**
  * The pond's skyline probe: per azimuth round (cx, cz), the tallest thing on the horizon seen from the centre — each
  * pine's crown as a cone (its top `height` over its foot, ~0.2 × height wide), the terrain (the Ridge) — kept as (its top
- * above the water, its distance). 512 bins, RG8, linear, wrapping round the circle.
+ * above the water, its distance, and for the terrain its albedo: earth on a bank, rock where the face below it is steep,
+ * E401). 512 bins, RGB8, linear, wrapping round the circle.
  */
 export function buildSkyline(cx: number, cz: number, level: number, trees: readonly TreeInstance[], heightAt: (x: number, z: number) => number): THREE.DataTexture {
   const el = new Float32Array(SKY_BINS).fill(-1), top = new Float32Array(SKY_BINS), dist = new Float32Array(SKY_BINS).fill(60);
-  const put = (bin: number, h: number, d: number): void => {
+  const alb = new Float32Array(SKY_BINS); // −1 = a tree crown, until the pass below
+  const put = (bin: number, h: number, d: number, albedo: number): void => {
     const k = ((bin % SKY_BINS) + SKY_BINS) % SKY_BINS, e = Math.atan2(h, d);
-    if (e > (el[k] ?? -1)) { el[k] = e; top[k] = h; dist[k] = d; }
+    if (e > (el[k] ?? -1)) { el[k] = e; top[k] = h; dist[k] = d; alb[k] = albedo; }
   };
-  // the terrain: march out along each bin's azimuth
+  // the terrain: march out along each bin's azimuth; its albedo from the slope of the 6 m below the top (a cliff's face is
+  // grey rock, a grassy bank darker earth)
   for (let k = 0; k < SKY_BINS; k++) {
     const a = ((k + 0.5) / SKY_BINS - 0.5) * Math.PI * 2, dx = Math.cos(a), dz = Math.sin(a);
-    for (let d = 20; d < 380; d += d < 80 ? 1.5 : 4) put(k, heightAt(cx + dx * d, cz + dz * d) - level, d);
+    for (let d = 20; d < 380; d += d < 80 ? 1.5 : 4) {
+      const h = heightAt(cx + dx * d, cz + dz * d), slope = (h - heightAt(cx + dx * (d - 6), cz + dz * (d - 6))) / 6;
+      put(k, h - level, d, BANK_EARTH + (BANK_ROCK - BANK_EARTH) * THREE.MathUtils.smoothstep(slope, 0.5, 1.2));
+    }
   }
+  const groundTop = top.slice(), groundAlb = alb.slice();
   // the pines: a cone per crown over the bins it covers
   for (const t of trees) {
     const dx = t.x - cx, dz = t.z - cz, d = Math.hypot(dx, dz);
@@ -323,13 +339,26 @@ export function buildSkyline(cx: number, cz: number, level: number, trees: reado
       const ak = ((k + 0.5) / SKY_BINS - 0.5) * Math.PI * 2;
       let da = Math.abs(ak - a0); if (da > Math.PI) da = Math.PI * 2 - da;
       const off = Math.min(1, (Math.tan(da) * d) / crownR); // 0 on the trunk's line → 1 at the crown's edge
-      put(k, tip - off * t.height * 0.55, d);
+      put(k, tip - off * t.height * 0.55, d, -1);
     }
+  }
+  // a bin a crown tops keeps its ground's albedo over the share of the mirrored column the ground fills (a pine on the
+  // cliff's lip darkens only its top), and the albedo is smoothed over ±2 bins so the rock doesn't mirror in stripes
+  const mixed = new Float32Array(SKY_BINS);
+  for (let k = 0; k < SKY_BINS; k++) {
+    const a = alb[k] ?? 0, h = top[k] ?? 0;
+    mixed[k] = a >= 0 ? a : (groundAlb[k] ?? 0) * Math.min(1, Math.max(0, (groundTop[k] ?? 0) / Math.max(h, 1e-3)));
+  }
+  for (let k = 0; k < SKY_BINS; k++) {
+    let sum = 0;
+    for (let j = -2; j <= 2; j++) sum += mixed[(k + j + SKY_BINS) % SKY_BINS] ?? 0;
+    alb[k] = sum / 5;
   }
   const data = new Uint8Array(SKY_BINS * 4);
   for (let k = 0; k < SKY_BINS; k++) {
     data[k * 4] = Math.round(Math.min(1, Math.max(0, (top[k] ?? 0) / SKY_TOP)) * 255);
     data[k * 4 + 1] = Math.round(Math.min(1, Math.max(0, (dist[k] ?? 0) / SKY_DIST)) * 255);
+    data[k * 4 + 2] = Math.round(Math.min(1, Math.max(0, (alb[k] ?? 0) / BANK_MAX)) * 255);
     data[k * 4 + 3] = 255;
   }
   const tex = new THREE.DataTexture(data, SKY_BINS, 1, THREE.RGBAFormat, THREE.UnsignedByteType);

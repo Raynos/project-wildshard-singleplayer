@@ -46,10 +46,14 @@ export const P: Record<'sunrise' | 'golden' | 'day' | 'sunset' | 'dusk' | 'night
     fogSun: c(1.0, 0.66, 0.42), fogDist: 0.00055, fogHeight: 0.009, vol: 0.55, volColor: c(1.0, 0.66, 0.4), rays: 0.85,
     glow: c(2.2, 1.15, 0.55), disc: c(1.0, 0.78, 0.55), halo: c(1.0, 0.72, 0.5), haloO: 0.95, cloudSun: c(1.0, 0.72, 0.52), cloudLit: c(0.95, 0.82, 0.78), cloudA: 0.8, far: c(0.5, 0.5, 0.6), lamps: 0.35, sat: 0.16,
   },
+  // E401: the key's photo (late afternoon, the sun 19° up) is brighter and bluer than the day key's, so at bg 1.3 the sky —
+  // half of every portrait frame — out-shone midday's and its IBL drowned the warm sun: golden read as noon everywhere but
+  // under the old-growth's canopy. The sky now sits below the day's, the fill is less blue and the sun, aureole, clouds and
+  // far haze carry the warmth.
   golden: {
-    key: 'golden', bg: 1.3, env: 1.05, light: c(1.0, 0.66, 0.36), lightI: 4.2, hemiSky: hex(0x9aa4c0), hemiGround: hex(0x5c3e20), hemiI: 0.4,
-    fogSun: c(1.0, 0.7, 0.4), fogDist: 0.00042, fogHeight: 0.005, vol: 0.66, volColor: c(1.0, 0.7, 0.4), rays: 1,
-    glow: c(2.2, 1.15, 0.5), disc: c(1.0, 0.88, 0.7), halo: c(1.0, 0.76, 0.5), haloO: 0.9, cloudSun: c(1.0, 0.72, 0.48), cloudLit: c(1.0, 0.92, 0.84), cloudA: 0.75, far: c(0.56, 0.58, 0.68), lamps: 0, sat: 0.24,
+    key: 'golden', bg: 0.85, env: 1.05, light: c(1.0, 0.62, 0.32), lightI: 4.6, hemiSky: hex(0x9c98a8), hemiGround: hex(0x5c3e20), hemiI: 0.34,
+    fogSun: c(1.0, 0.66, 0.36), fogDist: 0.0005, fogHeight: 0.005, vol: 0.72, volColor: c(1.0, 0.68, 0.38), rays: 1,
+    glow: c(2.8, 1.4, 0.55), disc: c(1.0, 0.86, 0.66), halo: c(1.0, 0.74, 0.46), haloO: 0.9, cloudSun: c(1.0, 0.66, 0.4), cloudLit: c(1.0, 0.84, 0.68), cloudA: 0.75, far: c(0.66, 0.6, 0.56), lamps: 0, sat: 0.24,
   },
   day: {
     key: 'day', bg: 1.8, env: 1.1, light: c(1.0, 0.96, 0.9), lightI: 4.4, hemiSky: hex(0xa0b8e0), hemiGround: hex(0x4d4232), hemiI: 0.5,
