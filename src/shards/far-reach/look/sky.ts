@@ -2,6 +2,7 @@ import { BackSide, ClampToEdgeWrapping, Color, DataTexture, LinearFilter, Mesh, 
 import { TIER } from '#engine';
 import { PANO_URL } from '../boot/files';
 import { loadPainted } from './image';
+import { SUN_DIR } from './sun';
 import { PANO_DEG_PER_V, PANO_FOG_SRGB, PANO_HORIZON_V, PANO_NADIR_SRGB, PANO_PAD_PX, PANO_ZENITH_SRGB } from './panoramaData';
 
 /**
@@ -16,6 +17,7 @@ import { PANO_DEG_PER_V, PANO_FOG_SRGB, PANO_HORIZON_V, PANO_NADIR_SRGB, PANO_PA
  */
 export const panoUrl = (): string => (TIER === 'phone' ? PANO_URL.phone : PANO_URL.desktop);
 
+const SUN_GLSL = `vec3(${SUN_DIR.x.toFixed(4)}, ${SUN_DIR.y.toFixed(4)}, ${SUN_DIR.z.toFixed(4)})`;
 const srgb = (r: number, g: number, b: number): string => { const c = new Color().setRGB(r, g, b, SRGBColorSpace); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; };
 
 export async function loadPanorama(): Promise<Texture> {
@@ -73,6 +75,16 @@ export function skyDome(pano: Texture, haze: Texture): Mesh<SphereGeometry, Shad
         float mag = max(0.0, min(c.r, c.b) - c.g);
         c.g += mag * 0.55; c.b -= mag * 0.25 * (1.0 - smoothstep(4.0, 30.0, elev));
         c = mix(c, c * vec3(0.92, 0.97, 1.08), smoothstep(14.0, 40.0, elev) * 0.6);
+        // round 7 (measured on the views' upper sky, x 0.25-0.75, y 0.1-0.35: proposal B chroma 84 vs the mockup's 25, B 61
+        // vs 40; C's higher sky cool, 44 vs 59): the band up to ~22 deg toward its own grey, the sky above it warmer
+        float farL = dot(c, vec3(0.2126, 0.7152, 0.0722));
+        c = mix(c, vec3(farL) * vec3(1.04, 1.0, 0.95), (1.0 - smoothstep(16.0, 26.0, elev)) * smoothstep(-2.0, 2.0, elev) * 0.22);
+        c = mix(c, c * vec3(1.1, 1.0, 0.88), smoothstep(22.0, 40.0, elev) * 0.5);
+        // the painted glow round the sun rolled off (round 7, seat B: D's middle band 13.6 % over 230 against the mockup's
+        // 5.2 %, the hot blob ~0.35 of the frame wide): the glow card (look/sunGlow.ts) carries the hot core
+        float farToSun = degrees(acos(clamp(dot(n, ${SUN_GLSL}), -1.0, 1.0)));
+        float farHot = smoothstep(0.55, 0.95, dot(c, vec3(0.2126, 0.7152, 0.0722)));
+        c *= 1.0 - 0.28 * farHot * exp(-pow(farToSun / 14.0, 2.0)) * smoothstep(1.2, 3.0, farToSun);
         c = mix(c, ${srgb(zr, zg, zb)}, smoothstep(0.05, -0.12, vTop));
         c = mix(c, ${srgb(nr, ng, nb)}, smoothstep(0.95, 1.1, vTop));
         gl_FragColor = vec4(c, 1.0);
