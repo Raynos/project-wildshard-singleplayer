@@ -90,7 +90,7 @@ float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 5.0 + 1.7) - 1.0
   // code-built plaited coil (weapons/whipModel.ts plaitedCoil) runs through the fist in their place
   if (vGloveP.x < -0.45 || (vGloveP.y > 0.55 && vGloveP.x < 0.2) || (vGloveP.y < -0.25 && vGloveP.x < 0.15)) discard;
   // round 8 (mockup D: a warm mid-brown, ours read grey): more of the paint's own hue, warmer, darker in the creases
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.45) * vec3(1.18, 0.93, 0.76) * 1.3 * (0.62 + 0.7 * gloveCrinkle(vGloveP)); // round 10 (R9B-4: the creases did not register, glove fine 3.2 against 7.7): worn ridges lighter, folds darker
+  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.35) * vec3(1.14, 0.94, 0.8) * 1.05 * (0.78 + 0.36 * gloveCrinkle(vGloveP)); // round 11 (round 10: the albedo creases read as white flecks) // round 10 (R9B-4: the creases did not register, glove fine 3.2 against 7.7): worn ridges lighter, folds darker
   {
     vec3 gp = vGloveP; float whip = 0.0;
     // the gauntlet's stitching (council rounds 3-5: no seams read on the generated glove): two dashed seams along the back of
@@ -105,7 +105,7 @@ float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 5.0 + 1.7) - 1.0
     float welt = (1.0 - smoothstep(0.015, 0.028, seamL)) * step(0.15, along) * step(along, 1.3) + (1.0 - smoothstep(0.012, 0.022, abs(along - 0.5)));
     diffuseColor.rgb *= 1.0 - 0.55 * clamp(welt, 0.0, 1.0) * (1.0 - whip);
     float thread = clamp((1.0 - smoothstep(0.008, 0.015, seamL)) * step(0.15, along) * step(along, 1.3) * dash + (1.0 - smoothstep(0.006, 0.012, abs(along - 0.5))) * dashR, 0.0, 1.0);
-    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.55 + vec3(0.02, 0.012, 0.008), thread * (1.0 - whip) * 0.8);
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.2 + vec3(0.008, 0.005, 0.003), thread * (1.0 - whip) * 0.8);
   }`)
       // a light from the viewer side, so the held glove reads as lit leather, never a cut-out against the dusk (mockup D: the lit
       // fist; the key is behind it now): faces lit, edges falling off, more as the dusk deepens
@@ -127,12 +127,14 @@ float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 5.0 + 1.7) - 1.0
  * The held leather's viewer-side light (the glove's, above) for a code-built part of the viewmodel: faces turned to the
  * eye lit, edges falling off, more as the dusk deepens, so the backlit fist and coil never read as a cut-out.
  */
-export function viewerLit(m: MeshStandardMaterial, gain: readonly [number, number, number]): void {
+export function viewerLit(m: MeshStandardMaterial, gain: readonly [number, number, number], sheen = 0): void {
   patchShader(m, 'sunscar.viewerLit', PATCH_ORDER.decorate, (shader) => {
     shader.uniforms['uDusk'] = DUSK;
     shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uDusk;')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  totalEmissiveRadiance += diffuseColor.rgb * vec3(${gain.map((g) => g.toFixed(3)).join(', ')}) * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
+  totalEmissiveRadiance += diffuseColor.rgb * vec3(${gain.map((g) => g.toFixed(3)).join(', ')}) * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);
+  // a glancing sheen where the surface (with its relief) turns from the eye: each plaited strand's edge catches it
+  totalEmissiveRadiance += vec3(0.9, 0.62, 0.4) * ${sheen.toFixed(3)} * pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 3.0) * (1.0 - roughnessFactor * 0.6);`);
   });
 }
 /**

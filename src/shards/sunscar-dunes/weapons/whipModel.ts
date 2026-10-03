@@ -109,8 +109,8 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
     // sRGB leather: near-black creases, a dark brown strand, a warmer worn crown
     const k = Math.min(1, Math.max(0, c)), base = 0.55 + 0.45 * k, w = 0.85 + 0.3 * t;
     // round 10 (R9B-4: the crowns' sheen read 51 against the mockup's 103): a lighter copper-brown crown for the light to catch
-    map[i * 4] = Math.round(Math.min(255, (13 + 118 * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (8 + 72 * base * k) * w));
-    map[i * 4 + 2] = Math.round(Math.min(255, (7 + 48 * base * k) * w)); map[i * 4 + 3] = 255;
+    map[i * 4] = Math.round(Math.min(255, (12 + 98 * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (8 + 58 * base * k) * w));
+    map[i * 4 + 2] = Math.round(Math.min(255, (7 + 38 * base * k) * w)); map[i * 4 + 3] = 255;
     const s = 4.0, nx = -dx * s, ny = -dy * s, l = Math.hypot(nx, ny, 1);
     nor[i * 4] = Math.round(255 * (0.5 + 0.5 * nx / l)); nor[i * 4 + 1] = Math.round(255 * (0.5 + 0.5 * ny / l)); nor[i * 4 + 2] = Math.round(255 * (0.5 + 0.5 / l)); nor[i * 4 + 3] = 255;
     rough[i * 4 + 1] = Math.round(255 * (0.92 - 0.68 * k * k)); rough[i * 4 + 3] = 255; // round 9: a sheen on each crown (strand p99 56 against the mockup's ~140)
@@ -152,7 +152,7 @@ function plaitedCoil(): Mesh {
   for (const t of [map, normal, rough]) t.repeat.set(along, 1);
   const material = new MeshStandardMaterial({ map, normalMap: normal, roughnessMap: rough, roughness: 1, metalness: 0, fog: false });
   material.userData['sunscarNoRim'] = true;
-  viewerLit(material, [0.42, 0.37, 0.33]);
+  viewerLit(material, [0.42, 0.37, 0.33], 0.16); // round 11 (round 10: printed chevrons, no sheen): a glancing sheen on the strands' relief
   return new Mesh(geometry, material);
 }
 
