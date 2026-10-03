@@ -3,11 +3,13 @@
 early2's seven slices were edited one by one (edit_stage.py) and each drifted in colour, so its stitch shows vertical
 seams. The detail is the late painting's anyway (the edits kept its clouds), so the early stage is the late strip times
 early2's colour change, both blurred hard across (80 px) and lightly up (6 px): the seams become gradients, the late
-painting's clouds and horizon stay sharp. Writes early/panorama.png for prep.py (the first early panorama, too tall a
-glow, is replaced)."""
+painting's clouds and horizon stay sharp. Round 18b (the lead: A's whole upper sky came out bright magenta; the mockups
+keep the top a dark navy night with stars at every stage, the glow only in the band near the horizon): the re-colour
+applies only low, easing out from 5 to 14 deg (A's frame top is ~15-19 deg), so the top stays the late painting's dark sky and stars. Writes
+early/panorama.png for prep.py."""
 import os
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 late = Image.open(os.path.join(HERE, 'late', 'panorama.png')).convert('RGB')
@@ -26,16 +28,12 @@ def blur(im):
 
 
 L = np.asarray(late).astype(np.float64)
-# just after sunset there are no stars and no milky way yet: star points go (a median test), and above ~14 deg the late
-# painting's detail is mostly blended into its own smooth gradient (the clouds sit lower)
-med = np.asarray(late.filter(ImageFilter.MedianFilter(7))).astype(np.float64)
-L = np.where((L.sum(2, keepdims=True) - med.sum(2, keepdims=True)) > 45, med, L)
+ratio = (blur(e2) + 4.0) / (blur(late) + 4.0)
 H, HOR, PPD = L.shape[0], int(1024 * 0.88), 1536 / 100.0
 elev = (HOR - np.arange(H)) / PPD
-w = np.clip((elev - 14.0) / 10.0, 0, 1)[:, None, None] * 0.8
-L = L * (1 - w) + blur(Image.fromarray(np.clip(L, 0, 255).astype(np.uint8))) * w
-ratio = (blur(e2) + 4.0) / (blur(late) + 4.0)
-out = np.clip(L * ratio, 0, 255).astype(np.uint8)
+t = np.clip((elev - 5.0) / 9.0, 0, 1)
+low = (1.0 - t * t * (3 - 2 * t))[:, None, None]
+out = np.clip(L * (1.0 + (ratio - 1.0) * low), 0, 255).astype(np.uint8)
 os.makedirs(os.path.join(HERE, 'early'), exist_ok=True)
 Image.fromarray(out).save(os.path.join(HERE, 'early', 'panorama.png'))
 Image.fromarray(out).resize((2400, 444)).save(os.path.join(HERE, 'preview-early.jpg'), quality=85)

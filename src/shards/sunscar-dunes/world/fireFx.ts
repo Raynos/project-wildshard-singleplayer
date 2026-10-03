@@ -1,6 +1,12 @@
 import { AdditiveBlending, BufferGeometry, CustomBlending, LinearFilter, LinearMipmapLinearFilter, OneFactor, OneMinusSrcAlphaFactor, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, SRGBColorSpace, Texture, Vector4, type Group, type Object3D, type Vector3 } from 'three';
-import { WIND } from './dunes';
 import { FIRE_BOOK_URL } from '../boot/files';
+
+/**
+ * The dusk breeze the fires' smoke and sparks drift on (round 18b, the lead: mockup C's thin plume drifts LEFT with the
+ * sparks; on the dune-forming WIND it drifted right in C's view): one global direction, a light breeze from the south-east
+ * toward the north-west, not the prevailing wind that built the dunes. It drifts left in C and in the spawn views.
+ */
+const BREEZE = { x: -0.5, z: -0.866 } as const;
 
 /**
  * Fire, embers and smoke (review R5 / TOP-15 #8, style bible FX): shard-local, since no flame / ember / smoke particle
@@ -9,7 +15,7 @@ import { FIRE_BOOK_URL } from '../boot/files';
  *
  * - the flame: two crossed-free cylindrical billboards (they turn about Y to the camera), a scrolling-noise flame;
  * - the glow: a soft spherical billboard round the flame, what makes a lit waymark read at 60 m+;
- * - embers: points that rise and blow downwind (`WIND`), cooling from yellow to red;
+ * - embers: points that rise and drift on the dusk breeze (`BREEZE`), cooling from yellow to red;
  * - smoke: a tall billboard column that widens and leans downwind, lit warm at its foot;
  * - the pool: a warm additive disc draped on the sand round the brazier.
  */
@@ -53,7 +59,7 @@ void main() {
   vec3 right = normalize(vec3(toCam.z, 0.0, -toCam.x) + vec3(1e-4, 0.0, 0.0));
   float y = position.y;
   vec3 world = center + right * position.x * sx * (1.0 + LEAN_WIDEN * y) + vec3(0.0, y * sy, 0.0);
-  world.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * y * y * sy * LEAN + vec2(sin(uTime * 0.7 + y * 3.0), cos(uTime * 0.5 + y * 2.0)) * y * sy * LEAN * SWAY;
+  world.xz += vec2(${BREEZE.x.toFixed(3)}, ${BREEZE.z.toFixed(3)}) * y * y * sy * LEAN + vec2(sin(uTime * 0.7 + y * 3.0), cos(uTime * 0.5 + y * 2.0)) * y * sy * LEAN * SWAY;
   vFar = length(cameraPosition - world);
   gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
 }`;
@@ -137,7 +143,7 @@ void main() {
   float puff = smoothstep(0.35, 0.75, n + 0.25 * (1.0 - y));
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
-  vec3 c = ${wisp ? 'mix(vec3(0.16, 0.11, 0.1), vec3(0.09, 0.08, 0.12), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.42, 0.2, 0.08), vec3(0.13, 0.1, 0.1), smoothstep(0.02, 0.3, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 18 (row 3: near-black, it vanished against the late sky; mockup C's billow reads grey-brown): lifted; round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
+  vec3 c = ${wisp ? 'mix(vec3(0.16, 0.11, 0.1), vec3(0.09, 0.08, 0.12), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.24, 0.12, 0.06), vec3(0.075, 0.06, 0.058), smoothstep(0.02, 0.3, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 18 (row 3: near-black, it vanished against the late sky; mockup C's billow reads grey-brown): lifted; round 18b (the lead: too pale, a column up the sky): back toward a dark grey-brown; round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
   gl_FragColor = vec4(c, a * ${wisp ? '0.55' : '0.9'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
@@ -185,12 +191,12 @@ void main() {
   vLife = life;
   float a = seed * 40.0 + uTime * (1.0 + fract(seed * 3.7));
   vec3 p = vec3(cos(a) * 0.22 * (1.0 + life * 3.0), life * 6.5, sin(a) * 0.22 * (1.0 + life * 3.0)) * s;
-  p.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life * (0.6 + life) * 4.5 * s;
+  p.xz += vec2(${BREEZE.x.toFixed(3)}, ${BREEZE.z.toFixed(3)}) * life * (0.6 + life) * 4.5 * s;
   vec4 mv = viewMatrix * vec4((modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz + p, 1.0);
   // round 9 (seat C: the dashes leaned at one fixed screen angle): each dash along its own projected motion
   float life2 = life + 0.02, a2 = seed * 40.0 + (uTime + 0.02) * (1.0 + fract(seed * 3.7));
   vec3 p2 = vec3(cos(a2) * 0.22 * (1.0 + life2 * 3.0), life2 * 6.5, sin(a2) * 0.22 * (1.0 + life2 * 3.0)) * s;
-  p2.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life2 * (0.6 + life2) * 4.5 * s;
+  p2.xz += vec2(${BREEZE.x.toFixed(3)}, ${BREEZE.z.toFixed(3)}) * life2 * (0.6 + life2) * 4.5 * s;
   vec4 c1 = projectionMatrix * mv, c2 = projectionMatrix * viewMatrix * vec4((modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz + p2, 1.0);
   vec2 sd = c2.xy / c2.w - c1.xy / c1.w;
   vDir = normalize(vec2(sd.x, -sd.y) + vec2(1e-5, 0.0));
@@ -257,7 +263,7 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   for (const k of [-1, 1]) { const side = new Mesh(quad, flameMaterial); side.scale.set(size.flame * 0.26, size.flame * (k > 0 ? 0.72 : 0.62), 1); side.position.set(k * size.flame * 0.11, -0.08, k * 0.07); add(side); }
   const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
-  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.03 : 0.26), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
+  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.03 : 0.13), size.smoke, 1); // round 18b (the lead: a broad pale column; mockup C's plume is thin): half as wide smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
   if (pool) {
     const r = Math.max(size.glow * 2.3, size.flame * 2.4), n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
     const p = g.getAttribute('position');

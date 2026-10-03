@@ -53,7 +53,9 @@ void main() {
   float v = clamp((elev - ${PAINTED.elevBottom.toFixed(1)}) / ${(PAINTED.elevTop - PAINTED.elevBottom).toFixed(1)}, 0.002, 0.998);
   vec2 uv = vec2(heading, v);
   // the stages by the dusk: early up to its own dusk, late past its own
-  vec3 c = mix(strip(uEarly, uv), strip(uLate, uv), smoothstep(${PAINTED.dusk[0].toFixed(2)}, ${PAINTED.dusk[1].toFixed(2)}, uDusk));
+  // round 18b (the lead: A's sky 1.4-1.9x the mockup's, 134 against 97 at the band, 76 against 40 at the top): the early
+  // stage at 0.64
+  vec3 c = mix(strip(uEarly, uv) * 0.64, strip(uLate, uv), smoothstep(${PAINTED.dusk[0].toFixed(2)}, ${PAINTED.dusk[1].toFixed(2)}, uDusk));
   // above the strip its top row carries on to the zenith, a little darker
   c *= 1.0 - 0.3 * smoothstep(${PAINTED.elevTop.toFixed(1)}, 90.0, elev);
   // crisp stars where the painted sky is dark (the mockups' stars are sharp white points; the strip is magnified ~3x)
