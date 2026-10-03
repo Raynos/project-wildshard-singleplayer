@@ -7,11 +7,14 @@ export const DUNE_MESHES: readonly DuneMeshName[] = ['caravan', 'dry-well', 'way
  * The hero models kept TEXTURED (loop 6, toward the mockups B-D): Hunyuan3D-2 shape + 2048 paint, decimated, the paint
  * kept as a 1024 WebP map on its UVs (the facet-colour path above reads low-poly and blotchy up close).
  */
-export type DuneHdName = 'wagon-hd' | 'brazier-hd' | 'glove-hd';
-export const DUNE_HD: readonly DuneHdName[] = ['wagon-hd', 'brazier-hd', 'glove-hd'];
+export type DuneHdName = 'wagon-hd' | 'brazier-hd' | 'glove-hd' | 'mesa-butte' | 'mesa-mesa' | 'mesa-spire';
+export const DUNE_HD: readonly DuneHdName[] = ['wagon-hd', 'brazier-hd', 'glove-hd', 'mesa-butte', 'mesa-mesa', 'mesa-spire'];
 const HD_URLS: Readonly<Record<DuneHdName, string>> = {
   'wagon-hd': '/assets/sunscar-dunes/models/wagon-hd/wagon-hd.glb', 'brazier-hd': '/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb',
   'glove-hd': '/assets/sunscar-dunes/models/glove-hd/glove-hd.glb',
+  // the far sandstone (art/sunscar-dunes/round-18-mesas): a tall butte, a broad mesa, a spire-and-hoodoo cluster
+  'mesa-butte': '/assets/sunscar-dunes/models/mesa-butte/mesa-butte.glb', 'mesa-mesa': '/assets/sunscar-dunes/models/mesa-mesa/mesa-mesa.glb',
+  'mesa-spire': '/assets/sunscar-dunes/models/mesa-spire/mesa-spire.glb',
 };
 export const duneHdUrl = (name: DuneHdName): string => HD_URLS[name];
 const URLS: Readonly<Record<DuneMeshName, string>> = {

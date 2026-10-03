@@ -1,13 +1,16 @@
-import { DoubleSide, Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
+import { Box3, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry, type Object3D } from 'three';
 import { PATCH_ORDER, Rng, patchShader } from '#engine';
 import { GROUND_HALF, SEED } from '../layout';
+import type { DuneHdName } from '../boot/files';
 import { Soup, type RGB, type V3 } from './dressing';
+import { duneHd } from './meshes';
 
 /**
  * The far sandstone (loop 4; the council's baseline: the other shards layer near / mid / far, ours ended in one flat
  * violet ring): buttes and mesas standing in the dune sea past the playable square, eroded prisms banded in strata
  * over a talus skirt. They sit beyond the painted ground, so the violet distance fog lays them back in layers, and
- * they frame the tower, the caravan and the well's horizons. Out of reach, so no colliders; one draw per shape.
+ * they frame the tower, the caravan and the well's horizons. Out of reach, so no colliders. Loop 7: textured models
+ * (below); the prisms here are the fallback, one draw per shape.
  */
 
 /** Strata, bottom to top (linear): rust, pale band, deep red, ochre, a sun-bleached cap. */
@@ -50,9 +53,12 @@ function butteGeometry(seed: number, sides: number, rows: number, taper: number)
 /** The shapes: a tall narrow butte, a broad flat mesa, a stepped spire. */
 const SHAPES = [{ sides: 15, rows: 8, taper: 0.2 }, { sides: 18, rows: 6, taper: 0.1 }, { sides: 12, rows: 9, taper: 0.38 }] as const;
 
-/** Where they stand (metres, x / z), how tall and how wide, and which shape: a loose ring past the painted ground. */
+/**
+ * Where they stand (metres, x / z), how tall and how wide, and which shape: a loose ring past the painted ground. Loop 7:
+ * the first is a broad mesa (the tower deck's and the spawn aerial's centre rock in the mockups h4 / h1-diag-front).
+ */
 const BUTTES: readonly { x: number; z: number; h: number; r: number; shape: 0 | 1 | 2; yaw: number }[] = [
-  { x: -70, z: -330, h: 58, r: 26, shape: 0, yaw: 0.3 }, { x: 95, z: -360, h: 40, r: 48, shape: 1, yaw: 1.1 },
+  { x: -70, z: -330, h: 44, r: 38, shape: 1, yaw: 0.3 }, { x: 95, z: -360, h: 40, r: 48, shape: 1, yaw: 1.1 },
   { x: -190, z: -290, h: 46, r: 38, shape: 1, yaw: 2.0 }, { x: 210, z: -260, h: 64, r: 22, shape: 2, yaw: 0.7 },
   { x: -320, z: -110, h: 52, r: 44, shape: 1, yaw: 0.2 }, { x: -300, z: 60, h: 36, r: 24, shape: 0, yaw: 1.6 },
   { x: -280, z: 210, h: 48, r: 40, shape: 1, yaw: 2.6 }, { x: 320, z: -60, h: 44, r: 30, shape: 0, yaw: 0.9 },
@@ -65,6 +71,35 @@ const BUTTES: readonly { x: number; z: number; h: number; r: number; shape: 0 | 
 const BUTTE_HEIGHT = 0.65;
 
 export interface Buttes { root: Group; count: number }
+
+/**
+ * Loop 7 (E374, art/sunscar-dunes/round-18-mesas): the textured models (codex refs → Hunyuan3D-2 → a 1024 WebP map),
+ * one per shape: layered red Navajo sandstone with varnish streaks and a talus skirt, toward the mockups' mesas. The
+ * procedural prism stays as the fallback for a shape whose model did not load.
+ */
+const MODEL: Readonly<Record<0 | 1 | 2, DuneHdName>> = { 0: 'mesa-butte', 1: 'mesa-mesa', 2: 'mesa-spire' };
+/** A model's footprint (its widest span, the talus skirt included) per metre of a listed foot radius `r`. */
+const SPAN_PER_R = 2.6;
+/** How far a model's lowest point sits under the sand (metres): the talus foot runs into the dunes, no gap shows. */
+const SINK = 4;
+/** How far a footprint may stretch or squash against the model's own proportions (texel stretch stays readable). */
+const STRETCH = 1.3;
+const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;
+
+/** One textured butte for a listing, or null when its model did not load. */
+function butteModel(b: (typeof BUTTES)[number]): Group | null {
+  const g = duneHd(MODEL[b.shape], { size: b.h * BUTTE_HEIGHT + SINK, by: 'height', floor: -SINK, yaw: b.yaw });
+  if (!g) return null;
+  const box = new Box3().setFromObject(g), span = Math.max(box.max.x - box.min.x, box.max.z - box.min.z);
+  const k = Math.min(STRETCH, Math.max(1 / STRETCH, (b.r * SPAN_PER_R) / Math.max(1e-6, span)));
+  g.scale.set(k, 1, k); g.position.set(b.x, 0, b.z);
+  g.traverse((o) => {
+    if (!isMesh(o)) return;
+    o.castShadow = false; o.receiveShadow = false;
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m instanceof MeshStandardMaterial) { m.roughness = 0.92; m.metalness = 0; }
+  });
+  return g;
+}
 
 export function buildButtes(): Buttes {
   const root = new Group(), material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.92, flatShading: true, side: DoubleSide });
@@ -96,6 +131,8 @@ float rkNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 
   SHAPES.forEach((shape, i) => {
     const list = BUTTES.filter((b) => b.shape === i && Math.max(Math.abs(b.x), Math.abs(b.z)) > GROUND_HALF);
     if (list.length === 0) return;
+    const models = list.map(butteModel);
+    if (models.every((g) => g !== null)) { for (const g of models) root.add(g); return; }
     const mesh = new InstancedMesh(butteGeometry(SEED + 300 + i, shape.sides, shape.rows, shape.taper), material, list.length);
     list.forEach((b, k) => { q.setFromAxisAngle(up, b.yaw); m.compose(p.set(b.x, -6, b.z), q, sc.set(b.r, b.h * BUTTE_HEIGHT, b.r)); mesh.setMatrixAt(k, m); });
     mesh.instanceMatrix.needsUpdate = true; mesh.computeBoundingSphere(); mesh.castShadow = false; mesh.receiveShadow = false;
