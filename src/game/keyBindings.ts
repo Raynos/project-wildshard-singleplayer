@@ -24,6 +24,8 @@ export const KEY_BINDINGS: Table = {
     row('combat', 'slots', 'Weapon 1–4', ['swap.slot.1', 'swap.slot.2', 'swap.slot.3', 'swap.slot.4'], { chips: true }),
     row('menus', 'pause', 'Pause', ['pause']), row('menus', 'bag', 'Bag', ['bag']), row('menus', 'map', 'Map', ['map']),
     row('menus', 'journal', 'Journal', ['journal']), row('menus', 'quickNote', 'Quick note', ['quickNote']),
+    // the quick key help (E419, src/engine/ui/KeyHelp.ts)
+    row('menus', 'help', 'Key help', ['help']),
   ],
 };
 export function describeKeyBindings(scope: Scope): void { app.input.bindings.describe(KEY_BINDINGS, scope); }

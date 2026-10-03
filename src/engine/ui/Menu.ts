@@ -3,6 +3,7 @@ import type { UiHandle } from './layers';
 import { TabRegistry, type TabSpec, type TabFragment } from './tabs';
 import { uiScope, mountUi } from './ownership';
 import { buildControlsPanel } from '../input/ControlsPanel';
+import { installKeyHelp } from './KeyHelp';
 import { engineString } from '#engine/strings';
 import { buildSavePanel } from './SavePanel';
 import { app } from '../app/runtime';
@@ -175,6 +176,7 @@ export class GameMenu {
     this.scope.listen(window, 'resize', () => { if (this._open && this._tab === 'map') opts.fullMap.fit(); });
     this.select('settings');
     this.syncReview(); onReview(() => this.syncReview());
+    installKeyHelp(this.scope); // F1 or / during play: the live key bindings (E419), on every level
   }
 
   /** the FEEDBACK tab exists only while the review inbox is unlocked */

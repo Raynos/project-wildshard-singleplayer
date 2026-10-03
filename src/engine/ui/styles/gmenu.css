@@ -341,3 +341,16 @@
 .ws-gmenu .ws-gmenu-keybtn:hover { background: rgba(143, 227, 255, 0.14); }
 .ws-gmenu .ws-gmenu-keyclash .ws-gmenu-keybtn { border-color: var(--ws-amber); background: rgba(255, 181, 71, 0.06); color: var(--ws-amber); }
 .ws-gmenu .ws-gmenu-keyfoot { flex: none; display: flex; justify-content: flex-end; margin-bottom: 8px; }
+
+/* the quick key help (E419, src/engine/ui/KeyHelp.ts): F1 or / during play; a read-only card of the live bindings */
+.ws-gmenu-keyhelp { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(6, 12, 18, 0.45); cursor: pointer; }
+.ws-gmenu-keyhelp-card { width: min(920px, 100%); max-width: 920px; max-height: calc(100vh - 48px); overflow: auto; padding: 18px 22px 14px; background: rgba(13, 27, 38, 0.86); border: 1px solid var(--ws-cyan-line); color: #dbe9f1; font-family: var(--ws-display); }
+.ws-gmenu-keyhelp-title { margin-bottom: 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.32em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-gmenu-keyhelp-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 28px; align-items: start; }
+.ws-gmenu-keyhelp-grouptitle { margin: 6px 0 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(143, 227, 255, 0.14); font-size: 10px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-gmenu-keyhelp-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 3px 0; font-size: 12.5px; letter-spacing: 0.04em; }
+.ws-gmenu-keyhelp-keys { display: flex; gap: 4px; flex: none; }
+.ws-gmenu-keyhelp-cap { min-width: 22px; padding: 2px 6px; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: #e9f7ff; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan-line); }
+.ws-gmenu-keyhelp-foot { margin-top: 12px; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(219, 233, 241, 0.6); }
+.ws-gmenu-keyhelp-group { min-width: 0; }
+.ws-gmenu-keyhelp-label { min-width: 0; color: #dbe9f1; }

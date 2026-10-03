@@ -22,6 +22,8 @@ export const ENGINE_STRINGS = {
   "s_8097ea62e33b": "Cancel",
   "s_7738e78a7360": "Choose an action, then press a key. Touch layout stays fixed.",
   "s_632fe896901d": "Key already used by ⟦0⟧. Swap bindings?",
+  "s_keyhelp_title": "Keys",
+  "s_keyhelp_foot": "F1 or Esc to close · change them in Settings ▸ Key bindings",
   "s_keys_hint": "Click a key, then press the new one. Esc cancels; Backspace clears an alt.",
   "s_keys_action": "Action",
   "s_keys_key": "Key",
