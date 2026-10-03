@@ -419,8 +419,10 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // (no distance gate: the lead after round 12, the clip's ground fell to 6-9 with black blots at the gate)
     // a tilted face only (flat sand has no facing; ungated, the near flats went dark too: B 26 / 39.7)
     // round 14 (the lead: it cut flat ground ~40 %, C's near sand 18 / 33): clearly turned away (toGlow < -0.1) and clearly tilted (> ~12 deg) only
-    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.45, -0.05, toGlow)) * smoothstep(0.12, 0.4, length(normalize(vSandN).xz)); // round 15 (the lead: hard-edged dark ovals on the dune faces in the clip): windows widened; round 17 (seat C: round 15's reached faces toward the glow and nearly flat ground): back near round 14's, still soft
-    reflectedLight.indirectDiffuse *= 1.0 - 0.45 * away; reflectedLight.directDiffuse *= 1.0 - 0.45 * away;
+    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.45, -0.05, toGlow)) * smoothstep(0.08, 0.3, length(normalize(vSandN).xz)); // round 15 (the lead: hard-edged dark ovals on the dune faces in the clip): windows widened; round 17 (seat C: round 15's reached faces toward the glow and nearly flat ground): back near round 14's, still soft
+    // round 23 (TOP10-3 row 2: D's land a smooth 39-46 where its mockup alternates troughs 13-20 with lit rims 54-60): the
+    // faces turned from the afterglow fall to a quarter, from gentler slopes (the flat crests and rims keep their light)
+    reflectedLight.indirectDiffuse *= 1.0 - 0.75 * away; reflectedLight.directDiffuse *= 1.0 - 0.75 * away;
     // (round 15's late far-land darkening by distance from the camera is gone: the lead's hard rule after round 15, darkening
     // comes from facing, height, occlusion or the engine fog only)
   }
