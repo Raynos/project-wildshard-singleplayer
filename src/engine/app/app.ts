@@ -170,7 +170,8 @@ export class App {
         this.stateHistory.push(target);
         // the state on <html data-ws-state>: a harness waiting on the load can stop on 'error' instead of timing out
         // (a caught boot error shows its modal while the load screen stays up; a capture waited 480 s on one, E399)
-        if (typeof document !== 'undefined') document.documentElement.dataset['wsState'] = target;
+        // a node bake's stub document has no documentElement; the mirror is only for a real page
+        try { if (typeof document !== 'undefined') document.documentElement.dataset['wsState'] = target; } catch { /* no DOM */ }
         this.clock.paused = target === 'paused' || target === 'title' || target === 'loading' || target === 'boot' || target === 'error';
         const enters = [...this.enters];
         for (const hook of enters) if (hook.state === target && this.enters.has(hook)) hook.run();
