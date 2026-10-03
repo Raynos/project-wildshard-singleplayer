@@ -28,6 +28,9 @@ for name in ('rock', 'meadow', 'cloudsea'):
     im.save(os.path.join(OUT, f'{name}.webp'), 'WEBP', quality=86, method=6)
     im.save(os.path.join(HERE, f'{name}.jpg'), quality=86)
     print(name, os.path.getsize(os.path.join(OUT, f'{name}.webp')) // 1024, 'KB')
+if os.path.exists(os.path.join(HERE, 'maelstrom.png')):
+    vortex = Image.open(os.path.join(HERE, 'maelstrom.png')).convert('RGB').resize((1024, 1024), Image.LANCZOS)
+    vortex.save(os.path.join(OUT, 'maelstrom.webp'), 'WEBP', quality=86, method=6); vortex.save(os.path.join(HERE, 'maelstrom.jpg'), quality=86)
 c = Image.open(os.path.join(HERE, 'clouds.png')).convert('RGB').resize((1024, 683), Image.LANCZOS)
 c.save(os.path.join(OUT, 'clouds.webp'), 'WEBP', quality=88, method=6)
 c.save(os.path.join(HERE, 'clouds.jpg'), quality=88)

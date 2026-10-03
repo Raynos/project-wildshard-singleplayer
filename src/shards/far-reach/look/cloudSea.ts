@@ -171,3 +171,28 @@ export function paintedSea(painted: Texture, time: { value: number }, upper = fa
   if (upper) mesh.rotation.z = 1.3;
   return mesh;
 }
+
+/**
+ * The painted maelstrom (E392; the H4 targets' top and diagonal views are a frame-filling spiral of cloud with the crown
+ * in its eye). A disc under the storm crown carrying a codex-painted top-down cloud vortex
+ * (`public/assets/far-reach/tex/maelstrom.webp`), turning slowly, its rim melting into the painted sea. It sits a little
+ * above the painted sea so it covers it, and below the decks.
+ */
+export const PAINTED_MAELSTROM = { radius: 125, y: -6 } as const;
+export function paintedMaelstrom(painted: Texture, time: { value: number }): Mesh<CircleGeometry, ShaderMaterial> {
+  const material = new ShaderMaterial({ transparent: true, depthWrite: false, fog: false, side: DoubleSide,
+    uniforms: { painted: { value: painted }, time },
+    vertexShader: 'varying vec2 lp; void main(){ lp = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: /* glsl */`
+      uniform sampler2D painted; uniform float time; varying vec2 lp;
+      void main(){
+        float rn = length(lp) / ${PAINTED_MAELSTROM.radius.toFixed(1)};
+        float a = -time * 0.012;
+        vec2 q = vec2(cos(a) * lp.x - sin(a) * lp.y, sin(a) * lp.x + cos(a) * lp.y) / (${PAINTED_MAELSTROM.radius.toFixed(1)} * 2.0) + 0.5;
+        vec3 c = texture2D(painted, q).rgb;
+        gl_FragColor = vec4(c, 1.0 - smoothstep(0.55, 0.95, rn));
+      }` });
+  const mesh = new Mesh(new CircleGeometry(PAINTED_MAELSTROM.radius, 96), material);
+  mesh.rotation.x = -Math.PI / 2; mesh.position.set(MAELSTROM.x, PAINTED_MAELSTROM.y, MAELSTROM.z); mesh.renderOrder = -6; mesh.frustumCulled = false; mesh.name = 'far.painted-maelstrom';
+  return mesh;
+}

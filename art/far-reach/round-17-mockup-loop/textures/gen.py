@@ -16,6 +16,12 @@ REF = os.path.join(REPO, 'art/far-reach/round-1-proposals/B-sky-reach.jpg')
 STYLE = ("Painterly-stylized like the attached mockup (Studio Ghibli / Genshin Impact background art): soft visible brush work, "
          "rich detail, warm golden-hour light from the upper left.")
 PROMPTS = {
+    'maelstrom': ("Paint ONE 1024x1024 image seen STRAIGHT DOWN from high above: a giant circular MAELSTROM of cumulus cloud, a "
+                  "spiral vortex filling the whole square, its centre exactly in the middle of the image, three to four curved "
+                  "spiral arms of thick billowing cumulus winding inward clockwise toward a dark lavender-violet eye (a clear dark "
+                  "well, about 8% of the image wide) at the exact centre; the arms' crests lit warm cream and peach-gold from the "
+                  "upper left, deep lavender and blue-violet shadow in the troughs between the arms; toward the image corners the "
+                  "spiral loosens into ordinary dense cumulus. No islands, no land, no sun, no horizon, no text. " + STYLE),
     'cloudsea': ("Paint ONE 1024x1024 SEAMLESS TILEABLE texture (it must tile with no visible seam on all four sides), seen STRAIGHT "
                  "DOWN from far above: a dense, unbroken sea of billowing cumulus cloud tops, packed edge to edge with no gaps or sky "
                  "showing through, soft round cauliflower billows of many sizes, their sunlit tops warm cream-white and peach-gold "

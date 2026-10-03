@@ -3,7 +3,7 @@ import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
-import { bakeSeaTexture, cloudSea, maelstrom, paintedSea } from './cloudSea';
+import { bakeSeaTexture, cloudSea, maelstrom, paintedMaelstrom, paintedSea } from './cloudSea';
 import { cumulus } from './puffs';
 import { sunGlow } from './sunGlow';
 import { PANO_SUN } from './panoramaData';
@@ -44,7 +44,7 @@ function keelPuffs(): [number, number, number, number][] {
 
 export async function skyReachLook(): Promise<LookStrategy> {
   const pano: Texture = await loadPanorama();
-  const [cloudAtlas, seaPaint] = await Promise.all([loadPainted(TEX_URL.clouds, 'far.cumulus'), loadPainted(TEX_URL.cloudsea, 'far.cloudsea', true)]);
+  const [cloudAtlas, seaPaint, vortex] = await Promise.all([loadPainted(TEX_URL.clouds, 'far.cumulus'), loadPainted(TEX_URL.cloudsea, 'far.cloudsea', true), loadPainted(TEX_URL.maelstrom, 'far.maelstrom')]);
   let seaTime: { value: number } | null = null;
   let glowUpdate: ((t: number) => void) | null = null;
   return { mode: 'extend',
@@ -76,6 +76,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
       // the painted cloud sea (E392), wound into the maelstrom under the crown; without its texture the procedural maelstrom disc
       if (seaPaint !== null) {
         scope.own(seaPaint);
+        if (vortex !== null) { const swirlDisc = paintedMaelstrom(vortex, sea.time); scene.add(swirlDisc); scope.own(vortex); scope.own(swirlDisc.geometry); scope.own(swirlDisc.material); scope.onDispose(() => { swirlDisc.removeFromParent(); }); }
         for (const upper of [false, true]) { const painted = paintedSea(seaPaint, sea.time, upper); scene.add(painted); scope.own(painted.geometry); scope.own(painted.material); scope.onDispose(() => { painted.removeFromParent(); }); }
       } else {
         const swirl = maelstrom(SUN_DIR, seaTex, sea.time); scene.add(swirl); scope.own(swirl.geometry); scope.own(swirl.material); scope.onDispose(() => { swirl.removeFromParent(); });

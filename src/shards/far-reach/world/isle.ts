@@ -1,7 +1,6 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMaterial, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '#engine';
 import { apothem, type Isle } from '../layout';
-import { meadowPaths } from './meadow';
 
 /**
  * A floating island, loop 4 (the targets: a rounded meadow top that rolls over a soil lip, a lumpy keel of warm
@@ -28,10 +27,6 @@ const fbm = (x: number, y: number): number => vnoise(x, y) * 0.55 + vnoise(x * 2
 /** periodic noise round the island (angle a in radians), so the rim closes without a seam */
 const ringNoise = (a: number, k: number, seed: number, y = 0): number => fbm(Math.cos(a) * k + seed, Math.sin(a) * k + y);
 const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const segDist = (px: number, pz: number, ax: number, az: number, bx: number, bz: number): number => {
-  const abx = bx - ax, abz = bz - az, t = Math.min(1, Math.max(0, ((px - ax) * abx + (pz - az) * abz) / Math.max(1e-4, abx * abx + abz * abz)));
-  return Math.hypot(px - ax - abx * t, pz - az - abz * t);
-};
 
 /** The island palette (sRGB): meadow ground under the grass, worn path dirt, soil, strata and shade. */
 export const ISLE_PALETTE = {
@@ -58,7 +53,6 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
   let draw = 0; for (let i = 0; i < ISLE_SHAPE.drawsOfOldIsland; i++) draw = random();
   const rnd = seeded(Math.floor(draw * 4294967296) ^ Math.round(isle.x * 131 + isle.z * 17));
   const S = ISLE_SHAPE.segments, seed = rnd() * 50, pos: number[] = [], col: number[] = [], idx: number[] = [];
-  const paths = meadowPaths([isle]).map((v) => [v.x - isle.x, v.y - isle.z, v.z - isle.x, v.w - isle.z] as const);
   const c = new Color(), c2 = new Color();
   const vert = (x: number, y: number, z: number, hex: number, mix?: { hex: number; k: number }): number => {
     c.setHex(hex); if (mix) c.lerp(c2.setHex(mix.hex), Math.min(1, Math.max(0, mix.k)));
@@ -77,11 +71,9 @@ export function islandMesh(isle: Isle, random: () => number): Mesh {
     for (let i = 0; i < S; i++) {
       const a = (i / S) * Math.PI * 2, r = (rim[i] ?? 0) * f, x = Math.cos(a) * r, z = Math.sin(a) * r;
       const wx = x + isle.x, wz = z + isle.z, n = fbm(wx * 0.18, wz * 0.18), n2 = fbm(wx * 0.6 + 9, wz * 0.6);
-      let pd = Infinity; for (const p of paths) pd = Math.min(pd, segDist(x, z, p[0], p[1], p[2], p[3]));
-      const path = 1 - smooth(0.3, 1.0, pd + 0.35 * n2);
       c2.setHex(ISLE_PALETTE.groundGold);
       const base = new Color(ISLE_PALETTE.groundDeep).lerp(new Color(ISLE_PALETTE.ground), smooth(0.2, 0.55, n2)).lerp(c2, smooth(0.45, 0.8, n) * 0.8);
-      const id = vert(x, 0.05 * (n - 0.5) * (1 - f * f), z, base.getHex(), { hex: ISLE_PALETTE.path, k: path * 0.35 });
+      const id = vert(x, 0.05 * (n - 0.5) * (1 - f * f), z, base.getHex()); // no path paint (E392: brownish path faces failed the paint's green test and took the grey cliff rock; the meadow blades clear the paths)
       row.push(id);
     }
     rows.push(row);
