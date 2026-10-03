@@ -13,11 +13,11 @@ import { WIND } from './dunes';
  * - the pool: a warm additive disc draped on the sand round the brazier.
  */
 export interface FireSize { flame: number; glow: number; smoke: number; embers: number; /** a thin pale wisp (a cookfire), not the dark plume */ wisp?: boolean }
-export const WAYMARK_FIRE: FireSize = { flame: 2.6, glow: 1.7, smoke: 11, embers: 180 }; // mockup C: a roaring log fire, about one and a half bowls tall
+export const WAYMARK_FIRE: FireSize = { flame: 3.6, glow: 1.7, smoke: 11, embers: 260 }; // round 9 (the seats: half the mockup's fire): taller, more embers // mockup C: a roaring log fire, about one and a half bowls tall
 /** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
 export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 17, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon
 /** The keeper's lamp in the tower's top (mockup dusk-fire): a small open flame in its cage, no plume to speak of. */
-export const KEEPER_LAMP: FireSize = { flame: 1.3, glow: 2.4, smoke: 0.01, embers: 4 };
+export const KEEPER_LAMP: FireSize = { flame: 1.8, glow: 2.4, smoke: 0.01, embers: 4 }; // round 9: 1.3 read as a dot at 145 m
 export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
 
 const time = { value: 0 };
@@ -75,12 +75,12 @@ void main() {
   float d = abs(x + lick) / w;
   float top = y + (n1 - 0.5) * 0.6 + (n2 - 0.5) * 0.3 + (n3 - 0.5) * 0.12;
   float body = (1.0 - smoothstep(0.82, 0.98, d + (n3 - 0.5) * 0.25)) * (1.0 - smoothstep(0.66, 0.8, top)) * smoothstep(0.0, 0.14, y);
-  float core = (1.0 - smoothstep(0.05, 0.36, d)) * (1.0 - smoothstep(0.06, 0.3, top + (n2 - 0.5) * 0.15));
+  float core = (1.0 - smoothstep(0.08, 0.5, d)) * (1.0 - smoothstep(0.08, 0.42, top + (n2 - 0.5) * 0.15)); // round 9: a larger hot core low over the logs
   float heat = smoothstep(0.0, 0.7, 1.0 - d) * (1.0 - smoothstep(0.25, 0.8, top));
   // round 8b: AgX washes a bright saturated orange to peach (the sparks, at a moderate gain, stay orange): the licks at a
   // moderate gain from deep orange to yellow-orange, only the small core pushed white
   vec3 c = mix(vec3(0.8, 0.12, 0.0), vec3(1.0, 0.5, 0.04), heat) * 0.7;
-  c = mix(c, vec3(1.0, 0.66, 0.26) * 1.9, core);
+  c = mix(c, vec3(1.0, 0.7, 0.3) * 2.6, core);
   float fade = smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25);
   gl_FragColor = vec4(c * body * fade, body * fade * 0.9);
 }`,
@@ -103,7 +103,7 @@ void main() {
   float puff = smoothstep(0.35, 0.75, n + 0.25 * (1.0 - y));
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
-  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.42, 0.2, 0.09), vec3(0.11, 0.09, 0.1), smoothstep(0.02, 0.4, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
+  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.3, 0.14, 0.06), vec3(0.1, 0.08, 0.08), smoothstep(0.02, 0.16, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
   gl_FragColor = vec4(c, a * ${wisp ? '0.45' : '0.7'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
@@ -134,12 +134,17 @@ void main() {
   gl_FragColor = vec4(vec3(1.0, 0.32, 0.06) * g * 0.14 * flick * vFade, 1.0); // loop 5: a halo, not a wash; round 8: dimmer and redder (its add washed the flame peach)
 }`,
 });
+/** A lamp's halo (round 9, the seats: no lantern glow at the camp, a dot on the tower): the fire's halo shader at a lamp's
+ *  own gain, which the fire's (dimmed so it no longer washed its flame) left invisible. */
+const lampGlowMaterial = glowMaterial.clone(); lampGlowMaterial.uniforms = { uTime: time };
+lampGlowMaterial.fragmentShader = lampGlowMaterial.fragmentShader.replace('g * 0.14 * flick', 'g * 0.42 * flick');
 const emberMaterial = new ShaderMaterial({
   uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false,
   vertexShader: /* glsl */ `
 uniform float uTime;
 attribute float seed;
 varying float vLife;
+varying vec2 vDir;
 void main() {
   float s = length(modelMatrix[0].xyz);
   float life = fract(uTime * (0.22 + 0.18 * fract(seed * 7.13)) + seed);
@@ -148,17 +153,25 @@ void main() {
   vec3 p = vec3(cos(a) * 0.22 * (1.0 + life * 3.0), life * 6.5, sin(a) * 0.22 * (1.0 + life * 3.0)) * s;
   p.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life * (0.6 + life) * 4.5 * s;
   vec4 mv = viewMatrix * vec4((modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz + p, 1.0);
+  // round 9 (seat C: the dashes leaned at one fixed screen angle): each dash along its own projected motion
+  float life2 = life + 0.02, a2 = seed * 40.0 + (uTime + 0.02) * (1.0 + fract(seed * 3.7));
+  vec3 p2 = vec3(cos(a2) * 0.22 * (1.0 + life2 * 3.0), life2 * 6.5, sin(a2) * 0.22 * (1.0 + life2 * 3.0)) * s;
+  p2.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life2 * (0.6 + life2) * 4.5 * s;
+  vec4 c1 = projectionMatrix * mv, c2 = projectionMatrix * viewMatrix * vec4((modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz + p2, 1.0);
+  vec2 sd = c2.xy / c2.w - c1.xy / c1.w;
+  vDir = normalize(vec2(sd.x, -sd.y) + vec2(1e-5, 0.0));
   gl_PointSize = clamp((1.0 - 0.6 * life) * 150.0 * (0.6 + fract(seed * 13.1)) / -mv.z, 2.0, 11.0) * (1.0 - smoothstep(35.0, 60.0, -mv.z));
   gl_Position = projectionMatrix * mv;
 }`,
   fragmentShader: /* glsl */ `
 varying float vLife;
+varying vec2 vDir;
 void main() {
-  // round 8 (mockup C: short orange streaks blowing up-left; ours were white specks): a thin dash across the point
-  vec2 q = gl_PointCoord - 0.5, dir = normalize(vec2(-0.55, -0.83));
+  // round 8 (mockup C: short orange streaks; ours were white specks): a thin dash across the point, along its motion
+  vec2 q = gl_PointCoord - 0.5, dir = vDir;
   float along = dot(q, dir), across = dot(q, vec2(-dir.y, dir.x));
   float a = (1.0 - smoothstep(0.06, 0.16, abs(across))) * (1.0 - smoothstep(0.25, 0.5, abs(along))) * (1.0 - smoothstep(0.6, 1.0, vLife));
-  gl_FragColor = vec4(mix(vec3(1.0, 0.42, 0.06), vec3(0.8, 0.1, 0.0), vLife) * a * 2.4, 1.0); // orange-red sparks (mockup C)
+  gl_FragColor = vec4(mix(vec3(1.0, 0.42, 0.06), vec3(0.8, 0.1, 0.0), vLife) * a * 1.5, 1.0); // orange-red sparks (mockup C; round 9: 2.4 read pale yellow, 215,173,91 against 177,103,70)
 }`,
 });
 const poolMaterial = new ShaderMaterial({
@@ -194,7 +207,7 @@ const embers = (n: number): BufferGeometry => {
   return g;
 };
 /** The shared resources, for the level scope to own. */
-export const FIRE_RESOURCES = [flameMaterial, smokeMaterial, wispMaterial, glowMaterial, emberMaterial, poolMaterial, quad, wispQuad, glowQuad] as const;
+export const FIRE_RESOURCES = [flameMaterial, smokeMaterial, wispMaterial, glowMaterial, lampGlowMaterial, emberMaterial, poolMaterial, quad, wispQuad, glowQuad] as const;
 export const fireGeometries = (): BufferGeometry[] => [...emberCache.values()];
 
 /**
@@ -204,7 +217,7 @@ export const fireGeometries = (): BufferGeometry[] => [...emberCache.values()];
 export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; groundAt: (x: number, z: number) => number }): Object3D[] {
   const parts: Object3D[] = [];
   const add = (o: Object3D): void => { o.frustumCulled = false; group.add(o); parts.push(o); };
-  const flame = new Mesh(quad, flameMaterial); flame.scale.set(size.flame * 0.68, size.flame, 1); flame.position.y = -0.1; add(flame);
+  const flame = new Mesh(quad, flameMaterial); flame.scale.set(size.flame * 0.78, size.flame, 1); flame.position.y = -0.1; add(flame);
   const inner = new Mesh(quad, flameMaterial); inner.scale.set(size.flame * 0.42, size.flame * 0.8, 1); inner.position.set(0.05, -0.05, 0.05); add(inner);
   const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
@@ -223,7 +236,7 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
  * the ground's height under a point of `group`'s own frame, relative to the group's origin.
  */
 export function addLampGlow(group: Group, glow: number, ground: (lx: number, lz: number) => number): void {
-  const halo = new Mesh(glowQuad, glowMaterial); halo.scale.setScalar(glow); halo.renderOrder = 2; halo.frustumCulled = false; group.add(halo);
+  const halo = new Mesh(glowQuad, lampGlowMaterial); halo.scale.setScalar(glow); halo.renderOrder = 2; halo.frustumCulled = false; group.add(halo);
   const r = glow * 1.6, n = 10, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
   const p = g.getAttribute('position');
   for (let i = 0; i < p.count; i++) p.setY(i, ground(p.getX(i), p.getZ(i)) + 0.06);

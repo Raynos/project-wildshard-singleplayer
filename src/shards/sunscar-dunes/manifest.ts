@@ -43,12 +43,13 @@ export const SUNSCAR_DUNES: ShardManifest = {
     // E399 (council round 1, D2: mockups A and D show layered blue-grey ranges past the dunes): a farther, taller ring,
     // cool and hazed, its crests between the near ring's
     // round 8 (the council: one crisp lavender cut-out; mockups A and dusk-fire: several dim grey-violet layers fading back):
-    // three rings, the nearer darker and warmer, the farther paler, all lower than before
-    { r: 520, base: 0, color: [0.09, 0.065, 0.09], top: [0.17, 0.12, 0.15], snowLine: 2, haze: 0.6, floor: -10,
+    // three rings, the nearer darker and warmer, the farther paler, all lower than before; round 9 (seat B: in D a bright
+    // haze band under the horizon, 131 against the mockup's dark 12-20): less haze, they dissolve into the afterglow less
+    { r: 520, base: 0, color: [0.09, 0.065, 0.09], top: [0.17, 0.12, 0.15], snowLine: 2, haze: 0.4, floor: -10,
       bands: [10, 55, 95, 140, 190, 235, 280, 325].map((azimuth, i) => ({ azimuth, spread: 44, height: [15, 19, 13, 21, 16, 20, 14, 18][i] ?? 16, rough: 0.22 })) },
-    { r: 560, base: 0, color: [0.12, 0.1, 0.15], top: [0.21, 0.17, 0.22], snowLine: 2, haze: 0.75, floor: -10,
+    { r: 560, base: 0, color: [0.12, 0.1, 0.15], top: [0.21, 0.17, 0.22], snowLine: 2, haze: 0.55, floor: -10,
       bands: [30, 70, 115, 160, 210, 255, 300, 345].map((azimuth, i) => ({ azimuth, spread: 46, height: [22, 26, 19, 28, 23, 27, 20, 25][i] ?? 23, rough: 0.2 })) },
-    { r: 600, base: 0, color: [0.16, 0.13, 0.18], top: [0.27, 0.21, 0.26], snowLine: 2, haze: 0.85, floor: -10,
+    { r: 600, base: 0, color: [0.16, 0.13, 0.18], top: [0.27, 0.21, 0.26], snowLine: 2, haze: 0.68, floor: -10,
       bands: [0, 40, 85, 125, 175, 220, 265, 310].map((azimuth, i) => ({ azimuth, spread: 50, height: [29, 33, 26, 35, 30, 34, 27, 32][i] ?? 30, rough: 0.18 })) },
   ] },
   boundary: { visible: false },

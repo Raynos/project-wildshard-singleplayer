@@ -107,9 +107,9 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
     const k = Math.min(1, Math.max(0, c)), base = 0.55 + 0.45 * k, w = 0.85 + 0.3 * t;
     map[i * 4] = Math.round(Math.min(255, (12 + 84 * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (8 + 56 * base * k) * w));
     map[i * 4 + 2] = Math.round(Math.min(255, (7 + 40 * base * k) * w)); map[i * 4 + 3] = 255;
-    const s = 3.2, nx = -dx * s, ny = -dy * s, l = Math.hypot(nx, ny, 1);
+    const s = 4.0, nx = -dx * s, ny = -dy * s, l = Math.hypot(nx, ny, 1);
     nor[i * 4] = Math.round(255 * (0.5 + 0.5 * nx / l)); nor[i * 4 + 1] = Math.round(255 * (0.5 + 0.5 * ny / l)); nor[i * 4 + 2] = Math.round(255 * (0.5 + 0.5 / l)); nor[i * 4 + 3] = 255;
-    rough[i * 4 + 1] = Math.round(255 * (0.95 - 0.6 * k * k)); rough[i * 4 + 3] = 255;
+    rough[i * 4 + 1] = Math.round(255 * (0.92 - 0.68 * k * k)); rough[i * 4 + 3] = 255; // round 9: a sheen on each crown (strand p99 56 against the mockup's ~140)
   }
   const tex = (data: Uint8Array, srgb: boolean): DataTexture => {
     const t = new DataTexture(data, n, n, RGBAFormat, UnsignedByteType);
@@ -121,7 +121,9 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
 }
 
 /** The held coil's shape in glove-hd2's own frame (its units: the model spans 2): two tall loops hung from the fist. */
-export const COIL = { cord: 0.048, loops: [{ c: [-0.66, 0.6, -0.42], rx: 0.5, ry: 0.68 }, { c: [-0.58, 0.54, -0.16], rx: 0.46, ry: 0.64 }], tail: [[-0.24, 0.02, -0.12], [-0.3, -0.5, -0.1], [-0.34, -1.25, -0.08]] } as const;
+// round 9 (the seats: the cord 24-28 px against mockup D's 10-15, the loops near circles): a slimmer cord, two taller loops
+// a little apart
+export const COIL = { cord: 0.03, loops: [{ c: [-0.68, 0.66, -0.46], rx: 0.46, ry: 0.76 }, { c: [-0.56, 0.58, -0.12], rx: 0.42, ry: 0.7 }], tail: [[-0.24, 0.02, -0.12], [-0.3, -0.5, -0.1], [-0.34, -1.25, -0.08]] } as const;
 
 /**
  * The plaited coil in glove-hd2's frame (round 8): a tube with true UVs (u along, v round) wearing the plait tile, two

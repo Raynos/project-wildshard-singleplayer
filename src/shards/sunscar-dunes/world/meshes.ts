@@ -77,7 +77,9 @@ float gloveN(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 *
     mix(mix(gloveH(i + vec3(0, 0, 1)), gloveH(i + vec3(1, 0, 1)), f.x), mix(gloveH(i + vec3(0, 1, 1)), gloveH(i + vec3(1, 1, 1)), f.x), f.y), f.z); }
 // worn leather's crinkle (round 8, mockup D: creased, grained leather catching many small highlights; ours read smooth):
 // ridged noise at ~1 cm and ~4 mm in the model's own space (it spans 2 units, ~0.3 m)
-float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 14.0) - 1.0)) * 0.65 + (1.0 - abs(2.0 * gloveN(p * 42.0 + 3.1) - 1.0)) * 0.35; }`)
+// round 9 (the seats: a fine mottle; mockup D's leather creased at hand scale, cracked, with knuckle folds): a ~3 cm crease
+// octave over the ~1 cm and ~4 mm ones
+float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 5.0 + 1.7) - 1.0)) * 0.5 + (1.0 - abs(2.0 * gloveN(p * 14.0) - 1.0)) * 0.33 + (1.0 - abs(2.0 * gloveN(p * 42.0 + 3.1) - 1.0)) * 0.17; }`)
       .replace('#include <map_fragment>', ramp ? `#include <map_fragment>
   float leatherL = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
   // the texture's light and dark (braid, creases) kept, mapped onto a warm tan leather ramp (mockups A-C; the map is near-black red)
@@ -110,7 +112,7 @@ float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 14.0) - 1.0)) * 
       .replace('#include <normal_fragment_maps>', ramp ? '#include <normal_fragment_maps>' : `#include <normal_fragment_maps>
   {
     // the crinkle as a bump (derivative bump mapping, three's perturbNormalArb): creases the key and the viewer light pick out
-    float gh = gloveCrinkle(vGloveP) * 0.0035;
+    float gh = gloveCrinkle(vGloveP) * 0.0055;
     vec2 dH = vec2(dFdx(gh), dFdy(gh));
     vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx);
     float det = dot(sx, r1);

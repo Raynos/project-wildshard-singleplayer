@@ -308,7 +308,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // sand 20 against the mockup's 32): each burning fire (and the caravan's lantern, at its share) lights the sand round it
   for (int i = 0; i < 4; i++) {
     float fireD = length(vSandPos - uFireLights[i].xyz);
-    reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.0, 0.42, 0.14) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 11.0), 2.0) * 0.3;
+    reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.0, 0.42, 0.14) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 11.0), 2.0) * 0.18;
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });

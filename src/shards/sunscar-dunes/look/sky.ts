@@ -78,9 +78,9 @@ void main() {
   // Stars: soft points round a jittered spot in each cell, many overhead, fading into the band and the glow.
   vec3 cellP = d * 300.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;
-  float starDot = 1.0 - smoothstep(0.0, 0.26, length(cellP - spot));
-  float star = step(0.992, starHash(cell)) * starDot * smoothstep(0.1 - 0.05 * uDusk, 0.35 - 0.15 * uDusk, h) * (1.0 - 0.7 * pow(toward, 2.0)) * (1.0 - cov);
-  c += vec3(0.85, 0.9, 1.0) * star * (1.2 + 1.8 * starHash(cell + 3.1));
+  float starDot = 1.0 - smoothstep(0.08, 0.4, length(cellP - spot)); // round 9 (seat C: the mockups' stars crisp white points; ours faint specks): fewer, larger, brighter
+  float star = step(0.9955, starHash(cell)) * starDot * smoothstep(0.1 - 0.05 * uDusk, 0.35 - 0.15 * uDusk, h) * (1.0 - 0.7 * pow(toward, 2.0)) * (1.0 - cov);
+  c += vec3(0.9, 0.92, 1.0) * star * (2.2 + 2.6 * starHash(cell + 3.1));
   // dithered: a smooth gradient this dark crossed one 8-bit step in a visible line across the sky (the scorer's arc)
   c += (starHash(vec3(gl_FragCoord.xy, 7.0)) - 0.5) * 0.014;
   gl_FragColor = vec4(pow(max(c, vec3(0.0)), vec3(2.2)), 1.0);
