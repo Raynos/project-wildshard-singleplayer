@@ -25,7 +25,6 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   // overhead: two huge isles hanging high behind the windmill, their roots trailing (mockup A's cluster over the mill;
   // E399: at the spawn's top corners they walled off the open cumulus mockups B and C show there)
   isle('o1', -16, -150, 11, 98, 19, 4, Math.PI * 0.3), isle('o2', 21, -176, 12, 108, 20, 4, Math.PI * 0.7),
-  isle('o3', -2, -205, 9, 112, 16, 3, null),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),
   isle('b3', 20, 95, 16, 60, 26, 5, Math.PI * 1.5), isle('b4', -40, -255, 20, 62, 32, 6, Math.PI * 1.2),

@@ -72,7 +72,8 @@ function stick(a: number, stations: readonly Station[], z0: number, z1: number, 
 /** The sticks and the two guards as one vertex-coloured geometry (dark lacquered wood, bronze tips). */
 export function fanSticks(): BufferGeometry {
   const pos: number[] = [], col: number[] = [], from = -FAN.spread / 2, step = FAN.spread / FAN.panels;
-  const root = new Color(0x12100e), wood = new Color(0x2a2420), grain = new Color(0x3a3029), tip = new Color(0x6a5232);
+  // a brown wood, not near-black (the seats read the rim-lit black lacquer as red ribs; the mockups' are slim brown wood)
+  const root = new Color(0x2a2018), wood = new Color(0x4a3a2a), grain = new Color(0x5c4834), tip = new Color(0x8a6a3a);
   for (let i = 0; i <= FAN.panels; i++) {
     const a = from + i * step, guard = i === 0 || i === FAN.panels;
     if (guard) {

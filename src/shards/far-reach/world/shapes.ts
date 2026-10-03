@@ -1,4 +1,5 @@
 import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, ConeGeometry, CylinderGeometry, DoubleSide, Euler, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
+import { PATCH_ORDER, patchShader } from '#engine';
 import { ropeSag } from '../layout';
 import { fit, hdMaterial, skyHd, skyMesh, splitAbove } from './meshes';
 import { towerMill } from './mill';
@@ -6,7 +7,7 @@ import { towerMill } from './mill';
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
 export const PALETTE = {
   grass: 0x7d9640, grassLight: 0xa6ad55, dirt: 0x8a6446, rock: 0x8a7468, rockDark: 0x6a5560,
-  pine: 0x3f5a3c, trunk: 0x5a3f2e, plank: 0x8d6a4c, rope: 0xd6c095, tower: 0xd8cfc2, sail: 0xe8dcc4, glow: 0x9fe6f2,
+  pine: 0x3f5a3c, trunk: 0x5a3f2e, plank: 0x8d6a4c, rope: 0x7d6444, tower: 0xd8cfc2, sail: 0xe8dcc4, glow: 0x9fe6f2,
 } as const;
 
 type Tri = (a: Vector3, b: Vector3, c: Vector3, color: number, vary?: number) => void;
@@ -108,7 +109,7 @@ export function plankBridge(length: number, width: number, material: MeshStandar
   if (posts !== null) group.add(posts);
   for (const side of [-1, 1]) {
     // the hand ropes hang from post to post a little deeper than the planks (a rope sags more than a deck)
-    group.add(new Mesh(hungRope(length, sag, side * width / 2, 1, 1.1, 0.035), rails), new Mesh(hungRope(length, sag, side * width / 2, 0.45, 1.03, 0.028), rails));
+    group.add(new Mesh(hungRope(length, sag, side * width / 2, 1, 1.1, 0.022), rails), new Mesh(hungRope(length, sag, side * width / 2, 0.45, 1.03, 0.018), rails));
     if (posts === null) for (const z of [0, -length]) { const post = new Mesh(new BoxGeometry(0.16, 1.3, 0.16), flat(PALETTE.trunk)); post.position.set(side * width / 2, 0.55, z); group.add(post); }
   }
   return group;
@@ -128,6 +129,31 @@ function greyWood(g: BufferGeometry): BufferGeometry {
 /** The rope-bridge kit (Hunyuan3D-2 from `art/far-reach/round-9-bridge/ref-bridge-*.jpg`): a plank deck segment about this long, and an anchor post this tall. */
 const DECK_SEGMENT = 4.8, POST_HEIGHT = 1.6;
 /** The generated deck segments laid end to end along local −Z, top at y 0, stretched to the span's width; null without the kit. */
+/**
+ * The deck's painted wood (E399 round 2, seat C: 'flat-shaded planks with jagged facets next to the textured posts'):
+ * smooth-shaded, a grain of fine streaks along each plank (the local x runs across the deck, z along it), a tone per plank
+ * across the deck, silvered wear down the middle where feet go, darker toward the plank ends.
+ */
+function deckWood(): MeshStandardMaterial {
+  const m = flat(0xffffff, { vertexColors: true, flatShading: false, roughness: 0.9 });
+  patchShader(m, 'far.deck-wood', PATCH_ORDER.decorate, (shader) => {
+    shader.vertexShader = `varying vec3 vFarDeck;\n${shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vFarDeck = position;')}`;
+    shader.fragmentShader = `varying vec3 vFarDeck;
+float farDH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float farDN(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(farDH(i), farDH(i + vec2(1.0, 0.0)), u.x), mix(farDH(i + vec2(0.0, 1.0)), farDH(i + vec2(1.0, 1.0)), u.x), u.y); }
+${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+  { vec2 q = vFarDeck.xz;
+    float plank = floor(q.y * 6.0 + 0.5);
+    float grain = farDN(vec2(q.x * 3.0 + plank * 7.1, q.y * 90.0)) * 0.6 + farDN(vec2(q.x * 9.0, q.y * 260.0 + plank)) * 0.4;
+    float tone = 0.78 + 0.32 * farDH(vec2(plank, 3.7));
+    float wear = 1.0 - smoothstep(0.15, 0.9, abs(q.x) / 1.3);
+    diffuseColor.rgb *= tone * (0.82 + 0.3 * grain);
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))) * vec3(1.05, 1.0, 0.94), wear * 0.35);
+  }`)}`;
+  }, { key: (prior) => `${prior}|far.deck-wood` });
+  return m;
+}
 function kitDeck(length: number, width: number, sag: (s: number) => number): InstancedMesh | null {
   const source = skyMesh('bridge-deck'); if (source === null) return null;
   // fitted along its long axis (x), then turned so that axis runs down the span
@@ -138,7 +164,7 @@ function kitDeck(length: number, width: number, sag: (s: number) => number): Ins
   g.scale(width / Math.max(1e-3, b.max.x - b.min.x), 1, seg / Math.max(1e-3, b.max.z - b.min.z)); g.computeVertexNormals();
   // weathered wood (E392: the mockups' planks are grey-brown, ours read saturated orange)
   greyWood(g);
-  const mesh = new InstancedMesh(g, flat(0xffffff, { vertexColors: true }), n), m = new Matrix4();
+  const mesh = new InstancedMesh(g, deckWood(), n), m = new Matrix4();
   for (let i = 0; i < n; i++) { const s = (i + 0.5) * seg; m.compose(new Vector3(0, -sag(s), -s), sagTilt(sag, s), ONE); mesh.setMatrixAt(i, m); }
   mesh.computeBoundingSphere(); return mesh;
 }
