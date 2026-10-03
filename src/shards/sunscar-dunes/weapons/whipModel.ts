@@ -11,7 +11,9 @@ import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 // the loop a teardrop rising from it): rolled 0.5 so the handle leans up and left, a touch larger and lower
 // round 18 (the lead: re-pose it through mockup-to-model): glove-hd4, the same glove modelled with the back of the hand and
 // the cuff toward the camera (art/sunscar-dunes/round-27-glove); its own frame, so a new fit
-export const HD_GLOVE = { size: 0.14, pos: [0.0, -0.16, 0] as [number, number, number], rot: [0, 0.5, 0.2] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
+// round 21 (the lead: every mockup holds a coil hanging LOW in the lower-right corner, the handle inside the fist; the game
+// held a loop up on a stick): the rig lower and pitched forward (the handle foreshortened into the fist), the coil hanging
+export const HD_GLOVE = { size: 0.14, pos: [0.02, -0.19, 0] as [number, number, number], rot: [-0.5, 0.5, 0.2] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
 // rising from the bottom edge, dusk-fire one low loose loop, only D a raised fist): the one idle hold lower, toward the four // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
@@ -137,14 +139,15 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
  * frame (it spans ~2 units, ~0.13 m a unit; the handle's top at (-0.53, 0.95, 0.19)): the cord leaves the handle's top
  * into a closed coil beside the fist (round 15: see plaitedLoop), and the fall drops out of the frame behind the hand.
  */
-export const LOOP = { cord: 0.06, from: [-0.613, 0.922, -0.537], start: -0.97, rx: 0.38, ry: 0.4, face: 0.4, turns: 2, step: [0.05, -0.04, 0.05], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
+export const LOOP = { cord: 0.06, from: [-0.613, 0.922, -0.537], start: 1.3, rx: 0.5, ry: 0.62, face: 0.4, turns: 2, step: [0.05, -0.04, 0.05], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
 
 /**
  * The coil (LOOP) as one plaited tube. Round 15 (the lead after round 14: an open hook with a kink, the strands crossing
  * in front of the fingers, the loop under the HUD): a closed upright ellipse, its two turns lying close, the fall dropping
  * behind the hand. Round 17 (seat B: the mockups' loop is a teardrop rising from the fist, not a ring beside it): the
- * cord leaves the handle's top straight into the ellipse's lower right (`start`, radians), climbs its right side, turns
- * twice and leaves at its foot for the fall, so no stretch of cord crosses the loop's middle.
+ * cord leaves the handle's top straight into the ellipse at `start` (radians), turns and leaves at its foot for the fall,
+ * so no stretch of cord crosses the loop's middle. Round 21 (the lead): `start` 1.3, so the ellipse's centre is below the
+ * handle's top and the coil HANGS from the fist, ~1.5 turns.
  */
 function plaitedLoop(): Mesh {
   const [fx, fy, fz] = LOOP.from, a0 = LOOP.start;
