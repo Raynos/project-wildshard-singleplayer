@@ -15,7 +15,7 @@ import { WIND } from './dunes';
 export interface FireSize { flame: number; glow: number; smoke: number; embers: number; /** a thin pale wisp (a cookfire), not the dark plume */ wisp?: boolean }
 export const WAYMARK_FIRE: FireSize = { flame: 2.6, glow: 1.7, smoke: 15, embers: 180 }; // mockup C: a roaring log fire, about one and a half bowls tall
 /** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
-export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 26, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon
+export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 15, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon
 export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
 
 const time = { value: 0 };
@@ -42,14 +42,14 @@ void main() {
   vec3 right = normalize(vec3(toCam.z, 0.0, -toCam.x) + vec3(1e-4, 0.0, 0.0));
   float y = position.y;
   vec3 world = center + right * position.x * sx * (1.0 + LEAN_WIDEN * y) + vec3(0.0, y * sy, 0.0);
-  world.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * y * y * sy * LEAN + vec2(sin(uTime * 0.7 + y * 3.0), cos(uTime * 0.5 + y * 2.0)) * y * sy * LEAN * 0.15;
+  world.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * y * y * sy * LEAN + vec2(sin(uTime * 0.7 + y * 3.0), cos(uTime * 0.5 + y * 2.0)) * y * sy * LEAN * SWAY;
   vFar = length(cameraPosition - world);
   gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
 }`;
 
 const flameMaterial = new ShaderMaterial({
   uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false,
-  vertexShader: `#define LEAN 0.06\n#define LEAN_WIDEN 0.0\n${BILLBOARD_Y}`,
+  vertexShader: `#define LEAN 0.06\n#define LEAN_WIDEN 0.0\n#define SWAY 0.15\n${BILLBOARD_Y}`,
   fragmentShader: /* glsl */ `
 uniform float uTime;
 varying vec2 vUv;
@@ -76,7 +76,7 @@ void main() {
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */
 const smokeMaterialOf = (wisp: boolean): ShaderMaterial => new ShaderMaterial({
   uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: NormalBlending, fog: false,
-  vertexShader: wisp ? `#define LEAN 0.06\n#define LEAN_WIDEN 0.8\n${BILLBOARD_Y}` : `#define LEAN 0.36\n#define LEAN_WIDEN 2.6\n${BILLBOARD_Y}`,
+  vertexShader: wisp ? `#define LEAN 0.06\n#define LEAN_WIDEN 0.8\n#define SWAY 1.3\n${BILLBOARD_Y}` : `#define LEAN 0.36\n#define LEAN_WIDEN 2.6\n#define SWAY 0.15\n${BILLBOARD_Y}`,
   fragmentShader: /* glsl */ `
 uniform float uTime;
 varying vec2 vUv;
@@ -165,6 +165,8 @@ void main() {
 }`,
 });
 const quad = new PlaneGeometry(1, 1); quad.translate(0, 0.5, 0);
+/** The wisp's quad: 16 rows, so its sway curls it rather than tilting it. */
+const wispQuad = new PlaneGeometry(1, 1, 1, 16); wispQuad.translate(0, 0.5, 0);
 const glowQuad = new PlaneGeometry(2, 2);
 const emberCache = new Map<number, BufferGeometry>();
 const embers = (n: number): BufferGeometry => {
@@ -178,7 +180,7 @@ const embers = (n: number): BufferGeometry => {
   return g;
 };
 /** The shared resources, for the level scope to own. */
-export const FIRE_RESOURCES = [flameMaterial, smokeMaterial, wispMaterial, glowMaterial, emberMaterial, poolMaterial, quad, glowQuad] as const;
+export const FIRE_RESOURCES = [flameMaterial, smokeMaterial, wispMaterial, glowMaterial, emberMaterial, poolMaterial, quad, wispQuad, glowQuad] as const;
 export const fireGeometries = (): BufferGeometry[] => [...emberCache.values()];
 
 /**
@@ -192,7 +194,7 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   const inner = new Mesh(quad, flameMaterial); inner.scale.set(size.flame * 0.42, size.flame * 0.8, 1); inner.position.set(0.05, -0.05, 0.05); add(inner);
   const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
-  const smoke = new Mesh(quad, size.wisp === true ? wispMaterial : smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.025 : 0.07), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
+  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.025 : 0.07), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
   if (pool) {
     const r = Math.max(size.glow * 2.3, size.flame * 2.4), n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
     const p = g.getAttribute('position');
