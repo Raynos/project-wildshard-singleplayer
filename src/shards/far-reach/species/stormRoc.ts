@@ -3,6 +3,7 @@ import { BoxGeometry, Color, ConeGeometry, Float32BufferAttribute, IcosahedronGe
 import { bindRigid, fit, skyHd, skyMesh, type SkyHd } from '../world/meshes';
 import { CROWN, DAIS, ROC } from '../layout';
 import { crownStones } from '../world/crown';
+import { STORM } from '../world/storm';
 import { STRINGS } from '../strings';
 import { hull, pushPlayer, yawTo } from './rig';
 
@@ -19,23 +20,33 @@ export const SWEEP: StrikeSpec = { id: 'far.roc.sweep', shape: { kind: 'arc', ra
 export const ROC_GALE = { shove: 14, lift: 2 } as const;
 export const ROC_SPEED = { circle: 10, stalk: 12, dive: 20, walk: 2.4 } as const;
 /**
- * The take-off as a fight begins: its seconds, the slow speed it gathers out from the perch (m/s), how far it rises (m), how fast it
+ * The take-off as a fight begins: its seconds, the slow speed it gathers out from the perch (m/s), how fast it
  * swings round onto the player (rad/s) and the most it leans into that swing (rad).
  */
 // (round 9, the lead: the fight starts at the bridge landing; a player walks into the arena's view in ~3.1 s)
-// (round 13, seat A and the lead: it launched at a fixed rim point, head-on and level; now it drops off its perch turned
-// three-quarter away and swings round onto the player, leaning into the turn as an eagle does at low speed)
-export const ROC_TAKEOFF = { seconds: 4, speed: 1.6, rise: 2, turn: 0.15, bank: 0.35 } as const;
-/** How far the perched Roc stands turned from the arena's entrance (rad, + = to its left): three-quarter on, so whoever
- * walks in sees its profile, hooked beak and folded wing, and its launch is a turn (round 13: 'frontal symmetry'). */
-export const ROC_PERCH_TURN = -0.8;
+// (round 13, seat A and the lead: it launched at a fixed rim point, head-on and level; now it drops off its perch facing
+// into the storm's wind (perchYaw) and swings round onto the player, leaning into the turn as an eagle does at low speed)
+export const ROC_TAKEOFF = { seconds: 4, speed: 1.6, turn: 0.15, bank: 0.35 } as const;
 /** The Roc's perch: the top of the ring's tallest stone (world/crown.ts), the one opposite the arena's entrance. */
 const PERCH = (): { x: number; y: number; z: number } => {
   const tallest = crownStones().reduce((best, st) => (st.h > best.h ? st : best));
   return { x: tallest.x, y: CROWN.y + tallest.h + 0.6, z: tallest.z };
 };
-/** The perched Roc's heading: toward the arena's entrance, turned ROC_PERCH_TURN. */
-const perchYaw = (a: Animal): number => yawTo(a, DAIS.x, DAIS.z + 40) + ROC_PERCH_TURN;
+/** The storm's eye (world/build.ts hangs the vortex STORM.ahead north of the crown). */
+const STORM_EYE = { x: CROWN.x, z: CROWN.z - STORM.ahead } as const;
+/**
+ * The perched Roc's heading: into the storm's wind (E410 row 5; the seats: a fixed 0.8 rad turn from the entrance was
+ * chosen against mockup D's camera, not by the arena). A perched raptor faces into the wind, so its feathers lie flat and
+ * it lifts off into it. The storm's winds circle its eye the way its painted vortex turns: the lower disc spins positive
+ * about +y (STORM.layers[0].spin, counter-clockwise seen from above), so on the crown, south of the eye, they blow east
+ * across the arena and the Roc on the tallest stone faces west into them, side-on to whoever walks in from the bridge.
+ * Its take-off then swings it round onto the player.
+ */
+export const perchYaw = (): number => {
+  const perch = PERCH(), spin = Math.sign(STORM.layers[0].spin), dx = perch.x - STORM_EYE.x, dz = perch.z - STORM_EYE.z;
+  // the wind at the perch is spin * (up × out-from-the-eye) = spin * (dz, -dx); the Roc faces the other way
+  return Math.atan2(-spin * dz, spin * dx);
+};
 export type RocPhase = 0 | 1 | 2;
 type RocState = 'circle' | 'stalk' | 'strike' | 'rest';
 
@@ -79,16 +90,16 @@ export class StormRocBrain extends CreatureBrain<RocState> {
   restart(): void {
     this.strikes.cancel(); this.actor.cancelAttack(); this.current = null; this.rest = 2; this.takeoff = 0; this.wasFighting = false; this.transition('circle');
     // back on its perch (round 12, the lead: a retry left it wherever it was), at rest (round 13: placed mid-lap it kept its
-    // lap speed and slid ~5 m off the stone before the take-off began), three-quarter on to the arena's entrance
+    // lap speed and slid ~5 m off the stone before the take-off began), facing into the storm's wind
     const perch = PERCH(); this.angle = Math.atan2(perch.z - ROC.z, perch.x - ROC.x);
-    this.actor.place(perch.x, perch.z, 0, perch.y); this.actor.yaw = perchYaw(this.actor); this.actor.speed = 0; this.actor.mem['rocBank'] = 0;
+    this.actor.place(perch.x, perch.z, 0, perch.y); this.actor.yaw = perchYaw(); this.actor.speed = 0; this.actor.mem['rocBank'] = 0;
   }
   stageOpening(): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
     const perch = PERCH();
     this.strikes.cancel(); a.cancelAttack(); this.current = null; this.rest = 2; this.transition('circle');
     this.angle = Math.atan2(perch.z - ROC.z, perch.x - ROC.x);
-    a.place(perch.x, perch.z, 0, perch.y); a.yaw = perchYaw(a); a.speed = 0; a.mem['rocBank'] = 0; this.takeoff = ROC_TAKEOFF.seconds; this.rest = ROC_TAKEOFF.seconds + 0.5; this.wasFighting = true;
+    a.place(perch.x, perch.z, 0, perch.y); a.yaw = perchYaw(); a.speed = 0; a.mem['rocBank'] = 0; this.takeoff = ROC_TAKEOFF.seconds; this.rest = ROC_TAKEOFF.seconds + 0.5; this.wasFighting = true;
   }
   stageStalk(at: { x: number; z: number }, face: { x: number; z: number }): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
@@ -109,10 +120,10 @@ export class StormRocBrain extends CreatureBrain<RocState> {
     const a = this.actor; if (!a.alive) return;
     const s = this.strike(ctx), spec = this.spec(), p = ctx.player;
     if (this.state === 'circle' && !this.fighting) {
-      // at rest it perches on the tallest standing stone, opposite the arena's entrance, watching the bridge (council
+      // at rest it perches on the tallest standing stone, opposite the arena's entrance, facing into the storm's wind (council
       // round 2: the arena view frames the Roc, not an empty sky under its bar)
       const perch = PERCH(), d = Math.hypot(perch.x - a.position.x, perch.z - a.position.z);
-      ctx.flight.steer(a, d > 0.6 ? yawTo(a, perch.x, perch.z) : perchYaw(a), d > 0.6 ? Math.min(ROC_SPEED.circle, d * 1.2) : 0, perch.y, 2);
+      ctx.flight.steer(a, d > 0.6 ? yawTo(a, perch.x, perch.z) : perchYaw(), d > 0.6 ? Math.min(ROC_SPEED.circle, d * 1.2) : 0, perch.y, 2);
       a.mem['rocLean'] = 0;
       return;
     }
@@ -121,12 +132,16 @@ export class StormRocBrain extends CreatureBrain<RocState> {
       this.takeoff = Math.max(0, this.takeoff - ctx.dt);
       const k = 1 - this.takeoff / ROC_TAKEOFF.seconds;
       // (round 13, seat A: it aimed at the fixed rim point (DAIS.x, CROWN.z + CROWN.r), not at the player) it launches at
-      // the player, wherever they stand as it lifts off: from its three-quarter perch it swings round onto them at
+      // the player, wherever they stand as it lifts off: from its perch, side-on into the wind, it swings round onto them at
       // ROC_TAKEOFF.turn, leaning into the swing (the lean eases in as it drops off the stone and rolls out as it lines up);
       // it lifts first and gathers speed as it goes, so the launch rises off the stone rather than sliding sideways off it
       const want = yawTo(a, p.x, p.z), off = Math.atan2(Math.sin(want - a.yaw), Math.cos(want - a.yaw));
       a.mem['rocLean'] = -Math.max(-ROC_TAKEOFF.bank, Math.min(ROC_TAKEOFF.bank, off * 1.2)) * Math.min(1, k * 4);
-      ctx.flight.steer(a, want, ROC_TAKEOFF.speed * k, Math.min(this.altitude(), PERCH().y + ROC_TAKEOFF.rise * k), ROC_TAKEOFF.turn);
+      // (E410: it rose a fixed 2 m and hung at the sun's height, its talons over the sun from the arena) it lifts off into the
+      // storm's wind, which gives it airspeed before it has ground speed, so it climbs off the stone to its lap height over the
+      // take-off and the lap begins level
+      const perchY = PERCH().y;
+      ctx.flight.steer(a, want, ROC_TAKEOFF.speed * k, perchY + (this.altitude() - perchY) * k, ROC_TAKEOFF.turn);
       return;
     }
     a.mem['rocLean'] = 0;
