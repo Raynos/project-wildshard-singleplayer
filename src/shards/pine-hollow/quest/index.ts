@@ -206,7 +206,7 @@ export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
         if (e.text) hud.toast(e.text);
         break;
       case 'sit': case 'press': case 'release': break;
-      case 'open': case 'light': case 'loot': case 'use': case 'barrel-reset': if (e.text) hud.toast(e.text); break;
+      case 'open': case 'light': case 'found': case 'use': case 'barrel-reset': if (e.text) hud.toast(e.text); break;
       default: break;
     }
   };

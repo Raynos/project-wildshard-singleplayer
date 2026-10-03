@@ -11,7 +11,7 @@
  */
 import * as THREE from 'three';
 import { app } from '#engine';
-import { coinModel } from '#engine/world/interact/models';
+import { coinModel } from './coinModel';
 import { burstCount, coinShare } from './coins';
 
 const POOL = 48;                 // coins in flight at once (a captain = 12; a crab melee = a few)

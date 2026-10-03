@@ -35,21 +35,21 @@ import { castSegment, lineOfSight } from '../../physics/query';
 import { activeBodies, overlapBox, type Body, type BodySpec } from '../../physics/bodies';
 import { waterLevel } from '../Heightfield';
 import { test, type Flags } from './flags';
-import { autoFlag, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
+import { autoFlag, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
 import * as Mdl from './models';
 import * as Models from '../../models/interact';
 import { modelContext, type ModelDef, type Placement } from '../../models/model';
 import { place, type Placed } from '../../models/place';
 
 export interface InteractEvent {
-  type: 'open' | 'locked' | 'take' | 'lever' | 'door' | 'press' | 'release' | 'light' | 'sit' | 'use' | 'loot' | 'barrel-reset';
+  type: 'open' | 'locked' | 'take' | 'lever' | 'door' | 'press' | 'release' | 'light' | 'sit' | 'use' | 'found' | 'barrel-reset';
   def: InteractDef;
   /** a human line for the toast */
   text?: string;
-  /** an inventory item handed out (loot / pickup) */
+  /** an inventory item handed out (a chest's contents / a pickup) */
   item?: string;
   n?: number;
-  /** a flag handed out as loot (a chest's `{ flag }` — the wreck's glyph shard) */
+  /** a flag handed out from a chest (its `{ flag }`) */
   flag?: string;
   /** world position of the row */
   at: THREE.Vector3;
@@ -302,18 +302,20 @@ export class Interactables {
     const chest = new Rows(Models.seaChest, 'lit'), key = new Rows(Models.holdKey, 'glow'), door = new Rows(Models.door, 'lit');
     const lever = new Rows(Models.lever, 'lit'), plate = new Rows(Models.pressurePlate, 'lit'), barrel = new Rows(Models.puzzleBarrel, 'lit');
     const beacon = new Rows(Models.beacon, 'lit'), bench = new Rows(Models.bench, 'lit'), altar = new Rows(Models.shardAltar, 'lit');
-    const pickups = {
-      flint: new Rows(Models.flintKit, 'lit'), seaglass: new Rows(Models.seaGlass, 'glow'), coin: new Rows(Models.doubloon, 'glow'),
-      resin: new Rows(Models.resinDrop, 'glow'), token: new Rows(Models.carvedToken, 'lit'), shard: new Rows(Models.glyphShard, 'glow'),
-    };
-    const lifts = { flint: 0, seaglass: 0.45, coin: 0.6, resin: 0, token: 0.55, shard: 1.2 };
+    const pickups = new Map<string, Rows<Record<string, never>>>();   // per registered look (registerPickupLook)
     const small = [0.25, 0.25, 0.25] as const;
     for (const lv of this.lives) {
       const d = lv.def;
       switch (d.kind) {
         case 'chest': { const look = d.look ?? 'chest', D = Mdl.CHEST_DIMS[look]; chest.add(lv, { look, locked: d.lock !== undefined }, [D.w / 2, (D.h + D.lidH) / 2, D.w / 2], 0, look); break; }
         case 'key': key.add(lv, {}, [0.2, 0.2, 0.2], 0.9); break;
-        case 'pickup': pickups[d.look].add(lv, {}, small, lifts[d.look]); break;
+        case 'pickup': {
+          const look = pickupLook(d.look);
+          if (look === undefined) break;   // an unregistered look draws nothing far away (validate reports it)
+          let rows = pickups.get(d.look);
+          if (rows === undefined) { rows = new Rows(look.model, look.batch); pickups.set(d.look, rows); }
+          rows.add(lv, {}, small, look.lift); break;
+        }
         case 'door': door.add(lv, { look: d.look, w: d.w, h: d.h }, [d.w / 2 + 0.1, d.h / 2, d.w / 2 + 0.1], 0, d.look); break;
         case 'lever': lever.add(lv, {}, [0.25, 0.4, 0.25]); break;
         case 'plate': plate.add(lv, { size: d.size }, [d.size / 2, 0.08, d.size / 2]); break;
@@ -324,7 +326,7 @@ export class Interactables {
         default: break;
       }
     }
-    for (const r of [chest, key, ...Object.values(pickups), door, lever, plate, barrel, beacon, bench, altar]) r.place();
+    for (const r of [chest, key, ...pickups.values(), door, lever, plate, barrel, beacon, bench, altar]) r.place();
   }
 
   /** The level scene owner may already own the batch GPU resources. */
@@ -373,13 +375,11 @@ export class Interactables {
         this.part(lv, this.geo('key', 'glow', () => Mdl.keyModel(this.s())), 'glow', bob(0.9, 0.08, 1.6), { animated: true, glow: pulse(1.5) });
         break;
       case 'pickup': {
-        const look = d.look;
-        if (look === 'flint') this.part(lv, this.geo('flint', 'lit', () => Mdl.flintKit(this.s())), 'lit', still);
-        else if (look === 'seaglass') this.part(lv, this.geo('seaglass', 'glow', () => Mdl.seaGlass(this.s())), 'glow', bob(0.45, 0.07, 1.1), { animated: true, glow: pulse(2.2) });
-        else if (look === 'coin') this.part(lv, this.geo('coin', 'glow', () => Mdl.coinModel(this.s())), 'glow', bob(0.6, 0.06, 2.4), { animated: true, glow: pulse(1.4) });
-        else if (look === 'resin') this.part(lv, this.geo('resin', 'glow', () => Mdl.resinDrop(this.s())), 'glow', bob(0.0, 0.025, 0.35), { animated: true, glow: pulse(1.25) });
-        else if (look === 'token') { this.part(lv, this.geo('token', 'lit', () => Mdl.carvedToken(this.s())), 'lit', bob(0.55, 0.05, 1.3), { animated: true }); this.part(lv, this.geo('token-rim', 'glow', () => Mdl.tokenRim(this.s())), 'glow', bob(0.55, 0.05, 1.3), { animated: true, glow: pulse(0.9) }); }
-        else this.part(lv, this.geo('shard', 'glow', () => Mdl.glyphShard(this.s())), 'glow', bob(1.2, 0.12, 0.9), { animated: true, glow: pulse(2.2) });
+        for (const part of pickupLook(d.look)?.parts ?? []) {
+          const geo = this.geo(part.key, part.batch, () => part.geometry(this.s()));
+          if (part.bob === undefined) this.part(lv, geo, part.batch, still);
+          else this.part(lv, geo, part.batch, bob(...part.bob), { animated: true, ...(part.pulse === undefined ? {} : { glow: pulse(part.pulse) }) });
+        }
         break;
       }
       case 'door': {
@@ -416,9 +416,10 @@ export class Interactables {
       case 'altar': {
         const n = d.fills.length;
         this.part(lv, this.geo(`altar:${n}`, 'lit', () => Mdl.altar(n, this.s())), 'lit', still);
-        d.fills.forEach((f, i) => {
+        const socket = pickupLook(d.socketLook)?.parts[0];   // what fills a socket: a registered pickup look's first part
+        if (socket !== undefined) d.fills.forEach((f, i) => {
           const s = Mdl.altarSocket(i, n);
-          this.part(lv, this.geo('shard', 'glow', () => Mdl.glyphShard(this.s())), 'glow', (_l, t, out) => T(s.x, s.y + Math.sin(t * 1.3 + i) * 0.04, s.z, out, 0, t * 0.8 + i, 0, 0.8),
+          this.part(lv, this.geo(socket.key, socket.batch, () => socket.geometry(this.s())), socket.batch, (_l, t, out) => T(s.x, s.y + Math.sin(t * 1.3 + i) * 0.04, s.z, out, 0, t * 0.8 + i, 0, 0.8),
             { animated: true, when: (l) => this.host.flags.has(`used:${l.def.id}`) && this.host.flags.has(f), glow: pulse(2.4) });
         });
         break;
@@ -622,10 +623,10 @@ export class Interactables {
       case 'chest': {
         raise();
         this.emit({ type: 'open', def: d, text: d.toast ?? '', at });
-        for (const l of d.loot) {
-          if ('item' in l) this.emit({ type: 'loot', def: d, item: l.item, n: l.n ?? 1, at });
-          else if ('key' in l) { F.set(`key:${l.key}`); this.emit({ type: 'loot', def: d, text: engineString('s_f2abdaceed9a', [l.label]), at }); }
-          else { F.set(l.flag); this.emit({ type: 'loot', def: d, text: engineString('s_f2abdaceed9a', [l.label]), flag: l.flag, at }); }
+        for (const l of d.contents) {
+          if ('item' in l) this.emit({ type: 'found', def: d, item: l.item, n: l.n ?? 1, at });
+          else if ('key' in l) { F.set(`key:${l.key}`); this.emit({ type: 'found', def: d, text: engineString('s_f2abdaceed9a', [l.label]), at }); }
+          else { F.set(l.flag); this.emit({ type: 'found', def: d, text: engineString('s_f2abdaceed9a', [l.label]), flag: l.flag, at }); }
         }
         break;
       }

@@ -40,7 +40,7 @@ export const DRIFTWOOD_INTERACT: InteractTable = {
     // ── the hut: the castaway's sea chest (flint & steel for the beacon, a few coins) ──
     { kind: 'chest', id: 'castaway-chest', look: 'chest', at: { poi: 'hut', anchor: 'hut.hutChest', x: -2.2, z: 1.6, yaw: 0 },
       requires: { all: ['talked:castaway'] }, lockedLabel: 'The castaway\'s sea chest — ask him first',
-      loot: [{ flag: 'has:flint', label: 'flint & steel' }, { item: 'doubloon', n: 2 }], toast: 'The castaway\'s sea chest' },
+      contents: [{ flag: 'has:flint', label: 'flint & steel' }, { item: 'doubloon', n: 2 }], toast: 'The castaway\'s sea chest' },
 
     // ── LOOKOUT: the beacon; the shard appears once it burns ──
     { kind: 'beacon', id: 'beacon', label: 'Light the beacon', at: { poi: 'lookout', anchor: 'lookout.beacon', x: 0.9, z: 0.9 },
@@ -58,7 +58,7 @@ export const DRIFTWOOD_INTERACT: InteractTable = {
       requires: { all: ['lever:hold-pump'] }, lockedLabel: 'The winch is jammed — the hold is still flooded',
       sets: ['winch:up'], toast: 'The winch hauls a strongbox out of the bilge' },
     { kind: 'chest', id: 'strongbox', look: 'strongbox', at: { poi: 'wreck', anchor: 'wreck.strongbox', x: 0.1, z: 4.9, yaw: Math.PI },
-      showWhen: { all: ['winch:up'] }, loot: [{ flag: 'shard:wreck', label: 'the glyph shard — the Wreck' }, { item: 'doubloon', n: 3 }],
+      showWhen: { all: ['winch:up'] }, contents: [{ flag: 'shard:wreck', label: 'the glyph shard — the Wreck' }, { item: 'doubloon', n: 3 }],
       toast: 'The captain\'s strongbox' },
     { kind: 'barrel', id: 'tide-barrel', leash: 36, at: { poi: 'world', anchor: 'cave.barrelStart', x: 139, z: 2 } },
 
@@ -71,12 +71,12 @@ export const DRIFTWOOD_INTERACT: InteractTable = {
       requires: { all: ['open:sluice'] }, lockedLabel: 'Behind the tide gate', sets: ['shard:cave'], toast: 'Glyph shard — the Sea Cave' },
 
     // ── SHRINE: the altar the three shards are set into (the Captain rises when it is used) ──
-    { kind: 'altar', id: 'altar', label: 'Set the glyph shards', fills: [...SHARD_FLAGS], at: { poi: 'shrine', anchor: 'shrine.altar', x: 0, z: 2.4 },
+    { kind: 'altar', id: 'altar', label: 'Set the glyph shards', fills: [...SHARD_FLAGS], socketLook: 'shard', at: { poi: 'shrine', anchor: 'shrine.altar', x: 0, z: 2.4 },
       requires: { all: [...SHARD_FLAGS] }, lockedLabel: 'Three empty sockets — the glyph shards are out on the island',
       sets: ['quest:shrine-set'], toast: 'The shards lock into place — the ring wakes' },
 
     // ── A4: the dive treasure on the deepest shelf of the island (3 m, north-east of Wreck Cove — reach 1.6: dive for it), the vista bench on the plateau rim, the sea glass ──
-    { kind: 'chest', id: 'reef-treasure', look: 'treasure', reach: 1.6, at: { poi: 'world', x: 232, z: 48 }, loot: [{ item: 'doubloon', n: 8 }, { flag: 'found:reef-treasure', label: 'a pearl necklace' }],
+    { kind: 'chest', id: 'reef-treasure', look: 'treasure', reach: 1.6, at: { poi: 'world', x: 232, z: 48 }, contents: [{ item: 'doubloon', n: 8 }, { flag: 'found:reef-treasure', label: 'a pearl necklace' }],
       toast: 'Sunken treasure!' },
     { kind: 'bench', id: 'vista-bench', label: 'Sit and take in the view', at: { poi: 'world', x: -46, z: -100, yaw: 2.8 }, toast: '' },   // on the plateau's south rim, over the lagoon, the pier and the boat
     ...glass,

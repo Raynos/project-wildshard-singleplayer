@@ -1,4 +1,5 @@
-import type { Vector3 } from 'three';
+import type { BufferGeometry, Vector3 } from 'three';
+import type { ModelDef } from '../../models/model';
 /**
  * Interactables kit — the DATA schema (A2, project/archive/2026-09-23-driftwood-remaster.md). Every chest, key, door, lever, pressure
  * plate, barrel, pickup, beacon, bench and altar on a shard is one plain-JSON row of an `InteractTable`; nothing is code
@@ -11,7 +12,7 @@ import type { Vector3 } from 'three';
  *   `plate:<id>`                                     a plate is pressed right now (transient, never persisted)
  *   `lit:<id>`                                       a beacon lit
  *   `used:<id>`                                      a bench sat on / an altar used
- *   `key:<keyId>`                                    you hold that key (a key pickup, or a chest's loot)
+ *   `key:<keyId>`                                    you hold that key (a key pickup, or a chest's contents)
  *   anything in `sets`                               the row's own extra flag(s), raised with the automatic one
  *
  * and they react through CONDITIONS (`Cond`): `{ all?, any?, none? }` over flags. A door with `opensWhen` opens by
@@ -46,7 +47,7 @@ export interface Place {
 export interface Cond { all?: string[]; any?: string[]; none?: string[] }
 
 /** what a chest hands out */
-export type Loot =
+export type ChestItem =
   | { item: string; n?: number }
   | { key: string; label: string }
   | { flag: string; label: string };
@@ -68,7 +69,7 @@ interface Base {
   reach?: number;
 }
 
-export interface ChestDef extends Base { kind: 'chest'; /** a key id; the chest is locked without `key:<lock>` */ lock?: string; loot: Loot[]; /** 'crate' (plain) | 'chest' (banded) | 'strongbox' (iron, small) */ look?: 'chest' | 'strongbox' | 'treasure' }
+export interface ChestDef extends Base { kind: 'chest'; /** a key id; the chest is locked without `key:<lock>` */ lock?: string; contents: ChestItem[]; /** 'crate' (plain) | 'chest' (banded) | 'strongbox' (iron, small) */ look?: 'chest' | 'strongbox' | 'treasure' }
 export interface KeyDef extends Base { kind: 'key'; key: string; label: string }
 export interface DoorDef extends Base {
   kind: 'door';
@@ -85,8 +86,8 @@ export interface PlateDef extends Base { kind: 'plate'; /** square side, metres 
 export interface BarrelDef extends Base { kind: 'barrel'; /** the barrel is returned here if it strays further than this (m) from its start */ leash: number }
 export interface PickupDef extends Base {
   kind: 'pickup';
-  /** 'resin' / 'token': Pine Hollow's amber resin drop (glow) and carved wooden token (lit) — PH-C8 */
-  look: 'seaglass' | 'shard' | 'flint' | 'coin' | 'resin' | 'token';
+  /** a registered pickup look's id (registerPickupLook: the kit's flint, coin, resin, token…) */
+  look: string;
   /** an inventory item id to add (Inventory.ts ItemId) */
   item?: string;
   label: string;
@@ -97,7 +98,7 @@ export interface PickupDef extends Base {
 }
 export interface BeaconDef extends Base { kind: 'beacon'; label: string }
 export interface BenchDef extends Base { kind: 'bench'; label: string }
-export interface AltarDef extends Base { kind: 'altar'; label: string; /** how many shard sockets to draw; socket i is filled while `fills[i]` is set */ fills: string[] }
+export interface AltarDef extends Base { kind: 'altar'; label: string; /** how many sockets to draw; socket i is filled while `fills[i]` is set */ fills: string[]; /** the pickup look that fills a socket */ socketLook: string }
 
 export type InteractDef = ChestDef | KeyDef | DoorDef | LeverDef | PlateDef | BarrelDef | PickupDef | BeaconDef | BenchDef | AltarDef;
 export type InteractKind = InteractDef['kind'];
@@ -122,13 +123,13 @@ export function autoFlag(d: InteractDef): string | null {
   }
 }
 
-/** every flag a row can raise: its automatic flag, `sets`, a key's `key:`, a chest's key / flag loot */
+/** every flag a row can raise: its automatic flag, `sets`, a key's `key:`, a chest's key / flag contents */
 export function flagsRaised(d: InteractDef): string[] {
   const out: string[] = [];
   const a = autoFlag(d); if (a !== null) out.push(a);
   if (d.sets) out.push(...d.sets);
   if (d.kind === 'key') out.push(`key:${d.key}`);
-  if (d.kind === 'chest') for (const l of d.loot) { if ('key' in l) out.push(`key:${l.key}`); else if ('flag' in l) out.push(l.flag); }
+  if (d.kind === 'chest') for (const l of d.contents) { if ('key' in l) out.push(`key:${l.key}`); else if ('flag' in l) out.push(l.flag); }
   return out;
 }
 
@@ -148,3 +149,11 @@ export const TRANSIENT_PREFIXES = ['plate:'];
 
 /** Weak actions yield to another reachable prompt. */
 export interface Interactable { position: Vector3; radius: number; label: string; onInteract: () => void; weak?: boolean }
+
+/** A pickup's look (E405: content registers its own — the kit's, src/kit/models/pickups.ts): its batched model, and the
+ *  parts drawn up close, each on the lit or the glow batch, bobbing and spinning (`bob`: rest height, amplitude, spin) */
+export interface PickupPart { key: string; batch: 'lit' | 'glow'; geometry: (seed: number) => BufferGeometry; bob?: readonly [number, number, number]; pulse?: number }
+export interface PickupLook { model: ModelDef<Record<string, never>>; batch: 'lit' | 'glow'; lift: number; parts: readonly PickupPart[] }
+const PICKUP_LOOKS = new Map<string, PickupLook>();
+export function registerPickupLook(id: string, look: PickupLook): void { PICKUP_LOOKS.set(id, look); }
+export function pickupLook(id: string): PickupLook | undefined { return PICKUP_LOOKS.get(id); }

@@ -30,9 +30,10 @@ registerAchievements('driftwood-isle', DRIFTWOOD_FEATS);
 
 // The composition root owns shared species; the engine has no upward kit import.
 const { registerSpecies, speciesWithLook } = await import('#engine');
-const { installKitSpecies, installKitIcons } = await import('#kit');
+const { installKitSpecies, installKitIcons, installKitPickups } = await import('#kit');
 installKitSpecies();
 installKitIcons();
+installKitPickups();
 const { installDriftwoodSpecies } = await import('#shards/driftwood-isle/species/install');
 installDriftwoodSpecies();
 const { installNalatiSpeciesForTests } = await import('#shards/nalati-grasslands/species/rows');

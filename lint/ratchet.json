@@ -36,7 +36,6 @@
     "src/game/compendium/finds.ts": 1,
     "src/game/compendium/install.ts": 8,
     "src/game/compendium/types.ts": 1,
-    "src/game/loot/CoinBurst.ts": 1,
     "src/game/quest/QuestUI.ts": 1,
     "src/game/quest/core.ts": 2,
     "src/game/quest/quest.ts": 1,
@@ -45,6 +44,7 @@
     "src/kit/looks/grassField.ts": 4,
     "src/kit/looks/particles.ts": 7,
     "src/kit/models/creatures.ts": 1,
+    "src/kit/models/pickups.ts": 1,
     "src/kit/viewmodel/rigArms.ts": 1,
     "src/native.ts": 1,
     "src/pageServices.ts": 3,
@@ -347,7 +347,7 @@
     "src/engine/explore/Explore.ts": 1,
     "src/engine/explore/SetExplorer.ts": 2,
     "src/engine/explore/catalog.ts": 1,
-    "src/engine/models/interact.ts": 7,
+    "src/engine/models/interact.ts": 2,
     "src/engine/models/model.ts": 1,
     "src/engine/models/roster.ts": 1,
     "src/engine/physics/debug.ts": 1,
@@ -366,10 +366,8 @@
     "src/engine/ui/perfLapSummary.ts": 2,
     "src/engine/world/forest/placement.ts": 2,
     "src/engine/world/forest/treeSpecies.ts": 11,
-    "src/engine/world/interact/Interactables.ts": 14,
-    "src/engine/world/interact/models.ts": 2,
-    "src/engine/world/interact/types.ts": 6,
-    "src/engine/world/interact/validate.ts": 5
+    "src/engine/world/interact/models.ts": 1,
+    "src/engine/world/interact/validate.ts": 1
   },
   "wildshard/no-active-singleton": {
     "src/engine/core/bootstrap.ts": 1,

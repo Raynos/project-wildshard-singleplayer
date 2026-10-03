@@ -262,6 +262,9 @@ export { waveHeight } from './world/waves';
 
 export { impact, synthKit } from './audio/gen';
 export { icon, registerIcons, iconParts } from './ui/icons';
+export { registerPickupLook, type PickupLook, type PickupPart } from './world/interact/types';
+export { interactParts, pickupModel } from './world/interact/kit';
+export { LowPolyKit } from './world/lowpolyKit';
 
 export { loadRigFile, loadRig, bindRig, ClipChannel, AnimMachine, type ClipName, type SocketName, type RigContract, type RigBake, type RigRef, type RigInstance, type AnimMachineDef, type AnimState, type AnimService } from './anim/index';
 export { activeLevel, selectedLevel, onLevelChange, configureLevel } from './level/selection';

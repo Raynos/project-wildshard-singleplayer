@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { tokenShelfGeometry, TOKEN_SHELF_AT } from '#shards/pine-hollow/quest/tokenShelf';
-import { carvedToken } from '#engine/world/interact/models';
+import { carvedTokenGeometry as carvedToken } from '#kit/models/pickups';
 
 describe('the token shelf (PH-C8: all eight carved tokens on the ranger\'s mantel)', () => {
   it('is one geometry: the rack + eight of the pickup\'s own tokens, vertex-coloured', () => {

@@ -141,7 +141,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   function onInteract(e: InteractEvent): void {
     switch (e.type) {
       case 'locked': w.hud.toast(e.text ?? 'Locked'); sfx.interact('locked', e.at); break;
-      case 'loot':
+      case 'found':
         if (isItem(e.item)) { w.inventory.add(e.item, e.n ?? 1); w.hud.toast(`${ITEMS[e.item].label} ×${e.n ?? 1}`); }
         else if (e.text) w.hud.toast(e.text);
         if (e.flag?.startsWith('shard:') === true) { sfx.interact('glyph', e.at, { delay: 0.55 }); w.music.sting('pickup'); }   // the wreck's shard, out of the strongbox

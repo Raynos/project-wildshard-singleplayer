@@ -115,7 +115,7 @@ describe('validateTable catches a broken table', () => {
     const errs = validateTable({
       ...base,
       rows: [
-        { kind: 'chest', id: 'c', at: { poi: 'world', x: 0, z: 0 }, lock: 'gold', loot: [{ item: 'unobtainium' }] },
+        { kind: 'chest', id: 'c', at: { poi: 'world', x: 0, z: 0 }, lock: 'gold', contents: [{ item: 'unobtainium' }] },
         { kind: 'lever', id: 'c', at: { poi: 'world', x: 999, z: 0 } },
         { kind: 'door', id: 'd', look: 'sluice', w: 2, h: 2, at: { poi: 'world', x: 0, z: 0 }, opensWhen: { all: ['plate:nowhere'] } },
       ],

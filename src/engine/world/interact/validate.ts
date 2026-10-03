@@ -5,7 +5,7 @@
  *   const errors = validateTable(table, { items: Object.keys(ITEMS) });   // [] when the table is sound
  *
  * Rules: ids unique and slug-shaped; every number finite and in range (sizes > 0, a world point inside the chunk,
- * a local offset within 60 m of its POI); every lock's key is handed out by something (a key row or a chest's loot);
+ * a local offset within 60 m of its POI); every lock's key is handed out by something (a key row or a chest's contents);
  * every flag a row reads is raised by some row or declared `external`; inventory items exist; hard limits on the
  * row count (griefing / perf: 256 rows, 64 per kind).
  */
@@ -54,9 +54,9 @@ function rowChecks(d: InteractDef, where: string, items: readonly string[] | und
     case 'plate': if (!(d.size > 0.3 && d.size <= LIMITS.plateMax)) e.push(`${where}: size out of range`); break;
     case 'barrel': if (!(d.leash > 1 && d.leash <= 40)) e.push(`${where}: leash out of range`); break;
     case 'chest':
-      if (d.loot.length === 0) e.push(`${where}: empty loot`);
-      for (const l of d.loot) if ('item' in l && items && !items.includes(l.item)) e.push(`${where}: unknown item '${l.item}'`);
-      for (const l of d.loot) if ('item' in l && l.n !== undefined && !(Number.isInteger(l.n) && l.n > 0 && l.n <= 99)) e.push(`${where}: loot count out of range`);
+      if (d.contents.length === 0) e.push(`${where}: an empty chest`);
+      for (const l of d.contents) if ('item' in l && items && !items.includes(l.item)) e.push(`${where}: unknown item '${l.item}'`);
+      for (const l of d.contents) if ('item' in l && l.n !== undefined && !(Number.isInteger(l.n) && l.n > 0 && l.n <= 99)) e.push(`${where}: loot count out of range`);
       break;
     case 'pickup': if (d.item !== undefined && items && !items.includes(d.item)) e.push(`${where}: unknown item '${d.item}'`); break;
     case 'altar': if (d.fills.length === 0 || d.fills.length > 8) e.push(`${where}: 1–8 sockets`); break;

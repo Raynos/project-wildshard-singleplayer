@@ -2,7 +2,7 @@
  * Interactables kit — the low-poly models. Every part is a non-indexed, vertex-coloured, flat-normal geometry built
  * with LowPolyKit (src/engine/world/lowpolyKit.ts) in a local frame: origin on the floor under the part's pivot, +Z = the
  * front, +Y up. The runtime (Interactables.ts) adds each geometry once to one of two BatchedMeshes (lit: the shared
- * `lowPolyMaterial`; glow: unlit, for sea glass / shards / keys / flames) and poses instances.
+ * `lowPolyMaterial`; glow: unlit, for keys, flames and the pickups content registers) and poses instances.
  *
  * Moving parts carry their pivot at the origin: a chest lid hinges about +X at its back edge, a lever handle about +X
  * at its root, a plank door about +Y at its hinge edge, a grate / sluice slides along +Y.
@@ -100,63 +100,7 @@ export function keyModel(seed: number): THREE.BufferGeometry {
   k.add(new THREE.BoxGeometry(0.045, 0.024, 0.02), C.gold, { matrix: at(0.024, -0.05, 0) });
   return done(k, false);
 }
-export function seaGlass(seed: number): THREE.BufferGeometry {
-  const k = new LowPolyKit(seed);
-  k.add(rock(0.12, 0, k.rng, 0.6, 0.35), '#ffffff', { jitter: 0.25 });
-  return done(k, false);
-}
-export function glyphShard(seed: number): THREE.BufferGeometry {
-  const k = new LowPolyKit(seed);
-  const g = new THREE.OctahedronGeometry(0.16, 0);
-  g.scale(0.7, 2.1, 0.45);
-  k.add(g, C.shard, { jitter: 0.18, wobble: 0.015 });
-  k.add(new THREE.OctahedronGeometry(0.06, 0), '#ffffff', { matrix: at(0.1, -0.16, 0.03, 0.4, 0, 0.3), jitter: 0.1 });
-  return done(k, false);
-}
-/** flint + steel striker on a scrap of leather — lit batch */
-export function flintKit(seed: number): THREE.BufferGeometry {
-  const k = new LowPolyKit(seed);
-  k.add(new THREE.CylinderGeometry(0.14, 0.15, 0.015, 7), '#6e4629', { matrix: at(0, 0.008, 0) });
-  k.add(rock(0.055, 0, k.rng, 0.7, 0.3), '#7b7f86', { matrix: at(-0.04, 0.05, 0) });
-  k.add(new THREE.TorusGeometry(0.04, 0.01, 4, 8, Math.PI * 1.4), C.ironLight, { matrix: at(0.06, 0.03, 0, 0, Math.PI / 2, 0) });
-  return done(k, false);
-}
-export function coinModel(seed: number): THREE.BufferGeometry {
-  const k = new LowPolyKit(seed);
-  k.add(new THREE.CylinderGeometry(0.07, 0.07, 0.014, 8).rotateX(Math.PI / 2), C.gold, { jitter: 0.1 });
-  return done(k, false);
-}
 
-/** Pine Hollow's amber resin drop (PH-C8) — glow batch: a bead of amber weeping down a trunk, a smaller drip under it */
-export function resinDrop(seed: number): THREE.BufferGeometry {
-  const k = new LowPolyKit(seed);
-  const bead = new THREE.IcosahedronGeometry(0.075, 1); bead.scale(0.85, 1.35, 0.7);
-  k.add(bead, '#ffb23a', { matrix: at(0, 0.02, 0), jitter: 0.12 });
-  const drip = new THREE.IcosahedronGeometry(0.04, 0); drip.scale(0.8, 1.5, 0.8);
-  k.add(drip, '#ff9a1f', { matrix: at(0.012, -0.1, 0.01), jitter: 0.1 });
-  k.add(new THREE.OctahedronGeometry(0.03, 0), '#ffe08a', { matrix: at(-0.03, 0.07, 0.035), jitter: 0.1 });
-  return done(k, false);
-}
-/** a carved wooden token (PH-C8) — lit batch: a pine disc on edge, a burnt antler glyph on both faces, a bark rim */
-export function carvedToken(seed: number): THREE.BufferGeometry {
-  const k = new LowPolyKit(seed);
-  k.add(new THREE.CylinderGeometry(0.15, 0.15, 0.036, 12).rotateX(Math.PI / 2), C.woodLight, { jitter: 0.04 });
-  k.add(new THREE.TorusGeometry(0.15, 0.014, 4, 12), C.woodDark);
-  for (const z of [-0.02, 0.02]) {
-    k.add(new THREE.BoxGeometry(0.018, 0.16, 0.006), C.char, { matrix: at(0, -0.01, z) });
-    for (const s of [-1, 1]) {
-      k.add(new THREE.BoxGeometry(0.014, 0.08, 0.006), C.char, { matrix: at(s * 0.035, 0.07, z, 0, 0, s * -0.7) });
-      k.add(new THREE.BoxGeometry(0.012, 0.05, 0.006), C.char, { matrix: at(s * 0.03, 0.02, z, 0, 0, s * -1.1) });
-    }
-  }
-  return done(k, false);
-}
-/** the token's faint ember rim (glow batch), so a token reads at a few metres in the undergrowth */
-export function tokenRim(seed: number): THREE.BufferGeometry {
-  const k = new LowPolyKit(seed);
-  k.add(new THREE.TorusGeometry(0.168, 0.006, 3, 16), '#ffb060');
-  return done(k, false);
-}
 
 // ── doors ────────────────────────────────────────────────────────────────────────────────────────
 

@@ -24,9 +24,9 @@ const FILE = 'src/engine/models/interact.ts';
 const SEED = 0x1a7e;
 
 /** a lit part (the shared low-poly material) and a glowing one (unlit, as the kit's glow batch), posed at `m` */
-const lit = (ctx: ModelContext, g: THREE.BufferGeometry, m?: THREE.Matrix4): ModelPart =>
+export const lit = (ctx: ModelContext, g: THREE.BufferGeometry, m?: THREE.Matrix4): ModelPart =>
   ({ geometry: m ? g.applyMatrix4(m) : g, material: lowPolyMaterial(ctx.sky), castShadow: true, receiveShadow: true });
-const glow = (ctx: ModelContext, g: THREE.BufferGeometry, m?: THREE.Matrix4): ModelPart =>
+export const glow = (ctx: ModelContext, g: THREE.BufferGeometry, m?: THREE.Matrix4): ModelPart =>
   ({ geometry: m ? g.applyMatrix4(m) : g, material: ctx.once('shared/interact:glow', () => new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true })) });
 const at = (x: number, y: number, z: number, rx = 0): THREE.Matrix4 =>
   new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, 0, 0)), new THREE.Vector3(1, 1, 1));
@@ -48,20 +48,14 @@ export const seaChest = defineModel<ChestParams>({
 });
 
 /** a pickup: its part floating at its bob's rest height (the kit spins and bobs it round there) */
-function pickup(id: string, name: string, height: number, make: (ctx: ModelContext) => ModelPart[]): ModelDef<Record<string, never>> {
-  return defineModel<Record<string, never>>({ id, name, category: 'props', pipeline: 'code', file: FILE, defaults: {}, build: (ctx) => {
+export function pickup(id: string, name: string, height: number, make: (ctx: ModelContext) => ModelPart[], file = FILE): ModelDef<Record<string, never>> {
+  return defineModel<Record<string, never>>({ id, name, category: 'props', pipeline: 'code', file, defaults: {}, build: (ctx) => {
     const parts = make(ctx);
     for (const part of parts) part.geometry.translate(0, height, 0);
     return parts;
   } });
 }
 export const holdKey = pickup('shared/hold-key', 'Key', 0.9, (ctx) => [glow(ctx, Mdl.keyModel(SEED))]);
-export const flintKit = pickup('shared/flint-kit', 'Flint & steel', 0, (ctx) => [lit(ctx, Mdl.flintKit(SEED))]);
-export const seaGlass = pickup('shared/sea-glass', 'Sea glass', 0.45, (ctx) => [glow(ctx, Mdl.seaGlass(SEED))]);
-export const doubloon = pickup('shared/doubloon', 'Doubloon', 0.6, (ctx) => [glow(ctx, Mdl.coinModel(SEED))]);
-export const resinDrop = pickup('shared/resin-drop', 'Resin drop', 0, (ctx) => [glow(ctx, Mdl.resinDrop(SEED))]);
-export const carvedToken = pickup('shared/carved-token', 'Carved token', 0.55, (ctx) => [lit(ctx, Mdl.carvedToken(SEED)), glow(ctx, Mdl.tokenRim(SEED + 1))]);
-export const glyphShard = pickup('shared/glyph-shard', 'Glyph shard', 1.2, (ctx) => [glow(ctx, Mdl.glyphShard(SEED))]);
 
 export interface DoorParams { readonly look: DoorLook; readonly w: number; readonly h: number }
 export const door = defineModel<DoorParams>({

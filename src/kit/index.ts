@@ -43,6 +43,7 @@ export { BOAR_LOOK, BOAR_PALETTE } from './species/view/boar';
 export { BEAR_LOOK, BEAR_PALETTE } from './species/view/bear';
 export { installKitSpecies } from './species/install';
 export { installKitIcons } from './icons';
+export { installKitPickups } from './models/pickups';
 
 export { fitNpcFigure, mergeNpcFigures, type NpcFigureFrame, type NpcFigureBones, type NpcFigureRig } from './npc/figureRig';
 export { stepNpcFigure, npcFigurePose, type NpcFigureState, type NpcFigureMotionProfile } from './npc/figureMotion';

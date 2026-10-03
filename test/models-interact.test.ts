@@ -6,13 +6,14 @@ import type { Sky } from '#engine/world/Sky';
 import { modelContext } from '#engine/models/model';
 import { place } from '#engine/models/place';
 import * as Models from '#engine/models/interact';
+import * as Pickups from '#kit/models/pickups';
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ }, csm: { lightDirection: new THREE.Vector3(0, -1, 0) } } as Sky;
 const ctx = modelContext(sky);
 
 describe('interactables models (E315 M1)', () => {
   it('every kind builds its specimen at rest on the origin', () => {
-    const all = [Models.seaChest, Models.holdKey, Models.flintKit, Models.seaGlass, Models.doubloon, Models.resinDrop, Models.carvedToken, Models.glyphShard,
+    const all = [Models.seaChest, Models.holdKey, Pickups.flintKit, Pickups.seaGlass, Pickups.doubloon, Pickups.resinDrop, Pickups.carvedToken, Pickups.glyphShard,
       Models.door, Models.lever, Models.pressurePlate, Models.puzzleBarrel, Models.beacon, Models.bench, Models.shardAltar];
     expect(new Set(all.map((m) => m.id)).size).toBe(all.length);
     for (const m of all) {
