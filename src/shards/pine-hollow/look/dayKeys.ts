@@ -82,6 +82,19 @@ export const P: Record<'sunrise' | 'golden' | 'day' | 'sunset' | 'dusk' | 'night
   },
 };
 
+/** the golden key before E401 (it read as noon outside the old-growth), kept selectable until Jake picks between the two
+ *  (pause ▸ Settings ▸ Debug ▸ Pine golden light; the E423 decision page's D15). The morning keyframe shares it. */
+const GOLDEN_BEFORE_E401: Preset = {
+  key: 'golden', bg: 1.3, env: 1.05, light: c(1.0, 0.66, 0.36), lightI: 4.2, hemiSky: hex(0x9aa4c0), hemiGround: hex(0x5c3e20), hemiI: 0.4,
+  fogSun: c(1.0, 0.7, 0.4), fogDist: 0.00042, fogHeight: 0.005, vol: 0.66, volColor: c(1.0, 0.7, 0.4), rays: 1,
+  glow: c(2.2, 1.15, 0.5), disc: c(1.0, 0.88, 0.7), halo: c(1.0, 0.76, 0.5), haloO: 0.9, cloudSun: c(1.0, 0.72, 0.48), cloudLit: c(1.0, 0.92, 0.84), cloudA: 0.75, far: c(0.56, 0.58, 0.68), lamps: 0, sat: 0.24,
+};
+export const GOLDEN_LOOKS = ['e401', 'before'] as const;
+/** pick the golden key (at load: the keyframes hold P.golden itself, so it is replaced in place) */
+export function useGoldenLook(look: (typeof GOLDEN_LOOKS)[number]): void {
+  if (look === 'before') Object.assign(P.golden, GOLDEN_BEFORE_E401);
+}
+
 /** keyframes over the phase (sorted; wraps 1 → 0): the sky key and every knob are blended between neighbours */
 export const KEYS: readonly [number, Preset][] = [
   [PINE_PHASES.sunrise, P.sunrise], [PINE_PHASES.morning, P.golden], [0.2, P.day], [0.62, P.day], [PINE_PHASES.golden, P.golden],

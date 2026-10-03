@@ -34,9 +34,10 @@
   },
   "budgets": {},
   "debugRows": {
-    "max": 24,
+    "max": 25,
     "raisedBy": [
-      "E357"
+      "E357",
+      "E423"
     ]
   },
   "wildshard/no-active-singleton": {
