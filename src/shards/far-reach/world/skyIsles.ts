@@ -27,8 +27,9 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   // went out to the horizon band): from the spawn small isles beside the mill, just under the low sun; from the crown's
   // rise beyond the standing stones, as mockup D shows them
   // round 7 (seats B and C: 'give A back its cluster without walling B and C'): two crags overlapping over and left of
-  // the low sun, as mockup A frames it (its keels ~9 deg up from the spawn, the sun at 6); the sky over the mill stays open
-  isle('o1', -18, -150, 11, 72, 19, 4, Math.PI * 0.3), isle('o3', -36, -168, 10, 74, 17, 3, null),
+  // the low sun, as mockup A frames it, at headings -12 and -16 from the spawn: A's frame spans +-18.6 deg, B's and C's start
+  // at -14.6 and -13.6, so the sky over the mill stays open in them
+  isle('o1', -30, -150, 11, 72, 19, 4, Math.PI * 0.3), isle('o3', -46, -168, 10, 74, 17, 3, null),
   isle('o2', 30, -290, 12, 40, 20, 4, Math.PI * 0.7),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),
