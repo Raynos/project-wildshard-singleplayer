@@ -21,6 +21,9 @@
    composition and subject, forms and silhouettes, materials and detail, light and colour, density and depth, the
    hands / weapon / HUD where the mockup shows them. A shard's seat score is the mean of its five mockups. **A shard
    passes when the mean of the three seats' scores is 8.0 or more** (8/10 is Jake's number).
+   **Amended by Jake, 2026-10-03, after round 11 / round 10: the bar is 7.0** ("let's lower the bar from 8 out of 10
+   to 7 out of 10 … the improvements are very slow"). A shard passes at a three-seat mean of 7.0 or more; every other
+   clause, the no-shortcut rules included, is unchanged.
 5. **No shortcuts.** A score is void, and the round is re-run, if the game got closer by any of these:
    - **The views:** the game views are fixed before each round in `art/<slug>/progress/cameras.json` (one `mock-*` view
      per mockup, at the mockup's camera). A view may be re-aimed only to match its mockup's camera better, never to dodge
