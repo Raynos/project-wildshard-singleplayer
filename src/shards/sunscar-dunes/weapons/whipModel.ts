@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, Cyl
 import { duneHd, duneMesh, smoothColors } from '../world/meshes';
 
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
-export const HD_GLOVE = { size: 0.42 * 0.45, pos: [0.03, -0.165, 0] as [number, number, number], rot: [0.1, 0, 0.18] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
+export const HD_GLOVE = { size: 0.2, pos: [0.035, -0.185, 0] as [number, number, number], rot: [0, 0, 0] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
 const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
@@ -171,7 +171,7 @@ export function buildWhipModel(): WhipParts {
   const tip = new Vector3(0, made === null ? 0.15 : made.top, 0).applyEuler(grip.rotation);
   // loop 6 (mockup D): the textured hero glove-and-coiled-whip when it loaded, posed as the reference shows it (the fist
   // at the lower right, the coils held up beside it); it replaces the facet glove and the code coil at rest
-  const hd = duneHd('glove-hd', { size: HD_GLOVE.size, by: 'span' });
+  const hd = duneHd('glove-hd2', { size: HD_GLOVE.size, by: 'span' });
   if (hd !== null) {
     hd.position.set(...HD_GLOVE.pos); hd.rotation.set(...HD_GLOVE.rot); root.add(hd);
     grip.visible = false; coil.visible = false;

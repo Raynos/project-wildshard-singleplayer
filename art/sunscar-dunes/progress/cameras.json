@@ -66,7 +66,7 @@
    "x": 0,
    "z": 70,
    "yaw": -10,
-   "pitch": -3
+   "pitch": -10
   },
   {
    "id": "mock-A-spawn",
@@ -100,7 +100,7 @@
    "mockup": "art/sunscar-dunes/round-9-review/D-hands-whip.jpg",
    "x": 118,
    "z": 88,
-   "yaw": 50,
+   "yaw": 46,
    "pitch": -1,
    "stage": "waymarks-lit",
    "settle": 11000

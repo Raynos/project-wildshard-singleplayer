@@ -23,5 +23,5 @@ export function stepDusk(dt: number): void {
 }
 
 /** The key light's dimming and the fill's at a dusk value (look/render.ts). */
-export const keyAt = (d: number): number => 1 - 0.95 * d ** 0.6; // the sun drops fast once the quest starts (B measured 1.4x the mockup)
+export const keyAt = (d: number): number => 1 - 0.84 * d ** 0.6; // the sun drops fast once the quest starts (B measured 1.4x the mockup)
 export const fillAt = (d: number): number => 1 - 0.3 * d; // a floor: the late views keep warm brown sand (council round 2, R2B-1)

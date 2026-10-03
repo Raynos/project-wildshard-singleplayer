@@ -14,7 +14,7 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 // loop 3: a deeper, redder key (ΔE00 of the lit sand against the H1–H4 targets: the game's was too pale and grey-blue)
 // E399: low (11 deg) and along the wind axis, so every dune splits into a lit slip face and a shaded windward face
 // (the mockups); the shade floor and the navy fill keep the shaded half readable, never black
-export const KEY = { dir: new Vector3(-0.85, 0.2, -0.5).normalize(), color: new Color(1, 0.68, 0.46), intensity: 1.4 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(-0.85, 0.2, -0.5).normalize(), color: new Color(1, 0.66, 0.42), intensity: 2.3 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -208,7 +208,7 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   float sandU = dot(vSandPos.xz, sandW), sandV = dot(vSandPos.xz, vec2(-sandW.y, sandW.x));
   // a third, slow warp breaks the regular sine moire (the scorer's h3 diagonal)
   float sandWarp = sin(sandV * 0.21) * 1.3 + sin(sandV * 0.053 + sandU * 0.04) * 3.5 + sin(sandU * 0.017 + sandV * 0.11) * 2.2;
-  float sandPhase = (sandU + sandWarp) * 15.7;
+  float sandPhase = (sandU + sandWarp) * 7.0; // E399: ~0.9 m bands (mockup A's near ripples), was 0.4 m
   float sandPhase2 = (sandU * 0.97 + sandWarp * 1.6 + sin(sandV * 0.6) * 0.35 + sin(sandV * 0.13 + sandU * 0.09) * 1.1) * 3.93;
   float sandFlat = smoothstep(0.78, 0.96, normalize(vSandN).y);
   // loop 3: the ripples come in patches (wind-scoured fields and smooth swales), not one even corduroy over every dune
@@ -219,9 +219,10 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   float sandTrod = texture2D(uSandTrail, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r;
   sandRip1 *= 1.0 - sandTrod; sandRip2 *= 1.0 - sandTrod;
   // E399 (mockups A, D): fine low-contrast ripples near the camera, the bold stripes only at middle distance
-  float sandNear = mix(0.3, 0.55, smoothstep(4.0, 26.0, sandFar)); // the mockups: fine ripples, the big forms read
+  float sandNear = mix(0.75, 0.7, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge)
   sandRip1 *= sandNear; sandRip2 *= sandNear;
-  diffuseColor.rgb *= 1.0 + 0.06 * sin(sandPhase) * sandRip1 + 0.02 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.24;
+  // E399 (judge, mockup A): the near ripples' troughs read dark (the key runs along the crests, so the bump alone barely shows)
+  diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3;
   // loop 4, surface variety (the council's baseline: the near sand read as one flat brown): broad tonal drifts (tens of
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
@@ -234,7 +235,7 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   {
     // The ripples' slopes along the wind (a long gentle stoss, a short steep lee) and the grain's bumps, as a
     // world-space tilt of the normal, turned to view space.
-    float s1 = (cos(sandPhase) + 0.4 * cos(2.0 * sandPhase)) * 0.12 * sandRip1;
+    float s1 = (cos(sandPhase) + 0.4 * cos(2.0 * sandPhase)) * 0.2 * sandRip1;
     float s2 = cos(sandPhase2) * 0.05 * sandRip2;
     vec2 sandBump = (sandTex.gb - 0.5) * 0.5 * (1.0 - smoothstep(8.0, 40.0, sandFar));
     vec3 rippleTilt = vec3(sandW.x, 0.0, sandW.y) * (s1 + s2) + vec3(sandBump.x, 0.0, sandBump.y);
@@ -242,8 +243,8 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   }`)
           .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
   // The baked dune shadow (a ${String(SHADOW_TEX)}² map, sharpened) takes only the key (direct) light; the cool sky fill stays.
-  float sandVis = smoothstep(0.08, 0.92, texture2D(uSandShadow, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r);
-  reflectedLight.directDiffuse *= mix(0.38, 1.0, sandVis);
+  float sandVis = smoothstep(0.25, 0.75, texture2D(uSandShadow, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r);
+  reflectedLight.directDiffuse *= mix(0.2, 1.0, sandVis); // council round 3: shadows go deep (the spread, not the mean)
   reflectedLight.directSpecular *= sandVis;
   // Round 1 (R1C-3): where the key doesn't reach (cast shadow or a face turned from it) the sky fill paints the bible's
   // cool violet shade (#4a3a48 to #5b4f6a), not a darkened orange: the crest line splits warm from cool.
@@ -253,10 +254,10 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   vec3 sandFill = reflectedLight.indirectDiffuse;
   // loop 6 (the scorer: shade went muddy purple-black, ripples vanished in it): a cool blue-grey fill, a step brighter,
   // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
-  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.95, 0.85, 0.9), uDusk) * mix(1.05, 1.25, uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
+  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.95, 0.85, 0.9), uDusk) * mix(0.62, 1.15, uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
   // the dusk's lavender sky floor (R2B-1: the late views' sand measures dim warm brown-violet, not black or pure orange)
-  reflectedLight.indirectDiffuse += uDusk * vec3(0.01, 0.006, 0.008);
-  reflectedLight.indirectDiffuse *= 1.0 + (0.16 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
+  reflectedLight.indirectDiffuse += uDusk * vec3(0.008, 0.005, 0.009);
+  reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
       const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;
       terrain.group.add(mesh); terrain.mesh = mesh; terrain.material = material;

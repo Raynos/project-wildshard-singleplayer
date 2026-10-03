@@ -38,11 +38,11 @@ void main() {
   // Loop 5 (the mockups A-D): a clear dusk. A deep orange band hugs the horizon, brightest behind the tower; above it a
   // short dusty-rose fade into a deep indigo dome full of stars. Clouds are only a few thin dark streaks low in the band.
   vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2)) * (1.0 - 0.4 * uDusk);
-  vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.2, 0.16, 0.27), indigo = vec3(0.08, 0.076, 0.16);
+  vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.24, 0.18, 0.27), indigo = vec3(0.1, 0.08, 0.16);
   // E399 (the mockups): a tall soft orange-gold band behind the tower, peach to rose, navy pushed higher
   // E399 (look/dusk.ts): as the quest goes on the band sinks and dims, the rose turns violet, the indigo comes down
   rose = mix(rose, vec3(0.3, 0.18, 0.3), uDusk);
-  indigo = mix(indigo, vec3(0.085, 0.07, 0.17), uDusk); // the late zenith a muted lavender (R2B-1), not navy
+  indigo = mix(indigo, vec3(0.1, 0.075, 0.17), uDusk); // violet, not teal (round 3) // the late zenith a muted lavender (R2B-1), not navy
   vec3 c = mix(band, rose, smoothstep(0.0, (0.08 + 0.07 * toward) * (1.0 - 0.5 * uDusk), h));
   // wide overlapping blends: where one smoothstep ended flat as the next began, the eye read a hard arc (a Mach band)
   c = mix(c, dusk, smoothstep(0.05 * (1.0 - 0.6 * uDusk), 0.36 - 0.18 * uDusk, h));
@@ -58,11 +58,11 @@ void main() {
   // deck projected on a flat layer, patchy, lit orange-gold toward the glow and rose away from it, dark cores; it clears
   // as the dusk deepens (look/dusk.ts), so the later steps' skies are clear as their mockups show.
   vec2 cp = d.xz / (h + 0.09);
-  cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(2.0, 4.6); // small broken patches (mockup A), not smears
+  cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(1.1, 7.0); // crisp thin bands low over the horizon (round 3: smears)
   float cn = vNoise(cp * 1.3) * 0.5 + vNoise(cp * 2.9 + 3.1) * 0.3 + vNoise(cp * 6.7 + 7.3) * 0.2;
-  float cov = smoothstep(0.58, 0.7, cn) * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.14, 0.3, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
+  float cov = smoothstep(0.6, 0.64, cn) * smoothstep(0.025, 0.045, h) * (1.0 - smoothstep(0.1, 0.2, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
   vec2 sunward = normalize(vec2(uSun.x, uSun.z) + 1e-4) * 0.18 / (h + 0.09);
-  vec2 cq = (cp + sunward * vec2(2.0, 4.6));
+  vec2 cq = (cp + sunward * vec2(1.1, 7.0));
   float cn2 = vNoise(cq * 1.3) * 0.5 + vNoise(cq * 2.9 + 3.1) * 0.3 + vNoise(cq * 6.7 + 7.3) * 0.2;
   float lit = clamp((cn - cn2) * 6.0 + 0.55, 0.0, 1.0);
   float hot = pow(toward, 1.4) * (1.0 - smoothstep(0.05, 0.3, h));
