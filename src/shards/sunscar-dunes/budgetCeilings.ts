@@ -4,7 +4,7 @@ import type { LevelSpec } from '#engine';
 export const BUDGET_CEILINGS = {
   "phone": {
     "current": {
-      "gpuMB": 87.49005126953125
+      "gpuMB": 102.74771881103516
     }
   },
   "desktop": {

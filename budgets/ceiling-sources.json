@@ -1592,7 +1592,7 @@
       "reason": "R9: all three Pine people upload behind the loading screen, before the first play frame.",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01).",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
       "captureSha": "520693016a02dd13447c4fc1a9bbf7bf82d7aa67",
       "captureSha256": "283acd1a80c4d8b844a18bb1057bf262d07aecd3ed1cc89be6280cd59f7d286b",
       "ceilings": {
@@ -1610,7 +1610,7 @@
       "reason": "G6: mounted lantern is drawn for the first time (876 bytes).",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01).",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
       "captureSha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
       "captureSha256": "cdfe78cdab15925709fa89bc00b31ea4d2a95b4a997f7d9d9126ccbd569e096d",
       "ceilings": {
@@ -1626,7 +1626,7 @@
       "reason": "G6: mounted lantern is drawn for the first time (876 bytes).",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01).",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
       "captureSha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
       "captureSha256": "9beb8c08b19c770243eeaa9a3d012a03dc00f761aa5eeae72102afeffea5a028",
       "ceilings": {
@@ -1642,7 +1642,7 @@
       "reason": "R9: all three Pine people upload behind the loading screen, before the first play frame; desktop counterpart of the accepted phone re-record.",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01).",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
       "captureSha": "720dd05b2e36846d28a72c8bc8859ef5b73645f4",
       "captureSha256": "377eb4cf5efc0ea282a2fac5f33444550a46303989fb383fe3fc6a6d3b176511",
       "ceilings": {
@@ -1656,15 +1656,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "0b33bb31d8508930eb2415162b3a66d71e27fc78",
-      "reason": "E374 Signal Dunes council round-1 fixes, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the terrain at the bake grid's spacing, the dune skirt to the buttes, the ray's generated manta body, the dressed waymarks and the deck brazier",
+      "commit": "f6cc2e6e271e2c132f2f7d6e12227a7505acc36e",
+      "reason": "E399 Signal Dunes council round-1 fixes, measured (m5 102.75 MB, the larger of m5 and the runner's 102.72 at 0dd9e191); inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the lattice tower, the wagon's props, the firelight brazier patch, the far range ring and the re-shaped dune terrain",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Signal Dunes council round-1 fixes, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the terrain at the bake grid's spacing, the dune skirt to the buttes, the ray's generated manta body, the dressed waymarks and the deck brazier",
-      "captureSha": "0b33bb31d8508930eb2415162b3a66d71e27fc78",
-      "captureSha256": "43f281bc61f53f6358d5dd4df20eb8fcf5a2021be0cfc550fedb35218ec98ca8",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
+      "captureSha": "f6cc2e6e271e2c132f2f7d6e12227a7505acc36e",
+      "captureSha256": "50c4318bbf2e9cdbaa1ea51b9ebea0158914294c5f88f243804f51624ef78397",
       "ceilings": {
-        "sunscar-dunes.phone.current.gpuMB": 87.49005126953125
+        "sunscar-dunes.phone.current.gpuMB": 102.74771881103516
       }
     },
     {
@@ -1676,7 +1676,7 @@
       "reason": "E374 Signal Dunes council round-1 fixes, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the terrain at the bake grid's spacing, the dune skirt to the buttes, the ray's generated manta body, the dressed waymarks and the deck brazier",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E374 Signal Dunes council round-1 fixes, measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the terrain at the bake grid's spacing, the dune skirt to the buttes, the ray's generated manta body, the dressed waymarks and the deck brazier",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
       "captureSha": "0b33bb31d8508930eb2415162b3a66d71e27fc78",
       "captureSha256": "d95611e87c9c016be37f652f454a30ea36859e1b293c319bf4349333a5186385",
       "ceilings": {
@@ -1692,7 +1692,7 @@
       "reason": "E392/E399 loops 21-24: the textured hero keeper, Storm Roc and bridge posts (Hunyuan3D-2, 1024 WebP maps) and the painted storm vortex; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E392/E399 loops 21-24: the textured hero keeper, Storm Roc and bridge posts (Hunyuan3D-2, 1024 WebP maps) and the painted storm vortex; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
       "captureSha": "bf6d755997aa0a8bbd7409fcb6c64d04c514fa23",
       "captureSha256": "cfb59358d08690bdf709e45082b7ca3c7afbd55393a1454788507cdb07f17573",
       "ceilings": {
@@ -1708,7 +1708,7 @@
       "reason": "E392/E399 loops 21-24: the textured hero keeper, Storm Roc and bridge posts (Hunyuan3D-2, 1024 WebP maps) and the painted storm vortex; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E392/E399 loops 21-24: the textured hero keeper, Storm Roc and bridge posts (Hunyuan3D-2, 1024 WebP maps) and the painted storm vortex; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
       "captureSha": "bf6d755997aa0a8bbd7409fcb6c64d04c514fa23",
       "captureSha256": "e4ce56ce8b6ca0e4282abb5110b4a7cfa8dd7cdaf258cf98aa3e96b43f257777",
       "ceilings": {
