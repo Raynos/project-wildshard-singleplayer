@@ -1,6 +1,6 @@
 # Plan: ARCH-GUARDS — static analysis that holds the engine / game / kit / shard split (E362)
 
-**State:** `in progress` 2026-10-03 — the first batch of 8 is built and live in the gates (E362 under E357 J5: `897baa67`, ratchet data `68fbb592`): AG16, AG17, AG1, AG14, AG13, AG11, AG20 (the pre-commit runner, ~0.25 s), AG9. Open: the second batch (Jake's P1 pick: after the first), ask E379, unowned — AG2, AG18, AG8, AG7, AG21, AG10, then AG3's deep-import sweep and AG4's engine project. AG5, AG6, AG12, AG15, AG19 and AG22 are later or ride along.
+**State:** `in progress` 2026-10-03 — batch 1 built (897baa67, data 68fbb592) and AG8 (e94b842d); the E405 review found holes H1–H6, now rows AG23–AG27 (Jake picked 1A / 2A, 10-03, arch-guards agent); batch 2 (AG2, AG3, AG4, AG7, AG10, AG18) is E379, open
 
 ## Summary
 
@@ -25,6 +25,28 @@ pass), and a staged-files pre-commit runner fits in **~0.2–1.5 s**.
 
 The recommended first batch is 8 levers, ordered at the end. Every lever ships under the existing ratchet: today's
 count per file, never a blanket disable, and hard error once it reaches 0.
+
+---
+
+## Status (2026-10-03, E405 review)
+
+Jake answered P1 on 10-01 (00d5f6bd0): build the first batch, then the second. Batch 1 is built (897baa67, ratchet
+data 68fbb592) and so is AG8 (e94b842d). Each lever table below has a Status column. All 22 leak probes in 1.4 are
+caught at HEAD 3802308b7. The review's 25 new probes found six holes, H1–H6. They are rows AG23–AG27 in 2.9.
+
+| Hole | What passes today | Row |
+|---|---|---|
+| H1 | A new `src/<dir>/` has no layer: its deep imports, shard-plugin imports and engine → it all pass (`layerOf` maps only `src/*.ts` to `app`) | AG23 |
+| H2 | Dead exemptions: `no-shard-branch` skips `src/chunks/…`, `src/nalati/`, `src/pinehollow/`; `no-raw-input` exempts `src/core/input/`; `TIME_ALLOW` lists `src/core/…` and `src/boot/…` | AG24 |
+| H3 | `no-level-identity` evasions: `const { kitLook } = activeLevel()`, `const look = level.kitLook`, `current.kitLook` (a receiver it doesn't know), `=== TOON` (a const), `['toon','pbr'].includes(level.kitLook)`, `new Map(…).get(level.id)`, `/^pine/.test(level.id)` | AG25 |
+| H4 | `shard-sandbox` misses page-level `document` reach (`document.body.style.cursor = …`) and bare window globals (`innerWidth`, `navigator`) | AG26 |
+| H5 | 19 window / document input listeners through helpers in the engine (explore 17, ui 2) | AG18 |
+| H6 | `import('../game/' + 'index')`: a string-concat specifier passes `layer` | AG27 |
+
+Ratchet at 10-03 (vs 1.3's 10-01 numbers): `layer` 2,762; `no-raw-input` and `no-global-listener-patch` reached 0
+and are hard errors; `no-raw-random-time` 215; `no-active-singleton` 47; `no-hook-chain` 18; `no-renderer-type` 5;
+`shard-sandbox` 88 (was 95 when it landed); `no-level-identity` 4 (`Hands.ts`, `HorizonMatte.ts` ×2, `probe.ts`).
+Debug rows max 24. `node lint/ratchet.mjs` takes 2.6 s and `scripts/check-shards.mjs` 0.08 s; both pass.
 
 ---
 
@@ -85,7 +107,7 @@ upper bounds. The export was deleted afterwards.
 | Whole-src import graph prototype (vite `parseSync`, 1,118 files, Tarjan SCC) | **1.0 s** |
 | Engine-only composite TS project (`composite`, `include: src/engine`) | 2.2 s |
 
-### 1.3 Ratchet state at HEAD
+### 1.3 Ratchet state at HEAD (2026-10-01; today's numbers are under Status)
 
 | Rule | Baseline in `ratchet.json` | Now | Slack (allowance in files below baseline) |
 |---|---|---|---|
@@ -154,54 +176,54 @@ Costs are **extra** seconds on top of today's gates. "0 s" means a new visitor i
 
 ### 2.1 Layer and privacy boundaries
 
-| Id | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
-|---|---|---|---|---|---|---|---|---|
-| AG1 | **Close the `layer` holes** | L2, L3, L8, L17, L22 | `wildshard/layer`: (a) the public-index check also applies to relative specifiers (it already resolves them with `modulePath`); (b) `src/*.ts` (`entry`, `main`, `pageServices`) become an `app` layer above shards that nothing but `entry` imports; (c) `import.meta.glob` patterns and template-literal `import()` prefixes resolve to a layer and obey direction | 0 s | PC, PP, CI | (a) and (c) are at 0 today → hard error. (b) ratchet the 2 `engine/native/boot.ts` sites | low | **yes** |
-| AG2 | **Split `layer` into three rules** | A new engine → game import hiding inside a file whose 40 comment words dropped by one | `layer-direction` (23 sites), `public-index` (997), `engine-words` (code 312 + comments 1,512). Optionally `engine-words-comments` as its own rule so code hits stay visible | 0 s | PC, PP, CI | `ratchet.mjs --add-rule` per new name, delete the `layer` section | none | **yes** |
-| AG3 | **Pay down deep imports into the indexes** | 997 deep `#engine/<dir>/x` imports (shards 945): `models/model` 183 fan-in, `world/Sky` 103, `world/registry` 96, `Heightfield` 77, `core/tier` 72, `core/rng` 67, `core/config` 64 | A sweep, not a rule: re-export the top 20 targets (718 sites) from `#engine` / `#game` / `#kit`, codemod the imports. One public surface per layer, no sanctioned sub-entries besides `#engine/data` | 0 s | — | `public-index` count drops ~1,000 → ~280; `--update` | none | yes (batch 2) |
-| AG4 | **Layered TS project references** | Any engine → upper reach, in any syntax (relative, alias, type-only, `declare module`, json), in the editor as well | `tsconfig.engine.json` (`composite`, `include: src/engine`, `emitDeclarationOnly` to a temp dir). Then game → engine, kit → game + engine, shards → all three. TS6307 ("not listed within the file list of project") is the refusal | engine alone 2.2 s measured; all four via `tsc -b` est. 5–8 s | PP, CI | Engine first, after the 7 files in 1.4 move. The root `tsconfig.json` stays for tests | low | yes (batch 2) |
-| AG5 | **Drop the `#engine/*` wildcard** | Deep imports become unresolvable for TS, Vite and node, no lint needed | `package.json` `imports`: keep `#engine` + `#engine/data`; tests (740 deep imports) get a vitest-only `#engine-internal/*` alias | 0 s | everywhere | Only after AG3 reaches ~0 | medium (tests, bake scripts) | no (later) |
-| AG6 | **`@internal` index exports** | A shard importing a game-only engine export (session adapters, boot hooks) | `/** @internal game */` on index exports. The rule reads the index's JSDoc once at load (like `importedConst` does) and refuses those names from kit / shards. `stripInternal` only bites with AG4's declaration emit | 0 s | PC, PP, CI | Tag the game-only exports, count 0 | low | later |
+| Id | Status | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
+|---|---|---|---|---|---|---|---|---|---|
+| AG1 | built 897baa67 | **Close the `layer` holes** | L2, L3, L8, L17, L22 | `wildshard/layer`: (a) the public-index check also applies to relative specifiers (it already resolves them with `modulePath`); (b) `src/*.ts` (`entry`, `main`, `pageServices`) become an `app` layer above shards that nothing but `entry` imports; (c) `import.meta.glob` patterns and template-literal `import()` prefixes resolve to a layer and obey direction | 0 s | PC, PP, CI | (a) and (c) are at 0 today → hard error. (b) ratchet the 2 `engine/native/boot.ts` sites | low | **yes** |
+| AG2 | open (E379) | **Split `layer` into three rules** | A new engine → game import hiding inside a file whose 40 comment words dropped by one | `layer-direction` (23 sites), `public-index` (997), `engine-words` (code 312 + comments 1,512). Optionally `engine-words-comments` as its own rule so code hits stay visible | 0 s | PC, PP, CI | `ratchet.mjs --add-rule` per new name, delete the `layer` section | none | **yes** |
+| AG3 | open (E379), after the shard agents idle | **Pay down deep imports into the indexes** | 997 deep `#engine/<dir>/x` imports (shards 945): `models/model` 183 fan-in, `world/Sky` 103, `world/registry` 96, `Heightfield` 77, `core/tier` 72, `core/rng` 67, `core/config` 64 | A sweep, not a rule: re-export the top 20 targets (718 sites) from `#engine` / `#game` / `#kit`, codemod the imports. One public surface per layer, no sanctioned sub-entries besides `#engine/data` | 0 s | — | `public-index` count drops ~1,000 → ~280; `--update` | none | yes (batch 2) |
+| AG4 | open (E379) | **Layered TS project references** | Any engine → upper reach, in any syntax (relative, alias, type-only, `declare module`, json), in the editor as well | `tsconfig.engine.json` (`composite`, `include: src/engine`, `emitDeclarationOnly` to a temp dir). Then game → engine, kit → game + engine, shards → all three. TS6307 ("not listed within the file list of project") is the refusal | engine alone 2.2 s measured; all four via `tsc -b` est. 5–8 s | PP, CI | Engine first, after the 7 files in 1.4 move. The root `tsconfig.json` stays for tests | low | yes (batch 2) |
+| AG5 | later | **Drop the `#engine/*` wildcard** | Deep imports become unresolvable for TS, Vite and node, no lint needed | `package.json` `imports`: keep `#engine` + `#engine/data`; tests (740 deep imports) get a vitest-only `#engine-internal/*` alias | 0 s | everywhere | Only after AG3 reaches ~0 | medium (tests, bake scripts) | no (later) |
+| AG6 | later | **`@internal` index exports** | A shard importing a game-only engine export (session adapters, boot hooks) | `/** @internal game */` on index exports. The rule reads the index's JSDoc once at load (like `importedConst` does) and refuses those names from kit / shards. `stripInternal` only bites with AG4's declaration emit | 0 s | PC, PP, CI | Tag the game-only exports, count 0 | low | later |
 
 ### 2.2 Import graph ("import spaghetti")
 
-| Id | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
-|---|---|---|---|---|---|---|---|---|
-| AG7 | **`scripts/check-graph.mjs`** | A new layer pair (kit → shards, engine → kit), a cycle spanning two layers or two shards, a shard file imported by anything but its own manifest's `import()`, a static import of `plugin.ts` | One `parseSync` pass over `src` (prototype: 1.0 s, 1,118 files). Writes `lint/layer-edges.json` (edge counts per layer pair, e.g. `shards/pine-hollow → engine 230`). A new pair or a rising count fails. Only `src/game/shard/shards.generated.ts` may import `#shards/*/manifest`; `plugin.ts` only via `import()` from its own manifest | 1.0 s full; ~0.1 s for edges from your paths | PC (your paths), PP + CI (full) | Snapshot today; counts may only fall | low | **yes** |
-| AG8 | **Wire `check-chunks.mjs` into the gate** | A shard module in the cold-boot chunk (MW13) | After `vite build` in `vercel-tree-gate.sh` and CI (`dist/` already exists there) | ~0.2 s | PP, CI | Cold-boot clause now; the one-chunk-per-shard clause after B69 (chunk groups) | low | **yes** |
+| Id | Status | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
+|---|---|---|---|---|---|---|---|---|---|
+| AG7 | open (E379) | **`scripts/check-graph.mjs`** | A new layer pair (kit → shards, engine → kit), a cycle spanning two layers or two shards, a shard file imported by anything but its own manifest's `import()`, a static import of `plugin.ts` | One `parseSync` pass over `src` (prototype: 1.0 s, 1,118 files). Writes `lint/layer-edges.json` (edge counts per layer pair, e.g. `shards/pine-hollow → engine 230`). A new pair or a rising count fails. Only `src/game/shard/shards.generated.ts` may import `#shards/*/manifest`; `plugin.ts` only via `import()` from its own manifest | 1.0 s full; ~0.1 s for edges from your paths | PC (your paths), PP + CI (full) | Snapshot today; counts may only fall | low | **yes** |
+| AG8 | built e94b842d | **Wire `check-chunks.mjs` into the gate** | A shard module in the cold-boot chunk (MW13) | After `vite build` in `vercel-tree-gate.sh` and CI (`dist/` already exists there) | ~0.2 s | PP, CI | Cold-boot clause now; the one-chunk-per-shard clause after B69 (chunk groups) | low | **yes** |
 | — | Fan-in / fan-out limits | — | `import/max-dependencies` stays off: the `#engine` barrel's fan-out of 222 is by design. AG7 prints the top fan-in / fan-out instead | — | — | — | high | no |
 
 ### 2.3 Shard conventions
 
-| Id | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
-|---|---|---|---|---|---|---|---|---|
-| AG9 | **Shard layout validator** `scripts/check-shards.mjs` | A shard missing `README.md` / `plugin.ts`, a new loose top-level file, `quest.ts` vs `quest/` drift, a folder named outside the convention | `lint/shard-layout.json`, written from Z1's `_template`: required files (`manifest.ts`, `plugin.ts`, `README.md`, `roster.ts`, `budgets.ts`), the canonical folders (`audio boot explore look models thumbs weapons world`, optional `combat creatures quest species npc loadout playground`), one name per concept, slug = folder name, `_`-prefix = hidden. `docs/SHARDS.md`'s checklist is generated from the same file (AG22) | < 0.2 s | PC when `src/shards/**` is touched, PP, CI | Ratchet: unknown top-level entries per shard (Nalati ~20 today) | medium (naming) — the template decides | **yes** |
-| AG10 | **Manifest contract** | A manifest whose `load` is a static import, a slug that differs from its folder, a manifest closure that grows (pulls code into cold boot), manifest fields nothing reads | In `gen-shards.mjs --check`: slug = folder; `load` is `() => import('./plugin')`; a file-count budget per shard in `manifest-closure.generated.json`; every `ShardManifest` field is read somewhere in `src/game` or `src/engine` | ~0 s (inside gen-shards' 1.0 s) | PP, CI | Record today's closure sizes | low | yes |
-| AG11 | **`wildshard/shard-sandbox`** (`src/shards/**`) | Global writes (`Object.assign(window, { __nalatiQuest })`), `globalThis` / `window` / `self` member reads, window / document input listeners through any helper (10 shard sites, `goldenKing.ts:701-704`), `setting(key)` for a key the shard does not own, `/assets/…` literals outside its own and the kit-shared folders | AST rule. Debug handles must go through `ctx.debug.expose`, Debug rows through `ctx.debugRow` (ids auto-prefixed with the slug) | 0 s | PC, PP, CI | Ratchet per file | low | **yes** |
-| AG12 | **ShardContext-only services** | A plugin calling an engine service directly instead of through `ctx` | An allowlist of the `#engine` names shards may import (types, pure helpers, `#engine/data`). Services only arrive through `ShardContext` | 0 s | PC, PP, CI | After AG3 / AG6 | medium | later |
+| Id | Status | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
+|---|---|---|---|---|---|---|---|---|---|
+| AG9 | built 897baa67 | **Shard layout validator** `scripts/check-shards.mjs` | A shard missing `README.md` / `plugin.ts`, a new loose top-level file, `quest.ts` vs `quest/` drift, a folder named outside the convention | `lint/shard-layout.json`, written from Z1's `_template`: required files (`manifest.ts`, `plugin.ts`, `README.md`, `roster.ts`, `budgets.ts`), the canonical folders (`audio boot explore look models thumbs weapons world`, optional `combat creatures quest species npc loadout playground`), one name per concept, slug = folder name, `_`-prefix = hidden. `docs/SHARDS.md`'s checklist is generated from the same file (AG22) | < 0.2 s | PC when `src/shards/**` is touched, PP, CI | Ratchet: unknown top-level entries per shard (Nalati ~20 today) | medium (naming) — the template decides | **yes** |
+| AG10 | open (E379) | **Manifest contract** | A manifest whose `load` is a static import, a slug that differs from its folder, a manifest closure that grows (pulls code into cold boot), manifest fields nothing reads | In `gen-shards.mjs --check`: slug = folder; `load` is `() => import('./plugin')`; a file-count budget per shard in `manifest-closure.generated.json`; every `ShardManifest` field is read somewhere in `src/game` or `src/engine` | ~0 s (inside gen-shards' 1.0 s) | PP, CI | Record today's closure sizes | low | yes |
+| AG11 | built 897baa67; extended by AG26 | **`wildshard/shard-sandbox`** (`src/shards/**`) | Global writes (`Object.assign(window, { __nalatiQuest })`), `globalThis` / `window` / `self` member reads, window / document input listeners through any helper (10 shard sites, `goldenKing.ts:701-704`), `setting(key)` for a key the shard does not own, `/assets/…` literals outside its own and the kit-shared folders | AST rule. Debug handles must go through `ctx.debug.expose`, Debug rows through `ctx.debugRow` (ids auto-prefixed with the slug) | 0 s | PC, PP, CI | Ratchet per file | low | **yes** |
+| AG12 | later | **ShardContext-only services** | A plugin calling an engine service directly instead of through `ctx` | An allowlist of the `#engine` names shards may import (types, pure helpers, `#engine/data`). Services only arrive through `ShardContext` | 0 s | PC, PP, CI | After AG3 / AG6 | medium | later |
 
 ### 2.4 Anti-branch rules that look at meaning, not words
 
-| Id | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
-|---|---|---|---|---|---|---|---|---|
-| AG13 | **`wildshard/no-level-identity`** (outside `src/shards/`) | L4–L7, L10. Live: `Hands.ts:130` `activeLevel().kitLook === 'toon'` (the renamed `getActiveChunk().style === 'toon'`, 875b82f6 / B66), `HorizonMatte.ts:59` `STRIPS[level.id]`, `probe.ts:333` `SHARD_KEYS[…level.id]` | Flags an **identity or style field** (`id slug levelId kitLook style creatureStyle look biome`) of a **level-ish value** (`level spec manifest chunk def`, `game.level`, `activeLevel()`, `getActiveChunk()`) when it is: compared with a string literal; a `switch` discriminant with literal cases; the receiver of `includes` / `startsWith` / `endsWith` / `indexOf` / `match`; or the computed key into a module-level object literal. **Allowed** (R3-05): capability reads such as `mechanisms.includes('dayCycle')` and `level.ground.structures === true` | 0 s | PC, PP, CI | Ratchet ~5 sites today. Each kept one (B66) goes in `ratchet.json` `allow` with a reason, as Jake's pick | medium: genuine enum dispatch. The fix is a strategy table filled by data (`KIT_LOOKS[kitLook]`), which the rule allows when the table comes from the level spec | **yes** |
-| AG14 | **Generated shard word list, applied in game and kit too** | L5 / L6 for shards that don't exist yet (Z3's two). L9: `{ 'pine-hollow': 1 }` keyed maps in `src/game` | `gen-shards` writes `lint/shard-words.generated.json` from the folder names, manifest names and the species / weapon ids that shard rows declare. `no-shard-branch`'s `slugs` and `layer`'s WORDS read it. Slug object keys and slug literals as a computed key are flagged in game and kit as well as engine | 0 s (gen already runs) | PC, PP, CI | The engine part is already ratcheted; game / kit start at their count (expected ~0) | low | **yes** |
-| AG15 | **No feature flags named after shards** | A Debug row / `OPTION_VALUES` key such as `nalatiFog` added to the engine registry instead of through `ctx.debugRow` | The word list (AG14) applied to `opt(...)` ids and `OPTION_VALUES` keys outside `src/shards/` | 0 s | PC, PP, CI | Ratchet | low | yes |
+| Id | Status | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
+|---|---|---|---|---|---|---|---|---|---|
+| AG13 | built 897baa67; extended by AG25 | **`wildshard/no-level-identity`** (outside `src/shards/`) | L4–L7, L10. Live: `Hands.ts:130` `activeLevel().kitLook === 'toon'` (the renamed `getActiveChunk().style === 'toon'`, 875b82f6 / B66), `HorizonMatte.ts:59` `STRIPS[level.id]`, `probe.ts:333` `SHARD_KEYS[…level.id]` | Flags an **identity or style field** (`id slug levelId kitLook style creatureStyle look biome`) of a **level-ish value** (`level spec manifest chunk def`, `game.level`, `activeLevel()`, `getActiveChunk()`) when it is: compared with a string literal; a `switch` discriminant with literal cases; the receiver of `includes` / `startsWith` / `endsWith` / `indexOf` / `match`; or the computed key into a module-level object literal. **Allowed** (R3-05): capability reads such as `mechanisms.includes('dayCycle')` and `level.ground.structures === true` | 0 s | PC, PP, CI | Ratchet ~5 sites today. Each kept one (B66) goes in `ratchet.json` `allow` with a reason, as Jake's pick | medium: genuine enum dispatch. The fix is a strategy table filled by data (`KIT_LOOKS[kitLook]`), which the rule allows when the table comes from the level spec | **yes** |
+| AG14 | built 897baa67 | **Generated shard word list, applied in game and kit too** | L5 / L6 for shards that don't exist yet (Z3's two). L9: `{ 'pine-hollow': 1 }` keyed maps in `src/game` | `gen-shards` writes `lint/shard-words.generated.json` from the folder names, manifest names and the species / weapon ids that shard rows declare. `no-shard-branch`'s `slugs` and `layer`'s WORDS read it. Slug object keys and slug literals as a computed key are flagged in game and kit as well as engine | 0 s (gen already runs) | PC, PP, CI | The engine part is already ratcheted; game / kit start at their count (expected ~0) | low | **yes** |
+| AG15 | covered: engine words (AG14) see engine option keys | **No feature flags named after shards** | A Debug row / `OPTION_VALUES` key such as `nalatiFog` added to the engine registry instead of through `ctx.debugRow` | The word list (AG14) applied to `opt(...)` ids and `OPTION_VALUES` keys outside `src/shards/` | 0 s | PC, PP, CI | Ratchet | low | yes |
 
 ### 2.5 Determinism and hygiene: make "0 stays 0" automatic
 
-| Id | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
-|---|---|---|---|---|---|---|---|---|
-| AG16 | **Promote zero rules to hard errors** | Today `no-shard-branch`, `no-raw-save`, `no-raw-shader-patch`, `sim-no-render`, `no-active-chunk`, `no-raw-hud`, `no-raw-animation-mixer` are 0 but only the ratchet sees them: not `pnpm lint`, not the editor | Turn them on in `.oxlintrc.json`'s `src/**` override. `ratchet.mjs` then refuses a rule section whose total is 0 ("move it to `.oxlintrc.json`"), so a rule is promoted the commit it reaches 0 | 0 s | everywhere | Today: 7 rules | none | **yes** |
-| AG17 | **A cleaned file locks** | The 127 raw-input and 293 listener-patch allowances in files that are already clean (1.3) | `ratchet.mjs` check fails when a file's baseline is above 0 and its count is 0: "run `pnpm lint:ratchet --update` in this commit". Partial slack only warns. The fix commit carries the lowered `ratchet.json` lines | 0 s | PC, PP, CI | One `--update` now | low. With 10 agents on one `ratchet.json`, conflicts are per line (sorted keys), and only your files' lines move | **yes** |
-| AG18 | **`no-raw-input` sees helpers** | L20: `scope.listen(window, 'keydown')`, `listenDom(scope, document, 'pointermove')` — 31 window / document sites (engine/explore 11, Nalati 8, Pine 2, ui 1) besides the 7 legit ones in `engine/input` | Any call with a `window` / `document` argument and an input-event literal, outside `engine/input`. Listeners on the widget's own element stay legal (Explorer's divider) | 0 s | PC, PP, CI | Re-baseline: ~22 sites | low | yes |
-| AG19 | **Promote the rest as they finish** | — | `no-global-listener-patch` (146) after X1 / X2, `no-active-singleton` (47), `no-hook-chain` (18), `no-renderer-type` (5) go hard through AG16 the day they reach 0. `no-raw-random-time` (215, shards 91) stays ratcheted | 0 s | — | automatic | — | yes |
+| Id | Status | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
+|---|---|---|---|---|---|---|---|---|---|
+| AG16 | built 897baa67 | **Promote zero rules to hard errors** | Today `no-shard-branch`, `no-raw-save`, `no-raw-shader-patch`, `sim-no-render`, `no-active-chunk`, `no-raw-hud`, `no-raw-animation-mixer` are 0 but only the ratchet sees them: not `pnpm lint`, not the editor | Turn them on in `.oxlintrc.json`'s `src/**` override. `ratchet.mjs` then refuses a rule section whose total is 0 ("move it to `.oxlintrc.json`"), so a rule is promoted the commit it reaches 0 | 0 s | everywhere | Today: 7 rules | none | **yes** |
+| AG17 | built 897baa67 | **A cleaned file locks** | The 127 raw-input and 293 listener-patch allowances in files that are already clean (1.3) | `ratchet.mjs` check fails when a file's baseline is above 0 and its count is 0: "run `pnpm lint:ratchet --update` in this commit". Partial slack only warns. The fix commit carries the lowered `ratchet.json` lines | 0 s | PC, PP, CI | One `--update` now | low. With 10 agents on one `ratchet.json`, conflicts are per line (sorted keys), and only your files' lines move | **yes** |
+| AG18 | open (E379) | **`no-raw-input` sees helpers** | L20: `scope.listen(window, 'keydown')`, `listenDom(scope, document, 'pointermove')` — 31 window / document sites (engine/explore 11, Nalati 8, Pine 2, ui 1) besides the 7 legit ones in `engine/input` | Any call with a `window` / `document` argument and an input-event literal, outside `engine/input`. Listeners on the widget's own element stay legal (Explorer's divider) | 0 s | PC, PP, CI | Re-baseline: ~22 sites | low | yes |
+| AG19 | partly: no-raw-input, no-global-listener-patch hard | **Promote the rest as they finish** | — | `no-global-listener-patch` (146) after X1 / X2, `no-active-singleton` (47), `no-hook-chain` (18), `no-renderer-type` (5) go hard through AG16 the day they reach 0. `no-raw-random-time` (215, shards 91) stays ratcheted | 0 s | — | automatic | — | yes |
 
 ### 2.6 A fast pre-commit
 
-| Id | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
-|---|---|---|---|---|---|---|---|---|
-| AG20 | **`scripts/precommit-guards.mjs`** from `.githooks/pre-commit` | Every rule above, before the commit lands rather than at push. Today a rise is only *announced* by post-commit | The commit's own paths (`git diff --cached --name-only`; under `git commit -- <paths>` that is the temporary index of exactly those paths), filtered to `src/**/*.{ts,js}`: (1) `oxlint --type-aware=false` with all rules on them; (2) the custom rules on them, compared per file with `lint/ratchet.json`; (3) AG7's edges from those files; (4) AG9 when `src/shards/**` is touched; (5) `gen-shards --check` when a `manifest.ts` is touched | ~0.2 s typical (5 files), ≤ 1.5 s worst (a manifest touched); measured parts: 0.03 + 0.1 + ~0.1 + 0.2 + 1.0 s | PC | Escape `git commit --no-verify` or `SKIP_ARCH_GUARDS=1`, logged in the sweep-guard ledger | low | **yes** |
+| Id | Status | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
+|---|---|---|---|---|---|---|---|---|---|
+| AG20 | built 897baa67 | **`scripts/precommit-guards.mjs`** from `.githooks/pre-commit` | Every rule above, before the commit lands rather than at push. Today a rise is only *announced* by post-commit | The commit's own paths (`git diff --cached --name-only`; under `git commit -- <paths>` that is the temporary index of exactly those paths), filtered to `src/**/*.{ts,js}`: (1) `oxlint --type-aware=false` with all rules on them; (2) the custom rules on them, compared per file with `lint/ratchet.json`; (3) AG7's edges from those files; (4) AG9 when `src/shards/**` is touched; (5) `gen-shards --check` when a `manifest.ts` is touched | ~0.2 s typical (5 files), ≤ 1.5 s worst (a manifest touched); measured parts: 0.03 + 0.1 + ~0.1 + 0.2 + 1.0 s | PC | Escape `git commit --no-verify` or `SKIP_ARCH_GUARDS=1`, logged in the sweep-guard ledger | low | **yes** |
 
 Never in pre-commit: tsc, type-aware lint and whole-tree scans. The tree is shared with ~10 agents, so their
 half-finished files would fail *your* commit. Those stay in the pre-push gate, which builds a clean export. The
@@ -216,10 +238,10 @@ private-index commit recipe (`commit-tree`) skips hooks. The pre-push gate is th
 
 ### 2.7 Docs as enforcement
 
-| Id | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
-|---|---|---|---|---|---|---|---|---|
-| AG21 | **Generated API surface** | A new public export (223 / 34 / 42 export statements in the engine / game / kit indexes today) or a new `ShardContext` verb with no docs, and API growth nobody noticed | `scripts/gen-api.mjs` (TS compiler API, already a dependency via gen-shards) writes `lint/api-surface.json` (name, kind, first JSDoc line per export, plus the `ShardContext` / `LevelContext` members) and renders `docs/api/{ENGINE,GAME,KIT,SHARD-CONTEXT}.md`. `--check` fails when stale or when an export has no JSDoc line. The JSON lives under `lint/` because Vercel's tree drops `docs/` (the `lint/ask-ids.json` precedent) | ~1–2 s (estimate) | PP, CI | Generate once; missing JSDoc lines go in a ratchet count | low | yes |
-| AG22 | **SHARDS.md ↔ validator** | Z2's how-to drifting from what AG9 enforces | The SHARDS.md checklist section is generated from `lint/shard-layout.json` | 0 s | PP, CI | With Z1 / Z2 | none | yes (with Z2) |
+| Id | Status | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
+|---|---|---|---|---|---|---|---|---|---|
+| AG21 | partly: docs/ENGINE.md + engine-docs test (Z2) | **Generated API surface** | A new public export (223 / 34 / 42 export statements in the engine / game / kit indexes today) or a new `ShardContext` verb with no docs, and API growth nobody noticed | `scripts/gen-api.mjs` (TS compiler API, already a dependency via gen-shards) writes `lint/api-surface.json` (name, kind, first JSDoc line per export, plus the `ShardContext` / `LevelContext` members) and renders `docs/api/{ENGINE,GAME,KIT,SHARD-CONTEXT}.md`. `--check` fails when stale or when an export has no JSDoc line. The JSON lives under `lint/` because Vercel's tree drops `docs/` (the `lint/ask-ids.json` precedent) | ~1–2 s (estimate) | PP, CI | Generate once; missing JSDoc lines go in a ratchet count | low | yes |
+| AG22 | open | **SHARDS.md ↔ validator** | Z2's how-to drifting from what AG9 enforces | The SHARDS.md checklist section is generated from `lint/shard-layout.json` | 0 s | PP, CI | With Z1 / Z2 | none | yes (with Z2) |
 
 ### 2.8 Not recommended
 
@@ -231,9 +253,19 @@ private-index commit recipe (`commit-tree`) skips hooks. The pre-push gate is th
 
 ---
 
+### 2.9 Holes found in the E405 review (2026-10-03)
+
+| Id | Status | Rule | Catches | Mechanism | Cost | Where | Adoption | FP risk | Rec |
+|---|---|---|---|---|---|---|---|---|---|
+| AG23 | open (E405) | **Every `src` file has a layer** | H1 | `wildshard/layer`: a file under `src/<dir>/` that is not one of the four layers is refused, and so is an import of one. Only `src/{entry,main,pageServices}.ts` are `app` | 0 s | PC, PP, CI | 0 sites → hard | none | **yes** |
+| AG24 | open (E405) | **No dead exemptions** | H2 | Delete the legacy paths from `no-shard-branch`, `no-raw-input` and `TIME_ALLOW`; a test fails when a path a rule exempts doesn't exist | 0 s | PP, CI | 0 sites | none | **yes** |
+| AG25 | open (E405) | **`no-level-identity` sees through aliases**, and the engine's 4 sites move to data | H3; the 4 sites | Track destructured and aliased identity fields and const strings; flag `[…].includes(field)`, `Map.get(field)` and `regex.test(field)`. Jake's pick 1A: the level spec gets a `hands` field (`Hands.ts`), Driftwood sets its own `horizonStrips` and `HorizonMatte`'s table goes, shards expose their probe keys with `ctx.debug.expose` (`probe.ts`'s `SHARD_KEYS` goes) | 0 s | PC, PP, CI | 4 → 0, then hard | medium (genuine enum dispatch: a data-filled strategy table stays legal) | **yes** |
+| AG26 | open (E405) | **`shard-sandbox`: page-level `document` and bare globals** | H4 | Jake's pick 2A: flag `document.body` / `title` / `documentElement`, `getElementById`, pointer lock, `dispatchEvent`, and bare `innerWidth` / `innerHeight` / `devicePixelRatio` / `navigator` / `location` in shards. `createElement` stays legal | 0 s | PC, PP, CI | Ratchet today's ~30 | low | **yes** |
+| AG27 | open (E405) | **`layer` reads string-concat `import()`** | H6 | The specifier's leading string of a `+` chain is resolved like a template prefix | 0 s | PC, PP, CI | 0 sites → hard | none | **yes** |
+
 ## 3. Recommended first batch
 
-Eight levers, all fast. Each is a few hours of work. In order:
+Eight levers, all fast. **All eight are built** (897baa67, 10-01). In order:
 
 | # | Lever | Extra cost | Why first |
 |---|---|---|---|
@@ -246,9 +278,7 @@ Eight levers, all fast. Each is a few hours of work. In order:
 | 7 | AG20 the pre-commit runner | ~0.2 s typical, ≤ 1.5 s | Turns 1–6 from "found at push" into "refused at commit" |
 | 8 | AG9 the shard layout validator (with Z1's template) | < 0.2 s | Every shard, including the Z3 ones, follows the template |
 
-**Batch 2:** AG2 split `layer`, AG18 `no-raw-input` helpers, AG8 check-chunks in the gate, AG7 the graph check,
-AG21 the API surface, AG10 manifest contract, then AG3's deep-import sweep and AG4's engine project once the 7 engine
-files in 1.4 have moved.
+**Batch 2 (E379, open):** AG2 split `layer`, AG18 `no-raw-input` helpers, AG7 the graph check, AG10 manifest contract, then AG3's deep-import sweep (it touches every shard, so it waits until the shard agents are idle) and AG4's engine project once the 7 engine files in 1.4 have moved. AG8 is built (e94b842d). AG21 is mostly done by docs/ENGINE.md and `test/engine-docs.test.ts`.
 
-**Lock note.** `lint/`, `scripts/` and `.githooks/` are lead-only under the E357 lock. These levers land either as E357
-rows (they fit Z4, "the permanent gate") or after the plan is archived.
+**E405 rows (in flight):** AG23, AG24, AG27 (0 sites, hard), AG25 (the 4 engine sites to data, then hard), AG26 (ratcheted).
+
