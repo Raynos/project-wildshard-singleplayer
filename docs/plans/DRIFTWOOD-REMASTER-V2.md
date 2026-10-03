@@ -1,6 +1,6 @@
 # Driftwood Isle — remaster v2 (after v0.2)
 
-**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md)) until M4.
+**State:** `in progress` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). Unowned; no row has moved since 2026-09-23. Done: V-U1, V-U2 (2× on the phone), V-X1's loading-nouns half; V-G1 / V-G2 dropped (E184). Open: V-B1 (the island-wide Blender pass) first, then V-B3, V-L1, V-L2, V-M1–V-M3, V-P1, V-X1's DOWNLOAD half; Jake's: V-U3, V-B2 (after V-B1).
 
 ## The v0.2 cut — done 2026-09-23 (tag v0.2)
 

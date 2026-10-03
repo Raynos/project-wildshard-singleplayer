@@ -1,6 +1,6 @@
 # Plan: finish line (E108): from a pile of pieces to a finished-feeling game
 
-**State:** `blocked` 2026-09-30 — E357: S1 (the gate), S3, S5, S6, S7 moved to [GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md) (F2 / F3 / Z4, the plan itself, X1, F5, S1.6 / X7); its other rows wait for the E357 lock to end.
+**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). The row tags below are older than these facts: S1, S3, S5, S6, S7 moved into GAME-NORMALIZATION (archived); D1–D4, D7 and P3 were built as DRIFTWOOD-TOP10 rows 1–5 and 9b (archived 2026-09-30); S2, S4, P1, D5, D6 are done, P2 is moot. Open, waiting on Jake's pick: N-a (the kurgan / east edges), N-b, N-c, N-d, M1, M2, M3's controls half.
 
 ## Read this first
 

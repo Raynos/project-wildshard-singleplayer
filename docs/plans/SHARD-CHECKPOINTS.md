@@ -1,6 +1,6 @@
 # Plan: Shard checkpoints — the repeatable review loop (E206)
 
-**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md)) until the plan is archived.
+**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). The skill and the two review PDFs are ready (E206 / E207, `3ed3285e`); Jake's process review is still the next checkpoint. WORLDCLAW-SHARD (draft) now covers the same ground, the human-in-the-loop shard workflow; whether this one folds into it is Jake's call.
 
 ## Purpose
 

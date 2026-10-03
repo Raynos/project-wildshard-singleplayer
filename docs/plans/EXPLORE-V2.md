@@ -1,6 +1,6 @@
 # Explore World V2 — what is left after V1
 
-**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md)) until the plan is archived.
+**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). V1 dropped (E68); V7 built (`0bfc5bf5`); V3's pond fixed (`f6f3be8e`); V6's COMPARE half built by E241 / E242. Not built, not approved: V2 pine LOD tiers, V3's re-shoot on day / night, V4 selection outline, V5 specimen framing, V6's Pine Hollow hub art. Waits on Jake's pick.
 
 ## Where V1 stands
 

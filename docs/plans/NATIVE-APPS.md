@@ -1,6 +1,6 @@
 # Plan: Wildshard on the App Store and Google Play
 
-**State:** `blocked` 2026-09-30 — waits for the E357 lock ([GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md)) until the plan is archived; before it, it waited on Jake for the stores (E24).
+**State:** `blocked` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`); it is back to its own blocker: Jake's store accounts (E24: Apple + Play, `VERCEL_UPDATES_TOKEN`). Shells, native saves / lifecycle and the signed OTA channel are built (E23). Open for an agent meanwhile, unclaimed since 2026-09-22 (E29): store listing kit, privacy / support pages, upgrade + OTA + context-loss drills.
 
 ## Where this comes from
 

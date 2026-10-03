@@ -1,6 +1,6 @@
 # Physics polish — what is left after the physics merge
 
-**State:** `blocked` 2026-09-30 — E357: F3 moved to [GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md) F11; F7 goes with `src/dev` (GAME-NORMALIZATION F7); F1, F2, F4, F5, F6 wait for the E357 lock.
+**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). F3 moved to GAME-NORMALIZATION F11 and F7 went with `src/dev` (F7 there). Open, not approved: F1, F2, F4, F5, F6; waits on Jake's pick. E73 (the iPhone reading) is still an open ask.
 
 ## Where physics stands
 

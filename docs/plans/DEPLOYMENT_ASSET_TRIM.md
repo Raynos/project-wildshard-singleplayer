@@ -1,6 +1,6 @@
 # Wildshard deployment asset trim
 
-**State:** `blocked` 2026-09-30 — E357: T3 moved to [GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md) X3; T2, T4, T5 wait for the E357 lock.
+**State:** `in progress` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). Unowned. Done: T1 (API test functions out of the deploy). T3 moved to GAME-NORMALIZATION X3. Open: T2 (public source maps), T4 (HDRIs + videos), T5 (big packs off the deploy, after a cost comparison), each with its offline-reload gate.
 
 The clean-export prebuilt output contains 1,375 static files / 524.5 MiB.
 Largest classes: GPU assets 202.7 MiB, original textures 82.7 MiB,

@@ -1,6 +1,6 @@
 # Plan: Nine Dragon Stack (九龍疊城), shard 4 — the vertical city (E169)
 
-**State:** `blocked` 2026-09-30 — paused for E357 until M1 of [GAME-NORMALIZATION](../../project/archive/2026-10-01-game-normalization.md), then re-planned for the new engine (decision 66). The fragment stays playable and live.
+**State:** `in progress` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). Unowned. Next: E380, the re-plan for the new engine (decision 66); then the fragment's open rows (E281 round 3, F3 trailer review, F8, F9's physical retest with E264's caps, F10). The fragment stays playable and live; the full nine-stratum shard (P1 onward) is unbuilt.
 
 ## 0. Read this first
 
