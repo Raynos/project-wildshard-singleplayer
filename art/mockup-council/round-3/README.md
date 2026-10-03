@@ -11,3 +11,22 @@ line (`calm: false`). Rulings applied: the `fan-gust` freeze is removed (mock-C 
 Builder's claims to verify: rope bridges hang in a sag with thin hemp hand ropes and painted deck wood; textured hero sky
 isles; a low sun just behind the mill, less fill, more rim; an olive-gold tufted meadow; grass round the boulders; the fan's
 real idle hold lower right, open face-on, with the glove visible; a darker storm; a cumulus bank round the crown.
+
+- sunscar-dunes: capture `progress/sunscar-dunes/20261002-2351-a9e50413` (sha a9e50413, staged {'mock-B-logbook': 'logbook', 'mock-C-waymark': 'waymarks-lit', 'mock-D-hands': 'waymarks-lit'}, page errors 0)
+
+### Signal Dunes, round 3
+
+Camera re-aims since round 2 (named by the builder): `mock-C-waymark` (-53.9, -17.2) yaw -69, with the next waymark in view
+at the right (the lead's ledger-5 ruling in round 2: the tower view did not match the mockup); `mock-B-logbook` (-65.5,
+48.5) yaw 31.5, because the caravan was turned 180° so the camera looks north at the tailboard into the afterglow, as the
+mockup does; `mock-dusk-fire` yaw -10.
+
+Lead decision in round 2: the light follows the mockups (a low key in front with the afterglow), not the style bible's old
+"never in the player's face" rule; the bible was updated with the reason.
+
+Builder's claims to verify: light calibrated on the seat's measured patches (ground and zenith, per mockup); layered
+crests running diagonally across the spawn view, the tower on a dune crest; orange cloud banks lit from below in the
+sunset views, clearing with the dusk; the glove without the dusk rim (no X-ray), lit from the viewer side, the coil lower
+and diagonal; the flame orange with a yellow core, a dark smoke plume, embers that drift shorter and fade (no streaks); the
+caravan's tent lit canvas, a pack horse (a generated model), no trail stakes. Not done yet, by the builder's own account:
+crate textures, stitching and a cuff on the glove.
