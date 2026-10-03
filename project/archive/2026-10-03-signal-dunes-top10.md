@@ -1,6 +1,6 @@
 # Signal Dunes: the top 10 levers to the mockups (E407)
 
-**State:** `in progress` 2026-10-03: rows 1-4 landed (authored landforms with the wind flipped, the re-baked dune shadow, the sand material, the glove and loop) and row 9 (Sefa beside the spawn view); council round 15 6.57 (bar 7.0). **Phase: detail** (E409: the first batch is in, so the seats' ranked findings are the work list); rows 5-8 and 10 wait for the next zoom-out. Sky Reach passed and is archived.
+**State:** `archived` 2026-10-03 (superseded the same day by docs/plans/SIGNAL-DUNES-TOP10-2.md, E409's second zoom-out): rows 1-4 (authored landforms, the dune shadow, the sand material, the glove and loop) and row 9 (Sefa beside the spawn view) landed; rows 5, 6, 8 and 10 carry over as TOP10-2's rows 2, 3, 5 and 6; row 7 (the caravan) as its row 8.
 
 ## Why the game sits at 6.6 when the mockups are the target (first principles)
 
