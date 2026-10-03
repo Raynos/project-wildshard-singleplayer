@@ -303,6 +303,42 @@ can bring every region's ΔE00 down on a frame that still looks empty (Driftwood
 - If geometry moved: `physics-baseline.mjs --mode=walk` (and `--trails`) must show 0 stuck, and re-bake the navmesh.
 - A lab page reports ms/frame at 1206×2622 and draws (`__nd.bench`).
 
+## Scoring a round: the mockup council (E399, E409)
+
+When "closer" has to be a number that the builder can't argue with, score each round with a **mockup council**: the
+protocol in `docs/process/COUNCIL.md`, set up as in `docs/plans/mockup-council/` (E399, Signal Dunes and Sky Reach).
+
+- **The ledger, frozen before round 1.** It holds the mockups, one per view; the 0–10 scale; the pass bar, which is
+  Jake's number (it began at 8.0 and Jake lowered it to 7.0); and the no-shortcut rules. A score is void if the game got
+  closer through:
+  - moved cameras;
+  - staged states a player never reaches;
+  - screenshot-only props;
+  - a per-view look;
+  - a global grade that hides a material gap.
+
+  Only Jake amends it.
+- **The surface, generated per round.** Capture the shard at the builder's ready SHA (`scripts/shard-progress.mjs`, a
+  build that ran `scripts/gen.mjs` first). Make one mockup | game sheet per view. Write the README section **from the
+  captures, never the builder's message**: every shot's camera change, every real-camera move or turn (meta.json
+  `camAt`), every commit that touches a file holding a stage handler, and the builder's claims to verify.
+- **Three fresh seats per round:**
+  - **A: Codex**, an art director;
+  - **B: Claude, evidence**: measure before judging, Rec. 709 luminance on clean crops, verify every claim;
+  - **C: Claude, red team**: hunt shortcuts, regressions and false claims.
+
+  Each writes `round-<n>-<slug>-seat-<X>.md`: a score per mockup with its three biggest differences, ranked findings,
+  and a `SCORE` line. A shard passes at a three-seat mean at or over the bar. Record every round in `scores.md`, with
+  one line on what moved.
+- **The lead's job between seats:**
+  - forward findings as they land (no waiting for the third seat);
+  - rule on conflicts between mockups (one world can't match two mockups that disagree; write the ruling in
+    scores.md);
+  - fix the tooling the seats find broken;
+  - self-check a builder's claimed big change before spending a round on it.
+- **The council feeds both phases below.** In a detail phase its ranked findings *are* the work list. In a zoom-out
+  phase it scores each batch of top-10 rows, and its findings narrow to regressions and should-fixes.
+
 ## Two kinds of round, alternating (Jake, 2026-10-03, E409)
 
 A look loop alternates two phases. Neither works alone. Detail rounds alone plateau: Signal Dunes and Sky Reach went
@@ -342,7 +378,7 @@ Reach +0.13 in one round (6.70 → 6.83), the biggest step since round 4.
   and lit; does its silhouette read like the target's; are the target's near and mid elements present? Colour (the
   grade, the LUT, ΔE00) comes only after that column is clean.
 - **Stop a zone when:**
-  - the owner signs off its 3×3;
+  - the owner signs off its 3×3, or, under a mockup council, its three-seat mean reaches the owner's bar;
   - (ΔE00 per region is reported on the board, as information);
   - the rulers held (calls within budget, 30 fps lock, no new programs);
   - the walk-around shows no cutout, seam or pop.
