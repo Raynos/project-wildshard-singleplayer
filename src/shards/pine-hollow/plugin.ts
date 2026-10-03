@@ -59,12 +59,12 @@ export class PineHollow extends ShardPlugin {
     rt.menu = { skins: () => rt.play ? pineFinishes(rt.play.skins) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => isPineItem(id) ? mottLine(id) : null } };
     const { Grass, cutTerrain, setSight } = await loadWorldContent();
     const { Particles: ParticleField } = await loadParticles();
-    const { trample } = await loadGrassField();
+    const { trample, TRAMPLE_GLSL } = await loadGrassField();
     ctx.app.registerTrample(trample, ctx.scope);
     const streams = new PineStreams(sky).build();
     game.scene.add(streams.group);
     const carpet = await step('grass', async () => {
-      const grass = new Grass(sky, forest, { trample: true }).build();
+      const grass = new Grass(sky, forest, { trample: { field: trample, glsl: TRAMPLE_GLSL } }).build();
       await macrotask();
       const under = await new Undergrowth(sky, forest).buildAsync(macrotask);
       const particles = new ParticleField(sky, forest).build();

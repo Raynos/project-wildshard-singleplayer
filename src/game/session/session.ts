@@ -1,7 +1,7 @@
 import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
 import { retried, type BootRuntime, type LevelContext, type LevelSequence, type SkinDef } from '#engine';
-import { toLevelSpec, shardContext, setShardSwitcher, type ShardManifest, type GameServices, type ShardContext } from '../index';
+import { toLevelSpec, shardContext, type ShardManifest, type GameServices, type ShardContext } from '../index';
 import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage } from '../shard/load';
 import type { KitPorts, BuiltWorld, SessionState, StagedBoot, SessionContext } from './context';
 import { installTemplateDebug } from '../shard/templateDebug';
@@ -44,10 +44,10 @@ export async function startSession(manifest: ShardManifest, engine: BootRuntime,
     const memory = (maxAgeMs = 5000) => {
       const now = app.clock.real * 1000;
       if (now - memoryAt >= maxAgeMs) { memoryAt = now; memoryMB = Math.round(textureBytes(world.scene) / 1e5) / 10; }
-      return { cap: 1, shards: [{ slug: selected, running: true, textureMB: memoryMB }] };
+      return { cap: 1, levels: [{ id: selected, running: true, textureMB: memoryMB }] };
     };
-    setShardSwitcher({ memory });
-    setAliveSource(() => ({ slug: selected, resident: `${selected} (playing) ~${Math.round(memory(60_000).shards[0]?.textureMB ?? 0)} MB` }));
+    app.levelAdapters.residentMemory = memory;
+    setAliveSource(() => ({ slug: selected, resident: `${selected} (playing) ~${Math.round(memory(60_000).levels[0]?.textureMB ?? 0)} MB` }));
   } catch (error) {
     markBootHandledError();
     if (!session.fatalShown) showError(error instanceof Error ? `${error.name}: ${error.message}` : String(error), error instanceof Error ? error.stack ?? '' : '');

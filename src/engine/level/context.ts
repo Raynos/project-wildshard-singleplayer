@@ -86,4 +86,9 @@ export interface LevelAdapters {
   };
   debugRow?: (row: DebugRowSpec) => () => void;
   playground?: (spec: PlaygroundSpec) => () => void;
+  /** the resident levels and their texture estimate, for the Debug memory readout (E405: the host fills it) */
+  residentMemory?: () => ResidentMemory;
 }
+
+/** Levels held in memory, oldest first: at most `cap` stay resident. */
+export interface ResidentMemory { cap: number; levels: { id: string; running: boolean; textureMB: number }[] }

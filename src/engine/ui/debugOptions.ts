@@ -23,7 +23,6 @@ import { jsonSlot } from '../saves/slots';
 import { texMode } from '../boot/gpuFiles';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
-import { shardMemory } from '#game';
 import { lastEndLine, markUnload } from '../boot/lastEnd';
 import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, settingsReloadUrl, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
 import { MOBILE_DEVICE } from '../core/tier';
@@ -213,12 +212,12 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 /** Shards in memory's readout (E155 / E159): the resident shards, their texture estimate, the JS heap, the device's
  *  memory and the last reload's cause (E179) — read on the device (the iPhone has no dev tools) */
 function memoryReadout(): string {
-  const m = shardMemory();
+  const m = app.levelAdapters.residentMemory?.() ?? null;
   // Chrome's performance.memory / navigator.deviceMemory: absent on iOS (and not in the DOM typings)
   const pm: unknown = Reflect.get(performance, 'memory'), used: unknown = typeof pm === 'object' && pm !== null ? Reflect.get(pm, 'usedJSHeapSize') : undefined;
   const dm: unknown = Reflect.get(navigator, 'deviceMemory');
   const heap = typeof used === 'number' ? `${Math.round(used / 1e6)} MB` : 'n/a';
-  const shards = m === null ? ['no shard host'] : m.shards.map((x, i) => `${i + 1}. ${x.slug}${x.running ? ' (playing)' : ''} · textures ~${Math.round(x.textureMB)} MB`);
+  const shards = m === null ? ['no shard host'] : m.levels.map((x, i) => `${i + 1}. ${x.id}${x.running ? ' (playing)' : ''} · textures ~${Math.round(x.textureMB)} MB`);
   // E179: why the page last reloaded (src/engine/boot/lastEnd.ts: the reason the game gave, or "ended unexpectedly")
   return [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`, lastEndLine()].join('\n');
 }

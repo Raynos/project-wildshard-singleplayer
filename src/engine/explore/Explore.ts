@@ -45,14 +45,8 @@ import { placedGroups } from '../models/place';
 import { MiniMap } from './MiniMap';
 import { exploreArt } from '../level/data';
 import { Compare, hasCompareTargets } from './Compare';
-import playgroundHorse from '#shards/nalati-grasslands/explore/playground-horse.webp';
 import { isDev, onDev } from '../core/devMode';
 import { asPlaygroundId, playgroundsFor, type PlaygroundCard, type PlaygroundId } from '../practice/playground/catalog';
-
-/** a playground's card (E325): its course in play, shot live in its shard's grade — Nine Dragon's Fei Zhua mid-zip toward
- *  BASE with the tower behind, Nalati's rider at a canter down the jump lane's rails. None yet → the verb's glyph on a
- *  dev tile (explore.css .ws-x-pg-art) */
-const PLAYGROUND_ART: Partial<Record<PlaygroundId, string>> = { horse: playgroundHorse };
 
 export type ExploreMode = 'hub' | 'world' | 'model' | 'sets';
 /** a tab's / a card's `data-m` as a mode (anything else: the World Explorer) */
@@ -202,7 +196,7 @@ export class Explore {
     // E307: the shard's own feature playgrounds under the shared cards (placeholder art: the verb's glyph on a dev tile)
     const playgrounds = playgroundsFor(game.level.id);
     const pgArt = (c: PlaygroundCard): string => {
-      const art = c.art ?? PLAYGROUND_ART[c.id];
+      const art = c.art; // the shard's own card art (its registration), or the verb's glyph on a dev tile
       return art === undefined ? `<span class="ws-x-card-art ws-x-pg-art">${c.icon}</span>` : `<span class="ws-x-card-art" style="background-image:url('${art}')"></span>`;
     };
     const pgCards = playgrounds.map((c) => `<button class="ws-x-card" type="button" data-m="playground" data-pg="${c.id}" data-dev>${pgArt(c)}<span class="ws-x-card-text"><b>${c.title}</b><small>${c.blurb}</small></span><span class="ws-x-card-go">›</span></button>`).join('');

@@ -13,7 +13,6 @@ import { activeLevel } from '../level/selection';
 import { groundSet } from './lookFlags';
 import { app } from '../app/runtime';
 import type { GrassLayer } from '../render/look';
-import { trample, TRAMPLE_GLSL } from '#kit/looks/trample';
 import { practiceRoom } from '../core/practiceRoom';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
@@ -70,6 +69,15 @@ const grassUniforms = {
   uSunColor: { value: new THREE.Color(1, 0.93, 0.8) },
 };
 
+/** A trample field the grass bends round and the player stamps into each frame (the kit's GrassTrample) */
+export interface TrampleField {
+  readonly uniforms: Record<string, THREE.IUniform>;
+  push: (x: number, z: number, radius: number, strength?: number, vx?: number, vz?: number) => void;
+  update: (dt: number, playerPos: { x: number; z: number }) => void;
+}
+/** the field, and GLSL that defines `vec2 trampleBend(vec2 xz)` over its uniforms */
+export interface GrassTrampleField { field: TrampleField; glsl: string }
+
 /** E322 F-L4: the trample, after the wind (inside its block: `im`, `ipos`, `s2`, `fade` in scope) — the blade lies over by
  *  the bend's angle (≤ 1.35 rad) the way it points, the top dropping as it goes */
 const TRAMPLE_APPLY = /* glsl */`
@@ -119,18 +127,17 @@ export class Grass {
   private zeroM = new THREE.Matrix4().makeScale(0, 0, 0);
   private meshColor!: THREE.InstancedBufferAttribute;
   private flowerColor!: THREE.InstancedBufferAttribute;
-  /** E322 F-L4: Pine Hollow's carpet carries the trample */
-  private trampleAble = false;
   private lastPX = Number.NaN;
   private lastPZ = Number.NaN;
 
-  constructor(private sky: Sky, private forest: Forest, private readonly policy: { trample?: boolean } = {}) {}
+  /** `trample`: the level's trample field (its uniforms, and GLSL that defines `trampleBend(xz)`), handed in by the level
+   *  that owns it (Pine Hollow passes the kit's; E405: the engine imports no kit) */
+  constructor(private sky: Sky, private forest: Forest, private readonly policy: { trample?: GrassTrampleField } = {}) {}
 
   build(): this {
     const driver = app.render?.look?.grass;
     if (driver !== undefined) { this.driven = driver.build(this.sky, this.forest); this.group.add(this.driven.group); return this; } // the level look's own grass
     const geo = buildClumpGeometry();
-    this.trampleAble = this.policy.trample ?? false;
     this.material = this.buildMaterial();
     this.mesh = new THREE.InstancedMesh(geo, this.material, N * N * this.slots);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -161,7 +168,7 @@ export class Grass {
   }
 
   private buildMaterial() {
-    const withTrample = this.trampleAble;
+    const field = this.policy.trample, withTrample = field !== undefined;
     const tex = makeBladeAtlas();
     const mat = new THREE.MeshStandardMaterial({
       map: tex, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.85, metalness: 0,
@@ -172,12 +179,12 @@ export class Grass {
       Object.assign(shader.uniforms, grassUniforms);
       patchWindField(shader);
       shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
-      if (withTrample) Object.assign(shader.uniforms, trample.uniforms);
+      if (field) Object.assign(shader.uniforms, field.field.uniforms);
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
           uniform float uWindStrength; uniform float uGrassWind; uniform float uRadius; uniform float uFade;
           attribute float quadId;
-          varying float vH;${withTrample ? `\n${TRAMPLE_GLSL}` : ''}`)
+          varying float vH;${field ? `\n${field.glsl}` : ''}`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
           {
             mat3 im = mat3( instanceMatrix );
@@ -239,17 +246,17 @@ export class Grass {
   }
 
   private buildFlowerMaterial() {
-    const withTrample = this.trampleAble;
+    const field = this.policy.trample, withTrample = field !== undefined;
     const mat = new THREE.MeshStandardMaterial({ map: makeFlowerTexture(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.7, metalness: 0 });
     patchShader(mat, 'engine.grass-flowers', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader);
       patchWindField(shader);
       shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
       shader.uniforms['uGrassWind'] = grassUniforms.uGrassWind;
-      if (withTrample) Object.assign(shader.uniforms, trample.uniforms);
+      if (field) Object.assign(shader.uniforms, field.field.uniforms);
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
-          uniform float uWindStrength; uniform float uGrassWind;${withTrample ? `\n${TRAMPLE_GLSL}` : ''}`)
+          uniform float uWindStrength; uniform float uGrassWind;${field ? `\n${field.glsl}` : ''}`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
           {
             mat3 im = mat3( instanceMatrix );
@@ -291,7 +298,7 @@ export class Grass {
   update(dt: number, playerPos: THREE.Vector3): void {
     if (this.driven) { this.driven.update(dt, playerPos); return; }
     grassUniforms.uGrassWind.value = this.params.windStrength;
-    if (this.trampleAble) this.trampleStep(dt, playerPos);
+    if (this.policy.trample) this.trampleStep(this.policy.trample.field, dt, playerPos);
     const pcx = Math.floor(playerPos.x / CELL), pcz = Math.floor(playerPos.z / CELL);
     if (pcx !== this.lastCellX || pcz !== this.lastCellZ) {
       const first = this.lastCellX === 0x7fffffff;
@@ -316,7 +323,7 @@ export class Grass {
   }
 
   /** E322 F-L4: the player parts the grass and leaves a trail (the animals push from AnimalManager); the map advances */
-  private trampleStep(dt: number, playerPos: THREE.Vector3): void {
+  private trampleStep(trample: TrampleField, dt: number, playerPos: THREE.Vector3): void {
     const vx = Number.isNaN(this.lastPX) || dt <= 0 ? 0 : (playerPos.x - this.lastPX) / dt;
     const vz = Number.isNaN(this.lastPZ) || dt <= 0 ? 0 : (playerPos.z - this.lastPZ) / dt;
     this.lastPX = playerPos.x; this.lastPZ = playerPos.z;

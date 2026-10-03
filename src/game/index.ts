@@ -14,7 +14,7 @@ export type { ItemId } from './Inventory';
 
 export type { ShardRuntime } from './shard/runtime';
 export { installCompendium } from './compendium/install';
-export { travel, bindTravelInventory, applyTravelCarry, consumeTravelHandoff, setShardSwitcher, shardMemory, type TravelRequest, type TravelHandoff } from './travel/travel';
+export { travel, bindTravelInventory, applyTravelCarry, consumeTravelHandoff, type TravelRequest, type TravelHandoff } from './travel/travel';
 export { normalizeItemRow, type ItemRow, type RegisteredItemRow } from './bag/items';
 
 

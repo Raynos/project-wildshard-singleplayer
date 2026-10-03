@@ -267,7 +267,8 @@ The engine never reads a manifest. `#game`'s `toLevelSpec(manifest)` turns it in
 | `BootSpec`, `LoadoutSpec`, `EngineMechanism`, `TierKnobs`, `TierKnobMap`, `TierOverrides` | parts of it (§8, §18, §6, §13.3) |
 | `LevelContext` | the verbs below, every one bound to `ctx.scope` |
 | `LevelHooks` | `{ world?, kit?, play? }`, each awaited in its stage |
-| `LevelAdapters` | how the game shell installs the UI-side verbs (`inputContext`, `hud`, `debugRow`, `playground`); a shard never uses it |
+| `LevelAdapters` | how the game shell installs the UI-side verbs (`inputContext`, `hud`, `debugRow`, `playground`) and the Debug memory readout's source (`residentMemory`); a shard never uses it |
+| `ResidentMemory` | `{ cap, levels: { id, running, textureMB }[] }`: the levels held in memory, oldest first, for that readout |
 | `LevelDriver`, `LevelStage`, `LevelLoadError` | the stage runner and the error a failed stage throws |
 | `LevelRegistrations` | the registrations a level made (rows, strings, knobs). `assertKit` makes a row outside `level.kit` throw |
 | `levelSequenceDriver`, `LevelSequence`, `LevelBoundary` | the boot's stage sequence |
@@ -1406,7 +1407,7 @@ runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
 | Quest UI | `QuestState`, `QuestMarker`, `NpcDef`, `DialogueBox`, `ObjectiveLine`, `NpcTalk`, `QuestChip`, `LiveMarker`, `RewardCaption`, `ProgressSink` | the engine quest core is §17 / below |
 | Completion | `ShardComplete`, `setCompleteEntry`, `ShardCompleteData` | the end card |
 | Saves | `progressSave`, `inventorySave`, `purseSave`, `ownedSave`, `bountySave`, `compendiumSave`, `bossesSave`, `elitesSave`, `shardSave`, `saveSlug` | §9 |
-| Travel | `travel`, `bindTravelInventory`, `applyTravelCarry`, `consumeTravelHandoff`, `setShardSwitcher`, `shardMemory`, `TravelRequest`, `TravelHandoff` | a page-reload travel today |
+| Travel | `travel`, `bindTravelInventory`, `applyTravelCarry`, `consumeTravelHandoff`, `TravelRequest`, `TravelHandoff` | a page-reload travel today |
 | Cosmetics | `BodyShadow`, `installBodyShadow` | `manifest.bodyShadow` |
 | Template | `installTemplateDebug` | the Debug ▸ Developer tools entry that opens a hidden level |
 
@@ -1596,7 +1597,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-689 exports, grouped by the module they come from.
+690 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1624,7 +1625,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./level/load`: `LevelLoadError`, `LevelDriver`, `LevelStage`
 - `./level/spec`: `resolveTierKnobs`, `needsTerrainCollider`, `LevelSpec`, `BootSpec`, `LoadoutSpec`, `EngineMechanism`, `TierKnobMap`, `TierKnobs`, `TierOverrides`
 - `./level/registrations`: `LevelRegistrations`
-- `./level/context`: `LevelContext`, `LevelHooks`, `LevelAdapters`, `EngineRows`, `ContentRow`, `ContentRowMap`, `InputContextDef`, `HudVerbs`, `HudBand`, `VerbSlotOpts`, `DebugRowSpec`, `PlaygroundSpec`, `StringTable`, `TierKnobSchema`
+- `./level/context`: `LevelContext`, `LevelHooks`, `LevelAdapters`, `ResidentMemory`, `EngineRows`, `ContentRow`, `ContentRowMap`, `InputContextDef`, `HudVerbs`, `HudBand`, `VerbSlotOpts`, `DebugRowSpec`, `PlaygroundSpec`, `StringTable`, `TierKnobSchema`
 - `./render/look`: `LookStrategy`, `LookComposeContext`, `LookComposition`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropTargets`, `SkyBackdropPost`, `LookReplaceContext`, `LookChain`, `FogModel`, `TerrainPainter`, `PainterField`, `GrassDriver`, `GrassLayer`, `ExtendLook`, `ReplaceLook`, `SkyDressing`
 - `./render/shaderPatches`: `patchShader`, `takeForeignHook`, `setInheritedPatch`, `setProgramKey`, `hasProgramKey`, `PATCH_ORDER`, `ShaderSource`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`
 - `./physics/box`: `boxInFrame`, `BoxSpec`
@@ -1823,7 +1824,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#game` (`src/game/index.ts`)
 
-114 exports, grouped by the module they come from.
+112 exports, grouped by the module they come from.
 
 - `./equipmentTypes`: `EquipmentRow`
 - `./shard/plugin`: `ShardPlugin`
@@ -1835,7 +1836,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./Inventory`: `ItemId`, `ITEMS`, `isItemId`
 - `./shard/runtime`: `ShardRuntime`
 - `./compendium/install`: `installCompendium`, `CompendiumHost`, `CompendiumWallPort`
-- `./travel/travel`: `travel`, `bindTravelInventory`, `applyTravelCarry`, `consumeTravelHandoff`, `setShardSwitcher`, `shardMemory`, `TravelRequest`, `TravelHandoff`
+- `./travel/travel`: `travel`, `bindTravelInventory`, `applyTravelCarry`, `consumeTravelHandoff`, `TravelRequest`, `TravelHandoff`
 - `./bag/items`: `normalizeItemRow`, `ItemRow`, `RegisteredItemRow`
 - `./bag/itemCatalog`: `registerItemRow`
 - `./achievements`: `AchievementDef`

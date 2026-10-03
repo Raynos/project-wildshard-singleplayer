@@ -72,7 +72,3 @@ export function applyTravelCarry(handoff: TravelHandoff | null, inventory: Inven
   for (const line of handoff.carry) inventory.add(line.id, line.count);
 }
 
-export interface ShardMemory { cap: number; shards: { slug: string; running: boolean; textureMB: number }[] }
-let memory: (() => ShardMemory) | null = null;
-export function setShardSwitcher(source: { memory: () => ShardMemory }): void { memory = source.memory; }
-export function shardMemory(): ShardMemory | null { return memory?.() ?? null; }

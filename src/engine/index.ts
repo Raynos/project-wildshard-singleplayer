@@ -26,7 +26,7 @@ export { retried } from './boot/retry';
 export { LevelLoadError, type LevelDriver, type LevelStage } from './level/load';
 export { resolveTierKnobs, needsTerrainCollider, type LevelSpec, type BootSpec, type LoadoutSpec, type EngineMechanism, type TierKnobMap, type TierKnobs, type TierOverrides } from './level/spec';
 export { LevelRegistrations } from './level/registrations';
-export type { LevelContext, LevelHooks, LevelAdapters, EngineRows, ContentRow, ContentRowMap, InputContextDef, HudVerbs, HudBand, VerbSlotOpts, DebugRowSpec, PlaygroundSpec, StringTable, TierKnobSchema } from './level/context';
+export type { LevelContext, LevelHooks, LevelAdapters, ResidentMemory, EngineRows, ContentRow, ContentRowMap, InputContextDef, HudVerbs, HudBand, VerbSlotOpts, DebugRowSpec, PlaygroundSpec, StringTable, TierKnobSchema } from './level/context';
 export type { LookStrategy, LookComposeContext, LookComposition } from './render/look';
 export { patchShader, takeForeignHook, setInheritedPatch, setProgramKey, hasProgramKey, PATCH_ORDER, type ShaderSource, type ShaderPatchFn, type ShaderPatchKey, type ShaderPatchOptions } from './render/shaderPatches';
 
