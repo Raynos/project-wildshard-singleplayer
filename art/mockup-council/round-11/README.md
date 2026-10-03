@@ -56,3 +56,34 @@ All shard commits between the captures:
 - The cookfire's wisp curls.
 - The plait has a sheen, and the gauntlet is darker.
 - The hold is at y -0.245.
+
+- far-reach: capture `progress/far-reach/20261003-0601-3307e64a` (sha 3307e64a, staged {'h4-crown': 'quest-crown', 'mock-D-crown-arena': 'roc-opening'}, page errors 0)
+
+## Sky Reach (far-reach), round 11
+
+The capture is the builder's: `20261003-0601-3307e64a`, built at 3307e64a2. **The bar is now 7.0** (Jake amended ledger 4 on 2026-10-03; the no-shortcut rules are unchanged).
+
+The lead's rulings apply (scores.md):
+- **The round-8 cluster ruling:** the world follows mockup A's cluster over the mill.
+- **The new sky ruling:** the shared sky band follows mockups A and C, so proposal B's sky is scored on its finish (cloud structure, gradation, haze), not its saturation.
+
+Changes since round 10 (generated from the two captures, `20261003-0516-750b533a` → `20261003-0601-3307e64a`; the list covers every shot, and no real camera moved):
+
+- no mock-* camera changed
+
+Commits touching staging code between the captures:
+- none
+
+All shard commits between the captures:
+- 3307e64a2 E399 Sky Reach, round 10 (seat A item 3, every seat's 'an overlapping cluster'): two more crags in the cluster over the mill (o5, 
+- 21d5e913c E399 Sky Reach: the dome's highlight roll-off round the sun stronger and wider (0.28 to 0.42 within ~18 deg; the glow card keeps t
+- 3de757394 E399 Sky Reach, the Roc's soaring wings nearly level (dihedral 0.3 to 0.1 rad; round 10, seat A: 'wings level'; round 8's raised V
+- a28f585cb E399 Sky Reach, council round 10 (seat A items 4, 7): the free drift ray's luminous wake (world/rayWake.ts: a ribbon along its own
+
+**Builder's claims to verify:**
+- **The cluster:** five overlapping crags in one band over the mill (o5 and o6 added), lighter, with the gold rims kept.
+- **The Roc:** its wings are near level (dihedral 0.1 rad), so both spread wide under the bar. The frame looks alike at settles of 3.0-3.7 s. The take-off direction is unchanged. Round-10 seat B found it flies away from D's camera, and that finding has been sent to the builder.
+- **D's sun glare:** the middle band's share over 230 is down from 9.1 % to 6.5 % (mockup 5.0), from a stronger dome roll-off near the sun. Every view's top 1 % is still 236-240. Measure on fan-free ground: round-10 seat B found that the bigger fan covers part of that band.
+- **Proposal B:** the free ray circles beside the mill, inside the frame on most laps, with a luminous wake ribbon along its real flight path (a28f585cb, world/rayWake.ts).
+- **The meadow:** tighter daisy drifts.
+- **Checks:** the walk baseline is 0 stuck, and the tests are green.
