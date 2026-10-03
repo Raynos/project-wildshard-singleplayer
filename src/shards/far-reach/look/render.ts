@@ -1,4 +1,5 @@
 import { Color, Fog, Mesh, type Object3D, type Texture } from 'three';
+import { ToneMappingMode } from 'postprocessing';
 import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
@@ -57,7 +58,15 @@ export async function skyReachLook(): Promise<LookStrategy> {
   let seaTime: { value: number } | null = null;
   let glowUpdate: ((t: number) => void) | null = null;
   return { mode: 'extend',
-    compose: ({ engineChain, scene, scope }) => {
+    // `c.fx` builds the CINEMATIC chain when nothing is built yet, so the clean chain is asked first and `fx` only after
+    // it (E399: destructuring `fx` in the parameters, or reading it before `engineChain('clean')`, makes the clean ask
+    // throw 'already built', and the load hangs)
+    compose: (c) => {
+      const { scene, scope } = c, chain = c.engineChain('clean');
+      // E399 (council rounds 1-5, 'the light never glows'; measured as Rec. 709 luminance): AgX compressed the top 1 % to
+      // 223-228 where the mockups reach 236-241. NEUTRAL with the manifest grade's saturation 0, contrast 0.12 and bloom
+      // 0.35 measures 236-241, 2.1-3.6 % of the frame over 230 (the mockups 1.9-3.8 %)
+      c.fx.tone.mode = ToneMappingMode.NEUTRAL;
       const haze = fogLut(), dome = skyDome(pano, haze); scope.own(pano); scope.own(haze);
       dome.renderOrder = -10; dome.frustumCulled = false; scene.add(dome);
       scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); });
@@ -94,7 +103,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
       if (cloudAtlas !== null) {
         const puffs = cumulus(SUN_DIR, cloudAtlas, keelPuffs()); scene.add(puffs); scope.own(cloudAtlas); scope.own(puffs.geometry); scope.own(puffs.material); scope.onDispose(() => { puffs.removeFromParent(); });
       }
-      return { chain: engineChain('clean') };
+      return { chain };
     },
     lighting: { install: installPaintedLight },
     // the panorama paints the one sun (council R1B-1: the engine's disc drew a second one above it)
