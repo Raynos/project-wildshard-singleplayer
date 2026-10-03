@@ -18,7 +18,7 @@ import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, UPDRAFT, apothem, type Isle, t
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
 /** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range); `flowerHandoff` the same for a flower. */
-export const DRESS = { clumpsPerM2: 1.6, flowersPerM2: 0.07, stonesPerIsle: 9, rootsPerM: 2.2, lipPerM: 0.9, cragsPerIsle: 4, bridgeClear: 0.3, handoff: [15, 22], flowerHandoff: [9, 13] } as const;
+export const DRESS = { clumpsPerM2: 1.6, flowersPerM2: 0.07, stonesPerIsle: 9, rootsPerM: 0, lipPerM: 0.9, cragsPerIsle: 0, bridgeClear: 0.3, handoff: [15, 22], flowerHandoff: [9, 13] } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;

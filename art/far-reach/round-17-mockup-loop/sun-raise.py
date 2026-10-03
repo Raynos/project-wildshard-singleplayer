@@ -1,7 +1,7 @@
 """Raise the painted sun (E392 / E399, mockup A: the sun glows just left of the windmill's cap; at 4.75 deg it sat behind
 the high step's isle from the spawn, so the spawn view had no sun at all).
 
-  python3 sun-raise.py <source> <out> <lift px> [slide px]   # 15.36 px per degree; shipped: panorama-graded.jpg panorama-sun.jpg 71 158 (E399 round 2: low, just right of the windmill's sails from the spawn, so the mill stands against it, as mockup A)
+  python3 sun-raise.py <source> <out> <lift px> [slide px]   # 15.36 px per degree; shipped: panorama-graded.jpg panorama-sun.jpg 81 260 (E399: ~9 deg up just right of the windmill from the spawn, where the sky is open; left of it the high step and the winch house hid it, behind it the tower)
   (loop 20: at +100 px the sun still hid behind the winch house on the high step from the spawn)
 
 The disc is lifted out (filled from the blurred glow around it, so its old place keeps the horizon's gold) and repainted
