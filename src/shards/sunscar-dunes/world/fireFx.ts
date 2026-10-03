@@ -17,7 +17,7 @@ export const WAYMARK_FIRE: FireSize = { flame: 3.4, glow: 1.7, smoke: 11, embers
 /** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
 export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 14, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon; round 10 (the seats: a straight pale column): it curls, widens and fades
 /** The keeper's lamp in the tower's top (mockup dusk-fire): a small open flame in its cage, no plume to speak of. */
-export const KEEPER_LAMP: FireSize = { flame: 2.6, glow: 1.2, smoke: 0.01, embers: 6 }; // round 12 (round 11: unreadable at 145 m, its halo 2.6 m) // round 9: 1.3 read as a dot at 145 m
+export const KEEPER_LAMP: FireSize = { flame: 2.6, glow: 1.2, smoke: 0.01, embers: 4 }; // round 12 (round 11: unreadable at 145 m, its halo 2.6 m) // round 9: 1.3 read as a dot at 145 m
 export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
 
 const time = { value: 0 };
