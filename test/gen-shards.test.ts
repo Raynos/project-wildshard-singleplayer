@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Generator fixtures require host filesystem paths.
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { genShards, manifestClosure } from '../scripts/gen-shards.mjs';
+import { genShards, manifestClosure, manifestContract } from '../scripts/gen-shards.mjs';
 import { splitKtx2 } from '../scripts/ktx2-tables.mjs';
 
 describe('shard generation', () => {
@@ -38,6 +38,26 @@ describe('shard generation', () => {
       writeFileSync(join(dir, 'types.ts'), 'export interface Shape {}');
       writeFileSync(join(dir, 'plugin.ts'), 'throw new Error("must stay lazy");');
       expect(manifestClosure(root)['new-shard']).toEqual(['src/shards/new-shard/data.ts', 'src/shards/new-shard/manifest.ts', 'src/shards/new-shard/more.ts']);
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+  it('AG10: holds the manifest contract on every real shard (lazy plugin, closure budget, every field read)', () => {
+    expect(manifestContract(resolve('.'), manifestClosure(resolve('.')), true)).toEqual([]);
+  });
+  it('AG10: refuses a static plugin, a missing lazy load and a closure over budget', () => {
+    const root = mkdtempSync(join(tmpdir(), 'manifest-contract-'));
+    try {
+      mkdirSync(join(root, 'lint'));
+      writeFileSync(join(root, 'lint/manifest-closure-budget.json'), JSON.stringify({ budgets: { default: 1 } }));
+      for (const [slug, source] of [['eager', "import Plugin from './plugin'; export default { load: async () => ({ default: Plugin }) };"], ['fat', "import { a } from './a'; export default { a, load: () => import('./plugin') };"], ['good', "export default { load: () => import('./plugin') };"]] as const) {
+        mkdirSync(join(root, 'src/shards', slug), { recursive: true });
+        writeFileSync(join(root, 'src/shards', slug, 'manifest.ts'), source);
+        writeFileSync(join(root, 'src/shards', slug, 'a.ts'), 'export const a = 1;');
+        writeFileSync(join(root, 'src/shards', slug, 'plugin.ts'), 'export default class {}');
+      }
+      const failures = manifestContract(root, manifestClosure(root));
+      expect(failures.filter((f) => f.includes('/eager/'))).toHaveLength(3);
+      expect(failures.filter((f) => f.includes('/fat/'))).toEqual([expect.stringMatching(/over its budget 1/u)]);
+      expect(failures.filter((f) => f.includes('/good/'))).toEqual([]);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
   it('discovers a new manifest and the hidden template without a KTX2 file; checks determinism and stale output', () => {

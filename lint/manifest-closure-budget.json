@@ -1,0 +1,13 @@
+{
+  "about": "E362 AG10: the most files a shard manifest's static closure (cold boot) may pull, from scripts/gen-shards.mjs manifestClosure. Recorded 2026-10-03; numbers may only fall. A new shard gets default (the template's size plus room for its data).",
+  "budgets": {
+    "default": 40,
+    "_template": 23,
+    "driftwood-isle": 271,
+    "far-reach": 16,
+    "nalati-grasslands": 226,
+    "nine-dragon-stack": 269,
+    "pine-hollow": 42,
+    "sunscar-dunes": 32
+  }
+}

@@ -433,6 +433,8 @@ See [ENGINE.md §20](ENGINE.md#20-the-game-layer-game) for options and the compl
 | the hard rules (`no-raw-save`, `no-raw-input`, `no-raw-hud`, `no-raw-shader-patch`, `no-raw-animation-mixer`, `no-url-switch`) | lint, pre-commit | `pnpm exec oxlint src/shards/<slug>` |
 | the ratchet | pre-commit, `pnpm test` | `node lint/ratchet.mjs`: a new shard's files start at 0 on every ratcheted rule |
 | the layout check (AG9) | pre-commit when `src/shards/**` changes | `node scripts/check-shards.mjs` |
+| the manifest contract (AG10): `load: () => import('./plugin')`, the cold-boot closure within its budget (`lint/manifest-closure-budget.json`; a new shard gets `default`, 40 files) | push gate, `pnpm test` | `node scripts/gen-shards.mjs --check` |
+| the layer graph (AG7): no new layer pair or rising count, nothing outside your folder imports your files | pre-commit, `pnpm test` | `node scripts/check-graph.mjs` |
 | `gen-shards --check` | pre-commit when a manifest changes, the gate | `node scripts/gen-shards.mjs --check` |
 | node-safe manifest | `pnpm test` | `pnpm exec vitest run test/manifests-node-safe.test.ts` |
 | your contract test | `pnpm test` | `pnpm exec vitest run test/shards/<slug>` |

@@ -57,9 +57,50 @@ export type ShardSlug = ${slugs.map((slug) => JSON.stringify(slug)).join(' | ')}
 `;
 }
 
+const LOAD = /\bload:\s*\(\)\s*=>\s*import\(\s*['"]\.\/plugin(?:\.ts)?['"]\s*\)/u;
+const BUDGET_FILE = 'lint/manifest-closure-budget.json';
+/**
+ * E362 AG10, the manifest contract: `load` is `() => import('./plugin')` (the plugin never rides in cold boot); the
+ * manifest's static closure stays inside its file budget (`lint/manifest-closure-budget.json`, `default` for a new
+ * shard; it may only fall); every `ShardManifest` field is read by the engine, the game or the tooling (`fields`).
+ * Slug = folder is check-shards' (AG9).
+ */
+export function manifestContract(root, closure, fields = false) {
+  const failures = [];
+  const budgetPath = resolve(root, BUDGET_FILE);
+  const budgets = existsSync(budgetPath) ? JSON.parse(readFileSync(budgetPath, 'utf8')).budgets : {};
+  for (const slug of shardFolders(root)) {
+    const source = readFileSync(resolve(root, `src/shards/${slug}/manifest.ts`), 'utf8');
+    if (!LOAD.test(source)) failures.push(`src/shards/${slug}/manifest.ts: load must be \`() => import('./plugin')\` (a lazy plugin, never a static import)`);
+    if (/^import\s[^;]*['"]\.\/plugin(?:\.ts)?['"]/mu.test(source)) failures.push(`src/shards/${slug}/manifest.ts imports ./plugin statically: it would ride in cold boot`);
+    const budget = budgets[slug] ?? budgets.default, size = closure[slug]?.length ?? 0;
+    if (typeof budget === 'number' && size > budget) failures.push(`src/shards/${slug}/manifest.ts: its static closure is ${size} files, over its budget ${budget} (${BUDGET_FILE}); move the new imports behind load / a lazy thunk`);
+  }
+  if (fields) {
+    const file = resolve(root, 'src/game/shard/manifest.ts');
+    const decl = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    let names = [];
+    decl.forEachChild((n) => { if (ts.isInterfaceDeclaration(n) && n.name.text === 'ShardManifest') names = n.members.filter(ts.isPropertySignature).map((m) => m.name.getText(decl)); });
+    const texts = [];
+    const scan = (dir) => {
+      if (!existsSync(resolve(root, dir))) return;
+      for (const entry of readdirSync(resolve(root, dir), { withFileTypes: true })) {
+        const path = `${dir}/${entry.name}`;
+        if (entry.isDirectory()) scan(path);
+        else if (/\.[cm]?[jt]s$/u.test(entry.name) && !entry.name.endsWith('.generated.ts')) texts.push(readFileSync(resolve(root, path), 'utf8'));
+      }
+    };
+    for (const dir of ['src/engine', 'src/game', 'lint', 'scripts']) scan(dir);
+    const all = texts.join('\n');
+    for (const name of names) if (!new RegExp(`\\.${name}\\b|['"]${name}['"]`, 'u').test(all)) failures.push(`ShardManifest.${name}: nothing in the engine, the game or the tooling reads it; drop the field`);
+  }
+  return failures;
+}
+
 export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
   genShardWords(root, check, shard);
-  const outputs = { 'shards.generated.ts': shardSource(root), 'manifest-closure.generated.json': `${JSON.stringify(manifestClosure(root), null, 2)}\n` };
+  const closure = manifestClosure(root);
+  const outputs = { 'shards.generated.ts': shardSource(root), 'manifest-closure.generated.json': `${JSON.stringify(closure, null, 2)}\n` };
   for (const [name, source] of Object.entries(outputs)) {
     const out = resolve(root, 'src/game/shard', name);
     const exists = existsSync(out), same = exists && readFileSync(out, 'utf8') === source;
@@ -77,6 +118,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
     genShards(undefined, process.argv.includes('--check'), false, shard);
     // Vite runs discovery before boot byte tables exist. Budget generation belongs to pnpm gen after those tables.
     if (process.argv.includes('--check')) {
+      const root = resolve(import.meta.dirname, '..'), failures = manifestContract(root, manifestClosure(root), true);
+      if (failures.length > 0) throw new Error(`gen-shards: the manifest contract (AG10):\n  ${failures.join('\n  ')}`);
       const { genBudgetDerivations } = await import('./gen-budget-derivations.mjs');
       await genBudgetDerivations(undefined, true, shard);
     }
