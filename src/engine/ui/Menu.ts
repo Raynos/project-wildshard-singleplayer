@@ -87,6 +87,8 @@ export class GameMenu {
   private hint: HTMLElement;
   private mapMeta: HTMLElement;
   private mapQuest: HTMLElement;
+  /** the map's POI · You key: hidden over a practice room's own map (its names are on it, it has no POIs; E353) */
+  private mapLegend: HTMLElement;
   private zoomChips: HTMLButtonElement[] = [];
   private _tab: MenuTab = 'settings';
   private layer: UiHandle | null = null;
@@ -144,7 +146,8 @@ export class GameMenu {
       this.scope.listen(b, 'click', () => { opts.fullMap.setZoom(z); this.syncZoom(); });
       zooms.append(b); this.zoomChips.push(b);
   }
-    foot.append(zooms, el('ws-gmenu-legend', engineString('s_dd35e28aa4b1', [icon('poi'), icon('you')])));
+    this.mapLegend = el('ws-gmenu-legend', engineString('s_dd35e28aa4b1', [icon('poi'), icon('you')]));
+    foot.append(zooms, this.mapLegend);
     this.panels.map.append(this.mapMeta, this.mapQuest, frame, foot);
     opts.fullMap.onZoom = () => this.syncZoom();
 
@@ -325,6 +328,8 @@ export class GameMenu {
     }
   }
   private hintFor(tab: MenuTab): string {
+    // a practice room's map is fitted to the frame and doesn't pan (Map.ts update): the pinch is all it takes
+    if (tab === 'map' && this.opts.fullMap.hasRoom) return engineString('s_room_map_hint');
     return this.tabsRegistry.registeredTabs.find((row) => row.id === tab)?.hint ?? HINTS[tab] ?? '';
   }
   /** the quest card over the map: chapter title, the full objective, its sub-steps (the HUD shows only the short chip, E51) */
@@ -337,6 +342,7 @@ export class GameMenu {
 
   private syncZoom() {
     const z = this.opts.fullMap.zoom;
+    this.mapLegend.hidden = this.opts.fullMap.hasRoom;
     for (const b of this.zoomChips) b.classList.toggle('active', Math.abs(Number(b.dataset['z']) - z) < 0.01);
   }
 

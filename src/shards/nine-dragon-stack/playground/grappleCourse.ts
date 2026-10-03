@@ -57,6 +57,14 @@ export const PADS: readonly CoursePad[] = [
 /** the tower's column under the FINISH cap (the ledges spiral round it) */
 export const COLUMN = { x: -6, z: -34, w: 6, d: 6 } as const;
 
+/** where a pad's name sits on the full map: on the pad, but a ledge's goes out past its edge away from the column, so
+ *  L1's never lands on FINISH's (13 m apart, the two overlapped on a phone's MAP tab, E353) */
+export function padLabelAt(p: CoursePad): { x: number; z: number } {
+  if (p.kind !== 'ledge') return { x: p.x, z: p.z };
+  const dx = p.x - COLUMN.x, dz = p.z - COLUMN.z;
+  return Math.abs(dx) >= Math.abs(dz) ? { x: p.x + Math.sign(dx) * (p.w / 2 + 3), z: p.z } : { x: p.x, z: p.z + Math.sign(dz) * (p.d / 2 + 3) };
+}
+
 const pad = (id: string): CoursePad => {
   const p = PADS.find((q) => q.id === id);
   if (p === undefined) throw new Error(`grapple course: no pad ${id}`);

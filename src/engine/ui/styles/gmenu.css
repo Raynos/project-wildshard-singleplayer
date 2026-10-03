@@ -93,6 +93,7 @@
 .ws-gmenu .ws-gmenu-legend i { width: 12px; height: 12px; }
 .ws-gmenu .ws-gmenu-legend i.poi { color: var(--ws-cyan); }
 .ws-gmenu .ws-gmenu-legend i.you { color: #fff; }
+.ws-gmenu .ws-gmenu-legend[hidden] { display: none; }
 
 /* INVENTORY: equipped weapon cards + the 3-column pack grid */
 .ws-gmenu .ws-gmenu-weapon { flex: none; display: flex; align-items: center; gap: 14px; width: 100%; margin-bottom: 8px; padding: 10px 12px; appearance: none; -webkit-appearance: none; text-align: left; background: rgba(143, 227, 255, 0.04); border: 1px solid rgba(143, 227, 255, 0.22); color: var(--ws-text); font-family: var(--ws-mono); cursor: pointer; }

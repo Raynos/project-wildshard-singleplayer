@@ -5,7 +5,7 @@ import { GRAPPLE_PLAYGROUND } from '#shards/nine-dragon-stack/playground/registr
 // and flies clear of every other box; the horse track's bends are wider than a gallop's turn and inside the field.
 import { afterAll, describe, expect, it } from 'vitest';
 import { registerPlayground, PLAYGROUND_CARDS, asPlaygroundId, playgroundsFor } from '#engine/practice/playground/catalog';
-import { COLUMN, HOOKS, PADS, RING_UP, ROOM, coursePad, type CourseHook, type CoursePad } from '#shards/nine-dragon-stack/playground/grappleCourse';
+import { COLUMN, HOOKS, PADS, RING_UP, ROOM, coursePad, padLabelAt, type CourseHook, type CoursePad } from '#shards/nine-dragon-stack/playground/grappleCourse';
 import { FIELD, HORSE_START, JUMPS, LAP_M, OVAL, POST_OFF, RIDER_START, ovalLine } from '#shards/nalati-grasslands/playground/horseCourse';
 import { practiceRoom } from '#engine/core/practiceRoom';
 import { placesWithDiscovery } from '#game/quest/core';
@@ -136,6 +136,15 @@ describe('the grapple course (grappleCourse.ts) against the Fei Zhua (Traversal.
       expect(b.x0 > ROOM.x0 && b.x1 < ROOM.x1 && b.z0 > ROOM.z0 && b.z1 < ROOM.z1, b.id).toBe(true);
       expect(b.y1 + 4, b.id).toBeLessThan(ROOM.height);
     }
+  });
+
+  it('the pads\' names on the full map stand clear of each other (E353: L1 sat on FINISH)', () => {
+    // a phone's MAP tab fits the 104 × 148 m room at ~2.3 CSS px a metre; a 6-letter 10 px label is ~36 px wide
+    const named = PADS.filter((p) => p.kind !== 'range').map((p) => Object.assign(padLabelAt(p), { id: p.id }));
+    for (const [i, a] of named.entries()) for (const b of named.slice(i + 1)) {
+      expect(Math.hypot(a.x - b.x, a.z - b.z), `${a.id} / ${b.id}`).toBeGreaterThanOrEqual(16);
+    }
+    for (const n of named) expect(n.x > ROOM.x0 && n.x < ROOM.x1 && n.z > ROOM.z0 && n.z < ROOM.z1, n.id).toBe(true);
   });
 });
 

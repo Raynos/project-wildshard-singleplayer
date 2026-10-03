@@ -17,7 +17,7 @@ import * as THREE from 'three';
 import type { GrappleCourse } from '../grapple/course';
 import { FeiZhua } from '../grapple/FeiZhua';
 import { DevKit, devLabel } from '#engine/practice/playground/devGrid';
-import { COLUMN, FALL_Y, HOOKS, PADS, RING_UP, ROOM, RUN, coursePad, type CoursePad } from './grappleCourse';
+import { COLUMN, FALL_Y, HOOKS, PADS, RING_UP, ROOM, RUN, coursePad, padLabelAt, type CoursePad } from './grappleCourse';
 import { PlaygroundChip, clock } from '#engine/practice/playground/hud';
 import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from '#engine/practice/playground/Playground';
 
@@ -247,7 +247,7 @@ function courseMap(o: THREE.Vector3): RoomMap {
     shapes.push(rect(p.x, p.z, p.w, p.d, lit ? '#d7dde2' : '#6c737b', p.kind === 'finish' ? '#e2843a' : undefined));
   }
   for (const h of HOOKS) shapes.push({ kind: 'dot', x: o.x + h.x, z: o.z + h.z, r: 1.4, color: '#ffc24a' });
-  for (const p of PADS) if (p.kind !== 'range') shapes.push({ kind: 'label', x: o.x + p.x, z: o.z + p.z, text: p.label, color: p.kind === 'finish' ? '#e2843a' : '#e8f4fa' });
+  for (const p of PADS) if (p.kind !== 'range') { const at = padLabelAt(p); shapes.push({ kind: 'label', x: o.x + at.x, z: o.z + at.z, text: p.label, color: p.kind === 'finish' ? '#e2843a' : '#e8f4fa' }); }
   return { bounds: box, shapes };
 }
 

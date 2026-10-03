@@ -479,6 +479,7 @@ export const ENGINE_STRINGS = {
   "s_77fb830f183c": "Found = bright · missing = dashed",
   "s_d6a37d4c0ef4": "Tap a weapon to hold it",
   "s_90238ffb7476": "Drag to pan · pinch to zoom",
+  "s_room_map_hint": "Pinch to zoom",
   "s_b053c961f2ac": "",
   "s_e159b06187d3": "Paused",
   "s_ce1e2c0b6512": "PH-U31 · the crags drawn as one channel (was ?cragdebug)",
