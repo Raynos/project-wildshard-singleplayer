@@ -64,14 +64,16 @@ void main() {
   // noise on plain azimuth and height, cells ~8x longer than tall, so each bank is a horizontal streak; low, 2-10 deg up;
   // in banks beside the glow, the right one heavier (mockup dusk-fire's grey-brown bank at the right, A's banks either
   // side); none near the azimuth's seam (due west, which no view faces)
-  vec2 cq = vec2(az * 9.0, h * 48.0);
-  float cn = vNoise(cq) * 0.5 + vNoise(cq * vec2(2.3, 2.0) + 3.1) * 0.3 + vNoise(cq * vec2(6.0, 4.0) + 7.3) * 0.2;
+  // round 10 (the seats: smooth strips; the mockups' banks are broken, layered masses with holes): a coarse mass octave
+  // clumps and breaks them, the banks a little taller
+  vec2 cq = vec2(az * 9.0, h * 38.0);
+  float cn = vNoise(cq * 0.45 + 11.0) * 0.35 + vNoise(cq) * 0.33 + vNoise(cq * vec2(2.3, 2.0) + 3.1) * 0.2 + vNoise(cq * vec2(6.0, 4.0) + 7.3) * 0.12;
   float azG = atan(uSun.z, uSun.x), rel = az - azG; rel -= 6.2831853 * floor((rel + 3.1415927) / 6.2831853);
   float bank = smoothstep(0.06, 0.2, rel) * (1.0 - smoothstep(0.75, 1.15, rel)) + 0.6 * smoothstep(-1.1, -0.75, rel) * (1.0 - smoothstep(-0.22, -0.1, rel));
-  float cov = smoothstep(0.54, 0.68, cn) * bank * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.2, 0.28, h)) * (1.0 - smoothstep(2.7, 2.95, abs(az))) * (1.0 - smoothstep(0.03, 0.14, uDusk));
+  float cov = smoothstep(0.52, 0.64, cn) * bank * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.2, 0.28, h)) * (1.0 - smoothstep(2.7, 2.95, abs(az))) * (1.0 - smoothstep(0.03, 0.14, uDusk));
   // lit from below (the set sun): where the bank thins downward its belly takes the glow, its top stays dark
   vec2 cqb = cq - vec2(0.0, 0.35);
-  float cBelow = vNoise(cqb) * 0.5 + vNoise(cqb * vec2(2.3, 2.0) + 3.1) * 0.3 + vNoise(cqb * vec2(6.0, 4.0) + 7.3) * 0.2;
+  float cBelow = vNoise(cqb * 0.45 + 11.0) * 0.35 + vNoise(cqb) * 0.33 + vNoise(cqb * vec2(2.3, 2.0) + 3.1) * 0.2 + vNoise(cqb * vec2(6.0, 4.0) + 7.3) * 0.12;
   float lit = clamp((cn - cBelow) * -6.0 + 0.7, 0.0, 1.0);
   float hot = pow(toward, 1.4) * (1.0 - smoothstep(0.1, 0.4, h));
   vec3 cLit = mix(mix(vec3(0.82, 0.36, 0.26), vec3(0.95, 0.44, 0.22), hot), vec3(1.0, 0.58, 0.3), hot * lit * 0.6);
