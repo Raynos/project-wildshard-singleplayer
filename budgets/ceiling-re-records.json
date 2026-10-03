@@ -56,16 +56,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "00206afd5de4943e4cb9235009d1cca6cae2f6fd",
-      "reason": "E392/E399 loops 18-20: the god-ray pass (E398) and the painted windmill stone, canvas and ivy and the painted maelstrom; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "bf6d755997aa0a8bbd7409fcb6c64d04c514fa23",
+      "reason": "E392/E399 loops 21-24: the textured hero keeper, Storm Roc and bridge posts (Hunyuan3D-2, 1024 WebP maps) and the painted storm vortex; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     },
     {
       "shard": "far-reach",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "00206afd5de4943e4cb9235009d1cca6cae2f6fd",
-      "reason": "E392/E399 loops 18-20: the god-ray pass (E398) and the painted windmill stone, canvas and ivy and the painted maelstrom; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "bf6d755997aa0a8bbd7409fcb6c64d04c514fa23",
+      "reason": "E392/E399 loops 21-24: the textured hero keeper, Storm Roc and bridge posts (Hunyuan3D-2, 1024 WebP maps) and the painted storm vortex; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     }
   ]
 }
