@@ -4,7 +4,7 @@ import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
 // round 9 (seat C: A, B and C hold big rings rising from the bottom edge, dusk-fire one low loose loop, only D a raised
 // fist): the one idle hold lower, toward the four
-export const HD_GLOVE = { size: 0.3, pos: [0.06, -0.245, 0] as [number, number, number], rot: [-0.45, 0, 0.3] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
+export const HD_GLOVE = { size: 0.22, pos: [0.06, -0.2, 0] as [number, number, number], rot: [-0.25, 0.35, 0.2] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
 // rising from the bottom edge, dusk-fire one low loose loop, only D a raised fist): the one idle hold lower, toward the four // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
@@ -124,35 +124,36 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
   return { map: tex(map, true), normal: tex(nor, false), rough: tex(rough, false) };
 }
 
-/** The held coil's shape in glove-hd2's own frame (its units: the model spans 2): two tall loops hung from the fist. */
-// round 9 (the seats: the cord 24-28 px against mockup D's 10-15, too thin for A-C at 0.03, the loops near circles): a cord
-// between the mockups', two tall loops a little apart, larger and lower, rising from the frame's bottom edge as A-C show
-export const COIL = { cord: 0.04, loops: [{ c: [-0.62, 0.62, -0.46], rx: 0.58, ry: 0.8 }, { c: [-0.5, 0.54, -0.12], rx: 0.54, ry: 0.74 }], tail: [[-0.24, 0.02, -0.12], [-0.3, -0.5, -0.1], [-0.34, -1.25, -0.08]] } as const;
-
 /**
- * The plaited coil in glove-hd2's frame (round 8): a tube with true UVs (u along, v round) wearing the plait tile, two
- * loops leaving the top of the fist and returning into it, and the fall hanging below the fist.
+ * E407 row 4 (the audit: the big double ring in the middle of every frame; mockups A, C, D and dusk-fire hold ONE loose
+ * loop low beside a gloved fist): one loop of plaited cord in glove-hd3's own frame (it spans ~2 units, the handle's top
+ * at (-0.53, 0.95, 0.19)): the cord leaves the handle's top, swings out and down round one loose loop beside the fist, and
+ * the fall hangs below the frame.
  */
-function plaitedCoil(): Mesh {
-  const pts: Vector3[] = [];
-  for (const p of [...COIL.tail].reverse()) pts.push(new Vector3(p[0], p[1], p[2]));
-  for (const [k, l] of COIL.loops.entries()) {
-    const start = -0.35 + k * 0.1;
-    for (let i = 0; i <= 48; i++) {
-      const a = start + (i / 48) * Math.PI * 2;
-      // a slight twist out of plane, so the two loops part a little round their tops (mockup D)
-      pts.push(new Vector3(l.c[0] + Math.cos(a) * l.rx, l.c[1] + Math.sin(a) * l.ry, l.c[2] + Math.sin(a) * 0.08 * (k === 0 ? 1 : -1)));
-    }
+export const LOOP = { cord: 0.04, from: [-0.53, 0.95, 0.19], c: [-1.05, -0.1, 0.32], rx: 0.62, ry: 0.95, tail: [[-0.5, -1.0, 0.36], [-0.38, -1.9, 0.42], [-0.3, -2.9, 0.46]] } as const;
+
+/** The single loose loop (LOOP) as a plaited tube. */
+function plaitedLoop(): Mesh {
+  const pts: Vector3[] = [new Vector3(...LOOP.from), new Vector3(LOOP.from[0] - 0.18, LOOP.from[1] + 0.16, LOOP.from[2] + 0.04)];
+  // round the loop from its top, counter-clockwise as seen from the camera, a slight twist out of plane
+  for (let i = 0; i <= 56; i++) {
+    const a = Math.PI * 0.42 + (i / 56) * Math.PI * 1.85;
+    pts.push(new Vector3(LOOP.c[0] + Math.cos(a) * LOOP.rx, LOOP.c[1] + Math.sin(a) * LOOP.ry, LOOP.c[2] + Math.sin(a * 0.5) * 0.12));
   }
+  for (const p of LOOP.tail) pts.push(new Vector3(p[0], p[1], p[2]));
+  return plaitedTube(pts, LOOP.cord);
+}
+
+/** A plaited cord along `pts` (true UVs, the plait tile at 45 deg, the viewer-side light and a glancing sheen). */
+function plaitedTube(pts: Vector3[], cord: number): Mesh {
   const curve = new CatmullRomCurve3(pts, false, 'centripetal'), length = curve.getLength();
-  const geometry = new TubeGeometry(curve, 420, COIL.cord, 12, false);
+  const geometry = new TubeGeometry(curve, 360, cord, 12, false);
   const { map, normal, rough } = plaitTextures();
-  // a tile's rows each one strand column long, so the strands lean 45 deg
-  const along = length / (PLAIT.rows * (2 * Math.PI * COIL.cord) / PLAIT.columns);
+  const along = length / (PLAIT.rows * (2 * Math.PI * cord) / PLAIT.columns);
   for (const t of [map, normal, rough]) t.repeat.set(along, 1);
   const material = new MeshStandardMaterial({ map, normalMap: normal, roughnessMap: rough, roughness: 1, metalness: 0, fog: false });
   material.userData['sunscarNoRim'] = true;
-  viewerLit(material, [0.42, 0.37, 0.33], 0.16); // round 11 (round 10: printed chevrons, no sheen): a glancing sheen on the strands' relief
+  viewerLit(material, [0.42, 0.37, 0.33], 0.16);
   return new Mesh(geometry, material);
 }
 
@@ -246,11 +247,11 @@ export function buildWhipModel(): WhipParts {
   const tip = new Vector3(0, made === null ? 0.15 : made.top, 0).applyEuler(grip.rotation);
   // loop 6 (mockup D): the textured hero glove-and-coiled-whip when it loaded, posed as the reference shows it (the fist
   // at the lower right, the coils held up beside it); it replaces the facet glove and the code coil at rest
-  const hd = duneHd('glove-hd2', { size: HD_GLOVE.size, by: 'span' });
+  const hd = duneHd('glove-hd3', { size: HD_GLOVE.size, by: 'span' });
   if (hd !== null) {
     hd.position.set(...HD_GLOVE.pos); hd.rotation.set(...HD_GLOVE.rot); root.add(hd);
     // the code coil in the glove model's own frame (duneHd: out → holder (scaled) → turn (centred) → the scene)
-    hd.children[0]?.children[0]?.add(plaitedCoil());
+    hd.children[0]?.children[0]?.add(plaitedLoop());
     grip.visible = false; coil.visible = false;
   }
   return { root, grip, coil, lash, tip, glove: made?.mesh ?? null, hd };

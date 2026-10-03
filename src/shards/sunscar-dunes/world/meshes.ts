@@ -194,6 +194,9 @@ async function loadHd(name: DuneHdName): Promise<void> {
         if (m instanceof MeshStandardMaterial) {
           m.metalness = 0; m.roughness = 0.85; m.flatShading = false;
           // E399 (mockup D): the glove dark worn leather with a soft sheen, not a saturated red-brown
+          // E407 row 4: the new glove keeps its own painted leather (no discard, no hd2 seams): matte with a soft sheen, the
+          // viewer-side light so the backlit fist never reads as a cut-out
+          if (name === 'glove-hd3') { m.color.setRGB(0.78, 0.72, 0.66); m.roughness = 0.42; m.fog = false; m.userData['sunscarNoRim'] = true; viewerLit(m, [0.42, 0.34, 0.28], 0.12); }
           if (name === 'glove-hd' || name === 'glove-hd2') {
             m.color.setRGB(1, 1, 1); m.roughness = 0.34; /* round 12 (every seat: glove p95 43 against 72, no glancing highlights) */ /* round 8: glove-hd2's 0.26 caught the key (now in front) as a white streak along the cuff */ m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
             wornLeather(m, name === 'glove-hd'); // glove-hd2 is painted dark leather with its seams: no ramp
