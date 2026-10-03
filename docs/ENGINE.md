@@ -919,6 +919,7 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 | `AmbienceZones`, `ZoneVoice`, `ZoneWeights` | ambience beds by zone |
 | `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy` | the positional voice engine |
 | `LevelAudioProfile`, `loadAudio` | a level's audio profile and the lazy audio runtime |
+| `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName` | the synth score Music plays: the composition root installs the game's (src/game/audio/theme.ts, E405: the engine holds no theme) |
 | `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (#kit's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
 
@@ -1602,7 +1603,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-698 exports, grouped by the module they come from.
+709 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1759,6 +1760,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./analytics`: `AnalyticsSink`, `AnalyticsEvent`, `AnalyticsMap`, `AnalyticsBatch`
 - `./audio/Stems`: `SlotAudio`, `StyleBank`, `StemSting`, `BossPhase`
 - `./audio/synth`: `Synth`
+- `./audio/score/score`: `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName`
 - `./strings`: `ENGINE_STRINGS`, `engineString`, `installEngineStrings`, `EngineStringKey`
 - `./physics/ropeChain`: `RopeChain`, `RopeChainSpec`
 - `./world/water/body`: `WaterBodies`, `swellBody`, `WaterBody`

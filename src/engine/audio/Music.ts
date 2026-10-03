@@ -41,10 +41,19 @@ import { Deck, decodeStyle, type BossPhase, type SlotAudio, type SlotName, type 
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
 import { audioLog } from './audioLog';
 import type { ScoreSource } from './SetScore';
-import {
-  ARRANGEMENTS, CHORDS, CHORD_ROOT, DORIAN_OF, STING_CHUNK, STING_DEATH, STING_PICKUP, dorianPitch,
-  type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
-} from './score/wildshard-theme';
+import { score, type Arrangement, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment } from './score/score';
+
+/** an arrangement's name in the installed score (the game's: theme, trailer30, trailer15) */
+type ArrangementName = string;
+/** the installed score's lookups, checked: a chord the score lacks voices nothing, an arrangement it lacks is a bug */
+const chordPitches = (c: ChordName): readonly number[] => score().chords[c] ?? [];
+const chordRoot = (c: ChordName): number => score().chordRoot[c] ?? 0;
+const dorianOf = (c: ChordName): ChordName => score().dorianOf[c] ?? c;
+function arrangementOf(name: ArrangementName): Arrangement {
+  const arr = score().arrangements[name];
+  if (arr === undefined) throw new Error(`Music: the score has no arrangement '${name}'`);
+  return arr;
+}
 
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
 export type StingName = 'pickup' | 'death' | 'chunk' | 'dawn';
@@ -183,7 +192,7 @@ class Engine {
   /** pad: 4 voices, the root a sine and the rest triangles, each a few cents off, a slow attack; released when the next chord lands */
   padVoice(chord: ChordName, t: number, attack: number, out: AudioNode = this.padFilter): PadVoice {
     tap.sound?.('music.padVoice');
-    const c = this.ctx, pitches = CHORDS[chord], det = [0, 6, -5, 4], pan = [-0.35, 0.3, -0.15, 0.25];
+    const c = this.ctx, pitches = chordPitches(chord), det = [0, 6, -5, 4], pan = [-0.35, 0.3, -0.15, 0.25];
     const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(1, t + attack);
     g.connect(out);
     const srcs: AudioScheduledSourceNode[] = [];
@@ -345,7 +354,7 @@ class Engine {
   // ─────────────── sequencer ───────────────
   /** fill the Karplus-Strong cache for every pluck pitch the arrangement uses (and their Dorian forms) — ~1 ms each, off the bar schedule */
   warm(arr: Arrangement) {
-    for (const seg of arr.segments) for (const n of seg.notes.pluck ?? []) { this.ksBuffer(midiHz(n.n)); this.ksBuffer(midiHz(dorianPitch(n.n))); }
+    for (const seg of arr.segments) for (const n of seg.notes.pluck ?? []) { this.ksBuffer(midiHz(n.n)); this.ksBuffer(midiHz(score().dorianPitch(n.n))); }
   }
   /** start `arr` at time `t` (the drone comes up with it) */
   begin(arr: Arrangement, t: number) {
@@ -395,7 +404,7 @@ class Engine {
     }
     // chords → pad (and the drone just holds D)
     for (const c of seg.chords) if (c.t >= beat0 && c.t < end) {
-      const name = dorian ? DORIAN_OF[c.chord] : c.chord, tc = at(c.t);
+      const name = dorian ? dorianOf(c.chord) : c.chord, tc = at(c.t);
       const attack = Math.min(1.4, Math.max(0.05, spb * 2.2));
       if (this.pad) this.pad.release(tc, Math.max(0.8, spb * 3.2));
       this.pad = this.padVoice(name, tc, attack); this.lastChord = name; bar.voices.push(this.pad);
@@ -406,7 +415,7 @@ class Engine {
       if (!list) return;
       for (const n of list) if (n.t >= beat0 && n.t < end) { const v = fn(n, at(n.t)); if (v) bar.voices.push(v); this.stats.notes++; }
     };
-    const pitch = (n: number) => (dorian ? dorianPitch(n) : n), gate = this.motifGate(seg);
+    const pitch = (n: number) => (dorian ? score().dorianPitch(n) : n), gate = this.motifGate(seg);
     each(gate ? notes.pluck : undefined, (n, tn) => this.pluck(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
     each(gate ? notes.marimba : undefined, (n, tn) => this.marimba(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
     each(notes.bass, (n, tn) => this.bass(dorian ? this.dorianRoot(n.n, seg, n.t) : n.n, tn, n.d * spb, n.v ?? 0.8));
@@ -421,7 +430,7 @@ class Engine {
   /** the bass follows the Dorian chord's root under a Lydian bar */
   private dorianRoot(n: number, seg: Segment, t: number): number {
     const c = [...seg.chords].reverse().find((x) => x.t <= t); if (!c) return n;
-    return n - CHORD_ROOT[c.chord] + CHORD_ROOT[DORIAN_OF[c.chord]];
+    return n - chordRoot(c.chord) + chordRoot(dorianOf(c.chord));
   }
   private sidechain(t: number) {
     const g = this.bassDuck.gain;
@@ -454,18 +463,18 @@ class Engine {
   // ─────────────── stings (their own bus, so the death duck never swallows them) ───────────────
   sting(sting: StingName, t: number) {
     const spb = this.currentSpb(), name = sting === 'dawn' ? 'chunk' : sting; // the synth has no dawn sting: the discovery chord
-    if (name === 'pickup') { for (const n of STING_PICKUP) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus); return; }
+    if (name === 'pickup') { for (const n of score().stings.pickup) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus); return; }
     if (name === 'chunk') {
-      const p = this.padVoice(STING_CHUNK.chord, t, 0.03, this.stingBus); p.release(t + 0.4, 2.6);
-      for (const n of STING_CHUNK.bell) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus);
+      const p = this.padVoice(score().stings.chunk.chord, t, 0.03, this.stingBus); p.release(t + 0.4, 2.6);
+      for (const n of score().stings.chunk.bell) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus);
       this.bass(38, t, 1.4, 0.9, this.stingBus); this.drum(36, t, 0.9, this.stingBus);
       return;
     }
     // death: the minor turn — Dm9 → Gm over a bar — then the sequencer ducks to silence for 6 s and comes back over a bar
     const bar = spb * 4;
-    const a = this.padVoice(STING_DEATH.chords[0], t, 0.05, this.stingBus); a.release(t + bar * 0.5, 1.2);
-    const b = this.padVoice(STING_DEATH.chords[1], t + bar * 0.5, 0.08, this.stingBus); b.release(t + bar, 2.4);
-    for (const n of STING_DEATH.bass) this.bass(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.9, this.stingBus);
+    const a = this.padVoice(score().stings.death.chords[0], t, 0.05, this.stingBus); a.release(t + bar * 0.5, 1.2);
+    const b = this.padVoice(score().stings.death.chords[1], t + bar * 0.5, 0.08, this.stingBus); b.release(t + bar, 2.4);
+    for (const n of score().stings.death.bass) this.bass(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.9, this.stingBus);
     this.bell(62, t + bar * 0.5, 3, 0.4, this.stingBus);
     const g = this.seq.gain;
     g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + bar);
@@ -593,7 +602,7 @@ export class Music {
     this.playing = name;
     if (name === 'theme' && this.stemsReady()) { this.sync(); return; } // the decoded deck from silence — no synth bridge
     this.startSynth(t, 0);
-    const arr = ARRANGEMENTS[name];
+    const arr = arrangementOf(name);
     const idle = (window as unknown as { requestIdleCallback?: (fn: () => void) => void }).requestIdleCallback;
     if (idle) idle(() => this.engine.warm(arr)); else this.scope.timeout(300, () => this.engine.warm(arr));
     if (name === 'theme') this.sync();
@@ -615,7 +624,7 @@ export class Music {
     this.synthGen++; // voids a stop still pending from a fade-out
     if (!this.synthOn) {
       e.seq.gain.cancelScheduledValues(t); e.seq.gain.setValueAtTime(1, t);
-      e.begin(ARRANGEMENTS[this.playing ?? 'theme'], t);
+      e.begin(arrangementOf(this.playing ?? 'theme'), t);
       this.synthOn = true;
       this.pump();
       this.timer = this.scope.interval(TICK_MS, () => { ambientTick('music.pump', () => { this.pump(); }); }); // the page's score: never a shard's interval (src/engine/app/ownership.ts)
@@ -814,7 +823,7 @@ export class Music {
     const eng = new Engine(off, comp);
     if (opts.state) Object.assign(eng.state, opts.state);
     if (opts.solo) eng.solo = new Set(opts.solo);
-    eng.begin(ARRANGEMENTS[name], 0);
+    eng.begin(arrangementOf(name), 0);
     eng.pump(seconds);
     // a final fade so a loop render never ends on a click
     eng.bus.gain.setValueAtTime(1, Math.max(0, seconds - 0.6)); eng.bus.gain.linearRampToValueAtTime(0, seconds - 0.02);

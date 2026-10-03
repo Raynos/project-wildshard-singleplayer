@@ -215,6 +215,7 @@ export { EncounterService, type SpawnTableRow, type SpawnEntry, type SpawnContex
 export type { SlotAudio, StyleBank, StemSting, BossPhase } from './audio/Stems';
 export type { MusicStyle } from './ui/Settings';
 export { Synth } from './audio/synth';
+export { installScore, type Score, type Arrangement, type Segment, type NoteEv, type ChordEv, type MixEv, type LayerId, type MixKey, type Mode, type ChordName } from './audio/score/score';
 
 export { ENGINE_STRINGS, engineString, installEngineStrings, type EngineStringKey } from './strings';
 export { RopeChain, type RopeChainSpec } from './physics/ropeChain';

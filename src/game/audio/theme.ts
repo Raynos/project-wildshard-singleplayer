@@ -1,4 +1,5 @@
-// src/engine/audio/score/wildshard-theme.ts — the Wildshard theme as data (project/archive/2026-09-23-music.md).
+// src/game/audio/theme.ts — the Wildshard theme as data (project/archive/2026-09-23-music.md; moved from the engine, E405:
+// the engine's Music plays whichever score the composition root installs).
 //
 // One piece of material, three arrangements of it:
 //   THEME      the in-game / title score: A intro · B theme · C build · D lift · ring-out — 32 bars at 104 that loop
@@ -13,38 +14,9 @@
 // export is a drum track: 36 kick (1 & 3) · 35 four-on-the-floor kick (2 & 4) · 38 tap (2 & 4) · 42 shaker.
 // Mix events automate the layer mixer (0..1) and two bus effects: 'lpf' (music-bus low-pass, Hz) and 'chorus' (wet 0..1).
 
-export type LayerId = 'drone' | 'pad' | 'pluck' | 'marimba' | 'bass' | 'pulse' | 'bell';
-/** the mixer's keys: every layer, the pulse's three sub-buses, and the two bus effects */
-export type MixKey = LayerId | 'pulse.soft' | 'pulse.kick' | 'pulse.four' | 'lpf' | 'chorus';
-export type Mode = 'lydian' | 'dorian';
-export type ChordName = 'Dmaj7#11' | 'E7' | 'Bm9' | 'A' | 'Dm9' | 'Gm' | 'Am' | 'Bb';
+import type { Arrangement, ChordEv, MixEv, MixKey, NoteEv, Score, Segment } from '#engine';
 
-export interface NoteEv { t: number; d: number; n: number; v?: number | undefined }
-export interface ChordEv { t: number; chord: ChordName }
-export interface MixEv { t: number; key: MixKey; level: number; ramp?: number | undefined }
-export interface Segment {
-  id: string;
-  /** absolute start in seconds (trailer arrangements); undefined = follows the previous segment */
-  at?: number;
-  bpm: number;
-  /** length in beats. Trailer segments may be fractional; the engine schedules in 4-beat bars, the last one short. */
-  beats: number;
-  chords: ChordEv[];
-  notes: Partial<Record<Exclude<LayerId, 'drone' | 'pad'>, NoteEv[]>>;
-  mix?: MixEv[];
-  /** the sections the calm in-game state lets the motif through (project/archive/2026-09-23-music.md: "motif every ~40 s") */
-  calmMotif?: boolean;
-}
-export interface Arrangement {
-  name: string;
-  segments: Segment[];
-  /** after the last non-tail segment, continue from this segment index (the theme loops D → B) */
-  loopTo?: number;
-  /** segments after this index only play on stop / in the offline render (the ring-out) */
-  tailFrom?: number;
-  /** the mixer follows the arrangement's own mix events (trailer + title voicing) rather than the game state */
-  driven: boolean;
-}
+type ChordName = 'Dmaj7#11' | 'E7' | 'Bm9' | 'A' | 'Dm9' | 'Gm' | 'Am' | 'Bb';
 
 // ─────────────────────────────────────────── pitch material ───────────────────────────────────────────
 const D4 = 62, E4 = 64, Gs4 = 68, A4 = 69, B4 = 71;
@@ -102,7 +74,7 @@ const bassLine = (chords: ChordEv[], beats: number, every = 2, octave = 0, v = 0
   for (let t = 0; t < beats; t += every) {
     const c = [...chords].reverse().find((x) => x.t <= t) ?? chords[0];
     if (c === undefined) throw new Error('bassLine: no chords');
-    out.push({ t, d: Math.min(every, beats - t) * 0.9, n: CHORD_ROOT[c.chord] + octave, v });
+    out.push({ t, d: Math.min(every, beats - t) * 0.9, n: CHORD_ROOT[c.chord as ChordName] + octave, v });
   }
   return out;
 };
@@ -242,3 +214,9 @@ export const STING_PICKUP: NoteEv[] = MOTIF.slice(0, 4).map((x) => ({ t: x.t / 2
 export const STING_DEATH: { chords: [ChordName, ChordName]; bass: NoteEv[] } = { chords: ['Dm9', 'Gm'], bass: [{ t: 0, d: 2, n: 38, v: 0.9 }] };
 /** the chunk sting: the resolve chord — the trailer's end-card hit */
 export const STING_CHUNK: { chord: ChordName; bell: NoteEv[] } = { chord: 'Dmaj7#11', bell: [{ t: 0, d: 4, n: 74, v: 0.7 }, { t: 0, d: 4, n: 81, v: 0.4 }] };
+
+/** the game's score, as the engine's Music plays it (installed by src/pageServices.ts) */
+export const WILDSHARD_SCORE: Score = {
+  arrangements: ARRANGEMENTS, chords: CHORDS, chordRoot: CHORD_ROOT, dorianOf: DORIAN_OF, dorianPitch,
+  stings: { pickup: STING_PICKUP, death: STING_DEATH, chunk: STING_CHUNK },
+};
