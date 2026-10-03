@@ -152,6 +152,30 @@ function paleCloth(m: MeshStandardMaterial): void {
   diffuseColor.rgb = mix(diffuseColor.rgb * 0.8, clothC, smoothstep(-0.02, 0.08, vClothY));`);
   });
 }
+/**
+ * The waymark's plinth a fieldstone drum (round 11; the seats since round 7: a clean pale brick block; mockup C: a dark
+ * drum of rough fieldstones): below the post (model y < -0.55; the model spans -1..1) the texture is replaced by rows
+ * of irregular stones, each its own grey-brown, with dark mortar between.
+ */
+function fieldstoneBase(m: MeshStandardMaterial): void {
+  patchShader(m, 'sunscar.fieldstone', PATCH_ORDER.decorate, (shader) => {
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vStoneP;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vStoneP = position;');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
+varying vec3 vStoneP;
+float stoneH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }`).replace('#include <map_fragment>', `#include <map_fragment>
+  {
+    float base = 1.0 - smoothstep(-0.6, -0.52, vStoneP.y);
+    float row = floor((vStoneP.y + 1.0) * 11.0 + sin(atan(vStoneP.z, vStoneP.x) * 5.0) * 0.25), ang = atan(vStoneP.z, vStoneP.x) / 6.2831853 + 0.5;
+    vec2 cell = vec2(ang * (9.0 + stoneH(vec2(row, 3.0)) * 4.0) + stoneH(vec2(row, 7.0)), (vStoneP.y + 1.0) * 11.0 + sin(atan(vStoneP.z, vStoneP.x) * 5.0) * 0.25);
+    vec2 id = floor(cell), f = fract(cell);
+    float edge = min(min(f.x, 1.0 - f.x) * 1.6, min(f.y, 1.0 - f.y));
+    float mortar = 1.0 - smoothstep(0.04, 0.12, edge);
+    float tone = stoneH(id + row * 1.7);
+    vec3 stone = mix(vec3(0.07, 0.06, 0.05), vec3(0.17, 0.14, 0.115), tone) * (0.8 + 0.4 * stoneH(floor(cell * 5.0))); // (the greying patch after this keeps it grey)
+    diffuseColor.rgb = mix(diffuseColor.rgb, mix(stone, vec3(0.05, 0.04, 0.035), mortar), base);
+  }`);
+  });
+}
 /** A texture's colour pulled `amount` of the way to its own grey (the wagon's canvas: sun-bleached cloth, not orange). */
 function greyed(m: MeshStandardMaterial, amount: number): void {
   patchShader(m, 'sunscar.greyed', PATCH_ORDER.decorate, (shader) => {
@@ -178,7 +202,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
           if (name === 'wagon-hd') { m.color.setRGB(1, 1, 1); paleCloth(m); }
           // round 8 (the council since round 4: a copper bowl and twisted copper post on a clean tan plinth; mockup C: soot-dark
           // iron and weathered stone, warm only where the fire lights it)
-          if (name === 'brazier-hd') { m.color.setRGB(0.5, 0.46, 0.44); greyed(m, 0.8); } // round 10 (R9B-7: the post still red copper, R/G 8.4 against 2.3)
+          if (name === 'brazier-hd') { m.color.setRGB(0.5, 0.46, 0.44); greyed(m, 0.8); fieldstoneBase(m); } // round 10 (R9B-7: the post still red copper, R/G 8.4 against 2.3)
           if (name === 'brazier-hd' || name === 'wagon-hd') warmByFire(m);
           m.needsUpdate = true;
         }
