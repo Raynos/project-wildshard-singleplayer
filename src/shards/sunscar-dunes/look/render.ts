@@ -246,7 +246,12 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // loop 3: the ripples come in patches (wind-scoured fields and smooth swales), not one even corduroy over every dune
   float sandPatch = clamp(0.5 + 0.6 * sin(sandV * 0.31 + sin(sandU * 0.19) * 1.7) * sin(sandU * 0.27 + sandV * 0.07 + 1.3), 0.12, 1.0);
   sandPatch = max(sandPatch, 0.8 * (1.0 - smoothstep(6.0, 30.0, sandFar))); // E399: always rippled underfoot (mockup A)
-  float sandRip1 = sandAA(sandPhase) * (0.65 + 0.35 * sandFlat) * sandPatch, sandRip2 = sandAA(sandPhase2) * sandFlat * (0.4 + 0.6 * sandPatch);
+  // E407 row 2 (the audit: one strong regular ripple over everything to the horizon is the most "video game" thing in the
+  // frame; the mockups' sand is smooth at large scale, rippled only where the wind leaves it): the ripples live on the gentle
+  // windward faces and the flats, gone on the slip faces (steeper than ~22 deg) and fading out past ~60 m
+  float sandSlip = 1.0 - smoothstep(0.8, 0.9, normalize(vSandN).y);
+  float sandFade = (1.0 - 0.9 * sandSlip) * (1.0 - smoothstep(35.0, 110.0, sandFar));
+  float sandRip1 = sandAA(sandPhase) * (0.65 + 0.35 * sandFlat) * sandPatch * sandFade, sandRip2 = sandAA(sandPhase2) * sandFlat * (0.4 + 0.6 * sandPatch) * sandFade;
   vec4 sandTex = texture2D(uSandGrain, vSandPos.xz * 0.55);
   // round 2 (R1C-5 / seat B: the trails were soft smears from above): a baked 0.75 m trail mask, trodden darker and smooth
   float sandTrod = texture2D(uSandTrail, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r;
@@ -281,6 +286,10 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
   float sandStreak = smoothstep(0.55, 0.95, sin(sandV * 1.9 + sin(sandU * 0.07) * 3.0) * sin(sandV * 0.37 + 0.6)) * (0.4 + 0.6 * sandFlat);
+  // E407 row 2: macro albedo at the dunes' own scale (tens of metres), stronger than the old 8 %: paler wind-swept crests and
+  // flats, warmer deeper sand in the hollows (the vertex colours carry the crest / hollow split)
+  float sandMacro = sandN(vSandPos.xz * 0.018 + 3.7) * 0.6 + sandN(vSandPos.xz * 0.045 + 9.1) * 0.4;
+  diffuseColor.rgb *= mix(vec3(0.9, 0.92, 0.96), vec3(1.1, 1.04, 0.98), sandMacro);
   diffuseColor.rgb *= (1.0 + 0.08 * sandDrift) * mix(0.8, 1.0, smoothstep(0.0, 0.3, uDusk)); // (round 12's B-tuned bell at dusk 0.5 removed: the sand brightened as the sun set) // round 12: the sunset step's sand a step darker (the A / dusk-fire split; the later steps unchanged)
   // check pass (4): the path brightens with distance, so the route reads from above; underfoot it stays a subtle trodden bed
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.1, 1.05, 0.98), sandTrod * 0.6); // a faint trodden bed (E399: brighter read as a light column)
@@ -318,6 +327,11 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   float sandGraze = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
   reflectedLight.directDiffuse *= 1.0 + 0.9 * smoothstep(0.0, 0.08, sandGraze) * (1.0 - smoothstep(0.1, 0.22, sandGraze)) * sandVis; // the crest band only // the key mostly gone in cast shade; the fill below keeps it violet-brown (round 4: black slabs)
   reflectedLight.directSpecular *= sandVis;
+  {
+    // E407 row 2: a grazing-light sheen, sand seen at a low angle on a lit face brightens (fine grains catch the low sun)
+    float sheenV = 1.0 - saturate(dot(normalize(vSandN), normalize(cameraPosition - vSandPos)));
+    reflectedLight.directDiffuse *= 1.0 + 0.35 * pow(sheenV, 4.0) * sandVis;
+  }
   // Round 1 (R1C-3): where the key doesn't reach (cast shadow or a face turned from it) the sky fill paints the bible's
   // cool violet shade (#4a3a48 to #5b4f6a), not a darkened orange: the crest line splits warm from cool.
   float sandKeyN = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
@@ -345,7 +359,8 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     vec2 glowXZ = normalize(vec2(${SUN_GLOW.x.toFixed(3)}, ${SUN_GLOW.z.toFixed(3)}));
     float toGlow = dot(normalize(vSandN).xz, glowXZ);
     // (no distance gate: the lead after round 12, the clip's ground fell to 6-9 with black blots at the gate)
-    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.05, 0.2, toGlow));
+    // a tilted face only (flat sand has no facing; ungated, the near flats went dark too: B 26 / 39.7)
+    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.05, 0.2, toGlow)) * smoothstep(0.05, 0.2, length(normalize(vSandN).xz));
     reflectedLight.indirectDiffuse *= 1.0 - 0.45 * away; reflectedLight.directDiffuse *= 1.0 - 0.45 * away;
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
