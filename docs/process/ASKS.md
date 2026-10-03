@@ -12,7 +12,7 @@ duplicated, because the old process filed every leftover as an ask and nothing e
   running job is appended to that job's ask.
 - **It closes when the reply or the work lands.** Follow-up work is a **row in a live plan** (`docs/plans/`), never
   another ask. There is one queue, and it is the plans.
-- **Done means on `origin/main` with green CI.** Add the live build id when the hourly deploy ships it; nobody waits
+- **Done means on `origin/main` with the local gates green** (no CI or deploy wait, E428). Add the live build id when the hourly deploy ships it; nobody waits
   for it. Docs-only work is done on push.
 
 ## Status vocabulary (line 3 of the file)

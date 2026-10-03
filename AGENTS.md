@@ -129,4 +129,4 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 
 - Production ships the **newest CI-green `main`** hourly (`.github/deploy-pin.json`), with a launchd backstop.
   `gh workflow run deploy` for an immediate release. Never `vercel deploy` by hand while CI is healthy.
-- After a push, watch **your** CI run (by `headSha`). Record the live build id when `version.json` shows it.
+- After a push you are done: the local gates are the check. **Don't wait for the CI run or the deploy** (Jake, E428); CI and the hourly deploy run on their own, and a red run someone sees gets fixed then.

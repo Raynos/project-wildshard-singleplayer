@@ -1,6 +1,6 @@
 ---
 name: prepare-to-exit
-description: Checkpoint the session and prepare to exit — pathspec-commit only your paths (private index for shared files), run the four gates on a clean export of HEAD, push through the push lock (a push deploys), confirm the CI run went live, flip your ask files and plan State lines, queue every leftover, close your browsers, report, then print the BYE / OOPS banner. User-invoked only.
+description: Checkpoint the session and prepare to exit — pathspec-commit only your paths (private index for shared files), run the four gates on a clean export of HEAD, push through the push lock, (no waiting on GitHub CI or the deploy: E428) flip your ask files and plan State lines, queue every leftover, close your browsers, report, then print the BYE / OOPS banner. User-invoked only.
 disable-model-invocation: true
 ---
 
@@ -15,8 +15,12 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
 - **A push IS a deploy.** `.github/workflows/deploy.yml` runs on every push to `main`: typecheck → oxlint → css
   check → vite build, and if all four are green it ships to production (`https://wildshard-singleplayer.vercel.app`,
   ~1 min push-to-live). There is no separate deploy step — but every commit you push is a release, so **HEAD must
-  pass all four gates on a clean export before you push**, and a red CI run on your push is your red. Never
-  `vercel deploy` by hand while CI is healthy; `gh workflow run deploy` re-ships HEAD.
+  pass all four gates on a clean export before you push**. Never `vercel deploy` by hand while CI is healthy;
+  `gh workflow run deploy` re-ships HEAD.
+- **The exit is local (Jake, E428, 2026-10-03: "waiting 15 minutes for remote GitHub is just too slow").** Run the
+  local gates, push, and you are done. **Never wait for a GitHub Actions run or for the deploy** (no `gh run watch`,
+  no polling `version.json`). The local gates on a clean export of HEAD are the check; CI and the hourly deploy run
+  on their own, and a later red run is fixed by whoever sees it.
 - **The gates are strict and there is no cheating them.** `tsconfig.json` has every strictness flag on;
   `.oxlintrc.json` is type-aware with every category at error and zero warnings. `any`, non-null `!`,
   `@ts-ignore` / `@ts-expect-error`, `as unknown as`, blanket `oxlint-disable` and tsconfig `exclude`s are not fixes
@@ -80,36 +84,31 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    Red on something you committed → fix it with a new pathspec commit and re-run (never `--amend`: other agents'
    commits may already sit on top of yours in the shared `main`). Red on someone else's commit → name the commit
    and its owner in the report; don't push over a red HEAD.
-3. **Push through the lock — and watch it ship.** `scripts/push-main.sh`. If another push holds the lock it exits
+3. **Push through the lock — and stop there.** `scripts/push-main.sh`. If another push holds the lock it exits
    0 with your commits still local — the push in flight re-checks `origin/main..main` before it lets go, so it
    carries them; re-check later: `git log origin/main..main` empty = shipped. Rejected (non-fast-forward) →
    `git fetch && git merge origin/main` (never rebase, never stash), gates again on the merged HEAD, push again.
-   Then:
-   ```
-   gh run list --json databaseId,headSha -q '.[]|select(.headSha|startswith("<sha>"))|.databaseId'   # YOUR run, not the latest
-   gh run watch <that id> --exit-status   # red = your fix, now
-   curl -s https://wildshard-singleplayer.vercel.app/version.json   # only to record the build id if it already shipped
-   ```
-   Done means on origin/main with green CI; production picks it up on the hourly deploy, so don't wait for
-   `version.json` (docs/process/DEPLOY.md).
+   Done means on origin/main with the local gates (step 2) green. **Don't wait for the CI run or the deploy** (E428):
+   no `gh run watch`, no `version.json` polling. If a CI run you already saw is red on your commit, fix it; otherwise
+   leave CI to run on its own.
    After a private-index commit, also check nobody's work regressed between your `BASE` and HEAD
    (`git show --stat` the commits in `$BASE..HEAD`, `git rev-parse HEAD:<path>` for the files they touched) — the
    read-tree / commit-tree race silently reverts a sibling's commit if HEAD moved in between. An unpushed commit at
-   exit is an OOPS; so is a pushed commit whose CI run is red or still unknown.
+   exit is an OOPS (one held behind another agent's push is fine: name it in the report).
 4. **Sync the worktree after a private-index commit.** It never writes the working tree, so a build you serve
    (`scripts/serve-build.sh`) would still have the old code. Bring *your* files to HEAD with the Write / Edit tool (or `git show HEAD:<path>`
    into a literal path) — only where the worktree copy is an older version of *yours*; never overwrite a copy that
    carries someone else's hunks. Pathspec commits need no sync.
 5. **Ledgers** ([docs/process/ASKS.md](../../../docs/process/ASKS.md)). Every request for work you took this session
    has its own file `docs/tasks/asks/<ID>.md` (claimed with `scripts/ask-new.sh "<the user's words>"`), and its
-   `**Status:**` line is true and in the vocabulary: `done (<date>): <SHA>` once it is on origin/main with green CI
-   (add the live build id if the deploy already shipped it; don't wait for it), `in flight (<date>, <owner>)`,
+   `**Status:**` line is true and in the vocabulary: `done (<date>): <SHA>` once it is on origin/main with the local gates
+   green (no CI or deploy wait), `in flight (<date>, <owner>)`,
    `needs pick (<date>)` with exactly what the user must choose, `dropped` with the user's words, or
    `folded into <X>`. A closed ask keeps no Handoff section. Ask files never move or get deleted. A plan you moved has its rows ticked and its line-3 **State** line
    rewritten (not appended) to the truth; a plan that finished is moved **in the same commit** to
    `project/archive/<YYYY-MM-DD>-<name>.md` with State `archived <today> (finished <date>)` and the links to it
-   fixed; a plan with an open row is not finished. A `done` ask whose push isn't on origin/main with green CI goes
-   back to step 3. Edit shared ledgers with Edit or `>>`, never `>`.
+   fixed; a plan with an open row is not finished. A `done` ask whose push isn't on origin/main goes back to
+   step 3. Edit shared ledgers with Edit or `>>`, never `>`.
 6. **Close every browser and emulator you opened, and empty your scratchpad.** `agent-browser session list` shows none of yours
    (`agent-browser --session <s> close`); `scripts/browser-lane.sh status` lists no browser you started (it shows each
    browser's parent; `scripts/browser-lane.sh reap` clears orphans); Playwright scripts have `browser.close()`d; an Android emulator you booted is gone (`adb -s <serial> emu kill`). An open
@@ -137,8 +136,7 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
 9. **Memory.** If this session learned something the next one must know that the repo does not record (a tool
    gotcha, a user rule, a decision's why), write it to the memory directory above and index it in `MEMORY.md`.
    Don't duplicate what AGENTS.md or a commit already says.
-10. **Report**, then the banner. The report names: commits (SHAs + one line each), the CI run id and result for the
-    last push, the live build id and whether it contains HEAD, the four gates on the exported tree and their
+10. **Report**, then the banner. The report names: commits (SHAs + one line each), the four gates on the exported tree and their
     results, what is left local (yours vs others' WIP), every live agent, every ask file this session touched and
     its Status, browsers / emulators closed, the scratchpad size after cleanup — so the user knows whether it is
     safe to close.
@@ -165,11 +163,11 @@ The two banners answer **one** question — not "did the git commands succeed" b
 
 > **Is it safe to KILL this pane right now?**
 
-- **BYE — safe to close.** Your work is committed on `main` and pushed, **the CI run for your last push is green**, your browser sessions are closed, your scratchpad is emptied, the session is at a coherent stopping
+- **BYE — safe to close.** Your work is committed on `main` and pushed **with the local gates green** (no CI or deploy wait, E428), your browser sessions are closed, your scratchpad is emptied, the session is at a coherent stopping
   point, **and the leftover-work sweep is done — every finding and deferral this session produced is
   built or is an open row of a live plan**. A BYE is a claim that nothing here will be lost.
 - **OOPS — do NOT close.** Any of these, and they weigh the same:
-  1. **Something is wrong.** A gate is red on HEAD, the CI run for your push failed or you didn't wait for it, a
+  1. **Something is wrong.** A local gate is red on HEAD, a CI run you saw failed on your commit, a
      push is refused, a sibling's commit got reverted by yours, a stranded commit with no queued reason — or you
      simply **don't know** whether it's sound. Uncertainty is an OOPS: the banner is a safety signal, so it fails
      *loud*, not *optimistic*.

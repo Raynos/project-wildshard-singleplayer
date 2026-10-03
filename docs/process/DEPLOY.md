@@ -19,13 +19,12 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `deploy` run (typecheck, lint, test, build) passed. `gpu-gate` still reports on every push but does not hold a release
   (its push runs cancel each other under the agents' push stream). `mode pinned` (`deploy-pin.mjs set` / `rollback`)
   freezes production on one SHA; `mode newest-green` waits for gpu-gate.
-- After every push, watch that push's CI run. After
-  the next hourly or manual deployment, confirm `https://wildshard-singleplayer.vercel.app/version.json` reports the
-  shipped short SHA and record the build ID in the ask file. A green push means verified in GitHub, not yet live. If
-  the game needs an immediate release, run `gh workflow run deploy` and watch it.
+- **Nobody waits for GitHub after a push** (Jake, E428, 2026-10-03: "waiting 15 minutes for remote GitHub is just too
+  slow"). The local gates on a clean export of HEAD are the check; CI and the hourly deploy run on their own. A red CI
+  run is fixed by whoever sees it. If the game needs an immediate release, `gh workflow run deploy` (no need to watch it).
 - Do not run `vercel deploy` by hand while CI is healthy. Keep commits and pushes small.
 - **Done does not wait for the deploy** ([ASKS.md](ASKS.md)): an ask is done when its commit is on `origin/main` with
-  green CI. Add the live build id when the deploy ships it. If `version.json` lags your green HEAD by more than ~2 h,
+  the local gates green. Add the live build id when the deploy ships it. If `version.json` lags your green HEAD by more than ~2 h,
   check `~/.wildshard/deploy-backstop/backstop.log`, then `gh workflow run deploy` (retry a `HTTP 500` after ~90 s).
 - **Deploy from a clean export of HEAD**, never the working tree. Delete the export after.
 - **A frozen public URL per version:** `scripts/release-url.sh vX.Y.Z` deploys a clean export of the tag once to its own
