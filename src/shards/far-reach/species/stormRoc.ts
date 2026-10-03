@@ -18,6 +18,8 @@ export const SWEEP: StrikeSpec = { id: 'far.roc.sweep', shape: { kind: 'arc', ra
 /** The gale wall's shove (m/s along the lane, m/s up): enough to slide you most of the way across the crown. */
 export const ROC_GALE = { shove: 14, lift: 2 } as const;
 export const ROC_SPEED = { circle: 10, stalk: 12, dive: 20, walk: 2.4 } as const;
+/** The take-off as a fight begins: its seconds, its slow speed out from the perch (m/s) and how far it rises (m). */
+export const ROC_TAKEOFF = { seconds: 1.5, speed: 2.5, rise: 4 } as const;
 /** The Roc's perch: the top of the ring's tallest stone (world/crown.ts), the one opposite the arena's entrance. */
 const PERCH = (): { x: number; y: number; z: number } => {
   const tallest = crownStones().reduce((best, st) => (st.h > best.h ? st : best));
@@ -32,6 +34,8 @@ export class StormRocBrain extends CreatureBrain<RocState> {
   /** The strike in flight, for the gale-wall visual. */
   current: StrikeSpec | null = null; windup = 0;
   private readonly strikes = new StrikeRunner(); private angle = 0; private rest = 2; private readonly chest = new Vector3();
+  /** The take-off's seconds left (E399 round 8): as a fight begins the Roc rises over its perch before it sets off on its lap. */
+  private takeoff = 0; private wasFighting = false;
   /** The committed strike heading (the gale wall's lane). */
   aim = 0;
   constructor(actor: Animal) { super(actor, ['circle', 'stalk', 'strike', 'rest']); }
@@ -64,7 +68,7 @@ export class StormRocBrain extends CreatureBrain<RocState> {
     const perch = PERCH();
     this.strikes.cancel(); a.cancelAttack(); this.current = null; this.rest = 2; this.transition('circle');
     this.angle = Math.atan2(perch.z - ROC.z, perch.x - ROC.x);
-    a.place(perch.x, perch.z, 0, perch.y); a.yaw = yawTo(a, DAIS.x, DAIS.z + 40);
+    a.place(perch.x, perch.z, 0, perch.y); a.yaw = yawTo(a, DAIS.x, DAIS.z + 40); this.takeoff = ROC_TAKEOFF.seconds; this.wasFighting = true;
   }
   stageStalk(at: { x: number; z: number }, face: { x: number; z: number }): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
@@ -73,6 +77,8 @@ export class StormRocBrain extends CreatureBrain<RocState> {
   }
   override think(ctx: ThinkCtx): void {
     const a = this.actor; if (!a.alive) return;
+    if (this.fighting && !this.wasFighting && this.phase === 0) this.takeoff = ROC_TAKEOFF.seconds;
+    this.wasFighting = this.fighting;
     if (!this.fighting || ctx.calm) { if (this.state !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.current = null; this.transition('circle'); } return; }
     this.rest -= ctx.dt;
     if (this.state === 'circle' && this.rest <= 0) this.transition('stalk');
@@ -88,12 +94,17 @@ export class StormRocBrain extends CreatureBrain<RocState> {
       ctx.flight.steer(a, d > 0.6 ? yawTo(a, perch.x, perch.z) : yawTo(a, DAIS.x, DAIS.z + 40), d > 0.6 ? Math.min(ROC_SPEED.circle, d * 1.2) : 0, perch.y, 2);
       return;
     }
+    if (this.state === 'circle' && this.takeoff > 0) {
+      // the take-off: a slow rise over the perch, turning out toward its lap
+      this.takeoff = Math.max(0, this.takeoff - ctx.dt);
+      const k = 1 - this.takeoff / ROC_TAKEOFF.seconds;
+      ctx.flight.steer(a, yawTo(a, ROC.x + Math.cos(this.angle) * ROC.r, ROC.z + Math.sin(this.angle) * ROC.r), ROC_TAKEOFF.speed, Math.min(this.altitude(), PERCH().y + ROC_TAKEOFF.rise * k), 2);
+      return;
+    }
     if (this.state === 'circle' || this.state === 'rest') {
       this.angle += (ctx.dt * ROC_SPEED.circle) / ROC.r;
       const r = this.phase === 2 ? DAIS.r * 0.4 : ROC.r, cx = this.phase === 2 ? DAIS.x : ROC.x, cz = this.phase === 2 ? DAIS.z : ROC.z;
-      // a take-off climbs before it laps (round 8: off its perch it left at full lap speed): slow while well under its height
-      const climb = Math.min(1, Math.max(0.25, 1 - (this.altitude() - a.position.y) / 5));
-      ctx.flight.steer(a, yawTo(a, cx + Math.cos(this.angle) * r, cz + Math.sin(this.angle) * r), this.phase === 2 ? ROC_SPEED.walk : ROC_SPEED.circle * climb, this.altitude(), 2);
+      ctx.flight.steer(a, yawTo(a, cx + Math.cos(this.angle) * r, cz + Math.sin(this.angle) * r), this.phase === 2 ? ROC_SPEED.walk : ROC_SPEED.circle, this.altitude(), 2);
       return;
     }
     if (this.state === 'stalk') {
