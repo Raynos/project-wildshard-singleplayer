@@ -40,8 +40,8 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "04f5b02d79d9e425d7e8503bed47b1504666d8e5",
-      "reason": "E407 Signal Dunes row 10, measured (m5 109.887 MB, +0.137 MB: the learned LUT's 33x33x33 RGBA8 3D texture, 144 KB, art/sunscar-dunes/round-24-lut), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "011e46d7bc2ebe041b48abbc3b847089c2fc7ab6",
+      "reason": "E409 Signal Dunes second top-10 rows 1-4, measured (m5 149.947 MB, +40.06 MB: the two painted dusk skies, 4096 x 603 RGBA without mips, about 19.8 MB, row 2; the fire's flipbook, a 2048 x 2048 atlas with mips, about 22.4 MB, row 3; glove-hd4's 1024 texture in place of glove-hd3's, row 4), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     },
     {
       "shard": "sunscar-dunes",

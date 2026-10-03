@@ -47,10 +47,10 @@ loop that reads as one. What separates the five frames from their mockups now is
 
 | # | Owner | State | Evidence |
 |---|---|---|---|
-| 1 | signal-dunes | open | |
-| 2 | signal-dunes | open (built, parked) | art/sunscar-dunes/round-25-sky |
-| 3 | signal-dunes | open (built, parked) | art/sunscar-dunes/round-26-fire |
-| 4 | signal-dunes | in progress | |
+| 1 | signal-dunes | landed (round 18) | 011e46d7b: the key's light saturated and amber, the sky fill desaturated and cooled; lit sand 0.59-0.63 saturation (mockups 0.57-0.69), the shade violet-grey; B's dune 19 m, waymark 0's rise 20 m. The crest's lit/shade placement under the in-glow key: open, see the round-18 note (the spawn mockups light the near faces from behind-left) |
+| 2 | signal-dunes | landed (round 18) | dc811cc20: two painted stages (early, late) blended on the dusk; the late painting fit all five mockups' sky bands best, the early one is its re-colour; art/sunscar-dunes/round-25-sky |
+| 3 | signal-dunes | landed (round 18) | 653a4296f: the Mantaflow flipbook (orange tongues, a white core), the crown logs glowing when lit, a lit grey-brown smoke billow, one point light on the plinth and the sand; art/sunscar-dunes/round-26-fire |
+| 4 | signal-dunes | landed (round 18) | af0d299b4: glove-hd4 (mockup-to-model, Hunyuan3D-2, 18 k triangles): the back of the hand and the cuff toward the camera, the loop a teardrop at the handle's top; art/sunscar-dunes/round-27-glove |
 | 5 | signal-dunes | open | |
 | 6 | signal-dunes | open | |
 | 7 | signal-dunes | open | |
