@@ -29,9 +29,9 @@ export const KEY = { dir: new Vector3(-0.34, 0.2, -0.92).normalize(), color: new
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
-export const FOG = { color: 0x221d36, near: 80, far: 430 } as const;
+export const FOG = { color: 0x5e5288, near: 80, far: 430 } as const;
 /** The distance fog's density (the engine's exponential fog, per metre): row 10's aerial perspective. */
-const AERIAL_FOG = 0.0028; // loop 6: a deep dusk haze, not lilac; E409 second top-10 row 10 (aerial perspective: the mockups' far dunes go violet-blue, blue/red 0.62-0.72 against the game's 0.34-0.60): a violet-blue haze
+const AERIAL_FOG = 0.0028; // loop 6: a deep dusk haze, not lilac; E409 second top-10 row 10 (aerial perspective: the mockups' far dunes go violet-blue, blue/red 0.62-0.88): the horizon sky's lighter violet-blue (round 21b)
 // loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
 // E399 (council round 2, R2B-1: the mockups' ground measures warm brown, R/B ~3): less blue in every tone
 const SAND = new Color(0.5, 0.23, 0.075),
@@ -189,7 +189,7 @@ export function signalDunesLook(): LookStrategy {
       // round 10 (R9B-2: under every dusk horizon the far land is 2-4x the mockups', which put near-black land under a thin
       // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens
       let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null;
-      const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x0d0b1c);
+      const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x1a1733);
       return { clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
         // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
@@ -206,14 +206,17 @@ export function signalDunesLook(): LookStrategy {
           fog?.color.copy(fogBase).lerp(DUSK_FOG, late);
           // row 10: the sun-side tint at a third (with the thicker distance fog it lit the far land toward the glow)
           fogSun?.copy(fogSunBase).multiplyScalar(0.35 * (1 - 0.8 * late));
-          haze?.copy(hazeBase).multiplyScalar(1 - 0.75 * late);
+          // round 21b: the far ranges' haze full at the sunset step (A's ranges 36 against 70) and falling to 15 % by the late
+          // waymarks (D's land under the horizon 56 against 17)
+          const hz = Math.min(1, Math.max(0, (DUSK.value - 0.55) / 0.3));
+          haze?.copy(hazeBase).multiplyScalar(1 - 0.85 * hz * hz * (3 - 2 * hz));
           // round 12 (D: a pale haze strip on the far land under the ranges; the mockup's land there near-black): thinner late
           // E409 second top-10 row 10 (aerial perspective): the engine's exponential distance fog thick enough to carry the far
           // dunes toward its violet-blue (~35 % at 150 m; it was ~3 %, thinned late since round 12 when the haze was lilac and
           // paled D's far land), the same at every dusk step
-          // round 21 (D's far bands 40 against 17 at the last waymark's dusk): the night haze thickens with the dusk, toward the
-          // near-black violet DUSK_FOG (the engine fog: darkening by fog is allowed)
-          if (fogDist) fogDist.value = AERIAL_FOG * (1 + 2 * late);
+          // round 21b (seat B after round 20: the haze darkened the far land, A's ranges 36 against 70, blue/red 0.58 against
+          // 0.83-0.88): aerial perspective goes toward the horizon sky's violet-blue, lighter; one density at every dusk step
+          if (fogDist) fogDist.value = AERIAL_FOG;
         },
         rebuild: () => undefined, attachPost: () => undefined };
     },

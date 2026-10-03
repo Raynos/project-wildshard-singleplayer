@@ -92,7 +92,10 @@ void main() {
     float cover = clamp(lum * 1.7, 0.0, 1.0);
     // mockup C: saturated orange tongues, white only in the core over the logs (the render's yellow-white bleached them)
     c = pow(c, vec3(1.0, 1.35, 1.9)) * vec3(1.2, 0.95, 0.75);
-    c *= 1.0 + 2.4 * smoothstep(0.86, 1.0, lum); // round 19 (seat B: the white-hot core 121 px against mockup C's 2 722); round 19b (the boost bleached the tongues): only the brightest
+    // round 21 (seat B: the brightness-gated core fell to 148 px over 245 against mockup C's 2 722, and bleached the tongues
+    // when wider): the white-hot core gated by its place in the flame, low and central over the logs
+    float coreAt = (1.0 - smoothstep(0.1, 0.42, vUv.y)) * (1.0 - smoothstep(0.12, 0.32, abs(vUv.x - 0.5))) * smoothstep(0.3, 0.6, lum);
+    c *= 1.0 + 5.0 * coreAt;
     gl_FragColor = vec4(c * fade, cover * fade);
     return;
   }

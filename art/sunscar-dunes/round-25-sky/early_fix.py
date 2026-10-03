@@ -33,6 +33,12 @@ ratio = (blur(e2) + 4.0) / (blur(late) + 4.0)
 # at or under 1, its green pulled toward its red
 ratio[..., 2] = np.minimum(ratio[..., 2], 1.0)
 ratio[..., 1] = 0.5 * (ratio[..., 1] + ratio[..., 0])
+# round 21b (seat B after round 20: B's band red-pink, hue 353, against the mockup's orange, hue 19): in the west
+# (headings 250-340, eased over 20 deg) the low band's re-colour leans orange: less blue, more green
+Wd = ratio.shape[1]; hd = np.arange(Wd) / (Wd / 360.0)
+wb = np.clip((hd - 230.0) / 20.0, 0, 1) * np.clip((360.0 - hd) / 20.0, 0, 1)
+ratio[..., 2] *= 1.0 - 0.28 * wb[None, :]
+ratio[..., 1] *= 1.0 + 0.14 * wb[None, :]
 H, HOR, PPD = L.shape[0], int(1024 * 0.88), 1536 / 100.0
 elev = (HOR - np.arange(H)) / PPD
 t = np.clip((elev - 5.0) / 9.0, 0, 1)
