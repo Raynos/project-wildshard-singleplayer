@@ -1,0 +1,32 @@
+{
+ "shard": "far-reach",
+ "sha": "fb93141cdcb533f99e7fb4f6ceaa7a64079b145c",
+ "when": "20261003-0009",
+ "label": "mockup council round 4",
+ "loadSeconds": 6,
+ "shots": [
+  "first-frame",
+  "h1-sunrest",
+  "h2-windmill",
+  "h3-grove-high-step",
+  "mock-proposal-B",
+  "mock-A-spawn-look",
+  "mock-B-quest-start",
+  "mock-C-hands-fan",
+  "h4-crown",
+  "mock-D-crown-arena",
+  "aerial-spawn",
+  "aerial-overview"
+ ],
+ "clip": true,
+ "programs": 99,
+ "staged": {
+  "h4-crown": "quest-crown",
+  "mock-D-crown-arena": "roc-stalk"
+ },
+ "active": [
+  "mock-D-crown-arena"
+ ],
+ "cameras": "5288d3cd5ec0ee58657f572766aac1c4d4a1f2e0",
+ "pageErrors": []
+}
