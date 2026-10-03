@@ -15,7 +15,7 @@ import { WIND } from './dunes';
 export interface FireSize { flame: number; glow: number; smoke: number; embers: number; /** a thin pale wisp (a cookfire), not the dark plume */ wisp?: boolean }
 export const WAYMARK_FIRE: FireSize = { flame: 2.6, glow: 1.7, smoke: 11, embers: 180 }; // mockup C: a roaring log fire, about one and a half bowls tall
 /** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
-export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 15, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon
+export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 17, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon
 export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
 
 const time = { value: 0 };
@@ -57,21 +57,25 @@ varying float vFar;
 varying float vNear;
 ${NOISE}
 void main() {
-  // E399 (mockup C): a ragged log fire. Several tongues, each its own noise-driven height and sway, with dark gaps
-  // between them; deep red-orange at the edges and tips, orange-yellow only in a low core over the logs.
+  // E399 (mockup C): a ragged log fire. Round 8 (the council: smooth cream tongues; mockup C 13 468 saturated-orange
+  // pixels and 5 557 white-hot against our 2 679 and 370): many thin licks torn by three noise octaves, a hard edge,
+  // deep saturated orange at moderate gain on the licks (AgX keeps it orange), a white-hot core low over the logs
+  // pushed past 1 so the tone mapper whites it, and dark gaps between the tongues.
   float y = vUv.y, x = vUv.x - 0.5;
-  float n1 = fxNoise(vec2(x * 6.0, y * 3.2 - uTime * 3.8)), n2 = fxNoise(vec2(x * 13.0 + 4.0, y * 7.5 - uTime * 7.0));
-  float lick = (n1 - 0.5) * 0.28 * y + (n2 - 0.5) * 0.08 * y;
-  float tongues = 0.55 + 0.45 * sin((x + lick) * 30.0 + n1 * 3.0 + uTime * 1.7);
+  float n1 = fxNoise(vec2(x * 7.0, y * 3.4 - uTime * 4.2)), n2 = fxNoise(vec2(x * 15.0 + 4.0, y * 8.0 - uTime * 7.5));
+  float n3 = fxNoise(vec2(x * 34.0 + 9.0, y * 16.0 - uTime * 11.0));
+  float lick = (n1 - 0.5) * 0.3 * y + (n2 - 0.5) * 0.1 * y;
+  float tongues = 0.5 + 0.5 * sin((x + lick) * 34.0 + n1 * 4.0 + uTime * 1.9);
   // the base tapers into the bowl (council round 2: a wide base cut by the quad's edge drew a rectangle)
-  float w = (0.46 * pow(1.0 - y, 0.75) + 0.02) * mix(1.0, tongues, smoothstep(0.12, 0.55, y)) * mix(0.55, 1.0, smoothstep(0.0, 0.2, y));
+  float w = (0.47 * pow(1.0 - y, 0.7) + 0.02) * mix(1.0, tongues, smoothstep(0.1, 0.5, y)) * mix(0.6, 1.0, smoothstep(0.0, 0.18, y));
   float d = abs(x + lick) / w;
-  float top = y + (n1 - 0.5) * 0.55 + (n2 - 0.5) * 0.25;
-  float body = (1.0 - smoothstep(0.7, 1.0, d)) * (1.0 - smoothstep(0.62, 0.9, top)) * smoothstep(0.0, 0.16, y);
-  float core = (1.0 - smoothstep(0.15, 0.55, d)) * (1.0 - smoothstep(0.12, 0.42, top));
-  vec3 c = mix(vec3(0.9, 0.12, 0.0), vec3(1.0, 0.38, 0.02), smoothstep(0.05, 0.6, 1.0 - d) * (1.0 - smoothstep(0.35, 0.9, top)));
-  c = mix(c, vec3(1.0, 0.58, 0.1), core * 0.3); // round 7: saturated orange (it clipped to cream under AgX) // council round 2: the flame read cream-white; orange with a yellow core
-  gl_FragColor = vec4(c * body * 0.55 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
+  float top = y + (n1 - 0.5) * 0.6 + (n2 - 0.5) * 0.3 + (n3 - 0.5) * 0.12;
+  float body = (1.0 - smoothstep(0.82, 0.98, d + (n3 - 0.5) * 0.25)) * (1.0 - smoothstep(0.66, 0.8, top)) * smoothstep(0.0, 0.14, y);
+  float core = (1.0 - smoothstep(0.1, 0.5, d)) * (1.0 - smoothstep(0.1, 0.38, top + (n2 - 0.5) * 0.15));
+  float heat = smoothstep(0.0, 0.7, 1.0 - d) * (1.0 - smoothstep(0.25, 0.8, top));
+  vec3 c = mix(vec3(0.85, 0.11, 0.0), vec3(1.0, 0.34, 0.01), heat) * 0.6;
+  c = mix(c, vec3(1.0, 0.62, 0.22) * 3.2, core);
+  gl_FragColor = vec4(c * body * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
 }`,
 });
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */
@@ -92,8 +96,8 @@ void main() {
   float puff = smoothstep(0.35, 0.75, n + 0.25 * (1.0 - y));
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
-  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.17, 0.075, 0.035), vec3(0.022, 0.018, 0.022), smoothstep(0.02, 0.35, y))'}; // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
-  gl_FragColor = vec4(c, a * ${wisp ? '0.45' : '0.85'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
+  vec3 c = ${wisp ? 'mix(vec3(0.22, 0.15, 0.13), vec3(0.15, 0.13, 0.19), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.42, 0.2, 0.09), vec3(0.11, 0.09, 0.1), smoothstep(0.02, 0.4, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
+  gl_FragColor = vec4(c, a * ${wisp ? '0.45' : '0.7'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
 const smokeMaterial = smokeMaterialOf(false), wispMaterial = smokeMaterialOf(true);
@@ -120,7 +124,7 @@ void main() {
   float r = length(vUv - 0.5) * 2.0;
   float flick = 0.86 + 0.08 * sin(uTime * 13.0) + 0.06 * sin(uTime * 29.0 + 1.3);
   float g = exp(-r * r * 5.0) * (1.0 - smoothstep(0.85, 1.0, r));
-  gl_FragColor = vec4(vec3(1.0, 0.4, 0.1) * g * 0.26 * flick * vFade, 1.0); // loop 5: a halo, not a wash
+  gl_FragColor = vec4(vec3(1.0, 0.32, 0.06) * g * 0.14 * flick * vFade, 1.0); // loop 5: a halo, not a wash; round 8: dimmer and redder (its add washed the flame peach)
 }`,
 });
 const emberMaterial = new ShaderMaterial({
@@ -134,18 +138,20 @@ void main() {
   float life = fract(uTime * (0.22 + 0.18 * fract(seed * 7.13)) + seed);
   vLife = life;
   float a = seed * 40.0 + uTime * (1.0 + fract(seed * 3.7));
-  vec3 p = vec3(cos(a) * 0.22 * (1.0 + life * 3.0), life * 5.5, sin(a) * 0.22 * (1.0 + life * 3.0)) * s;
-  p.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life * (0.6 + life) * 3.5 * s;
+  vec3 p = vec3(cos(a) * 0.22 * (1.0 + life * 3.0), life * 6.5, sin(a) * 0.22 * (1.0 + life * 3.0)) * s;
+  p.xz += vec2(${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}) * life * (0.6 + life) * 4.5 * s;
   vec4 mv = viewMatrix * vec4((modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz + p, 1.0);
-  gl_PointSize = clamp((1.0 - life) * 60.0 * (0.6 + fract(seed * 13.1)) / -mv.z, 1.5, 4.0) * (1.0 - smoothstep(35.0, 60.0, -mv.z));
+  gl_PointSize = clamp((1.0 - 0.6 * life) * 150.0 * (0.6 + fract(seed * 13.1)) / -mv.z, 2.0, 11.0) * (1.0 - smoothstep(35.0, 60.0, -mv.z));
   gl_Position = projectionMatrix * mv;
 }`,
   fragmentShader: /* glsl */ `
 varying float vLife;
 void main() {
-  float r = length(gl_PointCoord - 0.5) * 2.0;
-  float a = (1.0 - smoothstep(0.2, 1.0, r)) * (1.0 - smoothstep(0.6, 1.0, vLife));
-  gl_FragColor = vec4(mix(vec3(1.0, 0.45, 0.1), vec3(0.85, 0.12, 0.02), vLife) * a * 2.0, 1.0); // orange-red sparks (mockup C)
+  // round 8 (mockup C: short orange streaks blowing up-left; ours were white specks): a thin dash across the point
+  vec2 q = gl_PointCoord - 0.5, dir = normalize(vec2(-0.55, -0.83));
+  float along = dot(q, dir), across = dot(q, vec2(-dir.y, dir.x));
+  float a = (1.0 - smoothstep(0.06, 0.16, abs(across))) * (1.0 - smoothstep(0.25, 0.5, abs(along))) * (1.0 - smoothstep(0.6, 1.0, vLife));
+  gl_FragColor = vec4(mix(vec3(1.0, 0.42, 0.06), vec3(0.8, 0.1, 0.0), vLife) * a * 2.4, 1.0); // orange-red sparks (mockup C)
 }`,
 });
 const poolMaterial = new ShaderMaterial({
@@ -162,7 +168,7 @@ void main() {
   float flick = 0.85 + 0.1 * sin(uTime * 11.0) + 0.05 * sin(uTime * 23.0);
   // loop 5 (mockup C): the fire floods the sand round it orange: a broad pool, hot near the brazier
   // E399 (mockup C): the fire floods the sand round it orange, hot near the brazier, fading over a few metres
-  gl_FragColor = vec4(vec3(1.0, 0.36, 0.06) * (pow(max(0.0, 1.0 - r), 1.8) * 0.2 + pow(max(0.0, 1.0 - r), 6.0) * 0.32) * flick, 1.0);
+  gl_FragColor = vec4(vec3(1.0, 0.3, 0.04) * (pow(max(0.0, 1.0 - r), 1.8) * 0.16 + pow(max(0.0, 1.0 - r), 6.0) * 0.3) * flick, 1.0); // round 8: redder (it read cream on the sand)
 }`,
 });
 const quad = new PlaneGeometry(1, 1); quad.translate(0, 0.5, 0);
@@ -195,7 +201,7 @@ export function addFire(group: Group, size: FireSize, pool?: { at: Vector3; grou
   const inner = new Mesh(quad, flameMaterial); inner.scale.set(size.flame * 0.42, size.flame * 0.8, 1); inner.position.set(0.05, -0.05, 0.05); add(inner);
   const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
   const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
-  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.025 : 0.17), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
+  const smoke = size.wisp === true ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (size.wisp === true ? 0.045 : 0.17), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
   if (pool) {
     const r = Math.max(size.glow * 2.3, size.flame * 2.4), n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
     const p = g.getAttribute('position');
@@ -224,11 +230,11 @@ export function addLampGlow(group: Group, glow: number, ground: (lx: number, lz:
  */
 export const FIRE_LIGHTS = { value: [new Vector4(), new Vector4(), new Vector4(), new Vector4()] };
 const fireLights = { next: 0 };
-/** Claims a firelight slot at `at`; the returned switch turns it on or off. */
-export function fireLight(at: Vector3): (lit: boolean) => void {
+/** Claims a firelight slot at `at`; the returned switch turns it on or off (`gain`: a lamp is a fraction of a fire). */
+export function fireLight(at: Vector3): (lit: boolean, gain?: number) => void {
   const v = FIRE_LIGHTS.value[fireLights.next % FIRE_LIGHTS.value.length] ?? new Vector4(); fireLights.next++;
   v.set(at.x, at.y, at.z, 0);
-  return (lit) => { v.w = lit ? 1 : 0; };
+  return (lit, gain = 1) => { v.w = lit ? gain : 0; };
 }
 /** Frees every slot (a level build starts with none). */
 export function resetFireLights(): void { fireLights.next = 0; for (const v of FIRE_LIGHTS.value) v.w = 0; }

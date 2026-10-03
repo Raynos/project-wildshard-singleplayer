@@ -74,13 +74,13 @@
    "x": 0,
    "z": 70,
    "yaw": 0,
-   "pitch": -9
+   "pitch": -12.5
   },
   {
    "id": "mock-B-logbook",
    "mockup": "art/sunscar-dunes/round-9-review/B-quest-logbook.jpg",
-   "x": -58.8,
-   "z": 42.1,
+   "x": -62.0,
+   "z": 39.7,
    "yaw": 53.8,
    "pitch": -3,
    "stage": "logbook",

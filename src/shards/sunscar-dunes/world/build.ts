@@ -99,7 +99,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
     return brazier;
   });
   // the caravan's lantern lights its own wagon (the fourth firelight slot; always burning)
-  fireLight(caravan.lampAt)(true);
+  fireLight(caravan.lampAt)(true, 0.3); // round 8 (the council: the whole canvas one even self-lit orange): a lantern, not a fire
   const allLit = (): boolean => braziers.every((b) => b.lit);
 
   // The signal fire on the tower deck: lit by hand once the three waymarks burn.

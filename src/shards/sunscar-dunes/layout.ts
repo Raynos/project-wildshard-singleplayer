@@ -18,6 +18,15 @@ export const BRAZIERS: readonly { x: number; z: number }[] = [{ x: 58, z: -34 },
 // E399 (mockups A, dusk-fire): the tower stands on a rounded dune peak, a small flat top easing out over `ease` m
 // (a 40 m flat pad read as a plateau)
 export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 13, ease: 58 }]; // council round 3: the tower crowns a big dune
+/**
+ * Flats (round 8, mockup D and the council's R7B-4: from the east rise the blue-hour view runs over long low parallel
+ * bands to a flat horizon, the tower whole on it): 45-155 m out along its sightline, an oriented ellipse (centre, half-length `a` along `dir`, half-width
+ * `b`) where the dune field keeps only `keep` of its height, eased out over `ease` m. Short of the tower's dune, so the
+ * spawn's view keeps its crests.
+ */
+export const FLATS: readonly { x: number; z: number; dir: number; a: number; b: number; keep: number; ease: number }[] = [
+  { x: 46, z: 19, dir: Math.atan2(-0.69, -0.72), a: 55, b: 32, keep: 0.45, ease: 35 },
+];
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 // E399 (mockup C): each waymark on level sand too, its fire's pool flat round it
 export const PADS = [{ x: CARAVAN.x, z: CARAVAN.z, r: 22 }, { x: WELL.x, z: WELL.z, r: 12 }, ...BRAZIERS.map((b) => ({ x: b.x, z: b.z, r: 6 }))];

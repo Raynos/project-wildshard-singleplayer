@@ -5,7 +5,7 @@ import { BoxGeometry, BufferGeometry, CapsuleGeometry, CylinderGeometry, DataTex
 import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
 import { CARAVAN, SEED, WELL } from '../layout';
 import { WIND } from './dunes';
-import { duneHd, duneMaterial, duneMesh, fit, smoothColors, without } from './meshes';
+import { duneHd, duneMaterial, duneMesh, fit, smoothColors, warmByFire, without } from './meshes';
 
 // round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
 const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, LAMPLIT = 0x6e3210, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
@@ -38,9 +38,11 @@ const CARGO: readonly [number, number, number, number][] = [[2.6, -2.6, 0.42, 0.
 /** Grain sacks slumped against the crates (mockup B): x, z, size, yaw. */
 const SACKS: readonly [number, number, number, number][] = [[1.7, -3.5, 0.34, 0.4], [2.0, -4.0, 0.3, -0.6], [3.3, -4.1, 0.32, 1.2]];
 /** The caravan's tent, dark canvas pitched off the wagon's right as you come up behind it (mockup B). */
-const TENT = { x: -7.5, z: -1.5, yaw: 0.35, w: 3.2, h: 2.3, d: 3.8 } as const;
+// round 8 (the council: a big flat grey sheet at the frame's edge; the mockup's tent is small and dark behind the horse)
+const TENT = { x: -8.2, z: 2.6, yaw: 0.35, w: 2.6, h: 1.9, d: 3.0 } as const;
 /** The pack horse, tethered between the tent and the wagon (mockup B): in the caravan's frame, its head toward the wagon's front. */
-const HORSE = { x: -5.0, z: 1.6, yaw: Math.PI / 2, h: 1.62 } as const;
+// round 8 (the council: end-on to mock-B; the mockup shows it side-on, its head to the right): broadside to the approach from the tailboard
+const HORSE = { x: -5.0, z: 1.6, yaw: 0.39, h: 1.62 } as const;
 const BURLAP = 0xa48a62, TENT_CANVAS = 0x3a2e28; // council round 2: 0x2c2220 read as a pure-black wedge
 
 /** Sun-bleached crate planks (loop 3: the plain dark boxes read as black cubes against the afterglow). */
@@ -114,11 +116,12 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     wagon.add(new Mesh(body, painted)); coverHoops(wagon);
   }
   else buildCodeWagon(wagon, wood, dark);
-  const crateMap = crateTexture(), crateWood = crateMaterial(crateMap);
+  // round 8 (the council: the cargo read as black slabs; the mockup lights it warm): the lantern lights the cargo too
+  const crateMap = crateTexture(), crateWood = crateMaterial(crateMap); warmByFire(crateWood);
   CARGO.forEach(([x, z, half, yaw]) => { const crate = new Mesh(crateGeometry(half), crateWood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root); });
   // The barrel (loop 4: it was a plain near-black cylinder): sun-bleached staves, a bulge, two iron hoops.
   const barrel = new Group(); barrel.rotation.set(0, 0.6, Math.PI / 2); barrel.position.set(-2.4, 0.25, 2.3); root.add(barrel);
-  const staves = mat(BARREL, { emissive: CRATE_GLOW }); // no vertex colours on a cylinder: a plain material, not the crates'
+  const staves = mat(BARREL, { emissive: CRATE_GLOW }); warmByFire(staves); // no vertex colours on a cylinder: a plain material, not the crates'
   barrel.add(new Mesh(new CylinderGeometry(0.31, 0.31, 0.9, 12, 3), staves));
   barrel.add(new Mesh(new CylinderGeometry(0.345, 0.345, 0.5, 12, 1, true), staves));
   for (const yy of [-0.32, 0.32]) { const hoop = new Mesh(new TorusGeometry(0.33, 0.025, 4, 14), mat(IRON, { metalness: 0.4 })); hoop.rotation.x = Math.PI / 2; hoop.position.y = yy; barrel.add(hoop); }
@@ -138,7 +141,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     return groundAt(CARAVAN.x + x * cosY + z * sinY, CARAVAN.z - x * sinY + z * cosY) - (y + LANTERN.y);
   });
   // The sacks (E399, mockup B): squashed burlap lumps against the crates.
-  const burlap = new MeshStandardMaterial({ color: BURLAP, roughness: 0.97 });
+  const burlap = new MeshStandardMaterial({ color: BURLAP, roughness: 0.97 }); warmByFire(burlap);
   for (const [x, z, r, yaw] of SACKS) {
     const sack = new Mesh(new CapsuleGeometry(r * 0.62, r * 1.3, 4, 10), burlap); sack.scale.set(1, 1, 0.8); sack.rotation.set(0, yaw, Math.PI / 2 - 0.12); at(sack, x, r * 0.5, z, root);
     const neck = new Mesh(new CylinderGeometry(r * 0.16, r * 0.3, r * 0.4, 8), burlap); neck.rotation.set(0, yaw, Math.PI / 2 - 0.12);
@@ -303,10 +306,14 @@ export function bannerGeometry(): BufferGeometry {
  */
 export function kindling(y: number, size = 1, crown = false): Group {
   // the crown's logs glow at the ember (council round 2: unlit, they read as a black tent inside the flame)
-  const g = new Group(), wood = crown ? new MeshStandardMaterial({ color: CHARRED, roughness: 0.95 }) : mat(KINDLING), n = crown ? 7 : 5;
+  const g = new Group(), wood = crown ? new MeshStandardMaterial({ color: CHARRED, roughness: 0.95 }) : mat(KINDLING), n = crown ? 11 : 5;
+  // round 8 (mockup C): the crown adds four logs laid low across the bowl at odd angles, charred dark inside the flame (a
+  // steep teepee read as a Λ against the flame's core)
   for (let i = 0; i < n; i++) {
-    // a teepee: each stick leans in from the bowl's edge, the tips meeting above the rim, so it reads at eye level
-    const a = (i / n) * Math.PI * 2 + (crown ? (i % 2) * 0.3 : 0), lean = crown ? -0.8 - (i % 3) * 0.1 : 0.5, len = (crown ? 0.34 + (i % 2) * 0.06 : 0.6) * size;
+    // a teepee: each stick leans in from the bowl's edge, the tips meeting above the rim, so it reads at eye level; the
+    // crown adds four crossing logs over seven splayed ends (round 7's splayed ends read as one stub)
+    const tee = crown && i >= 7, a = tee ? (i - 7) * 1.9 + 0.4 : (i / Math.min(n, 7)) * Math.PI * 2 + (crown ? (i % 2) * 0.3 : 0);
+    const lean = tee ? 1.0 + (i % 2) * 0.22 : crown ? -0.8 - (i % 3) * 0.1 : 0.5, len = (tee ? 0.56 + (i % 2) * 0.08 : crown ? 0.34 + (i % 2) * 0.06 : 0.6) * size;
     const log = new Mesh(new CylinderGeometry(0.03 * size, 0.04 * size, len, 5), wood);
     log.rotation.order = 'YXZ'; log.rotation.set(-lean, a, 0);
     log.position.set(Math.sin(a) * Math.sin(lean) * len * 0.5, y + Math.cos(lean) * len * 0.5, Math.cos(a) * Math.sin(lean) * len * 0.5); g.add(log);

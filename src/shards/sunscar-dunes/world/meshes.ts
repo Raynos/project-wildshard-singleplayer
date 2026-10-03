@@ -46,7 +46,7 @@ async function load(name: DuneMeshName): Promise<void> {
 
 const hd = new Map<DuneHdName, Object3D>();
 /** The brazier's texture warmed by each burning fire within ~4.5 m (fireFx.ts FIRE_LIGHTS): its own fire lights it. */
-function warmByFire(m: MeshStandardMaterial): void {
+export function warmByFire(m: MeshStandardMaterial): void {
   patchShader(m, 'sunscar.firelight', PATCH_ORDER.decorate, (shader) => {
     shader.uniforms['uFireLights'] = FIRE_LIGHTS;
     shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vFireW;')
@@ -75,21 +75,12 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
   diffuseColor.rgb = mix(vec3(0.05, 0.028, 0.016), vec3(0.42, 0.24, 0.12), smoothstep(0.02, 0.15, leatherL)); // a worn mid-brown (judge: the tan read as clay)` : `#include <map_fragment>
   // glove-hd2 (council round 4): a dark worn brown, not oxblood; its unpainted thumb patch clamped to the leather
   diffuseColor.rgb = min(diffuseColor.rgb, vec3(0.42, 0.3, 0.24));
-  float gloveWhip = (vGloveP.x < -0.45 || (vGloveP.y > 0.55 && vGloveP.x < 0.2) || (vGloveP.y < -0.25 && vGloveP.x < 0.15)) ? 1.0 : 0.0;
-  diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.3) * vec3(1.15, 0.95, 0.85) * 1.4, 1.0 - gloveWhip); // neutral dark brown (round 4: 37,8,4 vs the mockup's 47,27,24)
+  // round 8: the generated coil and tail are cut away (council rounds 1-7: a model-space plait read as a checker tape); the
+  // code-built plaited coil (weapons/whipModel.ts plaitedCoil) runs through the fist in their place
+  if (vGloveP.x < -0.45 || (vGloveP.y > 0.55 && vGloveP.x < 0.2) || (vGloveP.y < -0.25 && vGloveP.x < 0.15)) discard;
+  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.3) * vec3(1.15, 0.95, 0.85) * 1.4; // neutral dark brown (round 4: 37,8,4 vs the mockup's 47,27,24)
   {
-    // the whip (council round 4: a beaded worm, not a plait): two crossing strand sets in the model's own space, dark gaps
-    // between the strands and a lit crown on each, on the coil and the tail only (the fist and cuff keep their paint)
-    vec3 gp = vGloveP; float whip = gloveWhip;
-    vec2 cd = gp.xy - vec2(-0.4, 0.55);
-    float cordS = atan(cd.y, cd.x) * 0.42, cordW = atan(gp.z + 0.09, length(cd) - 0.42);
-    // a plait's lozenges: strands leaning one way on one half of the cord and the other way on the other half (chevrons)
-    float sa = sin(cordS * 70.0 + cordW * 11.0), sb = sin(cordS * 70.0 - cordW * 11.0);
-    // diagonal strands (seat B, round 6): sa runs the strands, sb staggers them in alternate rows (a plait's chevrons)
-    float sp = abs(sa) * abs(sb);
-    float gap = max(1.0 - smoothstep(0.0, 0.22, abs(sa)), 1.0 - smoothstep(0.0, 0.22, abs(sb)));
-    vec3 strand = mix(vec3(0.075, 0.045, 0.03), vec3(0.2, 0.12, 0.075), smoothstep(0.2, 0.9, sp)); // rounded strands, sheen from the 0.45 roughness // dark brown, one bright rim per strand (round 6: copper fishnet)
-    diffuseColor.rgb = mix(diffuseColor.rgb, mix(strand, vec3(0.025, 0.016, 0.012), gap * 0.85), whip);
+    vec3 gp = vGloveP; float whip = 0.0;
     // the gauntlet's stitching (council rounds 3-5: no seams read on the generated glove): two dashed seams along the back of
     // the hand and a stitched ring at the cuff edge, in pale thread over a dark welt, in the model's own space
     vec3 axd = normalize(vec3(-0.57, 0.72, -0.39)), rel = gp - vec3(0.81, -0.77, 0.16);
@@ -106,9 +97,21 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
   }`)
       // a light from the viewer side, so the held glove reads as lit leather, never a cut-out against the dusk (mockup D: the lit
       // fist; the key is behind it now): faces lit, edges falling off, more as the dusk deepens
-      .replace('#include <roughnessmap_fragment>', ramp ? '#include <roughnessmap_fragment>' : '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.45, gloveWhip);')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
   totalEmissiveRadiance += diffuseColor.rgb * ${ramp ? 'vec3(0.62, 0.46, 0.34)' : 'vec3(0.42, 0.33, 0.27)'} * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
+  });
+}
+
+/**
+ * The held leather's viewer-side light (the glove's, above) for a code-built part of the viewmodel: faces turned to the
+ * eye lit, edges falling off, more as the dusk deepens, so the backlit fist and coil never read as a cut-out.
+ */
+export function viewerLit(m: MeshStandardMaterial, gain: readonly [number, number, number]): void {
+  patchShader(m, 'sunscar.viewerLit', PATCH_ORDER.decorate, (shader) => {
+    shader.uniforms['uDusk'] = DUSK;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uDusk;')
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+  totalEmissiveRadiance += diffuseColor.rgb * vec3(${gain.map((g) => g.toFixed(3)).join(', ')}) * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
   });
 }
 /** A textured hero model: its scene as loaded (its own map on its own UVs), normals smoothed, matte. */
@@ -125,6 +128,9 @@ async function loadHd(name: DuneHdName): Promise<void> {
             m.color.setRGB(1, 1, 1); m.roughness = name === 'glove-hd2' ? 0.26 : 0.42; m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
             wornLeather(m, name === 'glove-hd'); // glove-hd2 is painted dark leather with its seams: no ramp
           }
+          // round 8 (the council since round 5: the wagon's canvas one even self-lit orange with blown white patches; mockup B:
+          // a backlit wagon, its cloth grey-beige, the lantern's light inside): its texture taken down to the cloth's value
+          if (name === 'wagon-hd') m.color.setRGB(0.6, 0.55, 0.52);
           if (name === 'brazier-hd' || name === 'wagon-hd') warmByFire(m);
           m.needsUpdate = true;
         }

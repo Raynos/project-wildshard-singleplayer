@@ -3,6 +3,7 @@ import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribu
 import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { GROUND_HALF } from '../layout';
 import { WIND } from '../world/dunes';
+import { FIRE_LIGHTS } from '../world/fireFx';
 import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 
 /**
@@ -14,7 +15,10 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 // loop 3: a deeper, redder key (ΔE00 of the lit sand against the H1–H4 targets: the game's was too pale and grey-blue)
 // E399: low (11 deg) and along the wind axis, so every dune splits into a lit slip face and a shaded windward face
 // (the mockups); the shade floor and the navy fill keep the shaded half readable, never black
-export const KEY = { dir: new Vector3(-0.85, 0.2, -0.5).normalize(), color: new Color(1, 0.68, 0.45), intensity: 2.6 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+// round 8 (the council since round 5: a vertical terminator smeared down the tower's dome, the shade a baked blob): the key
+// from behind the tower, near the afterglow (look/sky.ts SUN_GLOW), so the slopes falling away from the spawn are lit, the
+// faces turned to the camera (the saddle, the tower dune) fall into shade under a lit crest, its west shoulder lit (mockup dusk-fire)
+export const KEY = { dir: new Vector3(-0.45, 0.2, -0.87).normalize(), color: new Color(1, 0.68, 0.45), intensity: 2.0 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -189,7 +193,7 @@ export function signalDunesLook(): LookStrategy {
       geometry.computeVertexNormals();
       const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.88, metalness: 0 }); scope.own(material);
       patchShader(material, 'sunscar.ripples', PATCH_ORDER.decorate, (shader) => {
-        shader.uniforms['uSandShadow'] = { value: shadow }; shader.uniforms['uSandGrain'] = { value: grain }; shader.uniforms['uSandTrail'] = { value: trail }; shader.uniforms['uDusk'] = DUSK;
+        shader.uniforms['uSandShadow'] = { value: shadow }; shader.uniforms['uSandGrain'] = { value: grain }; shader.uniforms['uSandTrail'] = { value: trail }; shader.uniforms['uDusk'] = DUSK; shader.uniforms['uFireLights'] = FIRE_LIGHTS;
         shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSandPos;\nvarying vec3 vSandN;')
           .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSandPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvSandN = normalize(mat3(modelMatrix) * objectNormal);');
         shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
@@ -199,6 +203,7 @@ uniform sampler2D uSandShadow;
 uniform sampler2D uSandGrain;
 uniform sampler2D uSandTrail;
 uniform float uDusk;
+uniform vec4 uFireLights[4];
 // A ripple octave survives while a pixel spans well under one period, at any distance (no fixed fade, no aliasing).
 float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }
 float sandH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -227,7 +232,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   float sandTrod = texture2D(uSandTrail, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r;
   sandRip1 *= 1.0 - 0.5 * sandTrod; sandRip2 *= 1.0 - 0.5 * sandTrod; // E399: the trail keeps half its ripples (mockup A: rippled to the bottom edge at the spawn)
   // E399 (mockups A, D): fine low-contrast ripples near the camera, the bold stripes only at middle distance
-  float sandNear = mix(0.75, 0.7, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge)
+  float sandNear = mix(1.05, 0.7, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge); round 8: deeper near (A: troughs to ~20, crowns to ~115)
   sandRip1 *= sandNear; sandRip2 *= sandNear;
   // E399 (judge, mockup A): the near ripples' troughs read dark (the key runs along the crests, so the bump alone barely shows)
   diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3
@@ -236,6 +241,20 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     + (texture2D(uSandGrain, vSandPos.xz * 2.3 + 0.37).r - 0.5) * 1.8 * (1.0 - smoothstep(4.0, 22.0, sandFar))
     + (texture2D(uSandGrain, vSandPos.xz * 0.9 + 0.71).r - 0.5) * 1.3 * (1.0 - smoothstep(6.0, 30.0, sandFar))
     + (texture2D(uSandGrain, vSandPos.xz * 0.28 + 0.13).r - 0.5) * 1.6 * (1.0 - smoothstep(8.0, 40.0, sandFar)); // cm-scale speckle (mockup dusk-fire)
+  // round 8 (the council since round 1: the near sand's fine detail half the mockups', 4.5 against 9 on the clean patch; the
+  // grain tile's mips smear it): crisp procedural grain clumps in world space, ~1 and ~2 cm cells (the phone frame is
+  // ~8 mm a pixel underfoot), each octave kept only while a pixel spans under a cell (no sparkle far off), and a rare
+  // bright quartz glint
+  {
+    vec2 gc = vSandPos.xz * 95.0, gc2 = vSandPos.xz * 48.0 + 17.0;
+    float gA = 1.0 - smoothstep(0.8, 1.6, length(fwidth(gc))), gB = 1.0 - smoothstep(0.8, 1.6, length(fwidth(gc2)));
+    // the blue hour's sky light models no grain (mockups B-D: smooth soft sand), so the grains fade as the dusk deepens
+    float grainDusk = 1.0 - 0.75 * smoothstep(0.2, 0.6, uDusk);
+    gA *= grainDusk; gB *= grainDusk;
+    float grains = (sandN(gc) - 0.5) * 1.0 * gA + (sandN(gc2) - 0.5) * 0.9 * gB;
+    float glint = step(0.985, sandH(floor(gc2))) * gB * 0.9;
+    diffuseColor.rgb *= max(0.2, 1.0 + grains + glint);
+  }
   // loop 4, surface variety (the council's baseline: the near sand read as one flat brown): broad tonal drifts (tens of
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
@@ -251,7 +270,14 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     float s1 = (cos(sandPhase) + 0.4 * cos(2.0 * sandPhase)) * 0.2 * sandRip1;
     float s2 = cos(sandPhase2) * 0.05 * sandRip2;
     vec2 sandBump = (sandTex.gb - 0.5) * 0.5 * (1.0 - smoothstep(8.0, 40.0, sandFar));
-    vec3 rippleTilt = vec3(sandW.x, 0.0, sandW.y) * (s1 + s2) + vec3(sandBump.x, 0.0, sandBump.y);
+    // round 8 (the mockups' near grain is lumps lit on one side, not specks of paint, which foreshorten into streaks): the
+    // grain clumps' slopes (the colour pass's 1 and 2 cm value noise) tilt the normal, so the grazing key models each one
+    vec2 gq = vSandPos.xz * 95.0, gq2 = vSandPos.xz * 48.0 + 17.0;
+    float gqDusk = 1.0 - 0.75 * smoothstep(0.2, 0.6, uDusk);
+    float gqA = (1.0 - smoothstep(0.8, 1.6, length(fwidth(gq)))) * gqDusk, gqB = (1.0 - smoothstep(0.8, 1.6, length(fwidth(gq2)))) * gqDusk;
+    vec2 grainSlope = vec2(sandN(gq + vec2(0.3, 0.0)) - sandN(gq - vec2(0.3, 0.0)), sandN(gq + vec2(0.0, 0.3)) - sandN(gq - vec2(0.0, 0.3))) * 1.1 * gqA
+      + vec2(sandN(gq2 + vec2(0.3, 0.0)) - sandN(gq2 - vec2(0.3, 0.0)), sandN(gq2 + vec2(0.0, 0.3)) - sandN(gq2 - vec2(0.0, 0.3))) * 0.9 * gqB;
+    vec3 rippleTilt = vec3(sandW.x, 0.0, sandW.y) * (s1 + s2) + vec3(sandBump.x, 0.0, sandBump.y) + vec3(grainSlope.x, 0.0, grainSlope.y);
     normal = normalize(normal - (viewMatrix * vec4(rippleTilt, 0.0)).xyz);
   }`)
           .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
@@ -273,7 +299,13 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
   reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.95, 0.85, 0.9), uDusk) * mix(1.05, 1.15, uDusk) + vec3(0.016, 0.013, 0.02) * sandShade * (1.0 - uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
   // the dusk's lavender sky floor (R2B-1: the late views' sand measures dim warm brown-violet, not black or pure orange)
-  reflectedLight.indirectDiffuse += uDusk * vec3(0.013, 0.008, 0.009);
+  reflectedLight.indirectDiffuse += uDusk * vec3(0.013, 0.008, 0.009) + smoothstep(0.15, 0.5, uDusk) * vec3(0.012, 0.008, 0.006); // round 8: the key from behind the tower backlights the late views (B, D measured a third under their mockups)
+  // round 8 (mockup C: the waymark's fire lights the sand orange out to the camera; ours stopped at its 6 m pool, the near
+  // sand 20 against the mockup's 32): each burning fire (and the caravan's lantern, at its share) lights the sand round it
+  for (int i = 0; i < 4; i++) {
+    float fireD = length(vSandPos - uFireLights[i].xyz);
+    reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.0, 0.42, 0.14) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 11.0), 2.0) * 0.3;
+  }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
       const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;

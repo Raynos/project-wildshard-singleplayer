@@ -1,5 +1,5 @@
-import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TubeGeometry, Vector3 } from 'three';
-import { duneHd, duneMesh, smoothColors } from '../world/meshes';
+import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, CylinderGeometry, DataTexture, Group, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, RepeatWrapping, RGBAFormat, SphereGeometry, SRGBColorSpace, TubeGeometry, UnsignedByteType, Vector3 } from 'three';
+import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
 export const HD_GLOVE = { size: 0.3, pos: [0.05, -0.23, 0] as [number, number, number], rot: [-0.45, 0, 0.3] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
@@ -79,6 +79,75 @@ export class Lash {
     position.needsUpdate = true;
     this.mesh.geometry.computeVertexNormals(); this.mesh.geometry.computeBoundingSphere();
   }
+}
+
+/**
+ * The plait's tile, made in code (round 8, council rounds 1-7: the model-space plait read as a checker tape): u along the
+ * cord, v round it. Four strand columns round the cord (two face the eye, one chevron spine between them), each leaning 45 deg the other way from its neighbour, so the
+ * strands meet in the chevrons a plaited thong shows (mockup D). Each strand is a raised lozenge (a crown, dark creases
+ * between); the normal map carries that relief and the roughness map puts a sheen on the crowns only, so the key and
+ * the viewer light give each strand its own small highlight.
+ */
+const PLAIT = { size: 128, columns: 4, rows: 4 } as const;
+function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTexture } {
+  const n = PLAIT.size, h = new Float32Array(n * n), tone = new Float32Array(n * n);
+  const hash = (a: number, b: number): number => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const v = (y + 0.5) / n * PLAIT.columns, col = Math.floor(v), cv = v - col, lean = col % 2 === 0 ? 1 : -1;
+    const q = (x + 0.5) / n * PLAIT.rows + lean * cv, row = Math.floor(q), across = q - row;
+    // the strand's width profile (round crown, creased edges) times its fall-off into the column's spine
+    const crown = Math.sin(Math.PI * across) ** 0.7 * Math.sin(Math.PI * cv) ** 0.35;
+    h[y * n + x] = crown; tone[y * n + x] = hash(row + 17 * col, col * 3.1); // each strand a little lighter or darker
+  }
+  const map = new Uint8Array(n * n * 4), nor = new Uint8Array(n * n * 4), rough = new Uint8Array(n * n * 4);
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const i = y * n + x, c = h[i] ?? 0, t = tone[i] ?? 0.5;
+    const dx = (h[y * n + (x + 1) % n] ?? 0) - (h[y * n + (x + n - 1) % n] ?? 0), dy = (h[((y + 1) % n) * n + x] ?? 0) - (h[((y + n - 1) % n) * n + x] ?? 0);
+    // sRGB leather: near-black creases, a dark brown strand, a warmer worn crown
+    const k = Math.min(1, Math.max(0, c)), base = 0.55 + 0.45 * k, w = 0.85 + 0.3 * t;
+    map[i * 4] = Math.round(Math.min(255, (12 + 84 * base * k) * w)); map[i * 4 + 1] = Math.round(Math.min(255, (8 + 56 * base * k) * w));
+    map[i * 4 + 2] = Math.round(Math.min(255, (7 + 40 * base * k) * w)); map[i * 4 + 3] = 255;
+    const s = 3.2, nx = -dx * s, ny = -dy * s, l = Math.hypot(nx, ny, 1);
+    nor[i * 4] = Math.round(255 * (0.5 + 0.5 * nx / l)); nor[i * 4 + 1] = Math.round(255 * (0.5 + 0.5 * ny / l)); nor[i * 4 + 2] = Math.round(255 * (0.5 + 0.5 / l)); nor[i * 4 + 3] = 255;
+    rough[i * 4 + 1] = Math.round(255 * (0.95 - 0.6 * k * k)); rough[i * 4 + 3] = 255;
+  }
+  const tex = (data: Uint8Array, srgb: boolean): DataTexture => {
+    const t = new DataTexture(data, n, n, RGBAFormat, UnsignedByteType);
+    t.wrapS = RepeatWrapping; t.wrapT = RepeatWrapping; t.magFilter = LinearFilter; t.minFilter = LinearMipmapLinearFilter;
+    t.generateMipmaps = true; t.anisotropy = 4; if (srgb) t.colorSpace = SRGBColorSpace; t.needsUpdate = true;
+    return t;
+  };
+  return { map: tex(map, true), normal: tex(nor, false), rough: tex(rough, false) };
+}
+
+/** The held coil's shape in glove-hd2's own frame (its units: the model spans 2): two tall loops hung from the fist. */
+export const COIL = { cord: 0.048, loops: [{ c: [-0.66, 0.6, -0.42], rx: 0.5, ry: 0.68 }, { c: [-0.58, 0.54, -0.16], rx: 0.46, ry: 0.64 }], tail: [[-0.24, 0.02, -0.12], [-0.3, -0.5, -0.1], [-0.34, -1.25, -0.08]] } as const;
+
+/**
+ * The plaited coil in glove-hd2's frame (round 8): a tube with true UVs (u along, v round) wearing the plait tile, two
+ * loops leaving the top of the fist and returning into it, and the fall hanging below the fist.
+ */
+function plaitedCoil(): Mesh {
+  const pts: Vector3[] = [];
+  for (const p of [...COIL.tail].reverse()) pts.push(new Vector3(p[0], p[1], p[2]));
+  for (const [k, l] of COIL.loops.entries()) {
+    const start = -0.35 + k * 0.1;
+    for (let i = 0; i <= 48; i++) {
+      const a = start + (i / 48) * Math.PI * 2;
+      // a slight twist out of plane, so the two loops part a little round their tops (mockup D)
+      pts.push(new Vector3(l.c[0] + Math.cos(a) * l.rx, l.c[1] + Math.sin(a) * l.ry, l.c[2] + Math.sin(a) * 0.08 * (k === 0 ? 1 : -1)));
+    }
+  }
+  const curve = new CatmullRomCurve3(pts, false, 'centripetal'), length = curve.getLength();
+  const geometry = new TubeGeometry(curve, 420, COIL.cord, 12, false);
+  const { map, normal, rough } = plaitTextures();
+  // a tile's rows each one strand column long, so the strands lean 45 deg
+  const along = length / (PLAIT.rows * (2 * Math.PI * COIL.cord) / PLAIT.columns);
+  for (const t of [map, normal, rough]) t.repeat.set(along, 1);
+  const material = new MeshStandardMaterial({ map, normalMap: normal, roughnessMap: rough, roughness: 1, metalness: 0, fog: false });
+  material.userData['sunscarNoRim'] = true;
+  viewerLit(material, [0.42, 0.37, 0.33]);
+  return new Mesh(geometry, material);
 }
 
 export interface WhipParts { root: Group; grip: Group; coil: Mesh; lash: Lash; tip: Vector3; glove: Mesh | null; hd: Group | null }
@@ -174,6 +243,8 @@ export function buildWhipModel(): WhipParts {
   const hd = duneHd('glove-hd2', { size: HD_GLOVE.size, by: 'span' });
   if (hd !== null) {
     hd.position.set(...HD_GLOVE.pos); hd.rotation.set(...HD_GLOVE.rot); root.add(hd);
+    // the code coil in the glove model's own frame (duneHd: out → holder (scaled) → turn (centred) → the scene)
+    hd.children[0]?.children[0]?.add(plaitedCoil());
     grip.visible = false; coil.visible = false;
   }
   return { root, grip, coil, lash, tip, glove: made?.mesh ?? null, hd };

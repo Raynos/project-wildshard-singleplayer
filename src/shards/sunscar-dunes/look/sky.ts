@@ -38,7 +38,9 @@ void main() {
   // Loop 5 (the mockups A-D): a clear dusk. A deep orange band hugs the horizon, brightest behind the tower; above it a
   // short dusty-rose fade into a deep indigo dome full of stars. Clouds are only a few thin dark streaks low in the band.
   vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2)) * (1.0 - 0.4 * uDusk);
-  vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.24, 0.18, 0.27), indigo = vec3(0.1, 0.08, 0.16);
+  // round 8 (measured, Rec. 709 bands: mockup A's mid sky 81,58,76 against ours 74,46,69, its top 40,37,65 against 48,35,61):
+  // a dusty rose-peach above the band and a bluer, less plum dome
+  vec3 rose = vec3(0.5, 0.32, 0.32), dusk = vec3(0.24, 0.2, 0.29), indigo = vec3(0.1, 0.1, 0.19);
   // E399 (the mockups): a tall soft orange-gold band behind the tower, peach to rose, navy pushed higher
   // E399 (look/dusk.ts): as the quest goes on the band sinks and dims, the rose turns violet, the indigo comes down
   rose = mix(rose, vec3(0.42, 0.3, 0.42), uDusk);
@@ -48,27 +50,24 @@ void main() {
   c = mix(c, dusk, smoothstep(0.05 * (1.0 - 0.6 * uDusk), 0.36 - 0.18 * uDusk, h));
   c = mix(c, indigo, smoothstep(0.08 - 0.05 * uDusk, 0.85 - 0.4 * uDusk, h));
   c += vec3(1.0, 0.55, 0.2) * pow(toward, 4.0) * (1.0 - smoothstep(0.0, 0.1 - 0.05 * uDusk, h)) * 0.45 * (1.0 - 0.6 * uDusk);
-  // Thin streaks: dark, under-lit on the glow side, only in the band (3-10 degrees up).
   float az = atan(d.z, d.x);
-  float streak = vNoise(skyRing(az, 7.0, h * 140.0)) * 0.65 + vNoise(skyRing(az, 21.0, h * 300.0 + 3.1)) * 0.35;
-  float cloud = smoothstep(0.58, 0.9, streak) * smoothstep(0.04, 0.08, h) * (1.0 - smoothstep(0.16, 0.3, h)) * 0.85 * (1.0 - smoothstep(0.1, 0.3, uDusk)); // mockup A: pink-lit streaks over the band; gone in the later steps (B, D)
-  vec3 belly = mix(vec3(0.78, 0.36, 0.34), vec3(1.0, 0.52, 0.3), pow(toward, 2.0));
-  c = mix(c, mix(vec3(0.22, 0.14, 0.2), belly, 0.55 + 0.4 * toward), cloud * 0.4);
   // E399 (council round 2: mockups A and dusk-fire have orange cloud banks lit from below; B-D are clear): a broken
   // deck projected on a flat layer, patchy, lit orange-gold toward the glow and rose away from it, dark cores; it clears
   // as the dusk deepens (look/dusk.ts), so the later steps' skies are clear as their mockups show.
-  vec2 cp = d.xz / (h + 0.09);
-  cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(1.4, 3.2); // irregular banks low over the horizon (round 4: hatched flakes)
-  float cn = vNoise(cp * 1.3) * 0.5 + vNoise(cp * 2.9 + 3.1) * 0.3 + vNoise(cp * 6.7 + 7.3) * 0.2;
-  float cov = smoothstep(0.64, 0.78, cn) * smoothstep(0.025, 0.05, h) * (1.0 - smoothstep(0.1, 0.2, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
-  vec2 sunward = normalize(vec2(uSun.x, uSun.z) + 1e-4) * 0.18 / (h + 0.09);
-  vec2 cq = (cp + sunward * vec2(1.4, 3.2));
-  float cn2 = vNoise(cq * 1.3) * 0.5 + vNoise(cq * 2.9 + 3.1) * 0.3 + vNoise(cq * 6.7 + 7.3) * 0.2;
-  float lit = clamp((cn - cn2) * 6.0 + 0.55, 0.0, 1.0);
-  float hot = pow(toward, 1.4) * (1.0 - smoothstep(0.05, 0.3, h));
-  vec3 cLit = mix(mix(vec3(0.75, 0.36, 0.34), vec3(1.0, 0.52, 0.2), hot), vec3(1.0, 0.7, 0.36), hot * lit);
-  vec3 cDark = mix(vec3(0.12, 0.09, 0.17), vec3(0.32, 0.15, 0.13), hot);
-  c = mix(c, mix(cDark, cLit, clamp(lit * (0.6 + 0.4 * hot) + 0.15 * hot, 0.0, 1.0)), cov * 0.92);
+  // round 8 (mockup A: long fibrous streaks 6-17 deg up, red-orange bellies, dark violet bodies; the council: pale cream
+  // flakes in rows): noise on the azimuth ring (no seam) and the height, a few cells a radian across and many up the sky,
+  // so every bank is a long horizontal streak; a fine octave tears it into fibres; denser on the glow's right (dusk-fire)
+  float cH = h * 36.0;
+  float cn = vNoise(skyRing(az, 11.0, cH)) * 0.45 + vNoise(skyRing(az, 26.0, cH * 2.1 + 3.1)) * 0.3 + vNoise(skyRing(az, 70.0, cH * 4.0 + 7.3)) * 0.25;
+  float cside = 0.5 + 0.5 * dot(normalize(vec2(d.x, d.z) + 1e-4), normalize(vec2(-uSun.z, uSun.x)));
+  float cov = smoothstep(0.66 - 0.08 * cside, 0.76, cn) * smoothstep(0.06, 0.12, h) * (1.0 - smoothstep(0.24, 0.34, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
+  // lit from below (the set sun): where the bank thins downward its belly takes the glow, its top stays dark
+  float cBelow = vNoise(skyRing(az, 11.0, cH - 0.3)) * 0.45 + vNoise(skyRing(az, 26.0, (cH - 0.3) * 2.1 + 3.1)) * 0.3 + vNoise(skyRing(az, 70.0, (cH - 0.3) * 4.0 + 7.3)) * 0.25;
+  float lit = clamp((cn - cBelow) * -6.0 + 0.62, 0.0, 1.0);
+  float hot = pow(toward, 1.4) * (1.0 - smoothstep(0.1, 0.4, h));
+  vec3 cLit = mix(mix(vec3(0.82, 0.36, 0.26), vec3(0.95, 0.44, 0.22), hot), vec3(1.0, 0.58, 0.3), hot * lit * 0.6);
+  vec3 cDark = mix(vec3(0.2, 0.15, 0.22), vec3(0.3, 0.17, 0.16), hot);
+  c = mix(c, mix(cDark, cLit, clamp(lit * (0.6 + 0.4 * hot) + 0.15 * hot, 0.0, 1.0)), cov * 0.9);
   // Stars: soft points round a jittered spot in each cell, many overhead, fading into the band and the glow.
   vec3 cellP = d * 300.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;
