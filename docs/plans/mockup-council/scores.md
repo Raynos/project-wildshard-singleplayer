@@ -17,6 +17,7 @@ A shard passes at a three-seat mean of 8.0 or more (ledger 4). One row per shard
 | 6 | Signal Dunes | `progress/sunscar-dunes/20261003-0132-28e3eb78` | 6.1 | 5.5 | 5.3 | **5.63** | no |
 | 7 | Signal Dunes | `progress/sunscar-dunes/20261003-0156-eeee0e02` | 5.8 | 5.7 | 5.7 | **5.73** | no |
 | 6 | Sky Reach | `progress/far-reach/20261003-0201-fc54d9df` | 6.2 | 6.1 | 6.0 | **6.10** | no |
+| 7 | Sky Reach | `progress/far-reach/20261003-0250-1c2c026e` | 6.3 | 6.3 | 6.2 | **6.27** | no |
 
 Notes:
 - Round 1: seat A accepts its numbers as diagnosis only, since two staged shots did not reach the real state (the harness
@@ -33,3 +34,4 @@ Notes:
 - Round 6, Signal Dunes: down from 5.80. The sand grain doubled, but the terrain reshape (no re-aim; it moved the real cameras 3–8 m, which the camAt list now shows) broke C and D, the dune forms lost their light/shade line, and the coil turned copper. A builder measurement included the coil in a ground patch; measure on ground clear of the viewmodel.
 - Round 7, Signal Dunes: a revert to round 5 (nearly pixel-identical), so round 6's gains went with its regressions; several builder measurements matched no patch the seats measured, so the builder adopts one tool (far-reach's measure.py, Rec. 709, the seats' regions) and quotes its output.
 - Round 6, Sky Reach: up from 5.87 (fresh builder session). The highlights now match (luminance), proposal B's axis and D's dais read right; still open in every seat: the meadow reads as moss clumps and big flower dots, the islands are smooth domes rather than layered crags, the fan and glove are simpler than the mockups, the sun is a ring with a separate glow, and the Roc is not captured mid-approach.
+- Round 7, Sky Reach: up from 6.10. The sun is one disc, the near-ground darkening is gone, and the storm eye, the netted bridges and the fan's straps landed. Two regressions: the gamma lift and the keeper's short-grass ring flattened A's meadow into a lawn, and moving the overhead isles to the horizon took mockup A's isle cluster away. The 'slate' Roc is still brown. Its 60 ms staged settle with a heading off the player is a should-fix under ledger 5, not a void: stage the Roc's real circling lap instead. Both Claude seats found that the engine could not bank a flyer; it can now (SpeciesFlight.bank, 8252e3978).
