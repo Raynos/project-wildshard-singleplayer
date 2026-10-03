@@ -1,6 +1,6 @@
 import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type BoneDef, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
-import { BoxGeometry, Color, ConeGeometry, IcosahedronGeometry, Vector3, type BufferGeometry } from 'three';
-import { bindRigid, fit, skyMesh } from '../world/meshes';
+import { BoxGeometry, Color, ConeGeometry, Float32BufferAttribute, IcosahedronGeometry, Vector3, type BufferGeometry } from 'three';
+import { bindRigid, fit, skyHd, skyMesh, type SkyHd } from '../world/meshes';
 import { CROWN, DAIS, ROC } from '../layout';
 import { crownStones } from '../world/crown';
 import { STRINGS } from '../strings';
@@ -158,18 +158,38 @@ function paintUnderside(g: BufferGeometry): void {
   }
   c.needsUpdate = true;
 }
-function rocMesh(source: BufferGeometry): AnimalSpecies {
-  const g = fit(source, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: Math.PI / 2 }), p = g.getAttribute('position');
+/** Rig a fitted Roc (facing +z, wings along x, its middle at the body bone): facets outboard of the wing roots ride the
+ * wings; along the centre line the front third is the head, the back third the tail. */
+function rocRig(g: BufferGeometry): { bones: BoneDef[]; len: number } {
+  const p = g.getAttribute('position');
   let z0 = Infinity, z1 = -Infinity;
   for (let i = 0; i < p.count; i++) if (Math.abs(p.getX(i)) < ROC_WING_ROOT) { z0 = Math.min(z0, p.getZ(i)); z1 = Math.max(z1, p.getZ(i)); }
   const len = Math.max(0.5, z1 - z0), head = z1 - len * 0.3, tail = z0 + len * 0.3;
   bindRigid(g, (x, _y, z) => x > ROC_WING_ROOT ? WING_L : x < -ROC_WING_ROOT ? WING_R : z > head ? HEAD : z < tail ? TAIL : BODY);
-  paintUnderside(g);
-  return { bones: ROC_BONES(head, 1.8, tail), furParts: [], eyeParts: [], hardParts: [g],
-    dims: { bodyY: 1.6, bodyHalfLen: Math.max(1.4, len / 2), bodyRadius: 1.1, headRadius: 0.55, legLen: 1, feet: [], halfWidth: ROC_SPAN / 2 } };
+  return { bones: ROC_BONES(head, 1.8, tail), len };
 }
-/** The body: the generated model when it loaded, else the code one. */
-export const rocBody = (): AnimalSpecies => { const g = skyMesh('storm-roc'); return g ? rocMesh(g) : rocCode(); };
+const rocDims = (len: number): AnimalSpecies['dims'] => ({ bodyY: 1.6, bodyHalfLen: Math.max(1.4, len / 2), bodyRadius: 1.1, headRadius: 0.55, legLen: 1, feet: [], halfWidth: ROC_SPAN / 2 });
+function rocMesh(source: BufferGeometry): AnimalSpecies {
+  const g = fit(source, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: Math.PI / 2 }), { bones, len } = rocRig(g);
+  paintUnderside(g);
+  return { bones, furParts: [], eyeParts: [], hardParts: [g], dims: rocDims(len) };
+}
+/**
+ * The textured Roc (E392/E399, mockup D; `art/far-reach/round-19-hero-models/refs/ref-rocbelow`): Hunyuan3D-2's painted
+ * great eagle (dark brown underwings with pale barred flight feathers, a cream-white head and breast, a golden beak and
+ * talons), generated from straight below in one plane, so it is pitched forward to fly with its painted side down. Its own paint is the map (the vertex colours stay white), fed back a little as emissive so
+ * it reads against the low sun; rigged like the faceted one, so the wings flap.
+ */
+const ROC_HD = { pitch: Math.PI / 2, selfLight: 0.35 } as const;
+function rocHd(m: SkyHd): AnimalSpecies {
+  const g = m.geometry.toNonIndexed(); m.geometry.dispose();
+  fit(g, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: ROC_HD.pitch });
+  g.setAttribute('color', new Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
+  const { bones, len } = rocRig(g);
+  return { bones, furParts: [], eyeParts: [], hardParts: [g], dims: rocDims(len), map: m.map, facetJitter: 0, selfLight: ROC_HD.selfLight };
+}
+/** The body: the textured model when it loaded, else the faceted generated one, else the code one. */
+export const rocBody = (): AnimalSpecies => { const t = skyHd('roc-hd'); if (t) return rocHd(t); const g = skyMesh('storm-roc'); return g ? rocMesh(g) : rocCode(); };
 export const STORM_ROC_LOOK: SpeciesLook = { id: 'far.look.stormRoc', species: STORM_ROC.id, kind: 'stormRoc', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'far.stormRoc', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
   build: () => rocBody(),

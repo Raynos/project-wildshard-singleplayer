@@ -1,5 +1,5 @@
 import { BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, Vector3, type Object3D } from 'three';
-import { fit, skyMesh, splitAbove } from './meshes';
+import { fit, hdMaterial, skyHd, skyMesh, splitAbove } from './meshes';
 import { towerMill } from './mill';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
@@ -127,8 +127,28 @@ function kitDeck(length: number, width: number): InstancedMesh | null {
   for (let i = 0; i < n; i++) { m.makeTranslation(0, 0, -(i + 0.5) * seg); mesh.setMatrixAt(i, m); }
   mesh.computeBoundingSphere(); return mesh;
 }
-/** The generated anchor posts at the span's four corners, just outside the rope rails; null without the kit. */
+/**
+ * The textured anchor post (E392/E399, mockup A: weathered silver-grey timber wrapped in thick hemp rope under an iron
+ * band, on a footing of mossy stones; `art/far-reach/round-19-hero-models/`): its height, and how far its middle stands
+ * outside the rope rails (half its stone footing).
+ */
+const HD_POST = { height: 1.9, out: 0.3 } as const;
+/** The textured posts at the span's four corners, their hanging rope ends turned outward; null when it did not load. */
+function hdPosts(width: number, length: number): InstancedMesh | null {
+  const source = skyHd('post-hd'); if (source === null) return null;
+  const g = fit(source.geometry, { size: HD_POST.height, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(g, hdMaterial(source.map), 4);
+  const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), one = new Vector3(1, 1, 1);
+  let i = 0;
+  for (const side of [-1, 1]) for (const z of [0, -length]) {
+    // the file's knot hangs on its +x side: turned so it hangs on the post's outer side either way
+    q.setFromAxisAngle(up, side > 0 ? 0 : Math.PI);
+    m.compose(new Vector3(side * (width / 2 + HD_POST.out), -0.05, z), q, one); mesh.setMatrixAt(i++, m);
+  }
+  mesh.computeBoundingSphere(); return mesh;
+}
+/** The generated anchor posts at the span's four corners, just outside the rope rails (the textured ones when they loaded); null without the kit. */
 function kitPosts(width: number, length: number): InstancedMesh | null {
+  const textured = hdPosts(width, length); if (textured !== null) return textured;
   const source = skyMesh('bridge-post'); if (source === null) return null;
   const g = fit(source, { size: POST_HEIGHT, by: 'height', floor: 0, centre: 'base' }), mesh = new InstancedMesh(greyWood(g), flat(0xffffff, { vertexColors: true }), 4), m = new Matrix4();
   let i = 0;

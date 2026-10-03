@@ -1,6 +1,6 @@
 import { loadRigFile } from '#engine';
-import { SKY_MESHES, skyMeshUrl, type SkyMeshName } from '../boot/files';
-import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, Uint16BufferAttribute, Vector3, type BufferAttribute, type Object3D } from 'three';
+import { SKY_HD, SKY_MESHES, skyHdUrl, skyMeshUrl, type SkyHdName, type SkyMeshName } from '../boot/files';
+import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Uint32BufferAttribute, Vector3, type BufferAttribute, type InterleavedBufferAttribute, type Object3D, type Texture } from 'three';
 
 /**
  * Sky Reach's generated models (C6, E374): codex refs → Hunyuan3D-2 → faceted, vertex-coloured GLBs
@@ -43,10 +43,67 @@ async function load(name: SkyMeshName): Promise<void> {
   } catch (e: unknown) { console.warn(`[far-reach] ${name} not loaded, the code model stands in:`, e); }
 }
 
+/** A textured hero model: one indexed geometry (float position, normal, uv in the file's frame) and its painted map. */
+export interface SkyHd { readonly geometry: BufferGeometry; readonly map: Texture }
+const hd = new Map<SkyHdName, SkyHd>();
+/** A (possibly meshopt-quantized) attribute as plain float32. */
+function floats(a: BufferAttribute | InterleavedBufferAttribute): Float32BufferAttribute {
+  const out = new Float32Array(a.count * a.itemSize);
+  for (let i = 0; i < a.count; i++) for (let k = 0; k < a.itemSize; k++) out[i * a.itemSize + k] = a.getComponent(i, k);
+  return new Float32BufferAttribute(out, a.itemSize);
+}
+async function loadHd(name: SkyHdName): Promise<void> {
+  try {
+    const gltf = await loadRigFile(skyHdUrl(name));
+    gltf.scene.updateMatrixWorld(true);
+    const found: SkyHd[] = [];
+    gltf.scene.traverse((o) => {
+      if (found.length > 0 || !isMesh(o)) return;
+      const m = Array.isArray(o.material) ? o.material[0] : o.material, src = o.geometry, index = src.getIndex();
+      if (!(m instanceof MeshStandardMaterial) || m.map === null || !src.hasAttribute('uv') || index === null) return;
+      const g = new BufferGeometry();
+      g.setAttribute('position', floats(src.getAttribute('position'))); g.setAttribute('uv', floats(src.getAttribute('uv')));
+      g.setIndex(new Uint32BufferAttribute(Uint32Array.from({ length: index.count }, (_, i) => index.getX(i)), 1));
+      g.applyMatrix4(o.matrixWorld); g.computeVertexNormals(); g.computeBoundingBox();
+      found.push({ geometry: g, map: m.map });
+    });
+    const one = found[0]; if (one === undefined) throw new Error(`${name}: no textured mesh`);
+    hd.set(name, one);
+  } catch (e: unknown) { console.warn(`[far-reach] ${name} not loaded, the faceted model stands in:`, e); }
+}
+
 /** Load every generated model once (a failed one is skipped). */
 export function preloadSkyMeshes(): Promise<void> {
-  loading ??= Promise.all(SKY_MESHES.map(load)).then(() => undefined);
+  loading ??= Promise.all([...SKY_MESHES.map(load), ...SKY_HD.map(loadHd)]).then(() => undefined);
   return loading;
+}
+
+/** A textured hero model (a copy of its geometry, its shared map), or null (not loaded: use the faceted model). */
+export function skyHd(name: SkyHdName): SkyHd | null { const m = hd.get(name); return m ? { geometry: m.geometry.clone(), map: m.map } : null; }
+
+/** A hero model's matte painted material (no metal, soft roughness, smooth normals). */
+export const hdMaterial = (map: Texture): MeshStandardMaterial => new MeshStandardMaterial({ map, roughness: 0.85, metalness: 0 });
+
+/**
+ * Split a geometry by triangle centroid, keeping every attribute (position, normal, uv, colour …): [the rest, the
+ * triangles `pick` claims]. Indexed input is de-indexed.
+ */
+export function splitTriangles(source: BufferGeometry, pick: (x: number, y: number, z: number) => boolean): [BufferGeometry, BufferGeometry] {
+  const g = source.index === null ? source : source.toNonIndexed(), p = g.getAttribute('position'), names = Object.keys(g.attributes);
+  const keep: boolean[] = [];
+  for (let t = 0; t + 2 < p.count; t += 3) keep.push(pick((p.getX(t) + p.getX(t + 1) + p.getX(t + 2)) / 3, (p.getY(t) + p.getY(t + 1) + p.getY(t + 2)) / 3, (p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3));
+  const make = (side: boolean): BufferGeometry => {
+    const r = new BufferGeometry();
+    for (const n of names) {
+      const a = g.getAttribute(n), out: number[] = [];
+      keep.forEach((k, t) => { if (k === side) for (let v = t * 3; v < t * 3 + 3; v++) for (let c = 0; c < a.itemSize; c++) out.push(a.getComponent(v, c)); });
+      r.setAttribute(n, new Float32BufferAttribute(out, a.itemSize));
+    }
+    return r;
+  };
+  const out: [BufferGeometry, BufferGeometry] = [make(false), make(true)];
+  if (g !== source) g.dispose();
+  source.dispose(); return out;
 }
 
 /** A copy of a loaded model's geometry, or null (not loaded: use the code model). */

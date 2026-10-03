@@ -1,5 +1,5 @@
 import { AdditiveBlending, BufferGeometry, CapsuleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3, type Object3D } from 'three';
-import { fit, skyMesh } from '../world/meshes';
+import { fit, hdMaterial, skyHd, skyMesh, splitTriangles } from '../world/meshes';
 import type { NpcDef } from '#engine';
 import { FLAGS } from './flags';
 import { STRINGS } from '../strings';
@@ -71,8 +71,32 @@ function whiten(g: BufferGeometry): void {
   c.needsUpdate = true;
 }
 
+/**
+ * The textured keeper's frame (E392/E399, `art/far-reach/round-19-hero-models/`; metres once fitted to KEEPER_MODEL's
+ * height, facing +z): his free right arm (−x) is every triangle outboard of a line slanting from x `a + b·y` between `y0`
+ * and `y1` (the sleeve hangs out and down from the shoulder to the hand at his hip), its shoulder pivot, and the lantern on
+ * his staff (+x) measured off the file's paint.
+ */
+export const KEEPER_HD = { arm: { a: -0.45, b: 0.155, y0: 0.7, y1: 1.52 }, shoulder: [-0.24, 1.45, 0] as const, lantern: [0.3, 1.4, 0.59] as const } as const;
+interface Made { group: Group; shoulder: Group; glow: Mesh<SphereGeometry, MeshBasicMaterial> }
+/** The lantern's warm halo: a ball, not a Sprite (the shard's global light patch reaches every material and a sprite's vertex shader lacks `transformed`). */
+const halo = (): Mesh<SphereGeometry, MeshBasicMaterial> => new Mesh(new SphereGeometry(0.24, 12, 8), new MeshBasicMaterial({ color: 0xffb860, transparent: true, opacity: 0.3, blending: AdditiveBlending, depthWrite: false }));
+/** The textured keeper (Hunyuan3D-2's painted wizard): body + the waving right arm on its shoulder pivot, and the lantern glow. */
+function textured(): Made | null {
+  const made = skyHd('keeper-hd'); if (made === null) return null;
+  const g = fit(made.geometry, { size: KEEPER_MODEL.height, by: 'height', floor: 0, centre: 'base' }), A = KEEPER_HD.arm, [sx, sy, sz] = KEEPER_HD.shoulder;
+  const [body, arm] = splitTriangles(g, (x, y) => y > A.y0 && y < A.y1 && x < A.a + A.b * y);
+  const material = hdMaterial(made.map), group = new Group(), shoulder = new Group();
+  group.add(new Mesh(body, material));
+  shoulder.position.set(sx, sy, sz); group.add(shoulder);
+  shoulder.add(new Mesh(arm.translate(-sx, -sy, -sz), material));
+  const glow = halo(); glow.position.set(...KEEPER_HD.lantern); group.add(glow);
+  return { group, shoulder, glow };
+}
+
 /** The generated keeper (loop 3; `art/far-reach/round-13-loop-3/`): body + a waving right arm on a shoulder pivot, and a lantern glow. */
-function generated(): { group: Group; shoulder: Group; glow: Mesh<SphereGeometry, MeshBasicMaterial> } | null {
+function generated(): Made | null {
+  const hd = textured(); if (hd !== null) return hd;
   const g = skyMesh('keeper'); if (g === null) return null;
   fit(g, { size: KEEPER_MODEL.height, by: 'height', floor: 0, centre: 'base' }); g.rotateY(KEEPER_MODEL.yaw);
   whiten(g); const lantern = lanternAt(g), A = KEEPER_MODEL.arm, [sx, sy, sz] = KEEPER_MODEL.shoulder;
@@ -82,15 +106,13 @@ function generated(): { group: Group; shoulder: Group; glow: Mesh<SphereGeometry
   group.add(new Mesh(body, material));
   shoulder.position.set(sx, sy, sz); group.add(shoulder);
   shoulder.add(new Mesh(arm.translate(-sx, -sy, -sz), material));
-  // a halo ball, not a Sprite: the shard's global light patch reaches every material and a sprite's vertex shader lacks `transformed`
-  const glow = new Mesh(new SphereGeometry(0.24, 12, 8), new MeshBasicMaterial({ color: 0xffb860, transparent: true, opacity: 0.3, blending: AdditiveBlending, depthWrite: false }));
-  glow.position.copy(lantern); group.add(glow);
+  const glow = halo(); glow.position.copy(lantern); group.add(glow);
   return { group, shoulder, glow };
 }
 
 /**
  * The bridge-keeper: an old sky-sailor in a slate-blue coat and hat, a cream scarf, a long white beard, a gnarled staff
- * with a brass lantern (mockup B). The generated model (Hunyuan3D-2) when it loaded, else the code figure below. He waves
+ * with a brass lantern (mockup B). The textured model (round 19), else the faceted one (Hunyuan3D-2), else the code figure below. He waves
  * his free arm when you come near and gestures while he talks.
  */
 export function keeper(y: number): Keeper {

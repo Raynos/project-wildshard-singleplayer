@@ -10,6 +10,18 @@ const URLS: Readonly<Record<SkyMeshName, string>> = {
   'bridge-deck': '/assets/far-reach/models/bridge-deck/bridge-deck.glb', keeper: '/assets/far-reach/models/keeper/keeper.glb',
 };
 export const skyMeshUrl = (name: SkyMeshName): string => URLS[name];
+/**
+ * The hero models kept TEXTURED (E392/E399, `art/far-reach/round-19-hero-models/`): codex refs → Hunyuan3D-2 turbo shape +
+ * 2048 paint, decimated, the paint kept as a 1024 WebP map on its UVs (the faceted vertex-colour path reads low-poly up
+ * close). The faceted models above stay the fallback.
+ */
+export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd';
+export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd'];
+const HD_URLS: Readonly<Record<SkyHdName, string>> = {
+  'keeper-hd': '/assets/far-reach/models/keeper-hd/keeper-hd.glb', 'roc-hd': '/assets/far-reach/models/roc-hd/roc-hd.glb',
+  'post-hd': '/assets/far-reach/models/post-hd/post-hd.glb',
+};
+export const skyHdUrl = (name: SkyHdName): string => HD_URLS[name];
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */
 export const TEX_URL = { rock: '/assets/far-reach/tex/rock.webp', meadow: '/assets/far-reach/tex/meadow.webp', clouds: '/assets/far-reach/tex/clouds.webp', branches: '/assets/far-reach/tex/branches.webp', cloudsea: '/assets/far-reach/tex/cloudsea.webp', maelstrom: '/assets/far-reach/tex/maelstrom.webp',
   millStone: '/assets/far-reach/tex/mill-stone.webp', millCanvas: '/assets/far-reach/tex/mill-canvas.webp', millIvy: '/assets/far-reach/tex/mill-ivy.webp' } as const;
@@ -20,6 +32,6 @@ export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone:
 
 /** Sky Reach downloads its painted sky (look/sky.ts) and its generated models (C6, `world/meshes.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier) => ({
-  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: SKY_MESHES.map(skyMeshUrl), art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
+  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map(skyHdUrl)], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
