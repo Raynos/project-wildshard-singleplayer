@@ -34,7 +34,8 @@ const COOK = { x: -0.6, z: 5.2 } as const; // E399 (mockup B): in front of the w
 
 /** Spilled cargo on the lee (−X) side, on the sand itself: x, z, half size, yaw. */
 // E399 (mockup B): the crates stacked off the back corner on the left as you come up behind the wagon (+X)
-const CARGO: readonly [number, number, number, number][] = [[2.6, -2.6, 0.42, 0.25], [3.4, -3.3, 0.36, -0.35], [2.5, -3.7, 0.3, 0.8]];
+// round 9: standing on the sand (they were sunk to 0.8 of their height, low slabs), the small one stacked on the big one
+const CARGO: readonly [number, number, number, number][] = [[2.6, -2.6, 0.42, 0.25], [3.4, -3.3, 0.36, -0.35], [2.6, -2.6, 0.26, 0.6]];
 /** Grain sacks slumped against the crates (mockup B): x, z, size, yaw. */
 const SACKS: readonly [number, number, number, number][] = [[1.7, -3.5, 0.34, 0.4], [2.0, -4.0, 0.3, -0.6], [3.3, -4.1, 0.32, 1.2]];
 /** The caravan's tent, dark canvas pitched off the wagon's right as you come up behind it (mockup B). */
@@ -46,7 +47,7 @@ const HORSE = { x: -5.0, z: 1.6, yaw: 0.39, h: 1.62 } as const;
 const BURLAP = 0xa48a62, TENT_CANVAS = 0x3a2e28; // council round 2: 0x2c2220 read as a pure-black wedge
 
 /** Sun-bleached crate planks (loop 3: the plain dark boxes read as black cubes against the afterglow). */
-const CRATE_GLOW = 0x150b05, BARREL = 0x7e5a3e;
+const CRATE_GLOW = 0x2c1a0c, BARREL = 0x7e5a3e; // round 9 (the seats since round 5: black slabs; mockup B's crates read planked and tan in the dusk): a warmer self-light
 /**
  * The crates' planks (E399, council round 2: the mockup's crates are planked and stencilled, ours read as plain boxes): a
  * 64² tile per face, four planks with dark seams and grain streaks inside a darker frame of boards, a nail at each frame
@@ -118,7 +119,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   else buildCodeWagon(wagon, wood, dark);
   // round 8 (the council: the cargo read as black slabs; the mockup lights it warm): the lantern lights the cargo too
   const crateMap = crateTexture(), crateWood = crateMaterial(crateMap); warmByFire(crateWood);
-  CARGO.forEach(([x, z, half, yaw]) => { const crate = new Mesh(crateGeometry(half), crateWood); crate.rotation.y = yaw; at(crate, x, half * 0.8, z, root); });
+  CARGO.forEach(([x, z, half, yaw], i) => { const crate = new Mesh(crateGeometry(half), crateWood); crate.rotation.y = yaw; at(crate, x, i === 2 ? 0.84 + half - 0.05 : half - 0.04, z, root); });
   // The barrel (loop 4: it was a plain near-black cylinder): sun-bleached staves, a bulge, two iron hoops.
   const barrel = new Group(); barrel.rotation.set(0, 0.6, Math.PI / 2); barrel.position.set(-2.4, 0.25, 2.3); root.add(barrel);
   const staves = mat(BARREL, { emissive: CRATE_GLOW }); warmByFire(staves); // no vertex colours on a cylinder: a plain material, not the crates'
@@ -141,7 +142,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     return groundAt(CARAVAN.x + x * cosY + z * sinY, CARAVAN.z - x * sinY + z * cosY) - (y + LANTERN.y);
   });
   // The sacks (E399, mockup B): squashed burlap lumps against the crates.
-  const burlap = new MeshStandardMaterial({ color: BURLAP, roughness: 0.97 }); warmByFire(burlap);
+  const burlap = new MeshStandardMaterial({ color: BURLAP, roughness: 0.97, emissive: 0x241a10 }); warmByFire(burlap);
   for (const [x, z, r, yaw] of SACKS) {
     const sack = new Mesh(new CapsuleGeometry(r * 0.62, r * 1.3, 4, 10), burlap); sack.scale.set(1, 1, 0.8); sack.rotation.set(0, yaw, Math.PI / 2 - 0.12); at(sack, x, r * 0.5, z, root);
     const neck = new Mesh(new CylinderGeometry(r * 0.16, r * 0.3, r * 0.4, 8), burlap); neck.rotation.set(0, yaw, Math.PI / 2 - 0.12);
@@ -167,7 +168,7 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
     const at2 = world(HORSE.x, HORSE.z); colliders.push(boxDesc({ x: at2.x, z: at2.z, hw: 0.35, hd: 1.1, rot: -CARAVAN.yaw, yBottom: y - 0.3, yTop: y + HORSE.h }, 'flesh'));
   }
   const tentAt = world(TENT.x, TENT.z); colliders.push(boxDesc({ x: tentAt.x, z: tentAt.z, hw: TENT.w / 2, hd: TENT.d / 2, rot: -(CARAVAN.yaw + TENT.yaw), yBottom: y - 0.5, yTop: y + TENT.h }, 'felt'));
-  for (const [x, z, half] of CARGO) { const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + half * 1.8 }, 'wood')); }
+  for (const [i, [x, z, half]] of CARGO.entries()) { if (i === 2) continue; const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + (i === 0 ? 0.84 + 0.52 : half * 2) }, 'wood')); } // the stacked crate rides on the first's collider
   { // the caravan's marker, off the lee side (in the caravan's frame, -X)
     // E399 (mockup B shows the wagon alone): no marker pole at the caravan; the well keeps its
     void markerPole;
