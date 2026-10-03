@@ -57,3 +57,22 @@ closed ask.
 A commit whose message names a live plan (`docs/plans/<NAME>.md`) also touches that plan: tick the row, or rewrite the
 State line. When the plan really is unchanged, add the trailer `Plan-State: unchanged`. The brief flags a plan whose
 State date is older than its newest commit naming it.
+
+## Plans and their State line
+
+- A plan is a `docs/plans/<NAME>.md` with a row table. Line 3 is its **State** line:
+  `**State:** \`<state>\` <YYYY-MM-DD> — <one line: what landed, what is open, who or what it waits on>`. Rewrite it
+  (don't append) whenever the state or the open work changes.
+- States:
+  - `draft`: written, waiting on Jake's go. Nothing is built from a draft.
+  - `in progress`: being built. The line names the open rows and their owners.
+  - `blocked`: nothing to build until something named arrives.
+  - `finished`: every row is built and ticked, and **no row is open**. A leftover is built, or stays an open row and
+    the plan stays live. Never file a plan's tail as asks.
+  - `archived`: a finished plan, moved **in the same commit it finishes** to `project/archive/<YYYY-MM-DD>-<name>.md`,
+    State `archived <today> (finished <date>)`. `docs/plans/` only holds live plans.
+  - `dropped`: Jake dropped it. State line with his words, then archived like a finished one.
+- Moving a plan: fix the links to it in docs and code comments.
+- A council's round files are archived with its result the day the council ends ([COUNCIL.md](COUNCIL.md)).
+- **Reviews** (pages for Jake to read) are registered in `docs/reviews/<slug>.md` and stay until Jake says he read them
+  ([docs/reviews/README.md](../reviews/README.md)). The plan links its open reviews under its State line.

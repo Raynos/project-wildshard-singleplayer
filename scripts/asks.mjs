@@ -146,7 +146,7 @@ function brief() {
   const log = git('log', '--since=30.days', '--format=%cs%x09%h%x09%s');
   for (const name of livePlans()) {
     const text = readFileSync(resolve(ROOT, PLANS, `${name}.md`), 'utf8');
-    const state = /^\*\*State:\*\* *(.*)$/mu.exec(text)?.[1] ?? '(no State line: add one, see AGENTS.md → Plans)';
+    const state = /^\*\*State:\*\* *(.*)$/mu.exec(text)?.[1] ?? '(no State line: add one, see docs/process/ASKS.md)';
     const stateDate = /(\d{4}-\d{2}-\d{2})/u.exec(state)?.[1] ?? '0000-00-00';
     const re = new RegExp(`(^|[^A-Za-z0-9_-])${name}([^A-Za-z0-9_-]|$)`, 'u');
     const newer = log.split('\n').find((l) => re.test(l.split('\t')[2] ?? '') && (l.split('\t')[0] ?? '') > stateDate);

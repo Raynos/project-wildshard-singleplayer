@@ -241,7 +241,7 @@ look-dome 3×3 grids; phone copies for the Explorers; each Set gets its `target`
   (out of the exemption, every fix re-records the gate baseline); **on Jake's word, the status becomes
   `experimental`**.
 - **Polish rounds** (the old iterative flow, D62): after P17, Jake picks an area or a note; one place at a time: a
-  composition + a built view at the same camera → his GO or revision → bakes + walk + budgets. Leftovers stay asks.
+  composition + a built view at the same camera → his GO or revision → bakes + walk + budgets. Leftovers are built, or stay open rows of the shard's plan (never asks, E423).
 
 ## S. Single-stage entry (a director's call, on any shard; D91; 06 §9, §10.2)
 

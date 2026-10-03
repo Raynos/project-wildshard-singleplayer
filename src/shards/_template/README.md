@@ -54,7 +54,7 @@ Grey-box: flat-shaded primitives, a plain gradient sky, linear fog, a neutral gr
 - The gate's `_template` job boots it on `macos-15`, walks to the hut, kills the blob and runs the leak test
   (`scripts/test-template-gate.mjs`).
 
-## Open asks
+## Open work (plan rows; leftovers are never asks, docs/process/ASKS.md)
 
 - E357 Z1 / Z4: the gate's template job green on every push.
 - E357 Z3: a fresh agent builds a fifth shard from this folder and the docs alone.

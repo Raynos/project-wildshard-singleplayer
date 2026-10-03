@@ -9,8 +9,10 @@ You are the desk between Jake and the ~10 agents building Wildshard. He steers b
 **reviews**: the pages agents make for him to read before a plan is finalised. Your job: tell him the truth about both,
 briefly, and keep the paperwork true so the session brief is right for everyone.
 
-Read first: AGENTS.md → "Plans (`docs/plans/`) and their state", "Reviews: pages for Jake to read", "Version control"
-(pathspec commits, `scripts/push-main.sh`), and [docs/reviews/README.md](../../../docs/reviews/README.md).
+Read first: [docs/process/ASKS.md](../../../docs/process/ASKS.md) (asks are receipts, plans are the queue, the plan
+States, leftovers as plan rows), [docs/process/GIT.md](../../../docs/process/GIT.md) (pathspec commits,
+`scripts/push-main.sh`), and [docs/reviews/README.md](../../../docs/reviews/README.md). `node scripts/asks.mjs brief`
+prints the unanswered asks, the expired claims and picks, and any State line older than its newest commit.
 
 ## 1. Gather (always from `origin/main`, not the shared working tree)
 
@@ -70,7 +72,8 @@ His standing preferences (memories, 2026-09-28 → 10-03):
 1. `scripts/ask-new.sh "<his words>"` (never hide its output) unless it is part of an ask you already hold.
 2. `git mv docs/plans/<NAME>.md project/archive/<YYYY-MM-DD>-<name-lowercase>.md` (today's date, `date +%F`).
 3. Rewrite its State line: `` `archived` <today> (finished <today>[, on Jake's word, <ask>: "<his words>"]) — <what
-   landed>. Leftovers: <open ask ids>; rows never picked stay listed below, not queued.``
+   landed>.`` A plan with an open row is not finished: build the row, or leave the plan live. Never file a plan's
+   tail as asks (E423). Rows Jake never picked are dropped in the State line ("Jake approved none"), not queued.
 4. Fix relative links inside the moved file (`../../project/archive/x.md` → `x.md`, `../reviews/` → `../../docs/reviews/`).
 5. `git grep -n "<NAME>.md" -- docs project .claude src scripts`: repoint live docs and code comments. Ask files and
    `docs/tasks/ASKS.md` keep the old path (history).

@@ -117,7 +117,7 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 |---|---|
 | `manifest.ts` | the `ShardManifest`, default-exported. Node-safe: data and lazy thunks only |
 | `plugin.ts` | the `ShardPlugin` subclass, default-exported |
-| `README.md` | what the shard declares, its custom code and why, budgets, look, open asks |
+| `README.md` | what the shard declares, its custom code and why, budgets, look, open work (its plan rows) |
 | `roster.ts` | the Model Explorer roster (`live(model)` entries) |
 | `budgets.ts` | the budget inputs (§9) |
 
@@ -464,9 +464,9 @@ Strictness holds: no `any`, `!`, `as unknown as`, ts-ignore, and no blanket `oxl
 ### Live
 - [ ] The gate's job for your shard is green on every push.
 - [ ] Jake has played it and picked the board items.
-- [ ] Open leftovers are ask files, linked from your README.
+- [ ] Open leftovers are rows of the shard's plan (never ask files, docs/process/ASKS.md), linked from your README.
 - [ ] `status` moves `experimental` → `earlyAccess` → `live` on Jake's word, one commit each. `hidden` is for the template only.
-- [ ] The README lists what the shard declares, its custom code and why, budgets, look and open asks.
+- [ ] The README lists what the shard declares, its custom code and why, budgets, look and open work.
 
 ---
 

@@ -37,7 +37,8 @@ before you spend any effort on it.
 ## 2. One ask per note, before any work
 
 `scripts/ask-new.sh "<the note's words, shortened> (review note <id>)"` for each note. Status `open`, evidence
-`.review/handled/<id>` (where it will end up). AGENTS.md § The user's asks has the rules.
+`.review/handled/<id>` (where it will end up). Each note is Jake's request for work, so it gets its receipt;
+docs/process/ASKS.md has the rules (Status vocabulary, done = on origin/main with green CI).
 
 ## 3. Reproduce on the spot
 

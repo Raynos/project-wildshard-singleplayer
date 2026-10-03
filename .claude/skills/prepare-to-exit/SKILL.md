@@ -30,12 +30,12 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
   `git push` and tree-wide `restore .` / `checkout .` / bare `stash` / `reset --hard` / `clean -f`; `dcg` blocks
   `>` onto computed paths; `guard-rm.py` blocks `rm -r` of `/`, `~`, `~/projects`, system dirs and shallow paths.
   A plain `rm -rf <literal path>` is allowed (2026-10-02).
-- **The uplink is ~10–100 KB/s.** Six parallel pushes of one pack hung 15+ minutes (E19). Push only through
+- **Pushes are serialized.** Six parallel pushes of one pack once hung 15+ minutes (E19). Push only through
   `scripts/push-main.sh` (it holds `.git/push.lock`), and keep packs small: `.githooks/pre-commit` refuses a
   `progress/` image over 500 KB, and mockups under `art/<subject>/round-<n>-<label>/` are committed as JPEG.
 - **What ships is a clean export of HEAD** (CI checks out the commit), never the working tree — so *HEAD* is what
   has to be green, and other agents' dirty files never ship.
-- **Game browsers are a shared lane: at most 3 open machine-wide, enforced by `scripts/browser-lane.sh` and its hook (E312).**
+- **Game browsers are a shared lane: at most 4 open machine-wide, enforced by `scripts/browser-lane.sh` and its hook (E312).**
   Each open game tab costs ~1.5 cores for as long as it lives; SwiftShader ~3 per page. Close yours before the banner (step 6).
 - **Paths.** The checkout is `~/projects/games/wildshard-singleplayer`; its memory directory is
   `~/.claude/projects/-Users-raynos-projects-games-wildshard-singleplayer/memory/` (index `MEMORY.md`).
@@ -86,9 +86,12 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    `git fetch && git merge origin/main` (never rebase, never stash), gates again on the merged HEAD, push again.
    Then:
    ```
-   gh run watch $(gh run list --limit 1 --json databaseId -q '.[0].databaseId') --exit-status   # ~1 min; red = your fix, now
-   curl -s https://wildshard-singleplayer.vercel.app/version.json   # "build":"<short sha>-…" must be HEAD (or a later HEAD that contains yours)
+   gh run list --json databaseId,headSha -q '.[]|select(.headSha|startswith("<sha>"))|.databaseId'   # YOUR run, not the latest
+   gh run watch <that id> --exit-status   # red = your fix, now
+   curl -s https://wildshard-singleplayer.vercel.app/version.json   # only to record the build id if it already shipped
    ```
+   Done means on origin/main with green CI; production picks it up on the hourly deploy, so don't wait for
+   `version.json` (docs/process/DEPLOY.md).
    After a private-index commit, also check nobody's work regressed between your `BASE` and HEAD
    (`git show --stat` the commits in `$BASE..HEAD`, `git rev-parse HEAD:<path>` for the files they touched) — the
    read-tree / commit-tree race silently reverts a sibling's commit if HEAD moved in between. An unpushed commit at
@@ -97,34 +100,34 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    (`scripts/serve-build.sh`) would still have the old code. Bring *your* files to HEAD with the Write / Edit tool (or `git show HEAD:<path>`
    into a literal path) — only where the worktree copy is an older version of *yours*; never overwrite a copy that
    carries someone else's hunks. Pathspec commits need no sync.
-5. **Ledgers.** Every ask you took this session has its own file `docs/tasks/asks/<ID>.md` (claimed with
-   `scripts/ask-new.sh "<the user's words>"` — never a new row in the legacy `docs/tasks/ASKS.md`), and its
-   `**Status:**` line is true: `done` with the commit SHA and the live build id from `version.json`,
-   `in flight (<date>, <owner>)`, `needs pick` with exactly what the user must choose, or `dropped` with the user's
-   words. Ask files never move or get deleted. A plan you moved has its rows ticked and its line-3 **State** line
+5. **Ledgers** ([docs/process/ASKS.md](../../../docs/process/ASKS.md)). Every request for work you took this session
+   has its own file `docs/tasks/asks/<ID>.md` (claimed with `scripts/ask-new.sh "<the user's words>"`), and its
+   `**Status:**` line is true and in the vocabulary: `done (<date>): <SHA>` once it is on origin/main with green CI
+   (add the live build id if the deploy already shipped it; don't wait for it), `in flight (<date>, <owner>)`,
+   `needs pick (<date>)` with exactly what the user must choose, `dropped` with the user's words, or
+   `folded into <X>`. A closed ask keeps no Handoff section. Ask files never move or get deleted. A plan you moved has its rows ticked and its line-3 **State** line
    rewritten (not appended) to the truth; a plan that finished is moved **in the same commit** to
-   `project/archive/<YYYY-MM-DD>-<name>.md` with State `archived <today> (finished <date>)` plus where the leftovers
-   went, and the links to it fixed. A `done` ask without a build id means the push didn't happen or CI is red —
-   go back to step 3. Edit shared ledgers with Edit or `>>`, never `>`.
+   `project/archive/<YYYY-MM-DD>-<name>.md` with State `archived <today> (finished <date>)` and the links to it
+   fixed; a plan with an open row is not finished. A `done` ask whose push isn't on origin/main with green CI goes
+   back to step 3. Edit shared ledgers with Edit or `>>`, never `>`.
 6. **Close every browser and emulator you opened, and empty your scratchpad.** `agent-browser session list` shows none of yours
    (`agent-browser --session <s> close`); `scripts/browser-lane.sh status` lists no browser you started (it shows each
    browser's parent; `scripts/browser-lane.sh reap` clears orphans); Playwright scripts have `browser.close()`d; an Android emulator you booted is gone (`adb -s <serial> emu kill`). An open
-   game tab renders at 60 fps forever and eats a slot of the 3-browser lane for everyone.
-   **Then empty your scratchpad** (AGENTS.md "Keep your scratchpad tidy": these scratchpads once filled the 4 TB
+   game tab renders at 60 fps forever and eats a slot of the 4-browser lane for everyone.
+   **Then empty your scratchpad** (docs/process/MACHINE.md "Scratchpads": these scratchpads once filled the 4 TB
    disk). `du -sh <scratchpad>/* | sort -rh | head` shows what is there. Anything a report or a later session needs
    (a shot you cite, a board) is copied into `progress/` or `art/…` as JPEG and committed in step 1. Then delete
    the rest with literal paths: clean exports, `gate-*` / `base-*` checkouts, render frames, build logs, dumps.
    Leave only small text the report links to (a few MB at most), and give its size in the report. Don't rename
    anything aside (`trash/`, `old-*`, `*.old-<ts>`, `*.stopped-<ts>`): that is not deleting. Don't touch another
    session's scratchpad or anything a live subagent of yours is still writing (step 8).
-7. **Leftover-work sweep — a QUEUE, not a record.** Anything this session ruled, found, deferred or decided but did
-   not build must have a home an agent or the human starts from: an **open ask file in `docs/tasks/asks/`** (the
-   session-brief hook prints every ask whose Status isn't done / dropped, and every live plan's State line, at
-   each session start — that is the only queue anyone reads), or a **row in a `docs/plans/*.md` checkpoint table**
-   whose State line names it. Something only the user can do (an account, a pick, a phone reading) is an ask with
-   `needs pick` / `needs you` and exactly what they must do. A commit body, a subagent report, a memory note or a
-   chat message is a RECORD, not a QUEUE. This is the step most likely to be skipped because everything *looks*
-   clean; it is a banner precondition below.
+7. **Leftover work: build it, or it is a plan row** (E423, docs/process/ASKS.md). Anything this session found,
+   deferred or didn't finish is **built now**. If it truly can't land, it becomes an **open row of the live plan it
+   belongs to** (`docs/plans/*.md`, with an acceptance line, its State line naming it), and the report says so.
+   **Never a new ask file for a leftover**: per-leftover asks were the graveyard (86 of 133 open asks at E423). No
+   iPhone checks for Jake (he does no phone chores); a pick for him is one recommended answer in chat, or a row on
+   the decision page. A commit body, a subagent report, a memory note or a chat message is a RECORD, not a QUEUE.
+   This is the step most likely to be skipped because everything *looks* clean; it is a banner precondition below.
 8. **Subagents and sibling sessions.** Don't kill running subagents to exit — a checkpoint resumes committed state;
    live work notifies when done. List every agent still alive with what it holds and which files it owns. If a
    subagent of yours has uncommitted edits in the tree, either land them through step 1 or queue exactly what is
@@ -162,17 +165,16 @@ The two banners answer **one** question — not "did the git commands succeed" b
 
 > **Is it safe to KILL this pane right now?**
 
-- **BYE — safe to close.** Your work is committed on `main` and pushed, **the CI run for your last push is green
-  and `version.json` serves your HEAD**, your browser sessions are closed, your scratchpad is emptied, the session is at a coherent stopping
-  point, **and the leftover-work sweep is done — every ruling, finding and deferral this session produced has an
-  ask file in `docs/tasks/asks/` or a `docs/plans/` table**. A BYE is a claim that nothing here will be lost.
+- **BYE — safe to close.** Your work is committed on `main` and pushed, **the CI run for your last push is green**, your browser sessions are closed, your scratchpad is emptied, the session is at a coherent stopping
+  point, **and the leftover-work sweep is done — every finding and deferral this session produced is
+  built or is an open row of a live plan**. A BYE is a claim that nothing here will be lost.
 - **OOPS — do NOT close.** Any of these, and they weigh the same:
   1. **Something is wrong.** A gate is red on HEAD, the CI run for your push failed or you didn't wait for it, a
      push is refused, a sibling's commit got reverted by yours, a stranded commit with no queued reason — or you
      simply **don't know** whether it's sound. Uncertainty is an OOPS: the banner is a safety signal, so it fails
      *loud*, not *optimistic*.
   2. **Leftover work has no queue.** Something this session ruled, found or deferred lives only in a commit body,
-     a subagent report, a memory note or a chat message. Queue it (it is five minutes) and *then* BYE; if you
+     a subagent report, a memory note or a chat message. Build it, or make it a plan row, and *then* BYE; if you
      cannot, OOPS and name it.
   3. **The session is half-built.** Run too early — mid-implementation, an agent mid-round with uncommitted edits
      that nobody else will finish, a feature wired but unreachable, a browser session still rendering. **A clean
