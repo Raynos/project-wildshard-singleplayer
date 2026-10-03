@@ -30,12 +30,14 @@ for stage in ('early', 'late'):  # round 18: two stages (the mid painting fit no
         t = np.clip((el - 5.0) / 4.0, 0, 1); t = (t * t * (3 - 2 * t))[:, None, None]
         a = a * (1 - t) + sm * t
         # round 22b (the lead and seat C: D's mid sky magenta, 151,70,100 against the mockup's violet 88,62,104): toward
-        # D's view (headings 324-358 full, easing over 8 deg) the red falls to 0.62 from 4 to 14 deg, easing
+        # D's view (heading 341, full within +-10 deg, easing out by +-70) the red falls to 0.62 from 4 to 14 deg, easing
         # out to 0.82 at the horizon band (its green up 20 %, peach not red-pink) and to none by 22 deg
         hd = np.arange(a.shape[1]) / PPD
         def ease(x): x = np.clip(x, 0, 1); return x * x * (3 - 2 * x)
         dh = np.abs((hd - 341.0 + 180.0) % 360.0 - 180.0)  # D's frame spans ~323-359; B's (303) ends by ~321
-        wh = ease((25.0 - dh) / 8.0)
+        # round 23 (TOP10-3 row 4, the lead's round-22 ruling: the 8 deg shoulders showed as a seam in the clip): full within
+        # +-10 deg of D's heading, easing to none by +-70 deg, so no edge falls inside any frame
+        wh = ease((70.0 - dh) / 60.0)
         rf = np.interp(el, [-8.0, 1.0, 4.0, 14.0, 22.0, 90.0], [0.82, 0.82, 0.62, 0.62, 1.0, 1.0])
         # the glow line keeps its value (the mockup's 160,103,99 against 199,97,92): less red, a little more green
         gf = np.interp(el, [-8.0, 2.0, 5.0, 14.0, 22.0, 90.0], [1.2, 1.2, 0.95, 0.95, 1.0, 1.0])
