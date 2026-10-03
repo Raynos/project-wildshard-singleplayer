@@ -33,6 +33,8 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   // (round 9, the seats: 0.58 of A's width against the mockup's 0.80, and high): larger and lower, headings -17 to +12, their
   // keels down to ~6 deg, framing the mill's top and the low sun
   isle('o1', -30, -148, 13, 66, 20, 4, Math.PI * 0.3), isle('o3', -4, -170, 14, 72, 22, 3, null), isle('o4', 20, -150, 11, 64, 18, 2, Math.PI * 0.8),
+  // (round 10, seat A: 'an overlapping cluster'; three separate crags left sky between them) two more, overlapping the three
+  isle('o5', -16, -162, 10, 70, 17, 2, null), isle('o6', 9, -186, 12, 78, 20, 2, null),
   isle('o2', 30, -290, 12, 40, 20, 4, Math.PI * 0.7),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),

@@ -38,7 +38,7 @@ export const SKY_ISLE_HAZE = { color: SKY.fog, near: 60, far: 320, max: 0.22 } a
 const WEAR: Readonly<Record<string, readonly [SkyIsleModel, number]>> = {
   'sky.l1': ['isle-cone-hd', 0.4], 'sky.l2': ['isle-spurs-hd', 2.1], 'sky.l3': ['isle-crag-hd', 4.0], 'sky.l4': ['isle-cone-hd', 5.3], 'sky.l5': ['isle-spurs-hd', 1.0],
   'sky.r1': ['isle-crag-hd', 2.8], 'sky.r2': ['isle-cone-hd', 3.5], 'sky.r3': ['isle-spurs-hd', 4.6], 'sky.r4': ['isle-crag-hd', 0.9], 'sky.r5': ['isle-cone-hd', 1.7],
-  'sky.o1': ['isle-spurs-hd', 0.2], 'sky.o2': ['isle-cone-hd', 3.0], 'sky.o3': ['isle-crag-hd', 2.2], 'sky.o4': ['isle-cone-hd', 4.4],
+  'sky.o1': ['isle-spurs-hd', 0.2], 'sky.o2': ['isle-cone-hd', 3.0], 'sky.o3': ['isle-crag-hd', 2.2], 'sky.o4': ['isle-cone-hd', 4.4], 'sky.o5': ['isle-spurs-hd', 5.1], 'sky.o6': ['isle-crag-hd', 0.7],
   'sky.b1': ['isle-crag-hd', 5.6], 'sky.b2': ['isle-spurs-hd', 3.9], 'sky.b3': ['isle-cone-hd', 2.5], 'sky.b4': ['isle-spurs-hd', 4.9],
 };
 const FALLBACK: readonly SkyIsleModel[] = SKY_ISLE_MODELS;
@@ -121,7 +121,7 @@ export function skyIsleModels(isles: readonly SkyIsle[]): SkyIsleHd {
   // the low sun behind them catches their edges gold (round 9, the seats: 'pale flat mesas'; mockup A's crags are dark
   // masses with sunlit gold rims)
   { float farRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 3.0);
-    gl_FragColor.rgb = gl_FragColor.rgb * 0.82 + vec3(1.0, 0.7, 0.36) * farRim * 0.55; }
+    gl_FragColor.rgb = gl_FragColor.rgb * 0.95 + vec3(1.0, 0.7, 0.36) * farRim * 0.55; }
   gl_FragColor.rgb = mix(gl_FragColor.rgb, ${linear(SKY_ISLE_HAZE.color)}, clamp((length(vViewPosition) - ${SKY_ISLE_HAZE.near.toFixed(1)}) / ${(SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1)}, 0.0, 1.0) * ${SKY_ISLE_HAZE.max.toFixed(2)});`);
     }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim` });
     const mesh = new InstancedMesh(u.geometry, material, list.length); mesh.name = `far.sky-isles.${name}`;
