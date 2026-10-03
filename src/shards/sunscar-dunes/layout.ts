@@ -43,10 +43,10 @@ export const LANDFORMS = {
   // must look DOWN on receding lit crests, the tower's mound showing): round 13's low crest (the closest A by eye, its
   // 7-13.5 m line mostly under the field, so the field's own receding rows show), measured inside the dune band only:
   // in-band r A +0.23 / dusk-fire +0.30 (round 16: -0.01 / -0.51), A's lit box 52 (16: 32), lit share 19-22 % (mockups
-  // 15-25 %). Mounds: the tower's; a dune 150 m out along B's view, 17 m, under its glow; waymark 0's rise, 18 m (mock
+  // 15-25 %). Mounds: the tower's; a dune 150 m out along B's view, 19 m, under its glow; waymark 0's rise, 20 m (mock
   // C's far brazier burns on it, under the glow)
   crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }],
-  mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }, { x: -165, z: -64, h: 17, r: 60 }, { x: BRAZIERS[0]?.x ?? 0, z: BRAZIERS[0]?.z ?? 0, h: 18, r: 46 }],
+  mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }, { x: -165, z: -64, h: 19, r: 60 }, { x: BRAZIERS[0]?.x ?? 0, z: BRAZIERS[0]?.z ?? 0, h: 20, r: 50 }],
 } as const;
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 // E399 (mockup C): each waymark on level sand too, its fire's pool flat round it

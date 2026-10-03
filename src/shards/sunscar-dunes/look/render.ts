@@ -22,7 +22,7 @@ import { loadPaintedSky, paintedSkyMaterial } from './painted';
 // round 9's seats: the WNW key lit A's left, which the mockup shades): the NNW, with the crest line (layout CREST_LINES)
 // and a crisp terminator; dusk-fire's clean-patch sand 73 / mockup 72, A's 78 / 56 (the two mockups' known disagreement)
 // round 15 (the lead): the key stays inside the sky's own glow (SUN_GLOW at 11.5 deg right of north): 23.5 deg, +12 deg of it
-export const KEY = { dir: new Vector3(0.39, 0.2, -0.9).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.05 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(0.39, 0.2, -0.9).normalize(), color: new Color(1, 0.8, 0.44), intensity: 2.05 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -397,6 +397,15 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     reflectedLight.indirectDiffuse *= 1.0 - 0.45 * away; reflectedLight.directDiffuse *= 1.0 - 0.45 * away;
     // (round 15's late far-land darkening by distance from the camera is gone: the lead's hard rule after round 15, darkening
     // comes from facing, height, occlusion or the engine fog only)
+  }
+  {
+    // E409 second top-10 row 1 (seat B after round 17: in the mockups the sand's saturation rises with its light, a
+    // violet-grey shade at 0.21-0.31 and an orange light at 0.57-0.69; the game's sat flat near 0.45-0.55): the amber key's
+    // light saturated, the sky fill desaturated and cooled toward violet-grey
+    vec3 W3 = vec3(0.2126, 0.7152, 0.0722);
+    float dL = dot(reflectedLight.directDiffuse, W3), iL = dot(reflectedLight.indirectDiffuse, W3);
+    reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, 2.1), vec3(0.0));
+    reflectedLight.indirectDiffuse = mix(vec3(iL) * vec3(0.95, 0.94, 1.14), reflectedLight.indirectDiffuse, 0.62);
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
