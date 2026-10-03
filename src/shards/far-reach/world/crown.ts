@@ -157,7 +157,7 @@ export function crownArena(): Group {
   });
   // weathered rock (E399, the council: 'the stones and dais are clean; the mockup's rough and weathered'): the islands' painted rock
   const stoneMesh = new Mesh(mergeGeometries(stoneParts), paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true }), 0.7));
-  const glyphMesh = new Mesh(mergeGeometries(glyphParts), new MeshStandardMaterial({ color: 0xe6f6f4, emissive: 0x9fe6f2, emissiveIntensity: 0.85, roughness: 0.8, metalness: 0 }));
+  const glyphMesh = new Mesh(mergeGeometries(glyphParts), new MeshStandardMaterial({ color: 0xc9c4b4, emissive: 0x9fe6f2, emissiveIntensity: 0.12, roughness: 0.9, metalness: 0 }));
   for (const g of [...stoneParts, ...glyphParts]) g.dispose();
   const dais = new Mesh(daisGeometry(), paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, side: DoubleSide, flatShading: true }), 0.18));
   dais.position.set(DAIS.x, CROWN.y, DAIS.z);

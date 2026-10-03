@@ -44,6 +44,16 @@ export class StormRocBrain extends CreatureBrain<RocState> {
    * Capture staging (E399, the mock-D view): a first-phase stalk under way, the Roc at `at` at its circle's height, flying
    * in at `face`. Real flight state, nothing else.
    */
+  /**
+   * Stage the circling lap (E399 round 7, the lead's ruling): the rest after a strike, which every fight shows for 2.4 s,
+   * circling the dais at its lap altitude: placed on the circle at `theta`, flying along it. Real flight state only.
+   */
+  stageLap(theta: number): void {
+    const a = this.actor; if (!this.fighting || this.phase !== 0) return;
+    this.strikes.cancel(); a.cancelAttack(); this.current = null; this.angle = theta; this.rest = 2.4; this.transition('rest');
+    a.place(ROC.x + Math.cos(theta) * ROC.r, ROC.z + Math.sin(theta) * ROC.r, 0, ROC.y);
+    a.yaw = yawTo(a, ROC.x + Math.cos(theta + 0.3) * ROC.r, ROC.z + Math.sin(theta + 0.3) * ROC.r);
+  }
   stageStalk(at: { x: number; z: number }, face: { x: number; z: number }): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
     this.rest = 0; this.strikes.cancel(); a.cancelAttack(); this.current = null; this.transition('stalk');
@@ -92,7 +102,8 @@ export class StormRocBrain extends CreatureBrain<RocState> {
 const brains = new WeakMap<Animal, StormRocBrain>();
 export const rocBrain = (a: Animal): StormRocBrain => { let value = brains.get(a); if (!value) { value = new StormRocBrain(a); brains.set(a, value); } return value; };
 export const STORM_ROC: SpeciesRow = { id: 'far.creature.stormRoc', kind: 'stormRoc', label: STRINGS.roc, aggressive: true, blood: false,
-  flight: { altitude: ROC.y, above: 'world', climbRate: 9, diveRate: 24, lockRange: 40 },
+  // bank (engine 8252e3978): it rolls into its turns, so the lap round the dais banks (round 7: 'a frontal level bird')
+  flight: { altitude: ROC.y, above: 'world', climbRate: 9, diveRate: 24, lockRange: 40, bank: 0.6 },
   variants: [{ id: 'storm', label: STRINGS.roc, weight: 1, rarity: 'legendary', scale: [1, 1], hp: 420 }],
   think: (a, ctx) => { rocBrain(a).think(ctx); }, act: (a, ctx) => { rocBrain(a).act(ctx); } };
 
@@ -105,7 +116,8 @@ const wing = (side: number, bone: number): { geometry: ConeGeometry; bone: numbe
 const ROC_WING_ROOT = 1.1;
 /** The Roc's wingspan (metres). */
 // E399 (mockup D: a great eagle whose wings span the portrait frame from the arena's entrance; it was 11 m)
-const ROC_SPAN = 15;
+// (round 7, the seats: mockup D's eagle spans ~0.96 of the portrait frame from the arena; at its lap ~33 m out that is ~20 m)
+const ROC_SPAN = 19;
 const ROC_BONES = (head: number, headY: number, tail: number): BoneDef[] => [{ name: 'body', parent: null, pos: [0, 1.6, 0] },
   { name: 'head', parent: 'body', pos: [0, headY, head] }, { name: 'wingL', parent: 'body', pos: [ROC_WING_ROOT, 1.7, 0] },
   { name: 'wingR', parent: 'body', pos: [-ROC_WING_ROOT, 1.7, 0] }, { name: 'tail', parent: 'body', pos: [0, 1.5, tail] }];

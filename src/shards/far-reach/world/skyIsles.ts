@@ -26,8 +26,10 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   // the mill, their isles small and far at the horizon either side; only A hangs a cluster there, so the overhead three
   // went out to the horizon band): from the spawn small isles beside the mill, just under the low sun; from the crown's
   // rise beyond the standing stones, as mockup D shows them
-  isle('o1', -30, -300, 11, 46, 19, 4, Math.PI * 0.3), isle('o2', 30, -290, 12, 40, 20, 4, Math.PI * 0.7),
-  isle('o3', 8, -330, 9, 34, 16, 3, null),
+  // round 7 (seats B and C: 'give A back its cluster without walling B and C'): two crags overlapping over and left of
+  // the low sun, as mockup A frames it (its keels ~9 deg up from the spawn, the sun at 6); the sky over the mill stays open
+  isle('o1', -18, -150, 11, 72, 19, 4, Math.PI * 0.3), isle('o3', -36, -168, 10, 74, 17, 3, null),
+  isle('o2', 30, -290, 12, 40, 20, 4, Math.PI * 0.7),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),
   isle('b3', 20, 95, 16, 60, 26, 5, Math.PI * 1.5), isle('b4', -95, -250, 20, 62, 32, 6, Math.PI * 1.2),

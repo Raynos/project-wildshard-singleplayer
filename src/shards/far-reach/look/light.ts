@@ -24,7 +24,8 @@ export const PAINT = {
   /** the rim's colour × strength */
   rim: [2.6, 1.7, 0.85],
   /** the shade floor's colour (a share of albedo) */
-  floor: [0.3, 0.22, 0.22],
+  // (round 7: the middle band's shade lifted here rather than by a global gamma, which flattened the unlit meadow)
+  floor: [0.56, 0.44, 0.4],
 } as const;
 
 const v3 = (v: readonly number[]): string => `vec3(${v.map((n) => n.toFixed(4)).join(',')})`;

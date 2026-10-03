@@ -194,10 +194,10 @@ export class SkyReachPlugin extends ShardPlugin {
     // a warm brown): the browns turn slate grey, the white head and belly and the yellow beak and talons stay
     if (this.roc !== null) for (const mat of Array.isArray(this.roc.mesh.material) ? this.roc.mesh.material : [this.roc.mesh.material]) {
       patchShader(mat, 'far.roc-slate', PATCH_ORDER.decorate, (shader) => {
-        shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-  { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    float brown = clamp((c.r - c.b) * 4.0, 0.0, 1.0) * (1.0 - smoothstep(0.8, 0.92, c.g / max(c.r, 1e-3)));
-    diffuseColor.rgb = mix(c, vec3(l) * vec3(0.84, 0.9, 1.02) * 1.15, brown * 0.85); }`);
+        // (round 7, seat B: the wings measured unchanged: the model's self-light feeds the painted texture back as emissive,
+        // so the emission is recoloured too; linear values, the brown test scaled for them)
+        const slate = 'vec3 farSlate(vec3 c){ float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); float brown = clamp((c.r - c.b) / max(c.r, 1e-3) * 1.6 - 0.3, 0.0, 1.0) * (1.0 - smoothstep(0.55, 0.75, c.g / max(c.r, 1e-3))); return mix(c, vec3(l) * vec3(0.82, 0.9, 1.05) * 1.25, brown * 0.9); }';
+        shader.fragmentShader = `${slate}\n${shader.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  diffuseColor.rgb = farSlate(diffuseColor.rgb);').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance = farSlate(totalEmissiveRadiance);')}`;
       }, { key: (prior) => `${prior}|far.roc-slate`, scope: ctx.scope });
     }
     ctx.scope.onDispose(() => { for (const a of [...this.rays, ...this.roostRays, ...this.goats, ...this.wisps, ...(this.roc ? [this.roc] : [])]) animals?.retire(a); });
@@ -241,10 +241,11 @@ export class SkyReachPlugin extends ShardPlugin {
     const roc = this.roc, body = roc ? rocBrain(roc) : null;
     if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
     // and a strike in the storm behind it (its lightning comes every 3.5-8 s; mockup D shows a bolt), just before the frame
+    // 'roc-lap' (round 7, the lead's ruling for mock-D): the Roc's rest lap round the dais, set so that after D's 0.6 s
+    // settle it crosses the circle's far side, in the middle of the arena view, banking along it
+    if (name === 'roc-lap') { this.built?.storm.strike(0.5); if (body !== null) body.stageLap(-Math.PI / 2 - 0.5); }
     if (name === 'roc-stalk') this.built?.storm.strike(0.15);
-    // (round 6, seat A: 'banked flight captured mid-approach'): its stalk turns in toward the entrance's side, so it crosses
-    // the view banking, as mockup D's eagle does, rather than flying straight at the camera
-    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x - 14, z: CROWN.z + CROWN.r });
+    if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }
   /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */
   gustVanes(from: Vector3, dir: Vector3, toast: (text: string) => void = () => undefined): number {

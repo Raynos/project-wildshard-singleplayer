@@ -119,8 +119,9 @@ export function plankBridge(length: number, width: number, material: MeshStandar
     // curves'): a thick top rope from the post heads, drawn tighter than the deck, a lighter mid rope, and ties from the top
     // rope down to the deck's edge every 1.25 m, as the mockups' bridges are netted
     const x = side * width / 2, topAt = 1.45, topK = 0.7, ties: BufferGeometry[] = [];
-    for (let t = 1.25; t < length - 0.6; t += 1.25) {
-      const deckY = -sag(t), ropeY = topAt - sag(t) * topK, tie = new CylinderGeometry(0.016, 0.016, ropeY - deckY, 4, 1);
+    // (round 7, seat B: 'every 1.25 m the sides read as fences and ladders'): every 2.5 m and thin, the sky reads through
+    for (let t = 2.5; t < length - 1.2; t += 2.5) {
+      const deckY = -sag(t), ropeY = topAt - sag(t) * topK, tie = new CylinderGeometry(0.009, 0.009, ropeY - deckY, 4, 1);
       tie.translate(x, (ropeY + deckY) / 2, -t); ties.push(tie.toNonIndexed());
     }
     group.add(new Mesh(hungRope(length, sag, x, topAt, topK, 0.045), rails), new Mesh(hungRope(length, sag, x, 0.7, 0.88, 0.026), rails));

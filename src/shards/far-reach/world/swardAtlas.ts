@@ -7,7 +7,7 @@ import { DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, Unsign
  * G how far along its strand the texel is (0 root, 1 tip), A the coverage. world/meadow.ts paints them.
  */
 // round 6 (the seats: 'denser but softer than round 5', fine detail 13-15 against 21-23): twice the texels, thinner strands
-export const SWARD_ATLAS = { variants: 4, w: 256, h: 512, strands: 96 } as const;
+export const SWARD_ATLAS = { variants: 4, w: 256, h: 512, strands: 140 } as const;
 
 export function swardAtlas(seed = 6417): DataTexture {
   const { variants, w, h, strands } = SWARD_ATLAS, W = w * variants, data = new Uint8Array(W * h * 4);
@@ -20,7 +20,7 @@ export function swardAtlas(seed = 6417): DataTexture {
       const off = (rnd() + rnd() + rnd() - 1.5) / 1.5, rootX = w * (0.5 + off * 0.3);
       const len = h * (0.42 + 0.56 * rnd()) * (1 - 0.35 * Math.abs(off)), lean = (off * 0.55 + (rnd() - 0.5) * 0.5) * len * 0.45;
       // some blades arch over (the mockups' sward bends and crosses), each its own shade from deep to lit
-      const curl = (rnd() - 0.5) * len * 0.12, base = 1.4 + 2.0 * rnd(), shade = 0.3 + 0.7 * rnd();
+      const curl = (rnd() - 0.5) * len * 0.12, base = 2.0 + 2.4 * rnd(), shade = 0.3 + 0.7 * rnd();
       const arch = rnd() < 0.3 ? (rnd() < 0.5 ? -1 : 1) * len * (0.25 + 0.3 * rnd()) : 0;
       const steps = Math.ceil(len * 2);
       for (let i = 0; i <= steps; i++) {

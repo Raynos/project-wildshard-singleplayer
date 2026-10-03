@@ -26,8 +26,8 @@ export const SKY_REACH: ShardManifest = {
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.8, 0.6] },
   // E399 round 6: under the NEUTRAL tone map (look/render.ts) no extra saturation (0.32 drove every low-blue colour to 0:
   // the meadow's blue measured 0-3 against the mockups' 14-45), a gentler contrast and bloom; measured against the mockups.
-  // Gamma 1.15 lifts the middle (the seats: A's subject band median 55 vs the mockup's 84, under the bridge 63 vs 108)
-  grade: { saturation: 0, brightness: 0, contrast: 0.12, bloomIntensity: 0.35, bloomThreshold: 0.7, shadowTint: [0.97, 0.98, 1.04], highTint: [1.06, 1.0, 0.88], lift: [0.012, 0.004, 0], gain: [1, 0.99, 0.97], gamma: 1.15 },
+  // (round 7: a gamma 1.15 lifted the middle but flattened the meadow's spread, 29 vs 70; look/light.ts lifts the forms' shade instead)
+  grade: { saturation: 0, brightness: 0, contrast: 0.12, bloomIntensity: 0.35, bloomThreshold: 0.7, shadowTint: [0.97, 0.98, 1.04], highTint: [1.06, 1.0, 0.88], lift: [0.012, 0.004, 0], gain: [1, 0.99, 0.97], gamma: 1 },
   render: async () => (await import('./look/render')).skyReachLook(),
   uses: ['hover', 'quests', 'bosses', 'coins', 'loot'],
   loadout: { weapons: ['weapon.far-fan'], tools: ['tool.hoverboard'], start: ['weapon.far-fan', 'tool.hoverboard'], held: 'weapon.far-fan' },

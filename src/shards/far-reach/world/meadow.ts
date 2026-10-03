@@ -27,9 +27,9 @@ export const MEADOW = {
    * (1 + layers) × as dense with no more blades in the buffer; the extra layers shrink away by `near` metres (inside
    * the inner tiles' 8 m reach), and a frustum test drops every blade off screen before its island and hole loops
    */
-  layers: 3, near: 7.5,
+  layers: 4, near: 7.5,
   /** blade height range (metres) */
-  low: 0.16, high: 0.74,
+  low: 0.24, high: 0.74,
   /** an island's grass height scale (1 when absent): the crown's arena a little shorter, so the dais reads (E399: mockup D's meadow is lush to the dais) */
   // (round 6: the seats: 'cut to 0.42 against mockup D's lush meadow'; from the rise's top the dais clears ~0.9 m of grass)
   grass: { crown: 0.85 } as Readonly<Record<string, number>>,
@@ -38,7 +38,7 @@ export const MEADOW = {
 } as const;
 
 /** The sward's paint (sRGB) and size (E399): a tuft card's height scale, the root-to-tip ramp, the backlit glow, and how far toward grey the whole field is pulled. */
-export const SWARD = { scale: 0.82, root: 0x12160a, low: 0x2a3812, green: 0x4e6a22, gold: 0x84822e, tip: 0xc4b468, glow: 0xd8b860, grey: 0.0 } as const;
+export const SWARD = { scale: 0.9, root: 0x14140e, low: 0x30341f, green: 0x565c33, gold: 0x857845, tip: 0xc2b48e, glow: 0xd8b860, grey: 0.0 } as const;
 
 /** Where grass never grows: discs (x, z, radius) round the structures and pieces you stand at. */
 export function meadowHoles(): Vector4[] {
@@ -50,7 +50,8 @@ export function meadowHoles(): Vector4[] {
   const out = holes.map(([x, z, r]) => new Vector4(x, z, r, 0));
   // the keeper's trodden ground (E399 round 6, mockup B: he stands in low grass, his boots and his stand in view; the
   // sward between him and the spawn hid both): a disc where the grass grows short (w 1, as round the hero rocks)
-  out.push(new Vector4(KEEPER_AT.x, KEEPER_AT.z, 3.2, 1));
+  // (round 7, seat B: at 3.2 m it mowed A's foreground, 1.8-2.4 m from him: to his boots and the stand)
+  out.push(new Vector4(KEEPER_AT.x, KEEPER_AT.z, 1.2, 1), new Vector4(KEEPER_STAND.x, KEEPER_STAND.z, 0.9, 1));
   return out;
 }
 
@@ -165,15 +166,16 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         if (y > -1.0e3) y += farKnoll(p);
         float clear = 1.0, worn = 1.0;
         for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; float o = smoothstep(h.z, h.z + 0.6, distance(p, h.xy)); clear = min(clear, h.w > 0.5 ? mix(0.3, 1.0, o) : o); }
-        // a worn path keeps a short, thin sward (E392 foreground: a cleared path showed the bare ground as a grey band)
+        // a worn path keeps a short, thin sward (E392 foreground: a cleared path showed the bare ground as a grey band); round 7
+        // (the seats: A's foreground, on the bridge landing's apron, read as mown; mockup A's meadow grows to the posts): faint
         for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; worn = min(worn, smoothstep(0.15, 0.7, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
         float pt = mfbm(p * 0.23);
         // varied heights (E392: the mockups' meadow is tall drifts and short lawn, a few stalks over it, never one even wall)
-        float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.2, 0.8, pt) * 0.55 + r * 0.45) * mix(0.4, 1.25, mn(p * 0.37 + 11.0));
+        float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.2, 0.8, pt) * 0.55 + r * 0.45) * mix(0.72, 1.2, mn(p * 0.37 + 11.0));
         h *= 1.0 + 0.55 * step(0.9, fract(r * 23.3));
-        h *= tall * tuftK * (1.0 - 0.3 * smoothstep(0.85, 1.0, rim)) * clear * mix(0.4, 1.0, worn);
+        h *= tall * tuftK * (1.0 - 0.3 * smoothstep(0.85, 1.0, rim)) * clear * mix(0.8, 1.0, worn);
         h *= 1.0 - smoothstep(layer > 0.5 ? NEAR - 2.5 : RANGE * 0.55, layer > 0.5 ? NEAR : RANGE, dist + (layer > 0.5 ? 1.5 * mn(p * 0.9) : 0.0));
-        if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep * mix(0.7, 1.0, worn)) { cull(); return; }
+        if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep * mix(0.88, 1.0, worn)) { cull(); return; }
         float ang = r * 40.0; vec2 dir = vec2(cos(ang), sin(ang));
         vec2 toCam = normalize(uCam.xz - p + 1e-3);
         // flowers: clustered drifts (daisies, buttercup patches), a few strays; never on a path
@@ -251,9 +253,9 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           float up = along * mix(0.55, 1.0, vH);
           vec3 c = mix(rootC, lowC, smoothstep(0.0, 0.25, up));
           c = mix(c, body, smoothstep(0.2, 0.6, up));
-          c = mix(c, tipC, smoothstep(0.65, 1.0, up) * 0.55);
+          c = mix(c, tipC, smoothstep(0.6, 1.0, up) * 0.8);
           // round 6 (seat A: 'match the luminance spread, not only the mean'): deep gaps, lit blades
-          lit = c * (0.25 + 1.05 * up) * (0.4 + 0.8 * sh) * (0.8 + 0.4 * vTone);
+          lit = c * (0.17 + 1.05 * up) * (0.38 + 0.95 * sh) * (0.8 + 0.4 * vTone);
           // the sun through the blades: the tips and the upper strands glow gold when you look toward it
           float glow = back * smoothstep(0.35, 1.0, up);
           // the backlit blades catch gold (the mockups' 95th percentile is a gold 160-178; ours stopped near 100)
