@@ -153,6 +153,16 @@
    "meshopt": [["fp-arms.raw.glb", "public/assets/models/driftwood-fp/fp-arms.glb"]],
    "outputs": ["public/assets/models/driftwood-fp/fp-arms.glb"],
    "feeds": ["src/shards/driftwood-isle/fpArms.ts", "src/kit/viewmodel/rigArms.ts"]
+  },
+  "far-reach/roc": {
+   "about": "Sky Reach's Storm Roc repair (E392/E399 council round 13): Hunyuan3D-2's eagle (art/far-reach/round-27-roc) with its loose second-head lump deleted, its open edges filled, the claw shapes painted on its tail fan painted out and its beak and toes pushed to gold; then meshopt + a 1024 WebP map (art/far-reach/round-31-roc-fix)",
+   "manual": "the source is Hunyuan3D-2's output after finish.sh (~/ml/img2mesh/work/roc-eagle/roc-eagle.raw.glb), which is not committed: run repair.py on it, then gltf-transform optimize <out> public/assets/far-reach/models/roc-hd/roc-hd.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify false --instance false",
+   "check": "blender -b --factory-startup -noaudio --python-exit-code 1 -P scripts/blender/far-reach-roc/repair.py -- --check public/assets/far-reach/models/roc-hd/roc-hd.glb",
+   "script": "scripts/blender/far-reach-roc/repair.py",
+   "inputs": [],
+   "lock": false,
+   "outputs": ["public/assets/far-reach/models/roc-hd/roc-hd.glb"],
+   "feeds": ["src/shards/far-reach/species/stormRoc.ts"]
   }
  }
 }

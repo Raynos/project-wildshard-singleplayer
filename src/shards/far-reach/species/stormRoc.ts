@@ -1,5 +1,5 @@
 import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type BoneDef, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
-import { BoxGeometry, Color, ConeGeometry, Float32BufferAttribute, IcosahedronGeometry, Vector3, type BufferGeometry } from 'three';
+import { BoxGeometry, Color, ConeGeometry, Float32BufferAttribute, IcosahedronGeometry, Uint16BufferAttribute, Vector3, type BufferGeometry } from 'three';
 import { bindRigid, fit, skyHd, skyMesh, type SkyHd } from '../world/meshes';
 import { CROWN, DAIS, ROC } from '../layout';
 import { crownStones } from '../world/crown';
@@ -18,14 +18,24 @@ export const SWEEP: StrikeSpec = { id: 'far.roc.sweep', shape: { kind: 'arc', ra
 /** The gale wall's shove (m/s along the lane, m/s up): enough to slide you most of the way across the crown. */
 export const ROC_GALE = { shove: 14, lift: 2 } as const;
 export const ROC_SPEED = { circle: 10, stalk: 12, dive: 20, walk: 2.4 } as const;
-/** The take-off as a fight begins: its seconds, its slow speed out from the perch (m/s) and how far it rises (m). */
+/**
+ * The take-off as a fight begins: its seconds, the slow speed it gathers out from the perch (m/s), how far it rises (m), how fast it
+ * swings round onto the player (rad/s) and the most it leans into that swing (rad).
+ */
 // (round 9, the lead: the fight starts at the bridge landing; a player walks into the arena's view in ~3.1 s)
-export const ROC_TAKEOFF = { seconds: 4, speed: 1.6, rise: 2 } as const;
+// (round 13, seat A and the lead: it launched at a fixed rim point, head-on and level; now it drops off its perch turned
+// three-quarter away and swings round onto the player, leaning into the turn as an eagle does at low speed)
+export const ROC_TAKEOFF = { seconds: 4, speed: 1.6, rise: 2, turn: 0.15, bank: 0.35 } as const;
+/** How far the perched Roc stands turned from the arena's entrance (rad, + = to its left): three-quarter on, so whoever
+ * walks in sees its profile, hooked beak and folded wing, and its launch is a turn (round 13: 'frontal symmetry'). */
+export const ROC_PERCH_TURN = -0.8;
 /** The Roc's perch: the top of the ring's tallest stone (world/crown.ts), the one opposite the arena's entrance. */
 const PERCH = (): { x: number; y: number; z: number } => {
   const tallest = crownStones().reduce((best, st) => (st.h > best.h ? st : best));
   return { x: tallest.x, y: CROWN.y + tallest.h + 0.6, z: tallest.z };
 };
+/** The perched Roc's heading: toward the arena's entrance, turned ROC_PERCH_TURN. */
+const perchYaw = (a: Animal): number => yawTo(a, DAIS.x, DAIS.z + 40) + ROC_PERCH_TURN;
 export type RocPhase = 0 | 1 | 2;
 type RocState = 'circle' | 'stalk' | 'strike' | 'rest';
 
@@ -61,23 +71,24 @@ export class StormRocBrain extends CreatureBrain<RocState> {
   }
   /**
    * Stage the fight's opening (E399 round 8, seats B and C, X1: 'the state this spot produces'): the Roc on its perch on the
-   * tallest stone as the boss begins, its first 2 s rest running; it lifts off along its lap, then turns in on its first
-   * stalk at the player. What every fight shows in its first seconds, from wherever the player entered the arena.
+   * tallest stone as the boss begins, its first 2 s rest running; it lifts off and swings round onto the player (round 13),
+   * then circles into its first stalk. What every fight shows in its first seconds, from wherever the player entered.
    */
   /** A fight restart (the boss's retry or checkpoint): the first rest and the take-off run again (round 9: on a retry the
    * rest timer was never reset, so the take-off did not replay). */
   restart(): void {
     this.strikes.cancel(); this.actor.cancelAttack(); this.current = null; this.rest = 2; this.takeoff = 0; this.wasFighting = false; this.transition('circle');
-    // back on its perch (round 12, the lead: a retry left it wherever it was), facing the arena's entrance
+    // back on its perch (round 12, the lead: a retry left it wherever it was), at rest (round 13: placed mid-lap it kept its
+    // lap speed and slid ~5 m off the stone before the take-off began), three-quarter on to the arena's entrance
     const perch = PERCH(); this.angle = Math.atan2(perch.z - ROC.z, perch.x - ROC.x);
-    this.actor.place(perch.x, perch.z, 0, perch.y); this.actor.yaw = yawTo(this.actor, DAIS.x, DAIS.z + 40);
+    this.actor.place(perch.x, perch.z, 0, perch.y); this.actor.yaw = perchYaw(this.actor); this.actor.speed = 0; this.actor.mem['rocBank'] = 0;
   }
   stageOpening(): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
     const perch = PERCH();
     this.strikes.cancel(); a.cancelAttack(); this.current = null; this.rest = 2; this.transition('circle');
     this.angle = Math.atan2(perch.z - ROC.z, perch.x - ROC.x);
-    a.place(perch.x, perch.z, 0, perch.y); a.yaw = yawTo(a, DAIS.x, DAIS.z + 40); this.takeoff = ROC_TAKEOFF.seconds; this.rest = ROC_TAKEOFF.seconds + 0.5; this.wasFighting = true;
+    a.place(perch.x, perch.z, 0, perch.y); a.yaw = perchYaw(a); a.speed = 0; a.mem['rocBank'] = 0; this.takeoff = ROC_TAKEOFF.seconds; this.rest = ROC_TAKEOFF.seconds + 0.5; this.wasFighting = true;
   }
   stageStalk(at: { x: number; z: number }, face: { x: number; z: number }): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
@@ -101,18 +112,24 @@ export class StormRocBrain extends CreatureBrain<RocState> {
       // at rest it perches on the tallest standing stone, opposite the arena's entrance, watching the bridge (council
       // round 2: the arena view frames the Roc, not an empty sky under its bar)
       const perch = PERCH(), d = Math.hypot(perch.x - a.position.x, perch.z - a.position.z);
-      ctx.flight.steer(a, d > 0.6 ? yawTo(a, perch.x, perch.z) : yawTo(a, DAIS.x, DAIS.z + 40), d > 0.6 ? Math.min(ROC_SPEED.circle, d * 1.2) : 0, perch.y, 2);
+      ctx.flight.steer(a, d > 0.6 ? yawTo(a, perch.x, perch.z) : perchYaw(a), d > 0.6 ? Math.min(ROC_SPEED.circle, d * 1.2) : 0, perch.y, 2);
+      a.mem['rocLean'] = 0;
       return;
     }
     if (this.state === 'circle' && this.takeoff > 0) {
       // the take-off: a slow rise over the perch, turning out toward its lap
       this.takeoff = Math.max(0, this.takeoff - ctx.dt);
       const k = 1 - this.takeoff / ROC_TAKEOFF.seconds;
-      // (round 10, seat B: it flew away from the arena's entrance) it launches out over the dais toward the entrance, at
-      // whoever walks in, then banks into its lap
-      ctx.flight.steer(a, yawTo(a, DAIS.x, CROWN.z + CROWN.r), ROC_TAKEOFF.speed, Math.min(this.altitude(), PERCH().y + ROC_TAKEOFF.rise * k), 2);
+      // (round 13, seat A: it aimed at the fixed rim point (DAIS.x, CROWN.z + CROWN.r), not at the player) it launches at
+      // the player, wherever they stand as it lifts off: from its three-quarter perch it swings round onto them at
+      // ROC_TAKEOFF.turn, leaning into the swing (the lean eases in as it drops off the stone and rolls out as it lines up);
+      // it lifts first and gathers speed as it goes, so the launch rises off the stone rather than sliding sideways off it
+      const want = yawTo(a, p.x, p.z), off = Math.atan2(Math.sin(want - a.yaw), Math.cos(want - a.yaw));
+      a.mem['rocLean'] = -Math.max(-ROC_TAKEOFF.bank, Math.min(ROC_TAKEOFF.bank, off * 1.2)) * Math.min(1, k * 4);
+      ctx.flight.steer(a, want, ROC_TAKEOFF.speed * k, Math.min(this.altitude(), PERCH().y + ROC_TAKEOFF.rise * k), ROC_TAKEOFF.turn);
       return;
     }
+    a.mem['rocLean'] = 0;
     if (this.state === 'circle' || this.state === 'rest') {
       this.angle += (ctx.dt * ROC_SPEED.circle) / ROC.r;
       const r = this.phase === 2 ? DAIS.r * 0.4 : ROC.r, cx = this.phase === 2 ? DAIS.x : ROC.x, cz = this.phase === 2 ? DAIS.z : ROC.z;
@@ -217,6 +234,60 @@ function rocRig(g: BufferGeometry): { bones: BoneDef[]; len: number } {
   bindRigid(g, (x, _y, z) => x > ROC_WING_ROOT ? WING_L : x < -ROC_WING_ROOT ? WING_R : z > head ? HEAD : z < tail ? TAIL : BODY);
   return { bones: ROC_BONES(head, 1.8, tail), len };
 }
+/** How far below the flight line the lifted head still looks (radians): a soaring eagle eyes the ground ahead of it. */
+const ROC_HEAD_DIP = 0.3;
+const smooth = (a: number, b: number, v: number): number => { const k = Math.min(1, Math.max(0, (v - a) / (b - a))); return k * k * (3 - 2 * k); };
+/**
+ * Skin the textured eagle with blended weights (council round 13, finding 1: 'torn: sky shows through its legs and tail').
+ * Bound a whole triangle to one bone, every triangle across a wing root opened a crack as the wings flapped, and the
+ * line x = ±1.1 m ran down through both legs and the tail fan. Here each vertex blends: a wing's weight eases in across
+ * its root (|x| 1.3 to 2.6 m) and out again toward the tail fan, so the legs, the breast and the fan stay with the body
+ * and the skin bends instead of splitting. The weights are read in the model's own upright frame (`pitch` undone:
+ * `up` runs from the tail fan to the head, `fwd` out of the breast), so they hold for any flight pitch.
+ */
+function rocSkin(g: BufferGeometry, pitch: number): { bones: BoneDef[]; len: number } {
+  const p = g.getAttribute('position'), n = p.count, c = Math.cos(pitch), s = Math.sin(pitch);
+  let z0 = Infinity, z1 = -Infinity;
+  for (let i = 0; i < n; i++) if (Math.abs(p.getX(i)) < ROC_WING_ROOT) { z0 = Math.min(z0, p.getZ(i)); z1 = Math.max(z1, p.getZ(i)); }
+  const len = Math.max(0.5, z1 - z0), head = z1 - len * 0.3, tail = z0 + len * 0.3;
+  const index = new Uint16Array(n * 4), weight = new Float32Array(n * 4), lift = new Float32Array(n);
+  const upOf = (i: number): number => p.getY(i) * c + p.getZ(i) * s, fwdOf = (i: number): number => p.getZ(i) * c - p.getY(i) * s;
+  let up0 = Infinity, fwd0 = Infinity;
+  for (let i = 0; i < n; i++) { up0 = Math.min(up0, upOf(i)); fwd0 = Math.min(fwd0, fwdOf(i)); }
+  for (let i = 0; i < n; i++) {
+    // metres up from the tail fan's tip, and forward from the tail's back edge (the 16 m eagle: its fan is the lowest ~2.8 m)
+    const x = p.getX(i), z = p.getZ(i), up = upOf(i) - up0, fwd = fwdOf(i) - fwd0;
+    // the wings: out from the shoulder, and not the tail fan below them (the fan's sides reach |x| 3 m)
+    const wingW = smooth(ROC_WING_ROOT * 1.2, ROC_WING_ROOT * 2.4, Math.abs(x)) * (1 - smooth(2.9, 1.7, up));
+    // the tail: the fan below and behind the legs
+    const fan = (1 - wingW) * smooth(2.7, 1.5, up) * smooth(3.3, 2.3, fwd);
+    // the head: the front of the centre line, eased in across the neck so it can turn without a seam
+    const rest = 1 - wingW - fan, headW = rest * smooth(head - 0.7, head + 0.5, z);
+    index[i * 4] = x > 0 ? WING_L : WING_R; weight[i * 4] = wingW;
+    index[i * 4 + 1] = TAIL; weight[i * 4 + 1] = fan;
+    index[i * 4 + 2] = HEAD; weight[i * 4 + 2] = headW;
+    index[i * 4 + 3] = BODY; weight[i * 4 + 3] = rest - headW;
+    lift[i] = rest * smooth(head - 0.6, head + 0.9, z);
+  }
+  // the neck: where the centre line crosses into the head
+  let ny = 0, nk = 0;
+  for (let i = 0; i < n; i++) if (Math.abs(p.getX(i)) < ROC_WING_ROOT && Math.abs(p.getZ(i) - head) < 0.4) { ny += p.getY(i); nk++; }
+  const neckY = nk > 0 ? ny / nk : 1.8, neckZ = head;
+  // (round 13: 'no face or beak shows') the eagle was modelled upright, its face toward the camera; laid level to fly, its
+  // face looked at the ground and a viewer below saw only its white crown. Lift the head back up by the flight pitch
+  // (less ROC_HEAD_DIP), bending the neck smoothly across its blend, so the face and hooked beak look ahead along the flight.
+  if (!g.hasAttribute('normal')) g.computeVertexNormals();
+  const nrm = g.getAttribute('normal'), bend = ROC_HEAD_DIP - pitch;
+  for (let i = 0; i < n; i++) {
+    const a = bend * (lift[i] ?? 0); if (a === 0) continue;
+    const ca = Math.cos(a), sa = Math.sin(a), dy = p.getY(i) - neckY, dz = p.getZ(i) - neckZ;
+    p.setXYZ(i, p.getX(i), neckY + dy * ca - dz * sa, neckZ + dy * sa + dz * ca);
+    const ny0 = nrm.getY(i), nz0 = nrm.getZ(i); nrm.setXYZ(i, nrm.getX(i), ny0 * ca - nz0 * sa, ny0 * sa + nz0 * ca);
+  }
+  p.needsUpdate = true; nrm.needsUpdate = true; g.computeBoundingBox(); g.computeBoundingSphere();
+  g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
+  return { bones: ROC_BONES(head, neckY - 1.6, tail), len };
+}
 const rocDims = (len: number): AnimalSpecies['dims'] => ({ bodyY: 1.6, bodyHalfLen: Math.max(1.4, len / 2), bodyRadius: 1.1, headRadius: 0.55, legLen: 1, feet: [], halfWidth: ROC_SPAN / 2 });
 function rocMesh(source: BufferGeometry): AnimalSpecies {
   const g = fit(source, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: Math.PI / 2 }), { bones, len } = rocRig(g);
@@ -231,12 +302,14 @@ function rocMesh(source: BufferGeometry): AnimalSpecies {
  */
 // (top-10 row 8, art/far-reach/round-27-roc: the eagle from mockup D, modelled from the front: pitched into flight and
 // turned so its head leads)
-const ROC_HD = { pitch: 0.45, yaw: 0, selfLight: 0.35 } as const;
+// (round 13, seat A and the lead: pitched only 0.45 it flew nearly upright, head up behind the boss bar and its tail fan
+// hanging over the sun; 1.1 lays its body near level, head forward and below the wings, tail trailing behind)
+const ROC_HD = { pitch: 1.1, yaw: 0, selfLight: 0.35 } as const;
 function rocHd(m: SkyHd): AnimalSpecies {
   const g = m.geometry.toNonIndexed(); m.geometry.dispose();
   g.rotateY(ROC_HD.yaw); fit(g, { size: ROC_SPAN, by: 'span', middle: 1.6, pitch: ROC_HD.pitch });
   g.setAttribute('color', new Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
-  const { bones, len } = rocRig(g);
+  const { bones, len } = rocSkin(g, ROC_HD.pitch);
   return { bones, furParts: [], eyeParts: [], hardParts: [g], dims: rocDims(len), map: m.map, facetJitter: 0, selfLight: ROC_HD.selfLight };
 }
 /** The body: the textured model when it loaded, else the faceted generated one, else the code one. */
@@ -246,12 +319,19 @@ const ROC_DIHEDRAL = 0.1;
 export const STORM_ROC_LOOK: SpeciesLook = { id: 'far.look.stormRoc', species: STORM_ROC.id, kind: 'stormRoc', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'far.stormRoc', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
   build: () => rocBody(),
-  animate: ({ bones, t, alive }) => {
+  animate: ({ bones, t, dt, alive, mem }) => {
     // a 19 m raptor soars (round 7: a steady beat caught the wings raised edge-on in half the frames; mockup D's eagle glides,
     // wings spread): a slow flex, with a few strong beats in a short burst every ~6 s
     const burst = Math.max(0, Math.sin(t * 1.05) - 0.85) / 0.15;
     const flap = alive ? ROC_DIHEDRAL + Math.sin(t * 0.9) * 0.06 + Math.sin(t * 3.8) * 0.45 * burst : 0.9;
-    const l = bones['wingL'], r = bones['wingR'], tail = bones['tail'];
+    const l = bones['wingL'], r = bones['wingR'], tail = bones['tail'], body = bones['body'];
     if (l) l.rotation.z = flap; if (r) r.rotation.z = -flap; if (tail) tail.rotation.x = alive ? Math.sin(t * 1.1) * 0.15 : 0;
+    // the take-off's lean into its swing onto the player (the brain's rocLean), eased; level flight adds the engine's bank
+    const lean = (mem['rocBank'] ?? 0) + ((alive ? mem['rocLean'] ?? 0 : 0) - (mem['rocBank'] ?? 0)) * Math.min(1, dt * 3);
+    mem['rocBank'] = lean; if (body) body.rotation.z = lean;
+    // (round 13: 'no face or beak shows') the head looks into the turn it leans into, so from the ground you see a turned
+    // white head and its hooked beak, as mockup D's eagle shows them
+    const head = bones['head'];
+    if (head) head.rotation.y = alive ? Math.max(-0.6, Math.min(0.6, -lean * 1.8)) + Math.sin(t * 0.45) * 0.12 : 0;
   },
 };
