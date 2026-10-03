@@ -3,12 +3,14 @@
 // All telemetry is intercepted locally. Uses Metal; closes its browser even on failure.
 // node scripts/test-nine-crash-reports.mjs --url=http://127.0.0.1:4184
 import assert from 'node:assert/strict';
+import { saveFixture } from './debug-settings.mjs';
 import { chromium } from 'playwright';
 
 const base = (process.argv.find((part) => part.startsWith('--url='))?.slice(6) ?? 'http://127.0.0.1:4184').replace(/\/$/, '');
 const browser = await chromium.launch({ args: ['--use-angle=metal', '--mute-audio'] });
 try {
   const context = await browser.newContext({ viewport: { width: 402, height: 653 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+  await saveFixture(context, { scope: 'device', key: 'devMode', data: true }); // developer mode: EXPLORE WORLD is developer-only (E386)
   const reports = [], envelopes = [];
   let unavailable = true;
   await context.route('**/api/errors', async (route) => {
@@ -61,6 +63,7 @@ try {
 
   // A separate live context exercises the application's recovery reload, not a synthetic report record.
   const recovery = await browser.newContext({ viewport: { width: 402, height: 653 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+  await saveFixture(recovery, { scope: 'device', key: 'devMode', data: true }); // developer mode: EXPLORE WORLD is developer-only (E386)
   const recoveryReports = [], recoveryEnvelopes = [];
   await recovery.route('**/api/errors', async (route) => {
     recoveryReports.push(route.request().postDataJSON());

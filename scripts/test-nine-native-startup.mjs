@@ -3,6 +3,7 @@
 // node scripts/test-nine-native-startup.mjs --url=http://127.0.0.1:4184
 // Only the fresh Playwright GPU process is killed; every pre-existing process is excluded.
 import { webkit } from 'playwright';
+import { saveFixture } from './debug-settings.mjs';
 import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
 
@@ -27,6 +28,7 @@ try {
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('Missing test server port');
   const context = await browser.newContext({ viewport: { width: 402, height: 654 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  await saveFixture(context, { scope: 'device', key: 'devMode', data: true }); // developer mode: EXPLORE WORLD is developer-only (E386)
   const reports = [];
   await context.route('**/api/errors', async (route) => {
     reports.push(route.request().postDataJSON());

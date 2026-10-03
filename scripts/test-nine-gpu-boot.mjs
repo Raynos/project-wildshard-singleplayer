@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { debugSettings } from './debug-settings.mjs';
+import { debugSettings, saveFixture } from './debug-settings.mjs';
 // Reproduce the phone's null precision result or the Simulator's shaderSource failure during boot.
 // Run after `pnpm build` with `pnpm exec vite preview --port 4184` up:
 // node scripts/test-nine-gpu-boot.mjs [--url=http://127.0.0.1:4184] [--only=webkit|chromium|all] [--fault=precision|shader|context|texture]
@@ -20,6 +20,7 @@ for (const [name, engine] of engines) {
   let page;
   try {
     const context = await browser.newContext({ viewport: { width: 402, height: 654 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+    await saveFixture(context, { scope: 'device', key: 'devMode', data: true }); // developer mode: EXPLORE WORLD is developer-only (E386)
     const reports = [];
     await context.route('**/api/errors', async (route) => {
       reports.push(route.request().postDataJSON());

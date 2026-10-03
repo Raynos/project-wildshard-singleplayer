@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { debugSettings } from './debug-settings.mjs';
+import { debugSettings, saveFixture } from './debug-settings.mjs';
 // E271/E272: exercise the real scene on desktop and mobile; no facade multi-draw anywhere.
 // See docs/audits/nine-dragon-mobile-multidraw.md. This guards routing, not native phone memory.
 import { chromium } from 'playwright';
@@ -14,6 +14,7 @@ try {
     try {
       // The retired stored Auto setting must be ignored on every platform.
       await debugSettings(context, { nineFacade: 'auto' });
+      await saveFixture(context, { scope: 'device', key: 'devMode', data: true }); // developer mode: EXPLORE WORLD is developer-only (E386)
       await context.route('**/api/errors', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
       await context.route(/https:\/\/[^/]+\.ingest\.[^/]+\/api\//, (route) => route.fulfill({ status: 200, body: '{}' }));
       const page = await context.newPage();

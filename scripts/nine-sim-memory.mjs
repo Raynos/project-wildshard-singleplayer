@@ -192,7 +192,7 @@ async function oneRun(udid, run, opts) {
     // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/boot/titleArrival.ts)
     const settings = Object.fromEntries(opts.settings.map((s) => s.split('=')));
     const arrival = { slug: 'nine-dragon-stack', mode: 'enter', at: Date.now() };
-    await evaluate(`${saveFixtureCode({ scope: 'session', key: 'titleArrival', data: arrival })};${saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: arrival })};${saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true })};1`);
+    await evaluate(`${saveFixtureCode({ scope: 'session', key: 'titleArrival', data: arrival })};${saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: arrival })};${saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};1`); // developer mode: EXPLORE WORLD is developer-only (E386)
     setPhase('loading');
     const loadStart = Date.now();
     await evaluate(`location.href = ${JSON.stringify(`${run.base}?chunk=nine-dragon-stack&mute=1`)}; 1`);
