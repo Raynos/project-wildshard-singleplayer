@@ -1,6 +1,6 @@
 # SIGNAL-DUNES — shard 5's full content (E374)
 
-**State:** `in progress` 2026-10-03 — C1–C7 built; polish continues under E399 (Jake: don't stop until the council scores 8/10 against the mockups), the lead + builder loop, Handoff in the shard's notes. Council round 11: seats 6.3 / 6.9 / 6.7, mean **6.63** (round 9 6.47, round 10 6.57). Open from round 11: A's mirrored landform light, C / D far land, the fill bump at B's dusk.
+**State:** `in progress` 2026-10-03 — C1–C7 built; polish continues under E399 (Jake: don't stop until the council scores the bar against the mockups; he lowered the bar from 8.0 to 7.0 in `e6371eb26`), the lead + builder loop, Handoff in the shard's notes. Council round 11: seats 6.3 / 6.9 / 6.7, mean **6.63** (round 9 6.47, round 10 6.57). Open from round 11: A's mirrored landform light, C / D far land, the fill bump at B's dusk.
 
 Shard 5, slug `sunscar-dunes`, Jake's pick **C · Signal Dunes** (E363 round 2): realistic dusk dunes, an orange band under
 indigo, first stars, cool blue hollows; a braided leather bullwhip; a ray-like flyer; "Light the signal fire". No
