@@ -150,6 +150,29 @@ What it means:
   `skipintro` never leaves the title card.
 - It does **not** replace an agent's eye for small HUD text or subtle render bugs, so those reads stay with Opus.
 
+## More uses, ranked by token savings (2026-10-03, Jake approved none)
+
+Measured on one week of local transcripts (26 Sep – 3 Oct: 427 transcripts, main sessions and subagents):
+- Tool output read for the first time: ≈ 39 M tokens.
+  - search and file dumps (grep / find / ls / cat / sed / jq): 46 %;
+  - images: 26 % (game captures 16 %, mockups and boards 9 %);
+  - git log / diff: 10 %.
+- Main sessions re-sent ≈ 17.9 B tokens of context, mostly cache reads. Each first-read token is re-sent on every
+  later call until the session compacts, so a token cut early saves a hundredfold.
+
+| # | Use | What Clef decides | Pool it cuts | Token score | Confidence |
+|---|---|---|---|---|---|
+| 1 | **Batch FYI broadcasts.** A UserPromptSubmit hook holds a `[from …]` message that needs no action and hands it over at the agent's next real turn | `noul`: does this message ask this agent to act, given its goal? | 808 turns (31 % of main-session turns) re-sent 1.6 B tokens (9 %) at a median 540 k context; 22 of 30 sampled were FYI, so ≈ 6 % of all context re-sent | **8/10** | medium. A text task, untested; the 808 real messages are its test set. Fails open when the lock is busy |
+| 2 | **Scene checks in camera / look loops.** "Is the windmill in view?", "is the camera inside geometry?" Agents open only the frames that pass | a fixed set of `noul`s per capture | game-capture reads, 4,192 a week (16 % of tool output); a cut of 30–50 % is ≈ 5–8 % | **8/10** | medium. Coarse vision passed D3; object presence on our art styles is untested |
+| 3 | **Pre-screen generated mockups and seeds** for coarse failures: edit not done, camera re-composed, black frame | `noul`s against the reference frame | mockup / board reads (9 %); a cut of 20–30 % is ≈ 2–3 % | **5/10** | low. Small text failed D3; coarse checks are untested |
+| 4 | **Relevance filter for command output.** grep / cat / git output → only the lines that answer the agent's question | `choice` over chunks, or a `noul` per chunk | 56 % of tool output; a third of that would be ≈ 15–20 % | **9/10 potential, 3/10 feasible** | low. 20 k calls a week cannot queue behind the one-model lock (it needs a resident server or hosted Clef), each call adds 1–3 s, and a dropped line costs a re-run |
+| 5 | **Trim the session brief** to the asks that are open and relevant to the session's goal | `choice` per ask: open / done-not-flipped / folded / stale | the brief is 45 KB (≈ 11 k tokens) at the top of every main session, ≈ 2 % of a median context | **3/10** | high. Low risk; part of it is a regex fix that needs no model |
+
+Not ranked: the WorldClaw judges' J0 pass (D5). It is not built yet, so there is no measured pool; zero-shot runs will read
+many frame strips, so it may climb this list once T12 exists. #1, #2 and #4 all hit the one-model-at-a-time lock in
+an agent's hot path. A resident 7 GB Clef (a rule exception) or hosted Workers AI Clef ($0.24 / M input) is the enabler
+to decide first.
+
 ## Picks for Jake
 
 1. **Go on D4, capture status only?** Recommended. The capture scripts check and re-take their own frames, and agents
