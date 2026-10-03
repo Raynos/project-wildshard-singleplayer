@@ -47,7 +47,11 @@ export function meadowHoles(): Vector4[] {
   for (const st of crownStones()) holes.push([st.x, st.z, 0.85]);
   holes.push([NEST.x, NEST.z, NEST.r + 0.2], [WINCH_HOUSE.x, WINCH_HOUSE.z, WINCH_HOUSE.w * 0.75]);
   for (const sp of SPIRES) { const at = spireAt(sp); holes.push([at.x, at.z, sp.r + 0.2]); }
-  return holes.map(([x, z, r]) => new Vector4(x, z, r, 0));
+  const out = holes.map(([x, z, r]) => new Vector4(x, z, r, 0));
+  // the keeper's trodden ground (E399 round 6, mockup B: he stands in low grass, his boots and his stand in view; the
+  // sward between him and the spawn hid both): a disc where the grass grows short (w 1, as round the hero rocks)
+  out.push(new Vector4(KEEPER_AT.x, KEEPER_AT.z, 3.2, 1));
+  return out;
 }
 
 /** The worn paths: a segment (x0, z0) → (x1, z1) from each bridge landing in toward its island's middle. */

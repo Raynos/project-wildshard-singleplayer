@@ -104,7 +104,7 @@ export function clearOfWalks(x: number, z: number, r: number): boolean {
     const ax = s.z - s.x, az = s.w - s.y, t = Math.max(0, Math.min(1, ((x - s.x) * ax + (z - s.y) * az) / Math.max(1e-6, ax * ax + az * az)));
     if (Math.hypot(x - s.x - ax * t, z - s.y - az * t) < 1.2 + r) return false;
   }
-  for (const h of meadowHoles()) if (Math.hypot(x - h.x, z - h.y) < h.z + 0.5 + r) return false;
+  for (const h of meadowHoles()) if (h.w < 0.5 && Math.hypot(x - h.x, z - h.y) < h.z + 0.5 + r) return false;
   return true;
 }
 
@@ -190,7 +190,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     }
   }
   // boulders at every rope landing (mockup A: rocks and flowers round the bridge posts), either side of the lane
-  const holes = meadowHoles();
+  const holes = meadowHoles().filter((h) => h.w < 0.5); // the true clearings, not the short-grass discs
   for (const sp of landings ? SPANS : []) {
     if (sp.kind !== 'rope') continue;
     const dx = sp.x1 - sp.x0, dz = sp.z1 - sp.z0, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len;
