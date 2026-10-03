@@ -1,7 +1,7 @@
 import { registerSpecies, speciesDef } from '#engine/entities/species/registry';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import type { Animal } from '#engine/entities/Animal';
-import type * as Heightfield from '#engine/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { manager } from '../fake/manager';
 import { pinBrain } from '#engine/ai/inspect';
@@ -10,8 +10,9 @@ import { Marmots } from '#shards/nalati-grasslands/creatures/marmots';
 import { app } from '#engine/app/runtime';
 import { Scope } from '#engine/app/scope';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 const originalChunk = getActiveChunk().slug;
 beforeEach(() => { setActiveChunk('driftwood-isle'); });
 afterEach(() => { setActiveChunk(originalChunk); });

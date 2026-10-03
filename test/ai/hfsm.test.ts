@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
-import type * as Heightfield from '#engine/world/Heightfield';
+import { describe, expect, it, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { creature } from '../fake/creature';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 
 describe('legacy state sequences (replace with HFSM imports at S2.3/S4.2)', () => {
   it('crab approaches, snaps, recovers, then loses a distant player', () => {

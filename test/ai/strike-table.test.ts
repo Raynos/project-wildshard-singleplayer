@@ -2,8 +2,8 @@ import { PINE_LANES, PINE_STRIKES } from '#shards/pine-hollow/combat/strikes';
 import { BOAR } from '#kit/species/boar';
 import { BEAR } from '#kit/species/bear';
 import * as THREE from 'three';
-import { describe, expect, it, vi } from 'vitest';
-import type * as Heightfield from '#engine/world/Heightfield';
+import { describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
 import { Animal } from '#engine/entities/Animal';
 import { AnimalFactory } from '#engine/entities/AnimalFactory';
@@ -14,8 +14,9 @@ import { HorseHerd } from '#shards/nalati-grasslands/creatures/herd';
 import { Pack } from '#shards/nalati-grasslands/creatures/pack';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 const island = 'src/shards/driftwood-isle/species/', species = 'src/shards/nalati-grasslands/species/', nalati = 'src/shards/nalati-grasslands/combat/', pine = 'src/shards/pine-hollow/combat/';
 const tuning = [
   ['S1 crab snap', `${island}crab.ts`, { SNAP_R: 1.6, SNAP_DAMAGE: 10, WINDUP: 0.5, SNAP_DUR: 0.78, HOLD_R: 3.6 }],

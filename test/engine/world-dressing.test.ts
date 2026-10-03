@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { Vector3, type Material } from 'three';
 import { Boundary } from '#engine/world/Boundary';
 import { Horizon } from '#engine/world/Horizon';
@@ -6,7 +7,9 @@ import { configureLevel } from '#engine/level/selection';
 import { toLevelSpec } from '#game/shard/spec';
 import { SHARDS } from '../../src/shards.generated';
 
-vi.mock('#engine/world/Heightfield', () => ({ heightAt: () => 0, waterLevel: () => 0, pondMask: () => 0, streamAt: () => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: () => 0, waterLevel: () => 0, pondMask: () => 0, streamAt: () => null });
+afterAll(restoreTerrain);
 
 describe('authored world dressing', () => {
   it('hides all boundary drawing before allocating geometry or materials', () => {

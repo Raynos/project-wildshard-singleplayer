@@ -1,13 +1,14 @@
 import * as THREE from 'three';
-import { describe, expect, it, vi } from 'vitest';
-import type * as Heightfield from '#engine/world/Heightfield';
+import { describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { StrikeRunner, type StrikePhase, type StrikeSpec } from '#engine/ai/strikes';
 import { fnv1a32 } from '#engine/core/rng';
 import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
 import { creature } from '../fake/creature';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 const rows = [
   { id: 'ironhide', width: 2.4, speed: 12.5, overshoot: 7, dmg: 30, skid: 1.1, reach: 1.7, tell: 0.9 },
   { id: 'blackpaw', width: 2.6, speed: 10.5, overshoot: 5, dmg: 28, skid: 1.2, reach: 1.6, tell: 0.75 },

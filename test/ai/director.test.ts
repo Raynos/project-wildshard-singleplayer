@@ -1,14 +1,15 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
-import type * as Heightfield from '#engine/world/Heightfield';
 import { manager } from '../fake/manager';
 import { creature } from '../fake/creature';
 import { Pack } from '#shards/nalati-grasslands/creatures/pack';
 import { wildEnv } from '#shards/nalati-grasslands/creatures/env';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 const originalChunk = getActiveChunk().slug;
 const wasMounted = wildEnv.playerMounted;
 afterEach(() => { setActiveChunk(originalChunk); wildEnv.playerMounted = wasMounted; });

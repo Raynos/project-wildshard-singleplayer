@@ -1,4 +1,5 @@
-import { expect, it, vi } from 'vitest';
+import { expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { PerspectiveCamera } from 'three';
 import { Events, Scope } from '#engine';
 import { Player } from '#engine/player/Player';
@@ -9,7 +10,9 @@ import { groups } from '#engine/physics/groups';
 import { legacyDouble } from '../fake/FakeGame';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
-vi.mock('#engine/world/Heightfield', () => ({ heightAt: () => 0 }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: () => 0 });
+afterAll(restoreTerrain);
 vi.mock('#engine/player/WaterLine', () => ({ WaterLine: class { readonly visible = false; } }));
 
 async function fixture(crouchEnabled = true) {

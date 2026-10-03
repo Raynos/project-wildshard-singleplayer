@@ -19,10 +19,15 @@ function terrainOf(level: LevelSpec): TerrainField {
   return terrainFieldFor(level.ground, level.id);
 }
 
-/** the bound field; `null` until a level is configured */
-const bound: { T: TerrainField | null } = { T: null };
+/** the bound field (the level's, under any override); `null` until a level is configured. `base` is the level's own. */
+const bound: { T: TerrainField | null; base: TerrainField | null } = { T: null, base: null };
+/** fields bound over the level's (overrideTerrain), re-applied when the level changes */
+type TerrainOverride = Partial<Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt' | 'trailDistance' | 'cabinMask' | 'pondMask' | 'waterLevel' | 'streamAt'>>;
+let override: TerrainOverride | null = null;
+/** bind a level's field, under the override when there is one */
+function bindBase(T: TerrainField): TerrainField { bound.base = T; return bind(override === null ? T : { ...T, ...override }); }
 /** the bound field, binding the active level's on first use */
-function field(): TerrainField { return bound.T ?? bind(terrainOf(activeLevel())); }
+function field(): TerrainField { return bound.T ?? bindBase(terrainOf(activeLevel())); }
 
 const noStream = (): number | null => null;
 /** surface height, metres */
@@ -58,12 +63,12 @@ function bind(T: TerrainField): TerrainField {
 }
 
 const initial = selectedLevel();
-if (initial !== null) bind(terrainOf(initial));
+if (initial !== null) bindBase(terrainOf(initial));
 else setTerrainHeight(heightAt);
 setTerrainPlacement((x, z) => normalAt(x, z), () => waterLevel());
 // a new level rebinds the analytic field (its bake is installed when it loads); the same field configured again keeps
 // whatever is bound, an installed bake included
-onLevelChange((level) => { const T = terrainOf(level); if (T !== bound.T) bind(T); });
+onLevelChange((level) => { const T = terrainOf(level); if (T !== bound.base) bindBase(T); });
 
 /**
  * The baked grid (src/engine/world/BakedTerrain.ts, public/assets/baked/<slug>/terrain.bin) replaces the
@@ -73,6 +78,18 @@ onLevelChange((level) => { const T = terrainOf(level); if (T !== bound.T) bind(T
  */
 export function _installBakedTerrain(baked: Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'>): void {
   heightAt = baked.heightAt; setTerrainHeight(heightAt); normalAt = baked.normalAt; splatAt = baked.splatAt;
+}
+
+/**
+ * Bind terrain fields over the level's (a flat, dry world for a test or a playground: `{ heightAt: () => 0, waterLevel:
+ * () => -100 }`) until the returned restore runs; a level change keeps them over the new level's field. Every reader
+ * sees the same binding (the live exports here, the placement port), so nothing needs a module mock (E422).
+ */
+export function overrideTerrain(over: TerrainOverride): () => void {
+  const prev = override;
+  override = { ...prev, ...over };
+  bindBase(bound.base ?? terrainOf(activeLevel()));
+  return () => { override = prev; bindBase(bound.base ?? terrainOf(activeLevel())); };
 }
 
 export function inChunk(x: number, z: number, margin = 0): boolean {

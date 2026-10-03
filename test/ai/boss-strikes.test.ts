@@ -1,7 +1,7 @@
 import { app } from '#engine';
 import * as THREE from 'three';
-import { describe, expect, it, vi } from 'vitest';
-import type * as Heightfield from '#engine/world/Heightfield';
+import { describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { GoldenKingFight } from '#shards/nalati-grasslands/combat/goldenKing';
 import { StormTitan, StormTitanFight } from '#shards/nalati-grasslands/combat/stormTitan';
 import { AntlerKingFight } from '#shards/pine-hollow/combat/antlerKing';
@@ -11,8 +11,9 @@ import { CAIRN } from '#shards/nalati-grasslands/layout';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { creature } from '../fake/creature';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 const noop = (): void => undefined;
 const tell = (): object => ({ ring: noop, setTime: noop, hide: noop });
 const visual = (): { mesh: THREE.Object3D; mat: { uniforms: { uAlpha: { value: number }; uTime: { value: number } } } } =>

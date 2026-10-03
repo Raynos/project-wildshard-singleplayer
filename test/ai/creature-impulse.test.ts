@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { Vector3 } from 'three';
-import type * as Heightfield from '#engine/world/Heightfield';
 import { App } from '#engine/app/app';
 import type { DamageRequest } from '#engine/combat/pipeline';
 import { killBelowWorld } from '#engine/entities/killHeight';
@@ -11,8 +11,9 @@ import { loadRapier } from '#engine/physics/rapier';
 import { groups } from '#engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 
 describe('creature impulse and world death plane', () => {
   it('copies impulses, adds them, collides with a wall through the ground motor and decays to rest', async () => {

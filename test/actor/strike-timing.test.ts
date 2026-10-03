@@ -1,20 +1,19 @@
 // S1.3/S2.3: fixed-step windup/contact/recovery contracts move to the engine strike blocks.
 import * as THREE from 'three';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
 import { AnimalManager } from '#engine/entities/AnimalManager';
 import { Animal } from '#engine/entities/Animal';
 import { AnimalFactory } from '#engine/entities/AnimalFactory';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
-import type * as Heightfield from '#engine/world/Heightfield';
 import { fakeWorld } from '../fake/world';
 import { seedRandom } from '../fake/FakeGame';
 
 // Flat arena fixture: timing must not depend on today's shard terrain or baked geometry.
-vi.mock('#engine/world/Heightfield', async (original) => {
-  const actual = await original<typeof Heightfield>();
-  return { ...actual, heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null };
-});
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 
 const originalChunk = getActiveChunk().slug;
 let restoreRandom: () => void = () => undefined;

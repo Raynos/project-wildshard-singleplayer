@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type * as Heightfield from '#engine/world/Heightfield';
+import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { Pack } from '#shards/nalati-grasslands/creatures/pack';
 import { HorseHerd } from '#shards/nalati-grasslands/creatures/herd';
 import { Flock } from '#shards/nalati-grasslands/creatures/flock';
@@ -9,9 +9,9 @@ import { speciesDef } from '#engine/entities/species/registry';
 import { creature } from '../fake/creature';
 import { invokeLegacy } from '../fake/legacyActor';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], inChunk: (): boolean => true,
-  waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 const env = { ...wildEnv }, packs = Pack.all, herds = HorseHerd.all;
 beforeEach(() => { vi.spyOn(Math, 'random').mockReturnValue(0.5); Pack.all = []; HorseHerd.all = []; });
 afterEach(() => { Object.assign(wildEnv, env); Pack.all = packs; HorseHerd.all = herds; vi.restoreAllMocks(); });

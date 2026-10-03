@@ -1,8 +1,8 @@
 import { CROSSBOW_PROFILE } from '#kit/weapons/crossbow/profiles';
 import { EliteBrain } from '#engine/ai/EliteBrain';
 import * as THREE from 'three';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import type * as Heightfield from '#engine/world/Heightfield';
+import { afterEach, beforeAll, describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
 import { AntlerKingFight } from '#shards/pine-hollow/combat/antlerKing';
@@ -25,8 +25,9 @@ import { damageTarget, legacyActor, invokeLegacy } from '../fake/legacyActor';
 import { fakeWorld } from '../fake/world';
 import { manager } from '../fake/manager';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 const originalChunk = getActiveChunk().slug;
 
 let R: Awaited<ReturnType<typeof loadRapier>>;

@@ -2,9 +2,9 @@ import { app } from '#engine';
 import { EliteBrain } from '#engine/ai/EliteBrain';
 import { canReach } from '#engine/ai/reach';
 import * as THREE from 'three';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, afterAll } from 'vitest';
+import { overrideTerrain } from '#engine/world/Heightfield';
 import type { Animal } from '#engine/entities/Animal';
-import type * as Heightfield from '#engine/world/Heightfield';
 import { wildEnv } from '#shards/nalati-grasslands/creatures/env';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { legacyMethods } from '../fake/legacySource';
@@ -12,8 +12,9 @@ import { creature } from '../fake/creature';
 import { inArc, headingTo, fadeCooldown, behindPlayer, fleeHeading } from '#shards/pine-hollow/combat/combatMath';
 import { blackpawGoal, ghostGoal, ironhideGoal, imperialGoal } from '#shards/pine-hollow/combat/EliteGoals';
 
-vi.mock('#engine/world/Heightfield', async (original) => ({ ...await original<typeof Heightfield>(),
-  heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null }));
+// a flat, dry world through the terrain port, not a module mock (E422)
+const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
+afterAll(restoreTerrain);
 const file = 'src/shards/nalati-grasslands/combat/elites.ts';
 const noOp = (): void => undefined;
 const tell = (): object => ({ setTime: noOp, ring: noOp, hide: noOp, lane: noOp });
