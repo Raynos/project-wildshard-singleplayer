@@ -69,8 +69,8 @@ void main() {
   float body = (1.0 - smoothstep(0.7, 1.0, d)) * (1.0 - smoothstep(0.62, 0.9, top)) * smoothstep(0.0, 0.05, y);
   float core = (1.0 - smoothstep(0.15, 0.55, d)) * (1.0 - smoothstep(0.12, 0.42, top));
   vec3 c = mix(vec3(0.85, 0.14, 0.01), vec3(1.0, 0.45, 0.06), smoothstep(0.05, 0.6, 1.0 - d) * (1.0 - smoothstep(0.35, 0.9, top)));
-  c = mix(c, vec3(1.0, 0.72, 0.28), core * 0.9);
-  gl_FragColor = vec4(c * body * 2.0 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
+  c = mix(c, vec3(1.0, 0.66, 0.2), core * 0.65); // council round 2: the flame read cream-white; orange with a yellow core
+  gl_FragColor = vec4(c * body * 1.55 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
 }`,
 });
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */

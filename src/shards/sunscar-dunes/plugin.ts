@@ -29,7 +29,7 @@ function duskOf(places: SignalWorld): number {
   if (f.has(FLAG.lit)) return 1;
   const lit = places.braziers.filter((b) => b.lit).length;
   if (lit > 0) return 0.5 + 0.12 * lit;
-  return f.has(FLAG.oil) ? 0.45 : f.has(FLAG.logbook) ? 0.32 : f.has(SCOUT_FLAG) ? 0.15 : 0;
+  return f.has(FLAG.oil) ? 0.45 : f.has(FLAG.logbook) ? 0.32 : f.has(SCOUT_FLAG) ? 0.25 : 0;
 }
 
 export class SignalDunesPlugin extends ShardPlugin {

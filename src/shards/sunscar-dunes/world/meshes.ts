@@ -69,9 +69,9 @@ function wornLeather(m: MeshStandardMaterial): void {
       .replace('#include <map_fragment>', `#include <map_fragment>
   float leatherL = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
   // the texture's light and dark (braid, creases) kept, mapped onto a warm tan leather ramp (mockups A-C; the map is near-black red)
-  diffuseColor.rgb = mix(vec3(0.07, 0.04, 0.025), vec3(0.62, 0.38, 0.2), smoothstep(0.015, 0.2, leatherL));`)
+  diffuseColor.rgb = mix(vec3(0.035, 0.02, 0.012), vec3(0.58, 0.35, 0.18), smoothstep(0.03, 0.17, leatherL));`)
       // a warm self-fill, so the held glove never drops to a black cut-out against the dusk (mockup D: the fist still reads)
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += diffuseColor.rgb * vec3(0.16, 0.11, 0.08);');
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += diffuseColor.rgb * vec3(0.24, 0.17, 0.12);');
   });
 }
 /** A textured hero model: its scene as loaded (its own map on its own UVs), normals smoothed, matte. */

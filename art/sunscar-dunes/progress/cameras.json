@@ -79,9 +79,9 @@
   {
    "id": "mock-B-logbook",
    "mockup": "art/sunscar-dunes/round-9-review/B-quest-logbook.jpg",
-   "x": -90.5,
-   "z": 7.5,
-   "yaw": -148.5,
+   "x": -65.5,
+   "z": 48.5,
+   "yaw": 31.5,
    "pitch": -3,
    "stage": "logbook",
    "settle": 11000
@@ -91,7 +91,7 @@
    "mockup": "art/sunscar-dunes/round-9-review/C-waymark-fire.jpg",
    "x": -53.9,
    "z": -17.2,
-   "yaw": -64,
+   "yaw": -69,
    "pitch": -1,
    "stage": "waymarks-lit"
   },

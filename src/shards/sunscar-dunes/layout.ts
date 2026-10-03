@@ -6,7 +6,7 @@ export const TOWER = { x: 8, z: -75, deck: 7, half: 1.8 };
 /** Where the dune ray first glides in. */
 export const RAY_HOME = { x: -18, z: 30 };
 /** The half-buried caravan, west of the spawn: the logbook lies on its tailboard. `yaw` turns the wagon's long axis. */
-export const CARAVAN = { x: -78, z: 28, yaw: 0.55 };
+export const CARAVAN = { x: -78, z: 28, yaw: 0.55 + Math.PI }; // E399 (council round 2): the tailboard faces south, so mock-B looks north at it into the afterglow
 /** The dry well in the east hollow: a stone ring, a windlass the whip can pull, an oil jar in its bucket. */
 export const WELL = { x: 84, z: -6 };
 /** The boss basin north of the tower: a sand bowl, flat for `floor` metres, its rim at `r`. */
