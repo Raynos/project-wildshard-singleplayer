@@ -29,6 +29,18 @@ const git = (...args) => execFileSync('git', args, { encoding: 'utf8', stdio: ['
 /** @param {() => unknown} fn */
 const ok = (fn) => { try { fn(); return true; } catch { return false; } };
 
+/** `gh api …`, retried: one GitHub 5xx (HTTP 503 "No server is currently available", 2026-10-03 run 37157015487) failed
+ *  a whole release at this step. Four tries, 5 / 15 / 45 s apart. @param {string[]} args @returns {string} */
+function ghApi(args) {
+  for (let i = 0; ; i++) {
+    try { return execFileSync('gh', ['api', ...args], { encoding: 'utf8' }); } catch (e) {
+      if (i === 3) throw e;
+      console.error(`gh api ${args[0]}: try ${i + 1} failed, retrying`);
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5000 * 3 ** i);
+    }
+  }
+}
+
 /** @typedef {{ mode: string, sha: string, milestone: string, gate: string, go: string, set: string, by: string }} Pin */
 
 /** @param {Pin} pin @returns {Pin} */
@@ -46,7 +58,7 @@ const writePin = (pin) => writeFileSync(FILE, `${JSON.stringify(validatePin(pin)
 
 /** @param {string} sha @returns {Map<string, { state: string, description: string }>} */
 function statuses(sha) {
-  const out = execFileSync('gh', ['api', `repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq', '.statuses[] | [.context, .state, .description] | @tsv'], { encoding: 'utf8' });
+  const out = ghApi([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq', '.statuses[] | [.context, .state, .description] | @tsv']);
   const seen = new Map();
   for (const line of out.split('\n').filter(Boolean)) {
     const [context, state, description = ''] = line.split('\t');
@@ -64,8 +76,8 @@ export function gateGreen(sha) {
  *  "fix the deploy, whatever it takes": gpu-gate push runs cancel each other under a stream of pushes, so newest-green
  *  never moved). @returns {string} */
 export function newestCiGreen() {
-  const sha = execFileSync('gh', ['api', `repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=1`,
-    '--jq', '.workflow_runs[0].head_sha // empty'], { encoding: 'utf8' }).trim();
+  const sha = ghApi([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=1`,
+    '--jq', '.workflow_runs[0].head_sha // empty']).trim();
   if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('newest-ci-green: no successful push CI run on main');
   return sha;
 }
