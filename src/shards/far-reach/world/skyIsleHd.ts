@@ -38,7 +38,7 @@ export const SKY_ISLE_HAZE = { color: SKY.fog, near: 40, far: 260, max: 0.35 } a
 const WEAR: Readonly<Record<string, readonly [SkyIsleModel, number]>> = {
   'sky.l1': ['isle-cone-hd', 0.4], 'sky.l2': ['isle-spurs-hd', 2.1], 'sky.l3': ['isle-crag-hd', 4.0], 'sky.l4': ['isle-cone-hd', 5.3], 'sky.l5': ['isle-spurs-hd', 1.0],
   'sky.r1': ['isle-crag-hd', 2.8], 'sky.r2': ['isle-cone-hd', 3.5], 'sky.r3': ['isle-spurs-hd', 4.6], 'sky.r4': ['isle-crag-hd', 0.9], 'sky.r5': ['isle-cone-hd', 1.7],
-  'sky.o1': ['isle-spurs-hd', 0.2], 'sky.o2': ['isle-cone-hd', 3.0],
+  'sky.o1': ['isle-spurs-hd', 0.2], 'sky.o2': ['isle-cone-hd', 3.0], 'sky.o3': ['isle-crag-hd', 2.2], 'sky.o4': ['isle-cone-hd', 4.4],
   'sky.b1': ['isle-crag-hd', 5.6], 'sky.b2': ['isle-spurs-hd', 3.9], 'sky.b3': ['isle-cone-hd', 2.5], 'sky.b4': ['isle-spurs-hd', 4.9],
 };
 const FALLBACK: readonly SkyIsleModel[] = SKY_ISLE_MODELS;

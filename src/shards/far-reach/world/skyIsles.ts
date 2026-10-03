@@ -26,10 +26,10 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   // the mill, their isles small and far at the horizon either side; only A hangs a cluster there, so the overhead three
   // went out to the horizon band): from the spawn small isles beside the mill, just under the low sun; from the crown's
   // rise beyond the standing stones, as mockup D shows them
-  // round 7 (seats B and C: 'give A back its cluster without walling B and C'): two crags overlapping over and left of
-  // the low sun, as mockup A frames it, at headings -12 and -16 from the spawn: A's frame spans +-18.6 deg, B's and C's start
-  // at -14.6 and -13.6, so the sky over the mill stays open in them
-  isle('o1', -30, -150, 11, 72, 19, 4, Math.PI * 0.3), isle('o3', -46, -168, 10, 74, 17, 3, null),
+  // the cluster over the mill (round 8, the lead's ruling: the world follows mockup A, one broad overlapping cluster over
+  // the windmill, which B and C see too and are scored on its finish): three crags at headings -9, -2 and +4 from the spawn,
+  // 10-20 deg up, at three depths so they overlap; clear of l4 (o3's keel ran through its deck) and of the storm
+  isle('o1', -22, -150, 11, 72, 19, 4, Math.PI * 0.3), isle('o3', -6, -166, 12, 81, 18, 3, null), isle('o4', 11, -152, 9, 74, 16, 2, Math.PI * 0.8),
   isle('o2', 30, -290, 12, 40, 20, 4, Math.PI * 0.7),
   // around and behind, for the other views and the aerials
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),

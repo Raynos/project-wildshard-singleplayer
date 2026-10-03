@@ -54,6 +54,18 @@ export class StormRocBrain extends CreatureBrain<RocState> {
     a.place(ROC.x + Math.cos(theta) * ROC.r, ROC.z + Math.sin(theta) * ROC.r, 0, ROC.y);
     a.yaw = yawTo(a, ROC.x + Math.cos(theta + 0.3) * ROC.r, ROC.z + Math.sin(theta + 0.3) * ROC.r);
   }
+  /**
+   * Stage the fight's opening (E399 round 8, seats B and C, X1: 'the state this spot produces'): the Roc on its perch on the
+   * tallest stone as the boss begins, its first 2 s rest running; it lifts off along its lap, then turns in on its first
+   * stalk at the player. What every fight shows in its first seconds, from wherever the player entered the arena.
+   */
+  stageOpening(): void {
+    const a = this.actor; if (!this.fighting || this.phase !== 0) return;
+    const perch = PERCH();
+    this.strikes.cancel(); a.cancelAttack(); this.current = null; this.rest = 2; this.transition('circle');
+    this.angle = Math.atan2(perch.z - ROC.z, perch.x - ROC.x);
+    a.place(perch.x, perch.z, 0, perch.y); a.yaw = yawTo(a, DAIS.x, DAIS.z + 40);
+  }
   stageStalk(at: { x: number; z: number }, face: { x: number; z: number }): void {
     const a = this.actor; if (!this.fighting || this.phase !== 0) return;
     this.rest = 0; this.strikes.cancel(); a.cancelAttack(); this.current = null; this.transition('stalk');
@@ -79,7 +91,9 @@ export class StormRocBrain extends CreatureBrain<RocState> {
     if (this.state === 'circle' || this.state === 'rest') {
       this.angle += (ctx.dt * ROC_SPEED.circle) / ROC.r;
       const r = this.phase === 2 ? DAIS.r * 0.4 : ROC.r, cx = this.phase === 2 ? DAIS.x : ROC.x, cz = this.phase === 2 ? DAIS.z : ROC.z;
-      ctx.flight.steer(a, yawTo(a, cx + Math.cos(this.angle) * r, cz + Math.sin(this.angle) * r), this.phase === 2 ? ROC_SPEED.walk : ROC_SPEED.circle, this.altitude(), 2);
+      // a take-off climbs before it laps (round 8: off its perch it left at full lap speed): slow while well under its height
+      const climb = Math.min(1, Math.max(0.25, 1 - (this.altitude() - a.position.y) / 5));
+      ctx.flight.steer(a, yawTo(a, cx + Math.cos(this.angle) * r, cz + Math.sin(this.angle) * r), this.phase === 2 ? ROC_SPEED.walk : ROC_SPEED.circle * climb, this.altitude(), 2);
       return;
     }
     if (this.state === 'stalk') {

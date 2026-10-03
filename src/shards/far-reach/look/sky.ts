@@ -79,7 +79,8 @@ export function skyDome(pano: Texture, haze: Texture): Mesh<SphereGeometry, Shad
         // vs 40; C's higher sky cool, 44 vs 59): the band up to ~22 deg toward its own grey, the sky above it warmer
         float farL = dot(c, vec3(0.2126, 0.7152, 0.0722));
         c = mix(c, vec3(farL) * vec3(1.04, 1.0, 0.95), (1.0 - smoothstep(16.0, 26.0, elev)) * smoothstep(-2.0, 2.0, elev) * 0.22);
-        c = mix(c, c * vec3(1.1, 1.0, 0.88), smoothstep(22.0, 40.0, elev) * 0.5);
+        // (round 8, seats B and C: the upper sky 11-13 darker than the mockups': C 140 vs 205) warmer and lighter
+        c = mix(c, c * vec3(1.28, 1.14, 0.98), smoothstep(18.0, 40.0, elev) * 0.6);
         // the painted glow round the sun rolled off (round 7, seat B: D's middle band 13.6 % over 230 against the mockup's
         // 5.2 %, the hot blob ~0.35 of the frame wide): the glow card (look/sunGlow.ts) carries the hot core
         float farToSun = degrees(acos(clamp(dot(n, ${SUN_GLSL}), -1.0, 1.0)));

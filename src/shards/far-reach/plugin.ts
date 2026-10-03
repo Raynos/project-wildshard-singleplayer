@@ -196,7 +196,9 @@ export class SkyReachPlugin extends ShardPlugin {
       patchShader(mat, 'far.roc-slate', PATCH_ORDER.decorate, (shader) => {
         // (round 7, seat B: the wings measured unchanged: the model's self-light feeds the painted texture back as emissive,
         // so the emission is recoloured too; linear values, the brown test scaled for them)
-        const slate = 'vec3 farSlate(vec3 c){ float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); float brown = clamp((c.r - c.b) / max(c.r, 1e-3) * 1.6 - 0.3, 0.0, 1.0) * (1.0 - smoothstep(0.55, 0.75, c.g / max(c.r, 1e-3))); return mix(c, vec3(l) * vec3(0.82, 0.9, 1.05) * 1.25, brown * 0.9); }';
+        // (round 8, seats B and C: the mids still 117,64,51 against the mockup's slate 86,71,80: the paint's near-black darks kept
+        // their luminance) a slate floor under the darks, the lighter feathers keeping their bands
+        const slate = 'vec3 farSlate(vec3 c){ float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); float brown = clamp((c.r - c.b) / max(c.r, 1e-3) * 1.6 - 0.3, 0.0, 1.0) * (1.0 - smoothstep(0.55, 0.75, c.g / max(c.r, 1e-3))); return mix(c, vec3(0.085, 0.09, 0.11) + vec3(l) * vec3(0.82, 0.9, 1.05) * 1.1, brown * 0.95); }';
         shader.fragmentShader = `${slate}\n${shader.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  diffuseColor.rgb = farSlate(diffuseColor.rgb);').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance = farSlate(totalEmissiveRadiance);')}`;
       }, { key: (prior) => `${prior}|far.roc-slate`, scope: ctx.scope });
     }
@@ -246,6 +248,7 @@ export class SkyReachPlugin extends ShardPlugin {
     // -1.2 / -1.45 / -1.7 / -1.85 / -2.07: east of this it leaves the frame, west of it it crosses side-on)
     // ('roc-lap@<radians>' places it at another point of the same lap)
     if (name.startsWith('roc-lap')) { this.built?.storm.strike(0.5); if (body !== null) body.stageLap(Number(name.split('@')[1] ?? -2.64)); }
+    if (name === 'roc-opening') { this.built?.storm.strike(1.0); if (body !== null) body.stageOpening(); }
     if (name === 'roc-stalk') this.built?.storm.strike(0.15);
     if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }

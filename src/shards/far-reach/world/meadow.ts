@@ -259,7 +259,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           // the sun through the blades: the tips and the upper strands glow gold when you look toward it
           float glow = back * smoothstep(0.35, 1.0, up);
           // the backlit blades catch gold (the mockups' 95th percentile is a gold 160-178; ours stopped near 100)
-          lit += ${glslColor(SWARD.glow)} * glow * 1.4 * sh * sh + ${glslColor(SKY.sun)} * back * up * up * up * 0.7 * sh;
+          lit += ${glslColor(SWARD.glow)} * glow * 0.8 * sh * sh + ${glslColor(SKY.sun)} * back * up * up * up * 0.4 * sh;
         }
         lit *= ${glslColor(0xfff6ec)} * 1.1;
         // olive-gold, not lime (council round 3: the meadow's blue measured 16-27 of 255 against the mockups' 39-47):
