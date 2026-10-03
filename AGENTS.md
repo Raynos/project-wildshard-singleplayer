@@ -26,7 +26,8 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 - **Status vocabulary:** `open` · `in flight (date, owner)` · `needs pick (date)` · `done` · `dropped` ·
   `folded into <X>` · `superseded by <X>`. A claim lapses after **71 h** without a commit; a pick after **7 days**
   ("Jake approved none"). `scripts/asks.mjs` checks it in pre-commit and prints it in the session brief.
-- **Done = on `origin/main` with green CI.** Add the live build id when the deploy ships it; don't wait for it.
+- **Done = pushed to `origin/main` with the local gates green** (E428): no wait for the CI run or the deploy. Add the
+  live build id when the deploy ships it.
 - **Plans are the one queue.** Follow-up work is a plan row, never another ask. **A leftover is built in the session
   that found it, or it stays an open row of its live plan.** Never file a plan's tail as asks.
 - **Plan State lines stay true by commit**: a commit naming a live plan touches it (or says `Plan-State: unchanged`).
