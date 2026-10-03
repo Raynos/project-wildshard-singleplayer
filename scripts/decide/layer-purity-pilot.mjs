@@ -25,7 +25,7 @@ if (process.argv[2] === '--score') {
   const results = readFileSync(process.argv[4], 'utf8').trim().split('\n').map((l) => JSON.parse(l));
   let tp = 0, fp = 0, fn = 0, tn = 0;
   results.forEach((r, i) => {
-    const p = r.answers?.content?.noul ?? NaN, label = items[i].label;
+    const p = r.answers?.content?.noul ?? Number.NaN, label = items[i].label;
     const flagged = p >= 0.5;
     if (flagged && label) tp++; else if (flagged) fp++; else if (label) fn++; else tn++;
     console.log(`${label ? 'content' : 'generic'}  p=${Number(p).toFixed(3)}  ${items[i].id}`);
