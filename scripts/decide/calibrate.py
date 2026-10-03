@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""calibrate.py — score a decide.py batch against hand labels (E394 D3, docs/plans/DECISION-MODELS.md).
+"""calibrate.py — score a decide.py batch against hand labels (E394 D3, project/archive/2026-10-03-decision-models.md).
 
     python3 scripts/decide/calibrate.py <set> <results.jsonl> <labels.tsv> [<labels.tsv> …]
 

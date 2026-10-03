@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""decide.py — typed, calibrated decisions from a local decision model (E394, docs/plans/DECISION-MODELS.md).
+"""decide.py — typed, calibrated decisions from a local decision model (E394, project/archive/2026-10-03-decision-models.md).
 
 Asks a frozen question set (scripts/decide/sets/<name>.json) about an image and/or a text state, with the local
 Clef-flash 4-bit model (MLX, ~6 GB, ~0.3 s a call on the M5 Max), and prints one JSON line per item:

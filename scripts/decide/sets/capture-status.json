@@ -2,7 +2,7 @@
   "name": "capture-status",
   "version": 2,
   "ask": "E394",
-  "about": "A live game capture (agent-browser / Playwright screenshot, progress or timelapse frame): is it a usable frame of the 3D world, or did the capture catch a loading screen, a title card, a menu, a blank frame or an error? D3 (2026-10-03, docs/plans/DECISION-MODELS.md): 376 hand-labelled real frames, 'not the world' AUC 0.998, 99 % of bad frames flagged at 3 % of good ones flagged. The 'corrupt' answer is logged but does not flag: it caught 1 of 4 real render glitches (AUC 0.88).",
+  "about": "A live game capture (agent-browser / Playwright screenshot, progress or timelapse frame): is it a usable frame of the 3D world, or did the capture catch a loading screen, a title card, a menu, a blank frame or an error? D3 (2026-10-03, project/archive/2026-10-03-decision-models.md): 376 hand-labelled real frames, 'not the world' AUC 0.998, 99 % of bad frames flagged at 3 % of good ones flagged. The 'corrupt' answer is logged but does not flag: it caught 1 of 4 real render glitches (AUC 0.88).",
   "model": "clef-flash-4bit",
   "state": "A screenshot taken by an automated test of Wildshard, a first-person 3D web game, at phone or desktop size. A good frame shows the 3D game world (terrain, sky, water, buildings, plants, creatures), usually with HUD buttons, a minimap and small labels drawn on top.",
   "questions": {
