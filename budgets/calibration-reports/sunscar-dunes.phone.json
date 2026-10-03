@@ -2,8 +2,8 @@
   "boot": {
     "schema": 1,
     "lane": "m5",
-    "sha": "f59c79c30034dacd7032a86e64cf57384e6802fc",
-    "build": "f59c79c-musbqg71",
+    "sha": "042c219c99fdd311d17d0ebf32e579a1464a8ef6",
+    "build": "042c219-musdcrvu",
     "shard": "sunscar-dunes",
     "tier": "phone",
     "viewport": {
@@ -504,7 +504,7 @@
     },
     "render": {
       "programs": 57,
-      "programKeys": "690fce1a484b6466625bc4f36c118ce17ca43c880536b71ebb3524894feaa605",
+      "programKeys": "7d4b928053b8e7a3d1af6c39c791e3cc31d5f921dd5b2023d9e340decec930dd",
       "memory": {
         "geometries": 236,
         "textures": 53
@@ -513,8 +513,8 @@
     "gpuBytes": {
       "textures": 103883560,
       "renderbuffers": 0,
-      "buffers": 11192404,
-      "total": 115075964
+      "buffers": 11197918,
+      "total": 115081478
     },
     "audio": {
       "requests": [
@@ -2250,185 +2250,185 @@
         "session:wildshard.save.v2.session"
       ]
     },
-    "playMs": 1931.0999999046326,
+    "playMs": 1896.3000001907349,
     "stepMs": {
-      "renderer": 12,
-      "sky": 22,
-      "terrain": 756,
+      "renderer": 13,
+      "sky": 28,
+      "terrain": 734,
       "cards": 1,
       "forest": 6,
-      "physics": 31,
-      "edge": 8,
+      "physics": 20,
+      "edge": 7,
       "grass": 0,
       "cabins": 0,
-      "props": 62,
+      "props": 71,
       "animals": 1,
       "weapon": 0,
       "menu": 12,
-      "shaders": 89,
-      "firstFrame": 102,
+      "shaders": 80,
+      "firstFrame": 105,
       "audio": 0
     },
-    "heapMB": 37.62873077392578
+    "heapMB": 47.801998138427734
   },
   "poses": {
     "spawn": {
       "name": "spawn",
       "pos": [
-        -0.00680260629451368,
-        17.04008462466377,
-        69.98836299339018
+        -0.0018059880449072807,
+        19.519608325768083,
+        69.99094385356148
       ],
-      "calls": 190,
-      "tris": 286226,
-      "fps": 587.0764388020643,
-      "frameP95Ms": 3.4000000953674316,
-      "cpuP50Ms": 1,
-      "cpuP95Ms": 2.3000001907348633,
+      "calls": 191,
+      "tris": 288925,
+      "fps": 1104.521867269567,
+      "frameP95Ms": 1.9000000953674316,
+      "cpuP50Ms": 0.7999997138977051,
+      "cpuP95Ms": 1.0999999046325684,
       "creatureBoxes": 5,
       "boxes": [
         [
           0,
-          276,
+          221,
           22,
-          477
+          421
         ],
         [
           58,
-          420,
+          444,
           90,
-          485
+          510
         ],
         [
           63,
-          421,
+          445,
           93,
-          485
+          510
         ],
         [
           90,
-          423,
+          451,
           119,
-          487
+          514
         ],
         [
           84,
-          421,
+          448,
           115,
-          486
+          513
         ]
       ],
-      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity9/retry/sunscar-dunes.phone.spawn.jpg",
+      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity11/retry/sunscar-dunes.phone.spawn.jpg",
       "ssim": 1
     },
     "whip": {
       "name": "whip",
       "pos": [
-        -0.006797629250286263,
-        15.927893461307297,
-        65.9871828599662
+        -0.0016132484397530789,
+        18.633324200621242,
+        65.9895634473487
       ],
       "calls": 73,
-      "tris": 267586,
-      "fps": 1173.2283464566929,
-      "frameP95Ms": 2,
-      "cpuP50Ms": 0.6999998092651367,
-      "cpuP95Ms": 1.1999998092651367,
+      "tris": 270077,
+      "fps": 1307.017543859649,
+      "frameP95Ms": 1.799999713897705,
+      "cpuP50Ms": 0.5,
+      "cpuP95Ms": 0.8000001907348633,
       "creatureBoxes": 8,
       "boxes": [
         [
-          47,
-          197,
+          46,
+          143,
           216,
-          400
+          346
         ],
         [
-          110,
-          383,
+          109,
+          375,
           151,
-          459
+          451
         ],
         [
-          68,
-          400,
+          67,
+          377,
           111,
-          477
+          454
         ],
         [
           118,
-          402,
-          166,
-          484
+          380,
+          165,
+          461
         ],
         [
           259,
-          353,
+          379,
           291,
-          419
+          445
         ],
         [
           263,
-          354,
+          380,
           294,
-          419
+          445
         ],
         [
           291,
-          357,
+          387,
           321,
-          421
+          451
         ],
         [
           285,
-          355,
+          383,
           317,
-          421
+          449
         ]
       ],
-      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity9/retry/sunscar-dunes.phone.whip.jpg",
+      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity11/retry/sunscar-dunes.phone.whip.jpg",
       "ssim": 1
     },
     "ray": {
       "name": "ray",
       "pos": [
-        -0.00680260629451368,
-        17.04008462466377,
-        69.98836299339018
+        -0.0018059880449072807,
+        19.519608325768083,
+        69.99094385356148
       ],
-      "calls": 82,
-      "tris": 265737,
-      "fps": 417.13325834450507,
-      "frameP95Ms": 4,
-      "cpuP50Ms": 0.6000003814697266,
-      "cpuP95Ms": 1.1999998092651367,
+      "calls": 85,
+      "tris": 268852,
+      "fps": 1415.0047457750168,
+      "frameP95Ms": 1.4000000953674316,
+      "cpuP50Ms": 0.5,
+      "cpuP95Ms": 0.7000002861022949,
       "creatureBoxes": 1,
       "boxes": [
         [
-          227,
-          615,
-          273,
-          695
+          226,
+          578,
+          272,
+          658
         ]
       ],
-      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity9/retry/sunscar-dunes.phone.ray.jpg",
+      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity11/retry/sunscar-dunes.phone.ray.jpg",
       "ssim": 1
     },
     "quest": {
       "name": "quest",
       "pos": [
-        3.9994231161191465,
-        18.9557877786744,
-        -62.98644706255436
+        3.999467524732154,
+        18.96069831110032,
+        -62.98671724241285
       ],
-      "calls": 155,
-      "tris": 239623,
-      "fps": 421.8573048710727,
-      "frameP95Ms": 2.4000000953674316,
-      "cpuP50Ms": 0.5999999046325684,
-      "cpuP95Ms": 1.0999999046325684,
+      "calls": 156,
+      "tris": 242322,
+      "fps": 1363.2204976214136,
+      "frameP95Ms": 1.6999998092651367,
+      "cpuP50Ms": 0.5,
+      "cpuP95Ms": 0.7000002861022949,
       "creatureBoxes": 0,
       "boxes": [],
-      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity9/retry/sunscar-dunes.phone.quest.jpg",
+      "shot": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity11/retry/sunscar-dunes.phone.quest.jpg",
       "ssim": 1
     }
   },
@@ -2441,29 +2441,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 108.99499130249023
+        "gpuMB": 109.74499130249023
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "spawn": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "whip": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "ray": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "quest": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "tower": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               }
             },
             "desktop": {
@@ -2561,29 +2561,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 108.99499130249023
+        "gpuMB": 109.74499130249023
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "spawn": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "whip": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "ray": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "quest": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "tower": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               }
             },
             "desktop": {
@@ -2681,29 +2681,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 108.99499130249023
+        "gpuMB": 109.74499130249023
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "spawn": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "whip": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "ray": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "quest": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "tower": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               }
             },
             "desktop": {
@@ -2801,29 +2801,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 108.99499130249023
+        "gpuMB": 109.74499130249023
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "spawn": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "whip": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "ray": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "quest": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "tower": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               }
             },
             "desktop": {
@@ -2921,29 +2921,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 108.99499130249023
+        "gpuMB": 109.74499130249023
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "spawn": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "whip": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "ray": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "quest": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "tower": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               }
             },
             "desktop": {
@@ -3033,10 +3033,10 @@
       "gpuM5Ms": 1.6041025641025641,
       "downloadBytes": null,
       "observed": {
-        "draws": 98,
-        "tris": 238862,
+        "draws": 102,
+        "tris": 242185,
         "programs": 57,
-        "gpuMB": 109.74499130249023
+        "gpuMB": 109.7502498626709
       }
     },
     "current": {
@@ -3047,29 +3047,29 @@
         "gpuMB": null
       },
       "ceiling": {
-        "gpuMB": 108.99499130249023
+        "gpuMB": 109.74499130249023
       },
       "formula": {
         "inputs": {
           "ceilings": {
             "phone": {
               "current": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "spawn": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "whip": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "ray": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "quest": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               },
               "tower": {
-                "gpuMB": 108.99499130249023
+                "gpuMB": 109.74499130249023
               }
             },
             "desktop": {
@@ -3159,10 +3159,10 @@
       "gpuM5Ms": 1.6041025641025641,
       "downloadBytes": null,
       "observed": {
-        "draws": 98,
-        "tris": 238862,
+        "draws": 102,
+        "tris": 242185,
         "programs": 57,
-        "gpuMB": 109.74499130249023
+        "gpuMB": 109.7502498626709
       }
     }
   },
@@ -3178,7 +3178,7 @@
       "ambient": []
     },
     "touch": {
-      "moved": 14.364176485010953,
+      "moved": 14.364233631562232,
       "yawDelta": -1.14,
       "dodged": true,
       "used": true
@@ -3205,7 +3205,7 @@
       "player": {
         "pos": {
           "x": -1.5,
-          "y": 16.164,
+          "y": 19.265,
           "z": 63
         },
         "yaw": 0,
@@ -3235,7 +3235,7 @@
           "kind": "duneRay",
           "pos": {
             "x": -18,
-            "y": 21.644,
+            "y": 28.047,
             "z": 30.008
           },
           "hp": 70,
@@ -3246,7 +3246,7 @@
           "kind": "duneStrider",
           "pos": {
             "x": 100,
-            "y": 13.09,
+            "y": 17.528,
             "z": -49.992
           },
           "hp": 150,
@@ -3257,7 +3257,7 @@
           "kind": "duneStrider",
           "pos": {
             "x": -100,
-            "y": 6.01,
+            "y": 15.138,
             "z": 0.008
           },
           "hp": 150,
@@ -3268,7 +3268,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -30.494,
-            "y": 10.725,
+            "y": 14.378,
             "z": 4.535
           },
           "hp": 24,
@@ -3279,7 +3279,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -18.543,
-            "y": 12.958,
+            "y": 10.333,
             "z": -43.183
           },
           "hp": 24,
@@ -3290,7 +3290,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -32.754,
-            "y": 9.241,
+            "y": 14.463,
             "z": 10.16
           },
           "hp": 24,
@@ -3301,7 +3301,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -26.752,
-            "y": 8.867,
+            "y": 14.009,
             "z": 9.305
           },
           "hp": 24,
@@ -3312,7 +3312,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 59.022,
-            "y": 2.952,
+            "y": 13.47,
             "z": 13.361
           },
           "hp": 24,
@@ -3323,7 +3323,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 63.399,
-            "y": 2.432,
+            "y": 13.855,
             "z": 9.167
           },
           "hp": 24,
@@ -3334,7 +3334,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 57.579,
-            "y": 2.666,
+            "y": 15.245,
             "z": 7.473
           },
           "hp": 24,
@@ -3345,7 +3345,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -23.183,
-            "y": 13.238,
+            "y": 11.111,
             "z": -41.457
           },
           "hp": 24,
@@ -3356,7 +3356,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -21.457,
-            "y": 13.403,
+            "y": 11.439,
             "z": -36.817
           },
           "hp": 24,
@@ -3367,7 +3367,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -16.817,
-            "y": 12.985,
+            "y": 10.297,
             "z": -38.543
           },
           "hp": 24,
@@ -3388,7 +3388,7 @@
       "player": {
         "pos": {
           "x": -1.5,
-          "y": 16.164,
+          "y": 19.265,
           "z": 63
         },
         "yaw": 0,
@@ -3418,7 +3418,7 @@
           "kind": "duneRay",
           "pos": {
             "x": -18,
-            "y": 21.644,
+            "y": 28.047,
             "z": 30.008
           },
           "hp": 70,
@@ -3429,7 +3429,7 @@
           "kind": "duneStrider",
           "pos": {
             "x": 100,
-            "y": 13.09,
+            "y": 17.528,
             "z": -49.992
           },
           "hp": 150,
@@ -3440,7 +3440,7 @@
           "kind": "duneStrider",
           "pos": {
             "x": -100,
-            "y": 6.01,
+            "y": 15.138,
             "z": 0.008
           },
           "hp": 150,
@@ -3451,7 +3451,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -30.494,
-            "y": 10.725,
+            "y": 14.378,
             "z": 4.535
           },
           "hp": 24,
@@ -3462,7 +3462,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -18.543,
-            "y": 12.958,
+            "y": 10.333,
             "z": -43.183
           },
           "hp": 24,
@@ -3473,7 +3473,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -32.754,
-            "y": 9.241,
+            "y": 14.463,
             "z": 10.16
           },
           "hp": 24,
@@ -3484,7 +3484,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -26.752,
-            "y": 8.867,
+            "y": 14.009,
             "z": 9.305
           },
           "hp": 24,
@@ -3495,7 +3495,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 59.022,
-            "y": 2.952,
+            "y": 13.47,
             "z": 13.361
           },
           "hp": 24,
@@ -3506,7 +3506,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 63.399,
-            "y": 2.432,
+            "y": 13.855,
             "z": 9.167
           },
           "hp": 24,
@@ -3517,7 +3517,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": 57.579,
-            "y": 2.666,
+            "y": 15.245,
             "z": 7.473
           },
           "hp": 24,
@@ -3528,7 +3528,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -23.183,
-            "y": 13.238,
+            "y": 11.111,
             "z": -41.457
           },
           "hp": 24,
@@ -3539,7 +3539,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -21.457,
-            "y": 13.403,
+            "y": 11.439,
             "z": -36.817
           },
           "hp": 24,
@@ -3550,7 +3550,7 @@
           "kind": "sandSkitterer",
           "pos": {
             "x": -16.817,
-            "y": 12.985,
+            "y": 10.297,
             "z": -38.543
           },
           "hp": 24,
@@ -3679,18 +3679,18 @@
     },
     "stacks": {
       "listeners": [
-        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:59119/?chunk=sunscar-dunes&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
-        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:59119/?chunk=sunscar-dunes&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:37:16",
-        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:59119/assets/scope-CA_JxFkF.js:1:3194)\n    at F (http://127.0.0.1:59119/assets/bootTrace-DlJ-qI8Y.js:2:5163)\n    at http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:2:2883",
-        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:59119/assets/scope-CA_JxFkF.js:1:3194)\n    at http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:2:3937",
-        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:59119/assets/scope-CA_JxFkF.js:1:3194)\n    at http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:2:4030"
+        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:51950/?chunk=sunscar-dunes&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:36:16",
+        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:51950/?chunk=sunscar-dunes&tier=phone&skipintro=1&nolock=1&mute=1&weather=clear&touch=1&sw=0:37:16",
+        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:51950/assets/scope-Bf1qFTeX.js:1:3194)\n    at F (http://127.0.0.1:51950/assets/bootTrace-C3VxaPnp.js:2:5163)\n    at http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:2:2883",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:51950/assets/scope-Bf1qFTeX.js:1:3194)\n    at http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:2:3937",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at r.listen (http://127.0.0.1:51950/assets/scope-Bf1qFTeX.js:1:3194)\n    at http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:2:4030"
       ],
       "timers": [
-        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:59119/assets/scope-CA_JxFkF.js:1:3897)\n    at Bs (http://127.0.0.1:59119/assets/runtime-BEB5WNOL.js:25:54367)\n    at c (http://127.0.0.1:59119/assets/runtime-BEB5WNOL.js:25:56110)\n    at async http://127.0.0.1:59119/assets/runtime-BEB5WNOL.js:25:56320\n    at async http://127.0.0.1:59119/assets/runtime-BEB5WNOL.js:25:5659",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:59119/assets/scope-CA_JxFkF.js:1:4166)\n    at http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:2:3920",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:59119/assets/scope-CA_JxFkF.js:1:4166)\n    at He (http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:73:3275)\n    at qe (http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:73:4569)\n    at http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:80:5555",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:59119/assets/scope-CA_JxFkF.js:1:4166)\n    at He (http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:73:3375)\n    at qe (http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:73:4569)\n    at http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:80:5555",
-        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:59119/assets/scope-CA_JxFkF.js:1:4166)\n    at He (http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:73:3484)\n    at qe (http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:73:4569)\n    at http://127.0.0.1:59119/assets/index-CtmWEPoZ.js:80:5555"
+        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at r.timeout (http://127.0.0.1:51950/assets/scope-Bf1qFTeX.js:1:3897)\n    at Hs (http://127.0.0.1:51950/assets/runtime-BrKIsXwl.js:25:54880)\n    at c (http://127.0.0.1:51950/assets/runtime-BrKIsXwl.js:25:56623)\n    at async http://127.0.0.1:51950/assets/runtime-BrKIsXwl.js:25:56833\n    at async http://127.0.0.1:51950/assets/runtime-BrKIsXwl.js:25:5660",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:51950/assets/scope-Bf1qFTeX.js:1:4166)\n    at http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:2:3920",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:51950/assets/scope-Bf1qFTeX.js:1:4166)\n    at He (http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:73:3275)\n    at qe (http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:73:4569)\n    at http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:80:5555",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:51950/assets/scope-Bf1qFTeX.js:1:4166)\n    at He (http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:73:3375)\n    at qe (http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:73:4569)\n    at http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:80:5555",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at r.interval (http://127.0.0.1:51950/assets/scope-Bf1qFTeX.js:1:4166)\n    at He (http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:73:3484)\n    at qe (http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:73:4569)\n    at http://127.0.0.1:51950/assets/index-BT7GNXQ6.js:80:5555"
       ]
     },
     "retained": [
@@ -4874,7 +4874,7 @@
         {
           "type": "e",
           "uuid": "4439b3db-2daf-4c68-be02-ab37b29acb3d",
-          "name": "",
+          "name": "Image_0",
           "retained": true,
           "texture": true,
           "programs": [],
@@ -5348,7 +5348,7 @@
     {
       "field": "walk.touch",
       "now": {
-        "moved": 14.364176485010953,
+        "moved": 14.364233631562232,
         "yawDelta": -1.14,
         "dodged": true,
         "used": true
@@ -5366,7 +5366,7 @@
           "player": {
             "pos": {
               "x": -1.5,
-              "y": 16.164,
+              "y": 19.265,
               "z": 63
             },
             "yaw": 0,
@@ -5396,7 +5396,7 @@
               "kind": "duneRay",
               "pos": {
                 "x": -18,
-                "y": 21.644,
+                "y": 28.047,
                 "z": 30.008
               },
               "hp": 70,
@@ -5407,7 +5407,7 @@
               "kind": "duneStrider",
               "pos": {
                 "x": 100,
-                "y": 13.09,
+                "y": 17.528,
                 "z": -49.992
               },
               "hp": 150,
@@ -5418,7 +5418,7 @@
               "kind": "duneStrider",
               "pos": {
                 "x": -100,
-                "y": 6.01,
+                "y": 15.138,
                 "z": 0.008
               },
               "hp": 150,
@@ -5429,7 +5429,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -30.494,
-                "y": 10.725,
+                "y": 14.378,
                 "z": 4.535
               },
               "hp": 24,
@@ -5440,7 +5440,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -18.543,
-                "y": 12.958,
+                "y": 10.333,
                 "z": -43.183
               },
               "hp": 24,
@@ -5451,7 +5451,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -32.754,
-                "y": 9.241,
+                "y": 14.463,
                 "z": 10.16
               },
               "hp": 24,
@@ -5462,7 +5462,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -26.752,
-                "y": 8.867,
+                "y": 14.009,
                 "z": 9.305
               },
               "hp": 24,
@@ -5473,7 +5473,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 59.022,
-                "y": 2.952,
+                "y": 13.47,
                 "z": 13.361
               },
               "hp": 24,
@@ -5484,7 +5484,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 63.399,
-                "y": 2.432,
+                "y": 13.855,
                 "z": 9.167
               },
               "hp": 24,
@@ -5495,7 +5495,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 57.579,
-                "y": 2.666,
+                "y": 15.245,
                 "z": 7.473
               },
               "hp": 24,
@@ -5506,7 +5506,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -23.183,
-                "y": 13.238,
+                "y": 11.111,
                 "z": -41.457
               },
               "hp": 24,
@@ -5517,7 +5517,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -21.457,
-                "y": 13.403,
+                "y": 11.439,
                 "z": -36.817
               },
               "hp": 24,
@@ -5528,7 +5528,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -16.817,
-                "y": 12.985,
+                "y": 10.297,
                 "z": -38.543
               },
               "hp": 24,
@@ -5549,7 +5549,7 @@
           "player": {
             "pos": {
               "x": -1.5,
-              "y": 16.164,
+              "y": 19.265,
               "z": 63
             },
             "yaw": 0,
@@ -5579,7 +5579,7 @@
               "kind": "duneRay",
               "pos": {
                 "x": -18,
-                "y": 21.644,
+                "y": 28.047,
                 "z": 30.008
               },
               "hp": 70,
@@ -5590,7 +5590,7 @@
               "kind": "duneStrider",
               "pos": {
                 "x": 100,
-                "y": 13.09,
+                "y": 17.528,
                 "z": -49.992
               },
               "hp": 150,
@@ -5601,7 +5601,7 @@
               "kind": "duneStrider",
               "pos": {
                 "x": -100,
-                "y": 6.01,
+                "y": 15.138,
                 "z": 0.008
               },
               "hp": 150,
@@ -5612,7 +5612,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -30.494,
-                "y": 10.725,
+                "y": 14.378,
                 "z": 4.535
               },
               "hp": 24,
@@ -5623,7 +5623,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -18.543,
-                "y": 12.958,
+                "y": 10.333,
                 "z": -43.183
               },
               "hp": 24,
@@ -5634,7 +5634,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -32.754,
-                "y": 9.241,
+                "y": 14.463,
                 "z": 10.16
               },
               "hp": 24,
@@ -5645,7 +5645,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -26.752,
-                "y": 8.867,
+                "y": 14.009,
                 "z": 9.305
               },
               "hp": 24,
@@ -5656,7 +5656,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 59.022,
-                "y": 2.952,
+                "y": 13.47,
                 "z": 13.361
               },
               "hp": 24,
@@ -5667,7 +5667,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 63.399,
-                "y": 2.432,
+                "y": 13.855,
                 "z": 9.167
               },
               "hp": 24,
@@ -5678,7 +5678,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": 57.579,
-                "y": 2.666,
+                "y": 15.245,
                 "z": 7.473
               },
               "hp": 24,
@@ -5689,7 +5689,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -23.183,
-                "y": 13.238,
+                "y": 11.111,
                 "z": -41.457
               },
               "hp": 24,
@@ -5700,7 +5700,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -21.457,
-                "y": 13.403,
+                "y": 11.439,
                 "z": -36.817
               },
               "hp": 24,
@@ -5711,7 +5711,7 @@
               "kind": "sandSkitterer",
               "pos": {
                 "x": -16.817,
-                "y": 12.985,
+                "y": 10.297,
                 "z": -38.543
               },
               "hp": 24,
@@ -5956,7 +5956,7 @@
     {
       "field": "budgets.spawn.draws",
       "baseline": 1831,
-      "now": 190,
+      "now": 191,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -5964,7 +5964,7 @@
     {
       "field": "budgets.spawn.tris",
       "baseline": 18779873,
-      "now": 286226,
+      "now": 288925,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -5979,10 +5979,10 @@
     },
     {
       "field": "budgets.spawn.gpuMB",
-      "baseline": 108.99499130249023,
-      "now": 109.74499130249023,
+      "baseline": 109.74499130249023,
+      "now": 109.7502498626709,
       "class": "D",
-      "band": "≤ 108.99499130249023",
+      "band": "≤ 109.74499130249023",
       "verdict": "red"
     },
     {
@@ -5996,7 +5996,7 @@
     {
       "field": "budgets.whip.tris",
       "baseline": 18779873,
-      "now": 267586,
+      "now": 270077,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6011,16 +6011,16 @@
     },
     {
       "field": "budgets.whip.gpuMB",
-      "baseline": 108.99499130249023,
-      "now": 109.74499130249023,
+      "baseline": 109.74499130249023,
+      "now": 109.7502498626709,
       "class": "D",
-      "band": "≤ 108.99499130249023",
+      "band": "≤ 109.74499130249023",
       "verdict": "red"
     },
     {
       "field": "budgets.ray.draws",
       "baseline": 1831,
-      "now": 82,
+      "now": 85,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -6028,7 +6028,7 @@
     {
       "field": "budgets.ray.tris",
       "baseline": 18779873,
-      "now": 265737,
+      "now": 268852,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6043,16 +6043,16 @@
     },
     {
       "field": "budgets.ray.gpuMB",
-      "baseline": 108.99499130249023,
-      "now": 109.74499130249023,
+      "baseline": 109.74499130249023,
+      "now": 109.7502498626709,
       "class": "D",
-      "band": "≤ 108.99499130249023",
+      "band": "≤ 109.74499130249023",
       "verdict": "red"
     },
     {
       "field": "budgets.quest.draws",
       "baseline": 1831,
-      "now": 155,
+      "now": 156,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -6060,7 +6060,7 @@
     {
       "field": "budgets.quest.tris",
       "baseline": 18779873,
-      "now": 239623,
+      "now": 242322,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6075,16 +6075,16 @@
     },
     {
       "field": "budgets.quest.gpuMB",
-      "baseline": 108.99499130249023,
-      "now": 109.74499130249023,
+      "baseline": 109.74499130249023,
+      "now": 109.7502498626709,
       "class": "D",
-      "band": "≤ 108.99499130249023",
+      "band": "≤ 109.74499130249023",
       "verdict": "red"
     },
     {
       "field": "budgets.tower.draws",
       "baseline": 1831,
-      "now": 98,
+      "now": 102,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -6092,7 +6092,7 @@
     {
       "field": "budgets.tower.tris",
       "baseline": 18779873,
-      "now": 238862,
+      "now": 242185,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6107,16 +6107,16 @@
     },
     {
       "field": "budgets.tower.gpuMB",
-      "baseline": 108.99499130249023,
-      "now": 109.74499130249023,
+      "baseline": 109.74499130249023,
+      "now": 109.7502498626709,
       "class": "D",
-      "band": "≤ 108.99499130249023",
+      "band": "≤ 109.74499130249023",
       "verdict": "red"
     },
     {
       "field": "budgets.current.draws",
       "baseline": 1831,
-      "now": 98,
+      "now": 102,
       "class": "D",
       "band": "≤ 1831",
       "verdict": "green"
@@ -6124,7 +6124,7 @@
     {
       "field": "budgets.current.tris",
       "baseline": 18779873,
-      "now": 238862,
+      "now": 242185,
       "class": "D",
       "band": "≤ 18779873",
       "verdict": "green"
@@ -6139,10 +6139,10 @@
     },
     {
       "field": "budgets.current.gpuMB",
-      "baseline": 108.99499130249023,
-      "now": 109.74499130249023,
+      "baseline": 109.74499130249023,
+      "now": 109.7502498626709,
       "class": "D",
-      "band": "≤ 108.99499130249023",
+      "band": "≤ 109.74499130249023",
       "verdict": "red"
     },
     {
@@ -6179,14 +6179,14 @@
     },
     {
       "field": "boot.sha",
-      "now": "f59c79c30034dacd7032a86e64cf57384e6802fc",
+      "now": "042c219c99fdd311d17d0ebf32e579a1464a8ef6",
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.build",
-      "now": "f59c79c-musbqg71",
+      "now": "042c219-musdcrvu",
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -6869,7 +6869,7 @@
     },
     {
       "field": "boot.render.programKeys",
-      "now": "690fce1a484b6466625bc4f36c118ce17ca43c880536b71ebb3524894feaa605",
+      "now": "7d4b928053b8e7a3d1af6c39c791e3cc31d5f921dd5b2023d9e340decec930dd",
       "class": "A",
       "band": "exact",
       "verdict": "new"
@@ -6904,14 +6904,14 @@
     },
     {
       "field": "boot.gpuBytes.buffers",
-      "now": 11192404,
+      "now": 11197918,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "boot.gpuBytes.total",
-      "now": 115075964,
+      "now": 115081478,
       "class": "A",
       "band": "exact",
       "verdict": "new"
@@ -8688,28 +8688,28 @@
     },
     {
       "field": "boot.playMs",
-      "now": 1931.0999999046326,
+      "now": 1896.3000001907349,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.renderer",
-      "now": 12,
+      "now": 13,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.sky",
-      "now": 22,
+      "now": 28,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.terrain",
-      "now": 756,
+      "now": 734,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8730,14 +8730,14 @@
     },
     {
       "field": "boot.stepMs.physics",
-      "now": 31,
+      "now": 20,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.edge",
-      "now": 8,
+      "now": 7,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8758,7 +8758,7 @@
     },
     {
       "field": "boot.stepMs.props",
-      "now": 62,
+      "now": 71,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8786,14 +8786,14 @@
     },
     {
       "field": "boot.stepMs.shaders",
-      "now": 89,
+      "now": 80,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "boot.stepMs.firstFrame",
-      "now": 102,
+      "now": 105,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8807,7 +8807,7 @@
     },
     {
       "field": "boot.heapMB",
-      "now": 37.62873077392578,
+      "now": 47.801998138427734,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8822,9 +8822,9 @@
     {
       "field": "poses.spawn.pos",
       "now": [
-        -0.00680260629451368,
-        17.04008462466377,
-        69.98836299339018
+        -0.0018059880449072807,
+        19.519608325768083,
+        69.99094385356148
       ],
       "class": "A",
       "band": "exact",
@@ -8832,42 +8832,42 @@
     },
     {
       "field": "poses.spawn.calls",
-      "now": 190,
+      "now": 191,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.spawn.tris",
-      "now": 286226,
+      "now": 288925,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.spawn.fps",
-      "now": 587.0764388020643,
+      "now": 1104.521867269567,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.spawn.frameP95Ms",
-      "now": 3.4000000953674316,
+      "now": 1.9000000953674316,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.spawn.cpuP50Ms",
-      "now": 1,
+      "now": 0.7999997138977051,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.spawn.cpuP95Ms",
-      "now": 2.3000001907348633,
+      "now": 1.0999999046325684,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8884,33 +8884,33 @@
       "now": [
         [
           0,
-          276,
+          221,
           22,
-          477
+          421
         ],
         [
           58,
-          420,
+          444,
           90,
-          485
+          510
         ],
         [
           63,
-          421,
+          445,
           93,
-          485
+          510
         ],
         [
           90,
-          423,
+          451,
           119,
-          487
+          514
         ],
         [
           84,
-          421,
+          448,
           115,
-          486
+          513
         ]
       ],
       "class": "C",
@@ -8919,7 +8919,7 @@
     },
     {
       "field": "poses.spawn.shot",
-      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity9/retry/sunscar-dunes.phone.spawn.jpg",
+      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity11/retry/sunscar-dunes.phone.spawn.jpg",
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -8941,9 +8941,9 @@
     {
       "field": "poses.whip.pos",
       "now": [
-        -0.006797629250286263,
-        15.927893461307297,
-        65.9871828599662
+        -0.0016132484397530789,
+        18.633324200621242,
+        65.9895634473487
       ],
       "class": "A",
       "band": "exact",
@@ -8958,35 +8958,35 @@
     },
     {
       "field": "poses.whip.tris",
-      "now": 267586,
+      "now": 270077,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.whip.fps",
-      "now": 1173.2283464566929,
+      "now": 1307.017543859649,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.whip.frameP95Ms",
-      "now": 2,
+      "now": 1.799999713897705,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.whip.cpuP50Ms",
-      "now": 0.6999998092651367,
+      "now": 0.5,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.whip.cpuP95Ms",
-      "now": 1.1999998092651367,
+      "now": 0.8000001907348633,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -9002,52 +9002,52 @@
       "field": "poses.whip.boxes",
       "now": [
         [
-          47,
-          197,
+          46,
+          143,
           216,
-          400
+          346
         ],
         [
-          110,
-          383,
+          109,
+          375,
           151,
-          459
+          451
         ],
         [
-          68,
-          400,
+          67,
+          377,
           111,
-          477
+          454
         ],
         [
           118,
-          402,
-          166,
-          484
+          380,
+          165,
+          461
         ],
         [
           259,
-          353,
+          379,
           291,
-          419
+          445
         ],
         [
           263,
-          354,
+          380,
           294,
-          419
+          445
         ],
         [
           291,
-          357,
+          387,
           321,
-          421
+          451
         ],
         [
           285,
-          355,
+          383,
           317,
-          421
+          449
         ]
       ],
       "class": "C",
@@ -9056,7 +9056,7 @@
     },
     {
       "field": "poses.whip.shot",
-      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity9/retry/sunscar-dunes.phone.whip.jpg",
+      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity11/retry/sunscar-dunes.phone.whip.jpg",
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -9078,9 +9078,9 @@
     {
       "field": "poses.ray.pos",
       "now": [
-        -0.00680260629451368,
-        17.04008462466377,
-        69.98836299339018
+        -0.0018059880449072807,
+        19.519608325768083,
+        69.99094385356148
       ],
       "class": "A",
       "band": "exact",
@@ -9088,42 +9088,42 @@
     },
     {
       "field": "poses.ray.calls",
-      "now": 82,
+      "now": 85,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.ray.tris",
-      "now": 265737,
+      "now": 268852,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.ray.fps",
-      "now": 417.13325834450507,
+      "now": 1415.0047457750168,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.ray.frameP95Ms",
-      "now": 4,
+      "now": 1.4000000953674316,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.ray.cpuP50Ms",
-      "now": 0.6000003814697266,
+      "now": 0.5,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.ray.cpuP95Ms",
-      "now": 1.1999998092651367,
+      "now": 0.7000002861022949,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -9139,10 +9139,10 @@
       "field": "poses.ray.boxes",
       "now": [
         [
-          227,
-          615,
-          273,
-          695
+          226,
+          578,
+          272,
+          658
         ]
       ],
       "class": "C",
@@ -9151,7 +9151,7 @@
     },
     {
       "field": "poses.ray.shot",
-      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity9/retry/sunscar-dunes.phone.ray.jpg",
+      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity11/retry/sunscar-dunes.phone.ray.jpg",
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -9173,9 +9173,9 @@
     {
       "field": "poses.quest.pos",
       "now": [
-        3.9994231161191465,
-        18.9557877786744,
-        -62.98644706255436
+        3.999467524732154,
+        18.96069831110032,
+        -62.98671724241285
       ],
       "class": "A",
       "band": "exact",
@@ -9183,42 +9183,42 @@
     },
     {
       "field": "poses.quest.calls",
-      "now": 155,
+      "now": 156,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.quest.tris",
-      "now": 239623,
+      "now": 242322,
       "class": "A",
       "band": "exact",
       "verdict": "new"
     },
     {
       "field": "poses.quest.fps",
-      "now": 421.8573048710727,
+      "now": 1363.2204976214136,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.quest.frameP95Ms",
-      "now": 2.4000000953674316,
+      "now": 1.6999998092651367,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.quest.cpuP50Ms",
-      "now": 0.5999999046325684,
+      "now": 0.5,
       "class": "C",
       "band": "information",
       "verdict": "info"
     },
     {
       "field": "poses.quest.cpuP95Ms",
-      "now": 1.0999999046325684,
+      "now": 0.7000002861022949,
       "class": "C",
       "band": "information",
       "verdict": "info"
@@ -9239,7 +9239,7 @@
     },
     {
       "field": "poses.quest.shot",
-      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity9/retry/sunscar-dunes.phone.quest.jpg",
+      "now": "/private/tmp/claude-501/-Users-raynos-projects-games-wildshard-singleplayer/f702a755-86ee-49fd-a550-dcecba27f2c2/scratchpad/parity11/retry/sunscar-dunes.phone.quest.jpg",
       "class": "C",
       "band": "information",
       "verdict": "info"
