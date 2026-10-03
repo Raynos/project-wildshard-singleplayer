@@ -139,7 +139,10 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
  * frame (it spans ~2 units, ~0.13 m a unit; the handle's top at (-0.53, 0.95, 0.19)): the cord leaves the handle's top
  * into a closed coil beside the fist (round 15: see plaitedLoop), and the fall drops out of the frame behind the hand.
  */
-export const LOOP = { cord: 0.06, from: [-0.613, 0.922, -0.537], start: 1.3, rx: 0.5, ry: 0.62, face: 0.4, turns: 2, step: [0.05, -0.04, 0.05], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
+// round 23 (seat B after round 21: one turn ~0.25 wide, its top near y 0.66; A, B and C hold TWO coils ~0.5 wide, tops near
+// 0.60): the fist on the coil's right side, two turns stepped apart, a thicker cord; A / B / C: ~0.5 wide, tops 0.57-0.60
+// (D's and dusk-fire's mockups hang smaller coils: one hold serves every view, three of five hold the big pair)
+export const LOOP = { cord: 0.075, from: [-0.613, 0.922, -0.537], start: -0.1, rx: 0.9, ry: 0.92, face: 0.4, turns: 2, step: [0.3, -0.04, 0.1], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
 
 /**
  * The coil (LOOP) as one plaited tube. Round 15 (the lead after round 14: an open hook with a kink, the strands crossing

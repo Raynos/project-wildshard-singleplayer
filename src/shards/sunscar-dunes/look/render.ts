@@ -403,7 +403,9 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // sand 20 against the mockup's 32): each burning fire (and the caravan's lantern, at its share) lights the sand round it
   for (int i = 0; i < 4; i++) {
     float fireD = length(vSandPos - uFireLights[i].xyz);
-    reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.0, 0.42, 0.14) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 11.0), 2.0) * 0.12;
+    // round 23 (seats B and C after round 21: B's lantern pool pink, h356, where the mockup warms the sand amber): a lamp
+    // (a fraction of a fire's gain) lights amber, a fire orange
+    reflectedLight.indirectDiffuse += diffuseColor.rgb * mix(vec3(1.0, 0.72, 0.32), vec3(1.0, 0.42, 0.14), step(0.5, uFireLights[i].w)) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 11.0), 2.0) * 0.12;
   }
   {
     // round 10 (R9B-2: mockups B, C and D put near-black land under the glow, 13-19 against our 47-74, the far land darker
@@ -428,7 +430,10 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // light saturated, the sky fill desaturated and cooled toward violet-grey
     vec3 W3 = vec3(0.2126, 0.7152, 0.0722);
     float dL = dot(reflectedLight.directDiffuse, W3), iL = dot(reflectedLight.indirectDiffuse, W3);
-    reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, 2.5), vec3(0.0));
+    // round 23 (seats B and C after round 21: B's lantern pool pink, h356-3, the lit sand red where the mockups' is gold,
+    // h15-22): 1.6, not 2.5 (scaling about the luma drags every warm light toward red: at 2.5 the lantern pool came out h3,
+    // dusk-fire's lit sand h16; unboosted, h12 / h24 and A's h26 against 21)
+    reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, 1.6), vec3(0.0));
     reflectedLight.indirectDiffuse = mix(vec3(iL) * vec3(0.93, 0.92, 1.2), reflectedLight.indirectDiffuse, 0.4); // round 19 (seat B: the shade measured A 0.45 against 0.31)
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
