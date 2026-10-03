@@ -69,7 +69,12 @@ export const LANDFORMS = {
   // dusk-fire's right half dark, 31-34 against 50): the south end lowered and tapered into the field (to 14 m at (14, 62)).
   // Dusk-fire's saddle 31.4 -> 47.4 (49.5), its r +0.59; A's r +0.52, its diagonal 88.7 -> 78.9 (96.5). Still open: A's
   // trough (x 0.2-0.6, y 0.47-0.53) lit, the ridge's own west flank. Walk 0 stuck (progress/physics/sd-r24-b-musrfqm6.json)
-  crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }, { pts: [[-34.3, -11.8, 16.4], [-3.6, -6, 18.8], [9, 44, 18.5], [14, 62, 14]] as [number, number, number][], w: 22, lee: 40, leeSide: -1, fade: 0.1, trough: 3 }],
+  // round 25 (seats B and C after round 24: A's trough under the crest still lit, 92 against 43): a low crest (2.5 m over the
+  // field) across the key's line beyond the trough, its slip face to the camera, so the trough falls in its shade and its
+  // own back joins the lit band. Trough 92.4 -> 71.2, diagonal 79.8, A's r +0.52; dusk-fire's left 72.5 (71.5), its r
+  // +0.49 (a taller crest shaded A's trough to 51-57 but cost dusk-fire's lit left slope, r +0.35-0.41). Walk 0 stuck
+  // (progress/physics/sd-r25-b-mussawzm.json)
+  crests: [{ pts: [[-42, -82, 7], [-14, -50, 13.5], [18, 20, 12]] as [number, number, number][], w: 70, lee: 30, leeSide: -1, fade: 0.3, trough: 3 }, { pts: [[-34.3, -11.8, 16.4], [-3.6, -6, 18.8], [9, 44, 18.5], [14, 62, 14]] as [number, number, number][], w: 22, lee: 40, leeSide: -1, fade: 0.1, trough: 3 }, { pts: [[-20, 39, 16.2], [-6, 34, 16.3], [8, 29, 19.7]] as [number, number, number][], w: 14, lee: 6, leeSide: 1, fade: 0.3, trough: 1 }],
   mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }, { x: -165, z: -64, h: 24, r: 66 }, { x: BRAZIERS[0]?.x ?? 0, z: BRAZIERS[0]?.z ?? 0, h: 25, r: 80 }],
 } as const;
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */

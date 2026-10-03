@@ -39,7 +39,7 @@ const TOWER_LIGHT = 14;
 /** The waymark fire's point light (candela; physical decay over its 10 m reach). */
 const WAY_LIGHT = 9;
 /** The caravan lantern's share of the same light: a lantern, not a fire. */
-const LANTERN_LIGHT = 3;
+const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales the point lights on flat sand (x0.55 of round 24's)
 
 export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   const terrain = ctx.manifest.ground.terrain, groundAt = (x: number, z: number): number => terrain?.heightAt(x, z) ?? 0;

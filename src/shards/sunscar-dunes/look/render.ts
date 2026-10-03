@@ -25,7 +25,7 @@ import { loadPaintedSky, paintedSkyMaterial } from './painted';
 // tower; the key is one global art-directed direction that lights the faces the mockups light. Tested on round 13's
 // landform (row-mean-removed r of the dune band): 20 deg left of north gave dusk-fire +0.42, A +0.13 (15 deg: +0.45 / +0.10;
 // 27 deg: +0.36 / +0.13; west and behind-left: -0.18 to +0.09); A does not pass +0.3 under any one key
-export const KEY = { dir: new Vector3(-0.34, 0.2, -0.92).normalize(), color: new Color(1, 0.76, 0.4), intensity: 1.85 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(-0.34, 0.2, -0.92).normalize(), color: new Color(1, 0.68, 0.34), intensity: 1.85 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -373,7 +373,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // forms): the key's response on the terrain's own normal a short ramp at the terminator and a flatter lit side
     // (0.12 + 0.88 N.L past the ramp, against plain Lambert), so the line between lit and shaded faces reads sharp
     float tN = max(dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)})), 0.0);
-    reflectedLight.directDiffuse *= smoothstep(0.0, 0.045, tN) * (0.12 + 0.88 * tN) / max(tN, 0.02) * 0.63; // round 11 (R10B-2: the near field over both mockups, dusk-fire 82.5 / 73.8); round 12: the spawn mockups disagree by 16 on the same ground (A 57, dusk-fire 74), so split them (lead: A 78 the biggest measured gap)
+    reflectedLight.directDiffuse *= smoothstep(0.0, 0.045, tN) * 0.27 * pow(tN / 0.35, 1.6) / max(tN, 0.02); // round 25 (seats B and C: flat near sand 75-88 against 56-68, the lit faces pale): the same at a face turned to the key (tN 0.35), ~40 % less on flat sand (0.2) // round 11 (R10B-2: the near field over both mockups, dusk-fire 82.5 / 73.8); round 12: the spawn mockups disagree by 16 on the same ground (A 57, dusk-fire 74), so split them (lead: A 78 the biggest measured gap)
   }
   // round 6 (seat C: the mean is right, the contrast must come from darker shade AND brighter crests): faces grazing the key
   float sandGraze = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
@@ -437,14 +437,11 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // round 23 (seats B and C after round 21: B's lantern pool pink, h356-3, the lit sand red where the mockups' is gold,
     // h15-22): 1.6, not 2.5 (scaling about the luma drags every warm light toward red: at 2.5 the lantern pool came out h3,
     // dusk-fire's lit sand h16; unboosted, h12 / h24 and A's h26 against 21)
-    // round 24: the sunset's light more saturated than the blue hour's (2.5 at the spawn's sunset, the spawn pair's lit sand
-    // closest to its mockups there; 1.6 from the logbook's dusk, where the lantern pool must stay amber)
-    reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, mix(2.5, 1.6, smoothstep(0.2, 0.5, uDusk))), vec3(0.0));
-    vec3 fillOwn = reflectedLight.indirectDiffuse;
-    reflectedLight.indirectDiffuse = mix(vec3(iL) * vec3(0.93, 0.92, 1.2), reflectedLight.indirectDiffuse, 0.4); // round 19 (seat B: the shade measured A 0.45 against 0.31)
-    // round 24 (seats B and C: the spawn pair's lit sand s 0.44-0.49 against the mockups' 0.67): on the faces the key reaches,
-    // at the sunset, the fill keeps the sand's own warm hue, not the violet-grey; the shade stays violet
-    reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, fillOwn * vec3(1.1, 0.9, 0.65), (1.0 - sandShade) * 0.85 * (1.0 - smoothstep(0.2, 0.5, uDusk)));
+    // round 25 (seats B and C after round 24: the dusk-ramped 2.5 boost reddened the shade and the mid-tones, the lit faces
+    // palest): the direct light saturated by how squarely the face takes the key, never by the dusk (flat sand and the
+    // lantern's pool 1.2, a face turned into the key 2.2)
+    reflectedLight.directDiffuse = max(mix(vec3(dL), reflectedLight.directDiffuse, 1.2 + 1.0 * smoothstep(0.2, 0.45, sandKeyN)), vec3(0.0));
+    reflectedLight.indirectDiffuse = mix(vec3(iL) * vec3(0.9, 0.9, 1.28), reflectedLight.indirectDiffuse, 0.4); // round 19 (seat B: the shade measured A 0.45 against 0.31)
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
