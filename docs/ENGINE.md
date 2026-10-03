@@ -918,7 +918,7 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 | `AmbienceZones`, `ZoneVoice`, `ZoneWeights` | ambience beds by zone |
 | `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy` | the positional voice engine |
 | `LevelAudioProfile`, `loadAudio` | a level's audio profile and the lazy audio runtime |
-| `Synth`, `vocal`, `windup`, `impact` | synth fallbacks and generators |
+| `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (#kit's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
 
 `manifest.audio` is `{ bed?, ambience, score, cues?, preload?, samples?, alertOnlyHostile? }`. The template points every
@@ -1490,7 +1490,7 @@ The kit holds content that 2+ shards use (the rule of two). Content one shard us
 | `npc` | `NpcRig`, `NpcRow`, `NpcModel`, `NpcFace`, `rigLegs`, `legRigOf`, `legBones`, `legPose`, `footPlan`, `LEG_BONE_NAMES`, `WALK`, `LegBuilt`, `NpcRigProfile`, `fitNpcFigure`, `mergeNpcFigures`, `NpcFigureFrame`, `NpcFigureBones`, `NpcFigureRig`, `stepNpcFigure`, `npcFigurePose`, `NpcFigureState`, `NpcFigureMotionProfile`, `faceHead`, `loadFaceHead`, `FaceHead` |
 | `tools` | `Hoverboard`, `HOVERBOARD_TOOL` (all four shards; its `board` movement mode stays engine) |
 | `weather`, `looks` | `rainCurtain`, `RainProgram`, `RainCurtainSpec`, `fogGLSL`, `loadParticles`, `Particles`, `loadGrassField` |
-| `audio` | `sharedWeaponVoices`, `createForestAudio`, `installForestAmbience`, `installSilentScore` |
+| `audio` | `sharedWeaponVoices`, `createForestAudio`, `installForestAmbience`, `installSilentScore`; creature voices `vocal`, `windup`, `CREATURE_VOICES`, `CreatureVoice`, `CreatureWindup` (boar, crab, monkey, the drowned sailor; moved from the engine, E405) |
 | `bag` | `KIT_ITEMS` |
 
 Kit species take a plain `{ ...BOAR, variants: [...] }` spread to add a variant (the template's Greyback elite).
@@ -1599,7 +1599,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-690 exports, grouped by the module they come from.
+689 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
@@ -1775,7 +1775,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./ui/FirstHints`: `FirstHints`
 - `./physics/bodies`: `activeBodies`, `Body`, `BodySpec`
 - `./world/waves`: `waveHeight`
-- `./audio/gen`: `vocal`, `windup`, `impact`
+- `./audio/gen`: `impact`, `synthKit`
 - `./anim/index`: `loadRigFile`, `loadRig`, `bindRig`, `ClipChannel`, `AnimMachine`, `ClipName`, `SocketName`, `RigContract`, `RigBake`, `RigRef`, `RigInstance`, `AnimMachineDef`, `AnimState`, `AnimService`
 - `./level/selection`: `activeLevel`, `selectedLevel`, `onLevelChange`, `configureLevel`
 - `./render/renderer`: `Renderer`, `probeRenderer`, `isRenderer`
@@ -1866,7 +1866,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#kit` (`src/kit/index.ts`)
 
-131 exports, grouped by the module they come from.
+136 exports, grouped by the module they come from.
 
 - `./weapons/ui`: `SWAP_GLYPHS`
 - `./weapons/equipment`: `SWORD`, `WOODEN_SWORD`, `IRON_SWORD`
@@ -1904,6 +1904,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./npc/figureMotion`: `stepNpcFigure`, `npcFigurePose`, `NpcFigureState`, `NpcFigureMotionProfile`
 - `./bag/items`: `KIT_ITEMS`
 - `./audio/weaponVoices`: `sharedWeaponVoices`
+- `./audio/creatureVoices`: `vocal`, `windup`, `CREATURE_VOICES`, `CreatureVoice`, `CreatureWindup`
 - `./npc/faceHeads`: `faceHead`, `loadFaceHead`, `FaceHead`
 - `./viewmodel/armClips`: `ARM_CLIPS`, `SWIM_CLIPS`, `armClipNames`
 - `./tools/hoverboard`: `Hoverboard`, `HOVERBOARD_TOOL`

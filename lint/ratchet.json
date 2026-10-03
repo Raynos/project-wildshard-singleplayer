@@ -336,7 +336,6 @@
     "src/shards/pine-hollow/world/weather.ts": 12
   },
   "wildshard/engine-words": {
-    "src/engine/audio/gen.ts": 18,
     "src/engine/boot/bootTrace.ts": 1,
     "src/engine/boot/steps.ts": 4,
     "src/engine/boot/stuck.ts": 1,

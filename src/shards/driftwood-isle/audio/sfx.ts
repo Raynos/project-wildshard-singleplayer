@@ -1,4 +1,5 @@
-import { Scope, tap, ambientTick, audioRandom, panFromYaw, vocal, windup, impact, type Audio, type VoiceTable } from '#engine';
+import { Scope, tap, ambientTick, audioRandom, panFromYaw, impact, type Audio, type VoiceTable } from '#engine';
+import { vocal, windup } from '#kit';
 import type { Vector3 } from 'three';
 import type { Surface } from './surface';
 /**

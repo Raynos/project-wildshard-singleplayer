@@ -260,7 +260,7 @@ export { activeBodies, type Body, type BodySpec } from './physics/bodies';
 export { groups } from './physics/groups';
 export { waveHeight } from './world/waves';
 
-export { vocal, windup, impact } from './audio/gen';
+export { impact, synthKit } from './audio/gen';
 export { icon } from './ui/icons';
 
 export { loadRigFile, loadRig, bindRig, ClipChannel, AnimMachine, type ClipName, type SocketName, type RigContract, type RigBake, type RigRef, type RigInstance, type AnimMachineDef, type AnimState, type AnimService } from './anim/index';

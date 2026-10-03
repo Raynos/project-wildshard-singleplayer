@@ -3,6 +3,7 @@
 // balance); the reverb rooms decay in their target times; loops are seamless; renders are deterministic.
 import { describe, expect, test } from 'vitest';
 import * as G from '#engine/audio/gen';
+import * as V from '#kit/audio/creatureVoices';
 import { Biquad, bandEnergy, centroid, rt60 } from '#engine/audio/dsp';
 import { SurfaceMap } from '../src/shards/driftwood-isle/audio/surface';
 
@@ -16,8 +17,8 @@ describe('gen: every sound renders', () => {
     ...G.STEP_KINDS.map((k): [string, Float32Array] => [`step-${k}`, G.footstep(k, sr, 1)]),
     ['whoosh', G.whoosh(sr, 1)], ['whoosh-heavy', G.whoosh(sr, 1, true)],
     ...G.MATERIALS.map((m): [string, Float32Array] => [`impact-${m}`, G.impact(m, sr, 1)]),
-    ...G.ENEMIES.map((e): [string, Float32Array] => [`vocal-${e}`, G.vocal(e, sr, 1)]),
-    ...(['boar', 'crab', 'sailor'] as const).map((e): [string, Float32Array] => [`windup-${e}`, G.windup(e, sr, 1)]),
+    ...V.CREATURE_VOICES.map((e): [string, Float32Array] => [`vocal-${e}`, V.vocal(e, sr, 1)]),
+    ...(['boar', 'crab', 'sailor'] as const).map((e): [string, Float32Array] => [`windup-${e}`, V.windup(e, sr, 1)]),
     ['hurt', G.hurt(sr, 1)], ['death', G.death(sr, 1)], ['plunge-down', G.plunge(sr, 1, false)], ['plunge-up', G.plunge(sr, 1, true)],
   ];
   test.each(all)('%s: finite, peak-normalised, short, not silent', (_n, b) => {
@@ -67,10 +68,10 @@ describe('gen: combat', () => {
     expect(db(bandEnergy(G.impact('stone', sr, 1), sr, 800, 6000))).toBeGreaterThan(db(bandEnergy(G.impact('wood', sr, 1), sr, 800, 6000)));
   });
   test('vocals: the monkey screeches high, the sailor and the boar are low', () => {
-    const m = centroid(G.vocal('monkey', sr, 1), sr);
+    const m = centroid(V.vocal('monkey', sr, 1), sr);
     expect(m).toBeGreaterThan(1000);
-    expect(centroid(G.vocal('sailor', sr, 1), sr)).toBeLessThan(m / 2);
-    expect(centroid(G.vocal('boar', sr, 1), sr)).toBeLessThan(m / 2);
+    expect(centroid(V.vocal('sailor', sr, 1), sr)).toBeLessThan(m / 2);
+    expect(centroid(V.vocal('boar', sr, 1), sr)).toBeLessThan(m / 2);
   });
   test('hurt / death carry a voice (the 250–2 kHz formant band within 6 dB of the body thump)', () => {
     for (const b of [G.hurt(sr, 1), G.hurt(sr, 2), G.death(sr, 1)]) expect(db(bandEnergy(b, sr, 250, 2000))).toBeGreaterThan(db(bandEnergy(b, sr, 60, 250)) - 6);
