@@ -64,6 +64,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const menu = new GameMenu({
     levelName: chunk.name,
     fullMap,
+    keys: { bag: 'inventory' }, // the game's Bag key opens its inventory tab
     settings: () => ({ weapons: new Set(weapons.available.map((w) => w.id)), melee: weapons.available.some((w) => w.row.ui.melee),
       tracers: weapons.available.some((w) => w.row.ui.tracers), huntersEye: weapons.available.some((w) => w.row.ui.huntersEye === true) }),
   });

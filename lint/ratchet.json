@@ -349,9 +349,6 @@
     "src/shards/pine-hollow/world/undergrowthKit.ts": 2,
     "src/shards/pine-hollow/world/weather.ts": 12
   },
-  "wildshard/engine-words": {
-    "src/engine/ui/Menu.ts": 16
-  },
   "wildshard/no-active-singleton": {
     "src/engine/core/bootstrap.ts": 1,
     "src/engine/debug/probe.ts": 1,

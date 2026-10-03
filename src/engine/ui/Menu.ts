@@ -8,6 +8,7 @@ import { buildSavePanel } from './SavePanel';
 import { app } from '../app/runtime';
 import type { AppState } from '../app/systems';
 import { containMenuInput } from '../input/menuInput';
+import type { Action } from '../input/InputService';
 /** The in-game menu renders registered data views, settings and feedback.
  * The highest visible layer owns navigation and back; its child scope owns each open session.
  * Tab and fragment registrations keep stable order and return owner disposers.
@@ -37,10 +38,12 @@ const TABS: { id: MenuTab; label: string; icon?: IconId }[] = [
   { id: 'map', label: engineString('s_be176b0015c4'), icon: 'map' }, { id: 'settings', label: engineString('s_74a883a037bc') },
   { id: 'feedback', label: engineString('s_aac77df34720') }, // only while the review inbox is unlocked (syncReview)
 ];
-/** the two menus (E124): which one a tab lives in */
-export type MenuGroup = 'pause' | 'bag';
-const GROUP: Record<MenuTab, MenuGroup> = { map: 'bag', gear: 'bag', finds: 'bag', inventory: 'bag', achievements: 'bag', settings: 'pause', feedback: 'pause' };
-const TITLE: Record<MenuGroup, string> = { pause: engineString('s_e159b06187d3'), bag: engineString('s_b053c961f2ac') };
+/** the two menus (E124): 'pause' holds the engine's own tabs (Settings, Feedback); 'play' the map and every tab the game
+ *  registers (its Bag; the game names it: s_b053c961f2ac) — E405: the engine names none of the game's tabs */
+export type MenuGroup = 'pause' | 'play';
+const PAUSE_TABS: ReadonlySet<MenuTab> = new Set(['settings', 'feedback']);
+const groupOf = (tab: MenuTab): MenuGroup => (PAUSE_TABS.has(tab) ? 'pause' : 'play');
+const TITLE: Record<MenuGroup, string> = { pause: engineString('s_e159b06187d3'), play: engineString('s_b053c961f2ac') };
 /** the menu's keys (Esc is handled apart: it pauses, and closes whatever tab is open) */
 
 /** what a Settings row's "applies when" reads: the weapons you hold now and the shard */
@@ -55,8 +58,10 @@ export interface GameMenuOptions {
   /** The game supplies its presentation title when constructing this level menu. */
   levelName?: string;
   fullMap: FullMap;
-  /** Only capabilities used to show applicable Settings rows; Bag presentation is registered separately. */
+  /** Only capabilities used to show applicable Settings rows; the game's own tabs are registered separately. */
   settings: () => Omit<SettingsCtx, 'chunk'>;
+  /** more key actions that open a tab (the game's: its `bag` key → its inventory) */
+  keys?: Readonly<Partial<Record<Action, MenuTab>>>;
 }
 /** `locked`: not owned yet — dim, not tappable; `icon`: the card's glyph (default laurel) */
 export interface SkinRow { id: string; name: string; blurb: string; worn: boolean; locked?: boolean; icon?: IconId }
@@ -166,7 +171,7 @@ export class GameMenu {
     };
     app.input.bind('pause', () => { toggle('settings'); }, this.scope);
     app.input.bind('map', () => { toggle('map'); }, this.scope);
-    app.input.bind('bag', () => { toggle('inventory'); }, this.scope);
+    for (const [action, tab] of Object.entries(opts.keys ?? {}) as [Action, MenuTab | undefined][]) if (tab !== undefined) app.input.bind(action, () => { toggle(tab); }, this.scope);
     this.scope.listen(window, 'resize', () => { if (this._open && this._tab === 'map') opts.fullMap.fit(); });
     this.select('settings');
     this.syncReview(); onReview(() => this.syncReview());
@@ -179,21 +184,21 @@ export class GameMenu {
   }
   /** which tabs show: FEEDBACK only while the review inbox is unlocked; only the open group's (one tab = no bar) */
   private syncTabs(): void {
-    const review = reviewUnlocked(), group = GROUP[this._tab] ?? 'bag';
-    const bag = new Set(['map', ...this.tabsRegistry.registeredTabs.map((tab) => tab.id)]);
+    const review = reviewUnlocked(), group = groupOf(this._tab);
+    const playTabs = new Set(['map', ...this.tabsRegistry.registeredTabs.map((tab) => tab.id)]);
     let shown = 0;
     for (const b of this.tabBar.children) {
       const d = (b as HTMLElement).dataset, id = d['tab'];
-      const g = d['group'] ?? (id === undefined ? 'bag' : (GROUP[id] ?? 'bag')); // an action tab carries its group
-      const inBag = id === undefined || (GROUP[id] ?? 'bag') !== 'bag' || bag.has(id);
-      const on = (id !== 'feedback' || review) && inBag && g === group && !(id === 'map' && this.noMap);
+      const g = d['group'] ?? (id === undefined ? 'play' : groupOf(id)); // an action tab carries its group
+      const shownHere = id === undefined || groupOf(id) !== 'play' || playTabs.has(id);
+      const on = (id !== 'feedback' || review) && shownHere && g === group && !(id === 'map' && this.noMap);
       (b as HTMLElement).hidden = !on;
       if (on) shown++;
     }
     this.tabBar.classList.toggle('review', shown >= 5);
     this.tabBar.classList.toggle('four', shown === 4); // a BAG without FINDS (Nalati, Nine Dragon): ACHIEVEMENTS must fit a phone
     this.tabBar.hidden = shown <= 1;
-    this.tabBar.classList.toggle('icons', group === 'bag');
+    this.tabBar.classList.toggle('icons', group === 'play');
     this.title.textContent = this.practice && group === 'pause' ? engineString('s_d3857b12b4ce') : TITLE[group];
     // E178: the PAUSE menu leaves to the title from its header; the BAG only closes
     const pause = group === 'pause';
