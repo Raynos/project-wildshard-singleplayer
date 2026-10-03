@@ -59,8 +59,14 @@ try {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const t0 = Date.now();
   await page.goto(`${URL_BASE}/?chunk=${SLUG}&tier=phone&touch=1&mute=1&nolock=1&sw=0&skipintro=1`, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.player && window.__wildshard?.world?.game) && document.querySelector('.ws-load') === null,
-    undefined, { timeout: 480000, polling: 1000 });
+  await page.waitForFunction(() => document.documentElement.dataset.wsState === 'error'
+    || (Boolean(window.__wildshard?.world?.player && window.__wildshard?.world?.game) && document.querySelector('.ws-load') === null),
+  undefined, { timeout: 480000, polling: 1000 });
+  // the game showed its error modal (a caught boot error leaves the load screen up): stop now with its text, not at 480 s
+  if (await page.evaluate(() => document.documentElement.dataset.wsState === 'error')) {
+    const text = await page.evaluate(() => document.body.textContent.slice(0, 600));
+    throw new Error(`the game failed to load (app state 'error'):\n${text}`);
+  }
   const loadS = Math.round((Date.now() - t0) / 1000);
   await sleep(6000);
   store(await page.screenshot({ type: 'png' }), 'first-frame'); shots.push('first-frame');

@@ -516,7 +516,7 @@ export class Game {
     let built: BuiltChain | null = null;
     const colour = this.colourPass(composer, (kind) => {
       built ??= chain(kind === 'clean');
-      if (built.clean !== (kind === 'clean')) throw new Error(`[look] the engine chain is already built '${built.clean ? 'clean' : 'cinematic'}'; a compose asks one kind`);
+      if (built.clean !== (kind === 'clean')) throw new Error(`[look] the engine chain is already built '${built.clean ? 'clean' : 'cinematic'}'; a compose asks one kind, and reading c.fx before c.engineChain() builds 'cinematic', so a look that wants 'clean' asks c.engineChain('clean') first`);
       return built;
     });
     composer.addPass(colour);
