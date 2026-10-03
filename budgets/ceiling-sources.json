@@ -1688,15 +1688,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "28b8460be5fbe8334ed96994b1823db2e51a6073",
-      "reason": "E392/E399: the textured hero sky isles (three Hunyuan3D-2 models, 1024 WebP maps); measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "commit": "a6a08ef9e6605727ced1741018cbf26284716c82",
+      "reason": "E399 round 6 (sky-reach): the sward's code-drawn tuft atlas (512 x 256 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E392/E399: the textured hero sky isles (three Hunyuan3D-2 models, 1024 WebP maps); measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
-      "captureSha": "28b8460be5fbe8334ed96994b1823db2e51a6073",
-      "captureSha256": "26f5c286f101db0472a0ca7a452dfef1d4fb471c2e39c40a0d0b5bdb2fbf0492",
+      "approval": "E399 round 6 (sky-reach): the sward's code-drawn tuft atlas (512 x 256 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "captureSha": "a6a08ef9e6605727ced1741018cbf26284716c82",
+      "captureSha256": "1ccce03ab25ec5df0f19d4a7a2f20e1bf703ad3d168f559cd0c99d94c4fc011c",
       "ceilings": {
-        "far-reach.phone.current.gpuMB": 206.53481483459473
+        "far-reach.phone.current.gpuMB": 208.78265953063965
       }
     },
     {
@@ -1704,15 +1704,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "28b8460be5fbe8334ed96994b1823db2e51a6073",
-      "reason": "E392/E399: the textured hero sky isles (three Hunyuan3D-2 models, 1024 WebP maps); measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "commit": "a6a08ef9e6605727ced1741018cbf26284716c82",
+      "reason": "E399 round 6 (sky-reach): the sward's code-drawn tuft atlas (512 x 256 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E392/E399: the textured hero sky isles (three Hunyuan3D-2 models, 1024 WebP maps); measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
-      "captureSha": "28b8460be5fbe8334ed96994b1823db2e51a6073",
-      "captureSha256": "aa0aaf69de332409011430e9eb3d1dbac541ff0fb19fe5a6771cb14a50bc03ed",
+      "approval": "E399 round 6 (sky-reach): the sward's code-drawn tuft atlas (512 x 256 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "captureSha": "a6a08ef9e6605727ced1741018cbf26284716c82",
+      "captureSha256": "fb46d704271b91327a74ff16c420f941dca22052fbc0156a0cecdc0ed3d32132",
       "ceilings": {
-        "far-reach.desktop.current.gpuMB": 320.98870277404785
+        "far-reach.desktop.current.gpuMB": 323.2365474700928
       }
     }
   ]
