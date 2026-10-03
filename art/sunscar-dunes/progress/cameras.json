@@ -25,7 +25,7 @@
   {
    "id": "h4-tower-deck",
    "x": 8.4,
-   "y": 24.0,
+   "y": 27.55,
    "z": -73.0,
    "yaw": 19,
    "pitch": -12
@@ -63,10 +63,10 @@
   {
    "id": "mock-dusk-fire",
    "mockup": "art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg",
-   "x": -12.2,
-   "z": -19.6,
-   "yaw": -16.0,
-   "pitch": -2
+   "x": 2.4,
+   "z": -21.3,
+   "yaw": -1.0,
+   "pitch": 1
   },
   {
    "id": "mock-A-spawn",
@@ -74,7 +74,7 @@
    "x": 0,
    "z": 70,
    "yaw": 0,
-   "pitch": -4
+   "pitch": -9
   },
   {
    "id": "mock-B-logbook",
@@ -85,6 +85,14 @@
    "pitch": -4
   },
   {
+   "id": "mock-D-hands",
+   "mockup": "art/sunscar-dunes/round-9-review/D-hands-whip.jpg",
+   "x": 0,
+   "z": 70,
+   "yaw": -8,
+   "pitch": 2
+  },
+  {
    "id": "mock-C-waymark",
    "mockup": "art/sunscar-dunes/round-9-review/C-waymark-fire.jpg",
    "x": 58.4,
@@ -92,14 +100,6 @@
    "yaw": 2.5,
    "pitch": 3,
    "stage": "waymarks-lit"
-  },
-  {
-   "id": "mock-D-hands",
-   "mockup": "art/sunscar-dunes/round-9-review/D-hands-whip.jpg",
-   "x": 0,
-   "z": 70,
-   "yaw": -8,
-   "pitch": 2
   }
  ],
  "clip": {

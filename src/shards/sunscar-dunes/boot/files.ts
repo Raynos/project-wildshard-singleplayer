@@ -8,7 +8,8 @@ export const DUNE_MESHES: readonly DuneMeshName[] = ['caravan', 'dry-well', 'way
  * kept as a 1024 WebP map on its UVs (the facet-colour path above reads low-poly and blotchy up close).
  */
 export type DuneHdName = 'wagon-hd' | 'brazier-hd' | 'glove-hd' | 'mesa-butte' | 'mesa-mesa' | 'mesa-spire';
-export const DUNE_HD: readonly DuneHdName[] = ['wagon-hd', 'brazier-hd', 'glove-hd', 'mesa-butte', 'mesa-mesa', 'mesa-spire'];
+// E399: the mesas are not preloaded while the world shows none (the mockups have low dune ranges at the horizon)
+export const DUNE_HD: readonly DuneHdName[] = ['wagon-hd', 'brazier-hd', 'glove-hd'];
 const HD_URLS: Readonly<Record<DuneHdName, string>> = {
   'wagon-hd': '/assets/sunscar-dunes/models/wagon-hd/wagon-hd.glb', 'brazier-hd': '/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb',
   'glove-hd': '/assets/sunscar-dunes/models/glove-hd/glove-hd.glb',

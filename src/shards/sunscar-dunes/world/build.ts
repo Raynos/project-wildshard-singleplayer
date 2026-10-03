@@ -51,7 +51,9 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
   ctx.piece({ id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: file('rocks'), object: rocks.root, colliders: rocks.colliders, surface: 'rock' });
   const dressing = buildDressing(groundAt, trailDistance, ctx.scope); ctx.root.add(dressing.root);
   ctx.piece({ id: 'sunscar.dressing', name: STRINGS.dressing, category: 'nature', file: file('dressing'), object: dressing.root, colliders: dressing.colliders, surface: 'sand' });
-  const buttes = buildButtes(); ctx.root.add(buttes.root); // past the playable square: no piece, no colliders
+  // E399: the mockups show low hazy dune ranges at the horizon, no mesas: the buttes stay built only for the Model
+  // Explorer's sake when a debug row asks; the world shows none
+  void buildButtes;
   const interactables = ctx.game.runtime?.interactables;
 
   // The logbook on the caravan's tailboard: read it once, it points the way to the well.

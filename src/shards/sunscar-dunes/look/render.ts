@@ -11,7 +11,9 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
  * band is art-directed apart from it, behind the tower (`sky.ts` SUN_GLOW).
  */
 // loop 3: a deeper, redder key (ΔE00 of the lit sand against the H1–H4 targets: the game's was too pale and grey-blue)
-export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.56, 0.26), intensity: 4.0 } as const; // loop 5 targets: saturated lit faces, deep shade
+// E399: low (11 deg) and along the wind axis, so every dune splits into a lit slip face and a shaded windward face
+// (the mockups); the shade floor and the navy fill keep the shaded half readable, never black
+export const KEY = { dir: new Vector3(-0.78, 0.19, 0.6).normalize(), color: new Color(1, 0.56, 0.26), intensity: 4.0 } as const; // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 export const FOG = { color: 0x40304a, near: 80, far: 430 } as const; // loop 6: a deep dusk haze, not lilac
 // loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
@@ -206,7 +208,7 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   float sandTrod = texture2D(uSandTrail, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r;
   sandRip1 *= 1.0 - sandTrod; sandRip2 *= 1.0 - sandTrod;
   // E399 (mockups A, D): fine low-contrast ripples near the camera, the bold stripes only at middle distance
-  float sandNear = mix(0.35, 1.0, smoothstep(4.0, 26.0, sandFar));
+  float sandNear = mix(0.3, 0.55, smoothstep(4.0, 26.0, sandFar)); // the mockups: fine ripples, the big forms read
   sandRip1 *= sandNear; sandRip2 *= sandNear;
   diffuseColor.rgb *= 1.0 + 0.06 * sin(sandPhase) * sandRip1 + 0.02 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.24;
   // loop 4, surface variety (the council's baseline: the near sand read as one flat brown): broad tonal drifts (tens of
@@ -230,7 +232,7 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
           .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
   // The baked dune shadow (a ${String(SHADOW_TEX)}² map, sharpened) takes only the key (direct) light; the cool sky fill stays.
   float sandVis = smoothstep(0.22, 0.78, texture2D(uSandShadow, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r);
-  reflectedLight.directDiffuse *= mix(0.06, 1.0, sandVis);
+  reflectedLight.directDiffuse *= mix(0.3, 1.0, sandVis);
   reflectedLight.directSpecular *= sandVis;
   // Round 1 (R1C-3): where the key doesn't reach (cast shadow or a face turned from it) the sky fill paints the bible's
   // cool violet shade (#4a3a48 to #5b4f6a), not a darkened orange: the crest line splits warm from cool.
@@ -239,7 +241,7 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   vec3 sandFill = vec3(dot(reflectedLight.indirectDiffuse, vec3(0.3, 0.59, 0.11)));
   // loop 6 (the scorer: shade went muddy purple-black, ripples vanished in it): a cool blue-grey fill, a step brighter,
   // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
-  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * vec3(0.78, 0.84, 1.25) * 0.85, sandShade * 0.9); // loop 6: navy shade (the targets)
+  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * vec3(0.84, 0.88, 1.2) * 1.7, sandShade * 0.9); // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
   reflectedLight.indirectDiffuse *= 1.0 + (0.16 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
       const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;

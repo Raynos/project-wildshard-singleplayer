@@ -28,7 +28,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   // "Last Light" (style bible): the key 10° up, behind-left of the spawn view (look/render.ts KEY); a cool sky fill so
   // every shaded face reads blue-violet, never black (review R1).
   sky: { sunColor: [1, 0.74, 0.52], sunIntensity: 2.6, envIntensity: 0.4, bgIntensity: 1, fogSunColor: [0.78, 0.38, 0.22], cloudSunColor: [0.9, 0.5, 0.4],
-    hemiSky: 0x4e5a9a, hemiGround: 0x8a4a28, hemiIntensity: 1.0, sun: { azimuth: 80, elevation: 10 } },
+    hemiSky: 0x4e5a9a, hemiGround: 0x8a4a28, hemiIntensity: 1.5, sun: { azimuth: 52, elevation: 11 } },
   // loop 4: real aerial perspective (the engine's fog is exponential in distance; `FOG` near / far are unused): the dune
   // rows and the far buttes lay back into the violet in layers (review R9), warm toward the sun.
   atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0.00045, volumetricSunColor: [1, 0.55, 0.35], weather: true }, // weather: the Matriarch's sand storm (E390)
@@ -37,9 +37,9 @@ export const SUNSCAR_DUNES: ShardManifest = {
   horizon: { cloudSea: false, rings: [
     // round 2 (R1B-14 / R1C-5): the inner ring at 340 m stood on the dune skirt as an enclosing mauve wall; the skirt's
     // dunes run out to the far ranges instead
-    { r: 470, base: 2, color: [0.17, 0.07, 0.06], top: [0.34, 0.15, 0.1], snowLine: 2, haze: 0.6, floor: -10,
-      // round 2 (R1C-5: from 250 m up the far ridge still read ruler-straight): tall ragged ranges, mesas at the world's edge
-      bands: [20, 65, 110, 150, 195, 240, 285, 330].map((azimuth, i) => ({ azimuth, spread: 40, height: [55, 30, 75, 40, 65, 28, 85, 45][i] ?? 45, rough: 0.75 })) },
+    // E399 (the mockups): low hazy dune ranges at the horizon, warm and soft, no mountains
+    { r: 470, base: 0, color: [0.2, 0.09, 0.06], top: [0.36, 0.17, 0.1], snowLine: 2, haze: 0.35, floor: -10,
+      bands: [0, 45, 90, 135, 180, 225, 270, 315].map((azimuth, i) => ({ azimuth, spread: 50, height: [9, 13, 7, 11, 10, 14, 8, 12][i] ?? 10, rough: 0.15 })) },
   ] },
   boundary: { visible: false },
   minimap: { palette: SIGNAL_DUNES_MINIMAP }, // the sand map: crests, slip faces, hollows, the ridges, the caravan tracks (look/minimap.ts)

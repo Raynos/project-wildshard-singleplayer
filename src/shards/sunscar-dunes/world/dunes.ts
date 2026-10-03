@@ -9,10 +9,10 @@ const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); r
 export const WIND = { x: -0.643, z: 0.766 } as const;
 // loop 5 (the mockups: tall sweeping dunes, 10-30 m): 1.5x the wave and the height together, so the slip face keeps its
 // angle (every face stays under the player's max climb)
-const WAVE = 96, LEE = 0.45, AMP_MAX = 16.5;
+const WAVE = 128, LEE = 0.45, AMP_MAX = 22; // E399: the mockups' dunes are big smooth forms (10-30 m)
 /** The warped wind coordinate: crest lines bowed into crescents and wandering, so none read as parallel stripes. */
 const warped = (x: number, z: number, n: TerrainNoise['n']): number =>
-  x * WIND.x + z * WIND.z + Math.cos((-x * WIND.z + z * WIND.x) * 0.03) * 10.5 + n.get(x * 0.0047, z * 0.0047) * 13.5;
+  x * WIND.x + z * WIND.z + Math.cos((-x * WIND.z + z * WIND.x) * 0.0225) * 14 + n.get(x * 0.0035, z * 0.0035) * 18;
 /** u at the spawn minus the stoss: puts a crest through the spawn (per noise field). */
 const phases = new WeakMap<TerrainNoise['n'], number>();
 const phaseOf = (n: TerrainNoise['n']): number => {
@@ -21,6 +21,8 @@ const phaseOf = (n: TerrainNoise['n']): number => {
 };
 /** The basin's sand floor (metres): the boss arena sits below every dune trough. */
 export const BASIN_FLOOR = 0.8;
+/** How far past its rim (metres) the bowl's wall eases into the dunes. */
+const BOWL_EASE = 30;
 
 /** Stoss (windward) rise 0 → 1: eased out of the trough, still climbing at the crest so the crest is a knife edge. */
 const stoss = (t: number): number => t * t * (2 - t);
@@ -37,7 +39,7 @@ function field(x: number, z: number, n: TerrainNoise['n']): { h: number; amp: nu
   const db = Math.hypot(x - BASIN.x, z - BASIN.z);
   // Big in the middle, gentler near the square's edge (the entry roads) and round the boss bowl.
   const damp = (1 - 0.6 * smooth((edge - 125) / 55)) * (1 - 0.45 * (1 - smooth((db - BASIN.r) / 60)));
-  const amp = Math.min(AMP_MAX, 14.2 + 4.8 * n.get(v * 0.008 + 7, u0 * 0.0027 - 3)) * damp;
+  const amp = Math.min(AMP_MAX, 19 + 6.4 * n.get(v * 0.006 + 7, u0 * 0.002 - 3)) * damp;
   return { h: 2 + amp * ridge + 3.5 * n.get(x * 0.0024 - 11, z * 0.0024 + 5) * damp, amp };
 }
 
@@ -61,6 +63,7 @@ export function duneHeight(x: number, z: number, { n }: TerrainNoise): number {
     h += ((levels[i] ?? h) - h) * (1 - smooth((d - p.r) / (p.r * 2.4)));
   }
   const db = Math.hypot(x - BASIN.x, z - BASIN.z);
-  if (db < BASIN.r) h += (BASIN_FLOOR - h) * (1 - smooth((db - BASIN.floor) / (BASIN.r - BASIN.floor)));
+  // the bowl's wall eases over its rim plus BOWL_EASE m: the 22 m dunes would otherwise wall it at 46 deg
+  if (db < BASIN.r + BOWL_EASE) h += (BASIN_FLOOR - h) * (1 - smooth((db - BASIN.floor) / (BASIN.r + BOWL_EASE - BASIN.floor)));
   return h;
 }

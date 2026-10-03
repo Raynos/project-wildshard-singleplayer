@@ -30,11 +30,15 @@ export class SignalDunesPlugin extends ShardPlugin {
   get ray(): Animal | null { return this.creatures?.ray() ?? null; }
   /**
    * Quest state for a capture (E399, the mock-C-waymark view): sets the same flags a player sets in play, nothing else.
-   * 'waymarks-lit': the oil taken and the three waymark braziers oiled and lit.
+   * 'waymarks-lit': Sefa met, the logbook read, the oil taken and the three waymark braziers oiled and lit (the quest's
+   * order: a player sees lit waymarks only after the steps before them).
    */
   stage(name: string): void {
     const places = this.places; if (!places) return;
-    if (name === 'waymarks-lit') { places.flags.set(FLAG.oil); for (const b of places.braziers) { b.oiled = true; b.light(); } }
+    if (name === 'waymarks-lit') {
+      for (const f of [SCOUT_FLAG, FLAG.logbook, FLAG.oil]) places.flags.set(f);
+      for (const b of places.braziers) { b.oiled = true; b.light(); }
+    }
   }
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);

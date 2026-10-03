@@ -38,32 +38,19 @@ void main() {
   // short dusty-rose fade into a deep indigo dome full of stars. Clouds are only a few thin dark streaks low in the band.
   vec3 band = mix(vec3(0.82, 0.36, 0.15), vec3(1.0, 0.5, 0.16), pow(toward, 1.2));
   vec3 rose = vec3(0.46, 0.26, 0.3), dusk = vec3(0.17, 0.16, 0.32), indigo = vec3(0.065, 0.085, 0.2);
-  vec3 c = mix(band, rose, smoothstep(0.0, 0.07 + 0.05 * toward, h));
+  // E399 (the mockups): a tall soft orange-gold band behind the tower, peach to rose, navy pushed higher
+  vec3 c = mix(band, rose, smoothstep(0.0, 0.16 + 0.1 * toward, h));
   // wide overlapping blends: where one smoothstep ended flat as the next began, the eye read a hard arc (a Mach band)
-  c = mix(c, dusk, smoothstep(0.03, 0.4, h));
+  c = mix(c, dusk, smoothstep(0.08, 0.45, h));
   c = mix(c, indigo, smoothstep(0.08, 0.85, h));
   c += vec3(1.0, 0.55, 0.2) * pow(toward, 4.0) * (1.0 - smoothstep(0.0, 0.1, h)) * 0.45;
   // Thin streaks: dark, under-lit on the glow side, only in the band (3-10 degrees up).
   float az = atan(d.z, d.x);
   float streak = vNoise(skyRing(az, 7.0, h * 140.0)) * 0.65 + vNoise(skyRing(az, 21.0, h * 300.0 + 3.1)) * 0.35;
-  float cloud = smoothstep(0.62, 0.86, streak) * smoothstep(0.025, 0.05, h) * (1.0 - smoothstep(0.12, 0.2, h));
+  float cloud = smoothstep(0.55, 0.95, streak) * smoothstep(0.025, 0.06, h) * (1.0 - smoothstep(0.1, 0.2, h)) * 0.6; // soft wisps
   vec3 belly = mix(vec3(0.5, 0.24, 0.2), vec3(0.95, 0.5, 0.28), pow(toward, 2.0));
   c = mix(c, mix(vec3(0.14, 0.1, 0.16), belly, 0.35 + 0.4 * toward), cloud * 0.8);
-  // Loop 6 (the targets: broken altocumulus lit from below by the set sun, glowing orange-gold low in the glow, rose and
-  // then slate-violet higher and away from it, with dark cores): a cloud layer projected on a flat deck, patchy, never
-  // a sheet. Brightest on the underside facing the glow (a second sample offset sunward shades each cloud).
-  vec2 cp = d.xz / (h + 0.09);
-  cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(0.7, 1.9);
-  float cn = vNoise(cp * 1.3) * 0.5 + vNoise(cp * 2.9 + 3.1) * 0.3 + vNoise(cp * 6.7 + 7.3) * 0.2;
-  // E399: the mockups' skies are clear and starry: only a few thin banks low in the glow band, none overhead
-  float cov = smoothstep(0.6, 0.72, cn) * smoothstep(0.02, 0.05, h) * (1.0 - smoothstep(0.1, 0.18, h)) * (0.35 + 0.65 * toward);
-  vec2 sunward = normalize(vec2(uSun.x, uSun.z) + 1e-4) * 0.18 / (h + 0.09);
-  float cn2 = vNoise((cp + sunward * vec2(0.7, 1.9)) * 1.3) * 0.5 + vNoise((cp + sunward * vec2(0.7, 1.9)) * 2.9 + 3.1) * 0.3 + vNoise((cp + sunward * vec2(0.7, 1.9)) * 6.7 + 7.3) * 0.2;
-  float lit = clamp((cn - cn2) * 6.0 + 0.5, 0.0, 1.0);
-  float hot = pow(toward, 1.6) * (1.0 - smoothstep(0.04, 0.25, h));
-  vec3 cLit = mix(mix(vec3(0.62, 0.3, 0.32), vec3(1.0, 0.55, 0.22), hot), vec3(1.0, 0.72, 0.38), hot * lit);
-  vec3 cDark = mix(vec3(0.1, 0.09, 0.17), vec3(0.28, 0.14, 0.14), hot);
-  c = mix(c, mix(cDark, cLit, clamp(lit * (0.55 + 0.45 * hot) + 0.15 * hot, 0.0, 1.0)), cov * 0.92);
+  float cov = 0.0; // E399: no cloud deck (the mockups' skies are clear)
   // Stars: soft points round a jittered spot in each cell, many overhead, fading into the band and the glow.
   vec3 cellP = d * 300.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;

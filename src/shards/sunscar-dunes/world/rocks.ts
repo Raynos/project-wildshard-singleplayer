@@ -10,7 +10,7 @@ export interface RockField { root: Group; colliders: ColliderDesc[]; ridges: num
 
 /** The places every scatter keeps clear of (metres). */
 const KEEP_CLEAR: readonly { x: number; z: number; r: number }[] = [
-  { x: SPAWN.x, z: SPAWN.z, r: 12 }, { x: TOWER.x, z: TOWER.z, r: 16 }, { x: CARAVAN.x, z: CARAVAN.z, r: 14 }, { x: WELL.x, z: WELL.z, r: 12 },
+  { x: SPAWN.x, z: SPAWN.z, r: 12 }, { x: TOWER.x, z: TOWER.z, r: 16 }, { x: CARAVAN.x, z: CARAVAN.z - 12, r: 26 }, { x: WELL.x, z: WELL.z, r: 12 },
   { x: BASIN.x, z: BASIN.z, r: BASIN.floor }, ...BRAZIERS.map((b) => ({ x: b.x, z: b.z, r: 6 })),
 ];
 const clear = (x: number, z: number, pad: number): boolean => KEEP_CLEAR.every((c) => Math.hypot(x - c.x, z - c.z) > c.r + pad);

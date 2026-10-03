@@ -155,7 +155,7 @@ export interface Dressing { root: Group; colliders: ColliderDesc[]; counts: Reco
 
 /** The places the dressing keeps clear of (metres), and the trail bed (graded sand: nothing grows on it). */
 const KEEP_CLEAR: readonly { x: number; z: number; r: number }[] = [
-  { x: SPAWN.x, z: SPAWN.z, r: 5 }, { x: TOWER.x, z: TOWER.z, r: 14 }, { x: CARAVAN.x, z: CARAVAN.z, r: 7 }, { x: WELL.x, z: WELL.z, r: 6 },
+  { x: SPAWN.x, z: SPAWN.z, r: 5 }, { x: TOWER.x, z: TOWER.z, r: 14 }, { x: CARAVAN.x, z: CARAVAN.z - 12, r: 26 }, { x: WELL.x, z: WELL.z, r: 6 },
   { x: BASIN.x, z: BASIN.z, r: BASIN.r - 4 }, ...BRAZIERS.map((b) => ({ x: b.x, z: b.z, r: 4 })),
 ];
 const clear = (x: number, z: number, pad = 0): boolean => KEEP_CLEAR.every((c) => Math.hypot(x - c.x, z - c.z) > c.r + pad);
