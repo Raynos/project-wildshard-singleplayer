@@ -49,11 +49,25 @@ void main() {
   float cloud = smoothstep(0.62, 0.86, streak) * smoothstep(0.025, 0.05, h) * (1.0 - smoothstep(0.12, 0.2, h));
   vec3 belly = mix(vec3(0.5, 0.24, 0.2), vec3(0.95, 0.5, 0.28), pow(toward, 2.0));
   c = mix(c, mix(vec3(0.14, 0.1, 0.16), belly, 0.35 + 0.4 * toward), cloud * 0.8);
+  // Loop 6 (the targets: broken altocumulus lit from below by the set sun, glowing orange-gold low in the glow, rose and
+  // then slate-violet higher and away from it, with dark cores): a cloud layer projected on a flat deck, patchy, never
+  // a sheet. Brightest on the underside facing the glow (a second sample offset sunward shades each cloud).
+  vec2 cp = d.xz / (h + 0.09);
+  cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(0.7, 1.9);
+  float cn = vNoise(cp * 1.3) * 0.5 + vNoise(cp * 2.9 + 3.1) * 0.3 + vNoise(cp * 6.7 + 7.3) * 0.2;
+  float cov = smoothstep(0.52, 0.66, cn) * smoothstep(0.02, 0.06, h) * (1.0 - smoothstep(0.35, 0.6, h));
+  vec2 sunward = normalize(vec2(uSun.x, uSun.z) + 1e-4) * 0.18 / (h + 0.09);
+  float cn2 = vNoise((cp + sunward * vec2(0.7, 1.9)) * 1.3) * 0.5 + vNoise((cp + sunward * vec2(0.7, 1.9)) * 2.9 + 3.1) * 0.3 + vNoise((cp + sunward * vec2(0.7, 1.9)) * 6.7 + 7.3) * 0.2;
+  float lit = clamp((cn - cn2) * 6.0 + 0.5, 0.0, 1.0);
+  float hot = pow(toward, 1.6) * (1.0 - smoothstep(0.04, 0.25, h));
+  vec3 cLit = mix(mix(vec3(0.62, 0.3, 0.32), vec3(1.0, 0.55, 0.22), hot), vec3(1.0, 0.72, 0.38), hot * lit);
+  vec3 cDark = mix(vec3(0.1, 0.09, 0.17), vec3(0.28, 0.14, 0.14), hot);
+  c = mix(c, mix(cDark, cLit, clamp(lit * (0.55 + 0.45 * hot) + 0.15 * hot, 0.0, 1.0)), cov * 0.92);
   // Stars: soft points round a jittered spot in each cell, many overhead, fading into the band and the glow.
   vec3 cellP = d * 300.0, cell = floor(cellP);
   vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;
   float starDot = 1.0 - smoothstep(0.0, 0.26, length(cellP - spot));
-  float star = step(0.992, starHash(cell)) * starDot * smoothstep(0.1, 0.35, h) * (1.0 - 0.7 * pow(toward, 2.0));
+  float star = step(0.992, starHash(cell)) * starDot * smoothstep(0.1, 0.35, h) * (1.0 - 0.7 * pow(toward, 2.0)) * (1.0 - cov);
   c += vec3(0.85, 0.9, 1.0) * star * (1.2 + 1.8 * starHash(cell + 3.1));
   // dithered: a smooth gradient this dark crossed one 8-bit step in a visible line across the sky (the scorer's arc)
   c += (starHash(vec3(gl_FragCoord.xy, 7.0)) - 0.5) * 0.014;

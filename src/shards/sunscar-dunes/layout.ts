@@ -15,7 +15,7 @@ export const BASIN = { x: -14, z: -150, floor: 26, r: 56 };
 export const BRAZIERS: readonly { x: number; z: number }[] = [{ x: 58, z: -34 }, { x: -44, z: -22 }, { x: 34, z: -102 }];
 /** The crest top the tower stands on: levelled `lift` metres over its own dune height, eased over `r`. The spawn needs
  *  none: the dunes are phased so a crest runs through it (P2), and it looks down over the rows to the tower. */
-export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 20, lift: 7 }];
+export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 40, lift: 11 }]; // E399 (mockup dusk-fire): the tower's rise stands clear over the 1.5x dunes
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 export const PADS = [{ x: CARAVAN.x, z: CARAVAN.z, r: 14 }, { x: WELL.x, z: WELL.z, r: 12 }];
 /** The crest paths: spawn → tower (the first, the entry trail), spawn → caravan, spawn → well, tower → basin. */

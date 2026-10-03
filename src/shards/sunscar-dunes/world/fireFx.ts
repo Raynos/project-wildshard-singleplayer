@@ -13,7 +13,9 @@ import { WIND } from './dunes';
  * - the pool: a warm additive disc draped on the sand round the brazier.
  */
 export interface FireSize { flame: number; glow: number; smoke: number; embers: number }
-export const WAYMARK_FIRE: FireSize = { flame: 2.4, glow: 2.2, smoke: 22, embers: 110 };
+export const WAYMARK_FIRE: FireSize = { flame: 1.6, glow: 2.0, smoke: 22, embers: 110 }; // mockup C: the flame about one and a half bowls tall
+/** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
+export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 26, embers: 12 };
 export const SIGNAL_FIRE: FireSize = { flame: 3.6, glow: 5, smoke: 48, embers: 160 };
 
 const time = { value: 0 };

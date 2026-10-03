@@ -11,9 +11,9 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
  * band is art-directed apart from it, behind the tower (`sky.ts` SUN_GLOW).
  */
 // loop 3: a deeper, redder key (ΔE00 of the lit sand against the H1–H4 targets: the game's was too pale and grey-blue)
-export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.55, 0.26), intensity: 3.4 } as const; // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.56, 0.26), intensity: 4.0 } as const; // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
-export const FOG = { color: 0x684a62, near: 80, far: 430 } as const;
+export const FOG = { color: 0x40304a, near: 80, far: 430 } as const; // loop 6: a deep dusk haze, not lilac
 // loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
 const SAND = new Color(0.58, 0.26, 0.1),
   HOLLOW = new Color(0.24, 0.17, 0.19), CREST = new Color(0.72, 0.38, 0.15);
@@ -236,7 +236,7 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   vec3 sandFill = vec3(dot(reflectedLight.indirectDiffuse, vec3(0.3, 0.59, 0.11)));
   // loop 6 (the scorer: shade went muddy purple-black, ripples vanished in it): a cool blue-grey fill, a step brighter,
   // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
-  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * vec3(1.08, 0.9, 1.18) * 1.15, sandShade * 0.85);
+  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * vec3(0.78, 0.84, 1.25) * 0.85, sandShade * 0.9); // loop 6: navy shade (the targets)
   reflectedLight.indirectDiffuse *= 1.0 + (0.16 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
       const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;

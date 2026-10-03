@@ -1,5 +1,5 @@
 {
- "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 spawn crest, H2 caravan, H3 waymark, H4 tower deck) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z). Round 1 (R1C-1 / R1B-12, 2026-10-02): h3 and h4 re-aimed on their subjects (h3 the waymark from 5.7 m, h4 the deck brazier from the stair landing, the basin beyond); their time-lapse jumps there. aerial-overview re-aimed (R1B-14) so the caravan, well, tower and basin sit in frame.",
+ "$doc": "E387 progress cameras for scripts/shard-progress.mjs: the loop builders' hero views (H1 spawn crest, H2 caravan, H3 waymark, H4 tower deck) plus two aerials and an orbit clip. Keep them fixed: the time-lapse lines frames up by id. yaw / pitch in degrees (yaw 0 faces -z). Round 1 (R1C-1 / R1B-12, 2026-10-02): h3 and h4 re-aimed on their subjects (h3 the waymark from 5.7 m, h4 the deck brazier from the stair landing, the basin beyond); their time-lapse jumps there. aerial-overview re-aimed (R1B-14) so the caravan, well, tower and basin sit in frame. E399: one mock-* view per mockup at its camera (ledger 5: re-aimed only to match its mockup better, named in the round notes); 'stage' sets real quest state before the shot (the shard's stage()).",
  "shots": [
   {
    "id": "h1-spawn-crest",
@@ -25,7 +25,7 @@
   {
    "id": "h4-tower-deck",
    "x": 8.4,
-   "y": 20.0,
+   "y": 24.0,
    "z": -73.0,
    "yaw": 19,
    "pitch": -12
@@ -59,6 +59,47 @@
      -40
     ]
    }
+  },
+  {
+   "id": "mock-dusk-fire",
+   "mockup": "art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg",
+   "x": -12.2,
+   "z": -19.6,
+   "yaw": -16.0,
+   "pitch": -2
+  },
+  {
+   "id": "mock-A-spawn",
+   "mockup": "art/sunscar-dunes/round-9-review/A-spawn-dusk-light.jpg",
+   "x": 0,
+   "z": 70,
+   "yaw": 0,
+   "pitch": -4
+  },
+  {
+   "id": "mock-B-logbook",
+   "mockup": "art/sunscar-dunes/round-9-review/B-quest-logbook.jpg",
+   "x": -78,
+   "z": 10,
+   "yaw": 180.0,
+   "pitch": -4
+  },
+  {
+   "id": "mock-C-waymark",
+   "mockup": "art/sunscar-dunes/round-9-review/C-waymark-fire.jpg",
+   "x": 58.4,
+   "z": -25,
+   "yaw": 2.5,
+   "pitch": 3,
+   "stage": "waymarks-lit"
+  },
+  {
+   "id": "mock-D-hands",
+   "mockup": "art/sunscar-dunes/round-9-review/D-hands-whip.jpg",
+   "x": 0,
+   "z": 70,
+   "yaw": -8,
+   "pitch": 2
   }
  ],
  "clip": {
@@ -73,5 +114,6 @@
   "startDeg": 0,
   "sweepDeg": 90,
   "fov": 60
- }
+ },
+ "expose": "sunscar"
 }

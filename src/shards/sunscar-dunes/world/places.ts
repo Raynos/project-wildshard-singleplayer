@@ -1,4 +1,4 @@
-import { addFire, addLampGlow, WAYMARK_FIRE } from './fireFx';
+import { addFire, addLampGlow, COOKFIRE, WAYMARK_FIRE } from './fireFx';
 import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial,
   Quaternion, SphereGeometry, TorusGeometry, Vector3, type Material } from 'three';
 import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
@@ -27,6 +27,8 @@ const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh =>
 
 /** The lantern on its pole, in the caravan's frame (metres): beside the tailboard (−Z), the glass `y` up. */
 const LANTERN = { x: 1.45, y: 1.7, z: -3.2 } as const;
+/** The cookfire beside the wagon, in the caravan's frame (mockup B's smoke). */
+const COOK = { x: -2.2, z: -4.6 } as const;
 
 /** Spilled cargo on the lee (−X) side, on the sand itself: x, z, half size, yaw. */
 const CARGO: readonly [number, number, number, number][] = [[-2.3, 0.7, 0.35, 0.3], [-2.8, -0.8, 0.3, -0.4], [-1.9, -2.4, 0.4, 0.9]];
@@ -109,6 +111,10 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   });
   // Colliders: the wagon body and the cargo (world space).
   const world = (x: number, z: number): Vector3 => new Vector3(x, 0, z).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(root.position);
+  // E399 (mockup B): a smouldering cookfire on the lee side, its thin smoke column rising behind the wagon
+  const cook = new Group(); cook.position.set(COOK.x, 0.15, COOK.z); root.add(cook);
+  for (let i = 0; i < 6; i++) { const st = box(0.16, 0.12, 0.14, mat(STONE)); const a = (i / 6) * Math.PI * 2; st.position.set(Math.cos(a) * 0.38, -0.08, Math.sin(a) * 0.38); st.rotation.y = a; cook.add(st); }
+  const cw = world(COOK.x, COOK.z); addFire(cook, COOKFIRE, { at: new Vector3(cw.x, y + 0.15, cw.z), groundAt });
   const body = world(0, 0);
   colliders.push(boxDesc({ x: body.x, z: body.z, hw: 1.1, hd: 2.3, rot: -CARAVAN.yaw, yBottom: y - 1, yTop: y + 1.9 }, 'wood'));
   const lampPost = world(LANTERN.x, LANTERN.z); colliders.push(boxDesc({ x: lampPost.x, z: lampPost.z, hw: 0.06, hd: 0.06, rot: 0, yBottom: y - 0.5, yTop: y + LANTERN.y + 0.5 }, 'wood'));

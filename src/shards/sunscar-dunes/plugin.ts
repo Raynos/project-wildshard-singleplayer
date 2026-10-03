@@ -3,7 +3,7 @@ import { installSilentScore } from '#kit';
 import { Vector3 } from 'three';
 import { Flags, type Animal, type QuestState } from '#engine';
 import { STRINGS } from './strings';
-import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
+import { buildWorld, FLAG, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
 import { lastLightAll } from './look/light';
 import { preloadDuneMeshes } from './world/meshes';
@@ -28,6 +28,14 @@ export class SignalDunesPlugin extends ShardPlugin {
   matriarch: DuneMatriarch | null = null;
   /** The dune ray now flying (captures drive it). */
   get ray(): Animal | null { return this.creatures?.ray() ?? null; }
+  /**
+   * Quest state for a capture (E399, the mock-C-waymark view): sets the same flags a player sets in play, nothing else.
+   * 'waymarks-lit': the oil taken and the three waymark braziers oiled and lit.
+   */
+  stage(name: string): void {
+    const places = this.places; if (!places) return;
+    if (name === 'waymarks-lit') { places.flags.set(FLAG.oil); for (const b of places.braziers) { b.oiled = true; b.light(); } }
+  }
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
