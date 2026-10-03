@@ -28,6 +28,10 @@ for name in ('rock', 'meadow', 'cloudsea'):
     im.save(os.path.join(OUT, f'{name}.webp'), 'WEBP', quality=86, method=6)
     im.save(os.path.join(HERE, f'{name}.jpg'), quality=86)
     print(name, os.path.getsize(os.path.join(OUT, f'{name}.webp')) // 1024, 'KB')
+# the storm vortex seen from below (E399, mockup D): the crown storm's underside
+if os.path.exists(os.path.join(HERE, 'stormeye.png')):
+    eye = Image.open(os.path.join(HERE, 'stormeye.png')).convert('RGB').resize((1024, 1024), Image.LANCZOS)
+    eye.save(os.path.join(OUT, 'stormeye.webp'), 'WEBP', quality=86, method=6); eye.save(os.path.join(HERE, 'stormeye.jpg'), quality=86)
 if os.path.exists(os.path.join(HERE, 'maelstrom.png')):
     vortex = Image.open(os.path.join(HERE, 'maelstrom.png')).convert('RGB').resize((1024, 1024), Image.LANCZOS)
     vortex.save(os.path.join(OUT, 'maelstrom.webp'), 'WEBP', quality=86, method=6); vortex.save(os.path.join(HERE, 'maelstrom.jpg'), quality=86)

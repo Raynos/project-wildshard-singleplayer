@@ -19,7 +19,7 @@ import { setIsleTextures } from './world/isle';
 import { setFirSheet } from './world/fir';
 import { setMillTextures } from './world/mill';
 import { FAN_LEAF_URL, TEX_URL } from './boot/files';
-import { forgetPaintedShared, loadPainted, loadPaintedShared } from './look/image';
+import { loadPainted } from './look/image';
 import { setStormPaint } from './world/storm';
 import { meadow, type Meadow } from './world/meadow';
 import { SUN_DIR } from './look/sun';
@@ -73,11 +73,11 @@ export class SkyReachPlugin extends ShardPlugin {
     // and the windmill's stone, canvas and ivy (world/mill.ts)
     const [rock, meadowTex, branches, millStone, millCanvas, millIvy, vortex] = await Promise.all([loadPainted(TEX_URL.rock, 'far.rock', true), loadPainted(TEX_URL.meadow, 'far.meadow', true), loadPainted(TEX_URL.branches, 'far.branches'),
       loadPainted(TEX_URL.millStone, 'far.mill-stone', true), loadPainted(TEX_URL.millCanvas, 'far.mill-canvas'), loadPainted(TEX_URL.millIvy, 'far.mill-ivy'),
-      loadPaintedShared(TEX_URL.maelstrom, 'far.maelstrom')]);
+      loadPainted(TEX_URL.stormeye, 'far.stormeye')]);
     for (const t of [rock, meadowTex, branches, millStone, millCanvas, millIvy, vortex]) if (t !== null) ctx.scope.own(t);
-    // the storm samples past the painting's edge (mirrored); the sea's disc stays inside it
+    // the storm's painted underside (E399, mockup D's vortex seen from below), mirrored past its edge
     if (vortex !== null) { vortex.wrapS = MirroredRepeatWrapping; vortex.wrapT = MirroredRepeatWrapping; vortex.needsUpdate = true; }
-    setStormPaint(vortex); ctx.scope.onDispose(() => { forgetPaintedShared(TEX_URL.maelstrom); });
+    setStormPaint(vortex);
     setMillTextures({ stone: millStone, canvas: millCanvas, ivy: millIvy });
     setFirSheet(branches);
     setIsleTextures({ rock, meadow: meadowTex });

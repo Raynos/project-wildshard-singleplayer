@@ -16,6 +16,13 @@ REF = os.path.join(REPO, 'art/far-reach/round-1-proposals/B-sky-reach.jpg')
 STYLE = ("Painterly-stylized like the attached mockup (Studio Ghibli / Genshin Impact background art): soft visible brush work, "
          "rich detail, warm golden-hour light from the upper left.")
 PROMPTS = {
+    'stormeye': ("Paint ONE 1024x1024 image seen looking STRAIGHT UP from below into a giant STORM VORTEX overhead (E399, the crown "
+                 "arena's sky in mockup D): a spiral of dark, heavy storm cloud filling the whole square, its centre exactly in the "
+                 "middle, four curved spiral arms of churning slate-grey and bruised violet cloud winding inward toward a glowing "
+                 "pale eye (about 10% of the image wide) at the exact centre lit from within by faint lightning; the arms' undersides "
+                 "dark slate-blue and violet, their edges and rims catching warm gold and peach light from the low sun on the lower-left "
+                 "side; one or two thin violet-white lightning forks inside the arms; toward the corners the spiral loosens into "
+                 "ordinary dark storm cloud. No ground, no islands, no birds, no sun disc, no horizon, no text. " + STYLE),
     'maelstrom': ("Paint ONE 1024x1024 image seen STRAIGHT DOWN from high above: a giant circular MAELSTROM of cumulus cloud, a "
                   "spiral vortex filling the whole square, its centre exactly in the middle of the image, three to four curved "
                   "spiral arms of thick billowing cumulus winding inward clockwise toward a dark lavender-violet eye (a clear dark "

@@ -14,9 +14,9 @@ import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttri
  * from the entrance the spiral reads round, a funnel leaning over the crown, not squashed into streaks.
  * `gather`: the camera's distance from the storm's centre (m) over which it fades in. `ahead`: how far north of the crown
  * (-z) its eye hangs (E399, mockup D: from the arena's entrance the vortex fills the sky behind the dais, its eye about
- * 22 deg up, above the boss bar, in the phone portrait view; centred over the crown it hung 53 deg up, out of the frame).
+ * 22 deg up, between the coins and the minimap above the boss bar, in the phone portrait view; centred over the crown it hung 53 deg up, out of the frame).
  */
-export const STORM = { lift: 38, ahead: 90, lean: -0.5, radius: 92, gather: [110, 170], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
+export const STORM = { lift: 36, ahead: 90, lean: -0.5, radius: 92, gather: [110, 170], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
 
 function hex(value: number): string { const c = new Color(value); return `vec3(${c.r.toFixed(4)},${c.g.toFixed(4)},${c.b.toFixed(4)})`; }
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
@@ -57,18 +57,15 @@ const FRAGMENT = /* glsl */`
     // lightning: the eye and the bellies near it light violet-white
     c += ${hex(STORM_COLORS.bolt)} * flash * (exp(-r * 3.5) * 1.4 + 0.25) * (0.4 + dens);
 #ifdef FAR_STORM_PAINT
-    // E399 (mockup D): the painted cumulus spiral (the maelstrom painting, seen from below): its lit tops become the pale
-    // undersides of the bands, its shadowed lanes the dark slate between them; the sunward rim keeps its gold
-    // the whole spiral inside the inner 40 % (mockup D shows all of it from the arena, the sky and the low sun clear
-    // below it), the disc past it fading out
-    vec2 pq = rot(lp, time * spin * 0.6 + seed) * (seed > 1.0 ? 1.05 : 1.25) + 0.5;
-    float pl = dot(texture2D(paint, pq).rgb, vec3(0.3, 0.59, 0.11));
-    vec3 under = mix(${hex(STORM_COLORS.belly)}, ${hex(STORM_COLORS.mid)}, smoothstep(0.42, 0.88, pl));
-    under += ${hex(STORM_COLORS.gold)} * (pow(sunSide, 2.0) * smoothstep(0.5, 0.95, r) * 0.45 + smoothstep(0.7, 0.95, pl) * 0.12);
+    // E399 (mockup D): the painted storm vortex seen from below (tex/stormeye.webp: slate-violet arms, gold-lit rims, a
+    // glowing eye, lightning), the whole spiral inside the inner 60 %, turning slowly; the disc past it fades out, so the
+    // sky and the low sun stay clear below it; the upper layer only a faint second turn
+    vec2 pq = rot(lp, time * spin * 0.35 + seed) * (seed > 1.0 ? 0.7 : 0.83) + 0.5;
+    vec3 under = texture2D(paint, pq).rgb;
     c = under + ${hex(STORM_COLORS.bolt)} * flash * (exp(-r * 3.5) * 1.4 + 0.25) * 0.8;
-    alpha = rim * (1.0 - smoothstep(0.4, 0.68, r)) * (seed > 1.0 ? 0.55 : 0.96);
+    alpha = rim * (1.0 - smoothstep(0.5, 0.75, r)) * (seed > 1.0 ? 0.0 : 0.97);
     // the low sun stays clear (mockup D: the vortex above, the sun and its gold horizon below its edge), the edge gilded
-    float sunClear = smoothstep(0.976, 0.997, toward);
+    float sunClear = smoothstep(0.993, 0.999, toward);
     c += ${hex(STORM_COLORS.gold)} * smoothstep(0.93, 0.98, toward) * 0.35;
     alpha *= 1.0 - sunClear * 0.95;
 #endif
@@ -80,7 +77,7 @@ const FRAGMENT = /* glsl */`
     // haze with distance (the scene fog's warm rose): from the spawn the storm is a soft bruise, not a lid
     float dist = length(wp - cameraPosition);
     // (E399: the eye now hangs 45 m beyond the crown, 60-150 m from the arena; the haze starts past it)
-    float haze = smoothstep(150.0, 330.0, dist);
+    float haze = smoothstep(220.0, 380.0, dist);
     c = mix(c, ${hex(STORM_COLORS.haze)}, haze * hazeK);
     // a camera up at the storm's height (the god views, a high hover) sees it thin out, never a wall of paint
     float near = smoothstep(3.0, 16.0, abs(wp.y - cameraPosition.y));
