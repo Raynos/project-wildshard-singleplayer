@@ -29,7 +29,8 @@ if (!SLUG || !URL_BASE) { console.error('usage: shard-progress.mjs --shard=<slug
 const SHA = execFileSync('git', ['rev-parse', flag('sha', 'HEAD')], { cwd: ROOT, encoding: 'utf8' }).trim();
 const LABEL = flag('label', '');
 const CLIP = !argv.includes('--no-clip');
-const CAMS = JSON.parse(readFileSync(join(ROOT, 'art', SLUG, 'progress', 'cameras.json'), 'utf8'));
+/** --cameras=<file>: another cameras file (a test of the harness); default the shard's committed one */
+const CAMS = JSON.parse(readFileSync(flag('cameras', join(ROOT, 'art', SLUG, 'progress', 'cameras.json')), 'utf8'));
 const when = execFileSync('git', ['show', '-s', '--format=%cd', '--date=format:%Y%m%d-%H%M', SHA], { cwd: ROOT, encoding: 'utf8' }).trim();
 /** --root=<dir>: write the capture there instead of the repo's progress/ (a scratch comparison, E397) */
 const OUT = join(flag('root', join(ROOT, 'progress')), SLUG, `${when}-${SHA.slice(0, 8)}`);
@@ -67,11 +68,20 @@ try {
     const w = window.__wildshard.world, cam = w.game.camera;
     try { w.animals.calm = true; } catch { /* a shard without animals */ }
     window.__prog = null;
+    // what a free-camera shot changed, put back when the player's view returns (sky-reach, E399: after an aerial the
+    // viewmodel stayed hidden and the fov stayed 72 for every later first-person shot)
+    const hidden = new Set(); let fov = null;
     w.game.onLate(() => {
-      const v = window.__prog; if (!v) return;
+      const v = window.__prog;
+      if (!v) {
+        if (hidden.size > 0) { for (const c of hidden) c.visible = true; hidden.clear(); }
+        if (fov !== null) { cam.fov = fov; cam.updateProjectionMatrix(); fov = null; }
+        return;
+      }
+      if (fov === null) fov = cam.fov;
       cam.position.set(v.pos[0], v.pos[1], v.pos[2]); cam.up.set(0, 1, 0); cam.lookAt(v.look[0], v.look[1], v.look[2]);
       if (Math.abs(cam.fov - v.fov) > 0.01) { cam.fov = v.fov; cam.updateProjectionMatrix(); }
-      for (const c of cam.children) c.visible = false;
+      for (const c of cam.children) if (c.visible) { c.visible = false; hidden.add(c); }
       cam.updateMatrixWorld(true);
     });
   });
