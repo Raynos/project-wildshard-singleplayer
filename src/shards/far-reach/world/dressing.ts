@@ -191,13 +191,16 @@ export interface Dressing { readonly group: Group; readonly meshes: readonly Ins
 export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landings = true, density = 1): Dressing {
   const rnd = seeded(seed), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), s = new Vector3(), p = new Vector3();
   const clumps: Place[] = [], flowers: (Place & { c: number })[] = [], stones: Place[] = [], roots: Place[] = [];
+  // no clump in a clearing or a short-grass disc (round 13, seat A 6: clumps grew across the crown dais' compass and paving)
+  const clearings = meadowHoles(), cleared = (x: number, z: number): boolean => clearings.some((h) => Math.hypot(x - h.x, z - h.y) < h.z);
   for (const isle of isles) {
     const ap = apothem(isle), area = Math.PI * ap * ap;
     const inside = (k: number): [number, number] => { const r = ap * Math.sqrt(rnd()) * k, a = rnd() * Math.PI * 2; return [isle.x + Math.cos(a) * r, isle.z + Math.sin(a) * r]; };
     for (let i = 0; i < area * DRESS.clumpsPerM2 * density; i++) {
       const [x, z] = inside(0.95); if (onLane(x, z) && rnd() < 0.85) continue;
       // on the rises too (round 7: placed at the deck's height they sat buried inside the rises, which read bald from afar)
-      clumps.push({ x, y: isle.y + knollHeight(x, z), z, s: 0.45 + rnd() * 0.5, yaw: rnd() * 6.28 });
+      const clump = { x, y: isle.y + knollHeight(x, z), z, s: 0.45 + rnd() * 0.5, yaw: rnd() * 6.28 };
+      if (!cleared(x, z)) clumps.push(clump);
     }
     // drifts: flowers cluster round a few seeds per island, each drift mostly daisies or mostly buttercups
     const seeds = Array.from({ length: 6 }, () => { const [x, z] = inside(0.85); return { x, z, gold: rnd() < 0.35 }; });
