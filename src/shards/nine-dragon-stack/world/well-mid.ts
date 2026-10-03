@@ -90,6 +90,10 @@ const X_LOW = Y0 - 42;
 /** where the run north's walls stop, as painted shells, deep in the silk (dome D2: the views north and down) */
 const SHELL_BOTTOM = -40;
 
+const COLLIDERS: ColliderDesc[] = [];
+/** the crossings' collision (deck slabs following each deck, rail walls, the far run's walls; the gate bridges' paifang posts are the paifang model's, E346); filled by `buildWell` */
+export function crossingColliders(): readonly ColliderDesc[] { return COLLIDERS; }
+
 /**
  * (F4, round 2: mockup B's "crossings like ladder rungs receding into the mist to the far gate") the run north goes on
  * past the Cable Deck's edge (z −104) to FAR.z0, open to the sky, at the far LOD: a painted back wall to the canyon's
@@ -114,6 +118,16 @@ function farRun(ctx: Ctx, kit: (y: number) => Kit): void {
     }
     ghostLevels(ctx, kit, { p0: w.p0, n: w.n, len: w.len, dMin: 2, dMax: 3.4, wash: w.wash }, DECK_TOP, 17, 1.2, w.seed);
   }
+  // (E355, the E323 audit) the far walls are painted, but the rungs past the deck's edge reach them and collide: a 1 m
+  // slab behind each wall, from under the fragment's floor (manifest bounds, Y0 − 100) to the canyon's top, so a drop or
+  // a walk off a far rung's end stays in the canyon (the bounds' soft respawn catches the fall) instead of passing
+  // through the paint into the street's underside or past the level's edge
+  const y0 = Y0 - 104, h = top - y0, cy = y0 + h / 2, surface = 'stone' as const;
+  COLLIDERS.push(
+    { kind: 'box', x: FAR.x0 - 0.5, y: cy, z: (FAR.z0 + FAR.z1) / 2, hx: 0.5, hy: h / 2, hz: (FAR.z1 - FAR.z0) / 2 + 1, surface },
+    { kind: 'box', x: FAR.x1 + 0.5, y: cy, z: (FAR.z0 + FAR.z1) / 2, hx: 0.5, hy: h / 2, hz: (FAR.z1 - FAR.z0) / 2 + 1, surface },
+    { kind: 'box', x: (FAR.x0 + FAR.x1) / 2, y: cy, z: FAR.z0 - 0.5, hx: (FAR.x1 - FAR.x0) / 2 + 1, hy: h / 2, hz: 0.5, surface },
+  );
 }
 
 /** the crossings' kits: the main shaft's and the run north's (each one mesh, culled as a whole), one alpha-cut kit */
@@ -122,9 +136,6 @@ function regionKits(ctx: Ctx): { main: Kit; ext: Kit; at: (z: number) => Kit; al
   return { main, ext, at: (z) => (z > WELL.z0 ? main : ext), alpha: ctx.alpha('well-c-a') };
 }
 
-const COLLIDERS: ColliderDesc[] = [];
-/** the crossings' collision (deck slabs following each deck, rail walls; the gate bridges' paifang posts are the paifang model's, E346); filled by `buildWell` */
-export function crossingColliders(): readonly ColliderDesc[] { return COLLIDERS; }
 
 /** a string of paper lanterns on a sagging wire from a to b, one every `spacing` m */
 function lanternLine(ctx: Ctx, k: Kit, a: Vector3, b: Vector3, spacing: number, scale = 0.62, cordSegs = 0): void {
