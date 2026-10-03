@@ -18,3 +18,22 @@ Builder's claims to verify (round-3 list): the meadow graded olive-gold (spawn ~
 rock and roots with cloud sea round it, the overhead isles lowered round the low sun behind the mill; the fan's real idle
 hold leaned toward the upper left with the gloved hand, wrist and tassel in view clear of GUST; the near C boulder removed;
 spiral-carved crown stones, a readable dais compass, the Roc wing-to-wing off the sun's line; the keeper's scarf brown.
+
+## Signal Dunes (sunscar-dunes), scored separately
+
+- sunscar-dunes: capture `progress/sunscar-dunes/20261003-0019-8221a34a` (sha 8221a34a, staged {'mock-B-logbook': 'logbook', 'mock-C-waymark': 'waymarks-lit', 'mock-D-hands': 'waymarks-lit'}, page errors 0)
+
+### Signal Dunes, round 4
+
+Changes since round 3 (generated from the two captures):
+
+- `mock-B-logbook`: x -65.5 → -58.8; yaw 31.5 → 53.8; z 48.5 → 42.1
+- `mock-D-hands`: yaw 50 → 46
+- `mock-dusk-fire`: pitch -3 → -10
+
+(the earlier capture has no camAt; real camera positions are compared from the next round on)
+
+Commits touching staging code between the captures:
+- none
+
+Builder's claims to verify: the regenerated stitched gauntlet with a flared cuff and a plaited coil, out of the fog, in dark painted leather, posed as mockup D frames it (the idle hold players see); the tower crowning a big dune again, dusk-fire's dark dune and saddle; deep shadows and darker ripple troughs with less fill (the builder says A and dusk-fire are still short of the mockups' spread); crisp thin cloud bands low over the horizon, violet skies; mock-B three-quarter from behind the tailboard; no trail cairns; planked crates; the flame base fixed; a dark ray.
