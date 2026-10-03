@@ -15,6 +15,10 @@ mockup shows them. 10 = a player could take the mockup for a screenshot of this 
 finish, with differences you have to look for; 5 = the same place, but clearly a rougher version; 2 = barely related.
 Check the no-shortcut rules (ledger 5) and report any breach as a finding.
 
+**One way to measure brightness** (round 5: a builder counted a clipped red channel as "glow"): brightness, highlights
+and tonal spread are measured as luminance, Rec. 709 (0.2126 R + 0.7152 G + 0.0722 B), on matching regions of the game
+frame and the mockup, never as a single channel or the max channel.
+
 **Write** `round-<n>-seat-<A|B|C>.md` in this folder:
 1. a table per shard: mockup, score, the three biggest differences (each with the region of the frame);
 2. the shard's seat score (the mean of its mockups);
