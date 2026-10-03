@@ -9,7 +9,7 @@ const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); r
 export const WIND = { x: -0.643, z: 0.766 } as const;
 // loop 5 (the mockups: tall sweeping dunes, 10-30 m): 1.5x the wave and the height together, so the slip face keeps its
 // angle (every face stays under the player's max climb)
-const WAVE = 128, LEE = 0.45, AMP_MAX = 22, SPAWN_P = 0.55; // E399: the mockups' dunes are big smooth forms (10-30 m)
+const WAVE = 72, LEE = 0.42, AMP_MAX = 12, SPAWN_P = 0.55; // E399: the mockups' dunes are big smooth forms (10-30 m)
 /** The warped wind coordinate: crest lines bowed into crescents and wandering, so none read as parallel stripes. */
 const warped = (x: number, z: number, n: TerrainNoise['n']): number =>
   x * WIND.x + z * WIND.z + Math.cos((-x * WIND.z + z * WIND.x) * 0.0225) * 14 + n.get(x * 0.0035, z * 0.0035) * 18;
