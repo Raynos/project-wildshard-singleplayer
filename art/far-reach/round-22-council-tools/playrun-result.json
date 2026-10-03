@@ -1,0 +1,90 @@
+{
+ "legs": [
+  {
+   "leg": "spawn to the windmill isle (on foot, the rope bridge)",
+   "from": [
+    0,
+    30.02,
+    -5.5
+   ],
+   "to": [
+    -10.403,
+    30.015,
+    -73.302
+   ],
+   "maxY": 30.026,
+   "minY": 28.544,
+   "stuck": [],
+   "seconds": 16.512
+  },
+  {
+   "leg": "the updraft (board)",
+   "from": [
+    -10.44,
+    30.02,
+    -73.44
+   ],
+   "to": [
+    -57.253,
+    44.234,
+    -119.36
+   ],
+   "maxY": 44.234,
+   "minY": 30.262,
+   "stuck": [],
+   "seconds": 5.551
+  },
+  {
+   "leg": "to the winch (on foot)",
+   "from": [
+    -57.59,
+    44.34,
+    -119.69
+   ],
+   "to": [
+    -60.387,
+    44.02,
+    -133.784
+   ],
+   "maxY": 44.024,
+   "minY": 44.019,
+   "stuck": [],
+   "seconds": 3.458
+  },
+  {
+   "leg": "over the raised bridge into the arena (on foot)",
+   "from": [
+    -62,
+    44.02,
+    -130
+   ],
+   "to": [
+    -6.612,
+    44.02,
+    -180.643
+   ],
+   "maxY": 44.05,
+   "minY": 44.012,
+   "stuck": [],
+   "seconds": 17.637
+  }
+ ],
+ "winch": {
+  "raised": true,
+  "seconds": 2.517,
+  "at": {
+   "x": -60.40946043062073,
+   "y": 44.02044197894526,
+   "z": -133.92536116817377,
+   "yaw": 0.15629911003498007
+  }
+ },
+ "arena": {
+  "at": [
+   -6.49,
+   44.02,
+   -180.71
+  ],
+  "fromCrownCentre": 11.33
+ }
+}

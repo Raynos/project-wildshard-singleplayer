@@ -155,11 +155,13 @@ export function crownArena(): Group {
   stones.forEach((s, i) => {
     const g = stoneGeometry(s.h, i * 13 + 5); g.rotateY(s.yaw); g.translate(s.x, CROWN.y - 0.15, s.z); stoneParts.push(g);
     // the glyph sits proud of the face that turns to the dais
-    const gl = glyphGeometry(s.h); gl.translate(0, 0, CROWN_RING.depth / 2 * 0.86); gl.rotateY(s.yaw); gl.translate(s.x, CROWN.y - 0.15, s.z); glyphParts.push(gl);
+    // (round 8, the seats: 'proud spiral tubes'): flattened into the face, pale worn stone with the faintest glow (mockup D's
+    // runes read pale on the dark stones)
+    const gl = glyphGeometry(s.h); gl.scale(1, 1, 0.35); gl.translate(0, 0, CROWN_RING.depth / 2 * 0.97); gl.rotateY(s.yaw); gl.translate(s.x, CROWN.y - 0.15, s.z); glyphParts.push(gl);
   });
   // weathered rock (E399, the council: 'the stones and dais are clean; the mockup's rough and weathered'): the islands' painted rock
   const stoneMesh = new Mesh(mergeGeometries(stoneParts), paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true }), 0.7));
-  const glyphMesh = new Mesh(mergeGeometries(glyphParts), new MeshStandardMaterial({ color: 0xc9c4b4, emissive: 0x9fe6f2, emissiveIntensity: 0.12, roughness: 0.9, metalness: 0 }));
+  const glyphMesh = new Mesh(mergeGeometries(glyphParts), new MeshStandardMaterial({ color: 0xb4ad9e, emissive: 0x9fe6f2, emissiveIntensity: 0.04, roughness: 0.95, metalness: 0 }));
   for (const g of [...stoneParts, ...glyphParts]) g.dispose();
   const dais = new Mesh(daisGeometry(), paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, side: DoubleSide, flatShading: true }), 0.18));
   dais.position.set(DAIS.x, CROWN.y, DAIS.z);

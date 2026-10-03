@@ -3,7 +3,7 @@ import { installSilentScore } from '#kit';
 import { PATCH_ORDER, patchShader, type Animal, type Flags, type QuestState } from '#engine';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from './strings';
-import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, WISP_HOMES, apothem, type Home } from './layout';
+import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, WISP_HOMES, apothem, type Home } from './layout';
 import { buildWorld, type BuiltWorld } from './world/build';
 import { gustFx } from './world/windFx';
 import { FALL_TIME } from './world/distant';
@@ -242,6 +242,9 @@ export class SkyReachPlugin extends ShardPlugin {
   stage(name: string): void {
     const roc = this.roc, body = roc ? rocBrain(roc) : null;
     if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
+    // 'quest-winch' (round 8, X4: the route as ordinary play): the quest as a player has it when the winch unlocks, the notes
+    // read, the roost quiet and the three vanes turning; the bridge is still down, the winch raises it in play
+    if (name === 'quest-winch' && this.flags !== null) { for (const f of [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map((v) => vaneFlag(v.id))]) this.flags.set(f); }
     // and a strike in the storm behind it (its lightning comes every 3.5-8 s; mockup D shows a bolt), just before the frame
     // 'roc-lap' (round 7, the lead's ruling for mock-D): the Roc's rest lap round the dais, set so that after D's 1.5 s
     // settle (steady circling, a steady bank) it is on the lap's north-east quarter, turning in toward the arena view and banking along it (tried at
