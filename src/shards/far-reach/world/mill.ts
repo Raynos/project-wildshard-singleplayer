@@ -1,6 +1,7 @@
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, LatheGeometry, Mesh, MeshStandardMaterial, Vector2, Vector3, type Object3D, type Texture } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '#engine';
+import { fit, hdMaterial, skyHd } from './meshes';
 
 /**
  * The windmill (loop 20, the judge: "a flat white/grey plaster cylinder with plain plank sails; the mockup has weathered
@@ -250,9 +251,10 @@ function sail(): { frame: BufferGeometry; cloth: BufferGeometry[] } {
   const cloth: BufferGeometry[] = [];
   for (let s = 0; s < 4; s++) {
     const NX = 6, NY = 16, pos: number[] = [], uv: number[] = [], fc: number[] = [], idx: number[] = [];
-    const reef = s === 2 ? 0.6 : 0.9, ys = L - (L - y0) * reef - 0.05, ou = hash(s, 1) * 0.35, ov = hash(s, 2) * 0.2;
+    // E410 (round 14 seat A: 'rigid sail grids' against mockup A's cloth sails): three sails spread full length, one reefed
+    const reef = s === 2 ? 0.8 : 1.0, ys = L - (L - y0) * reef - 0.05, ou = hash(s, 1) * 0.35, ov = hash(s, 2) * 0.2;
     for (let j = 0; j <= NY; j++) for (let i = 0; i <= NX; i++) {
-      const u = i / NX, v = j / NY, billow = 0.2 * Math.sin(Math.PI * u) * Math.sin(Math.PI * Math.min(1, v * 1.15));
+      const u = i / NX, v = j / NY, billow = 0.3 * Math.sin(Math.PI * u) * Math.sin(Math.PI * Math.min(1, v * 1.15));
       pos.push(x0 + 0.03 + u * (w - 0.06), ys + v * (L - ys - 0.08), -0.02 - billow);
       uv.push(ou + u * 0.62, ov + v * 0.8);
       fc.push(u, v, hash(s, 5));
@@ -266,7 +268,109 @@ function sail(): { frame: BufferGeometry; cloth: BufferGeometry[] } {
   return { frame, cloth };
 }
 
+/**
+ * The modelled set (E410, Sky Reach top-10 row 6; `art/far-reach/round-34-mill/`): codex references of mockup A's tower
+ * mill (the whitewashed rubble tower, the ivy, the arched door, the boarded curb and the dark shingled cap with its
+ * windshaft stub, no sails) and of mockup C's rock under it, BiRefNet, Hunyuan3D-2 turbo + paint, finish.sh. The tower
+ * is scaled so its windshaft stub sits where the code hub was (`hub` y, so the sails sweep the same circle the mockup
+ * framing was tuned on) and turned so the stub faces +z (the spawn); the code sails stay, turning on the stub. The rock
+ * foot is squashed to `foot.h` and sunk `foot.sink` into the deck: up to 0.65 m of it hugs the wall inside the meadow's
+ * 2.9 m hole round the mill (where the code tower's plinth stood), and from `foot.walk` m out (0.3 m on) none of it stands
+ * more than `foot.lip` m proud, so the walk round the mill (the code collider's 2.3 m box) is over a stone lip, not a
+ * wall. The code tower stays the fallback when a model fails to load.
+ */
+export const MODELLED = { hub: MILL.height + 1.0, baseR: 2.6, foot: { span: 8.2, h: 1.1, sink: 0.45, walk: 2.9, lip: 0.3 } } as const;
+
+interface Made { readonly meshes: Mesh[]; readonly hubAt: { y: number; z: number } }
+/** The front stub of a fitted tower: the farthest-out vertices above 72 % of its height (the centroid of the outer 8 %). */
+function stubOf(g: BufferGeometry): { a: number; r: number; y: number } {
+  const p = g.getAttribute('position'); g.computeBoundingBox();
+  const top = (g.boundingBox?.max.y ?? 1) * 0.72;
+  let far = 0;
+  for (let i = 0; i < p.count; i++) if (p.getY(i) > top) far = Math.max(far, Math.hypot(p.getX(i), p.getZ(i)));
+  let x = 0, y = 0, z = 0, n = 0;
+  for (let i = 0; i < p.count; i++) if (p.getY(i) > top && Math.hypot(p.getX(i), p.getZ(i)) > far * 0.92) { x += p.getX(i); y += p.getY(i); z += p.getZ(i); n++; }
+  return { a: Math.atan2(x / Math.max(1, n), z / Math.max(1, n)), r: far, y: y / Math.max(1, n) };
+}
+/**
+ * The painted stone's courses on the modelled wall (the model's own paint is soft at the h2 close-up's 18 m): a second UV
+ * set wrapped round the axis as the code tower's (`AROUND` repeats, `TILE` m a course sheet), seam-free (each triangle
+ * that straddles the back's wrap is unwrapped on its own), constant above the wall's top `wallTop` (the curb and cap keep
+ * their paint). The stone then drives the bump and a light multiply of the paint (`towerMaterial`).
+ */
+function stoneCourses(src: BufferGeometry, wallTop: number): BufferGeometry {
+  const g = src.index === null ? src : src.toNonIndexed(), p = g.getAttribute('position'), uv1 = new Float32Array(p.count * 2);
+  for (let t = 0; t + 2 < p.count; t += 3) {
+    const us = [0, 1, 2].map((v) => ((Math.atan2(p.getX(t + v), p.getZ(t + v)) / (Math.PI * 2)) + 0.5) * AROUND);
+    const hi = Math.max(...us);
+    for (let v = 0; v < 3; v++) {
+      const y = p.getY(t + v), u = us[v] ?? 0;
+      uv1[(t + v) * 2] = y > wallTop ? 0.5 : hi - u > AROUND / 2 ? u + AROUND : u;
+      uv1[(t + v) * 2 + 1] = y > wallTop ? 0.5 : y / TILE;
+    }
+  }
+  g.setAttribute('uv1', new Float32BufferAttribute(uv1, 2));
+  if (g !== src) src.dispose();
+  return g;
+}
+/**
+ * The modelled tower's material: its paint pulled toward mockup A's pale weathered whitewash (the Hunyuan paint came out
+ * cream-yellow: mock-A's wall saturation 46 %, 24 % with this pull, the code tower's was 25 %, the mockup's 17 %, under the
+ * same golden light and LUT; luminance 113 against the mockup's 106), and the painted
+ * stone's courses (`MILL_TEX.stone`, on the second UV set) as the bump and a light multiply.
+ */
+function towerMaterial(map: Texture): MeshStandardMaterial {
+  const m = hdMaterial(map);
+  painted(MILL_TEX.stone, (st) => { const t = st.clone(); t.channel = 1; m.bumpMap = t; m.bumpScale = 2; });
+  patchShader(m, 'far.mill-tower', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), diffuseColor.rgb, 0.2);
+#ifdef USE_BUMPMAP
+  diffuseColor.rgb *= mix(1.0, texture2D(bumpMap, vBumpMapUv).g * 1.45, 0.35);
+#endif`);
+  }, { key: (prior) => `${prior}|far.mill-tower` });
+  return m;
+}
+function modelledSet(): Made | null {
+  const t = skyHd('mill-tower'), f = skyHd('mill-foot');
+  if (t === null || f === null) return null;
+  // the tower: unit height first, its stub found and turned to +z, then scaled so the stub sits at the code hub's height
+  const g = fit(t.geometry, { size: 1, by: 'height', floor: 0, centre: 'base' });
+  const s0 = stubOf(g); g.rotateY(-s0.a);
+  const k = MODELLED.hub / s0.y; g.scale(k, k, k);
+  // the footing's mean radius to the code tower's (the collider's box and the meadow's hole are sized on it)
+  const p = g.getAttribute('position'); let rs = 0, n = 0;
+  for (let i = 0; i < p.count; i++) if (p.getY(i) < 0.4) { rs += Math.hypot(p.getX(i), p.getZ(i)); n++; }
+  const kr = Math.min(1.2, Math.max(0.8, MODELLED.baseR / Math.max(0.1, rs / Math.max(1, n)))); g.scale(kr, 1, kr);
+  const s = stubOf(g);
+  // the sails' lowest sweep passes the wall's front 7.4 m under the hub: keep the hub clear of it by 0.55 m
+  let wall = 0;
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i);
+    if (y > s.y - MILL.sail - 0.2 && y < s.y - 1.5 && Math.abs(p.getX(i)) < 1.2 && p.getZ(i) > 0) wall = Math.max(wall, p.getZ(i));
+  }
+  g.computeBoundingBox(); g.computeBoundingSphere();
+  const made = new Mesh(stoneCourses(g, s.y - 1.2), towerMaterial(t.map)); made.name = 'far.mill.tower';
+  // the rock foot: fitted to its span, squashed, sunk into the deck
+  const fg = fit(f.geometry, { size: MODELLED.foot.span, by: 'span', floor: 0, centre: 'box' }); fg.computeBoundingBox();
+  const fh = fg.boundingBox ? fg.boundingBox.max.y : 1; fg.scale(1, MODELLED.foot.h / Math.max(1e-3, fh), 1); fg.rotateY(0.7);
+  fg.translate(0, -MODELLED.foot.sink, 0);
+  // past the walk ring, nothing stands more than the lip proud of the deck (a smooth fall-off, no cliff)
+  const fp = fg.getAttribute('position');
+  for (let i = 0; i < fp.count; i++) {
+    const d = Math.hypot(fp.getX(i), fp.getZ(i)), y = fp.getY(i);
+    if (d > MODELLED.foot.walk && y > MODELLED.foot.lip) {
+      const w = Math.min(1, (d - MODELLED.foot.walk) / 0.3);
+      fp.setY(i, y + (MODELLED.foot.lip + (y - MODELLED.foot.lip) * 0.25 - y) * w);
+    }
+  }
+  fg.computeVertexNormals(); fg.computeBoundingBox(); fg.computeBoundingSphere();
+  const foot = new Mesh(fg, hdMaterial(f.map)); foot.name = 'far.mill.foot';
+  return { meshes: [made, foot], hubAt: { y: s.y, z: Math.max(s.r + 0.1, wall + 0.55) } };
+}
+
 export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; z: number } } {
+  const made = modelledSet();
   const group = new Group(), hub = new Group();
   // the whitewashed stone: cream until the painted stone lands, then the stone and its own luminance as the bump
   const stone = new MeshStandardMaterial({ vertexColors: true, color: 0xe9e0cf, roughness: 0.95, metalness: 0 });
@@ -287,8 +391,13 @@ export function towerMill(): { group: Group; hub: Object3D; hubAt: { y: number; 
   const finial = new Mesh(new CylinderGeometry(0.02, 0.12, 0.5, 8), new MeshStandardMaterial({ color: 0x3a3430, roughness: 0.6, metalness: 0.3 })); finial.position.y = MILL.height + 0.42 + MILL.cap + 0.2; group.add(finial);
   // the windshaft out of the cap toward +z, and the hub on it
   const timber = new MeshStandardMaterial({ color: 0x6b4a32, roughness: 0.9, metalness: 0 });
-  const hubAt = { y: MILL.height + 1.0, z: MILL.top + 0.95 };
+  const hubAt = made?.hubAt ?? { y: MILL.height + 1.0, z: MILL.top + 0.95 };
   const shaft = new Mesh(new CylinderGeometry(0.2, 0.24, 1.4, 10), timber); shaft.rotation.x = Math.PI / 2; shaft.position.set(0, hubAt.y, hubAt.z - 0.6); group.add(shaft);
+  if (made !== null) {
+    // the modelled tower, cap and foot in place of the code ones (the shaft and the sails stay: they turn)
+    for (const c of group.children) if (c !== shaft) c.visible = false;
+    group.add(...made.meshes);
+  }
   hub.position.set(0, hubAt.y, hubAt.z); group.add(hub);
   const boss = new Mesh(new CylinderGeometry(0.42, 0.42, 0.5, 12), timber); boss.rotation.x = Math.PI / 2; hub.add(boss);
   const { frame, cloth } = sail();
@@ -309,7 +418,7 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     float torn = step(edge, 0.05 * n);
     // two sails have lost a ragged corner at the outer rail's hub end
     torn = max(torn, step(0.45, seed) * step(length((q - vec2(1.0, 0.0)) * vec2(1.0, 1.6)), 0.22 + 0.22 * n));
-    if (farCN(q * vec2(6.0, 15.0) + seed * 31.0) > 0.9) torn = 1.0;
+    if (farCN(q * vec2(6.0, 15.0) + seed * 31.0) > 0.94) torn = 1.0;
     diffuseColor.a *= 1.0 - torn;
 #ifdef USE_MAP
     // the painted canvas is a warm beige swatch: toward the targets' sun-bleached cream
