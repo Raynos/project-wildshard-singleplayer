@@ -37,7 +37,7 @@ function crestLines(x: number, z: number): number {
     const t = Math.min(1, Math.max(0, ((x - ax) * dx + (z - az) * dz) / len2));
     const px = ax + dx * t, pz = az + dz * t, d = Math.hypot(x - px, z - pz);
     // which side: the cross product's sign against the segment (west is the side with the smaller x across it)
-    const side = dx * (z - az) - dz * (x - ax), width = side > 0 ? c.w : c.lee;
+    const side = dx * (z - az) - dz * (x - ax), width = side > 0 ? c.lee : c.w; // round 10: the steep lee faces the spawn (mockup A: the camera-facing slope in shade under a lit crest)
     const ends = smooth(t / c.fade) * smooth((1 - t) / c.fade);
     lift = Math.max(lift, c.lift * (1 - smooth(d / width)) * ends);
   }
