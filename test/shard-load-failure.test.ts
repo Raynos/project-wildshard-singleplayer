@@ -36,7 +36,7 @@ describe('shard load failure', () => {
     await expect(runShardLoad(m, (stage) => withShardHooks(m, stage, async () => { await m.render?.(); }), {
       build: 'test-build',
       dispose: () => { scope.dispose(); },
-      report: (failure) => { order.push('report'); reportError(failure, captureBrowserError); },
+      report: (failure) => { order.push('report'); return reportError(failure, captureBrowserError); },
       show: (failure) => { expect(scope.disposed).toBe(true); order.push('show'); return showLoadFailure(failure); },
     })).rejects.toThrow('render <script> failed');
     expect(order).toEqual(['dispose', 'report', 'show']);
