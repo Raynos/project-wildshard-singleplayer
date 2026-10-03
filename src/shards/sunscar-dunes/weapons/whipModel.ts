@@ -2,7 +2,10 @@ import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, Cyl
 import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
-export const HD_GLOVE = { size: 0.3, pos: [0.05, -0.23, 0] as [number, number, number], rot: [-0.45, 0, 0.3] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
+// round 9 (seat C: A, B and C hold big rings rising from the bottom edge, dusk-fire one low loose loop, only D a raised
+// fist): the one idle hold lower, toward the four
+export const HD_GLOVE = { size: 0.3, pos: [0.06, -0.3, 0] as [number, number, number], rot: [-0.45, 0, 0.3] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
+// rising from the bottom edge, dusk-fire one low loose loop, only D a raised fist): the one idle hold lower, toward the four // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
 const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
@@ -121,9 +124,9 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
 }
 
 /** The held coil's shape in glove-hd2's own frame (its units: the model spans 2): two tall loops hung from the fist. */
-// round 9 (the seats: the cord 24-28 px against mockup D's 10-15, the loops near circles): a slimmer cord, two taller loops
-// a little apart
-export const COIL = { cord: 0.03, loops: [{ c: [-0.68, 0.66, -0.46], rx: 0.46, ry: 0.76 }, { c: [-0.56, 0.58, -0.12], rx: 0.42, ry: 0.7 }], tail: [[-0.24, 0.02, -0.12], [-0.3, -0.5, -0.1], [-0.34, -1.25, -0.08]] } as const;
+// round 9 (the seats: the cord 24-28 px against mockup D's 10-15, too thin for A-C at 0.03, the loops near circles): a cord
+// between the mockups', two tall loops a little apart, larger and lower, rising from the frame's bottom edge as A-C show
+export const COIL = { cord: 0.04, loops: [{ c: [-0.62, 0.62, -0.46], rx: 0.58, ry: 0.8 }, { c: [-0.5, 0.54, -0.12], rx: 0.54, ry: 0.74 }], tail: [[-0.24, 0.02, -0.12], [-0.3, -0.5, -0.1], [-0.34, -1.25, -0.08]] } as const;
 
 /**
  * The plaited coil in glove-hd2's frame (round 8): a tube with true UVs (u along, v round) wearing the plait tile, two
