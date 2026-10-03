@@ -57,3 +57,7 @@ registerHooks({
     return source !== text ? { ...out, source: `${imports.join('\n')}\n${source}` } : out;
   },
 });
+
+// E405 E414: the app identity, before any engine module runs (a bake that builds an App reads saves, which need
+// the game's save prefix). The same module the page entries run first.
+await import('../src/identity.ts');
