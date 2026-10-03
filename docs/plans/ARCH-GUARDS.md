@@ -1,6 +1,6 @@
 # Plan: ARCH-GUARDS — static analysis that holds the engine / game / kit / shard split (E362)
 
-**State:** `in progress` 2026-10-03 — built: batch 1 (897baa67), AG8, AG23–AG27, AG2 (the `layer` split), AG3 (deep imports 1,017 → 164, `13689ee5d`) and AG28 (via LAYER-PURITY, archived: `layer`, `engine-words`, `shard-names` hard at 0). Open: batch 2's AG4, AG7, AG10, AG18 (E379); LAYER-PURITY's leftovers E414–E417
+**State:** `in progress` 2026-10-03 — built: batch 1 (897baa67), AG2, AG8, AG23–AG28 and batch 2 (E379): AG18 (6c606797), AG7 (42f250c0), AG10 (6dfc6d67), AG4 (1296be8a), AG3 (13689ee5: 1,017 → 164 deep imports); LAYER-PURITY's E414 / E415 / E417 built. Open: AG5, AG6, AG12, AG21, AG22 and AG19's promotions (Jake: build now or drop), E416 (Clef: Jake's pick)
 
 ## Summary
 
