@@ -10,6 +10,8 @@ export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldow
 /** Loop 5 (council R1C-14): raised so the grip and the hand sit above the GUST / DODGE / JUMP cluster. */
 /** E399 (the council mockups A, C and proposal B): lower, smaller (the seats: 'twice the mockup's size') and turned open, face-on to you, its tassel hanging free. */
 export const HOLD = { x: 0.135, y: -0.158, z: -0.6, pitch: 0.22, yaw: -0.18, roll: -0.5, scale: 0.42 } as const;
+/** The painted silk's tint (E399 seats: 'plain and bright'): mockup C's silk is a muted, deeper teal. */
+export const SILK_TINT = 0xb4c4c0;
 export const GUST = { reach: 9, halfAngle: 0.6, push: 15, lift: 4, damage: 4, cooldown: 1.6 } as const;
 
 /** A viewmodel offset from HOLD (metres, radians). */
@@ -74,7 +76,7 @@ export class WarFan extends Weapon {
   private readonly contact: ReturnType<typeof blocks.melee>;
   override get charge(): number { return Math.min(1, this.held / 0.6); }
   /** Paint the silk with the leaf texture (loaded and owned by the plugin's scope). */
-  setLeaf(leaf: Texture): void { this.parts.silk.map = leaf; this.parts.silk.color.set(0xffffff); this.parts.silk.needsUpdate = true; }
+  setLeaf(leaf: Texture): void { this.parts.silk.map = leaf; this.parts.silk.color.set(SILK_TINT); this.parts.silk.needsUpdate = true; }
 
   constructor(app: App, targets: () => readonly FanTarget[] = () => []) {
     super(FAN_ROW); this.app = app; this.targets = targets; this.contact = blocks.melee(app.combat);

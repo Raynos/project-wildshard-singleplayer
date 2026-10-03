@@ -1,5 +1,6 @@
 import { CapsuleGeometry, Color, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Quaternion, SphereGeometry, TorusGeometry, Vector3, type BufferGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { skyHd } from '../world/meshes';
 
 /**
  * The fan hand (loop 5; mockup C's "target C", council R1C-14 / R1B-8 / R1A-6): a right hand in a dark leather glove
@@ -19,12 +20,15 @@ const capsuleBetween = (a: Vector3, b: Vector3, r: number): BufferGeometry => {
   const m = a.clone().add(b).multiplyScalar(0.5); g.translate(m.x, m.y, m.z); return g;
 };
 
-export function gloveHand(armDir: Vector3): Group {
+/** The forearm's direction from the wrist toward the camera (fan space): out to the frame's right edge. */
+export const ARM_DIR = new Vector3(0.85, -0.42, 0.8);
+
+export function gloveHand(armDir: Vector3 = ARM_DIR): Group {
   const group = new Group(); group.name = 'far.fan.hand';
-  const leather = new MeshStandardMaterial({ color: 0x4a2f22, roughness: 0.62, metalness: 0.05 });
-  const tooled = new MeshStandardMaterial({ color: 0x7a5236, roughness: 0.7, metalness: 0.05 });
+  const leather = new MeshStandardMaterial({ color: 0x3a2a20, roughness: 0.62, metalness: 0.05 });
+  const tooled = new MeshStandardMaterial({ color: 0x5e4028, roughness: 0.7, metalness: 0.05 });
   const bronze = new MeshStandardMaterial({ color: 0xc09048, roughness: 0.35, metalness: 0.7, emissive: 0x2a1a08 });
-    const wrap = new MeshStandardMaterial({ color: 0x5a4636, roughness: 0.95, metalness: 0 });
+  const wrap = new MeshStandardMaterial({ color: 0x5a4636, roughness: 0.95, metalness: 0 });
   // the fingers: index at the top, little finger lowest; each curls from the knuckle (back, +x−z) round the front (+z)
   // to its tip pressed on the far side of the grip (−x)
   const R = GLOVE.grip + GLOVE.finger * 0.95, parts: BufferGeometry[] = [];
@@ -72,4 +76,35 @@ export function gloveHand(armDir: Vector3): Group {
     const band = new Mesh(new TorusGeometry(0.041 + (y - 0.13) * 0.044, 0.006, 5, 18), wrap); band.rotation.x = Math.PI / 2; band.rotation.z = 0.25; band.position.y = y; arm.add(band);
   }
   return group;
+}
+
+/**
+ * The textured hero hand (E392/E399, art/far-reach/round-20-fan-hand/: a codex reference of mockup C's hand → Hunyuan3D-2
+ * turbo shape + paint → weld, simplify, 1024 WebP map, meshopt): a fingerless brown leather glove closed round a short
+ * wrapped handle with bronze caps, a tooled bracer with bronze studs, a linen sleeve bound with cords. Null when the model
+ * did not load (the code hand above stands in).
+ *
+ * The file's frame: the handle upright at the −X end, the forearm level along +X, the fingers facing +Z. Placed here with the
+ * handle's axis on the fan's grip axis (+Y) and its top cap at the pivot (y 0), the forearm turned `HERO_HAND.yaw` about
+ * the grip toward the camera; `grip` is the handle's length below the pivot (where the tassel hangs).
+ */
+export const HERO_HAND = { handle: 0.16, yaw: -0.8, sleeve: 0.62, stretch: 2.4 } as const;
+export function heroHand(): { readonly group: Group; readonly grip: number } | null {
+  const made = skyHd('hand-hd'); if (made === null) return null;
+  const g = made.geometry, p = g.getAttribute('position'); g.computeBoundingBox();
+  const box = g.boundingBox; if (box === null) return null;
+  // the handle stands above the fist: its top stub (the highest 6 %, at the −X end) gives its axis; it spans the full height
+  const top = box.max.y, bottom = box.min.y, stub = top - (top - bottom) * 0.06, end = box.min.x + (box.max.x - box.min.x) * 0.25;
+  let x = 0, z = 0, n = 0;
+  for (let i = 0; i < p.count; i++) if (p.getY(i) >= stub && p.getX(i) <= end) { x += p.getX(i); z += p.getZ(i); n++; }
+  if (n === 0 || top <= bottom) { g.dispose(); return null; }
+  // the sleeve past the bracer is drawn out (×`stretch`) so the forearm runs off the frame's edge instead of ending in view
+  const cut = box.min.x + (box.max.x - box.min.x) * HERO_HAND.sleeve;
+  for (let i = 0; i < p.count; i++) { const px = p.getX(i); if (px > cut) p.setX(i, cut + (px - cut) * HERO_HAND.stretch); }
+  p.needsUpdate = true;
+  const k = HERO_HAND.handle / (top - bottom);
+  g.translate(-x / n, -top, -z / n); g.scale(k, k, k); g.rotateY(HERO_HAND.yaw); g.computeVertexNormals();
+  const group = new Group(); group.name = 'far.fan.hand';
+  group.add(new Mesh(g, new MeshStandardMaterial({ map: made.map, roughness: 0.78, metalness: 0 })));
+  return { group, grip: HERO_HAND.handle };
 }

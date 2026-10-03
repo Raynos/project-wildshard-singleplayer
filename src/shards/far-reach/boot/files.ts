@@ -15,11 +15,13 @@ export const skyMeshUrl = (name: SkyMeshName): string => URLS[name];
  * 2048 paint, decimated, the paint kept as a 1024 WebP map on its UVs (the faceted vertex-colour path reads low-poly up
  * close). The faceted models above stay the fallback.
  */
-export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd';
-export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd'];
+export type SkyHdName = 'keeper-hd' | 'roc-hd' | 'post-hd' | 'hand-hd';
+export const SKY_HD: readonly SkyHdName[] = ['keeper-hd', 'roc-hd', 'post-hd', 'hand-hd'];
 const HD_URLS: Readonly<Record<SkyHdName, string>> = {
   'keeper-hd': '/assets/far-reach/models/keeper-hd/keeper-hd.glb', 'roc-hd': '/assets/far-reach/models/roc-hd/roc-hd.glb',
   'post-hd': '/assets/far-reach/models/post-hd/post-hd.glb',
+  // the war fan's gloved hand (weapons/glove.ts heroHand, art/far-reach/round-20-fan-hand/)
+  'hand-hd': '/assets/far-reach/fan/hand-hd.glb',
 };
 export const skyHdUrl = (name: SkyHdName): string => HD_URLS[name];
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */
