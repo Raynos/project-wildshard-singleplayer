@@ -1,0 +1,27 @@
+{
+ "shard": "sunscar-dunes",
+ "sha": "7ec2c7370197f263e50c4658ba8eedda0a1fb30e",
+ "when": "20261002-2149",
+ "label": "mockup council round 1",
+ "loadSeconds": 6,
+ "shots": [
+  "first-frame",
+  "h1-spawn-crest",
+  "h2-caravan",
+  "h3-waymark",
+  "h4-tower-deck",
+  "aerial-spawn",
+  "aerial-overview",
+  "mock-dusk-fire",
+  "mock-A-spawn",
+  "mock-B-logbook",
+  "mock-D-hands",
+  "mock-C-waymark"
+ ],
+ "clip": true,
+ "programs": 51,
+ "staged": {
+  "mock-C-waymark": "waymarks-lit"
+ },
+ "pageErrors": []
+}
