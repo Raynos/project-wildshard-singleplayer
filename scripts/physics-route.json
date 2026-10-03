@@ -1,5 +1,15 @@
 {
  "$doc": "PHYSICS.md P0 walk route, replayed by scripts/physics-baseline.mjs --mode=walk. Each leg teleports to start (feet at start.y), then the autopilot faces each waypoint in turn holding W (Space at jump waypoints) and advances within 0.8 m. expect.y = the floor height at the end from today's floor functions (2026-09-23, 9c975f2). Waypoints derived from the world builders and replayed through Player.ts at a fixed 1/60 frame. Pine Hollow legs re-derived for layout v2 (2026-09-24, pineHollowLayout.ts).",
+ "$trails": {
+  "driftwood-isle": [
+   {
+    "path": 1,
+    "at": [14, -24],
+    "with": [[10.8, -27.8], [15.4, -8.6]],
+    "why": "E354: the hut → lookout bed cuts the corner (14, -24) beside the plateau rim's trestle flight (Trailside flights[0], top (10.8, -27.8) on the bed's first leg, foot (15.4, -8.6) on its second), outside its rail and over the 12 m cliff it climbs. The bed lies in the Blender cove's baked ground, so it can't move: the walk takes the stairs, as a player does."
+   }
+  ]
+ },
  "driftwood-isle": [
   {
    "name": "pier",

@@ -54,9 +54,6 @@ an `extend` look on the clean chain. Driftwood stays low-poly: never photoreal.
 ## Open asks
 
 - E351: polish leftovers for Jake's eye (the sea glass chime, the E314 / E334 look review).
-- E354: 10 pre-existing stuck points on the trails test.
-- N26: the committed navmesh is stale after E114's boulders.
-- E165: a ~25 ms first-turn hitch and a perf loose end.
 - E166: contact-hardening shadows, needs a pick.
 - D38: the day / night clock leftovers (the drowned sailor at night).
 - E358: convert the remaining non-facade `BatchedMesh` uses (after GAME-NORMALIZATION).

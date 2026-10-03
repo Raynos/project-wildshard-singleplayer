@@ -152,7 +152,9 @@ export class Wreck {
       };
       // the piles sit on the cove beach west / south-west of the hull (between the path's end and the water)
       // (hull-local x / z: +x = starboard = WSW, the beach; −z = the bow = NNW, toward the crag)
-      const piles: [number, number, number, number, number][] = [[9, -9, 7, 1.1, 0.4], [14, 4.5, 6, 1.0, 1.9], [16, -7.5, 5, 0.9, 1.1], [6, -13, 4, 0.8, 0.2]];
+      // E354: the third pile stood on the path's last stretch (its 3.6 m box across x 133.5…137.1 at z ≈ 3.3, a 1.1 m
+      // wall both ways); 2 m sternward it lies 1.4 m south of the path
+      const piles: [number, number, number, number, number][] = [[9, -9, 7, 1.1, 0.4], [14, 4.5, 6, 1.0, 1.9], [16, -5.5, 5, 0.9, 1.1], [6, -13, 4, 0.8, 0.2]];
       const pileAt: [number, number][] = [];
       for (const [lx, lz, n, s, yw] of piles) { const [x, z] = hw(lx, lz); pile(x, z, n, s, yw); pileAt.push([x, z]); }
       // a net draped over the first pile, a coil and a lantern-less barrel beside it

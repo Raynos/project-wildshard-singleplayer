@@ -63,10 +63,13 @@ export const PATHS: [number, number][][] = [
   // the terrain's bed keeps PIER_PATH_BED below
   [[0, -152], [-8, -145], [-18, -143], [-30, -142], [-30, -104], [-24, -80], [-20, -68]],
   // hut → lookout: over the rope bridge end to end (BRIDGE.a → .b), then up the headland ramp's diagonal with its plank
-  // steps and fence (Trailside), not beside them over the crags (PHYSICS.md P9: the old line climbed 2–3 m a metre)
-  [[-20, -68], [-8, -50], [14, -24], [17, 8], [15, 12], [16, 14], [32, 30], [34, 32], [46, 46], [86, 86], [90, 90]],
+  // steps and fence (Trailside), not beside them over the crags (PHYSICS.md P9: the old line climbed 2–3 m a metre).
+  // E354: it ends at the lookout's stair foot (88, 88): its last 2.8 m ran on under the stair's treads (1.4–1.9 m up)
+  [[-20, -68], [-8, -50], [14, -24], [17, 8], [15, 12], [16, 14], [32, 30], [34, 32], [46, 46], [86, 86], [88, 88]],
   [[17, 8], [60, 0], [100, -2], [140, 4]],
-  [[-20, -68], [-52, -30], [-72, 20], [-88, 70], [-96, 96]],
+  // E354: from the fenced approach's end (−94, 88) it turns onto the shrine's axis and up the pool causeway's three
+  // steps (between the front glyph pillars): it ran on to (−96, 96), through the south-west pillar into the pool's side
+  [[-20, -68], [-52, -30], [-72, 20], [-88, 70], [-94, 88], [-87.5, 93.7], [-89.3, 96.1]],
 ];
 /** the pier → hut path's sand bed as the terrain carves it (`trails`), the line it had before E308: the Blender spawn cove
  *  is baked from these heights (blenderArea.ts), so re-cutting the bed along PATHS[0] would lift or sink the cove's

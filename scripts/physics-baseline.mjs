@@ -201,6 +201,13 @@ if (MODE.includes('walk')) {
     result.physics[shard] = await page.evaluate(() => ({ colliders: window.__wildshard.world.physics.world.colliders.len() }));
     if (TRAILS) {
       const paths = (await page.evaluate(() => window.__hf.TRAILS)).slice(4);
+      // a path whose bed runs beside the structure that carries it (route `$trails`: a stair flight down a cliff inside
+      // a baked area, where the bed can't move) is walked over that structure: vertex `at` is replaced by `with`
+      for (const v of route.$trails?.[shard] ?? []) {
+        const path = paths[v.path], k = path?.findIndex(([x, z]) => x === v.at[0] && z === v.at[1]) ?? -1;
+        if (!path || k < 0) throw new Error(`$trails ${shard}: path ${v.path} has no vertex ${v.at.join(', ')}`);
+        path.splice(k, 1, ...v.with);
+      }
       // a path's ends under a deck (Nalati's sky road starts under the bridge's south ramp: the ramp's foot is where it
       // joins the road) are drawn, not walked: its points more than 0.5 m under a registered floor are trimmed off the ends
       const under = await page.evaluate((ps) => ps.map((path) => path.map(([x, z]) => {
