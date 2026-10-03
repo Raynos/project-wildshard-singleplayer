@@ -6,7 +6,7 @@
  * No colliders (the mound under it is the ground).
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { M, blob } from '../world/paint';
 import { painted, type Paint } from '../world/painted';
 

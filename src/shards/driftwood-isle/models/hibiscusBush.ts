@@ -14,11 +14,8 @@
  */
 import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Rng } from '#engine/core/rng';
+import { type Rng, swayByHeight, swayDepthMaterial, lowPolyMaterial, defineModel } from '#engine';
 import { islandKnobs } from '../tiers';
-import { swayByHeight, swayDepthMaterial } from '#engine/world/wind';
-import { lowPolyMaterial } from '#engine/world/lowpolyKit';
-import { defineModel } from '#engine/models/model';
 
 /** one bush: its radius (0.7–1.5 m), whether it is in flower, and its sway's phase (the world's: from where it stands) */
 export interface HibiscusBushParams { readonly r: number; readonly flowers: boolean; readonly phase: number }

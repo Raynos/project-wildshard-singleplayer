@@ -18,12 +18,8 @@
  * cliff lip on the line from the platform to the cave, so it still reads as the lookout's zipline.
  */
 import * as THREE from 'three';
-import { lowPolyMaterial } from '#engine/world/lowpolyKit';
-import type { Sky } from '#engine/world/Sky';
-import type { Interactable } from '#engine/world/interact/types';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
+import { lowPolyMaterial, type Sky, type Interactable, type ColliderDesc, type WorldRegistry, modelContext } from '#engine';
 import { zipline, ziplineGeometry, ZiplineLayout, type ZiplineSpec } from '../models/zipline';
-import { modelContext } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export type { ZiplineSpec } from '../models/zipline';

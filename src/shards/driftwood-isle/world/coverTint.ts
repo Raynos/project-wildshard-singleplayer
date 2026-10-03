@@ -16,8 +16,7 @@
  * Always on (E318: the decided Debug row "Ground tint" is gone).
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, CHUNK_SIZE } from '#engine/core/config';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, CHUNK_HALF, CHUNK_SIZE } from '#engine';
 
 /** metres per grid cell */
 const STEP = 4;

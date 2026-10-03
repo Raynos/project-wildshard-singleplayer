@@ -12,14 +12,12 @@
  * Their signs (the 麵 banners, the menu strips, the name board and its neon), lanterns, steam and customers are the sign,
  * paper-lantern and crowd copies placed beside them. Each collides as a box of its footprint.
  */
-import { defineModel, type ModelContext, type ModelPart } from '#engine/models/model';
-import type { ColliderDesc } from '#engine/world/registry';
 import { HAWKER, STALL } from '../layout';
 import { Ctx } from '../world/ctx';
 import { merge } from '../world/hero/kitx';
 import { NoSigns, ndLook, need } from '../world/modelLook';
 import { type StallRect, centred, hawkerStall, noodleStall } from '../world/stalls';
-import { Rng } from '#engine';
+import { Rng, defineModel, type ModelContext, type ModelPart, type ColliderDesc } from '#engine';
 
 const FILE = 'src/shards/nine-dragon-stack/models/stalls.ts';
 

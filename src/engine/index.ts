@@ -239,7 +239,7 @@ export { setEliteBrain, setEliteDamage, setEliteAct, eliteThink, eliteDamageMul,
 
 export { EliteBar } from './ui/EliteBar';
 
-export { terrainNormal, terrainWaterLevel } from './world/terrainHeight';
+export { terrainNormal, terrainWaterLevel, setTerrainHeight } from './world/terrainHeight';
 
 export type { GroupName } from './physics/groups';
 
@@ -302,3 +302,45 @@ export type { SkyRig } from './world/skyRig';
 export type { SkyBackdropView } from './world/skyBackdrop';
 export { installAppIdentity, appIdentity, type AppIdentity } from './app/identity';
 export type { EngineProbe, HarnessPins } from './debug/probe';
+// E362 AG3: the public surface every layer above imports (was deep imports)
+export type { SampleLoop } from './audio/Audio';
+export type { MusicManifest } from './audio/Stems';
+export { inspectPreviousBoot, previousBootLevel, previousBootLine } from './boot/bootTrace';
+export { fetchImage, phoneUrl, versionedUrl } from './boot/bytes';
+export { ROAD_WIDTH, _applyChunkConstants } from './core/config';
+export { gpuOnlyAttributes, gpuOnlyTexture, onGpuRestored } from './core/gpuOnly';
+export { ktx2Texture, readTexturePixels } from './core/ktx2';
+export { practiceFps } from './core/tier';
+export type { AnimalFactory } from './entities/AnimalFactory';
+export type { AnimalSound as AnimalSoundId, Herd } from './entities/AnimalManager';
+export type { Rarity } from './entities/species/registry';
+export { paramsOf } from './models/model';
+export type { ColliderSpec, ModelBuild, ModelLod, ModelVariant, Pipeline, Placement } from './models/model';
+export type { HandedBatch, InstancedCuller, Placed } from './models/place';
+export { UnitParts, flatPositions, mergeOrNull, nearProxy, shadowProxy } from './models/weld';
+export type { WeldPart } from './models/weld';
+export { activePhysics } from './physics/active';
+export { CharacterMotor } from './physics/CharacterMotor';
+export { tagOf } from './physics/surface';
+export type { Material } from './physics/surface';
+export type { TerrainCut } from './physics/terrain';
+export type { SwimArms } from './player/Hands';
+export type { EngineEffects } from './render/look';
+export { startTelemetry } from './telemetry/runtime';
+export type { DiscOpts } from './ui/hudSlots';
+export type { MenuTab } from './ui/Menu';
+export type { RoomMap, RoomMarker, RoomShape } from './ui/roomMap';
+export { getSfxSet } from './ui/Settings';
+export { volumetricFog, weatherUniforms } from './world/Atmosphere';
+export type { BlenderArea } from './world/blenderArea';
+export type { Placement as GroundPlacement, TreeInstance, UnderPlacements } from './world/forest/placement';
+export type { SpeciesWeights } from './world/forest/treeSpecies';
+export { test } from './world/interact/flags';
+export { TRANSIENT_PREFIXES } from './world/interact/types';
+export type { InteractTable, PickupDef } from './world/interact/types';
+export { PLANT, bakeLight, broadClump, fern, grassTuft, hibiscus, hibiscusBush, lilyPad, lotus, lowPolyMaterial, vineStrand } from './world/lowpolyKit';
+export type { BakedLight, Part } from './world/lowpolyKit';
+export { painterlyKnobs } from './world/painterly';
+export { WIND_GLSL } from './world/steppeWind';
+export { WAVES_GLSL, WAVES_NORMAL_GLSL, seaDamp, waveClock } from './world/waves';
+export { patchSway, patchWindField, swayByHeight, swayDepthMaterial, updateWind, windBoost, windUniforms as windFieldUniforms } from './world/wind';

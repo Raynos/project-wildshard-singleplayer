@@ -1,4 +1,4 @@
-import type { Animal } from '#engine/entities/Animal';
+import type { Animal } from '#engine';
 
 import { horseNamesSave as savedSlot } from './saves';
 

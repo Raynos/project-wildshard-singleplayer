@@ -20,21 +20,13 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { heightAt } from '#engine/world/Heightfield';
-import { SEED } from '#engine/core/config';
-import { log, plank, rock, rope, lowPolyMaterial } from '#engine/world/lowpolyKit';
-import { swayDepthMaterial } from '#engine/world/wind';
+import { heightAt, SEED, log, plank, rock, rope, lowPolyMaterial, swayDepthMaterial, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement } from '#engine';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
-import { Rng } from '#engine/core/rng';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { Sky } from '#engine/world/Sky';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { addDriftLog, DRIFT } from './driftLogs';
 import { ShipwreckBuilder, shipwreck, WRECK_COLOURS as C, type CargoCopy, type WreckAnchor, type HoldBounds, type WreckSpec, type WreckAround } from '../models/shipwreck';
 import { barrel as barrelModel, crate as crateModel, ropeCoil, cargoBox, addBarrel, addCoil, addCrate } from '../models/cargo';
 import { driftLog, driftLogBox } from '../models/driftLog';
 import { reefRock } from '../models/reefRock';
-import { modelContext, type Placement } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export type { WreckSpec, WreckAnchor, HoldBounds } from '../models/shipwreck';

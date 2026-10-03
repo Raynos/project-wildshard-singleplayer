@@ -31,20 +31,11 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { heightAt } from '#engine/world/Heightfield';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { waterfallFor, type WaterfallLike } from './Waterfall';
-import { SEED } from '#engine/core/config';
-import { LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight } from '#engine/world/lowpolyKit';
-import { Rng } from '#engine/core/rng';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { Sky } from '#engine/world/Sky';
-import { boxDesc, type ColliderDesc, type WorldRegistry } from '#engine/world/registry';
 import { reefRock } from '../models/reefRock';
-import { modelContext } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, heightAt, attachFogUniforms, SEED, LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight, Rng, type BoxSpec as Collider, type Sky, boxDesc, type ColliderDesc, type WorldRegistry, modelContext } from '#engine';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }

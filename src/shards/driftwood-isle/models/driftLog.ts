@@ -9,9 +9,8 @@
  * model `drawnInto` that mesh. The Blender cove's TRELLIS driftwood is a different model (src/shards/driftwood-isle/models/cove.ts).
  */
 import * as THREE from 'three';
-import { LowPolyKit, lowPolyMaterial } from '#engine/world/lowpolyKit';
+import { LowPolyKit, lowPolyMaterial, defineModel } from '#engine';
 import { addDriftLog } from '../world/driftLogs';
-import { defineModel } from '#engine/models/model';
 
 export interface DriftLogParams {
   /** length, metres */

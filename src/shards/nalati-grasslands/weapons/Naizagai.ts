@@ -1,14 +1,8 @@
 import { Sabre, SABRE_PROFILE, type SabreOptions } from './Sabre';
-import { app, type SwordWorld, type Targets, type Move } from '#engine';
+import { app, type SwordWorld, type Targets, type Move, type Player, type AnimalManager, type Animal, heightAt, activePhysics, castRay, floorBelow } from '#engine';
 import { meleeActor } from '#kit';
 import * as THREE from 'three';
-import type { Player } from '#engine/player/Player';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Animal } from '#engine/entities/Animal';
-import { heightAt } from '#engine/world/Heightfield';
-import { activePhysics } from '#engine/physics/active';
-import { castRay, floorBelow } from '#engine/physics/query';
-import { GroundTell } from '#game/Elite';
+import { GroundTell } from '#game';
 import { fxMaterial, FX, annulus, type FxMaterial } from '../world/KurganDungeon';
 
 /**

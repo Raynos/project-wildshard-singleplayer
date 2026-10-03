@@ -21,14 +21,8 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { heightAt } from '#engine/world/Heightfield';
-import { Rng } from '#engine/core/rng';
-import { SEED } from '#engine/core/config';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { Sky } from '#engine/world/Sky';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
+import { heightAt, Rng, SEED, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type ModelBuild, type ModelPart, type Placement } from '#engine';
 import { fencePost, plankStep, signpost, trailMaterial, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from '../models/trailside';
-import { modelContext, type ModelBuild, type ModelPart, type Placement } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export interface FenceSpec { path: [number, number][]; spacing?: number }

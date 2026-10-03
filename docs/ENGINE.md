@@ -1613,10 +1613,10 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-730 exports, grouped by the module they come from.
+818 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
-- `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`
+- `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`, `ROAD_WIDTH`, `_applyChunkConstants`
 - `./world/terrainField`: `buildTerrain`
 - `./world/bounds`: `installBounds`
 - `./level/data`: `ExploreSpec`, `RGB`
@@ -1642,7 +1642,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./level/spec`: `resolveTierKnobs`, `needsTerrainCollider`, `LevelSpec`, `BootSpec`, `LoadoutSpec`, `EngineMechanism`, `TierKnobMap`, `TierKnobs`, `TierOverrides`
 - `./level/registrations`: `LevelRegistrations`
 - `./level/context`: `LevelContext`, `LevelHooks`, `LevelAdapters`, `ResidentMemory`, `EngineRows`, `ContentRow`, `ContentRowMap`, `InputContextDef`, `HudVerbs`, `HudBand`, `VerbSlotOpts`, `DebugRowSpec`, `PlaygroundSpec`, `StringTable`, `TierKnobSchema`
-- `./render/look`: `LookStrategy`, `LookComposeContext`, `LookComposition`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropTargets`, `SkyBackdropPost`, `LookReplaceContext`, `LookChain`, `FogModel`, `TerrainPainter`, `PainterField`, `GrassDriver`, `GrassLayer`, `ExtendLook`, `ReplaceLook`, `SkyDressing`
+- `./render/look`: `LookStrategy`, `LookComposeContext`, `LookComposition`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropTargets`, `SkyBackdropPost`, `LookReplaceContext`, `LookChain`, `FogModel`, `TerrainPainter`, `PainterField`, `GrassDriver`, `GrassLayer`, `ExtendLook`, `ReplaceLook`, `SkyDressing`, `EngineEffects`
 - `./render/shaderPatches`: `patchShader`, `takeForeignHook`, `setInheritedPatch`, `setProgramKey`, `hasProgramKey`, `PATCH_ORDER`, `ShaderSource`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`
 - `./physics/box`: `boxInFrame`, `BoxSpec`
 - `./player/Player`: `Player`
@@ -1662,7 +1662,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./combat/EquipmentService`: `EquipmentService`
 - `./input/equipmentInput`: `EquipmentInput`
 - `./ui/icons`: `IconId`, `IconMap`, `icon`, `registerIcons`, `iconParts`
-- `./ui/Menu`: `KitEntry`, `SkinRow`, `GameMenu`, `GameMenuOptions`
+- `./ui/Menu`: `KitEntry`, `SkinRow`, `GameMenu`, `GameMenuOptions`, `MenuTab`
 - `./combat/pipeline`: `CombatPipeline`, `CombatTarget`, `Actor`, `CombatTag`, `DamageRequest`, `DamageDealt`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
 - `./combat/health`: `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
 - `./combat/effects/EffectService`: `EffectService`
@@ -1683,12 +1683,12 @@ sections above describe what to use; this list is the complete inventory.
 - `./core/time`: `worldTime`
 - `./player/CameraFX`: `CameraFX`
 - `./fx/Impacts`: `Impacts`
-- `./models/model`: `defineModel`, `ModelContext`, `ModelPart`, `ModelDef`, `modelContext`
+- `./models/model`: `defineModel`, `ModelContext`, `ModelPart`, `ModelDef`, `modelContext`, `paramsOf`, `ColliderSpec`, `ModelBuild`, `ModelLod`, `ModelVariant`, `Pipeline`, `Placement`
 - `./world/dayCycle`: `DayCycle`, `DayCycleSpec`, `DayCycleClock`, `DayKeys`, `DayPhase`, `TimePick`, `LightPreset`, `compassDir`, `ScheduleSeg`
 - `./world/weather`: `Weather`, `WeatherProfile`, `WeatherNumbers`
 - `./input/InputService`: `InputService`, `Action`, `ActionMap`, `TouchVerb`, `TouchVerbSpec`
 - `./combat/view/EquipmentHost`: `EquipmentHost`
-- `./ui/hudSlots`: `hudSlots`, `TouchRelabel`, `DiscSpot`
+- `./ui/hudSlots`: `hudSlots`, `TouchRelabel`, `DiscSpot`, `DiscOpts`
 - `./combat/view/projectile`: `Projectiles`, `projectileFlightStep`, `ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `WindField`
 - `./combat/view/DropArc`: `DropArc`
 - `./combat/blocks/ads`: `blendAds`
@@ -1696,15 +1696,15 @@ sections above describe what to use; this list is the complete inventory.
 - `./combat/view/hitscan`: `hitscan`, `HitscanProfile`, `HitscanResult`
 - `./combat/view/firearmFx`: `HitLine`, `makeFlashTexture`
 - `./combat/view/ranged`: `Puffs`, `worldHit`, `impactSurfaceOf`, `FOV_HIP`, `FOV_ADS`, `rangedFovForAspect`, `dataTexture`, `viewmodelTexSet`, `remapUV`, `makeCord`, `makeBoltAtlas`, `fixIBL`, `VIEWMODEL_GROUP`, `viewmodelMaterial`, `isMesh`, `box`, `cyl`, `edgeWear`, `whiteColors`, `stripExtra`, `TRACER_ORDER`, `TRACER_RED`, `clamp01`, `sstep`, `startViewmodelTextures`, `viewmodelTexturesReady`, `TexSet`, `CrossbowWorld`, `CrossbowOptions`, `RangedWorld`, `RangedOptions`
-- `./ui/Settings`: `getSetting`, `getNumber`, `onNumber`, `onSettingChange`, `setting`, `OptionValue`, `MusicStyle`
+- `./ui/Settings`: `getSetting`, `getNumber`, `onNumber`, `onSettingChange`, `setting`, `OptionValue`, `MusicStyle`, `getSfxSet`
 - `./fx/LightPool`: `LightPool`
 - `./fx/ParticlePool`: `ParticlePool`, `pointScale`, `ParticlePoolSpec`, `ParticleAttr`
 - `./world/voxelAO`: `voxelAO`, `aoTint`, `hemisphere`, `VoxelAOParams`, `HemiRing`, `HemiDir`
 - `./world/geometryKit`: `log`, `beam`, `rope`, `sagLine`, `rock`, `plank`, `tris`, `wobble`, `pole`, `blob`, `mergeVerticesByPos`, `lathe`, `revolve`, `revolveUV`
-- `./world/painterly`: `painterlyMaterial`, `syncPainterlySun`, `updatePainterly`, `setPainterlyLook`, `painterlyUniforms`
+- `./world/painterly`: `painterlyMaterial`, `syncPainterlySun`, `updatePainterly`, `setPainterlyLook`, `painterlyUniforms`, `painterlyKnobs`
 - `./player/nalatiArms`: `ARM_PAL`, `gloveFist`, `riderArm`, `placeArm`, `forearm`
-- `./world/steppeWind`: `wind`
-- `./world/wind`: `WIND_DIR`, `windGustAt`
+- `./world/steppeWind`: `wind`, `WIND_GLSL`
+- `./world/wind`: `WIND_DIR`, `windGustAt`, `patchSway`, `patchWindField`, `swayByHeight`, `swayDepthMaterial`, `updateWind`, `windBoost`, `windFieldUniforms`
 - `./core/shadowLayer`: `SHADOW_LAYER`
 - `./combat/ammo`: `AmmoId`, `AmmoRow`, `ProjectileModification`
 - `./ai/hfsm`: `Hfsm`, `StateDef`, `StateChange`
@@ -1715,20 +1715,20 @@ sections above describe what to use; this list is the complete inventory.
 - `./ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossSaved`, `BossPorts`, `BossPresentation`, `BossScript`, `BossState`
 - `./ai/EliteBrain`: `EliteBrain`, `EliteDefinition`, `EliteActor`, `ElitePorts`
 - `./ai/encounters`: `EncounterRegistry`, `EncounterDefinition`, `EncounterService`, `SpawnTableRow`, `SpawnEntry`, `SpawnContext`, `SpawnPoint`, `Spawner`
-- `./world/Atmosphere`: `attachFogUniforms`, `fogUniforms`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `addFogUniforms`
+- `./world/Atmosphere`: `attachFogUniforms`, `fogUniforms`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `addFogUniforms`, `volumetricFog`, `weatherUniforms`
 - `./boot/bakedApi`: `preloadBakedTextures`, `loadBakedSky`, `loadLUT`
 - `./render/lut`: `fetchLut`, `LUT_SIZE`
 - `./math/color`: `lin`
 - `./core/assets`: `loadPBR`, `loadGLTF`, `pbrMaterial`, `PBRSet`, `loadTexture`, `loadPBRArray`
-- `./world/terrainHeight`: `heightAt`, `terrainNormal`, `terrainWaterLevel`
+- `./world/terrainHeight`: `heightAt`, `terrainNormal`, `terrainWaterLevel`, `setTerrainHeight`
 - `./world/registry`: `boxDesc`, `ColliderDesc`, `WorldRegistry`, `activeRegistry`
-- `./core/tier`: `TIER_CONFIG`, `TIER`, `buildTier`
+- `./core/tier`: `TIER_CONFIG`, `TIER`, `buildTier`, `practiceFps`
 - `./boot/plan`: `macrotask`, `slicer`, `StepRunner`, `StepProgress`
-- `./models/weld`: `twoSidedPositions`, `WeldBuild`
-- `./world/interact/types`: `Interactable`, `PoiId`, `Place`, `registerPickupLook`, `registerInteractProps`, `PickupLook`, `PickupPart`, `InteractProps`, `ChestLook`, `DoorLook`, `ChestDims`
+- `./models/weld`: `twoSidedPositions`, `WeldBuild`, `UnitParts`, `flatPositions`, `mergeOrNull`, `nearProxy`, `shadowProxy`, `WeldPart`
+- `./world/interact/types`: `Interactable`, `PoiId`, `Place`, `registerPickupLook`, `registerInteractProps`, `PickupLook`, `PickupPart`, `InteractProps`, `ChestLook`, `DoorLook`, `ChestDims`, `TRANSIENT_PREFIXES`, `InteractTable`, `PickupDef`
 - `./core/bootstrap`: `World`
-- `./entities/AnimalManager`: `AnimalManager`, `HuntTuning`
-- `./audio/Audio`: `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind`
+- `./entities/AnimalManager`: `AnimalManager`, `HuntTuning`, `AnimalSoundId`, `Herd`
+- `./audio/Audio`: `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind`, `SampleLoop`
 - `./ui/HUD`: `HUD`
 - `./ui/Map`: `FullMap`, `FullMapPoi`, `MapQuest`
 - `./player/Skins`: `SkinDef`
@@ -1744,7 +1744,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
 - `./ai/flight`: `SpeciesFlight`
 - `./entities/species/look`: `speciesWithLook`, `SpeciesLook`, `CreatureHull`, `EyeSpot`, `SpeciesService`
-- `./entities/species/registry`: `registerSpecies`, `setCreatureSoundDefaults`, `speciesDef`, `variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`, `CreatureSoundDefaults`, `RigAnimCtx`, `FurStyle`, `ThinkCtx`, `EnemyWorld`, `AnimalDims`, `VariantMods`
+- `./entities/species/registry`: `registerSpecies`, `setCreatureSoundDefaults`, `speciesDef`, `variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`, `CreatureSoundDefaults`, `RigAnimCtx`, `FurStyle`, `ThinkCtx`, `EnemyWorld`, `AnimalDims`, `VariantMods`, `Rarity`
 - `./entities/species/loft`: `loft`, `tube`, `skinPlain`, `S`, `boneIndex`, `srgb`, `mix`, `speciesSstep`, `paintNoise`, `setShag`, `isLowPoly`, `registerToonPaint`, `toonPaint`, `paletteColors`, `Paint`, `ToonPaint`, `SpeciesRGB`, `setShapeFn`, `Station`
 - `./entities/lowpoly`: `crestSpikes`
 - `./fx/groundFx`: `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`
@@ -1756,19 +1756,19 @@ sections above describe what to use; this list is the complete inventory.
 - `./core/noise`: `Noise2D`, `smoothstep`, `clamp`, `lerp`
 - `./world/Terrain`: `Terrain`
 - `./world/BakedCards`: `loadBakedCards`, `exportCardTextures`
-- `./core/gpuOnly`: `markGpuOnly`
+- `./core/gpuOnly`: `markGpuOnly`, `gpuOnlyAttributes`, `gpuOnlyTexture`, `onGpuRestored`
 - `./world/forest/treeSpec`: `treeSetOf`, `TREE_SPECS`
 - `./world/forest/treeSet`: `BARK_LAYERS`, `loadTreeSetGeometry`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `treeSetUrls`
 - `./boot/tables`: `publicBytes`, `assetVersions`, `musicManifests`, `sfxManifests`, `bootPacks`, `installAssetTables`, `AssetTables`, `PackDef`, `PackPart`, `PackFile`
 - `./boot/lastEnd`: `markUnload`
 - `./boot/titleArrival`: `setTitleArrival`, `TitleArrival`
-- `./world/forest/treeSpecies`: `TreeSpeciesTraits`, `TreeSetVariant`
+- `./world/forest/treeSpecies`: `TreeSpeciesTraits`, `TreeSetVariant`, `SpeciesWeights`
 - `./combat/targets`: `authoredTargets`, `RayTargets`
 - `./meadowApi`: `loadMeadow`
 - `./practice/playground/Playground`: `PlaygroundHost`, `Playground`
 - `./physics/paths`: `pathRampDescs`
 - `./analytics`: `AnalyticsSink`, `AnalyticsEvent`, `AnalyticsMap`, `AnalyticsBatch`
-- `./audio/Stems`: `SlotAudio`, `StyleBank`, `StemSting`, `BossPhase`
+- `./audio/Stems`: `SlotAudio`, `StyleBank`, `StemSting`, `BossPhase`, `MusicManifest`
 - `./audio/synth`: `Synth`
 - `./audio/score/score`: `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName`
 - `./strings`: `ENGINE_STRINGS`, `engineString`, `installEngineStrings`, `EngineStringKey`
@@ -1784,14 +1784,14 @@ sections above describe what to use; this list is the complete inventory.
 - `./ui/EliteBar`: `EliteBar`
 - `./physics/groups`: `GroupName`, `groups`
 - `./core/practiceRoom`: `practiceRoom`
-- `./world/interact/flags`: `Flags`
+- `./world/interact/flags`: `Flags`, `test`
 - `./world/interact/Interactables`: `Interactables`, `InteractEvent`
 - `./ui/FirstHints`: `FirstHints`
 - `./physics/bodies`: `activeBodies`, `Body`, `BodySpec`
-- `./world/waves`: `waveHeight`
+- `./world/waves`: `waveHeight`, `WAVES_GLSL`, `WAVES_NORMAL_GLSL`, `seaDamp`, `waveClock`
 - `./audio/gen`: `impact`, `synthKit`
 - `./world/interact/kit`: `interactParts`, `pickupModel`
-- `./world/lowpolyKit`: `LowPolyKit`
+- `./world/lowpolyKit`: `LowPolyKit`, `PLANT`, `bakeLight`, `broadClump`, `fern`, `grassTuft`, `hibiscus`, `hibiscusBush`, `lilyPad`, `lotus`, `lowPolyMaterial`, `vineStrand`, `BakedLight`, `Part`
 - `./anim/index`: `loadRigFile`, `loadRig`, `bindRig`, `ClipChannel`, `AnimMachine`, `ClipName`, `SocketName`, `RigContract`, `RigBake`, `RigRef`, `RigInstance`, `AnimMachineDef`, `AnimState`, `AnimService`
 - `./level/selection`: `activeLevel`, `selectedLevel`, `onLevelChange`, `configureLevel`
 - `./render/renderer`: `Renderer`, `probeRenderer`, `isRenderer`
@@ -1816,6 +1816,20 @@ sections above describe what to use; this list is the complete inventory.
 - `./world/skyBackdrop`: `SkyBackdropView`
 - `./app/identity`: `installAppIdentity`, `appIdentity`, `AppIdentity`
 - `./debug/probe`: `EngineProbe`, `HarnessPins`
+- `./boot/bootTrace`: `inspectPreviousBoot`, `previousBootLevel`, `previousBootLine`
+- `./boot/bytes`: `fetchImage`, `phoneUrl`, `versionedUrl`
+- `./core/ktx2`: `ktx2Texture`, `readTexturePixels`
+- `./entities/AnimalFactory`: `AnimalFactory`
+- `./models/place`: `HandedBatch`, `InstancedCuller`, `Placed`
+- `./physics/active`: `activePhysics`
+- `./physics/CharacterMotor`: `CharacterMotor`
+- `./physics/surface`: `tagOf`, `Material`
+- `./physics/terrain`: `TerrainCut`
+- `./player/Hands`: `SwimArms`
+- `./telemetry/runtime`: `startTelemetry`
+- `./ui/roomMap`: `RoomMap`, `RoomMarker`, `RoomShape`
+- `./world/blenderArea`: `BlenderArea`
+- `./world/forest/placement`: `GroundPlacement`, `TreeInstance`, `UnderPlacements`
 - `(local)`: `ENGINE_API`
 
 ### `#engine/data` (`src/engine/data.ts`)
@@ -1846,16 +1860,16 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#game` (`src/game/index.ts`)
 
-113 exports, grouped by the module they come from.
+133 exports, grouped by the module they come from.
 
 - `./equipmentTypes`: `EquipmentRow`
 - `./shard/plugin`: `ShardPlugin`
 - `./shard/context`: `shardContext`, `ShardContext`, `GameServices`, `GameRows`, `GameRowMap`, `BagVerbs`
 - `./shard/spec`: `toLevelSpec`
-- `./shard/manifest`: `ShardManifest`, `ShardSword`, `ChunkTerrain`, `RGB`, `Vec2`
+- `./shard/manifest`: `ShardManifest`, `ShardSword`, `ChunkTerrain`, `RGB`, `Vec2`, `FieldModelsContext`
 - `./saves`: `progressSave`, `inventorySave`, `purseSave`, `ownedSave`, `bountySave`, `compendiumSave`, `bossesSave`, `elitesSave`, `saveSlug`, `shardSave`
 - `./loot/Owned`: `OwnedId`, `Owned`, `isOwnedId`, `isCosmetic`, `OWNED`
-- `./Inventory`: `ItemId`, `ITEMS`, `isItemId`
+- `./Inventory`: `ItemId`, `ITEMS`, `isItemId`, `Inventory`
 - `./shard/runtime`: `ShardRuntime`
 - `./compendium/install`: `installCompendium`, `CompendiumHost`, `CompendiumWallPort`
 - `./travel/travel`: `travel`, `bindTravelInventory`, `applyTravelCarry`, `consumeTravelHandoff`, `TravelRequest`, `TravelHandoff`
@@ -1865,10 +1879,10 @@ sections above describe what to use; this list is the complete inventory.
 - `./bag/bag`: `renderFinds`, `GearLoot`, `CosmeticSlot`, `FindsView`
 - `./quest/QuestUI`: `RewardCaption`, `DialogueBox`, `ObjectiveLine`
 - `./loot/tables`: `registerLootTable`, `getLootTable`, `rollLoot`, `LootTableRow`, `LootContext`
-- `./Progress`: `ProgressSink`
-- `./quest/quest`: `QuestState`, `QuestMarker`, `NpcDef`
+- `./Progress`: `ProgressSink`, `Progress`
+- `./quest/quest`: `QuestState`, `QuestMarker`, `NpcDef`, `QuestDef`
 - `./complete/ShardComplete`: `ShardComplete`, `setCompleteEntry`, `ShardCompleteData`
-- `./quest/core`: `NpcTalk`, `QuestChip`, `LiveMarker`
+- `./quest/core`: `NpcTalk`, `QuestChip`, `LiveMarker`, `QuestLine`, `placesWithDiscovery`, `PlacePoint`, `Places`
 - `./shard/registry`: `findShard`, `findChunk`, `getActiveChunk`, `game`
 - `./loot/runtime`: `installLoot`, `ScopedLootHost`, `ScopedLoot`, `LootPresentation`, `LootShop`
 - `./loot/deaths`: `onCreatureDeath`, `DEATH_ORDER`, `CreatureDeathSource`
@@ -1878,22 +1892,26 @@ sections above describe what to use; this list is the complete inventory.
 - `./shard/templateDebug`: `installTemplateDebug`
 - `./loot/CoinBurst`: `CoinBurst`
 - `./cosmetics/locker`: `CosmeticsLocker`, `SkinLocker`, `CosmeticDef`, `CosmeticProfile`, `CosmeticState`
-- `./Elite`: `GroundTell`, `GroundTellWedgeStyle`
+- `./Elite`: `GroundTell`, `GroundTellWedgeStyle`, `Elites`, `EliteDef`, `EliteRule`, `EliteScript`
 - `./quest/presentation`: `installQuestPresentation`, `presentQuest`, `QuestPresentation`, `QuestPresentationContext`, `QuestPresentationHost`, `QuestPresentationOptions`, `QuestTarget`, `QuestPresentationNpc`, `PresentedQuestDef`, `PresentedQuestStep`
 - `./quest/reward`: `QuestRewardBeat`, `QuestRewardSpec`, `QuestRewardHost`, `QuestRewardPlayer`
 - `./bag/tabs`: `BagIcons`
+- `./compendium/Journal`: `loadHandFont`
+- `./compendium/state`: `CompendiumState`
+- `./compendium/types`: `CompendiumSkin`, `EntryDef`, `EntryStats`, `ShardCompendium`, `TrophySlot`
+- `./shard/list`: `installShards`
 - `(local)`: `GAME_API`
 
 ### `#kit` (`src/kit/index.ts`)
 
-141 exports, grouped by the module they come from.
+144 exports, grouped by the module they come from.
 
 - `./weapons/ui`: `SWAP_GLYPHS`
 - `./weapons/equipment`: `SWORD`, `WOODEN_SWORD`, `IRON_SWORD`
 - `./weapons/melee/Melee`: `Melee`, `meleeActor`, `MeleeProfile`, `ViewmodelFeel`
 - `./weapons/melee/SweptMelee`: `Sword`, `swordEvents`, `buildSword`, `swordMaterial`
 - `./weapons/melee/profiles`: `SWORD_WOOD`, `SWORD_IRON`
-- `./weapons/melee/moves`: `key`, `COMBO`, `HEAVY`, `REST`, `CHARGE`, `SPRINT`
+- `./weapons/melee/moves`: `key`, `COMBO`, `HEAVY`, `REST`, `CHARGE`, `SPRINT`, `Move`
 - `#engine`: `SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet`
 - `./weapons/thrown/Thrown`: `Thrown`, `ThrownProfile`
 - `./weapons/bow/family`: `Bow`, `BowWorld`, `BowOptions`
@@ -1921,7 +1939,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./species/view/bear`: `BEAR_LOOK`, `BEAR_PALETTE`
 - `./species/install`: `installKitSpecies`
 - `./icons`: `installKitIcons`, `BAG_ICONS`
-- `./models/pickups`: `installKitPickups`
+- `./models/pickups`: `installKitPickups`, `carvedTokenGeometry`
 - `./models/interact`: `installKitProps`, `INTERACT_PROPS`
 - `./npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigureFrame`, `NpcFigureBones`, `NpcFigureRig`
 - `./npc/figureMotion`: `stepNpcFigure`, `npcFigurePose`, `NpcFigureState`, `NpcFigureMotionProfile`
@@ -1932,6 +1950,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./viewmodel/armClips`: `ARM_CLIPS`, `SWIM_CLIPS`, `armClipNames`
 - `./tools/hoverboard`: `Hoverboard`, `HOVERBOARD_TOOL`
 - `./audio/forest`: `createForestAudio`, `installSilentScore`, `installForestAmbience`
+- `./viewmodel/armRig`: `JointAngles`
 - `(local)`: `KIT_API`
 
 <!-- exports:end -->

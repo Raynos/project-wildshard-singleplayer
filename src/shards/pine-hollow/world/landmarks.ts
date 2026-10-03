@@ -25,20 +25,13 @@
  *   lm.setLit('pond', true);                                                  // the quest relights a waystone
  */
 import * as THREE from 'three';
-import { heightAt } from '#engine/world/Heightfield';
+import { heightAt, type ColliderDesc, type WorldRegistry, type Sky, TIER_CONFIG, Rng, SEED, macrotask, type ModelDef, type Placement } from '#engine';
 import { makeGlowTexture, type ExtraBuilding, type Cabins } from './homestead';
 import {
   LOOKOUT, ZIPLINE, CREEK_BRIDGE, E_ROAD, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS,
 } from '../layout';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
-import { TIER_CONFIG } from '#engine/core/tier';
-import { Rng } from '#engine/core/rng';
-import { SEED } from '#engine/core/config';
-import { macrotask } from '#engine/boot/plan';
 import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
 import { place, type CullOptions, type Placed } from '#engine/models/place';
-import type { ModelDef, Placement } from '#engine/models/model';
 import { pineModels } from './context';
 import { HERO_FRONT, heroLod0, loadPineHero } from './hero';
 import { STONE_KINDS, standingStone } from '../models/standingStone';

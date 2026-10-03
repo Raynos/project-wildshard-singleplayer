@@ -1,10 +1,7 @@
 import * as THREE from 'three';
 import { ItemPickup, type PickupTier } from '#engine/player/WeaponPickup';
-import type { Interactable } from '#engine/world/interact/types';
-import type { Sky } from '#engine/world/Sky';
 import { WRECK } from '../manifest';
-import { LightPool } from '#engine/fx/LightPool';
-import { lin, type Renderer } from '#engine';
+import { lin, type Renderer, type Interactable, type Sky, LightPool } from '#engine';
 
 /**
  * IronSword — the iron sword as LOOT on Driftwood Isle ("the whole point of Project Wildshard is that you can find

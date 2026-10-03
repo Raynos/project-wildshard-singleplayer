@@ -26,12 +26,8 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '#engine/core/rng';
-import { Noise2D, smoothstep, clamp } from '#engine/core/noise';
-import { TIER } from '#engine/core/tier';
-import { defineModel, type ModelBuild, type ModelContext } from '#engine/models/model';
+import { Rng, Noise2D, smoothstep, clamp, TIER, defineModel, type ModelBuild, type ModelContext, painterlyMaterial } from '#engine';
 import { blob, mergeVerticesByPos } from '../world/paint';
-import { painterlyMaterial } from '#engine/world/painterly';
 import { loadNalatiModel, type NalatiModel } from '../world/glbPaint';
 
 const c = (hex: string): THREE.Color => new THREE.Color(hex);

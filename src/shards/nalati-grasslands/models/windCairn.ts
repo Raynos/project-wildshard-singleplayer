@@ -10,11 +10,10 @@
  * mesh (src/shards/nalati-grasslands/world/painted.ts). Collides: the heap as the hull of its core dome, the stakes as boxes.
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel, type ColliderDesc } from '#engine';
 import { M, pole, v3, blob } from '../world/paint';
 import { supportHull, type Box } from '../world/solid';
 import { painted, type Paint } from '../world/painted';
-import type { ColliderDesc } from '#engine/world/registry';
 
 const C = {
   stone: new THREE.Color('#9d978b'),

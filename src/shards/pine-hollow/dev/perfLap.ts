@@ -1,13 +1,7 @@
-import type { Game } from '#engine/core/Game';
-import type { Player } from '#engine/player/Player';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Music } from '#engine/audio/Music';
-import type { HUD } from '#engine/ui/HUD';
-import type { Elites } from '#game/Elite';
-import type { Scope } from '#engine';
+import { type Game, type Player, type AnimalManager, type Music, type HUD, practiceRoom, type Scope } from '#engine';
+import type { Elites } from '#game';
 import type { AntlerKing } from '../combat/antlerKing';
 import { perfLap, type LapSpot } from '#engine/core/perfLap';
-import { practiceRoom } from '#engine/core/practiceRoom';
 
 /**
  * Pine Hollow's PERF LAP host (E350 F-J1; src/engine/core/perfLap.ts, src/engine/ui/perfLap.ts): the six spots of PINE-HOLLOW-FOLLOWUPS

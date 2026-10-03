@@ -11,10 +11,7 @@
  * shard's, through the model context.
  */
 import * as THREE from 'three';
-import type { Rng } from '#engine/core/rng';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { defineModel, type ModelContext, type ModelPart } from '#engine/models/model';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, type Rng, attachFogUniforms, defineModel, type ModelContext, type ModelPart } from '#engine';
 
 export interface ReefParams {
   /** size, 1 = the builders' metre scale */

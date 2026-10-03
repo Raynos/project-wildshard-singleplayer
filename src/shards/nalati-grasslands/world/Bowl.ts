@@ -19,13 +19,9 @@
  */
 import * as THREE from 'three';
 import { PaintKit, poiMaterial, v3 } from './paint';
-import { painterlyMaterial, painterlyUniforms } from '#engine/world/painterly';
-import type { Sky } from '#engine/world/Sky';
 import { loadNalatiModel, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './glbPaint';
 import { WATCHTOWER, KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE } from '../layout';
 import { inPoiClearing } from './clearings';
-import { Rng } from '#engine/core/rng';
-import { TIER } from '#engine/core/tier';
 import { NalatiSet } from './painted';
 import { addStoneStair } from './Stair';
 import type { PoiCtx, PoiPiece } from './types';
@@ -39,7 +35,7 @@ import { herdHorse } from '../models/herdHorse';
 import { snowLotus } from '../models/snowLotus';
 import { glacierSnout, snoutGeometry, snoutAt } from '../models/glacierSnout';
 import { place as placeModel } from '#engine/models/place';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, painterlyMaterial, painterlyUniforms, type Sky, Rng, TIER } from '#engine';
 
 const PHONE = TIER === 'phone';
 

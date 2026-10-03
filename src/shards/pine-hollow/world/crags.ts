@@ -34,24 +34,15 @@ import { heightAt, normalAt, trailDistance, cabinMask, inChunk } from '#engine/w
 import {
   BEAR_CAVE, DEN, LOOKOUT, ZIPLINE, WATERFALL, RIDGE_STREAM, POND, RIDGE, CABIN_SITES, ridgeFootZ, nearestOnPolyline, type XZ,
 } from '../layout';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
-import type { TerrainCut } from '#engine/physics/terrain';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { CRAG_VIEWS, pineOption } from '../debug/options';
-import { loadPBR, type PBRSet } from '#engine/core/assets';
-import { TIER } from '#engine/core/tier';
-import { Rng } from '#engine/core/rng';
-import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '#engine/core/config';
-import type { Sky } from '#engine/world/Sky';
 import { PINE_CRAG_DIR } from './heroFiles';
 import { place, type Placed } from '#engine/models/place';
-import type { ModelDef, Placement } from '#engine/models/model';
 import { pineModels } from './context';
 import { CRAG_LOD, useCragKit } from './cragKit';
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
-import { PATCH_ORDER, patchShader, setProgramKey } from '#engine';
+import { PATCH_ORDER, patchShader, setProgramKey, type ColliderDesc, type WorldRegistry, type TerrainCut, attachFogUniforms, loadPBR, type PBRSet, TIER, Rng, CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES, type Sky, type ModelDef, type Placement } from '#engine';
 
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
 

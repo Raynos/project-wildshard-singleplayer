@@ -15,14 +15,8 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { Sky } from '#engine/world/Sky';
-import { heightAt } from '#engine/world/Heightfield';
-import { waveHeight, seaDamp } from '#engine/world/waves';
-import { lowPolyMaterial } from '#engine/world/lowpolyKit';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
+import { type BoxSpec as Collider, type Sky, heightAt, waveHeight, seaDamp, lowPolyMaterial, type ColliderDesc, type WorldRegistry, modelContext } from '#engine';
 import { BEAM, BOAT_CLEATS, BOAT_FLOOR, LENGTH, boat, boatColliders } from '../models/boat';
-import { modelContext } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export interface BoatSpec {

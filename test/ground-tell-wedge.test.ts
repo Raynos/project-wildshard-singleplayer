@@ -1,10 +1,12 @@
-import { expect, it, vi } from 'vitest';
+import { expect, it } from 'vitest';
 import { Scene, ShaderMaterial } from 'three';
 import { GroundTell } from '#game';
-import * as terrain from '#engine/world/Heightfield';
+import { setTerrainHeight } from '#engine';
+import { heightAt as fieldHeight } from '#engine/world/Heightfield';
 
 it('drapes the legacy balbal sector byte-for-byte and updates its fill uniforms', () => {
-  const height = vi.spyOn(terrain, 'heightAt').mockImplementation((x, z) => x * .2 + z * .1);
+  // the terrain the wedge drapes over, through the engine's placement-height port (no module mock, E422)
+  setTerrainHeight((x, z) => x * .2 + z * .1);
   const fill = { value: 0 }, alpha = { value: 0 }, material = new ShaderMaterial();
   const scene = new Scene(), cone = .8;
   const tell = new GroundTell(scene, 'wedge', 0, { cone, material, fill, alpha });
@@ -26,5 +28,6 @@ it('drapes the legacy balbal sector byte-for-byte and updates its fill uniforms'
   expect(tell.mesh.geometry.index?.count).toBe(7 * 14 * 6);
   expect(fill.value).toBe(.7); expect(alpha.value).toBe(1.4);
   tell.hide(); expect(tell.mesh.visible).toBe(false);
-  tell.mesh.geometry.dispose(); material.dispose(); height.mockRestore();
+  tell.mesh.geometry.dispose(); material.dispose();
+  setTerrainHeight((x, z) => fieldHeight(x, z)); // back to the configured field (the port the engine installs)
 });

@@ -15,15 +15,11 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { CHUNK_HALF, ROAD_WIDTH } from '#engine/core/config';
+import { CHUNK_HALF, ROAD_WIDTH, Rng, Noise2D, type Sky, modelContext, type ModelPart, type Placement } from '#engine';
 import { heightAt, normalAt, inChunk } from '#engine/world/Heightfield';
 import { OCEAN } from '../manifest';
-import { Rng } from '#engine/core/rng';
-import { Noise2D } from '#engine/core/noise';
-import type { Sky } from '#engine/world/Sky';
 import { REEF, reefMaterial, type ReefParams } from '../models/reef';
 import { REEF_FISH_COLOURS, reefFish } from '../models/reefFish';
-import { modelContext, type ModelPart, type Placement } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export type SeabedKind = 'coral' | 'weed' | 'star';

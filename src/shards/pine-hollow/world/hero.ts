@@ -7,7 +7,7 @@
  */
 import * as THREE from 'three';
 import { loadLodPairInto, lodPairOf, vertexHull, type GlbPart } from '#engine/models/glb';
-import type { ModelContext, ModelPart } from '#engine/models/model';
+import type { ModelContext, ModelPart } from '#engine';
 import { pineHeroUrl, type PineHeroId } from './heroFiles';
 
 /**

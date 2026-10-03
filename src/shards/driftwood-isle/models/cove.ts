@@ -15,7 +15,7 @@
  * the loaded file (the island hands its prototypes to the shard's model context, `coveProtos`).
  */
 import * as THREE from 'three';
-import { defineModel, type ModelContext, type ModelDef, type Pipeline } from '#engine/models/model';
+import { defineModel, type ModelContext, type ModelDef, type Pipeline } from '#engine';
 
 /** a prototype as the island reads it: positions (own space), rgba colours (a = AO), triangle indices */
 export interface CoveProto { readonly pos: Float32Array; readonly col: Uint8Array; readonly index: Uint32Array }

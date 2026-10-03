@@ -13,9 +13,8 @@
  * remap of the painted ground is `V2_OLIVE_GLSL` (terrainSurface.ts takes it in v2).
  */
 import * as THREE from 'three';
-import type { Sky } from '#engine/world/Sky';
+import { type Sky, syncPainterlySun } from '#engine';
 import type { SkyLook } from './skyRig';
-import { syncPainterlySun } from '#engine/world/painterly';
 import { gradeUniforms } from './grade';
 import { smoothstep } from '#engine/data';
 

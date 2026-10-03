@@ -1,5 +1,5 @@
 import type { BagIcons } from './tabs';
-import { uiScope, type Scope } from '#engine';
+import { uiScope, type Scope, icon, type IconId, type KitEntry, type MenuTab, type SkinRow } from '#engine';
 /**
  * The Bag's GEAR and FINDS panels (E314 L5, Jake's picks: board 6 C, a paper doll; board 7 B, a sticker book). One
  * shared implementation for every shard: src/engine/ui/Menu.ts calls these renderers with what the shard has, and a part the
@@ -22,8 +22,6 @@ import { uiScope, type Scope } from '#engine';
  *           Nalati's (src/shards/nalati-grasslands/bag.ts, E314 C): ELITES two to a row (`wide`), each with its prize under it (`prize`: the
  *           skin or the horse, the title — shown found or not), then the 17 PLACES.
  */
-import { icon, type IconId } from '#engine/ui/icons';
-import type { KitEntry, MenuTab, SkinRow } from '#engine/ui/Menu';
 
 /** what a shard's Bag has to show: FINDS (a sticker book), PACK (`inventory.slots` > 0), FEATS (any achievements) */
 export interface BagHas { finds: boolean; pack: boolean; feats: boolean }

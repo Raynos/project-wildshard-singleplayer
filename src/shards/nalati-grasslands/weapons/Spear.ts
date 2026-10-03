@@ -1,5 +1,5 @@
 import { smoothstep as sstep } from '#engine/data';
-import { weaponActionGate, quiverState, type WeaponState, type AimInfo, gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext, type Game, type Sky, type Player, type Forest, impactSurfaceOf, worldHit, type ImpactSurface, type Targets, type TargetAnimal, type TargetHit, floorBelow, sticksIn, gloveFist, riderArm, placeArm, painterlyMaterial, lin } from '#engine';
+import { weaponActionGate, quiverState, type WeaponState, type AimInfo, gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext, type Game, type Sky, type Player, type Forest, impactSurfaceOf, worldHit, type ImpactSurface, type Targets, type TargetAnimal, type TargetHit, floorBelow, sticksIn, gloveFist, riderArm, placeArm, painterlyMaterial, lin, activePhysics, heightAt, getAimTargets, targetRadius, type AimTarget } from '#engine';
 import { Melee, SWORD_WOOD, Thrown, type ThrownProfile, type MeleeProfile } from '#kit';
 import { SPEAR } from './equipment';
 
@@ -11,10 +11,7 @@ import * as THREE from 'three';
 
 
 
-import { activePhysics } from '#engine/physics/active';
 
-import { heightAt } from '#engine/world/Heightfield';
-import { getAimTargets, targetRadius, type AimTarget } from '#engine/player/AimTargets';
 import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
 

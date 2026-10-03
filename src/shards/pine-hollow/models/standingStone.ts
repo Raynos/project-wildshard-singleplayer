@@ -5,7 +5,7 @@
  * placed as its own set, LOD0 (with shadow) until the nearest stone of that shape is 60 m off, LOD1 past it. A copy
  * collides as the hull of ≤ 180 of its LOD1's vertices.
  */
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { heroFar, heroHull, heroNear } from '../world/hero';
 import type { PineHeroId } from '../world/heroFiles';
 

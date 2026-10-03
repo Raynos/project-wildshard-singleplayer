@@ -1,8 +1,6 @@
 /** Generated shard discovery and the legacy active-shard bridge (removed by shard phases). */
 import type { ShardManifest } from './manifest';
-import { _applyChunkConstants } from '#engine/core/config';
-import { onOwnerDispose } from '#engine/app/ownership';
-import { configureLevel } from '#engine';
+import { configureLevel, _applyChunkConstants, onOwnerDispose } from '#engine';
 import { toLevelSpec } from './spec';
 import { shards } from './list';
 
@@ -29,10 +27,21 @@ function initialShard(): ShardManifest {
   return manifest;
 }
 
-/** The game layer owns the running manifest; engine compatibility readers mirror it until S4.4. */
-export const game = { shard: initialShard() };
-_applyChunkConstants(game.shard);
-configureLevel(toLevelSpec(game.shard));
+/** The game layer owns the running manifest; engine compatibility readers mirror it until S4.4. Resolved on first read,
+ *  not at import: the shard list is installed by the composition root (src/shardList.ts), which reads it right after. */
+let current: ShardManifest | null = null;
+function active(): ShardManifest {
+  if (current === null) {
+    current = initialShard();
+    _applyChunkConstants(current);
+    configureLevel(toLevelSpec(current));
+  }
+  return current;
+}
+export const game = {
+  get shard(): ShardManifest { return active(); },
+  set shard(next: ShardManifest) { current = next; },
+};
 
 const listeners: ((def: ShardManifest) => void)[] = [];
 

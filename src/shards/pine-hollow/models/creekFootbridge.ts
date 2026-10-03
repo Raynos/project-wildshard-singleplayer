@@ -5,7 +5,7 @@
  * runs from one bank to the other and the trestles reach the gully's floor (`ground`, own space, relative to the
  * origin). Placed once where the E road crosses the creek (src/shards/pine-hollow/world/landmarks.ts).
  */
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { Timber, V, timberFacts, timberMats } from '../world/timber';
 
 

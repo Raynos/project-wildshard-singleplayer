@@ -7,7 +7,7 @@
  * does reaches the reins in your hands. One copy: the rider's.
  */
 import * as THREE from 'three';
-import { defineModel, type ModelDef } from '#engine/models/model';
+import { defineModel, type ModelDef } from '#engine';
 import { BIT_BACK, BIT_OUT, buildReinsRibbon, fillRein, HAND_DEPTH, HAND_NDC, JOWL_DOWN, JOWL_OUT, NECK_DOWN, NECK_OUT } from '../ride/Reins';
 
 /** the rest pose, camera space (the eye at the origin, looking down −z along the horse; the horse's left is −x): the crest

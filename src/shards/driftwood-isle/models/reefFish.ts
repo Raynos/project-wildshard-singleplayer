@@ -5,7 +5,7 @@
  * its densest reef and swims them round a lissajous loop every frame (src/shards/driftwood-isle/world/Seabed.ts).
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 
 /** the fish's colours: each copy takes one (Placement.color) */
 export const REEF_FISH_COLOURS = [0xffb347, 0x4fc3f7, 0xf06292, 0xfff176] as const;

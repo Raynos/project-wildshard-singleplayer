@@ -12,7 +12,7 @@
 import { copiesNear, placedGroups, type Placed } from '#engine/models/place';
 import { placeSet } from '#engine/models/sets';
 import { PINE_HOLLOW_POIS } from '../layout';
-import type { WorldRegistry } from '#engine/world/registry';
+import type { WorldRegistry } from '#engine';
 
 /** the quest's named places that are not discovery places (the stag's lead ends on the west road) */
 export const PINE_HOLLOW_QUEST_PLACES = [

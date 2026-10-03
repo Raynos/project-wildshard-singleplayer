@@ -59,3 +59,16 @@ export { GroundTell, type GroundTellWedgeStyle } from './Elite';
 export { installQuestPresentation, presentQuest, type QuestPresentation, type QuestPresentationContext, type QuestPresentationHost, type QuestPresentationOptions, type QuestTarget, type QuestPresentationNpc, type PresentedQuestDef, type PresentedQuestStep } from './quest/presentation';
 export { QuestRewardBeat, type QuestRewardSpec, type QuestRewardHost, type QuestRewardPlayer } from './quest/reward';
 export type { BagIcons } from './bag/tabs';
+// E362 AG3: the public surface every layer above imports (was deep imports)
+export { loadHandFont } from './compendium/Journal';
+export type { CompendiumState } from './compendium/state';
+export type { CompendiumSkin, EntryDef, EntryStats, ShardCompendium, TrophySlot } from './compendium/types';
+export { Elites } from './Elite';
+export type { EliteDef, EliteRule, EliteScript } from './Elite';
+export type { Inventory } from './Inventory';
+export type { Progress } from './Progress';
+export { QuestLine, placesWithDiscovery } from './quest/core';
+export type { PlacePoint, Places } from './quest/core';
+export type { QuestDef } from './quest/quest';
+export { installShards } from './shard/list';
+export type { FieldModelsContext } from './shard/manifest';

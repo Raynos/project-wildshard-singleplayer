@@ -1,5 +1,5 @@
 import { ITEMS } from './bag/itemCatalog';
-import { WeightedTable, type WeightedRow } from '#engine';
+import { WeightedTable, type WeightedRow, type IconId } from '#engine';
 import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
 import type { ItemRow } from './bag/items';
@@ -24,7 +24,6 @@ import type { ItemRow } from './bag/items';
  *   inventory.harvest('elk', 'bull')   → what this shard's pack takes from that carcass (Pine Hollow: nothing)
  *   inventory.onChange = () => menu.refresh();
  */
-import type { IconId } from '#engine/ui/icons';
 
 export { ITEMS, isItemId, registerItemRow } from './bag/itemCatalog';
 

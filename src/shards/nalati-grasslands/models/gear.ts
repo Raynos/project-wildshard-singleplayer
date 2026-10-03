@@ -6,9 +6,7 @@
  * drawing the held ones; each card is a separate build by the weapon's own builder on its own materials, put back in the
  * normal queue (the viewmodel factories make theirs transparent for the depth-clear trick; src/engine/models/gear.ts says why).
  */
-import { defineModel, type ModelContext, type ModelDef, type ModelPart } from '#engine/models/model';
 import * as THREE from 'three';
-import { live, type RosterEntry } from '#engine/models/live';
 import { arrowMaterial, bowSpecimen, buildArrowGeometry, QUIVER_MAX, type BowStyle, buildRifleParts } from '#kit';
 import { buildSabre } from '../weapons/Sabre';
 import { buildJavelin, buildSpear, type SpearParts } from '../weapons/Spear';
@@ -16,7 +14,7 @@ import { meleeMaterial, steelMaterial } from '../weapons/meleeGeo';
 import { goldenBowModel } from '../weapons/GoldenBow';
 import { naizagaiModel } from '../weapons/Naizagai';
 
-import { whiteColors } from '#engine';
+import { whiteColors, defineModel, type ModelContext, type ModelDef, type ModelPart, live, type RosterEntry } from '#engine';
 
 const FILE = 'src/shards/nalati-grasslands/models/gear.ts';
 

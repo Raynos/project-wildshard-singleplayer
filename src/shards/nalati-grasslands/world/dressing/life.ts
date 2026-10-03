@@ -16,14 +16,8 @@
  *   life.update(dt, camera, playerPos);
  */
 import * as THREE from 'three';
-import { Rng } from '#engine/core/rng';
-import { clamp, smoothstep } from '#engine/core/noise';
-import { TIER } from '#engine/core/tier';
-import { heightAt } from '#engine/world/Heightfield';
+import { Rng, clamp, smoothstep, TIER, heightAt, wind, painterlyMaterial, painterlyUniforms, type Sky } from '#engine';
 import { grassBaseHeightAt } from '#kit/looks/grassField';
-import { wind } from '#engine/world/steppeWind';
-import { painterlyMaterial, painterlyUniforms } from '#engine/world/painterly';
-import type { Sky } from '#engine/world/Sky';
 import { BUTTERFLIES, BUTTERFLY_HUES, FLY_SCALE, halfBirdGeo, RAPTORS, wingGeo } from '../../models/ambientLife';
 
 const PHONE = TIER === 'phone';

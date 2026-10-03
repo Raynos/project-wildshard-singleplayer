@@ -3,10 +3,9 @@
 // the region's neon spill baked in), carries each copy's world box and registers the model's catalog entry and a tap
 // target on the kit's mesh. One `place` per model per kit.
 import { Box3, type Mesh } from 'three';
-import { type ModelContext, type ModelDef, type ModelPart, type Placement, paramsOf } from '#engine/models/model';
+import { type ModelContext, type ModelDef, type ModelPart, type Placement, paramsOf, Rng } from '#engine';
 import { type Placed, place } from '#engine/models/place';
 import { poseOf } from '#engine/models/colliders';
-import { Rng } from '#engine/core/rng';
 import type { InKit } from './ctx';
 import type { Kit } from './kit';
 

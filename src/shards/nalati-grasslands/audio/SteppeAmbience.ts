@@ -1,5 +1,4 @@
-import { AmbienceZones, Rng, app, fnv1a32 } from '#engine';
-import { tap, ambientTick } from '#engine/core/harnessTap';
+import { AmbienceZones, Rng, app, fnv1a32, tap, ambientTick, type Audio, type SampleLoop } from '#engine';
 /**
  * SteppeAmbience — Nalati's zoned soundscape (NALATI-MERGE A4), the IslandAmbience pattern for the steppe.
  *
@@ -24,7 +23,6 @@ import { tap, ambientTick } from '#engine/core/harnessTap';
  * calls come from here; a set switch is picked up on the next mix (the beds restart on the new buffers).
  */
 import { Vector3 } from 'three';
-import type { Audio, SampleLoop } from '#engine/audio/Audio';
 import { steppeVoices } from './synth';
 import type { SteppeZone } from './SteppeScore';
 

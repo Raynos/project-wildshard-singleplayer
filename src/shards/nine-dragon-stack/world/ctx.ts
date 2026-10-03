@@ -6,9 +6,8 @@ import type { Emitter } from '../look/emitters';
 import { Dressing } from './facade/grammar';
 import { KitX } from './hero/kitx';
 import type { SignBuilder } from '../look/signs';
-import { Rng } from '#engine';
+import { Rng, type Placement } from '#engine';
 import { WELL, Y0 } from '../layout';
-import type { Placement } from '#engine/models/model';
 
 /** instanced kit pieces (dressing.ts builds their geometry) */
 export type Piece = 'balcony' | 'cage' | 'plant' | 'awning' | 'laundry' | 'shack' | 'tank' | 'lightbox' | 'pipe' | 'shutter';

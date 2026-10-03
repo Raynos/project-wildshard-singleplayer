@@ -18,11 +18,7 @@
  * porch in front of the door).
  */
 import * as THREE from 'three';
-import { SEED } from '#engine/core/config';
-import { LowPolyKit, log, plank, rope, tris, bakeLight, lowPolyMaterial, type BakedLight } from '#engine/world/lowpolyKit';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import { boxDesc, type ColliderDesc } from '#engine/world/registry';
-import { defineModel } from '#engine/models/model';
+import { SEED, LowPolyKit, log, plank, rope, tris, bakeLight, lowPolyMaterial, type BakedLight, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel } from '#engine';
 
 /** where a hut stands: its centre (world xz) and which way its door faces (rot, radians; 0 = −z) */
 export interface HutSite { readonly x: number; readonly z: number; readonly rot: number }

@@ -11,11 +11,9 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Sky } from '#engine/world/Sky';
-import type { BoxSpec as Collider } from '#engine/physics/box';
+import { type Sky, type BoxSpec as Collider, defineModel, type ModelContext, type ModelDef } from '#engine';
 import { KINGS_CLEARING } from '../layout';
 import { loadNpcModel, npcRig, preloadNpcModels, type NpcRig } from '../quest/npcModels';
-import { defineModel, type ModelContext, type ModelDef } from '#engine/models/model';
 import { MILLER, RANGER, TRADER } from '../quest/wardensHollow';
 
 export type NpcKind = 'ranger' | 'miller' | 'trader';

@@ -5,7 +5,7 @@
  * `dead:captain` on the kills, `seen:reward` after the reward view).
  */
 import { SHARD_FLAGS } from './interactables';
-import type { NpcDef, QuestDef } from '#game/quest/quest';
+import type { NpcDef, QuestDef } from '#game';
 
 export const QUEST_DONE = 'quest:driftwood-done';
 

@@ -8,7 +8,7 @@
  *   menu.setFinds(() => compendiumFinds(state, (id) => journal.open(id)));   // src/game/compendium/install.ts
  */
 import type { FindsView } from '../bag/bag';
-import type { IconId } from '#engine/ui/icons';
+import type { IconId } from '#engine';
 import type { CompendiumState } from './state';
 import type { EntryDef } from './types';
 

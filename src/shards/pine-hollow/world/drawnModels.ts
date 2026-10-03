@@ -16,11 +16,10 @@
  */
 import * as THREE from 'three';
 import { place } from '#engine/models/place';
-import type { Placement } from '#engine/models/model';
+import type { Placement, GroundPlacement as UnderPlacement } from '#engine';
 import { matrixOf, UNDER_CELLS, type Undergrowth } from './undergrowth';
-import type { FieldModelsContext } from '#game/shard/manifest';
+import type { FieldModelsContext } from '#game';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
-import type { Placement as UnderPlacement } from '#engine/world/forest/placement';
 import { pineModels } from './context';
 import { useUndergrowth } from './undergrowthKit';
 import { forestTree, useTreeFactory, type ForestTreeParams } from '../models/forestTree';

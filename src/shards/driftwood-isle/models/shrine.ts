@@ -22,14 +22,7 @@
  * view looks through it; y = its centre).
  */
 import * as THREE from 'three';
-import { SEED } from '#engine/core/config';
-import type { Rng } from '#engine/core/rng';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { LowPolyKit, rock, tris, bakeLight, lowPolyMaterial, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from '#engine/world/lowpolyKit';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import { boxDesc, type ColliderDesc } from '#engine/world/registry';
-import { defineModel, type ModelContext } from '#engine/models/model';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, SEED, type Rng, attachFogUniforms, LowPolyKit, rock, tris, bakeLight, lowPolyMaterial, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel, type ModelContext } from '#engine';
 
 /** where a shrine stands: its centre (world xz) and which way its front faces (rot, radians about +Y) */
 export interface ShrineSite { readonly x: number; readonly z: number; readonly rot: number }

@@ -14,11 +14,10 @@
  *    ruled), its coat, hair and stride drawn per copy from the kit's stream.
  */
 import { Vector3 } from 'three';
-import { defineModel, type ModelContext, type ModelPart, type ModelVariant } from '#engine/models/model';
 import { Kit } from '../world/kit';
 import { type HookSink, dragonHook, person, scooter, stool } from '../world/props';
 import { mahjongTable } from '../world/square';
-import { Rng } from '#engine';
+import { Rng, defineModel, type ModelContext, type ModelPart, type ModelVariant } from '#engine';
 import { ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/inKit.ts';

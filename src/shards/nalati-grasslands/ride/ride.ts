@@ -1,12 +1,6 @@
-import type { LevelContext } from '#engine';
+import { type LevelContext, type Player, type Forest, type AnimalManager, type AnimalSoundId as AnimalSound, type Animal, heightAt, type Interactable } from '#engine';
 import * as THREE from 'three';
-import type { Player } from '#engine/player/Player';
-import type { Forest } from '#engine/world/forest/Forest';
-import type { AnimalManager, AnimalSound } from '#engine/entities/AnimalManager';
 import type { Wildlife } from '../creatures/wildlife';
-import type { Animal } from '#engine/entities/Animal';
-import { heightAt } from '#engine/world/Heightfield';
-import type { Interactable } from '#engine/world/interact/types';
 import { Mount } from './Mount';
 import { Bow } from '#kit';
 import { Taming } from './Taming';

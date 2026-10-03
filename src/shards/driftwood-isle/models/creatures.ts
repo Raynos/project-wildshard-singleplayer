@@ -6,7 +6,7 @@
  * gulls, one instanced draw, wings in the vertex shader). The deer, boar and bear are shared (src/kit/models/creatures.ts).
  */
 import * as THREE from 'three';
-import { defineModel, type ModelDef } from '#engine/models/model';
+import { defineModel, type ModelDef } from '#engine';
 import { creature, type CreatureParams } from '#engine/models/creature';
 import { Gulls } from '../world/Gulls';
 

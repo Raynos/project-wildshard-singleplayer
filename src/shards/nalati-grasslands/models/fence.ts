@@ -8,11 +8,10 @@
  * A copy is a run: `at` is its first point on the ground, `pts` the run's points relative to it (x, z), the first (0, 0).
  */
 import type * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel, type BoxSpec as Collider } from '#engine';
 import { v3, woodPole } from '../world/paint';
 import { GRAIN, WOOD } from '../world/props';
 import { painted, type Kit, type Paint } from '../world/painted';
-import type { BoxSpec as Collider } from '#engine/physics/box';
 import type { Box } from '../world/solid';
 
 type Ground = (x: number, z: number) => number;

@@ -4,7 +4,7 @@
  * (src/shards/nalati-grasslands/world/painted.ts); every copy its own shape and turn, drawn from the place's rng stream. Walk-through.
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { M, blob } from '../world/paint';
 import { painted, type Paint } from '../world/painted';
 

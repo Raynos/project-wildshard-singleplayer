@@ -4,7 +4,7 @@
  * too), the gulls — its people and the gear its player holds. Listed in the Model Explorer at boot (src/engine/models/roster.ts);
  * the island keeps spawning and drawing every copy as before.
  */
-import { live, type RosterEntry } from '#engine/models/live';
+import { live, type RosterEntry } from '#engine';
 import { bear, boar } from '#kit/models/creatures';
 import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './models/creatures';
 import { castaway } from './models/people';

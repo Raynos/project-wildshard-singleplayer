@@ -11,12 +11,8 @@
  *   game.onUpdate(() => { bridge.setPoses(chain, game.alpha); });
  */
 import type * as THREE from 'three';
-import { heightAt } from '#engine/world/Heightfield';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
+import { heightAt, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, modelContext } from '#engine';
 import { ropeBridge, ropeBridgeLayout, type DeckPoses, type RopeBridgeLayout, type RopeBridgeParams, type RopeBridgeSpec } from '../models/ropeBridge';
-import { modelContext } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export type { DeckPoses, DeckSegment, RopeBridgeSpec } from '../models/ropeBridge';

@@ -1,13 +1,7 @@
 import { fogGLSL } from './fogProgram';
 import * as THREE from 'three';
-import { SEED } from '#engine/core/config';
-import { Rng } from '#engine/core/rng';
-import { smoothstep } from '#engine/core/noise';
 import { heightAt, POND, waterLevel } from '#engine/world/Heightfield';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import type { Sky } from '#engine/world/Sky';
-import type { Forest } from '#engine/world/forest/Forest';
-import { app, activeLevel } from '#engine';
+import { app, activeLevel, SEED, Rng, smoothstep, attachFogUniforms, type Sky, type Forest } from '#engine';
 
 /**
  * Atmosphere particles: sun-lit dust motes, drifting ground mist and falling pine needles.

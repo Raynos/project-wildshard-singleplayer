@@ -1,10 +1,7 @@
-import { app, BossBrain, type BossScript, type Renderer } from '#engine';
+import { app, BossBrain, type BossScript, type Renderer, type BossBar, type Player, type Interactable } from '#engine';
 import { bossesSave, saveSlug } from './saves';
 import * as THREE from 'three';
-import type { BossBar } from '#engine/ui/BossBar';
-import type { Player } from '#engine/player/Player';
 import { WeaponPickup } from '#engine/player/WeaponPickup';
-import type { Interactable } from '#engine/world/interact/types';
 
 /**
  * Boss — the engine's boss system (docs/design/nalati/elites-and-bosses.md §2 "The boss system"; plan NALATI.md row B13).

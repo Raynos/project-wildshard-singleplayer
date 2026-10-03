@@ -1,8 +1,5 @@
-import { SEED, CHUNK_HALF } from '#engine/core/config';
-import { Noise2D, smoothstep, lerp } from '#engine/core/noise';
+import { SEED, CHUNK_HALF, Noise2D, smoothstep, lerp, activeLevel, onLevelChange, type Scope } from '#engine';
 import { heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, inChunk } from '#engine/world/Heightfield';
-import { activeLevel, onLevelChange } from '#engine/level/selection';
-import type { Scope } from '#engine';
 
 /**
  * The painterly grass *field*: how tall the grass stands, how golden it is and which flowers grow, as pure

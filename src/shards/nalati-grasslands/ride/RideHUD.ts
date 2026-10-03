@@ -1,8 +1,7 @@
-import { uiScope, type LevelContext, type TouchVerbSpec } from '#engine';
+import { uiScope, type LevelContext, type TouchVerbSpec, hudSlots, type DiscOpts } from '#engine';
 import * as THREE from 'three';
 import './ride.css';
 import type { Mount } from './Mount';
-import { hudSlots, type DiscOpts } from '#engine/ui/hudSlots';
 
 /**
  * RideHUD — the riding and taming HUD atoms (Nalati B7 / B8; mockups art/nalati-grasslands/round-2/1-combat/

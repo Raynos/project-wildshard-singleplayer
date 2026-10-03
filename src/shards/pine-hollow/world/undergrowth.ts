@@ -1,15 +1,7 @@
 import * as THREE from 'three';
-import { SEED } from '#engine/core/config';
-import { Rng } from '#engine/core/rng';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { windUniforms } from '#engine/world/TreeFactory';
-import { patchWindField } from '#engine/world/wind';
-import type { Sky } from '#engine/world/Sky';
-import type { Forest } from '#engine/world/forest/Forest';
-import { TIER_CONFIG } from '#engine/core/tier';
 import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement, type UnderPlacements } from '#engine/world/forest/placement';
 import { bakedUndergrowth } from '#engine/world/BakedTerrain';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, SEED, Rng, attachFogUniforms, windUniforms, patchWindField, type Sky, type Forest, TIER_CONFIG } from '#engine';
 
 /**
  * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy

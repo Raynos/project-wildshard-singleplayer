@@ -1,7 +1,6 @@
 import { sharedWeaponVoices } from '#kit';
 import type { ShardContext } from '#game';
-import { app, ownAudioSource, TickScheduler, type EquipmentService } from '#engine';
-import { tap, ambientTick } from '#engine/core/harnessTap';
+import { app, ownAudioSource, TickScheduler, type EquipmentService, tap, ambientTick, type Game, type Sky, type Player, type Audio, type AnimalManager, type Animal, type TreeInstance, Rng, CameraFX } from '#engine';
 /**
  * Pine Hollow's ambient life without wolves (PINE-HOLLOW-REMASTER PH-M5) and the harvest's skinning beat (PH-F2), in one
  * call from main.ts (`installPineLife`, before the boot's precompile: the one draw below is parked in the scene then).
@@ -40,17 +39,8 @@ import { tap, ambientTick } from '#engine/core/harnessTap';
  * knife drops away and the view comes back up.
  */
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { Audio } from '#engine/audio/Audio';
 import type { PhShot, PineHollowSfx } from '../audio/sfx';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Animal } from '#engine/entities/Animal';
-import type { TreeInstance } from '#engine/world/forest/placement';
 import { cabinMask, heightAt, inChunk, normalAt, pondMask, streamAt, waterLevel } from '#engine/world/Heightfield';
-import { Rng } from '#engine/core/rng';
-import { CameraFX } from '#engine/player/CameraFX';
 import { TrunkProbe } from './trunks';
 import { SkinKnife } from '../models/skinningKnife';
 import { loadBirdModels } from './birdModels';

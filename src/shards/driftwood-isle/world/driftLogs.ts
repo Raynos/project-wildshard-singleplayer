@@ -13,7 +13,7 @@
  *   · the two end caps are dark end grain.
  */
 import * as THREE from 'three';
-import { log, wobble, type LowPolyKit } from '#engine/world/lowpolyKit';
+import { log, wobble, type LowPolyKit } from '#engine';
 
 /** the body tones (one per log), the facet leans, the crack and the end grain */
 export const DRIFT = {

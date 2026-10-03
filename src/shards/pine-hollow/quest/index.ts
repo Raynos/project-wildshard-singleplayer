@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { saves, jsonSchema, boxInFrame, QuestLine, loadQuest, type NpcDef, type NpcTalk, type SkinDef } from '#engine';
-import type { SkinLocker, ShardContext } from '#game';
+import { saves, jsonSchema, boxInFrame, QuestLine, loadQuest, type NpcDef, type NpcTalk, type SkinDef, type Game, type Sky, type Player, type AnimalManager, type WorldRegistry, type HUD, type Audio, type Music, type FullMap, type FullMapPoi as MapPoi, type TreeInstance, heightAt, Flags, test, type Place } from '#engine';
+import type { SkinLocker, ShardContext, Inventory, ItemId, Progress, CompendiumState } from '#game';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
  * Hollow*, PH-C6 the mill hamlet, PH-C7 night play, PH-C8 collectibles + secrets, PH-C10's event achievements, the C9
@@ -20,29 +20,13 @@ import type { SkinLocker, ShardContext } from '#game';
  * Dev: `?quest=ranger|pond|ridge|zip|den|stag|king|dawn|done` (beats.ts), `?resetquest`, `window.__pineQuest`.
  */
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Interactable, Cabins } from '../world/homestead';
-import type { WorldRegistry } from '#engine/world/registry';
-import type { HUD } from '#engine/ui/HUD';
-import type { Audio } from '#engine/audio/Audio';
-import type { Music } from '#engine/audio/Music';
 import type { PineHollowSfx } from '../audio/sfx';
 import { InteractSfx } from '#engine/audio/interactSfx';
-import type { Inventory, ItemId } from '#game/Inventory';
-import type { Progress } from '#game/Progress';
 import { SKINS } from '../loadout/skins';
-import type { FullMap, MapPoi } from '#engine/ui/Map';
-import type { CompendiumState } from '#game/compendium/state';
-import type { TreeInstance } from '#engine/world/forest/placement';
-import { heightAt } from '#engine/world/Heightfield';
 import { PINE_PHASES } from '../look/dayKeys';
 import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildings, type PineLandmarks } from '../world/landmarks';
-import { Flags, test } from '#engine/world/interact/flags';
 import { Interactables, type InteractEvent } from '#engine/world/interact/Interactables';
-import type { Place } from '#engine/world/interact/types';
 import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../layout';
 import { KING_KIND } from '../combat/antlerKing';
 import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type LanternId } from './wardensHollow';

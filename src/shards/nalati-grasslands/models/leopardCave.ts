@@ -12,12 +12,11 @@
  * its floor (placement) is the porch and the cave.
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel, type ColliderDesc } from '#engine';
 import { M, pole, v3, blob } from '../world/paint';
 import { graniteBlock } from '../world/granite';
 import { slab, type Box } from '../world/solid';
 import { painted, type Paint } from '../world/painted';
-import type { ColliderDesc } from '#engine/world/registry';
 import type { Platform } from '../world/types';
 
 export interface LeopardCaveParams {

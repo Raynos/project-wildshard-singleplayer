@@ -7,14 +7,13 @@
 // receding into the silk mist like the rungs of a ladder, so each crossing's detail steps down with its distance from
 // the rim and from dome B2's anchor (the timber bridge 6 m under the rim at z −21).
 import { Vector3 } from 'three';
-import type { ColliderDesc } from '#engine/world/registry';
 import { spanStreet } from './facade/grammar';
 import { E, K, type Kit, type Look } from './kit';
 import { WELL, Y0 } from '../layout';
 import { dragonHook } from './props';
 import { NEONS, WORDS } from './towers';
 import { NEON } from '../util';
-import { Rng } from '#engine';
+import { Rng, type ColliderDesc } from '#engine';
 import { SURF } from '../look/paint';
 import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';

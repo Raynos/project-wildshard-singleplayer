@@ -52,24 +52,15 @@
  */
 import * as THREE from 'three';
 import { heightAt, normalAt, trailDistance } from '#engine/world/Heightfield';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import { SEED } from '#engine/core/config';
-import { Rng } from '#engine/core/rng';
-import { LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part } from '#engine/world/lowpolyKit';
 import { addDriftLog, DRIFT } from './driftLogs';
 import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../manifest';
 import { Cove } from './Cove';
-import { windUniforms } from '#engine/world/wind';
 import { rockGeometry } from './rockKit';
-import { TIER } from '#engine/core/tier';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter, triAreas } from './coverTint';
-import type { BlenderArea } from '#engine/world/blenderArea';
-import type { Sky } from '#engine/world/Sky';
 import { driftLog, driftLogBox } from '../models/driftLog';
-import { modelContext } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, attachFogUniforms, SEED, Rng, LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part, windFieldUniforms as windUniforms, TIER, type BlenderArea, type Sky, modelContext } from '#engine';
 
 export interface GroundCoverOpts {
   sea: number;

@@ -1,4 +1,4 @@
-import { app, retainCachedResources, loadRigFile, bindRig, AnimMachine, type ClipChannel, type RigContract, type RigBake } from '#engine';
+import { app, retainCachedResources, loadRigFile, bindRig, AnimMachine, type ClipChannel, type RigContract, type RigBake, type Sky } from '#engine';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 // rigArms — the first-person arm player shared by the skinned viewmodel rigs (E334).
 //
@@ -16,7 +16,6 @@ import {
   type AnimationAction, type AnimationClip, Group, Matrix4, type Mesh, type Object3D, type Vector2, Vector3,
 } from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import type { Sky } from '#engine/world/Sky';
 import type { SwordArms } from '#kit/weapons/melee/SweptMelee';
 import type { Move } from '#kit/weapons/melee/moves';
 

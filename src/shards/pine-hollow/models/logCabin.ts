@@ -20,16 +20,8 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '#engine/core/rng';
-import { SEED } from '#engine/core/config';
-import { TIER_CONFIG } from '#engine/core/tier';
-import { heightAt } from '#engine/world/Heightfield';
-import { boxDesc, type ColliderDesc } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
-import type { BoxSpec as Collider } from '#engine/physics/box';
+import { Rng, SEED, TIER_CONFIG, heightAt, boxDesc, type ColliderDesc, type Sky, type BoxSpec as Collider, defineModel, type ModelBuild, type ModelContext, UnitParts, flatPositions, mergeOrNull, nearProxy, shadowProxy, twoSidedPositions, type WeldBuild, type WeldPart } from '#engine';
 import type { Cabins, Interactable, Mats, MatKey } from '../world/homestead';
-import { defineModel, type ModelBuild, type ModelContext } from '#engine/models/model';
-import { UnitParts, flatPositions, mergeOrNull, nearProxy, shadowProxy, twoSidedPositions, type WeldBuild, type WeldPart } from '#engine/models/weld';
 
 // ───────────────────────────── the log kit ─────────────────────────────
 

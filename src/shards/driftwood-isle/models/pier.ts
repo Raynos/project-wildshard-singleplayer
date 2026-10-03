@@ -15,14 +15,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import { SEED } from '#engine/core/config';
-import type { Rng } from '#engine/core/rng';
-import { boxDesc, type ColliderDesc } from '#engine/world/registry';
-import { lowPolyMaterial } from '#engine/world/lowpolyKit';
-import { patchSway } from '#engine/world/wind';
-import { defineModel, type ModelContext, type ModelPart } from '#engine/models/model';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, type BoxSpec as Collider, SEED, type Rng, boxDesc, type ColliderDesc, lowPolyMaterial, patchSway, defineModel, type ModelContext, type ModelPart } from '#engine';
 
 export interface PierLanding {
   /** where the deck starts ramping down (metres from the sea end) */

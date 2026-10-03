@@ -13,8 +13,7 @@
  * where a hop over the stone lands on the rim, and from GUARD_Z0 to the rim, where the grapple guard stands instead
  * (a kinematic piece that opens for one committed Fei Zhua crossing: world/colliders.ts `fragmentGrappleGuard`).
  */
-import { defineModel } from '#engine/models/model';
-import type { ColliderDesc } from '#engine/world/registry';
+import { defineModel, type ColliderDesc } from '#engine';
 import { PLAZA, WELL, Y0 } from '../layout';
 import { Kit } from '../world/kit';
 import { WELL_BALUSTRADE_AT, WELL_RUNS, balustrade } from '../world/square';

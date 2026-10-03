@@ -13,15 +13,11 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '#engine/core/rng';
-import { heightAt } from '#engine/world/Heightfield';
+import { Rng, heightAt, type Sky, type BoxSpec as Collider, type ColliderDesc } from '#engine';
 import { PaintKit, poiMaterial, texturedMaterial } from '../paint';
 import { NalatiSet } from '../painted';
 import { Flutter } from '../Flutter';
 import { Smoke } from '../Smoke';
-import type { Sky } from '#engine/world/Sky';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { ColliderDesc } from '#engine/world/registry';
 import { campClutterSpots, type DressPlan } from './place';
 import { fence, fenceRun } from '../../models/fence';
 import { fallenLog, logEnds, stump, ovoo, viewpointPole, skyGateway, campClutter } from '../../models/dressingProps';

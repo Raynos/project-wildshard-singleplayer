@@ -16,8 +16,7 @@
  * (light.ts) and keeps the static bake (bake.ts) on the key.
  */
 import type * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
+import type { Game, Sky, Forest } from '#engine';
 import type { NalatiWeather } from '../weather';
 import { SkyDomeV2 } from './sky';
 import { fogLut } from './fog';
@@ -27,7 +26,6 @@ import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
 import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
 import { setModelShade } from '../world/glbPaint';
 import { applyCloudSeaV2 } from './cloudSea';
-import type { Forest } from '#engine/world/forest/Forest';
 import { smoothstep } from '#engine/data';
 
 export interface LookV2Ctx {

@@ -14,9 +14,8 @@
  * colliders: they are ~6 cm deep on a wall.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, rock, tris, lowPolyMaterial } from '#engine/world/lowpolyKit';
+import { LowPolyKit, log, rock, tris, lowPolyMaterial, defineModel, type ModelContext } from '#engine';
 import { SlotGeometry, SlotRecorder } from '#engine/models/slots';
-import { defineModel, type ModelContext } from '#engine/models/model';
 
 export type TrophyId = 'bear' | 'boar';
 export const TROPHIES: readonly TrophyId[] = ['bear', 'boar'];

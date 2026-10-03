@@ -7,7 +7,7 @@
  * `pipeline`: a generated mesh on a code rig lists its generator(s) first, then 'code'; a GLB posed in a shader (the
  * birds) is its generator alone.
  */
-import { live, type RosterEntry } from '#engine/models/live';
+import { live, type RosterEntry } from '#engine';
 import { bear, boar, deer } from '#kit/models/creatures';
 import { elk } from './models/creatures';
 import { antlerKing } from './models/antlerKing';

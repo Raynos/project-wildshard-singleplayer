@@ -23,13 +23,11 @@
  * — shows through; the painted ranges stay, dark and moonlit.
  */
 import * as THREE from 'three';
-import { fetchImage } from '#engine/boot/bytes';
-import { ktx2Texture, readTexturePixels } from '#engine/core/ktx2';
+import { fetchImage, ktx2Texture, readTexturePixels, type Renderer } from '#engine';
 import { nalatiUrl } from './nalatiTextures';
 import { V2_GRADE_GLSL, gradeUniforms } from './grade';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { PANO_HORIZON_V, PANO_DEG_PER_V, PANO_RIDGE_V } from './panoramaData';
-import type { Renderer } from '#engine';
 
 /** inside the camera's far plane (2600) with room; the vertex shader puts it at the far plane anyway */
 const R = 2300;

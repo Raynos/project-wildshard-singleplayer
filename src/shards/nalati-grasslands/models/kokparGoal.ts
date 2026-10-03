@@ -4,7 +4,7 @@
  * Painted into its place's mesh (src/shards/nalati-grasslands/world/painted.ts). Collides: the mound as an 18-sided prism.
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { M } from '../world/paint';
 import { PC } from '../world/props';
 import { prism } from '../world/solid';

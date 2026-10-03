@@ -1,8 +1,6 @@
 import * as THREE from 'three';
-import type { Scope } from '#engine';
-import type { Animal } from '#engine/entities/Animal';
+import { type Scope, type Animal, painterlyMaterial } from '#engine';
 import { horseBones } from '../species/horse';
-import { painterlyMaterial } from '#engine/world/painterly';
 
 /**
  * Reins — the reins, first person (NALATI-FINISH B1, N13 "reins in the hands"; locked in, E331). E320 rework:

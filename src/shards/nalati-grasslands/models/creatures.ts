@@ -13,7 +13,7 @@
  * space.
  */
 import * as THREE from 'three';
-import { defineModel, type ModelDef } from '#engine/models/model';
+import { defineModel, type ModelDef } from '#engine';
 import { creature, type CreatureParams } from '#engine/models/creature';
 import { LEOPARD } from '../species/leopard';
 import { KOKBORI } from '../species/kokbori';

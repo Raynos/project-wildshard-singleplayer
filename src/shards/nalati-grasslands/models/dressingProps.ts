@@ -12,12 +12,10 @@
  * ovoo's heap as a stone prism, a stump / a pole / a gatepost / the bigger clutter as a box (wood).
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel, type Rng, type ColliderDesc } from '#engine';
 import { pole, v3, blob, lathe, logPainter, M } from '../world/paint';
 import { painted, type Kit, type Paint } from '../world/painted';
 import { prism, type Box } from '../world/solid';
-import type { Rng } from '#engine/core/rng';
-import type { ColliderDesc } from '#engine/world/registry';
 
 const C = {
   bark: new THREE.Color('#5c4430'), barkGrey: new THREE.Color('#6f6353'), wood: new THREE.Color('#c9a878'),

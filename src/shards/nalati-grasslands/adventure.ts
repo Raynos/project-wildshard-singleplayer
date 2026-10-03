@@ -1,6 +1,6 @@
-import { resourceScope, type Actor } from '#engine';
+import { resourceScope, type Actor, Flags, heightAt, type WorldRegistry, type Sky, type Interactable, type FullMapPoi as MapPoi, type MapQuest } from '#engine';
 
-import { elitesSave, type ShardContext } from '#game';
+import { elitesSave, type ShardContext, DialogueBox, RewardCaption, NpcTalk, QuestChip, QuestLine, placesWithDiscovery, type LiveMarker, type Places, type QuestState, type ProgressSink } from '#game';
 /**
  * Nalati's adventure layer (NALATI-MERGE Q1–Q5) — the shard's quest line on the shared quest core
  * (src/game/quest/core.ts: the chip, NPC talk, places with saved discovery, chained chapters), wired from main.ts in
@@ -30,16 +30,6 @@ import { elitesSave, type ShardContext } from '#game';
  * on load; `window.__nalatiQuest` = { flags, line, people, kokpar, places, talk(id), carving() }.
  */
 import type * as THREE from 'three';
-import { Flags } from '#engine/world/interact/flags';
-import { heightAt } from '#engine/world/Heightfield';
-import type { WorldRegistry } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
-import type { Interactable } from '#engine/world/interact/types';
-import type { MapPoi, MapQuest } from '#engine/ui/Map';
-import { DialogueBox, RewardCaption } from '#game/quest/QuestUI';
-import { NpcTalk, QuestChip, QuestLine, placesWithDiscovery, type LiveMarker, type Places } from '#game/quest/core';
-import type { QuestState } from '#game/quest/quest';
-import type { ProgressSink } from '#game/Progress';
 import { CAMP_NPCS, CARVINGS, CLUE_FLAGS, FEATHER_ELITES, FEATHER_FLAGS, NALATI_PLACES, NALATI_QUESTS } from './quest';
 import { buildCampPeople, type CampPeople, type PersonId } from './campPeople';
 import { buildKokparRound, KOKPAR_GOALS, type KokparMount, type KokparRound } from './kokpar';

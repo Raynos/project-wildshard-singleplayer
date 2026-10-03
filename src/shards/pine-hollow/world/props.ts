@@ -1,20 +1,11 @@
 import * as THREE from 'three';
-import { SEED } from '#engine/core/config';
-import { Rng } from '#engine/core/rng';
-import { smoothstep } from '#engine/core/noise';
+import { SEED, Rng, smoothstep, type Sky, type TreeInstance, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, TIER_CONFIG, type Placement, type Renderer } from '#engine';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, CABIN_SITES, TRAILS } from '#engine/world/Heightfield';
-import type { Sky } from '#engine/world/Sky';
-import type { TreeInstance } from '#engine/world/forest/Forest';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
-import { TIER_CONFIG } from '#engine/core/tier';
 import { place, type CullOptions, type CullView, type Placed } from '#engine/models/place';
-import type { Placement } from '#engine/models/model';
 import { BOULDER_SHAPES, ROCK_SOLID_ABOVE, boulderSizes, loadMossyBoulder, mossyBoulder, type MossyBoulderParams } from '../models/mossyBoulder';
 import { loadTreeStump, treeStump } from '../models/treeStump';
 import { fallenLog, fallenLogSize, loadFallenLog } from '../models/fallenLog';
 import { pineModels } from './context';
-import type { Renderer } from '#engine';
 
 /**
  * Pine Hollow's forest props (E315 M2: the scatter; the things are models in ../models/): mossy boulders

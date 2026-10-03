@@ -1,4 +1,4 @@
-import { loadRigFile } from '#engine';
+import { loadRigFile, TIER, painterlyMaterial, type Sky } from '#engine';
 /**
  * The camp's people as generated + rigged models (NALATI-MERGE D2) — the user's pick (N20: "Models 3D local ai model is
  * best"): Nalati's pipeline, the image-to-3D mesh with its base-colour atlas (TRELLIS.2 / Hunyuan3D-2 → Blender normalise
@@ -24,10 +24,7 @@ import { loadRigFile } from '#engine';
  *   5. unpose  the A-pose arm swung down to the procedural arm's rest (blended by its weight), so the same swings read.
  */
 import * as THREE from 'three';
-import { TIER } from '#engine/core/tier';
-import { painterlyMaterial } from '#engine/world/painterly';
 import { rawFromGltf } from './world/glbPaint';
-import type { Sky } from '#engine/world/Sky';
 
 
 import { fitNpcFigure, mergeNpcFigures, type NpcFigureFrame as PersonFrame, type NpcFigureRig as PeopleRig } from '#kit';

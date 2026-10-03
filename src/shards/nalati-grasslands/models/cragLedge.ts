@@ -6,7 +6,7 @@
  * (src/shards/nalati-grasslands/world/painted.ts). Collides: the slab as a box whose top is the ledge (a real floor since P1).
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { M } from '../world/paint';
 import { graniteBlock } from '../world/granite';
 import { painted, type Paint } from '../world/painted';

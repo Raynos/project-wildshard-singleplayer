@@ -1,9 +1,7 @@
 import { SABRE } from './equipment';
 import * as THREE from 'three';
-import { Sword, SWORD_WOOD, type MeleeProfile, type SwordWorld, type SwordRig, type SwordMoveSet } from '#kit';
-import { type Targets, forearm, lin } from '#engine';
-import { key, type Move } from '#kit/weapons/melee/moves';
-import { getAimTargets } from '#engine/player/AimTargets';
+import { Sword, SWORD_WOOD, type MeleeProfile, type SwordWorld, type SwordRig, type SwordMoveSet, key, type Move } from '#kit';
+import { type Targets, forearm, lin, getAimTargets } from '#engine';
 import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
 

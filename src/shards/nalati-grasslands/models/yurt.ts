@@ -20,9 +20,8 @@
  * only (the weather's yurts).
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel, type ColliderDesc } from '#engine';
 import { M, lathe, pole, v3, revolve, revolveUV } from '../world/paint';
-import type { ColliderDesc } from '#engine/world/registry';
 import { prism, type Box } from '../world/solid';
 import { PC } from '../world/props';
 import { painted, type Kit, type Paint } from '../world/painted';

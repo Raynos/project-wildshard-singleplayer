@@ -27,25 +27,19 @@
  *                                                                        // trophy in front of you
  */
 import * as THREE from 'three';
-import { app } from '#engine';
+import { app, type Audio, modelContext, practiceRoom, type Sky, type WorldRegistry } from '#engine';
 import { islandTrophies } from './tables';
-import type { Audio } from '#engine/audio/Audio';
 import { InteractSfx } from '#engine/audio/interactSfx';
-import { modelContext } from '#engine/models/model';
 import { place } from '#engine/models/place';
 import { seaGlassChime, SeaGlassChime } from '../models/seaGlassChime';
 import { buildTrophy, trophyPlaques, TrophyPlaques } from '../models/trophyPlaques';
 import { buildCaptainHat } from '../models/captainHat';
 import { buildSailclothCape } from '../models/sailclothCape';
 import { ItemPickup, type PickupTier } from '#engine/player/WeaponPickup';
-import { practiceRoom } from '#engine/core/practiceRoom';
-import type { Sky } from '#engine/world/Sky';
-import type { WorldRegistry } from '#engine/world/registry';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../quest/interactables';
 import type { Adventure } from '../quest/adventure';
-import type { BodyShadow, ShardContext } from '#game';
+import type { BodyShadow, ShardContext, Owned } from '#game';
 import { seaGlassFound } from './finds';
-import type { Owned } from '#game/loot/Owned';
 import { charmsFor, chimeCount, dodgeCooldownScale, heavyMult, nightGlow } from './perks';
 
 export type TrophyDropId = 'bear-claw' | 'boar-tusk' | 'captain-hat';

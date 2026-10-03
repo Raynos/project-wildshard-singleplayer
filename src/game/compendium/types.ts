@@ -7,8 +7,7 @@
  *
  * Nothing here is Pine Hollow's: Driftwood / Nalati adopt it by registering their own table and skin.
  */
-import type { IconId } from '#engine';
-import type { Rarity } from '#engine/entities/species/registry';
+import type { IconId, Rarity } from '#engine';
 
 /** what an entry is: a species page, a named variant, an elite, the boss, a place */
 export type EntryKind = 'species' | 'variant' | 'elite' | 'boss' | 'place';

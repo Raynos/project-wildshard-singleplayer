@@ -7,7 +7,7 @@
  * loop's, so the move is exact). No colliders: you step over them.
  */
 import { rockGeometry, rockMaterial, SHORE_ROCK } from '../world/rockKit';
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 
 export interface SmallRockParams {
   /** radius, metres */

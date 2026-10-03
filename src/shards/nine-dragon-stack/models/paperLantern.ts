@@ -6,7 +6,7 @@
  * lathe with caps and tassel near, a 6 × 4 body alone from LOD_NEAR, a 2 × 6 dot from LOD_DOT (E283).
  */
 import type { BufferGeometry } from 'three';
-import { defineModel, type ModelContext, type ModelPart } from '#engine/models/model';
+import { defineModel, type ModelContext, type ModelPart } from '#engine';
 import { LOD_DOT, LOD_NEAR, lanternGeometry } from '../look/lanterns';
 import { ndLook, need } from '../world/modelLook';
 

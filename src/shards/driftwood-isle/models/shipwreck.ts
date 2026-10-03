@@ -29,13 +29,7 @@
  * `holdBounds` = { x, z, r, yMin, yMax } — a cylinder around the hold (the hold reverb zone).
  */
 import * as THREE from 'three';
-import { SEED } from '#engine/core/config';
-import type { Rng } from '#engine/core/rng';
-import { LowPolyKit, log, beam, plank, rope, sagLine, tris, bakeLight, lowPolyMaterial, type BakedLight } from '#engine/world/lowpolyKit';
-import { swayDepthMaterial } from '#engine/world/wind';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import { boxDesc, type ColliderDesc } from '#engine/world/registry';
-import { defineModel } from '#engine/models/model';
+import { SEED, type Rng, LowPolyKit, log, beam, plank, rope, sagLine, tris, bakeLight, lowPolyMaterial, type BakedLight, swayDepthMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel } from '#engine';
 import { addBarrel, addCoil, addCrate } from './cargo';
 
 /** a world-height plane over the hull-aligned horizontal local (lx, lz): y = a + bx·lx + bz·lz */

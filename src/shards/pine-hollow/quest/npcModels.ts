@@ -1,4 +1,4 @@
-import { loadRigFile } from '#engine';
+import { loadRigFile, TIER, type Sky } from '#engine';
 /**
  * The hamlet's people, generated (PINE-HOLLOW-REMASTER PH-M4): Hale the ranger (board B3 pick A, "the old warden"), Mott
  * the trader, Brandt the miller — photoreal codex references (A-pose, art/pine-hollow/round-11-npcs/) → Hunyuan3D-2 full +
@@ -20,8 +20,6 @@ import { loadRigFile } from '#engine';
  *   walk   the legs step (NpcFigure.walkTo)
  */
 import * as THREE from 'three';
-import { TIER } from '#engine/core/tier';
-import type { Sky } from '#engine/world/Sky';
 import type { NpcKind } from '../models/people';
 import { legBones, legPose, legRigOf } from './npcRig';
 

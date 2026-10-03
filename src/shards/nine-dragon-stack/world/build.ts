@@ -49,9 +49,8 @@ import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steam
 import { WORDS, buildTowers } from './towers';
 import { chars } from '../util';
 import type { NdTier } from '../tier';
-import { resourceScope, Rng, type Renderer } from '#engine';
+import { resourceScope, Rng, type Renderer, type ModelDef, type Placement, gpuOnlyAttributes } from '#engine';
 import { type HandedBatch, type InstancedCuller, type Placed, place } from '#engine/models/place';
-import type { ModelDef, Placement } from '#engine/models/model';
 import { ndModelContext } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
 import { airConBox, galleryPlant } from '../models/wallKit';
@@ -62,7 +61,6 @@ import { CABLE, SHAFT, WELL_RECTS, buildWell, wellSheets } from './well';
 import { merge } from './hero/kitx';
 import { type InstanceLevel, InstanceCuller } from './cull';
 import { lodReady } from './lod';
-import { gpuOnlyAttributes } from '#engine/core/gpuOnly';
 
 /** E264: the fabric's static geometry keeps only its positions (and index) in JS once it is on the GPU */
 const STATIC_GEOMETRY = 'Nine Dragon static geometry (only the positions stay in JS)';

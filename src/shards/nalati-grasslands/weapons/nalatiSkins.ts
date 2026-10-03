@@ -1,8 +1,7 @@
 import { CosmeticsLocker } from '#game';
-import { EffectService, type EffectTarget } from '#engine';
+import { EffectService, type EffectTarget, type Animal } from '#engine';
 import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
-import type { Animal } from '#engine/entities/Animal';
 import type { Bow } from '#kit';
 import type { Sabre } from './Sabre';
 import { horseBones } from '../species/horse';

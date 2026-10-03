@@ -6,11 +6,10 @@
  * with `drawnInto`). It is what the stair's walkers bump into: a box of its trough. Built here alone, its foot on the
  * origin, for the Model Explorer, its flowers from a stream of its own.
  */
-import { defineModel } from '#engine/models/model';
 import { Kit } from '../world/kit';
 import { PLANTER, landingPlanter } from '../world/stairstreet-upper';
 import { ndLook, need } from '../world/modelLook';
-import { Rng } from '#engine';
+import { Rng, defineModel } from '#engine';
 
 const FILE = 'src/shards/nine-dragon-stack/models/landingPlanter.ts';
 

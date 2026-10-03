@@ -13,11 +13,9 @@
  * `balbalGeometry(variant)` (feet at y 0, facing −z, 2.1 m) is B11's rig's body too.
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel, Noise2D, type Sky } from '#engine';
 import { PaintKit, pole, v3, poiMaterial, mergeVerticesByPos } from '../world/paint';
 import { loadNalatiModel, MODEL_SIZE } from '../world/glbPaint';
-import { Noise2D } from '#engine/core/noise';
-import type { Sky } from '#engine/world/Sky';
 
 export type BalbalCarving = 'bare' | 'capped';
 

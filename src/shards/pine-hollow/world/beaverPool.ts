@@ -18,8 +18,7 @@
  * bed is the terrain itself, so the drained pool is walked on like any ground (the heightfield collider).
  */
 import * as THREE from 'three';
-import { heightAt } from '#engine/world/Heightfield';
-import type { Sky } from '#engine/world/Sky';
+import { heightAt, type Sky } from '#engine';
 import { createWaterMaterial } from '#engine/world/waterSurface';
 import { pondGrid } from './pond';
 import {

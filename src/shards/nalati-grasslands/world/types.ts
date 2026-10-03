@@ -1,10 +1,6 @@
 /** Shared shapes for the Nalati POI modules (B5). */
 import type * as THREE from 'three';
-import type { Material } from '#engine/physics/surface';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
-import type { ModelContext } from '#engine/models/model';
-import type { Placed } from '#engine/models/place';
-import type { Sky } from '#engine/world/Sky';
+import type { Material, ColliderDesc, WorldRegistry, ModelContext, Placed, Sky } from '#engine';
 import type { Box } from './solid';
 import type { Flutter } from './Flutter';
 import type { Smoke } from './Smoke';

@@ -15,7 +15,6 @@
 // Walkable crossings return their collision (deck boxes following the hump or sag, rail walls on both edges).
 // Geometry detail steps down with `lod` (0 near the rim and dome B2's anchor, 2 far up the run north).
 import { Box3, Vector3 } from 'three';
-import type { ColliderDesc } from '#engine/world/registry';
 import type { Ctx, InKit } from './ctx';
 import { buildGate } from './gate';
 import type { KitX } from './hero/kitx';
@@ -26,7 +25,7 @@ import { hipRoof } from './square';
 import { WORDS } from './towers';
 import { stand } from './well-galleries';
 import { NEON, clamp } from '../util';
-import { Rng } from '#engine';
+import { Rng, type ColliderDesc } from '#engine';
 
 export type BridgeKind = 'stone' | 'timber' | 'steel' | 'covered' | 'gate';
 

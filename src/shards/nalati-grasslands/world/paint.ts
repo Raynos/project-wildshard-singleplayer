@@ -17,12 +17,8 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '#engine/core/rng';
-import { Noise2D, smoothstep } from '#engine/core/noise';
-import { painterlyMaterial } from '#engine/world/painterly';
 import { loadNalatiTexture, type NalatiTexName } from '../look/nalatiTextures';
-import type { Sky } from '#engine/world/Sky';
-import { voxelAO, aoTint, hemisphere, pole } from '#engine';
+import { voxelAO, aoTint, hemisphere, pole, Rng, Noise2D, smoothstep, painterlyMaterial, type Sky } from '#engine';
 
 export type ColorLike = THREE.Color | string | number;
 /** per-face colour from the face centroid + normal, both in the part's LOCAL space (before `matrix`) */

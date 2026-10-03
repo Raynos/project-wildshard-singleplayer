@@ -4,7 +4,7 @@
  * (src/shards/nalati-grasslands/world/Bowl.ts). The ridden, rigged horse is the creature (src/engine/entities/, M5); this is the same file
  * standing still, instanced with its place's other generated models when it lands. Walk-through.
  */
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { generated } from '../world/painted';
 
 export const saddledHorse = defineModel<object>({

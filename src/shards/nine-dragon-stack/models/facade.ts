@@ -13,7 +13,7 @@
  * registers them on the shell (`place` with `drawnInto`).
  */
 import type { BufferGeometry, Matrix4 } from 'three';
-import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '#engine/models/model';
+import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '#engine';
 import { DRAWN_AS, PIECES, PIECE_LODS, SMALL, type PieceId } from '../world/facade/pieces';
 import { ndLook, need } from '../world/modelLook';
 

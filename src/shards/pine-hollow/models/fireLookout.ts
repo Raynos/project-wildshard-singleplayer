@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import { boxUV } from './logCabin';
 import { ZIPLINE } from '../layout';
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { Timber, V, timberFacts, timberMats } from '../world/timber';
 
 type V3 = THREE.Vector3;

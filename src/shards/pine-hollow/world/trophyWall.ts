@@ -1,4 +1,4 @@
-import { uiScope, mountUi } from '#engine';
+import { uiScope, mountUi, type AnimalFactory, versionedUrl } from '#engine';
 /**
  * The trophy wall (PINE-HOLLOW-REMASTER PH-C4, board B4 wall = C: art/pine-hollow/round-4-journal-ui/C-wall-chalk-outlines.jpg).
  * A wall of mount slots from the shard's compendium (`ShardCompendium.trophies`): a slot whose entry is TAKEN shows the
@@ -20,11 +20,7 @@ import { uiScope, mountUi } from '#engine';
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { AnimalFactory } from '#engine/entities/AnimalFactory';
-import type { CompendiumState } from '#game/compendium/state';
-import type { TrophySlot } from '#game/compendium/types';
-import { loadHandFont } from '#game/compendium/Journal';
-import { versionedUrl } from '#engine/boot/bytes';
+import { type CompendiumState, type TrophySlot, loadHandFont } from '#game';
 
 export interface TrophyWallOptions {
   anchor: THREE.Object3D;

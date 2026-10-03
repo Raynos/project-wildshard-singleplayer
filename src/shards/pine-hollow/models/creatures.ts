@@ -5,7 +5,7 @@
  * and the bear are shared (src/kit/models/creatures.ts); the Antler King is ./antlerKing.ts, the birds ./birds.ts, the hare
  * ./wildlife.ts.
  */
-import { defineModel, type ModelDef } from '#engine/models/model';
+import { defineModel, type ModelDef } from '#engine';
 import { creature, type CreatureParams } from '#engine/models/creature';
 
 /** the elk: cows, bulls and their rare coats (the royal bull, the pale elk, the imperial bull), and the King's thrall —

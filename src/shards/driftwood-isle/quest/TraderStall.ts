@@ -12,8 +12,7 @@
  * trades, so she has no dialogue.
  */
 import * as THREE from 'three';
-import { modelContext } from '#engine/models/model';
-import type { Interactable } from '#engine/world/interact/types';
+import { modelContext, type Interactable } from '#engine';
 import { place } from '#engine/models/place';
 import { trader, tradeCounter, traderOf, traderRigOf } from '../models/trader';
 import type { Trader } from '../npc/Trader';

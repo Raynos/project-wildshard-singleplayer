@@ -18,15 +18,12 @@
  */
 import * as THREE from 'three';
 import { heightAt, normalAt, waterLevel } from '#engine/world/Heightfield';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import type { Sky } from '#engine/world/Sky';
 import { createWaterMaterial } from '#engine/world/waterSurface';
 import { fogGLSL, makeMistTexture } from '#kit/looks/particles';
-import { windUniforms, WIND_DIR } from '#engine/world/wind';
 import {
   CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt, type XZ,
 } from '../layout';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, attachFogUniforms, type Sky, windFieldUniforms as windUniforms, WIND_DIR } from '#engine';
 import { smoothstep } from '#engine/data';
 
 /** the creek ribbon's across-stream offsets (m): dense where the water meets the banks */

@@ -25,7 +25,7 @@
  * mesh + the balbal InstancedMeshes.
  */
 import * as THREE from 'three';
-import { heightAt } from '#engine/world/Heightfield';
+import { heightAt, type Sky, activeRegistry, type WorldRegistry, modelContext, type ModelContext, type Placed } from '#engine';
 import { Flutter } from './Flutter';
 import { Smoke } from './Smoke';
 import { buildNomadCamp } from './NomadCamp';
@@ -38,12 +38,8 @@ import { buildEagleRock } from './EagleRock';
 import { buildCairn } from './Cairn';
 import { buildCrags, type Ledge } from './Crags';
 import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
-import type { Sky } from '#engine/world/Sky';
-import { activeRegistry, type WorldRegistry } from '#engine/world/registry';
 import type { Box } from './solid';
 import type { Ground, PoiCtx, PoiPiece } from './types';
-import { modelContext, type ModelContext } from '#engine/models/model';
-import type { Placed } from '#engine/models/place';
 
 export class NalatiPOIs {
   group = new THREE.Group();

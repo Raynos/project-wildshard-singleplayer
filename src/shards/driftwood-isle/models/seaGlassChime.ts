@@ -15,10 +15,8 @@
  * x along the bar, the faces toward ±z. No colliders: it hangs over the doorway, out of the way.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, rock, rope, lowPolyMaterial } from '#engine/world/lowpolyKit';
-import { swayDepthMaterial } from '#engine/world/wind';
+import { LowPolyKit, log, rock, rope, lowPolyMaterial, swayDepthMaterial, defineModel, type ModelContext } from '#engine';
 import { SlotGeometry, SlotRecorder } from '#engine/models/slots';
-import { defineModel, type ModelContext } from '#engine/models/model';
 
 /** pieces the chime can hold (the beach's sea glass: DRIFTWOOD-LOOT) */
 export const CHIME_PIECES = 15;

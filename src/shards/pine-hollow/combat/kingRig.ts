@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { BoneDef, RigAnimCtx } from '#engine/entities/species/registry';
+import type { BoneDef, RigAnimCtx } from '#engine';
 import { smoothstep } from '#engine/data';
 
 /**

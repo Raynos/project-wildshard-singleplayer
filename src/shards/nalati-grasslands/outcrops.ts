@@ -22,15 +22,9 @@ import { Flutter } from './world/Flutter';
 import { Smoke } from './world/Smoke';
 import { inPoiClearing } from './world/clearings';
 import { heightAt, normalAt, trailDistance } from '#engine/world/Heightfield';
-import { Noise2D } from '#engine/core/noise';
+import { Noise2D, CHUNK_HALF, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type ModelContext, type Placed, type Sky } from '#engine';
 import { riverMask, rimZAt, RIVER, RIM_Z, outcropAt, BROOK, edgeBermAt } from './manifest';
-import { CHUNK_HALF } from '#engine/core/config';
 import type * as THREE from 'three';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
-import type { ModelContext } from '#engine/models/model';
-import type { Placed } from '#engine/models/place';
-import type { Sky } from '#engine/world/Sky';
 import { graniteOutcrop, roundedBoulder, type RockTint } from './models/outcrop';
 
 export interface Outcrops {

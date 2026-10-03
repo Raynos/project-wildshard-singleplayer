@@ -12,10 +12,8 @@
  * visibility test (padded frustum, near, or casting its low-sun shadow into view), and sways them in the wind. Each trunk
  * collides as an upright capsule (`colliders`: the forest's `trunkCapsule`, in the copy's own frame).
  */
-import { defineModel, type ModelContext, type ModelPart } from '#engine/models/model';
+import { defineModel, type ModelContext, type ModelPart, type TreeFactory, TIER_CONFIG } from '#engine';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from '../world/treeSet';
-import type { TreeFactory } from '#engine/world/TreeFactory';
-import { TIER_CONFIG } from '#engine/core/tier';
 import { FOREST_BANDS, trunkCapsule } from '#engine/world/forest/Forest';
 
 export interface ForestTreeParams {

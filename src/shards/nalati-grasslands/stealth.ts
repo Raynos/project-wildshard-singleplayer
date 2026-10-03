@@ -1,4 +1,4 @@
-import { uiScope, mountUi, EffectService, sourceMultiplier, type Scope, type LevelContext, type EffectTarget, type Player, type TargetHit } from '#engine';
+import { uiScope, mountUi, EffectService, sourceMultiplier, type Scope, type LevelContext, type EffectTarget, type Player, type TargetHit, hudSlots, practiceRoom } from '#engine';
 import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
 
 import type { Wildlife } from './creatures/wildlife';
@@ -7,8 +7,6 @@ import type { NalatiLoadout } from './weapons/loadout';
 import { grassHeightAt } from '#kit/looks/trample';
 import { grassBaseHeightAt } from '#kit/looks/grassField';
 import './stealth.css';
-import { hudSlots } from '#engine/ui/hudSlots';
-import { practiceRoom } from '#engine/core/practiceRoom';
 
 /**
  * Nalati crouch + grass stealth (plan row B9; docs/design/nalati/stealth-and-storms.md "Grass stealth",

@@ -1,11 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Animal } from '#engine/entities/Animal';
-import type { AnimalSpecies, SpeciesDef, VariantDef } from '#engine/entities/species/registry';
-import { skinPlain, type Paint } from '#engine/entities/species/loft';
+import { type AnimalSpecies, type SpeciesDef, type VariantDef, skinPlain, type Paint, type Sky, defineModel, type ModelDef } from '#engine';
 import { KING_BONES, animateKing } from '../combat/kingRig';
-import type { Sky } from '#engine/world/Sky';
-import { defineModel, type ModelDef } from '#engine/models/model';
 import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '#engine/models/creature';
 
 /**

@@ -33,8 +33,7 @@
  * Bytes (measured): desktop 2.78 MB — cards 0.89 · the seven tiles 1.90; phone 0.92 MB — cards 0.32 · tiles 0.61. Nothing here is in the boot manifest: a module that adopts a file loads it lazily.
  */
 import * as THREE from 'three';
-import { loadTexture } from '#engine/core/assets';
-import { TIER_CONFIG } from '#engine/core/tier';
+import { loadTexture, TIER_CONFIG } from '#engine';
 
 export type NalatiTexName = 'meadow' | 'path' | 'gravel' | 'rock' | 'snow' | 'bark' | 'felt';
 

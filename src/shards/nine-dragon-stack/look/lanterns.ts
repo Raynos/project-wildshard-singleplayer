@@ -13,8 +13,7 @@ import {
   Quaternion, ShaderMaterial, Sphere, Uint32BufferAttribute, Vector2, Vector3,
 } from 'three';
 import type { Emitter } from './emitters';
-import type { HandedBatch, InstancedCuller } from '#engine/models/place';
-import type { Placement } from '#engine/models/model';
+import type { HandedBatch, InstancedCuller, Placement } from '#engine';
 import { EMIT_FOG, FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 
 const R = 0.27, H = 0.24;

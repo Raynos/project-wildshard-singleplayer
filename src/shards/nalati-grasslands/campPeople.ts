@@ -29,10 +29,8 @@
  *   people.fig.elder.headWorld                       // where its "[E] Talk" prompt sits
  */
 import * as THREE from 'three';
-import type { Scope } from '#engine';
+import type { Scope, Sky, WorldRegistry, ColliderDesc } from '#engine';
 import { PaintKit, pole, v3, lathe, poiMaterial } from './world/paint';
-import type { Sky } from '#engine/world/Sky';
-import type { WorldRegistry, ColliderDesc } from '#engine/world/registry';
 import { CAMP_PEOPLE } from './quest';
 import { loadPeopleRig, type PersonFrame, type PeopleRig } from './campPeopleModels';
 import { stepNpcFigure, npcFigurePose } from '#kit';

@@ -1,15 +1,11 @@
 import { ironhideGoal, ghostGoal, blackpawGoal, imperialGoal } from './EliteGoals';
 import { PINE_LANES } from './strikes';
-import { app, EliteBrain, inspectBrain, pinBrain, type Rng } from '#engine';
+import { app, EliteBrain, inspectBrain, pinBrain, type Rng, type Animal, type AnimalManager, Impacts } from '#engine';
 import * as THREE from 'three';
-import type { Animal } from '#engine/entities/Animal';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import { GroundTell, type Elites, type EliteDef, type EliteScript } from '#game/Elite';
+import { GroundTell, type Elites, type EliteDef, type EliteScript, type ItemId } from '#game';
 import { heightAt, inChunk } from '#engine/world/Heightfield';
 import { DEN, BEAR_CAVE } from '../layout';
-import type { ItemId } from '#game/Inventory';
 import type { SkinId } from '../loadout/skins';
-import { Impacts } from '#engine/fx/Impacts';
 import { Puffs } from './fxKit';
 import { own, release, retire, voice, LaneCharge, type PineCtx } from './ctx';
 import { behindPlayer, fadeCooldown, headingTo } from './combatMath';

@@ -6,7 +6,7 @@
  * without the smoke column (a particle effect the world animates, not the figure: it would frame the card 12 m tall).
  */
 import * as THREE from 'three';
-import { defineModel, type ModelDef } from '#engine/models/model';
+import { defineModel, type ModelDef } from '#engine';
 import { castawayRig } from '../quest/people';
 
 export const castaway: ModelDef<object> = defineModel<object>({

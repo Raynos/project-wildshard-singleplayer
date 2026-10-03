@@ -24,8 +24,7 @@
  * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, rope, lowPolyMaterial } from '#engine/world/lowpolyKit';
-import type { Sky } from '#engine/world/Sky';
+import { LowPolyKit, log, rope, lowPolyMaterial, type Sky } from '#engine';
 
 const C = {
   skin: '#a86e48', skinDark: '#8a5636', hair: '#2b1f19', eye: '#1d1a18', lips: '#8f4538',

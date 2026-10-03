@@ -9,12 +9,8 @@
  *   water.setLight({ brightness, sky, sun });  water.setRain(0..1);   // day/night + weather (src/shards/nalati-grasslands/weather.ts)
  */
 import * as THREE from 'three';
-import { heightAt } from '#engine/world/Heightfield';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import type { Sky } from '#engine/world/Sky';
 import { RIVER, BROOK } from './manifest';
-import { CHUNK_HALF } from '#engine/core/config';
-import { setProgramKey } from '#engine';
+import { setProgramKey, heightAt, attachFogUniforms, type Sky, CHUNK_HALF } from '#engine';
 
 const VERT = /* glsl */`
 attribute float depth;

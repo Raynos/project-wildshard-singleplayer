@@ -4,7 +4,7 @@
  * pond's W shore (src/shards/pine-hollow/world/landmarks.ts `CANOE_SITE`); the canoe secret hides it while you paddle the ride's own.
  * LOD0 (with shadow) within 40 m, LOD1 past it; collides as the hull of ≤ 180 of its LOD1's vertices (wood).
  */
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { heroFar, heroHull, heroNear } from '../world/hero';
 
 export const canoe = defineModel<Record<string, never>>({

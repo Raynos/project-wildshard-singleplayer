@@ -8,12 +8,11 @@
  * its washing from a stream of its own. (The facade kit's laundry poles are facade pieces: models/facade.ts.)
  */
 import { Vector3 } from 'three';
-import { defineModel, type ModelVariant } from '#engine/models/model';
 import { Kit } from '../world/kit';
 import { type LaundryKind, laundry } from '../world/props';
 import { laundryLine as lowerLine, laundryPole } from '../world/well-lower-life';
 import { ndLook, need } from '../world/modelLook';
-import { Rng } from '#engine';
+import { Rng, defineModel, type ModelVariant } from '#engine';
 
 const FILE = 'src/shards/nine-dragon-stack/models/laundry.ts';
 

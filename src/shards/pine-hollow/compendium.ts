@@ -13,7 +13,7 @@
  * <id>.webp (+ <id>-sil.webp, the silhouette an unknown page shows; chalk.webp, the wall's outline atlas).
  */
 import { PINE_HOLLOW_POIS } from './layout';
-import type { CompendiumSkin, EntryDef, EntryStats, ShardCompendium, TrophySlot } from '#game/compendium/types';
+import type { CompendiumSkin, EntryDef, EntryStats, ShardCompendium, TrophySlot } from '#game';
 
 export const PINE_HOLLOW_ID = 'chunk://local/pine-hollow';
 export const JOURNAL_ART = '/assets/pine-hollow/journal';

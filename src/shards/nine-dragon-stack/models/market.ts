@@ -9,11 +9,9 @@
  * any other reason (a tool, a test) seeds its own stream.
  */
 import type { BufferGeometry } from 'three';
-import { defineModel, type ModelContext, type ModelPart } from '#engine/models/model';
-import type { ColliderDesc } from '#engine/world/registry';
 import { BOOTH, PAV, boothSet, parasolSet, pavilionSet } from '../world/stalls';
 import { ndLook, need } from '../world/modelLook';
-import { Rng } from '#engine';
+import { Rng, defineModel, type ModelContext, type ModelPart, type ColliderDesc } from '#engine';
 
 const FILE = 'src/shards/nine-dragon-stack/models/market.ts';
 

@@ -6,7 +6,7 @@
  * its place's mesh (src/shards/nalati-grasslands/world/painted.ts). Collides: the block as the box it draws (the tread 1 cm deeper).
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { M } from '../world/paint';
 import { graniteBlock } from '../world/granite';
 import { painted, type Paint } from '../world/painted';

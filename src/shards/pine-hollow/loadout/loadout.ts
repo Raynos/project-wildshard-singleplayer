@@ -1,5 +1,5 @@
 import { AMMO_ROWS } from './effects';
-import { saves, listenPage, type CombatCues, type EquipmentService, type Scope, app, type Sky, fixIBL, VIEWMODEL_GROUP, worldHit } from '#engine';
+import { saves, listenPage, type CombatCues, type EquipmentService, type Scope, app, type Sky, fixIBL, VIEWMODEL_GROUP, worldHit, type HUD, type Audio } from '#engine';
 import { pineCombatCues } from '../audio/combatCues';
 import * as valibot from 'valibot';
 import * as THREE from 'three';
@@ -9,12 +9,9 @@ import { sharedWeaponVoices, MAX_BOLTS, PLAIN_BOLT, type BoltMod, type Crossbow,
 import { bindLongbowCharge } from './events';
 import type { LeverRifle } from '../weapons/LeverRifle';
 import { QUIVER_MAX } from '#shards/pine-hollow/weapons/Longbow';
-import type { Inventory } from '#game/Inventory';
-import type { HUD } from '#engine/ui/HUD';
-import type { Audio } from '#engine/audio/Audio';
+import type { Inventory, Owned } from '#game';
 import type { PineHollowSfx } from '../audio/sfx';
 import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, type AmmoKind, type BoltKind } from './ammo';
-import type { Owned } from '#game/loot/Owned';
 
 const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, schema: valibot.object({ pitch: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), broadhead: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), rounds: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), arrows: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())) }), initial: () => ({}) });
 

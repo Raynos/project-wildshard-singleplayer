@@ -21,12 +21,8 @@
  * vertex shader from a per-instance vec4 (flap, head yaw, wing fold, leg tuck). No per-frame allocations.
  */
 import * as THREE from 'three';
-import { Rng } from '#engine/core/rng';
-import { ambientTick, PATCH_ORDER, patchShader } from '#engine';
-import { CHUNK_HALF } from '#engine/core/config';
+import { ambientTick, PATCH_ORDER, patchShader, Rng, CHUNK_HALF, attachFogUniforms, type Sky } from '#engine';
 import { heightAt, waterLevel, inChunk } from '#engine/world/Heightfield';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import type { Sky } from '#engine/world/Sky';
 
 export interface GullsSpec {
   /** world positions a gull can stand on (feet); posts, gunwales, rock tops, sand */

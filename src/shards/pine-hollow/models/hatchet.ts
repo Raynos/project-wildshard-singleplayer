@@ -4,7 +4,7 @@
  * the three cabins (only the cabins in detail range), the hamlet's own — so `place` is told the copies are drawn already
  * (`drawnInto`). No collider of its own: it sits in its chopping block's (its building's).
  */
-import { defineModel } from '#engine/models/model';
+import { defineModel } from '#engine';
 import { propPart } from '../world/cabinKit';
 
 export const hatchet = defineModel<Record<string, never>>({

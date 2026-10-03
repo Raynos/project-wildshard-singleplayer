@@ -7,9 +7,7 @@
  * draws a copy, posed mid-beat. Nothing the Explorer does reaches the live flocks.
  */
 import * as THREE from 'three';
-import { TIER } from '#engine/core/tier';
-import { painterlyMaterial } from '#engine/world/painterly';
-import { defineModel, type ModelContext, type ModelDef } from '#engine/models/model';
+import { TIER, painterlyMaterial, defineModel, type ModelContext, type ModelDef } from '#engine';
 
 const FILE = 'src/shards/nalati-grasslands/models/ambientLife.ts';
 

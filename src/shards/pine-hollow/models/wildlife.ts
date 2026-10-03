@@ -18,11 +18,8 @@
  * No shadow is cast (a bird-sized caster would add the cascades' draws); the forest's shadows fall on them.
  */
 import * as THREE from 'three';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import type { Sky } from '#engine/world/Sky';
 import type { BirdMesh, BirdSet } from '../life/birdModels';
-import { defineModel, type ModelContext, type ModelDef } from '#engine/models/model';
-import { PATCH_ORDER, patchShader, type Renderer } from '#engine';
+import { PATCH_ORDER, patchShader, type Renderer, attachFogUniforms, type Sky, defineModel, type ModelContext, type ModelDef } from '#engine';
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];

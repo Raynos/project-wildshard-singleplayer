@@ -1,4 +1,4 @@
-import { app } from '#engine';
+import { app, type ColliderDesc, type Animal, heightAt, practiceFps, type RoomMap, type RoomMarker, type RoomShape } from '#engine';
 import type { Ride } from '../ride/ride';
 /**
  * Nalati ▸ Horse playground (E307, Jake: "a naive, playable mini level in Explore mode for running around on a horse, to
@@ -15,15 +15,10 @@ import type { Ride } from '../ride/ride';
  * it stands on the field, not the terrain 3 km under it (Animal.yOffset / levelGround, as a ridden horse on a deck does).
  */
 import * as THREE from 'three';
-import type { ColliderDesc } from '#engine/world/registry';
-import type { Animal } from '#engine/entities/Animal';
-import { heightAt } from '#engine/world/Heightfield';
-import { practiceFps } from '#engine/core/tier';
 import { DevKit, devLabel, devMaterial } from '#engine/practice/playground/devGrid';
 import { FIELD, HORSE_START, JUMPS, JUMP_WIDTH, LINE_X, OVAL, POST_GAP, POST_OFF, RIDER_START, ovalLine } from './horseCourse';
 import { PlaygroundChip, clock } from '#engine/practice/playground/hud';
 import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from '#engine/practice/playground/Playground';
-import type { RoomMap, RoomMarker, RoomShape } from '#engine/ui/roomMap';
 
 const FILE = 'src/shards/nalati-grasslands/playground/HorsePlayground.ts';
 /** a place on the steppe whose field (240 × 150 m) is over dry ground well inside the chunk: Mount slows a horse over the

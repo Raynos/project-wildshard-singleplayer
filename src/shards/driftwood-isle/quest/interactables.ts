@@ -16,7 +16,7 @@
  *   CAVE      — the sluice gate seals the sea cave; two tide plates on the sand in front must be held at once — one
  *             by you, one by the barrel that washed up by the wreck — and the gate latches open → the shard.
  */
-import type { InteractTable, PickupDef } from '#engine/world/interact/types';
+import type { InteractTable, PickupDef } from '#engine';
 
 /** the flag every glyph shard raises (the quest counts them; the altar's sockets fill from them) */
 export const SHARD_FLAGS = ['shard:lookout', 'shard:wreck', 'shard:cave'] as const;

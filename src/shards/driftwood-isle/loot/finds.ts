@@ -10,10 +10,9 @@
  *   next charm:   every 5 pieces (5 → I, 10 → II, 15 → III)
  * And the sea chart's marks (E314 stage 2, `seaChartMarks`): every beach piece not found yet, where it lies, in its colour.
  */
-import type { FindsView } from '#game/bag/bag';
+import type { FindsView, OwnedId } from '#game';
 import { DRIFTWOOD_PLACES } from '../quest/Places';
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../quest/interactables';
-import type { OwnedId } from '#game/loot/Owned';
 
 export interface FlagReader { has: (flag: string) => boolean }
 export interface OwnedReader { has: (id: OwnedId) => boolean }

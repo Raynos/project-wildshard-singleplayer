@@ -9,13 +9,9 @@
  * drops with distance — the old PineLandmarks.update, as data.
  */
 import * as THREE from 'three';
-import { SEED } from '#engine/core/config';
-import { Rng } from '#engine/core/rng';
-import { TIER_CONFIG } from '#engine/core/tier';
+import { SEED, Rng, TIER_CONFIG, type ColliderDesc, type ModelContext } from '#engine';
 import { cabinMats, type Mats, type MatKey } from './homestead';
 import { finishParts, logGeo, boxUV } from '../models/logCabin';
-import type { ColliderDesc } from '#engine/world/registry';
-import type { ModelContext } from '#engine/models/model';
 
 type V3 = THREE.Vector3;
 export const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);

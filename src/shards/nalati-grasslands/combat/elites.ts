@@ -22,7 +22,7 @@ import { horseSaddle } from '../species/horse';
 import { LEOPARD } from '../species/leopard';
 import { EAGLE } from '../species/eagle';
 import { KOKBORI } from '../species/kokbori';
-import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule } from '#game/Elite';
+import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule } from '#game';
 
 
 import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';

@@ -25,8 +25,7 @@
  * scaled down on the phone tier.
  */
 import * as THREE from 'three';
-import { TIER } from '#engine/core/tier';
-import { painterlyMaterial } from '#engine/world/painterly';
+import { TIER, painterlyMaterial, type Sky, type Forest, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, modelContext, type ModelDef, type Renderer } from '#engine';
 import { Flutter } from '../Flutter';
 import { DressLayer, type Inst } from './layer';
 import { planDressing, type DressPlan } from './place';
@@ -34,18 +33,12 @@ import { buildStatics, buildCampClutter } from './statics';
 import { DressLife } from './life';
 import { loadNalatiModel, modelsOn } from '../glbPaint';
 import type { NalatiSet } from '../painted';
-import type { Sky } from '#engine/world/Sky';
-import type { Forest } from '#engine/world/forest/Forest';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { hullAt, hullCandidates, type Box } from '../solid';
-import { modelContext, type ModelDef } from '#engine/models/model';
 import { place, type PlaceOptions, type Placed } from '#engine/models/place';
 import {
   boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, fitRock, GENERATED_ROCK, ROCK_LOOK,
   boulderGeo, slabGeo, stoneGeo, juniperGeo, roseGeo, willowGeo, lupinGeo, daisyGeo, reedGeo,
 } from '../../models/dressing';
-import type { Renderer } from '#engine';
 
 const PHONE = TIER === 'phone';
 

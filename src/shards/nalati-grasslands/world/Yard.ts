@@ -9,10 +9,8 @@
  *   wearDisc(x, z, r) / wearPath(ax, az, bx, bz, w)                // the shapes, combine with Math.max
  */
 import * as THREE from 'three';
-import { Noise2D, smoothstep } from '#engine/core/noise';
-import { painterlyMaterial } from '#engine/world/painterly';
+import { Noise2D, smoothstep, painterlyMaterial, type Sky } from '#engine';
 import { loadNalatiTexture, TEX_METRES } from '../look/nalatiTextures';
-import type { Sky } from '#engine/world/Sky';
 import type { Ground } from './types';
 
 const edge = new Noise2D(0x7a2d);

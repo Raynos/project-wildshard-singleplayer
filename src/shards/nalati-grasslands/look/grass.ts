@@ -28,22 +28,14 @@
  * v2 chain. Budget (phone): 5 draws, ~0.3 M submitted triangles (the cards ~16 k).
  */
 import * as THREE from 'three';
-import { TIER } from '#engine/core/tier';
-import { CHUNK_HALF } from '#engine/core/config';
+import { TIER, CHUNK_HALF, wind, WIND_GLSL, painterlyUniforms, fogUniforms, type Sky, type Forest, macrotask, type Renderer } from '#engine';
 import { heightAt, trailDistance, splatAt } from '#engine/world/Heightfield';
 import { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt, flowerSpeciesAt } from '#kit/looks/grassField';
-import { wind, WIND_GLSL } from '#engine/world/steppeWind';
 import { trample, TRAMPLE_GLSL } from '#kit/looks/trample';
-import { painterlyUniforms } from '#engine/world/painterly';
-import { fogUniforms } from '#engine/world/Atmosphere';
 import { paintedAir } from './air';
 import { dressingCover } from '../world/dressing/index';
-import type { Sky } from '#engine/world/Sky';
-import type { Forest } from '#engine/world/forest/Forest';
-import { macrotask } from '#engine/boot/plan';
 import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
 import { GRASS_CARDS, loadGrassCardAtlas } from './nalatiTextures';
-import type { Renderer } from '#engine';
 import { smoothstep } from '#engine/data';
 
 const PHONE = TIER === 'phone';

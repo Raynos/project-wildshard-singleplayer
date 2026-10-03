@@ -64,3 +64,7 @@ export { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './viewmodel/armClips';
 export { Hoverboard, HOVERBOARD_TOOL } from './tools/hoverboard';
 
 export { createForestAudio, installSilentScore, installForestAmbience } from './audio/forest';
+// E362 AG3: the public surface every layer above imports (was deep imports)
+export { carvedTokenGeometry } from './models/pickups';
+export type { JointAngles } from './viewmodel/armRig';
+export type { Move } from './weapons/melee/moves';

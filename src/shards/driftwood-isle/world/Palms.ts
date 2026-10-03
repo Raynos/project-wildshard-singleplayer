@@ -10,17 +10,10 @@
  *   game.onUpdate((dt) => palms.update(dt));
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, ROAD_WIDTH } from '#engine/core/config';
+import { CHUNK_HALF, ROAD_WIDTH, Rng, Noise2D, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, windFieldUniforms as windUniforms, updateWind, modelContext, type Placement } from '#engine';
 import { heightAt, normalAt, waterLevel, inChunk } from '#engine/world/Heightfield';
-import { Rng } from '#engine/core/rng';
-import { Noise2D } from '#engine/core/noise';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { Sky } from '#engine/world/Sky';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { islandKnobs } from '../tiers';
-import { windUniforms, updateWind } from '#engine/world/wind';
 import { palm, type PalmParams } from '../models/palm';
-import { modelContext, type Placement } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }

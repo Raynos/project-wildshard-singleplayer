@@ -36,16 +36,10 @@ import { RAIN_PROGRAM } from './rainProgram';
  * walks it).
  */
 import * as THREE from 'three';
-import { Rng } from '#engine/core/rng';
-import { CHUNK_HALF } from '#engine/core/config';
+import { Rng, CHUNK_HALF, activePhysics, floorBelow, practiceRoom, type Sky, type TreeInstance } from '#engine';
 import { heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, streamAt, inChunk } from '#engine/world/Heightfield';
-import { activePhysics } from '#engine/physics/active';
-import { floorBelow } from '#engine/physics/query';
 import { BEAR_CAVE } from '../layout';
-import { practiceRoom } from '#engine/core/practiceRoom';
 import { createWaterMaterial } from '#engine/world/waterSurface';
-import type { Sky } from '#engine/world/Sky';
-import type { TreeInstance } from '#engine/world/forest/placement';
 import type { PineWeather } from './weatherProfile';
 
 const COVER_N = 256;

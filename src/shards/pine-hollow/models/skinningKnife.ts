@@ -18,11 +18,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Game, type Sky, isMesh, viewmodelMaterial, whiteColors } from '#engine';
+import { type Game, type Sky, isMesh, viewmodelMaterial, whiteColors, defineModel, type ModelContext, type ModelDef } from '#engine';
 
 
 import { BEAT } from '../life/lifeMath';
-import { defineModel, type ModelContext, type ModelDef } from '#engine/models/model';
 
 export const KNIFE_MODEL_URL = '/assets/pine-hollow/weapons/skinning-knife.glb';
 

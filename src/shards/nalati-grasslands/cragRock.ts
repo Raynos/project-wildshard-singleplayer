@@ -25,17 +25,12 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '#engine/core/rng';
-import { Noise2D, smoothstep } from '#engine/core/noise';
+import { Rng, Noise2D, smoothstep, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, type ModelContext } from '#engine';
 import { heightAt, trailDistance } from '#engine/world/Heightfield';
 import { inPoiClearing } from './world/clearings';
 import { isPhoneTier } from './look/nalatiTextures';
 import { zoneAt, glacierMask, brookMask, LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER } from './manifest';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { supportHull } from './world/solid';
-import type { Sky } from '#engine/world/Sky';
-import type { ModelContext } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 import { cragRock, cragMaterial, finGeometry, ribGeometry, towerGeometry, type CragKind } from './models/cragRock';
 

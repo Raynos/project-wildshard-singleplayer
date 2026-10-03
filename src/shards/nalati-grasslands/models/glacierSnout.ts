@@ -9,9 +9,8 @@
  * own; walk-through (the stream runs out of it).
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel, heightAt } from '#engine';
 import { poiMaterial } from '../world/paint';
-import { heightAt } from '#engine/world/Heightfield';
 import { GLACIER } from '../layout';
 
 const ICE = { mid: new THREE.Color('#bcd6e8'), deep: new THREE.Color('#6f9fc4'), dark: new THREE.Color('#10202c') };

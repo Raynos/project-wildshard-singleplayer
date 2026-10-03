@@ -14,13 +14,9 @@
  * collides as the hull of what it draws.
  */
 import * as THREE from 'three';
-import { Rng } from '#engine/core/rng';
-import { defineModel } from '#engine/models/model';
-import { painterlyMaterial } from '#engine/world/painterly';
 import { loadNalatiTextures, TEX_METRES, TEX_MEAN, isPhoneTier } from '../look/nalatiTextures';
 import { SNOW_LINE } from '../manifest';
-import type { Sky } from '#engine/world/Sky';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, Rng, defineModel, painterlyMaterial, type Sky } from '#engine';
 
 // ── the rock pieces ─────────────────────────────────────────────────────────────────────────────────────────────
 

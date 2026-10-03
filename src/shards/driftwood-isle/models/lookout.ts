@@ -19,12 +19,7 @@
  * it; the cable leaves the pulley 2.5 m above it), stairFoot (y = ground).
  */
 import * as THREE from 'three';
-import { SEED } from '#engine/core/config';
-import { LowPolyKit, log, plank, rope, sagLine, tris, lowPolyMaterial } from '#engine/world/lowpolyKit';
-import { swayDepthMaterial } from '#engine/world/wind';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import { boxDesc, type ColliderDesc } from '#engine/world/registry';
-import { defineModel } from '#engine/models/model';
+import { SEED, LowPolyKit, log, plank, rope, sagLine, tris, lowPolyMaterial, swayDepthMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel } from '#engine';
 
 /** where a lookout stands: its centre (world xz) and which side its stair descends toward (rot, radians) */
 export interface LookoutSite { readonly x: number; readonly z: number; readonly rot: number }

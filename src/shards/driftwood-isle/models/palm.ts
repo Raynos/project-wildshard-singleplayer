@@ -8,13 +8,8 @@
  * The trunk collides as three capsules along its bent axis; the fronds are walk-through.
  */
 import * as THREE from 'three';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { islandKnobs } from '../tiers';
-import { windUniforms } from '#engine/world/wind';
-import type { ColliderDesc } from '#engine/world/registry';
-import type { Rng } from '#engine/core/rng';
-import { defineModel, type ModelContext } from '#engine/models/model';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, attachFogUniforms, windFieldUniforms as windUniforms, type ColliderDesc, type Rng, defineModel, type ModelContext } from '#engine';
 
 export interface PalmParams {
   /** trunk height, metres */

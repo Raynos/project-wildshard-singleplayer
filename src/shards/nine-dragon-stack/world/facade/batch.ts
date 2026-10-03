@@ -1,4 +1,4 @@
-import { resourceScope } from '#engine';
+import { resourceScope, type ModelContext, type Placement } from '#engine';
 // Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // A Dressing → one merged shell mesh (the towers' built fabric, with the few-and-small pieces baked in: models too,
 // registered where they are drawn), the kit's pieces placed as models (../../models/facade.ts: one InstancedMesh per
@@ -12,7 +12,6 @@ import { jiehuaMaterial, type Uniforms, windowMaterial } from '../../look/facade
 import { BAKED, DRAWN_AS, PIECES, SMALL, type PieceId } from './pieces';
 import { FACADE_BAKED, FACADE_MODELS, type FacadeParams } from '../../models/facade';
 import { type InstancedCuller, type Placed, place } from '#engine/models/place';
-import type { ModelContext, Placement } from '#engine/models/model';
 import type { NdLook } from '../modelLook';
 import { triCount } from '../lod';
 

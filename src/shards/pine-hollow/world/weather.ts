@@ -23,24 +23,14 @@
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { TreeInstance } from '#engine/world/forest/placement';
-import type { AnimalManager, Herd } from '#engine/entities/AnimalManager';
-import type { Particles } from '#kit/looks/particles';
+import { type Game, type Sky, type TreeInstance, type AnimalManager, type Herd, fogUniforms, weatherUniforms, volumetricFog, windBoost, windFieldUniforms as windUniforms, WIND_DIR, setting, onSettingChange, TIER, SEED, practiceRoom, type LevelContext } from '#engine';
+import type { Particles } from '#kit';
 import type { ForestAmbience } from '../audio/ambience';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfile';
 import { PineWeatherFX } from './PineWeatherFX';
-import { fogUniforms, weatherUniforms, volumetricFog } from '#engine/world/Atmosphere';
 import { waterWeather } from '#engine/world/waterSurface';
-import { windBoost, windUniforms, WIND_DIR } from '#engine/world/wind';
 import { OLD_GROWTH } from '../layout';
-import { setting, onSettingChange } from '#engine/ui/Settings';
-import { TIER } from '#engine/core/tier';
-import { SEED } from '#engine/core/config';
-import { practiceRoom } from '#engine/core/practiceRoom';
-import type { LevelContext } from '#engine';
 
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */
 export const weatherHold = { k: 0 };

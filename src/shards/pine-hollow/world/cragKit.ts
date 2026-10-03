@@ -5,9 +5,8 @@
  * shard's model context before it places the modules (../models/cragCliff.ts, cragBoulder.ts, scree.ts).
  */
 import * as THREE from 'three';
-import type { ModelContext, ModelPart } from '#engine/models/model';
+import { type ModelContext, type ModelPart, TIER } from '#engine';
 import { vertexHull } from '#engine/models/glb';
-import { TIER } from '#engine/core/tier';
 
 /** LOD / range per kind (m, camera to the module less half its radius): the cliffs' full model near, their LOD1 to the slab's edge */
 export const CRAG_LOD = TIER === 'phone'

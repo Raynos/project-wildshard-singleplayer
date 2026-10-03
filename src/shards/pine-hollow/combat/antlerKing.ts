@@ -2,29 +2,19 @@ import { pineScore } from '../audio/score';
 import { AntlerKingGoals } from './KingGoals';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PINE_LANES, PINE_STRIKES, pineContact } from './strikes';
-import { app, inspectBrain, pinBrain, type Spawner } from '#engine';
+import { app, inspectBrain, pinBrain, type Spawner, type Animal, registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef, BossBar, LightPool, TIER_CONFIG, Impacts, heightAt, fogUniforms, type Music, type FxMaterial } from '#engine';
 import { thrallSpawner, spawnThrallFrom } from './spawns';
 import * as THREE from 'three';
-import type { Animal } from '#engine/entities/Animal';
-import { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef } from '#engine/entities/species/registry';
 import { Boss, type BossDef, type BossScript, type BossState } from '#game/Boss';
-import { GroundTell } from '#game/Elite';
-import { BossBar } from '#engine/ui/BossBar';
-import { LightPool } from '#engine/fx/LightPool';
-import { TIER_CONFIG } from '#engine/core/tier';
-import { Impacts } from '#engine/fx/Impacts';
-import { heightAt } from '#engine/world/Heightfield';
-import { fogUniforms } from '#engine/world/Atmosphere';
+import { GroundTell } from '#game';
 import { PINE_PHASES } from '../look/dayKeys';
 import { KINGS_CLEARING } from '../layout';
 import type { Interactable } from '../world/homestead';
-import type { Music } from '#engine/audio/Music';
 import { FogWall, Puffs, flameCard } from './fxKit';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from './kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from './ctx';
 import { KING_PHASE_AT, burnTick, headingTo, wallPush } from './combatMath';
-import type { FxMaterial } from '#engine/world/fx';
 
 /**
  * THE ANTLER KING, Warden of Pine Hollow (PINE-HOLLOW-REMASTER PH-C2; board B2 pick A, the Bark Warden). The engine's

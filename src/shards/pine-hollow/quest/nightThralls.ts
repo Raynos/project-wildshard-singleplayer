@@ -14,12 +14,8 @@
  */
 import * as THREE from 'three';
 import { NightBrain } from './nightBrain';
-import type { Animal } from '#engine/entities/Animal';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import { variantDef } from '#engine/entities/species/registry';
-import { heightAt } from '#engine/world/Heightfield';
+import { type Animal, type AnimalManager, variantDef, heightAt, TIER } from '#engine';
 import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../layout';
-import { TIER } from '#engine/core/tier';
 import { Puffs } from '../combat/fxKit';
 import { own, release, retire } from '../combat/ctx';
 import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';

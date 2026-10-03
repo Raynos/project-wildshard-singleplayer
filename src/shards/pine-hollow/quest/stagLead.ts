@@ -9,8 +9,7 @@
  * kill to count — and driven from here (its gait from Animal.update). The elite at its lair is untouched.
  */
 import * as THREE from 'three';
-import type { Animal } from '#engine/entities/Animal';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
+import type { Animal, AnimalManager } from '#engine';
 import { Puffs } from '../combat/fxKit';
 import { headingTo } from '../combat/combatMath';
 import { voice } from '../combat/ctx';

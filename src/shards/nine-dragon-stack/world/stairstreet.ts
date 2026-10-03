@@ -16,7 +16,6 @@
 // upward (terraces, towers, the paifang, the bridges, the monorail, the upper signs and crowd, the far end) is C2's:
 // stairstreet-upper.ts, buildStairUpper(ctx).
 import { type BufferGeometry, Color, IcosahedronGeometry, Matrix4, Quaternion, Vector3, Vector4 } from 'three';
-import type { ColliderDesc } from '#engine/world/registry';
 import type { Ctx } from './ctx';
 import { dressWall } from './facade/grammar';
 import type { PieceId } from './facade/pieces';
@@ -27,7 +26,7 @@ import { K, Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { PLAZA, STAIR, Y0 } from '../layout';
 import { MIN, NEON } from '../util';
-import { Rng } from '#engine';
+import { Rng, type ColliderDesc } from '#engine';
 
 // ── the plan: three flights of 20 steps, two 4 m landings, the top landing ──
 

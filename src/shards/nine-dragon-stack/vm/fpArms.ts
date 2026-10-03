@@ -32,11 +32,9 @@ import { buildHalo } from './jian';
 import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms, weaveTexture } from './materials';
 import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from '#kit/viewmodel/armRig';
 import { Trail, type TrailLook } from './trail';
-import { phoneUrl } from '#engine/boot/bytes';
-import { app, loadRigFile, bindRig, AnimMachine, type RigContract, type RigBake, type ClipChannel as Channel } from '#engine';
+import { app, loadRigFile, bindRig, AnimMachine, type RigContract, type RigBake, type ClipChannel as Channel, phoneUrl, ktx2Texture } from '#engine';
 import { ARM_CLIPS, armClipNames } from '#kit';
 import type { NdTier } from '../tier';
-import { ktx2Texture } from '#engine/core/ktx2';
 
 export const ASSET_BASE = '/assets/nine-dragon/viewmodel/';
 export const RIG_URL = `${ASSET_BASE}fp-rig.glb`;

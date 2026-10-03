@@ -1,10 +1,6 @@
 import { pineScore, pineScorePick } from './score';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Music } from '#engine/audio/Music';
+import type { Game, Sky, Music, AnimalManager, Animal } from '#engine';
 import type { ForestAmbience, ZoneSpot } from './ambience';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Animal } from '#engine/entities/Animal';
 import type { Interactable } from '../world/homestead';
 import { audioLog } from '#engine/audio/audioLog';
 import {

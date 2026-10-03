@@ -15,9 +15,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Rng } from '#engine/core/rng';
-import type { Sky } from '#engine/world/Sky';
-import { lowPolyMaterial } from '#engine/world/lowpolyKit';
+import { type Rng, type Sky, lowPolyMaterial } from '#engine';
 import { smoothstep } from '#engine/data';
 
 /** the shore's boulders (Boulders.ts, Explore's Boulder): beach granite, a shade lighter than the reef */

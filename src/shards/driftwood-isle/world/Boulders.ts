@@ -10,15 +10,10 @@
  *   scene.add(rocks.mesh); its registry piece.push(...rocks.colliders);
  */
 import type * as THREE from 'three';
-import { CHUNK_HALF, ROAD_WIDTH } from '#engine/core/config';
+import { CHUNK_HALF, ROAD_WIDTH, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement } from '#engine';
 import { heightAt, normalAt, waterLevel, inChunk } from '#engine/world/Heightfield';
-import { Rng } from '#engine/core/rng';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { Sky } from '#engine/world/Sky';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
 import { WRECK } from '../manifest';
 import { shoreBoulder, type ShoreBoulderParams } from '../models/shoreBoulder';
-import { modelContext, type Placement } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }

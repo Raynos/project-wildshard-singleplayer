@@ -1,4 +1,4 @@
-import type { LookReplaceContext } from '#engine';
+import { type LookReplaceContext, Rng, smoothstep, TreeFactory, type TreeVariant, TREE_SPECS, painterlyMaterial, type Sky } from '#engine';
 /**
  * Spruce — a Tian Shan spruce (Picea schrenkiana) for Nalati's gullies, in the painterly style (style B).
  *
@@ -24,12 +24,6 @@ import type { LookReplaceContext } from '#engine';
  * instanced fallback is up to 6 lists × 4 variants.
  */
 import * as THREE from 'three';
-import { Rng } from '#engine/core/rng';
-import { smoothstep } from '#engine/core/noise';
-import { TreeFactory, type TreeVariant } from '#engine/world/TreeFactory';
-import { TREE_SPECS } from '#engine/world/forest/placement';
-import { painterlyMaterial } from '#engine/world/painterly';
-import type { Sky } from '#engine/world/Sky';
 
 /**
  * The four spruce variants. The trunk radii are placement.ts' TREE_SPECS radii (in the same order) on purpose:

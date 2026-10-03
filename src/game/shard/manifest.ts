@@ -1,4 +1,4 @@
-import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand } from '#engine';
+import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand, Noise2D, HuntTuning, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant, WorldRegistry, Sky, Forest, SwordArms, SwordFraming, SwordMoveSet, SwordRig, SwimArms, RosterEntry } from '#engine';
 import type { ShardSlug } from './slugs.generated';
 import { terrainFieldFor } from '#engine/data';
 import type { ShardPlugin } from './plugin';
@@ -20,15 +20,6 @@ import type { ShardPlugin } from './plugin';
  * To add a shard: see `docs/SHARDS.md`.
  */
 import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
-import type { Noise2D } from '#engine/core/noise';
-import type { HuntTuning } from '#engine/entities/AnimalManager';
-import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '#engine/world/forest/treeSpecies';
-import type { WorldRegistry } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
-import type { Forest } from '#engine/world/forest/Forest';
-import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '#engine/combat/view/melee';
-import type { SwimArms } from '#engine/player/Hands';
-import type { RosterEntry } from '#engine/models/live';
 
 /** a shard's own sword (ShardManifest.sword): the engine Sword's rigid rig, moves and portrait framing — or an animated rig
  *  (`arms`) swung by the engine's own moves */
@@ -422,7 +413,7 @@ export const hitDamage = (def: { fight?: { maxHitDamage?: number | undefined; ca
   def.fight?.maxHitDamage === undefined || (kind !== undefined && def.fight.capExempt?.includes(kind) === true) ? damage : Math.min(damage, def.fight.maxHitDamage);
 
 /** Compatibility names for manifests not yet migrated to the engine look contract. */
-export type { EngineEffects, LookComposeContext as ShardComposeContext, LookComposition as ShardComposition, LookStrategy as ShardRender } from '#engine/render/look';
+export type { EngineEffects, LookComposeContext as ShardComposeContext, LookComposition as ShardComposition, LookStrategy as ShardRender } from '#engine';
 
 export interface ShardManifest {
   next?: string;

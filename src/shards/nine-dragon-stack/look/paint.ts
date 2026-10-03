@@ -15,8 +15,7 @@
 // 4×4 / ETC2 in a KTX2 array for shipping. Download: the JPEGs, 3.65 MB. Findings: round-9-lab-texture/README.md.
 import { Color, DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, RGBAFormat, UnsignedByteType, Vector4 } from 'three';
 import { paintSize, type NdTier } from '../tier';
-import { phoneUrl } from '#engine/boot/bytes';
-import { gpuOnlyTexture } from '#engine/core/gpuOnly';
+import { phoneUrl, gpuOnlyTexture } from '#engine';
 
 /** the array layers, in order; `scale` = the ratio's storage scale (texprep.py spec.json `scale`) */
 export const LAYERS = [

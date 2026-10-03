@@ -9,15 +9,10 @@
  *   scene.add(bushes.mesh);
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, ROAD_WIDTH } from '#engine/core/config';
+import { CHUNK_HALF, ROAD_WIDTH, Rng, Noise2D, type Sky, type WorldRegistry, modelContext, type Placement } from '#engine';
 import { heightAt, normalAt, waterLevel, inChunk } from '#engine/world/Heightfield';
-import { Rng } from '#engine/core/rng';
-import { Noise2D } from '#engine/core/noise';
-import type { Sky } from '#engine/world/Sky';
-import type { WorldRegistry } from '#engine/world/registry';
 import { islandKnobs } from '../tiers';
 import { hibiscusBush, type HibiscusBushParams } from '../models/hibiscusBush';
-import { modelContext, type Placement } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }

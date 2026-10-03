@@ -1,14 +1,8 @@
 import type * as THREE from 'three';
-import type { Animal } from '#engine/entities/Animal';
-import type { AnimalManager } from '#engine/entities/AnimalManager';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { ItemId } from '#game/Inventory';
+import { type ItemId, GroundTell } from '#game';
 import type { SkinId } from '../loadout/skins';
 import type { PhShot } from '../audio/sfx';
-import { GroundTell } from '#game/Elite';
-import { StrikeRunner, canReach, inspectBrain, type StrikeSpec } from '#engine';
+import { StrikeRunner, canReach, inspectBrain, type StrikeSpec, type Animal, type AnimalManager, type Game, type Sky, type Player } from '#engine';
 
 /**
  * What Pine Hollow's fights share (src/shards/pine-hollow/: the elites, the Antler King, the combat feel): the world, the player,

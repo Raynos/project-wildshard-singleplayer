@@ -15,7 +15,7 @@ import type { GhostRiders } from './ghostRiders';
 import type { Ride } from '../ride/ride';
 import { Boss, type BossDef, type BossScript } from '#game/Boss';
 
-import { GroundTell } from '#game/Elite';
+import { GroundTell } from '#game';
 import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
 
 

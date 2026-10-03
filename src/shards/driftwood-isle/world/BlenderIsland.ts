@@ -29,26 +29,17 @@
  * families' pieces, `placeModels`), no longer on the P2 bridge. `palmSpecs` gains the new palms (the monkeys climb them).
  */
 import * as THREE from 'three';
-import { ktx2Texture } from '#engine/core/ktx2';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
 import { CELL } from '#engine/data';
 import { area, inArea, BLENDER_MODELS } from './blenderArea';
-import { CHUNK_HALF, TERRAIN_RES } from '#engine/core/config';
-import { TIER } from '#engine/core/tier';
-import type { Sky } from '#engine/world/Sky';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import { boxDesc, type ColliderDesc, type WorldRegistry } from '#engine/world/registry';
 import type { PalmSpec } from './Palms';
-import { slicer } from '#engine/boot/plan';
-import { modelContext, type ModelContext, type Placement } from '#engine/models/model';
 import { place as placeModel } from '#engine/models/place';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader, ktx2Texture, attachFogUniforms, CHUNK_HALF, TERRAIN_RES, TIER, type Sky, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, slicer, modelContext, type ModelContext, type Placement } from '#engine';
 
 const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are this file's own
 /** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */

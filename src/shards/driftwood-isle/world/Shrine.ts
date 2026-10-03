@@ -14,14 +14,8 @@
  * `anchors` (world coords, yaw = world facing, 0 = +Z): altar, pool, stairFoot, ring (see the model).
  */
 import * as THREE from 'three';
-import { heightAt } from '#engine/world/Heightfield';
-import { SEED } from '#engine/core/config';
-import { Rng } from '#engine/core/rng';
-import type { BoxSpec as Collider } from '#engine/physics/box';
-import type { Sky } from '#engine/world/Sky';
-import type { ColliderDesc, WorldRegistry } from '#engine/world/registry';
+import { heightAt, SEED, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext } from '#engine';
 import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin, type ShrineAnchor, type ShrineParams } from '../models/shrine';
-import { modelContext } from '#engine/models/model';
 import { place, type Placed } from '#engine/models/place';
 
 export type { ShrineAnchor } from '../models/shrine';

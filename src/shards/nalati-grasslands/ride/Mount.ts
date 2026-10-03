@@ -1,21 +1,13 @@
 import * as THREE from 'three';
-import type { Player } from '#engine/player/Player';
+import { type Player, type Forest, type Interactable, CharacterMotor, activePhysics, castRay, floorBelow, tagOf, lockOn, type InputService, type EquipmentService } from '#engine';
 import { Animal } from '#engine/entities/Animal';
-import type { Forest } from '#engine/world/forest/Forest';
-import type { Interactable } from '#engine/world/interact/types';
 import { heightAt, inChunk, waterLevel } from '#engine/world/Heightfield';
 import { HorseHerd } from '../creatures/herd';
-import { CharacterMotor } from '#engine/physics/CharacterMotor';
-import { activePhysics } from '#engine/physics/active';
-import { castRay, floorBelow } from '#engine/physics/query';
-import { tagOf } from '#engine/physics/surface';
 import { HORSE_SPEED } from '../species/horse';
 import { wildEnv } from '../creatures/env';
-import type { InputService, EquipmentService } from '#engine';
 import { Bow } from '#kit';
 import { Sabre, type MountState } from '../weapons/Sabre';
 import { Spear } from '../weapons/Spear';
-import { lockOn } from '#engine/player/AimTargets';
 import { RhythmSpur, roadSteer, SPUR_WINDOW, type RoadXZ } from './rideAssist';
 import { horseKey, savedHorseName, saveHorseName } from './horseNames';
 

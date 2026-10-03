@@ -15,12 +15,10 @@
  * The world side (where they stand, the per-frame update) is src/shards/driftwood-isle/quest/TraderStall.ts. No shop logic here.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, plank, rope, rock, lowPolyMaterial } from '#engine/world/lowpolyKit';
-import { defineModel, type ModelDef, type ModelPart } from '#engine/models/model';
+import { LowPolyKit, log, plank, rope, rock, lowPolyMaterial, defineModel, type ModelDef, type ModelPart, type Sky } from '#engine';
 import type { Trader } from '../npc/Trader';
 import { traderRig } from '../quest/people';
 import type { NpcRig } from '#kit';
-import type { Sky } from '#engine';
 
 const byGroup = new WeakMap<THREE.Object3D, NpcRig<Trader, Sky>>();
 

@@ -17,13 +17,9 @@
  */
 import * as THREE from 'three';
 import { finishWeld, place, weld, type Placed } from '#engine/models/place';
-import type { ModelDef, Placement } from '#engine/models/model';
+import { type ModelDef, type Placement, macrotask, TIER_CONFIG, type WorldRegistry, type Sky } from '#engine';
 import { placeSet } from '#engine/models/sets';
-import { macrotask } from '#engine/boot/plan';
-import { TIER_CONFIG } from '#engine/core/tier';
 import type { Cabins, CabinBuilding, CabinPropKind } from './homestead';
-import type { WorldRegistry } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
 import { pineModels } from './context';
 import { CABIN_VARIANTS, logCabin, useCabins } from '../models/logCabin';
 import { huntingLodge } from '../models/huntingLodge';

@@ -9,8 +9,8 @@
  *   swordMul(owned.sharpen)        → 1 · 1.25 · 1.5 (Whetstone I / II: sword damage +25 % / +50 %, both swords)
  *   maxHealthOf(owned)             → 100 · 120 · 140 (Sturdy Heart I / II), +10 with the first sea glass charm (stage 3)
  */
-import type { IconId } from '#engine/ui/icons';
-import type { OwnedId } from '#game/loot/Owned';
+import type { IconId } from '#engine';
+import type { OwnedId } from '#game';
 import { DRIFTWOOD_EFFECTS, driftwoodAttributes } from './effects';
 
 /**

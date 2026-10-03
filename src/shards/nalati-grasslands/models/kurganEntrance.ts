@@ -10,11 +10,10 @@
  * back wall as boxes, the hood's walkable top in slices, the passage floor as a timber slab, the steps as treads.
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine/models/model';
+import { defineModel, type ColliderDesc } from '#engine';
 import { M, pole, v3, blob } from '../world/paint';
 import { highest, slab, type Box } from '../world/solid';
 import { painted, type Paint } from '../world/painted';
-import type { ColliderDesc } from '#engine/world/registry';
 import type { Platform } from '../world/types';
 
 export interface KurganEntranceParams {
