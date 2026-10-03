@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry, CapsuleGeometry, CatmullRomCurve3, Cyl
 import { duneHd, duneMesh, smoothColors } from '../world/meshes';
 
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
-export const HD_GLOVE = { size: 0.2, pos: [0.035, -0.185, 0] as [number, number, number], rot: [0, 0, 0] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
+export const HD_GLOVE = { size: 0.22, pos: [0.03, -0.2, 0] as [number, number, number], rot: [-0.45, 0, 0.25] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
 const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;

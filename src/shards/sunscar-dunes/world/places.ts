@@ -41,7 +41,7 @@ const SACKS: readonly [number, number, number, number][] = [[1.7, -3.5, 0.34, 0.
 const TENT = { x: -7.5, z: -1.5, yaw: 0.35, w: 3.2, h: 2.3, d: 3.8 } as const;
 /** The pack horse, tethered between the tent and the wagon (mockup B): in the caravan's frame, its head toward the wagon's front. */
 const HORSE = { x: -5.0, z: 1.6, yaw: Math.PI / 2, h: 1.62 } as const;
-const BURLAP = 0xa48a62, TENT_CANVAS = 0x6a5644; // council round 2: 0x2c2220 read as a pure-black wedge
+const BURLAP = 0xa48a62, TENT_CANVAS = 0x3a2e28; // council round 2: 0x2c2220 read as a pure-black wedge
 
 /** Sun-bleached crate planks (loop 3: the plain dark boxes read as black cubes against the afterglow). */
 const CRATE_GLOW = 0x150b05, BARREL = 0x7e5a3e;
@@ -306,7 +306,7 @@ export function kindling(y: number, size = 1, crown = false): Group {
   const g = new Group(), wood = crown ? new MeshStandardMaterial({ color: CHARRED, roughness: 0.9, emissive: 0x6a1c04 }) : mat(KINDLING), n = crown ? 7 : 5;
   for (let i = 0; i < n; i++) {
     // a teepee: each stick leans in from the bowl's edge, the tips meeting above the rim, so it reads at eye level
-    const a = (i / n) * Math.PI * 2 + (crown ? (i % 2) * 0.3 : 0), lean = crown ? -1.05 - (i % 3) * 0.12 : 0.5, len = (crown ? 0.5 + (i % 2) * 0.12 : 0.6) * size;
+    const a = (i / n) * Math.PI * 2 + (crown ? (i % 2) * 0.3 : 0), lean = crown ? -0.42 - (i % 3) * 0.1 : 0.5, len = (crown ? 0.5 + (i % 2) * 0.12 : 0.6) * size;
     const log = new Mesh(new CylinderGeometry(0.03 * size, 0.04 * size, len, 5), wood);
     log.rotation.order = 'YXZ'; log.rotation.set(-lean, a, 0);
     log.position.set(Math.sin(a) * Math.sin(lean) * len * 0.5, y + Math.cos(lean) * len * 0.5, Math.cos(a) * Math.sin(lean) * len * 0.5); g.add(log);

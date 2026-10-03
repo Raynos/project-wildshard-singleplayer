@@ -71,7 +71,10 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
       .replace('#include <map_fragment>', ramp ? `#include <map_fragment>
   float leatherL = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
   // the texture's light and dark (braid, creases) kept, mapped onto a warm tan leather ramp (mockups A-C; the map is near-black red)
-  diffuseColor.rgb = mix(vec3(0.05, 0.028, 0.016), vec3(0.42, 0.24, 0.12), smoothstep(0.02, 0.15, leatherL)); // a worn mid-brown (judge: the tan read as clay)` : '#include <map_fragment>')
+  diffuseColor.rgb = mix(vec3(0.05, 0.028, 0.016), vec3(0.42, 0.24, 0.12), smoothstep(0.02, 0.15, leatherL)); // a worn mid-brown (judge: the tan read as clay)` : `#include <map_fragment>
+  // glove-hd2 (council round 4): a dark worn brown, not oxblood; its unpainted thumb patch clamped to the leather
+  diffuseColor.rgb = min(diffuseColor.rgb, vec3(0.42, 0.3, 0.24));
+  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.3) * vec3(1.15, 0.95, 0.85) * 1.4; // neutral dark brown (round 4: 37,8,4 vs the mockup's 47,27,24)`)
       // a light from the viewer side, so the held glove reads as lit leather, never a cut-out against the dusk (mockup D: the lit
       // fist; the key is behind it now): faces lit, edges falling off, more as the dusk deepens
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
@@ -89,7 +92,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
           m.metalness = 0; m.roughness = 0.85; m.flatShading = false;
           // E399 (mockup D): the glove dark worn leather with a soft sheen, not a saturated red-brown
           if (name === 'glove-hd' || name === 'glove-hd2') {
-            m.color.setRGB(1, 1, 1); m.roughness = 0.42; m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
+            m.color.setRGB(1, 1, 1); m.roughness = name === 'glove-hd2' ? 0.32 : 0.42; m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
             wornLeather(m, name === 'glove-hd'); // glove-hd2 is painted dark leather with its seams: no ramp
           }
           if (name === 'brazier-hd' || name === 'wagon-hd') warmByFire(m);

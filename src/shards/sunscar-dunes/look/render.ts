@@ -14,7 +14,7 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 // loop 3: a deeper, redder key (ΔE00 of the lit sand against the H1–H4 targets: the game's was too pale and grey-blue)
 // E399: low (11 deg) and along the wind axis, so every dune splits into a lit slip face and a shaded windward face
 // (the mockups); the shade floor and the navy fill keep the shaded half readable, never black
-export const KEY = { dir: new Vector3(-0.85, 0.2, -0.5).normalize(), color: new Color(1, 0.66, 0.42), intensity: 2.3 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+export const KEY = { dir: new Vector3(-0.85, 0.2, -0.5).normalize(), color: new Color(1, 0.68, 0.45), intensity: 3.0 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -139,6 +139,8 @@ export function signalDunesLook(): LookStrategy {
     compose: ({ engineChain, scene, scope }) => {
       scene.fog = new Fog(new Color(FOG.color), FOG.near, FOG.far);
       const chain = engineChain('clean');
+      // E399: the engine's AgX stays (tried NEUTRAL, the lead's lever: it drove the sand's blue channel to ~0 and every sky to a
+      // saturated plum, since this look's colours are tuned under AgX's highlight desaturation)
       scope.own(dome.geometry); scope.own(dome.material);
       scope.onDispose(() => { dome.removeFromParent(); scene.fog = null; });
       return { chain };
@@ -246,7 +248,8 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
           .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
   // The baked dune shadow (a ${String(SHADOW_TEX)}² map, sharpened) takes only the key (direct) light; the cool sky fill stays.
   float sandVis = smoothstep(0.25, 0.75, texture2D(uSandShadow, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r);
-  reflectedLight.directDiffuse *= mix(0.2, 1.0, sandVis); // council round 3: shadows go deep (the spread, not the mean)
+  sandVis = max(sandVis, smoothstep(${(GROUND_HALF - 6).toFixed(1)}, ${GROUND_HALF.toFixed(1)}, max(abs(vSandPos.x), abs(vSandPos.z)))); // round 4: the stepped strip past the map
+  reflectedLight.directDiffuse *= mix(0.08, 1.0, sandVis); // the key mostly gone in cast shade; the fill below keeps it violet-brown (round 4: black slabs)
   reflectedLight.directSpecular *= sandVis;
   // Round 1 (R1C-3): where the key doesn't reach (cast shadow or a face turned from it) the sky fill paints the bible's
   // cool violet shade (#4a3a48 to #5b4f6a), not a darkened orange: the crest line splits warm from cool.
@@ -256,7 +259,7 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   vec3 sandFill = reflectedLight.indirectDiffuse;
   // loop 6 (the scorer: shade went muddy purple-black, ripples vanished in it): a cool blue-grey fill, a step brighter,
   // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
-  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.95, 0.85, 0.9), uDusk) * mix(0.62, 1.15, uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
+  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.95, 0.85, 0.9), uDusk) * mix(1.0, 1.15, uDusk) + vec3(0.016, 0.013, 0.02) * sandShade * (1.0 - uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
   // the dusk's lavender sky floor (R2B-1: the late views' sand measures dim warm brown-violet, not black or pure orange)
   reflectedLight.indirectDiffuse += uDusk * vec3(0.008, 0.005, 0.009);
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
