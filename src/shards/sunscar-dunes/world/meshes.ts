@@ -81,11 +81,14 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
     // the whip (council round 4: a beaded worm, not a plait): two crossing strand sets in the model's own space, dark gaps
     // between the strands and a lit crown on each, on the coil and the tail only (the fist and cuff keep their paint)
     vec3 gp = vGloveP; float whip = gloveWhip;
-    float sa = sin((gp.x + gp.y + gp.z * 0.7) * 48.0), sb = sin((gp.x - gp.y - gp.z * 0.7) * 48.0);
+    vec2 cd = gp.xy - vec2(-0.4, 0.55);
+    float cordS = atan(cd.y, cd.x) * 0.42, cordW = atan(gp.z + 0.09, length(cd) - 0.42);
+    // a plait's lozenges: strands leaning one way on one half of the cord and the other way on the other half (chevrons)
+    float sa = sin(cordS * 70.0 + cordW * 11.0), sb = sin(cordS * 70.0 - cordW * 11.0);
     // diagonal strands (seat B, round 6): sa runs the strands, sb staggers them in alternate rows (a plait's chevrons)
-    float sp = sa * sign(sb + 1e-3);
-    float gap = 1.0 - smoothstep(0.0, 0.3, abs(sa));
-    vec3 strand = mix(vec3(0.07, 0.042, 0.028), vec3(0.24, 0.14, 0.085), smoothstep(0.45, 0.95, sp)); // dark brown, one bright rim per strand (round 6: copper fishnet)
+    float sp = abs(sa) * abs(sb);
+    float gap = max(1.0 - smoothstep(0.0, 0.22, abs(sa)), 1.0 - smoothstep(0.0, 0.22, abs(sb)));
+    vec3 strand = mix(vec3(0.075, 0.045, 0.03), vec3(0.2, 0.12, 0.075), smoothstep(0.2, 0.9, sp)); // rounded strands, sheen from the 0.45 roughness // dark brown, one bright rim per strand (round 6: copper fishnet)
     diffuseColor.rgb = mix(diffuseColor.rgb, mix(strand, vec3(0.025, 0.016, 0.012), gap * 0.85), whip);
     // the gauntlet's stitching (council rounds 3-5: no seams read on the generated glove): two dashed seams along the back of
     // the hand and a stitched ring at the cuff edge, in pale thread over a dark welt, in the model's own space
@@ -97,15 +100,15 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
     float dash = step(0.45, fract(along * 70.0));
     float dashR = step(0.45, fract(ang * rad * 70.0));
     float welt = (1.0 - smoothstep(0.015, 0.028, seamL)) * step(0.15, along) * step(along, 1.3) + (1.0 - smoothstep(0.012, 0.022, abs(along - 0.5)));
-    diffuseColor.rgb *= 1.0 - 0.45 * clamp(welt, 0.0, 1.0) * (1.0 - whip);
+    diffuseColor.rgb *= 1.0 - 0.55 * clamp(welt, 0.0, 1.0) * (1.0 - whip);
     float thread = clamp((1.0 - smoothstep(0.008, 0.015, seamL)) * step(0.15, along) * step(along, 1.3) * dash + (1.0 - smoothstep(0.006, 0.012, abs(along - 0.5))) * dashR, 0.0, 1.0);
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.5, 0.38, 0.26), thread * (1.0 - whip) * 0.85);
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.55 + vec3(0.02, 0.012, 0.008), thread * (1.0 - whip) * 0.8);
   }`)
       // a light from the viewer side, so the held glove reads as lit leather, never a cut-out against the dusk (mockup D: the lit
       // fist; the key is behind it now): faces lit, edges falling off, more as the dusk deepens
       .replace('#include <roughnessmap_fragment>', ramp ? '#include <roughnessmap_fragment>' : '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.45, gloveWhip);')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-  totalEmissiveRadiance += diffuseColor.rgb * ${ramp ? 'vec3(0.62, 0.46, 0.34)' : 'vec3(0.3, 0.24, 0.2)'} * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
+  totalEmissiveRadiance += diffuseColor.rgb * ${ramp ? 'vec3(0.62, 0.46, 0.34)' : 'vec3(0.42, 0.33, 0.27)'} * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
   });
 }
 /** A textured hero model: its scene as loaded (its own map on its own UVs), normals smoothed, matte. */
@@ -119,7 +122,7 @@ async function loadHd(name: DuneHdName): Promise<void> {
           m.metalness = 0; m.roughness = 0.85; m.flatShading = false;
           // E399 (mockup D): the glove dark worn leather with a soft sheen, not a saturated red-brown
           if (name === 'glove-hd' || name === 'glove-hd2') {
-            m.color.setRGB(1, 1, 1); m.roughness = name === 'glove-hd2' ? 0.32 : 0.42; m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
+            m.color.setRGB(1, 1, 1); m.roughness = name === 'glove-hd2' ? 0.26 : 0.42; m.fog = false; m.userData['sunscarNoRim'] = true; // council round 2: the rim drew an X-ray outline
             wornLeather(m, name === 'glove-hd'); // glove-hd2 is painted dark leather with its seams: no ramp
           }
           if (name === 'brazier-hd' || name === 'wagon-hd') warmByFire(m);
