@@ -1,10 +1,11 @@
 import { DUSK, fillAt, keyAt } from './dusk';
-import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight } from 'three';
+import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight, type Texture } from 'three';
 import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { GROUND_HALF } from '../layout';
 import { WIND } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
+import { loadPaintedSky, paintedSkyMaterial } from './painted';
 
 /**
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md): the key is a low warm sun ~9° up in front of the spawn view,
@@ -152,6 +153,8 @@ export function signalDunesLook(): LookStrategy {
   const dome = new Mesh(new SphereGeometry(120, 48, 24), new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
     uniforms: { uSun: { value: SUN_GLOW.clone() }, uDusk: DUSK }, vertexShader: SKY_VERTEX, fragmentShader: SKY_FRAGMENT }));
   dome.renderOrder = -1000; dome.frustumCulled = false;
+  // E409 second top-10 row 2: the painted dusk skies replace the procedural dome once they load (the backdrop); freed with the look
+  let painted: { material: ShaderMaterial; textures: readonly Texture[] } | null = null;
   return { mode: 'extend',
     compose: ({ engineChain, scene, scope }) => {
       scene.fog = new Fog(new Color(FOG.color), FOG.near, FOG.far);
@@ -159,12 +162,20 @@ export function signalDunesLook(): LookStrategy {
       // E399: the engine's AgX stays (tried NEUTRAL, the lead's lever: it drove the sand's blue channel to ~0 and every sky to a
       // saturated plum, since this look's colours are tuned under AgX's highlight desaturation)
       scope.own(dome.geometry); scope.own(dome.material);
-      scope.onDispose(() => { dome.removeFromParent(); scene.fog = null; });
+      scope.onDispose(() => {
+        dome.removeFromParent(); scene.fog = null;
+        if (painted) { painted.material.dispose(); for (const t of painted.textures) t.dispose(); painted = null; }
+      });
       return { chain };
     },
     // No sun disc or halo (G25): the sun has just set; the dome paints the afterglow.
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },
-    backdrop: ({ sky }) => {
+    backdrop: async ({ sky }) => {
+      const stages = await loadPaintedSky();
+      if (stages) {
+        const procedural = dome.material, material = paintedSkyMaterial(stages, DUSK);
+        dome.material = material; procedural.dispose(); painted = { material, textures: stages };
+      }
       // E407 row 10's learned grade (art/sunscar-dunes/round-24-lut) is out of the grade until the landforms settle (the lead
       // and seat B after round 16: fitted before the wind went back, it dropped B's and dusk-fire's near sand ~7); its file
       // stays a declared late read (boot/files.ts) for the re-fit
@@ -174,7 +185,7 @@ export function signalDunesLook(): LookStrategy {
       // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens
       let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null, fogDistBase = 0;
       const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x110b16);
-      return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
+      return { clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
         // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
         bind: (targets) => {
@@ -193,7 +204,7 @@ export function signalDunesLook(): LookStrategy {
           // round 12 (D: a pale haze strip on the far land under the ranges; the mockup's land there near-black): thinner late
           if (fogDist) fogDist.value = fogDistBase * (1 - 0.8 * late);
         },
-        rebuild: () => undefined, attachPost: () => undefined });
+        rebuild: () => undefined, attachPost: () => undefined };
     },
     terrainPainter: { build: (terrain, field, scope) => {
       // 256: the baked height grid's own spacing (1.95 m; round 1, R1C-5: 192 blunted the crests)

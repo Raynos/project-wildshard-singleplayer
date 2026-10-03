@@ -39,9 +39,15 @@ const URLS: Readonly<Record<DuneMeshName, string>> = {
 };
 export const duneMeshUrl = (name: DuneMeshName): string => URLS[name];
 
-/** Signal Dunes downloads only its generated models (C6, `world/meshes.ts`); the rest is code and every sound is a kit voice. */
+/** The painted dusk skies, one per dusk stage (look/painted.ts, art/sunscar-dunes/round-25-sky; E409 second top-10 row 2). */
+export const PAINTED_STAGES = ['early', 'late'] as const;
+export type PaintedStage = (typeof PAINTED_STAGES)[number];
+const PAINTED_URLS: Readonly<Record<PaintedStage, string>> = { early: '/assets/sunscar-dunes/sky/dusk-early.webp', late: '/assets/sunscar-dunes/sky/dusk-late.webp' };
+export const paintedUrl = (stage: PaintedStage): string => PAINTED_URLS[stage];
+
+/** Signal Dunes downloads its generated models (C6, `world/meshes.ts`) and its painted dusk skies; the rest is code and every sound is a kit voice. */
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = () => ({
-  sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...DUNE_MESHES.map(duneMeshUrl), ...DUNE_HD.map(duneHdUrl)], art: [], music: [], sfx: [],
+  sky: PAINTED_STAGES.map(paintedUrl), baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...DUNE_MESHES.map(duneMeshUrl), ...DUNE_HD.map(duneHdUrl)], art: [], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
 /** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/sunscar-dunes/round-24-lut/). */
