@@ -17,3 +17,19 @@ sky saturated peach instead of grey; the builder counts 10–20% of each mock vi
 the meadow (darker ground under the blades, flowers in tight drifts, olive-gold: B (99, 85, 34) vs (96, 80, 50)); the rim
 crags and code root cones removed from the playable isles. Not done by the builder's account: B's sky (A's isle cluster
 sits in it), the keel shapes.
+
+- sunscar-dunes: capture `progress/sunscar-dunes/20261003-0057-56c23085` (sha 56c23085, staged {'mock-B-logbook': 'logbook', 'mock-C-waymark': 'waymarks-lit', 'mock-D-hands': 'waymarks-lit'}, page errors 0)
+
+### Signal Dunes, round 5
+
+Changes since round 4 (generated from the two captures): no mock-* camera changed; no commit touched staging code. This
+capture records each shot's real camera (meta.json `camAt`), so real-camera moves are compared from round 6 on. Ruling in
+force (round 4): the idle hold is the big low coil four of the five mockups show; D uses it too.
+
+Builder's claims to verify (round-4 must-fixes), measured by the builder in Rec. 709 luminance on the ground band: the
+shade faces cool violet-brown, not black; brighter lit crests; A's spread 62 (mockup 79, was about 40), dusk-fire's 34
+(mockup 62); D's ground (57, 30, 31) vs (60, 37, 33) and zenith (31, 33, 74) vs (32, 34, 75); the logs back inside the
+bowl; the glove neutral dark brown with sheen, the thumb patch fixed; sunset clouds as irregular banks with dark cores;
+late skies blue-violet; the tent dark canvas; the far-sand stepped strip fixed; the wagon lit by its own lantern. Tried
+and rejected by the builder: the NEUTRAL tone mapper (it drove the sand's blue to about 0 and the skies to saturated plum
+under this look's colours), so AgX stays. Still weak by its own account: the plait reads beaded; dusk-fire's spread.
