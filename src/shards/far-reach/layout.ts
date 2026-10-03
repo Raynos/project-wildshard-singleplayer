@@ -129,8 +129,8 @@ export const GOATS: readonly { readonly isle: Isle; readonly dx: number; readonl
  * entrance the bird passes through the portrait view instead of circling above it.
  */
 // (round 7: from the arena's rise its lap at +10 sat 10 deg over the eye, down among the standing stones; mockup D's eagle is
-// ~14 deg up, just under the boss bar)
-export const ROC = { x: DAIS.x, z: DAIS.z, r: 13, y: HIGH + 13 } as const;
+// ~12 deg up, under the boss bar)
+export const ROC = { x: DAIS.x, z: DAIS.z, r: 13, y: HIGH + 11 } as const;
 /** Pine positions per island, as offsets from its centre, with a scale. */
 export const PINES: Readonly<Record<string, readonly (readonly [number, number, number])[]>> = {
   sunrest: [[-11, -6, 1], [-9, 6, 0.8], [11, 7, 0.9], [10, -12, 1.0], [-4, 12, 0.7]],

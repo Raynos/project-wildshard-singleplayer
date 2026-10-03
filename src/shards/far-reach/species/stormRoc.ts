@@ -103,7 +103,7 @@ const brains = new WeakMap<Animal, StormRocBrain>();
 export const rocBrain = (a: Animal): StormRocBrain => { let value = brains.get(a); if (!value) { value = new StormRocBrain(a); brains.set(a, value); } return value; };
 export const STORM_ROC: SpeciesRow = { id: 'far.creature.stormRoc', kind: 'stormRoc', label: STRINGS.roc, aggressive: true, blood: false,
   // bank (engine 8252e3978): it rolls into its turns, so the lap round the dais banks (round 7: 'a frontal level bird')
-  flight: { altitude: ROC.y, above: 'world', climbRate: 9, diveRate: 24, lockRange: 40, bank: 0.6 },
+  flight: { altitude: ROC.y, above: 'world', climbRate: 9, diveRate: 24, lockRange: 40, bank: 0.35 },
   variants: [{ id: 'storm', label: STRINGS.roc, weight: 1, rarity: 'legendary', scale: [1, 1], hp: 420 }],
   think: (a, ctx) => { rocBrain(a).think(ctx); }, act: (a, ctx) => { rocBrain(a).act(ctx); } };
 
@@ -202,11 +202,16 @@ function rocHd(m: SkyHd): AnimalSpecies {
 }
 /** The body: the textured model when it loaded, else the faceted generated one, else the code one. */
 export const rocBody = (): AnimalSpecies => { const t = skyHd('roc-hd'); if (t) return rocHd(t); const g = skyMesh('storm-roc'); return g ? rocMesh(g) : rocCode(); };
+/** The soaring wings' raised V (radians): level, from the arena they read edge-on; raised, their undersides face a viewer below. */
+const ROC_DIHEDRAL = 0.3;
 export const STORM_ROC_LOOK: SpeciesLook = { id: 'far.look.stormRoc', species: STORM_ROC.id, kind: 'stormRoc', rig: 'custom', fur: NO_FUR,
   rigContract: { skeleton: 'far.stormRoc', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
   build: () => rocBody(),
   animate: ({ bones, t, alive }) => {
-    const flap = alive ? Math.sin(t * 1.9) * 0.45 : 0.9;
+    // a 19 m raptor soars (round 7: a steady beat caught the wings raised edge-on in half the frames; mockup D's eagle glides,
+    // wings spread): a slow flex, with a few strong beats in a short burst every ~6 s
+    const burst = Math.max(0, Math.sin(t * 1.05) - 0.85) / 0.15;
+    const flap = alive ? ROC_DIHEDRAL + Math.sin(t * 0.9) * 0.06 + Math.sin(t * 3.8) * 0.45 * burst : 0.9;
     const l = bones['wingL'], r = bones['wingR'], tail = bones['tail'];
     if (l) l.rotation.z = flap; if (r) r.rotation.z = -flap; if (tail) tail.rotation.x = alive ? Math.sin(t * 1.1) * 0.15 : 0;
   },

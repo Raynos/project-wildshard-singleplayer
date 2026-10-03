@@ -241,11 +241,11 @@ export class SkyReachPlugin extends ShardPlugin {
     const roc = this.roc, body = roc ? rocBrain(roc) : null;
     if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
     // and a strike in the storm behind it (its lightning comes every 3.5-8 s; mockup D shows a bolt), just before the frame
-    // 'roc-lap' (round 7, the lead's ruling for mock-D): the Roc's rest lap round the dais, set so that after D's 0.6 s
-    // settle it is on the lap's north-east quarter, turning in toward the arena view and banking along it (tried at
+    // 'roc-lap' (round 7, the lead's ruling for mock-D): the Roc's rest lap round the dais, set so that after D's 1.5 s
+    // settle (steady circling, a steady bank) it is on the lap's north-east quarter, turning in toward the arena view and banking along it (tried at
     // -1.2 / -1.45 / -1.7 / -1.85 / -2.07: east of this it leaves the frame, west of it it crosses side-on)
     // ('roc-lap@<radians>' places it at another point of the same lap)
-    if (name.startsWith('roc-lap')) { this.built?.storm.strike(0.5); if (body !== null) body.stageLap(Number(name.split('@')[1] ?? -1.95)); }
+    if (name.startsWith('roc-lap')) { this.built?.storm.strike(0.5); if (body !== null) body.stageLap(Number(name.split('@')[1] ?? -2.64)); }
     if (name === 'roc-stalk') this.built?.storm.strike(0.15);
     if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }
