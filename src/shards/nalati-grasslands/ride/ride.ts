@@ -47,7 +47,7 @@ const BOLT_PANIC = 35;
  * names the horse standing nearest you there (HorseNamePrompt; the name is saved, horseNames.ts).
  */
 /** a species' own voice through the manager's sound hook (its names are the species' — AnimalManager's `c.sound` does the same) */
-function voice(name: string): AnimalSound { return name as AnimalSound; }
+function voice(name: string): AnimalSound { return name; }
 
 export interface RideCtx { ctx?: LevelContext; player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
 export interface RidePlay { toast: (text: string) => void }

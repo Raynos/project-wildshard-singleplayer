@@ -1,6 +1,6 @@
 import type * as THREE from 'three';
 import type { Animal } from '#engine/entities/Animal';
-import type { AnimalManager, AnimalSound } from '#engine/entities/AnimalManager';
+import type { AnimalManager } from '#engine/entities/AnimalManager';
 import type { Game } from '#engine/core/Game';
 import type { Sky } from '#engine/world/Sky';
 import type { Player } from '#engine/player/Player';
@@ -64,7 +64,7 @@ export function retire(animals: AnimalManager, a: Animal): void {
 }
 
 /** an AnimalManager sound by name (the manager's own names, plus the species' strings like 'elk_bugle') */
-export function voice(animals: AnimalManager, name: string, at: THREE.Vector3): void { animals.onSound?.(name as AnimalSound, at); }
+export function voice(animals: AnimalManager, name: string, at: THREE.Vector3): void { animals.onSound?.(name, at); }
 
 /**
  * A telegraphed LANE CHARGE (Old Ironhide's gore charge, the Imperial Bull's and his rivals', the thralls', the King's

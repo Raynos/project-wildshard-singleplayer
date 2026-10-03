@@ -58,7 +58,7 @@ const RING = 22;                       // m: his slow ring round the flock
 /** the valley pack's den from the flock (m) and its wolves; spawned at most this many times a session */
 const DEN = { dx: -80, dz: -8 }, RAIDERS = ['grey', 'tawny', 'scout'], MAX_PACKS = 2;
 type AnimalSound = Parameters<NonNullable<AnimalManager['onSound']>>[0];
-const voice = (name: string): AnimalSound => name as AnimalSound;
+const voice = (name: string): AnimalSound => name;
 const rand = (r: readonly [number, number]): number => r[0] + app.rng.stream('ai').next() * (r[1] - r[0]);
 
 // ── the shepherd, seated (seat space: origin on the saddle, +y up, +z forward, +x his LEFT — the camp people's frame) ──
