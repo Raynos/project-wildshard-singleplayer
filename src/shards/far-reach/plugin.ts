@@ -129,6 +129,8 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.inputContext({ id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
       touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: SWING_ICON } },
         verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: () => ctx.app.state === 'play' && !this.board() } } } });
+    // the gust in the key-bindings table, under Combat (E418: G worked but was listed nowhere), while the shard is loaded
+    ctx.app.input.bindings.describe({ rows: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] }, ctx.scope);
 
     // Step 1: the keeper's notes.
     built.notes.onInteract = () => { flags.set(FLAGS.notes); toast(STRINGS.notesToast); };

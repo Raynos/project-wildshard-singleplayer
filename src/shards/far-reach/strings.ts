@@ -8,6 +8,8 @@ export const STRINGS = {
   notesToast: 'Keeper\'s notes: "The crown bridge only answers the winch when the vanes turn and the roost is quiet."',
   fan: 'War fan', fanBlurb: 'SWING slashes; GUST blows a cone of wind that throws creatures back, off the edge if they are near one.',
   swing: 'SWING', gust: 'GUST',
+  // the key-bindings row (pause ▸ Settings ▸ Key bindings and the quick help): plain case, as the engine's rows are
+  gustBinding: 'Gust',
   ray: 'Drift ray', rayNote: 'A manta of the high air. It circles, hangs over you, then dives. Gust it out of the sky.',
   goat: 'Sky goat', goatNote: 'Grazes the island tops and rams whatever crowds it. A gust near the rim sends it into the clouds.',
   wisp: 'Gale wisp', wispNote: 'A knot of wind that darts in and bursts against you.',
