@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferGeometry, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, Vector4, type Group, type Object3D, type Vector3 } from 'three';
+import { AdditiveBlending, BufferGeometry, CustomBlending, OneFactor, OneMinusSrcAlphaFactor, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, Vector4, type Group, type Object3D, type Vector3 } from 'three';
 import { WIND } from './dunes';
 
 /**
@@ -49,8 +49,10 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
 }`;
 
+// round 8b (measured: the flame's bright pixels carried the sky's blue, B 105-203 against mockup C's 69-173: an additive
+// flame over a violet sky reads peach): premultiplied alpha, so the flame's body covers the sky behind it
 const flameMaterial = new ShaderMaterial({
-  uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: AdditiveBlending, fog: false,
+  uniforms: { uTime: time }, transparent: true, depthWrite: false, blending: CustomBlending, blendSrc: OneFactor, blendDst: OneMinusSrcAlphaFactor, fog: false,
   vertexShader: `#define LEAN 0.06\n#define LEAN_WIDEN 0.0\n#define SWAY 0.15\n${BILLBOARD_Y}`,
   fragmentShader: /* glsl */ `
 uniform float uTime;
@@ -73,11 +75,14 @@ void main() {
   float d = abs(x + lick) / w;
   float top = y + (n1 - 0.5) * 0.6 + (n2 - 0.5) * 0.3 + (n3 - 0.5) * 0.12;
   float body = (1.0 - smoothstep(0.82, 0.98, d + (n3 - 0.5) * 0.25)) * (1.0 - smoothstep(0.66, 0.8, top)) * smoothstep(0.0, 0.14, y);
-  float core = (1.0 - smoothstep(0.1, 0.5, d)) * (1.0 - smoothstep(0.1, 0.38, top + (n2 - 0.5) * 0.15));
+  float core = (1.0 - smoothstep(0.05, 0.36, d)) * (1.0 - smoothstep(0.06, 0.3, top + (n2 - 0.5) * 0.15));
   float heat = smoothstep(0.0, 0.7, 1.0 - d) * (1.0 - smoothstep(0.25, 0.8, top));
-  vec3 c = mix(vec3(0.85, 0.11, 0.0), vec3(1.0, 0.34, 0.01), heat) * 0.6;
-  c = mix(c, vec3(1.0, 0.62, 0.22) * 3.2, core);
-  gl_FragColor = vec4(c * body * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
+  // round 8b: AgX washes a bright saturated orange to peach (the sparks, at a moderate gain, stay orange): the licks at a
+  // moderate gain from deep orange to yellow-orange, only the small core pushed white
+  vec3 c = mix(vec3(0.8, 0.12, 0.0), vec3(1.0, 0.5, 0.04), heat) * 0.7;
+  c = mix(c, vec3(1.0, 0.66, 0.26) * 1.9, core);
+  float fade = smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25);
+  gl_FragColor = vec4(c * body * fade, body * fade * 0.9);
 }`,
 });
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */

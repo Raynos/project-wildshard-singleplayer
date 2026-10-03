@@ -157,6 +157,9 @@ async function loadHd(name: DuneHdName): Promise<void> {
           // round 8 (the council since round 5: the wagon's canvas one even self-lit orange with blown white patches; mockup B:
           // a backlit wagon, its cloth grey-beige, the lantern's light inside): its texture taken down to the cloth's value
           if (name === 'wagon-hd') { m.color.setRGB(0.6, 0.55, 0.52); greyed(m, 0.5); }
+          // round 8 (the council since round 4: a copper bowl and twisted copper post on a clean tan plinth; mockup C: soot-dark
+          // iron and weathered stone, warm only where the fire lights it)
+          if (name === 'brazier-hd') { m.color.setRGB(0.5, 0.44, 0.4); greyed(m, 0.45); }
           if (name === 'brazier-hd' || name === 'wagon-hd') warmByFire(m);
           m.needsUpdate = true;
         }
