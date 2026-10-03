@@ -29,9 +29,11 @@ export const KEY = { dir: new Vector3(-0.34, 0.2, -0.92).normalize(), color: new
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
-export const FOG = { color: 0x5e5288, near: 80, far: 430 } as const;
+// round 22 (the lead after round 21: the light band's 0x5e5288 turned A's mid dunes and D's far land milky lilac): the
+// horizon's darker violet near the ground
+export const FOG = { color: 0x3e3452, near: 80, far: 430 } as const;
 /** The distance fog's density (the engine's exponential fog, per metre): row 10's aerial perspective. */
-const AERIAL_FOG = 0.0028; // loop 6: a deep dusk haze, not lilac; E409 second top-10 row 10 (aerial perspective: the mockups' far dunes go violet-blue, blue/red 0.62-0.88): the horizon sky's lighter violet-blue (round 21b)
+const AERIAL_FOG = 0.0013; // round 22 (the lead: subtle in front of ~300 m): 18 % at 150 m, 32 % at 300 m, 48 % at 500 m (0.0028: 34 / 57 / 75 %) // loop 6: a deep dusk haze, not lilac; E409 second top-10 row 10 (aerial perspective: the mockups' far dunes go violet-blue, blue/red 0.62-0.88): the horizon sky's lighter violet-blue (round 21b)
 // loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
 // E399 (council round 2, R2B-1: the mockups' ground measures warm brown, R/B ~3): less blue in every tone
 const SAND = new Color(0.5, 0.23, 0.075),
@@ -189,7 +191,7 @@ export function signalDunesLook(): LookStrategy {
       // round 10 (R9B-2: under every dusk horizon the far land is 2-4x the mockups', which put near-black land under a thin
       // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens
       let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null;
-      const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x1a1733);
+      const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color();
       return { clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
         // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
@@ -203,7 +205,8 @@ export function signalDunesLook(): LookStrategy {
           sky.setKeyLight(KEY.dir, keyColor.copy(KEY.color).lerp(DEEP_KEY, DUSK.value), KEY.intensity * keyAt(DUSK.value));
           if (hemi) hemi.intensity = hemiBase * fillAt(DUSK.value);
           const late = Math.min(1, Math.max(0, (DUSK.value - 0.2) / 0.5));
-          fog?.color.copy(fogBase).lerp(DUSK_FOG, late);
+          // round 22: the fog keeps the horizon sky's lighter violet-blue at every step (it went toward the near-black DUSK_FOG late)
+          fog?.color.copy(fogBase);
           // row 10: the sun-side tint at a third (with the thicker distance fog it lit the far land toward the glow)
           fogSun?.copy(fogSunBase).multiplyScalar(0.35 * (1 - 0.8 * late));
           // round 21b: the far ranges' haze full at the sunset step (A's ranges 36 against 70) and falling to 15 % by the late
@@ -216,7 +219,11 @@ export function signalDunesLook(): LookStrategy {
           // paled D's far land), the same at every dusk step
           // round 21b (seat B after round 20: the haze darkened the far land, A's ranges 36 against 70, blue/red 0.58 against
           // 0.83-0.88): aerial perspective goes toward the horizon sky's violet-blue, lighter; one density at every dusk step
-          if (fogDist) fogDist.value = AERIAL_FOG;
+          // round 22 (seats B and C after round 20: the late views' far land 32-55 against the mockups' 16-27, A's at sunset
+          // short of its haze): the haze is sunlight scattered in the air, so it thins as the light goes, never thickens:
+          // full at the sunset step, a fifth by the blue hour; always toward the same lighter colour, a lift that fades
+          const thin = Math.min(1, Math.max(0, (DUSK.value - 0.3) / 0.45));
+          if (fogDist) fogDist.value = AERIAL_FOG * (1 - 0.8 * thin * thin * (3 - 2 * thin));
         },
         rebuild: () => undefined, attachPost: () => undefined };
     },
@@ -393,7 +400,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // sand 20 against the mockup's 32): each burning fire (and the caravan's lantern, at its share) lights the sand round it
   for (int i = 0; i < 4; i++) {
     float fireD = length(vSandPos - uFireLights[i].xyz);
-    reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.0, 0.42, 0.14) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 11.0), 2.0) * 0.18;
+    reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.0, 0.42, 0.14) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 11.0), 2.0) * 0.12;
   }
   {
     // round 10 (R9B-2: mockups B, C and D put near-black land under the glow, 13-19 against our 47-74, the far land darker

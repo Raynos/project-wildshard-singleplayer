@@ -37,7 +37,7 @@ const TOWER_LIGHT = 14;
  * wind-cut rock field. The quest state lives in `flags`, so a later visit finds the world as it was left.
  */
 /** The waymark fire's point light (candela; physical decay over its 10 m reach). */
-const WAY_LIGHT = 14;
+const WAY_LIGHT = 9;
 /** The caravan lantern's share of the same light: a lantern, not a fire. */
 const LANTERN_LIGHT = 3;
 
