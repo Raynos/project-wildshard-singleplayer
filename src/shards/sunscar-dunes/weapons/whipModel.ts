@@ -4,7 +4,9 @@ import { duneHd, duneMesh, smoothColors, viewerLit } from '../world/meshes';
 /** The hero glove's fit in the whip model's frame (metres, radians): its span, its offset and its turn. */
 // round 9 (seat C: A, B and C hold big rings rising from the bottom edge, dusk-fire one low loose loop, only D a raised
 // fist): the one idle hold lower, toward the four
-export const HD_GLOVE = { size: 0.22, pos: [0.06, -0.2, 0] as [number, number, number], rot: [-0.25, 0.35, 0.2] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
+// round 15 (the lead after round 14: a big smooth fist, knuckles to the camera; the loop under the HUD): 0.7 of its size,
+// turned toward the reference's three-quarter view, the fist and its loop above the DODGE / JUMP buttons
+export const HD_GLOVE = { size: 0.155, pos: [0, -0.13, 0] as [number, number, number], rot: [-0.2, 0.85, 0.15] as [number, number, number] }; // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally; round 9 (seat C: A, B and C hold big rings
 // rising from the bottom edge, dusk-fire one low loose loop, only D a raised fist): the one idle hold lower, toward the four // council round 2 (R2B-3c): the coil ~0.1 of the frame lower, laid diagonally
 
 /** Warm saddle-leather browns: the braid's two strands, the glove, its cuff and the knob; the popper is pale cord. */
@@ -127,21 +129,27 @@ function plaitTextures(): { map: DataTexture; normal: DataTexture; rough: DataTe
 /**
  * E407 row 4 (the lead after round 14: every mockup shows a compact gloved fist low in the corner holding a ROUND coil of
  * plaited whip, one to two fists across; a thin cord rising from the fist read as nothing): a real coil in glove-hd3's own
- * frame (it spans ~2 units, ~0.13 m a unit; the handle's top at (-0.53, 0.95, 0.19)): the cord leaves the handle's top,
- * runs down outside the fist into two near-circular turns beside and below it, and the fall drops out of the frame.
+ * frame (it spans ~2 units, ~0.13 m a unit; the handle's top at (-0.53, 0.95, 0.19)): the cord leaves the handle's top
+ * into a closed coil beside the fist (round 15: see plaitedLoop), and the fall drops out of the frame behind the hand.
  */
-export const LOOP = { cord: 0.048, from: [-0.53, 0.95, 0.19], c: [-1.0, 0.05, -0.15], r: 0.55, turns: 2, step: [0.1, -0.08, 0.09], tail: [[-0.55, -1.5, 0.5], [-0.45, -2.4, 0.55]] } as const;
+export const LOOP = { cord: 0.06, from: [-0.53, 0.95, 0.19], c: [-1.4, 0.3, -0.25], rx: 0.48, ry: 0.56, face: 0.6, turns: 2, step: [0.05, -0.04, 0.05], tail: [[-0.95, -0.75, -0.45], [-0.75, -1.7, -0.5]] } as const;
 
-/** The coil (LOOP) as one plaited tube. */
+/**
+ * The coil (LOOP) as one plaited tube. Round 15 (the lead after round 14: an open hook with a kink, the strands crossing
+ * in front of the fingers, the loop under the HUD): a CLOSED upright ellipse beside the fist, its two turns lying close,
+ * the turns ending at its foot so the fall drops straight down behind the hand, out of the frame.
+ */
 function plaitedLoop(): Mesh {
   const [fx, fy, fz] = LOOP.from, [cx, cy, cz] = LOOP.c;
-  const pts: Vector3[] = [new Vector3(fx, fy, fz), new Vector3(fx - 0.22, fy - 0.05, fz + 0.06), new Vector3(cx + 0.1, cy + LOOP.r * 0.95, cz)];
-  // the turns, clockwise as the camera sees them, each a little offset from the last so the coil's rings part
-  const n = 40 * LOOP.turns;
+  const pts: Vector3[] = [new Vector3(fx, fy, fz), new Vector3(fx - 0.2, fy + 0.02, fz - 0.06), new Vector3(cx + 0.12, cy + LOOP.ry * 0.97, cz)];
+  // clockwise as the camera sees them from the top, 1.5 turns past the first so the coil closes and ends at its foot
+  const n = 40 * LOOP.turns, sweep = Math.PI * (2 * LOOP.turns - 1);
   for (let i = 1; i <= n; i++) {
-    const t = i / n, a = Math.PI * 0.5 - t * Math.PI * 2 * LOOP.turns, k = t * (LOOP.turns - 1);
-    const r = LOOP.r * (1 - 0.05 * Math.sin(a * 3 + 0.7));
-    pts.push(new Vector3(cx + Math.cos(a) * r + LOOP.step[0] * k, cy + Math.sin(a) * r + LOOP.step[1] * k, cz + LOOP.step[2] * k + Math.sin(a) * 0.06));
+    const t = i / n, a = Math.PI * 0.5 - t * sweep, k = t * (LOOP.turns - 1);
+    const wob = 1 - 0.04 * Math.sin(a * 3 + 0.7);
+    // the ellipse's plane turned back by `face` against the glove's own turn (HD_GLOVE.rot y), so it opens to the camera
+    const ex = Math.cos(a) * LOOP.rx * wob;
+    pts.push(new Vector3(cx + ex * Math.cos(LOOP.face) + LOOP.step[0] * k, cy + Math.sin(a) * LOOP.ry * wob + LOOP.step[1] * k, cz + ex * Math.sin(LOOP.face) + LOOP.step[2] * k + Math.sin(a) * 0.05));
   }
   for (const q of LOOP.tail) pts.push(new Vector3(q[0], q[1], q[2]));
   return plaitedTube(pts, LOOP.cord);

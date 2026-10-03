@@ -39,10 +39,13 @@ export const CREST_LINES: readonly { a: [number, number]; b: [number, number]; l
  * foot on the horizon and fills dusk-fire's middle band (its big dome).
  */
 export const LANDFORMS = {
-  // round 14 (the lead): from the frame's right edge, far, down and left to near centre; windward face toward the camera,
-  // slip face behind (north-west, downwind of the crest's own wind), the key crossing it
-  crests: [{ pts: [[70, -50, 30], [38, -8, 24], [8, 26, 14]] as [number, number, number][], w: 80, lee: 56, leeSide: 1, fade: 0.25, trough: 3 }],
-  mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }],
+  // round 15 (the lead after round 14): ACROSS the wind (WIND), far-left to near-right as the mockups draw it, its line
+  // ~50 m ahead of the spawn and under the eye, so it crosses A's frame from ~0.37 at the left edge to ~0.48 at the
+  // right, as mockup A's lit diagonal; the key (inside the sky's glow) rakes across it, its windward face lit toward the
+  // camera, its slip face (leeSide -1: downwind of WIND, away from the camera) shaded; 25 m at its far end, under round
+  // 14's 30, so C's skyline drops under the glow
+  crests: [{ pts: [[-68.8, -37.8, 25.0], [-17.1, 5.6, 18.5], [34.6, 49.0, 12.0]] as [number, number, number][], w: 80, lee: 40, leeSide: -1, fade: 0.35, trough: 3 }],
+  mounds: [{ x: TOWER.x, z: TOWER.z, h: 21.5, r: 62 }, { x: -118, z: -30, h: 26, r: 60 }],
 } as const;
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 // E399 (mockup C): each waymark on level sand too, its fire's pool flat round it
@@ -50,8 +53,12 @@ export const LANDFORMS = {
 // eye from every spot round it): the west waymark (the hero brazier's, mock-C's) on a rise `lift` m over its own dune
 // height, a signal seen from afar; the other two keep their ground (the east one stands in the spawn views, the south
 // one's rise would reach the tower's dune)
-export const PADS: readonly { x: number; z: number; r: number; lift?: number }[] = [{ x: CARAVAN.x, z: CARAVAN.z, r: 22 }, { x: WELL.x, z: WELL.z, r: 12 },
-  ...BRAZIERS.map((b, i) => ({ x: b.x, z: b.z, r: 6, lift: i === 1 ? 10 : 0 }))];
+// round 15: the caravan's pad eases over 55 m, not 101 (r * 4.6): its pull reached 123 m and levelled B's whole skyline
+// into a plain (the mockup's dark dunes rise behind the wagon, 17-25 against our sky at 80)
+export const PADS: readonly { x: number; z: number; r: number; lift?: number; ease?: number }[] = [{ x: CARAVAN.x, z: CARAVAN.z, r: 22, ease: 55 }, { x: WELL.x, z: WELL.z, r: 12 },
+  // round 15: no waymark lift (the 10 m lift on waymark 1 served round 13's crest; on the new field it walled a 41-44 deg
+  // face beside it)
+  ...BRAZIERS.map((b) => ({ x: b.x, z: b.z, r: 6, lift: 0 }))];
 /** The crest paths: spawn → tower (the first, the entry trail), spawn → caravan, spawn → well, tower → basin. */
 export const TRAIL: [number, number][][] = [
   [[SPAWN.x, SPAWN.z], [4, 0], [TOWER.x, TOWER.z + 6]],

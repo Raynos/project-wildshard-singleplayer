@@ -4,9 +4,14 @@ import { BASIN, CREST_LINES, CRESTS, LANDFORMS, PADS, SPAWN } from '../layout';
 const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 /**
  * The wind (P2, review R2): it blows along `WIND` (x, z), so the crests run from far-left to near-right across the
- * spawn view (40° off it) and every slip face turns toward the key light, behind-left of the spawn view (style bible). Wavelength `WAVE` m; the lee (slip face) is the last `LEE` of it.
+ * spawn view (40° off it). Wavelength `WAVE` m; the lee (slip face) is the last `LEE` of it.
+ * Round 15 (the lead after round 14: the key stays inside the sky's glow, ahead of the spawn view, and the crests show
+ * their lit windward faces toward the camera with the slip faces shaded downwind): the wind blows AWAY from the spawn
+ * view (north-east, toward the glow), so every windward face turns to the camera and every slip face falls away from it.
+ * Blowing toward the camera, each crest's slip face faced the camera in its own shade: 84-97 % of A's and dusk-fire's
+ * dune band in shade against the mockups' 19-45 % (round 15's measure, art/sunscar-dunes/round-22-landforms).
  */
-export const WIND = { x: -0.643, z: 0.766 } as const;
+export const WIND = { x: 0.643, z: -0.766 } as const;
 // loop 5 (the mockups: tall sweeping dunes, 10-30 m): 1.5x the wave and the height together, so the slip face keeps its
 // angle (every face stays under the player's max climb)
 const WAVE = 150, LEE = 0.3, AMP_MAX = 24, SPAWN_P = 0.69; // E399: the mockups' dunes are big smooth forms (10-30 m)
@@ -96,7 +101,7 @@ function field(x: number, z: number, n: TerrainNoise['n']): { h: number; amp: nu
 }
 
 /** Flat spots levelled to their own dune height (+ `lift`), eased out over 2.4 × `r`. */
-const SPOTS = [...CRESTS.map((c) => ({ x: c.x, z: c.z, r: c.r, lift: c.lift, ease: c.ease })), ...PADS.map((p) => ({ x: p.x, z: p.z, r: p.r, lift: p.lift ?? 0, ease: Math.max(p.r * 4.6, 46) }))];
+const SPOTS = [...CRESTS.map((c) => ({ x: c.x, z: c.z, r: c.r, lift: c.lift, ease: c.ease })), ...PADS.map((p) => ({ x: p.x, z: p.z, r: p.r, lift: p.lift ?? 0, ease: p.ease ?? Math.max(p.r * 4.6, 46) }))];
 const spotLevels = new WeakMap<TerrainNoise['n'], number[]>();
 
 /**

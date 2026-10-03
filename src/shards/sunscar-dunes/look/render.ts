@@ -20,7 +20,8 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 // luma grid correlated with each mockup's: A +0.18 at best for any, dusk-fire +0.39 from the NNW, +0.25 from round 9's WNW;
 // round 9's seats: the WNW key lit A's left, which the mockup shades): the NNW, with the crest line (layout CREST_LINES)
 // and a crisp terminator; dusk-fire's clean-patch sand 73 / mockup 72, A's 78 / 56 (the two mockups' known disagreement)
-export const KEY = { dir: new Vector3(0.75, 0.2, -0.62).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.05 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+// round 15 (the lead): the key stays inside the sky's own glow (SUN_GLOW at 11.5 deg right of north): 23.5 deg, +12 deg of it
+export const KEY = { dir: new Vector3(0.39, 0.2, -0.9).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.05 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -257,7 +258,9 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   float sandTrod = texture2D(uSandTrail, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r;
   sandRip1 *= 1.0 - 0.5 * sandTrod; sandRip2 *= 1.0 - 0.5 * sandTrod; // E399: the trail keeps half its ripples (mockup A: rippled to the bottom edge at the spawn)
   // E399 (mockups A, D): fine low-contrast ripples near the camera, the bold stripes only at middle distance
-  float sandNear = mix(1.05, 0.7, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge); round 8: deeper near (A: troughs to ~20, crowns to ~115)
+  // round 15 (the lead after round 14: the near ripples twice the mockups' contrast close to the camera, 18.5-19.2 % vs
+  // 10 %; the distance fade works): the near amplitude halved, the middle distance as it was
+  float sandNear = mix(0.52, 0.7, smoothstep(4.0, 26.0, sandFar)); // E399 (judge: the mockups' near ripples have dark troughs to the bottom edge); round 8: deeper near (A: troughs to ~20, crowns to ~115)
   // round 8 (mockup B: the late sand dim and soft; ours carried bold dark ripple stripes): the ripples' contrast falls with the dusk
   sandNear *= 1.0 - 0.55 * smoothstep(0.2, 0.6, uDusk) - 0.2 * smoothstep(0.6, 0.9, uDusk); // round 11 (R10 8: late ripples too regular and contrasty) // round 9 (seat A: D's near ripples where the mockup's sand is smooth)
   sandRip1 *= sandNear; sandRip2 *= sandNear;
@@ -361,8 +364,13 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // (no distance gate: the lead after round 12, the clip's ground fell to 6-9 with black blots at the gate)
     // a tilted face only (flat sand has no facing; ungated, the near flats went dark too: B 26 / 39.7)
     // round 14 (the lead: it cut flat ground ~40 %, C's near sand 18 / 33): clearly turned away (toGlow < -0.1) and clearly tilted (> ~12 deg) only
-    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.3, -0.1, toGlow)) * smoothstep(0.2, 0.35, length(normalize(vSandN).xz));
+    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(-0.65, 0.15, toGlow)) * smoothstep(0.06, 0.5, length(normalize(vSandN).xz)); // round 15 (the lead: hard-edged dark ovals on the dune faces in the clip): both windows widened, so the darkening rolls on with the facing
     reflectedLight.indirectDiffuse *= 1.0 - 0.45 * away; reflectedLight.directDiffuse *= 1.0 - 0.45 * away;
+    // round 15 (the lead after round 14: the land under the dusk horizon too bright in B, C and D; C's measured 55 / 27 and
+    // D's 42 / 17 under the mockups' glow, dunes 30-60 m out): past 15 m, rolling on smoothly to 70 m (no gate, the near bands keep their key),
+    // the late land falls toward silhouette; off before the logbook's dusk (B's far land already measures right)
+    float farLate = smoothstep(0.55, 0.85, uDusk) * smoothstep(15.0, 70.0, sandFar);
+    reflectedLight.indirectDiffuse *= 1.0 - 0.7 * farLate; reflectedLight.directDiffuse *= 1.0 - 0.7 * farLate;
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
