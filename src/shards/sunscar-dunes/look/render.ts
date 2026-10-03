@@ -156,14 +156,26 @@ export function signalDunesLook(): LookStrategy {
     backdrop: ({ sky }) => {
       const clock = duskClock(), keyColor = new Color();
       let hemi: HemisphereLight | null = null, hemiBase = 1;
+      // round 10 (R9B-2: under every dusk horizon the far land is 2-4x the mockups', which put near-black land under a thin
+      // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens
+      let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null;
+      const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x110b16);
       return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
         // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
-        bind: (targets) => { targets.disc.visible = false; hemi = targets.hemi; hemiBase = targets.hemi.intensity; },
+        bind: (targets) => {
+          targets.disc.visible = false; hemi = targets.hemi; hemiBase = targets.hemi.intensity;
+          fog = targets.fog; fogBase.copy(targets.fog.color); fogSun = targets.fogU.fogSunColor.value; fogSunBase.copy(fogSun);
+          haze = targets.far.uHazeCol.value; hazeBase.copy(haze);
+        },
         // the dusk deepens with the quest (look/dusk.ts): the key dims and reddens, the sky fill drops
         update: () => {
           sky.setKeyLight(KEY.dir, keyColor.copy(KEY.color).lerp(DEEP_KEY, DUSK.value), KEY.intensity * keyAt(DUSK.value));
           if (hemi) hemi.intensity = hemiBase * fillAt(DUSK.value);
+          const late = Math.min(1, Math.max(0, (DUSK.value - 0.2) / 0.5));
+          fog?.color.copy(fogBase).lerp(DUSK_FOG, late);
+          fogSun?.copy(fogSunBase).multiplyScalar(1 - 0.8 * late);
+          haze?.copy(hazeBase).multiplyScalar(1 - 0.75 * late);
         },
         rebuild: () => undefined, attachPost: () => undefined });
     },
@@ -316,6 +328,12 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   for (int i = 0; i < 4; i++) {
     float fireD = length(vSandPos - uFireLights[i].xyz);
     reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(1.0, 0.42, 0.14) * uFireLights[i].w * pow(max(0.0, 1.0 - fireD / 11.0), 2.0) * 0.18;
+  }
+  {
+    // round 10 (R9B-2: mockups B, C and D put near-black land under the glow, 13-19 against our 47-74, the far land darker
+    // than the near): in the late dusk the far dunes fall toward silhouette with distance
+    float sil = smoothstep(8.0, 60.0, sandFar) * smoothstep(0.3, 0.75, uDusk) * 0.75;
+    reflectedLight.directDiffuse *= 1.0 - sil; reflectedLight.indirectDiffuse *= 1.0 - sil;
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
