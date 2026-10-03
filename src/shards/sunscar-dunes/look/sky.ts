@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
  * Where the afterglow is brightest: the sun 4° under the horizon behind the signal tower (−Z, a little left). The key
  * light is art-directed apart from it (`render.ts` KEY, style bible): the band frames the tower, the key rakes the dunes.
  */
-export const SUN_GLOW = new Vector3(-0.3, -0.07, -0.95).normalize();
+export const SUN_GLOW = new Vector3(0.12, -0.07, -0.99).normalize(); // round 9: just right of the tower (mockup A's afterglow peaks right of it; ours peaked left)
 
 export const SKY_VERTEX = /* glsl */ `
 varying vec3 vDir;
@@ -28,9 +28,6 @@ float vNoise(vec2 p) {
   vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(vHash(i), vHash(i + vec2(1.0, 0.0)), f.x), mix(vHash(i + vec2(0.0, 1.0)), vHash(i + vec2(1.0, 1.0)), f.x), f.y);
 }
-// Noise round the horizon on a circle of radius r (r cells a radian), not on the azimuth itself: atan() jumps at +-pi,
-// which drew a hard vertical seam through the streaks and the cloud bank (check pass, seat C). v runs up the sky.
-vec2 skyRing(float a, float r, float v) { return vec2(cos(a) * r + v, sin(a) * r - v * 0.7); }
 void main() {
   vec3 d = normalize(vDir);
   float h = max(d.y, 0.0);
@@ -61,13 +58,19 @@ void main() {
   // round 8 (mockup A: long fibrous streaks 6-17 deg up, red-orange bellies, dark violet bodies; the council: pale cream
   // flakes in rows): noise on the azimuth ring (no seam) and the height, a few cells a radian across and many up the sky,
   // so every bank is a long horizontal streak; a fine octave tears it into fibres; denser on the glow's right (dusk-fire)
-  float cH = h * 36.0;
-  float cn = vNoise(skyRing(az, 11.0, cH)) * 0.45 + vNoise(skyRing(az, 26.0, cH * 2.1 + 3.1)) * 0.3 + vNoise(skyRing(az, 70.0, cH * 4.0 + 7.3)) * 0.25;
-  float cside = 0.5 + 0.5 * dot(normalize(vec2(d.x, d.z) + 1e-4), normalize(vec2(-uSun.z, uSun.x)));
-  float cov = smoothstep(0.66 - 0.08 * cside, 0.76, cn) * smoothstep(0.06, 0.12, h) * (1.0 - smoothstep(0.24, 0.34, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
+  // round 9 (the seats: still slanted smears over the whole upper sky; the ring noise's height offset runs diagonally):
+  // noise on plain azimuth and height, cells ~8x longer than tall, so each bank is a horizontal streak; low, 2-10 deg up;
+  // in banks beside the glow, the right one heavier (mockup dusk-fire's grey-brown bank at the right, A's banks either
+  // side); none near the azimuth's seam (due west, which no view faces)
+  vec2 cq = vec2(az * 9.0, h * 48.0);
+  float cn = vNoise(cq) * 0.5 + vNoise(cq * vec2(2.3, 2.0) + 3.1) * 0.3 + vNoise(cq * vec2(6.0, 4.0) + 7.3) * 0.2;
+  float azG = atan(uSun.z, uSun.x), rel = az - azG; rel -= 6.2831853 * floor((rel + 3.1415927) / 6.2831853);
+  float bank = smoothstep(0.06, 0.2, rel) * (1.0 - smoothstep(0.75, 1.15, rel)) + 0.6 * smoothstep(-1.1, -0.75, rel) * (1.0 - smoothstep(-0.22, -0.1, rel));
+  float cov = smoothstep(0.54, 0.68, cn) * bank * smoothstep(0.03, 0.06, h) * (1.0 - smoothstep(0.13, 0.2, h)) * (1.0 - smoothstep(2.7, 2.95, abs(az))) * (1.0 - smoothstep(0.03, 0.14, uDusk));
   // lit from below (the set sun): where the bank thins downward its belly takes the glow, its top stays dark
-  float cBelow = vNoise(skyRing(az, 11.0, cH - 0.3)) * 0.45 + vNoise(skyRing(az, 26.0, (cH - 0.3) * 2.1 + 3.1)) * 0.3 + vNoise(skyRing(az, 70.0, (cH - 0.3) * 4.0 + 7.3)) * 0.25;
-  float lit = clamp((cn - cBelow) * -6.0 + 0.78, 0.0, 1.0);
+  vec2 cqb = cq - vec2(0.0, 0.35);
+  float cBelow = vNoise(cqb) * 0.5 + vNoise(cqb * vec2(2.3, 2.0) + 3.1) * 0.3 + vNoise(cqb * vec2(6.0, 4.0) + 7.3) * 0.2;
+  float lit = clamp((cn - cBelow) * -6.0 + 0.7, 0.0, 1.0);
   float hot = pow(toward, 1.4) * (1.0 - smoothstep(0.1, 0.4, h));
   vec3 cLit = mix(mix(vec3(0.82, 0.36, 0.26), vec3(0.95, 0.44, 0.22), hot), vec3(1.0, 0.58, 0.3), hot * lit * 0.6);
   vec3 cDark = mix(vec3(0.2, 0.15, 0.22), vec3(0.3, 0.17, 0.16), hot);

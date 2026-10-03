@@ -66,7 +66,7 @@
    "x": 0,
    "z": 70,
    "yaw": -10,
-   "pitch": -10
+   "pitch": -12.5
   },
   {
    "id": "mock-A-spawn",
@@ -81,7 +81,7 @@
    "mockup": "art/sunscar-dunes/round-9-review/B-quest-logbook.jpg",
    "x": -58.8,
    "z": 42.1,
-   "yaw": 48.3,
+   "yaw": 56.7,
    "pitch": -3,
    "stage": "logbook",
    "settle": 11000

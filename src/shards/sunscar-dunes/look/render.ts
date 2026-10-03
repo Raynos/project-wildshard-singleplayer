@@ -16,9 +16,11 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 // E399: low (11 deg) and along the wind axis, so every dune splits into a lit slip face and a shaded windward face
 // (the mockups); the shade floor and the navy fill keep the shaded half readable, never black
 // round 8 (the council since round 5: a vertical terminator smeared down the tower's dome, the shade a baked blob): the key
-// from behind the tower, near the afterglow (look/sky.ts SUN_GLOW), so the slopes falling away from the spawn are lit, the
-// faces turned to the camera (the saddle, the tower dune) fall into shade under a lit crest, its west shoulder lit (mockup dusk-fire)
-export const KEY = { dir: new Vector3(-0.45, 0.2, -0.87).normalize(), color: new Color(1, 0.68, 0.45), intensity: 2.0 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
+// from behind the tower; round 9 (the seats: every camera-facing face then fell into shade, A one dark dome; mockup A lights
+// every face turned west and shades every face turned east): from the west-north-west, on round 8's broad low tower dune
+// (layout CRESTS) the dome's west half lit and its east half shaded, the near slopes lit (measured on the seats' clean patch:
+// A 58 / mockup 56, dusk-fire 54 / mockup 72 at 2.0, so 2.3 splits the two mockups' disagreement on the same ground)
+export const KEY = { dir: new Vector3(-0.8, 0.2, -0.6).normalize(), color: new Color(1, 0.74, 0.52), intensity: 2.3 } as const; // E399 (R2B-1): measured against the mockups' ground patches, not eyeballed // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 /** The key's colour at the blue hour (look/dusk.ts): a low red ember of the set sun. */
 const DEEP_KEY = new Color(0.78, 0.42, 0.4);
@@ -253,7 +255,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // the blue hour's sky light models no grain (mockups B-D: smooth soft sand), so the grains fade as the dusk deepens
     float grainDusk = 1.0 - 0.75 * smoothstep(0.2, 0.6, uDusk);
     gA *= grainDusk; gB *= grainDusk;
-    float grains = (sandN(gc) - 0.5) * 1.0 * gA + (sandN(gc2) - 0.5) * 0.9 * gB;
+    float grains = (sandN(gc) - 0.5) * 0.75 * gA + (sandN(gc2) - 0.5) * 0.7 * gB; // round 9: a quarter less (fine 12.6 against the mockups' 9)
     float glint = step(0.985, sandH(floor(gc2))) * gB * 0.9;
     diffuseColor.rgb *= max(0.2, 1.0 + grains + glint);
   }
@@ -277,8 +279,8 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     vec2 gq = vSandPos.xz * 95.0, gq2 = vSandPos.xz * 48.0 + 17.0;
     float gqDusk = 1.0 - 0.75 * smoothstep(0.2, 0.6, uDusk);
     float gqA = (1.0 - smoothstep(0.8, 1.6, length(fwidth(gq)))) * gqDusk, gqB = (1.0 - smoothstep(0.8, 1.6, length(fwidth(gq2)))) * gqDusk;
-    vec2 grainSlope = vec2(sandN(gq + vec2(0.3, 0.0)) - sandN(gq - vec2(0.3, 0.0)), sandN(gq + vec2(0.0, 0.3)) - sandN(gq - vec2(0.0, 0.3))) * 1.1 * gqA
-      + vec2(sandN(gq2 + vec2(0.3, 0.0)) - sandN(gq2 - vec2(0.3, 0.0)), sandN(gq2 + vec2(0.0, 0.3)) - sandN(gq2 - vec2(0.0, 0.3))) * 0.9 * gqB;
+    vec2 grainSlope = vec2(sandN(gq + vec2(0.3, 0.0)) - sandN(gq - vec2(0.3, 0.0)), sandN(gq + vec2(0.0, 0.3)) - sandN(gq - vec2(0.0, 0.3))) * 0.85 * gqA
+      + vec2(sandN(gq2 + vec2(0.3, 0.0)) - sandN(gq2 - vec2(0.3, 0.0)), sandN(gq2 + vec2(0.0, 0.3)) - sandN(gq2 - vec2(0.0, 0.3))) * 0.7 * gqB;
     vec3 rippleTilt = vec3(sandW.x, 0.0, sandW.y) * (s1 + s2) + vec3(sandBump.x, 0.0, sandBump.y) + vec3(grainSlope.x, 0.0, grainSlope.y);
     normal = normalize(normal - (viewMatrix * vec4(rippleTilt, 0.0)).xyz);
   }`)
