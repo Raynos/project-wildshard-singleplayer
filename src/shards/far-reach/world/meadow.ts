@@ -136,10 +136,10 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
       uniform vec2 uOrigin; uniform vec3 uCam; uniform float uTime;
       uniform vec4 uIsles[NI]; uniform float uIsleGrass[NI]; uniform float uIsleKeep[NI]; uniform vec4 uHoles[NH]; uniform vec4 uPaths[NP];
       attribute vec3 aRoot; attribute vec2 aShape; attribute vec3 aTile;
-      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist;
+      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist; varying float vDown;
       ${MEADOW_GLSL}
       ${KNOLL_GLSL}
-      void cull(){ gl_Position = vec4(0.0, 0.0, 2.0, 1.0); vH = 0.0; vTone = 0.0; vWorld = vec3(0.0); vShade = 0.0; vFlower = 0.0; vPetal = vec2(0.0); vAcross = 0.0; vUv = vec2(0.0); vDist = 0.0; }
+      void cull(){ gl_Position = vec4(0.0, 0.0, 2.0, 1.0); vH = 0.0; vTone = 0.0; vWorld = vec3(0.0); vShade = 0.0; vFlower = 0.0; vPetal = vec2(0.0); vAcross = 0.0; vUv = vec2(0.0); vDist = 0.0; vDown = 0.0; }
       void main(){
         // a layer above 0 is the same tile's blades shuffled (offset, mirrored), so the near field thickens without a seam
         float layer = aTile.z; vec2 j = aRoot.xy; float r = aRoot.z;
@@ -189,7 +189,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         float sway = (0.16 + 0.1 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);
         vec3 world = vec3(p.x, y, p.y);
         float t = aShape.y;
-        vShade = 0.55 + 0.45 * fract(r * 3.3); vTone = pt; vFlower = 0.0; vPetal = vec2(0.0, -3.0); vAcross = aShape.x; vUv = vec2(0.0); vDist = dist;
+        vShade = 0.55 + 0.45 * fract(r * 3.3); vTone = pt; vFlower = 0.0; vPetal = vec2(0.0, -3.0); vAcross = aShape.x; vUv = vec2(0.0); vDist = dist; vDown = 0.0;
         if (flower > 0.5) {
           // a stem in the grass, the head a kite tilted half up, half to you (a daisy reads round, a buttercup a cup)
           float stem = mix(0.1, 0.26, fract(r * 5.7));
@@ -215,6 +215,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           // the camera, by how steeply the camera looks down on it, so the tuft's face stays toward you
           float down = clamp((uCam.y - y) / max(dist, 0.5) - 0.15, 0.0, 1.2);
           world.xz += side * cx * wCard * 0.5 + lean * h * cy * cy - toCam * h * cy * down * 0.8;
+          vDown = clamp(down, 0.0, 1.0);
           world.y += h * cy - 0.04;
           vUv = vec2(floor(fract(r * 29.3) * ${SWARD_ATLAS.variants.toFixed(1)}) + (cx * 0.5 + 0.5) * (fract(r * 5.1) > 0.5 ? 1.0 : -1.0) + (fract(r * 5.1) > 0.5 ? 0.0 : 1.0), cy);
           vH = cy; vAcross = 0.0;
@@ -224,7 +225,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
       }`,
     fragmentShader: /* glsl */`
       uniform vec3 uCam; uniform vec3 uSun; uniform sampler2D uAtlas;
-      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist;
+      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist; varying float vDown;
       void main(){
         vec3 view = normalize(vWorld - uCam);
         float back = pow(max(dot(view, uSun), 0.0), 3.0);
@@ -250,7 +251,9 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           // shaded roots deep in the sward, olive-green bodies by patch, straw-gold lit tips (the mockups' backlit meadow)
           vec3 rootC = ${glslColor(SWARD.root)}, lowC = ${glslColor(SWARD.low)}, greenC = ${glslColor(SWARD.green)}, goldC = ${glslColor(SWARD.gold)}, tipC = ${glslColor(SWARD.tip)};
           vec3 body = mix(greenC, goldC, smoothstep(0.45, 0.95, vTone + (vShade - 0.8) * 0.5 + (sh - 0.75) * 0.4));
-          float up = along * mix(0.55, 1.0, vH);
+          // seen from above (the aerials, the rises) the cards lie back and show their whole length: their shaded roots read
+          // as a dark disc (round 7: 'the spawn rise a smooth dark dome'), so the steeper the view, the more of each blade is lit
+          float up = mix(along * mix(0.55, 1.0, vH), 0.45 + 0.55 * along, vDown * 0.8);
           vec3 c = mix(rootC, lowC, smoothstep(0.0, 0.25, up));
           c = mix(c, body, smoothstep(0.2, 0.6, up));
           c = mix(c, tipC, smoothstep(0.6, 1.0, up) * 0.8);

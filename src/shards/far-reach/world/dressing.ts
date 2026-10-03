@@ -131,7 +131,9 @@ export const HERO_STONES: readonly (readonly [number, number, number, number, nu
   [-3.6, -181.4, HIGH, 1.0, 0.45], [-4.8, -183.2, HIGH, 0.6, 0.28], [3.9, -182.0, HIGH, 0.8, 0.36],
   // round 6 (seat A: 'lichened arena rocks'; mockup D's lower left and right): down the crown rise's north slope, in the
   // frame from its top (the rocks above sat outside it once D stood on the rise)
-  [-1.6, -182.2, HIGH, 1.15, 0.5], [-2.9, -183.9, HIGH, 0.8, 0.38], [2.0, -184.4, HIGH, 0.95, 0.45],
+  // (round 7, seats B and C: at 6-8 m out they sat under the fan and the bottom HUD; mockup D's are 9-15 m ahead, left of the
+  // walk and at the right edge)
+  [-2.4, -186.0, HIGH, 1.15, 0.5], [-3.6, -188.8, HIGH, 0.8, 0.38], [3.2, -188.5, HIGH, 0.95, 0.45],
   // and mockup B's lower left: rocks in the spawn meadow below the keeper, 3-4 m ahead of the quest-start view
   [-1.7, -8.4, DECK, 0.9, 0.42], [-1.0, -7.4, DECK, 0.6, 0.3],
 ];
@@ -166,7 +168,8 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
     const inside = (k: number): [number, number] => { const r = ap * Math.sqrt(rnd()) * k, a = rnd() * Math.PI * 2; return [isle.x + Math.cos(a) * r, isle.z + Math.sin(a) * r]; };
     for (let i = 0; i < area * DRESS.clumpsPerM2 * density; i++) {
       const [x, z] = inside(0.95); if (onLane(x, z) && rnd() < 0.85) continue;
-      clumps.push({ x, y: isle.y, z, s: 0.45 + rnd() * 0.5, yaw: rnd() * 6.28 });
+      // on the rises too (round 7: placed at the deck's height they sat buried inside the rises, which read bald from afar)
+      clumps.push({ x, y: isle.y + knollHeight(x, z), z, s: 0.45 + rnd() * 0.5, yaw: rnd() * 6.28 });
     }
     // drifts: flowers cluster round a few seeds per island, each drift mostly daisies or mostly buttercups
     const seeds = Array.from({ length: 6 }, () => { const [x, z] = inside(0.85); return { x, z, gold: rnd() < 0.35 }; });
@@ -174,7 +177,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
       const drift = seeds[i % seeds.length]; if (drift === undefined) continue;
       const rr = 2.8 * Math.sqrt(-Math.log(1 - rnd() * 0.95)), aa = rnd() * Math.PI * 2, x = drift.x + Math.cos(aa) * rr, z = drift.z + Math.sin(aa) * rr;
       if (Math.hypot(x - isle.x, z - isle.z) > ap * 0.92 || onLane(x, z)) continue;
-      flowers.push({ x, y: isle.y, z, s: 0.8 + rnd() * 0.5, yaw: rnd() * 6.28, c: (rnd() < 0.8) === drift.gold ? 0xf2c43a : 0xffffff });
+      flowers.push({ x, y: isle.y + knollHeight(x, z), z, s: 0.8 + rnd() * 0.5, yaw: rnd() * 6.28, c: (rnd() < 0.8) === drift.gold ? 0xf2c43a : 0xffffff });
     }
     for (let i = 0; i < DRESS.stonesPerIsle; i++) {
       const a = rnd() * Math.PI * 2, r = ap * (0.7 + rnd() * 0.26), x = isle.x + Math.cos(a) * r, z = isle.z + Math.sin(a) * r;

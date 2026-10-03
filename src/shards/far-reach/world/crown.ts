@@ -92,7 +92,9 @@ function daisGeometry(): BufferGeometry {
   // the rim: a ring of kerb blocks standing a little proud, with the side face down to the grass
   const n = 28;
   for (let i = 0; i < n; i++) {
-    const a0 = (i / n) * Math.PI * 2 + 0.01, a1 = ((i + 1) / n) * Math.PI * 2 - 0.01, r0 = R - 0.45, r1 = R, top = H + 0.08;
+    // (round 7, seat A: 'a fractured raised rim'): every block its own height and set, a few chipped low, gaps between
+    const h = hash(i, 5), chip = hash(i, 11) > 0.82;
+    const a0 = (i / n) * Math.PI * 2 + 0.015 + 0.02 * h, a1 = ((i + 1) / n) * Math.PI * 2 - 0.015 - 0.02 * hash(i, 7), r0 = R - 0.45 - 0.08 * h, r1 = R + 0.06 * hash(i, 3), top = H + (chip ? 0.01 : 0.05 + 0.1 * h);
     const c = lerp3(rim, joint, hash(i, 9) * 0.4), P = (r: number, a: number, y: number): number[] => [Math.cos(a) * r, y, Math.sin(a) * r];
     tri(P(r0, a0, top), P(r1, a1, top), P(r1, a0, top), c); tri(P(r0, a0, top), P(r0, a1, top), P(r1, a1, top), c);
     tri(P(r1, a0, top), P(r1, a1, top), P(r1, a1, -0.1), lerp3(c, shade, 0.4)); tri(P(r1, a0, top), P(r1, a1, -0.1), P(r1, a0, -0.1), lerp3(c, shade, 0.4));

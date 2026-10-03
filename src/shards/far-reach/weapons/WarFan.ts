@@ -11,10 +11,9 @@ export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldow
 /** E399 (the council mockups A, C and proposal B): lower, smaller (the seats: 'twice the mockup's size') and turned open, face-on to you, its tassel hanging free. */
 // council round 3 (all seats: 'the same face-on half-disc, the pivot and fist behind GUST'): leaned over toward the
 // upper left on its pivot, the gloved hand, wrist and tassel in plain view at the lower right, as mockup C sweeps it
-// round 7 (every seat: 'about half the mockup's area, upright at the right edge'; mockup C's pivot at x 0.78 with a ~200 px
-// guard, ours at the edge with ~165 px): the pivot 3 cm in and the fan ~8 % larger, for every view (at 7 cm / 15 % it covered
-// A's bridge, where mockups A, B and proposal B hold it smaller at the lower right)
-export const HOLD = { x: 0.1, y: -0.17, z: -0.6, pitch: 0.22, yaw: -0.2, roll: 0.8, scale: 0.43 } as const;
+// (round 7: a larger, more central hold, for mockup C, covered A's bridge and D's dais, where mockups A, B, D and proposal B
+// hold it small at the lower right: the hold stays)
+export const HOLD = { x: 0.13, y: -0.172, z: -0.6, pitch: 0.22, yaw: -0.2, roll: 0.8, scale: 0.4 } as const;
 /** The painted silk's tint (E399 seats: 'plain and bright'): mockup C's silk is a muted, deeper teal. */
 // E399 seats: the mockups' silk is a lighter sea-green with pale cloud swirls
 export const SILK_TINT = 0xdfece6;
