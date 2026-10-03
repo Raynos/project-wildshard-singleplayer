@@ -1,6 +1,6 @@
 # Signal Dunes, the lead's overnight items (round 16), 2026-10-02
 
-After the check pass (`docs/plans/shard-polish-council/outcome.md`: below the bar, closer each round) the lead set seven
+After the check pass (`project/archive/2026-10-02-shard-polish-council/outcome.md`: below the bar, closer each round) the lead set seven
 items. Capture: `progress/sunscar-dunes/20261002-0230-b225029f/` (a clean served build of `b225029f`, iPhone portrait,
 phone tier). Parity at `b225029f` is green on phone and desktop: walk 0 stuck, gpuMB 87.39 inside the 87.49 ceiling.
 

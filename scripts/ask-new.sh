@@ -13,7 +13,7 @@ series="${2:-E}"
 dir=docs/tasks/asks
 mkdir -p "$dir"
 # highest number used in this series, in the legacy ledger or in any ask file (committed or not)
-max="$( { grep -ohE "^\| ${series}[0-9]+ \|" docs/tasks/ASKS.md 2>/dev/null; ls "$dir" 2>/dev/null | grep -oE "^${series}[0-9]+\.md$"; } \
+max="$( { grep -ohE "^\| ${series}[0-9]+ \|" project/archive/2026-09-22-asks-table.md 2>/dev/null; ls "$dir" 2>/dev/null | grep -oE "^${series}[0-9]+\.md$"; } \
   | grep -oE '[0-9]+' | sort -n | tail -1)"
 n=$(( ${max:-0} + 1 ))
 set -o noclobber

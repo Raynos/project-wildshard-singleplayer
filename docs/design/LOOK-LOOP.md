@@ -306,7 +306,7 @@ can bring every region's ΔE00 down on a frame that still looks empty (Driftwood
 ## Scoring a round: the mockup council (E399, E409)
 
 When "closer" has to be a number that the builder can't argue with, score each round with a **mockup council**: the
-protocol in `docs/process/COUNCIL.md`, set up as in `docs/plans/mockup-council/` (E399, Signal Dunes and Sky Reach).
+protocol in `docs/process/COUNCIL.md`, set up as in `project/archive/2026-10-03-mockup-council/` (E399, Signal Dunes and Sky Reach).
 
 - **The ledger, frozen before round 1.** It holds the mockups, one per view; the 0–10 scale; the pass bar, which is
   Jake's number (it began at 8.0 and Jake lowered it to 7.0); and the no-shortcut rules. A score is void if the game got

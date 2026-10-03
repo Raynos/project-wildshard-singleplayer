@@ -195,9 +195,9 @@ async function finishedAsk(root, entry) {
   const id = /^e(\d+)-/i.exec(entry)?.[1];
   if (!id) return false;
   const path = join(root, `docs/tasks/asks/E${id}.md`);
-  try { return /\*\*Status:\*\*\s*(?:done|dropped)\b/i.test(await readFile(path, 'utf8')); }
+  try { return /\*\*Status:\*\*\s*(?:done|dropped|folded into|superseded by)\b/i.test(await readFile(path, 'utf8')); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
-  const legacy = await readFile(join(root, 'docs/tasks/ASKS.md'), 'utf8').catch(() => '');
+  const legacy = await readFile(join(root, 'project/archive/2026-09-22-asks-table.md'), 'utf8').catch(() => '');
   return legacy.split('\n').some(line => new RegExp(`^\\|\\s*E${id}\\s*\\|`, 'i').test(line) && /\|\s*(?:done|dropped)\b/i.test(line));
 }
 

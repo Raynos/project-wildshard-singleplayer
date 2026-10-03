@@ -75,7 +75,7 @@ describe('decision-88 script liveness', () => {
     const report = fixture({
       'scripts/read.mjs': '', 'scripts/old.mjs': '', 'scripts/e12-closed.mjs': '', 'scripts/E13-dropped.mjs': '', 'scripts/e14-open.mjs': '',
       'docs/tasks/asks/E12.md': '**Status:** done (2026-09-29)',
-      'docs/tasks/ASKS.md': '| E13 | words | dropped (2026-09-20) |',
+      'project/archive/2026-09-22-asks-table.md': '| E13 | words | dropped (2026-09-20) |',
       'docs/tasks/asks/E14.md': '**Status:** in flight',
     }, [
       { command: 'cat scripts/read.mjs; sed -n 1p scripts/read.mjs; rg scripts/read.mjs docs' },

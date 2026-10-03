@@ -61,7 +61,7 @@ export function validateFlags(rows, { today, max, raisedBy = [], askExists: hasA
   return { errors, overdue };
 }
 export function askExists(root, id) {
-  const legacy = resolve(root, 'docs/tasks/ASKS.md');
+  const legacy = resolve(root, 'project/archive/2026-09-22-asks-table.md');
   if (existsSync(legacy)) return existsSync(resolve(root, `docs/tasks/asks/${id}.md`)) || readFileSync(legacy, 'utf8').includes(`| ${id} |`);
   // Vercel omits docs/. This generated inventory preserves the same ownership gate there.
   const inventory = resolve(root, 'lint/ask-ids.json');

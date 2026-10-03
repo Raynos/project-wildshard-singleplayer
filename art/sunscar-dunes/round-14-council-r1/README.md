@@ -1,6 +1,6 @@
 # Signal Dunes, council round-1 fixes (round 14), 2026-10-02
 
-Round 1 (`docs/plans/shard-polish-council/round-1-seat-{A,B,C}.md`, register) judged `eaeb401f` below the bar on form and
+Round 1 (`project/archive/2026-10-02-shard-polish-council/round-1-seat-{A,B,C}.md`, register) judged `eaeb401f` below the bar on form and
 subject. This round fixes the register's Signal Dunes rows, form and subject first, colour last (R1C-18). Captures:
 `scripts/shard-progress.mjs`, iPhone portrait 390×844 @3, phone tier: `progress/sunscar-dunes/20261002-0123-0b33bb31/`.
 

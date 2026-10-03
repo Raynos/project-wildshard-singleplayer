@@ -43,12 +43,12 @@ Jake, 2026-10-01, after playing both on his iPhone: "they look absolutely nothin
 | P4 | **Quest planned like Driftwood's**: a start (an NPC or a found object that names the goal), each step marked on the minimap and in the world, clear prompts, a reward beat; the existing steps re-staged, no new content | done (keeper starts it in the first frame, chip with metres, pins, places, reward beat: `quest/install.ts`) |
 | P5 | **Presentation pass**: title card and Explore hero images from the finished hero scenes; loading card; first-minute framing from the spawn | done (cards re-cut loop 5 `f93714aa`) |
 | P6 | **Jake plays it**: a board per loop round and a final 3×3 per hero scene for his sign-off | open: Jake's sign-off (boards per loop in `art/far-reach/round-1[2-5]-*`) |
-| P7 | **Done = two council rounds** (Jake 2026-10-02: "keep going autonomously until you're happy … have a council, do two rounds of reviewing it to see if it matches the quality of the other four shards"): `docs/plans/shard-polish-council/` (ledger, battery, brief, register). The builder loops on each round's findings; the shard is done when round 2's seats find it at the bar | done (council round 2, 020f8713: seats B and C at the bar, no row not fixed or regressed; `docs/plans/shard-polish-council/outcome.md`) |
+| P7 | **Done = two council rounds** (Jake 2026-10-02: "keep going autonomously until you're happy … have a council, do two rounds of reviewing it to see if it matches the quality of the other four shards"): `project/archive/2026-10-02-shard-polish-council/` (ledger, battery, brief, register). The builder loops on each round's findings; the shard is done when round 2's seats find it at the bar | done (council round 2, 020f8713: seats B and C at the bar, no row not fixed or regressed; `project/archive/2026-10-02-shard-polish-council/outcome.md`) |
 | P8 | **Progress photos, clips and time-lapses every loop** (E389): `scripts/shard-progress.mjs` + `scripts/shard-timelapse.py` → `progress/<slug>/` | done every loop; newest capture `progress/far-reach/20261002-0204-3ff49dd6/` |
 
 ## Loop 5 gap list: council round 1 (seats B and C), form and subject first
 
-The council (`docs/plans/shard-polish-council/round-1-seat-{B,C}.md`) judged the loop-4 capture (`4c39a774`) below the bar:
+The council (`project/archive/2026-10-02-shard-polish-council/round-1-seat-{B,C}.md`) judged the loop-4 capture (`4c39a774`) below the bar:
 the loops tuned colour while the forms stayed primitive. Ordered: form and subject before colour (R1C-18). The *form and
 subject* column asks the R1C-18 questions of each view: is the hero object in the centre third and lit, does its
 silhouette match the target's, is every near and mid element the target shows present?

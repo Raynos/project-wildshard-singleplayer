@@ -26,7 +26,7 @@ git ls-tree --name-only origin/main project/archive/ | tail -15   # what got arc
 bash .claude/hooks/session-brief.sh | sed -n '/-- reviews for Jake/,/^$/p'   # open reviews
 ```
 
-Subfolders of `docs/plans/` (`worldclaw/`, `shard-polish-council/`, …) are plan support material, not plans.
+Subfolders of `docs/plans/` (`worldclaw/`, `thin-ice/`, …); a finished council's round files go to `project/archive/` the day it ends are plan support material, not plans.
 
 ## 2. Verify before you report: State lines go stale
 
@@ -75,8 +75,8 @@ His standing preferences (memories, 2026-09-28 → 10-03):
    landed>.`` A plan with an open row is not finished: build the row, or leave the plan live. Never file a plan's
    tail as asks (E423). Rows Jake never picked are dropped in the State line ("Jake approved none"), not queued.
 4. Fix relative links inside the moved file (`../../project/archive/x.md` → `x.md`, `../reviews/` → `../../docs/reviews/`).
-5. `git grep -n "<NAME>.md" -- docs project .claude src scripts`: repoint live docs and code comments. Ask files and
-   `docs/tasks/ASKS.md` keep the old path (history).
+5. `git grep -n "<NAME>.md" -- docs project .claude src scripts`: repoint live docs and code comments. Ask files
+   keep the old path (history).
 6. Commit the moved file, its old path, every edited link and the ask with one pathspec commit, then
    `scripts/push-main.sh`. A push already in flight carries yours; check `git log origin/main..main` later.
 

@@ -13,7 +13,7 @@ describe('Debug flag ownership and review dates', () => {
     mkdirSync('.cache', { recursive: true }); writeFileSync('.cache/debug-overdue.txt', `${result.overdue.join('\n')}${result.overdue.length > 0 ? '\n' : ''}`);
     if (result.overdue.length > 0) console.info(`Overdue Debug flags:\n${result.overdue.join('\n')}`);
     expect(result.errors).toEqual([]);
-    if (existsSync('docs/tasks/ASKS.md')) {
+    if (existsSync('project/archive/2026-09-22-asks-table.md')) {
       const ids = JSON.parse(readFileSync('lint/ask-ids.json', 'utf8')) as string[];
       for (const id of ids) expect(askExists(root, id)).toBe(true);
       for (const row of debugFlags(root)) expect(ids).toContain(row.ask);
