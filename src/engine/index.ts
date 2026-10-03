@@ -53,7 +53,7 @@ export { Tool, type EquipmentAction } from './combat/Tool';
 export { EquipmentService } from './combat/EquipmentService';
 export type { EquipmentInput } from './input/equipmentInput';
 
-export type { IconId } from './ui/icons';
+export type { IconId, IconMap } from './ui/icons';
 export type { KitEntry, SkinRow } from './ui/Menu';
 
 
@@ -261,7 +261,7 @@ export { groups } from './physics/groups';
 export { waveHeight } from './world/waves';
 
 export { impact, synthKit } from './audio/gen';
-export { icon } from './ui/icons';
+export { icon, registerIcons, iconParts } from './ui/icons';
 
 export { loadRigFile, loadRig, bindRig, ClipChannel, AnimMachine, type ClipName, type SocketName, type RigContract, type RigBake, type RigRef, type RigInstance, type AnimMachineDef, type AnimState, type AnimService } from './anim/index';
 export { activeLevel, selectedLevel, onLevelChange, configureLevel } from './level/selection';

@@ -66,6 +66,7 @@ export async function start(): Promise<void> {
   ]);
   const manifest = game.shard;
   kit.installKitSpecies();
+  kit.installKitIcons();
   const engine = await retried(loadBootRuntime);
   const { startSession } = await retried(() => import('#game/session/session'));
   await startSession(manifest, engine, {

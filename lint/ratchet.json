@@ -364,7 +364,6 @@
     "src/engine/ui/Resume.ts": 5,
     "src/engine/ui/StartTitle.ts": 1,
     "src/engine/ui/debugOptions.ts": 1,
-    "src/engine/ui/icons.ts": 42,
     "src/engine/ui/perfLap.ts": 2,
     "src/engine/ui/perfLapSummary.ts": 2,
     "src/engine/ui/roomMap.ts": 3,
