@@ -4,8 +4,6 @@ import { activeRegistry, WorldRegistry } from '#engine/world/registry';
 import { activePhysics, setActivePhysics } from '#engine/physics/active';
 import { activeBodies, setActiveBodies } from '#engine/physics/bodies';
 import { activeNavmesh, setActiveNavmesh } from '#engine/physics/navmesh';
-import { activeGrade } from '#engine/world/lookFlags';
-import { getActiveChunk } from '#game/shard/registry';
 
 afterEach(() => { app.registryValue = null; setActivePhysics(null); setActiveBodies(null); setActiveNavmesh('', null); });
 it('legacy getters delegate to the same typed app services, including lazy registry creation', () => {
@@ -16,7 +14,6 @@ it('legacy getters delegate to the same typed app services, including lazy regis
   setActivePhysics(null); setActiveBodies(null); setActiveNavmesh('', null);
   expect(activePhysics()).toBe(app.physics); expect(activeBodies()).toBe(app.bodies);
   expect(activeNavmesh()).toBe(app.navmesh); expect(app.world.dayCycle).toBe(app.dayCycle);
-  const def = getActiveChunk(); expect(activeGrade(def)).toEqual(app.gradeFor(def));
 });
 it('exposes the save service and schedules unthrottled systems on each frame', () => {
   const isolated = new App();

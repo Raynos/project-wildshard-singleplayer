@@ -7,7 +7,7 @@
  *   shapes.polys / shapes.dots                                                    // world metres, with a bbox each
  *   mapWants(def, piece.id)                                                       // should a newly added piece repaint the map
  */
-import type { ChunkMapDef, MapLook } from '#game/shard/manifest';
+import type { MinimapSpec, MapLook } from '../level/data';
 import type { ColliderDesc, Piece } from '../world/registry';
 
 /** a footprint: a convex outline (x, z pairs) in one look */
@@ -18,10 +18,10 @@ export interface MapShapes { polys: MapPoly[]; dots: MapDot[] }
 
 const matches = (id: string, pattern: string): boolean => (pattern.endsWith('*') ? id.startsWith(pattern.slice(0, -1)) : id === pattern);
 /** the look the def gives this piece id, if any */
-export function mapLook(def: ChunkMapDef | undefined, id: string): MapLook | undefined {
+export function mapLook(def: MinimapSpec | undefined, id: string): MapLook | undefined {
   return def?.pieces?.find((g) => g.ids.some((p) => matches(id, p)))?.look;
 }
-export const mapWants = (def: ChunkMapDef | undefined, id: string): boolean => mapLook(def, id) !== undefined;
+export const mapWants = (def: MinimapSpec | undefined, id: string): boolean => mapLook(def, id) !== undefined;
 
 type ToWorld = (x: number, y: number, z: number) => [number, number];
 
@@ -74,7 +74,7 @@ function footprint(c: ColliderDesc, w: ToWorld): [number, number][] | null {
 }
 
 /** the def's pieces as map shapes, read from the registry now */
-export function mapShapes(def: ChunkMapDef | undefined, pieces: readonly Piece[]): MapShapes {
+export function mapShapes(def: MinimapSpec | undefined, pieces: readonly Piece[]): MapShapes {
   const polys: MapPoly[] = [], dots: MapDot[] = [];
   if (!def?.pieces) return { polys, dots };
   for (const p of pieces) {

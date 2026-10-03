@@ -1,5 +1,5 @@
 /**
- * buildTerrain(seed, spec) — compiles a `TerrainSpec` into the pure `ChunkTerrain` functions.
+ * buildTerrain(seed, spec) — compiles a `TerrainSpec` into the pure `TerrainField` functions.
  *
  * The def supplies the raw landscape, the trails, cabin sites, an optional pond and the ground
  * splat rule; this adds what every Wildshard shard must have on top of that:
@@ -14,7 +14,7 @@
  */
 import { Noise2D, smoothstep, clamp, lerp } from '../core/noise';
 import { CHUNK_HALF, ROAD_WIDTH, ROAD_LENGTH } from '../core/config';
-import type { ChunkTerrain, TerrainSpec, TerrainNoise, Vec2, CabinSite } from '#game/shard/manifest';
+import type { TerrainField, TerrainSpec, TerrainNoise, Vec2, CabinSite } from '../level/data';
 
 function distToSegment(px: number, pz: number, ax: number, az: number, bx: number, bz: number) {
   const vx = bx - ax, vz = bz - az;
@@ -82,7 +82,7 @@ function entryRoadMask(x: number, z: number): number {
  * so a stale terrain.bin (an old build in the service worker, a def edited since the last vite start)
  * can never be installed over the analytic field.
  */
-export function landscapeHash(t: Pick<ChunkTerrain, 'heightAt'>, size = CHUNK_HALF * 2): number {
+export function landscapeHash(t: Pick<TerrainField, 'heightAt'>, size = CHUNK_HALF * 2): number {
   let h = 0x811c9dc5;
   const n = 16, d = size / (n - 1);
   for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
@@ -92,7 +92,7 @@ export function landscapeHash(t: Pick<ChunkTerrain, 'heightAt'>, size = CHUNK_HA
   return h >>> 0;
 }
 
-export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
+export function buildTerrain(seed: number, spec: TerrainSpec): TerrainField {
   const noise: TerrainNoise = { n: new Noise2D(seed), n2: new Noise2D(seed + 7) };
   const { n } = noise;
   const trails: Vec2[][] = spec.trails;
@@ -193,7 +193,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
     return [nx / l, ny / l, nz / l];
   }
 
-  const terrain: ChunkTerrain = {
+  const terrain: TerrainField = {
     heightAt, normalAt, trailDistance, cabinMask, pondMask, waterLevel, ...(spec.streamAt ? { streamAt: spec.streamAt } : {}),
     splatAt: (x, z) => {
       if (!spec.splat) return [1, 0, 0, 0]; // no splat ground (TerrainSpec.splat omitted)

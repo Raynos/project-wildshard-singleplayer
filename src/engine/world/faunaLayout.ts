@@ -1,6 +1,6 @@
 import { WeightedTable, type WeightedRow } from '../ai/weighted';
 import { Rng } from '../core/rng';
-import type { HerdPlan } from '#game/shard/manifest';
+import type { HerdPlan } from '../level/data';
 
 /**
  * Fauna layout — MANY SMALL GROUPS SPREAD OVER THE WHOLE SHARD, instead of a few big herds.

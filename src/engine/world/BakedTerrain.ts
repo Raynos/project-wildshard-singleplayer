@@ -15,7 +15,7 @@ import { _installBakedTerrain } from './Heightfield';
 import { activeLevel } from '../level/selection';
 import { SEED } from '../core/config';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
-import type { ChunkTerrain } from '#game/shard/manifest';
+import type { TerrainField } from '../level/data';
 
 export interface BakedGrid { res: number; size: number; seed: number; /** retained legacy header field; the build checks complete output bytes */ landscapeHash: number; heights: Float32Array; splat: Uint8Array; /** the undergrowth decision log, when the bake has one */ undergrowth: BakedPlacement | null }
 
@@ -54,8 +54,8 @@ export function parseBakedTerrain(buf: ArrayBuffer): BakedGrid | null {
   return { res, size, seed, landscapeHash: hash, heights: new Float32Array(buf, 24, n), splat: new Uint8Array(buf, 24 + n * 4, n * 4), undergrowth };
 }
 
-/** Bilinear samplers over the grid, in the ChunkTerrain shapes. */
-export function bakedSamplers(g: BakedGrid): Pick<ChunkTerrain, 'heightAt' | 'normalAt' | 'splatAt'> {
+/** Bilinear samplers over the grid, in the TerrainField shapes. */
+export function bakedSamplers(g: BakedGrid): Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'> {
   const { res, size, heights, splat } = g;
   const half = size / 2, inv = (res - 1) / size, last = res - 2;
   const cell = (v: number): [number, number] => {

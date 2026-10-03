@@ -1,8 +1,8 @@
 import { Effect, BlendFunction } from 'postprocessing';
 import { Uniform, Vector3 } from 'three';
-import type { ChunkGrade } from '#game/shard/manifest';
+import type { GradeSpec } from '../level/data';
 
-export type GradeOptions = Pick<ChunkGrade, 'shadowTint' | 'highTint' | 'lift' | 'gain' | 'gamma'>;
+export type GradeOptions = Pick<GradeSpec, 'shadowTint' | 'highTint' | 'lift' | 'gain' | 'gamma'>;
 const DEFAULTS: GradeOptions = { shadowTint: [0.9, 0.95, 1.08], highTint: [1.06, 1.0, 0.92], lift: [-0.01, -0.008, 0.0], gain: [1.03, 1.02, 1.0], gamma: 1.0 };
 
 /** the look layer (see the constructor): its uniforms and the two steps, on the display-referred colour */
