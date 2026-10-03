@@ -56,16 +56,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "856e5dc0921fefaaaeb79558e0f46d51098440b8",
-      "reason": "E392/E399: the textured gloved fan hand (Hunyuan3D-2, 1024 WebP) and the dark lacquered fan; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "28b8460be5fbe8334ed96994b1823db2e51a6073",
+      "reason": "E392/E399: the textured hero sky isles (three Hunyuan3D-2 models, 1024 WebP maps); measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     },
     {
       "shard": "far-reach",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "856e5dc0921fefaaaeb79558e0f46d51098440b8",
-      "reason": "E392/E399: the textured gloved fan hand (Hunyuan3D-2, 1024 WebP) and the dark lacquered fan; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "28b8460be5fbe8334ed96994b1823db2e51a6073",
+      "reason": "E392/E399: the textured hero sky isles (three Hunyuan3D-2 models, 1024 WebP maps); measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     }
   ]
 }
