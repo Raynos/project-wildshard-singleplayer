@@ -13,18 +13,34 @@ export function ropeSag(length: number, s: number): number {
   return Math.min(ROPE_SAG.max, ROPE_SAG.depth * length) * Math.sin(Math.PI * t);
 }
 /**
- * The grassy rise at the spawn bridge head (E399, proposal B; world/knoll.ts): a convex cap `h` metres high over a
- * `base` radius on Sunrest, right of the rope bridge's landing, clear of its lane. Steepest at its foot: asin(base/R), 37 deg.
+ * The grassy rises (E399; world/knoll.ts): convex caps `h` metres high over a `base` radius on an island's deck, walkable
+ * (steepest at the foot: asin(base / R), under the 40 deg climb) and collided by their hulls.
+ * - sunrest (proposal B; round 6, the seats: 'from 7.6 m east of the axis the bridge entered from the left and the
+ *   windmill isle filled the frame'): ON the rope bridge's axis behind the spawn, so from its top you look straight down
+ *   the bridge, as proposal B does; every other spawn view looks north from in front of it. 38 deg.
+ * - crown (mockup D; round 6, every seat: 'a thin distant platform' where the mockup looks down on a broad carved dais):
+ *   a rise at the arena's south side (its foot just inside the rim's south vertex, 20 m out), so from its top you look
+ *   down its north slope into the arena. 38 deg.
  */
-export const KNOLL = { x: 7.6, z: -11.5, base: 4, h: 1.4 } as const;
-const KNOLL_R = (KNOLL.base * KNOLL.base + KNOLL.h * KNOLL.h) / (2 * KNOLL.h);
-/** The knoll's height above Sunrest's deck at a world point (0 off it). */
-export function knollHeight(x: number, z: number): number {
-  const d = Math.hypot(x - KNOLL.x, z - KNOLL.z); if (d >= KNOLL.base) return 0;
-  return Math.sqrt(KNOLL_R * KNOLL_R - d * d) - (KNOLL_R - KNOLL.h);
+export interface Knoll { readonly id: string; readonly isle: string; readonly x: number; readonly z: number; readonly base: number; readonly h: number }
+export const KNOLLS: readonly Knoll[] = [
+  { id: 'sunrest', isle: 'sunrest', x: 0, z: 3, base: 7, h: 2.4 },
+  { id: 'crown', isle: 'crown', x: 0, z: -177.5, base: 7, h: 2.4 },
+];
+const knollR = (k: Knoll): number => (k.base * k.base + k.h * k.h) / (2 * k.h);
+/** A rise's height above its island's deck at a world point (0 off it); `only` limits it to one rise. */
+export function knollHeight(x: number, z: number, only?: Knoll): number {
+  let y = 0;
+  for (const k of only === undefined ? KNOLLS : [only]) {
+    const d = Math.hypot(x - k.x, z - k.z); if (d >= k.base) continue;
+    const R = knollR(k); y += Math.sqrt(R * R - d * d) - (R - k.h);
+  }
+  return y;
 }
-/** The knoll as GLSL: `farKnoll(p)` is its height at a world xz. */
-export const KNOLL_GLSL = `float farKnoll(vec2 p){ float d = distance(p, vec2(${KNOLL.x.toFixed(2)}, ${KNOLL.z.toFixed(2)})); return d >= ${KNOLL.base.toFixed(2)} ? 0.0 : sqrt(${(KNOLL_R * KNOLL_R).toFixed(4)} - d * d) - ${(KNOLL_R - KNOLL.h).toFixed(4)}; }`;
+/** The rises as GLSL: `farKnoll(p)` is their height at a world xz. */
+export const KNOLL_GLSL = `float farKnoll(vec2 p){ float y = 0.0; float d;
+${KNOLLS.map((k) => { const R = knollR(k); return ` d = distance(p, vec2(${k.x.toFixed(2)}, ${k.z.toFixed(2)})); if (d < ${k.base.toFixed(2)}) y += sqrt(${(R * R).toFixed(4)} - d * d) - ${(R - k.h).toFixed(4)};`; }).join('\n')}
+ return y; }`;
 /** The high islands: the step above the windmill and the storm crown. */
 export const HIGH = 44;
 /** How far a hover deck's collider starts clear of an island rim (Jake: a hover deck never touches a rim). */

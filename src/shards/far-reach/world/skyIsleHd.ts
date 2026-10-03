@@ -1,9 +1,13 @@
-import { Box3, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
+import { Box3, Color, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
 import type { SkyHdName } from '../boot/files';
 import type { Isle } from '../layout';
 import { PATCH_ORDER, patchShader } from '#engine';
 import { hdMaterial, skyHd } from './meshes';
 import type { SkyIsle } from './skyIsles';
+import { SKY } from '../look/sun';
+
+/** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */
+function linear(hex: number): string { const c = new Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }
 
 /**
  * The textured floating islands for the decorative sky isles (E392/E399, `art/far-reach/round-21-sky-isles/`): every
@@ -24,6 +28,11 @@ export type SkyIsleModel = (typeof SKY_ISLE_MODELS)[number];
  * stretch's limits.
  */
 export const SKY_ISLE_HD = { selfLight: 0.08, tint: 0.8, turf: 0.2, stretch: [0.8, 1.35], rimBins: 48 } as const;
+/**
+ * The aerial haze on the sky isles (E399 round 6, measured on mockup A's isle band, x 0.1-0.9, y 0.27-0.42: its darkest
+ * isle rock is a hazed mauve, 107,81,77, where ours read dark brown, 75,58,38): toward the warm haze over `near`..`far` metres, at most `max`.
+ */
+export const SKY_ISLE_HAZE = { color: SKY.fog, near: 40, far: 260, max: 0.35 } as const;
 
 /** Which model each sky isle wears, and its yaw (radians): every model in each view, none turned the same way twice. */
 const WEAR: Readonly<Record<string, readonly [SkyIsleModel, number]>> = {
@@ -108,8 +117,9 @@ export function skyIsleModels(isles: readonly SkyIsle[]): SkyIsleHd {
   { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
     float turf = smoothstep(0.02, 0.12, c.g - max(c.r, c.b) * 0.92);
     vec3 stone = vec3(l) * vec3(1.02, 0.96, 0.88) * (0.75 + 0.35 * smoothstep(0.15, 0.6, l));
-    diffuseColor.rgb = mix(stone, c * vec3(0.82, 0.95, 0.72), turf); }`);
-    }, { key: (prior) => `${prior}|far.sky-isle-rock` });
+    diffuseColor.rgb = mix(stone, c * vec3(0.82, 0.95, 0.72), turf); }`).replace('#include <dithering_fragment>', `#include <dithering_fragment>
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, ${linear(SKY_ISLE_HAZE.color)}, clamp((length(vViewPosition) - ${SKY_ISLE_HAZE.near.toFixed(1)}) / ${(SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1)}, 0.0, 1.0) * ${SKY_ISLE_HAZE.max.toFixed(2)});`);
+    }, { key: (prior) => `${prior}|far.sky-isle-rock|haze` });
     const mesh = new InstancedMesh(u.geometry, material, list.length); mesh.name = `far.sky-isles.${name}`;
     list.forEach((s, k) => {
       const yaw = WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi, Math.max(lo, s.keel / (s.r * u.depth)));

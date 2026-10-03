@@ -1,7 +1,7 @@
 import { PATCH_ORDER, boxDesc, patchShader, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, KNOLL, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
+import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
@@ -122,10 +122,13 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
     }, { key: (prior) => `${prior}|far.isle-cut` });
     ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: mesh, colliders: islandColliders(isle), surface: 'grass' });
   }
-  // the grassy rise at the spawn bridge head (E399, proposal B), walkable on its convex hull
-  const knoll = knollMesh(); root.add(knoll);
-  ctx.piece({ id: 'far.sunrest.knoll', name: STRINGS.sunrest, category: 'ground', file: FILE, object: knoll,
-    colliders: [{ kind: 'hull', x: KNOLL.x, y: SUNREST.y, z: KNOLL.z, points: knollHull(), surface: 'grass' }], surface: 'grass' });
+  // the grassy rises (E399: proposal B's hill on the bridge's axis, mockup D's look down into the arena), walkable on their hulls
+  for (const k of KNOLLS) {
+    const isle = ISLES.find((i) => i.id === k.isle); if (isle === undefined) continue;
+    const knoll = knollMesh(k, isle.y); root.add(knoll);
+    ctx.piece({ id: `far.${k.id}.knoll`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: knoll,
+      colliders: [{ kind: 'hull', x: k.x, y: isle.y, z: k.z, points: knollHull(k), surface: 'grass' }], surface: 'grass' });
+  }
   const pineAt: [number, number, number, number][] = [];
   for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
   // the sky around the archipelago (E392): decorative isles from the same builder, their own seeded stream

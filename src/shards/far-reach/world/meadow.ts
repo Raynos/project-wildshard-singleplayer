@@ -31,7 +31,8 @@ export const MEADOW = {
   /** blade height range (metres) */
   low: 0.16, high: 0.74,
   /** an island's grass height scale (1 when absent): the crown's arena a little shorter, so the dais reads (E399: mockup D's meadow is lush to the dais) */
-  grass: { crown: 0.72 } as Readonly<Record<string, number>>,
+  // (round 6: from the arena's rise the sward's tufts hid the dais; mockup D's arena is a low sward round a broad dais)
+  grass: { crown: 0.42 } as Readonly<Record<string, number>>,
   /** the share of blades an island keeps (1 when absent): the crown a little thinner (round 2's carpet of chips was the old wide blades) */
   keep: { crown: 1 } as Readonly<Record<string, number>>,
 } as const;
@@ -152,10 +153,10 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         for (int i = 0; i < NI; i++) { vec4 s = uIsles[i]; float d = distance(p, s.xy);
           // a ragged edge: the meadow stops a little short of the rim, by noise (E392 foreground: close enough that no bare
           // band shows between the blades and the grassy lip)
-          float edge = s.z * (0.925 + 0.05 * mn(p * 0.6));
+          float edge = s.z * (0.99 + 0.03 * mn(p * 0.6));
           // an island's trodden arena (the crown) is trodden only in its middle: the outer ring stays a full meadow
           if (d < edge) { y = s.w; rim = d / edge; float wild = smoothstep(0.55, 0.8, rim); tall = mix(uIsleGrass[i], 1.0, wild); keep = mix(uIsleKeep[i], 1.0, wild); } }
-        // the grassy rise at the spawn bridge head (layout KNOLL)
+        // the grassy rises (layout KNOLLS)
         if (y > -1.0e3) y += farKnoll(p);
         float clear = 1.0, worn = 1.0;
         for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; float o = smoothstep(h.z, h.z + 0.6, distance(p, h.xy)); clear = min(clear, h.w > 0.5 ? mix(0.3, 1.0, o) : o); }
@@ -165,7 +166,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         // varied heights (E392: the mockups' meadow is tall drifts and short lawn, a few stalks over it, never one even wall)
         float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.2, 0.8, pt) * 0.55 + r * 0.45) * mix(0.4, 1.25, mn(p * 0.37 + 11.0));
         h *= 1.0 + 0.55 * step(0.9, fract(r * 23.3));
-        h *= tall * tuftK * (1.0 - 0.55 * smoothstep(0.82, 1.0, rim)) * clear * mix(0.4, 1.0, worn);
+        h *= tall * tuftK * (1.0 - 0.3 * smoothstep(0.85, 1.0, rim)) * clear * mix(0.4, 1.0, worn);
         h *= 1.0 - smoothstep(layer > 0.5 ? NEAR - 2.5 : RANGE * 0.55, layer > 0.5 ? NEAR : RANGE, dist + (layer > 0.5 ? 1.5 * mn(p * 0.9) : 0.0));
         if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep * mix(0.7, 1.0, worn)) { cull(); return; }
         float ang = r * 40.0; vec2 dir = vec2(cos(ang), sin(ang));
@@ -245,7 +246,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
           lit = c * (0.35 + 0.65 * up) * (0.55 + 0.45 * sh) * (0.8 + 0.4 * vTone);
           // the sun through the blades: the tips and the upper strands glow gold when you look toward it
           float glow = back * smoothstep(0.35, 1.0, up);
-          lit += ${glslColor(SWARD.glow)} * glow * 0.5 * sh + ${glslColor(SKY.sun)} * back * up * up * up * 0.3;
+          lit += ${glslColor(SWARD.glow)} * glow * 0.3 * sh + ${glslColor(SKY.sun)} * back * up * up * up * 0.18;
         }
         lit *= ${glslColor(0xfff6ec)} * 1.1;
         // olive-gold, not lime (council round 3: the meadow's blue measured 16-27 of 255 against the mockups' 39-47):

@@ -42,9 +42,11 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
         // loop 20 (mockup A: a hot white disc with a wide bloom beside the windmill; the painted disc alone read faint
         // through the haze): the disc itself (about the painted one's 1.5 deg), a tight hot glow and a wide warm halo
         float disc = 1.0 - smoothstep(0.085, 0.115, d);
-        float core = exp(-d * d * 60.0), halo = exp(-d * 3.2) * (1.0 - smoothstep(0.7, 1.0, d));
+        float halo = exp(-d * 3.2) * (1.0 - smoothstep(0.7, 1.0, d));
         // gold, not white (E399 seats: 'the sun white'): a warm disc in an amber-orange bloom
-        gl_FragColor = vec4(vec3(1.0, 0.9, 0.66) * disc * 1.5 + vec3(1.0, 0.74, 0.4) * (core * 3.2 + halo * 1.0), 1.0);
+        // round 6 (the seats, D: 'the 3.2 core makes a white wash over a third of the sky'; measured: D's share over 230 at
+        // 5.3 % vs the mockup's 2.8 %): a tighter core and a fainter halo
+        gl_FragColor = vec4(vec3(1.0, 0.9, 0.66) * disc * 1.5 + vec3(1.0, 0.74, 0.4) * (exp(-d * d * 140.0) * 2.4 + halo * 0.55), 1.0);
       }` });
   const bloomMesh = new Mesh(plane, bloom); bloomMesh.frustumCulled = false; bloomMesh.renderOrder = SUN_GLOW.order; group.add(bloomMesh);
   // a wide, faint gold over the sky round the sun (E399, the mockups' golden air toward the low sun)

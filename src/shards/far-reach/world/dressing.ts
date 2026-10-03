@@ -2,7 +2,7 @@ import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute
 import { PATCH_ORDER, patchShader } from '#engine';
 import { paintIsleMaterial } from './isle';
 import { meadowHoles, meadowPaths } from './meadow';
-import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, apothem, type Isle, type Span } from '../layout';
+import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, apothem, knollHeight, type Isle, type Span } from '../layout';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): what makes an island top read as a meadow and its
@@ -211,7 +211,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
   const stoneTop = (stone.boundingBox?.max.y ?? 1) * STONE_SQUASH;
   if (landings) for (const [x, z, deck, sc, top] of HERO_STONES) {
     if (!clearOfWalks(x, z, sc * 1.2)) continue;
-    stones.push({ x, y: deck + top - stoneTop * sc, z, s: sc, yaw: rnd() * 6.28 });
+    stones.push({ x, y: deck + knollHeight(x, z) + top - stoneTop * sc, z, s: sc, yaw: rnd() * 6.28 });
   }
   // the grassy lip (E392, the aerial targets: tops roll over their rim in a fringe of grass): clumps leaning outward
   // round every rim, a little below the deck, tilted over the edge
