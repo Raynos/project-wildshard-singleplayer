@@ -43,18 +43,21 @@ export class SignalDunesPlugin extends ShardPlugin {
    * what play does: Sefa's first talk sets her flag (her dialogue's only effect), the logbook's interact, the crank's
    * pull and the jar's interact at the well, then per waymark the oil poured by hand and the crack that lights it.
    * 'logbook': Sefa met (mock-B-logbook: the tracker at the logbook step). 'waymarks-lit': every step to the three lit
-   * waymarks, in the quest's order (mock-C-waymark). The dusk snaps to the staged step's (look/dusk.ts).
+   * waymarks, in the quest's order (mock-C-waymark). The dusk settles at the step before the last action (a player who
+   * waited there), and the last action's dusk then eases in as play eases it (round 7, seat A R7-A-P1: snapping straight
+   * to the three-lit dusk showed the last light's fresh notices under a dusk play only reaches 6 s later).
    */
   stage(name: string): void {
     const places = this.places; if (!places) return;
     const steps = ['logbook', 'waymarks-lit'], upTo = steps.indexOf(name); if (upTo === -1) return;
     places.flags.set(SCOUT_FLAG);
-    if (upTo >= 1) {
-      places.logbook.onInteract();
-      places.well.pull(); places.well.spot.onInteract();
-      for (const b of places.braziers) { b.spot.onInteract(); b.light(); }
-    }
+    if (upTo < 1) { setDusk(duskOf(places), true); return; }
+    places.logbook.onInteract();
+    places.well.pull(); places.well.spot.onInteract();
+    const last = places.braziers[places.braziers.length - 1];
+    for (const b of places.braziers) if (b !== last) { b.spot.onInteract(); b.light(); }
     setDusk(duskOf(places), true);
+    if (last) { last.spot.onInteract(); last.light(); }
   }
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
