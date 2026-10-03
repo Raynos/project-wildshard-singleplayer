@@ -13,7 +13,7 @@ import { WIND } from './dunes';
  * - the pool: a warm additive disc draped on the sand round the brazier.
  */
 export interface FireSize { flame: number; glow: number; smoke: number; embers: number; /** a thin pale wisp (a cookfire), not the dark plume */ wisp?: boolean }
-export const WAYMARK_FIRE: FireSize = { flame: 3.0, glow: 1.7, smoke: 11, embers: 260 }; // round 9 (the seats: half the mockup's fire): taller, more embers // mockup C: a roaring log fire, about one and a half bowls tall
+export const WAYMARK_FIRE: FireSize = { flame: 3.4, glow: 1.7, smoke: 11, embers: 260 }; // round 9 (the seats: half the mockup's fire): taller, more embers // mockup C: a roaring log fire, about one and a half bowls tall
 /** A smouldering cookfire: no flame to speak of, a thin smoke column (mockup B, beside the caravan). */
 export const COOKFIRE: FireSize = { flame: 0.35, glow: 0.6, smoke: 14, embers: 12, wisp: true }; // mockup B: a thin pale wisp rising behind the wagon; round 10 (the seats: a straight pale column): it curls, widens and fades
 /** The keeper's lamp in the tower's top (mockup dusk-fire): a small open flame in its cage, no plume to speak of. */
@@ -112,7 +112,7 @@ void main() {
   float a = (1.0 - smoothstep(0.15, 0.9, d)) * smoothstep(0.0, 0.06, y) * (1.0 - smoothstep(0.35, 0.95, y)) * puff;
   // Dark grey-brown, lit warm by the fire at its foot and by the afterglow on its lit side.
   vec3 c = ${wisp ? 'mix(vec3(0.16, 0.11, 0.1), vec3(0.09, 0.08, 0.12), smoothstep(0.0, 0.5, y))' : 'mix(vec3(0.25, 0.1, 0.04), vec3(0.05, 0.03, 0.032), smoothstep(0.02, 0.2, y))'}; // round 8 (mockup C: a grey-brown billow lit orange at its foot, not a dark ghost); round 9: linear values (0.1 displayed as a pale grey column) // a dark plume faintly lit at its foot, or a pale wisp // dark brown-grey, darker than the sky, warm at its foot
-  gl_FragColor = vec4(c, a * ${wisp ? '0.38' : '0.9'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
+  gl_FragColor = vec4(c, a * ${wisp ? '0.55' : '0.9'} * (1.0 - smoothstep(260.0, 420.0, vFar)) * vNear);
 }`,
 });
 const smokeMaterial = smokeMaterialOf(false), wispMaterial = smokeMaterialOf(true);

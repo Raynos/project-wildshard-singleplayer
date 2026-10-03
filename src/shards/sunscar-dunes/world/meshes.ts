@@ -90,7 +90,7 @@ float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 5.0 + 1.7) - 1.0
   // code-built plaited coil (weapons/whipModel.ts plaitedCoil) runs through the fist in their place
   if (vGloveP.x < -0.45 || (vGloveP.y > 0.55 && vGloveP.x < 0.2) || (vGloveP.y < -0.25 && vGloveP.x < 0.15)) discard;
   // round 8 (mockup D: a warm mid-brown, ours read grey): more of the paint's own hue, warmer, darker in the creases
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.35) * vec3(1.14, 0.94, 0.8) * 1.05 * (0.78 + 0.36 * gloveCrinkle(vGloveP)); // round 11 (round 10: the albedo creases read as white flecks) // round 10 (R9B-4: the creases did not register, glove fine 3.2 against 7.7): worn ridges lighter, folds darker
+  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.4) * vec3(1.14, 0.94, 0.8) * 1.3 * (0.78 + 0.36 * gloveCrinkle(vGloveP)); // round 11 (round 10: the albedo creases read as white flecks) // round 10 (R9B-4: the creases did not register, glove fine 3.2 against 7.7): worn ridges lighter, folds darker
   {
     vec3 gp = vGloveP; float whip = 0.0;
     // the gauntlet's stitching (council rounds 3-5: no seams read on the generated glove): two dashed seams along the back of
@@ -112,7 +112,7 @@ float gloveCrinkle(vec3 p) { return (1.0 - abs(2.0 * gloveN(p * 5.0 + 1.7) - 1.0
       .replace('#include <normal_fragment_maps>', ramp ? '#include <normal_fragment_maps>' : `#include <normal_fragment_maps>
   {
     // the crinkle as a bump (derivative bump mapping, three's perturbNormalArb): creases the key and the viewer light pick out
-    float gh = gloveCrinkle(vGloveP) * 0.009;
+    float gh = gloveCrinkle(vGloveP) * 0.012;
     vec2 dH = vec2(dFdx(gh), dFdy(gh));
     vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition), r1 = cross(sy, normal), r2 = cross(normal, sx);
     float det = dot(sx, r1);
@@ -149,7 +149,8 @@ function paleCloth(m: MeshStandardMaterial): void {
     shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vClothY;').replace('#include <map_fragment>', `#include <map_fragment>
   float clothL = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
   vec3 clothC = mix(diffuseColor.rgb * 0.9, vec3(0.42, 0.37, 0.32) * (0.6 + 1.4 * clothL), smoothstep(0.08, 0.22, clothL));
-  diffuseColor.rgb = mix(diffuseColor.rgb * 0.8, clothC, smoothstep(-0.02, 0.08, vClothY));`);
+  vec3 woodC = mix(vec3(clothL), diffuseColor.rgb, 0.45) * vec3(0.9, 0.8, 0.72) * 0.85; // round 12 (seat C R11-8: the tailboard saturated red-orange)
+  diffuseColor.rgb = mix(woodC, clothC, smoothstep(-0.02, 0.08, vClothY));`);
   });
 }
 /**

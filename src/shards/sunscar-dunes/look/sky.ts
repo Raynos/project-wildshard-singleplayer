@@ -37,7 +37,7 @@ void main() {
   // round 8b (measured, Rec. 709 bands: the band at 30-36 % of the frame 168 in A and 140 in dusk-fire against the mockups' 97
   // and 84, and too yellow, 224,156,107 against 154,83,60): a deeper, redder afterglow
   // and the afterglow holds as the dusk deepens (mockups B-D's low band 87-116 against ours 71-82; it used to fade by 40 %)
-  vec3 band = mix(vec3(0.62, 0.25, 0.12), vec3(0.78, 0.34, 0.14), pow(toward, 1.2)) * (0.5 + 0.58 * uDusk); // round 11 (R10B-1: dusk-fire's band 140 / ~123)
+  vec3 band = mix(vec3(0.66, 0.31, 0.14), vec3(0.78, 0.34, 0.14), pow(toward, 1.2)) * (0.5 + 0.58 * uDusk); // round 11 (R10B-1: dusk-fire's band 140 / ~123)
   // round 8 (measured, Rec. 709 bands: mockup A's mid sky 81,58,76 against ours 74,46,69, its top 40,37,65 against 48,35,61):
   // a dusty rose-peach above the band and a bluer, less plum dome
   vec3 rose = vec3(0.44, 0.29, 0.3), dusk = vec3(0.24, 0.2, 0.29), indigo = vec3(0.1, 0.09, 0.19);
@@ -50,7 +50,7 @@ void main() {
   // wide overlapping blends: where one smoothstep ended flat as the next began, the eye read a hard arc (a Mach band)
   c = mix(c, dusk, smoothstep(0.05 * (1.0 - 0.6 * uDusk), 0.36 - 0.18 * uDusk, h));
   c = mix(c, indigo, smoothstep(0.08 - 0.05 * uDusk, 0.5, h)); // round 8b: the dome's indigo lower at sunset (A's sky at 15 % of the frame 72,54,74 against 40,37,65)
-  c += vec3(1.0, 0.5, 0.2) * pow(toward, 9.0) * (1.0 - smoothstep(0.0, 0.16 - 0.08 * uDusk, h)) * 0.5 * (1.0 - 0.6 * uDusk); // round 10 (R9B-5: A's glow flat across; the mockup's hot spot right of the tower)
+  c += vec3(1.0, 0.5, 0.2) * pow(toward, 9.0) * (1.0 - smoothstep(0.02, 0.24 - 0.12 * uDusk, h)) * 0.5 * (1.0 - 0.6 * uDusk); // round 10 (R9B-5: A's glow flat across; the mockup's hot spot right of the tower)
   // round 10 (R9B-2: every mockup puts a thin bright glow line just over a near-black horizon): the last ~1 deg of the band
   // round 11 (R10B-1 / R10B-4: at dusk 0 neither spawn mockup has a line, and D's is a broad peach band ~3 deg, not a spike):
   // late dusk only, wider and lower

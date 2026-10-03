@@ -158,7 +158,7 @@ export function signalDunesLook(): LookStrategy {
       let hemi: HemisphereLight | null = null, hemiBase = 1;
       // round 10 (R9B-2: under every dusk horizon the far land is 2-4x the mockups', which put near-black land under a thin
       // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens
-      let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null;
+      let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null, fogDistBase = 0;
       const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x110b16);
       return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
@@ -166,7 +166,7 @@ export function signalDunesLook(): LookStrategy {
         bind: (targets) => {
           targets.disc.visible = false; hemi = targets.hemi; hemiBase = targets.hemi.intensity;
           fog = targets.fog; fogBase.copy(targets.fog.color); fogSun = targets.fogU.fogSunColor.value; fogSunBase.copy(fogSun);
-          haze = targets.far.uHazeCol.value; hazeBase.copy(haze);
+          haze = targets.far.uHazeCol.value; hazeBase.copy(haze); fogDist = targets.fogU.fogDistDensity; fogDistBase = fogDist.value;
         },
         // the dusk deepens with the quest (look/dusk.ts): the key dims and reddens, the sky fill drops
         update: () => {
@@ -176,6 +176,8 @@ export function signalDunesLook(): LookStrategy {
           fog?.color.copy(fogBase).lerp(DUSK_FOG, late);
           fogSun?.copy(fogSunBase).multiplyScalar(1 - 0.8 * late);
           haze?.copy(hazeBase).multiplyScalar(1 - 0.75 * late);
+          // round 12 (D: a pale haze strip on the far land under the ranges; the mockup's land there near-black): thinner late
+          if (fogDist) fogDist.value = fogDistBase * (1 - 0.8 * late);
         },
         rebuild: () => undefined, attachPost: () => undefined });
     },
@@ -275,7 +277,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
   float sandStreak = smoothstep(0.55, 0.95, sin(sandV * 1.9 + sin(sandU * 0.07) * 3.0) * sin(sandV * 0.37 + 0.6)) * (0.4 + 0.6 * sandFlat);
-  diffuseColor.rgb *= (1.0 + 0.08 * sandDrift) * mix(0.8, 1.0, smoothstep(0.0, 0.3, uDusk)); // round 12: the sunset step's sand a step darker (the A / dusk-fire split; the later steps unchanged)
+  diffuseColor.rgb *= (1.0 + 0.08 * sandDrift) * mix(0.8, 1.0, smoothstep(0.0, 0.3, uDusk)) * (1.0 + 0.5 * exp(-pow((uDusk - 0.5) / 0.1, 2.0))); // round 12: B's step (mockup B's sand 39.7) in the sand, not the sky fill // round 12: the sunset step's sand a step darker (the A / dusk-fire split; the later steps unchanged)
   // check pass (4): the path brightens with distance, so the route reads from above; underfoot it stays a subtle trodden bed
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.1, 1.05, 0.98), sandTrod * 0.6); // a faint trodden bed (E399: brighter read as a light column)
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.18, 1.12, 1.02), sandStreak * 0.55 * (1.0 - smoothstep(60.0, 140.0, sandFar)));`)
@@ -336,6 +338,12 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // only, from 30 m, so the key's bands still read on the far land
     float sil = smoothstep(30.0, 200.0, sandFar) * smoothstep(0.3, 0.75, uDusk) * 0.6;
     reflectedLight.indirectDiffuse *= 1.0 - sil;
+    // round 12 (seat C R11-2: D's late land lit rising slopes; the mockup's flat dark bands with one lit stripe): in the late
+    // dusk the faces turned from the afterglow fall dark, the faces toward it (the crests' far sides) keep their light
+    vec2 glowXZ = normalize(vec2(${SUN_GLOW.x.toFixed(3)}, ${SUN_GLOW.z.toFixed(3)}));
+    float toGlow = dot(normalize(vSandN).xz, glowXZ);
+    float away = smoothstep(0.3, 0.85, uDusk) * (1.0 - smoothstep(0.02, 0.22, toGlow)) * smoothstep(12.0, 50.0, sandFar);
+    reflectedLight.indirectDiffuse *= 1.0 - 0.7 * away; reflectedLight.directDiffuse *= 1.0 - 0.7 * away;
   }
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
