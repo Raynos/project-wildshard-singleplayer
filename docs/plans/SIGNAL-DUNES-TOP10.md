@@ -62,7 +62,7 @@ terrain). Then rows 5 and 6, then rows 7–10. After each row: commit, capture, 
 
 | # | Owner | State | Evidence |
 |---|---|---|---|
-| 1 | signal-dunes | open | |
+| 1 | signal-dunes | landed (round 13) | world/dunes.ts: steep slip faces over long windward slopes (WAVE 150, LEE 0.30: slip faces ~30 deg, windward ~10 deg; was LEE 0.45, rounded humps), relief to 24 m, the spawn on a crest (SPAWN_P 0.69), the tower on a broad separate mound (CRESTS lift 14 over 80 m), the hand-added crest lines removed; max climb green; D's overlook unchanged (26.0 m) |
 | 2 | signal-dunes | open | |
 | 3 | signal-dunes | open | |
 | 4 | signal-dunes | open | |

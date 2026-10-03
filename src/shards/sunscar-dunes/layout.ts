@@ -17,7 +17,7 @@ export const BRAZIERS: readonly { x: number; z: number }[] = [{ x: 58, z: -34 },
  *  none: the dunes are phased so a crest runs through it (P2), and it looks down over the rows to the tower. */
 // E399 (mockups A, dusk-fire): the tower stands on a rounded dune peak, a small flat top easing out over `ease` m
 // (a 40 m flat pad read as a plateau)
-export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 9, ease: 75 }]; // council round 3: the tower crowns a big dune; round 8: a broad low mound (lift 13 over 58 m stood a tall narrow dome; both spawn mockups show a wide low rise, A a small far tower)
+export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 14, ease: 80 }]; // council round 3: the tower crowns a big dune; round 8: a broad low mound (lift 13 over 58 m stood a tall narrow dome; both spawn mockups show a wide low rise, A a small far tower)
 /**
  * Crest lines (round 9, mockup A and the seats since round 1: between the spawn and the tower the mockup shows a near
  * diagonal crest before a separate tower dune, lit on its west flank; ours fell from the spawn crest to one trough at the
@@ -25,9 +25,7 @@ export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 9, ease: 75 }]; // 
  * side and a steeper one `lee` m wide on the east, faded over the last `fade` of its length at each end.
  */
 export const CREST_LINES: readonly { a: [number, number]; b: [number, number]; lift: number; w: number; lee: number; fade: number; trough: number }[] = [
-  // round 12 (seat C R11-1: A's near slope right of centre lit where the mockup's is shaded): a low near ridge
-  { a: [8, 42], b: [40, 30], lift: 4, w: 14, lee: 12, fade: 0.3, trough: 0 },
-  { a: [-24, -52], b: [52, 40], lift: 10, w: 28, lee: 22, fade: 0.14, trough: 5 }, // the terrain build smooths a ridge this narrow to ~60 %
+  // E407 row 1: none; the dune field itself carries the crests now (steep slip faces over long windward slopes)
 ];
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 // E399 (mockup C): each waymark on level sand too, its fire's pool flat round it
