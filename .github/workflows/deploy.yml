@@ -23,9 +23,12 @@ on:
 
 # Releases (the hourly schedule, a manual dispatch) queue apart from push / PR CI: GitHub keeps one PENDING run per group,
 # and with many agents pushing, every push's CI run replaced the pending release, so nothing shipped for hours (E339,
-# 2026-09-30: two dispatches in a row cancelled). CI runs still queue behind each other; releases behind each other.
+# 2026-09-30: two dispatches in a row cancelled). Releases still queue behind each other.
+# Push and PR CI runs only check (no deploy), so each commit gets its own group and none is ever replaced (E427, Jake
+# 2026-10-03: 104 of 200 runs that day were cancelled because GitHub keeps one pending run per group; the repo is public,
+# so the extra parallel runs cost no minutes).
 concurrency:
-  group: deploy-${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'release' || 'ci' }}-${{ github.ref }}
+  group: deploy-${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'release' || format('ci-{0}', github.sha) }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
