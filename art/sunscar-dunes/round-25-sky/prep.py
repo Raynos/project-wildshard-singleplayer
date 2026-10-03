@@ -28,7 +28,20 @@ for stage in ('early', 'late'):  # round 18: two stages (the mid painting fit no
         sm = sm[:, pad - n:pad - n + a.shape[1]]
         el = (HOR - np.arange(a.shape[0])) / PPD
         t = np.clip((el - 5.0) / 4.0, 0, 1); t = (t * t * (3 - 2 * t))[:, None, None]
-        im = Image.fromarray(np.clip(a * (1 - t) + sm * t, 0, 255).astype(np.uint8))
+        a = a * (1 - t) + sm * t
+        # round 22b (the lead and seat C: D's mid sky magenta, 151,70,100 against the mockup's violet 88,62,104): toward
+        # D's view (headings 324-358 full, easing over 8 deg) the red falls to 0.62 from 4 to 14 deg, easing
+        # out to 0.82 at the horizon band (its green up 20 %, peach not red-pink) and to none by 22 deg
+        hd = np.arange(a.shape[1]) / PPD
+        def ease(x): x = np.clip(x, 0, 1); return x * x * (3 - 2 * x)
+        dh = np.abs((hd - 341.0 + 180.0) % 360.0 - 180.0)  # D's frame spans ~323-359; B's (303) ends by ~321
+        wh = ease((25.0 - dh) / 8.0)
+        rf = np.interp(el, [-8.0, 1.0, 4.0, 14.0, 22.0, 90.0], [0.82, 0.82, 0.62, 0.62, 1.0, 1.0])
+        # the glow line keeps its value (the mockup's 160,103,99 against 199,97,92): less red, a little more green
+        gf = np.interp(el, [-8.0, 2.0, 5.0, 14.0, 22.0, 90.0], [1.2, 1.2, 0.95, 0.95, 1.0, 1.0])
+        a[..., 0] *= 1.0 - (1.0 - rf)[:, None] * wh[None, :]
+        a[..., 1] *= 1.0 + (gf - 1.0)[:, None] * wh[None, :]
+        im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
     y0 = int(round(HOR - TOP * PPD)); y1 = min(im.height, int(round(HOR - BOTTOM * PPD)))
     strip = im.crop((0, y0, im.width, y1))
     h = int(round(strip.height * WIDTH / strip.width))
