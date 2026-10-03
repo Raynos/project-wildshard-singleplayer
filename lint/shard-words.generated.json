@@ -100,7 +100,8 @@
       ],
       "settings": [],
       "assets": [
-        "public/assets/far-reach/**"
+        "public/assets/far-reach/**",
+        "public/assets/lut/far-reach.bin"
       ]
     },
     "nalati-grasslands": {

@@ -53,3 +53,5 @@ export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['source
   sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map(skyHdUrl)], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
+/** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/far-reach/round-29-lut/). */
+export const lateReads = (): readonly string[] => ['/assets/lut/far-reach.bin'];
