@@ -17,7 +17,7 @@ import { DECK, ISLES, SPANS, SPAWN, apothem, type Isle } from '../layout';
  * Placement uses its own seeded generator, not the level's cosmetic stream (whose order the islands already consume).
  */
 /** `handoff`: the camera distance (m) over which a clump grows back in, where the near meadow's blades thin out (MEADOW.range). */
-export const DRESS = { clumpsPerM2: 1.1, flowersPerM2: 0.14, stonesPerIsle: 9, rootsPerM: 2.2, lipPerM: 1.6, cragsPerIsle: 4, bridgeClear: 0.3, handoff: [15, 22] } as const;
+export const DRESS = { clumpsPerM2: 1.1, flowersPerM2: 0.14, stonesPerIsle: 9, rootsPerM: 2.2, lipPerM: 0.9, cragsPerIsle: 4, bridgeClear: 0.3, handoff: [15, 22] } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;
@@ -147,7 +147,7 @@ export function dressIslands(isles: readonly Isle[] = ISLES, seed = 6417, landin
       const a = (i / n) * Math.PI * 2 + rnd() * 0.15, r = apothem(isle) * (0.94 + rnd() * 0.04);
       const x = isle.x + Math.cos(a) * r, z = isle.z + Math.sin(a) * r;
       if (onLane(x, z)) continue;
-      lips.push({ x, y: isle.y - 0.25, z, s: 0.7 + rnd() * 0.5, yaw: a, tilt: 0.75 + rnd() * 0.35 });
+      lips.push({ x, y: isle.y - 0.2, z, s: 0.5 + rnd() * 0.35, yaw: a, tilt: 0.45 + rnd() * 0.3 });
     }
   }
   const group = new Group(), meshes: InstancedMesh[] = [];

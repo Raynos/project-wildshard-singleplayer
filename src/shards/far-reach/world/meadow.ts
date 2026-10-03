@@ -138,7 +138,8 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         h *= mix(1.0, 0.7, flower);
         // the nearest band is shorter, so a blade at your feet never fills a sixth of the frame (council R1C-15)
         h *= mix(0.55, 1.0, smoothstep(0.8, 4.0, dist));
-        float t = aShape.y, w = mix(0.022, 0.04, fract(r * 13.7)) * mix(1.0, 4.6, flower * step(0.62, t));
+        // the nearest blades narrower too (the judge: giant flat cards at your feet)
+        float t = aShape.y, w = mix(0.022, 0.04, fract(r * 13.7)) * mix(0.45, 1.0, smoothstep(0.6, 3.5, dist)) * mix(1.0, 4.6, flower * step(0.62, t));
         // wind: a slow swell along the prevailing wind with a quick flutter, more at the tip
         vec2 wind = normalize(vec2(0.6, 0.8));
         float sway = (0.18 + 0.12 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);

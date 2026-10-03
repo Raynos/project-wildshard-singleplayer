@@ -9,7 +9,7 @@ import { InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry,
  * Without the atlas (offline, a test page) the field is not built. Seeded: every load grows the same sky.
  */
 /** `spiral`: puffs laid on three log-spiral arms round the storm crown, under its deck (the H4 god-view targets). */
-export const PUFFS = { spiral: { count: 420, x: 0, z: -190, y: [-12, 12], r: [26, 150] }, count: 380, ring: [10, 600], y: [-22, 4], size: [24, 62], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
+export const PUFFS = { spiral: { count: 520, x: 0, z: -190, y: [-12, 20], r: [24, 100] }, count: 380, ring: [10, 600], y: [-22, 4], size: [24, 62], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
 
 /** `keelPuffs`: [x, y, z, size] puffs hugging the islands' undersides (the targets' clouds wrap the keels). */
 export function cumulus(sun: Vector3, atlas: Texture, keelPuffs: readonly (readonly [number, number, number, number])[] = []): Mesh<InstancedBufferGeometry, ShaderMaterial> {
@@ -23,7 +23,9 @@ export function cumulus(sun: Vector3, atlas: Texture, keelPuffs: readonly (reado
     // clear of the maelstrom (look/cloudSea.ts MAELSTROM) so its spiral reads from above: pushed out past its rim
     for (let tries = 0; tries < 6 && Math.hypot(PUFFS.centre[0] + Math.cos(ang) * r - PUFFS.spiral.x, PUFFS.centre[1] + Math.sin(ang) * r - PUFFS.spiral.z) < 150; tries++) { ang = rnd() * Math.PI * 2; r = PUFFS.ring[0] + (PUFFS.ring[1] - PUFFS.ring[0]) * Math.sqrt(rnd()); }
     const size = PUFFS.size[0] + (PUFFS.size[1] - PUFFS.size[0]) * rnd() ** 1.3;
-    at.set([PUFFS.centre[0] + Math.cos(ang) * r, PUFFS.y[0] + (PUFFS.y[1] - PUFFS.y[0]) * rnd(), PUFFS.centre[1] + Math.sin(ang) * r, size], i * 4);
+    // the puff's top (its centre + its height) stays under the decks: a tall one sat in front of every first-person view
+    const y = Math.min(PUFFS.y[0] + (PUFFS.y[1] - PUFFS.y[0]) * rnd(), 22 - size);
+    at.set([PUFFS.centre[0] + Math.cos(ang) * r, y, PUFFS.centre[1] + Math.sin(ang) * r, size], i * 4);
     const k = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]);
     cell.set([k % PUFFS.cells[0], Math.floor(k / PUFFS.cells[0])], i * 2);
   }
@@ -33,7 +35,7 @@ export function cumulus(sun: Vector3, atlas: Texture, keelPuffs: readonly (reado
     // (the disc lies in local x / y turned onto the ground, so its angle is the world angle mirrored: the log term's sign flips)
     const ang = arm * (Math.PI * 2 / 3) + 2.6 * Math.log(rr / 16 + 1) + (rnd() - 0.5) * 0.22;
     // a funnel: the eye sinks, the walls rise outward toward the crown's base (the H4 targets' maelstrom)
-    at.set([PUFFS.spiral.x + Math.cos(ang) * rr, PUFFS.spiral.y[0] + (PUFFS.spiral.y[1] - PUFFS.spiral.y[0]) * Math.min(1, f * 1.6) * (0.7 + 0.3 * rnd()), PUFFS.spiral.z + Math.sin(ang) * rr, 16 + rnd() * 18 + f * 20], k * 4);
+    at.set([PUFFS.spiral.x + Math.cos(ang) * rr, PUFFS.spiral.y[0] + (PUFFS.spiral.y[1] - PUFFS.spiral.y[0]) * Math.min(1, f * 1.4) ** 0.8 * (0.6 + 0.4 * rnd()), PUFFS.spiral.z + Math.sin(ang) * rr, 16 + rnd() * 18 + f * 20], k * 4);
     const c = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]); cell.set([c % PUFFS.cells[0], Math.floor(c / PUFFS.cells[0])], k * 2);
   }
   keelPuffs.forEach((k, i) => {

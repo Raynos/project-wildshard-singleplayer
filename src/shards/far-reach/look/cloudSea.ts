@@ -149,7 +149,7 @@ export function paintedSea(painted: Texture, time: { value: number }, upper = fa
         vec2 rel = wp.xz - vec2(${MAELSTROM.x.toFixed(1)}, ${MAELSTROM.z.toFixed(1)});
         // wound toward the maelstrom's eye: a log-spiral twist confined to the crown's neighbourhood (a wider twist
         // sheared the texture into streaks under every other island)
-        float mr = length(rel), reach = 1.0 - smoothstep(45.0, 75.0, mr);
+        float mr = length(rel), reach = 0.0; // the twist's band edge always streaked: the puff spiral (look/puffs.ts) carries the maelstrom
         float ma = (2.2 * log(${MAELSTROM.r.toFixed(1)} / (mr + ${MAELSTROM.eye.toFixed(1)})) + time * 0.02) * reach;
         vec2 q = vec2(cos(ma) * rel.x - sin(ma) * rel.y, sin(ma) * rel.x + cos(ma) * rel.y) + vec2(${MAELSTROM.x.toFixed(1)}, ${MAELSTROM.z.toFixed(1)});
         vec2 drift = vec2(time * 0.4, time * 0.15);

@@ -12,7 +12,7 @@ import { meadowPaths } from './meadow';
  * Its `random` (the level's cosmetic stream) is drawn exactly as the old 12-gon island drew it (122 values), so every
  * piece built after the islands keeps its look; the shape itself grows from its own seeded generator.
  */
-export const ISLE_SHAPE = { segments: 72, topRings: 10, keelRings: 16, spurs: 14, drawsOfOldIsland: 122 } as const;
+export const ISLE_SHAPE = { segments: 72, topRings: 10, keelRings: 16, spurs: 28, drawsOfOldIsland: 122 } as const;
 
 function seeded(seed: number): () => number {
   let a = seed >>> 0;

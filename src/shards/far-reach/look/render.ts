@@ -6,6 +6,7 @@ import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
 import { bakeSeaTexture, cloudSea, maelstrom, paintedSea } from './cloudSea';
 import { cumulus } from './puffs';
 import { sunGlow } from './sunGlow';
+import { PANO_SUN } from './panoramaData';
 import { ISLES } from '../layout';
 import { SKY_ISLES } from '../world/skyIsles';
 import { loadPainted } from './image';
@@ -34,8 +35,8 @@ function keelPuffs(): [number, number, number, number][] {
   for (const isle of [...ISLES, ...SKY_ISLES]) {
     const n = 5 + Math.round(isle.r / 4);
     for (let i = 0; i < n; i++) {
-      const ang = (i / n) * Math.PI * 2 + rnd() * 0.6, r = isle.r * (0.45 + rnd() * 0.5), y = isle.y - isle.keel * (0.55 + rnd() * 0.35);
-      out.push([isle.x + Math.cos(ang) * r, y, isle.z + Math.sin(ang) * r, isle.r * (0.6 + rnd() * 0.5)]);
+      const ang = (i / n) * Math.PI * 2 + rnd() * 0.6, r = isle.r * (0.35 + rnd() * 0.45), y = isle.y - isle.keel * (0.75 + rnd() * 0.3);
+      out.push([isle.x + Math.cos(ang) * r, y, isle.z + Math.sin(ang) * r, isle.r * (0.4 + rnd() * 0.35)]);
     }
   }
   return out;
@@ -87,7 +88,9 @@ export async function skyReachLook(): Promise<LookStrategy> {
     },
     lighting: { install: installPaintedLight },
     // the panorama paints the one sun (council R1B-1: the engine's disc drew a second one above it)
-    sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },
+    // god rays from the painted sun (E398): the disc stays out of the frame, only the rays' source; the engine compass
+    // faces (-sin az, cos az), the panorama heading (sin h, -cos h), so az = h + 180
+    sky: { clouds: false, planet: false, sun: { disc: false, halo: false, rays: { azimuth: (PANO_SUN.heading + 180) % 360, elevation: PANO_SUN.elevation } } },
     backdrop: ({ sky }) => {
       const clock = createDay(), key = new Color(SKY.key);
       return Promise.resolve({ clock, horizon: new Color(SKY.horizon), lut: null,
