@@ -10,7 +10,7 @@
 
 - The code is four layers: `src/engine/` (`#engine`, plus the node-safe `#engine/data`) → `src/game/` (`#game`) →
   `src/kit/` (`#kit`) → `src/shards/<slug>/`. Imports point down the arrow only; a shard never imports another shard.
-- **What each layer knows** (Jake, E405 [LAYER-PURITY](docs/plans/LAYER-PURITY.md)): the **engine** knows rendering,
+- **What each layer knows** (Jake, E405 [LAYER-PURITY](project/archive/2026-10-03-layer-purity.md)): the **engine** knows rendering,
   physics, input, audio, boot and levels in general — never the game, Wildshard, that shards exist, or any content (it
   says "level"; content arrives as data: species rows, pickup looks, icons, scores, tree sets). The **game** knows it is
   Wildshard and that shards run arbitrary content, never a particular shard. The **kit** is reusable content (creatures,

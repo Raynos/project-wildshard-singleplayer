@@ -2,7 +2,7 @@
   "name": "layer-purity",
   "version": 1,
   "ask": "E405",
-  "about": "LAYER-PURITY LP6 pilot (docs/plans/LAYER-PURITY.md): an advisory check that an engine source file holds no game or content knowledge, for what the word-list lint (wildshard/engine-words) cannot see — a shard's data under generic names, a game's theme, one level's AI. Scored on a labelled set from the E405 moves (scripts/decide/layer-purity-pilot.mjs). Not a gate.",
+  "about": "LAYER-PURITY LP6 pilot (project/archive/2026-10-03-layer-purity.md): an advisory check that an engine source file holds no game or content knowledge, for what the word-list lint (wildshard/engine-words) cannot see — a shard's data under generic names, a game's theme, one level's AI. Scored on a labelled set from the E405 moves (scripts/decide/layer-purity-pilot.mjs). Not a gate.",
   "model": "clef-flash-4bit",
   "state": "",
   "max_state_chars": 14000,

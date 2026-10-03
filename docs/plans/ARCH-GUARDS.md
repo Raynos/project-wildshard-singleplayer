@@ -1,6 +1,6 @@
 # Plan: ARCH-GUARDS — static analysis that holds the engine / game / kit / shard split (E362)
 
-**State:** `in progress` 2026-10-03 — built: batch 1 (897baa67), AG8, AG23–AG27, AG2 (`layer` split into `layer` / `public-index` / `engine-words`, ea431ea6) and AG28 part 1 (the engine imports nothing above it; `layer` hard at 0, 81cf4066). Open: AG28 part 2, the engine's shard words (in flight, arch-guards agent), and batch 2's AG3, AG4, AG7, AG10, AG18 (E379)
+**State:** `in progress` 2026-10-03 — built: batch 1 (897baa67), AG8, AG23–AG27, AG2 (the `layer` split) and AG28 (via LAYER-PURITY, archived: `layer`, `engine-words`, `shard-names` hard at 0). Open: batch 2's AG3, AG4, AG7, AG10, AG18 (E379); LAYER-PURITY's leftovers E414–E417
 
 ## Summary
 
@@ -42,7 +42,7 @@ caught at HEAD 3802308b7. The review's 25 new probes found six holes, H1–H6. T
 | H4 | `shard-sandbox` misses page-level `document` reach (`document.body.style.cursor = …`) and bare window globals (`innerWidth`, `navigator`) | AG26 |
 | H5 | 19 window / document input listeners through helpers in the engine (explore 17, ui 2) | AG18 |
 | H6 | `import('../game/' + 'index')`: a string-concat specifier passes `layer` | AG27 |
-| AG28 | part 1 built: `layer` hard at 0 (81cf4066); part 2, engine words, in flight | **Evict shard knowledge from the engine** | The engine's ~310 real shard sites at 10-03: 21 upward imports (17 into `#game`, mostly `#game/shard/manifest`; `Grass.ts` → `#kit`; `Explore.ts` → a Nalati webp; `native/boot.ts` → `main` / `pageServices`) and 289 shard content words in 58 files (Pine's species `elk.ts` / `deer.ts` / `AnimalManager`, Driftwood's sailor / crab / monkey / doubloon, `icons.ts` 42, `audio/gen.ts` 18, `Menu.ts` 16) | A sweep, one engine area per commit: the upward imports become data the game hands in, then species, loot / icons, audio. Content moves into its shard, or into `#kit` when two shards share it. With AG2's split, `layer-direction` and `engine-code-words` go hard at 0. Comment words (1,428) leave the count | 0 s | PC, PP, CI | 310 → 0, then hard | low | **yes** (Jake, 10-03) |
+| AG28 | **built** via [LAYER-PURITY](../../project/archive/2026-10-03-layer-purity.md): `layer`, `engine-words` and `shard-names` hard at 0; leftovers E414–E417 | **Evict shard knowledge from the engine** | The engine's ~310 real shard sites at 10-03: 21 upward imports (17 into `#game`, mostly `#game/shard/manifest`; `Grass.ts` → `#kit`; `Explore.ts` → a Nalati webp; `native/boot.ts` → `main` / `pageServices`) and 289 shard content words in 58 files (Pine's species `elk.ts` / `deer.ts` / `AnimalManager`, Driftwood's sailor / crab / monkey / doubloon, `icons.ts` 42, `audio/gen.ts` 18, `Menu.ts` 16) | A sweep, one engine area per commit: the upward imports become data the game hands in, then species, loot / icons, audio. Content moves into its shard, or into `#kit` when two shards share it. With AG2's split, `layer-direction` and `engine-code-words` go hard at 0. Comment words (1,428) leave the count | 0 s | PC, PP, CI | 310 → 0, then hard | low | **yes** (Jake, 10-03) |
 
 Ratchet at 10-03 (vs 1.3's 10-01 numbers): `layer` 2,762; `no-raw-input` and `no-global-listener-patch` reached 0
 and are hard errors; `no-raw-random-time` 215; `no-active-singleton` 47; `no-hook-chain` 18; `no-renderer-type` 5;
