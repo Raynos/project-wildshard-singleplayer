@@ -5,7 +5,7 @@ import { STRINGS } from '../strings';
 import { mantaBody, type MantaTint } from './manta';
 
 /** The flight numbers (metres, m/s, seconds). */
-export const RAY = { glideAlt: 14, glideSpeed: 9, circleR: 20, notice: 55, diveFrom: 38, diveSpeed: 15, climbAlt: 17, climbFor: 2.6, diveMax: 4.5, rest: 3 } as const;
+export const RAY = { glideAlt: 14, glideSpeed: 9, circleR: 20, patrolR: 34, patrolAlt: 22, notice: 55, diveFrom: 38, diveSpeed: 15, climbAlt: 17, climbFor: 2.6, diveMax: 4.5, rest: 3 } as const;
 /** One swoop: a 3-D sphere at the player's chest (ENGINE §19 "Short flyer example"). */
 export const SWOOP: StrikeSpec = { id: 'sunscar.ray.swoop', shape: { kind: 'sphere', radius: 2.2 }, windup: 0.3, active: 0.4, recover: 0.5, cooldown: 2.5,
   range: 7, damage: 14, tags: ['creature.duneRay'], units: 'world', weight: () => 1 };
@@ -45,11 +45,13 @@ export class DuneRayBrain extends CreatureBrain<RayState> {
       if (this.clock > RAY.climbFor) { this.transition('glide'); this.rest = RAY.rest; }
       return;
     }
-    // Glide: circle the player when near, else the ray's home crest.
+    // Glide: circle the player when near, else patrol round its home, the tower.
     const near = !ctx.calm && a.mem['held'] !== 1 && Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z) < RAY.notice;
     const cx = near ? ctx.player.x : RAY_HOME.x, cz = near ? ctx.player.z : RAY_HOME.z;
+    // E409 second top-10 row 5: away from the player its patrol is a wider, higher circle round the tower (RAY_HOME)
+    const r = near ? RAY.circleR : RAY.patrolR, alt = near ? RAY.glideAlt : RAY.patrolAlt;
     const around = Math.atan2(a.position.x - cx, a.position.z - cz) + 0.55;
-    ctx.flight.steer(a, toYaw(cx + Math.sin(around) * RAY.circleR, cz + Math.cos(around) * RAY.circleR), RAY.glideSpeed, RAY.glideAlt, 1.4);
+    ctx.flight.steer(a, toYaw(cx + Math.sin(around) * r, cz + Math.cos(around) * r), RAY.glideSpeed, alt, 1.4);
   }
 }
 const brains = new WeakMap<Animal, DuneRayBrain>();
