@@ -98,9 +98,9 @@
   {
    "id": "mock-D-hands",
    "mockup": "art/sunscar-dunes/round-9-review/D-hands-whip.jpg",
-   "x": 38,
-   "z": 122,
-   "yaw": 21.7,
+   "x": 25,
+   "z": 75,
+   "yaw": 19.7,
    "pitch": -2,
    "stage": "waymarks-lit",
    "settle": 11000
