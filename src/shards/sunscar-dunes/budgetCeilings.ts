@@ -4,22 +4,22 @@ import type { LevelSpec } from '#engine';
 export const BUDGET_CEILINGS = {
   "phone": {
     "current": {
-      "gpuMB": 108.99499130249023
+      "gpuMB": 109.74499130249023
     },
     "spawn": {
-      "gpuMB": 108.99499130249023
+      "gpuMB": 109.74499130249023
     },
     "whip": {
-      "gpuMB": 108.99499130249023
+      "gpuMB": 109.74499130249023
     },
     "ray": {
-      "gpuMB": 108.99499130249023
+      "gpuMB": 109.74499130249023
     },
     "quest": {
-      "gpuMB": 108.99499130249023
+      "gpuMB": 109.74499130249023
     },
     "tower": {
-      "gpuMB": 108.99499130249023
+      "gpuMB": 109.74499130249023
     }
   },
   "desktop": {

@@ -40,8 +40,8 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/sunscar-dunes.phone.json",
-      "commit": "c36bd94256b8b3bdae0b05bfe77374593a65fda0",
-      "reason": "E399 Signal Dunes council round-8 batch, measured (m5 108.99 MB, +0.71 MB), re-record lead-approved (wildshard-9, 2026-10-03); inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer): the code-built plaited coil's three 128x128 maps and a third far-range ring, on top of round 2's pack horse, cloud deck and re-lit dunes"
+      "commit": "073a0e7edf34aa97d8aea9d2012bea8427450273",
+      "reason": "E407 Signal Dunes rows 1 and 3, measured (m5 109.74 MB, +0.75 MB: the dune shadow map 640 -> 896 texels to cover the skirt to +-520 m), the plan's rule: gpuMB ceilings are ratchets re-recorded at the measured value; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     },
     {
       "shard": "sunscar-dunes",
