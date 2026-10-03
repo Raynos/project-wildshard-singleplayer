@@ -275,7 +275,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
   float sandStreak = smoothstep(0.55, 0.95, sin(sandV * 1.9 + sin(sandU * 0.07) * 3.0) * sin(sandV * 0.37 + 0.6)) * (0.4 + 0.6 * sandFlat);
-  diffuseColor.rgb *= 1.0 + 0.08 * sandDrift;
+  diffuseColor.rgb *= (1.0 + 0.08 * sandDrift) * mix(0.8, 1.0, smoothstep(0.0, 0.3, uDusk)); // round 12: the sunset step's sand a step darker (the A / dusk-fire split; the later steps unchanged)
   // check pass (4): the path brightens with distance, so the route reads from above; underfoot it stays a subtle trodden bed
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.1, 1.05, 0.98), sandTrod * 0.6); // a faint trodden bed (E399: brighter read as a light column)
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.18, 1.12, 1.02), sandStreak * 0.55 * (1.0 - smoothstep(60.0, 140.0, sandFar)));`)
@@ -306,7 +306,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
     // forms): the key's response on the terrain's own normal a short ramp at the terminator and a flatter lit side
     // (0.12 + 0.88 N.L past the ramp, against plain Lambert), so the line between lit and shaded faces reads sharp
     float tN = max(dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)})), 0.0);
-    reflectedLight.directDiffuse *= smoothstep(0.0, 0.045, tN) * (0.12 + 0.88 * tN) / max(tN, 0.02) * 0.72; // round 11 (R10B-2: the near field over both mockups, dusk-fire 82.5 / 73.8)
+    reflectedLight.directDiffuse *= smoothstep(0.0, 0.045, tN) * (0.12 + 0.88 * tN) / max(tN, 0.02) * 0.63; // round 11 (R10B-2: the near field over both mockups, dusk-fire 82.5 / 73.8); round 12: the spawn mockups disagree by 16 on the same ground (A 57, dusk-fire 74), so split them (lead: A 78 the biggest measured gap)
   }
   // round 6 (seat C: the mean is right, the contrast must come from darker shade AND brighter crests): faces grazing the key
   float sandGraze = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
