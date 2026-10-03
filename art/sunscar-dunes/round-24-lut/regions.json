@@ -1,0 +1,18 @@
+{
+ "shard": "sunscar-dunes",
+ "about": "E407 top-10 row 10: the shard grade fitted from the council's five mockups (frames 1 dusk-fire, 2 A, 3 B, 4 C, 5 D; art/sunscar-dunes/round-24-lut/mockups/mockup-{n}-*.jpg) against the game's mock-* captures without the LUT. regions: material -> [[frame, [x0, y0, x1, y1]]] normalised, clear of the HUD chips, the notices and the held glove and coil (the lower right); filters: [hue lo, hue hi, min sat, min value, max value].",
+ "regions": {
+  "sunset sky": [[1, [0.05, 0.12, 0.95, 0.3]], [2, [0.05, 0.12, 0.95, 0.3]]],
+  "late sky": [[3, [0.05, 0.12, 0.6, 0.38]], [4, [0.05, 0.12, 0.6, 0.3]], [5, [0.05, 0.12, 0.95, 0.4]]],
+  "sunset dunes": [[1, [0.0, 0.38, 1.0, 0.56]], [2, [0.0, 0.38, 1.0, 0.56]]],
+  "sunset near sand": [[1, [0.02, 0.62, 0.4, 0.86]], [2, [0.02, 0.62, 0.4, 0.86]]],
+  "late near sand": [[3, [0.02, 0.62, 0.4, 0.86]], [4, [0.02, 0.62, 0.4, 0.86]], [5, [0.02, 0.62, 0.4, 0.86]]]
+ },
+ "filters": {
+  "sunset sky": [0, 360, 0.0, 0.1, 1.0],
+  "late sky": [0, 360, 0.0, 0.05, 1.0],
+  "sunset dunes": [0, 360, 0.0, 0.05, 1.0],
+  "sunset near sand": [0, 360, 0.0, 0.05, 1.0],
+  "late near sand": [0, 360, 0.0, 0.03, 1.0]
+ }
+}

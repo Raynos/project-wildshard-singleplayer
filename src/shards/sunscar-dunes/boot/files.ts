@@ -40,3 +40,5 @@ export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['source
   sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...DUNE_MESHES.map(duneMeshUrl), ...DUNE_HD.map(duneHdUrl)], art: [], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
+/** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/sunscar-dunes/round-24-lut/). */
+export const lateReads = (): readonly string[] => ['/assets/lut/sunscar-dunes.bin'];

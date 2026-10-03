@@ -1,6 +1,6 @@
 import { DUSK, fillAt, keyAt } from './dusk';
 import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight } from 'three';
-import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
+import { DayCycle, loadLUT, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
 import { GROUND_HALF } from '../layout';
 import { WIND } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
@@ -158,14 +158,17 @@ export function signalDunesLook(): LookStrategy {
     },
     // No sun disc or halo (G25): the sun has just set; the dome paints the afterglow.
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },
-    backdrop: ({ sky }) => {
+    backdrop: async ({ sky }) => {
+      // E407 row 10: the shard's learned grade, fitted from the five council mockups against round 15's frames
+      // (art/sunscar-dunes/round-24-lut)
+      const lut = await loadLUT('sunscar-dunes');
       const clock = duskClock(), keyColor = new Color();
       let hemi: HemisphereLight | null = null, hemiBase = 1;
       // round 10 (R9B-2: under every dusk horizon the far land is 2-4x the mockups', which put near-black land under a thin
       // glow line): the distance fog, its sun-side tint and the far rings' haze darken as the dusk deepens
       let fog: Fog | null = null, fogSun: Color | null = null, haze: Color | null = null, fogDist: { value: number } | null = null, fogDistBase = 0;
       const fogBase = new Color(), fogSunBase = new Color(), hazeBase = new Color(), DUSK_FOG = new Color(0x110b16);
-      return Promise.resolve({ clock, horizon: new Color(FOG.color), lut: null, clouds: dome,
+      return { clock, horizon: new Color(FOG.color), lut, clouds: dome,
         // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads (counts) the geometry
         // of a visible mesh whose material is hidden, so the disc's sphere outlived the level (the phone leak check).
         bind: (targets) => {
@@ -184,7 +187,7 @@ export function signalDunesLook(): LookStrategy {
           // round 12 (D: a pale haze strip on the far land under the ranges; the mockup's land there near-black): thinner late
           if (fogDist) fogDist.value = fogDistBase * (1 - 0.8 * late);
         },
-        rebuild: () => undefined, attachPost: () => undefined });
+        rebuild: () => undefined, attachPost: () => undefined };
     },
     terrainPainter: { build: (terrain, field, scope) => {
       // 256: the baked height grid's own spacing (1.95 m; round 1, R1C-5: 192 blunted the crests)

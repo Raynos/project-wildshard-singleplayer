@@ -189,7 +189,8 @@
       ],
       "settings": [],
       "assets": [
-        "public/assets/sunscar-dunes/**"
+        "public/assets/sunscar-dunes/**",
+        "public/assets/lut/sunscar-dunes.bin"
       ]
     }
   }
