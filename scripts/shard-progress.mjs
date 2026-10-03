@@ -14,7 +14,7 @@
 // Output: progress/<slug>/<YYYYMMDD-HHMM>-<sha8>/<shot>.jpg (780×1688, ≤ ~300 KB), clip.mp4 (540 px wide), meta.json.
 // The stamp is the commit's date (git), so a back-filled old SHA sorts where it belongs.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { saveFixture } from './debug-settings.mjs';
@@ -35,8 +35,9 @@ const when = execFileSync('git', ['show', '-s', '--format=%cd', '--date=format:%
 /** --root=<dir>: write the capture there instead of the repo's progress/ (a scratch comparison, E397) */
 const OUT = join(flag('root', join(ROOT, 'progress')), SLUG, `${when}-${SHA.slice(0, 8)}`);
 mkdirSync(OUT, { recursive: true });
-const TMP = join(tmpdir(), `shard-progress-${SLUG}-${SHA.slice(0, 8)}`);
-mkdirSync(TMP, { recursive: true });
+// one temp folder per run: two runs of the same shard at the same SHA (the lead's and a builder's) shared one, and the
+// first to finish deleted it under the other (two council captures stopped half-way, E399)
+const TMP = mkdtempSync(join(tmpdir(), `shard-progress-${SLUG}-${SHA.slice(0, 8)}-`));
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const D = Math.PI / 180;
 
@@ -87,6 +88,9 @@ try {
   });
   const hud = (on) => page.evaluate((v) => { const h = document.getElementById('hud'); if (h) h.style.visibility = v ? '' : 'hidden'; }, on);
   const staged = {};
+  // each shot's real camera (round 4: a new knoll lifted a view 1.1 m with no cameras.json change, so the round's camera
+  // list missed it); the council's camera diff compares these, not only the requested poses
+  const camAt = {};
   for (const s of CAMS.shots) {
     // creatures are calmed so they don't fill the frame; a shot whose subject IS a creature in action (a boss's stalk)
     // sets `"calm": false`, since calm cancels the behaviour (mockup council round 1, seat A)
@@ -114,6 +118,7 @@ try {
       const at = await page.evaluate(() => { const q = window.__wildshard.world.player.position; return [q.x, q.z]; });
       if (Math.hypot(at[0] - s.x, at[1] - s.z) > 4) errors.push(`shot ${s.id}: the player is at (${at.map((v) => v.toFixed(1)).join(', ')}), not (${s.x}, ${s.z}): no floor there?`);
     }
+    camAt[s.id] = await page.evaluate(() => { const c = window.__wildshard.world.game.camera, d = c.getWorldDirection(c.position.clone()); return { pos: [c.position.x, c.position.y, c.position.z].map((v) => Math.round(v * 100) / 100), dir: [d.x, d.y, d.z].map((v) => Math.round(v * 1000) / 1000), fov: Math.round(c.fov * 10) / 10 }; }).catch(() => null);
     store(await page.screenshot({ type: 'png' }), s.id); shots.push(s.id);
   }
   // the clip: a slow orbit, recorded from the canvas at its real resolution
@@ -142,7 +147,7 @@ try {
   }
   // the compiled programs after every view was drawn (E397: a program-key collision shows up as a lower count)
   const programs = await page.evaluate(() => window.__wildshard.world.game.renderer?.info?.programs?.length ?? null).catch(() => null);
-  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, staged, active: CAMS.shots.filter((x) => x.calm === false).map((x) => x.id), cameras: execFileSync('git', ['hash-object', flag('cameras', join(ROOT, 'art', SLUG, 'progress', 'cameras.json'))], { encoding: 'utf8' }).trim(), pageErrors: errors }, null, 1)}\n`);
+  writeFileSync(join(OUT, 'meta.json'), `${JSON.stringify({ shard: SLUG, sha: SHA, when, label: LABEL, loadSeconds: loadS, shots, clip: CLIP && Boolean(CAMS.clip), programs, staged, camAt, active: CAMS.shots.filter((x) => x.calm === false).map((x) => x.id), cameras: execFileSync('git', ['hash-object', flag('cameras', join(ROOT, 'art', SLUG, 'progress', 'cameras.json'))], { encoding: 'utf8' }).trim(), pageErrors: errors }, null, 1)}\n`);
   console.log(`progress: ${OUT.slice(ROOT.length + 1)} · ${shots.length} shots${CLIP && CAMS.clip ? ' + clip' : ''} · load ${loadS} s${errors.length > 0 ? ` · ${errors.length} page errors` : ''}`);
 } finally {
   await browser.close();
