@@ -231,7 +231,7 @@ export class Animal {
     this.aggressive = model.species.aggressive ?? false;
     this.mods = variantMods(model.species, v);
     this.mesh = rig.mesh; this.bones = rig.bones; this.model = model; this.seed = seed; this.scale = scale;
-    this.maxHp = this.hp = v.hp ?? model.species.tuning?.hp ?? (model.kind === 'deer' ? 60 : 100);   // the manager re-reads the HuntTuning.hp
+    this.maxHp = this.hp = v.hp ?? model.species.tuning?.hp ?? (model.species.aggressive === true ? 100 : 60);   // the manager re-reads the HuntTuning.hp; its default tuning: a charger 100, a grazer 60
     this.mesh.scale.setScalar(scale);
     this.mesh.rotation.order = 'YXZ';
     this.custom = model.species.rig === 'custom';
@@ -817,7 +817,7 @@ export class Animal {
   private poseGraze(t: number, seed: number): void {
     this.poseIdle(t, seed);
     const p = this.tmp;
-    const gn = this.model.species.pose?.grazeNeck ?? (this.kind === 'boar' ? 0.3 : 1);
+    const gn = this.model.species.pose?.grazeNeck ?? 1;   // a species sets its own (SpeciesDef.pose: the kit boar's 0.3)
     // head to the ground; deer (grazeNeck 1) need the whole neck down, boars (0.3) only nose down a little
     p[P_NECK1] = 0.35 + 0.85 * gn; p[P_NECK2] = 0.2 + 0.75 * gn; p[P_HEAD_P] = 0.35 + 0.35 * gn;
     p[P_NECK_Y] = (p[P_NECK_Y] ?? 0) * 0.6; p[P_HEAD_Y] = (p[P_HEAD_Y] ?? 0) * 0.4;
@@ -869,7 +869,7 @@ export class Animal {
     // ears back at speed, tail up when fleeing
     p[P_EARL_P] = gallop ? 0.7 : 0.1; p[P_EARR_P] = gallop ? 0.7 : 0.1;
     p[P_EARL_Y] = 0.2; p[P_EARR_Y] = -0.2;
-    p[P_TAIL_P] = gallop ? (this.model.species.pose?.gallopTail ?? (this.kind === 'boar' ? 0.5 : 1.0)) : 0.1 + 0.15 * beat;   // + = raised
+    p[P_TAIL_P] = gallop ? (this.model.species.pose?.gallopTail ?? 1.0) : 0.1 + 0.15 * beat;   // + = raised
     p[P_TAIL_Y] = Math.sin(ph * Math.PI * 2) * 0.15;
   }
 

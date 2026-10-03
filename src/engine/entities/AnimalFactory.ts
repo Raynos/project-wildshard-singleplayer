@@ -83,8 +83,6 @@ export type { Paint, Station } from './species/loft';
  */
 
 export type AnimalKind = string;
-/** the built-in kinds (bear / elk register more at runtime) */
-export type KnownAnimalKind = 'deer' | 'boar';
 /** @deprecated variant ids are per species now — see SpeciesDef.variants */
 export type AnimalVariant = string;
 
@@ -458,7 +456,7 @@ export class AnimalFactory {
             float back = saturate( dot( sunV, -V ) );                // looking toward the sun: the coat's tips light up
             float fres = pow( 1.0 - ndv, 3.2 );
             // the backlit glow is a close-up detail: past ~10 m it washes the whole silhouette into the haze and a
-            // deer at 25 m becomes a pale ghost you cannot aim at, so it fades to a third by 40 m
+            // a pale creature at 25 m becomes a pale ghost you cannot aim at, so it fades to a third by 40 m
             float rimDist = 1.0 - 0.67 * smoothstep( 10.0, 40.0, length( vViewPosition ) );
             float rimAmt = fres * ( 0.02 + 1.2 * back * back ) * rimDist;
             outgoingLight += furRimColor * rimAmt * ( 0.15 + 0.85 * diffuseColor.rgb * 2.2 );

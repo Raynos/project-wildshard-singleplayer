@@ -62,7 +62,7 @@ export class HorsePlayground implements Playground {
     host.registry.add({ id: 'playground-horse', name: 'Horse playground', category: 'ground', file: FILE, object: root, colliders, surface: 'wood', solidFloor: true });
     const lap = ovalLine(4).map(([x, z]) => [o.x + x, o.z + z] as const);
     this.road = [...lap, ...lap.slice(1)];
-    const mark: RoomMarker = { x: 0, z: 0, kind: 'horse' }, marks = [mark], none: RoomMarker[] = [];   // reused: read every frame
+    const mark: RoomMarker = { x: 0, z: 0 }, marks = [mark], none: RoomMarker[] = [];   // reused: read every frame
     this.map = { ...fieldMap(o), markers: () => { const h = this.horse; if (h === null || h.hidden) return none; mark.x = h.position.x; mark.z = h.position.z; return marks; } };
     this.chip = new PlaygroundChip('Horse track', () => { this.restart(); });
     host.game.onUpdate(() => { if (this.active) this.update(); }, 'playground-horse');

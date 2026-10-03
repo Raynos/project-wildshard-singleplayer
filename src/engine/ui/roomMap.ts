@@ -4,7 +4,7 @@
  * one is up the minimap and the full map draw ITS layout instead of the shard's terrain: no POIs, no quest pins, no elite
  * skulls, no fog of war.
  *
- *   const map: RoomMap = { bounds, shapes: [...], markers: () => [{ x, z, kind: 'horse' }] };   // the room says what it is
+ *   const map: RoomMap = { bounds, shapes: [...], markers: () => [{ x, z }] };   // the room says what moves in it
  *   minimap.setRoom(map)          // main.ts, on entering it (setPracticeArena(null) / setRoom(null) on leaving)
  *   paintRoom(ctx, map, view, pos, yaw, dpr)   // Minimap.ts (fitted in its circle) and Map.ts (fitted in the MAP tab)
  *
@@ -24,8 +24,8 @@ export type RoomShape =
   /** a floor label, drawn only on the full map (the minimap's circle is too small to read it) */
   | { kind: 'label'; x: number; z: number; text: string; color: string };
 
-/** something that moves, read every frame: the track horse */
-export interface RoomMarker { x: number; z: number; kind: 'horse' }
+/** something that moves, read every frame (a playground's mount); `color` defaults to amber */
+export interface RoomMarker { x: number; z: number; color?: string }
 
 export interface RoomMap {
   /** the box the views fit: the room's walls */
@@ -38,7 +38,7 @@ export interface RoomMap {
 export interface RoomView { cx: number; cy: number; ppm: number }
 
 export const ROOM_BG = '#07101d';
-const ARROW = '#ffffff', OUTLINE = 'rgba(6, 10, 18, 0.9)', HORSE = '#ffb547';
+const ARROW = '#ffffff', OUTLINE = 'rgba(6, 10, 18, 0.9)', MARKER = '#ffb547';
 
 /** the view that fits the room's bounds in a `w` × `h` canvas: in a circle (the minimap) its diagonal fits the diameter */
 export function fitRoom(map: RoomMap, w: number, h: number, circle: boolean): RoomView {
@@ -79,10 +79,10 @@ export function paintRoom(ctx: CanvasRenderingContext2D, map: RoomMap, view: Roo
       ctx.fillStyle = s.color; ctx.fillText(s.text, sx(s.x), sy(s.z));
     }
   }
-  // the markers: the horse, amber with a dark rim (under your arrow once you ride it)
+  // the markers: amber with a dark rim (under your arrow once you ride one)
   for (const m of map.markers?.() ?? []) {
     ctx.beginPath(); ctx.arc(sx(m.x), sy(m.z), 3.2 * dpr, 0, Math.PI * 2);
-    ctx.fillStyle = HORSE; ctx.fill();
+    ctx.fillStyle = m.color ?? MARKER; ctx.fill();
     ctx.lineWidth = 1.2 * dpr; ctx.strokeStyle = OUTLINE; ctx.stroke();
   }
   // you: the arrow, heading clockwise from north (the compass band's convention, heading = 180° − yaw)
