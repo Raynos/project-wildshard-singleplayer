@@ -1,6 +1,6 @@
 # Plan: DECISION-MODELS — Clef / Jev as fast, typed judges in the agent tooling (E394)
 
-**State:** `draft` 2026-10-02 — research and audit done; proposal only, Jake approved none. Open: Jake's go on D1–D4 (local `mlx-community/clef-flash-4bit`, capture QA first).
+**State:** `in progress` 2026-10-03 — D1–D3 done (Jake's go 10-03). Capture status PASSES (99 % of bad frames flagged, 3 % of good); render glitches and garbled text FAIL. Open: Jake's go on D4, capture status only.
 
 ## Summary
 
@@ -120,18 +120,37 @@ scripts/decide/decide.py <questions.json> --state <file|-> [--image a.jpg …] [
 
 | Row | What | Done when | Status |
 |---|---|---|---|
-| D1 | Fetch `mlx-community/clef-flash-4bit` with `~/projects/weights/bin/fetch-repo.sh`, add a MODELS.md row and a venv with `mlx-vlm`. Smoke test under the lock: one 390×844 capture, 5 questions | the latency, peak memory and a NaN check written in a localai doc | todo |
-| D2 | `scripts/decide/`: the CLI above, the Jev-style confidence recomputed from `probabilities`, tail trimming, the call log, a `--batch` mode, and a fixture test | a dry run on fixtures prints the Jev body for every backend it can reach | todo |
-| D3 | Calibrate capture QA on a labelled set: the re-rolled vs kept frames from the art rounds' READMEs and ≥ 150 good progress captures; pick a threshold per question | ≥ 90 % recall on bad frames while flagging ≤ 20 % of good ones, or a written no-go | todo |
-| D4 | Wire it in: `mockup-local.sh` seed picking and the shard progress / timelapse captures write `<frame>.qa.json`; the skills say to open the PNG only when it is flagged. An image that goes to Jake is still read by the agent (the AGENTS.md mockup rule stays) | one shard's progress run writes QA sidecars, and the skill text is updated | todo |
+| D1 | Fetch `mlx-community/clef-flash-4bit` with `~/projects/weights/bin/fetch-repo.sh`, add a MODELS.md row and a venv with `mlx-vlm`. Smoke test under the lock: one 390×844 capture, 5 questions | the latency, peak memory and a NaN check written in a localai doc | **done** 10-03: 6.21 GB, sha256-verified; `~/ml/decide/.venv` (mlx 0.32.3, mlx-vlm 0.7.4); load 1.4 s, p50 0.96 s per capture, 6.8 GB resident, 9.3 GB peak with the MLX cache capped (18.6 GB uncapped). localai `docs/decision-models.md` (`beb8408`), weights MODELS.md (`17d8043`), both local commits |
+| D2 | `scripts/decide/`: the CLI above, the Jev-style confidence recomputed from `probabilities`, tail trimming, the call log, a `--batch` mode, and a fixture test | a dry run on fixtures prints the Jev body for every backend it can reach | **done** 10-03, local backend only (no Jev / Workers AI key on the box): `decide.sh` / `decide.py` (`run`, `batch` over a dir, a list or a per-item-state `.jsonl`), `calibrate.py`, `test_decide.py` (model-free), sets `capture-status` v2 and `text-garbled` v1 |
+| D3 | Calibrate capture QA on a labelled set: the re-rolled vs kept frames from the art rounds' READMEs and ≥ 150 good progress captures; pick a threshold per question | ≥ 90 % recall on bad frames while flagging ≤ 20 % of good ones, or a written no-go | **done** 10-03: capture status **passes**; render glitch and garbled text are **no-go** (see D3 results). The art rounds kept only the winning takes, so the bad frames came from live loading sequences and old session captures instead |
+| D4 | Wire **capture status only** into the capture scripts: the shard progress / timelapse captures and the capture helpers write `<frame>.qa.json`; a frame flagged as loading / title card / menu / blank is re-taken after a wait before anyone looks at it; the skills say an agent opens a capture to judge the scene, not to check that it loaded. An image that goes to Jake is still read by the agent (the AGENTS.md mockup rule stays) | one shard's progress run writes QA sidecars and re-takes a flagged frame; the skill text is updated | needs Jake's go |
 | D5 | WorldClaw T12's batched style check gets the J0 pass | agreed and edited in WORLDCLAW-SHARD (its owner's row, not this plan's) | proposal |
 | D6 | Text triage: the session-brief status regex fix, then the ask-status and inbox-owner sets | the brief stops listing folded or parked asks; the inbox owner set reaches ≥ 85 % on 50 labelled reports | proposal |
 
+## D3 results (2026-10-03)
+
+Opus labelled every image by eye before the model ran. The images are in `~/ml/decide/d3-2026-10-03/`; the labels
+and per-item scores are in `scripts/decide/calibration/2026-10-03/`; `calibrate.py` re-scores them. A threshold
+"fitted on half A, judged on half B" is how the pass / fail avoids being tuned on its own data.
+
+| Check | Labelled set | Result | Verdict |
+|---|---|---|---|
+| **Capture status**: is it the 3D world, or a loading screen, title card, menu, blank frame or error? | 376 real frames: 280 old agent captures (random plus dark and flat frames) and 96 live loading sequences (6 shards × phone / desktop × 8 times). 89 not the world | "Not the world" AUC **0.998**; at P ≥ 0.5, **99 % of bad frames flagged, 3 % of good ones flagged**. Set v1 counted only loading / blank / error as bad: 78 % recall at 0.5, 89–95 % held-out recall at a fitted ~0.35, 3 % false flags. Every miss was a phone title card, which the model calls "menu"; v2 counts menu too. That choice was made after seeing the data, so v2's numbers still need confirming on fresh frames. A pixel heuristic (share of near-black pixels) gets AUC 0.92: 76 % recall at 5 % false flags | **pass** |
+| Render glitch (solid black blocks) | the 4 real black-pond frames among the 376 | AUC 0.88; 1 of 4 caught at 0.5 | **no-go** (too few examples to tune; the model does not see it) |
+| Garbled HUD text in a generated mockup | 72 mockups. The 39 garbled ones: 7 HUD jobs × 6 local models from the E104 bake-off. The 33 clean ones: codex takes, live HUD references, real captures | AUC 0.94. At 0.5: 46 % of garbled takes caught, 0 clean ones flagged. Catching 90 % flags 30–38 % of clean frames. It caught **0 of the 7 Qwen-2.1-turbo takes**, our local mockup engine, because its garbles are small-text ones. Passing the prompt's exact strings in the state: 46 → 54 %, the same misses | **no-go** for our pipeline (it only catches gross garbles) |
+
+What it means:
+- The model reliably answers "did this capture land in the world?". That is the "captured too early" failure, and the
+  live loading sequences show how long it lasts: up to 22 s on Nine Dragon and Pine Hollow, and a phone run without
+  `skipintro` never leaves the title card.
+- It does **not** replace an agent's eye for small HUD text or subtle render bugs, so those reads stay with Opus.
+
 ## Picks for Jake
 
-1. **Go on D1–D4, local MLX 4-bit, capture QA first.** Recommended: free, keeps vision, measured on this exact
-   machine, ~6 GB under the model lock. The alternatives are Workers AI (needs a Cloudflare account and token) and
-   Jev (text only, so it cannot do capture QA).
+1. **Go on D4, capture status only?** Recommended. The capture scripts check and re-take their own frames, and agents
+   stop opening captures just to see whether they loaded. It costs ~1 s and ~7 GB per batch under the model lock.
+   Text QA and glitch QA stay with Opus's eye. D5 (WorldClaw style judge) and D6 (text triage) stay proposals; the
+   flash model's text-reading limits are a reason to try the 27B before either.
 
 ## Sources
 
