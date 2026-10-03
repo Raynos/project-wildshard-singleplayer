@@ -32,17 +32,34 @@ function ground(x: number, z: number, h: number, slope: number, spruce: number, 
   if (high > 0.5 && nalatiWetAt(x, z)) mix(out, MELT, 0.9, out);
 }
 
+/** the spruce stipple's crowns (x, z, radius in m, colour 0 / 1), placed once per forest mask: every map tile used to walk
+ *  the whole chunk (~14k mask calls per tile, E106); now a tile only draws the crowns on it. Same rng order, same dots. */
+const stipples = new WeakMap<(x: number, z: number) => number, Float32Array>();
+function stipple(half: number, forestMask: (x: number, z: number) => number): Float32Array {
+  const known = stipples.get(forestMask);
+  if (known) return known;
+  const rng = new Rng(SEED + 4242), out: number[] = [];
+  for (let x = -half + 3; x < half - 3; x += 4.2) for (let z = -half + 3; z < half - 3; z += 4.2) {
+    const cx = x + rng.range(-1.6, 1.6), cz = z + rng.range(-1.6, 1.6);
+    if (rng.next() > forestMask(cx, cz) * 0.85) continue;
+    const r = 1.6 + rng.range(0, 1.1);
+    out.push(cx, cz, r, rng.next() < 0.5 ? 0 : 1);
+  }
+  const list = Float32Array.from(out);
+  stipples.set(forestMask, list);
+  return list;
+}
+
 /** the spruce: a stipple of dark crowns where the forest mask keeps trees; the roads (the N road, the sky road's
  *  hairpins …): the chunk's trails, a warm dirt line */
 function overlay({ ctx, toU, toV, ppm, trails, half, forestMask }: MapOverlay): void {
   if (forestMask) {
-    const rng = new Rng(SEED + 4242);
-    for (let x = -half + 3; x < half - 3; x += 4.2) for (let z = -half + 3; z < half - 3; z += 4.2) {
-      const cx = x + rng.range(-1.6, 1.6), cz = z + rng.range(-1.6, 1.6);
-      if (rng.next() > forestMask(cx, cz) * 0.85) continue;
-      const r = (1.6 + rng.range(0, 1.1)) * ppm;
-      ctx.fillStyle = 'rgba(14, 26, 18, 0.45)'; ctx.beginPath(); ctx.arc(toU(cx) + 0.8 * ppm, toV(cz) + 0.8 * ppm, r, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = rng.next() < 0.5 ? '#2c4a30' : '#38583a'; ctx.beginPath(); ctx.arc(toU(cx), toV(cz), r, 0, Math.PI * 2); ctx.fill();
+    const crowns = stipple(half, forestMask), w = ctx.canvas.width, h = ctx.canvas.height;
+    for (let i = 0; i + 3 < crowns.length; i += 4) {
+      const u = toU(crowns[i] ?? 0), v = toV(crowns[i + 1] ?? 0), r = (crowns[i + 2] ?? 0) * ppm;
+      if (u + r + ppm < 0 || v + r + ppm < 0 || u - r > w || v - r > h) continue; // not on this tile (the shadow sits +0.8 m)
+      ctx.fillStyle = 'rgba(14, 26, 18, 0.45)'; ctx.beginPath(); ctx.arc(u + 0.8 * ppm, v + 0.8 * ppm, r, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = crowns[i + 3] === 0 ? '#2c4a30' : '#38583a'; ctx.beginPath(); ctx.arc(u, v, r, 0, Math.PI * 2); ctx.fill();
     }
   }
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';

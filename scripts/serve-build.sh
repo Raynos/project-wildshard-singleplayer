@@ -8,17 +8,20 @@
 #        --rev    the same for any commit (a before / after pair, e.g. scripts/nine-sim-memory.mjs --rev=f9ca6490)
 #        --hours  the server is reaped after this long (default 4; `scripts/browser-lane.sh reap`)
 #   scripts/serve-build.sh list                  the servers this script started, their age and expiry
-#   scripts/serve-build.sh stop <port|all-mine>  stop one (all-mine: every server started from this shell's session dir)
+#   scripts/serve-build.sh stop <port|all-mine>  stop one (all-mine: every server this Claude session started)
 #
 # public/ (≈ 500 MB) is not copied: the out dir symlinks its top-level entries, so a build takes the JS build's time only.
-# Registry: ~/.dev-servers/<port> ("pid expiry outdir cwd name"). Reaped by `scripts/browser-lane.sh reap` (hooks on
+# Registry: ~/.dev-servers/<port> ("pid expiry outdir owner name"; owner = the session id, E338). Reaped by `scripts/browser-lane.sh reap` (hooks on
 # SessionStart / Stop / SubagentStop): an expired registered preview, an unregistered `vite preview` older than 6 h, and
 # every `vite` dev server older than 2 h.
 
 set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 REG="$HOME/.dev-servers"; mkdir -p "$REG"
-CALLER="$PWD"
+# "mine" is the calling session, not its folder (E338): every agent runs from the repo root or a shared scratchpad, so a
+# cwd key let one agent's all-mine / eviction stop another's preview mid-run. Claude Code sets CLAUDE_CODE_SESSION_ID;
+# anything else falls back to the folder.
+CALLER="${CLAUDE_CODE_SESSION_ID:-${CODEX_SESSION_ID:-$PWD}}"; CALLER="${CALLER// /_}"
 BASE="${SERVE_BUILD_DIR:-/private/tmp/wildshard-serve}"; mkdir -p "$BASE"
 
 case "${1:-}" in
