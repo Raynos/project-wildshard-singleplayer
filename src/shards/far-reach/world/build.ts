@@ -1,4 +1,4 @@
-import { boxDesc, type ColliderDesc, type Interactable } from '#engine';
+import { PATCH_ORDER, boxDesc, patchShader, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, KNOLL, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
@@ -104,12 +104,22 @@ export interface BuiltWorld {
   readonly state: { raised: boolean; raising: boolean };
 }
 
+/** How far under its deck a playable island's code keel is cut away (the textured keel model carries the rock below). */
+const ISLE_CUT = 3.2;
 export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorld {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
     keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
   for (const isle of ISLES) {
     const mesh = islandMesh(isle, rnd); mesh.position.set(isle.x, isle.y, isle.z); root.add(mesh);
+    // the code keel ends a little under the lip (E399 round 3, item 2: 'under the bridge a grey-green cliff wall where the
+    // mockups show open cloud'): the textured keel model below (far.isle-keels) is the rock you see, narrower, with sky
+    // round it; the top, the lip and every collider are unchanged
+    patchShader(mesh.material, 'far.isle-cut', PATCH_ORDER.decorate, (shader) => {
+      shader.uniforms['farCut'] = { value: isle.y - ISLE_CUT };
+      shader.fragmentShader = `uniform float farCut;\n${shader.fragmentShader.replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+  if ((inverse(viewMatrix) * vec4(-vViewPosition, 1.0)).y < farCut) discard;`)}`;
+    }, { key: (prior) => `${prior}|far.isle-cut` });
     ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: mesh, colliders: islandColliders(isle), surface: 'grass' });
   }
   // the grassy rise at the spawn bridge head (E399, proposal B), walkable on its convex hull

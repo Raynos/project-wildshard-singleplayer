@@ -49,7 +49,7 @@ function polyRadius(isle: Isle, a: number): number {
 let TEX: { rock: Texture | null; meadow: Texture | null } = { rock: null, meadow: null };
 export function setIsleTextures(tex: { rock: Texture | null; meadow: Texture | null }): void { TEX = tex; }
 
-export function islandMesh(isle: Isle, random: () => number): Mesh {
+export function islandMesh(isle: Isle, random: () => number): Mesh<BufferGeometry, MeshStandardMaterial> {
   let draw = 0; for (let i = 0; i < ISLE_SHAPE.drawsOfOldIsland; i++) draw = random();
   const rnd = seeded(Math.floor(draw * 4294967296) ^ Math.round(isle.x * 131 + isle.z * 17));
   const S = ISLE_SHAPE.segments, seed = rnd() * 50, pos: number[] = [], col: number[] = [], idx: number[] = [];
