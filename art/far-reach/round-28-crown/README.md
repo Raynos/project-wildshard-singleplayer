@@ -1,0 +1,3 @@
+# Sky Reach top-10 row 7: the crown arena as a carved set (E407)
+
+Codex refs of mockup D's arena objects on white (refs/gen.py: stone, stone-b: weathered menhirs with a spiral rune cut into the face; dais: a round carved platform, a chipped kerb, a compass rose), BiRefNet, Hunyuan3D-2 turbo + paint, finish.sh 8k tris / 1024 WebP: public/assets/far-reach/models/crown/ (132-152 KB). world/crown.ts carvedSet(): the stones alternate the two models (instanced), each fitted to its stone's height and turned to the dais; the dais fitted to the dais's 10 m and squashed to 0.42 m, its red-brown paint greyed. The code set stays the fallback; the colliders are unchanged. turntable-*.jpg; board-d.jpg: mockup D beside mock-D.

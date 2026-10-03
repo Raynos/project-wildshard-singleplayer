@@ -1,7 +1,9 @@
-import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, TubeGeometry, Vector3 } from 'three';
+import { BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CROWN, DAIS } from '../layout';
 import { paintIsleMaterial } from './isle';
+import { fit, hdMaterial, skyHd } from './meshes';
+import { PATCH_ORDER, patchShader } from '#engine';
 
 /**
  * The storm crown's arena (loop 4; mockup D, `art/far-reach/round-11-review/mockup-D-crown-arena.jpg`): a ring of seven
@@ -169,5 +171,38 @@ export function crownArena(): Group {
   const ropeMesh = new Mesh(rope, new MeshStandardMaterial({ color: 0xd6c095, roughness: 1, metalness: 0, side: DoubleSide }));
   const flagMesh = new Mesh(flags, new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, side: DoubleSide }));
   group.add(stoneMesh, glyphMesh, dais, ropeMesh, flagMesh);
+  // the modelled set (top-10 row 7, art/far-reach/round-28-crown/) where it loaded: sculpted stones with cut spiral runes
+  // and the carved compass dais, in place of the code ones; the colliders are the code set's (world/build.ts), unchanged
+  const carved = carvedSet(stones);
+  if (carved !== null) { stoneMesh.visible = false; glyphMesh.visible = false; dais.visible = false; group.add(...carved); }
   return group;
+}
+
+/** How the modelled set stands: each model's front (its rune) turned to the dais by `yaw`; the dais squashed to `daisH` m. */
+export const CARVED = { yaw: 0, daisH: 0.42, sink: 0.15 } as const;
+
+/** The modelled stones (two models, alternating) and dais, or null when one failed to load (the code set stays). */
+function carvedSet(stones: readonly Stone[]): Mesh[] | null {
+  const a = skyHd('crown-stone'), b = skyHd('crown-stone-b'), d = skyHd('crown-dais');
+  if (a === null || b === null || d === null) return null;
+  const out: Mesh[] = [], m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
+  for (const [k, made] of [a, b].entries()) {
+    const list = stones.filter((_, i) => i % 2 === k);
+    const g = fit(made.geometry, { size: 1, by: 'height', floor: 0, centre: 'base' });
+    const mesh = new InstancedMesh(g, hdMaterial(made.map), list.length); mesh.name = `far.crown.stone-${k}`;
+    list.forEach((st, i) => {
+      q.setFromAxisAngle(up, st.yaw + CARVED.yaw); m.compose(new Vector3(st.x, CROWN.y - CARVED.sink, st.z), q, new Vector3(st.h, st.h, st.h)); mesh.setMatrixAt(i, m);
+    });
+    mesh.computeBoundingSphere(); out.push(mesh);
+  }
+  const dg = fit(d.geometry, { size: DAIS.r * 2, by: 'span', floor: 0, centre: 'base' }); dg.computeBoundingBox();
+  const h = dg.boundingBox ? dg.boundingBox.max.y : 1; dg.scale(1, CARVED.daisH / Math.max(1e-3, h), 1);
+  const daisMat = hdMaterial(d.map);
+  // the paint came out red-brown; mockup D's dais is weathered grey stone with a warm cast
+  patchShader(daisMat, 'far.crown-dais', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))) * vec3(1.06, 1.0, 0.92), diffuseColor.rgb, 0.3);');
+  }, { key: (prior) => `${prior}|far.crown-dais` });
+  const dais = new Mesh(dg, daisMat); dais.name = 'far.crown.dais'; dais.position.set(DAIS.x, CROWN.y - 0.08, DAIS.z);
+  out.push(dais);
+  return out;
 }

@@ -65,7 +65,7 @@ After each row: commit, capture, send 'ready for round N'.
 | 4 | sky-reach | open | |
 | 5 | sky-reach | open | |
 | 6 | sky-reach | open | |
-| 7 | sky-reach | open | |
+| 7 | sky-reach | landed (first pass) | two Hunyuan3D-2 standing stones with cut spiral runes and a carved compass dais from mockup D (`art/far-reach/round-28-crown/`, 8k tris each) in place of the code set (world/crown.ts carvedSet); colliders unchanged; board-d.jpg |
 | 8 | sky-reach | landed (first pass) | a Hunyuan3D-2 eagle from mockup D's (`art/far-reach/round-27-roc/`: white head, hooked beak, slate-and-white layered wings, talons forward; 12k tris, 1024 WebP) as roc-hd, pitched head-up as the mockup flies it, span 16 m; the auto-rig flaps it; its take-off toward the entrance (round 10) and its perch reset on a retry (round 12) kept; board-d.jpg |
 | 9 | sky-reach | open | |
 | 10 | sky-reach | open | |
