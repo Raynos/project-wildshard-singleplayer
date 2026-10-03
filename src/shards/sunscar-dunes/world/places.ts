@@ -120,7 +120,8 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   const lampPost = world(LANTERN.x, LANTERN.z); colliders.push(boxDesc({ x: lampPost.x, z: lampPost.z, hw: 0.06, hd: 0.06, rot: 0, yBottom: y - 0.5, yTop: y + LANTERN.y + 0.5 }, 'wood'));
   for (const [x, z, half] of CARGO) { const c = world(x, z); colliders.push(boxDesc({ x: c.x, z: c.z, hw: half, hd: half, rot: -CARAVAN.yaw, yBottom: y - 0.5, yTop: y + half * 1.8 }, 'wood')); }
   { // the caravan's marker, off the lee side (in the caravan's frame, -X)
-    const m = world(-3.6, -1.2); markerPole(root, -3.6, -1.2, groundAt(m.x, m.z) - y, MARK.h, m.x, m.z, groundAt(m.x, m.z), colliders);
+    // E399 (mockup B shows the wagon alone): no marker pole at the caravan; the well keeps its
+    void markerPole;
   }
   return { root, colliders, logbookAt, logbook };
 }
