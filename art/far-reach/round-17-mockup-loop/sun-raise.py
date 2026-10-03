@@ -1,7 +1,7 @@
 """Raise the painted sun (E392 / E399, mockup A: the sun glows just left of the windmill's cap; at 4.75 deg it sat behind
 the high step's isle from the spawn, so the spawn view had no sun at all).
 
-  python3 sun-raise.py <source> <out> <lift px> [slide px]   # 15.36 px per degree; shipped: panorama-graded.jpg panorama-sun.jpg 81 260 (E399: ~9 deg up just right of the windmill from the spawn, where the sky is open; left of it the high step and the winch house hid it, behind it the tower)
+  python3 sun-raise.py <source> <out> <lift px> [slide px] [glow]   # (E399 round 6 ships: panorama-graded.jpg panorama-sun.jpg 32 23 0.45) 15.36 px per degree; shipped: panorama-graded.jpg panorama-sun.jpg 81 260 (E399: ~9 deg up just right of the windmill from the spawn, where the sky is open; left of it the high step and the winch house hid it, behind it the tower)
   (loop 20: at +100 px the sun still hid behind the winch house on the high step from the spawn)
 
 The disc is lifted out (filled from the blurred glow around it, so its old place keeps the horizon's gold) and repainted
@@ -13,6 +13,7 @@ from PIL import Image
 
 src, out, lift = sys.argv[1], sys.argv[2], int(sys.argv[3])
 slide = int(sys.argv[4]) if len(sys.argv) > 4 else 0   # px along the heading (+ = east); 15.36 px per degree
+glow = float(sys.argv[5]) if len(sys.argv) > 5 else 1.0   # the painted bloom's strength (E399 round 6: 0.45, the seats: '66-76 % of the over-230 pixels in the sun's blur')
 im = Image.open(src).convert('RGB')
 a = np.asarray(im).astype(np.float64)
 H, W, _ = a.shape
@@ -53,7 +54,7 @@ win = win * (1 - soft) + fill * soft
 ny, nx = cy - lift, cx + slide
 d = np.hypot(xx - nx, yy - ny)
 disc = np.clip((r + 1.5 - d) / 3.0, 0, 1)[..., None]
-bloom = (np.exp(-(d / (r * 2.2)) ** 2) * 0.55 + np.exp(-(d / (r * 7.0)) ** 2) * 0.22 + np.exp(-(d / (r * 18.0)) ** 2) * 0.10)[..., None]
+bloom = (np.exp(-(d / (r * 2.2)) ** 2) * 0.55 + (np.exp(-(d / (r * 7.0)) ** 2) * 0.22 + np.exp(-(d / (r * 18.0)) ** 2) * 0.10) * glow)[..., None]
 warm = np.array([255.0, 214.0, 150.0])
 win = win + (255.0 - win) * np.clip(bloom * (warm / 255.0), 0, 1)
 win = win * (1 - disc) + np.array([255.0, 250.0, 232.0]) * disc

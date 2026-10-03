@@ -53,7 +53,10 @@ export function skyDome(pano: Texture, haze: Texture): Mesh<SphereGeometry, Shad
   const padU = PANO_PAD_PX / total, scaleU = (total - PANO_PAD_PX * 2) / total;
   return new Mesh(new SphereGeometry(900, 64, 32), new ShaderMaterial({ side: BackSide, depthWrite: false, fog: false,
     uniforms: { pano: { value: pano }, haze: { value: haze }, padU: { value: padU }, scaleU: { value: scaleU } },
-    vertexShader: 'varying vec3 d; void main(){ d=position; vec4 p=modelViewMatrix*vec4(position,1.0); gl_Position=projectionMatrix*p; }',
+    // the direction from the CAMERA (E399 round 6, the seats: 'a hollow ring and a separate glow that drift apart as the
+    // camera pitches'): the dome sits at the world origin, so sampling by its own vertex put the painted sun degrees off the
+    // glow at the true sun direction wherever the camera stood away from the origin (the crown is 176 m out)
+    vertexShader: 'varying vec3 d; void main(){ vec4 w=modelMatrix*vec4(position,1.0); d=w.xyz-cameraPosition; gl_Position=projectionMatrix*viewMatrix*w; }',
     fragmentShader: /* glsl */`
       uniform sampler2D pano; uniform sampler2D haze; uniform float padU; uniform float scaleU; varying vec3 d;
       ${HEADING_GLSL}

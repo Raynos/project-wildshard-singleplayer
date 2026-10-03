@@ -1,7 +1,7 @@
 {
  "version": 1,
- "hash": "d4bb0b5289d2a7f4cd6776f42eb415f5452ff3e29f721e2f3a07e13c521514a7",
- "bytes": 5029,
+ "hash": "87ff40a2da3003e2694b1d5df174e012a7e3f5a0505f65d1217f1fcb7040c601",
+ "bytes": 4758,
  "layers": [
   {
    "name": "large",
@@ -9,11 +9,11 @@
    "height": 1.8,
    "climb": 0.3,
    "slope": 40,
-   "tiles": 24,
-   "polys": 179,
-   "verts": 402,
-   "detailVerts": 5,
-   "detailTris": 20
+   "tiles": 20,
+   "polys": 172,
+   "verts": 393,
+   "detailVerts": 3,
+   "detailTris": 16
   }
  ]
 }

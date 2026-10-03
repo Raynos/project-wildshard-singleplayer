@@ -58,9 +58,9 @@ export const RUIN: Isle = { id: 'ruin', x: 65, z: -72, r: 13, y: 28, keel: 20 };
 // Round 2 (council R1A-1 / R1C-9: the isles still sat on a straight spine): the high step stands west of the line
 // from Sunrest to the crown, so the updraft and the crown bridge run on diagonals. E399 round 6 (every council round:
 // 'a rear house and stacked land behind the mill'; none of the five mockups has land behind the windmill, and four put
-// the low sun at its left, where the step's deck and winch house hid it): 36 m further west, just past the left edge of
-// the spawn's portrait view, so the sky behind the mill is open and the sun shows under the overhead isles.
-export const STEP: Isle = { id: 'step', x: -44, z: -126, r: 13, y: HIGH, keel: 20 };
+// the low sun at its left, where the step's deck and winch house hid it): 56 m further west, past the left edge of the
+// spawn views (round 6, the seats: at x -44 two-thirds of it, the house included, hung over the keeper's head in B).
+export const STEP: Isle = { id: 'step', x: -64, z: -126, r: 13, y: HIGH, keel: 20 };
 export const CROWN: Isle = { id: 'crown', x: 0, z: -190, r: 20, y: HIGH, keel: 34 };
 export const ISLES: readonly Isle[] = [SUNREST, WINDMILL, GROVE, ROOST, KEEPER, RUIN, STEP, CROWN];
 /** The apothem of an island's 12-gon top: where the rim edge is nearest the centre. */

@@ -31,8 +31,8 @@ export const MEADOW = {
   /** blade height range (metres) */
   low: 0.16, high: 0.74,
   /** an island's grass height scale (1 when absent): the crown's arena a little shorter, so the dais reads (E399: mockup D's meadow is lush to the dais) */
-  // (round 6: from the arena's rise the sward's tufts hid the dais; mockup D's arena is a low sward round a broad dais)
-  grass: { crown: 0.42 } as Readonly<Record<string, number>>,
+  // (round 6: the seats: 'cut to 0.42 against mockup D's lush meadow'; from the rise's top the dais clears ~0.9 m of grass)
+  grass: { crown: 0.85 } as Readonly<Record<string, number>>,
   /** the share of blades an island keeps (1 when absent): the crown a little thinner (round 2's carpet of chips was the old wide blades) */
   keep: { crown: 1 } as Readonly<Record<string, number>>,
 } as const;

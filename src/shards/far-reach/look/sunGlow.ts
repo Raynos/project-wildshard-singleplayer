@@ -44,9 +44,9 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
         float disc = 1.0 - smoothstep(0.085, 0.115, d);
         float halo = exp(-d * 3.2) * (1.0 - smoothstep(0.7, 1.0, d));
         // gold, not white (E399 seats: 'the sun white'): a warm disc in an amber-orange bloom
-        // round 6 (the seats, D: 'the 3.2 core makes a white wash over a third of the sky'; measured: D's share over 230 at
-        // 5.3 % vs the mockup's 2.8 %): a tighter core and a fainter halo
-        gl_FragColor = vec4(vec3(1.0, 0.9, 0.66) * disc * 1.5 + vec3(1.0, 0.74, 0.4) * (exp(-d * d * 140.0) * 2.4 + halo * 0.55), 1.0);
+        // round 6 (the seats: 'a hollow pink ring in a soft wash', 66-76 % of the frame's over-230 pixels in the sun's blur
+        // against the mockups' 46-62 %, D's halo 15 % of its middle band over 230 vs 5 %): one solid hot disc, a fainter halo
+        gl_FragColor = vec4(vec3(1.0, 0.92, 0.72) * disc * 3.0 + vec3(1.0, 0.74, 0.4) * (exp(-d * d * 140.0) * 1.6 + halo * 0.2), 1.0);
       }` });
   const bloomMesh = new Mesh(plane, bloom); bloomMesh.frustumCulled = false; bloomMesh.renderOrder = SUN_GLOW.order; group.add(bloomMesh);
   // a wide, faint gold over the sky round the sun (E399, the mockups' golden air toward the low sun)
@@ -55,7 +55,7 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
     vertexShader: VERTEX,
     fragmentShader: /* glsl */`
       varying vec2 vUv;
-      void main(){ float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(vec3(1.0, 0.78, 0.46) * exp(-d * 2.4) * (1.0 - smoothstep(0.75, 1.0, d)) * 0.1, 1.0); }` });
+      void main(){ float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(vec3(1.0, 0.78, 0.46) * exp(-d * 2.4) * (1.0 - smoothstep(0.75, 1.0, d)) * 0.06, 1.0); }` });
   const wideMesh = new Mesh(plane, wide); wideMesh.frustumCulled = false; wideMesh.renderOrder = SUN_GLOW.order; group.add(wideMesh);
   const shafts: ShaderMaterial[] = [];
   for (let i = 0; i < SUN_GLOW.shafts; i++) {

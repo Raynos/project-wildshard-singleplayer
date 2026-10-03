@@ -70,6 +70,12 @@ export function pines(at: readonly (readonly [number, number, number, number])[]
 function glassDeck(length: number, width: number, glass: MeshStandardMaterial): Mesh[] {
   const slab = new Mesh(new BoxGeometry(width - 0.16, 0.05, length - 0.16), glass); slab.position.set(0, -0.05, -length / 2); slab.renderOrder = 4;
   const frameMat = new MeshStandardMaterial({ color: PALETTE.glow, emissive: PALETTE.glow, emissiveIntensity: 0.9, roughness: 0.4, metalness: 0.2 });
+  // the glow is for the rider near it (E399 round 6, the seats: 'the updraft ramp's glowing cyan edges cross A, B, C and
+  // proposal B' from 60 m and more): full within ~25 m of the camera, a faint frame beyond ~60 m
+  patchShader(frameMat, 'far.hover-frame', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+  totalEmissiveRadiance *= mix(1.0, 0.1, smoothstep(25.0, 60.0, length(vViewPosition)));`);
+  }, { key: (prior) => `${prior}|far.hover-frame` });
   const bars: Mesh[] = [];
   for (const side of [-1, 1]) { const bar = new Mesh(new BoxGeometry(0.1, 0.1, length), frameMat); bar.position.set(side * (width / 2 - 0.05), -0.04, -length / 2); bars.push(bar); }
   for (const z of [0, -length]) {
