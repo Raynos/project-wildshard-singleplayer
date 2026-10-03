@@ -53,9 +53,12 @@ for stage in ('early', 'late'):  # round 18: two stages (the mid painting fit no
         wh = ease((70.0 - dh) / 60.0)
         rf = np.interp(el, [-8.0, 1.0, 4.0, 14.0, 22.0, 90.0], [0.82, 0.82, 0.62, 0.62, 1.0, 1.0])
         # the glow line keeps its value (the mockup's 160,103,99 against 199,97,92): less red, a little more green
-        gf = np.interp(el, [-8.0, 2.0, 5.0, 14.0, 22.0, 90.0], [1.2, 1.2, 0.95, 0.95, 1.0, 1.0])
+        gf = np.interp(el, [-8.0, 2.0, 5.0, 14.0, 22.0, 90.0], [1.32, 1.32, 0.95, 0.95, 1.0, 1.0])
+        # round 24 (seat C: D's glow line peaks 131 against the mockup's 166, peach 198,140,105): the band 15 % brighter
+        gain = np.interp(el, [-8.0, -1.0, 3.0, 6.0, 90.0], [1.0, 1.15, 1.15, 1.0, 1.0])
         a[..., 0] *= 1.0 - (1.0 - rf)[:, None] * wh[None, :]
         a[..., 1] *= 1.0 + (gf - 1.0)[:, None] * wh[None, :]
+        a *= (1.0 + (gain - 1.0)[:, None] * wh[None, :])[..., None]
         im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
     y0 = int(round(HOR - TOP * PPD)); y1 = min(im.height, int(round(HOR - BOTTOM * PPD)))
     strip = im.crop((0, y0, im.width, y1))
