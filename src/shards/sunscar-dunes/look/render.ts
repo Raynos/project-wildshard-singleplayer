@@ -211,7 +211,9 @@ export function signalDunesLook(): LookStrategy {
           // E409 second top-10 row 10 (aerial perspective): the engine's exponential distance fog thick enough to carry the far
           // dunes toward its violet-blue (~35 % at 150 m; it was ~3 %, thinned late since round 12 when the haze was lilac and
           // paled D's far land), the same at every dusk step
-          if (fogDist) fogDist.value = AERIAL_FOG;
+          // round 21 (D's far bands 40 against 17 at the last waymark's dusk): the night haze thickens with the dusk, toward the
+          // near-black violet DUSK_FOG (the engine fog: darkening by fog is allowed)
+          if (fogDist) fogDist.value = AERIAL_FOG * (1 + 2 * late);
         },
         rebuild: () => undefined, attachPost: () => undefined };
     },
