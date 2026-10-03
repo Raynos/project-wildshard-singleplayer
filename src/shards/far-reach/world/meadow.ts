@@ -133,6 +133,11 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         float layer = aTile.z; vec2 j = aRoot.xy; float r = aRoot.z;
         if (layer > 0.5) { j = fract((mod(layer, 2.0) > 0.5 ? j.yx : j) + vec2(0.6180, 0.3819) * layer); r = fract(r + 0.2718 * layer); }
         vec2 p = uOrigin + (aTile.xy + j) * TILE;
+        // tufts (E399, every seat: 'even upright blades'; the mockups' sward grows in clumps of mixed height with darker gaps):
+        // three blades in four lean in toward their cell's tuft centre, and each tuft has its own height
+        vec2 tCell = floor(p * 1.4); vec2 tCentre = (tCell + 0.25 + 0.5 * vec2(mh(tCell), mh(tCell + 7.1))) / 1.4;
+        p = mix(p, tCentre, step(0.25, fract(r * 61.3)) * 0.45);
+        float tuftK = 0.7 + 0.7 * mh(tCell + 3.3);
         float dist = distance(p, uCam.xz);
         // off screen (behind, or a metre past either side) or out of reach: drop it before the loops
         vec4 probe = projectionMatrix * viewMatrix * vec4(p.x, uCam.y - 1.5, p.y, 1.0);
@@ -152,7 +157,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         // varied heights (E392: the mockups' meadow is tall drifts and short lawn, a few stalks over it, never one even wall)
         float h = mix(${MEADOW.low.toFixed(2)}, ${MEADOW.high.toFixed(2)}, smoothstep(0.2, 0.8, pt) * 0.55 + r * 0.45) * mix(0.4, 1.25, mn(p * 0.37 + 11.0));
         h *= 1.0 + 0.55 * step(0.9, fract(r * 23.3));
-        h *= tall * (1.0 - 0.55 * smoothstep(0.82, 1.0, rim)) * clear * mix(0.4, 1.0, worn);
+        h *= tall * tuftK * (1.0 - 0.55 * smoothstep(0.82, 1.0, rim)) * clear * mix(0.4, 1.0, worn);
         h *= 1.0 - smoothstep(layer > 0.5 ? NEAR - 2.5 : RANGE * 0.55, layer > 0.5 ? NEAR : RANGE, dist + (layer > 0.5 ? 1.5 * mn(p * 0.9) : 0.0));
         if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep * mix(0.7, 1.0, worn)) { cull(); return; }
         float ang = r * 40.0; vec2 dir = vec2(cos(ang), sin(ang));
