@@ -1,0 +1,31 @@
+{
+ "shard": "sunscar-dunes",
+ "sha": "4174b8d9908d259a296aa70a6459f49c42779a6b",
+ "when": "20261003-0013",
+ "label": "E399 round 4",
+ "loadSeconds": 6,
+ "shots": [
+  "first-frame",
+  "h1-spawn-crest",
+  "h2-caravan",
+  "h3-waymark",
+  "h4-tower-deck",
+  "aerial-spawn",
+  "aerial-overview",
+  "mock-dusk-fire",
+  "mock-A-spawn",
+  "mock-B-logbook",
+  "mock-C-waymark",
+  "mock-D-hands"
+ ],
+ "clip": true,
+ "programs": 54,
+ "staged": {
+  "mock-B-logbook": "logbook",
+  "mock-C-waymark": "waymarks-lit",
+  "mock-D-hands": "waymarks-lit"
+ },
+ "active": [],
+ "cameras": "d78968c7b3a011f4e320415406300cfe3f899fbb",
+ "pageErrors": []
+}
