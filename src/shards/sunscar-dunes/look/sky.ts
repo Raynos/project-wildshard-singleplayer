@@ -60,7 +60,7 @@ void main() {
   vec2 cp = d.xz / (h + 0.09);
   cp = vec2(cp.x * 0.64 - cp.y * 0.77, cp.x * 0.77 + cp.y * 0.64) * vec2(1.4, 3.2); // irregular banks low over the horizon (round 4: hatched flakes)
   float cn = vNoise(cp * 1.3) * 0.5 + vNoise(cp * 2.9 + 3.1) * 0.3 + vNoise(cp * 6.7 + 7.3) * 0.2;
-  float cov = smoothstep(0.55, 0.72, cn) * smoothstep(0.025, 0.05, h) * (1.0 - smoothstep(0.12, 0.24, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
+  float cov = smoothstep(0.64, 0.78, cn) * smoothstep(0.025, 0.05, h) * (1.0 - smoothstep(0.1, 0.2, h)) * (1.0 - smoothstep(0.03, 0.14, uDusk));
   vec2 sunward = normalize(vec2(uSun.x, uSun.z) + 1e-4) * 0.18 / (h + 0.09);
   vec2 cq = (cp + sunward * vec2(1.4, 3.2));
   float cn2 = vNoise(cq * 1.3) * 0.5 + vNoise(cq * 2.9 + 3.1) * 0.3 + vNoise(cq * 6.7 + 7.3) * 0.2;

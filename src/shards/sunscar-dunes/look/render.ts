@@ -258,7 +258,10 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   // The baked dune shadow (a ${String(SHADOW_TEX)}² map, sharpened) takes only the key (direct) light; the cool sky fill stays.
   float sandVis = smoothstep(0.25, 0.75, texture2D(uSandShadow, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r);
   sandVis = max(sandVis, smoothstep(${(GROUND_HALF - 6).toFixed(1)}, ${GROUND_HALF.toFixed(1)}, max(abs(vSandPos.x), abs(vSandPos.z)))); // round 4: the stepped strip past the map
-  reflectedLight.directDiffuse *= mix(0.08, 1.0, sandVis); // the key mostly gone in cast shade; the fill below keeps it violet-brown (round 4: black slabs)
+  reflectedLight.directDiffuse *= mix(0.08, 1.0, sandVis);
+  // round 6 (seat C: the mean is right, the contrast must come from darker shade AND brighter crests): faces grazing the key
+  float sandGraze = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
+  reflectedLight.directDiffuse *= 1.0 + 0.9 * smoothstep(0.0, 0.08, sandGraze) * (1.0 - smoothstep(0.1, 0.22, sandGraze)) * sandVis; // the crest band only // the key mostly gone in cast shade; the fill below keeps it violet-brown (round 4: black slabs)
   reflectedLight.directSpecular *= sandVis;
   // Round 1 (R1C-3): where the key doesn't reach (cast shadow or a face turned from it) the sky fill paints the bible's
   // cool violet shade (#4a3a48 to #5b4f6a), not a darkened orange: the crest line splits warm from cool.
@@ -268,9 +271,9 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
   vec3 sandFill = reflectedLight.indirectDiffuse;
   // loop 6 (the scorer: shade went muddy purple-black, ripples vanished in it): a cool blue-grey fill, a step brighter,
   // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
-  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.95, 0.85, 0.9), uDusk) * mix(1.0, 1.15, uDusk) + vec3(0.016, 0.013, 0.02) * sandShade * (1.0 - uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
+  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * mix(vec3(0.95, 0.9, 1.3), vec3(0.95, 0.85, 0.9), uDusk) * mix(0.8, 1.15, uDusk) + vec3(0.012, 0.01, 0.016) * sandShade * (1.0 - uDusk), sandShade * 0.9); // the dusk's shade a warm brown, never blue-black (R2B-1) // the mockups' shade: cool mid-tone, ripples readable // loop 6: navy shade (the targets)
   // the dusk's lavender sky floor (R2B-1: the late views' sand measures dim warm brown-violet, not black or pure orange)
-  reflectedLight.indirectDiffuse += uDusk * vec3(0.017, 0.012, 0.011);
+  reflectedLight.indirectDiffuse += uDusk * vec3(0.008, 0.005, 0.009);
   reflectedLight.indirectDiffuse *= 1.0 + (0.5 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
       const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;

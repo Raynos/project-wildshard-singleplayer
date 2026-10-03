@@ -17,7 +17,7 @@ export const BRAZIERS: readonly { x: number; z: number }[] = [{ x: 58, z: -34 },
  *  none: the dunes are phased so a crest runs through it (P2), and it looks down over the rows to the tower. */
 // E399 (mockups A, dusk-fire): the tower stands on a rounded dune peak, a small flat top easing out over `ease` m
 // (a 40 m flat pad read as a plateau)
-export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 20, ease: 70 }]; // council round 3: the tower crowns a big dune
+export const CRESTS = [{ x: TOWER.x, z: TOWER.z, r: 5, lift: 13, ease: 58 }]; // council round 3: the tower crowns a big dune
 /** Small flat pads (metres): the caravan's and the well's ground, eased to the dune height at their centre. */
 // E399 (mockup C): each waymark on level sand too, its fire's pool flat round it
 export const PADS = [{ x: CARAVAN.x, z: CARAVAN.z, r: 22 }, { x: WELL.x, z: WELL.z, r: 12 }, ...BRAZIERS.map((b) => ({ x: b.x, z: b.z, r: 6 }))];

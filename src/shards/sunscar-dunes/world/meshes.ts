@@ -81,11 +81,12 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
     // the whip (council round 4: a beaded worm, not a plait): two crossing strand sets in the model's own space, dark gaps
     // between the strands and a lit crown on each, on the coil and the tail only (the fist and cuff keep their paint)
     vec3 gp = vGloveP; float whip = gloveWhip;
-    float sa = sin((gp.x + gp.y + gp.z * 0.7) * 70.0), sb = sin((gp.x - gp.y - gp.z * 0.7) * 70.0);
-    float gap = max(1.0 - smoothstep(0.0, 0.3, abs(sa)), 1.0 - smoothstep(0.0, 0.3, abs(sb)));
-    float crown = smoothstep(0.6, 1.0, abs(sa) * abs(sb));
-    vec3 strand = vec3(0.36, 0.15, 0.05) * (0.7 + 0.9 * crown);
-    diffuseColor.rgb = mix(diffuseColor.rgb, mix(strand, vec3(0.03, 0.018, 0.012), gap), whip);
+    float sa = sin((gp.x + gp.y + gp.z * 0.7) * 48.0), sb = sin((gp.x - gp.y - gp.z * 0.7) * 48.0);
+    // diagonal strands (seat B, round 6): sa runs the strands, sb staggers them in alternate rows (a plait's chevrons)
+    float sp = sa * sign(sb + 1e-3);
+    float gap = 1.0 - smoothstep(0.0, 0.3, abs(sa));
+    vec3 strand = mix(vec3(0.07, 0.042, 0.028), vec3(0.24, 0.14, 0.085), smoothstep(0.45, 0.95, sp)); // dark brown, one bright rim per strand (round 6: copper fishnet)
+    diffuseColor.rgb = mix(diffuseColor.rgb, mix(strand, vec3(0.025, 0.016, 0.012), gap * 0.85), whip);
     // the gauntlet's stitching (council rounds 3-5: no seams read on the generated glove): two dashed seams along the back of
     // the hand and a stitched ring at the cuff edge, in pale thread over a dark welt, in the model's own space
     vec3 axd = normalize(vec3(-0.57, 0.72, -0.39)), rel = gp - vec3(0.81, -0.77, 0.16);
@@ -102,7 +103,7 @@ function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
   }`)
       // a light from the viewer side, so the held glove reads as lit leather, never a cut-out against the dusk (mockup D: the lit
       // fist; the key is behind it now): faces lit, edges falling off, more as the dusk deepens
-      .replace('#include <roughnessmap_fragment>', ramp ? '#include <roughnessmap_fragment>' : '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.85, gloveWhip);')
+      .replace('#include <roughnessmap_fragment>', ramp ? '#include <roughnessmap_fragment>' : '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.45, gloveWhip);')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
   totalEmissiveRadiance += diffuseColor.rgb * ${ramp ? 'vec3(0.62, 0.46, 0.34)' : 'vec3(0.3, 0.24, 0.2)'} * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
   });

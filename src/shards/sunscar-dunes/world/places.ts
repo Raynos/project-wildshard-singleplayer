@@ -306,7 +306,7 @@ export function kindling(y: number, size = 1, crown = false): Group {
   const g = new Group(), wood = crown ? new MeshStandardMaterial({ color: CHARRED, roughness: 0.95 }) : mat(KINDLING), n = crown ? 7 : 5;
   for (let i = 0; i < n; i++) {
     // a teepee: each stick leans in from the bowl's edge, the tips meeting above the rim, so it reads at eye level
-    const a = (i / n) * Math.PI * 2 + (crown ? (i % 2) * 0.3 : 0), lean = crown ? -1.15 - (i % 3) * 0.08 : 0.5, len = (crown ? 0.26 + (i % 2) * 0.06 : 0.6) * size;
+    const a = (i / n) * Math.PI * 2 + (crown ? (i % 2) * 0.3 : 0), lean = crown ? -0.8 - (i % 3) * 0.1 : 0.5, len = (crown ? 0.34 + (i % 2) * 0.06 : 0.6) * size;
     const log = new Mesh(new CylinderGeometry(0.03 * size, 0.04 * size, len, 5), wood);
     log.rotation.order = 'YXZ'; log.rotation.set(-lean, a, 0);
     log.position.set(Math.sin(a) * Math.sin(lean) * len * 0.5, y + Math.cos(lean) * len * 0.5, Math.cos(a) * Math.sin(lean) * len * 0.5); g.add(log);
