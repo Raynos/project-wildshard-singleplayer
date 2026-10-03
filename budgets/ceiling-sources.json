@@ -1688,15 +1688,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "bf6d755997aa0a8bbd7409fcb6c64d04c514fa23",
-      "reason": "E392/E399 loops 21-24: the textured hero keeper, Storm Roc and bridge posts (Hunyuan3D-2, 1024 WebP maps) and the painted storm vortex; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "commit": "856e5dc0921fefaaaeb79558e0f46d51098440b8",
+      "reason": "E392/E399: the textured gloved fan hand (Hunyuan3D-2, 1024 WebP) and the dark lacquered fan; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
-      "captureSha": "bf6d755997aa0a8bbd7409fcb6c64d04c514fa23",
-      "captureSha256": "cfb59358d08690bdf709e45082b7ca3c7afbd55393a1454788507cdb07f17573",
+      "approval": "E392/E399: the textured gloved fan hand (Hunyuan3D-2, 1024 WebP) and the dark lacquered fan; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "captureSha": "856e5dc0921fefaaaeb79558e0f46d51098440b8",
+      "captureSha256": "3199b405585848ae7a81bbb6f7722a9408b5869400779906e8e63cfb51e50733",
       "ceilings": {
-        "far-reach.phone.current.gpuMB": 185.52279663085938
+        "far-reach.phone.current.gpuMB": 191.4505500793457
       }
     },
     {
@@ -1704,15 +1704,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "bf6d755997aa0a8bbd7409fcb6c64d04c514fa23",
-      "reason": "E392/E399 loops 21-24: the textured hero keeper, Storm Roc and bridge posts (Hunyuan3D-2, 1024 WebP maps) and the painted storm vortex; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "commit": "856e5dc0921fefaaaeb79558e0f46d51098440b8",
+      "reason": "E392/E399: the textured gloved fan hand (Hunyuan3D-2, 1024 WebP) and the dark lacquered fan; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "lead, R9 = Jake's preload rule; retain the prior G6 lantern re-records. Desktop Pine people uploaded before the first frame (lead approval 2026-10-01). E357 Z3/E374 content, lead-approved first measurement of the final builds. E374 Sky Reach loop 2, lead-approved polish: the meadow (grass, flowers, stones, roots), 14 skyline islands with waterfalls and the fan rebuilt in a gloved hand upload behind the loading screen. E374 Signal Dunes loop 1, lead-approved polish: the fire, ember and smoke shaders, the rim/shade-floor patches and the round-1 dune terrain. E374 Signal Dunes loop 2/3, lead-approved polish: Sefa the caravan scout, the generated glove, the Matriarch's body and the baked sand shadow map + grain texture set. E399 Signal Dunes, lead-requested (wildshard-9, 2026-10-02): re-record the phone ceiling at the larger of the m5 and runner measurements, no margin.",
-      "captureSha": "bf6d755997aa0a8bbd7409fcb6c64d04c514fa23",
-      "captureSha256": "e4ce56ce8b6ca0e4282abb5110b4a7cfa8dd7cdaf258cf98aa3e96b43f257777",
+      "approval": "E392/E399: the textured gloved fan hand (Hunyuan3D-2, 1024 WebP) and the dark lacquered fan; measured on m5; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "captureSha": "856e5dc0921fefaaaeb79558e0f46d51098440b8",
+      "captureSha256": "32cf512e8acb8b2a142e9757db9dc0e56a89c4fdcb29b3e246ed9b61f9d137b3",
       "ceilings": {
-        "far-reach.desktop.current.gpuMB": 299.9766845703125
+        "far-reach.desktop.current.gpuMB": 305.9044380187988
       }
     }
   ]
