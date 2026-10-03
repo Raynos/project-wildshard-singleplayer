@@ -1688,15 +1688,15 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "a6a08ef9e6605727ced1741018cbf26284716c82",
-      "reason": "E399 round 6 (sky-reach): the sward's code-drawn tuft atlas (512 x 256 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "commit": "9e0db14307f286171f91c9cc0619b494f7e18c5b",
+      "reason": "E399 round 6 (sky-reach): the sward atlas at twice the texels (1024 x 512 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E399 round 6 (sky-reach): the sward's code-drawn tuft atlas (512 x 256 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
-      "captureSha": "a6a08ef9e6605727ced1741018cbf26284716c82",
-      "captureSha256": "1ccce03ab25ec5df0f19d4a7a2f20e1bf703ad3d168f559cd0c99d94c4fc011c",
+      "approval": "E399 round 6 (sky-reach): the sward atlas at twice the texels (1024 x 512 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "captureSha": "9e0db14307f286171f91c9cc0619b494f7e18c5b",
+      "captureSha256": "4f4284c10347f13922373eca423243fa72514c8105d4b38ee9614fb493573956",
       "ceilings": {
-        "far-reach.phone.current.gpuMB": 208.78265953063965
+        "far-reach.phone.current.gpuMB": 210.81488609313965
       }
     },
     {
@@ -1704,15 +1704,15 @@
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "a6a08ef9e6605727ced1741018cbf26284716c82",
-      "reason": "E399 round 6 (sky-reach): the sward's code-drawn tuft atlas (512 x 256 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "commit": "9e0db14307f286171f91c9cc0619b494f7e18c5b",
+      "reason": "E399 round 6 (sky-reach): the sward atlas at twice the texels (1024 x 512 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
       "ask": "E357",
       "approvedBy": "wildshard-9",
-      "approval": "E399 round 6 (sky-reach): the sward's code-drawn tuft atlas (512 x 256 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
-      "captureSha": "a6a08ef9e6605727ced1741018cbf26284716c82",
-      "captureSha256": "fb46d704271b91327a74ff16c420f941dca22052fbc0156a0cecdc0ed3d32132",
+      "approval": "E399 round 6 (sky-reach): the sward atlas at twice the texels (1024 x 512 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)",
+      "captureSha": "9e0db14307f286171f91c9cc0619b494f7e18c5b",
+      "captureSha256": "b77b59f9ce15440d6c3441f6374d92d778f32cd9e3d78e950a9ad0eccc46ca2a",
       "ceilings": {
-        "far-reach.desktop.current.gpuMB": 323.2365474700928
+        "far-reach.desktop.current.gpuMB": 325.2687740325928
       }
     }
   ]
