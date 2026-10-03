@@ -21,6 +21,7 @@ import { setMillTextures } from './world/mill';
 import { FAN_LEAF_URL, TEX_URL } from './boot/files';
 import { loadPainted } from './look/image';
 import { setStormPaint } from './world/storm';
+import { rayWake } from './world/rayWake';
 import { meadow, type Meadow } from './world/meadow';
 import { heroStoneDiscs } from './world/dressing';
 import { SUN_DIR } from './look/sun';
@@ -180,6 +181,12 @@ export class SkyReachPlugin extends ShardPlugin {
       if (!animals) return null; const a = animals.spawn(kind, x, z, 0, variant, placement); setHome(a, home); return a;
     };
     for (const home of RAY_HOMES) { const a = spawn('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.rays.push(a); }
+    // each free ray trails its luminous wake (world/rayWake.ts; proposal B's ray beside the mill)
+    const wakes = this.rays.map((ray) => { const w = rayWake(); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
+    ctx.system({ id: 'far.rayWake', phase: 'late', run: (dt) => {
+      const cam = rt?.world?.game.camera; if (!cam) return;
+      for (const { ray, w } of wakes) w.update(ray.position, ray.alive, cam.position, dt);
+    } });
     for (const home of ROOST_RAYS) { const a = spawn('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.roostRays.push(a); }
     // The goats walk their island's deck (G26): the spawn lands them on the first WORLD floor under `fromY`. That ray
     // finds the islands only once physics has stepped (in `play` it hits nothing and the goat lands on the −1000 m

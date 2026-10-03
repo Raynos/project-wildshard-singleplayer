@@ -183,7 +183,8 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
         float drift = smoothstep(0.55, 0.72, mfbm(p * 0.16 + 4.0)) * smoothstep(0.45, 0.65, mn(p * 0.9 + 2.0));
         // (E399 seat: 'an even field of large white daisies'; the mockups' flowers are sparse, small, white and yellow)
         // (round 6, seat A: 'fewer, smaller round flower heads')
-        float flower = step(fract(r * 91.7), (0.001 + 0.11 * drift) * worn) * step(0.6, dist);
+        // (round 10, seat A: 'small embedded daisy groups'): tighter, denser drifts, the heads small and low
+        float flower = step(fract(r * 91.7), (0.001 + 0.2 * drift * drift) * worn) * step(0.6, dist);
         float kind = (mn(p * 0.45 + 20.0) + 0.35 * fract(r * 17.3)) > 0.82 ? 2.0 : 1.0;
         vec2 wind = normalize(vec2(0.6, 0.8));
         float sway = (0.16 + 0.1 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);
