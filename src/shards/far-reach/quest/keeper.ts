@@ -76,16 +76,23 @@ function whiten(g: BufferGeometry): void {
  * right arm held out from the coat, the hand open, the staff gripped in his left; metres once fitted to KEEPER_MODEL's
  * height, facing +z): his free right arm (−x) is every triangle outboard of a line slanting from x `a + b·y` between `y0`
  * and `y1` (measured on the fitted model: the gap between sleeve and coat runs from x −0.34 at y 0.9 to −0.22 at the
- * shoulder), its shoulder pivot, and the elbow. `rest` turns the held-out arm down toward his side while he idles. His
+ * shoulder), its shoulder pivot, and the elbow. `pose` is the arm's turns from the modelled pose (radians; shoulder out,
+ * elbow up): `rest` lowers the held-out arm toward his side while he idles; `wave` keeps the upper arm out and down and
+ * folds the forearm up so the open hand stands beside his head (mockup B); `talk` an open-hand gesture. His
  * staff carries no lantern now: it hangs from the lectern's arm (world/bookStand.ts), as in mockup B.
  */
-export const KEEPER_HD = { arm: { a: -0.506, b: 0.185, y0: 0.85, y1: 1.6 }, shoulder: [-0.25, 1.5, 0.03] as const, rest: 0.3,
+export const KEEPER_HD = { arm: { a: -0.506, b: 0.185, y0: 0.85, y1: 1.6 }, shoulder: [-0.25, 1.5, 0.03] as const,
+  pose: { rest: [-0.3, 0], wave: [0.1, 2.3], talk: [0, 0.9] },
   /**
    * the elbow (round 8, seat A: 'an open waving hand'; mockup B raises the forearm, palm out), halfway down the held-out
    * arm: the forearm is the arm past the plane through it square to `axis` (the arm's direction, shoulder to hand, in x-y)
    */
   elbow: [-0.5, 1.24, 0] as const, axis: [-0.7, -0.71] as const } as const;
-interface Made { group: Group; shoulder: Group; elbow: Group; glow: Mesh<SphereGeometry, MeshBasicMaterial> | null; rest: number }
+/** The arm's [shoulder lift, elbow bend] at idle, waving and talking (radians from the modelled pose). */
+interface Pose { rest: readonly [number, number]; wave: readonly [number, number]; talk: readonly [number, number] }
+/** The faceted keeper's arm hangs at his side: it lifts out to the side and bends up (round 8). */
+const FACETED_POSE: Pose = { rest: [0, 0], wave: [1.2, 2.0], talk: [0.9, 0.5] };
+interface Made { group: Group; shoulder: Group; elbow: Group; glow: Mesh<SphereGeometry, MeshBasicMaterial> | null; pose: Pose }
 /** The lantern's warm halo: a ball, not a Sprite (the shard's global light patch reaches every material and a sprite's vertex shader lacks `transformed`). */
 const halo = (): Mesh<SphereGeometry, MeshBasicMaterial> => new Mesh(new SphereGeometry(0.13, 12, 8), new MeshBasicMaterial({ color: 0xffb860, transparent: true, opacity: 0.2, blending: AdditiveBlending, depthWrite: false }));
 /** The textured keeper (Hunyuan3D-2's painted keeper): body + the waving right arm on its shoulder pivot, its forearm on the elbow. */
@@ -109,7 +116,7 @@ function textured(): Made | null {
   shoulder.add(new Mesh(upper.translate(-sx, -sy, -sz), material));
   elbow.position.set(ex - sx, ey - sy, ez - sz); shoulder.add(elbow);
   elbow.add(new Mesh(fore.translate(-ex, -ey, -ez), material));
-  return { group, shoulder, elbow, glow: null, rest: KEEPER_HD.rest };
+  return { group, shoulder, elbow, glow: null, pose: KEEPER_HD.pose };
 }
 
 /** The generated keeper (loop 3; `art/far-reach/round-13-loop-3/`): body + a waving right arm on a shoulder pivot, and a lantern glow. */
@@ -126,7 +133,7 @@ function generated(): Made | null {
   shoulder.add(new Mesh(arm.translate(-sx, -sy, -sz), material));
   const glow = halo(); glow.position.copy(lantern); group.add(glow);
   const elbow = new Group(); shoulder.add(elbow);
-  return { group, shoulder, elbow, glow, rest: 0 };
+  return { group, shoulder, elbow, glow, pose: FACETED_POSE };
 }
 
 /**
@@ -137,16 +144,16 @@ function generated(): Made | null {
 export function keeper(y: number): Keeper {
   const made = generated();
   if (made === null) return codeKeeper(y);
-  const { group, shoulder, elbow, glow, rest } = made;
+  const { group, shoulder, elbow, glow, pose } = made;
   group.position.set(KEEPER_AT.x, y, KEEPER_AT.z); group.rotation.y = KEEPER_AT.yaw;
   const head = new Vector3(KEEPER_AT.x, y + 1.8, KEEPER_AT.z), speaker = { talking: false };
   return { group, head, speaker, update: (t, player) => {
     const near = Math.hypot(player.x - KEEPER_AT.x, player.z - KEEPER_AT.z) < WAVE_RANGE;
     // his right arm (−x) lifts out sideways: a wave near, an open-hand gesture while he talks
     // (round 8: mockup B's wave is the upper arm out to his side and the forearm raised, palm out, not a straight raised arm)
-    // (the textured keeper's arm is modelled held out: `rest` lowers it at idle, and the lifts start from that pose)
-    const lift = speaker.talking ? 0.9 - rest * 2 + Math.sin(t * 2.2) * 0.2 : near ? 1.2 - rest * 1.6 + Math.sin(t * 3) * 0.05 : -rest;
-    const bend = speaker.talking ? 0.5 : near ? 2.0 - rest * 2 + Math.sin(t * 7) * 0.25 : 0;
+    const [l, b] = speaker.talking ? pose.talk : near ? pose.wave : pose.rest;
+    const lift = l + (speaker.talking ? Math.sin(t * 2.2) * 0.2 : near ? Math.sin(t * 3) * 0.05 : 0);
+    const bend = b + (near && !speaker.talking ? Math.sin(t * 7) * 0.25 : 0);
     shoulder.rotation.z += (-lift - shoulder.rotation.z) * 0.15;
     elbow.rotation.z += (-bend - elbow.rotation.z) * 0.15;
     // a slow breath of a turn, and the lantern's flicker

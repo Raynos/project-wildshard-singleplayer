@@ -23,7 +23,11 @@ Numbers (measured on the fitted models, the code reads them):
 - keeper: public/assets/far-reach/models/keeper-hd/keeper-hd.glb (replaced in place), 14k tris, 1024 WebP, 296 KB; fitted
   to 1.95 m. His right arm is every triangle outboard of x = -0.506 + 0.185 y between y 0.85 and 1.6 (the sleeve-coat gap
   runs from x -0.34 at y 0.9 to -0.22 at the shoulder), shoulder pivot (-0.25, 1.5, 0.03), elbow (-0.5, 1.24) with a cut
-  square to the arm (a level cut halved the wide cuff). The arm is modelled held out, so `rest` 0.3 rad lowers it at idle.
+  square to the arm (a level cut halved the wide cuff). The arm is modelled held out: at idle the shoulder lowers it
+  0.3 rad; the wave keeps the upper arm out and down (+0.1) and folds the forearm up 2.3 rad, so the open hand stands
+  beside his head with the elbow out at his chest, as in mockup B (a first take lifted the upper arm level and showed the
+  bell cuff as a block).
+- The after shots were taken on a preview with the working tree's far-reach assets, so they carry another lane's sky.
 - lectern: models/lectern-hd/lectern-hd.glb, 8k tris, 1024 WebP, 129 KB; fitted to 1.12 m (the collider's height). Desk
   plane y = 1.022 - 0.625 z (tilt 0.56 rad, front low), its centre (0, 1.006, 0.025); the hook's bottom at (0.39, 0.67, 0).
 - lantern: models/lantern-hd/lantern-hd.glb, 3k tris, 512 WebP, 68 KB; 0.42 m (mockup B: the lantern is 0.38 of the
