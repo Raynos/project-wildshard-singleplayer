@@ -14,6 +14,7 @@ A shard passes at a three-seat mean of 8.0 or more (ledger 4). One row per shard
 | 4 | Signal Dunes | `progress/sunscar-dunes/20261003-0019-8221a34a` | 5.9 | 5.4 | 5.2 | **5.50** | no |
 | 5 | Sky Reach | `progress/far-reach/20261003-0033-9dbf50f8` | 5.8 | 5.9 | 5.9 | **5.87** | no |
 | 5 | Signal Dunes | `progress/sunscar-dunes/20261003-0057-56c23085` | 6.1 | 5.7 | 5.6 | **5.80** | no |
+| 6 | Signal Dunes | `progress/sunscar-dunes/20261003-0132-28e3eb78` | 6.1 | 5.5 | 5.3 | **5.63** | no |
 
 Notes:
 - Round 1: seat A accepts its numbers as diagnosis only, since two staged shots did not reach the real state (the harness
@@ -27,3 +28,4 @@ Notes:
 - Round 4, Sky Reach: two process gaps the seats found. A new knoll lifted mockup C's camera 1.1 m with no cameras.json change, so the generated list missed it; and the Roc's staged spot changed while the README said staging was unchanged. From round 5, shard-progress records each shot's real camera (meta.json camAt), and the round's list adds real-camera moves and the commits touching staging code. The Roc's spot is outside its 13 m flight circle (not shown reachable): should-fix, stage it on the circle.
 - Round 5, Sky Reach: a plateau (5.90 → 5.87). The builder's highlight claim counted a clipped red channel; the brief now measures brightness as Rec. 709 luminance. The seats' persistent items: the meadow (every round), the sun on the wrong side of four of five mockups, the highlights (the AgX tone mapper unchanged), the knoll.
 - Round 5, Signal Dunes: the README's "no commit touched staging code" missed a dusk change in plugin.ts that re-lights the staged B view (real play state, not a breach); the generated diff now lists every shard commit between the captures. After round 5 the lead restarted sky-reach as a fresh session from its handoff (d9a90d79c): a plateau and a full context.
+- Round 6, Signal Dunes: down from 5.80. The sand grain doubled, but the terrain reshape (no re-aim; it moved the real cameras 3–8 m, which the camAt list now shows) broke C and D, the dune forms lost their light/shade line, and the coil turned copper. A builder measurement included the coil in a ground patch; measure on ground clear of the viewmodel.
