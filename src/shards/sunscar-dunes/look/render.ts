@@ -14,8 +14,9 @@ import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 export const KEY = { dir: new Vector3(-0.97, 0.174, 0.171).normalize(), color: new Color(1, 0.55, 0.26), intensity: 3.4 } as const; // loop 5 targets: saturated lit faces, deep shade
 /** Violet aerial perspective: far dune rows cool and lift into layers (R9), never pink. */
 export const FOG = { color: 0x684a62, near: 80, far: 430 } as const;
-const SAND = new Color(0.56, 0.2, 0.06), // loop 5: saturated in the material (a grade boost clipped the indigo sky)
-  HOLLOW = new Color(0.2, 0.12, 0.15), CREST = new Color(0.7, 0.3, 0.08);
+// loop 6: lit sand a gold-orange, less saturated and a little lighter than loop 5 (the targets' lit faces)
+const SAND = new Color(0.58, 0.26, 0.1),
+  HOLLOW = new Color(0.24, 0.17, 0.19), CREST = new Color(0.72, 0.38, 0.15);
 /** How far (m) and in how many growing steps the bake marches toward the sun for the dunes' cast shadows. */
 const SHADOW_MARCH = { first: 0.8, grow: 1.22, steps: 26 } as const;
 const WIND_GLSL = `${WIND.x.toFixed(3)}, ${WIND.z.toFixed(3)}`;
@@ -192,7 +193,8 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   // faces avalanche smooth: the ripples live on the gentle windward faces and the flats.
   vec2 sandW = vec2(${WIND_GLSL});
   float sandU = dot(vSandPos.xz, sandW), sandV = dot(vSandPos.xz, vec2(-sandW.y, sandW.x));
-  float sandWarp = sin(sandV * 0.21) * 1.3 + sin(sandV * 0.053 + sandU * 0.04) * 3.5;
+  // a third, slow warp breaks the regular sine moire (the scorer's h3 diagonal)
+  float sandWarp = sin(sandV * 0.21) * 1.3 + sin(sandV * 0.053 + sandU * 0.04) * 3.5 + sin(sandU * 0.017 + sandV * 0.11) * 2.2;
   float sandPhase = (sandU + sandWarp) * 15.7;
   float sandPhase2 = (sandU * 0.97 + sandWarp * 1.6 + sin(sandV * 0.6) * 0.35 + sin(sandV * 0.13 + sandU * 0.09) * 1.1) * 3.93;
   float sandFlat = smoothstep(0.78, 0.96, normalize(vSandN).y);
@@ -232,7 +234,10 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   float sandKeyN = dot(normalize(vSandN), vec3(${KEY.dir.x.toFixed(3)}, ${KEY.dir.y.toFixed(3)}, ${KEY.dir.z.toFixed(3)}));
   float sandShade = 1.0 - smoothstep(0.0, 0.14, sandKeyN) * sandVis;
   vec3 sandFill = vec3(dot(reflectedLight.indirectDiffuse, vec3(0.3, 0.59, 0.11)));
-  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * vec3(1.0, 0.8, 1.3), sandShade * 0.8);`);
+  // loop 6 (the scorer: shade went muddy purple-black, ripples vanished in it): a cool blue-grey fill, a step brighter,
+  // and the ripples and grain shade the sky light too, so they read in shadow as they do in the targets
+  reflectedLight.indirectDiffuse = mix(reflectedLight.indirectDiffuse, sandFill * vec3(1.08, 0.9, 1.18) * 1.15, sandShade * 0.85);
+  reflectedLight.indirectDiffuse *= 1.0 + (0.16 * sin(sandPhase) * sandRip1 + 0.07 * sin(sandPhase2) * sandRip2) * sandShade + (sandTex.r - 0.5) * 0.18;`);
       }, { scope });
       const mesh = new Mesh(geometry, material); mesh.receiveShadow = false;
       terrain.group.add(mesh); terrain.mesh = mesh; terrain.material = material;

@@ -2,7 +2,7 @@ import { addFire, SIGNAL_FIRE } from './fireFx';
 import { BoxGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
 import { boxDesc, type ColliderDesc } from '#engine';
 import { TOWER } from '../layout';
-import { duneMesh, fit } from './meshes';
+import { duneHd, duneMesh, fit } from './meshes';
 import { bannerGeometry, kindling, litDune, RAG, RAG_GLOW } from './places';
 import { WIND } from './dunes';
 
@@ -99,13 +99,15 @@ export function buildTower(y: number, groundAt: (x: number, z: number) => number
   const brazierAt = new Vector3(cx - 0.4, deckY + 1.1, cz - 0.5);
   // Round 1 (R1C-1 / R1B-12): the generated waymark brazier, the H4 view's subject (it was a near-black post and bowl);
   // the code one stays the stand-in.
-  const generated = duneMesh('waymark-brazier');
-  if (generated) add(new Mesh(fit(generated, { size: 1.25, by: 'height', floor: 0 }), litDune()), brazierAt.x - cx, deckY, brazierAt.z - cz);
+  const hdBrazier = duneHd('brazier-hd', { size: 1.15, by: 'height', floor: 0 }); // a deck-sized one
+  const generated = hdBrazier ? null : duneMesh('waymark-brazier');
+  if (hdBrazier) { hdBrazier.position.set(brazierAt.x, deckY, brazierAt.z); root.add(hdBrazier); }
+  else if (generated) add(new Mesh(fit(generated, { size: 1.25, by: 'height', floor: 0 }), litDune()), brazierAt.x - cx, deckY, brazierAt.z - cz);
   else {
     add(new Mesh(new CylinderGeometry(0.08, 0.12, 0.9, 6), iron), brazierAt.x - cx, deckY + 0.45, brazierAt.z - cz);
     add(new Mesh(new CylinderGeometry(0.45, 0.22, 0.3, 8, 1, true), iron), brazierAt.x - cx, deckY + 1.0, brazierAt.z - cz);
   }
-  const sticks = kindling(deckY + (generated ? 1.05 : 0.95), 0.8); sticks.position.x = brazierAt.x; sticks.position.z = brazierAt.z; root.add(sticks);
+  const sticks = kindling(deckY + (generated ? 1.05 : 0.95), 0.8); sticks.visible = hdBrazier === null; sticks.position.x = brazierAt.x; sticks.position.z = brazierAt.z; root.add(sticks);
   colliders.push(boxDesc({ x: brazierAt.x, z: brazierAt.z, hw: 0.4, hd: 0.4, rot: 0, yBottom: deckY, yTop: deckY + 1.15 }, 'metal'));
   const fire = new Group(); fire.position.copy(brazierAt);
   // The signal fire: the brightest thing in the level, its column visible from the spawn (P2 #8, `fireFx.ts`).

@@ -153,7 +153,7 @@ export class Bullwhip extends Weapon {
   private animate(dt: number): void {
     const { grip, coil, lash, tip } = this.parts;
     if (this.wrapT > 0) { this.wrapT -= dt; if (this.wrapT <= 0 && this.wrapCoil) this.wrapCoil.visible = false; }
-    if (this.crackT < 0) { lash.mesh.visible = false; coil.visible = true; grip.position.set(0, 0, 0); return; }
+    if (this.crackT < 0) { lash.mesh.visible = false; coil.visible = this.parts.hd === null; grip.position.set(0, 0, 0); return; }
     this.crackT += dt;
     const t = this.crackT, double = this.crackHeavy;
     if (this.landed === 0 && t >= CRACK.unroll) { this.landed = 1; this.land(false); }

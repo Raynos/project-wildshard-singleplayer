@@ -3,6 +3,17 @@ import type { ShardManifest } from '#game';
 /** The generated models (C6): loaded by `world/meshes.ts`, listed here so the boot and the offline cache fetch them. */
 export type DuneMeshName = 'caravan' | 'dry-well' | 'waymark-brazier' | 'dune-strider' | 'dune-matriarch' | 'caravan-scout' | 'whip-glove';
 export const DUNE_MESHES: readonly DuneMeshName[] = ['caravan', 'dry-well', 'waymark-brazier', 'dune-strider', 'dune-matriarch', 'caravan-scout', 'whip-glove'];
+/**
+ * The hero models kept TEXTURED (loop 6, toward the mockups B-D): Hunyuan3D-2 shape + 2048 paint, decimated, the paint
+ * kept as a 1024 WebP map on its UVs (the facet-colour path above reads low-poly and blotchy up close).
+ */
+export type DuneHdName = 'wagon-hd' | 'brazier-hd' | 'glove-hd';
+export const DUNE_HD: readonly DuneHdName[] = ['wagon-hd', 'brazier-hd', 'glove-hd'];
+const HD_URLS: Readonly<Record<DuneHdName, string>> = {
+  'wagon-hd': '/assets/sunscar-dunes/models/wagon-hd/wagon-hd.glb', 'brazier-hd': '/assets/sunscar-dunes/models/brazier-hd/brazier-hd.glb',
+  'glove-hd': '/assets/sunscar-dunes/models/glove-hd/glove-hd.glb',
+};
+export const duneHdUrl = (name: DuneHdName): string => HD_URLS[name];
 const URLS: Readonly<Record<DuneMeshName, string>> = {
   caravan: '/assets/sunscar-dunes/models/caravan/caravan.glb', 'dry-well': '/assets/sunscar-dunes/models/dry-well/dry-well.glb',
   'waymark-brazier': '/assets/sunscar-dunes/models/waymark-brazier/waymark-brazier.glb', 'dune-strider': '/assets/sunscar-dunes/models/dune-strider/dune-strider.glb',
@@ -14,6 +25,6 @@ export const duneMeshUrl = (name: DuneMeshName): string => URLS[name];
 
 /** Signal Dunes downloads only its generated models (C6, `world/meshes.ts`); the rest is code and every sound is a kit voice. */
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = () => ({
-  sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: DUNE_MESHES.map(duneMeshUrl), art: [], music: [], sfx: [],
+  sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...DUNE_MESHES.map(duneMeshUrl), ...DUNE_HD.map(duneHdUrl)], art: [], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();

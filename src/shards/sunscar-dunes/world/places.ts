@@ -4,7 +4,7 @@ import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32Buffe
 import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
 import { CARAVAN, SEED, WELL } from '../layout';
 import { WIND } from './dunes';
-import { duneMaterial, duneMesh, fit, smoothColors, without } from './meshes';
+import { duneHd, duneMaterial, duneMesh, fit, smoothColors, without } from './meshes';
 
 // round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
 const WOOD = 0xa07656, WOOD_DARK = 0x86603f, IRON = 0x6e5e56, CANVAS = 0x8a6448, CANVAS_BLEACHED = 0xd8bc92, LAMPLIT = 0x6e3210, STONE = 0x6a4a3a, LEATHER = 0x3a1e12, CLAY = 0x7a3a22;
@@ -12,6 +12,9 @@ const POLE = 0x86603f;
 export const RAG = 0x8a2a16, RAG_GLOW = 0x1a0603;
 /** The places' marker poles (metres): as tall as the waymark poles' reach from above. */
 const MARK = { h: 6.5 } as const;
+/** The textured hero models' fitted sizes (metres): the wagon's span and turn, the brazier's height and its bowl's
+ *  height as a share of it. */
+export const HD = { wagon: 6.4, wagonYaw: 0, brazier: 2.5, bowlAt: 0.86 } as const;
 const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide; emissive: number }> = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true, ...extra });
 /** A generated model's painted material a step lighter (round 2, R1C-2: the iron brazier and the well read black at dusk). */
@@ -69,8 +72,11 @@ export function buildCaravan(groundAt: (x: number, z: number) => number): Carava
   // The wagon in its own frame (+Z is the front), tipped and sunk.
   wagon.position.set(0, -0.55, 0); wagon.rotation.set(-0.1, 0, 0.13); root.add(wagon);
   // C6: the generated wagon (Hunyuan3D-2 from `ref-caravan.jpg`; its shafts lie along −X, turned to +Z), else the code one.
-  const generated = duneMesh('caravan');
-  if (generated) {
+  // loop 6 (mockup B): the textured hero wagon when it loaded, else the facet-painted one, else the code wagon
+  const hdWagon = duneHd('wagon-hd', { size: HD.wagon, by: 'span', yaw: HD.wagonYaw });
+  const generated = hdWagon ? null : duneMesh('caravan');
+  if (hdWagon) wagon.add(hdWagon);
+  else if (generated) {
     // round 1 (R1A-5): the painted wood a step lighter, so boards, hoops and wheels separate instead of one dark shell
     const painted = duneMaterial(); // the regions carry their own values now (wagonRegions)
     const body = fit(generated, { size: 6.2, by: 'span', yaw: Math.PI / 2 }); smoothColors(body); wagonRegions(body);
@@ -261,9 +267,11 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
   // C6: the generated brazier (Hunyuan3D-2 from `ref-brazier.jpg`, plinth to bowl rim 1.85 m), else the code one.
   // Round 2 prep: the waymark stands on a two-tier dressed-stone plinth (`WAYMARK.plinth` m), a monument rather than a
   // pole on a bare slope; everything above it rises with it.
-  const P = WAYMARK.plinth, dressed = mat(PLINTH_STONE), base = mat(PLINTH_BASE);
+  const hdBrazier = duneHd('brazier-hd', { size: HD.brazier, by: 'height', floor: 0 });
+  const P = hdBrazier ? 0 : WAYMARK.plinth, dressed = mat(PLINTH_STONE), base = mat(PLINTH_BASE);
+  const tierHost = new Group(); tierHost.visible = hdBrazier === null; root.add(tierHost);
   // each tier is 2 x 2 dressed blocks, a shade apart, with thin mortar gaps: masonry, not a crate
-  const tier = new Group(); tier.rotation.y = 0.12; root.add(tier);
+  const tier = new Group(); tier.rotation.y = 0.12; tierHost.add(tier);
   const shades = [mat(PLINTH_STONE), dressed, mat(PLINTH_LIGHT), base];
   for (const [w, h, y0, k] of [[1.7, P * 0.55 + 0.3, -0.3, 0], [1.15, P * 0.45, P * 0.55, 1]] as const) {
     for (let i = 0; i < 4; i++) {
@@ -273,18 +281,20 @@ export function buildBrazier(x: number, z: number, groundAt: (x: number, z: numb
     }
   }
   // a capstone slab, a shade lighter and a hand wider than the upper tier: the plinth reads built, not stacked boxes
-  const cap = box(1.32, 0.07, 1.32, mat(PLINTH_LIGHT)); cap.rotation.y = 0.12; at(cap, 0, P + 0.035, 0, root);
-  const ledge = box(1.86, 0.06, 1.86, mat(PLINTH_STONE)); ledge.rotation.y = 0.12; at(ledge, 0, P * 0.55 + 0.03, 0, root);
+  const cap = box(1.32, 0.07, 1.32, mat(PLINTH_LIGHT)); cap.rotation.y = 0.12; at(cap, 0, P + 0.035, 0, tierHost);
+  const ledge = box(1.86, 0.06, 1.86, mat(PLINTH_STONE)); ledge.rotation.y = 0.12; at(ledge, 0, P * 0.55 + 0.03, 0, tierHost);
   colliders.push(boxDesc({ x, z, hw: 0.85, hd: 0.85, rot: -0.12, yBottom: y - 0.3, yTop: y + P * 0.55 }, 'stone'));
-  const generated = duneMesh('waymark-brazier'), bowl = (generated ? 1.74 : 1.62) + P;
-  if (generated) root.add(new Mesh(fit(generated, { size: 1.85, by: 'height', floor: -0.12 + P }), litDune()));
+  // loop 6 (mockup C): the textured hero brazier on the plinth when it loaded, else the facet-painted one, else code
+  const generated = hdBrazier ? null : duneMesh('waymark-brazier'), bowl = hdBrazier ? P + HD.brazier * HD.bowlAt : (generated ? 1.74 : 1.62) + P;
+  if (hdBrazier) root.add(hdBrazier);
+  else if (generated) root.add(new Mesh(fit(generated, { size: 1.85, by: 'height', floor: -0.12 + P }), litDune()));
   else {
     at(box(0.9, 0.7, 0.9, mat(STONE)), 0, 0.2 + P, 0, root);
     at(new Mesh(new CylinderGeometry(0.07, 0.1, 1.0, 6), mat(IRON, { metalness: 0.4 })), 0, 1.05 + P, 0, root);
     at(new Mesh(new CylinderGeometry(0.42, 0.18, 0.32, 8, 1, true), mat(IRON, { metalness: 0.4 })), 0, 1.6 + P, 0, root);
   }
   const oil = at(new Mesh(new CylinderGeometry(0.33, 0.33, 0.04, 8), new MeshStandardMaterial({ color: 0x1a120c, roughness: 0.2 })), 0, bowl, 0, root);
-  root.add(kindling(bowl - 0.08));
+  if (!hdBrazier) root.add(kindling(bowl - 0.08));
   oil.visible = false;
   colliders.push(boxDesc({ x, z, hw: 0.45, hd: 0.45, rot: 0, yBottom: y + P * 0.5, yTop: y + 1.75 + P }, 'stone'));
   // Round 1 (R1C-1 / R1B-12): the unlit waymark reads from afar: a ring of fieldstones round its foot, and a tall

@@ -1,6 +1,6 @@
 import { loadRigFile } from '#engine';
-import { DUNE_MESHES, duneMeshUrl, type DuneMeshName } from '../boot/files';
-import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, type BufferAttribute, type Object3D } from 'three';
+import { DUNE_HD, DUNE_MESHES, duneHdUrl, duneMeshUrl, type DuneHdName, type DuneMeshName } from '../boot/files';
+import { Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, type BufferAttribute, type Object3D } from 'three';
 
 /**
  * Signal Dunes' generated models (C6, E374): codex refs → Hunyuan3D-2 → faceted, vertex-coloured GLBs
@@ -42,10 +42,40 @@ async function load(name: DuneMeshName): Promise<void> {
   } catch (e: unknown) { console.warn(`[sunscar-dunes] ${name} not loaded, the code model stands in:`, e); }
 }
 
+const hd = new Map<DuneHdName, Object3D>();
+/** A textured hero model: its scene as loaded (its own map on its own UVs), normals smoothed, matte. */
+async function loadHd(name: DuneHdName): Promise<void> {
+  try {
+    const gltf = await loadRigFile(duneHdUrl(name));
+    gltf.scene.traverse((o) => {
+      if (!isMesh(o)) return;
+      for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+        if (m instanceof MeshStandardMaterial) { m.metalness = 0; m.roughness = 0.85; m.flatShading = false; m.needsUpdate = true; }
+      }
+    });
+    hd.set(name, gltf.scene);
+  } catch (e: unknown) { console.warn(`[sunscar-dunes] ${name} not loaded, the flat model stands in:`, e); }
+}
+
 /** Load every generated model once (a failed one is skipped). */
 export function preloadDuneMeshes(): Promise<void> {
-  loading ??= Promise.all(DUNE_MESHES.map(load)).then(() => undefined);
+  loading ??= Promise.all([...DUNE_MESHES.map(load), ...DUNE_HD.map(loadHd)]).then(() => undefined);
   return loading;
+}
+
+/**
+ * A textured hero model, fitted like `fit` (turned `yaw`, centred on x / z, its lowest point at `floor`, `size` metres
+ * by span or height), as a group sharing the loaded geometry and maps; null when it did not load.
+ */
+export function duneHd(name: DuneHdName, o: { size: number; by: 'span' | 'height'; floor?: number; yaw?: number }): Group | null {
+  const src = hd.get(name); if (!src) return null;
+  const inner = src.clone(true), holder = new Group(), turn = new Group();
+  turn.rotation.y = o.yaw ?? 0; turn.add(inner); holder.add(turn); holder.updateMatrixWorld(true);
+  const b = new Box3().setFromObject(holder);
+  const span = o.by === 'height' ? b.max.y - b.min.y : Math.max(b.max.x - b.min.x, b.max.z - b.min.z), k = o.size / Math.max(1e-6, span);
+  turn.position.set(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2);
+  const out = new Group(); out.add(holder); holder.scale.setScalar(k); holder.position.y = o.floor ?? 0;
+  return out;
 }
 
 /** A copy of a loaded model's geometry, or null (not loaded: use the code model). */
