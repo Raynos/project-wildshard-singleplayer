@@ -1,5 +1,6 @@
 import { BufferAttribute, Color, DoubleSide, type Texture, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, ShaderMaterial, Vector2, Vector3, Vector4 } from 'three';
 import { DAIS, FALLEN_BRIDGE, ISLES, KNOLL_GLSL, MILL, NOTES, SPANS, UPDRAFT, VANES, WINCH, apothem, type Isle } from '../layout';
+import { MILL_DRUM } from './mill';
 import { KEEPER_AT, KEEPER_STAND } from '../quest/keeper';
 import { crownStones } from './crown';
 import { NEST, SPIRES, spireAt } from './roost';
@@ -57,7 +58,7 @@ export const SWARD = {
 
 /** Where grass never grows: discs (x, z, radius) round the structures and pieces you stand at. */
 export function meadowHoles(): Vector4[] {
-  const holes: [number, number, number][] = [[MILL.x, MILL.z, 2.9], [WINCH.x, WINCH.z, 1.3], [NOTES.x, NOTES.z, 0.8], [KEEPER_AT.x, KEEPER_AT.z, 0.7], [KEEPER_STAND.x, KEEPER_STAND.z, 0.45], [DAIS.x, DAIS.z, DAIS.r + 0.4]];
+  const holes: [number, number, number][] = [[MILL.x, MILL.z, MILL_DRUM.r + 0.1], [WINCH.x, WINCH.z, 1.3], [NOTES.x, NOTES.z, 0.8], [KEEPER_AT.x, KEEPER_AT.z, 0.7], [KEEPER_STAND.x, KEEPER_STAND.z, 0.45], [DAIS.x, DAIS.z, DAIS.r + 0.4]];
   for (const v of VANES) holes.push([v.x, v.z, 1]);
   for (const st of crownStones()) holes.push([st.x, st.z, 0.85]);
   holes.push([NEST.x, NEST.z, NEST.r + 0.2], [WINCH_HOUSE.x, WINCH_HOUSE.z, WINCH_HOUSE.w * 0.75]);

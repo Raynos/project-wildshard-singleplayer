@@ -1,7 +1,7 @@
 import { PATCH_ORDER, boxDesc, patchShader, type ColliderDesc, type Interactable } from '#engine';
 import type { ShardContext } from '#game';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DAIS, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
+import { CROWN, DAIS, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
@@ -16,6 +16,7 @@ import { winchHouse } from './winchHouse';
 import { skyline } from './distant';
 import { PALETTE, flat, pines, plankBridge, vane, windmill, winch } from './shapes';
 import { BOOK_STAND, bookStand } from './bookStand';
+import { MILL_DRUM } from './mill';
 import { KEEPER_STAND } from '../quest/keeper';
 import { ownPrimitives } from './resources';
 import { STORM, crownStorm, type CrownStorm } from './storm';
@@ -114,6 +115,15 @@ export interface BuiltWorld {
 // modelled rock now starts just under the turf)
 const ISLE_CUT = 1.4, KEEL_TOP = 1.0;
 const CUT: Readonly<Record<string, { cut: number; keelTop: number; keelScale: number }>> = { windmill: { cut: 0.8, keelTop: 0.6, keelScale: 0.78 } };
+/** The rock drum under the mill (mill.ts MILL_DRUM): a convex ring of stone, MILL_DRUM.h proud of the deck. */
+function millDrum(): ColliderDesc {
+  const n = MILL_DRUM.sides, points = new Float32Array(n * 2 * 3);
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2, x = Math.cos(a) * MILL_DRUM.r, z = Math.sin(a) * MILL_DRUM.r;
+    points.set([x, -0.2, z, x, MILL_DRUM.h, z], i * 6);
+  }
+  return { kind: 'hull', x: MILL.x, y: DECK, z: MILL.z, points, surface: 'stone' };
+}
 export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorld {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
@@ -200,7 +210,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
 
   const mill = windmill(); mill.group.position.set(MILL.x, 30, MILL.z); mill.group.rotation.y = MILL.yaw; root.add(mill.group);
   ctx.piece({ id: 'far.windmill', name: STRINGS.mill, category: 'buildings', file: FILE, object: mill.group,
-    colliders: [boxDesc({ x: MILL.x, z: MILL.z, hw: 2.3, hd: 2.3, rot: -MILL.yaw, yBottom: 30, yTop: 39 }, 'stone')], surface: 'stone' });
+    colliders: [boxDesc({ x: MILL.x, z: MILL.z, hw: 2.3, hd: 2.3, rot: -MILL.yaw, yBottom: 30, yTop: 39 }, 'stone'), millDrum()], surface: 'stone' });
 
   const drum = winch(); drum.position.set(WINCH.x, WINCH.y, WINCH.z); root.add(drum);
   ctx.piece({ id: 'far.winch', name: STRINGS.winch, category: 'props', file: FILE, object: drum,

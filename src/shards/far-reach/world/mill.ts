@@ -279,7 +279,10 @@ function sail(): { frame: BufferGeometry; cloth: BufferGeometry[] } {
  * more than `foot.lip` m proud, so the walk round the mill (the code collider's 2.3 m box) is over a stone lip, not a
  * wall. The code tower stays the fallback when a model fails to load.
  */
-export const MODELLED = { hub: MILL.height + 1.0, baseR: 2.6, foot: { span: 8.2, h: 1.1, sink: 0.45, walk: 2.9, lip: 0.3 } } as const;
+export const MODELLED = { hub: MILL.height + 1.0, baseR: 2.6, foot: { span: 8.2, h: 1.7, sink: 0.45, walk: 3.0, lip: 0.3 } } as const;
+/** The stone drum the tower stands on (E410, plan row 6: mockups C and proposal B stand the mill on a rock outcrop): its
+ * radius and height over the deck; world/build.ts gives it a collider, so you walk round it, not through it. */
+export const MILL_DRUM = { r: 3.0, h: 1.2, sides: 16 } as const;
 
 interface Made { readonly meshes: Mesh[]; readonly hubAt: { y: number; z: number } }
 /** The front stub of a fitted tower: the farthest-out vertices above 72 % of its height (the centroid of the outer 8 %). */
