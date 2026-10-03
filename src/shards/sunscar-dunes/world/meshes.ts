@@ -67,16 +67,29 @@ function warmByFire(m: MeshStandardMaterial): void {
 function wornLeather(m: MeshStandardMaterial, ramp: boolean): void {
   patchShader(m, 'sunscar.leather', PATCH_ORDER.decorate, (shader) => {
     shader.uniforms['uDusk'] = DUSK;
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uDusk;')
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vGloveP;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vGloveP = position;');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uDusk;\nvarying vec3 vGloveP;')
       .replace('#include <map_fragment>', ramp ? `#include <map_fragment>
   float leatherL = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
   // the texture's light and dark (braid, creases) kept, mapped onto a warm tan leather ramp (mockups A-C; the map is near-black red)
   diffuseColor.rgb = mix(vec3(0.05, 0.028, 0.016), vec3(0.42, 0.24, 0.12), smoothstep(0.02, 0.15, leatherL)); // a worn mid-brown (judge: the tan read as clay)` : `#include <map_fragment>
   // glove-hd2 (council round 4): a dark worn brown, not oxblood; its unpainted thumb patch clamped to the leather
   diffuseColor.rgb = min(diffuseColor.rgb, vec3(0.42, 0.3, 0.24));
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.3) * vec3(1.15, 0.95, 0.85) * 1.4; // neutral dark brown (round 4: 37,8,4 vs the mockup's 47,27,24)`)
+  float gloveWhip = (vGloveP.x < -0.45 || (vGloveP.y > 0.55 && vGloveP.x < 0.2) || (vGloveP.y < -0.25 && vGloveP.x < 0.15)) ? 1.0 : 0.0;
+  diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), diffuseColor.rgb, 0.3) * vec3(1.15, 0.95, 0.85) * 1.4, 1.0 - gloveWhip); // neutral dark brown (round 4: 37,8,4 vs the mockup's 47,27,24)
+  {
+    // the whip (council round 4: a beaded worm, not a plait): two crossing strand sets in the model's own space, dark gaps
+    // between the strands and a lit crown on each, on the coil and the tail only (the fist and cuff keep their paint)
+    vec3 gp = vGloveP; float whip = gloveWhip;
+    float sa = sin((gp.x + gp.y + gp.z * 0.7) * 70.0), sb = sin((gp.x - gp.y - gp.z * 0.7) * 70.0);
+    float gap = max(1.0 - smoothstep(0.0, 0.3, abs(sa)), 1.0 - smoothstep(0.0, 0.3, abs(sb)));
+    float crown = smoothstep(0.6, 1.0, abs(sa) * abs(sb));
+    vec3 strand = vec3(0.36, 0.15, 0.05) * (0.7 + 0.9 * crown);
+    diffuseColor.rgb = mix(diffuseColor.rgb, mix(strand, vec3(0.03, 0.018, 0.012), gap), whip);
+  }`)
       // a light from the viewer side, so the held glove reads as lit leather, never a cut-out against the dusk (mockup D: the lit
       // fist; the key is behind it now): faces lit, edges falling off, more as the dusk deepens
+      .replace('#include <roughnessmap_fragment>', ramp ? '#include <roughnessmap_fragment>' : '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.85, gloveWhip);')
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
   totalEmissiveRadiance += diffuseColor.rgb * ${ramp ? 'vec3(0.62, 0.46, 0.34)' : 'vec3(0.3, 0.24, 0.2)'} * (0.2 + 0.8 * saturate(dot(normal, normalize(vViewPosition)))) * (1.0 + 0.7 * uDusk);`);
   });

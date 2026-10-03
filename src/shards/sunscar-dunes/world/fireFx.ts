@@ -71,7 +71,7 @@ void main() {
   float core = (1.0 - smoothstep(0.15, 0.55, d)) * (1.0 - smoothstep(0.12, 0.42, top));
   vec3 c = mix(vec3(0.85, 0.14, 0.01), vec3(1.0, 0.45, 0.06), smoothstep(0.05, 0.6, 1.0 - d) * (1.0 - smoothstep(0.35, 0.9, top)));
   c = mix(c, vec3(1.0, 0.62, 0.16), core * 0.4); // council round 2: the flame read cream-white; orange with a yellow core
-  gl_FragColor = vec4(c * body * 0.95 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
+  gl_FragColor = vec4(c * body * 1.35 * smoothstep(0.8, 2.6, vFar) * max(vNear, 0.25), 1.0);
 }`,
 });
 /** The smoke: a dark plume leaning downwind off a big fire, or (`wisp`) a thin pale column off a cookfire, nearly straight. */
@@ -162,7 +162,7 @@ void main() {
   float flick = 0.85 + 0.1 * sin(uTime * 11.0) + 0.05 * sin(uTime * 23.0);
   // loop 5 (mockup C): the fire floods the sand round it orange: a broad pool, hot near the brazier
   // E399 (mockup C): the fire floods the sand round it orange, hot near the brazier, fading over a few metres
-  gl_FragColor = vec4(vec3(1.0, 0.36, 0.06) * (pow(max(0.0, 1.0 - r), 1.8) * 0.42 + pow(max(0.0, 1.0 - r), 6.0) * 0.5) * flick, 1.0);
+  gl_FragColor = vec4(vec3(1.0, 0.36, 0.06) * (pow(max(0.0, 1.0 - r), 1.8) * 0.2 + pow(max(0.0, 1.0 - r), 6.0) * 0.32) * flick, 1.0);
 }`,
 });
 const quad = new PlaneGeometry(1, 1); quad.translate(0, 0.5, 0);

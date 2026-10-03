@@ -87,7 +87,7 @@ function sandGrainTexture(): DataTexture {
   }
   const tex = new DataTexture(data, n, n, RGBAFormat, UnsignedByteType);
   tex.wrapS = RepeatWrapping; tex.wrapT = RepeatWrapping; tex.magFilter = LinearFilter; tex.minFilter = LinearMipmapLinearFilter;
-  tex.generateMipmaps = true; tex.needsUpdate = true;
+  tex.generateMipmaps = true; tex.anisotropy = 8; tex.needsUpdate = true; // round 5: at the grazing near view the plain mips blurred the grain to grey
   return tex;
 }
 
@@ -200,7 +200,10 @@ uniform sampler2D uSandGrain;
 uniform sampler2D uSandTrail;
 uniform float uDusk;
 // A ripple octave survives while a pixel spans well under one period, at any distance (no fixed fade, no aliasing).
-float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`)
+float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }
+float sandH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(sandH(i), sandH(i + vec2(1.0, 0.0)), f.x), mix(sandH(i + vec2(0.0, 1.0)), sandH(i + vec2(1.0, 1.0)), f.x), f.y); }`)
           .replace('#include <color_fragment>', `#include <color_fragment>
   float sandFar = length(vSandPos - cameraPosition);
   // Wind ripples (R3, loop 2): two octaves across the wind (${WIND_GLSL}), bent by slow warps: 0.4 m ripples and 1.6 m
@@ -210,13 +213,15 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   float sandU = dot(vSandPos.xz, sandW), sandV = dot(vSandPos.xz, vec2(-sandW.y, sandW.x));
   // a third, slow warp breaks the regular sine moire (the scorer's h3 diagonal)
   float sandWarp = sin(sandV * 0.21) * 1.3 + sin(sandV * 0.053 + sandU * 0.04) * 3.5 + sin(sandU * 0.017 + sandV * 0.11) * 2.2;
-  float sandPhase = (sandU + sandWarp) * 7.0; // E399: ~0.9 m bands (mockup A's near ripples), was 0.4 m
+  // round 5 (mockup dusk-fire: lumpy broken ripple crests, not sine stripes): the grain tile's mottle, sampled coarse, bends them
+  float sandLump = sandN(vec2(sandU * 0.9, sandV * 0.35)) + 0.5 * sandN(vec2(sandU * 2.1, sandV * 0.9) + 7.3);
+  float sandPhase = (sandU + sandWarp) * 7.0 + sandLump * 4.5; // E399: ~0.9 m bands (mockup A's near ripples), was 0.4 m
   float sandPhase2 = (sandU * 0.97 + sandWarp * 1.6 + sin(sandV * 0.6) * 0.35 + sin(sandV * 0.13 + sandU * 0.09) * 1.1) * 3.93;
   float sandFlat = smoothstep(0.78, 0.96, normalize(vSandN).y);
   // loop 3: the ripples come in patches (wind-scoured fields and smooth swales), not one even corduroy over every dune
   float sandPatch = clamp(0.5 + 0.6 * sin(sandV * 0.31 + sin(sandU * 0.19) * 1.7) * sin(sandU * 0.27 + sandV * 0.07 + 1.3), 0.12, 1.0);
   sandPatch = max(sandPatch, 0.8 * (1.0 - smoothstep(6.0, 30.0, sandFar))); // E399: always rippled underfoot (mockup A)
-  float sandRip1 = sandAA(sandPhase) * (0.3 + 0.7 * sandFlat) * sandPatch, sandRip2 = sandAA(sandPhase2) * sandFlat * (0.4 + 0.6 * sandPatch);
+  float sandRip1 = sandAA(sandPhase) * (0.65 + 0.35 * sandFlat) * sandPatch, sandRip2 = sandAA(sandPhase2) * sandFlat * (0.4 + 0.6 * sandPatch);
   vec4 sandTex = texture2D(uSandGrain, vSandPos.xz * 0.55);
   // round 2 (R1C-5 / seat B: the trails were soft smears from above): a baked 0.75 m trail mask, trodden darker and smooth
   float sandTrod = texture2D(uSandTrail, (vSandPos.xz + ${GROUND_HALF.toFixed(1)}) / ${(GROUND_HALF * 2).toFixed(1)}).r;
@@ -226,7 +231,11 @@ float sandAA(float phase) { return 1.0 - smoothstep(0.5, 1.8, fwidth(phase)); }`
   sandRip1 *= sandNear; sandRip2 *= sandNear;
   // E399 (judge, mockup A): the near ripples' troughs read dark (the key runs along the crests, so the bump alone barely shows)
   diffuseColor.rgb *= 1.0 + 0.62 * (sin(sandPhase) - 0.35 * max(0.0, -sin(sandPhase)) * 2.0) * sandRip1 + 0.05 * sin(sandPhase2) * sandRip2 + (sandTex.r - 0.5) * 0.3
-    + smoothstep(0.82, 0.95, sandTex.r) * 0.9 * (1.0 - smoothstep(3.0, 18.0, sandFar)); // grain glints near the camera (mockup A)
+    + smoothstep(0.82, 0.95, sandTex.r) * 0.9 * (1.0 - smoothstep(3.0, 18.0, sandFar)) // grain glints near the camera (mockup A)
+    // a finer grain octave underfoot (round 5: the near sand's fine detail a third of the mockups')
+    + (texture2D(uSandGrain, vSandPos.xz * 2.3 + 0.37).r - 0.5) * 1.2 * (1.0 - smoothstep(4.0, 22.0, sandFar))
+    + (texture2D(uSandGrain, vSandPos.xz * 0.9 + 0.71).r - 0.5) * 0.8 * (1.0 - smoothstep(6.0, 30.0, sandFar))
+    + (texture2D(uSandGrain, vSandPos.xz * 0.28 + 0.13).r - 0.5) * 1.1 * (1.0 - smoothstep(8.0, 40.0, sandFar)); // cm-scale speckle (mockup dusk-fire)
   // loop 4, surface variety (the council's baseline: the near sand read as one flat brown): broad tonal drifts (tens of
   // metres) and pale wind-blown streaks running downwind over the windward faces, a finer darker sand in the scours.
   float sandDrift = sin(sandU * 0.045 + sin(sandV * 0.031) * 2.0) * sin(sandV * 0.052 + 1.7) + 0.5 * sin(sandU * 0.11 + sandV * 0.07);
