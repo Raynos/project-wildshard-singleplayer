@@ -56,16 +56,16 @@
       "tier": "phone",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.phone.json",
-      "commit": "9e0db14307f286171f91c9cc0619b494f7e18c5b",
-      "reason": "E399 round 6 (sky-reach): the sward atlas at twice the texels (1024 x 512 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "8e707af7b3fb8b9df4329a8533795f09c4d09480",
+      "reason": "E407 top-10 rows 1-2 (sky-reach): six modelled island maps (1024 WebP) and five tree maps (512); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     },
     {
       "shard": "far-reach",
       "tier": "desktop",
       "metric": "gpuMB",
       "source": "budgets/calibration-reports/far-reach.desktop.json",
-      "commit": "9e0db14307f286171f91c9cc0619b494f7e18c5b",
-      "reason": "E399 round 6 (sky-reach): the sward atlas at twice the texels (1024 x 512 RGBA with mips); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
+      "commit": "8e707af7b3fb8b9df4329a8533795f09c4d09480",
+      "reason": "E407 top-10 rows 1-2 (sky-reach): six modelled island maps (1024 WebP) and five tree maps (512); measured; inside the phone memory limits (1.8 GB loading / 1.0 GB Explorer)"
     }
   ]
 }
