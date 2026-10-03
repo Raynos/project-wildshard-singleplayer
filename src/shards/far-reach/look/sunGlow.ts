@@ -47,7 +47,7 @@ export function sunGlow(sun: Vector3): { group: Group; geometry: PlaneGeometry; 
     vertexShader: VERTEX,
     fragmentShader: /* glsl */`
       varying vec2 vUv;
-      void main(){ float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(vec3(1.0, 0.78, 0.46) * exp(-d * 2.4) * (1.0 - smoothstep(0.75, 1.0, d)) * 0.32, 1.0); }` });
+      void main(){ float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(vec3(1.0, 0.78, 0.46) * exp(-d * 2.4) * (1.0 - smoothstep(0.75, 1.0, d)) * 0.2, 1.0); }` });
   const wideMesh = new Mesh(plane, wide); wideMesh.frustumCulled = false; wideMesh.renderOrder = -9; group.add(wideMesh);
   const shafts: ShaderMaterial[] = [];
   for (let i = 0; i < SUN_GLOW.shafts; i++) {

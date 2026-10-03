@@ -20,4 +20,5 @@ export const SKY = {
   seaShade: 0xa29dbd, seaShadeWarm: 0xe6b996, seaLit: 0xfff3e2,
 } as const;
 /** E392 (the targets are clear and golden, our frames sat under a rose veil): the haze starts later and never covers more than `max`. */
-export const FOG = { near: 120, far: 620, max: 0.68 } as const;
+/** E399 (the council: 'grey-beige haze on the middle-distance islands'): a thinner veil */
+export const FOG = { near: 160, far: 720, max: 0.5 } as const;

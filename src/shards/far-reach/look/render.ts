@@ -21,7 +21,7 @@ export function createDay(): DayCycle {
 }
 function primitive(object: Object3D): object is Mesh { return object instanceof Mesh; }
 /** E399 (the council: 'no golden haze toward the sun'): how far the air toward the low sun goes gold over distance. */
-const SUN_HAZE = 0.35;
+const SUN_HAZE = 0.12;
 
 /**
  * Sky Reach's look (extend; the style bible is docs/design/far-reach/style-bible.md): the engine's clean chain, a painted

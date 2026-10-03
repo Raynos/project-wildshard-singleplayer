@@ -137,7 +137,9 @@ export function maelstrom(sun: Vector3, tex: DataTexture, time: { value: number 
  * shows, drifting slowly; under the storm crown it is wound into the maelstrom's spiral. It melts into the panorama's
  * painted sea with distance. Drawn after the sky dome and before the puffs; opaque near, fading far.
  */
-export const PAINTED_SEA = { y: -24, radius: 1400, tile: 120, fade: [420, 900] } as const;
+/** E399 (the council: 'no cloud sea below the bridge'): 16 m higher, its crowns 8 m under the low isles' keels, so a level view
+ * from a deck sees the sea under every bridge and past every rim. */
+export const PAINTED_SEA = { y: -8, radius: 1400, tile: 120, fade: [420, 900] } as const;
 /** `upper`: the higher, thinner layer (only its bright billow crowns, by luminance) that gives the diagonals parallax. */
 export function paintedSea(painted: Texture, time: { value: number }, upper = false): Mesh<CircleGeometry, ShaderMaterial> {
   const material = new ShaderMaterial({ transparent: true, depthWrite: false, fog: false, side: DoubleSide,
@@ -178,7 +180,7 @@ export function paintedSea(painted: Texture, time: { value: number }, upper = fa
  * (`public/assets/far-reach/tex/maelstrom.webp`), turning slowly, its rim melting into the painted sea. It sits a little
  * above the painted sea so it covers it, and below the decks.
  */
-export const PAINTED_MAELSTROM = { radius: 125, y: -6 } as const;
+export const PAINTED_MAELSTROM = { radius: 125, y: 10 } as const;
 export function paintedMaelstrom(painted: Texture, time: { value: number }): Mesh<CircleGeometry, ShaderMaterial> {
   const material = new ShaderMaterial({ transparent: true, depthWrite: false, fog: false, side: DoubleSide,
     uniforms: { painted: { value: painted }, time },

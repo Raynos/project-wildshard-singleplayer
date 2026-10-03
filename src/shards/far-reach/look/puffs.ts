@@ -9,7 +9,7 @@ import { InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry,
  * Without the atlas (offline, a test page) the field is not built. Seeded: every load grows the same sky.
  */
 /** `spiral`: puffs laid on three log-spiral arms round the storm crown, under its deck (the H4 god-view targets). */
-export const PUFFS = { spiral: { count: 0, x: 0, z: -190, y: [-12, 20], r: [24, 100] }, count: 380, ring: [10, 600], y: [-22, 4], size: [24, 62], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
+export const PUFFS = { spiral: { count: 0, x: 0, z: -190, y: [-12, 20], r: [24, 100] }, count: 380, ring: [10, 600], y: [-6, 18], size: [24, 62], fade: [520, 820], centre: [0, -100], cells: [4, 2] } as const;
 
 /** `keelPuffs`: [x, y, z, size] puffs hugging the islands' undersides (the targets' clouds wrap the keels). */
 export function cumulus(sun: Vector3, atlas: Texture, keelPuffs: readonly (readonly [number, number, number, number])[] = []): Mesh<InstancedBufferGeometry, ShaderMaterial> {
@@ -24,7 +24,7 @@ export function cumulus(sun: Vector3, atlas: Texture, keelPuffs: readonly (reado
     for (let tries = 0; tries < 6 && Math.hypot(PUFFS.centre[0] + Math.cos(ang) * r - PUFFS.spiral.x, PUFFS.centre[1] + Math.sin(ang) * r - PUFFS.spiral.z) < 150; tries++) { ang = rnd() * Math.PI * 2; r = PUFFS.ring[0] + (PUFFS.ring[1] - PUFFS.ring[0]) * Math.sqrt(rnd()); }
     const size = PUFFS.size[0] + (PUFFS.size[1] - PUFFS.size[0]) * rnd() ** 1.3;
     // the puff's top (its centre + its height) stays under the decks: a tall one sat in front of every first-person view
-    const y = Math.min(PUFFS.y[0] + (PUFFS.y[1] - PUFFS.y[0]) * rnd(), 22 - size);
+    const y = Math.min(PUFFS.y[0] + (PUFFS.y[1] - PUFFS.y[0]) * rnd(), 30 - size);
     at.set([PUFFS.centre[0] + Math.cos(ang) * r, y, PUFFS.centre[1] + Math.sin(ang) * r, size], i * 4);
     const k = Math.floor(rnd() * PUFFS.cells[0] * PUFFS.cells[1]);
     cell.set([k % PUFFS.cells[0], Math.floor(k / PUFFS.cells[0])], i * 2);

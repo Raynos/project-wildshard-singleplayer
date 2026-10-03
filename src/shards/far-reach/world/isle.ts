@@ -172,7 +172,9 @@ ${shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fr
     float swell = farMN(q * 0.12) * 0.7 + farMN(q * 0.4) * 0.3;
     // loop 20 (the aerial targets: lumpy sunlit tops, warm yellow-green, dark tuft shadows): stronger swells, a warmer tint
     float tuft = farMN(q * 3.1);
-    diffuseColor.rgb = mix(diffuseColor.rgb, mt * (0.5 + 1.0 * swell) * (0.82 + 0.3 * tuft) * vec3(1.1, 1.07, 0.8), 0.88);
+    // E399 (the council: 'sparse blades on a flat yellow plane'): the ground between the blades is the shade down in the
+    // sward, a deeper green, so the gaps read as depth in the grass, not bare yellow ground
+    diffuseColor.rgb = mix(diffuseColor.rgb, mt * (0.42 + 0.8 * swell) * (0.75 + 0.35 * tuft) * vec3(0.86, 1.0, 0.58), 0.9);
 #endif
     vec2 cell = floor(q * 2.2); float pick = farMH(cell);
     float dot2 = 1.0 - smoothstep(0.12, 0.3, length(fract(q * 2.2) - 0.5));
