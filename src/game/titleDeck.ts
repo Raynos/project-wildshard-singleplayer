@@ -31,9 +31,6 @@ import { GAME_STRINGS } from './strings';
 import { menuMode, selectEnters, selectExplores, type MenuMode } from './grid/menu';
 import './summary.css';
 import './upgrade.css';
-import { lastEnd } from '@wildshard/engine/boot/lastEnd';
-import { dropGridIntent, enterGrid } from './grid/boot';
-import { installGridDebug } from './grid/debug';
 
 
 export type TitleBadge = 'Early access' | 'Experimental' | 'Developer only';
@@ -313,18 +310,4 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     start: () => { place(index, 0, false); scope.raf(() => { place(index, 0, false); }); },
     dispose: () => { scope.dispose(); },
   };
-}
-
-/**
- * The cold title's Infinite Wildshard wiring (SF21a), one call for the composition root (src/entry.ts):
- *   - a stale one-shot intent is consumed here, so nothing but a new tap boots the grid (R3-C5);
- *   - the DEVSERVER cell's Debug row is installed (a DEVSERVER build only);
- *   - when the previous page was the grid and it ended unexpectedly (iOS's memory kill), the title only adds one line.
- */
-export interface GridTitle { readonly onGrid: () => void; readonly note: string }
-export function installGridTitle(): GridTitle {
-  dropGridIntent();
-  installGridDebug();
-  const end = lastEnd();
-  return { onGrid: enterGrid, note: end.kind === 'unexpected' && end.mode === 'grid' ? GAME_STRINGS.grid.ended : '' };
 }

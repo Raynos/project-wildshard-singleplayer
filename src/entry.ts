@@ -45,14 +45,14 @@ if (rescueBoot) {
 /** resolves once the title or the selected shard's entry has been evaluated */
 export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly && document.getElementById('ws-shardfile') === null ? (async () => {
   await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
-  const [{ showStartTitle }, { titleCards, installGridTitle }, { buildTitleMenu }, { travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/titleDeck'), import('./game/mainMenu'), import('./game/travel/travel')]));
+  const [{ showStartTitle }, { buildTitleMenu, installGridTitle }, { travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/mainMenu'), import('./game/travel/travel')]));
   // SF21a: Infinite Wildshard boots only from a one-shot tap; an iOS kill of the grid only adds a line to the title
   const grid = installGridTitle();
   // the composition root wires the game's main menu (over its shard deck) into the engine's title (E405)
   showStartTitle(({ settings, notice }) => {
     const lines = [notice ?? '', grid.note].filter((line) => line !== '').join('\n');
     return buildTitleMenu({
-      cards: titleCards(), active: null,
+      active: null,
       onEnter: (card) => { travel({ to: card.slug, mode: 'enter' }); },
       onExplore: (card) => { travel({ to: card.slug, mode: 'explore' }); },
       onGrid: grid.onGrid,

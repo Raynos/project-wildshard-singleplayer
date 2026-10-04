@@ -13,8 +13,11 @@ import { versionedUrl } from '@wildshard/engine/boot/bytes';
  * Both ways in (src/entry.ts's cold title and the HUD's showIntro, wired in src/game/session/loadout.ts) build it, so the
  * main menu is the first screen either way. A rebuild (Settings ▸ Developer flips it) keeps the screen it was on.
  */
-import { buildTitleDeck, type TitleDeck, type TitleDeckOptions } from './titleDeck';
+import { lastEnd } from '@wildshard/engine/boot/lastEnd';
+import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
 import { gridEntryShown, menuMode } from './grid/menu';
+import { dropGridIntent, enterGrid } from './grid/boot';
+import { installGridDebug } from './grid/debug';
 import { GAME_STRINGS } from './strings';
 import './mainMenu.css';
 
@@ -30,7 +33,9 @@ export type MainMenuScreen = 'main' | 'select';
 /** the screen this page's title is on: a rebuild (Developer flipped in Settings) comes back to it */
 let screen: MainMenuScreen = 'main';
 
-export interface TitleMenuOptions extends TitleDeckOptions {
+export interface TitleMenuOptions extends Omit<TitleDeckOptions, 'cards'> {
+  /** the deck's cards (default: `titleCards()`, Developer read live) */
+  readonly cards?: TitleDeckOptions['cards'];
   /** INFINITE WILDSHARD's tap: boots the grid from its one-shot intent (src/game/grid/boot.ts `enterGrid`) */
   readonly onGrid: () => void;
   /** which screen to open on (default: the one this page was last on, the main menu at first) */
@@ -60,9 +65,9 @@ function required<T extends HTMLElement>(root: ParentNode, selector: string, typ
 export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   const mode = opts.mode ?? menuMode;
   const scope = app.engineScope.child('main-menu');
-  const { notice, onGrid, screen: first, ...deckOpts } = opts;
+  const { notice, onGrid, screen: first, cards = titleCards(), ...deckOpts } = opts;
   // leaving the title for a world resets it: pause ▸ EXIT TO MAIN opens on the main menu again
-  const deck = buildTitleDeck({ ...deckOpts,
+  const deck = buildTitleDeck({ ...deckOpts, cards,
     onEnter: (card) => { screen = 'main'; deckOpts.onEnter(card); },
     onExplore: (card) => { screen = 'main'; deckOpts.onExplore(card); } });
   const grid = gridEntryShown(mode());
@@ -127,4 +132,18 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     start: () => { deck.start(); if (screen === 'main') selectCard.focus({ preventScroll: true }); },
     dispose: () => { scope.dispose(); deck.dispose(); },
   };
+}
+
+/**
+ * The cold title's Infinite Wildshard wiring (SF21a), one call for the composition root (src/entry.ts):
+ *   - a stale one-shot intent is consumed here, so nothing but a new tap boots the grid (R3-C5);
+ *   - the DEVSERVER cell's Debug row is installed (a DEVSERVER build only);
+ *   - when the previous page was the grid and it ended unexpectedly (iOS's memory kill), the title only adds one line.
+ */
+export interface GridTitle { readonly onGrid: () => void; readonly note: string }
+export function installGridTitle(): GridTitle {
+  dropGridIntent();
+  installGridDebug();
+  const end = lastEnd();
+  return { onGrid: enterGrid, note: end.kind === 'unexpected' && end.mode === 'grid' ? GAME_STRINGS.grid.ended : '' };
 }
