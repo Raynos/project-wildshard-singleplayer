@@ -1,5 +1,6 @@
 import type { CharacterMotor } from './CharacterMotor';
 import type { Physics } from './Physics';
+import { withOwner } from '../app/ownership';
 /** Frame-local traveller poses are retained by their existing gameplay owner. */
 export interface FrameMember { position: { x: number; y: number; z: number }; motor: CharacterMotor }
 /** A prepared motor set can be abandoned without changing any source collider or controller. */
@@ -11,7 +12,9 @@ export function prepareFrameMotors(members: readonly FrameMember[], physics: Phy
   let closed = false;
   try {
     for (const member of members) {
-      const replacement = member.motor.transferTo(physics, { x: member.position.x + delta.x, y: member.position.y, z: member.position.z + delta.z });
+      // The transfer transaction owns this motor (cancel, commit and later frame retirement).
+      // A page callback's ambient scope must not remove its collider before that retirement.
+      const replacement = withOwner(null, () => member.motor.transferTo(physics, { x: member.position.x + delta.x, y: member.position.y, z: member.position.z + delta.z }));
       replacement.setEnabled(false); pending.push(replacement);
     }
   } catch (error) { for (const motor of pending) motor.dispose(); throw error; }
