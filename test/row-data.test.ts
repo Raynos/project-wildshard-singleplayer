@@ -1,0 +1,28 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed ratchet list.
+import { readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+import { STARTER_EFFECTS } from '#kit';
+import { compareRowFunctions, rowFunctions } from '../scripts/check-row-data.mjs';
+
+// SHARD-PLATFORM SP3: content rows become data (MMO-REQUIREMENTS R1, S6). lint/row-functions.json lists the row fields
+// that still hold a function or a class; it may only shrink.
+const recorded = (JSON.parse(readFileSync('lint/row-functions.json', 'utf8')) as { fields: string[] }).fields;
+const current = rowFunctions();
+
+describe('SP3 content rows are data', () => {
+  it('adds no function field to a row type, and keeps no stale entry', () => {
+    expect(compareRowFunctions(recorded, current)).toEqual({ added: [], removed: [] });
+  });
+  it('keeps the rows that are already pure data free of functions', () => {
+    const pure = ['AmmoRow', 'BossDef', 'DamageRuleDef', 'EffectDef', 'EliteDefinition', 'EncounterDefinition', 'InteractTable', 'QuestDef', 'StringTable'];
+    expect(current.filter((path) => pure.some((type) => path === type || path.startsWith(`${type}.`) || path.startsWith(`${type}[`)))).toEqual([]);
+  });
+  it('round-trips a shipped pure-data row set through JSON unchanged', () => {
+    // oxlint-disable-next-line unicorn/prefer-structured-clone -- The JSON round-trip is the property under test.
+    expect(JSON.parse(JSON.stringify(STARTER_EFFECTS))).toEqual(STARTER_EFFECTS);
+  });
+  it('refuses a new field and asks to drop a field that became data', () => {
+    expect(compareRowFunctions(['A.f'], ['A.f', 'B.g'])).toEqual({ added: ['B.g'], removed: [] });
+    expect(compareRowFunctions(['A.f', 'B.g'], ['A.f'])).toEqual({ added: [], removed: ['B.g'] });
+  });
+});
