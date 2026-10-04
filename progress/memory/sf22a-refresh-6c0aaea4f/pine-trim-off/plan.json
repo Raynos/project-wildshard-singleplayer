@@ -1,0 +1,21 @@
+{
+  "opts": {
+    "out": "/Users/raynos/projects/games/wildshard-singleplayer/progress/memory/sf22a-refresh-6c0aaea4f/pine-trim-off",
+    "expectedBuild": "6c0aaea-muuepsmd",
+    "play": 30,
+    "fly": 30,
+    "settings": [],
+    "deviceSaves": {
+      "debug.plugin.pine-hollow.pineMemoryTrim": "off"
+    }
+  },
+  "runs": [
+    {
+      "label": "pine-hollow",
+      "shard": "pine-hollow",
+      "base": "http://127.0.0.1:4472/",
+      "round": 1,
+      "tag": "pine-hollow-r1"
+    }
+  ]
+}

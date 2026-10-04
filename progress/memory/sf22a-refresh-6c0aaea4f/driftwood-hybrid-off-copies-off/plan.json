@@ -1,0 +1,23 @@
+{
+  "opts": {
+    "out": "/Users/raynos/projects/games/wildshard-singleplayer/progress/memory/sf22a-refresh-6c0aaea4f/driftwood-hybrid-off-copies-off",
+    "expectedBuild": "6c0aaea-muuepsmd",
+    "play": 30,
+    "fly": 30,
+    "settings": [],
+    "deviceSaves": {
+      "debug.plugin.driftwood-isle.driftwoodHybrid": "off",
+      "debug.plugin.driftwood-isle.driftwoodGpuOnlyCopies": "off",
+      "debug.plugin.driftwood-isle.driftwoodIslandInstancing": "off"
+    }
+  },
+  "runs": [
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4472/",
+      "round": 1,
+      "tag": "driftwood-isle-r1"
+    }
+  ]
+}

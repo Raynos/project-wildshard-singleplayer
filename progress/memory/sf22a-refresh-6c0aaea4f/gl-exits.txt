@@ -1,0 +1,7 @@
+driftwood-hybrid-off-copies-off 0
+driftwood-hybrid-off-copies-on 0
+driftwood-hybrid-on-copies-off 0
+driftwood-hybrid-on-copies-on 0
+pine-trim-off 0
+pine-trim-on 0
+nalati-default 0

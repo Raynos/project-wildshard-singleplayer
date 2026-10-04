@@ -1,0 +1,123 @@
+{
+  "verdict": "success",
+  "memoryProtocol": "cold-origin-build-verified-v1",
+  "memory": [
+    {
+      "shard": "nalati-grasslands",
+      "phase": "loading",
+      "nativeGB": 0.58835304,
+      "inspectorGB": 0.934833767,
+      "nativePeakGB": 0.618,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.58835304,
+        "inspectorGB": 0.934833767,
+        "minGB": 0.584551952,
+        "maxGB": 0.6150426,
+        "spreadGB": 0.03049064800000001,
+        "spreadPercent": 5.182372814798409,
+        "samples": [
+          {
+            "seconds": 1.004,
+            "nativeGB": 0.584551952,
+            "inspectorGB": 0.934833767
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.58835304,
+            "inspectorGB": 0.929443431
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.6150426,
+            "inspectorGB": 0.987344487
+          }
+        ],
+        "seconds": 3.007
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "nalati-grasslands",
+      "phase": "play",
+      "nativeGB": 0.585911848,
+      "inspectorGB": 0.899543949,
+      "nativePeakGB": 0.615,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.585911848,
+        "inspectorGB": 0.899543949,
+        "minGB": 0.585862696,
+        "maxGB": 0.585944616,
+        "spreadGB": 0.0000819200000000686,
+        "spreadPercent": 0.013981625440704285,
+        "samples": [
+          {
+            "seconds": 1.001,
+            "nativeGB": 0.585862696,
+            "inspectorGB": 0.894209361
+          },
+          {
+            "seconds": 2.002,
+            "nativeGB": 0.585911848,
+            "inspectorGB": 0.906310541
+          },
+          {
+            "seconds": 3.003,
+            "nativeGB": 0.585944616,
+            "inspectorGB": 0.899543949
+          }
+        ],
+        "seconds": 3.003
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "nalati-grasslands",
+      "phase": "explorer",
+      "nativeGB": 0.618696256,
+      "inspectorGB": 0.951713627,
+      "nativePeakGB": 0.631,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.618696256,
+        "inspectorGB": 0.951713627,
+        "minGB": 0.618696256,
+        "maxGB": 0.61871264,
+        "spreadGB": 0.000016384000000035925,
+        "spreadPercent": 0.002648149207490262,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.618696256,
+            "inspectorGB": 0.951713627
+          },
+          {
+            "seconds": 2.006,
+            "nativeGB": 0.618696256,
+            "inspectorGB": 0.942482621
+          },
+          {
+            "seconds": 3.008,
+            "nativeGB": 0.61871264,
+            "inspectorGB": 0.952067261
+          }
+        ],
+        "seconds": 3.008
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    }
+  ]
+}

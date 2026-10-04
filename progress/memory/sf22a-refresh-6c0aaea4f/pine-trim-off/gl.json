@@ -1,0 +1,74 @@
+{
+ "tool": "scripts/crossroads-rig/desktop-probe.mjs",
+ "date": "2026-10-04T23:01:14.405Z",
+ "base": "http://127.0.0.1:4472",
+ "version": {
+  "build": "6c0aaea-muuepsmd",
+  "time": "2026-10-04T22:43:07.658Z"
+ },
+ "deviceSaves": {
+  "debug.plugin.pine-hollow.pineMemoryTrim": "off"
+ },
+ "device": "Chromium headless (Metal), iPhone 16 Pro 390x844@3",
+ "results": [
+  {
+   "label": "pine-hollow",
+   "kind": "shard",
+   "phases": {
+    "start": {
+     "rendererMB": 950.4,
+     "rendererHighMB": 1312.6,
+     "gpuMB": 586,
+     "gpuHighMB": 1381.3,
+     "jsMB": 248,
+     "jsHighMB": 354.7
+    },
+    "loaded": {
+     "rendererMB": 1256.9,
+     "rendererHighMB": 1375.5,
+     "gpuMB": 1390.2,
+     "gpuHighMB": 1421.6,
+     "jsMB": 256.8,
+     "jsHighMB": 346.1
+    },
+    "measure": {
+     "rendererMB": 1261.8,
+     "rendererHighMB": 1375.5,
+     "gpuMB": 1379.3,
+     "gpuHighMB": 1421.6,
+     "jsMB": 240.8,
+     "jsHighMB": 257.3
+    }
+   },
+   "runHigh": {
+    "rendererMB": 1375.5,
+    "gpuMB": 1421.6
+   },
+   "glLedger": [
+    {
+     "canvas": [
+      780,
+      1688
+     ],
+     "textureMB": 576.9,
+     "renderbufferMB": 0,
+     "bufferMB": 45.8,
+     "textures": 416,
+     "buffers": 865
+    }
+   ],
+   "page": {
+    "fps": 59.8,
+    "calls": 107,
+    "triangles": 1057292,
+    "textures": 412,
+    "geometries": 244,
+    "programs": 105,
+    "drawingBuffer": [
+     780,
+     1688
+    ]
+   }
+  }
+ ]
+}

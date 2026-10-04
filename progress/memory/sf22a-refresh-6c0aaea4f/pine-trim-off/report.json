@@ -1,0 +1,123 @@
+{
+  "verdict": "success",
+  "memoryProtocol": "cold-origin-build-verified-v1",
+  "memory": [
+    {
+      "shard": "pine-hollow",
+      "phase": "loading",
+      "nativeGB": 0.57485296,
+      "inspectorGB": 1.248341935,
+      "nativePeakGB": 0.794,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.57485296,
+        "inspectorGB": 1.248341935,
+        "minGB": 0.571363216,
+        "maxGB": 0.57581964,
+        "spreadGB": 0.004456424000000014,
+        "spreadPercent": 0.7752285036507448,
+        "samples": [
+          {
+            "seconds": 1,
+            "nativeGB": 0.57485296,
+            "inspectorGB": 1.236610991
+          },
+          {
+            "seconds": 2.002,
+            "nativeGB": 0.57581964,
+            "inspectorGB": 1.259122607
+          },
+          {
+            "seconds": 3.004,
+            "nativeGB": 0.571363216,
+            "inspectorGB": 1.248341935
+          }
+        ],
+        "seconds": 3.004
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "play",
+      "nativeGB": 0.56949544,
+      "inspectorGB": 1.21196481,
+      "nativePeakGB": 0.581,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.56949544,
+        "inspectorGB": 1.21196481,
+        "minGB": 0.568577936,
+        "maxGB": 0.569724816,
+        "spreadGB": 0.0011468800000000723,
+        "spreadPercent": 0.2013852823826074,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.56949544,
+            "inspectorGB": 1.21196481
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.569724816,
+            "inspectorGB": 1.215864202
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.568577936,
+            "inspectorGB": 1.211054856
+          }
+        ],
+        "seconds": 3.007
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "explorer",
+      "nativeGB": 0.567578536,
+      "inspectorGB": 1.193980693,
+      "nativePeakGB": 0.575,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.567578536,
+        "inspectorGB": 1.193980693,
+        "minGB": 0.567578536,
+        "maxGB": 0.568512424,
+        "spreadGB": 0.0009338880000000493,
+        "spreadPercent": 0.16453899165772,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.568512424,
+            "inspectorGB": 1.193980693
+          },
+          {
+            "seconds": 2.006,
+            "nativeGB": 0.567578536,
+            "inspectorGB": 1.201845013
+          },
+          {
+            "seconds": 3.009,
+            "nativeGB": 0.567578536,
+            "inspectorGB": 1.193975188
+          }
+        ],
+        "seconds": 3.009
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+ "tool": "scripts/crossroads-rig/desktop-probe.mjs",
+ "date": "2026-10-04T23:02:22.946Z",
+ "base": "http://127.0.0.1:4472",
+ "version": {
+  "build": "6c0aaea-muuepsmd",
+  "time": "2026-10-04T22:43:07.658Z"
+ },
+ "deviceSaves": {},
+ "device": "Chromium headless (Metal), iPhone 16 Pro 390x844@3",
+ "results": [
+  {
+   "label": "nalati-grasslands",
+   "kind": "shard",
+   "phases": {
+    "start": {
+     "rendererMB": 659.1,
+     "rendererHighMB": 999.1,
+     "gpuMB": 449.6,
+     "gpuHighMB": 942.1,
+     "jsMB": 168.8,
+     "jsHighMB": 295.2
+    },
+    "loaded": {
+     "rendererMB": 979.1,
+     "rendererHighMB": 1136.6,
+     "gpuMB": 1004.3,
+     "gpuHighMB": 1026.1,
+     "jsMB": 281.6,
+     "jsHighMB": 316.3
+    },
+    "measure": {
+     "rendererMB": 841.3,
+     "rendererHighMB": 1136.6,
+     "gpuMB": 1002.5,
+     "gpuHighMB": 1026.1,
+     "jsMB": 190.6,
+     "jsHighMB": 203.4
+    }
+   },
+   "runHigh": {
+    "rendererMB": 1136.6,
+    "gpuMB": 1026.1
+   },
+   "glLedger": [
+    {
+     "canvas": [
+      780,
+      1688
+     ],
+     "textureMB": 122.5,
+     "renderbufferMB": 41.1,
+     "bufferMB": 73.2,
+     "textures": 129,
+     "buffers": 543
+    }
+   ],
+   "page": {
+    "fps": 60.1,
+    "calls": 93,
+    "triangles": 1241497,
+    "textures": 125,
+    "geometries": 120,
+    "programs": 99,
+    "drawingBuffer": [
+     780,
+     1688
+    ]
+   }
+  }
+ ]
+}

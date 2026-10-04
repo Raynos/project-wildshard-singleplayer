@@ -1,0 +1,76 @@
+{
+ "tool": "scripts/crossroads-rig/desktop-probe.mjs",
+ "date": "2026-10-04T23:00:39.754Z",
+ "base": "http://127.0.0.1:4472",
+ "version": {
+  "build": "6c0aaea-muuepsmd",
+  "time": "2026-10-04T22:43:07.658Z"
+ },
+ "deviceSaves": {
+  "debug.plugin.driftwood-isle.driftwoodHybrid": "on",
+  "debug.plugin.driftwood-isle.driftwoodGpuOnlyCopies": "on",
+  "debug.plugin.driftwood-isle.driftwoodIslandInstancing": "off"
+ },
+ "device": "Chromium headless (Metal), iPhone 16 Pro 390x844@3",
+ "results": [
+  {
+   "label": "driftwood-isle",
+   "kind": "shard",
+   "phases": {
+    "start": {
+     "rendererMB": 577.1,
+     "rendererHighMB": 868.1,
+     "gpuMB": 439.9,
+     "gpuHighMB": 1073.6,
+     "jsMB": 270.6,
+     "jsHighMB": 299.4
+    },
+    "loaded": {
+     "rendererMB": 780.9,
+     "rendererHighMB": 953.9,
+     "gpuMB": 1203.1,
+     "gpuHighMB": 1221.3,
+     "jsMB": 246,
+     "jsHighMB": 302
+    },
+    "measure": {
+     "rendererMB": 720.3,
+     "rendererHighMB": 953.9,
+     "gpuMB": 1210.1,
+     "gpuHighMB": 1221.3,
+     "jsMB": 211.6,
+     "jsHighMB": 231.1
+    }
+   },
+   "runHigh": {
+    "rendererMB": 953.9,
+    "gpuMB": 1221.3
+   },
+   "glLedger": [
+    {
+     "canvas": [
+      780,
+      1688
+     ],
+     "textureMB": 113.9,
+     "renderbufferMB": 10.9,
+     "bufferMB": 157,
+     "textures": 84,
+     "buffers": 1159
+    }
+   ],
+   "page": {
+    "fps": 60.1,
+    "calls": 122,
+    "triangles": 807110,
+    "textures": 85,
+    "geometries": 478,
+    "programs": 95,
+    "drawingBuffer": [
+     780,
+     1688
+    ]
+   }
+  }
+ ]
+}
