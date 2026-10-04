@@ -17,3 +17,18 @@ export const SkirmisherSchema = v.pipe(v.strictObject({
 export type ShardSkirmisher = v.InferOutput<typeof SkirmisherSchema>;
 /** Reject unknown fields, nonfinite tuning and invalid radii before installing an actor policy. */
 export function parseSkirmisher(data: unknown): ShardSkirmisher { return v.parse(SkirmisherSchema, data); }
+
+/** Custom author policy over bounded host queries; actor identity and observation provenance are injected by the loader. */
+export const ScriptBrainSchema = v.pipe(v.strictObject({
+  id: key, kind: v.literal('script'), module: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)),
+  thinkDivisor: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(60), v.check(n => 60 % n === 0, 'Brain divisor divides 60')),
+  maxSpeed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)),
+  maxStrafe: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)),
+  maxTurnRate: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(30)),
+  parameters: v.pipe(v.array(v.pipe(v.number(), v.finite(), v.minValue(-10000), v.maxValue(10000))), v.maxLength(64)),
+  strikes: v.pipe(v.array(v.strictObject({ event: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), strike: key })), v.maxLength(32)),
+}), v.check(row => new Set(row.strikes.map(strike => strike.event)).size === row.strikes.length, 'Unique declared brain strike events'));
+/** Validated script policy; only named admitted strikes may be requested and motion stays within its declared bounds. */
+export type ShardScriptBrain = v.InferOutput<typeof ScriptBrainSchema>;
+/** Validate a custom policy before module admission, trusted actor binding or physics allocation. */
+export function parseScriptBrain(data: unknown): ShardScriptBrain { return v.parse(ScriptBrainSchema, data); }
