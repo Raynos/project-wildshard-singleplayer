@@ -17,11 +17,12 @@ describe('budget rollout and report', () => {
     for (const p of [[0.2, 0, 0.2], [7.2, 0, 7.2]] as [number, number, number][]) expect(findNearestPoly(createFindNearestPolyResult(), nav, p, [1, 2, 1], DEFAULT_QUERY_FILTER).success).toBe(true);
   });
   it('uses the higher baseline lane plus its exact existing band', () => {
+    // band = 2 × the recorded spread, no floor on top (E388): calls 110 + 2 × 2, tris 1e6 + 2 × 1e4, 100 MiB + 2 × 1 MiB
     const other = structuredClone(base); other.poses.a.calls = 110;
-    expect(baselineCeilings([base, other])).toEqual({ 'fixture.phone.a.draws': 116, 'fixture.phone.a.tris': 1030000, 'fixture.phone.a.programs': 30, 'fixture.phone.a.gpuMB': 103 });
+    expect(baselineCeilings([base, other])).toEqual({ 'fixture.phone.a.draws': 114, 'fixture.phone.a.tris': 1020000, 'fixture.phone.a.programs': 30, 'fixture.phone.a.gpuMB': 102 });
   });
   it('retains boot-wide bytes/programs for a shard without pinned poses', () => {
-    expect(baselineCeilings([{ ...base, poses: {} }])).toEqual({ 'fixture.phone.current.programs': 30, 'fixture.phone.current.gpuMB': 103 });
+    expect(baselineCeilings([{ ...base, poses: {} }])).toEqual({ 'fixture.phone.current.programs': 30, 'fixture.phone.current.gpuMB': 102 });
   });
   it('measures current draw and triangle counts when a starter has no camera poses', async () => {
     const render = { calls: 0, triangles: 0 };
