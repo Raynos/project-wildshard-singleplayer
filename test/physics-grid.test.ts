@@ -21,8 +21,9 @@ it('refuses apparent successful motion without the expected real frame commits, 
 });
 
 it('derives a stable adjacent-template seam and refuses an unassembled readout', () => {
+  const home = cells[0]; if (home === undefined) throw new Error('Missing home fixture');
   expect(route.start).toEqual({ x: -230, z: 0 }); expect(route.waypoints).toEqual([{ x: -325, z: 0 }, { x: -230, z: 0 }]);
-  expect(() => gridSeamRoute({ home: 'home', cells: [cells[0]] }, 15)).toThrow('neighbouring template');
+  expect(() => gridSeamRoute({ home: 'home', cells: [home] }, 15)).toThrow('neighbouring template');
   expect(gridSeamRoute({ home: 'home', cells: [...cells, { instance: 'corner', slug: '_template', cell: [-1, -1] }] }, 30).waypoints[0]).toEqual({ x: -325, z: -325 });
 });
 
