@@ -83,3 +83,11 @@ export class DirectorLane {
     } catch (error) { this.host.world.restore(world); this.host.restoreState(before); throw error; }
   }
 }
+
+/** Verify immutable module bytes before allocating an admitted director; each installation receives its own copied author memory. */
+export async function createDirectorLane(data: DirectorData, bytes: Uint8Array, seed: number, query?: ScriptQuery): Promise<DirectorLane> {
+  const checked = parseDirector(data), copy = Uint8Array.from(bytes);
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', copy));
+  if ([...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('') !== checked.module) throw new Error('Director module hash mismatch');
+  return new DirectorLane(checked, copy, seed, query);
+}

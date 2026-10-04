@@ -1,0 +1,89 @@
+{
+  "id": "driftwood.finale",
+  "entity": 9000,
+  "module": "707eda3596f617c57a578c1ab938bfebaeefcb70a859e22ebf36f92fba1cf868",
+  "inputs": [
+    {
+      "key": "altar",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "dead",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "seen",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "player-x",
+      "min": -250,
+      "max": 250
+    },
+    {
+      "key": "player-z",
+      "min": -250,
+      "max": 250
+    },
+    {
+      "key": "reward-x",
+      "min": -250,
+      "max": 250
+    },
+    {
+      "key": "reward-z",
+      "min": -250,
+      "max": 250
+    }
+  ],
+  "parameters": [
+    7,
+    7
+  ],
+  "events": [
+    {
+      "id": 9001,
+      "key": "captain.restore",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9002,
+      "key": "captain.wake",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9003,
+      "key": "captain.dead",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9004,
+      "key": "reward.start",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9005,
+      "key": "reward.finish",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    }
+  ],
+  "subscriptions": []
+}

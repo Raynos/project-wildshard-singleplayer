@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { compileScript } from '../scripts/compile-script.mjs';
 import { parseDirector, type DirectorData } from '../src/game/shardfile/director';
-import { DirectorLane } from '../src/game/shardfile/directorRuntime';
+import { DirectorLane, createDirectorLane } from '../src/game/shardfile/directorRuntime';
+import declaration from '../src/shards/driftwood-isle/data/director.json';
 
 const hash = 'a'.repeat(64);
 const finale: DirectorData = {
@@ -28,6 +29,18 @@ function legacy() {
   };
 }
 describe('SF24 typed, bounded shard director', () => {
+  it('admits the shipped module by hash, copies bytes and rejects replacement bytes before publication', async () => {
+    const data = parseDirector(declaration);
+    const lane = await createDirectorLane(data, bytes, 357);
+    const corrupted = Uint8Array.from(bytes); corrupted[0] = 1;
+    await expect(createDirectorLane(data, corrupted, 357)).rejects.toThrow('hash mismatch');
+    expect(lane.step(0, observation(1000))).toEqual([]);
+    const events = lane.step(1, observation(1000));
+    expect(events.map((event) => event.key)).toEqual(['reward.start']);
+    const reloaded = await createDirectorLane(data, bytes, 357);
+    expect(reloaded.step(0, observation(100)).map((event) => event.key)).toEqual(['captain.restore']);
+    expect(reloaded.step(1, observation(100))).toEqual([]);
+  });
   it('rejects duplicate ids, unbounded payloads and invalid shard subscriptions; reserves grid declarations without delivery', () => {
     expect(parseDirector(finale)).toEqual(finale);
     expect(() => parseDirector({ ...finale, events: [...finale.events, finale.events[0]] })).toThrow();

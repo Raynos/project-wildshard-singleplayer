@@ -25,6 +25,7 @@ export function on_tick(): void {
   if (!initialized) {
     initialized = true; altar = nowAltar; dead = nowDead;
     if (nowAltar && !nowDead) event(9001);
+    if (input(0) === 0) return; // Boot restores saved actors without advancing the reward's fixed-step clock.
   } else {
     if (nowAltar && !altar) event(9002);
     if (nowDead && !dead) event(9003);
