@@ -22,6 +22,7 @@ function fixture(platform: boolean, restoring = false): {
   policy: Pack | PackBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx'];
   events: unknown[]; prey: { position: Vector3; yaw: number; alive: boolean; applyDamage: () => boolean };
   ports: PackPorts<Animal>;
+  construction: { beforeRng: ReturnType<Rng['snapshot']>; afterRng: ReturnType<Rng['snapshot']>; beforeMemory: Record<string, number>[]; afterMemory: Record<string, number>[] };
 } {
   app.rng.seed(357); Pack.all = [];
   const f = creature('crab', 'small'), factory = new AnimalFactory(f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } });
@@ -43,12 +44,15 @@ function fixture(platform: boolean, restoring = false): {
     onEvent: (event, x, z) => { wildEnv.onEvent?.(event, x, z); },
     preyIdentity: value => { if (value !== prey) throw new Error('Unknown prey'); return 'sheep.0'; }, resolvePrey: id => id === 'sheep.0' ? prey : null,
   };
-  const policy = platform ? new PackBrain(members, 0, 0, NALATI_PACK_BRAIN, ports, restoring) : new Pack(members, 0, 0);
+  const beforeRng = app.rng.stream('ai').snapshot(), beforeMemory = members.map(actor => ({ ...actor.mem }));
+  const policy = platform ? new PackBrain(members, 0, 0, NALATI_PACK_BRAIN, ports) : new Pack(members, 0, 0);
+  const construction = { beforeRng, afterRng: app.rng.stream('ai').snapshot(), beforeMemory, afterMemory: members.map(actor => ({ ...actor.mem })) };
+  if (policy instanceof PackBrain && !restoring) policy.initialize();
   f.ctx.rng = new Rng(357); f.ctx.herd = members;
   f.ctx.confine = actor => { actor.position.x = Math.max(-220, Math.min(220, actor.position.x)); actor.position.z = Math.max(-220, Math.min(220, actor.position.z)); };
   f.ctx.claim = actor => app.events.ask('ai.claim', actor);
   f.ctx.hurt = damage => { events.push(['damage', damage]); }; f.ctx.sound = cue => { events.push(['cue', cue]); };
-  return { policy, members, context: f.ctx, events, prey, ports };
+  return { policy, members, context: f.ctx, events, prey, ports, construction };
 }
 const stateKeys = ['phase', 'awareness', 'homeX', 'homeZ', 'phaseT', 'roamX', 'roamZ', 'roamT', 'nextTokenT', 'boldT', 'calmT', 'hpStart', 'halfDone', 'deadSeen', 'shadowDur', 'howled', 'bites', 'scared'] as const;
 function state(policy: Pack | PackBrain<Animal>): unknown[] {
@@ -81,6 +85,16 @@ function replay(platform: boolean, scenario: Parameters<typeof step>[2]): { hash
   return { hash: hash.digest('hex'), phases: [...phases], groupRng: app.rng.snapshot(), actorRng: f.context.rng.snapshot() };
 }
 describe('declared pack family', () => {
+  it('keeps constructors pure and performs exactly the shipping setup draws and member writes once', () => {
+    const native = fixture(false), expectedRng = app.rng.stream('ai').snapshot();
+    const platform = fixture(true), policy = platform.policy; if (!(policy instanceof PackBrain)) throw new Error('Missing platform brain');
+    expect(platform.construction.afterRng).toEqual(platform.construction.beforeRng);
+    expect(platform.construction.afterMemory).toEqual(platform.construction.beforeMemory);
+    expect(app.rng.stream('ai').snapshot()).toEqual(expectedRng);
+    expect(platform.members.map(actor => actor.mem)).toEqual(native.members.map(actor => actor.mem));
+    expect(() => { policy.initialize(); }).toThrow('already initialized');
+    expect(app.rng.stream('ai').snapshot()).toEqual(expectedRng);
+  });
   it.each(['senses', 'raid', 'regroup', 'mounted'] as const)('matches the actual shipping group, body, strikes and RNG for 10,000 fixed ticks: %s', scenario => {
     const actual = replay(true, scenario); expect(actual).toEqual(replay(false, scenario));
     for (const phase of ['roam', 'shadow', 'encircle', 'break']) expect(actual.phases).toContain(phase);

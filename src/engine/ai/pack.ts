@@ -44,7 +44,7 @@ export interface PackPorts<A extends AnimalSim> {
 const finite = v.pipe(v.number(), v.finite());
 const continuation = v.strictObject({ contract: v.string(), group: v.string(), alpha: v.nullable(v.string()),
   prey: v.nullable(v.string()), pendingPrey: v.nullable(v.string()),
-  state: v.strictObject({ phase: v.picklist(['roam', 'shadow', 'encircle', 'regroup', 'break']), awareness: finite,
+  state: v.strictObject({ initialized: v.boolean(), phase: v.picklist(['roam', 'shadow', 'encircle', 'regroup', 'break']), awareness: finite,
     homeX: finite, homeZ: finite, phaseT: finite, roamX: finite, roamZ: finite, roamT: finite, nextTokenT: finite,
     boldT: finite, calmT: finite, hpStart: finite, halfDone: v.boolean(), deadSeen: finite,
     shadowDur: finite, howled: v.boolean(), bites: finite, scared: v.boolean() }) });
@@ -66,6 +66,7 @@ export class PackBrain<A extends AnimalSim> extends GroupBrain<A> {
   private readonly spec: PackSpec;
   private readonly ports: PackPorts<A>;
   private readonly contract: string;
+  private initialized = false;
   alpha: A | null = null;
   phase: PackPhase = 'roam';
   /** 0..1: how sure the pack is of the player (the max over its wolves' senses) */
@@ -88,28 +89,33 @@ export class PackBrain<A extends AnimalSim> extends GroupBrain<A> {
   private bites = 0;
   private scared = false;
 
-  constructor(members: A[], homeX: number, homeZ: number, spec: PackSpec, ports: PackPorts<A>, restoring = false) {
+  constructor(members: A[], homeX: number, homeZ: number, spec: PackSpec, ports: PackPorts<A>) {
     super(members);
     this.ports = ports; this.spec = validatePack(spec); this.contract = JSON.stringify(this.spec);
     if (members.length === 0 || members.length > 128 || new Set(members.map(actor => actor.entityId)).size !== members.length
       || !Number.isFinite(homeX) || !Number.isFinite(homeZ)) throw new Error('Invalid pack roster');
     this.homeX = this.roamX = homeX; this.homeZ = this.roamZ = homeZ;
     // roles: the alpha variant (else the biggest) leads; the smallest of a 4–5 pack scouts
-    let big: A | null = null, small: A | null = null;
+    let big: A | null = null;
     for (const w of members) {
       if (w.variant === this.spec.leaderVariant || big === null || (big.variant !== this.spec.leaderVariant && w.scale > big.scale)) big = w;
-      if (small === null || w.scale < small.scale) small = w;
     }
     this.alpha = big;
-    for (const w of members) {
-      if (!restoring) {
-      w.mem['role'] = w === big ? ROLE_ALPHA : members.length >= 4 && w === small ? ROLE_SCOUT : ROLE_FLANK;
+    for (const w of members) this.hpStart += w.maxHp;
+  }
+
+  /** Perform the shipping setup draws exactly once after every group/controller preflight succeeds; never run a decision or body. */
+  initialize(): void {
+    if (this.initialized) throw new Error('Pack already initialized');
+    let small: A | null = null;
+    for (const actor of this.members) if (small === null || actor.scale < small.scale) small = actor;
+    for (const w of this.members) {
+      w.mem['role'] = w === this.alpha ? ROLE_ALPHA : this.members.length >= 4 && w === small ? ROLE_SCOUT : ROLE_FLANK;
       w.mem['ox'] = (this.ports.sharedRng().next() - 0.5) * 8; w.mem['oz'] = (this.ports.sharedRng().next() - 0.5) * 8;
       w.mem['hitT'] = w.lastHitT;
       w.mem['ring'] = this.spec.ringMinRadius + this.ports.sharedRng().next() * (this.spec.ringMaxRadius - this.spec.ringMinRadius);
-      }
-      this.hpStart += w.maxHp;
     }
+    this.initialized = true;
   }
 
   /** Group continuation stores timers, tokens and trusted prey references; actors and shared RNG are snapshotted by their owner. */
@@ -121,7 +127,7 @@ export class PackBrain<A extends AnimalSim> extends GroupBrain<A> {
     };
     return JSON.stringify({ contract: this.contract, group: this.snapshotGroup(actor => actor.entityId), alpha: this.alpha?.entityId ?? null,
       prey: preyId(this.prey), pendingPrey: preyId(this.pendingPrey), state: {
-        phase: this.phase, awareness: this.awareness, homeX: this.homeX, homeZ: this.homeZ, phaseT: this.phaseT,
+        initialized: this.initialized, phase: this.phase, awareness: this.awareness, homeX: this.homeX, homeZ: this.homeZ, phaseT: this.phaseT,
         roamX: this.roamX, roamZ: this.roamZ, roamT: this.roamT, nextTokenT: this.nextTokenT, boldT: this.boldT,
         calmT: this.calmT, hpStart: this.hpStart, halfDone: this.halfDone, deadSeen: this.deadSeen,
         shadowDur: this.shadowDur, howled: this.howled, bites: this.bites, scared: this.scared } });
@@ -194,6 +200,7 @@ export class PackBrain<A extends AnimalSim> extends GroupBrain<A> {
 
   /** the pack-level tick: senses, phase changes, the attack token (once per AI tick, whichever wolf thinks first) */
   tick(c: PackContext<A>): void {
+    if (!this.initialized) throw new Error('Pack is not initialized');
     const dt = this.groupDelta(c.t, c.dt);
     if (dt <= 0) return;
     this.phaseT += dt; this.boldT = Math.max(0, this.boldT - dt); this.calmT = Math.max(0, this.calmT - dt);
@@ -310,6 +317,7 @@ export class PackBrain<A extends AnimalSim> extends GroupBrain<A> {
 
   /** steer one wolf for this tick (after `tick`) */
   drive(a: A, c: PackContext<A>, body = false): void {
+    if (!this.initialized) throw new Error('Pack is not initialized');
     const m = a.mem;
     const committed = this.phase === 'encircle' && (m['lunge'] ?? 0) !== 0;
     if (body !== committed) return;

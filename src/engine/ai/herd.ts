@@ -47,13 +47,14 @@ function validateHerd(spec: HerdSpec): HerdSpec {
 const finite = v.pipe(v.number(), v.finite());
 const continuation = v.strictObject({ contract: v.string(), group: v.string(), lead: v.nullable(v.string()), stallion: v.nullable(v.string()),
   ridden: v.nullable(v.string()), chargeTarget: v.nullable(v.string()), foals: v.array(v.string()), mothers: v.array(v.tuple([v.string(), v.string()])),
-  state: v.strictObject({ mode: v.picklist(['graze', 'drift', 'alert', 'flee', 'settle']), stampeding: v.boolean(),
+  state: v.strictObject({ initialized: v.boolean(), mode: v.picklist(['graze', 'drift', 'alert', 'flee', 'settle']), stampeding: v.boolean(),
     stallionState: v.picklist(['watch', 'warn', 'display', 'charge', 'wheel', 'lead', 'beaten', 'ridden']), trust: finite, alert: finite,
     alertOwned: v.boolean(), cx: finite, cz: finite, spotX: finite, spotZ: finite, spotT: finite, fleeX: finite, fleeZ: finite,
     fleeRun: finite, fleeLen: finite, fleeFromX: finite, fleeFromZ: finite, modeT: finite, sT: finite, chargeCd: finite,
     beatenT: finite, beaten: v.boolean(), knockCd: finite }) });
 /** Renderer-free guarded-herd decisions, boids and contact timing; unique taming and combat recipes are injected. */
 export class HerdBrain<A extends AnimalSim> extends GroupBrain<A> {
+  private initialized = false;
   private readonly spec: HerdSpec; private readonly ports: HerdPorts<A>; private readonly contract: string;
   lead: A | null = null;
   stallion: A | null = null;
@@ -83,7 +84,7 @@ export class HerdBrain<A extends AnimalSim> extends GroupBrain<A> {
   private sT = 0; private chargeCd = 0; private beatenT = 0; private beaten = false; private chargeTarget: A | null = null;
   private knockCd = 0;
 
-  constructor(members: A[], spec: HerdSpec, ports: HerdPorts<A>, restoring = false) {
+  constructor(members: A[], spec: HerdSpec, ports: HerdPorts<A>) {
     super(members);
     this.ports = ports; this.spec = validateHerd(spec); this.contract = JSON.stringify(this.spec);
     if (members.length === 0 || members.length > 128 || new Set(members.map(actor => actor.entityId)).size !== members.length) throw new Error('Invalid herd roster');
@@ -105,7 +106,13 @@ export class HerdBrain<A extends AnimalSim> extends GroupBrain<A> {
       if (best !== null) this.mothers.set(f, best);
     }
     this.centre();
-    this.spotX = this.cx; this.spotZ = this.cz; this.spotT = restoring ? 0 : 20 + this.ports.sharedRng().next() * 40;
+    this.spotX = this.cx; this.spotZ = this.cz; this.spotT = 0;
+  }
+
+  /** Perform only the shipping initial graze-timer draw, exactly once after complete controller preflight. */
+  initialize(): void {
+    if (this.initialized) throw new Error('Herd already initialized');
+    this.spotT = 20 + this.ports.sharedRng().next() * 40; this.initialized = true;
   }
 
   /** Snapshot shared boids/taming timers and stable actor references; the world owner snapshots actors and RNG separately. */
@@ -114,7 +121,7 @@ export class HerdBrain<A extends AnimalSim> extends GroupBrain<A> {
     return JSON.stringify({ contract: this.contract, group: this.snapshotGroup(actor => actor.entityId), lead: id(this.lead),
       stallion: id(this.stallion), ridden: id(this.ridden), chargeTarget: id(this.chargeTarget), foals: this.foals.map(actor => actor.entityId),
       mothers: [...this.mothers].map(([foal, mother]) => [foal.entityId, mother.entityId]), state: {
-        mode: this.mode, stampeding: this.stampeding, stallionState: this.stallionState, trust: this.trust, alert: this.alert,
+        initialized: this.initialized, mode: this.mode, stampeding: this.stampeding, stallionState: this.stallionState, trust: this.trust, alert: this.alert,
         alertOwned: this.alertOwned, cx: this.cx, cz: this.cz, spotX: this.spotX, spotZ: this.spotZ, spotT: this.spotT,
         fleeX: this.fleeX, fleeZ: this.fleeZ, fleeRun: this.fleeRun, fleeLen: this.fleeLen, fleeFromX: this.fleeFromX,
         fleeFromZ: this.fleeFromZ, modeT: this.modeT, sT: this.sT, chargeCd: this.chargeCd, beatenT: this.beatenT,
@@ -203,6 +210,7 @@ export class HerdBrain<A extends AnimalSim> extends GroupBrain<A> {
 
   /** the herd-level tick: senses, alarms, mode changes (once per AI tick) */
   tick(c: HerdContext<A>): void {
+    if (!this.initialized) throw new Error('Herd is not initialized');
     const dt = this.groupDelta(c.t, c.dt);
     if (dt <= 0) return;
     this.modeT += dt; this.sT += dt; this.chargeCd = Math.max(0, this.chargeCd - dt); this.knockCd = Math.max(0, this.knockCd - dt);
@@ -366,6 +374,7 @@ export class HerdBrain<A extends AnimalSim> extends GroupBrain<A> {
 
   /** steer one horse for this tick (after `tick`) */
   drive(a: A, c: HerdContext<A>, body = false): void {
+    if (!this.initialized) throw new Error('Herd is not initialized');
     const m = a.mem;
     const committed = a === this.stallion && this.stallionState === 'charge';
     if (body !== committed) return;

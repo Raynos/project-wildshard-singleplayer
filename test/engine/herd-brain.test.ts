@@ -20,7 +20,8 @@ const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 
 afterAll(restoreTerrain);
 const originalEnv = { ...wildEnv }, originalHerds = HorseHerd.all;
 afterEach(() => { Object.assign(wildEnv, originalEnv); HorseHerd.all = originalHerds; });
-function fixture(platform: boolean, restoring = false): { policy: HorseHerd | HerdBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx']; events: unknown[]; ports: HerdPorts<Animal> } {
+function fixture(platform: boolean, restoring = false): { policy: HorseHerd | HerdBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx']; events: unknown[]; ports: HerdPorts<Animal>;
+  construction: { beforeRng: ReturnType<Rng['snapshot']>; afterRng: ReturnType<Rng['snapshot']>; beforeMemory: Record<string, number>[]; afterMemory: Record<string, number>[] } } {
   app.rng.seed(357); HorseHerd.all = [];
   const f = creature('crab', 'small'), factory = new AnimalFactory(f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } }), model = factory.model('crab', 'small');
   const events: unknown[] = [];
@@ -43,13 +44,16 @@ function fixture(platform: boolean, restoring = false): { policy: HorseHerd | He
     scarePack: (actor, radius) => { const pack = Pack.of(actor); if (pack === null) return false; pack.scare(actor.position.x, actor.position.z, radius); return true; },
     onEvent: (event, x, z) => { wildEnv.onEvent?.(event, x, z); }, onKnockdown: (x, z, strength) => { wildEnv.onKnockdown?.(x, z, strength); },
   };
-  const policy = platform ? new HerdBrain(members, NALATI_HERD_BRAIN, ports, restoring) : new HorseHerd(members);
+  const beforeRng = app.rng.stream('ai').snapshot(), beforeMemory = members.map(actor => ({ ...actor.mem }));
+  const policy = platform ? new HerdBrain(members, NALATI_HERD_BRAIN, ports) : new HorseHerd(members);
+  const construction = { beforeRng, afterRng: app.rng.stream('ai').snapshot(), beforeMemory, afterMemory: members.map(actor => ({ ...actor.mem })) };
+  if (policy instanceof HerdBrain && !restoring) policy.initialize();
   f.ctx.rng = new Rng(357); f.ctx.herd = members;
   f.ctx.hurt = damage => { events.push(['damage', damage]); }; f.ctx.sound = cue => { events.push(['cue', cue]); };
   f.ctx.confine = actor => { actor.position.x = Math.max(-220, Math.min(220, actor.position.x)); actor.position.z = Math.max(-220, Math.min(220, actor.position.z)); };
   policy.onStallionState = (guardState: string) => { events.push(['guard', guardState]); }; policy.onBeaten = (actor: Animal) => { events.push(['beaten', actor.entityId]); };
   policy.onFlight = (stampede: boolean) => { events.push(['flight', stampede]); };
-  return { policy, members, context: f.ctx, events, ports };
+  return { policy, members, context: f.ctx, events, ports, construction };
 }
 const stateKeys = ['mode', 'stampeding', 'stallionState', 'trust', 'alert', 'alertOwned', 'cx', 'cz', 'spotX', 'spotZ', 'spotT', 'fleeX', 'fleeZ', 'fleeRun', 'fleeLen', 'fleeFromX', 'fleeFromZ', 'modeT', 'sT', 'chargeCd', 'beatenT', 'beaten', 'knockCd'] as const;
 function state(policy: HorseHerd | HerdBrain<Animal>): unknown[] {
@@ -82,6 +86,15 @@ function replay(platform: boolean, scenario: Parameters<typeof step>[2]): { hash
   return { hash: hash.digest('hex'), modes: [...modes], guards: [...guards], rng: app.rng.snapshot(), actorRng: f.context.rng.snapshot() };
 }
 describe('declared guarded-herd family', () => {
+  it('keeps constructors pure and initializes the shipping timer exactly once after preflight', () => {
+    const native = fixture(false), expectedRng = app.rng.stream('ai').snapshot();
+    const platform = fixture(true), policy = platform.policy; if (!(policy instanceof HerdBrain)) throw new Error('Missing platform herd');
+    expect(platform.construction.afterRng).toEqual(platform.construction.beforeRng);
+    expect(platform.construction.afterMemory).toEqual(platform.construction.beforeMemory);
+    expect(app.rng.stream('ai').snapshot()).toEqual(expectedRng); expect(state(platform.policy)).toEqual(state(native.policy));
+    expect(() => { policy.initialize(); }).toThrow('already initialized');
+    expect(app.rng.stream('ai').snapshot()).toEqual(expectedRng);
+  });
   it.each(['senses', 'stampede', 'guard', 'taming'] as const)('matches the actual shipping boids, guard, contact/filter recipes and RNG for 10,000 fixed ticks: %s', scenario => {
     const actual = replay(true, scenario); expect(actual).toEqual(replay(false, scenario));
     if (scenario === 'stampede') for (const mode of ['flee', 'settle', 'graze']) expect(actual.modes).toContain(mode);
