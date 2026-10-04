@@ -17,7 +17,8 @@
     "./bake/props": "./bake/props.ts",
     "./bake/glb": "./bake/glb.ts",
     "./bake/texture": "./bake/texture.ts",
-    "./bake/export": "./bake/export.ts"
+    "./bake/export": "./bake/export.ts",
+    "./traversal": "./traversal.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -101,6 +102,10 @@
       "./bake/export": {
         "types": "./dist/types/sdk/bake/export.d.ts",
         "default": "./dist/bake/export.js"
+      },
+      "./traversal": {
+        "types": "./dist/types/sdk/traversal.d.ts",
+        "default": "./dist/traversal.js"
       }
     }
   }

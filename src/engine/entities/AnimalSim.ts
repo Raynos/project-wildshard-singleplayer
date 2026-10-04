@@ -82,6 +82,9 @@ export class AnimalSim {
   protected tiltRollT = 0;
   scripted = false;
   motor: AnimalMotor | null = null;
+  /** Optional physics-owned horizontal constraint, including far creatures and fliers; the mounted driver suspends it. */
+  motionConstraint: ((from: Readonly<{ x: number; y: number; z: number }>, to: { x: number; y: number; z: number }) => void) | null = null;
+  private readonly motionFrom = { x: 0, y: 0, z: 0 };
   readonly entityId: string;
   protected readonly simSpec: AnimalSimSpec;
   protected readonly simPorts: AnimalSimPorts;
@@ -231,6 +234,7 @@ export class AnimalSim {
   protected stepMotion(dt: number): void {
     this.elapsed += dt;
     const x0 = this.position.x, z0 = this.position.z;
+    if (this.motionConstraint !== null) Object.assign(this.motionFrom, this.position);
     if (this.driven) { this.groundY = this.position.y; }
     else if (this.alive && this.stunT > 0) {
       // staggered: no steering, no gait — shoved back along the blow with an ease-out, then held
@@ -269,6 +273,8 @@ export class AnimalSim {
     if (this.alive && this.hasImpulse) {
       this.position.x += this.impulseVelocity.x * dt; this.position.z += this.impulseVelocity.z * dt;
     }
+
+    this.motionConstraint?.(this.motionFrom, this.position);
 
     // near the player the move goes through the physics body (PHYSICS P6): walls, rocks, trunks, the player and other
     // animals stop it — the walk, the charge and a knock-back alike

@@ -6078,6 +6078,30 @@
         "from": "@wildshard/engine/physics/edgeEntries"
       },
       {
+        "name": "gridCreatureConstraint",
+        "kind": "function",
+        "doc": "Physics-owned constraint for fliers and distant analytic creatures that have no movement capsule. Reuse per creature.",
+        "from": "@wildshard/engine/physics/gridBorders"
+      },
+      {
+        "name": "GridMountBody",
+        "kind": "interface",
+        "doc": "The traveling mount exposes its current motor through a getter, so a frame replacement keeps the same passage ownership.",
+        "from": "@wildshard/engine/physics/gridBorders"
+      },
+      {
+        "name": "installGridBorders",
+        "kind": "function",
+        "doc": "Home walls affect creatures only, through Rapier. A traveler or player still sees the actual WORLD deck.",
+        "from": "@wildshard/engine/physics/gridBorders"
+      },
+      {
+        "name": "installGridMountPassage",
+        "kind": "function",
+        "doc": "Suspend only the home border during a mounted ride; dismount restores confinement and retains other collision exclusions.",
+        "from": "@wildshard/engine/physics/gridBorders"
+      },
+      {
         "name": "GROUP",
         "kind": "const",
         "doc": "Collision groups (project/archive/2026-09-23-physics.md §Architecture): who can touch whom. Rapier packs a collider's groups in one",
@@ -6382,6 +6406,12 @@
         "kind": "type",
         "doc": "the gloves' look: smooth (`pbr`, every shard but a low-poly one) or faceted (`lowpoly`)",
         "from": "@wildshard/engine/player/Hands"
+      },
+      {
+        "name": "hoverSpeed",
+        "kind": "function",
+        "doc": "Board tuning port: standalone keeps 14 m/s; the grid may supply a finite cap up to 30 m/s.",
+        "from": "@wildshard/engine/player/hoverSpeed"
       },
       {
         "name": "addLockOffset",
@@ -11718,6 +11748,66 @@
         "from": "@wildshard/game/grid/instances"
       },
       {
+        "name": "gridCanAct",
+        "kind": "function",
+        "doc": "Only the active writable shard interior accepts authoritative actions; visible neighbours are projections.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "GridCombatRules",
+        "kind": "class",
+        "doc": "Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "GridHoverPort",
+        "kind": "interface",
+        "doc": "Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "gridHoverSpeed",
+        "kind": "function",
+        "doc": "Smoothly ease a lowered author cap (at most 15 m/s) to 30 m/s over the 20 m strip.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "GridPresence",
+        "kind": "interface",
+        "doc": "Trusted residency provenance; an unbound, strip or highway actor cannot participate in grid combat.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "GridTravelMember",
+        "kind": "interface",
+        "doc": "One rider and its optional mount form an indivisible cell-local crossing payload.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "GridTravelUnit",
+        "kind": "interface",
+        "doc": "Prepared crossing keeps the stable destination id and all member poses; the physics owner commits motors together.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "gridZone",
+        "kind": "function",
+        "doc": "Distance from a cell's centre classifies its interior, easing strip and shared highway deck.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "installGridHoverSpeed",
+        "kind": "function",
+        "doc": "Install the live deck/strip cap and restore the previous port when this residency scope leaves.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "reframeGridUnit",
+        "kind": "function",
+        "doc": "Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection.",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
         "name": "instanceSave",
         "kind": "function",
         "doc": "Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent.",
@@ -13108,6 +13198,24 @@
         "kind": "function",
         "doc": "Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams.",
         "from": "@wildshard/game/shardfile/terrain"
+      },
+      {
+        "name": "parseTraversal",
+        "kind": "function",
+        "doc": "Validate optional author tuning without permitting faster-than-platform interior travel.",
+        "from": "@wildshard/game/shardfile/traversal"
+      },
+      {
+        "name": "ShardTraversal",
+        "kind": "type",
+        "doc": "Admitted interior tuning, separate from platform placements and border safety policy.",
+        "from": "@wildshard/game/shardfile/traversal"
+      },
+      {
+        "name": "TraversalSchema",
+        "kind": "const",
+        "doc": "Authors may lower the grid's 15 m/s interior board cap; the highway remains platform-owned at 30 m/s.",
+        "from": "@wildshard/game/shardfile/traversal"
       },
       {
         "name": "ShardUi",
@@ -14864,6 +14972,24 @@
         "kind": "const",
         "doc": "Author-facing strict schema, sharing the client's validator without a barrel.",
         "from": "@wildshard/sdk/shardfile"
+      },
+      {
+        "name": "parseTraversal",
+        "kind": "function",
+        "doc": "Compile a lowered interior cap, bounded by the platform's 15 m/s ceiling.",
+        "from": "@wildshard/sdk/traversal"
+      },
+      {
+        "name": "ShardTraversal",
+        "kind": "type",
+        "doc": "Callback-free interior traversal tuning.",
+        "from": "@wildshard/sdk/traversal"
+      },
+      {
+        "name": "TraversalSchema",
+        "kind": "const",
+        "doc": "Optional author tuning for the grid's interior board cap.",
+        "from": "@wildshard/sdk/traversal"
       },
       {
         "name": "SHARDFILE_VERSION",

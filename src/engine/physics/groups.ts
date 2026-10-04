@@ -11,6 +11,7 @@ export const GROUP = {
   PROJECTILE: 1 << 4, // bolts, thrown things in flight
   ITEM: 1 << 5,       // coconuts, the barrel, drops, pickups — dynamic bodies the player can push
   DEBRIS: 1 << 6,     // small short-lived bodies (never touch the player)
+  BORDER: 1 << 8,     // grid home boundary: unmounted creatures only
   SENSOR: 1 << 7,     // pressure plates, triggers
 } as const;
 export type GroupName = keyof typeof GROUP;
@@ -19,12 +20,13 @@ const ALL = 0xffff;
 const MEETS: Record<GroupName, number> = {
   WORLD: ALL,
   PLAYER: GROUP.WORLD | GROUP.CREATURE | GROUP.ITEM | GROUP.SENSOR,
-  CREATURE: GROUP.WORLD | GROUP.PLAYER | GROUP.CREATURE | GROUP.ITEM,
+  CREATURE: GROUP.WORLD | GROUP.PLAYER | GROUP.CREATURE | GROUP.ITEM | GROUP.BORDER,
   HITBOX: GROUP.WORLD | GROUP.PROJECTILE,
   PROJECTILE: GROUP.WORLD | GROUP.HITBOX,
   ITEM: GROUP.WORLD | GROUP.PLAYER | GROUP.CREATURE | GROUP.ITEM | GROUP.SENSOR,
   DEBRIS: GROUP.WORLD,
   SENSOR: GROUP.PLAYER | GROUP.ITEM,
+  BORDER: GROUP.CREATURE,
 };
 
 /** The packed `collisionGroups` / `solverGroups` value for a collider of this kind. */

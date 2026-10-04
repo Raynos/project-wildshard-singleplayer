@@ -53,6 +53,8 @@ declare module '../events/maps' {
     'player.respawned': { at: Vector3; checkpoint: boolean };
   }
   interface AskMap {
+    /** Scope-owned admission precedes reaction callbacks, cover and damage modifiers; absent rules pass through. */
+    'damage.admit': [DamageRequest | null, DamageRequest | null];
     'damage.modify': [DamageRequest | null, DamageRequest | null];
     'death.checkpoint': [{ cause?: DeathCause } | boolean, boolean];
   }
@@ -134,6 +136,7 @@ export class CombatPipeline {
     const req: DamageRequest = { ...input, point: input.point.clone(), dir: input.dir.clone(),
       ...(input.from === undefined ? {} : { from: input.from.clone() }),
       sourceTags: input.source === 'env' ? [...input.sourceTags] : [...input.sourceTags, ...input.source.tags, ...input.source.state, ...input.source.effectTags ?? []] };
+    if (this.events.ask('damage.admit', req) === null) return null;
     const physics = this.physics();
     if (req.from !== undefined && !req.throughWalls && !matches(req.sourceTags, 'through.walls') && !matches(req.sourceTags, 'cover.checked')
       && physics !== null && !lineOfSight(physics, req.from, req.point)) return null;

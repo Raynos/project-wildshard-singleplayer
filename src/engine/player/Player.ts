@@ -1,3 +1,4 @@
+import { hoverSpeed } from './hoverSpeed';
 import type { AimCommand, PlayerCommand } from '../input/commands';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../events/events';
@@ -172,6 +173,8 @@ export class Player {
   touchDodge = false;
   /** walking speed multiplier a weapon may pin (the Nalati spear's BRACE: 0 = planted, the view still turns) */
   moveScale = 1;
+  /** Grid driver supplies a position-dependent board limit; standalone cruise retains HOVER_TOP. */
+  hoverSpeedLimit: (() => number) | null = null;
   /** Status effects have their own channels; weapons keep moveScale. */
   effectMoveScale = 1;
   effectMoveLocked = false;
@@ -520,7 +523,8 @@ export class Player {
       const inAir = this.hoverBob > 0.35;                            // above the ride height (hop / ledge): half the grip
       const grip = inAir ? 0.5 : 1;
       const wantMove = len > 0.02;
-      const tx = wantMove ? mx * HOVER_TOP : 0, tz = wantMove ? mz * HOVER_TOP : 0;
+      const top = hoverSpeed(this.hoverSpeedLimit?.());
+      const tx = wantMove ? mx * top : 0, tz = wantMove ? mz * top : 0;
       const dx = tx - v.x, dz = tz - v.z, dl = Math.hypot(dx, dz);
       const rate = (wantMove ? HOVER_ACCEL : HOVER_DECEL) * grip;
       const stepV = Math.min(dl, rate * dt);
@@ -533,6 +537,10 @@ export class Player {
       const tl = tx * rx + tz * rz;
       vl += (tl - vl) * (1 - Math.exp(-HOVER_LAT_DRAG * grip * dt));
       v.x = fx * vf + rx * vl; v.z = fz * vf + rz * vl;
+      if (this.hoverSpeedLimit !== null) {
+        const boardSpeed = Math.hypot(v.x, v.z);
+        if (boardSpeed > top) { v.x *= top / boardSpeed; v.z *= top / boardSpeed; }
+      }
       this.hoverLat = vl; this.hoverFwd = vf;
       const af = ((v.x - vfx) * fx + (v.z - vfz) * fz) / dt;
       this.hoverAccel += (af - this.hoverAccel) * Math.min(1, dt * 8);
@@ -782,7 +790,7 @@ export class Player {
     if (phase !== this.lastBobPhase && bobAmp > 0.005) { this.lastBobPhase = phase; this.onStep?.(this.sprinting); }
     // hover: roll gently into strafes / carves (from lateral velocity), nose down a hair at speed
     const rollT = hover ? -Math.max(-1, Math.min(1, this.hoverLat / HOVER_ROLL_AT)) * HOVER_ROLL : swim ? Math.sin(this.waveTime * 1.1) * 0.012 : 0;
-    const pitchT = hover ? -(hSpeed / HOVER_TOP) * HOVER_PITCH : 0;
+    const pitchT = hover ? -(hSpeed / hoverSpeed(this.hoverSpeedLimit?.())) * HOVER_PITCH : 0;
     this.roll += (rollT - this.roll) * Math.min(1, dt * 5);
     this.pitchLean += (pitchT - this.pitchLean) * Math.min(1, dt * 3);
 

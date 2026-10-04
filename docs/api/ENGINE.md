@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1865 members; 831 without a doc line (—).
+1870 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1018,6 +1018,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PropColliderPort` | interface | @wildshard/engine/physics/declaredProps | Authoritative active-state ports for static declared props; scripts call them on the fixed-step host. |
 | `PropColliderState` | interface | @wildshard/engine/physics/declaredProps | Stable Rapier handles carried by the simulation adapter; activation is saved in the physics snapshot. |
 | `walkEdgeEntries` | function | @wildshard/engine/physics/edgeEntries | Real capsule walks cover every 15 m wide entry for 50 m, at overlapping lateral intervals. |
+| `gridCreatureConstraint` | function | @wildshard/engine/physics/gridBorders | Physics-owned constraint for fliers and distant analytic creatures that have no movement capsule. Reuse per creature. |
+| `GridMountBody` | interface | @wildshard/engine/physics/gridBorders | The traveling mount exposes its current motor through a getter, so a frame replacement keeps the same passage ownership. |
+| `installGridBorders` | function | @wildshard/engine/physics/gridBorders | Home walls affect creatures only, through Rapier. A traveler or player still sees the actual WORLD deck. |
+| `installGridMountPassage` | function | @wildshard/engine/physics/gridBorders | Suspend only the home border during a mounted ride; dismount restores confinement and retains other collision exclusions. |
 | `GROUP` | const | @wildshard/engine/physics/groups | Collision groups (project/archive/2026-09-23-physics.md §Architecture): who can touch whom. Rapier packs a collider's groups in one |
 | `GroupName` | type | @wildshard/engine/physics/groups | — |
 | `groups` | function | @wildshard/engine/physics/groups | The packed `collisionGroups` / `solverGroups` value for a collider of this kind. |
@@ -1069,6 +1073,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `IDLE` | const | @wildshard/engine/player/Hands | — |
 | `SwimArms` | interface | @wildshard/engine/player/Hands | a skinned arm rig's swimming (ShardSword.swim): drawn under `root` in the camera's viewmodel queue |
 | `SwimStyle` | type | @wildshard/engine/player/Hands | the gloves' look: smooth (`pbr`, every shard but a low-poly one) or faceted (`lowpoly`) |
+| `hoverSpeed` | function | @wildshard/engine/player/hoverSpeed | Board tuning port: standalone keeps 14 m/s; the grid may supply a finite cap up to 30 m/s. |
 | `addLockOffset` | function | @wildshard/engine/player/LockOnTarget | a look drag while locked: the view glances by ±10° / ±6° (clamped), then springs back once the finger lifts |
 | `aimPoint` | function | @wildshard/engine/player/LockOnTarget | the point the view locks onto: the body centre; on a tall enemy halfway up to the head (the chest) |
 | `FlickDir` | type | @wildshard/engine/player/LockOnTarget | the weapons that lock: the Driftwood swords and Nalati's sabre + spear (H3). The bow waits for its own lock (H4 / N18) |

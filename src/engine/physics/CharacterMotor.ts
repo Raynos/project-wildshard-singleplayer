@@ -111,7 +111,7 @@ export class CharacterMotor {
     this.kcc.setSlideEnabled(true);
     this.kcc.setApplyImpulsesToDynamicBodies(true);
     this.kcc.setCharacterMass(80); // P7: a collider with no rigid body counts as massless, and a massless character pushes nothing
-    this.filter = queryGroups(opts.blockedBy, opts.group);
+    this.filter = queryGroups(this.blockedBy(), opts.group);
     this.ray = new R.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
     if (state !== undefined) {
       this.filter = state.filter; this.ghost = state.ghost; this.enabled = state.enabled; this.yaw = state.yaw;
@@ -187,6 +187,14 @@ export class CharacterMotor {
     this.kcc.setMinSlopeSlideAngle((deg + 5) * Math.PI / 180);
   }
 
+  private blockedBy(): readonly GroupName[] { return this.opts.group === 'CREATURE' ? [...this.opts.blockedBy, 'BORDER'] : this.opts.blockedBy; }
+
+  /** Re-framing a traveler preserves these exclusions, including a mounted creature passing its home boundary. */
+  passThroughKinds(): readonly GroupName[] {
+    const keys = Object.keys(GROUP).filter((key): key is GroupName => key in GROUP);
+    return keys.filter((key) => this.ghost.split(',').includes(key));
+  }
+
   /**
    * Let these kinds through until told otherwise (both ways: this body's moves ignore them and their moves ignore it) —
    * a stampeding horse runs through the player on foot (R3). `[]` = blocked by everything in `blockedBy` again.
@@ -196,7 +204,7 @@ export class CharacterMotor {
     if (key === this.ghost) return;
     this.ghost = key;
     const drop = [...new Set(kinds)].reduce((m, k) => m + GROUP[k], 0);   // distinct single bits: the sum is the union
-    this.filter = queryGroups(this.opts.blockedBy.filter((k) => !kinds.includes(k)), this.opts.group);
+    this.filter = queryGroups(this.blockedBy().filter((k) => !kinds.includes(k)), this.opts.group);
     this.collider.setCollisionGroups((groups(this.opts.group) & ~drop) >>> 0);
   }
 

@@ -772,3 +772,15 @@ supply an open-sea, road-level edge and fog profile. Grid bounds pass a `grid` p
 to `installBounds`: the grid driver owns horizontal traversal, while authored fall recovery
 and standalone play bounds retain their existing behavior. Physics world changes and
 fixed-step crossing notifications are supplied by the residency driver (SF18a).
+
+Grid residency installs `game/grid/rules` with live cell-local provenance. Board cruise
+is 30 m/s on the physical highway deck, easing across the 20 m strip to the admitted
+`traversal.hoverCap` (default 15 m/s; an author may lower it). Standalone cruise stays
+14 m/s. Visible neighbours are read-only: `gridCanAct` rejects their actions, and
+`GridCombatRules` rejects damage before target reactions when either actor is outside
+the writable interior or their stable instances differ. Terminal authored fall recovery
+retains its separate path. Creature-only Rapier borders and the physics-owned movement
+constraint cover ground, far and flying bodies. A scoped mounted passage suspends only
+that home boundary; real WORLD colliders keep stopping the mount. `reframeGridUnit`
+prepares rider and mount together without changing their velocity, yaw or separation;
+the physics/residency driver commits their motors together.

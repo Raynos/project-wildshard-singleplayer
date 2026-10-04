@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-335 members; 112 without a doc line (—).
+348 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -92,6 +92,16 @@ The game layer's public modules (src/game/package.json `exports`).
 | `parseGridCatalogue` | function | @wildshard/game/grid/catalogue | Reject malformed or duplicate placement data before allocating an assembly. |
 | `firstPartyInstance` | function | @wildshard/game/grid/instances | Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix. |
 | `templateInstance` | function | @wildshard/game/grid/instances | Six copies of one template package have independent facts and local state, wherever they are placed. |
+| `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
+| `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
+| `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |
+| `gridHoverSpeed` | function | @wildshard/game/grid/rules | Smoothly ease a lowered author cap (at most 15 m/s) to 30 m/s over the 20 m strip. |
+| `GridPresence` | interface | @wildshard/game/grid/rules | Trusted residency provenance; an unbound, strip or highway actor cannot participate in grid combat. |
+| `GridTravelMember` | interface | @wildshard/game/grid/rules | One rider and its optional mount form an indivisible cell-local crossing payload. |
+| `GridTravelUnit` | interface | @wildshard/game/grid/rules | Prepared crossing keeps the stable destination id and all member poses; the physics owner commits motors together. |
+| `gridZone` | function | @wildshard/game/grid/rules | Distance from a cell's centre classifies its interior, easing strip and shared highway deck. |
+| `installGridHoverSpeed` | function | @wildshard/game/grid/rules | Install the live deck/strip cap and restore the previous port when this residency scope leaves. |
+| `reframeGridUnit` | function | @wildshard/game/grid/rules | Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection. |
 | `instanceSave` | function | @wildshard/game/instanceSaves | Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent. |
 | `LocalSaveInstance` | interface | @wildshard/game/instanceSaves | Stable placement identity passed by the session, independent of cell or launch mode. |
 | `harvestOf` | function | @wildshard/game/Inventory | what a carcass of (kind, variant) yields when harvested |
@@ -324,6 +334,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardTerrain` | type | @wildshard/game/shardfile/terrain | A validated terrain section, containing no landscape closures. |
 | `TerrainSchema` | const | @wildshard/game/shardfile/terrain | The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. |
 | `validateTerrainAssets` | function | @wildshard/game/shardfile/terrain | Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams. |
+| `parseTraversal` | function | @wildshard/game/shardfile/traversal | Validate optional author tuning without permitting faster-than-platform interior travel. |
+| `ShardTraversal` | type | @wildshard/game/shardfile/traversal | Admitted interior tuning, separate from platform placements and border safety policy. |
+| `TraversalSchema` | const | @wildshard/game/shardfile/traversal | Authors may lower the grid's 15 m/s interior board cap; the highway remains platform-owned at 30 m/s. |
 | `ShardUi` | type | @wildshard/game/shardfile/ui | a validated `ui` section |
 | `ShardUiDeclaration` | type | @wildshard/game/shardfile/ui | one validated UI declaration |
 | `UI_DECLARATIONS_MAX` | const | @wildshard/game/shardfile/ui | The most declarations one shardfile's `ui` section may hold. |
