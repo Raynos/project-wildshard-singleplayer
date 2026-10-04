@@ -1,0 +1,13 @@
+{
+  "generatorCommit": "33e0192de50c9de0fb0bba0e276ba5498fb5c175",
+  "command": "node --import ./scripts/sim-node-loader.mjs progress/shard-platform/sf17b/adaptive-lattice.mjs",
+  "scope": "40 unique platform meshes; committed bake heights and current linearised ground palette functions. Entry/water observations excluded. Regional duplicates share mesh arrays. This is not a per-view renderer measurement.",
+  "residentTriangleWarning": 150000,
+  "defaultGridTriangles": 95180,
+  "developerGridTriangles": 105242,
+  "interiorBounds": { "heightMetres": 0.02, "colourCIE76": 3 },
+  "exact": ["native256/257 boundary vertices", "quarter-metre seam aprons", "one render/collider mesh"],
+  "templateEightDuplicateSnapshot": { "physicsBytes": 1943421, "immutableBasisBytes": 1942890, "storedChars": 282148 },
+  "verification": "36/36 focused checks, including existing axes15/30m/s shared seam, guards, jump, entry and exact native snapshot continuation assertions",
+  "remainingRendererWarnings": { "drawnTrianglesPerView": 60000, "drawsPerViewWithShadows": 8 }
+}
