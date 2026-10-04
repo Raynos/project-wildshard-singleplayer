@@ -21,7 +21,20 @@ const ARENA = 22;
 
 export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vector3 }
 
-export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>): Finale {
+/** The finale reads only these quest, combat and presentation ports; a replay drives the shipping installer. */
+export type FinaleAdventure = Pick<Adventure, 'flags' | 'place' | 'floorAt' | 'setAnchor' | 'spine' | 'complete'>;
+/** Trusted view/combat recipes can be exercised without constructing a renderer or the rest of the island. */
+export interface FinaleWorld<A extends AdvAnimal> {
+  game: Pick<AdventureWorld<A>['game'], 'onUpdate'>;
+  sky: { planetDir: THREE.Vector3; dayNight: { phase: number } | null };
+  player: Pick<AdventureWorld<A>['player'], 'position' | 'velocity' | 'yaw' | 'pitch' | 'carried'>;
+  animals: Pick<AdventureWorld<A>['animals'], 'spawn'>;
+  hud: Pick<AdventureWorld<A>['hud'], 'toast'>;
+  music: AdventureWorld<A>['music'];
+  scope?: AdventureWorld<A>['scope'];
+  setViewmodel?: AdventureWorld<A>['setViewmodel'];
+}
+export function installFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>): Finale {
   const { flags, place } = adv;
   const pool = place({ poi: 'shrine', anchor: 'shrine.pool', x: 0, z: 8 });
   const ringP = place({ poi: 'shrine', anchor: 'shrine.ring', x: 0, z: 0, dy: 3.8 });
