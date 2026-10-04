@@ -21,6 +21,7 @@ describe('Driftwood world hook (E357 S4.1)', () => {
     const app = new App();
     const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: noop, world: noop, kit: noop, loadout: noop, play: noop, finish: noop };
     app.levelDriver = driver;
+    app.levelAdapters.debugRow = () => noop; // the world hook registers its G144 GPU-only row (default off)
     // the hook reads only `world` and `viewer` off the shell; the stub builder never touches the bootstrapped world
     const bootstrapped = {} as World;
     const runtime: ShardRuntime = { world: bootstrapped, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
