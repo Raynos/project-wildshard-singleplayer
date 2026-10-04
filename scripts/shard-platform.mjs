@@ -73,7 +73,7 @@ export function shardLines(root = ROOT) {
     .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))]));
   const isPublic = (slug, path) => {
     const prefix = `src/shards/${slug}/`, seen = new Set(), queue = [path];
-    while (queue.length) {
+    while (queue.length > 0) {
       const current = queue.pop();
       if (seen.has(current)) continue;
       seen.add(current);
@@ -93,7 +93,7 @@ export function shardLines(root = ROOT) {
   const kitUsers = new Map();
   for (const [slug, files] of Object.entries(shardFiles)) {
     const seen = new Set(), queue = files.filter((path) => !ignored(path));
-    while (queue.length) {
+    while (queue.length > 0) {
       const path = queue.pop();
       if (seen.has(path)) continue;
       seen.add(path);
@@ -153,6 +153,6 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   if (process.argv.includes('--check')) {
     const failures = checkShares(recorded, lines);
     for (const failure of failures) console.error(`shard-platform: ${failure}`);
-    if (failures.length) process.exitCode = 1;
+    if (failures.length > 0) process.exitCode = 1;
   }
 }
