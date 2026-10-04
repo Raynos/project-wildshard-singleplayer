@@ -83,6 +83,8 @@ cmd, cwd, root = sys.argv[1:4]
 LAUNCH = re.compile(r"chromium\.launch|launchPersistentContext|webkit\.launch|firefox\.launch|puppeteer\.launch|connectOverCDP")
 def launches(path):
     try:
+        # This entry point wraps both workers in their machine-wide lanes itself.
+        if '--worker' not in cmd and os.path.realpath(path) == os.path.realpath(os.path.join(root, 'scripts/frame-floor.mjs')): return False
         with open(path, errors="ignore") as f: return bool(LAUNCH.search(f.read()))
     except OSError: return False
 hits = []

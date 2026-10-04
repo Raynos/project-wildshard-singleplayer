@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // SF0: live drawn-frame baseline, never a deterministic/capture-clock or CPU-throttled run.
-// node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120]
+// node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--device=<name>]
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
 // exit 3 = incomplete measurement. --regrade=<baseline> reapplies current floor policy without rerendering.
 // Results: progress/frame-floor/<measured-short-sha>.json.
@@ -19,8 +19,9 @@ const shards = flag('shards', ALL.join(',')).split(',');
 const surface = flag('surface', 'both');
 const frames = Number(flag('frames', '120'));
 const settleMs = Number(flag('settle', '2')) * 1000;
+const device = flag('device', 'frame-floor-iphone-17-pro');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--settle=2]\nRuns a clean HEAD export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--settle=2] [--device=<name>]\nRuns an isolated clean HEAD export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -86,21 +87,21 @@ async function cameras() {
 function sample(n) {
   const g = window.__wildshard.world.game;
   return new Promise((resolve, reject) => {
-    const interval = [], ring = [], work = [], calls = [], triangles = [];
-    let count = g.frameCount, last = performance.now(), skipped = 0, first = true;
+    const interval = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [];
+    let count = g.frameCount, last = 0, lastCallback = 0, skipped = 0, first = true;
     let raf = 0;
     const timeout = setTimeout(() => { cancelAnimationFrame(raf); reject(new Error(`Drawn-frame sampler stalled (${interval.length}/${n})`)); }, 30000);
-    const tick = () => {
+    const tick = (timestamp) => {
       const now = performance.now();
       if (g.frameCount !== count) {
         const delta = g.frameCount - count;
         if (!first) {
-          // Wall intervals remain truthful even when Game.clock clamps dt to 100 ms.
-          interval.push(now - last); skipped += Math.max(0, delta - 1);
+          // rAF's shared vsync timestamp grades drawn cadence; callback time also includes preceding game work.
+          interval.push(timestamp - last); callbackInterval.push(now - lastCallback); skipped += Math.max(0, delta - 1);
           const i = (g.frameI + g.frameMs.length - 1) % g.frameMs.length;
           ring.push(g.frameMs[i]); work.push(g.workMs[i]); calls.push(g.lastFrame.calls); triangles.push(g.lastFrame.triangles);
         }
-        first = false; count = g.frameCount; last = now;
+        first = false; count = g.frameCount; last = timestamp; lastCallback = now;
       }
       if (interval.length < n) { raf = requestAnimationFrame(tick); return; }
       clearTimeout(timeout);
@@ -108,6 +109,7 @@ function sample(n) {
       const round = (v) => Math.round(v * 1000) / 1000;
       resolve({ frames: interval.length, skipped, medianFps: round(1000 / pct(interval, 0.5)), p50Ms: round(pct(interval, 0.5)),
         p95Ms: round(pct(interval, 0.95)), p99Ms: round(pct(interval, 0.99)), maxMs: round(pct(interval, 1)),
+        callbackP95Ms: round(pct(callbackInterval, 0.95)), callbackP99Ms: round(pct(callbackInterval, 0.99)), callbackMaxMs: round(pct(callbackInterval, 1)),
         gameP95Ms: round(pct(ring, 0.95)), workP95Ms: round(pct(work, 0.95)), calls: pct(calls, 0.5), triangles: pct(triangles, 0.5),
         position: { x: window.__wildshard.world.player.position.x, y: window.__wildshard.world.player.position.y, z: window.__wildshard.world.player.position.z },
         contextLost: g.renderer.getContext().isContextLost() });
@@ -300,12 +302,13 @@ async function main() {
     return;
   }
   const start = Date.now(), sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
-  const scratch = '/private/tmp/claude-501/sp-builders/sp-x1';
+  const runId = `${process.pid}-${Date.now()}`;
+  const scratch = `/private/tmp/claude-501/sp-builders/sp-x1/frame-floor-${runId}`;
   mkdirSync(scratch, { recursive: true });
   const results = [], temporary = [];
   let base;
   try {
-    base = await run(join(ROOT, 'scripts/serve-build.sh'), ['--rev', sha, '--name', 'frame-floor', '--hours', '1'], { cwd: scratch });
+    base = await run(join(ROOT, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `frame-floor-${runId}`, '--hours', '1'], { cwd: scratch });
     const version = await (await fetch(`${base}version.json`)).json();
     if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error(`Preview build id does not match ${sha}: ${JSON.stringify(version)}`);
     // Safari cannot inject a pre-navigation script with its inspector protocol. Add pins to a COPY of the clean
@@ -317,22 +320,20 @@ async function main() {
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`];
-      // A different device from other benchmarks makes sim-lane wait for their slot. Its existing-device
-      // fast path allows concurrent drivers of the SAME UDID; never join another benchmark's Safari.
-      const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', 'iPhone 17 Pro', process.execPath, ...workerArgs];
+      const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
     }
     const elapsedSeconds = (Date.now() - start) / 1000;
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
-    const record = grade({ schema: 1, sha, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
+    const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
       frames, settleMs, shards, surface, complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
-      simulatorCap: 'Shipped phone-tier 30 fps cap; Simulator Safari on iPhone 17 Pro',
-      measurement: 'Live game; performance.now between observed drawn frameCount changes; Game.frameMs/workMs and game.lastFrame. No frame limiter bypass, CPU throttling or capture clock.',
+      simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
+      measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds only live harness pose pins before the byte-identical clean HEAD modules.'], results });
     const directory = join(ROOT, 'progress/frame-floor'); mkdirSync(directory, { recursive: true });
-    const output = join(directory, `${sha.slice(0, 9)}.json`);
+    const output = join(directory, `${sha.slice(0, 9)}-${runId}.json`);
     writeFileSync(output, `${JSON.stringify(record, null, 2)}\n`);
     printVerdict(record);
     console.log(`Baseline ${output}: ${elapsedSeconds.toFixed(1)} seconds, complete=${record.complete}, pass=${record.pass}`);
@@ -340,6 +341,7 @@ async function main() {
   } finally {
     if (base) await run(join(ROOT, 'scripts/serve-build.sh'), ['stop', new URL(base).port], { cwd: scratch });
     for (const out of temporary) rmSync(out, { force: true });
+    rmSync(scratch, { recursive: true, force: true });
   }
 }
 await (args.includes('--worker') ? worker() : main());
