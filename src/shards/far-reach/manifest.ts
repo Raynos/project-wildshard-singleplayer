@@ -37,7 +37,7 @@ export const SKY_REACH: ShardManifest = {
   // far.meadowBlades: blades per 8 m tile of the near meadow (world/meadow.ts)
   tiers: { phone: { 'far.meadowBlades': 1600, godRays: true, ao: false }, desktop: { 'far.meadowBlades': 3200, godRays: true, ao: false } },
   loot: { coins: true },
-  audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./audio/cues')).CUES },
+  audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./data/cues')).CUES },
   boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: { eye: [SPAWN.x, DECK + 1.7, SPAWN.z], feet: [SPAWN.x, DECK, SPAWN.z], yaw: 0, pitch: 0, mockup: 'art/far-reach/round-1-proposals/B-sky-reach.jpg', frame: 'Spawn: Sunrest, the windmill isle across the gap' },
