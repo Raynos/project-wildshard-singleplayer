@@ -122,7 +122,7 @@ it('drives the grid at 15 m/s with a U-turn, a stall and a 10 s network stall: n
   expect(run.overlaps).toBe(0);
   expect(run.peakMB).toBeLessThanOrEqual(C.playing / 1e6);
   expect(run.fineHere / run.frames).toBeGreaterThan(0.5); // refinement really happens: not a far-proxy-only pass
-});
+}, 60_000); // The full 15 m/s fixed-step drive exceeds 20 s with coverage on the GitHub runner.
 
 it('drives at 30 m/s: the link cannot keep up with L0, coarse levels hold, still no holes', () => {
   const run = drive(30);

@@ -22,7 +22,7 @@ it('waits for every true profile once per slug, then generates exactly one deter
   expect(Object.isFrozen(cells[0]?.observations?.north)).toBe(true);
   const platform = generatePlatform(cells, assembly.emptyNeighbour.edge);
   expect(platform).toHaveLength(40); expect(platform).toEqual(generatePlatform(cells, assembly.emptyNeighbour.edge));
-});
+}, 60_000); // Two complete native-profile platform generations exceed 20 s under coverage on the GitHub runner.
 it('refuses missing or decimated neighbour data instead of installing a temporary zero deck', async () => {
   await expect(loadGridEdgeProfiles(assembly.cells, () => Promise.reject(new Error('Missing admitted bake')))).rejects.toThrow('Missing admitted bake');
   const old = { ...rows, heights: rows.heights.slice(0, 129), colours: rows.colours.slice(0, 129) };

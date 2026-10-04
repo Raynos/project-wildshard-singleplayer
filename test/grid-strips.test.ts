@@ -44,5 +44,5 @@ describe('deterministic shared platform seams', () => {
     const platform = generatePlatform(cells, empty); expect(platform).toHaveLength(40); expect(platform).toEqual(generatePlatform(cells, empty));
     expect(platform.filter((s) => s.id.startsWith('cross.'))).toHaveLength(16);
     for (const cell of cells) expect(platform.flatMap((s) => s.duplicates).filter((d) => d.instance === cell.instance)).toHaveLength(8);
-  });
+  }, 60_000); // Two full 40-piece native-profile meshes and exact shared-byte checks exceed 20 s in CI coverage.
 });
