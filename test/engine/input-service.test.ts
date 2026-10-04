@@ -27,7 +27,7 @@ describe('the shared input service', () => {
   it('has no conflicting default keys within a context', () => {
     for (const context of INPUT_CONTEXTS) {
       const seen = new Set<string>();
-      for (const codes of Object.values(context.keys ?? {})) for (const code of codes) { expect(seen.has(code), `${context.id}: ${code}`).toBe(false); seen.add(code); }
+      for (const codes of Object.values(context.keys ?? {})) for (const code of codes ?? []) { expect(seen.has(code), `${context.id}: ${code}`).toBe(false); seen.add(code); }
     }
   });
   it('gives blocked presses only to an allowed owner before the 120ms deadline', () => {

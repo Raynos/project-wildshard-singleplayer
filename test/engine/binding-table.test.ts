@@ -37,7 +37,7 @@ describe('J10 default keys (Jake: layout A with the proposed defaults)', () => {
   });
   it('binds no Control key anywhere on foot (Ctrl+W closes the tab; modified keydowns never reach play)', () => {
     const onFoot = INPUT_CONTEXTS.find((context) => context.id === 'onFoot');
-    expect(Object.values(onFoot?.keys ?? {}).flat().filter((code) => code.startsWith('Control'))).toEqual([]);
+    expect(Object.values(onFoot?.keys ?? {}).flat().filter((code) => code?.startsWith('Control'))).toEqual([]);
     expect(bindableKey('ControlLeft')).toBe(false); expect(bindableKey('MetaRight')).toBe(false); expect(bindableKey('KeyC')).toBe(true);
   });
   it('lists the weapon slots as one "Weapon 1–4" row of four keys; 5–9 stay bound', () => {

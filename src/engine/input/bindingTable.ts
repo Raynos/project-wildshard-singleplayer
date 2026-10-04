@@ -89,7 +89,7 @@ export class BindingTable {
         for (const [action, bound] of Object.entries(this.bindings.keys(context))) {
           const hidden = { context, action: action as Action };
           const source = { context: this.bindings.keySource(context, hidden.action), action: hidden.action };
-          if (action === target.action || listed.some((t) => sameTarget(t, source)) || !bound.some((code) => codes.includes(code))) continue;
+          if (action === target.action || listed.some((t) => sameTarget(t, source)) || !bound?.some((code) => codes.includes(code))) continue;
           return { label: humanize(action), hidden };
         }
       }

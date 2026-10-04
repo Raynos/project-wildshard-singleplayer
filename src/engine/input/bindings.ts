@@ -69,10 +69,10 @@ export class Bindings {
     return { ...defaults, ...overrides };
   }
   entries(): readonly { context: string; action: Action; codes: readonly string[] }[] {
-    return [...this.defaults.keys()].flatMap((context) => Object.entries(this.keys(context)).map(([action, codes]) => ({ context, action: action as Action, codes })));
+    return [...this.defaults.keys()].flatMap((context) => Object.entries(this.keys(context)).map(([action, codes]) => ({ context, action: action as Action, codes: codes ?? [] })));
   }
   conflict(context: string, action: Action, code: string): Action | undefined {
-    return Object.entries(this.keys(context)).find(([other, codes]) => other !== action && codes.includes(code))?.[0] as Action | undefined;
+    return Object.entries(this.keys(context)).find(([other, codes]) => other !== action && codes?.includes(code))?.[0] as Action | undefined;
   }
   rebind(context: string, action: Action, code: string, swap = false): Action | undefined {
     if (!this.defaults.has(context)) throw new Error(`Unknown binding context ${context}`);

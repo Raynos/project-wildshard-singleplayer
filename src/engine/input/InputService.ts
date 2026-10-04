@@ -166,7 +166,7 @@ export class InputService {
   refresh(edges = true): void {
     const wanted = new Set(this.manual);
     for (const { def } of this.stack) if (def.enabled?.() !== false) for (const [action, codes] of Object.entries(this.bindings.keys(def.id))) {
-      if (codes.some((code) => code === '*' ? [...this.physical].some((key) => !['Escape', 'ArrowLeft', 'ArrowRight', 'MetaLeft', 'MetaRight', 'ControlLeft', 'ControlRight', 'ShiftLeft', 'ShiftRight', 'AltLeft', 'AltRight'].includes(key)) : this.physical.has(code))) wanted.add(action as Action);
+      if (codes?.some((code) => code === '*' ? [...this.physical].some((key) => !['Escape', 'ArrowLeft', 'ArrowRight', 'MetaLeft', 'MetaRight', 'ControlLeft', 'ControlRight', 'ShiftLeft', 'ShiftRight', 'AltLeft', 'AltRight'].includes(key)) : this.physical.has(code))) wanted.add(action as Action);
     }
     for (const action of new Set([...this.down, ...wanted])) this.transition(action, wanted.has(action), edges);
   }
