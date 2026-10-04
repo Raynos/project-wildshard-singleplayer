@@ -16,11 +16,14 @@ import { farLook as template } from '../../src/shards/_template/generators/farLo
 import { farLook as driftwood } from '../../src/shards/driftwood-isle/look/far';
 import { farLook as farReach } from '../../src/shards/far-reach/look/far';
 import { farLook as nalati } from '../../src/shards/nalati-grasslands/look/far';
+import { farGrid as nineDragonGrid, farLook as nineDragon } from '../../src/shards/nine-dragon-stack/look/far';
 import { farLook as pineHollow } from '../../src/shards/pine-hollow/look/far';
 import { farLook as sunscar } from '../../src/shards/sunscar-dunes/look/far';
 
-/** The grid's shards (§3.3: shipped + dev mode). */
-export const FAR_LOOKS: Readonly<Record<string, FarLookSource>> = { '_template': template, 'driftwood-isle': driftwood, 'pine-hollow': pineHollow, 'nalati-grasslands': nalati, 'sunscar-dunes': sunscar, 'far-reach': farReach };
+/** The grid's shards (§3.3: shipped + dev mode + the DEVSERVER cell). */
+export const FAR_LOOKS: Readonly<Record<string, FarLookSource>> = { '_template': template, 'driftwood-isle': driftwood, 'pine-hollow': pineHollow, 'nalati-grasslands': nalati, 'sunscar-dunes': sunscar, 'far-reach': farReach, 'nine-dragon-stack': nineDragon };
+/** Structure-first shards with no `terrain.bin` bake from a grid their far look builds (Nine Dragon's skyline, G95). */
+export const FAR_GRIDS: Readonly<Partial<Record<string, () => FarGrid>>> = { 'nine-dragon-stack': nineDragonGrid };
 /** far.json: the shardfile `far` row, the GLB's file row and the runtime look. */
 export interface FarManifest { far: NonNullable<Shardfile['far']>; file: Shardfile['files'][number]; look: FarLookRuntime }
 
@@ -46,7 +49,7 @@ export function farGrid(repo: string, slug: string): FarGrid {
 export function writeFarProxies(repo: string): Record<string, FarManifest> {
   const out: Record<string, FarManifest> = {};
   for (const [slug, look] of Object.entries(FAR_LOOKS)) {
-    const { manifest, bytes } = bakeFarProxy(farGrid(repo, slug), look), dir = join(repo, 'public/assets/baked', slug);
+    const { manifest, bytes } = bakeFarProxy(FAR_GRIDS[slug]?.() ?? farGrid(repo, slug), look), dir = join(repo, 'public/assets/baked', slug);
     writeFileSync(join(dir, 'far.glb'), bytes); writeFileSync(join(dir, 'far.json'), canonicalJson(manifest)); out[slug] = manifest;
   }
   return out;

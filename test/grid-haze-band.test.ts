@@ -4,6 +4,9 @@ import { BAND_OUTSET, bandGeometry, bandMaterial } from '../src/game/grid/hazeBa
 import { RegionGradeEffect } from '../src/game/grid/frame';
 import { DECK_SLOT, HIGHWAY_LOOK } from '../src/game/grid/frameModel';
 import { farLook as sunscar } from '../src/shards/sunscar-dunes/look/far';
+import { farLook as nineDragon, skylineAt } from '../src/shards/nine-dragon-stack/look/far';
+// oxlint-disable-next-line import/no-nodejs-modules -- reads the committed far.json.
+import { readFileSync } from 'node:fs';
 
 describe('SF19b one-frame looks', () => {
   it('a haze band is four edge quads 2 m out from the cell, one draw, its height as declared', () => {
@@ -20,6 +23,16 @@ describe('SF19b one-frame looks', () => {
   });
   it('G94: Signal Dunes declares its warm band and dusky grade', () => {
     expect(sunscar.band.own).toBeGreaterThan(0.5); expect(sunscar.grade.tint[0]).toBeGreaterThan(sunscar.grade.tint[2]);
+  });
+  it('G95: Nine Dragon keeps its dusk through a violet grade and a pale border fog; its baked proxy carries both', () => {
+    expect(nineDragon.band.own).toBeGreaterThan(0.5); expect(nineDragon.grade.exposure).toBeLessThan(0);
+    expect(nineDragon.grade.tint[1]).toBeLessThan(Math.min(nineDragon.grade.tint[0], nineDragon.grade.tint[2])); // dusk violet
+    const baked = JSON.parse(readFileSync('public/assets/baked/nine-dragon-stack/far.json', 'utf8')) as { look: { band?: unknown; grade?: unknown } };
+    expect(baked.look.band).toEqual(nineDragon.band); expect(baked.look.grade).toEqual(nineDragon.grade);
+    // its skyline: road-level forecourt at the border, a street canyon at every edge midpoint, towers between
+    for (const [x, z] of [[0, -245], [245, 0], [0, 245], [-245, 0]] as const) expect(skylineAt(x, z)).toBeLessThan(1);
+    for (const [x, z] of [[0, -200], [200, 0], [0, 200], [-200, 0]] as const) expect(skylineAt(x, z)).toBeLessThan(4);
+    expect(skylineAt(-120, -120)).toBeGreaterThan(15); expect(skylineAt(-10, -10)).toBeLessThan(0); // the Yamen Well
   });
   it('G75: the highway slot takes a grey-blue grade (less saturation, a cool tint)', () => {
     const effect = new RegionGradeEffect(); effect.set(DECK_SLOT, HIGHWAY_LOOK.grade);

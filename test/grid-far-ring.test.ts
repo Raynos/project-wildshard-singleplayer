@@ -23,7 +23,7 @@ function glb(bytes: Buffer): { json: { meshes: { primitives: { attributes: Recor
 }
 
 describe('SF23 far proxies', () => {
-  it.each(SHARDS)('%s: baked, inside the far caps, one draw, all 16 regions', (slug) => {
+  it.each([...SHARDS, 'nine-dragon-stack'])('%s: baked, inside the far caps, one draw, all 16 regions', (slug) => {
     const { far, file } = manifest(slug), bytes = readFileSync(join('public/assets/baked', slug, 'far.glb'));
     expect(far.files).toEqual([file.hash]);
     expect(bytes.length).toBe(file.compressed);
