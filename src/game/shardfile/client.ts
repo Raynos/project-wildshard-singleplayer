@@ -24,6 +24,7 @@ import type { ResidencyAllocator } from '../grid/allocator';
 import { leaseClientLibrary } from './clientLibrary';
 import { clientMaterials } from './clientMaterials';
 import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
+import { loadClientSkins, type ClientSkin } from './clientSkins';
 import { clientViews, clientTileViews } from './clientViews';
 import { clientRingCatalogue, clientRingPorts } from './clientRings';
 import { RenderRings } from '../grid/rings';
@@ -64,6 +65,7 @@ export class ShardfileClient {
   private readonly assets: ClientAssets;
   private readonly bindings: ShardfileClientBindings;
   private presentation: Awaited<ReturnType<typeof clientMaterials>> | undefined;
+  private skins: ReadonlyMap<string, ClientSkin> = new Map();
   private worldTiles: Awaited<ReturnType<typeof clientWorld>> | undefined;
   private sim: ShardfileSimulation | undefined;
   private items: DeclaredItems | undefined;
@@ -80,6 +82,7 @@ export class ShardfileClient {
     leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance });
     const presentation = await clientMaterials(this.source, this.assets.retained, world.game.renderer, ctx.scope);
     this.presentation = presentation;
+    this.skins = await loadClientSkins(this.source, this.assets.retained, presentation.compile, ctx.scope);
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials });
     const decoder = new TileDecoder(); ctx.scope.onDispose(() => { decoder.dispose(); });
     const tileViews = clientTileViews({ terrain: this.source.terrain?.family ?? null, ...presentation });
@@ -105,7 +108,7 @@ export class ShardfileClient {
     if (runtime === undefined || world === null || world === undefined || presentation === undefined) throw new Error('Shardfile requires the normal kit stage');
     const source = this.source;
     ctx.rows.species(source.rows.species.map((row) => ({ ...row, variants: row.variants.map((variant) => ({ ...variant, scale: [...variant.scale] })) })));
-    ctx.rows.speciesLook(clientSpeciesLooks(source.rows, this.bindings.recipes, presentation.materials));
+    ctx.rows.speciesLook(clientSpeciesLooks(source.rows, this.bindings.recipes, presentation.materials, this.skins));
     for (const row of source.rows.compendiums) ctx.rows.compendium({ id: row.id, ...declaredCompendium(row, source.rows, ctx.manifest.slug) });
     ctx.rows.lootTable(source.rows.loot);
     runtime.hooks.animalsReady = (manager) => {

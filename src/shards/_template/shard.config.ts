@@ -17,6 +17,7 @@ import { TEMPLATE_AUDIO } from './data/audio';
 import { SPAWN } from './data/spawn';
 import { ITEMS } from './data/items';
 import { TEMPLATE_TARGETS } from './data/targets';
+import { TEMPLATE_SKIN_COST, TEMPLATE_SKIN_FILES, TEMPLATE_SKIN_LIBRARY, TEMPLATE_SKIN_LOOKS } from './data/skins';
 
 const base = emptyShardfile({ slug: 'template', name: 'Template shard', author: 'Wildshard', revision: 1, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
@@ -33,11 +34,11 @@ const tiles = terrain.tiles.map((tile) => {
 // The legacy plugin remains the live source until SF16's final loader switch.
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
-  budgets: { library: { resident: 100_000, compressed: 100_000 }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
+  budgets: { library: { resident: 100_000 + TEMPLATE_SKIN_COST.resident, compressed: 100_000 + TEMPLATE_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
   serverBudget: { ...base.serverBudget, memory: 16_000_000 },
-  look: TEMPLATE_LOOK, spawn: SPAWN, rows: TEMPLATE_ROWS, plumbing: TEMPLATE_PLUMBING, ui: TEMPLATE_UI,
-  terrain: terrain.terrain, tiles, files: [...terrain.files, ...props.files, script, itemScript], edge: terrain.edge,
-  library: props.library, far: props.far, props: props.props, items: ITEMS, targets: TEMPLATE_TARGETS,
+  look: TEMPLATE_LOOK, spawn: SPAWN, rows: { ...TEMPLATE_ROWS, looks: TEMPLATE_SKIN_LOOKS }, plumbing: TEMPLATE_PLUMBING, ui: TEMPLATE_UI,
+  terrain: terrain.terrain, tiles, files: [...terrain.files, ...props.files, ...TEMPLATE_SKIN_FILES, script, itemScript], edge: terrain.edge,
+  library: [...props.library, ...TEMPLATE_SKIN_LIBRARY], far: props.far, props: props.props, items: ITEMS, targets: TEMPLATE_TARGETS,
   critical: [...terrain.critical, door.hash, itemModule], water: TEMPLATE_WATER, creatures: CREATURES, encounters: ENCOUNTERS,
   quests: ADVENTURE, ledger: TEMPLATE_LEDGER, audio: TEMPLATE_AUDIO, state: TEMPLATE_STATE, hooks: TEMPLATE_HOOKS,
   sim: { ...base.sim, scriptTickDivisor: 1, scripts: [door.hash, itemModule], bindings: [{ module: door.hash, entity: playerHandle, actorId: 'actor.player', kind: 'server' }] },

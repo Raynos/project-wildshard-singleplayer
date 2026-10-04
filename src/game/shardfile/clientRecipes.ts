@@ -2,6 +2,8 @@ import { SphereGeometry, Float32BufferAttribute, Uint16BufferAttribute, MeshStan
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ShardRows } from './rows';
+import { SKIN_LOOK_RECIPE } from './skins';
+import { skinSpeciesLook, type ClientSkin } from './clientSkins';
 
 /** A trusted catalogue recipe receives validated JSON parameters and the chosen declared species. */
 export type ShardViewRecipe = (row: ShardRows['looks'][number], species: ShardRows['species'][number]) => SpeciesLook;
@@ -37,10 +39,11 @@ function sphere(row: ShardRows['looks'][number], species: ShardRows['species'][n
     animate: ({ bones, t, alive }) => { const body = bones['body']; if (body !== undefined) { body.scale.set(1, 1, 1); body.scale[axis] = alive ? rest + Math.sin(t * frequency) * amplitude : dead; } },
   };
 }
-/** Resolve every recipe before boot; injected kit recipes and platform primitives remain ordinary engine views. */
-export function clientSpeciesLooks(rows: ShardRows, recipes: ReadonlyMap<string, ShardViewRecipe>, materials: ReadonlyMap<string, Material>): readonly SpeciesLook[] {
+/** Resolve every recipe before boot; injected kit recipes, platform primitives and exported skins (`skins`, keyed by look id) remain ordinary engine views. */
+export function clientSpeciesLooks(rows: ShardRows, recipes: ReadonlyMap<string, ShardViewRecipe>, materials: ReadonlyMap<string, Material>, skins: ReadonlyMap<string, ClientSkin> = new Map()): readonly SpeciesLook[] {
   return rows.looks.map((row) => {
     const species = rows.species.find((entry) => entry.id === row.species); if (species === undefined) throw new Error('Missing view species');
+    if (row.recipe === SKIN_LOOK_RECIPE) { const skin = skins.get(row.id); if (skin === undefined) throw new Error(`Unloaded skin look ${row.id}`); if (row.material !== null) throw new Error('A skin look draws with its binding material'); return skinSpeciesLook(row, species, skin); }
     const recipe = row.recipe === 'engine.sphere' ? sphere : recipes.get(row.recipe); if (recipe === undefined) throw new Error(`Unknown creature view recipe ${row.recipe}`);
     const look = recipe(row, species);
     if (row.material === null) return { ...look, id: row.id, species: species.id, kind: species.kind };
