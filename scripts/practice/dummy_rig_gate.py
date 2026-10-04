@@ -5,8 +5,9 @@
 Poses (the img2-character rig-gate sweep, as the dummy's procedural motion uses it): Spine pitch / lean +-25 deg,
 Chest pitch / lean +-20 deg, Head pitch / turn +-35 deg, and each arm joint (UpperArm, ForeArm, Hand, one at a time, the rest of the chain following)
 +-60 deg forward / back and out / in. For every pose it measures the skinned mesh against the rest mesh:
-  - edge stretch: posed / rest length of every edge (a tear shows as a long thin edge, > 2x);
-  - collapse: triangles whose area falls under 20 % of rest (candy-wrapping / pinching).
+  - edge stretch: posed / rest length of every edge (a tear shows as a long thin edge): max, p99.9 and min;
+  - collapse: the smallest posed / rest area of a triangle (candy-wrapping / pinching).
+The numbers are measurements for the reader of the sheet, not pass bars (E388: the old > 2x and < 20 % flags had no source).
 Writes <out dir>/gate.json and one PNG per pose (front three-quarter view), which scripts/practice/gate_sheet.py
 lays out as a labelled sheet.
 """
@@ -121,14 +122,13 @@ for i, (name, rots) in enumerate(POSES):
     pts, _ = evaluated()
     ratios = sorted((pts[u] - pts[v]).length / max(rl, 1e-7) for (u, v), rl in zip(edges, rest_len))
     n = len(ratios)
-    collapsed = sum(1 for t, ra in zip(tris, rest_area) if ra > 1e-8 and area(pts, t) < 0.2 * ra)
+    area_min = min(area(pts, t) / ra for t, ra in zip(tris, rest_area) if ra > 1e-8)
     row = {
         "pose": name,
         "stretch_max": round(ratios[-1], 3),
         "stretch_p999": round(ratios[int(n * 0.999)], 3),
         "shrink_min": round(ratios[0], 3),
-        "edges_over_2x": sum(1 for r in ratios if r > 2.0),
-        "tris_collapsed": collapsed,
+        "area_min": round(area_min, 3),
         "tris": len(tris),
     }
     results.append(row)

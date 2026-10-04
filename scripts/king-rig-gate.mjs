@@ -14,16 +14,20 @@
 //     bone's matrixWorld × inverse (relative Δ ≤ 2⁻²³), and the clip moves its bones (max joint turn from rest) and the mesh
 // G2  deformation finite — every vertex of every sampled frame skinned, all finite
 // G3  bind restore — every bone back to rest after the sweep: the skinned mesh against the bind mesh, max Δ ≤ 1e-12 × H
-// G4  weights normalised — |1 − Σw| ≤ 2e-7 every vertex        G5 indices in range — max JOINTS_0 ≤ joints − 1
+// G4  weights normalised — |1 − Σw| ≤ 2e-7 every vertex (Σ of four float32 weights, as the GPU sums it: 4 × 2⁻²⁴ ≈ 2.4e-7
+//     of rounding at most)                                       G5 indices in range — max JOINTS_0 ≤ joints − 1
 // G6  every visible mesh bound — the GLB's meshes, skinned / all
 // G7  medial / lateral — every L anchor x > 0 > every R anchor x
 // G8  foot contact — in stance (the gait's own stance window; every hoof in idle / sweep / hit, the hind hooves in the
-//     strike), the hoof's ground-frame slide (the root advancing at the clip's stride) ≤ 0.01 H
+//     strike), the hoof's ground-frame slide (the root advancing at the clip's stride) ≤ one float32 ulp of the hoof's
+//     coordinates (2⁻²³ × the largest): the stances are solved, so a planted hoof moves only by the float32 rounding of
+//     the rig's numbers (E388: the contract's 0.01 H had no source)
 // G9  no joint scale — every bone's scale 1 in every sample
 // G10 skin integrity sweep — background seen through a split: (a) the welded copies of one surface point (uv seams)
 //     skinned apart, max gap; (b) in a 3-view raster of every 3rd sample, the pixels the mesh covers with no front face
 //     (the single-sided material shows the background there: a tear or an inverted fold; regions from 3 px, below that
-//     it is the raster's aliasing) against the rest pose's (the baseline); (c) the longest edge stretch, ≤ 2×
+//     it is the raster's aliasing) against the rest pose's (the baseline); (c) the longest edge stretch, reported (E388:
+//     the old ≤ 2× bar had no source; (a) and (b) are the tear tests)
 // G11 mesh parity — the GLB's position / normal / uv / index buffers byte-identical to the bake's freeze
 // G12 rig reference — the skin's joints are KING_BONES by name and in order, every bone the clips pose is one of them,
 //     the inverse binds match the joints' positions
@@ -245,7 +249,7 @@ for (const clip of KING_CLIP_NAMES) {
     HOOVES.forEach((n, l) => { const p = hoofW(n); const adv = WALKS[clip] ? x * WALKS[clip].stride : 0; feet[l].push({ x, z: p.z + adv, y: p.y, xw: p.x }); });
   }
   // stance windows
-  let slide = 0;
+  let slide = 0, scale = 0;
   HOOVES.forEach((n, l) => {
     const inStance = (x) => {
       if (WALKS[clip]) { const p = (((x + WALKS[clip].off[l]) % 1) + 1) % 1; return p < WALKS[clip].stance - 0.02 && p > 0.02; }
@@ -255,20 +259,20 @@ for (const clip of KING_CLIP_NAMES) {
     };
     // contiguous stance runs
     let run = [];
-    const flush = () => { if (run.length > 1) { const zs = run.map((f) => f.z), ys = run.map((f) => f.y), xs2 = run.map((f) => f.xw); slide = Math.max(slide, Math.max(...zs) - Math.min(...zs), Math.max(...ys) - Math.min(...ys), Math.max(...xs2) - Math.min(...xs2)); } run = []; };
+    const flush = () => { if (run.length > 1) { const zs = run.map((f) => f.z), ys = run.map((f) => f.y), xs2 = run.map((f) => f.xw); slide = Math.max(slide, Math.max(...zs) - Math.min(...zs), Math.max(...ys) - Math.min(...ys), Math.max(...xs2) - Math.min(...xs2)); scale = Math.max(scale, ...zs.map(Math.abs), ...ys.map(Math.abs), ...xs2.map(Math.abs)); } run = []; };
     for (const f of feet[l]) { if (inStance(f.x)) run.push(f); else flush(); }
     flush();
   });
-  clipsOut[clip] = { samples: xs.length, maxJointTurnDeg: Number((maxTurn * 180 / Math.PI).toFixed(1)), maxVertexMove: Number(maxMove.toFixed(3)), footSlideInStance: Number(slide.toFixed(4)), footSlideOverH: Number((slide / H).toFixed(4)), edgeStretch: Number(clipStretch.toFixed(2)), seeThroughOverBaseline: clipSee };
+  clipsOut[clip] = { samples: xs.length, maxJointTurnDeg: Number((maxTurn * 180 / Math.PI).toFixed(1)), maxVertexMove: Number(maxMove.toFixed(3)), footSlideInStance: slide, footSlideOverH: slide / H, footSlideFloor: scale * 2 ** -23, edgeStretch: Number(clipStretch.toFixed(2)), seeThroughOverBaseline: clipSee };
 }
 report.clipDetail = clipsOut;
 const silent = Object.entries(clipsOut).filter(([, c]) => c.maxJointTurnDeg < 2 || c.maxVertexMove < 0.01 * H).map(([k]) => k);
 put('G1 binding reaches node', g1Delta <= 2 ** -23 && silent.length === 0 && Object.values(clipsOut).every((c) => c.samples >= 5) ? 'pass' : 'fail', { maxSampledBindingDelta: g1Delta, samplesPerClip: SAMPLES, clipsThatDoNotMove: silent });
 put('G2 deformation finite', g2Bad === 0 && g2Count > 0 ? 'pass' : 'fail', { componentsSkinned: g2Count, nonFiniteCount: g2Bad, verticesPerFrame: NV });
 const slideWorst = Math.max(...Object.values(clipsOut).map((c) => c.footSlideOverH));
-put('G8 foot contact', slideWorst <= 0.01 ? 'pass' : 'fail', { worstSlideOverH: slideWorst, perClip: Object.fromEntries(Object.entries(clipsOut).map(([k, c]) => [k, c.footSlideOverH])), criterion: 'footSlide <= 0.01H in stance' });
+put('G8 foot contact', Object.values(clipsOut).every((c) => c.footSlideInStance <= c.footSlideFloor) ? 'pass' : 'fail', { worstSlideOverH: slideWorst, perClip: Object.fromEntries(Object.entries(clipsOut).map(([k, c]) => [k, { slide: c.footSlideInStance, floor: c.footSlideFloor }])), criterion: 'footSlide <= one float32 ulp of the hoof coordinates in stance (a solved stance moves only by rounding)' });
 put('G9 no joint scale', g9Max === 0 ? 'pass' : 'fail', { scaleDelta: g9Max });
-put('G10 skin integrity sweep', splitMax <= 1e-6 * H && holesWorst <= 0 && stretchMax <= 2 ? 'pass' : 'fail', { seamSplitMax: splitMax, seeThroughOverBaselinePx: holesWorst, worstAt: holesAt, baselineSeeThroughPx: baseline, edgeStretchMax: Number(stretchMax.toFixed(3)), stretchAt });
+put('G10 skin integrity sweep', splitMax <= 1e-6 * H && holesWorst <= 0 ? 'pass' : 'fail', { seamSplitMax: splitMax, seeThroughOverBaselinePx: holesWorst, worstAt: holesAt, baselineSeeThroughPx: baseline, edgeStretchMax: Number(stretchMax.toFixed(3)), stretchAt });
 // G3: back to rest after the whole sweep
 resetPose(); mesh.updateMatrixWorld(true); skeleton.update();
 const back = skinned();

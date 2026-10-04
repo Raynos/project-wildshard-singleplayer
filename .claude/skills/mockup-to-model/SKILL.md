@@ -149,11 +149,12 @@ $L ~/ml/img2mesh/logs/<job>-hy.log ~/ml/img2mesh/Hunyuan3D-2/.venv/bin/python \
   (stills from `scripts/img2mesh/render_still.py`).
 - **The creature/NPC rig bakers** (`creature-rig-bake.mjs`, `nalati-rig-bake.mjs`) were deleted in E357 F7: needed the dev labs. A standalone rig is modelled on
   `scripts/practice/rig_dummy.py` and gated by `scripts/practice/dummy_rig_gate.py`. Every rig gate checks:
-  - weights sum to 1;
+  - weights sum to 1, within the storage's rounding (half a quantum per weight);
   - indices are in range;
   - the bind pose restores;
   - no NaN;
-  - no edge stretches over 2× in the pose sweep;
+  - no tear in the pose sweep: the welded copies of a bind position stay together; edge stretch is measured and
+    reported, or held to a measured baseline such as the motion already shipped (E388: no invented 2× bar);
   - every clip really moves its bones (a clip that exists is not a clip that plays).
 
 ### Blender script

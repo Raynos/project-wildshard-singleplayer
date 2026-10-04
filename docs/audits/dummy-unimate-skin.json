@@ -5,17 +5,14 @@
   "motionSHA256": "3e5458418991feb179d674a14378b3dfd61190f2a52e31b59947eea682d6b218",
   "method": "Three.js GLTFLoader with original Meshopt geometry and bind matrices; all vertices and all nondegenerate triangles, 61 samples per clip. Texture pixels substituted in memory only. Clips evaluated through AnimationMixer by bone name. Separate springComparison uses the actual DummyMotion, DummyPose and DummyClips TypeScript classes on four weapon hits at the arena material masses; existing springs alone and the new clips plus springs are sampled over two seconds at 30 Hz.",
   "runtimeSourceSHA256": {
-    "dummyMotion": "9c1a289902e0f2942d38d5ba26c5467816d0047753e8daaba097ba7a020f68e0",
-    "dummyClips": "fbc61efe0b157e7b7224177b91996e70bb3565410be48f48deceae93e72eb486"
+    "dummyMotion": "10e82b0089ac942cd628646f95b065505f92be2c3eca4571eb2b1025ead3bb55",
+    "dummyClips": "ab7d33c7cd6d2cfe29035dfc5451d45c29173a8eadc28e5d7ead15c7970c49cf"
   },
   "units": "original GLB model units, before TrainingDummyAssets game scaling",
   "limits": {
     "maxBindPositionError": 0.0001,
-    "maxWeightSumError": 0.015,
-    "maxEdgeStretch": 2,
-    "minAreaRatio": 0.05,
-    "maxKeyframeRotationStepDegrees": 4.01,
-    "maxKeyframeAngularSpeedDegreesPerSecond": 120.3,
+    "maxWeightSumError": "half a storage quantum per weight, × 4 (float32: 4 × 2^-24)",
+    "deformationAndJointSpeed": "no worse than the variant's shipped springs alone, measured in this run (springBaseline): max edge stretch, min triangle area ratio, max joint speed",
     "minRestTriangleArea": 1e-8,
     "excludedSliverReason": "Area below 1e-8 model units squared is already a numerical sliver in the original bind. These are counted separately; the same cutoff is used by the existing Blender dummy rig gate.",
     "maxSeamPositionError": 0.0001,
@@ -3232,7 +3229,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.109734542,
           "minTriangleAreaRatio": 0.841296019,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -3405,7 +3401,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.481300838,
           "minTriangleAreaRatio": 0.089248691,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -3590,7 +3585,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.343186893,
           "minTriangleAreaRatio": 0.184691637,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -3775,7 +3769,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.30216231,
           "minTriangleAreaRatio": 0.217463406,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -3956,7 +3949,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.353314086,
           "minTriangleAreaRatio": 0.205433606,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -4141,7 +4133,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.287710112,
           "minTriangleAreaRatio": 0.34977047,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -4312,6 +4303,7 @@
       "rawSkinAttributes": [
         {
           "maxWeightSumError": 4.470348358154297e-8,
+          "tolerance": 2.384185791015625e-7,
           "invalidWeights": 0,
           "invalidIndices": 0
         }
@@ -4334,7 +4326,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.282750474,
             "minTriangleAreaRatio": 0.121182539,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 65.971665063,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 50,
@@ -4516,7 +4508,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.214315194,
             "minTriangleAreaRatio": 0.563645823,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 71.591036367,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 52,
@@ -4691,7 +4683,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.828540438,
             "minTriangleAreaRatio": 0.033297107,
-            "collapsedTriangleSamples": 1,
+            "maxJointSpeedDegreesPerSecond": 167.933331936,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 10,
@@ -4861,7 +4853,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.308878528,
             "minTriangleAreaRatio": 0.093976548,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 89.62646884,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 28,
@@ -5048,7 +5040,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.490741938,
             "minTriangleAreaRatio": 0.079499312,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 128.553281128,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 48,
@@ -5230,7 +5222,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.481632584,
             "minTriangleAreaRatio": 0.090076606,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 152.503935626,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 50,
@@ -5405,7 +5397,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.480019745,
             "minTriangleAreaRatio": 0.022187451,
-            "collapsedTriangleSamples": 2,
+            "maxJointSpeedDegreesPerSecond": 317.876571214,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 48,
@@ -5571,7 +5563,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.347256909,
             "minTriangleAreaRatio": 0.18509208,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 63.64696426,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 44,
@@ -5737,7 +5729,12 @@
             }
           }
         }
-      ]
+      ],
+      "springBaseline": {
+        "maxEdgeStretch": 1.828540438,
+        "minTriangleAreaRatio": 0.022187451,
+        "maxJointSpeedDegreesPerSecond": 317.876571214
+      }
     },
     {
       "variant": "straw-cloth",
@@ -5796,7 +5793,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.085097897,
           "minTriangleAreaRatio": 0.621216257,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -5965,7 +5961,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.442566914,
           "minTriangleAreaRatio": 0.257414257,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -6138,7 +6133,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.307662737,
           "minTriangleAreaRatio": 0.174425792,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -6311,7 +6305,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.348748589,
           "minTriangleAreaRatio": 0.131771805,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -6484,7 +6477,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.344786147,
           "minTriangleAreaRatio": 0.06916895,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -6645,7 +6637,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.36010968,
           "minTriangleAreaRatio": 0.238685533,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -6828,6 +6819,7 @@
       "rawSkinAttributes": [
         {
           "maxWeightSumError": 4.377216100692749e-8,
+          "tolerance": 2.384185791015625e-7,
           "invalidWeights": 0,
           "invalidIndices": 0
         }
@@ -6850,7 +6842,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.363672059,
             "minTriangleAreaRatio": 0.124826765,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 81.79004402,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 50,
@@ -7008,7 +7000,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.275895905,
             "minTriangleAreaRatio": 0.200294753,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 102.533242292,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 30,
@@ -7167,7 +7159,7 @@
             "gain": 1,
             "maxEdgeStretch": 2.070684938,
             "minTriangleAreaRatio": 0.071700418,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 201.048672384,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 10,
@@ -7333,7 +7325,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.442097907,
             "minTriangleAreaRatio": 0.169320493,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 161.216951366,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 46,
@@ -7520,7 +7512,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.64945531,
             "minTriangleAreaRatio": 0.064918045,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 147.61522309,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 20,
@@ -7698,7 +7690,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.443584985,
             "minTriangleAreaRatio": 0.17830999,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 169.760580527,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 30,
@@ -7861,7 +7853,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.558952638,
             "minTriangleAreaRatio": 0.104342534,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 325.867439085,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 20,
@@ -8031,7 +8023,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.301962062,
             "minTriangleAreaRatio": 0.153859576,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 65.259631285,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 30,
@@ -8185,7 +8177,12 @@
             }
           }
         }
-      ]
+      ],
+      "springBaseline": {
+        "maxEdgeStretch": 2.070684938,
+        "minTriangleAreaRatio": 0.064918045,
+        "maxJointSpeedDegreesPerSecond": 325.867439085
+      }
     },
     {
       "variant": "wood-steel",
@@ -8244,7 +8241,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.125540885,
           "minTriangleAreaRatio": 0.855696189,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -8417,7 +8413,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.453604539,
           "minTriangleAreaRatio": 0.430813207,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -8614,7 +8609,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.478369986,
           "minTriangleAreaRatio": 0.439742857,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -8811,7 +8805,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.625661871,
           "minTriangleAreaRatio": 0.613162,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -8984,7 +8977,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.652347289,
           "minTriangleAreaRatio": 0.557577087,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -9181,7 +9173,6 @@
           "maxBaseDisplacement": 0,
           "maxEdgeStretch": 1.344142691,
           "minTriangleAreaRatio": 0.682628412,
-          "collapsedTriangleSamples": 0,
           "maxYawScaleLocalPositionError": 0,
           "worstStretch": {
             "mesh": "TrainingDummy",
@@ -9340,6 +9331,7 @@
       "rawSkinAttributes": [
         {
           "maxWeightSumError": 4.470348358154297e-8,
+          "tolerance": 2.384185791015625e-7,
           "invalidWeights": 0,
           "invalidIndices": 0
         }
@@ -9362,7 +9354,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.287815527,
             "minTriangleAreaRatio": 0.409294984,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 50.998918848,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 10,
@@ -9508,7 +9500,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.17423849,
             "minTriangleAreaRatio": 0.798857744,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 47.715850139,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 52,
@@ -9695,7 +9687,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.973611765,
             "minTriangleAreaRatio": 0.110661999,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 133.566993936,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 10,
@@ -9841,7 +9833,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.392629832,
             "minTriangleAreaRatio": 0.571710994,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 62.99559334,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 58,
@@ -10004,7 +9996,7 @@
             "gain": 1,
             "maxEdgeStretch": 1.606993639,
             "minTriangleAreaRatio": 0.34013927,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 106.26612218,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 22,
@@ -10162,7 +10154,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.469462472,
             "minTriangleAreaRatio": 0.412837699,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 135.578147619,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 52,
@@ -10349,7 +10341,7 @@
             "gain": 1,
             "maxEdgeStretch": 2.051454775,
             "minTriangleAreaRatio": 0.109383853,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 300.233017006,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 20,
@@ -10519,7 +10511,7 @@
             "gain": 0.2,
             "maxEdgeStretch": 1.480617333,
             "minTriangleAreaRatio": 0.440901168,
-            "collapsedTriangleSamples": 0,
+            "maxJointSpeedDegreesPerSecond": 60.101771738,
             "maxBaseDisplacement": 0,
             "worstStretch": {
               "frame": 50,
@@ -10697,7 +10689,12 @@
             }
           }
         }
-      ]
+      ],
+      "springBaseline": {
+        "maxEdgeStretch": 2.051454775,
+        "minTriangleAreaRatio": 0.109383853,
+        "maxJointSpeedDegreesPerSecond": 300.233017006
+      }
     }
   ],
   "passed": true,

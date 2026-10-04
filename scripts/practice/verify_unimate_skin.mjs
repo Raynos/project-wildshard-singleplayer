@@ -18,6 +18,12 @@ const [motionPath = 'public/assets/practice/dummies/unimate-motion.glb',
 const previousReport = existsSync(reportPath) ? JSON.parse(readFileSync(reportPath, 'utf8')) : null;
 const originalRevision = previousReport?.originalRevision ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const minRestTriangleArea = 1e-8;
+// E388: no invented tolerance. A weight sum can only be off by its storage's rounding, half a quantum per weight (glTF
+// stores WEIGHTS_0 as float32 or as normalized unsigned byte / short): for float32 4 × 2⁻²⁴ ≈ 2.4e-7, img2-character G4's 2e-7.
+const weightSumTolerance = (array, normalized) => 4 * (normalized && !(array instanceof Float32Array) ? 0.5 / (2 ** (8 * array.BYTES_PER_ELEMENT) - 1) : 2 ** -24);
+// The skin's deformation and the clips' joint speed are held to what the figure's shipped reactions already do: the
+// existing hit springs alone, measured in this run on the same figure (springBaseline). The first take (stretch 3.7–5.1×,
+// area down to 0.3 %) fails that bar; the approved bake passes it.
 const firstTake = previousReport?.beforeSkinRepair ?? (previousReport?.variants?.every((v) => v.unchangedFromHEAD)
   ? previousReport.variants.map((v) => ({ variant: v.variant, sourceSHA256: v.sha256, skins: v.skins,
     clips: v.clips.map((c) => ({ name: c.name, maxEdgeStretch: c.maxEdgeStretch,
@@ -97,8 +103,9 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
           if (weight[j] > 0 && (!Number.isInteger(index[j]) || index[j] < 0 || index[j] >= skin.listJoints().length)) invalidIndices++;
         }
       }
-      row.rawSkinAttributes.push({ maxWeightSumError, invalidWeights, invalidIndices });
-      if (maxWeightSumError > 0.015 || invalidWeights || invalidIndices) failures.push(`${variant}: invalid raw source skin attributes`);
+      const tolerance = weightSumTolerance(weights.getArray(), weights.getNormalized());
+      row.rawSkinAttributes.push({ maxWeightSumError, tolerance, invalidWeights, invalidIndices });
+      if (maxWeightSumError > tolerance || invalidWeights || invalidIndices) failures.push(`${variant}: invalid raw source skin attributes`);
     }
   }
   try {
@@ -161,8 +168,9 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
       maxWeightSumError: round(weightError), invalidWeights, invalidIndices,
       existingDegenerateTriangles: baseline[m].filter((t) => t.area < 1e-10).length,
       existingNumericalSliverTriangles: baseline[m].filter((t) => t.area >= 1e-10 && t.area < minRestTriangleArea).length });
-    if (bindError > 1e-4 || weightError > 0.015 || invalidWeights || invalidIndices) failures.push(`${variant}: invalid bind or weights`);
+    if (bindError > 1e-4 || weightError > weightSumTolerance(w.array, w.normalized) || invalidWeights || invalidIndices) failures.push(`${variant}: invalid bind or weights`);
   }
+  const deformations = [];
   for (const clip of clips) {
     for (const [bone, rest] of restBones) bone.quaternion.copy(rest);
     const mixer = new THREE.AnimationMixer(scene), action = mixer.clipAction(clip);
@@ -185,7 +193,7 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
         }
       }
     }
-    let finite = true, maxEdgeStretch = 1, minAreaRatio = 1, collapsedSamples = 0;
+    let finite = true, maxEdgeStretch = 1, minAreaRatio = 1;
     let maxFixedJointRotation = 0, seamPositionError = 0, maxDisplacement = 0, maxBaseDisplacement = 0;
     let worstStretch, worstCollapse;
     let firstPositions;
@@ -215,7 +223,6 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
                 weight: meshes[m].geometry.attributes.skinWeight.getComponent(v, j) })).filter((w) => w.weight > 0) })) });
           if (ratio < minAreaRatio) worstCollapse = detail();
           minAreaRatio = Math.min(minAreaRatio, ratio);
-          if (ratio < 0.05) collapsedSamples++;
           for (let e = 0; e < 3; e++) if (base.edges[e] > 1e-7) {
             const stretch = sample.edges[e] / base.edges[e];
             if (stretch > maxEdgeStretch) worstStretch = { ...detail(), edge: e, restEdgeLength: base.edges[e] };
@@ -241,12 +248,12 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
       maxKeyframeAngularSpeedDegreesPerSecond: round(maxKeyframeAngularSpeed * 180 / Math.PI),
       maxFixedJointRotationRadians: round(maxFixedJointRotation), seamPositionError: round(seamPositionError),
       maxVertexDisplacement: round(maxDisplacement), maxBaseDisplacement: round(maxBaseDisplacement), maxEdgeStretch: round(maxEdgeStretch),
-      minTriangleAreaRatio: round(minAreaRatio), collapsedTriangleSamples: collapsedSamples,
+      minTriangleAreaRatio: round(minAreaRatio),
       maxYawScaleLocalPositionError: round(yawLocalError), worstStretch, worstCollapse };
     row.clips.push(measured);
-    if (maxKeyframeRotationStep * 180 / Math.PI > 4.01 || maxKeyframeAngularSpeed * 180 / Math.PI > 120.3) failures.push(`${clip.name}: motion exceeds temporal step/speed gate`);
+    deformations.push({ name: clip.name, maxEdgeStretch, minAreaRatio, speed: maxKeyframeAngularSpeed * 180 / Math.PI });
     if (!finite || !finiteKeyframes || missingBindings || forbiddenTracks || maxQuaternionError > 1e-5 || maxFixedJointRotation > 1e-5 ||
-      seamPositionError > 1e-4 || maxBaseDisplacement > 1e-4 || maxEdgeStretch > 2 || collapsedSamples || yawLocalError > 1e-5) failures.push(`${clip.name}: numerical gate failed`);
+      seamPositionError > 1e-4 || maxBaseDisplacement > 1e-4 || yawLocalError > 1e-5) failures.push(`${clip.name}: numerical gate failed`);
     console.log(variant, clip.name, `stretch ${maxEdgeStretch.toFixed(4)}, minimum area ${minAreaRatio.toFixed(4)}, displacement ${maxDisplacement.toFixed(4)}`);
   }
   row.springComparison = [];
@@ -274,11 +281,17 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
       if (scenario.stagger !== null) motion.shove(scenario.py, 0.5, -0.85, scenario.stagger, mass);
       controller?.hit(scenario.headshot ? 'head-hit' : 'body-hit', scenario.amount / 25, mass);
       if (scenario.stagger !== null && scenario.stagger >= 0.7) controller?.hit('heavy-hit', 1 + scenario.stagger, mass);
-      let maxEdgeStretch = 1, minAreaRatio = 1, collapsedTriangleSamples = 0, finite = true, worstStretch, worstCollapse, maxBaseDisplacement = 0;
+      let maxEdgeStretch = 1, minAreaRatio = 1, finite = true, worstStretch, worstCollapse, maxBaseDisplacement = 0, maxJointSpeed = 0;
+      const previousPose = new Map();
       for (let frame = 0; frame <= 120; frame++) {
         if (frame > 0) motion.update(1 / 60);
         controller?.update(frame > 0 ? 1 / 60 : 0);
         pose.apply(motion, combined, combined ? gain : 1);
+        for (const bone of restBones.keys()) {
+          const before = previousPose.get(bone);
+          if (before) maxJointSpeed = Math.max(maxJointSpeed, before.angleTo(bone.quaternion) * 60);
+          previousPose.set(bone, bone.quaternion.clone());
+        }
         if (frame % 2 !== 0) continue;
         scene.updateMatrixWorld(true);
         for (let m = 0; m < meshes.length; m++) {
@@ -298,7 +311,6 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
                   weight: meshes[m].geometry.attributes.skinWeight.getComponent(v, j) })).filter((w) => w.weight > 0) })) });
             if (ratio < minAreaRatio) worstCollapse = detail();
             minAreaRatio = Math.min(minAreaRatio, ratio);
-            if (ratio < 0.05) collapsedTriangleSamples++;
             for (let e = 0; e < 3; e++) if (base.edges[e] > 1e-7) {
               const stretch = sample.edges[e] / base.edges[e];
               if (stretch > maxEdgeStretch) worstStretch = { ...detail(), edge: e, restEdgeLength: base.edges[e] };
@@ -308,13 +320,22 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
         }
       }
       result[combined ? 'clipsPlusSprings' : 'existingSpringsOnly'] = { finite,
-        gain: combined ? gain : 1, maxEdgeStretch: round(maxEdgeStretch), minTriangleAreaRatio: round(minAreaRatio), collapsedTriangleSamples,
-        maxBaseDisplacement: round(maxBaseDisplacement),
+        gain: combined ? gain : 1, maxEdgeStretch: round(maxEdgeStretch), minTriangleAreaRatio: round(minAreaRatio),
+        maxJointSpeedDegreesPerSecond: round(maxJointSpeed * 180 / Math.PI), maxBaseDisplacement: round(maxBaseDisplacement),
         worstStretch, worstCollapse };
-      if (combined && (!finite || maxBaseDisplacement > 1e-4 || maxEdgeStretch > 2 || collapsedTriangleSamples)) failures.push(`${variant}:${scenario.name}: combined runtime skin gate failed`);
+      if (combined && (!finite || maxBaseDisplacement > 1e-4)) failures.push(`${variant}:${scenario.name}: combined runtime skin gate failed`);
+      if (combined) deformations.push({ name: `${variant}:${scenario.name} clips + springs`, maxEdgeStretch, minAreaRatio, speed: maxJointSpeed * 180 / Math.PI });
     }
     row.springComparison.push(result);
     console.log(variant, scenario.name, `existing ${result.existingSpringsOnly.maxEdgeStretch}x / combined ${result.clipsPlusSprings.maxEdgeStretch}x`);
+  }
+  const shipped = row.springComparison.map((r) => r.existingSpringsOnly);
+  row.springBaseline = { maxEdgeStretch: Math.max(...shipped.map((r) => r.maxEdgeStretch)),
+    minTriangleAreaRatio: Math.min(...shipped.map((r) => r.minTriangleAreaRatio)),
+    maxJointSpeedDegreesPerSecond: Math.max(...shipped.map((r) => r.maxJointSpeedDegreesPerSecond)) };
+  for (const d of deformations) {
+    if (round(d.maxEdgeStretch) > row.springBaseline.maxEdgeStretch || round(d.minAreaRatio) < row.springBaseline.minTriangleAreaRatio) failures.push(`${d.name}: deforms the skin more than the shipped springs (stretch ${round(d.maxEdgeStretch)} vs ${row.springBaseline.maxEdgeStretch}, area ${round(d.minAreaRatio)} vs ${row.springBaseline.minTriangleAreaRatio})`);
+    if (round(d.speed) > row.springBaseline.maxJointSpeedDegreesPerSecond) failures.push(`${d.name}: turns a joint faster than the shipped springs (${round(d.speed)} vs ${row.springBaseline.maxJointSpeedDegreesPerSecond} °/s)`);
   }
   if (sha(source) !== row.sha256) failures.push(`${variant}: source GLB changed during verification`);
   rows.push(row);
@@ -323,8 +344,8 @@ const report = { schema: 1, originalRevision, motionPath, motionSHA256: sha(moti
   method: 'Three.js GLTFLoader with original Meshopt geometry and bind matrices; all vertices and all nondegenerate triangles, 61 samples per clip. Texture pixels substituted in memory only. Clips evaluated through AnimationMixer by bone name. Separate springComparison uses the actual DummyMotion, DummyPose and DummyClips TypeScript classes on four weapon hits at the arena material masses; existing springs alone and the new clips plus springs are sampled over two seconds at 30 Hz.',
   runtimeSourceSHA256: { dummyMotion: sha('src/engine/practice/DummyMotion.ts'), dummyClips: sha('src/engine/practice/DummyClips.ts') },
   units: 'original GLB model units, before TrainingDummyAssets game scaling',
-  limits: { maxBindPositionError: 0.0001, maxWeightSumError: 0.015, maxEdgeStretch: 2, minAreaRatio: 0.05,
-    maxKeyframeRotationStepDegrees: 4.01, maxKeyframeAngularSpeedDegreesPerSecond: 120.3,
+  limits: { maxBindPositionError: 0.0001, maxWeightSumError: 'half a storage quantum per weight, × 4 (float32: 4 × 2^-24)',
+    deformationAndJointSpeed: 'no worse than the variant\'s shipped springs alone, measured in this run (springBaseline): max edge stretch, min triangle area ratio, max joint speed',
     minRestTriangleArea, excludedSliverReason: 'Area below 1e-8 model units squared is already a numerical sliver in the original bind. These are counted separately; the same cutoff is used by the existing Blender dummy rig gate.',
     maxSeamPositionError: 0.0001, maxQuaternionLengthError: 0.00001, maxFixedJointRotationRadians: 0.00001,
     maxYawScaleLocalPositionError: 0.00001 },

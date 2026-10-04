@@ -8,8 +8,9 @@
 // Checks: G1 every clip moves the bones it targets (max rotation from bind, per clip) · G2 every skinned vertex finite ·
 // G3 the bind restores (skinned at the inverse bind matrices' own pose = the modelled mesh, max error) · G4 weights sum
 // to 1 · G5 joint indices in range · G6 every visible mesh bound (the arms skinned, the swords on R_weapon) · G9 no
-// joint scale in any clip · G10 the skin sweep: every clip × 6 times, the longest edge stretch and the smallest edge
-// squash against the bind (a tearing weight shows as a stretch) · grip: the right fingertips' distance to the grip axis
+// joint scale in any clip · G10 the skin sweep: every clip × 6 times, the tear test (the welded copies of one bind
+// position, which skin identically unless the skin splits there: any gap is a tear) and the longest edge stretch and
+// smallest squash against the bind, reported (E388: the old ≤ 2× stretch bar had no source) · grip: the right fingertips' distance to the grip axis
 // at rest (they close on the cord, not through it) · off-screen: the arms at idle stay under the canonical frame's top.
 // G7 (medial / lateral) and G8 (foot contact) are a whole-body figure's: not applicable to a first-person pair of arms.
 // --ply writes each listed pose as a vertex-coloured PLY (rig space) for scripts/blender/driftwood-isle/fp-arms/preview.py.
@@ -75,7 +76,9 @@ for (let i = 0; i < n; i++) {
   wErr = Math.max(wErr, Math.abs(1 - (SW.getX(i) + SW.getY(i) + SW.getZ(i) + SW.getW(i))));
   for (const k of [SI.getX(i), SI.getY(i), SI.getZ(i), SI.getW(i)]) if (k < 0 || k >= bones.length) badIdx++;
 }
-put('G4 weights sum to 1', wErr <= 2e-3, { maxError: wErr, note: 'weights are 8-bit normalised after meshopt: 1/255 steps' });
+// E388: the sum can only be off by the storage's rounding, half a quantum per weight (8-bit normalised after meshopt: 4 × 0.5 / 255)
+const wTol = 4 * (SW.normalized && !(SW.array instanceof Float32Array) ? 0.5 / (2 ** (8 * SW.array.BYTES_PER_ELEMENT) - 1) : 2 ** -24);
+put('G4 weights sum to 1', wErr <= wTol, { maxError: wErr, tolerance: wTol, note: 'half a storage quantum per weight, × 4' });
 put('G5 indices in range', badIdx === 0, { outOfRange: badIdx, joints: bones.length });
 // the bind: every joint's world at its bind. meshopt stores the positions quantised and folds the dequantisation T into
 // the inverse bind matrices (IBM' = IBM · T), so bind_j = T · IBM'_j⁻¹, and T = an arm joint's rest world · its IBM' (the
@@ -152,7 +155,13 @@ const bindLen = (() => {
   resetPose();
   return edges.map(([a, b]) => Math.hypot(s[a * 3] - s[b * 3], s[a * 3 + 1] - s[b * 3 + 1], s[a * 3 + 2] - s[b * 3 + 2]));
 })();
-let frames = 0, nonFinite = 0, maxStretch = 0, minSquash = Infinity, worstAt = '';
+// the welded copies: vertices at one bind position (the triangle soup repeats every shared corner)
+const welded = (() => {
+  const groups = new Map();
+  for (let i = 0; i < n; i++) { const key = `${P.getX(i)},${P.getY(i)},${P.getZ(i)}`; const g = groups.get(key); if (g === undefined) groups.set(key, [i]); else g.push(i); }
+  return [...groups.values()].filter((g) => g.length > 1);
+})();
+let frames = 0, nonFinite = 0, maxStretch = 0, minSquash = Infinity, worstAt = '', splitMax = 0, splitAt = '';
 const TIMES = [0, 0.2, 0.4, 0.6, 0.8, 1];
 for (const c of [{ name: 'rest', duration: 0 }, ...clips]) {
   for (const f of c.name === 'rest' ? [0] : TIMES) {
@@ -160,6 +169,13 @@ for (const c of [{ name: 'rest', duration: 0 }, ...clips]) {
     const s = skinned();
     frames++;
     for (let i = 0; i < s.length; i++) if (!Number.isFinite(s[i])) nonFinite++;
+    for (const g of welded) {
+      const [a] = g;
+      for (const b of g) {
+        const gap = Math.hypot(s[a * 3] - s[b * 3], s[a * 3 + 1] - s[b * 3 + 1], s[a * 3 + 2] - s[b * 3 + 2]);
+        if (gap > splitMax) { splitMax = gap; splitAt = `${c.name}@${f.toFixed(1)} v${a}/v${b}`; }
+      }
+    }
     edges.forEach(([a, b], k) => {
       const l0 = bindLen[k];
       if (l0 < 2e-4) return;
@@ -171,7 +187,7 @@ for (const c of [{ name: 'rest', duration: 0 }, ...clips]) {
   }
 }
 put('G2 deformation finite', nonFinite === 0, { frames, nonFinite });
-put('G10 skin sweep', maxStretch <= 2.0, { frames, clipsTimes: `${clips.length} clips × ${TIMES.length} times + rest`, maxEdgeStretch: Number(maxStretch.toFixed(3)), worstAt, minEdgeRatio: Number(minSquash.toFixed(3)), bar: 'no edge over 2× its bind length' });
+put('G10 skin sweep', splitMax === 0, { frames, clipsTimes: `${clips.length} clips × ${TIMES.length} times + rest`, weldedGroups: welded.length, seamSplitMax: splitMax, splitAt, maxEdgeStretch: Number(maxStretch.toFixed(3)), worstAt, minEdgeRatio: Number(minSquash.toFixed(3)), bar: 'the welded copies of every bind position stay together (a gap is a tear); stretch is reported' });
 // the grip: at rest, how far the right fingers' pads sit from the grip line (R_weapon's +y through its origin)
 {
   pose('rest', 0);

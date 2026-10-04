@@ -26,12 +26,12 @@ feel. NPC/creature rollout is a separate draft decision in [ANIMATION-REMASTER](
 | Clip sweep | 18/18 clips, 61 evaluated samples each; all vertices and meaningful triangles |
 | Runtime sweep | 12/12 actual controller + spring combinations, 61 samples each: light sword, charged sword, body bolt, head bolt on all three |
 | Original geometry / topology / bind / rest parity | Pass; weight edits only |
-| Maximum triangle edge stretch | 1.65235×, gate <2× |
-| Minimum triangle area vs rest | 6.9169%, gate >5% |
+| Maximum triangle edge stretch | 1.65235×; gate (E388): no more than the figure's shipped springs alone, measured in the same run (wood 1.83×, straw 2.07×, wood/steel 2.05×) |
+| Minimum triangle area vs rest | 6.9169%; gate (E388): no less than the shipped springs' minimum (2.2 %, 6.5 %, 10.9 %) |
 | Fixed base vertices / root / legs | Zero movement/rotation |
 | Loop seam | <7.7e-8 source units |
-| Maximum quaternion frame step | 4.00224°, gate ≤4.01° (120.067°/s) |
-| Weights / indices / finite poses / quaternion norms | Pass |
+| Maximum quaternion frame step | 4.00224° (120.067°/s), the bake's 4° per 30 Hz frame; gate (E388): joint speed no more than the shipped springs' (300–326°/s) |
+| Weights / indices / finite poses / quaternion norms | Pass; the weight sum within its float32 rounding (4 × 2⁻²⁴) |
 | Existing geometry exceptions | 20 degenerate and 48 numerical sliver triangles, explicitly counted; meaningful-area threshold 1e-8 matches the earlier Blender gate |
 | Focused runtime tests | Seven checks across clip data, repeated additive blending, hit springs and Rapier target behavior passed |
 

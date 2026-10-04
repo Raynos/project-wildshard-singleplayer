@@ -28,11 +28,9 @@ if title:
 for i, (t, row) in enumerate(zip(tiles, g["poses"])):
     x, y = (i % cols) * w, (i // cols) * h + head
     sheet.paste(t, (x, y))
-    bad = row["edges_over_2x"] > 0 or row["tris_collapsed"] > 0
     draw.rectangle([x, y, x + w - 1, y + 40], fill=(13, 27, 38))
     draw.text((x + 6, y + 3), row["pose"].upper(), fill=(143, 227, 255), font=font)
-    draw.text((x + 6, y + 21), f"max {row['stretch_max']}x  >2x {row['edges_over_2x']}  pinch {row['tris_collapsed']}",
-              fill=(255, 120, 110) if bad else (180, 220, 180), font=font)
+    draw.text((x + 6, y + 21), f"stretch {row['stretch_max']}x  min area {row['area_min']}", fill=(180, 220, 180), font=font)
     draw.rectangle([x, y, x + w - 1, y + h - 1], outline=(143, 227, 255))
 sheet.save(out, quality=86)
 print(out, sheet.size)
