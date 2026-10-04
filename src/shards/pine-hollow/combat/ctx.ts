@@ -4,10 +4,9 @@ import type { ItemId } from '@wildshard/game/Inventory';
 import type { SkinId } from '../loadout/skins';
 import type { PhShot } from '../audio/sfx';
 import { inspectBrain } from '@wildshard/engine/ai/inspect';
-import { canReach } from '@wildshard/engine/ai/reach';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { Game } from '@wildshard/engine/core/Game';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -19,6 +18,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
  */
 export interface PineCtx {
   game: Game; sky: Sky; player: Player; animals: AnimalManager;
+  reach: (actor: Animal, target: { x: number; y: number; z: number }) => boolean;
   /** `&bossGod=1`: nothing in Pine Hollow's fights hurts you (captures) */
   god: boolean;
   /** `a` hits you for `dmg` (main.ts's onCharge: health, the flash, the shove, the hurt arc, the shake) */
@@ -80,7 +80,9 @@ export class LaneCharge {
   private readonly spec: StrikeSpec;
   private tellT = 1;
   readonly tellDecal: GroundTell;
-  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, row: LaneOptions | StrikeSpec) {
+  private readonly reach: PineCtx['reach'];
+  constructor(scene: THREE.Scene, color: THREE.ColorRepresentation, row: LaneOptions | StrikeSpec, reach: PineCtx['reach'] = () => true) {
+    this.reach = reach;
     if ('shape' in row) {
       if (row.shape.kind !== 'lane') throw new Error('Lane view requires a lane strike');
       this.spec = row; this.o = { width: row.shape.width, speed: row.motion?.speed ?? 0, overshoot: row.motion?.overshoot ?? 0,
@@ -118,7 +120,7 @@ export class LaneCharge {
   update(a: Animal, dt: number, t: number, player: THREE.Vector3, hurt: (dmg: number) => void): void {
     const state = this.state; if (state === 'none') return;
     const elapsed = this.t + dt;
-    this.runner.update(dt, { actor: a, target: player, canReach: () => canReach(a, player), hit: (spec) => { hurt(spec.damage); } });
+    this.runner.update(dt, { actor: a, target: player, canReach: () => this.reach(a, player), hit: (spec) => { hurt(spec.damage); } });
     this.tellDecal.setTime(t);
     if (state === 'tell') {
       const k = Math.min(1, elapsed / this.tellT);

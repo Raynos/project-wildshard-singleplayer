@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../src/engine/app/runtime';
 import type { SpeciesRow } from '../src/engine/ai/species';
-import { Animal } from '../src/engine/entities/Animal';
+import { Animal } from '../src/engine/entities/AnimalView';
 import { AnimalFactory } from '../src/engine/entities/AnimalFactory';
 import { speciesWithLook } from '../src/engine/entities/species/look';
 import { speciesDef } from '../src/engine/entities/species/registry';

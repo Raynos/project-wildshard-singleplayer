@@ -4,7 +4,8 @@ import type * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import type { DamageRequest } from '../../combat/pipeline';
 import type { HuntTuning } from '../AnimalManager';
-import type { Animal, AnimalState } from '../Animal';
+import type { Animal } from '../AnimalView';
+import type { AnimalState } from '../AnimalSim';
 import type { SpeciesFlight } from '../../ai/flight';
 
 /**

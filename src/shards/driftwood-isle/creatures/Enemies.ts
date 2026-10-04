@@ -4,7 +4,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { worldTime } from '@wildshard/engine/core/time';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { ParticlePool } from '@wildshard/engine/fx/ParticlePool';
 import type { Body, BodySpec } from '@wildshard/engine/physics/bodies';

@@ -1,7 +1,7 @@
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
@@ -18,7 +18,7 @@ export const SWOOP: StrikeSpec = { id: 'sunscar.ray.swoop', shape: { kind: 'sphe
 
 type RayState = 'glide' | 'dive' | 'climb';
 /** Glide in a wide circle over the player, dive at the chest, swoop through, climb back out, rest, repeat. */
-export class DuneRayBrain extends CreatureBrain<RayState> {
+export class DuneRayBrain extends CreatureBrain<RayState, Animal> {
   private readonly strikes = new StrikeRunner();
   private readonly chest = new Vector3();
   private clock = 0; private rest: number = RAY.rest; private struck = false;

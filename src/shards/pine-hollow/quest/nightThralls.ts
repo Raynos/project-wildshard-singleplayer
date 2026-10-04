@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { NightBrain } from './nightBrain';
 import { TIER } from '@wildshard/engine/core/tier';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { variantDef } from '@wildshard/engine/entities/species/registry';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';

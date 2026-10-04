@@ -81,7 +81,7 @@ import type { ColliderDesc, ModelCategory, Pipeline } from '../world/registry';
 import type { Material } from '../physics/surface';
 import type { Rng } from '../core/rng';
 import type { SkyRig as Sky } from '../world/skyRig';
-import type { Animal } from '../entities/Animal';
+import type { Animal } from '../entities/AnimalView';
 import type { WeldBuild } from './weld';
 import type { Renderer } from '../render/renderer';
 

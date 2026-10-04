@@ -2,7 +2,7 @@ import { NALATI_STRIKES, sampleStrike, sampleArena } from './strikes';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Game } from '@wildshard/engine/core/Game';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { listenPage } from '@wildshard/engine/input/dom';
@@ -297,7 +297,7 @@ export class GoldenKingFight implements BossScript {
           const pl = this.host.player.position;
           if (dist <= REACH * (wide ? 1.1 : 1) && Math.abs(off) < (wide ? 1.35 : 0.95) && pl.y < a.position.y + 2.6) {
             const spec = NALATI_STRIKES.cuts[i] ?? NALATI_STRIKES.cuts[0];
-            if (spec !== undefined && sampleStrike(spec, a, pl, () => { this.host.hurt(STRIKE_DMG[i] ?? 14); }, { reach: () => canReach(a, pl) })) this.shove(a, wide ? 5 : 3);
+            if (spec !== undefined && sampleStrike(spec, a, pl, () => { this.host.hurt(STRIKE_DMG[i] ?? 14); }, { reach: () => canReach(a, pl, app.physics) })) this.shove(a, wide ? 5 : 3);
           }
         }
         if (atk >= 1) {
@@ -459,7 +459,7 @@ export class GoldenKingFight implements BossScript {
       const dp = Math.hypot(pl.x - r.cx, pl.z - r.cz);
       if (!r.hit && Math.abs(dp - r.r) < 0.5 && pl.y - floorY < 0.4) {
         r.hit = true;
-        sampleArena(NALATI_STRIKES.sunburst, _v.set(r.cx, pl.y, r.cz), pl, () => { this.host.hurt(SUNBURST_DMG, true); }, { ringRadius: r.r });
+        sampleArena(NALATI_STRIKES.sunburst, _v.set(r.cx, pl.y, r.cz), pl, () => { this.host.hurt(SUNBURST_DMG, true); }, app.physics, { ringRadius: r.r });
         this.host.player.dash((pl.x - r.cx) / Math.max(0.1, dp) * 9, (pl.z - r.cz) / Math.max(0.1, dp) * 9, 0.18);
       }
       vis.mesh.visible = true;
@@ -524,7 +524,7 @@ export class GoldenKingFight implements BossScript {
         d.addSand(vis.x, vis.z, 2.4, 0.2 * dt * k, 0.95);
         // standing under it: the sand beats down on you
         const pl = this.host.player.position;
-        if (Math.hypot(pl.x - DUNGEON.x - vis.x, pl.z - DUNGEON.z - vis.z) < 0.55 && app.rng.stream('ai').next() < dt * 2) sampleArena(NALATI_STRIKES.sand, _v.set(DUNGEON.x + vis.x, pl.y, DUNGEON.z + vis.z), pl, () => { this.host.hurt(4, true); });
+        if (Math.hypot(pl.x - DUNGEON.x - vis.x, pl.z - DUNGEON.z - vis.z) < 0.55 && app.rng.stream('ai').next() < dt * 2) sampleArena(NALATI_STRIKES.sand, _v.set(DUNGEON.x + vis.x, pl.y, DUNGEON.z + vis.z), pl, () => { this.host.hurt(4, true); }, app.physics);
         if (s.t > 6 || !pouring) { s.st = 0; s.t = 0; }
       }
     }
@@ -555,7 +555,7 @@ export class GoldenKingFight implements BossScript {
     // it burns: you (15, once a second) and him (50 when you lure him through it)
     const pl = this.host.player.position;
     this.beamHitCd -= dt; this.beamKingCd -= dt;
-    if (this.beamHitCd <= 0 && Math.hypot(pl.x - DUNGEON.x - cx, pl.z - DUNGEON.z - cz) < BEAM_HIT_R) { this.beamHitCd = 1; sampleArena(NALATI_STRIKES.beam, _v.set(DUNGEON.x + cx, pl.y, DUNGEON.z + cz), pl, () => { this.host.hurt(BEAM_DMG, true); }); }
+    if (this.beamHitCd <= 0 && Math.hypot(pl.x - DUNGEON.x - cx, pl.z - DUNGEON.z - cz) < BEAM_HIT_R) { this.beamHitCd = 1; sampleArena(NALATI_STRIKES.beam, _v.set(DUNGEON.x + cx, pl.y, DUNGEON.z + cz), pl, () => { this.host.hurt(BEAM_DMG, true); }, app.physics); }
     const k = this.king;
     if (k && k.alive && this.beamKingCd <= 0 && !this.invuln && Math.hypot(k.position.x - DUNGEON.x - cx, k.position.z - DUNGEON.z - cz) < BEAM_HIT_R + 0.3) {
       this.beamKingCd = 3;

@@ -1,4 +1,4 @@
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { PineCtx, LaneCharge } from './ctx';
 import { headingTo } from './combatMath';
 import { pineContact, PINE_STRIKES } from './strikes';
@@ -13,7 +13,7 @@ export abstract class AntlerKingGoals {
   protected modeT = 0;
   protected sweepCd = 2; protected stompCd = 4; protected callCd = 0; protected laneN = 0;
   protected open = 0;
-  protected abstract readonly ctx: Pick<PineCtx, 'player' | 'hurt' | 'trauma' | 'shot'>;
+  protected abstract readonly ctx: Pick<PineCtx, 'reach' | 'player' | 'hurt' | 'trauma' | 'shot'>;
   protected abstract readonly tellRing: GoalTell;
   protected abstract readonly waves: readonly { on: boolean }[];
   protected abstract readonly lane: LaneCharge;
@@ -48,7 +48,7 @@ export abstract class AntlerKingGoals {
         this.tellRing.ring(k.position.x, k.position.z, SWEEP_R, 0.3 + 0.6 * kk * (0.75 + 0.25 * Math.sin(t * 24)));
         if (this.modeT >= 0.9) {
           this.tellRing.hide();
-          pineContact(k, p, PINE_STRIKES.sweep, (damage) => { this.ctx.hurt(k, damage); this.ctx.trauma(0.45); });
+          pineContact(k, p, PINE_STRIKES.sweep, (damage) => { this.ctx.hurt(k, damage); this.ctx.trauma(0.45); }, () => this.ctx.reach(k, p));
           this.ctx.trauma(0.15);
           this.sweepCd = 5; this.setMode('stalk');
         }

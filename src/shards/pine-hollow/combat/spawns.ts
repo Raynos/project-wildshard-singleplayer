@@ -1,6 +1,6 @@
 import type { SpawnTableRow, Spawner } from '@wildshard/engine/ai/encounters';
 import { app } from '@wildshard/engine/app/runtime';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { retire } from './ctx';
 

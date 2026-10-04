@@ -1,7 +1,7 @@
 import { elitesSave } from './saves';
 import * as THREE from 'three';
 import { resourceScope } from '@wildshard/engine/app/resources';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { fxMaterial, annulus, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
 import type { Renderer } from '@wildshard/engine/render/renderer';

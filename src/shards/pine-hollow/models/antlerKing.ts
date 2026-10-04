@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Animal } from '@wildshard/engine/entities/Animal';
+import { Animal } from '@wildshard/engine/entities/AnimalView';
 import { skinPlain, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '@wildshard/engine/models/creature';

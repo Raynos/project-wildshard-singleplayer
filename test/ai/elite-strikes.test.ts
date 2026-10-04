@@ -4,7 +4,7 @@ import { canReach } from '../../src/engine/ai/reach';
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
-import type { Animal } from '../../src/engine/entities/Animal';
+import type { Animal } from '../../src/engine/entities/AnimalView';
 import { wildEnv } from '../../src/shards/nalati-grasslands/creatures/env';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { legacyMethods } from '../fake/legacySource';
@@ -20,7 +20,7 @@ const noOp = (): void => undefined;
 const tell = (): object => ({ setTime: noOp, ring: noOp, hide: noOp, lane: noOp });
 function elite(name: string, fields: Record<string, unknown>) {
   const f = creature('crab', 'small'), hits: number[] = [];
-  const env = { player: { position: f.ctx.player }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
+  const env = { reach: () => true, player: { position: f.ctx.player }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
     knock: vi.fn(noOp), feed: vi.fn(noOp), sound: vi.fn(noOp), bar: { chevron: noOp }, game: f.game };
   const proto = legacyMethods(file, name, { app, THREE, _v: new THREE.Vector3(), _w: new THREE.Vector3(), heightAt: () => 0, wildEnv });
   const actor = legacyActor(proto, { animal: f.animal, env, engagement: noOp, p2: false, stT: 0, cd: 0,
@@ -81,7 +81,7 @@ describe('Pine elite contacts and the nonattacking Ghost Stag', () => {
       inChunk: () => true, voice: (): void => undefined, _v: new THREE.Vector3() };
     const proto = legacyMethods(path, name, globals), base = legacyMethods(path, 'PineElite', globals);
     Object.setPrototypeOf(base, EliteBrain.prototype); Object.setPrototypeOf(proto, base);
-    const env = { player: { position: f.ctx.player, yaw: 0 }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
+    const env = { reach: () => true, player: { position: f.ctx.player, yaw: 0 }, hurt: (_a: Animal, d: number): void => { hits.push(d); },
       puffs: { burst: noOp }, trauma: noOp, stun: vi.fn(noOp), god: false, animals: {} };
     const actor = legacyActor(proto, { env, ports: { player: env.player, random: Math.random }, p2: false, modeT: 0, sig: noOp, def: { lair: { x: 0, z: 0 }, leashR: 110 }, ...fields });
     return { ...f, actor, env, hits };

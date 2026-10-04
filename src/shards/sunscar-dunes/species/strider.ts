@@ -1,7 +1,7 @@
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
@@ -25,7 +25,7 @@ type StrideState = 'graze' | 'notice' | 'fight';
  * Grazes slowly round its home, notices a walker, turns to face them, then fights: a pawed, committed charge from
  * range (it skids and stands winded after, the time to whip it), a horn sweep up close.
  */
-export class StriderBrain extends CreatureBrain<StrideState> {
+export class StriderBrain extends CreatureBrain<StrideState, Animal> {
   private readonly strikes = new StrikeRunner();
   private clock = 0; private readonly homeX: number; private readonly homeZ: number;
   constructor(actor: Animal) { super(actor, ['graze', 'notice', 'fight']); this.homeX = actor.position.x; this.homeZ = actor.position.z; }

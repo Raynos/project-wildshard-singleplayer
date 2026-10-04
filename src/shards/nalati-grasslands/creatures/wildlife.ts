@@ -1,5 +1,5 @@
 import { Rng } from '@wildshard/engine/core/rng';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt, terrainNormal as normalAt, terrainWaterLevel as waterLevel } from '@wildshard/engine/world/terrainHeight';

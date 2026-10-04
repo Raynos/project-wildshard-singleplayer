@@ -4,7 +4,7 @@ import { EliteBrain } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { inChunk } from '@wildshard/engine/world/Heightfield';
@@ -166,7 +166,7 @@ class Ironhide extends PineElite {
   again = false;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
-    this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.ironhide);
+    this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.ironhide, this.env.reach);
   }
   protected override clearTells(): void { this.lane.cancel(); }
   force(): void { const a = this.animal; if (a) { const p = this.env.player.position; this.lane.start(a, p.x, p.z, 60); this.setMode('charge'); } }
@@ -227,7 +227,7 @@ class Blackpaw extends PineElite {
   constructor(def: EliteDef, env: Env) {
     super(def, env);
     this.ring = new GroundTell(env.game.scene, 'ring', TELL_RED);
-    this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.blackpaw);
+    this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.blackpaw, this.env.reach);
   }
   protected override onSpawn(a: Animal): void { this.lurk(a); }
   protected override clearTells(): void { this.ring.hide(); this.lane.cancel(); this.swipeT = -1; }
@@ -273,8 +273,8 @@ class ImperialBull extends PineElite {
   bugledPhase = -1;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
-    this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.imperial);
-    this.rivalLanes = [0, 1].map(() => new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.rival));
+    this.lane = new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.imperial, this.env.reach);
+    this.rivalLanes = [0, 1].map(() => new LaneCharge(env.game.scene, TELL_RED, PINE_LANES.rival, this.env.reach));
   }
   protected override clearTells(): void { this.lane.cancel(); }
   override reset(): void { super.reset(); this.releaseRivals(); this.bugledPhase = -1; }

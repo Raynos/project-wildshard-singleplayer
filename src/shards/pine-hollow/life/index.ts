@@ -8,7 +8,7 @@ import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService
 import type { Game } from '@wildshard/engine/core/Game';
 import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import type { Player } from '@wildshard/engine/player/Player';

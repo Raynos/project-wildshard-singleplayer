@@ -5,7 +5,7 @@ import { PlayerHealth } from '../../src/engine/combat/health';
 import { encounterHit } from '../../src/shards/nalati-grasslands/combat/damage';
 import * as THREE from 'three';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { Animal } from '../../src/engine/entities/Animal';
+import { Animal } from '../../src/engine/entities/AnimalView';
 import { AnimalManager } from '../../src/engine/entities/AnimalManager';
 import { loadRapier } from '../../src/engine/physics/rapier';
 import { Physics } from '../../src/engine/physics/Physics';
@@ -74,12 +74,12 @@ describe('Titan arena contact cover policy', () => {
   it.each([NALATI_STRIKES.spear, NALATI_STRIKES.whirl, NALATI_STRIKES.wind])('$id uses the real wall at the contact frame', spec => {
     const origin = new THREE.Vector3(0, 0, 2.5), player = new THREE.Vector3(); let hits = 0;
     const hit = (): void => { hits++; };
-    arena(1.2, 'felt'); expect(sampleArena(spec, origin, player, hit)).toBe(false); expect(hits).toBe(0);
-    arena(null); expect(sampleArena(spec, origin, player, hit)).toBe(true); expect(hits).toBe(1);
+    arena(1.2, 'felt'); expect(sampleArena(spec, origin, player, hit, app.physics)).toBe(false); expect(hits).toBe(0);
+    arena(null); expect(sampleArena(spec, origin, player, hit, app.physics)).toBe(true); expect(hits).toBe(1);
   });
   it.each([NALATI_STRIKES.chain, NALATI_STRIKES.fire, NALATI_STRIKES.wall])('$id retains its authored arena exemption', spec => {
     arena(1.2, 'stone'); let hits = 0;
-    expect(sampleArena(spec, new THREE.Vector3(0, 0, 2.5), new THREE.Vector3(), () => { hits++; })).toBe(true);
+    expect(sampleArena(spec, new THREE.Vector3(0, 0, 2.5), new THREE.Vector3(), () => { hits++; }, app.physics)).toBe(true);
     expect(hits).toBe(1);
   });
 });

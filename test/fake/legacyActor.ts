@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Weapon } from '../../src/engine/combat/Weapon';
 import type { Player } from '../../src/engine/player/Player';
-import { Animal } from '../../src/engine/entities/Animal';
+import { Animal } from '../../src/engine/entities/AnimalView';
 import type { TargetAnimal } from '../../src/engine/combat/types';
 import { legacyDouble } from './FakeGame';
 

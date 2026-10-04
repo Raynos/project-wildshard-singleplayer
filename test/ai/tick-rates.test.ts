@@ -1,7 +1,7 @@
 import { registerSpecies, speciesDef } from '../../src/engine/entities/species/registry';
 import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
-import type { Animal } from '../../src/engine/entities/Animal';
+import type { Animal } from '../../src/engine/entities/AnimalView';
 import { getActiveChunk, setActiveChunk } from '../../src/game/shard/registry';
 import { manager } from '../fake/manager';
 import { pinBrain } from '../../src/engine/ai/inspect';

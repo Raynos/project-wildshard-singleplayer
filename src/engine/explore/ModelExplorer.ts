@@ -33,7 +33,7 @@ import { TIERS } from './tiers';
 import { TIER as CURRENT_TIER, type Tier } from '../core/tier';
 import { frameBudget } from '../render/budgetReport';
 import { activeLevel } from '../level/selection';
-import type { Animal } from '../entities/Animal';
+import type { Animal } from '../entities/AnimalView';
 import type { DrawnAs, Pipeline } from '../world/registry';
 import type { LightPreset, DayCycleClock } from '../world/dayCycle';
 import { app } from '../app/runtime';

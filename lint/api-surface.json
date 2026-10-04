@@ -3845,36 +3845,6 @@
         "from": "@wildshard/engine/debug/probe"
       },
       {
-        "name": "Animal",
-        "kind": "class",
-        "doc": "",
-        "from": "@wildshard/engine/entities/Animal"
-      },
-      {
-        "name": "AnimalState",
-        "kind": "type",
-        "doc": "Animal — one animal instance (any registered species): procedural skeletal animation + health.",
-        "from": "@wildshard/engine/entities/Animal"
-      },
-      {
-        "name": "DAMAGE",
-        "kind": "const",
-        "doc": "Bolt damage: body 32–40 (a deer takes two, a boar three), ×2.5 to the head (one kills a deer); fades to 60 % from 40 to 90 m.",
-        "from": "@wildshard/engine/entities/Animal"
-      },
-      {
-        "name": "damageFor",
-        "kind": "function",
-        "doc": "The DAMAGE model for one bolt: a body hit from `dist` m (falloff past 40 m), ×headMul for the head.",
-        "from": "@wildshard/engine/entities/Animal"
-      },
-      {
-        "name": "P_COUNT",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/engine/entities/Animal"
-      },
-      {
         "name": "AnimalFactory",
         "kind": "class",
         "doc": "",
@@ -3987,6 +3957,66 @@
         "kind": "interface",
         "doc": "",
         "from": "@wildshard/engine/entities/AnimalManager"
+      },
+      {
+        "name": "AnimalMotor",
+        "kind": "interface",
+        "doc": "Collision-only displacement port; the creature retains its own feet position.",
+        "from": "@wildshard/engine/entities/AnimalSim"
+      },
+      {
+        "name": "AnimalSim",
+        "kind": "class",
+        "doc": "Creature state and motion. All world services arrive as ports; there is no scene, rig or active app.",
+        "from": "@wildshard/engine/entities/AnimalSim"
+      },
+      {
+        "name": "AnimalSimPorts",
+        "kind": "interface",
+        "doc": "Per-host world height, time, random stream and optional damage pipeline.",
+        "from": "@wildshard/engine/entities/AnimalSim"
+      },
+      {
+        "name": "AnimalSimSpec",
+        "kind": "interface",
+        "doc": "Authored creature health, dimensions and motion settings, without a rig.",
+        "from": "@wildshard/engine/entities/AnimalSim"
+      },
+      {
+        "name": "AnimalState",
+        "kind": "type",
+        "doc": "Shared behaviour state consumed by simulation and pose adapters.",
+        "from": "@wildshard/engine/entities/AnimalSim"
+      },
+      {
+        "name": "DAMAGE",
+        "kind": "const",
+        "doc": "Legacy bolt base damage and range falloff shared by client and simulation.",
+        "from": "@wildshard/engine/entities/AnimalSim"
+      },
+      {
+        "name": "damageFor",
+        "kind": "function",
+        "doc": "Sample the legacy bolt formula from an explicit gameplay random source.",
+        "from": "@wildshard/engine/entities/AnimalSim"
+      },
+      {
+        "name": "Animal",
+        "kind": "class",
+        "doc": "Client creature view over headless state: rigs, animation, material LOD and corpse presentation.",
+        "from": "@wildshard/engine/entities/AnimalView"
+      },
+      {
+        "name": "damageFor",
+        "kind": "function",
+        "doc": "Seeded legacy bolt formula shared with the headless simulation.",
+        "from": "@wildshard/engine/entities/AnimalView"
+      },
+      {
+        "name": "P_COUNT",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/engine/entities/AnimalView"
       },
       {
         "name": "eliteAct",

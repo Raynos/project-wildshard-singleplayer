@@ -1,6 +1,6 @@
 import type { HuntTuning } from '../entities/AnimalManager';
 import type { VariantMods, Rarity, ThinkCtx } from '../entities/species/registry';
-import type { Animal } from '../entities/Animal';
+import type { Animal } from '../entities/AnimalView';
 import type { SpeciesFlight } from './flight';
 
 /** Gameplay data only. A procedural builder, palette or hull never belongs on this row. */

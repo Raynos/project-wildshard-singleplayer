@@ -1,7 +1,7 @@
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
@@ -17,7 +17,7 @@ export const WISP = { circle: 5, dart: 13, notice: 14, shove: 7, lift: 2.5 } as 
 type WispState = 'drift' | 'dart';
 
 /** A gale wisp drifts in a small circle 3 m over its island; when you come close it gathers, darts at your chest and bursts. */
-export class GaleWispBrain extends CreatureBrain<WispState> {
+export class GaleWispBrain extends CreatureBrain<WispState, Animal> {
   private readonly strikes = new StrikeRunner(); private angle = 0; private dart = 0; private readonly chest = new Vector3();
   constructor(actor: Animal) { super(actor, ['drift', 'dart']); }
   private strike(ctx: ThinkCtx): StrikeContext { const a = this.actor; this.chest.copy(ctx.player); this.chest.y += 1.2;

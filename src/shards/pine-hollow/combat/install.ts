@@ -9,7 +9,7 @@ import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import type { Game } from '@wildshard/engine/core/Game';
 import { perfLap } from '@wildshard/engine/core/perfLap';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { lineOfSight } from '@wildshard/engine/physics/query';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
@@ -92,9 +92,10 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   for (const id of ['ironhide', 'ghost-stag', 'blackpaw', 'imperial', 'warden'] as const) { const m = buildSkin(id); m.visible = false; park.add(m); parked.set(id, m); }
   const ctx: PineCtx = {
     game, sky, player, animals, god,
+    reach: (actor, target) => canReach(actor, target, app.physics),
     hurt: (a, dmg, throughWalls = false) => {
       const target = app.player;
-      if (god || target === null || (!throughWalls && !canReach(a, player.position))) return;
+      if (god || target === null || (!throughWalls && !canReach(a, player.position, app.physics))) return;
       app.combat.hit({ source: a.combatActor(), sourceTags: [a.kind === KING_KIND ? `boss.${a.kind}` : `creature.${a.kind}`, 'feel.blow', 'cover.checked'],
         target, amount: dmg, point: a.position, dir: new THREE.Vector3(), throughWalls, cause: { kind: a.kind, label: a.label } });
     },

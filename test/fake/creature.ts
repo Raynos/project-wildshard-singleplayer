@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Animal } from '../../src/engine/entities/Animal';
+import { Animal } from '../../src/engine/entities/AnimalView';
 import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { speciesDef, type ThinkCtx, type EnemyWorld } from '../../src/engine/entities/species/registry';
 import { Rng } from '../../src/engine/core/rng';

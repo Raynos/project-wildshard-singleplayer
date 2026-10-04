@@ -14,7 +14,7 @@ import { engineString } from '../strings';
  */
 import * as THREE from 'three';
 import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
-import { Animal } from '../entities/Animal';
+import { Animal } from '../entities/AnimalView';
 import { hasSpecies, speciesDef } from '../entities/species/registry';
 import { app } from '../app/runtime';
 import type { SkyRig as Sky } from '../world/skyRig';

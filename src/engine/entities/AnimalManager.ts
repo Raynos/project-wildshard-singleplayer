@@ -18,7 +18,7 @@ import type { Forest } from '../world/forest/Forest';
 import type { SkyRig as Sky } from '../world/skyRig';
 import { creatureSoundDefaults, speciesDef, variantDef, rollVariant, type EnemyWorld, type ThinkCtx } from './species/registry';
 import { AnimalFactory, type AnimalKind, type AnimalModel, type AnimalStyle } from './AnimalFactory';
-import { Animal, damageFor } from './Animal';
+import { Animal, damageFor } from './AnimalView';
 import { creatureFloor } from './creatureFloor';
 import { killBelowWorld } from './killHeight';
 import { attachShadowCaster } from './animalShadow';
@@ -1118,7 +1118,7 @@ export class AnimalManager {
    * short of the attacker's own body (so one brushing a wall, or a big one half inside a rock, still reaches you). Creatures
    * never block. Asked on the frame a hit would land (and by `ThinkCtx.reach` before a swing): one ray, not per frame.
    */
-  private canReach(a: Animal, player: THREE.Vector3): boolean { return canReach(a, player); }
+  private canReach(a: Animal, player: THREE.Vector3): boolean { return canReach(a, player, app.physics); }
 
   /** the player is within ±`arc` of the animal's heading */
   private facing(a: Animal, player: THREE.Vector3, arc: number): boolean {

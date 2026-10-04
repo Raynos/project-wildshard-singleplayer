@@ -1,7 +1,7 @@
 import { app } from '@wildshard/engine/app/runtime';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { TIER } from '@wildshard/engine/core/tier';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 

@@ -1198,6 +1198,10 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 
 ## 19. Creatures and AI
 
+Import `AnimalSim` from `@wildshard/engine/entities/AnimalSim` for creature state, motion, attack clocks, geometric perception and damage without a rig. Its `AnimalSimSpec` supplies authored dimensions and multipliers; `AnimalSimPorts` supplies height, floor, time, random and damage services, and `AnimalMotor` supplies collision displacement. `step(dt)` advances the body and attack clock. Every instance has a stable `entityId`.
+
+The client imports `Animal` from `@wildshard/engine/entities/AnimalView`. It extends the same simulation and retains skeletal pose, posed hit volumes, LOD, hit flash and ragdolls. `canReach(actor, target, physics)` requires the owning physics world explicitly.
+
 A creature is two rows: a `SpeciesRow` (simulation) and a `SpeciesLook` (render). Register both in `kit`.
 
 **Creature coordinates.** A creature faces **+Z** in model space (+Y up, +X right). Each `BoneDef.pos` is an
@@ -1669,7 +1673,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1647 exports, grouped by the module to import them from.
+1651 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1779,9 +1783,10 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/core/tier`: `_buildAs`, `applyLevelTier`, `automaticTier`, `buildTier`, `frameCapFps`, `frameProbe`, `gfxPrefs`, `GfxPrefs`, `initializeTier`, `MOBILE_DEVICE`, `practiceFps`, `saveGfxPrefs`, `Tier`, `TIER`, `TIER_CONFIG`
 - `@wildshard/engine/core/time`: `worldTime`
 - `@wildshard/engine/debug/probe`: `CombatTarget`, `compiledProgramHash`, `createProbeNav`, `EngineProbe`, `Fingerprint`, `GameplayState`, `GpuBytes`, `HarnessPins`, `installProbe`, `LeakCensus`, `LeakResult`, `ProbeApp`, `ProbeDeps`, `ProbeNav`, `ProbePose`, `ProbeWorld`, `programHash`, `ResourceCounts`, `Saves`, `SoundLog`, `Vec3`, `WalkLeg`, `WalkResult`
-- `@wildshard/engine/entities/Animal`: `Animal`, `AnimalState`, `DAMAGE`, `damageFor`, `P_COUNT`
 - `@wildshard/engine/entities/AnimalFactory`: `AnimalFactory`, `AnimalKind`, `AnimalMaterial`, `AnimalModel`, `AnimalRig`, `AnimalStyle`, `AnimalVariant`, `DEFAULT_CREATURE_RENDER`, `SHELL_LAYERS`
 - `@wildshard/engine/entities/AnimalManager`: `AnimalHit`, `AnimalManager`, `AnimalSound`, `BOAR_TUNING`, `BodyClearable`, `clearBody`, `DEER_TUNING`, `Herd`, `HuntTuning`, `WanderGoalQuery`
+- `@wildshard/engine/entities/AnimalSim`: `AnimalMotor`, `AnimalSim`, `AnimalSimPorts`, `AnimalSimSpec`, `AnimalState`, `DAMAGE`, `damageFor`
+- `@wildshard/engine/entities/AnimalView`: `Animal`, `damageFor`, `P_COUNT`
 - `@wildshard/engine/entities/eliteBrain`: `eliteAct`, `eliteDamageMul`, `eliteThink`, `setEliteAct`, `setEliteBrain`, `setEliteDamage`
 - `@wildshard/engine/entities/lowpoly`: `crestSpikes`, `facetGeometry`, `lowPolyMaterials`, `LowPolyMaterials`, `oneMaterial`, `patchEyeGlow`
 - `@wildshard/engine/entities/species/loft`: `boneIndex`, `isLowPoly`, `loft`, `lowPolySides`, `mix`, `Paint`, `paintNoise`, `paletteColors`, `registerToonPaint`, `RGB`, `S`, `setLowPoly`, `setShag`, `setShapeFn`, `skinPlain`, `srgb`, `Station`, `TEX_M`, `toonPaint`, `ToonPaint`, `tube`

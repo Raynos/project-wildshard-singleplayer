@@ -1,7 +1,7 @@
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { Vector3, type BufferGeometry } from 'three';
@@ -32,7 +32,7 @@ export const BUFFET: StrikeSpec = { id: 'sunscar.matriarch.buffet', shape: { kin
   range: 10.5, damage: 12, tags: ['creature.duneMatriarch'], units: 'world', weight: () => 1 };
 
 type MatriarchState = 'circle' | 'dive' | 'climb' | 'grounded';
-export class MatriarchBrain extends CreatureBrain<MatriarchState> {
+export class MatriarchBrain extends CreatureBrain<MatriarchState, Animal> {
   private readonly strikes = new StrikeRunner();
   private readonly chest = new Vector3();
   private clock = 0; private wait = 3; private struck = false;

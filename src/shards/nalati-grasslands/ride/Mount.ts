@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import { Animal } from '@wildshard/engine/entities/Animal';
+import { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { InputService } from '@wildshard/engine/input/InputService';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { castRay, floorBelow } from '@wildshard/engine/physics/query';

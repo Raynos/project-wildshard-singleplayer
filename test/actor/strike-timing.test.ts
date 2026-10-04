@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vites
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { LaneCharge } from '../../src/shards/pine-hollow/combat/ctx';
 import { AnimalManager } from '../../src/engine/entities/AnimalManager';
-import { Animal } from '../../src/engine/entities/Animal';
+import { Animal } from '../../src/engine/entities/AnimalView';
 import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { getActiveChunk, setActiveChunk } from '../../src/game/shard/registry';
 import { fakeWorld } from '../fake/world';

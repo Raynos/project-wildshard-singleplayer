@@ -98,14 +98,14 @@ describe('boss contacts executed through original production methods', () => {
   it.each([false, true])('S36 Antler root-ring jump%s keeps its20 damage and .9m half width', (jump) => {
     const f = creature('crab', 'small'), hurt = vi.fn(noop), pos = new THREE.Vector3(KINGS_CLEARING.x, 0, KINGS_CLEARING.z + 5);
     f.animal.position.set(KINGS_CLEARING.x, 0, KINGS_CLEARING.z);
-    const fight = legacyActor(AntlerKingFight.prototype, { ctx: { player: { position: pos, onGround: !jump }, hurt, trauma: noop },
+    const fight = legacyActor(AntlerKingFight.prototype, { ctx: { reach: () => true, player: { position: pos, onGround: !jump }, hurt, trauma: noop },
       waves: [{ on: true, delay: 0, r: 4.4, hit: false, g: tell() }] });
     invokeLegacy(fight, 'tickWaves', f.animal, 1 / 60, 0); invokeLegacy(fight, 'tickWaves', f.animal, 1 / 60, 1);
     expect(hurt).toHaveBeenCalledTimes(jump ? 0 : 1); if (!jump) expect(hurt).toHaveBeenCalledWith(f.animal, 20, true);
   });
   it('S39 fallen lanterns deliver9 per .8s only inside the3m fire zone', () => {
     const f = creature('crab', 'small'), hurt = vi.fn(noop), flame = visual();
-    const fight = legacyActor(AntlerKingFight.prototype, { ctx: { player: { position: new THREE.Vector3() }, hurt },
+    const fight = legacyActor(AntlerKingFight.prototype, { ctx: { reach: () => true, player: { position: new THREE.Vector3() }, hurt },
       fallen: [{ fallT: 1, x: 0, y: 0, z: 0, flame, ring: tell(), acc: 0 }], darkK: 0, won: false, king: f.animal });
     invokeLegacy(fight, 'hazards', 0.79, 0, true); expect(hurt).not.toHaveBeenCalled();
     invokeLegacy(fight, 'hazards', 0.02, 0.81, true); expect(hurt).toHaveBeenCalledWith(f.animal, 9, true);
@@ -142,7 +142,7 @@ describe('boss contacts executed through original production methods', () => {
   it('S35 Antler sweep hits24 after .9s in the near arc', () => {
     const f = creature('crab', 'small'), hurt = vi.fn(noop);
     const fight = legacyActor(AntlerKingFight.prototype, { mode: 'sweep', modeT: 0.89, open: 0, sweepCd: 0, stompCd: 10, callCd: 10,
-      ctx: { player: { position: f.ctx.player }, hurt, trauma: noop }, tellRing: tell(), tickWaves: noop });
+      ctx: { reach: () => true, player: { position: f.ctx.player }, hurt, trauma: noop }, tellRing: tell(), tickWaves: noop });
     invokeLegacy(fight, 'fight', f.animal, 1 / 60, 0); expect(hurt).not.toHaveBeenCalled();
     Reflect.set(fight, 'modeT', 0.9); invokeLegacy(fight, 'fight', f.animal, 1 / 60, 1);
     expect(hurt).toHaveBeenCalledExactlyOnceWith(f.animal, 24); expect(Reflect.get(fight, 'sweepCd')).toBe(5);

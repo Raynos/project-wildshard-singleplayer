@@ -1,8 +1,7 @@
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
-import { canReach } from '@wildshard/engine/ai/reach';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { StrikeRunner, type StrikeSpec, type StrikeContext } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
@@ -13,11 +12,11 @@ export const BLOB_STRIKES: readonly StrikeSpec[] = [
   { id: 'template.blob.bump', shape: { kind: 'point', radius: 1.8 }, windup: 0.7, active: 0.15, recover: 0.8, cooldown: 1, range: 2, damage: 8, tags: ['creature.greyBlob'], weight: () => 2 },
   { id: 'template.blob.lane', shape: { kind: 'lane', length: 5, width: 1.4 }, windup: 1, active: 0.6, recover: 1, cooldown: 3, range: 6, damage: 12, tags: ['creature.greyBlob'], motion: { speed: 5 }, weight: () => 1 },
 ];
-export class GreyBlobBrain extends CreatureBrain<'idle' | 'fight'> {
+export class GreyBlobBrain extends CreatureBrain<'idle' | 'fight', Animal> {
   private readonly strikes = new StrikeRunner();
   constructor(actor: Animal) { super(actor, ['idle', 'fight']); }
   private context(ctx: ThinkCtx): StrikeContext { const a = this.actor;
-    return { actor: a, target: ctx.player, canReach: () => canReach(a, ctx.player), hit: (strike) => { ctx.hurt(strike.damage); } }; }
+    return { actor: a, target: ctx.player, canReach: () => ctx.reach(a), hit: (strike) => { ctx.hurt(strike.damage); } }; }
   override think(ctx: ThinkCtx): void { const a = this.actor; if (!a.alive || ctx.calm) { this.transition('idle'); return; }
     this.transition(a.position.distanceTo(ctx.player) < 10 ? 'fight' : 'idle');
     if (this.state === 'fight' && !this.strikes.busy) { const c = this.context(ctx), pick = this.strikes.pick(BLOB_STRIKES, c); if (pick) this.strikes.start(pick, a, ctx.player); }

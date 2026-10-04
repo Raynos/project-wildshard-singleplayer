@@ -14,7 +14,7 @@ import type { World as RapierWorld, RigidBodySet, ColliderSet } from '@dimforge/
 import type { Audio } from '../src/engine/audio/Audio';
 import type { Music } from '../src/engine/audio/Music';
 import type { HUD } from '../src/engine/ui/HUD';
-import type { Animal } from '../src/engine/entities/Animal';
+import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import type { TrainingArena } from '../src/engine/practice/TrainingArena';
 import { WorldRegistry } from '../src/engine/world/registry';

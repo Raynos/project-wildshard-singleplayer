@@ -1,7 +1,7 @@
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
@@ -24,7 +24,7 @@ type SkitterState = 'buried' | 'burst' | 'hunt' | 'retreat';
  * ring around the player (each one at its own angle, so a pack surrounds), rears and bites, darts back, comes again;
  * left alone it burrows again.
  */
-export class SkittererBrain extends CreatureBrain<SkitterState> {
+export class SkittererBrain extends CreatureBrain<SkitterState, Animal> {
   private readonly strikes = new StrikeRunner();
   private clock = 0; private far = 0;
   constructor(actor: Animal) { super(actor, ['buried', 'burst', 'hunt', 'retreat']); actor.mem['burrow'] = 1; }

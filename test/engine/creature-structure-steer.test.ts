@@ -4,7 +4,7 @@ import { setActivePhysics } from '../../src/engine/physics/active';
 import { setActiveNavmesh } from '../../src/engine/physics/navmesh';
 import { toLevelSpec } from '../../src/game/shard/spec';
 import { TEMPLATE } from '../../src/shards/_template/manifest';
-import type { Animal } from '../../src/engine/entities/Animal';
+import type { Animal } from '../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../src/engine/entities/species/registry';
 import { manager } from '../fake/manager';
 

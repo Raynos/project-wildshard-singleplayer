@@ -1,7 +1,7 @@
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies, ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
@@ -26,7 +26,7 @@ type GoatState = 'graze' | 'threat' | 'ram' | 'fall';
  * `animal.setMotion`: its own rim test (`GOAT.rimMargin` from its home's apothem) keeps it on the deck, and Sky Reach has
  * no forest trunks for `ctx.steer`'s repulsion (G28) to add.
  */
-export class SkyGoatBrain extends CreatureBrain<GoatState> {
+export class SkyGoatBrain extends CreatureBrain<GoatState, Animal> {
   private readonly strikes = new StrikeRunner();
   private wanderYaw = 0; private wanderT = 0; private ramYaw = 0;
   constructor(actor: Animal) { super(actor, ['graze', 'threat', 'ram', 'fall']); }

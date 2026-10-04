@@ -1,6 +1,6 @@
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3, type BufferGeometry as Geo } from 'three';
 import type { Home } from '../layout';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 
 /**
  * A flat-shaded creature hull from primitive parts: each part is placed in bind space, painted one colour and skinned

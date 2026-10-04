@@ -1,9 +1,5 @@
 {
   "violations": {
-    "src/engine/ai/reach.ts:import:src/engine/app/runtime.ts": {
-      "count": 1,
-      "row": "SF3c"
-    },
     "src/engine/app/scope.ts:global:cancelAnimationFrame": {
       "count": 1,
       "row": "SF3c"
@@ -24,35 +20,11 @@
       "count": 2,
       "row": "SF3c"
     },
-    "src/engine/entities/Animal.ts:import:src/engine/app/runtime.ts": {
-      "count": 1,
-      "row": "SF3b"
-    },
-    "src/engine/entities/Animal.ts:import:src/engine/core/frameCost.ts": {
-      "count": 1,
-      "row": "SF3b"
-    },
-    "src/engine/entities/Animal.ts:import:src/engine/core/tier.ts": {
-      "count": 1,
-      "row": "SF3b"
-    },
-    "src/engine/entities/Animal.ts:import:three": {
-      "count": 1,
-      "row": "SF3b"
-    },
     "src/engine/entities/species/rigs.ts:import:three": {
       "count": 1,
       "row": "SF3c"
     },
     "src/engine/input/equipmentInput.ts:import:src/engine/app/runtime.ts": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/physics/ragdoll.ts:import:src/engine/core/tier.ts": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/physics/ragdoll.ts:import:three": {
       "count": 1,
       "row": "SF3c"
     },

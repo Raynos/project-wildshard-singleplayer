@@ -1,7 +1,7 @@
 import { AnimalManager } from '../../src/engine/entities/AnimalManager';
 import { fakeWorld } from './world';
 import { TickScheduler, type TickActor } from '../../src/engine/app/scheduler';
-import type { Animal } from '../../src/engine/entities/Animal';
+import type { Animal } from '../../src/engine/entities/AnimalView';
 
 /** Frozen pre-S2.6 clock for the existing approach goldens; new band tests use the real scheduler. */
 class LegacyClock extends TickScheduler {

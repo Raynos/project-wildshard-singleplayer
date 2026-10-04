@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { LaneCharge } from '../../src/shards/pine-hollow/combat/ctx';
-import { Animal } from '../../src/engine/entities/Animal';
+import { Animal } from '../../src/engine/entities/AnimalView';
 import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { legacyConstants } from '../fake/legacySource';
 import { creature } from '../fake/creature';

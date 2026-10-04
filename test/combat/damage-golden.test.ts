@@ -4,7 +4,7 @@ import { LEVER_PROFILE, LeverRifle } from '../../src/shards/pine-hollow/weapons/
 import { Thrown } from '../../src/kit/weapons/thrown/Thrown';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { damageFor } from '../../src/engine/entities/Animal';
+import { damageFor } from '../../src/engine/entities/AnimalView';
 import { speciesDef } from '../../src/engine/entities/species/registry';
 import { balbalCombat } from '../../src/shards/nalati-grasslands/species/balbal';
 import { Projectiles } from '../../src/engine/combat/view/projectile';

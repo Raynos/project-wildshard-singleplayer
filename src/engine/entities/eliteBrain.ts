@@ -1,5 +1,5 @@
 import type * as THREE from 'three';
-import type { Animal } from './Animal';
+import type { Animal } from './AnimalView';
 import type { ThinkCtx } from './species/registry';
 
 /**

@@ -7,7 +7,7 @@ import { Rifle } from '../../src/kit/weapons/firearm/Rifle';
 import { app } from '../../src/engine/app/runtime';
 import { setSetting } from '../../src/engine/ui/Settings';
 import { setActivePhysics } from '../../src/engine/physics/active';
-import { damageFor } from '../../src/engine/entities/Animal';
+import { damageFor } from '../../src/engine/entities/AnimalView';
 import { legacyActor, invokeLegacy, damageTarget } from '../fake/legacyActor';
 import { fakeWorld } from '../fake/world';
 

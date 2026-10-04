@@ -15,7 +15,7 @@
 import type * as THREE from 'three';
 import type { Material } from '../physics/surface';
 import type { Tier } from '../core/tier';
-import type { Animal } from '../entities/Animal';
+import type { Animal } from '../entities/AnimalView';
 import { app } from '../app/runtime';
 import { currentOwner } from '../app/ownership';
 

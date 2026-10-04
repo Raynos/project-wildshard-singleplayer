@@ -113,7 +113,6 @@
     "./core/tier": "./core/tier.ts",
     "./core/time": "./core/time.ts",
     "./debug/probe": "./debug/probe.ts",
-    "./entities/Animal": "./entities/Animal.ts",
     "./entities/AnimalFactory": "./entities/AnimalFactory.ts",
     "./entities/AnimalManager": "./entities/AnimalManager.ts",
     "./entities/eliteBrain": "./entities/eliteBrain.ts",
@@ -280,6 +279,8 @@
     "./saves/view/storage": "./saves/view/storage.ts",
     "./script/abi": "./script/abi.ts",
     "./script/admission": "./script/admission.ts",
-    "./core/contentCost": "./core/contentCost.ts"
+    "./core/contentCost": "./core/contentCost.ts",
+    "./entities/AnimalView": "./entities/AnimalView.ts",
+    "./entities/AnimalSim": "./entities/AnimalSim.ts"
   }
 }

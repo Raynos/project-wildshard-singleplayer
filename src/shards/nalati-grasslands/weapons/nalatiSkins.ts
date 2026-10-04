@@ -1,7 +1,7 @@
 import { CosmeticsLocker } from '@wildshard/game/cosmetics/locker';
 import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
 import type { EffectTarget } from '@wildshard/engine/combat/effects/types';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
 import type { Bow } from '@wildshard/kit/weapons/bow/family';

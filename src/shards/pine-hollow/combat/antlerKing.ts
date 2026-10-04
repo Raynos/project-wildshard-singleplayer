@@ -7,7 +7,7 @@ import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Music } from '@wildshard/engine/audio/Music';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import type { FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
@@ -177,8 +177,8 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
     this.kit = makeKingKit(ctx.sky);
     this.tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
     this.waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
-    this.lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king);
-    this.thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall));
+    this.lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king, this.ctx.reach);
+    this.thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall, this.ctx.reach));
     this.wall = new FogWall(scene, C.x, heightAt(C.x, C.z) - 2.5, C.z, FOG_R, 22);
     this.puffs = new Puffs(scene, new THREE.Color(2.0, 1.1, 0.4), 3);
     for (let i = 0; i < 3; i++) {
@@ -391,7 +391,7 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
       w.r += dt * 10.5;
       w.g.setTime(t);
       w.g.ring(k.position.x, k.position.z, w.r, 0.95, 0.25);
-      if (!w.hit && pd !== Infinity) w.hit = pineContact(k, p, PINE_STRIKES.roots, (damage) => { this.ctx.hurt(k, damage, true); this.ctx.trauma(0.4); }, { ringRadius: w.r, airborne: !this.ctx.player.onGround });
+      if (!w.hit && pd !== Infinity) w.hit = pineContact(k, p, PINE_STRIKES.roots, (damage) => { this.ctx.hurt(k, damage, true); this.ctx.trauma(0.4); }, () => this.ctx.reach(k, p), { ringRadius: w.r, airborne: !this.ctx.player.onGround });
       if (w.r > FOG_R) { w.on = false; w.g.hide(); }
     }
   }
@@ -485,7 +485,7 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
       if (fighting && !this.won) {
         let inside = false;
         const actor = this.king;
-        if (actor) pineContact(actor, p, PINE_STRIKES.lantern, () => { inside = true; }, { origin: { x: f.x, y: f.y, z: f.z } });
+        if (actor) pineContact(actor, p, PINE_STRIKES.lantern, () => { inside = true; }, () => this.ctx.reach(actor, p), { origin: { x: f.x, y: f.y, z: f.z } });
         const r = burnTick(f.acc, dt, inside, 0.8);
         f.acc = r.acc;
         const k = this.king;

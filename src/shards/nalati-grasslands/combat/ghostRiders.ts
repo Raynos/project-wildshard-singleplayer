@@ -7,7 +7,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import { Projectiles, type ProjectileKind } from '@wildshard/engine/combat/view/projectile';
 import type { Game } from '@wildshard/engine/core/Game';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';

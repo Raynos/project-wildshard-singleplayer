@@ -3,7 +3,7 @@ import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
@@ -390,7 +390,7 @@ function strikeSailor(a: Animal, c: ThinkCtx): void {
   if (p >= WINDUP / SWING_DUR + 0.05 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.sailor, shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash'); }
 }
 const STATES = ['hide', 'rise', 'attack', 'guard', 'sink'] as const;
-export class SailorBrain extends CreatureBrain<typeof STATES[number]> {
+export class SailorBrain extends CreatureBrain<typeof STATES[number], Animal> {
   constructor(actor: Animal) { super(actor, STATES); }
   override think(ctx: ThinkCtx): void {
     decideSailor(this.actor, ctx);

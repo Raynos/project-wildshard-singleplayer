@@ -20,7 +20,7 @@ import * as THREE from 'three';
 import { Rng } from '../core/rng';
 import type { DrawnAs, ModelEntry, Pipeline, WorldRegistry } from '../world/registry';
 import { withTier } from '../explore/tiers';
-import type { Animal } from '../entities/Animal';
+import type { Animal } from '../entities/AnimalView';
 import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart } from './model';
 
 export interface ListOptions {

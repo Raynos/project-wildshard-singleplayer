@@ -2,7 +2,7 @@ import { Sabre, SABRE_PROFILE, type SabreOptions } from './Sabre';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { SwordWorld, Move } from '@wildshard/engine/combat/view/melee';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { castRay, floorBelow } from '@wildshard/engine/physics/query';
 import type { Player } from '@wildshard/engine/player/Player';

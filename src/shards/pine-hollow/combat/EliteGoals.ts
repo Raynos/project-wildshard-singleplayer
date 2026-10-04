@@ -1,10 +1,10 @@
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { PineCtx, LaneCharge } from './ctx';
 import { bugleHour, fleeHeading } from './combatMath';
 import { PINE_STRIKES, pineContact } from './strikes';
 
 interface GoalHost {
-  env: Pick<PineCtx, 'player' | 'trauma' | 'god' | 'dusk' | 'night' | 'stun'>;
+  env: Pick<PineCtx, 'reach' | 'player' | 'trauma' | 'god' | 'dusk' | 'night' | 'stun'>;
   def: { lair: { x: number; z: number }; leashR: number };
   mode: string; modeT: number; p2: boolean;
   toPlayer: (a: Animal) => { d: number; yaw: number };
@@ -96,7 +96,7 @@ export function blackpawGoal(h: BlackpawGoal, a: Animal, dt: number, t: number):
         h.voice('bear_roar', a);
         h.roarFx(a);
         h.env.trauma(0.3);
-        if (!h.env.god) pineContact(a, p, h.p2 ? PINE_STRIKES.roarPhase2 : PINE_STRIKES.roar, (damage) => { h.env.stun(1.3); h.hurt(a, damage, true); h.env.trauma(0.4); });
+        if (!h.env.god) pineContact(a, p, h.p2 ? PINE_STRIKES.roarPhase2 : PINE_STRIKES.roar, (damage) => { h.env.stun(1.3); h.hurt(a, damage, true); h.env.trauma(0.4); }, () => h.env.reach(a, p));
         h.roarCd = h.p2 ? 5.5 : 10;
         if (d > 5) { h.lane.start(a, p.x, p.z, h.p2 ? 0.6 : 0.75, h.p2 ? 1.12 : 1); h.setMode('charge'); } else h.setMode('stalk');
       }
@@ -109,7 +109,7 @@ export function blackpawGoal(h: BlackpawGoal, a: Animal, dt: number, t: number):
     }
     if (h.mode === 'swipe') {
       a.setMotion(yaw, 0, 2.5);
-      if (h.swipeT >= 0) { h.swipeT -= dt; if (h.swipeT < 0) { h.voice('bear_growl', a); pineContact(a, p, PINE_STRIKES.swipe, (damage) => { h.hurt(a, damage); h.env.trauma(0.35); }); } }
+      if (h.swipeT >= 0) { h.swipeT -= dt; if (h.swipeT < 0) { h.voice('bear_growl', a); pineContact(a, p, PINE_STRIKES.swipe, (damage) => { h.hurt(a, damage); h.env.trauma(0.35); }, () => h.env.reach(a, p)); } }
       if (h.modeT > 1.2) h.setMode('stalk');
       return;
     }

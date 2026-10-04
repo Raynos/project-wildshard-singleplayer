@@ -1,13 +1,13 @@
-import type { Animal } from '../entities/Animal';
+import type { AnimalSim as Animal } from '../entities/AnimalSim';
 import type { ThinkCtx } from '../entities/species/registry';
 import { Hfsm } from './hfsm';
 import { inspectBrain } from './inspect';
 
 /** Authored creature goals share an inspectable HFSM; movement and strike clocks remain separate. */
-export abstract class CreatureBrain<S extends string> {
+export abstract class CreatureBrain<S extends string, A extends Animal = Animal> {
   private readonly machine: Hfsm<S>;
-  protected readonly actor: Animal;
-  constructor(actor: Animal, states: readonly S[]) {
+  protected readonly actor: A;
+  constructor(actor: A, states: readonly S[]) {
     const first = states[0];
     if (first === undefined) throw new Error('A creature brain requires at least one state');
     const definitions = Object.fromEntries(states.map((state) => [state, {}])) as Record<S, object>;

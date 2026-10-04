@@ -1,4 +1,4 @@
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 
 import { horseNamesSave as savedSlot } from './saves';
 

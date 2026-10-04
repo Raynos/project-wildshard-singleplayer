@@ -2,7 +2,7 @@ import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
@@ -353,7 +353,7 @@ function strikeCaptain(a: Animal, c: ThinkCtx): void {
   if (p >= (WINDUP[phase] ?? 0.7) / dur + 0.04 && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...(m.combo ? DRIFTWOOD_STRIKES.second : DRIFTWOOD_STRIKES.swing), shape: { kind: 'point', radius: HIT_R } })) c.sound('sailor_slash'); }
 }
 const STATES = ['hide', 'rise', 'fight', 'attack', 'sink', 'under'] as const;
-export class CaptainBrain extends CreatureBrain<typeof STATES[number]> {
+export class CaptainBrain extends CreatureBrain<typeof STATES[number], Animal> {
   private strikeStep = false;
   constructor(actor: Animal) { super(actor, STATES); }
   override think(ctx: ThinkCtx): void {

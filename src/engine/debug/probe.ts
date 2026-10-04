@@ -1,7 +1,7 @@
 import { harnessPins, setCurrentProbe } from '../app/identity';
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
-import type { Animal } from '../entities/Animal';
+import type { Animal } from '../entities/AnimalView';
 import type { AnimalManager } from '../entities/AnimalManager';
 import type { EquipmentService } from '../combat/EquipmentService';
 import type { WeaponState } from '../combat/Weapon';

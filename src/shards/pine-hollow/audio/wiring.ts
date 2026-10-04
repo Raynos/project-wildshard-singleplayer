@@ -2,7 +2,7 @@ import { pineScore, pineScorePick } from './score';
 import { audioLog } from '@wildshard/engine/audio/audioLog';
 import type { Music } from '@wildshard/engine/audio/Music';
 import type { Game } from '@wildshard/engine/core/Game';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ForestAmbience, ZoneSpot } from './ambience';

@@ -1,4 +1,4 @@
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { InputService } from '@wildshard/engine/input/InputService';
 import type { Player } from '@wildshard/engine/player/Player';

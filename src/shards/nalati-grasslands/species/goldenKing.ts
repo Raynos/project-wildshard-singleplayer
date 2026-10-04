@@ -1,6 +1,6 @@
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { loft, skinPlain, S, boneIndex, mix, paletteColors, paintNoise, type Paint, type RGB, type Station } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesDef, AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from '@wildshard/engine/entities/species/rigs';

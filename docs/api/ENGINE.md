@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1662 members; 832 without a doc line (—).
+1667 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -647,11 +647,6 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Vec3` | interface | @wildshard/engine/debug/probe | — |
 | `WalkLeg` | interface | @wildshard/engine/debug/probe | — |
 | `WalkResult` | interface | @wildshard/engine/debug/probe | — |
-| `Animal` | class | @wildshard/engine/entities/Animal | — |
-| `AnimalState` | type | @wildshard/engine/entities/Animal | Animal — one animal instance (any registered species): procedural skeletal animation + health. |
-| `DAMAGE` | const | @wildshard/engine/entities/Animal | Bolt damage: body 32–40 (a deer takes two, a boar three), ×2.5 to the head (one kills a deer); fades to 60 % from 40 to 90 m. |
-| `damageFor` | function | @wildshard/engine/entities/Animal | The DAMAGE model for one bolt: a body hit from `dist` m (falloff past 40 m), ×headMul for the head. |
-| `P_COUNT` | const | @wildshard/engine/entities/Animal | — |
 | `AnimalFactory` | class | @wildshard/engine/entities/AnimalFactory | — |
 | `AnimalKind` | type | @wildshard/engine/entities/AnimalFactory | AnimalFactory — procedural, code-built animals from a pluggable SPECIES REGISTRY. |
 | `AnimalMaterial` | type | @wildshard/engine/entities/AnimalFactory | what an animal is drawn with: the PBR / low-poly standard materials, or the painterly Lambert |
@@ -671,6 +666,16 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Herd` | interface | @wildshard/engine/entities/AnimalManager | — |
 | `HuntTuning` | interface | @wildshard/engine/entities/AnimalManager | One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. |
 | `WanderGoalQuery` | interface | @wildshard/engine/entities/AnimalManager | — |
+| `AnimalMotor` | interface | @wildshard/engine/entities/AnimalSim | Collision-only displacement port; the creature retains its own feet position. |
+| `AnimalSim` | class | @wildshard/engine/entities/AnimalSim | Creature state and motion. All world services arrive as ports; there is no scene, rig or active app. |
+| `AnimalSimPorts` | interface | @wildshard/engine/entities/AnimalSim | Per-host world height, time, random stream and optional damage pipeline. |
+| `AnimalSimSpec` | interface | @wildshard/engine/entities/AnimalSim | Authored creature health, dimensions and motion settings, without a rig. |
+| `AnimalState` | type | @wildshard/engine/entities/AnimalSim | Shared behaviour state consumed by simulation and pose adapters. |
+| `DAMAGE` | const | @wildshard/engine/entities/AnimalSim | Legacy bolt base damage and range falloff shared by client and simulation. |
+| `damageFor` | function | @wildshard/engine/entities/AnimalSim | Sample the legacy bolt formula from an explicit gameplay random source. |
+| `Animal` | class | @wildshard/engine/entities/AnimalView | Client creature view over headless state: rigs, animation, material LOD and corpse presentation. |
+| `damageFor` | function | @wildshard/engine/entities/AnimalView | Seeded legacy bolt formula shared with the headless simulation. |
+| `P_COUNT` | const | @wildshard/engine/entities/AnimalView | — |
 | `eliteAct` | function | @wildshard/engine/entities/eliteBrain | — |
 | `eliteDamageMul` | function | @wildshard/engine/entities/eliteBrain | — |
 | `eliteThink` | function | @wildshard/engine/entities/eliteBrain | — |

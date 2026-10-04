@@ -3,7 +3,7 @@ import { nightSpawner } from './spawns';
 import type { Spawner } from '@wildshard/engine/ai/encounters';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { setting } from '@wildshard/engine/ui/Settings';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';

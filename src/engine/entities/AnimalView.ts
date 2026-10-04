@@ -1,3 +1,4 @@
+import { diagnosticNow } from '../core/clock';
 import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
 import type { CharacterMotor } from '../physics/CharacterMotor';
@@ -5,11 +6,11 @@ import { ragdollsFor, type Ragdoll } from '../physics/ragdoll';
 import { TIER } from '../core/tier';
 import { frameCost } from '../core/frameCost';
 import { heightAt } from '../world/Heightfield';
-import type { AnimalKind, AnimalModel, AnimalRig } from './AnimalFactory';
-import { variantMods, type AnimalDims, type Rarity, type VariantMods, type RigAnimCtx } from './species/registry';
+import type { AnimalModel, AnimalRig } from './AnimalFactory';
+import { variantMods, type RigAnimCtx } from './species/registry';
 import { app, gameplayRandom } from '../app/runtime';
-import type { Actor, DamageRequest } from '../combat/pipeline';
-import { FlightMotion } from '../ai/flight';
+import type { DamageRequest } from '../combat/pipeline';
+import { AnimalSim, damageFor as simDamageFor } from './AnimalSim';
 import { floorBelow } from '../physics/query';
 
 /**
@@ -31,7 +32,7 @@ import { floorBelow } from '../physics/query';
  *   animal.variant / rarity / label   the rolled VariantDef ('white-stag', 'uncommon', "White stag"); mods = its gameplay multipliers
  *   animal.aggressive                 true for species that charge (boar, bear) — the minimap paints these red
  *   animal.hp / maxHp                 animal.state       animal.yaw (heading, radians)
- *   animal.lastHitT                   performance.now() ms of the last applyDamage (health bars fade from it)
+ *   animal.lastHitT                   diagnosticNow() ms of the last applyDamage (health bars fade from it)
  *   animal.damageFor(headshot, distance)   → the DAMAGE model's number for a bolt (the crossbow asks before applyDamage)
  *   animal.applyDamage(amount, hitPoint, dir) → true if it died
  *   animal.stagger(dir, strength)     a melee blow: pushed STAGGER_PUSH m along `dir` over 0.25 s, AI frozen (`stunned`)
@@ -56,17 +57,8 @@ import { floorBelow } from '../physics/query';
  * `attackPhase` (0..1 wind-up → strike, drives the telegraph pose), `mem` (per-animal numbers).
  */
 
-export type AnimalState = 'idle' | 'graze' | 'wander' | 'alert' | 'flee' | 'charge' | 'stalk' | 'dead' | 'attack' | 'perch' | 'rise' | 'hide' | 'sidestep';
-
-/** Bolt damage: body 32–40 (a deer takes two, a boar three), ×2.5 to the head (one kills a deer); fades to 60 % from 40 to 90 m. */
-export const DAMAGE = { bodyMin: 32, bodyMax: 40, headMul: 2.5, falloffStart: 40, falloffEnd: 90, falloffMin: 0.6 };
-
-/** The DAMAGE model for one bolt: a body hit from `dist` m (falloff past 40 m), ×headMul for the head. */
-export function damageFor(headshot: boolean, dist: number): number {
-  const fall = 1 - (1 - DAMAGE.falloffMin) * THREE.MathUtils.clamp((dist - DAMAGE.falloffStart) / (DAMAGE.falloffEnd - DAMAGE.falloffStart), 0, 1);
-  const body = (DAMAGE.bodyMin + gameplayRandom() * (DAMAGE.bodyMax - DAMAGE.bodyMin)) * fall; // seeded (09 §3.5, B5)
-  return Math.round(headshot ? body * DAMAGE.headMul : body);
-}
+/** Seeded legacy bolt formula shared with the headless simulation. */
+export function damageFor(headshot: boolean, dist: number): number { return simDamageFor(headshot, dist, gameplayRandom); }
 
 // pose parameter indices
 const P_BODY_Y = 0, P_BODY_PITCH = 1, P_BODY_ROLL = 2, P_BODY_YAW = 3;
@@ -109,7 +101,7 @@ function capsuleOn(m: THREE.Matrix4, at: readonly [number, number, number], axis
 }
 
 /** stagger (a sword blow, Sword.ts): push distance / hold time at strength 0 (light) and 1 (heavy), the push's duration */
-const STAGGER_PUSH = [0.6, 1.5] as const, STAGGER_STUN = [0.4, 0.8] as const, STAGGER_PUSH_T = 0.25;
+
 /** the melee hit flash: seconds to fade, emissive intensity at strength 1 */
 const FLASH_T = 0.14, FLASH_I = 0.9;
 
@@ -117,70 +109,17 @@ const FLASH_T = 0.14, FLASH_I = 0.9;
 interface QuadBones { body: THREE.Bone; neck1: THREE.Bone; neck2: THREE.Bone; head: THREE.Bone; earL: THREE.Bone; earR: THREE.Bone; tail: THREE.Bone; belly: THREE.Bone }
 type LegBones = readonly [THREE.Bone, THREE.Bone, THREE.Bone];
 
-const _want = { x: 0, y: 0, z: 0 };
-const combatActors = new WeakMap<Animal, Actor>();
-
-export class Animal {
-  readonly entityId: string;
-  private readonly flight: FlightMotion | null;
-  private readonly impulseVelocity = new THREE.Vector3();
-  private falling = false;
-  private fallVelocity = 0;
-  /** Only the parity probe sets this: the selected target skips its AI and motor. */
-  harnessHold = false;
-  kind: AnimalKind;
-  /** VariantDef id ('hind', 'black', 'ironhide'…), its rarity tier and display name */
-  variant: string; rarity: Rarity; label: string;
-  /** species that turn on the player (boar, bear) */
-  aggressive: boolean;
-  /** per-variant gameplay multipliers (speed / chargeDist / damageTaken / chargeDamage / relentless), applied by the manager */
-  mods: VariantMods;
-  alive = true;
-  hp: number; maxHp: number;
-  position = new THREE.Vector3();
-  yaw = 0;
-  speed = 0;
-  state: AnimalState = 'idle';
+/** Client creature view over headless state: rigs, animation, material LOD and corpse presentation. */
+export class Animal extends AnimalSim {
   mesh: THREE.SkinnedMesh;
-  herd = 0;
-  /** AI writes these; the animal steers toward them every frame */
-  desiredYaw = 0; desiredSpeed = 0; turnRate = 2.5;
-  /** performance.now() of the last hit (-Infinity until hit) */
-  lastHitT = -Infinity;
-  /** where the head should look (world) while alert; weight 0..1 */
-  lookTarget = new THREE.Vector3(); lookWeight = 0;
-  /** an extra per-animal AI scratch: timers etc. are kept on the manager side */
-  seed: number;
-  scale: number;
-  /** custom rig (SpeciesDef.rig === 'custom'): the species animates its own bones */
   readonly custom: boolean;
-  /** lateral ground speed, m/s (+ = the animal's left); the crab's sidestep. Integrated like `speed`, no steering */
-  strafe = 0; desiredStrafe = 0;
-  /** metres the feet sit above the sampled ground (a monkey in a palm crown; negative = the sailor still under the deck) */
-  yOffset = 0;
-  /** another body carries it (the ridden horse: Mount steps it on its own CharacterMotor in the fixed step and poses
-   *  `position` / `yaw` / `speed` every frame) — update neither steers, walks, nor follows the ground, and the
-   *  creature physics gives it no body of its own */
-  driven = false;
-  /** it stands on a structure, not the terrain (Mount: the ridden horse on a bridge deck) — `sampleTerrain` levels the
-   *  body instead of tilting it to the slope heightAt reads under the deck. Also the kurgan's King and balbals
-   *  (src/shards/nalati-grasslands/combat/goldenKing.ts: the chamber floor sits 140 m up, over the mound's slope). Nothing else sets it */
-  levelGround = false;
-  /** Manager-owned WORLD floor sampler; direct legacy placements retain analytic ground follow. */
-  groundHeight?: (x: number, z: number, fromY: number) => number;
-  /** per-animal scratch for a species' think / animate (numbers only) */
-  mem: Record<string, number> = {};
-  private attackT = -1; private attackDur = 1;
-  /** rad/s the heading may turn while an attack runs (see the header) */
-  attackTurnCap = Infinity;
-  /** the per-animal body material (AnimalFactory clones the fur per instance for its tint) the hit flash drives, or null */
-  private flashMat: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | null = null; // Lambert: the painterly shard's creatures
-  private flashBase = new THREE.Color(); private flashBaseI = 1; private flash = 0;
-
+  private flashMat: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | null = null;
+  private flashBase = new THREE.Color();
+  private flashBaseI = 1;
+  private flash = 0;
   private bones: Record<string, THREE.Bone>;
-  /** the two bones every rig has (hit volumes), and the full quadruped set (null on a custom rig) */
-  private readonly bBody: THREE.Bone; private readonly bHead: THREE.Bone;
-  /** the second body capsule's bone (AnimalDims.fore), null when the species has none */
+  private readonly bBody: THREE.Bone;
+  private readonly bHead: THREE.Bone;
   private readonly bFore: THREE.Bone | null;
   private quad: QuadBones | null = null;
   private model: AnimalModel;
@@ -189,53 +128,40 @@ export class Animal {
   private gaitW = new Float32Array(5);
   private gaitTarget = new Float32Array(5);
   private phase = 0;
-  /** the gait's stride phase 0..1 (the legs' cycle; Mount's rhythm spur reads the beat off it) */
   get gaitPhase(): number { return this.phase; }
   private lookAmt = 0;
-  private flinch = 0; private flinchRoll = 0; private flinchPitch = 0;
-  private stunT = 0; private pushT = 0; private pushDist = 0; private pushDir = new THREE.Vector3(); private brace = 0;
-  /** set by the manager: fires on every stagger — `running` = it was moving (a charge) when the blow landed */
   onStaggered?: (animal: Animal, strength: number, running: boolean) => void;
-  private deathT = -1; private deathSide = 1;
-  private tiltPitch = 0; private tiltRoll = 0; private groundY = 0;
+  private tiltPitch = 0;
+  private tiltRoll = 0;
   private footDelta = new Float32Array(4);
   private legDir: LegBones[] = [];
   private lastFootPhase = new Float32Array(4);
-  /** called when a hoof plants during a gait (index, phase strength) — the manager turns it into sounds */
   onFootfall?: (animal: Animal, strength: number) => void;
-  /** dev hook: freeze the animation at a gait ('idle'|'graze'|'walk'|'trot'|'gallop') and phase (0..1) */
   debugGait?: { gait: string; phase: number };
-  /** set by the manager: fires after every applyDamage (blood, sounds, AI reaction, onKill) */
   onDamaged?: (animal: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean) => void;
-  /** a script owns this animal (a scripted fight): the manager does not turn its hits into flee / charge */
-  scripted = false;
-  /** fur-shell meshes (created lazily by the manager via makeShells); shellLevel = how many are visible */
   shells: THREE.SkinnedMesh[] = [];
   makeShells?: (animal: Animal) => THREE.SkinnedMesh[];
-  /** set by the manager: runs sky.setupMaterial on the fade clones (clone() drops onBeforeCompile) */
   prepareMaterial?: (m: THREE.Material) => void;
   shellLevel = 0;
-  /** true once fadeOut() finished: the mesh is hidden and the animal can be ignored */
   hidden = false;
   private fadeT = -1;
   private fadeMats: THREE.Material[] = [];
-  /** draw LOD (see setDrawLod): the rig's own geometry + [fur, hard, eye] materials, kept while a lower level is on */
   private drawLod = 0;
   private lodBase: { geometry: THREE.BufferGeometry; materials: THREE.Material[] } | null = null;
-  private legAbd = new Float32Array(4);       // keyframed corpse: per-leg sideways angle (ground-side legs tuck, top legs drape)
-  /** the death's ragdoll (PHYSICS P8): drives the mesh + bones while live, then holds the frozen corpse; null = keyframed */
+  private legAbd = new Float32Array(4);
   private ragdoll: Ragdoll | null = null;
 
-  constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityId = `creature.${model.kind}.${String(seed)}`) {
-    this.entityId = entityId;
-    this.kind = model.kind;
-    this.flight = model.species.flight === undefined ? null : new FlightMotion(model.species.flight);
+constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityId = `creature.${model.kind}.${String(seed)}`) {
     const v = model.variantDef;
-    this.variant = v.id; this.rarity = v.rarity; this.label = v.label || model.species.label;
-    this.aggressive = model.species.aggressive ?? false;
-    this.mods = variantMods(model.species, v);
-    this.mesh = rig.mesh; this.bones = rig.bones; this.model = model; this.seed = seed; this.scale = scale;
-    this.maxHp = this.hp = v.hp ?? model.species.tuning?.hp ?? (model.species.aggressive === true ? 100 : 60);   // the manager re-reads the HuntTuning.hp; its default tuning: a charger 100, a grazer 60
+    super({ kind: model.kind, label: v.label || model.species.label, variant: v.id, rarity: v.rarity,
+      hp: v.hp ?? model.species.tuning?.hp ?? (model.species.aggressive === true ? 100 : 60),
+      aggressive: model.species.aggressive ?? false, dims: model.dims, mods: variantMods(model.species, v),
+      ...(model.species.flight === undefined ? {} : { flight: model.species.flight }),
+      ...(model.species.lockable === undefined ? {} : { lockable: model.species.lockable }) }, seed, scale, entityId, {
+      heightAt: (x, z) => heightAt(x, z), random: gameplayRandom, now: () => diagnosticNow(),
+      floorBelow: (x, z, fromY, maxDrop) => app.physics === null ? heightAt(x, z) : floorBelow(app.physics, x, z, fromY, maxDrop),
+    });
+    this.mesh = rig.mesh; this.bones = rig.bones; this.model = model;
     this.mesh.scale.setScalar(scale);
     this.mesh.rotation.order = 'YXZ';
     this.custom = model.species.rig === 'custom';
@@ -267,54 +193,31 @@ export class Animal {
   /** walk → trot and trot → gallop blend starts, m/s at scale 1 (SpeciesDef.gait; deer defaults 2.4 / 4.6) */
   private readonly gaitTrot: number; private readonly gaitGallop: number;
 
-  get dims(): AnimalDims { return this.model.dims; }
   /** The flight body opts into 3-D lock acquisition and camera tracking, independent of species kind. */
-  get flying(): boolean { return this.flight !== null; }
+  
   /** Authored species eligibility; flight bodies retain their default opt-in. */
-  get lockable(): boolean { return this.model.species.lockable ?? this.flying; }
-  get lockRange(): number | undefined { return this.model.species.flight?.lockRange; }
+
   /** fading out (fadeOut): its own transparent materials, so the far herd leaves it alone */
   get fading(): boolean { return this.fadeT >= 0; }
 
   /** Place on analytic ground (plus flight altitude), or at an exact world feet `y`, facing `yaw`. */
-  place(x: number, z: number, yaw: number, y?: number): void {
-    this.position.set(x, y ?? heightAt(x, z), z);
-    const flight = this.model.species.flight;
-    if (y === undefined && flight !== undefined) this.position.y = flight.altitude + (flight.above === 'world' ? 0 : this.position.y);
-    this.groundY = this.position.y;
-    this.falling = false; this.fallVelocity = 0;
-    this.yaw = this.desiredYaw = yaw;
+  override place(x: number, z: number, yaw: number, y?: number): void {
+    super.place(x, z, yaw, y);
     this.mesh.position.copy(this.position);
     this.mesh.rotation.y = yaw;
   }
 
-  setMotion(desiredYaw: number, desiredSpeed: number, turnRate = 2.5): void {
-    this.desiredYaw = desiredYaw; this.desiredSpeed = desiredSpeed; this.turnRate = turnRate;
-  }
-
   /** Add world velocity (m/s), decaying at 3.5/s. WORLD ground bodies retain Y for a fall; flyers use XYZ. */
-  impulse(velocity: THREE.Vector3): void {
-    if (![velocity.x, velocity.y, velocity.z].every(Number.isFinite)) throw new Error('Creature impulse must be finite');
-    if (!this.alive) return;
-    this.impulseVelocity.add(velocity);
-    if (this.flight === null && this.groundHeight === undefined) this.impulseVelocity.y = 0;
-  }
-  get hasImpulse(): boolean { return this.impulseVelocity.lengthSq() > 0; }
+
   /** Public flight command; the species must declare its flight body. */
-  fly(yaw: number, speed: number, altitude: number, turnRate = 2.5): void {
-    if (this.flight === null) throw new Error('Species must declare flight before flying');
-    this.flight.target(altitude); this.setMotion(yaw, speed, turnRate);
-  }
+  
   /** lateral desired speed, m/s, + = the animal's left (the crab sidesteps around you) */
-  setStrafe(mps: number): void { this.desiredStrafe = mps; }
 
   /** begin an attack lasting `dur` s: `attackPhase` runs 0 → 1 (the species' animate poses the wind-up and the strike from it) */
-  startAttack(dur: number): void { this.attackT = 0; this.attackDur = Math.max(0.05, dur); this.onAttack?.(this, this.attackDur); }
+  
   /** set by the manager: an attack (a wind-up) just started — the telegraph's sound cue */
   onAttack?: ((animal: Animal, dur: number) => void) | undefined;
   /** 0..1 through the current attack, -1 when none (held at 1 until the next startAttack / cancelAttack) */
-  get attackPhase(): number { return this.attackT < 0 ? -1 : Math.min(1, this.attackT / this.attackDur); }
-  cancelAttack(): void { this.attackT = -1; }
 
   /** a melee blow's white flash (0..1): the body glows white and fades over FLASH_T s (see the header) */
   hitFlash(strength = 1): void {
@@ -333,17 +236,16 @@ export class Animal {
   // ── combat ─────────────────────────────────────────────────────────────────────────────
 
   /** damage a bolt does to this animal: body 32–40 with distance falloff, ×2.5 to the head (see DAMAGE) */
-  damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist); }
 
   /** world-space head hit sphere centre (the head joint, or dims.headAt on the head bone) */
-  headWorld(out: THREE.Vector3): THREE.Vector3 {
+  override headWorld(out: THREE.Vector3): THREE.Vector3 {
     const at = this.model.dims.headAt;
     if (at !== undefined) return out.set(at[0], at[1], at[2]).applyMatrix4(this.bHead.matrixWorld);
     const m = this.bHead.matrixWorld.elements;
     return out.set(m[12], m[13], m[14]);
   }
   /** world-space body capsule segment (a = rump, b = chest; or bottom → top for an upright rig, dims.capsuleAxis 'y') */
-  bodyCapsule(a: THREE.Vector3, b: THREE.Vector3): void {
+  override bodyCapsule(a: THREE.Vector3, b: THREE.Vector3): void {
     const d = this.model.dims;
     if (d.capsuleAxis !== 'y' && (d.bodyAt !== undefined || d.bodyPitch !== undefined)) {
       capsuleOn(this.bBody.matrixWorld, d.bodyAt ?? [0, 0, 0], 'z', d.bodyPitch ?? 0, d.bodyHalfLen, a, b);
@@ -371,40 +273,17 @@ export class Animal {
    * happen through `onDamaged`, so calling this directly is enough. A variant's `mods.damageTaken` scales BODY hits
    * (Old Ironhide shrugs off 40 %); a headshot always lands in full — `onDamaged` gets the amount actually dealt.
    */
-  applyDamage(amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
+  override applyDamage(amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
     if (!this.alive) return false;
     return app.combat.hit({ source: 'env', sourceTags: ['dmg.legacy', 'cover.checked'], target: this.combatActor(), amount, point: hitPoint, dir })?.killed ?? false;
   }
 
+  override get dims(): AnimalModel['dims'] { return this.model.dims; }
+  protected override hitTime(): number { return diagnosticNow(); }
+
   /** Stable bridge for weapons until the creature runtime supplies its own Actor. */
-  combatActor(): Actor {
-    return animalCombatActor(this, this.model);
-  }
 
   /** Pipeline output only: variant and species modifiers have already run once, in order. */
-  applyFinalDamage(dealt: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
-    if (!this.alive) return false;
-    this.hp -= dealt;
-    this.lastHitT = performance.now();
-    // flinch away from the shot: project the shot direction into body space
-    const cos = Math.cos(this.yaw), sin = Math.sin(this.yaw);
-    const lx = dir.x * cos - dir.z * sin;      // +x = animal's left
-    const lz = dir.x * sin + dir.z * cos;      // +z = forward
-    this.flinch = 1;
-    this.flinchRoll = -lx * 0.25;
-    this.flinchPitch = -lz * 0.12 + (hitPoint.y - this.position.y > this.model.dims.bodyY ? 0.05 : -0.03);
-    if (this.hp <= 0) {
-      this.hp = 0; this.alive = false; this.state = 'dead';
-      this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1; // pushed over away from the shot (legs face the shooter)
-      for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (this.deathSide < 0)) ? 0.35 : 0.25;
-      this.desiredSpeed = 0;
-      this.startRagdoll(dealt, hitPoint, dir);
-      this.onDamaged?.(this, dealt, hitPoint, dir, true);
-      return true;
-    }
-    this.onDamaged?.(this, dealt, hitPoint, dir, false);
-    return false;
-  }
 
   /**
    * The death's ragdoll (see the header): the build from the rig, the animal's own motion plus the hit's throw. Null
@@ -445,7 +324,7 @@ export class Animal {
   }
 
   /** the physics body while near the player (src/engine/physics/creatures.ts hands it out and takes it back) */
-  motor: CharacterMotor | null = null;
+  override motor: CharacterMotor | null = null;
   /** Explicit retirement releases a corpse's ragdoll even when it receives no later update. */
   retireBody(): void {
     this.ragdoll?.dispose(); this.ragdoll = null;
@@ -456,7 +335,6 @@ export class Animal {
   poseFrozen = false;
 
   /** true while a stagger holds it: the manager skips its think, it neither steers nor walks */
-  get stunned(): boolean { return this.stunT > 0; }
 
   /**
    * A melee blow (Sword.ts calls it right after applyDamage): the animal stops dead, is shoved along `dir` (world,
@@ -464,21 +342,22 @@ export class Animal {
    * swing) up to 1.5 m / 0.8 s at 1 (the heavy). Big animals (scale > 1) are shoved proportionally less. Bolts never
    * call this, so Pine Hollow's crossbow hunting is unchanged. `onStaggered` lets the manager break a running charge.
    */
-  stagger(dir: THREE.Vector3, strength = 0): void {
-    if (!this.alive) return;
-    const s = THREE.MathUtils.clamp(strength, 0, 1);
-    const running = this.speed > 1.5;
-    this.pushDist = THREE.MathUtils.lerp(STAGGER_PUSH[0], STAGGER_PUSH[1], s) / Math.max(1, this.scale);
-    this.pushT = STAGGER_PUSH_T;
-    this.pushDir.set(dir.x, 0, dir.z);
-    if (this.pushDir.lengthSq() < 1e-6) this.pushDir.set(Math.sin(this.yaw), 0, Math.cos(this.yaw)).negate(); else this.pushDir.normalize();
-    this.stunT = THREE.MathUtils.lerp(STAGGER_STUN[0], STAGGER_STUN[1], s);
-    this.brace = 1;
-    this.speed = 0; this.desiredSpeed = 0;
-    this.flinch = Math.max(this.flinch, 0.8 + 0.2 * s);
-    this.cancelAttack(); // a hit interrupts a wind-up
-    this.onStaggered?.(this, s, running);
+
+  protected override moveBody(want: { x: number; y: number; z: number }): void {
+    const t0 = frameCost.on ? diagnosticNow() : 0;
+    super.moveBody(want);
+    if (frameCost.on) frameCost.sub('motor', t0);
   }
+  protected override attackStarted(dur: number): void { this.onAttack?.(this, dur); }
+  protected override damageRequested(req: DamageRequest): void { tap.hit?.(this.kind, req.amount); }
+  protected override hasDamageMultiplier(): boolean { return this.model.species.damageMul !== undefined; }
+  protected override damageMultiplier(req: DamageRequest): number { return this.model.species.damageMul?.(this, req.point, req.dir, req) ?? 1; }
+  protected override died(dealt: number, point: THREE.Vector3, dir: THREE.Vector3): void {
+    for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (this.deathSide < 0)) ? 0.35 : 0.25;
+    this.startRagdoll(dealt, point, dir);
+  }
+  protected override damaged(dealt: number, point: THREE.Vector3, dir: THREE.Vector3, died: boolean): void { this.onDamaged?.(this, dealt, point, dir, died); }
+  protected override staggered(strength: number, running: boolean): void { this.onStaggered?.(this, strength, running); }
 
   // ── per-frame ──────────────────────────────────────────────────────────────────────────
 
@@ -486,89 +365,9 @@ export class Animal {
   update(dt: number, t: number, near: boolean): void {
     this.poseFrozen = false;
     const d = this.model.dims;
-    const x0 = this.position.x, z0 = this.position.z;
     if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
     if (this.ragdoll !== null) { this.updateRagdoll(this.ragdoll, dt, t, near); return; }
-    if (this.driven) { this.groundY = this.position.y; }
-    else if (this.alive && this.stunT > 0) {
-      // staggered: no steering, no gait — shoved back along the blow with an ease-out, then held
-      this.stunT -= dt; this.speed = 0;
-      if (this.pushT > 0) {
-        const u0 = 1 - this.pushT / STAGGER_PUSH_T;
-        this.pushT = Math.max(0, this.pushT - dt);
-        const u1 = 1 - this.pushT / STAGGER_PUSH_T;
-        const ease = (u: number) => 1 - (1 - u) * (1 - u);
-        const step = this.pushDist * (ease(u1) - ease(u0));
-        this.position.x += this.pushDir.x * step; this.position.z += this.pushDir.z * step;
-      }
-    } else if (this.alive) {
-      // heading + speed steering
-      let dy = this.desiredYaw - this.yaw;
-      dy = Math.atan2(Math.sin(dy), Math.cos(dy));
-      const maxTurn = (this.attackT >= 0 ? Math.min(this.turnRate, this.attackTurnCap) : this.turnRate) * dt;
-      const turn = THREE.MathUtils.clamp(dy, -maxTurn, maxTurn);
-      this.yaw += turn;
-      // a flier rolls into its turn (SpeciesFlight.bank); applyTerrain eases the body toward it
-      if (this.flight !== null) this.tiltRollT = this.flight.bank(this.speed, dt > 0 ? turn / dt : 0);
-      const accel = this.desiredSpeed > this.speed ? 7 : 11;
-      this.speed += THREE.MathUtils.clamp(this.desiredSpeed - this.speed, -accel * dt, accel * dt);
-      if (this.speed > 0.01) {
-        this.position.x += Math.sin(this.yaw) * this.speed * dt;
-        this.position.z += Math.cos(this.yaw) * this.speed * dt;
-      }
-      this.strafe += THREE.MathUtils.clamp(this.desiredStrafe - this.strafe, -9 * dt, 9 * dt);
-      if (Math.abs(this.strafe) > 0.01) {
-        // the animal's left is +X in its frame: world (cos yaw, -sin yaw)
-        this.position.x += Math.cos(this.yaw) * this.strafe * dt;
-        this.position.z -= Math.sin(this.yaw) * this.strafe * dt;
-      }
-    } else { this.speed = 0; this.strafe = 0; }
-
-    if (this.alive && this.hasImpulse) {
-      this.position.x += this.impulseVelocity.x * dt; this.position.z += this.impulseVelocity.z * dt;
-    }
-
-    // near the player the move goes through the physics body (PHYSICS P6): walls, rocks, trunks, the player and other
-    // animals stop it — the walk, the charge and a knock-back alike
-    if (this.motor !== null && this.alive && !this.driven && this.flight === null) {
-      const dx = this.position.x - x0, dz = this.position.z - z0;
-      if (dx !== 0 || dz !== 0) {
-        this.position.x = x0; this.position.z = z0;
-        _want.x = dx; _want.y = 0; _want.z = dz;
-        const t0 = frameCost.on ? performance.now() : 0;
-        this.motor.move(this.position, _want, !this.falling);
-        if (frameCost.on) frameCost.sub('motor', t0);
-        this.position.y = this.groundY + this.yOffset; // the motor ignores the terrain: the ground follow below owns y
-      }
-    }
-
-    // ground follow (smoothed so bumps in the heightfield don't jitter the body)
-    if (this.flight !== null) {
-      this.flight.step(dt, this.position, this.alive, (x, z, fromY, maxDrop) => {
-        const physics = app.physics;
-        return physics === null ? heightAt(x, z) : floorBelow(physics, x, z, fromY, maxDrop);
-      });
-      this.groundY = this.position.y;
-    } else if (!this.driven) {
-      const gy = this.groundHeight?.(this.position.x, this.position.z, this.groundY + 1) ?? heightAt(this.position.x, this.position.z);
-      // A WORLD deck ending is a fall, not a heightfield bump. Legacy analytic bodies keep their exact smoothing.
-      if (this.groundHeight !== undefined && (this.falling || this.groundY - gy > 1)) {
-        this.falling = true;
-        this.fallVelocity += this.impulseVelocity.y; this.impulseVelocity.y = 0;
-        const next = this.groundY + this.fallVelocity * dt - 10 * dt * dt;
-        this.fallVelocity -= 20 * dt;
-        if (this.fallVelocity <= 0 && next <= gy) {
-          this.groundY = gy; this.falling = false; this.fallVelocity = 0;
-        } else this.groundY = next;
-      } else this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
-      this.position.y = this.groundY + this.yOffset;
-    }
-
-    if (this.alive && this.hasImpulse) {
-      if (this.flight !== null) this.position.y += this.impulseVelocity.y * dt;
-      this.impulseVelocity.multiplyScalar(Math.exp(-3.5 * dt));
-      if (this.impulseVelocity.lengthSq() < 0.05) this.impulseVelocity.set(0, 0, 0);
-    } else if (!this.alive) this.impulseVelocity.set(0, 0, 0);
+    this.stepMotion(dt);
 
     // gait weights from speed
     const gw = this.gaitTarget;
@@ -904,7 +703,7 @@ export class Animal {
       this.footDeltaT[i] = THREE.MathUtils.clamp(heightAt(wx, wz) - planeY, -0.35, 0.35);
     }
   }
-  private tiltPitchT = 0; private tiltRollT = 0; private footDeltaT = new Float32Array(4);
+  private tiltPitchT = 0;  private footDeltaT = new Float32Array(4);
 
   private easeTilt(k: number): void {
     this.tiltPitch += (this.tiltPitchT - this.tiltPitch) * k;
@@ -1003,29 +802,4 @@ function eyesInHard(g: THREE.BufferGeometry): THREE.BufferGeometry | null {
   }
   eyesMerged.set(g, out);
   return out;
-}
-
-function animalCombatActor(animal: Animal, model: AnimalModel): Actor {
-  const cached = combatActors.get(animal);
-  if (cached !== undefined) return cached;
-  const actor: Actor = {
-    id: animal.entityId, tags: ['actor.creature', `creature.${animal.kind}`], state: [],
-    get alive() { return animal.alive; },
-    onDamageRequest: (req) => { tap.hit?.(animal.kind, req.amount); },
-    attributes: {
-      get health() { return animal.hp; }, set health(value) { animal.hp = value; },
-      get maxHealth() { return animal.maxHp; },
-      get damageTakenMul() { return animal.mods.damageTaken; },
-    },
-    isHeadshot: (req) => {
-      animal.headWorld(_v);
-      return _v.distanceToSquared(req.point) < (model.dims.headRadius * animal.scale + 0.06) ** 2;
-    },
-    ...(model.species.damageMul === undefined ? {} : {
-      damageMul: (req: DamageRequest) => model.species.damageMul?.(animal, req.point, req.dir, req) ?? 1,
-    }),
-    applyDamage: (req) => animal.applyFinalDamage(req.amount, req.point, req.dir),
-  };
-  combatActors.set(animal, actor);
-  return actor;
 }

@@ -3,7 +3,7 @@ import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { app } from '@wildshard/engine/app/runtime';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
@@ -387,7 +387,7 @@ function strikeMonkey(a: Animal, c: ThinkCtx): void {
       }
 }
 const STATES = ['perch', 'ground-idle', 'attack', 'drop', 'ground', 'return', 'climb'] as const;
-export class MonkeyBrain extends CreatureBrain<typeof STATES[number]> {
+export class MonkeyBrain extends CreatureBrain<typeof STATES[number], Animal> {
   constructor(actor: Animal) { super(actor, STATES); }
   override think(ctx: ThinkCtx): void {
     decideMonkey(this.actor, ctx);

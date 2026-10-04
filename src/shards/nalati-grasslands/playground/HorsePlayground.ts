@@ -1,6 +1,6 @@
 import { app } from '@wildshard/engine/app/runtime';
 import { practiceFps } from '@wildshard/engine/core/tier';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { DevKit, devLabel, devMaterial } from '@wildshard/engine/practice/playground/devGrid';
 import { PlaygroundChip, clock } from '@wildshard/engine/practice/playground/hud';
 import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';

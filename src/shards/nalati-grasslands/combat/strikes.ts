@@ -38,8 +38,8 @@ export function sampleStrike(spec: StrikeSpec, actor: StrikeActor, target: Vecto
 }
 const noop = (): void => undefined;
 /** Arena contact anchors share the same chest-to-player cover query as creature bodies. */
-export function sampleArena(spec: StrikeSpec, origin: Vector3, target: Vector3, hit: () => void, options: Pick<StrikeContext, 'origin' | 'ringRadius' | 'airborne'> = {}): boolean {
+export function sampleArena(spec: StrikeSpec, origin: Vector3, target: Vector3, hit: () => void, physics: Parameters<typeof canReach>[2], options: Pick<StrikeContext, 'origin' | 'ringRadius' | 'airborne'> = {}): boolean {
   const anchor = { position: origin, scale: 1, yaw: 0, alive: true, dims: { bodyY: 1.2, bodyRadius: 0.1 },
     headWorld: (out: Vector3) => out.copy(origin).add(new Vector3(0, 1.2, 0)), startAttack: noop, cancelAttack: noop, setMotion: noop };
-  return sampleStrike(spec, anchor, target, hit, { ...options, reach: () => canReach(anchor, target) });
+  return sampleStrike(spec, anchor, target, hit, { ...options, reach: () => canReach(anchor, target, physics) });
 }

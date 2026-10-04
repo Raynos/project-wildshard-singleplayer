@@ -2,7 +2,7 @@ import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { smoothstep as sstep } from '@wildshard/engine/core/noise';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
@@ -326,7 +326,7 @@ function strikeCrab(a: Animal, c: ThinkCtx): void {
   if (p >= WINDUP / SNAP_DUR && !m.hit) { m.hit = 1; if (driftwoodContact(a, c, { ...DRIFTWOOD_STRIKES.snap, damage: a.mods.chargeDamage, shape: { kind: 'point', radius: SNAP_R * Math.max(1, a.scale * 0.8) } })) c.sound('crab_snap'); }
 }
 const STATES = ['idle', 'sidestep', 'attack', 'flee'] as const;
-export class CrabBrain extends CreatureBrain<typeof STATES[number]> {
+export class CrabBrain extends CreatureBrain<typeof STATES[number], Animal> {
   constructor(actor: Animal) { super(actor, STATES); }
   override think(ctx: ThinkCtx): void {
     decideCrab(this.actor, ctx);
