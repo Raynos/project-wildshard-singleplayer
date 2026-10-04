@@ -63,8 +63,10 @@ export class GridReloadExit {
     if (this.cancelled || this.phase === 'saving' || this.phase === 'navigating') return false;
     const parsed = v.parse(GridReloadHandoffSchema, value);
     this.phase = 'saving'; this.ports.hold(true);
-    if (!this.ports.checkpoint() || !this.ports.slot.write(parsed)) { this.phase = 'failed'; return false; }
-    try { await this.ports.fade(); }
+    try {
+      if (!this.ports.checkpoint() || !this.ports.slot.write(parsed)) { this.phase = 'failed'; return false; }
+      await this.ports.fade();
+    }
     catch { this.phase = 'failed'; return false; }
     if (this.isCancelled()) return false;
     this.phase = 'navigating'; this.ports.navigate(); return true;
