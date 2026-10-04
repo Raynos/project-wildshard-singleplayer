@@ -8553,7 +8553,7 @@
       {
         "name": "decodeSimSnapshot",
         "kind": "function",
-        "doc": "Decode untrusted packed JSON (text or parsed data); refuse unknown fields, corrupt bytes and other engine versions.",
+        "doc": "Decode compressed/legacy JSON; a basis-referencing wire requires its exact checked basis. Never drops native geometry/state.",
         "from": "@wildshard/engine/sim/snapshot"
       },
       {
@@ -8571,7 +8571,13 @@
       {
         "name": "serializeSimSnapshot",
         "kind": "function",
-        "doc": "Serialize a strict, versioned JSON continuation with canonical base64 physics bytes and an integrity checksum.",
+        "doc": "Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
+        "name": "SIM_REGION_SNAPSHOT_CHAR_BUDGET",
+        "kind": "const",
+        "doc": "Durable per-region ceiling in stored characters; the grid caller uses a logical checkpoint if exact encoding exceeds it.",
         "from": "@wildshard/engine/sim/snapshot"
       },
       {
