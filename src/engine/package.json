@@ -325,6 +325,7 @@
     "./physics/regionalState": "./physics/regionalState.ts",
     "./level/installation": "./level/installation.ts",
     "./physics/mover": "./physics/mover.ts",
-    "./physics/Physics": "./physics/Physics.ts"
+    "./physics/Physics": "./physics/Physics.ts",
+    "./script/client": "./script/client.ts"
   }
 }
