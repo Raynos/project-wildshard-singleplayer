@@ -1,29 +1,29 @@
 #!/usr/bin/env node
 // SF57: two same-document 30-minute Simulator drives. Ask the coordinator for quiet before --run.
-// node progress/shard-platform/sf57/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
+// node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
 // A long-lived parent retains both previews. --prepare writes its manifest and waits for <directory>/GO.
 // No document navigation, manual eviction or GC is allowed between drive start and the final leak census.
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { installResources } from '../../../scripts/parity/resources.mjs';
-import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
+import { installResources } from '../parity/resources.mjs';
+import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakRoute, gradeSoak } from './route.ts';
 import { installSoakDrive } from './drive.mjs';
 
-const root = resolve(import.meta.dirname, '../../..');
+const root = resolvePath(import.meta.dirname, '../..');
 const flag = (name, fallback = '') => process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
-const run = (command, args, options = {}) => new Promise((resolveRun, reject) => {
+const run = (command, args, options = {}) => new Promise((resolve, reject) => {
   const child = spawn(command, args, { stdio: ['ignore', 'pipe', 'inherit'], ...options });
   let output = '';
   child.stdout.on('data', (data) => { output += data; if (options.echo) process.stdout.write(data); });
-  child.on('error', reject); child.on('close', (code) => code === 0 ? resolveRun(output.trim()) : reject(new Error(`${command} exited ${code}`)));
+  child.on('error', reject); child.on('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} exited ${code}`)));
 });
 function inspector(url) {
   const ws = new WebSocket(url), pending = new Map();
   let serial = 0, target = null;
-  const opened = new Promise((ready, reject) => { ws.addEventListener('open', ready, { once: true }); ws.addEventListener('error', reject, { once: true }); });
+  const opened = new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); });
   const receive = (message) => {
     const waiter = pending.get(message.id);
     if (waiter) { pending.delete(message.id); clearTimeout(waiter.timer); if (message.error) waiter.reject(new Error(message.error.message)); else waiter.resolve(message.result); }
@@ -36,9 +36,9 @@ function inspector(url) {
     else receive(message);
   });
   return { opened, close: () => ws.close(), evaluate: async (expression) => {
-    const result = await new Promise((resolveEval, reject) => {
+    const result = await new Promise((resolve, reject) => {
       const id = ++serial, timer = setTimeout(() => { pending.delete(id); reject(new Error('Safari inspector timeout')); }, 10000);
-      pending.set(id, { resolve: resolveEval, reject, timer });
+      pending.set(id, { resolve, reject, timer });
       const message = { id, method: 'Runtime.evaluate', params: { expression, returnByValue: true } };
       ws.send(JSON.stringify(target ? { id: ++serial, method: 'Target.sendMessageToTarget', params: { targetId: target, message: JSON.stringify(message) } } : message));
     });
@@ -82,8 +82,8 @@ async function worker() {
     driver.close(); driver = null;
     phase('loading');
     sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--max', '2500'], { stdio: ['ignore', 'inherit', 'inherit'] });
-    let samplerError;
-    const samplerClosed = new Promise((done) => { sampler.on('error', (error) => { samplerError = String(error); done(); }); sampler.on('close', (code) => { if (code !== 0) samplerError = `Native sampler exited ${code}`; done(); }); });
+    /** @type {{ error: string | null }} */ const samplerResult = { error: null };
+    const samplerClosed = new Promise((resolve) => { sampler.on('error', (error) => { samplerResult.error = String(error); resolve(); }); sampler.on('close', (code) => { if (code !== 0) samplerResult.error = `Native sampler exited ${code}`; resolve(); }); });
     xcrun(['openurl', udid, `${base}sf57-safari.html?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0`]);
     driver = await connect(`${base}sf57-safari.html`);
     await until(driver, `Boolean(window.__wildshard?.shard?.grid?.simulation && !document.querySelector('.ws-load'))`);
@@ -94,8 +94,8 @@ async function worker() {
     const catalogue = JSON.parse(execFileSync('git', ['show', `${sha}:src/game/grid/singleplayer.json`], { cwd: root, encoding: 'utf8' })).grid;
     const selected = new Map(catalogue.cells.map((cell) => [cell.cell.join(','), cell]));
     if (layout === 'dev') for (const cell of [...catalogue.developer, ...catalogue.devserver]) selected.set(cell.cell.join(','), cell);
-    const wanted = [...selected.values()].map((cell) => cell.instance).sort();
-    if (JSON.stringify([...result.expected].sort()) !== JSON.stringify(wanted)) throw new Error(`Wrong ${layout} catalogue: ${result.expected}`);
+    const wanted = [...selected.values()].map((cell) => cell.instance).sort((a, b) => a.localeCompare(b));
+    if (JSON.stringify([...result.expected].sort((a, b) => a.localeCompare(b))) !== JSON.stringify(wanted)) throw new Error(`Wrong ${layout} catalogue: ${result.expected}`);
     result.route = soakRoute(cells);
     await driver.evaluate(`window.__wildshard.pose({name:'sf57.initial-road',x:277.5,y:2,z:0,yaw:0});true`);
     phase('baseline-0'); await sleep(10000);
@@ -105,7 +105,7 @@ async function worker() {
     const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString();
     await driver.evaluate(`(${installSoakDrive.toString()})(${JSON.stringify(result.route)},1800)`);
     let windowStart = null;
-    while (true) {
+    for (;;) {
       await sleep(1000);
       const state = await driver.evaluate(`(() => {const s=window.__sf57;return {done:s.done,elapsed:s.elapsed,cycles:s.cycles,index:s.index,state:s.state,events:s.events.splice(0),errors:window.__sf57Errors,documentId:window.__sf57DocumentId};})()`);
       if (state.documentId !== result.documentId && result.documentId !== undefined) throw new Error('Document changed during the soak');
@@ -130,7 +130,7 @@ async function worker() {
     result.leak = await driver.evaluate('window.__sf57Leak'); await sleep(20000);
     result.errors = [...new Set([...result.errors, ...await driver.evaluate('window.__sf57Errors')])];
     phase('done'); await samplerClosed; sampler = null;
-    if (samplerError) throw new Error(samplerError);
+    if (samplerResult.error) throw new Error(samplerResult.error);
   } catch (error) {
     result.failure = String(error.stack ?? error); result.errors.push(result.failure);
     if (driver) await driver.evaluate('window.__sf57?.stop();true').catch(() => undefined);
@@ -140,7 +140,7 @@ async function worker() {
     driver?.close(); proxy?.kill('SIGTERM');
   }
   const native = existsSync(nativeFile) ? readFileSync(nativeFile, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line)) : [];
-  const samples = native.filter((row) => row.type === 'sample').map((row) => ({ ...row, elapsed: Date.parse(row.t) / 1000 }));
+  const samples = native.filter((row) => row.type === 'sample').map((row) => { row.elapsed = Date.parse(row.t) / 1000; return row; });
   result.grade = gradeSoak({ samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
     expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads });
@@ -151,7 +151,7 @@ async function worker() {
 }
 async function prepare() {
   const sha = execFileSync('git', ['rev-parse', flag('rev', 'origin/main')], { cwd: root, encoding: 'utf8' }).trim();
-  const out = resolve(flag('out', `/private/tmp/claude-501/sp-builders/sp-x1/sf57-${process.pid}`)); mkdirSync(out, { recursive: true });
+  const out = resolvePath(flag('out', `/private/tmp/claude-501/sp-builders/sp-x1/sf57-${process.pid}`)); mkdirSync(out, { recursive: true });
   const bases = [], manifest = { sha, out, bases };
   try {
     for (const layout of ['shipped', 'dev']) {

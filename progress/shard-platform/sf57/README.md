@@ -3,7 +3,7 @@
 The coordinator grants a quiet window before the two real 30-minute Simulator runs. Prepare pinned clean builds first:
 
 ```sh
-node progress/shard-platform/sf57/soak.mjs --prepare --rev=<pushed-sha> --out=<own-scratch-directory>
+node scripts/soak/soak.mjs --prepare --rev=<pushed-sha> --out=<own-scratch-directory>
 ```
 
 Keep that parent alive. Once it prints `PREPARED`, request the quiet window. After the coordinator says go, create the

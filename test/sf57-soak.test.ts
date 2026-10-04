@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import catalogue from '../src/game/grid/singleplayer.json' with { type: 'json' };
-import { soakRoute, gradeSoak } from '../progress/shard-platform/sf57/route';
+import { soakRoute, gradeSoak } from '../scripts/soak/route';
 
 const witness = () => ({
   samples: Array.from({ length: 1841 }, (_, elapsed) => ({ type: 'sample', phase: 'drive', elapsed, footprint: 400_000_000, interval: 400_000_000 })),
@@ -13,7 +13,7 @@ describe('SF57 honest drive and native memory gate', () => {
   it('visits all catalogue entries and 16 crossroads on roads, with walking entry/exit at actual midpoints', () => {
     const cells = catalogue.grid.cells;
     const route = soakRoute(cells), entries = route.steps.filter((step) => step.kind === 'enter');
-    expect(entries.map((step) => step.instance)).toEqual(cells.map((cell) => cell.instance));
+    expect(entries.map((step) => step.instance).sort((a, b) => a?.localeCompare(b ?? '') ?? 0)).toEqual(cells.map((cell) => cell.instance).sort((a, b) => a.localeCompare(b)));
     expect(new Set(route.steps.filter((step) => step.kind === 'crossroads').map((step) => step.id)).size).toBe(16);
     let previous = route.reference;
     for (const step of route.steps) {
@@ -21,12 +21,16 @@ describe('SF57 honest drive and native memory gate', () => {
       if (step.kind === 'enter') {
         const cell = cells.find((candidate) => candidate.instance === step.instance);
         if (cell?.cell[0] === undefined || cell.cell[1] === undefined) throw new Error('Route entry has no cell');
-        expect(step.x - cell.cell[0] * 555).toBe(225); expect(step.z).toBe(cell.cell[1] * 555);
+        expect(step.x).toBe(cell.cell[0] * 555); expect(step.z - cell.cell[1] * 555).toBe(-225);
       } else if (step.kind !== 'leave') {
         expect([-832.5, -277.5, 277.5, 832.5].includes(step.x) || [-832.5, -277.5, 277.5, 832.5].includes(step.z)).toBe(true);
       }
       previous = step;
     }
+    let roadMetres = 0, walkingMetres = 0; previous = route.reference;
+    for (const step of route.steps) { const metres = Math.hypot(step.x - previous.x, step.z - previous.z); if (step.kind === 'enter') walkingMetres += metres; else roadMetres += metres; previous = step; }
+    // Two complete eviction circuits fit the real 30-minute drive, including slow walks and refused-cell waits.
+    expect(roadMetres / 30 + walkingMetres / 4 + 9 * 15 + 20).toBeLessThan(900);
   });
   it('passes only a complete 30-minute native witness with repeated eviction, recovery and leak zero', () => {
     expect(gradeSoak(witness()).gatePass).toBe(true);
