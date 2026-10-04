@@ -23,6 +23,11 @@ it('roundtrips bounded audio profiles and preserves ordered fallback chains incl
 });
 it('refuses unknown score slots, path traversal, nonfinite gains and unbound profiles in the minimal loader', () => {
   expect(() => parseAudioData({ ...audio(), music: { ...music, selection: [{ slots: ['missing'], when: [] }] } })).toThrow();
+  expect(() => parseAudioData({ ...audio(), music: { ...music, bootSlots: ['missing'] } })).toThrow();
+  expect(() => parseAudioData({ ...audio(), music: { ...music, base: 'missing' } })).toThrow();
+  const zones = audio().zones; if (zones === undefined) throw new Error('Missing zones');
+  expect(() => parseAudioData({ ...audio(), zones: { ...zones, zones: [{ id: 'reversed', x: 0, z: 0, inner: 20, outer: 4, gain: 1 }] } })).toThrow();
+  expect(() => parseAudioData({ ...audio(), zones: { ...zones, zones: [{ id: 'hard-cut', x: 0, z: 0, inner: 4, outer: 4, gain: 1 }] } })).toThrow();
   expect(() => parseAudioData({ ...audio(), music: { ...music, source: { dir: '/assets/music/../fixture/', manifestKey: 'fixture' } } })).toThrow();
   expect(() => parseAudioData({ ...audio(), samples: { set: 'fixture', bed: 'grass', loopGains: { grass: Infinity } } })).toThrow();
   const source = emptyShardfile({ slug: 'audio-test', name: 'Audio', author: 'Fixture', revision: 1, seed: 1 });

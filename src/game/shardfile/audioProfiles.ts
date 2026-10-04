@@ -12,11 +12,14 @@ export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: lis
   source: v.nullable(v.strictObject({ dir: v.pipe(v.string(), v.regex(/^\/assets\/music\/[a-z0-9_-]+\/$/u)), manifestKey: id })),
   sets: v.record(id, id), selection: v.pipe(v.array(v.strictObject({ slots: list, when: conditions })), v.minLength(1), v.maxLength(64)),
   selectMode: v.picklist(['first', 'all']),
-}), v.check((music) => music.selection.every((row) => row.slots.every((slot) => music.slots.includes(slot))) && Object.keys(music.sets).every((slot) => music.slots.includes(slot)), 'every selected slot belongs to the score'));
+}), v.check((music) => new Set(music.slots).size === music.slots.length && music.slots.includes(music.base)
+  && music.bootSlots.every((slot) => slot === 'title' || music.slots.includes(slot))
+  && music.selection.every((row) => row.slots.every((slot) => music.slots.includes(slot)))
+  && Object.keys(music.sets).every((slot) => music.slots.includes(slot)), 'every selected, base and boot slot belongs to the score (the platform title is allowed)'));
 /** Same-byte sample catalogue and loop gain selection, without author decoder callbacks. */
 export const AudioSamplesSchema = v.strictObject({ set: id, bed: id, loopGains: v.pipe(v.record(id, gain), v.check((gains) => Object.keys(gains).length <= 32, 'bounded loop gains')) });
-const zone = v.strictObject({ id, x: finite, z: finite, inner: v.pipe(finite, v.minValue(0), v.maxValue(2000)), outer: v.pipe(finite, v.minValue(0), v.maxValue(2000)), gain,
-  open: v.optional(v.boolean()), source: v.optional(id) });
+const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(finite, v.minValue(0), v.maxValue(2000)), outer: v.pipe(finite, v.minValue(0), v.maxValue(2000)), gain,
+  open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer, 'audio zone fade must extend outside its inner radius'));
 /** Bounded zone/mixer data. Terrain, moving emitters and bespoke synthesis remain trusted runtime ports. */
 export const AudioZonesSchema = v.strictObject({ id, smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
   silentSeconds: v.pipe(finite, v.minValue(0), v.maxValue(600)), holdSeconds: v.pipe(finite, v.minValue(0), v.maxValue(60)),
