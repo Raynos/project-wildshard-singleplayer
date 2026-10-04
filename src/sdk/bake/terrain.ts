@@ -62,7 +62,7 @@ export function bakeTerrain(source: TerrainBakeSource): BakedTerrain {
       const file = store(tile, false), cost = terrainTileCost(tile), cap = lod === 0 ? CONTENT_CAPS.l0 : CONTENT_CAPS.l1;
       const min = Math.min(...tileHeights), max = Math.max(...tileHeights), compressed = assets.get(file)?.length ?? 0;
       if (cost.decoded + cost.gpu > cap.resident || compressed > cap.compressed || cost.triangles > cap.triangles || cost.draws > cap.draws) throw new Error('Terrain tile exceeds content caps');
-      tiles.push({ lod, x: tx, z: tz, bounds: { min: [tile.x, min, tile.z], max: [tile.x + size, max, tile.z + size] }, geometricError, files: [file], compressed, ...cost });
+      tiles.push({ lod, x: tx, z: tz, bounds: { min: [tile.x, min - (lod === 0 ? size / 16 : 0), tile.z], max: [tile.x + size, max, tile.z + size] }, geometricError, files: [file], compressed, ...cost });
       entries.push({ lod, x: tx, z: tz, file });
     }
   }

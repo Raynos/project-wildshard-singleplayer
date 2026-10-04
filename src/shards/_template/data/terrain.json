@@ -494,7 +494,7 @@
       "bounds": {
         "min": [
           -250,
-          -0.41051846742630005,
+          -4.3167684674263,
           -250
         ],
         "max": [
@@ -508,9 +508,9 @@
         "998d952da4dfcdd13be6e9c5948b91dc0bfd56bb55c45daa5f757a055d66931e"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -520,7 +520,7 @@
       "bounds": {
         "min": [
           -187.5,
-          -0.3255169987678528,
+          -4.231766998767853,
           -250
         ],
         "max": [
@@ -534,9 +534,9 @@
         "725fbc1d2392cfe271d99af6c3edf8cd17cf3d413a1939e7459393f42660ce15"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -546,7 +546,7 @@
       "bounds": {
         "min": [
           -125,
-          -0.4550110399723053,
+          -4.361261039972305,
           -250
         ],
         "max": [
@@ -560,9 +560,9 @@
         "452251281c38e796cf958d8744736a1727c1bdb644fdc2a55638c869aae6fbd6"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -572,7 +572,7 @@
       "bounds": {
         "min": [
           -62.5,
-          -0.32463976740837097,
+          -4.230889767408371,
           -250
         ],
         "max": [
@@ -586,9 +586,9 @@
         "5811170c5329f483679df74b3e6a1c0fa3f954fc7c15f53d27d82cd31548070e"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -598,7 +598,7 @@
       "bounds": {
         "min": [
           0,
-          -0.4233108460903168,
+          -4.329560846090317,
           -250
         ],
         "max": [
@@ -612,9 +612,9 @@
         "5fb74825b6d92716ff9a3d701361e82335594e419a0f64ce191af79a667d03b0"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -624,7 +624,7 @@
       "bounds": {
         "min": [
           62.5,
-          -0.45983627438545227,
+          -4.366086274385452,
           -250
         ],
         "max": [
@@ -638,9 +638,9 @@
         "fb8d079b315bcbc3225f9552797fe8bc4dc36ad803e6cb53e122a819761e2e08"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -650,7 +650,7 @@
       "bounds": {
         "min": [
           125,
-          -0.4547644853591919,
+          -4.361014485359192,
           -250
         ],
         "max": [
@@ -664,9 +664,9 @@
         "70a62f0ccfdb61e622b96ac4f343a3108014f5658332dfb2712431b32a89fcf2"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -676,7 +676,7 @@
       "bounds": {
         "min": [
           187.5,
-          -0.4633910059928894,
+          -4.369641005992889,
           -250
         ],
         "max": [
@@ -690,9 +690,9 @@
         "29fd518d7873c60964c4735a4c740aee0553e0b45ee165665ad9e7a37af09ac8"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -702,7 +702,7 @@
       "bounds": {
         "min": [
           -250,
-          -0.4573174715042114,
+          -4.363567471504211,
           -187.5
         ],
         "max": [
@@ -716,9 +716,9 @@
         "c9da12bf6d2609060d7d9c9a833666ba0617262cf857fcb912ce80a9583aa359"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -728,7 +728,7 @@
       "bounds": {
         "min": [
           -187.5,
-          -0.31348663568496704,
+          -4.219736635684967,
           -187.5
         ],
         "max": [
@@ -742,9 +742,9 @@
         "0975c7a0704ef1f65c216cc42285b2121f83c5caf06f13590dc6072e63ddbf07"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -754,7 +754,7 @@
       "bounds": {
         "min": [
           -125,
-          -0.4588909447193146,
+          -4.365140944719315,
           -187.5
         ],
         "max": [
@@ -768,9 +768,9 @@
         "a88b09b60f696d7885495f1a450eb34f6047d9ec52046d9f7993bedc1239a313"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -780,7 +780,7 @@
       "bounds": {
         "min": [
           -62.5,
-          -0.4588909447193146,
+          -4.365140944719315,
           -187.5
         ],
         "max": [
@@ -794,9 +794,9 @@
         "569329759f69d5c794c59539c0c8d1b686548831438cb398973b8f7ce92f418d"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -806,7 +806,7 @@
       "bounds": {
         "min": [
           0,
-          -0.3498929440975189,
+          -4.256142944097519,
           -187.5
         ],
         "max": [
@@ -820,9 +820,9 @@
         "07202095a5a952731cec6da9399031ca425fd428aaaabea031149eb6572816f4"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -832,7 +832,7 @@
       "bounds": {
         "min": [
           62.5,
-          -0.45431968569755554,
+          -4.3605696856975555,
           -187.5
         ],
         "max": [
@@ -846,9 +846,9 @@
         "aea6a839dc533b9699aafb8a9032072a6304f876219af63eef42bd3ec23443d7"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -858,7 +858,7 @@
       "bounds": {
         "min": [
           125,
-          -0.4481387138366699,
+          -4.35438871383667,
           -187.5
         ],
         "max": [
@@ -872,9 +872,9 @@
         "eedd4a6b402f02df4671bdf29e69c7577ff44e9557a2b73d6f7ca11341628de6"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -884,7 +884,7 @@
       "bounds": {
         "min": [
           187.5,
-          -0.45568934082984924,
+          -4.361939340829849,
           -187.5
         ],
         "max": [
@@ -898,9 +898,9 @@
         "0d907b4ce62174957635fde64ed0d4671b18a63adee86df6cb1be06ea336ffa9"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -910,7 +910,7 @@
       "bounds": {
         "min": [
           -250,
-          -0.4458810091018677,
+          -4.352131009101868,
           -125
         ],
         "max": [
@@ -924,9 +924,9 @@
         "cda777b777c221ee6e5632a9212985d57ca9c0909984f51680d8c17d41968c59"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -936,7 +936,7 @@
       "bounds": {
         "min": [
           -187.5,
-          -0.3256726562976837,
+          -4.231922656297684,
           -125
         ],
         "max": [
@@ -950,9 +950,9 @@
         "efc0a48cdaca2ad005618c617caeddf44b04d3a1310cbd7de98158310d0aa558"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -962,7 +962,7 @@
       "bounds": {
         "min": [
           -125,
-          -0.3181511461734772,
+          -4.224401146173477,
           -125
         ],
         "max": [
@@ -976,9 +976,9 @@
         "10d3aa6924fe0f665b1d6125b24919acdfd659df9e4515555e85103313eda3d2"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -988,7 +988,7 @@
       "bounds": {
         "min": [
           -62.5,
-          -0.4569341540336609,
+          -4.363184154033661,
           -125
         ],
         "max": [
@@ -1002,9 +1002,9 @@
         "1e8bdd396178c451e8a14f70e5151f4bbdfb4f705c5eca98a844ee6123b36b9f"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1014,7 +1014,7 @@
       "bounds": {
         "min": [
           0,
-          -0.4401133954524994,
+          -4.346363395452499,
           -125
         ],
         "max": [
@@ -1028,9 +1028,9 @@
         "c59c8d560db569f881648cbc8dfe5b3b70535ec126fa7d7e6bd0811afded0daa"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1040,7 +1040,7 @@
       "bounds": {
         "min": [
           62.5,
-          -0.41887983679771423,
+          -4.325129836797714,
           -125
         ],
         "max": [
@@ -1054,9 +1054,9 @@
         "e5d6b3a4fa04004fdf211c038d58323b1c473f28bce83f5ca48d0314689df203"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1066,7 +1066,7 @@
       "bounds": {
         "min": [
           125,
-          -0.45496344566345215,
+          -4.361213445663452,
           -125
         ],
         "max": [
@@ -1080,9 +1080,9 @@
         "d52aecd30ba8194f5f9aecf312211ac794d883dac532fe00f868b349643c6f0e"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1092,7 +1092,7 @@
       "bounds": {
         "min": [
           187.5,
-          -0.43899625539779663,
+          -4.345246255397797,
           -125
         ],
         "max": [
@@ -1106,9 +1106,9 @@
         "3b5c76c21c2049a991421f70ce6b26afc820fc0fb894faf43613f1ce8b237565"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1118,7 +1118,7 @@
       "bounds": {
         "min": [
           -250,
-          -0.4586213529109955,
+          -4.3648713529109955,
           -62.5
         ],
         "max": [
@@ -1132,9 +1132,9 @@
         "313cbf0b943112fae21a33da35d952f0d17a5819695687c8ef7a8319e8f64ea4"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1144,7 +1144,7 @@
       "bounds": {
         "min": [
           -187.5,
-          -0.45242053270339966,
+          -4.3586705327034,
           -62.5
         ],
         "max": [
@@ -1158,9 +1158,9 @@
         "7d4e266ecca001825bc75d195effd86f328ddcc1f40925a59ac49a13f51a7f83"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1170,7 +1170,7 @@
       "bounds": {
         "min": [
           -125,
-          -0.4590330123901367,
+          -4.365283012390137,
           -62.5
         ],
         "max": [
@@ -1184,9 +1184,9 @@
         "4c8e622d6239b88d3bff494b926782fe508d515a6549b2446fa40ae7e7781f75"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1196,7 +1196,7 @@
       "bounds": {
         "min": [
           -62.5,
-          -0.4464681148529053,
+          -4.352718114852905,
           -62.5
         ],
         "max": [
@@ -1210,9 +1210,9 @@
         "bd69ae5429781cab42ab693173a580aeaaee033b6ff793c5a8c9ef66ee4a568d"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1222,7 +1222,7 @@
       "bounds": {
         "min": [
           0,
-          -0.46010828018188477,
+          -4.366358280181885,
           -62.5
         ],
         "max": [
@@ -1236,9 +1236,9 @@
         "9f18bda7292a4ac4e7a3cb20f837c58d66a3450098a9b5ac428b27209c0bdc9c"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1248,7 +1248,7 @@
       "bounds": {
         "min": [
           62.5,
-          -0.46010828018188477,
+          -4.366358280181885,
           -62.5
         ],
         "max": [
@@ -1262,9 +1262,9 @@
         "51664cc129d58fe82e1c5e42155914264a69da74240ca69980e4117e4b8b855e"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1274,7 +1274,7 @@
       "bounds": {
         "min": [
           125,
-          -0.45703551173210144,
+          -4.363285511732101,
           -62.5
         ],
         "max": [
@@ -1288,9 +1288,9 @@
         "98d896992af3c01922d0f6dac572a62d5d2caa856a3b0a4e95bc15382058aae1"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1300,7 +1300,7 @@
       "bounds": {
         "min": [
           187.5,
-          -0.4193156957626343,
+          -4.325565695762634,
           -62.5
         ],
         "max": [
@@ -1314,9 +1314,9 @@
         "36148f9964e1244934ca99094948e9e6626fa18f9f952ea71c31886875d45723"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1326,7 +1326,7 @@
       "bounds": {
         "min": [
           -250,
-          -0.45933449268341064,
+          -4.365584492683411,
           0
         ],
         "max": [
@@ -1340,9 +1340,9 @@
         "6bb4e1afcd3cb51500169cc69609a151b1360d31ac8bff723065a44c3f6f91d6"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1352,7 +1352,7 @@
       "bounds": {
         "min": [
           -187.5,
-          -0.35134565830230713,
+          -4.257595658302307,
           0
         ],
         "max": [
@@ -1366,9 +1366,9 @@
         "60ce54cb88c5a1a6c6422e289a402adb8252307b81dd710317559792d93a2d26"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1378,7 +1378,7 @@
       "bounds": {
         "min": [
           -125,
-          -0.45939964056015015,
+          -4.36564964056015,
           0
         ],
         "max": [
@@ -1392,9 +1392,9 @@
         "c67461a95e00e2c6a824200f05d798519f6fce2b15702fc284398a8626f47223"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1404,7 +1404,7 @@
       "bounds": {
         "min": [
           -62.5,
-          -0.4549660086631775,
+          -4.3612160086631775,
           0
         ],
         "max": [
@@ -1418,9 +1418,9 @@
         "48d617919604618ab3e83082ac0cba34cf7994f44a9c8f678527417a1e41a00c"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1430,7 +1430,7 @@
       "bounds": {
         "min": [
           0,
-          -3,
+          -6.90625,
           0
         ],
         "max": [
@@ -1444,9 +1444,9 @@
         "9231d394079b4a67bc8fd71d4dc1cca544ef1914b281fb694fea1e49671a4094"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1456,7 +1456,7 @@
       "bounds": {
         "min": [
           62.5,
-          -0.457218736410141,
+          -4.363468736410141,
           0
         ],
         "max": [
@@ -1470,9 +1470,9 @@
         "ed3957e7132b523c61e6c4f0abf857e243368f95b48c8b5908d095ce8216fff5"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1482,7 +1482,7 @@
       "bounds": {
         "min": [
           125,
-          -0.4517965316772461,
+          -4.358046531677246,
           0
         ],
         "max": [
@@ -1496,9 +1496,9 @@
         "13dfb544c6abb1c24c1d5e313a3eaedd1d77c7c573183065e1b81ddd870b1a1c"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1508,7 +1508,7 @@
       "bounds": {
         "min": [
           187.5,
-          -0.3838827311992645,
+          -4.2901327311992645,
           0
         ],
         "max": [
@@ -1522,9 +1522,9 @@
         "0236727b0741c0db4cf57cb2ed668d0930a363c20b507b4b1708d8cbfdcdad11"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1534,7 +1534,7 @@
       "bounds": {
         "min": [
           -250,
-          -0.4457971155643463,
+          -4.352047115564346,
           62.5
         ],
         "max": [
@@ -1548,9 +1548,9 @@
         "4634fbcd1a5fad50adb62ea9b5405a4f47cb4ef6a7252508aaf2fd4e9e1c4a89"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1560,7 +1560,7 @@
       "bounds": {
         "min": [
           -187.5,
-          -0.4463275671005249,
+          -4.352577567100525,
           62.5
         ],
         "max": [
@@ -1574,9 +1574,9 @@
         "85bcdc7b7cd961150ba5afaf0f69151b88293820e2156669de75ecc9c21fde7e"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1586,7 +1586,7 @@
       "bounds": {
         "min": [
           -125,
-          -0.4567297697067261,
+          -4.362979769706726,
           62.5
         ],
         "max": [
@@ -1600,9 +1600,9 @@
         "387854c463589d7ff31c502ac08eeb44a0b7cf3ec39900555d5c8f565838e426"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1612,7 +1612,7 @@
       "bounds": {
         "min": [
           -62.5,
-          -0.4592665731906891,
+          -4.365516573190689,
           62.5
         ],
         "max": [
@@ -1626,9 +1626,9 @@
         "1b100ed199d72dd9bd05aa43402758e7d2090bf44231d12a7063471221b9163b"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1638,7 +1638,7 @@
       "bounds": {
         "min": [
           0,
-          -0.44628068804740906,
+          -4.352530688047409,
           62.5
         ],
         "max": [
@@ -1652,9 +1652,9 @@
         "c99e6873d2621c806ce3cec735231ab25e01827aabbaef3b8f1be1f72695abcd"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1664,7 +1664,7 @@
       "bounds": {
         "min": [
           62.5,
-          -0.32289960980415344,
+          -4.229149609804153,
           62.5
         ],
         "max": [
@@ -1678,9 +1678,9 @@
         "22c58a6ce51316557e773a26d2f96f1d9dfd77b210d7baf71172f6a374d9082a"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1690,7 +1690,7 @@
       "bounds": {
         "min": [
           125,
-          -0.4344041347503662,
+          -4.340654134750366,
           62.5
         ],
         "max": [
@@ -1704,9 +1704,9 @@
         "0e4949f23fd83cc9774598128dc5b5424675196cd811503ced28d286e0fdcb13"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1716,7 +1716,7 @@
       "bounds": {
         "min": [
           187.5,
-          -0.31177231669425964,
+          -4.21802231669426,
           62.5
         ],
         "max": [
@@ -1730,9 +1730,9 @@
         "f2a709b92b41ef7763e601d2ef48a208077b6243d5a911c5e5d39f503bfaefb8"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1742,7 +1742,7 @@
       "bounds": {
         "min": [
           -250,
-          -0.4668274223804474,
+          -4.373077422380447,
           125
         ],
         "max": [
@@ -1756,9 +1756,9 @@
         "caa7154284c62dc900b5e23c76e14520b319586a71f3cde46e62d78a6cbcf820"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1768,7 +1768,7 @@
       "bounds": {
         "min": [
           -187.5,
-          -0.4534270763397217,
+          -4.359677076339722,
           125
         ],
         "max": [
@@ -1782,9 +1782,9 @@
         "ff5c3c3c68495f0d291fa1476e8dae2f3af8c0eeece4af95e1c73d380a5f0c04"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1794,7 +1794,7 @@
       "bounds": {
         "min": [
           -125,
-          -0.31615740060806274,
+          -4.222407400608063,
           125
         ],
         "max": [
@@ -1808,9 +1808,9 @@
         "a11fde5a6bda66298c4b27fe4e70f886ce5c8d020aac82c3ed6bdfc8eebf28df"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1820,7 +1820,7 @@
       "bounds": {
         "min": [
           -62.5,
-          -0.45693477988243103,
+          -4.363184779882431,
           125
         ],
         "max": [
@@ -1834,9 +1834,9 @@
         "224f9b7e9eb8afb174ac92ab54e91d709233b9184682af472b44a036ebb3c6e6"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1846,7 +1846,7 @@
       "bounds": {
         "min": [
           0,
-          -0.4587234854698181,
+          -4.364973485469818,
           125
         ],
         "max": [
@@ -1860,9 +1860,9 @@
         "dbdde304f9f99988620b34df99716bde6154b9e0521e3d1e194409da402d3f8c"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1872,7 +1872,7 @@
       "bounds": {
         "min": [
           62.5,
-          -0.4583893418312073,
+          -4.364639341831207,
           125
         ],
         "max": [
@@ -1886,9 +1886,9 @@
         "91c278039976f80af123ef55594bf8d92fb640d75e130cb622dee61c2d9ec801"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1898,7 +1898,7 @@
       "bounds": {
         "min": [
           125,
-          -0.31571903824806213,
+          -4.221969038248062,
           125
         ],
         "max": [
@@ -1912,9 +1912,9 @@
         "ebaf2967c7965f760852c650ca03f83a83656606a873962a03751c69b7273dd4"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1924,7 +1924,7 @@
       "bounds": {
         "min": [
           187.5,
-          -0.4543401598930359,
+          -4.360590159893036,
           125
         ],
         "max": [
@@ -1938,9 +1938,9 @@
         "6ed71f34749e89af8f2293435648821c5ae9fcf26d88e97d2319c33ab26f6ce5"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1950,7 +1950,7 @@
       "bounds": {
         "min": [
           -250,
-          -0.4668274223804474,
+          -4.373077422380447,
           187.5
         ],
         "max": [
@@ -1964,9 +1964,9 @@
         "cc0219d405847406cc0751aaf9e9dddb6a205ce547b71a93c8291d08346db733"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -1976,7 +1976,7 @@
       "bounds": {
         "min": [
           -187.5,
-          -0.3156689703464508,
+          -4.221918970346451,
           187.5
         ],
         "max": [
@@ -1990,9 +1990,9 @@
         "b682a344918b4e425629404f831e29ae33e767e0c25aaf189ee410270a963a96"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -2002,7 +2002,7 @@
       "bounds": {
         "min": [
           -125,
-          -0.4543483257293701,
+          -4.36059832572937,
           187.5
         ],
         "max": [
@@ -2016,9 +2016,9 @@
         "715dc12bfeccea44132fbf46f1ef23d92c287fe0d2a9c65f413211db85bac5f9"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -2028,7 +2028,7 @@
       "bounds": {
         "min": [
           -62.5,
-          -0.4230656325817108,
+          -4.329315632581711,
           187.5
         ],
         "max": [
@@ -2042,9 +2042,9 @@
         "8e7732ade39fc42d8c51743adb159b16d38857d960bec5310b36cfcb124014b9"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -2054,7 +2054,7 @@
       "bounds": {
         "min": [
           0,
-          -0.3119414150714874,
+          -4.218191415071487,
           187.5
         ],
         "max": [
@@ -2068,9 +2068,9 @@
         "25b3d38e63216b9ed3d5570f798e502e59543db6b4cee8344b497272aef028f7"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -2080,7 +2080,7 @@
       "bounds": {
         "min": [
           62.5,
-          -0.4641422927379608,
+          -4.370392292737961,
           187.5
         ],
         "max": [
@@ -2094,9 +2094,9 @@
         "4b99ee6f9390ea44146fb033e84d477c83e8548aafaa809c3190e8f307d3e119"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -2106,7 +2106,7 @@
       "bounds": {
         "min": [
           125,
-          -0.4604349434375763,
+          -4.366684943437576,
           187.5
         ],
         "max": [
@@ -2120,9 +2120,9 @@
         "a5e76540f7ba07d16a113ed1d67a44bb953e238314ffcb4e30093d3559e48bcc"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -2132,7 +2132,7 @@
       "bounds": {
         "min": [
           187.5,
-          -0.4518652856349945,
+          -4.3581152856349945,
           187.5
         ],
         "max": [
@@ -2146,9 +2146,9 @@
         "5e8886d893273ed74933e83e54a1ba2f5d735dd0bf1cc33040a6e55079e57b7d"
       ],
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2
     },
     {
@@ -2584,9 +2584,9 @@
       "hash": "998d952da4dfcdd13be6e9c5948b91dc0bfd56bb55c45daa5f757a055d66931e",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2595,9 +2595,9 @@
       "hash": "725fbc1d2392cfe271d99af6c3edf8cd17cf3d413a1939e7459393f42660ce15",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2606,9 +2606,9 @@
       "hash": "452251281c38e796cf958d8744736a1727c1bdb644fdc2a55638c869aae6fbd6",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2617,9 +2617,9 @@
       "hash": "5811170c5329f483679df74b3e6a1c0fa3f954fc7c15f53d27d82cd31548070e",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2628,9 +2628,9 @@
       "hash": "5fb74825b6d92716ff9a3d701361e82335594e419a0f64ce191af79a667d03b0",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2639,9 +2639,9 @@
       "hash": "fb8d079b315bcbc3225f9552797fe8bc4dc36ad803e6cb53e122a819761e2e08",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2650,9 +2650,9 @@
       "hash": "70a62f0ccfdb61e622b96ac4f343a3108014f5658332dfb2712431b32a89fcf2",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2661,9 +2661,9 @@
       "hash": "29fd518d7873c60964c4735a4c740aee0553e0b45ee165665ad9e7a37af09ac8",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2672,9 +2672,9 @@
       "hash": "c9da12bf6d2609060d7d9c9a833666ba0617262cf857fcb912ce80a9583aa359",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2683,9 +2683,9 @@
       "hash": "0975c7a0704ef1f65c216cc42285b2121f83c5caf06f13590dc6072e63ddbf07",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2694,9 +2694,9 @@
       "hash": "a88b09b60f696d7885495f1a450eb34f6047d9ec52046d9f7993bedc1239a313",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2705,9 +2705,9 @@
       "hash": "569329759f69d5c794c59539c0c8d1b686548831438cb398973b8f7ce92f418d",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2716,9 +2716,9 @@
       "hash": "07202095a5a952731cec6da9399031ca425fd428aaaabea031149eb6572816f4",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2727,9 +2727,9 @@
       "hash": "aea6a839dc533b9699aafb8a9032072a6304f876219af63eef42bd3ec23443d7",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2738,9 +2738,9 @@
       "hash": "eedd4a6b402f02df4671bdf29e69c7577ff44e9557a2b73d6f7ca11341628de6",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2749,9 +2749,9 @@
       "hash": "0d907b4ce62174957635fde64ed0d4671b18a63adee86df6cb1be06ea336ffa9",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2760,9 +2760,9 @@
       "hash": "cda777b777c221ee6e5632a9212985d57ca9c0909984f51680d8c17d41968c59",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2771,9 +2771,9 @@
       "hash": "efc0a48cdaca2ad005618c617caeddf44b04d3a1310cbd7de98158310d0aa558",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2782,9 +2782,9 @@
       "hash": "10d3aa6924fe0f665b1d6125b24919acdfd659df9e4515555e85103313eda3d2",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2793,9 +2793,9 @@
       "hash": "1e8bdd396178c451e8a14f70e5151f4bbdfb4f705c5eca98a844ee6123b36b9f",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2804,9 +2804,9 @@
       "hash": "c59c8d560db569f881648cbc8dfe5b3b70535ec126fa7d7e6bd0811afded0daa",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2815,9 +2815,9 @@
       "hash": "e5d6b3a4fa04004fdf211c038d58323b1c473f28bce83f5ca48d0314689df203",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2826,9 +2826,9 @@
       "hash": "d52aecd30ba8194f5f9aecf312211ac794d883dac532fe00f868b349643c6f0e",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2837,9 +2837,9 @@
       "hash": "3b5c76c21c2049a991421f70ce6b26afc820fc0fb894faf43613f1ce8b237565",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2848,9 +2848,9 @@
       "hash": "313cbf0b943112fae21a33da35d952f0d17a5819695687c8ef7a8319e8f64ea4",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2859,9 +2859,9 @@
       "hash": "7d4e266ecca001825bc75d195effd86f328ddcc1f40925a59ac49a13f51a7f83",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2870,9 +2870,9 @@
       "hash": "4c8e622d6239b88d3bff494b926782fe508d515a6549b2446fa40ae7e7781f75",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2881,9 +2881,9 @@
       "hash": "bd69ae5429781cab42ab693173a580aeaaee033b6ff793c5a8c9ef66ee4a568d",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2892,9 +2892,9 @@
       "hash": "9f18bda7292a4ac4e7a3cb20f837c58d66a3450098a9b5ac428b27209c0bdc9c",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2903,9 +2903,9 @@
       "hash": "51664cc129d58fe82e1c5e42155914264a69da74240ca69980e4117e4b8b855e",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2914,9 +2914,9 @@
       "hash": "98d896992af3c01922d0f6dac572a62d5d2caa856a3b0a4e95bc15382058aae1",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2925,9 +2925,9 @@
       "hash": "36148f9964e1244934ca99094948e9e6626fa18f9f952ea71c31886875d45723",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2936,9 +2936,9 @@
       "hash": "6bb4e1afcd3cb51500169cc69609a151b1360d31ac8bff723065a44c3f6f91d6",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2947,9 +2947,9 @@
       "hash": "60ce54cb88c5a1a6c6422e289a402adb8252307b81dd710317559792d93a2d26",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2958,9 +2958,9 @@
       "hash": "c67461a95e00e2c6a824200f05d798519f6fce2b15702fc284398a8626f47223",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2969,9 +2969,9 @@
       "hash": "48d617919604618ab3e83082ac0cba34cf7994f44a9c8f678527417a1e41a00c",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2980,9 +2980,9 @@
       "hash": "9231d394079b4a67bc8fd71d4dc1cca544ef1914b281fb694fea1e49671a4094",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -2991,9 +2991,9 @@
       "hash": "ed3957e7132b523c61e6c4f0abf857e243368f95b48c8b5908d095ce8216fff5",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3002,9 +3002,9 @@
       "hash": "13dfb544c6abb1c24c1d5e313a3eaedd1d77c7c573183065e1b81ddd870b1a1c",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3013,9 +3013,9 @@
       "hash": "0236727b0741c0db4cf57cb2ed668d0930a363c20b507b4b1708d8cbfdcdad11",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3024,9 +3024,9 @@
       "hash": "4634fbcd1a5fad50adb62ea9b5405a4f47cb4ef6a7252508aaf2fd4e9e1c4a89",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3035,9 +3035,9 @@
       "hash": "85bcdc7b7cd961150ba5afaf0f69151b88293820e2156669de75ecc9c21fde7e",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3046,9 +3046,9 @@
       "hash": "387854c463589d7ff31c502ac08eeb44a0b7cf3ec39900555d5c8f565838e426",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3057,9 +3057,9 @@
       "hash": "1b100ed199d72dd9bd05aa43402758e7d2090bf44231d12a7063471221b9163b",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3068,9 +3068,9 @@
       "hash": "c99e6873d2621c806ce3cec735231ab25e01827aabbaef3b8f1be1f72695abcd",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3079,9 +3079,9 @@
       "hash": "22c58a6ce51316557e773a26d2f96f1d9dfd77b210d7baf71172f6a374d9082a",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3090,9 +3090,9 @@
       "hash": "0e4949f23fd83cc9774598128dc5b5424675196cd811503ced28d286e0fdcb13",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3101,9 +3101,9 @@
       "hash": "f2a709b92b41ef7763e601d2ef48a208077b6243d5a911c5e5d39f503bfaefb8",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3112,9 +3112,9 @@
       "hash": "caa7154284c62dc900b5e23c76e14520b319586a71f3cde46e62d78a6cbcf820",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3123,9 +3123,9 @@
       "hash": "ff5c3c3c68495f0d291fa1476e8dae2f3af8c0eeece4af95e1c73d380a5f0c04",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3134,9 +3134,9 @@
       "hash": "a11fde5a6bda66298c4b27fe4e70f886ce5c8d020aac82c3ed6bdfc8eebf28df",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3145,9 +3145,9 @@
       "hash": "224f9b7e9eb8afb174ac92ab54e91d709233b9184682af472b44a036ebb3c6e6",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3156,9 +3156,9 @@
       "hash": "dbdde304f9f99988620b34df99716bde6154b9e0521e3d1e194409da402d3f8c",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3167,9 +3167,9 @@
       "hash": "91c278039976f80af123ef55594bf8d92fb640d75e130cb622dee61c2d9ec801",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3178,9 +3178,9 @@
       "hash": "ebaf2967c7965f760852c650ca03f83a83656606a873962a03751c69b7273dd4",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3189,9 +3189,9 @@
       "hash": "6ed71f34749e89af8f2293435648821c5ae9fcf26d88e97d2319c33ab26f6ce5",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3200,9 +3200,9 @@
       "hash": "cc0219d405847406cc0751aaf9e9dddb6a205ce547b71a93c8291d08346db733",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3211,9 +3211,9 @@
       "hash": "b682a344918b4e425629404f831e29ae33e767e0c25aaf189ee410270a963a96",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3222,9 +3222,9 @@
       "hash": "715dc12bfeccea44132fbf46f1ef23d92c287fe0d2a9c65f413211db85bac5f9",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3233,9 +3233,9 @@
       "hash": "8e7732ade39fc42d8c51743adb159b16d38857d960bec5310b36cfcb124014b9",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3244,9 +3244,9 @@
       "hash": "25b3d38e63216b9ed3d5570f798e502e59543db6b4cee8344b497272aef028f7",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3255,9 +3255,9 @@
       "hash": "4b99ee6f9390ea44146fb033e84d477c83e8548aafaa809c3190e8f307d3e119",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3266,9 +3266,9 @@
       "hash": "a5e76540f7ba07d16a113ed1d67a44bb953e238314ffcb4e30093d3559e48bcc",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false
@@ -3277,9 +3277,9 @@
       "hash": "5e8886d893273ed74933e83e54a1ba2f5d735dd0bf1cc33040a6e55079e57b7d",
       "kind": "binary",
       "compressed": 17456,
-      "decoded": 73304,
-      "gpu": 51492,
-      "triangles": 2048,
+      "decoded": 92516,
+      "gpu": 57636,
+      "triangles": 2304,
       "draws": 2,
       "dependencies": [],
       "critical": false

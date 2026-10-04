@@ -12,8 +12,7 @@ export function terrainResidency(x: number, z: number): { fine: ReadonlySet<stri
     const key = `0/${tx}/${tz}`; fine.add(key);
     const coarse = `1/${Math.floor(tx / 2)}/${Math.floor(tz / 2)}`, mask = masks.get(coarse) ?? new Set<number>();
     mask.add(tx % 2 + tz % 2 * 2); masks.set(coarse, mask);
-    const minX = -250 + tx * 62.5, minZ = -250 + tz * 62.5;
-    if (Math.hypot(Math.max(Math.abs(minX - x), Math.abs(minX + 62.5 - x)), Math.max(Math.abs(minZ - z), Math.abs(minZ + 62.5 - z))) <= 80) shadows.add(key);
+    if (tileDistance(x, z, tx, tz, 62.5) <= 80) shadows.add(key);
   }
   return { fine, masks, shadows };
 }

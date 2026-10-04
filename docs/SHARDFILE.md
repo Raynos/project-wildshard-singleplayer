@@ -118,6 +118,10 @@ the renderer reads the same field. `targets.interactions` supplies stable IDs,
 cell-local `at`, reach radius, text label and a declared scene hook to the normal
 interaction list. Item hooks select admitted modules; the trusted host supplies
 their owner actor and merges explicit item handles into its single script lane.
+Optional `targets.itemActions` maps a named scene to a declared tool and action
+`3` (toggle) or `4` (refill). Optional `targets.itemFields` maps a tool's `fuel`
+or `lit` value to a compatible player field ID. These are read-only projections
+from the single authoritative item runtime, published after its fixed step.
 
 Local references are file hashes; shared references are `commons:<hash>` and must be
 declared in `requires.commons`. Every local dependency resolves. The dependency graph
