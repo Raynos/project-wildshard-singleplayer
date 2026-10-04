@@ -1,5 +1,6 @@
-// SF21a (SHARD-PLATFORM §3.3, G58, G61, R3-C5): the main menu's two entries. Select a shard enters what the §3.3 table
-// allows per mode; EXPERIMENTAL Wildshard shows with Developer on (until SF22's gates) and boots only from a one-shot intent.
+// SF21a (SHARD-PLATFORM §3.3, G58, G61, G79, G86, G88, R3-C5): the Wildshard main menu. SHARD SELECT opens today's deck,
+// which enters what the §3.3 table allows per mode; INFINITE WILDSHARD shows with Developer on (until SF22's gates) and
+// boots only from a one-shot intent; a shard whose shardfile needs an upgrade is a dimmed card that keeps the save.
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SaveStore } from '../src/engine/saves/store';
@@ -12,6 +13,7 @@ import { devserverCellOn, installGridDebug } from '../src/game/grid/debug';
 import { levelDebugRows } from '../src/engine/ui/debugOptions';
 import { shards } from '../src/game/shard/list';
 import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
+import { buildTitleMenu } from '../src/game/mainMenu';
 
 class MemoryStorage {
   private data = new Map<string, string>();
@@ -61,7 +63,7 @@ describe('§3.3 table: the assembly per mode and both switches together', () => 
     expect(selectExplores('_template', true, MODES.devserver)).toBe(true);
     expect(selectExplores('nine-dragon-stack', true, MODES.developer)).toBe(true);
   });
-  it('EXPERIMENTAL Wildshard shows only with Developer on until SF22\'s gates pass, then to everyone', () => {
+  it('INFINITE WILDSHARD shows only with Developer on until SF22\'s gates pass, then to everyone', () => {
     expect(gridEntryShown(MODES.shipped)).toBe(false);
     expect(gridEntryShown(MODES.devserver)).toBe(false);
     expect(gridEntryShown(MODES.developer)).toBe(true);
@@ -101,36 +103,84 @@ describe('the one-shot tap intent (R3-C5)', () => {
   });
 });
 
-describe('the title deck\'s two entries', () => {
+describe('the main menu (G79 / G88)', () => {
+  const noop = (): void => undefined;
   for (const dev of [false, true]) {
-    it(`Developer ${dev}: Select a shard ${dev ? 'and EXPERIMENTAL Wildshard' : 'alone (today\'s title, unchanged)'}`, () => {
+    it(`Developer ${dev}: ${dev ? 'SHARD SELECT and INFINITE WILDSHARD side by side' : 'one wide SHARD SELECT card'}, then SETTINGS`, () => {
       setDev(dev);
-      const onGrid = vi.fn<() => void>();
-      const deck = buildTitleDeck({ cards: titleCards(), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined, onGrid });
-      document.body.append(deck.root);
-      deck.start();
-      expect(deck.root.dataset['entry']).toBe('select');
-      const select = deck.root.querySelector<HTMLButtonElement>('.ws-menu-entry-select');
-      const grid = deck.root.querySelector<HTMLButtonElement>('.ws-menu-entry-grid');
-      expect(grid?.textContent ?? null).toBe(dev ? 'EXPERIMENTAL Wildshard' : null);
-      expect(select?.textContent ?? null).toBe(dev ? 'Select a shard' : null);
-      if (dev) expect(document.activeElement).toBe(select);
-      grid?.click();
+      const onGrid = vi.fn<() => void>(), onSettings = vi.fn<() => void>();
+      const menu = buildTitleMenu({ cards: titleCards(), active: null, onEnter: noop, onExplore: noop, onSettings, onGrid, screen: 'main' });
+      document.body.append(menu.root);
+      menu.start();
+      expect(menu.screen).toBe('main');
+      expect(menu.root.querySelector('.ws-main-logo')?.textContent).toBe('WILDSHARD');
+      const cards = [...menu.root.querySelectorAll<HTMLButtonElement>('.ws-main-card')].map((card) => card.textContent.trim());
+      expect(cards).toEqual(dev ? ['SHARD SELECT', 'INFINITE WILDSHARD'] : ['SHARD SELECT']);
+      expect(menu.root.querySelector('.ws-main-cards')?.classList.contains('one')).toBe(!dev);
+      expect(document.activeElement).toBe(menu.root.querySelector('.ws-main-select'));
+      menu.root.querySelector<HTMLButtonElement>('.ws-main-grid')?.click();
       expect(onGrid).toHaveBeenCalledTimes(dev ? 1 : 0);
-      deck.dispose(); deck.root.remove();
+      menu.root.querySelector<HTMLButtonElement>('.ws-main-settings')?.click();
+      expect(onSettings).toHaveBeenCalledTimes(1);
+      menu.dispose(); menu.root.remove();
     });
   }
-  it('a deck without the grid wiring never shows the entry', () => {
+  it('SHARD SELECT opens today\'s deck, unchanged; MAIN MENU comes back; a rebuild keeps the screen', () => {
     setDev(true);
-    const deck = buildTitleDeck({ cards: titleCards(), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined });
-    expect(deck.root.querySelector('.ws-menu-entries')).toBeNull();
+    const opts = { cards: titleCards(), active: null, onEnter: noop, onExplore: noop, onSettings: noop, onGrid: noop };
+    const menu = buildTitleMenu({ ...opts, screen: 'main' });
+    document.body.append(menu.root);
+    const deck = menu.root.querySelector<HTMLElement>('.ws-menu');
+    expect(deck?.classList.contains('hide')).toBe(true);
+    menu.root.querySelector<HTMLButtonElement>('.ws-main-select')?.click();
+    expect(menu.screen).toBe('select');
+    expect(deck?.classList.contains('hide')).toBe(false);
+    expect(menu.root.querySelector('.ws-main')?.classList.contains('hide')).toBe(true);
+    expect(menu.root.querySelector('.ws-menu-entries')).toBeNull(); // the old two-entry row is gone: the main menu owns it
+    expect(menu.root.querySelector('.ws-menu-play b')?.textContent).toBe('Enter world');
+    menu.dispose(); menu.root.remove();
+    const again = buildTitleMenu(opts); // Settings ▸ Developer rebuilt the title: still on the deck
+    expect(again.screen).toBe('select');
+    again.root.querySelector<HTMLButtonElement>('.ws-menu-back')?.click();
+    expect(again.screen).toBe('main');
+    again.dispose();
+  });
+  it('the HUD\'s confirm on the main menu opens the deck; on the deck it enters the card', () => {
+    const onEnter = vi.fn<() => void>();
+    const menu = buildTitleMenu({ cards: titleCards(), active: null, onEnter, onExplore: noop, onSettings: noop, onGrid: noop, screen: 'main' });
+    menu.activate();
+    expect(menu.screen).toBe('select');
+    menu.activate();
+    expect(onEnter).toHaveBeenCalledTimes(1);
+    expect(menu.screen).toBe('main'); // entering a world resets the title: EXIT TO MAIN opens on the main menu
+    menu.dispose();
+  });
+});
+
+describe('a card that needs an upgrade (G86, temporary)', () => {
+  it('is dimmed, badged NEEDS UPGRADE, built for its version, and cannot be entered; the save line stays', () => {
+    const cards = titleCards(false, (slug) => (slug === 'driftwood-isle' ? 0 : null));
+    const onEnter = vi.fn<() => void>();
+    const deck = buildTitleDeck({ cards, active: null, onEnter, onExplore: () => undefined, onSettings: () => undefined });
+    const index = deck.cards.findIndex((card) => card.slug === 'driftwood-isle');
+    deck.select(index, false);
+    const card = deck.root.querySelectorAll<HTMLElement>('.ws-menu-card')[index];
+    expect(card?.classList.contains('ws-menu-card-upgrade')).toBe(true);
+    expect(card?.querySelector('.ws-menu-card-needs')?.textContent).toBe('NEEDS UPGRADE');
+    expect(card?.querySelector('small')?.textContent).toBe('BUILT FOR SHARDFILE V0');
+    const play = deck.root.querySelector<HTMLButtonElement>('.ws-menu-play');
+    expect(play?.disabled).toBe(true);
+    expect(play?.querySelector('b')?.textContent).toBe('NEEDS UPGRADE');
+    expect(play?.querySelector('small')?.textContent).toBe('YOUR SAVE IS KEPT');
+    deck.activate();
+    expect(onEnter).not.toHaveBeenCalled();
     deck.dispose();
   });
 });
 
 describe('a DEVSERVER build (§3.3)', () => {
   it('Select a shard enters and explores every shard without Developer mode; the grid entry stays hidden', () => {
-    const deck = buildTitleDeck({ cards: titleCards(true), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined, onGrid: () => undefined, mode: () => MODES.devserver });
+    const deck = buildTitleDeck({ cards: titleCards(true), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined, mode: () => MODES.devserver });
     document.body.append(deck.root);
     for (const [index, card] of deck.cards.entries()) {
       deck.select(index, false);
@@ -138,14 +188,16 @@ describe('a DEVSERVER build (§3.3)', () => {
       expect(deck.root.querySelector<HTMLButtonElement>('.ws-menu-explore')?.disabled, card.slug).toBe(false);
     }
     expect([...deck.root.querySelectorAll('.ws-menu-card-exp')].filter((el) => el.textContent === 'DEVELOPER ONLY')).toHaveLength(1);
-    expect(deck.root.querySelector('.ws-menu-entry-grid')).toBeNull();
     deck.dispose(); deck.root.remove();
+    const menu = buildTitleMenu({ cards: titleCards(true), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined, onGrid: () => undefined, mode: () => MODES.devserver, screen: 'main' });
+    expect(menu.root.querySelector('.ws-main-grid')).toBeNull();
+    menu.dispose();
   });
   it('DEVSERVER with Developer: both entries', () => {
-    const deck = buildTitleDeck({ cards: titleCards(true), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined, onGrid: () => undefined, mode: () => MODES.both });
-    expect(deck.root.querySelector('.ws-menu-entry-select')?.textContent).toBe('Select a shard');
-    expect(deck.root.querySelector('.ws-menu-entry-grid')?.textContent).toBe('EXPERIMENTAL Wildshard');
-    deck.dispose();
+    const menu = buildTitleMenu({ cards: titleCards(true), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined, onGrid: () => undefined, mode: () => MODES.both, screen: 'main' });
+    expect(menu.root.querySelector('.ws-main-select')?.textContent.trim()).toBe('SHARD SELECT');
+    expect(menu.root.querySelector('.ws-main-grid')?.textContent.trim()).toBe('INFINITE WILDSHARD');
+    menu.dispose();
   });
   it('the DEVSERVER cell row: on by default, swapped to the template at the next grid start, gone when uninstalled', () => {
     installGridDebug(false)(); // a production build installs nothing
@@ -154,7 +206,7 @@ describe('a DEVSERVER build (§3.3)', () => {
     const row = levelDebugRows().find((entry) => entry.id === 'gridDevserverCell');
     expect(row?.group).toBe('tools');
     expect(row?.choices().map((choice) => choice.text)).toEqual(['Nine Dragon Stack', 'Template']);
-    expect(row?.label).toBe('EXPERIMENTAL Wildshard (+1, −1)');
+    expect(row?.label).toBe('Infinite Wildshard (+1, −1)');
     expect(row?.get()).toBe('on');
     const at = (on: boolean) => new GridAssembly(gridMode(on, MODES.both)).cells.find((cell) => cell.cell[0] === 1 && cell.cell[1] === -1)?.slug;
     expect(at(devserverCellOn(true))).toBe('nine-dragon-stack');

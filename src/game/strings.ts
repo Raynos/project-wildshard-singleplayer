@@ -12,15 +12,29 @@ export const GAME_STRINGS = {
     followBuild: 'Follow the build',
     draftMode: 'Draft mode',
   },
-  /** the main menu's two entries (SHARD-PLATFORM §3.3, G58; SF21a) */
+  /** the Wildshard main menu (SF21a, G79 / G88: Jake's board B; the grid entry is "Infinite Wildshard" everywhere players see it) */
+  mainMenu: {
+    logo: 'WILDSHARD',
+    label: 'Main menu',
+    shardSelect: 'SHARD SELECT',
+    infinite: 'INFINITE WILDSHARD',
+    settings: 'SETTINGS',
+    back: 'Main menu',
+  },
+  /** a shard card whose shardfile needs a newer client (G86, temporary): dimmed, a badge and the save promise */
+  upgrade: {
+    badge: 'NEEDS UPGRADE',
+    built: (version: number): string => `BUILT FOR SHARDFILE V${version}`,
+    saveKept: 'YOUR SAVE IS KEPT',
+  },
+  /** Infinite Wildshard, the 3 × 3 grid (SHARD-PLATFORM §3.3, G58, G79; SF21a) */
   grid: {
-    select: 'Select a shard',
-    entry: 'EXPERIMENTAL Wildshard',
-    menu: 'Main menu',
-    ended: 'EXPERIMENTAL Wildshard ended unexpectedly last time.',
-    devserverCell: (x: number, z: number): string => `EXPERIMENTAL Wildshard (${x < 0 ? '−' : '+'}${Math.abs(x)}, ${z < 0 ? '−' : '+'}${Math.abs(z)})`,
+    ended: 'Infinite Wildshard ended unexpectedly last time.',
+    devserverCell: (x: number, z: number): string => `Infinite Wildshard (${x < 0 ? '−' : '+'}${Math.abs(x)}, ${z < 0 ? '−' : '+'}${Math.abs(z)})`,
     template: 'Template',
-    devserverCellNote: 'SF21a (G46): the DEVSERVER cell of EXPERIMENTAL Wildshard, or the template it replaces. Applies at the next grid start.',
+    devserverCellNote: 'SF21a (G46): the DEVSERVER cell of Infinite Wildshard, or the template it replaces. Applies at the next grid start.',
+    reveal: (home: string): string => `Arriving at ${home}`,
+    revealSkip: 'Tap to skip',
     oneFrame: 'Grid one frame',
     oneFrameNote: 'SF19a: one sky, sun, exposure and air for the whole grid, each pixel graded by its own region. Applies at the next grid start.',
     off: 'Off',

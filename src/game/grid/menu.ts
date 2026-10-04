@@ -4,9 +4,9 @@ import type { GridMode } from './catalogue';
 declare const __DEVSERVER__: boolean;
 /**
  * The main menu's two entries (SHARD-PLATFORM §3.3, G58, G61, SF21a): **Select a shard** (today's one-shard flow) and
- * **EXPERIMENTAL Wildshard** (the 3 × 3 grid). What each mode lets the player enter is the §3.3 table:
+ * **Infinite Wildshard** (the 3 × 3 grid). What each mode lets the player enter is the §3.3 table:
  *
- *   | mode      | Select a shard enters                        | EXPERIMENTAL Wildshard           |
+ *   | mode      | Select a shard enters                        | Infinite Wildshard           |
  *   | shipped   | the live and early-access shards             | hidden until SF22's gates pass   |
  *   | developer | every shard, as today (Jake, G58: Select a shard is the existing flow) | shown: 5 shards + 4 templates |
  *   | DEVSERVER | every shard                                  | + the `devserver` cell, its Debug row |
@@ -14,7 +14,7 @@ declare const __DEVSERVER__: boolean;
  * The grid's shard lists come from the grid catalogue (`singleplayer.json`), never from a shard name here.
  */
 
-/** SF22's crossroads gates: when they pass, EXPERIMENTAL Wildshard shows to everyone, still labelled EXPERIMENTAL (G61 E1) */
+/** SF22's crossroads gates: when they pass, Infinite Wildshard shows to everyone, still labelled EXPERIMENTAL (G61 E1) */
 export const GRID_GATES_PASSED = false;
 
 /** The author's build-time switch (`vite build --mode devserver`, SF8c); a unit test's Node has no define, so false */
@@ -24,7 +24,7 @@ export const DEVSERVER: boolean = typeof __DEVSERVER__ === 'boolean' && __DEVSER
 export interface MenuMode { readonly developer: boolean; readonly devserver: boolean }
 export function menuMode(): MenuMode { return { developer: isDev(), devserver: DEVSERVER }; }
 
-/** EXPERIMENTAL Wildshard is on the title only with Settings ▸ Developer on, until SF22's gates pass (G61 E1) */
+/** Infinite Wildshard is on the title only with Settings ▸ Developer on, until SF22's gates pass (G61 E1) */
 export function gridEntryShown(mode: MenuMode = menuMode(), gatesPassed = GRID_GATES_PASSED): boolean {
   return gatesPassed || mode.developer;
 }

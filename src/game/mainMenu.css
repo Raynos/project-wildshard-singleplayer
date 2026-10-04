@@ -1,0 +1,46 @@
+/* ─── the Wildshard main menu (SF21a, G79 / G88; src/game/mainMenu.ts) ─── prefix ws-main- ───
+   Jake's board B: a full-bleed first-person crossroads hero, the WILDSHARD logo top left, two big side-by-side navy-glass
+   cards SHARD SELECT / INFINITE WILDSHARD low on the screen, a small SETTINGS under them. Developer off: one wide card.
+   It stacks over today's shard deck (.ws-menu), which SHARD SELECT reveals; the build chip stays the shell's own. */
+.ws-title-stack { position: absolute; inset: 0; pointer-events: auto; transition: opacity 0.6s ease; }
+.ws-title-stack.hide { opacity: 0; pointer-events: none; }
+.ws-title-stack > .ws-menu { transition: opacity 0.3s ease; }
+.ws-main { position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 3); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; transition: opacity 0.3s ease; color: var(--ws-text); }
+.ws-main.hide { opacity: 0; pointer-events: none; }
+.ws-main .ws-main-hero { position: absolute; inset: 0; background-size: cover; background-position: 50% 30%; background-color: #0b1622; pointer-events: none; }
+.ws-main::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(6, 10, 18, 0.42) 0%, rgba(6, 10, 18, 0) 22%, rgba(6, 10, 18, 0) 55%, rgba(6, 10, 18, 0.5) 100%); }
+.ws-main .ws-main-head, .ws-main .ws-main-foot { position: relative; z-index: 2; }
+.ws-main .ws-main-head { padding: calc(18px + env(safe-area-inset-top, 0px)) 24px 0; }
+.ws-main .ws-main-logo { font-family: var(--ws-display); font-weight: 700; font-size: 44px; line-height: 1; letter-spacing: 0.16em; text-transform: uppercase; color: #eaf8ff; text-shadow: 0 0 18px rgba(143, 227, 255, 0.45), 0 4px 24px rgba(0, 0, 0, 0.55); }
+.ws-main .ws-main-logo::after { content: ''; display: block; width: 52px; height: 3px; margin-top: 10px; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
+.ws-main .ws-main-notice { box-sizing: border-box; max-width: min(440px, calc(100vw - 32px)); margin-top: 22px; padding: 10px 12px; border: 1px solid rgba(255, 181, 71, 0.55); background: rgba(13, 27, 38, 0.9); color: #f3e5cd; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); font: 11px/1.5 var(--ws-mono); white-space: pre-line; }
+.ws-main .ws-main-foot { display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 40px); }
+.ws-main .ws-main-cards { display: flex; gap: 12px; width: min(560px, 100%); }
+.ws-main .ws-main-card { position: relative; flex: 1 1 0; min-width: 0; aspect-ratio: 1 / 0.86; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 14px 8px; appearance: none; -webkit-appearance: none; background: rgba(9, 22, 36, 0.86); border: 1px solid rgba(143, 227, 255, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); color: var(--ws-cyan); cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; transition: background 0.2s, box-shadow 0.2s, border-color 0.2s; }
+.ws-main .ws-main-cards.one .ws-main-card { aspect-ratio: 1 / 0.43; }
+/* the four cyan corner brackets of the board's cards */
+.ws-main .ws-main-card::before, .ws-main .ws-main-card::after { content: ''; position: absolute; inset: -3px; pointer-events: none; border: 2px solid var(--ws-cyan);
+  -webkit-mask: linear-gradient(#000 0 0) top left / 16px 16px no-repeat, linear-gradient(#000 0 0) top right / 16px 16px no-repeat, linear-gradient(#000 0 0) bottom left / 16px 16px no-repeat, linear-gradient(#000 0 0) bottom right / 16px 16px no-repeat;
+  mask: linear-gradient(#000 0 0) top left / 16px 16px no-repeat, linear-gradient(#000 0 0) top right / 16px 16px no-repeat, linear-gradient(#000 0 0) bottom left / 16px 16px no-repeat, linear-gradient(#000 0 0) bottom right / 16px 16px no-repeat; }
+.ws-main .ws-main-card::after { display: none; }
+.ws-main .ws-main-icon { display: flex; color: var(--ws-cyan); filter: drop-shadow(0 0 6px rgba(143, 227, 255, 0.45)); }
+.ws-main .ws-main-icon svg { width: 96px; height: 72px; }
+.ws-main .ws-main-card b { font-family: var(--ws-display); font-weight: 700; font-size: 22px; line-height: 1.12; letter-spacing: 0.14em; text-indent: 0.14em; text-align: center; text-transform: uppercase; color: #bdeeff; }
+.ws-main .ws-main-grid b { max-width: 9em; }
+.ws-main .ws-main-card:hover, .ws-main .ws-main-card:focus-visible { outline: none; background: rgba(14, 34, 52, 0.9); border-color: var(--ws-cyan); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 28px rgba(143, 227, 255, 0.3); }
+.ws-main .ws-main-card:active { background: rgba(22, 48, 70, 0.92); }
+.ws-main .ws-main-settings { min-width: 150px; padding: 10px 22px; appearance: none; -webkit-appearance: none; background: rgba(9, 22, 36, 0.86); border: 1px solid var(--ws-cyan-line); outline: 1px solid rgba(143, 227, 255, 0.18); outline-offset: 3px; font-family: var(--ws-mono); font-size: 12px; letter-spacing: 0.24em; text-indent: 0.24em; text-transform: uppercase; color: var(--ws-cyan); cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.ws-main .ws-main-settings:focus-visible { border-color: var(--ws-cyan); }
+@media (max-width: 420px) {
+  .ws-main .ws-main-logo { font-size: 36px; }
+  .ws-main .ws-main-icon svg { width: 78px; height: 58px; }
+  .ws-main .ws-main-card b { font-size: 18px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .ws-main .ws-main-head { padding: calc(10px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-left, 0px)) 0; }
+  .ws-main .ws-main-logo { font-size: 28px; }
+  .ws-main .ws-main-foot { gap: 10px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); }
+  .ws-main .ws-main-cards { width: min(520px, 100%); }
+  .ws-main .ws-main-card, .ws-main .ws-main-cards.one .ws-main-card { aspect-ratio: auto; height: 34vh; gap: 8px; }
+  .ws-main .ws-main-icon svg { width: 60px; height: 45px; }
+}

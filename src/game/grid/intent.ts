@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 /**
- * EXPERIMENTAL Wildshard boots only from a one-shot tap intent (SF21a, R3-C5). The title's tap writes it, the next boot
+ * Infinite Wildshard boots only from a one-shot tap intent (SF21a, R3-C5). The title's tap writes it, the next boot
  * consumes it, and it is gone: a reload, a Safari WebContent restart or an iOS memory kill never lands back in the grid,
  * it lands on the title with Select a shard focused (G58: the grid crashing must always leave a way back).
  *
@@ -15,7 +15,7 @@ const finite = v.pipe(v.number(), v.finite());
 const schema: v.GenericSchema<unknown, GridIntent | null> = v.nullable(v.object({ instance: v.string(), slug: v.string(), at: finite }));
 
 export interface GridIntents {
-  /** the title's tap on EXPERIMENTAL Wildshard: the home cell the grid boots into; false if neither copy persisted */
+  /** the title's tap on Infinite Wildshard: the home cell the grid boots into; false if neither copy persisted */
   set: (target: { readonly instance: string; readonly slug: string }) => boolean;
   /** the boot's one read: the intent for this page's shard (fresh, at most 60 s old) or null; both copies are removed */
   consume: (slug: string) => GridIntent | null;

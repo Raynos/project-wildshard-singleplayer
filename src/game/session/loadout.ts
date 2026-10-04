@@ -4,7 +4,8 @@ import { weaponInputContext } from '@wildshard/engine/input/gameplay';
 import { type TrainingArena as Arena, TrainingArena } from '@wildshard/engine/practice/TrainingArena';
 import type { DiscSpot } from '@wildshard/engine/ui/hudSlots';
 import { GAME_STRINGS } from '../strings';
-import { buildTitleDeck, titleCards } from '../titleDeck';
+import { titleCards } from '../titleDeck';
+import { buildTitleMenu } from '../mainMenu';
 import { enterGrid, pageMode } from '../grid/boot';
 import { travel } from '../travel/travel';
 import type { worldStage } from './world';
@@ -77,7 +78,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   // the title deck (E318): this level's card enters or explores here, another's opens in a fresh page (travel)
   hud.titleDeck = (here) => {
     const cards = titleCards(), own = cards[cards.map((card): string => card.slug).indexOf(chunk.slug)];
-    return buildTitleDeck({
+    return buildTitleMenu({
       cards, active: chunk.slug,
       onEnter: (c) => { if (c === own) here.enter(); else travel({ to: c.slug, mode: 'enter' }); },
       onExplore: (c) => { if (c !== own) { travel({ to: c.slug, mode: 'explore' }); return; } here.explore(); },

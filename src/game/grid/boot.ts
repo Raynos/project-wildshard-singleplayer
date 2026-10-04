@@ -5,7 +5,7 @@ import { devserverCellOn } from './debug';
 import { findShard } from '../shard/registry';
 import { travel } from '../travel/travel';
 /**
- * EXPERIMENTAL Wildshard's way in (SF21a). There is no assembled grid client yet (SF18a's residency, SF20a's in-page
+ * Infinite Wildshard's way in (SF21a). There is no assembled grid client yet (SF18a's residency, SF20a's in-page
  * crossing and SF18b's rings are not wired into a page), so the entry boots the furthest real thing: the grid catalogue's
  * home cell (0, 0) through the normal shard flow, as page mode `'grid'`. When the grid client lands, the grid page boots
  * it instead of the home cell's shard; the menu, the intent and the page mode stay.
@@ -25,7 +25,7 @@ export function gridHome(mode?: MenuMode): GridCell {
   return home;
 }
 
-/** The title's EXPERIMENTAL Wildshard tap: write the one-shot intent, then open the home cell in a fresh document. */
+/** The title's Infinite Wildshard tap: write the one-shot intent, then open the home cell in a fresh document. */
 export function enterGrid(): void {
   const home = gridHome();
   const target = findShard(home.slug);

@@ -1,0 +1,23 @@
+{
+  "dev-off": {
+    "cards": [
+      "SHARD SELECT"
+    ],
+    "deck": {
+      "screen": "select",
+      "enter": "Enter world",
+      "back": "Main menu"
+    }
+  },
+  "dev-on": {
+    "cards": [
+      "SHARD SELECT",
+      "INFINITE WILDSHARD"
+    ],
+    "deck": {
+      "screen": "select",
+      "enter": "Enter world",
+      "back": "Main menu"
+    }
+  }
+}
