@@ -1,6 +1,6 @@
 import { SCRIPT_ABI } from './abi';
 import { admitScript, type ScriptAdmission } from './admission';
-import type { ScriptEffect, ScriptEvent, ScriptWorld } from './effects';
+import { SCRIPT_OP, type ScriptEffect, type ScriptEvent, type ScriptWorld } from './effects';
 import { scriptFailure } from './strings';
 
 /** Per-level tick allowances shared by every module and entity, not reset by individual calls. */
@@ -111,6 +111,12 @@ export class ScriptHost {
   beginTick(tick: number): readonly ScriptEvent[] {
     if (this.active || !integer(tick, 0, Number.MAX_SAFE_INTEGER) || tick <= this.tick) throw new Error('Non-monotonic script tick');
     this.tick = tick; this.used = { effects: 0, spawns: 0, events: 0, queries: 0, fuel: 0 }; const events = this.pending.map((e) => ({ ...e })); this.pending = []; return events;
+  }
+  /** Queue a declared gameplay/scene event for the next script tick, under the same bounded event allowance. */
+  enqueue(event: ScriptEvent): void {
+    if (this.active || this.pending.length >= this.limits.events) throw new Error('Script event queue allowance');
+    const checked = this.world.prepare([{ op: SCRIPT_OP.event, a: event.type, b: event.target, c: event.value, d: 0 }], event.target, 0, 1);
+    this.pending.push(...checked.events);
   }
   /** Snapshot copies are safe to retain for deterministic replay. */
   snapshot(name: string): ScriptSnapshot { const state = this.modules.get(name); if (!state) throw new Error('Unknown module'); return clone(state.good); }

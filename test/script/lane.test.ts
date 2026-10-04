@@ -32,6 +32,16 @@ function lane(w = world(), divisor = 1): ScriptLane {
     bindings: [1, 2].map((entity) => ({ module: 'door', entity, actorId: entity === 1 ? 'alice' : 'bob', kind: 'server' })), divisor });
 }
 describe('local authoritative entity script lane', () => {
+  it('queues declared scene events until the next fixed script tick and refuses unknown/cross-budget events', () => {
+    const scripts = lane(); scripts.enqueue({ type: 1, target: 1, value: 7 });
+    expect(scripts.host.checkpoint().pending).toEqual([{ type: 1, target: 1, value: 7 }]);
+    expect(() => scripts.enqueue({ type: 2, target: 1, value: 1 })).toThrow();
+    expect(() => scripts.enqueue({ type: 1, target: 3, value: 1 })).toThrow();
+    expect(() => scripts.enqueue({ type: 1, target: 1, value: Number.NaN })).toThrow();
+    scripts.step(1); expect(scripts.host.checkpoint().pending).toEqual([]);
+    for (let i = 0; i < 32; i++) scripts.enqueue({ type: 1, target: 1, value: i });
+    expect(() => scripts.enqueue({ type: 1, target: 1, value: 33 })).toThrow('allowance');
+  });
   it('two actors agree on a shared door while private quest progress stays separate', () => {
     const scripts = lane(); expect(scripts.step(1, new Map([['alice', 1]]))).toHaveLength(2);
     expect(scripts.world.view('alice')).toEqual({ shared: { door: 1 }, player: { quest: 1 } });

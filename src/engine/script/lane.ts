@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type { SimHost } from '../sim';
 import type { DeclaredScriptWorld } from './state';
 import { ScriptHost, type ScriptCall, type ScriptHostOptions } from './host';
+import type { ScriptEvent } from './effects';
 
 /** A content binding; the actor id is supplied by the trusted host, never an effect or script input. */
 export interface ScriptBinding { module: string; entity: number; actorId: string | null; kind: 'server' | 'entity' }
@@ -54,6 +55,8 @@ export class ScriptLane {
     }
     return calls;
   }
+  /** Schedule a declared scene/gameplay event for the next tick; conditions read the resulting declared fields. */
+  enqueue(event: ScriptEvent): void { this.host.enqueue(event); }
   /** JSON snapshot includes all world state, complete module state, budgets, pending events and failure history. */
   snapshot(): string { return JSON.stringify({ version: 0, contract: this.contract, world: this.world.checkpoint(), host: this.host.checkpoint() }); }
   /** Restores a matching installed lane, without invoking author initialization. */

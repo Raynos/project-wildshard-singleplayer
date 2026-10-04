@@ -118,6 +118,10 @@ slots are tick, dt, actor command, entity, actor token, role (server=0/entity=1)
 shared count, player count, then shared/player numeric values sorted by field id.
 At most 24 numeric fields fit the 32-slot input record. `installScriptLane`
 registers the work through `SimHost.onStep` and a scoped snapshot adapter.
+`lane.enqueue({ type, target, value })` lets trusted gameplay/quest hooks queue
+a declared event for the next script tick, under the same 32-event bound.
+Conditions read declared fields instead of calling arbitrary author exports.
+The actor-to-target mapping belongs to the trusted session dispatcher.
 The lane snapshot includes memory, all globals, shared/player/entity state,
 queued events, tick allowances, failure counts and disabled state. Restore
 creates fresh instances without executing author initialization.
