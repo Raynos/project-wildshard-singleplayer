@@ -273,7 +273,9 @@ export class GridSession {
     // neighbours: the far ring through the one allocator; each cell's root sits at its render origin
     const roots = new Map<string, Group>();
     for (const cell of this.neighbours) {
-      const root = new Group(); root.name = `grid-cell:${cell.instance}`; root.position.set(cell.origin.x - home.origin.x, 0, cell.origin.z - home.origin.z);
+      // G164: a shard whose whole world is shifted vertically at runtime (its terrain field's `datum`, Driftwood's hybrid row)
+      // shows its baked far proxy shifted by the same amount, as its own bake installs; absent, the root sits at road height
+      const root = new Group(); root.name = `grid-cell:${cell.instance}`; root.position.set(cell.origin.x - home.origin.x, findShard(cell.slug)?.ground.terrain?.datum ?? 0, cell.origin.z - home.origin.z);
       root.updateMatrixWorld(); host.scene.add(root); roots.set(cell.instance, root);
     }
     const far = farRingPorts({
