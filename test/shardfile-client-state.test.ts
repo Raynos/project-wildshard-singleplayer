@@ -69,7 +69,7 @@ it('rejects a late incompatible item state atomically after script fields have b
     expect(restoreClientState(source, next.sim, next.items, { ...before, revision: before.revision + 1 })).toBe(false);
   } finally { next.sim.dispose(); first.sim.dispose(); }
 });
-it('the real item and plumbing installers queue one lantern toggle per input and retain the Debug refill scene', () => {
+it('the real item and plumbing installers queue one lantern toggle per input and retain the trusted refill action without a Debug row', () => {
   const sim = createShardfileSim(source, assets, { rapier, quest: { fact: () => undefined, coins: () => undefined } });
   try {
     const input = new InputService(() => sim.host.state.tick * 1000 / 60), lane = sim.lane;
@@ -82,8 +82,9 @@ it('the real item and plumbing installers queue one lantern toggle per input and
         hook: row.hook === null ? null : scriptItemHook(lane.host, row.hook.module, row.hook.entity, row.hook.event, sim.host.player.id) }),
     });
     const rows = new Map<string, DebugRowSpec>();
+    const scene = clientScene(source, items.runtimes, () => { throw new Error('Unexpected scene'); });
     installDeclaredPlumbing(source.plumbing, { input, scope: sim.host.scope, instance: 'template', tier: 'phone', active: () => true,
-      handledInput: handledItemInputs(source), scene: clientScene(source, items.runtimes, () => { throw new Error('Unexpected scene'); }), knobs: () => undefined,
+      handledInput: handledItemInputs(source), scene, knobs: () => undefined,
       debugRow: (row) => { rows.set(row.id, row); },
     });
     installClientItemState(sim, items.runtimes, () => { items.step(sim.host.state.tick, 1 / 60); });
@@ -92,7 +93,7 @@ it('the real item and plumbing installers queue one lantern toggle per input and
     input.executeCommand({ kind: 'physical', code: 'KeyL', on: false, at: 1 });
     expect(lamp.snapshot().pending).toHaveLength(1); sim.host.step(); expect(lamp.lightOn).toBe(true);
     for (let i = 0; i < 60; i++) sim.host.step(); expect(lamp.remainingFuel).toBeLessThan(1);
-    rows.get('template.oil')?.change('refill'); sim.host.step(); expect(lamp.remainingFuel).toBe(1);
+    expect(rows.size).toBe(0); scene('template.lantern.refill'); sim.host.step(); expect(lamp.remainingFuel).toBe(1);
     input.press('template.lantern.toggle'); sim.host.step(); expect(lamp.lightOn).toBe(false);
     expect(input.touchLayout().verbs['verb.1']).toMatchObject({ action: 'template.lantern.toggle', label: 'LANTERN' });
     const before = lamp.snapshot(); sim.dispose(); input.press('template.lantern.toggle'); expect(lamp.snapshot()).toEqual(before);
