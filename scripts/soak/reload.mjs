@@ -20,7 +20,10 @@ try {
   await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null, resources: () => window.__parityResources() }; });
   page = await context.newPage();
   page.on('pageerror', (error) => result.errors.push(error.message));
-  page.on('console', (message) => { if (message.type() === 'error') result.errors.push(message.text()); });
+  page.on('console', (message) => {
+    if (message.type() === 'error') result.errors.push(message.text());
+    if (message.type() === 'warning') console.log(`warning: ${message.text()}`);
+  });
   const ready = () => page.waitForFunction(() => {
     const probe = window.__wildshard;
     return probe?.shard?.grid?.simulation !== undefined && probe.world?.hud.entered === true && !document.querySelector('.ws-load')
@@ -64,9 +67,11 @@ try {
     return { seconds: (Date.now() - start) / 1000, bootSeconds: document.now / 1000, document, feet: after.live.live.worldFeet };
   };
   await page.goto(base, { waitUntil: 'domcontentloaded' });
+  console.log('phase: grid boot');
   await page.waitForSelector('.ws-main-grid', { timeout: 120000 }); await page.click('.ws-main-grid');
   await page.waitForFunction(() => window.__wildshard?.shard?.grid?.simulation !== undefined && !document.querySelector('.ws-load'), null, { timeout: 120000 });
   await page.evaluate(() => window.__wildshard.world.hud.enterNow()); await ready();
+  console.log('phase: initial road exit');
   const renderScale = await page.evaluate(() => window.__wildshard.world.game.renderer.getPixelRatio());
   if (renderScale !== 2) throw new Error(`Phone render scale changed: ${renderScale}`);
   result.renderScale = renderScale;
@@ -75,6 +80,7 @@ try {
   const origin = { x: target.cell[0] * 555, z: target.cell[1] * 555 }, road = { x: origin.x - 277.5, z: origin.z };
   await page.evaluate(() => window.__wildshard.pose({ name: 'sf57b.start', x: 235, z: 0, yaw: -Math.PI / 2 }));
   result.initialExit = await replaces([road]);
+  console.log('phase: template quest');
   await drive([{ x: origin.x - 235, z: origin.z }, { x: origin.x, z: origin.z - 9 }]); await arrived();
   await page.waitForFunction((id) => window.__wildshard.shard.grid.simulation(id)?.host.flags.has('template.hut'), target.instance, { timeout: 15000 });
   await page.evaluate((id) => {
@@ -104,7 +110,10 @@ try {
     && result.leak.after.bodies === 0 && result.leak.after.colliders === 0;
 } catch (error) {
   result.failure = String(error);
-  if (page) result.last = await page.evaluate(() => ({ grid: window.__wildshard?.shard?.grid?.state(), drive: window.__reloadDrive })).catch(() => null);
+  if (page) result.last = await page.evaluate(() => ({ grid: window.__wildshard?.shard?.grid?.state(), drive: window.__reloadDrive,
+    url: location.href, entered: window.__wildshard?.world?.hud?.entered,
+    loading: document.querySelector('.ws-load')?.textContent, fade: document.querySelector('.ws-grid-reload')?.className,
+    pending: JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{"keys":{}}').keys['grid.reload.once']?.data })).catch(() => null);
 } finally { await browser.close(); }
 writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`);
 console.log(JSON.stringify({ sha, pass: result.pass, runs: result.runs.length, failure: result.failure }));
