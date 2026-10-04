@@ -2,8 +2,8 @@
 
 > **State:** process, written 2026-10-01 (E361). It generalises the council that GAME-NORMALIZATION ran
 > ([12-process §1](../../project/archive/game-normalization/12-process.md); decisions 81–83, 92–93, 97, 100 in ask E357), so that any
-> plan or design doc, in this repo or in project-wildshard-meta, can be put through it. Its first use outside
-> normalization was [GW2-ZONES](../design/gw2-zones/GW2-ZONES.md) (written in project-wildshard-meta, moved here by
+> plan or design doc can be put through it. Its first use outside
+> normalization was [GW2-ZONES](../design/gw2-zones/GW2-ZONES.md) (moved into `docs/design/` by
 > E430); its round files are archived in
 > [`project/archive/2026-10-01-gw2-zones-council/`](../../project/archive/2026-10-01-gw2-zones-council/).
 
@@ -100,7 +100,6 @@ Where the council's files live:
   (`project/archive/game-normalization/reviews/`).
 - **A design doc** in `docs/design/<topic>/`: in a `council/` folder next to it while the council runs; the day it
   ends, the round files move to `project/archive/<date>-<topic>-council/`.
-- **A project-wildshard-meta doc**: in a `council/` folder next to it, in its theme folder.
 
 The files:
 - `ledger.md`: what is frozen.

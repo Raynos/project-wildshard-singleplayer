@@ -1,6 +1,6 @@
 # Shards as fun as Guild Wars 2 zones
 
-> **State:** review, 2026-10-01; moved here from project-wildshard-meta on 2026-10-03 (E430). Its council's files
+> **State:** review, 2026-10-01; moved into this repo on 2026-10-03 (E430). Its council's files
 > are archived in `project/archive/2026-10-01-gw2-zones-council/`. It went through a three-round [council](../../process/COUNCIL.md) (Codex + Claude seats), and every
 > finding is fixed or parked in the [register](../../../project/archive/2026-10-01-gw2-zones-council/register.md).
 >
@@ -822,7 +822,7 @@ remove the genre variety that UGC discovery runs on. So the grammar has two laye
 
 ## 12. What this changes in the platform plan
 
-[SHARD-PLATFORM-PLAN](https://github.com/Raynos/project-wildshard-meta/blob/main/docs/shard-platform/SHARD-PLATFORM-PLAN.md) is about code safety and shape. It is silent on content shape. Additions
+[SHARD-PLATFORM-PLAN](../mmo/SHARD-PLATFORM-PLAN.md) is about code safety and shape. It is silent on content shape. Additions
 to consider when phase 2 is written:
 
 1. **Content types as engine data, next to the devices:**
@@ -930,8 +930,8 @@ the loot plan left it open, and §9 proposes rank and medals instead.
   finish);
 - the code paths cited in §8 and in the inventories; commits `c7a5cfbc`, `4770c648` and `baa205c8`.
 
-**project-wildshard-meta:** [VISION.md](https://github.com/Raynos/project-wildshard-meta/blob/main/docs/vision/VISION.md), [SHARD-PLATFORM-PLAN.md](https://github.com/Raynos/project-wildshard-meta/blob/main/docs/shard-platform/SHARD-PLATFORM-PLAN.md),
-[SHARD-IDEAS.md](https://github.com/Raynos/project-wildshard-meta/blob/main/docs/shard-platform/SHARD-IDEAS.md), [ONE-SHOT-REVIEW.md](https://github.com/Raynos/project-wildshard-meta/blob/main/docs/shard-platform/ONE-SHOT-REVIEW.md), [COUNCIL.md](../../process/COUNCIL.md).
+**The MMO docs:** [VISION.md](../mmo/VISION.md), [SHARD-PLATFORM-PLAN.md](../mmo/SHARD-PLATFORM-PLAN.md),
+[SHARD-IDEAS.md](../mmo/SHARD-IDEAS.md), [ONE-SHOT-REVIEW.md](../mmo/ONE-SHOT-REVIEW.md), [COUNCIL.md](../../process/COUNCIL.md).
 
 **GW2:** the full list is at the end of [evidence/gw2-zone-research.md](evidence/gw2-zone-research.md):
 - the GW2 wiki (Queensdale, Silverwastes, Dry Top, Bloodstone Fen, Event timers, Map bonus reward, Wizard's Vault,

@@ -7,7 +7,7 @@ evidence.
 
 ## The document and its evidence
 
-- **Under review:** `~/projects/games/project-wildshard-meta/docs/gw2-zones/GW2-ZONES.md`. It is an audit of Wildshard's four
+- **Under review:** GW2-ZONES.md (now `docs/design/gw2-zones/GW2-ZONES.md`). It is an audit of Wildshard's four
   singleplayer shards against Guild Wars 2 zones, broadened to the question **"how do we make the most fun shards
   possible, each designed by its own game director?"** (§4.4).
 - **Evidence it rests on:** `docs/gw2-zones/evidence/shard-content-*.md` (inventories read from code) and

@@ -5,8 +5,8 @@
 > should-add not taken now), `escalated` (sent to Jake). Protocol: [singleplayer `docs/process/COUNCIL.md`](../../../docs/process/COUNCIL.md). The cap is
 > 3 rounds (Jake's number). **Closed 2026-10-01 after round 3.** The doc was `docs/CONTENT-GAP.md` during the
 > council and is now `docs/gw2-zones/GW2-ZONES.md`; the seat reviews keep the old paths (they are history). Since 2026-10-03 (E430) the doc is singleplayer
-> `docs/design/gw2-zones/GW2-ZONES.md` and these files are archived here; the commits named below are
-> project-wildshard-meta's. "R1 fix" = commit `e81d65c`; "R2 fix" = commit `ea4da44`; "R3 fix" = commit `666dd23`.
+> `docs/design/gw2-zones/GW2-ZONES.md` and these files are archived here; the round-fix commits ("R1 fix", "R2 fix", "R3 fix")
+> predate the move and are not in this repo's history.
 
 | ID | Round | Seat | Severity | Location | Finding (one line) | Status | Resolution |
 |---|---|---|---|---|---|---|---|
