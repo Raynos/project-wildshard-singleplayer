@@ -4,7 +4,8 @@
  * heading, L1 (125 m) to 400 m, and one far proxy per shard in a bounded ring (at most `CONTENT_CAPS.farCount`).
  *
  * - **Parent-first**: a tile is requested only once its parent is uploaded (far proxy → L1 → L0), and the request holds
- *   the parent's residency lease, so a parent is never evicted under a child.
+ *   the parent's residency lease, so a parent is never evicted under a child. A shard without a far proxy has its 16 L1
+ *   tiles as its coarse level: all of them are wanted while the cell is in the far ring, whatever the distance.
  * - **No holes**: a parent hides a region (an L1 quadrant, a far proxy's 4 × 4 L1 regions) only while the child drawing
  *   that region is uploaded; every upload and every eviction re-masks the parent in the same call, so each patch of a
  *   visible cell is drawn by exactly one level at every moment the renderer can see it.
@@ -30,10 +31,15 @@ export interface RingTile { readonly key: string; readonly instance: string; rea
 export type RingCatalogue = (instance: string, level: RingLevel, x: number, z: number) => number | null;
 /** The renderer's handle on an uploaded tile. Quadrants 0..3 for an L1 tile, regions 0..15 (x + 4z) for a far proxy. */
 export interface RingView { mask: (excluded: ReadonlySet<number>) => void; shadow: (enabled: boolean) => void; dispose: () => void }
-/** Off-thread work and the main-thread upload. `fetch` reports once; a late report for a dropped tile is discarded. */
+/**
+ * Off-thread work and the main-thread upload. `fetch` prepares everything asynchronously (worker decode, GLTF parse) and
+ * reports once; `upload` only attaches what was prepared, synchronously. A prepared result that will never upload (its tile
+ * was dropped meanwhile, or the rings were disposed) goes to `discard`, which frees it.
+ */
 export interface RingPorts<D> {
   fetch: (tile: RingTile, done: (result: D | Error) => void) => void;
   upload: (tile: RingTile, data: D) => RingView;
+  discard?: (tile: RingTile, data: D) => void;
 }
 /** Camera pose in world metres and its velocity in m/s. */
 export interface RingCamera { readonly x: number; readonly z: number; readonly vx: number; readonly vz: number }
@@ -44,10 +50,32 @@ export interface RingOptions {
   viewDistance?: number;
   /** far proxies prefetch this much beyond the view (default 435 m, SF18d's readiness distance at 30 m/s) */
   farPrefetch?: number;
+  /** the bounded far ring: at most this many far proxies are wanted (default `CONTENT_CAPS.farCount`, 9) */
+  farCount?: number;
+  /** uploaded tiles per level, wanted or cached, beyond which unwanted cache drops farthest-first (memory is bounded by count, not only distance) */
+  residentCaps?: Partial<Record<RingLevel, number>>;
   uploadsPerFrame?: number; uploadBytesPerFrame?: number; maxInFlight?: number;
 }
 /** One step's readout for the drive tests and the HUD. */
 export interface RingStats { frame: number; resident: Record<RingLevel, number>; inFlight: number; queued: number; refused: number; uploads: number; evictions: number }
+
+/** A prepared result tagged by the ports that made it (see `levelPorts`). */
+export type LevelPrepared<F, T> = { readonly far: F; readonly tile?: undefined } | { readonly tile: T; readonly far?: undefined };
+/** Route far proxies to their own ports (the far view, SF23) and L1 / L0 tiles to the tile ports, behind one `RingPorts`. */
+export function levelPorts<F, T>(far: RingPorts<F>, tiles: RingPorts<T>): RingPorts<LevelPrepared<F, T>> {
+  return {
+    fetch: (tile, done) => {
+      if (tile.level === 'far') far.fetch(tile, (result) => { done(result instanceof Error ? result : { far: result }); });
+      else tiles.fetch(tile, (result) => { done(result instanceof Error ? result : { tile: result }); });
+    },
+    upload: (tile, data) => {
+      if (data.far !== undefined) return far.upload(tile, data.far);
+      if (data.tile !== undefined) return tiles.upload(tile, data.tile);
+      throw new Error('ring ports: an untagged prepared tile');
+    },
+    discard: (tile, data) => { if (data.far !== undefined) far.discard?.(tile, data.far); else if (data.tile !== undefined) tiles.discard?.(tile, data.tile); },
+  };
+}
 
 const LEVEL_RANK = { far: 0, l1: 1, l0: 2 } as const;
 const SIZE = { far: CHUNK_HALF * 2, l1: C.l1.size, l0: C.l0.size } as const;
@@ -69,7 +97,7 @@ function parentOf(tile: { instance: string; level: RingLevel; x: number; z: numb
 /** The render rings of one grid session. Call `step` once per fixed step with the camera; `dispose` at session end. */
 export class RenderRings<D> {
   private readonly slots = new Map<string, Slot<D>>();
-  private readonly completed: { key: string; lease: ResidencyLease; result: D | Error }[] = [];
+  private readonly completed: { tile: RingTile; lease: ResidencyLease; result: D | Error }[] = [];
   private readonly retryAt = new Map<string, number>();
   private readonly cells: readonly RingCell[];
   private readonly allocator: ResidencyAllocator;
@@ -86,13 +114,29 @@ export class RenderRings<D> {
   constructor(cells: readonly RingCell[], allocator: ResidencyAllocator, catalogue: RingCatalogue, ports: RingPorts<D>, options: RingOptions = {}) {
     if (new Set(cells.map((c) => c.instance)).size !== cells.length || cells.some((c) => c.instance.length === 0 || !Number.isFinite(c.origin.x) || !Number.isFinite(c.origin.z))) throw new RangeError('Invalid ring cells');
     this.cells = [...cells].sort((a, b) => a.instance.localeCompare(b.instance)); this.allocator = allocator; this.catalogue = catalogue; this.ports = ports;
-    this.options = { readinessSeconds: 4, viewDistance: 1.5 * C.pitch, farPrefetch: 435, uploadsPerFrame: 2, uploadBytesPerFrame: 8 * 1_000_000, maxInFlight: 8, ...options };
+    this.options = { readinessSeconds: 4, viewDistance: 1.5 * C.pitch, farPrefetch: 435, farCount: C.farCount, uploadsPerFrame: 2, uploadBytesPerFrame: 8 * 1_000_000, maxInFlight: 8, ...options,
+      residentCaps: { far: options.farCount ?? C.farCount, l1: C.l1Count, l0: C.l0Count, ...options.residentCaps } };
+    if (!Number.isInteger(this.options.farCount) || this.options.farCount < 1) throw new RangeError('Invalid far ring count');
   }
 
   /** Cells currently in view (each must show its far proxy, or finer, everywhere). */
   visible(): readonly RingCell[] { return this.visibleCells; }
-  /** True once every visible cell's far proxy is uploaded: the grid may show (until then the loading screen covers it). */
-  ready(): boolean { return this.visibleCells.every((cell) => this.catalogue(cell.instance, 'far', 0, 0) === null || this.slots.get(key(cell.instance, 'far', 0, 0))?.state === 'uploaded'); }
+  /**
+   * True once every patch of every visible cell is drawn by an uploaded level (L0, its L1, or the far proxy), or has no
+   * tile at any level to draw: the loader may uncover the view (until then the loading screen covers it).
+   */
+  ready(): boolean {
+    const up = (instance: string, level: RingLevel, x: number, z: number): boolean | null => this.catalogue(instance, level, x, z) === null ? null : this.slots.get(key(instance, level, x, z))?.state === 'uploaded';
+    for (const cell of this.visibleCells) {
+      const far = up(cell.instance, 'far', 0, 0); if (far === true) continue;
+      for (let z = 0; z < 8; z++) for (let x = 0; x < 8; x++) {
+        const levels = [up(cell.instance, 'l1', Math.floor(x / 2), Math.floor(z / 2)), up(cell.instance, 'l0', x, z), far];
+        if (levels.includes(true) || levels.every((level) => level === null)) continue;
+        return false;
+      }
+    }
+    return true;
+  }
   /** Uploaded keys in key order (deterministic traces). */
   resident(): readonly string[] { return [...this.slots.values()].filter((s) => s.state === 'uploaded').map((s) => s.tile.key).sort(); }
   stats(): RingStats {
@@ -112,6 +156,7 @@ export class RenderRings<D> {
     this.release(want, camera);
     this.request(want);
     this.drain();
+    this.release(want, camera); // this step's uploads may have pushed a level over its resident cap
     this.remaskAll(camera);
   }
 
@@ -120,6 +165,7 @@ export class RenderRings<D> {
     if (this.disposed) return; this.disposed = true;
     const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level]);
     for (const slot of order) this.drop(slot);
+    for (const done of this.completed.splice(0)) if (!(done.result instanceof Error)) this.ports.discard?.(done.tile, done.result);
   }
 
   private distance(tile: RingTile, camera: RingCamera): number {
@@ -136,7 +182,11 @@ export class RenderRings<D> {
     const cellDistance = (cell: RingCell): number => rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'far', 0, 0);
     const ranked = this.cells.map((cell) => ({ cell, d: cellDistance(cell) })).sort((a, b) => a.d - b.d || a.cell.instance.localeCompare(b.cell.instance));
     this.visibleCells = ranked.filter((r) => r.d <= this.options.viewDistance).map((r) => r.cell);
-    for (const { cell, d } of ranked.filter((r) => r.d <= this.options.viewDistance + this.options.farPrefetch).slice(0, C.farCount)) add(this.tile(cell.instance, 'far', 0, 0), d);
+    for (const { cell, d } of ranked.filter((r) => r.d <= this.options.viewDistance + this.options.farPrefetch).slice(0, this.options.farCount)) {
+      if (this.catalogue(cell.instance, 'far', 0, 0) !== null) { add(this.tile(cell.instance, 'far', 0, 0), d); continue; }
+      // no far proxy: its 16 L1 tiles are its coarse level
+      for (let z = 0; z < 4; z++) for (let x = 0; x < 4; x++) add(this.tile(cell.instance, 'l1', x, z), rectDistance(camera.x - cell.origin.x, camera.z - cell.origin.z, 'l1', x, z));
+    }
     const l1: { tile: RingTile; d: number }[] = [], l0: { tile: RingTile; d: number }[] = [];
     for (const { cell, d } of ranked) {
       if (d > L1_RADIUS) continue;
@@ -172,14 +222,32 @@ export class RenderRings<D> {
     return want;
   }
 
-  /** Hysteresis: drop unwanted tiles a tile-size beyond their ring, children first, never a parent with children. */
+  /**
+   * Hysteresis: drop unwanted tiles a tile-size beyond their ring, and unwanted cache beyond each level's resident cap
+   * (farthest first). A dropped tile takes its cached children with it: the wanted set is closed under parents, so an
+   * unwanted tile has no wanted descendant, and the children go first so a parent never leaves under one.
+   */
   private release(want: ReadonlyMap<string, unknown>, camera: RingCamera): void {
     const keep = { far: this.options.viewDistance + this.options.farPrefetch + C.pitch / 2, l1: L1_RADIUS + C.l1.size, l0: L0_RADIUS + C.l0.size } as const;
-    const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level] || a.tile.key.localeCompare(b.tile.key));
+    const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level] || this.distance(b.tile, camera) - this.distance(a.tile, camera) || a.tile.key.localeCompare(b.tile.key));
+    const count = { far: 0, l1: 0, l0: 0 };
+    for (const slot of this.slots.values()) if (slot.state === 'uploaded') count[slot.tile.level]++;
+    const dropTree = (slot: Slot<D>): void => {
+      for (const child of this.slots.values()) if (parentOf(child.tile) === slot.tile.key) dropTree(child);
+      if (this.slots.get(slot.tile.key) !== slot) return;
+      if (slot.state === 'uploaded') count[slot.tile.level]--;
+      this.drop(slot);
+    };
     for (const slot of order) {
-      if (want.has(slot.tile.key) || this.hasChildren(slot.tile)) continue;
-      if (slot.state !== 'uploaded' || this.distance(slot.tile, camera) > keep[slot.tile.level]) this.drop(slot);
+      if (want.has(slot.tile.key) || this.slots.get(slot.tile.key) !== slot) continue;
+      const level = slot.tile.level, cap = this.options.residentCaps[level] ?? Infinity;
+      if (slot.state !== 'uploaded' ? !this.hasChildren(slot.tile) : this.distance(slot.tile, camera) > keep[level] || count[level] > cap) dropTree(slot);
     }
+  }
+
+  /** Whether the catalogue has the parent tile at all (a shard without a far proxy starts at L1). */
+  private exists(child: RingTile): boolean {
+    return child.level === 'l1' ? this.catalogue(child.instance, 'far', 0, 0) !== null : this.catalogue(child.instance, 'l1', Math.floor(child.x / 2), Math.floor(child.z / 2)) !== null;
   }
 
   private hasChildren(tile: RingTile): boolean {
@@ -196,22 +264,25 @@ export class RenderRings<D> {
     for (const { tile, distance } of pending) {
       if (inFlight >= this.options.maxInFlight) break;
       const parentKey = parentOf(tile), parent = parentKey === null ? undefined : this.slots.get(parentKey);
-      if (parentKey !== null && parent?.state !== 'uploaded') continue;
+      if (parentKey !== null && this.exists(tile) && parent?.state !== 'uploaded') continue;
       const bytes = this.catalogue(tile.instance, tile.level, tile.x, tile.z); if (bytes === null) continue;
       const lease = this.allocator.reserve({ id: `render:${tile.key}`, category: tile.level, bytes, owner: tile.instance, distance, needed: true, evictSync: () => { this.evicted(tile.key); } });
       if (lease === null) { this.refused++; this.retryAt.set(tile.key, this.frame + 15); continue; }
       const slot: Slot<D> = { tile, state: 'fetching', lease, unholdParent: parent?.lease.hold() ?? ((): void => undefined), view: null, data: null, bytes, distance, masked: '', shadow: false };
       this.slots.set(tile.key, slot); inFlight++;
-      this.ports.fetch(tile, (result) => { this.completed.push({ key: tile.key, lease, result }); });
+      this.ports.fetch(tile, (result) => {
+        if (this.disposed) { if (!(result instanceof Error)) this.ports.discard?.(tile, result); return; }
+        this.completed.push({ tile, lease, result });
+      });
     }
   }
 
   /** Move finished fetches into the queue, then upload within this step's budget, coarse levels first. */
   private drain(): void {
     for (const done of this.completed.splice(0)) {
-      const slot = this.slots.get(done.key);
-      if (slot === undefined || slot.lease !== done.lease || slot.state !== 'fetching') continue; // dropped meanwhile: discard
-      if (done.result instanceof Error) { this.drop(slot); this.retryAt.set(done.key, this.frame + 30); continue; }
+      const slot = this.slots.get(done.tile.key);
+      if (slot === undefined || slot.lease !== done.lease || slot.state !== 'fetching') { if (!(done.result instanceof Error)) this.ports.discard?.(done.tile, done.result); continue; } // dropped meanwhile
+      if (done.result instanceof Error) { this.drop(slot); this.retryAt.set(done.tile.key, this.frame + 30); continue; }
       slot.data = done.result; slot.state = 'queued';
     }
     const queue = [...this.slots.values()].filter((s) => s.state === 'queued').sort((a, b) => LEVEL_RANK[a.tile.level] - LEVEL_RANK[b.tile.level] || a.distance - b.distance || a.tile.key.localeCompare(b.tile.key));
@@ -232,7 +303,8 @@ export class RenderRings<D> {
   private drop(slot: Slot<D>): void {
     if (this.slots.get(slot.tile.key) !== slot) return;
     this.slots.delete(slot.tile.key);
-    slot.view?.dispose(); slot.view = null; slot.data = null;
+    slot.view?.dispose(); slot.view = null;
+    if (slot.data !== null) { this.ports.discard?.(slot.tile, slot.data); slot.data = null; }
     slot.unholdParent();
     slot.lease.release();
     const parent = parentOf(slot.tile); if (parent !== null) this.remask(parent);

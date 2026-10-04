@@ -32,12 +32,15 @@ export class TileDecoder {
   }
   /** True when decoding runs off the main thread. */
   get threaded(): boolean { return this.workers.length > 0; }
-  /** Decode one tile's bytes; the buffer is transferred (the caller's view is detached afterwards) when it owns it whole. */
-  decode(bytes: Uint8Array): Promise<TerrainTileData> {
+  /**
+   * Decode one tile's bytes. They are copied to the worker, so a cached or retained buffer stays intact; with `transfer`
+   * a buffer the caller owns whole is moved instead (the caller's view is detached afterwards).
+   */
+  decode(bytes: Uint8Array, options: { transfer?: boolean } = {}): Promise<TerrainTileData> {
     if (this.disposed) return Promise.reject(new Error('tile decoder is disposed'));
     const worker = this.workers[this.next++ % Math.max(1, this.workers.length)];
     if (worker === undefined) return Promise.resolve().then(() => decodeTerrainTile(bytes));
-    const whole = bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength && bytes.buffer instanceof ArrayBuffer;
+    const whole = options.transfer === true && bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength;
     const buffer = whole && bytes.buffer instanceof ArrayBuffer ? bytes.buffer : bytes.slice().buffer, id = ++this.id;
     return new Promise<TerrainTileData>((resolve, reject) => {
       this.pending.set(id, { resolve, reject });

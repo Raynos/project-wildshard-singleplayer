@@ -159,3 +159,54 @@ it('decodes inline where there is no Worker, with the same data as the wire deco
   decoder.dispose();
   await expect(decoder.decode(bytes)).rejects.toThrow('disposed');
 });
+
+it('a shard without a far proxy is ready only once all 16 of its L1 tiles draw, and dropped prepared tiles are discarded', () => {
+  const allocator = new ResidencyAllocator(), drawn = new Set<string>(), discarded: string[] = [], pending: { tile: RingTile; done: (r: RingTile | Error) => void }[] = [];
+  const rings = new RenderRings<RingTile>([{ instance: 'solo', origin: { x: 0, z: 0 } }], allocator, (_i, level) => (level === 'far' ? null : resident[level]), {
+    fetch: (tile, done) => { pending.push({ tile, done }); },
+    upload: (tile) => { drawn.add(tile.key); return { mask: () => undefined, shadow: () => undefined, dispose: () => { drawn.delete(tile.key); } }; },
+    discard: (tile) => { discarded.push(tile.key); },
+  }, { maxInFlight: 64, uploadsPerFrame: 64, uploadBytesPerFrame: 1e9 });
+  // a corner camera: several of the cell's L1 tiles are beyond 400 m, but all 16 are its coarse level
+  rings.step({ x: 240, z: 240, vx: 0, vz: 0 });
+  expect(pending.filter((p) => p.tile.level === 'l1')).toHaveLength(16);
+  expect(pending.some((p) => p.tile.level === 'l0')).toBe(false); // parent-first: no L0 before its L1 draws
+  for (const p of pending.splice(0, 15)) p.done(p.tile);
+  rings.step({ x: 240, z: 240, vx: 0, vz: 0 });
+  expect(rings.ready()).toBe(false);
+  for (const p of pending.splice(0)) p.done(p.tile);
+  rings.step({ x: 240, z: 240, vx: 0, vz: 0 });
+  expect(rings.ready()).toBe(true);
+  expect([...drawn].filter((k) => k.includes(':l1/'))).toHaveLength(16);
+  // L0 requests are out now; drive away so they are dropped before they finish: their prepared results are discarded
+  rings.step({ x: 240, z: 240, vx: 0, vz: 0 });
+  const fine = pending.filter((p) => p.tile.level === 'l0'); expect(fine.length).toBeGreaterThan(0);
+  rings.step({ x: -240, z: -240, vx: 0, vz: 0 });
+  for (const p of fine) p.done(p.tile);
+  rings.step({ x: -240, z: -240, vx: 0, vz: 0 });
+  expect(discarded.length).toBeGreaterThan(0);
+  rings.dispose();
+  for (const p of pending) p.done(p.tile);
+  expect(drawn.size).toBe(0);
+  expect(allocator.entries()).toEqual([]);
+});
+
+it('far proxies are bounded by count, not only distance: a 30 m/s diagonal over a 5 × 5 grid never holds more than farCount', () => {
+  const grid: RingCell[] = [];
+  for (let z = -2; z <= 2; z++) for (let x = -2; x <= 2; x++) grid.push({ instance: `g${x + 2}${z + 2}`, origin: { x: x * C.pitch, z: z * C.pitch } });
+  const queue: (() => void)[] = [];
+  const allocator = new ResidencyAllocator();
+  const rings = new RenderRings<RingTile>(grid, allocator, (_i, level) => resident[level], {
+    fetch: (tile, done) => { queue.push(() => { done(tile); }); },
+    upload: () => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined }),
+  }, { maxInFlight: 16, uploadsPerFrame: 8, uploadBytesPerFrame: 1e9 });
+  let peak = 0;
+  for (let i = 0; i < 60 * 80; i++) {
+    const d = -1100 + 30 * i / 60;
+    for (const run of queue.splice(0)) run();
+    rings.step({ x: d / Math.SQRT2, z: d / Math.SQRT2, vx: 30 / Math.SQRT2, vz: 30 / Math.SQRT2 });
+    peak = Math.max(peak, rings.stats().resident.far);
+  }
+  expect(peak).toBeLessThanOrEqual(C.farCount);
+  rings.dispose();
+});

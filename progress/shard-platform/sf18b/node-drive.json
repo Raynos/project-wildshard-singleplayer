@@ -1,0 +1,51 @@
+{
+  "test": "test/grid-render-rings.test.ts",
+  "link": "5 Mbit/s serial, 0.1 s latency, network stall 20-30 s",
+  "drives": {
+    "15 m/s": {
+      "holes": 0,
+      "overlaps": 0,
+      "frames": 17839,
+      "peakMB": 848.864001,
+      "peakTiles": {
+        "far": 9,
+        "l1": 32,
+        "l0": 33
+      },
+      "fineHere": 15298,
+      "refused": 0,
+      "evictions": 7,
+      "bootFrames": 920
+    },
+    "30 m/s": {
+      "holes": 0,
+      "overlaps": 0,
+      "frames": 8759,
+      "peakMB": 815.564001,
+      "peakTiles": {
+        "far": 9,
+        "l1": 32,
+        "l0": 22
+      },
+      "fineHere": 2625,
+      "refused": 0,
+      "evictions": 0,
+      "bootFrames": 920
+    },
+    "30 m/s @ 700 MB envelope": {
+      "holes": 0,
+      "overlaps": 0,
+      "frames": 8759,
+      "peakMB": 698.348,
+      "peakTiles": {
+        "far": 9,
+        "l1": 31,
+        "l0": 8
+      },
+      "fineHere": 1289,
+      "refused": 10490,
+      "evictions": 153,
+      "bootFrames": 920
+    }
+  }
+}
