@@ -85,6 +85,10 @@ export function shardWordData(root, shard) {
       return result;
     }
     if (n.type === 'MemberExpression') return get(n.object)?.[n.computed ? get(n.property) : keyOf(n.property)];
+    if (n.type === 'LogicalExpression' && n.operator === '??') return get(n.left) ?? get(n.right);
+    // A runtime-selected callback set can retain its literal admitted rows as a nullish fallback.
+    // Read that static declaration without executing the selector or dropping its registered vocabulary.
+    if (n.type === 'LogicalExpression' && n.operator === '??') return get(n.left) ?? get(n.right);
     if (n.type === 'TemplateLiteral') {
       const parts = n.expressions.map((e) => get(e));
       return parts.some((p) => p === undefined) ? undefined : n.quasis.map((q, i) => `${q.value.cooked ?? q.value.raw}${parts[i] ?? ''}`).join('');

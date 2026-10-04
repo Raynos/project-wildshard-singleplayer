@@ -58,6 +58,26 @@ describe('shard generation', () => {
       genShards(root); expect(readFileSync(file, 'utf8')).toBe(before);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
+  it('keeps registered vocabulary through runtime-selected rows with their explicit nullish fallback', () => {
+    const root = mkdtempSync(join(tmpdir(), 'gen-shards-selected-'));
+    try {
+      const dir = join(root, 'src/shards/mine'); mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, 'manifest.ts'), "export default { slug: 'mine', name: 'Mine' };");
+      writeFileSync(join(dir, 'species.ts'), "export const A = { id: 'mine.a' }; export const B = { id: 'mine.b' };");
+      const imports = "import { A, B } from './species';";
+      writeFileSync(join(dir, 'plugin.ts'), `${imports} export class Plugin { kit(ctx) { ctx.rows.species([A, B]); ctx.rows.weapon({ id: 'mine.weapon' }); } }`);
+      genShards(root); const file = join(root, 'lint/shard-words.generated.json'), before = readFileSync(file, 'utf8');
+      // Selection is trusted runtime code; generation must neither execute it nor scan unrelated runtime helpers.
+      writeFileSync(join(dir, 'select.ts'), "export function select(ctx) { throw new Error('runtime must not execute'); }");
+      writeFileSync(join(dir, 'plugin.ts'), `${imports} import { select } from './select'; export class Plugin { kit(ctx) { this.selection = select(ctx); ctx.rows.species(this.selection?.rows ?? [A, B]); ctx.rows.weapon({ id: 'mine.weapon' }); } }`);
+      genShards(root); expect(readFileSync(file, 'utf8')).toBe(before);
+      expect(() => genShards(root, true)).not.toThrow();
+      // An entirely static selection still wins over an unused fallback, as it does at runtime.
+      writeFileSync(join(dir, 'plugin.ts'), `${imports} export function kit(ctx) { ctx.rows.species([A] ?? [B]); ctx.rows.weapon({ id: 'mine.weapon' }); }`);
+      genShards(root); expect(readFileSync(file, 'utf8')).toContain('"mine.a"');
+      expect(readFileSync(file, 'utf8')).not.toContain('"mine.b"');
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
   // it parses every real shard's closure: under 2 s alone, over 5 s under coverage (CI), like pine-crags
   it('AG10: holds the manifest contract on every real shard (lazy plugin, closure budget, every field read)', () => {
     expect(manifestContract(resolve('.'), manifestClosure(resolve('.')), true)).toEqual([]);
