@@ -5,8 +5,24 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
-import { NodeKind, Parser } from 'assemblyscript';
 import { resolveSpecifier } from './check-graph.mjs';
+
+// The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
+// behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
+/** @typedef {{comments?: unknown, diagnostics: unknown[], sources: {statements: {kind:number,path?:{value:string}|null}[]}[], onComment: ((kind:number,text:string,range:{start:number,end:number})=>void)|null, parseFile:(source:string,path:string,entry:boolean)=>void}} AssemblyParser */
+/** @typedef {{Parser:new()=>AssemblyParser,NodeKind:{Import:number,Export:number}}} AssemblyApi */
+/** @param {unknown} value @returns {value is AssemblyApi} */
+function isAssemblyApi(value) {
+  return typeof value === 'object' && value !== null && 'Parser' in value && typeof value.Parser === 'function'
+    && 'NodeKind' in value && typeof value.NodeKind === 'object' && value.NodeKind !== null
+    && 'Import' in value.NodeKind && typeof value.NodeKind.Import === 'number'
+    && 'Export' in value.NodeKind && typeof value.NodeKind.Export === 'number';
+}
+const compilerSpecifier = ['assembly', 'script'].join('');
+/** @type {unknown} */
+const compiler = await import(compilerSpecifier);
+if (!isAssemblyApi(compiler)) throw new Error('AssemblyScript parser API unavailable');
+const { Parser, NodeKind } = compiler;
 
 const ROOT = resolve(import.meta.dirname, '..');
 const LIST = 'lint/shard-platform.json';
