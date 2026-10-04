@@ -66,7 +66,9 @@ const TROT = 4.0, RUN = 9.5, SHADOW_R = [30, 40] as const, RING_R = [12, 16] as 
 const SIGHT = 35, CONE = THREE.MathUtils.degToRad(70), SMELL = 60, HEAR: [number, number, number, number] = [4, 8, 16, 30];
 const TELEGRAPH = 0.4, DASH_MAX = 1.8, BREAKOFF = 1.1;
 
-const packOf = new WeakMap<Animal, Pack>();
+/** Public group surface used by native raid and view recipes; policy internals remain private. */
+export type PackController = Pick<Pack, 'members' | 'alpha' | 'phase' | 'awareness' | 'homeX' | 'homeZ' | 'prey' | 'findPrey' | 'tick' | 'drive' | 'scare' | 'raid' | 'alive'>;
+const packOf = new WeakMap<Animal, PackController>();
 const _t = new THREE.Vector3();
 
 const ease = (cur: number, to: number, k: number): number => cur + (to - cur) * Math.min(1, k);
@@ -74,9 +76,15 @@ const ease = (cur: number, to: number, k: number): number => cur + (to - cur) * 
 export function isLunging(a: Animal): boolean { return a.kind === 'wolf' && (a.mem['lunge'] ?? 0) === 2; }
 
 export class Pack extends GroupBrain<Animal> {
-  static all: Pack[] = [];
+  static all: PackController[] = [];
   /** the pack a wolf belongs to (null for a wolf spawned outside any herd) */
-  static of(a: Animal): Pack | null { return packOf.get(a) ?? null; }
+  static of(a: Animal): PackController | null { return packOf.get(a) ?? null; }
+
+  /** Bind declared actors into the species, prey and raid lookup without setup draws or decisions. */
+  static register(controller: PackController): void {
+    for (const actor of controller.members) packOf.set(actor, controller);
+    if (!Pack.all.includes(controller)) Pack.all.push(controller);
+  }
 
   alpha: Animal | null = null;
   phase: PackPhase = 'roam';
@@ -122,7 +130,7 @@ export class Pack extends GroupBrain<Animal> {
   }
 
   /** the pack a wolf's think should use: its Pack, or one made now from the manager herd it was spawned into */
-  static forThink(a: Animal, c: ThinkCtx): Pack | null {
+  static forThink(a: Animal, c: ThinkCtx): PackController | null {
     const p = packOf.get(a);
     if (p !== undefined) return p;
     if (c.herd === null) return null;

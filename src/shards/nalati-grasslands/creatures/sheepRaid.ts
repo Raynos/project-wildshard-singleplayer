@@ -10,7 +10,7 @@ import * as THREE from 'three';
 
 import type { Wildlife } from './wildlife';
 import type { SheepPrey, Flock } from './flock';
-import { Pack } from '../runtime/packLegacy';
+import { Pack, type PackController } from '../runtime/packLegacy';
 import { legacyRaidTick, type RaidClockPorts } from './raidClock';
 import { installRaidDirector } from './raidDirector';
 import { HORSE_SPEED, horseBones } from '../species/horse';
@@ -141,9 +141,9 @@ export class SheepRaid {
   private raidPlayer: THREE.Vector3 | null = null;
   private directed = false;
   private readonly raidClock: RaidClockPorts = this.clockPorts();
-  private pack: Pack | null = null;
+  private pack: PackController | null = null;
   /** the valley pack (spawned with the first raid) and how many have been spawned */
-  private raiders: Pack | null = null;
+  private raiders: PackController | null = null;
   private spawned = 0;
   private prey: SheepPrey | null = null;
   private pendingT = 0;
@@ -189,7 +189,7 @@ export class SheepRaid {
   }
 
   /** the valley pack, roaming and able (spawned now if there is none, or you killed it) — null if it is busy */
-  private raidPack(f: Flock): Pack | null {
+  private raidPack(f: Flock): PackController | null {
     let p = this.raiders;
     if ((p === null || p.alive < 2) && this.spawned < MAX_PACKS) {
       const x = f.cx + DEN.dx, z = f.cz + DEN.dz;

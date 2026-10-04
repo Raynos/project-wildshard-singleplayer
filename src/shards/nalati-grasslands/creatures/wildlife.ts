@@ -9,8 +9,8 @@ import * as THREE from 'three';
 
 
 
-import { Pack } from '../runtime/packLegacy';
-import { HorseHerd } from '../runtime/herdLegacy';
+import { Pack, type PackController } from '../runtime/packLegacy';
+import { HorseHerd, type HerdController } from '../runtime/herdLegacy';
 import { Flock, dogWolves } from './flock';
 import { wildEnv } from './env';
 import { Marmots } from './marmots';
@@ -68,8 +68,8 @@ export interface SheepHit { flock: Flock; index: number; distance: number }
 export interface WildPlayer { position: THREE.Vector3; forward: THREE.Vector3; crouching: boolean }
 
 export class Wildlife {
-  packs: Pack[] = [];
-  herds: HorseHerd[] = [];
+  packs: PackController[] = [];
+  herds: HerdController[] = [];
   flocks: Flock[] = [];
   marmots: Marmots | null = null;
   /** the saddled horses at the camp's hitching rail */
@@ -119,7 +119,7 @@ export class Wildlife {
     return [x, z];
   }
 
-  spawnPack(x: number, z: number, variants: string[]): Pack {
+  spawnPack(x: number, z: number, variants: string[]): PackController {
     const herd = this.animals.addHerd('wolf', x, z);
     const members: Animal[] = [];
     for (const v of variants) {
@@ -134,7 +134,7 @@ export class Wildlife {
     return pack;
   }
 
-  spawnHerd(x: number, z: number, mares: number, foals: number, stallion: boolean): HorseHerd {
+  spawnHerd(x: number, z: number, mares: number, foals: number, stallion: boolean): HerdController {
     const herd = this.animals.addHerd('horse', x, z);
     const members: Animal[] = [];
     const add = (v: string, r: number): Animal => {

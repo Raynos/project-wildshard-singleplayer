@@ -26,8 +26,8 @@ import * as THREE from 'three';
 
 
 import type { Wildlife } from '../creatures/wildlife';
-import type { Pack } from '../runtime/packLegacy';
-import type { HorseHerd } from '../runtime/herdLegacy';
+import type { PackController } from '../runtime/packLegacy';
+import type { HerdController } from '../runtime/herdLegacy';
 
 import type { Ledge } from '../world/Crags';
 
@@ -336,7 +336,7 @@ class Aqbars extends Base {
 type KbSt = 'den' | 'hold' | 'howl' | 'hunt' | 'home';
 class Kokbori extends Base {
   private st: KbSt = 'den';
-  private pack: Pack | null = null;
+  private pack: PackController | null = null;
   private howlT = 8; private stT = 0; private howlHit = -1; private cd = 0; private bit = false;
   private rings: GroundTell;
   constructor(def: EliteDef, env: Env) { super(def, env); this.rings = new GroundTell(env.game.scene, 'ring', new THREE.Color(0.9, 1.15, 1.4)); }
@@ -750,7 +750,7 @@ export function registerArgymaq(): void {
 }
 
 class Argymaq extends Base {
-  private herd: HorseHerd | null = null;
+  private herd: HerdController | null = null;
   private lane: GroundTell;
   private laneT = 0; private runT = 0; private lastState = '';
   private laneFrom = new THREE.Vector3(); private laneTo = new THREE.Vector3();

@@ -6,7 +6,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import type { Mount } from './Mount';
-import type { HorseHerd } from '../runtime/herdLegacy';
+import type { HerdController } from '../runtime/herdLegacy';
 import type { RideHUD, TamingView } from './RideHUD';
 import { wildEnv } from '../creatures/env';
 
@@ -45,7 +45,7 @@ export interface TamingOpts {
   mount: Mount;
   animals: AnimalManager;
   hud: RideHUD;
-  herds: () => HorseHerd[];
+  herds: () => HerdController[];
   /** where Tulpar waits / rests (a hitch spot at the camp's rail) */
   rest: { x: number; z: number; face: { x: number; z: number } };
   hurt: (damage: number) => void;
@@ -74,10 +74,10 @@ export class Taming {
   /** the bucking rounds start / end — holster the weapon (both hands in the mane), bring it back */
   onBreaking?: ((on: boolean) => void) | undefined;
 
-  private herd: HorseHerd | null = null;
+  private herd: HerdController | null = null;
   private stallion: Animal | null = null;
   private beaten = new WeakSet<Animal>();
-  private drove = new WeakSet<HorseHerd>();
+  private drove = new WeakSet<HerdController>();
   private readonly ear = new THREE.Vector3();
   private lookT = 0;
   private readonly prev = new THREE.Vector3(); private speed = 0; private init = false;
@@ -118,7 +118,7 @@ export class Taming {
     if (this.phase === 'breaking') { this.updateBreaking(dt); return; }
     this.view.round = null; this.view.danger = false;
     // the nearest herd with a stallion
-    let herd: HorseHerd | null = null, st: Animal | null = null, bd = Infinity;
+    let herd: HerdController | null = null, st: Animal | null = null, bd = Infinity;
     for (const h of this.opts.herds()) {
       const s = h.stallion;
       if (s === null || !s.alive || !this.canTame(s)) continue;

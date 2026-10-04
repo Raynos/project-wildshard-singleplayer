@@ -55,12 +55,22 @@ const WALK = 1.8, TROT = 4.5, GALLOP = 12.5, CHARGE = 12;
 const SIGHT = 45, SIGHT_GRAZE = 20, CONE = THREE.MathUtils.degToRad(70), HEAR: [number, number, number, number] = [4, 8, 15, 30];
 const ALERT_AT = 0.45;
 
-const herdOf = new WeakMap<Animal, HorseHerd>();
+/** Public group surface retained by native riding, taming and unique-elite recipes. */
+export type HerdController = Pick<HorseHerd, 'members' | 'lead' | 'stallion' | 'foals' | 'mode' | 'stampeding' | 'stallionState'
+  | 'trust' | 'alert' | 'alertOwned' | 'calm' | 'ridden' | 'findWolf' | 'cx' | 'cz' | 'tick' | 'drive' | 'setRidden' | 'addTrust'
+  | 'disturb' | 'stampede' | 'leadAway' | 'adoptStallion' | 'releaseStallion'>;
+const herdOf = new WeakMap<Animal, HerdController>();
 const _t = new THREE.Vector3();
 
 export class HorseHerd extends GroupBrain<Animal> {
-  static all: HorseHerd[] = [];
-  static of(a: Animal): HorseHerd | null { return herdOf.get(a) ?? null; }
+  static all: HerdController[] = [];
+  static of(a: Animal): HerdController | null { return herdOf.get(a) ?? null; }
+
+  /** Bind declared/adopted actors into the existing rider and species lookup, without setup or decisions. */
+  static register(controller: HerdController): void {
+    for (const actor of controller.members) herdOf.set(actor, controller);
+    if (!HorseHerd.all.includes(controller)) HorseHerd.all.push(controller);
+  }
 
   lead: Animal | null = null;
   stallion: Animal | null = null;
@@ -115,7 +125,7 @@ export class HorseHerd extends GroupBrain<Animal> {
     HorseHerd.all.push(this);
   }
 
-  static forThink(a: Animal, c: ThinkCtx): HorseHerd | null {
+  static forThink(a: Animal, c: ThinkCtx): HerdController | null {
     const h = herdOf.get(a);
     if (h !== undefined) return h;
     if (c.herd === null) return null;
