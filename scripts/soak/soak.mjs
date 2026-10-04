@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // SF57: two same-document 30-minute Simulator drives. Ask the coordinator for quiet before --run.
 // node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
+// --prepared=<manifest.json> reuses pinned previews, without rebuilding, after a preparation-parent restart.
 // A long-lived parent retains both previews. --prepare writes its manifest and waits for <directory>/GO.
 // No document navigation, manual eviction or GC is allowed between drive start and the final leak census.
 import { spawn, execFileSync } from 'node:child_process';
@@ -151,6 +152,18 @@ async function worker() {
   writeFileSync(join(out, `${layout}.json`), `${JSON.stringify(result, null, 2)}\n`);
   console.log(JSON.stringify({ layout, ...result.grade, failure: result.failure }));
 }
+async function drivePrepared(manifest) {
+  const { sha, out, bases } = manifest;
+  while (!existsSync(join(out, 'GO'))) await sleep(1000);
+  for (const { layout, base } of bases) {
+    await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', '40', `sf57-sp-x1-${layout}-${process.pid}`, process.execPath, import.meta.filename,
+      '--worker', `--base=${base}`, `--layout=${layout}`, `--out=${out}`, `--rev=${sha}`], { cwd: out, echo: true });
+  }
+  console.log(`SF57 DONE ${out}`);
+}
+async function closePreviews(bases) {
+  for (const { base } of bases) await run(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port]).catch(() => undefined);
+}
 async function prepare() {
   const sha = execFileSync('git', ['rev-parse', flag('rev', 'origin/main')], { cwd: root, encoding: 'utf8' }).trim();
   const out = resolvePath(flag('out', `/private/tmp/claude-501/sp-builders/sp-x1/sf57-${process.pid}`)); mkdirSync(out, { recursive: true });
@@ -173,14 +186,19 @@ async function prepare() {
     }
     writeFileSync(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
     console.log(`PREPARED ${join(out, 'manifest.json')} — waiting for coordinator quiet; touch ${join(out, 'GO')} only after go`);
-    while (!existsSync(join(out, 'GO'))) await sleep(1000);
-    for (const { layout, base } of bases) {
-      await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', '40', 'sf57-sp-x1-iphone-17-pro', process.execPath, import.meta.filename,
-        '--worker', `--base=${base}`, `--layout=${layout}`, `--out=${out}`, `--rev=${sha}`], { cwd: out, echo: true });
-    }
-    console.log(`SF57 DONE ${out}`);
-  } finally { for (const { base } of bases) await run(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port]).catch(() => undefined); }
+    await drivePrepared(manifest);
+  } finally { await closePreviews(bases); }
 }
 if (process.argv.includes('--worker')) await worker();
 else if (process.argv.includes('--prepare')) await prepare();
+else if (flag('prepared')) {
+  const manifest = JSON.parse(readFileSync(flag('prepared'), 'utf8'));
+  try {
+    for (const { base, version } of manifest.bases) {
+      if (JSON.stringify(await (await fetch(`${base}version.json`)).json()) !== JSON.stringify(version)) throw new Error('Prepared preview changed');
+    }
+    console.log(`PREPARED (reused) ${flag('prepared')} — waiting for GO`);
+    await drivePrepared(manifest);
+  } finally { await closePreviews(manifest.bases); }
+}
 else throw new Error('Supply --prepare --rev=<pushed SHA>; its long-lived parent starts the lane after GO');

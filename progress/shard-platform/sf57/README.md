@@ -9,6 +9,9 @@ node scripts/soak/soak.mjs --prepare --rev=<pushed-sha> --out=<own-scratch-direc
 Keep that parent alive. Once it prints `PREPARED`, request the quiet window. After the coordinator says go, create the
 printed `GO` file. The parent runs shipped and full dev layouts serially through `scripts/sim-lane.sh`, then closes its
 two previews, owned Inspector proxy, sampler and Simulator.
+Each layout uses a fresh named iPhone 17 Pro device on the same iOS runtime, one at a time, so Safari tab restoration
+from the preceding layout cannot contaminate its baseline. `--prepared=<manifest.json>` can reuse existing pinned
+previews after a preparation-parent restart; it never rebuilds or resumes a partly measured document.
 
 The Safari helper changes only the entry HTML: independent leak counters, live harness pins, phone tier, automatic
 cadence, 2× scale, the one-frame Debug row ON, and the existing one-shot grid/title intent. Developer stays OFF for the
