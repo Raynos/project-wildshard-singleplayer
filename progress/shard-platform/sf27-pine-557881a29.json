@@ -1,0 +1,302 @@
+{
+  "row": "SF27",
+  "parent": "e22054602896c2bb6106650c55bf8029ce4d8b96",
+  "current": "557881a292204981ec355d8d9295ce329ddf6ecc",
+  "hybridDebugFixtures": [
+    "off",
+    "on"
+  ],
+  "when": "2026-10-04T18:39:40.274Z",
+  "elapsedSeconds": 1365.756,
+  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+  "ambientInfo": [
+    "forest.thrall"
+  ],
+  "reports": [
+    {
+      "hybrid": "off",
+      "setting": "off",
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.086,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.063,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.99957794587593,
+          "full": 0.9995889617886564,
+          "masked": 0.026,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        }
+      ],
+      "parent": {
+        "walk": {
+          "stuck": 0
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      },
+      "current": {
+        "walk": {
+          "stuck": 0
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      }
+    },
+    {
+      "hybrid": "off",
+      "setting": "off",
+      "shard": "pine-hollow",
+      "tier": "desktop",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.07,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.063,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9999508573582948,
+          "full": 0.9999526161721158,
+          "masked": 0.036,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        }
+      ],
+      "parent": {
+        "walk": {
+          "stuck": 0
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      },
+      "current": {
+        "walk": {
+          "stuck": 0
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      }
+    },
+    {
+      "hybrid": "on",
+      "setting": "off",
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.086,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.063,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9997118395005311,
+          "full": 0.9997193606944547,
+          "masked": 0.026,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        }
+      ],
+      "parent": {
+        "walk": {
+          "stuck": 0
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      },
+      "current": {
+        "walk": {
+          "stuck": 0
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      }
+    },
+    {
+      "hybrid": "on",
+      "setting": "off",
+      "shard": "pine-hollow",
+      "tier": "desktop",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.07,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.063,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9999793274419613,
+          "full": 0.999980067312256,
+          "masked": 0.036,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        }
+      ],
+      "parent": {
+        "walk": {
+          "stuck": 0
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      },
+      "current": {
+        "walk": {
+          "stuck": 0
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      }
+    }
+  ],
+  "debugFixtureNote": "OFF/ON fixtures set the Driftwood hybrid device key; Pine has no hybrid brain variant. Its phase-table and runtime-path changes are ungated. Both fixture runs are the same Pine code path."
+}

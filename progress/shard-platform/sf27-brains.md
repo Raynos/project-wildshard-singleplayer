@@ -36,7 +36,9 @@ Pine's unique Antler King fight and move policy live in `runtime/antlerKing.ts` 
 
 ## Remaining row work
 
-- Driftwood parent/current parity with the hybrid OFF and ON on both tiers, and Pine phase/move parity, await the coordinator's pushed pin. `SF27-parity.mjs` uses fresh pinned captures, device fixtures and an activation witness. Earlier SF24/SF30 floors do not prove the new SF27 policies.
+- Driftwood and Pine browser parity receipts below are green. SF27 frame floors and the remaining shard bindings stay open; earlier SF24/SF30 floors do not prove the new SF27 policies.
 - Nalati's herd/pack/flock, balbal and ghost decisions; Far Reach's ordinary creatures; Signal Dunes' ordinary creatures; remaining shared archetype bindings still need conversion/proof. A native `CreatureBrain` subclass alone is not an admitted data/AS policy.
 
 Driftwood parent `a8d705c3c` → `026e11aaf`: OFF/ON × phone/desktop **4/4 green**; 12 images, min SSIM 0.9900959657 (all desktop images 1), walk 0 stuck, unload no errors. Device hybrid keys and mover-system absence/presence witnessed. Full receipt: `sf27-driftwood-026e11aaf.json`. Phone tier here is emulated Chromium on Metal; this is not a Safari frame-floor receipt.
+
+Pine phase/move parent `e22054602` → `557881a29`: **4/4 green**, 12 images, min SSIM 0.9995779459, walk 0 stuck, boot/unload no errors. Pine has no hybrid brain variant: OFF/ON fixtures here set the Driftwood-only device key and repeat the same ungated Pine code path. Full receipt: `sf27-pine-557881a29.json`. This complements the real boss-table replay; Chromium phone emulation is not a Safari floor.
