@@ -6,7 +6,7 @@ import { ItemRuntime, scriptItemHook } from '../src/engine/combat/items';
 import { SaveStore } from '../src/engine/saves/store';
 import { instanceSave } from '../src/game/instanceSaves';
 import { createShardfileSim } from '../src/game/shardfile/simulation';
-import { captureClientState, restoreClientState, installClientItemState, clientStateSave } from '../src/game/shardfile/clientState';
+import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientStateFromRegion } from '../src/game/shardfile/clientState';
 import { projectItemFields } from '../src/game/shardfile/clientItems';
 import { syncTargetColliders } from '../src/game/shardfile/targets';
 import { parseMigrations } from '../src/game/shardfile/migrations';
@@ -93,7 +93,8 @@ it('migrates a durable regional companion without decoding old physics, retainin
     first.lane.enqueue({ type: 201, target: first.player, value: 1 }); first.lamp.queue(3); first.step(30);
     for (const flag of source.quests.flags) first.sim.host.flags.set(flag);
     old.wallet.addCoins(9); old.wallet.savePack({ counts: { rope: 3 }, order: ['rope'] });
-    const snapshot = snapshotSimHost(first.sim.host); expect(old.checkpoint(snapshot)).toBe(true);
+    const snapshot = snapshotSimHost(first.sim.host), portable = clientStateFromRegion(source, snapshot);
+    expect(portable.lane).toBeNull(); expect(portable.version).toBe(2); expect(old.checkpoint(snapshot)).toBe(true);
     const key = 'wildshard.save.v2.template-1', bytes = local.getItem(key); if (bytes === null) throw new Error('Missing regional save');
     expect(bytes).toContain(JSON.stringify(serializeSimSnapshot(snapshot)));
     local.setItem(key, bytes.replace(JSON.stringify(serializeSimSnapshot(snapshot)), JSON.stringify('old engine unavailable')));

@@ -76,7 +76,8 @@ export function clientStateFromRegion(source: Shardfile, snapshot: SimSnapshot, 
   if (itemState !== undefined && typeof itemState !== 'string') throw new Error('Invalid regional item state');
   const items: unknown = itemState === undefined ? {} : JSON.parse(itemState);
   const state = logicalStateFromLane(stateVersion, lane);
-  return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state, revision, tick: snapshot.state.tick, lane, items,
+  // The exact region snapshot already owns executable memory. Its migration companion must not duplicate or depend on it.
+  return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state, revision, tick: snapshot.state.tick, lane: null, items,
     flags: snapshot.flags, quests: snapshot.quests, dialogue: snapshot.adapters.find((adapter) => adapter.id === 'quest.declared')?.state ?? {} });
 }
 function apply(sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
