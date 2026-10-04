@@ -62,7 +62,8 @@ export function on_tick(): void {
     emit(102, amplitude * 0.6 * wave(seconds * rate * 0.71 + phase), 0, amplitude * wave(seconds * rate + phase));
   }
   if (emitter >= 1) {
-    const every = Math.max(1, Math.floor(90 / rate + 0.5)), k = (tick + self * 7) / every;
-    if (k == Math.floor(k)) emit(104, emitter, 1, 0);
+    // once each time the lane's step (divisor ticks) crosses an interval boundary, whatever the divisor
+    const every = Math.max(1, Math.floor(90 / rate + 0.5)), step = load<f64>(16384 + 8) * 60, at = tick + self * 7;
+    if (Math.floor(at / every) != Math.floor((at - step) / every)) emit(104, emitter, 1, 0);
   }
 }

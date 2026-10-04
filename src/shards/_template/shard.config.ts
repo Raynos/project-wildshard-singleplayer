@@ -18,14 +18,14 @@ import { SPAWN } from './data/spawn';
 import { ITEMS } from './data/items';
 import { TEMPLATE_TARGETS } from './data/targets';
 import { TEMPLATE_SKIN_COST, TEMPLATE_SKIN_FILES, TEMPLATE_SKIN_LIBRARY, TEMPLATE_SKIN_LOOKS } from './data/skins';
-import { CLIENT_IDLE_HASH, CLIENT_IDLE_RESIDENT, TEMPLATE_CLIENT_SCRIPTS } from './data/clientScripts';
+import { CLIENT_IDLE_BYTES, CLIENT_IDLE_HASH, CLIENT_IDLE_RESIDENT, TEMPLATE_CLIENT_SCRIPTS } from './data/clientScripts';
 
 const base = emptyShardfile({ slug: 'template', name: 'Template shard', author: 'Wildshard', revision: 1, seed: 357 });
 const playerHandle = 1106943697; // fnv1a32('actor.player') & 0x7fffffff; admission compares this with the session map.
 const script = { hash: door.hash, kind: 'wasm', compressed: door.compressed, decoded: door.compressed, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };
 const itemModule = '7035c479edde46ee0baf713fce437fe21e7b61967154f36b5f1126708b2bfaa7';
 const itemScript = { ...script, hash: itemModule, compressed: 740, decoded: 740 };
-const clientScript = { ...script, hash: CLIENT_IDLE_HASH, compressed: 3877, decoded: 3877, critical: false };
+const clientScript = { ...script, hash: CLIENT_IDLE_HASH, compressed: CLIENT_IDLE_BYTES, decoded: CLIENT_IDLE_BYTES, critical: false };
 const tiles = terrain.tiles.map((tile) => {
   const addition = props.tiles.find((row) => row.lod === tile.lod && row.x === tile.x && row.z === tile.z);
   if (addition === undefined) return tile;
@@ -36,7 +36,7 @@ const tiles = terrain.tiles.map((tile) => {
 // This declaration is the live source; the manifest supplies only picker metadata.
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
-  budgets: { library: { resident: 100_000 + TEMPLATE_SKIN_COST.resident + CLIENT_IDLE_RESIDENT, compressed: 103_877 + TEMPLATE_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
+  budgets: { library: { resident: 100_000 + TEMPLATE_SKIN_COST.resident + CLIENT_IDLE_RESIDENT, compressed: 100_000 + CLIENT_IDLE_BYTES + TEMPLATE_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
   serverBudget: { ...base.serverBudget, memory: 16_000_000 },
   look: TEMPLATE_LOOK, spawn: SPAWN, rows: { ...TEMPLATE_ROWS, looks: TEMPLATE_SKIN_LOOKS }, plumbing: TEMPLATE_PLUMBING, ui: TEMPLATE_UI,
   terrain: terrain.terrain, tiles, files: [...terrain.files, ...props.files, ...TEMPLATE_SKIN_FILES, script, itemScript, clientScript], edge: terrain.edge,

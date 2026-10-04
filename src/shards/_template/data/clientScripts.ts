@@ -1,9 +1,11 @@
 import { parseClientScripts } from '@wildshard/sdk/clientScripts';
 
 /** Built by compileScript(idle.as, {maximumPages: 2}); byte identity is checked by the idle-module fixture. */
-export const CLIENT_IDLE_HASH = '8024a4e04f5550c715e2e167cb3f989320b6f917320a2e4ef98bbf8c62447940';
+export const CLIENT_IDLE_HASH = '875e798b8b1be62129b477e6b85e7c45cf11ae67cba006596d869133b469726b';
+/** The compiled module's size (its compressed and decoded cost: the bytes ship as they are). */
+export const CLIENT_IDLE_BYTES = 3913;
 /** Presentation guest reserves live, last-good and in-flight memory independently of the authoritative simulation. */
-export const CLIENT_IDLE_RESIDENT = 3877 + 3 * 2 * 65536;
+export const CLIENT_IDLE_RESIDENT = CLIENT_IDLE_BYTES + 3 * 2 * 65536;
 /** Frozen neighbours breathe and graze; active creatures retain their authoritative pose and clips. */
 export const TEMPLATE_CLIENT_SCRIPTS = parseClientScripts({ divisor: 2, bindings: [
   { module: CLIENT_IDLE_HASH, entity: 1, name: 'grey-blob.idle', target: { kind: 'creature', id: 'grey-blob:1' }, reads: [], parameters: [0, 0.06, 1.6, 1],

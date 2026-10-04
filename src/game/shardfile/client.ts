@@ -27,6 +27,8 @@ import { clientMaterials } from './clientMaterials';
 import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
 import { loadClientSkins, type ClientSkin } from './clientSkins';
 import { clientViews } from './clientViews';
+import { createShardfileClientScripts } from './clientScripts';
+import { ClientScriptViews, driveClientScriptViews, type ClientScriptViewTarget } from './clientScriptViews';
 import { installClientWater } from './clientWater';
 import { clientWorld } from './clientWorld';
 import { clientSimStep } from './clientStep';
@@ -55,7 +57,7 @@ const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolea
 const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
 
 function emptyHybridData(source: Shardfile): boolean {
-  return source.files.length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.water.length + source.creatures.brains.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.audio.cues.length + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
+  return source.clientScripts.bindings.length + source.files.length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.water.length + source.creatures.brains.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.audio.cues.length + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
     && source.terrain === null && source.props === null && source.far === null && source.plumbing === null
     && source.audio.ambience === null && source.audio.score === 'silent' && source.look.grade.lut === null
     && source.look.day === undefined && source.look.dayOverride === null;
@@ -212,6 +214,33 @@ export class ShardfileClient {
     for (const [id, view] of this.animals) {
       const core = sim.host.entities.get(id); if (core === undefined) throw new Error('Missing authoritative creature');
       view.bindSimulation(core); view.mesh.scale.setScalar(core.scale);
+    }
+    // SF25 / G66: presentation-only client scripts; live creatures keep their sim pose and clips, a frozen home (the
+    // traveller in another frame) breathes and grazes on top of it. The lane sees copies; its sim is never stepped here.
+    if (source.clientScripts.bindings.length > 0) {
+      const animals = this.animals, lane = sim.lane;
+      const scripts = createShardfileClientScripts(source, this.assets.retained, { actorId: health.id, ...(lane === undefined ? {} : { state: lane.world }),
+        observe: (target) => {
+          if (target.kind === 'particles') return { position: target.at, frozen: !simulationActive };
+          const p = target.kind === 'creature' ? animals.get(target.id)?.mesh.position : undefined;
+          return { position: p === undefined ? [0, 0, 0] : [p.x, p.y, p.z], frozen: !simulationActive };
+        } });
+      ctx.scope.onDispose(() => { scripts.dispose(); });
+      const targets = scripts.targets.map(({ entity, target }): ClientScriptViewTarget => {
+        const view = target.kind === 'creature' ? animals.get(target.id) : undefined, body = view === undefined ? 0 : (sim.host.entities.get(view.entityId)?.dims.bodyY ?? 0.5) * (view.mesh.scale.y || 1);
+        const looks = source.clientScripts.bindings.find((b) => b.entity === entity)?.emitters.map((e) => ({ id: e.id, live: e.live, colour: e.colour, size: e.size, velocity: e.velocity, gravity: e.gravity })) ?? [];
+        return { entity, object: view?.mesh ?? null, emitters: looks,
+          anchor: (out) => (target.kind === 'particles' ? out.fromArray(target.at) : view === undefined ? out.set(0, 0, 0) : out.copy(view.mesh.position).setY(view.mesh.position.y + body * 1.6)) };
+      });
+      const views = new ClientScriptViews(scripts.lane, targets, { root: ctx.root, scope: ctx.scope });
+      let presentationTick = 0, stopped = false;
+      // a refused observation (a creature past the lane's ±250 m frame) stills the presentation, never the game
+      ctx.system({ id: 'game.shardfile.client-scripts', phase: 'fixed.post', run: () => {
+        if (stopped) return;
+        try { scripts.step(presentationTick++); } catch (error) { stopped = true; views.restore(); console.warn('[shardfile] client scripts stopped:', error); }
+      } });
+      driveClientScriptViews(views, { system: ctx.system, id: 'game.shardfile.client-script-views' });
+      ctx.debug.expose('shardfileClientScripts', { views: () => views.state(), frames: () => scripts.lane.frames() });
     }
     installClientItemState(sim, items.runtimes, () => {
       items.step(sim.host.state.tick, 1 / 60);

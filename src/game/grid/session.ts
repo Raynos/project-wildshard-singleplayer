@@ -19,7 +19,7 @@
  * - **legacy bounds yield** (SF17a): the session asks the level to leave out its chunk-edge walls and hide the edge
  *   veil (`gridLevel`), the bounds' horizontal check reads `grid`; fall recovery stays.
  */
-import { BufferAttribute, BufferGeometry, Group, Mesh, MeshLambertMaterial, type Object3D } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Mesh, MeshLambertMaterial, type Material, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as v from 'valibot';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
@@ -56,6 +56,8 @@ import { clientRingCatalogue, clientRingPorts, type ClientRingInstance, type Pre
 import { ClientAssets } from '../shardfile/clientAssets';
 import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
+import type { ClientSkin } from '../shardfile/clientSkins';
+import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
 
 /** In grid mode the level's own chunk-edge walls and veil yield to the platform (the standalone path is unchanged). */
 export function gridLevel(spec: LevelSpec): LevelSpec {
@@ -72,7 +74,7 @@ export interface GridSessionHost {
   /** Register once per fixed step (the page's one fixed step; never a second loop). */
   readonly onFixed: (fn: (dt: number) => void) => void;
   /** SF19a's one frame: the camera, composer and grade effects, and the page's late phase (absent: never built) */
-  readonly frame?: GridFrameHost & { readonly onLate: (fn: () => void) => void };
+  readonly frame?: GridFrameHost & { readonly onLate: (fn: (dt: number) => void) => void };
   /** the page's renderer: shardfile neighbours' ring tiles compile their materials on it (absent: neighbours stay far proxies) */
   readonly renderer?: Renderer;
 }
@@ -94,6 +96,8 @@ export interface GridSessionState {
   readonly frame: GridFrameState | null;
   /** step 2's live crossing (null until the page attaches its player) */
   readonly live: LiveGridSessionState | null;
+  /** SF25 / G66: each shardfile neighbour's client-script life (frozen cells breathe and graze) */
+  readonly life: readonly NeighbourLifeCell[];
 }
 
 /** The shardfile neighbours' L1 / L0 tiles (sources load late: until then the catalogue has no tile and the far proxy draws). */
@@ -180,6 +184,7 @@ export class GridSession {
   private readonly walls: ReadinessWalls;
   private live: LiveGridSession | null = null;
   private readonly road: RoadLookState;
+  private readonly life: NeighbourLife;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
 
   constructor(host: GridSessionHost) {
@@ -233,6 +238,9 @@ export class GridSession {
       view.dispose = () => { untag(); dispose(); };
       return view;
     } };
+    // SF25 / G66: frozen neighbours look alive (presentation-only client scripts; their sims never step here)
+    this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.simulation(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
+    host.frame?.onLate((dt) => { this.life.late(dt); });
     const tiles = neighbourTiles(host.scope), tileCost = clientRingCatalogue(tiles.instances);
     this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
@@ -242,7 +250,7 @@ export class GridSession {
       const material = deck.material; if (!Array.isArray(material)) material.dispose();
       for (const root of roots.values()) root.removeFromParent();
     });
-    host.onFixed((dt) => { this.step(dt); });
+    host.onFixed((dt) => { this.step(dt); this.life.fixed(); });
     host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state(),
       ...(harnessPins() === undefined ? {} : { simulation: (instanceId: string) => this.live?.simulation(instanceId) }),
     }));
@@ -254,7 +262,8 @@ export class GridSession {
    * fails to admit keeps its far proxy.
    */
   private async admitTiles(renderer: Renderer, roots: ReadonlyMap<string, Group>, instances: Map<string, ClientRingInstance>): Promise<void> {
-    const scope = this.host.scope, shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews }>>();
+    const scope = this.host.scope, skins = new Map<string, Promise<ReadonlyMap<string, ClientSkin>>>();
+    const shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews; bytes: ReadonlyMap<string, Uint8Array>; compile: (entry: unknown) => Material }>>();
     for (const cell of this.neighbours) {
       const product = gridShardfileProduct(cell.slug), root = roots.get(cell.instance);
       if (product === null || root === undefined) continue;
@@ -263,14 +272,15 @@ export class GridSession {
         loading = (async () => {
           const { admitted, options } = await product, source = admitted.source;
           const presentation = await clientMaterials(source, admitted.assets, renderer, scope);
-          return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, ...presentation }) };
+          return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, ...presentation }), bytes: admitted.assets, compile: presentation.compile };
         })();
         shared.set(cell.slug, loading);
       }
       try {
-        const { source, assets, views } = await loading;
+        const { source, assets, views, bytes, compile } = await loading;
         if (scope.disposed) return;
         if (source.tiles.length > 0) instances.set(cell.instance, { source, assets, root, views });
+        try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
       } catch { /* the far proxy stays the neighbour's fallback */ }
     }
   }
@@ -326,6 +336,7 @@ export class GridSession {
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused },
       frame: this.frame?.state() ?? null,
       live: this.live?.state() ?? null,
+      life: this.life.state(),
     };
   }
 }
