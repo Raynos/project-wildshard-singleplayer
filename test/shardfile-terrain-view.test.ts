@@ -12,6 +12,7 @@ import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { Rng } from '../src/engine/core/rng';
 import { clientViews } from '../src/game/shardfile/clientViews';
+import { installClientWater } from '../src/game/shardfile/clientWater';
 import { clientWorld } from '../src/game/shardfile/clientWorld';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { terrainResidency } from '../src/game/shardfile/residency';
@@ -125,5 +126,27 @@ describe('the loader through the views (template shardfile)', () => {
     check(0, 0);
     await world.refresh(180, -120); check(180, -120);
     scope.dispose(); expect(root.children).toHaveLength(0); expect(scope.census.geometries).toBe(0);
+  });
+});
+
+describe('water surfaces (SF15a)', () => {
+  it('draws each declared body once at its rest surface and unloads it', () => {
+    const scope = new Scope('water'), root = new Group();
+    const drawn = installClientWater([
+      { id: 'template.pool', kind: 'pool', level: 0, shape: { kind: 'circle', x: 25, z: 20, radius: 5 } },
+      { id: 'pond', kind: 'pool', level: 1.5, shape: { kind: 'polygon', points: [[0, 0], [10, 0], [10, 8]] } },
+      { id: 'brook', kind: 'stream', width: 2, points: [{ x: -40, z: 0, level: 2 }, { x: -30, z: 10, level: 1 }] },
+      { id: 'sea', kind: 'sea', level: -2, waves: false },
+    ], { root, scope });
+    expect(drawn.map((m) => m.name)).toEqual(['water:template.pool', 'water:pond', 'water:brook', 'water:sea']);
+    const box = (i: number): Box3 => new Box3().setFromObject(drawn[i] ?? new Group());
+    expect(box(0).min.x).toBeCloseTo(20, 5); expect(box(0).min.y).toBeCloseTo(0, 5); expect(box(0).min.z).toBeCloseTo(15, 5); expect(box(0).max.x).toBeCloseTo(30, 5);
+    // every surface faces up (FrontSide water seen from above)
+    for (const mesh of drawn) { const n = mesh.geometry.getAttribute('normal'); for (let i = 0; i < n.count; i++) expect(n.getY(i)).toBeGreaterThan(0.9); }
+    expect(box(1).min.y).toBeCloseTo(1.5, 5); expect(box(1).max.x).toBeCloseTo(10, 5); expect(box(1).max.z).toBeCloseTo(8, 5); expect(box(1).min.z).toBeCloseTo(0, 5);
+    expect(box(2).min.y).toBeCloseTo(1, 5); expect(box(2).max.y).toBeCloseTo(2, 5);
+    expect(box(3).max.x).toBeCloseTo(250, 5); expect(box(3).min.y).toBeCloseTo(-2, 5);
+    expect(installClientWater([], { root, scope })).toHaveLength(0);
+    expect(scope.census.geometries).toBe(4); scope.dispose(); expect(root.children).toHaveLength(0); expect(scope.census.geometries).toBe(0);
   });
 });
