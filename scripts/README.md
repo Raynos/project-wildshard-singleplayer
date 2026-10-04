@@ -79,7 +79,6 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [pine-hollow-perf-lap.mjs](./pine-hollow-perf-lap.mjs)
 - [pine-hollow-perf.mjs](./pine-hollow-perf.mjs)
 - [sim-memory.mjs](./sim-memory.mjs)
-- [soak.mjs](./soak.mjs)
 - [test-ios-memory-watchdog.py](./test-ios-memory-watchdog.py)
 - [test-nine-gpu-boot.mjs](./test-nine-gpu-boot.mjs)
 - [test-nine-gpu-boot.sh](./test-nine-gpu-boot.sh)

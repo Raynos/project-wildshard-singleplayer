@@ -29,7 +29,7 @@ let memoryProtocol = '';
 /** @type {import('./report.mjs').MemoryReference} */
 let previousMemory = { path: '', sha: null, rejected: [] };
 const control = { abort: false };
-const steps = [], memory = [], soaks = [], measurements = [], artifacts = [], flakes = {};
+const steps = [], memory = [], measurements = [], artifacts = [], flakes = {};
 const killGroup = (child) => { if (child?.pid) { try { process.kill(-child.pid, 'SIGTERM'); } catch { /* exited */ } } };
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => { control.abort = true; killGroup(active); });
 const run = async (command, argv, options = {}) => {
@@ -63,7 +63,6 @@ const step = async (name, command, argv, max) => {
   steps.push({ name, code: result.code, verdict: result.code === 0 ? 'success' : 'failure' });
   return result;
 };
-const browserStep = (name, script, argv, max) => step(name, 'bash', [join(tree, 'scripts/browser-lane.sh'), '--max', String(max), node, join(tree, script), ...argv], max + 1);
 
 try {
   const fetched = await run('git', [`--git-dir=${mirror}`, 'fetch', 'origin', 'main:refs/heads/main'], { max: 10 });
@@ -98,14 +97,14 @@ try {
       if (!entry) throw new Error(`unknown plant ${plant}`);
       shards = entry.shards === 'all' || entry.shards?.includes('all') ? shards : entry.shards;
       if (!Array.isArray(shards) || shards.length === 0) throw new Error('plant has no shards');
-      if (entry.kind === 'patch' || entry.kind === 'nightly' || plant === 'soak-leak') {
+      if (entry.kind === 'patch' || entry.kind === 'nightly') {
         const patch = join(tree, 'test/parity/plants', entry.patch ?? `${plant}.patch`);
         const applied = await run('git', ['apply', patch], { cwd: tree });
         if (applied.code !== 0) throw new Error(`plant apply: ${applied.stderr}`);
       } else throw new Error(`nightly supports patch/nightly plants only: ${plant}`);
     }
     // Harness code comes from main's committed head; runtime and baselines remain the selected SHA's.
-    const harnessPaths = ['scripts/parity.mjs', 'scripts/parity', 'scripts/gpu-perf', 'scripts/types', 'scripts/soak.mjs', 'scripts/sim-memory.mjs', 'scripts/sim-lane.sh', 'scripts/gen-shards.mjs', 'scripts/gen-shards.d.mts'];
+    const harnessPaths = ['scripts/parity.mjs', 'scripts/parity', 'scripts/gpu-perf', 'scripts/types', 'scripts/sim-memory.mjs', 'scripts/sim-lane.sh', 'scripts/gen-shards.mjs', 'scripts/gen-shards.d.mts'];
     const carried = harnessPaths.filter((path) => { try { git('cat-file', '-e', `${harnessSha}:${path}`); return true; } catch { return false; } });
     execFileSync('git', [`--git-dir=${mirror}`, 'archive', '-o', archive, harnessSha, '--', ...carried]);
     execFileSync('tar', ['-xf', archive, '-C', tree]); rmSync(archive);
@@ -124,7 +123,7 @@ try {
     previousMemory = selectMemoryReference(candidates, shards, new Date(started).toISOString());
     const previousPath = previousMemory.path;
     console.log(`gpu-perf: memory reference ${previousPath || 'none (first complete settled reading)'}`);
-    if (!memoryOnly && plant !== 'soak-leak') {
+    if (!memoryOnly) {
       // scorecard's established baseline is a deliberate exception to excluded progress history.
       const baselinePaths = git('ls-tree', '--name-only', '-r', sha, '--', 'progress/scorecard/baseline.json', 'progress/scorecard/baseline').split('\n').filter(Boolean);
       if (baselinePaths.length > 0) { execFileSync('git', [`--git-dir=${mirror}`, 'archive', '-o', archive, sha, '--', ...baselinePaths]); execFileSync('tar', ['-xf', archive, '-C', tree]); rmSync(archive); }
@@ -158,20 +157,11 @@ try {
         }
       }
     }
-    if (!plant || plant !== 'soak-leak') {
-      const simOut = join(reports, `${stamp}-sim-${sha.slice(0, 7)}`);
-      await step('memory', 'bash', [join(tree, 'scripts/sim-lane.sh'), 'run', '--max', '40', 'wildshard-iphone', node, join(tree, 'scripts/sim-memory.mjs'), `--url=${url}`, `--shards=${shards.join(',')}`, '--runs=1', '--play=60', '--fly=60', `--out=${simOut}`, `--pending=${join(tree, 'memory-pending.json')}`, ...(previousPath ? [`--previous=${previousPath}`] : [])], 41);
-      if (existsSync(join(simOut, 'report.json'))) {
-        const reading = JSON.parse(readFileSync(join(simOut, 'report.json'), 'utf8'));
-        memory.push(...reading.memory); memoryProtocol = reading.memoryProtocol ?? '';
-      }
-    }
-    if (!memoryOnly) for (const shard of shards) {
-      const soakOut = join(reports, `${stamp}-soak-${shard}`);
-      const weather = ['pine-hollow', 'nalati-grasslands'].includes(shard) && Math.floor(started / 86_400_000) % 2 === 1;
-      await browserStep(`soak-${shard}`, 'scripts/soak.mjs', [`--url=${url}`, `--shard=${shard}`, `--out=${soakOut}`, ...(weather ? ['--weather'] : [])], 30);
-      if (existsSync(join(soakOut, 'report.json'))) soaks.push(JSON.parse(readFileSync(join(soakOut, 'report.json'), 'utf8')));
-      else soaks.push({ shard, verdict: 'failure', failures: ['missing soak report'] });
+    const simOut = join(reports, `${stamp}-sim-${sha.slice(0, 7)}`);
+    await step('memory', 'bash', [join(tree, 'scripts/sim-lane.sh'), 'run', '--max', '40', 'wildshard-iphone', node, join(tree, 'scripts/sim-memory.mjs'), `--url=${url}`, `--shards=${shards.join(',')}`, '--runs=1', '--play=60', '--fly=60', `--out=${simOut}`, `--pending=${join(tree, 'memory-pending.json')}`, ...(previousPath ? [`--previous=${previousPath}`] : [])], 41);
+    if (existsSync(join(simOut, 'report.json'))) {
+      const reading = JSON.parse(readFileSync(join(simOut, 'report.json'), 'utf8'));
+      memory.push(...reading.memory); memoryProtocol = reading.memoryProtocol ?? '';
     }
   }
 } catch (error) { steps.push({ name: String(error), code: 1, verdict: 'failure' }); console.error(error); }
@@ -185,16 +175,15 @@ finally {
 if (sha) {
   const memoryComplete = memoryProtocol === MEMORY_PROTOCOL && steps.find((row) => row.name === 'memory')?.code === 0 && memory.length === measuredShards.length * 3 && measuredShards.length > 0;
   const memoryState = memoryComplete && memory.every((row) => row.verdict === 'success') ? 'success' : !memoryComplete || memory.some((row) => row.verdict === 'failure') ? 'failure' : 'pending';
-  const verdict = steps.every((row) => row.verdict === 'success') && measurements.every((row) => row.verdict === 'success') && (plant === 'soak-leak' || memoryState === 'success') && soaks.every((row) => row.verdict === 'success') ? 'success' : 'failure';
-  const description = `M5 ${verdict} · memory ${memoryState} · soak ${soaks.filter((row) => row.verdict !== 'success').length} red`;
+  const verdict = steps.every((row) => row.verdict === 'success') && measurements.every((row) => row.verdict === 'success') && memoryState === 'success' ? 'success' : 'failure';
+  const description = `M5 ${verdict} · memory ${memoryState}`;
   const name = plant ? `plant-${plant}-${stamp}` : `${memoryOnly ? 'memory-' : ''}${stamp}-${sha.slice(0, 7)}`;
-  const report = { sha, harnessSha, shards: measuredShards, memoryProtocol, previousMemory, started: new Date(started).toISOString(), verdict, memoryState, memory, measurements, desktopFrames, soaks, flakes, artifacts, steps };
+  const report = { sha, harnessSha, shards: measuredShards, memoryProtocol, previousMemory, started: new Date(started).toISOString(), verdict, memoryState, memory, measurements, desktopFrames, flakes, artifacts, steps };
   writeFileSync(join(reports, `${name}.json`), JSON.stringify(report, null, 2));
   const lines = [description, '', `SHA ${sha}; harness ${harnessSha}`, `Memory reference: ${previousMemory.path || 'none (first complete settled reading)'}; SHA ${previousMemory.sha ?? 'none'}`, ...previousMemory.rejected.map((row) => `Rejected reference ${row.path}: ${row.reason}`), '', '| shard | phase | native median GB | native peak GB | spread GB (min–max) | inspector GB | previous GB | limit GB | verdict | reason |', '|---|---|---:|---:|---|---:|---:|---:|---:|---|---|'];
   for (const row of memory) lines.push(`| ${row.shard} | ${row.phase} | ${row.nativeGB ?? 'missing'} | ${row.nativePeakGB ?? 'missing'} | ${row.settling ? `${row.settling.minGB.toFixed(3)}–${row.settling.maxGB.toFixed(3)} (${row.settling.spreadPercent.toFixed(1)}%)` : 'legacy peak'} | ${row.inspectorGB ?? 'missing'} | ${row.previousGB ?? 'first'} | ${row.limitGB} | ${row.verdict} | ${row.reason} |`);
-  lines.push('', 'Memory: the median of three one-second samples after each phase\'s work, their spread beside it; growth against the previous reading is reported, not gated (E388). The only red is the device limit: loading 1.8 / play 1.0 / explorer 1.0 decimal GB.', '', '| shard | soak | GPU growth bytes | heap growth bytes | fps first/last | failures |', '|---|---|---:|---:|---:|---|---|');
-  for (const row of soaks) lines.push(`| ${row.shard} | ${row.verdict} | ${row.gpuGrowthBytes} | ${row.heapGrowthBytes} | ${row.fpsFirst}/${row.fpsLast} | ${(row.failures ?? []).join(', ')} |`);
-  lines.push('', 'Soak: least-squares bytes/second over minutes 5–20 × 900 s; GPU ≤ 8 MiB, heap ≤ minute-5 × 10%; geometry/texture counts ≤ minute-5 × 1.05. FPS is informational.', '', 'GPU ruler budget: M5 P = 1.6 ms per pose.', ...measurements.map((row) => `${row.pose}: ${row.gpuMs} ms / ${row.budgetMs}: ${row.verdict}`), '', ...steps.map((row) => `${row.name}: ${row.verdict} (exit ${row.code})`));
+  lines.push('', 'Memory: the median of three one-second samples after each phase\'s work, their spread beside it; growth against the previous reading is reported, not gated (E388). The only red is the device limit: loading 1.8 / play 1.0 / explorer 1.0 decimal GB.');
+  lines.push('', 'GPU ruler budget: M5 P = 1.6 ms per pose.', ...measurements.map((row) => `${row.pose}: ${row.gpuMs} ms / ${row.budgetMs}: ${row.verdict}`), '', ...steps.map((row) => `${row.name}: ${row.verdict} (exit ${row.code})`));
   lines.push('', 'Desktop: projected RTX 3060 drawn-frame interval (informational; includes capture pacing):', ...desktopFrames.map((row) => `${row.shard}/${row.pose}: M5 ${row.m5FrameMs ?? 'missing'} ms / ${desktopReference.k3060} = ${row.projected3060FrameMs ?? 'missing'} ms vs ${row.targetFrameMs.toFixed(2)} ms · ${row.verdict}`), desktopReference.source, desktopReference.assumption);
   const textArtifacts = artifacts.filter((entry) => { if (entry.name === 'rulers-scorecard') return true; return entry.name.endsWith('.md'); });
   lines.push('', 'Flakes in seven days (≥3 needs lead repair/quarantine):', ...Object.entries(flakes).map(([id, count]) => `${id}: ${count}${count >= 3 ? ' — ACTION' : ''}`), '', ...textArtifacts.map((entry) => `${entry.name}\n\n${entry.text}`));

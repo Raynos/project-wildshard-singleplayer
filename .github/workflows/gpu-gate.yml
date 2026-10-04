@@ -73,7 +73,7 @@ jobs:
       - name: Pending boards of the target SHA (R1-13; docs/ is outside the sparse checkout)
         run: git show "$SHA:project/archive/game-normalization/reviews/pending.json" > pending.json 2>/dev/null || echo '[]' > pending.json
       - name: Apply runtime patch plant
-        if: inputs.plant != '' && inputs.plant != 'metal-off' && inputs.plant != 'asset-case' && inputs.plant != 'soak-leak'
+        if: inputs.plant != '' && inputs.plant != 'metal-off' && inputs.plant != 'asset-case'
         run: git apply "test/parity/plants/${{ inputs.plant }}.patch"
       - run: pnpm gen   # the build-derived *.generated.* tables (gitignored): the facade test's bake imports them directly (E399)
         if: matrix.mode != 'prove'

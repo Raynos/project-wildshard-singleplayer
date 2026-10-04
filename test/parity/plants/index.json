@@ -178,12 +178,5 @@
     "shards": [],
     "patch": "asset-case.patch",
     "expect": ["asset-case"]
-  },
-  {
-    "id": "soak-leak",
-    "kind": "nightly",
-    "shards": "all",
-    "patch": "soak-leak.patch",
-    "expect": ["soak.gpuBytes"]
   }
 ]

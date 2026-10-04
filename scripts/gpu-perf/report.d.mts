@@ -10,15 +10,9 @@ export interface MemoryReferenceReport { sha?: string; started?: string; shards?
 export interface MemoryReference { path: string; sha: string | null; rejected: { path: string; sha: string | null; reason: string }[] }
 export function memoryReferenceProblem(report: MemoryReferenceReport, shards: string[]): string | null;
 export function selectMemoryReference(candidates: { path: string; report: MemoryReferenceReport }[], shards: string[], started: string): MemoryReference;
-export interface SoakSample { seconds: number; gpuBytes: number; heapBytes: number; geometries: number; textures: number; fps: number }
 export function memoryVerdict(shard: string, phase: string, nativeGB: number | undefined, inspectorGB: number | undefined, previousGB: number | undefined, pending?: PendingMemory[]): MemoryResult;
 export function parseMemoryRun(nativeText: string, inspectorText: string, shard: string, previous?: Record<string, number>, pending?: PendingMemory[]): MemoryRow[];
-export function slopeGrowth(samples: SoakSample[], key: 'gpuBytes' | 'heapBytes'): number | null;
 export function flakedFields(report: { flaked?: string[]; boot?: { shard: string; tier: string }; fields?: { field: string; verdict: string }[] }): string[];
-export const SOAK_GROWTHS: string[];
-export interface SoakLimit { median: number; spread: number; limit: number; runs: number }
-export function soakLimits(runs: Record<string, number>[] | undefined): Record<string, SoakLimit> | null;
-export function soakVerdict(samples: SoakSample[], errors: string[], stuck: object[], reference?: Record<string, number>[]): { verdict: string; failures: string[]; gpuGrowthBytes: number | null; heapGrowthBytes: number | null; geometryGrowth: number | null; textureGrowth: number | null; limits: Record<string, SoakLimit> | null; fpsFirst: number | null; fpsLast: number | null };
 
 export interface DesktopProjection { shard: string; pose: string; m5FrameMs: number | null; projected3060FrameMs: number | null; targetFrameMs: number; verdict: string; source: string; assumption: string; formula: string }
 export function desktopProjections(report: { boot?: { shard?: string; tier?: string }; poses?: Record<string, { frameP95Ms?: number }> }, reference: { k3060: number; source: string; assumption: string }): DesktopProjection[];
