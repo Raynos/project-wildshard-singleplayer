@@ -1,0 +1,643 @@
+{
+  "schema": 2,
+  "sha": "eab4fdf5cc80b76c4b2a185c8b99fd14018b6f25",
+  "runId": "27114-1791111293953",
+  "device": "frame-floor-iphone-17-pro",
+  "when": "2026-10-04T10:57:51.388Z",
+  "elapsedSeconds": 177.445,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "pine-hollow",
+    "driftwood-isle"
+  ],
+  "surface": "both",
+  "settings": {
+    "memorySaver": "on",
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "complete": false,
+  "pass": false,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds only live harness pose pins before the byte-identical clean HEAD modules."
+  ],
+  "results": [
+    {
+      "surface": "desktop",
+      "rows": [
+        {
+          "shard": "pine-hollow",
+          "complete": false,
+          "pass": false,
+          "seconds": 63.315,
+          "error": "Error: Drawn-frame sampler stalled (0/120)"
+        },
+        {
+          "shard": "driftwood-isle",
+          "complete": true,
+          "pass": true,
+          "seconds": 22.076,
+          "floorMs": 16.7,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "settings": {
+              "memorySaver": "on",
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "clock": "live",
+            "spawn": {
+              "name": "spawn",
+              "x": 0.0000043506589324504574,
+              "y": 2.0050006899546133,
+              "z": -194.00000914703963,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "pier",
+                "x": 0,
+                "z": -194,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 6,
+              "calls": 1269,
+              "triangles": 3846420
+            },
+            {
+              "pose": {
+                "name": "beach",
+                "x": -10,
+                "z": -150,
+                "yaw": 4.3,
+                "pitch": 0
+              },
+              "p95Ms": 16.8,
+              "workP95Ms": 5.8,
+              "calls": 898,
+              "triangles": 2826137
+            },
+            {
+              "pose": {
+                "name": "wreck",
+                "x": 105,
+                "z": 0,
+                "yaw": -1.5707963267948966,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 4.6,
+              "calls": 356,
+              "triangles": 1748503
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.0000043506589324504574,
+                "y": 2.0050006899546133,
+                "z": -194.00000914703963,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 18.2,
+              "callbackP99Ms": 18.8,
+              "callbackMaxMs": 18.8,
+              "gameP95Ms": 18.5,
+              "workP95Ms": 5.7,
+              "calls": 973,
+              "triangles": 3325453,
+              "position": {
+                "x": 0.0000067135545262497764,
+                "y": 2.0054011860484025,
+                "z": -193.9999931310605
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "beach",
+                "x": -10,
+                "z": -150,
+                "yaw": 4.3,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.3,
+              "callbackMaxMs": 19.8,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 5.4,
+              "calls": 888,
+              "triangles": 2809578,
+              "position": {
+                "x": -9.999317216805139,
+                "y": 1.5071383684829922,
+                "z": -150.00014361418908
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "pier",
+                "x": 0,
+                "z": -194,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.8,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.1,
+              "callbackP99Ms": 17.3,
+              "callbackMaxMs": 17.3,
+              "gameP95Ms": 16.8,
+              "workP95Ms": 5.8,
+              "calls": 972,
+              "triangles": 3324229,
+              "position": {
+                "x": 0.00000666880048444396,
+                "y": 2.0052007849777875,
+                "z": -194.00000169097416
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "errors": []
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "rows": [
+        {
+          "shard": "pine-hollow",
+          "complete": true,
+          "pass": true,
+          "seconds": 37.805,
+          "floorMs": 33.3,
+          "metadata": {
+            "renderer": "Apple GPU",
+            "viewport": [
+              402,
+              714
+            ],
+            "devicePixelRatio": 3,
+            "renderScale": 2,
+            "canvas": [
+              804,
+              1428
+            ],
+            "settings": {
+              "tier": "phone",
+              "fps": "auto",
+              "memorySaver": "on"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "clock": "live",
+            "spawn": {
+              "name": "spawn",
+              "x": 0.0000024649421398723927,
+              "y": 0.0122999995801365,
+              "z": -235.00000309604906,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "gate",
+                "x": 0,
+                "z": -200,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 35,
+              "workP95Ms": 7,
+              "calls": 111,
+              "triangles": 1195634
+            },
+            {
+              "pose": {
+                "name": "cabin",
+                "x": -14,
+                "z": -62,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 35,
+              "workP95Ms": 7,
+              "calls": 150,
+              "triangles": 1347180
+            },
+            {
+              "pose": {
+                "name": "pond",
+                "x": -56,
+                "z": 95,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 34,
+              "workP95Ms": 6,
+              "calls": 92,
+              "triangles": 960224
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.0000024649421398723927,
+                "y": 0.0122999995801365,
+                "z": -235.00000309604906,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 35,
+              "maxMs": 35,
+              "callbackP95Ms": 35,
+              "callbackP99Ms": 36,
+              "callbackMaxMs": 37,
+              "gameP95Ms": 34,
+              "workP95Ms": 6,
+              "calls": 108,
+              "triangles": 1063094,
+              "position": {
+                "x": -2.1054992063642558e-8,
+                "y": 0.019999751973955426,
+                "z": -234.99999967648597
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "cabin",
+                "x": -14,
+                "z": -62,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 34,
+              "callbackP95Ms": 34,
+              "callbackP99Ms": 35,
+              "callbackMaxMs": 40,
+              "gameP95Ms": 34,
+              "workP95Ms": 6,
+              "calls": 151,
+              "triangles": 1347828,
+              "position": {
+                "x": -13.263570494551516,
+                "y": 2.103731431069546,
+                "z": -61.97912502411282
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "gate",
+                "x": 0,
+                "z": -200,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 36,
+              "callbackP95Ms": 34,
+              "callbackP99Ms": 35,
+              "callbackMaxMs": 36,
+              "gameP95Ms": 34,
+              "workP95Ms": 6,
+              "calls": 112,
+              "triangles": 1203086,
+              "position": {
+                "x": 0.00045156216689434814,
+                "y": 0.16055691508336167,
+                "z": -200.00142104882121
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "errors": []
+        },
+        {
+          "shard": "driftwood-isle",
+          "complete": true,
+          "pass": true,
+          "seconds": 30.77,
+          "floorMs": 33.3,
+          "metadata": {
+            "renderer": "Apple GPU",
+            "viewport": [
+              402,
+              714
+            ],
+            "devicePixelRatio": 3,
+            "renderScale": 2,
+            "canvas": [
+              804,
+              1428
+            ],
+            "settings": {
+              "tier": "phone",
+              "fps": "auto",
+              "memorySaver": "on"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "clock": "live",
+            "spawn": {
+              "name": "spawn",
+              "x": 0.000004553724471945131,
+              "y": 2.005001149518648,
+              "z": -194.0000086696578,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "pier",
+                "x": 0,
+                "z": -194,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 34,
+              "workP95Ms": 5,
+              "calls": 155,
+              "triangles": 891773
+            },
+            {
+              "pose": {
+                "name": "beach",
+                "x": -10,
+                "z": -150,
+                "yaw": 4.3,
+                "pitch": 0
+              },
+              "p95Ms": 34,
+              "workP95Ms": 7,
+              "calls": 147,
+              "triangles": 904792
+            },
+            {
+              "pose": {
+                "name": "wreck",
+                "x": 105,
+                "z": 0,
+                "yaw": -1.5707963267948966,
+                "pitch": 0
+              },
+              "p95Ms": 34,
+              "workP95Ms": 8,
+              "calls": 196,
+              "triangles": 1019773
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.000004553724471945131,
+                "y": 2.005001149518648,
+                "z": -194.0000086696578,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 34,
+              "callbackP95Ms": 35,
+              "callbackP99Ms": 36,
+              "callbackMaxMs": 36,
+              "gameP95Ms": 34,
+              "workP95Ms": 6,
+              "calls": 154,
+              "triangles": 889716,
+              "position": {
+                "x": 0.000006573045271712763,
+                "y": 2.0050034171326843,
+                "z": -193.99999592888616
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "wreck",
+                "x": 105,
+                "z": 0,
+                "yaw": -1.5707963267948966,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 34,
+              "callbackP95Ms": 34,
+              "callbackP99Ms": 36,
+              "callbackMaxMs": 45,
+              "gameP95Ms": 34,
+              "workP95Ms": 5,
+              "calls": 205,
+              "triangles": 1030457,
+              "position": {
+                "x": 105.00170065296334,
+                "y": 3.626796832955738,
+                "z": -0.013433369640551973
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "beach",
+                "x": -10,
+                "z": -150,
+                "yaw": 4.3,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 34,
+              "callbackP95Ms": 34,
+              "callbackP99Ms": 36,
+              "callbackMaxMs": 36,
+              "gameP95Ms": 34,
+              "workP95Ms": 5,
+              "calls": 193,
+              "triangles": 1056201,
+              "position": {
+                "x": -9.998986798873375,
+                "y": 1.507118257164984,
+                "z": -150.0005111874139
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator"
+  }
+}

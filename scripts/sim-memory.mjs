@@ -228,6 +228,8 @@ async function oneRun(udid, run, opts) {
       return actual;
     };
     result.identity = await checkIdentity();
+    result.settings = JSON.parse(await evaluate('JSON.stringify(JSON.parse(localStorage.getItem("wildshard.save.v2.global") ?? "{}").keys?.settings?.data ?? {})'));
+    if (Object.entries(settings).some(([key, value]) => result.settings[key] !== value)) throw new Error('Debug settings fixture did not survive the cold load');
     say(`verified runtime ${result.identity.build}/${result.identity.shard}`);
     await settle();
 

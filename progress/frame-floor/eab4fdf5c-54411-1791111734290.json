@@ -1,0 +1,59 @@
+{
+  "schema": 2,
+  "sha": "eab4fdf5cc80b76c4b2a185c8b99fd14018b6f25",
+  "runId": "54411-1791111734290",
+  "device": "frame-floor-iphone-17-pro",
+  "when": "2026-10-04T11:03:31.470Z",
+  "elapsedSeconds": 77.189,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "pine-hollow"
+  ],
+  "surface": "desktop",
+  "settings": {
+    "memorySaver": "on",
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "complete": false,
+  "pass": false,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds only live harness pose pins before the byte-identical clean HEAD modules."
+  ],
+  "results": [
+    {
+      "surface": "desktop",
+      "rows": [
+        {
+          "shard": "pine-hollow",
+          "complete": false,
+          "pass": false,
+          "seconds": 62.163,
+          "error": "Error: Drawn-frame sampler stalled (0/120)",
+          "errors": [
+            "[faults] system \"render\" threw: Error: THREE.WebGLAttributes: The size of the buffer attribute's array buffer does not match the original size. Resizing buffer attributes is not supported.\n    at Object.o [as update] (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:5:150055)\n    at Object.c [as update] (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4072:2971)\n    at Object.o [as update] (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4072:6347)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35203)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35710)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35710)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35710)\n    at Cg.render (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:33565)\n    at mp.render (http://127.0.0.1:4400/assets/build-DyVYZzKr.js:115:3468)\n    at mp.render (http://127.0.0.1:4400/assets/session-OddOKcYi",
+            "[faults] core system \"render\" failed 3 times: the frame loop stops",
+            "THREE.WebGLAttributes: The size of the buffer attribute's array buffer does not match the original size. Resizing buffer attributes is not supported."
+          ],
+          "diagnostic": {
+            "state": "error",
+            "modal": "Error: THREE.WebGLAttributes: The size of the buffer attribute's array buffer does not match the original size. Resizing buffer attributes is not supported.",
+            "stack": "Error: THREE.WebGLAttributes: The size of the buffer attribute's array buffer does not match the original size. Resizing buffer attributes is not supported.\n    at Object.o [as update] (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:5:150055)\n    at Object.c [as update] (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4072:2971)\n    at Object.o [as update] (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4072:6347)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35203)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35710)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35710)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35710)\n    at Cg.render (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:33565)\n    at mp.render (http://127.0.0.1:4400/assets/build-DyVYZzKr.js:115:3468)\n    at mp.render (http://127.0.0.1:4400/assets/session-OddOKcYi.js:1844:1189)"
+          }
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator"
+  }
+}

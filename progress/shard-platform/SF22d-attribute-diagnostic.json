@@ -1,0 +1,36 @@
+{
+  "pin": "eab4fdf5c",
+  "method": "Diagnostic-only array/version accessors forward original behavior; not a performance capture.",
+  "released": 428,
+  "dirty": 63,
+  "culprits": [
+    {
+      "name": "color",
+      "object": "far-herd",
+      "type": "SkinnedMesh",
+      "geometry": "",
+      "uuid": "b79f1198-ea06-4951-85ba-c35dbdf524a3",
+      "usage": 35044,
+      "kind": "dirty-after-release",
+      "version": 75,
+      "next": 76,
+      "frame": 427,
+      "stack": "Error\n    at Fi.set [as version] (eval at evaluate (:311:30), <anonymous>:7:218)\n    at set needsUpdate (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:1:92052)\n    at wg.paint (http://127.0.0.1:4400/assets/session-clV213-Q.js:2088:30119)\n    at wg.flush (http://127.0.0.1:4400/assets/session-clV213-Q.js:2088:28620)\n    at Dg.end (http://127.0.0.1:4400/assets/session-clV213-Q.js:2088:32676)\n    at b_.update (http://127.0.0.1:4400/assets/session-clV213-Q.js:2088:49633)\n    at Object.run (http://127.0.0.1:4400/assets/session-clV213-Q.js:2111:27563)\n    at http://127.0.0.1:4400/assets/runtime-7KTWBZui.js:1:48597\n    at r (http://127.0.0.1:4400/assets/ownership-D_pbV0E-.js:1:91)\n    at Object.run (http://127.0.0.1:4400/assets/runtime-7KTWBZui.js:1:48587)"
+    }
+  ],
+  "modal": "Error: THREE.WebGLAttributes: The size of the buffer attribute's array buffer does not match the original size. Resizing buffer attributes is not supported.",
+  "stack": "Error: THREE.WebGLAttributes: The size of the buffer attribute's array buffer does not match the original size. Resizing buffer attributes is not supported.\n    at Object.o [as update] (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:5:150055)\n    at Object.c [as update] (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4072:2971)\n    at Object.o [as update] (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4072:6347)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35203)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35710)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35710)\n    at mt (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:35710)\n    at Cg.render (http://127.0.0.1:4400/assets/three.module-yupEqJo4.js:4220:33565)\n    at mp.render (http://127.0.0.1:4400/assets/build-DyVYZzKr.js:115:3468)\n    at mp.render (http://127.0.0.1:4400/assets/session-clV213-Q.js:1844:1189)",
+  "sourceWriter": {
+    "file": "src/engine/entities/farHerd.ts",
+    "method": "paint",
+    "lines": "164\u2013176",
+    "dirtyWrite": "col.needsUpdate = true",
+    "callerChain": [
+      "FarSpecies.paint",
+      "FarSpecies.flush",
+      "Herd.end",
+      "AnimalManager.update"
+    ],
+    "explanation": "A far-herd colour buffer uses StaticDrawUsage but is repainted after culling/reuse; 240 stable renders do not make it immutable."
+  }
+}

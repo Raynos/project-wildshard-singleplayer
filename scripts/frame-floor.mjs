@@ -189,7 +189,8 @@ async function measureShard(driver, shard, deadline) {
       floorMs, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, errors };
   } catch (error) {
     console.error(`${surface} ${shard}: ${errorText(error)}`);
-    return { shard, complete: false, pass: false, seconds: (Date.now() - start) / 1000, error: errorText(error) };
+    const diagnostic = await driver.evaluate('({state: window.__wildshard?.world?.game?.app?.state, modal: document.querySelector("#wserr .msg")?.textContent, stack: document.querySelector("#wserr pre")?.textContent})').catch(() => null);
+    return { shard, complete: false, pass: false, seconds: (Date.now() - start) / 1000, error: errorText(error), errors: await driver.errors(), diagnostic };
   } finally { await driver.unload(); }
 }
 
@@ -247,7 +248,7 @@ async function worker() {
       await context.addInitScript({ content: `${fixture('desktop')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}` });
       let errors = [];
       driver = {
-        load: async (shard) => { errors = []; page = await context.newPage(); page.on('pageerror', (e) => errors.push(e.message.slice(0, 240))); await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' }); },
+        load: async (shard) => { errors = []; page = await context.newPage(); page.on('pageerror', (e) => errors.push(e.message.slice(0, 240))); page.on('console', (message) => { if (message.type() === 'error' && message.text().includes('[faults]')) errors.push(message.text().slice(0, 1000)); }); await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' }); },
         evaluate: evaluator((expr) => page.evaluate(expr)), errors: () => errors,
         unload: async () => { await page?.close(); },
       };
