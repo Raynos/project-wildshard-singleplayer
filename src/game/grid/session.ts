@@ -31,6 +31,8 @@ import type { Physics } from '@wildshard/engine/physics/Physics';
 import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import { installGridBorders } from '@wildshard/engine/physics/gridBorders';
+import { WATER_UNBOUNDED, waterExtent } from '@wildshard/engine/world/waves';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripMesh } from '@wildshard/engine/sim/strips';
 import { GridAssembly, type GridCell } from './assembly';
 import { gridMode } from './menu';
@@ -42,6 +44,12 @@ import { farRingPorts, type FarPrepared } from './farView';
 import type { FarLookRuntime } from './farProxy';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
+import { gridShardfileProduct } from './products';
+import { TileDecoder } from './tileDecoder';
+import { clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/clientRings';
+import { ClientAssets } from '../shardfile/clientAssets';
+import { clientMaterials } from '../shardfile/clientMaterials';
+import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
 
 /** In grid mode the level's own chunk-edge walls and veil yield to the platform (the standalone path is unchanged). */
 export function gridLevel(spec: LevelSpec): LevelSpec {
@@ -59,6 +67,8 @@ export interface GridSessionHost {
   readonly onFixed: (fn: (dt: number) => void) => void;
   /** SF19a's one frame: the camera, composer and grade effects, and the page's late phase (absent: never built) */
   readonly frame?: GridFrameHost & { readonly onLate: (fn: () => void) => void };
+  /** the page's renderer: shardfile neighbours' ring tiles compile their materials on it (absent: neighbours stay far proxies) */
+  readonly renderer?: Renderer;
 }
 /** What each cell shows today, for the readout and the report. */
 export type GridCellShows = 'playing' | 'far proxy' | 'loading';
@@ -76,8 +86,12 @@ export interface GridSessionState {
   readonly live: LiveGridSessionState | null;
 }
 
-const FALLBACK = (): never => { throw new Error('Grid neighbours have no streamed tiles yet (their far proxy is the fallback)'); };
-const noTiles: RingPorts<never> = { fetch: (_tile, done) => { done(new Error('no tiles')); }, upload: FALLBACK };
+/** The shardfile neighbours' L1 / L0 tiles (sources load late: until then the catalogue has no tile and the far proxy draws). */
+function neighbourTiles(scope: Scope): { instances: Map<string, ClientRingInstance>; ports: RingPorts<PreparedRingTile> } {
+  const instances = new Map<string, ClientRingInstance>(), decoder = new TileDecoder();
+  scope.onDispose(() => { decoder.dispose(); });
+  return { instances, ports: clientRingPorts(instances, { scope, decoder }) };
+}
 
 /** The far proxy and its row, fetched from the shard's baked folder (`public/assets/baked/<slug>/far.*`). */
 async function loadFar(slug: string): Promise<{ prepared: FarPrepared; bytes: number }> {
@@ -145,7 +159,7 @@ export class GridSession {
   readonly assembly: GridAssembly;
   readonly home: GridCell;
   readonly allocator = new ResidencyAllocator();
-  private readonly rings: RenderRings<LevelPrepared<FarPrepared, never>>;
+  private readonly rings: RenderRings<LevelPrepared<FarPrepared, PreparedRingTile>>;
   private readonly neighbours: readonly GridCell[];
   private readonly costs = new Map<string, number>();
   private readonly strips: readonly GeneratedStrip[];
@@ -180,6 +194,9 @@ export class GridSession {
     for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // synced open by the live host once a neighbour is ready
     installGridBorders(host.physics, host.scope); // the home cell's creatures stay home (SF20d)
+    // G72, one landmass: the home level's open water stays inside its own cell (its sea surface and its swell body)
+    waterExtent.uWaterHalf.value = CHUNK_HALF;
+    host.scope.onDispose(() => { waterExtent.uWaterHalf.value = WATER_UNBOUNDED; });
     // neighbours: the far ring through the one allocator; each cell's root sits at its render origin
     const roots = new Map<string, Group>();
     for (const cell of this.neighbours) {
@@ -195,7 +212,10 @@ export class GridSession {
       view.dispose = () => { untag(); dispose(); };
       return view;
     } };
-    this.rings = new RenderRings(this.neighbours, this.allocator, (id, level) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : null), levelPorts<FarPrepared, never>(farPorts, noTiles));
+    const tiles = neighbourTiles(host.scope), tileCost = clientRingCatalogue(tiles.instances);
+    this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : tileCost(id, level, x, z)),
+      levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
+    if (host.renderer !== undefined) void this.admitTiles(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
       this.rings.dispose(); deck.removeFromParent(); deck.geometry.dispose();
       const material = deck.material; if (!Array.isArray(material)) material.dispose();
@@ -203,6 +223,33 @@ export class GridSession {
     });
     host.onFixed((dt) => { this.step(dt); });
     host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state() })); // the harness readout: __wildshard.shard.grid.state()
+  }
+
+  /**
+   * The shardfile neighbours' ground through their own ring tiles (SF18b's `clientRingPorts`): one admitted product, asset
+   * reader, material set and view set per slug (the template copies share them), each cell its own root. A neighbour that
+   * fails to admit keeps its far proxy.
+   */
+  private async admitTiles(renderer: Renderer, roots: ReadonlyMap<string, Group>, instances: Map<string, ClientRingInstance>): Promise<void> {
+    const scope = this.host.scope, shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews }>>();
+    for (const cell of this.neighbours) {
+      const product = gridShardfileProduct(cell.slug), root = roots.get(cell.instance);
+      if (product === null || root === undefined) continue;
+      let loading = shared.get(cell.slug);
+      if (loading === undefined) {
+        loading = (async () => {
+          const { admitted, options } = await product, source = admitted.source;
+          const presentation = await clientMaterials(source, admitted.assets, renderer, scope);
+          return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, ...presentation }) };
+        })();
+        shared.set(cell.slug, loading);
+      }
+      try {
+        const { source, assets, views } = await loading;
+        if (scope.disposed) return;
+        if (source.tiles.length > 0) instances.set(cell.instance, { source, assets, root, views });
+      } catch { /* the far proxy stays the neighbour's fallback */ }
+    }
   }
 
   /** Step 2: the live crossing, once the page's player health and equipment exist (play.ts). */

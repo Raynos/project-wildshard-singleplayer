@@ -41,8 +41,7 @@ import type { GridLoadout } from './wallet';
 import { installGridHoverSpeed } from './rules';
 import { gridHomeSim, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
-import { admitProduct, boundedResponse, type AdmittedProduct } from '../shardfile/product';
-import { browserShardfileOptions } from '../shardfile/loader';
+import { gridShardfileProduct } from './products';
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../shardfile/simulation';
 
 /** The page traveller the live host rebinds (the existing Player; never a second capsule). */
@@ -89,24 +88,6 @@ export interface LiveGridSpawn { readonly x: number; readonly y: number | undefi
 const LINK: ReadinessLink = { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 10 };
 const PLATFORM_LEVEL: SimLevel = { version: SIM_API_VERSION, id: 'platform.highway', seed: 1, ground: { size: 2000, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'platform.hands', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
-
-/** One admitted first-party shardfile product per slug (the six template copies share their immutable bytes). */
-const products = new Map<string, Promise<AdmittedProduct>>();
-function shardfileProduct(slug: string): Promise<AdmittedProduct> | null {
-  const descriptor = findShard(slug)?.shardfile;
-  if (descriptor === undefined) return null;
-  let product = products.get(slug);
-  if (product === undefined) {
-    const url = new URL(descriptor, location.href);
-    product = (async () => {
-      const input: unknown = JSON.parse(new TextDecoder().decode(await boundedResponse(await fetch(url.href), 4_000_000)));
-      return admitProduct(input, browserShardfileOptions(new URL('.', url).href, true));
-    })();
-    product.catch(() => { products.delete(slug); });
-    products.set(slug, product);
-  }
-  return product;
-}
 
 /** The home cell's G68 loadout: stow silently to hands at the border, restore the shard's weapon on re-entry. */
 function homeLoadout(equipment: EquipmentService, scope: Scope): GridLoadout {
@@ -203,9 +184,9 @@ export class LiveGridSession {
 
   /** Shardfile cells admit a bodyless regional host with their strip duplicates; every other cell waits for M3. */
   private async admit(cell: GridCell): Promise<LiveGridAdmission> {
-    const pending = shardfileProduct(cell.slug);
+    const pending = gridShardfileProduct(cell.slug);
     if (pending === null) throw new Error(`${cell.slug} is not a shardfile shard (it stays a far proxy until M3)`);
-    const { source, assets } = await pending;
+    const { source, assets } = (await pending).admitted;
     if (source.runtime !== null) throw new Error(`${cell.slug} declares a hybrid runtime (M3)`);
     // a frozen region's quest facts and coins have no page owner yet (the template's quest runs only in its own save: SF20a's open row)
     const quest = { fact: (): void => undefined, coins: (): void => undefined };

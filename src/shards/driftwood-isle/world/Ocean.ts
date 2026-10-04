@@ -34,7 +34,7 @@ import { inChunk } from '@wildshard/engine/world/Heightfield';
 import { HORIZON_RADIUS } from '@wildshard/engine/world/HorizonMatte';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock } from '@wildshard/engine/world/waves';
+import { WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock, waterExtent } from '@wildshard/engine/world/waves';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 
@@ -121,6 +121,7 @@ export class Ocean {
         // the sea ends where the painted horizon stands (E125): past it, the far plane cut it on a hard straight line above the
         // matte's islands when seen from altitude
         uSeaEnd: { value: HORIZON_RADIUS },
+        uWaterHalf: waterExtent.uWaterHalf, // the level's open-water square (unbounded standalone; its own cell in a grid)
       });
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
@@ -141,7 +142,7 @@ export class Ocean {
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', /* glsl */`#include <common>
           uniform vec3 uShallow; uniform vec3 uDeep; uniform float uDeepDepth; uniform float uTime; uniform float uLevel;
-          uniform sampler2D tSea; uniform float uChunkHalf; uniform float uSeaEnd;
+          uniform sampler2D tSea; uniform float uChunkHalf; uniform float uSeaEnd; uniform float uWaterHalf;
           varying float vCrest; varying vec3 vOceanW; varying vec2 vRest; varying float vDamp;
           ${WAVES_NORMAL_GLSL}
           vec3 seaN;
@@ -232,6 +233,7 @@ export class Ocean {
           normal = normalize((viewMatrix * vec4(seaN * faceDirection, 0.0)).xyz);   // E151: the toon lighting reads the smooth wave too
           nonPerturbedNormal = normal;`)
         .replace('#include <opaque_fragment>', /* glsl */`
+          if (max(abs(vRest.x), abs(vRest.y)) > uWaterHalf) discard;   // the sea stays inside its level's square
           {
             // fade out over the last 300 m before the painted horizon, so the islands' feet stand on the sea's own far edge
             float seaEnd = 1.0 - smoothstep(uSeaEnd - 300.0, uSeaEnd, length(vOceanW.xz - cameraPosition.xz));

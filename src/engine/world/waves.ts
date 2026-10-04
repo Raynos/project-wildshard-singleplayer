@@ -10,6 +10,17 @@ export const WAVES: readonly (readonly [number, number, number, number, number, 
 
 export const waveClock = { t: 0 };
 
+/** Unbounded open water (the standalone level's sea runs to the horizon). */
+export const WATER_UNBOUNDED = 1e9;
+/**
+ * The square half-extent (level metres, around the level's origin) the level's open water reaches: its swell body's rest
+ * surface and any sea surface shader that reads `uWaterHalf` (a shared uniform, live). Unbounded unless a host confines it
+ * (a level placed among others keeps its sea inside its own square).
+ */
+export const waterExtent = { uWaterHalf: { value: WATER_UNBOUNDED } };
+/** The open water's rest surface reaches (x, z) (inside the confining square, or anywhere when unbounded). */
+export function insideWaterExtent(x: number, z: number): boolean { return Math.max(Math.abs(x), Math.abs(z)) <= waterExtent.uWaterHalf.value; }
+
 /** shore damping from the water depth (m): the swell flattens over the sand so the foam line stays put */
 export function seaDamp(depth: number): number {
   const x = Math.min(1, Math.max(0, depth / 1.5));

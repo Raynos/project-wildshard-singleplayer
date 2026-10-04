@@ -1,5 +1,5 @@
 import type { Scope } from '../../app/scope';
-import { waveHeight } from '../waves';
+import { insideWaterExtent, waveHeight } from '../waves';
 import type { WaterView } from './view';
 
 /**
@@ -74,8 +74,8 @@ export function swellBody(id: string, level: number): WaterBody {
   return {
     id, level,
     surfaceAt: (x, z) => level + waveHeight(x, z),
-    inside: (x, z, y) => y < level + waveHeight(x, z),
-    restAt: () => level,
+    inside: (x, z, y) => insideWaterExtent(x, z) && y < level + waveHeight(x, z),
+    restAt: (x, z) => (insideWaterExtent(x, z) ? level : null),
   };
 }
 
