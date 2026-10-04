@@ -28,6 +28,7 @@ import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKi
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from './kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from './ctx';
 import { KING_PHASE_AT, burnTick, headingTo, wallPush } from './combatMath';
+import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
 
 /**
  * THE ANTLER KING, Warden of Pine Hollow (PINE-HOLLOW-REMASTER PH-C2; board B2 pick A, the Bark Warden). The engine's
@@ -88,11 +89,6 @@ const STOMP_R = 4.4;
  *  + 0.4 = 3.0 m; the elk-rig King's caught at 2.5); the contact reach 2.0 × his 2.6 scale = 5.2 m, his front (4.8 m) + the
  *  player */
 const AMBER_TELL = new THREE.Color(1.5, 0.62, 0.12), EMBER = new THREE.Color(2.6, 1.1, 0.3);
-const PHASES: BossDef['phases'] = [
-  { at: KING_PHASE_AT[0], caption: 'I · THE WARDEN', name: 'The Warden' },
-  { at: KING_PHASE_AT[1], caption: 'II · LANTERNS FALL', name: 'Lanterns Fall' },
-  { at: KING_PHASE_AT[2], caption: 'III · THE LAST LIGHT', name: 'The Last Light' },
-];
 
 let kingDamage: ((a: Animal, p: THREE.Vector3) => number) | null = null;
 
@@ -574,8 +570,7 @@ export class AntlerKing {
     this.fight = new AntlerKingFight(ctx);
     this.fight.prewarm();
     const def: BossDef = {
-      id: KING_KIND, name: 'THE ANTLER KING', title: 'WARDEN OF PINE HOLLOW', retryTitle: 'THE WARDEN STANDS',
-      phases: PHASES, intro: 4.2, introShort: 1.4,
+      ...ANTLER_KING_ENCOUNTER, phases: ANTLER_KING_ENCOUNTER.phases.map(({ at, caption, name }) => ({ at, caption, name })),
       reward: {
         tier: 'LEGENDARY', name: "THE WARDEN'S LONGBOW", flavour: 'his bow, and his amber for your crossbow', prompt: "Take the Warden's Longbow",
         model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'),

@@ -7,8 +7,9 @@
  * faces (−sin yaw, −cos yaw) (the camera looks down −Z at yaw 0; the spawn's yaw π faces +Z).
  */
 
+import { ANTLER_KING_PHASES } from '../data/antlerKing';
 /** the King's phase starts (hp fraction): I the Warden 1 → II Lanterns Fall 0.6 → III the Last Light 0.3 */
-export const KING_PHASE_AT = [1, 0.6, 0.3] as const;
+export const KING_PHASE_AT = ANTLER_KING_PHASES.map(phase => phase.at);
 
 /** the phase (0-based) a health fraction sits in */
 export function kingPhaseAt(frac: number): number {
