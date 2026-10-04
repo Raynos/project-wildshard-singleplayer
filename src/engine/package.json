@@ -305,6 +305,8 @@
     "./world/coarseTileMask": "./world/coarseTileMask.ts",
     "./physics/terrainTiles": "./physics/terrainTiles.ts",
     "./ai/phases": "./ai/phases.ts",
+    "./audio/audioProfiles": "./audio/audioProfiles.ts",
+    "./audio/scoreSelection": "./audio/scoreSelection.ts",
     "./audio/cueRouting": "./audio/cueRouting.ts",
     "./audio/declared": "./audio/declared.ts",
     "./world/water/declared": "./world/water/declared.ts",
