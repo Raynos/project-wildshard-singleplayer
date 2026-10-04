@@ -424,9 +424,12 @@ export class Player {
     this.recordCommand?.({ ...resolved });
     this.commandJumpUsed = false; this.commandDodgeUsed = false;
     this.stepCommand(dt, resolved);
-    if (command === undefined && this.commandJumpUsed) this.inputService?.consume('jump');
-    if (command === undefined && this.commandDodgeUsed) this.inputService?.consume('dodge');
+    const used = this.commandUse(); // read back after the step: stepCommand sets the flags in nested calls
+    if (command === undefined && used.jump) this.inputService?.consume('jump');
+    if (command === undefined && used.dodge) this.inputService?.consume('dodge');
   }
+
+  private commandUse(): { jump: boolean; dodge: boolean } { return { jump: this.commandJumpUsed, dodge: this.commandDodgeUsed }; }
 
   /** One fixed step (Game's `post` slot, dt = FIXED_STEP): the move, against the stepped physics world. */
   private stepCommand(dt: number, command: PlayerCommand): void {
