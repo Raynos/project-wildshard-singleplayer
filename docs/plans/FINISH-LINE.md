@@ -1,6 +1,6 @@
 # Plan: finish line (E108): from a pile of pieces to a finished-feeling game
 
-**State:** `in progress` 2026-10-03 — Jake approved in the E423 grill, buildable and unowned: N-a (hide the kurgan and east edges), N-b (verify the elite banner, fix or close), N-c (Driftwood's fight rules for the wolves), M1 (CONTINUE + a shard map on the title; mockups first), M3 (the controls audit) and PK1–PK5 (EF9 worker pool, EF3 pools, TP18 per-shard assets, BatchedMesh → instancing where it measures better, the desktop help chip). S8 stays "later"; N-d and M2 dropped. Earlier rows: S1, S3, S5–S7 went into GAME-NORMALIZATION (archived); D1–D4, D7 and P3 were built as DRIFTWOOD-TOP10 (archived); S2, S4, P1, D5, D6 are done; P2 is moot.
+**State:** `in progress` 2026-10-03 — Jake approved in the E423 grill, buildable and unowned: N-a (hide the kurgan and east edges), N-b (verify the elite banner, fix or close), N-c (Driftwood's fight rules for the wolves), M1 (CONTINUE + a shard map on the title; mockups first), M3 (the controls audit), S9 (the SSIM limit from recorded noise, later) and PK1–PK5 (EF9 worker pool, EF3 pools, TP18 per-shard assets, BatchedMesh → instancing where it measures better, the desktop help chip). S8 stays "later"; N-d and M2 dropped. Earlier rows: S1, S3, S5–S7 went into GAME-NORMALIZATION (archived); D1–D4, D7 and P3 were built as DRIFTWOOD-TOP10 (archived); S2, S4, P1, D5, D6 are done; P2 is moot.
 
 ## Read this first
 
@@ -57,6 +57,7 @@ Four read-only audits on build `f86b4c3` gave the same answer from four directio
 | S6 | **Tests where the bugs are.** Node tests for the boss, elite, quest and weather state machines, AnimalManager AI and weapon timing (all at 0–5% today). | M |
 | S7 | **Budgets that run.** `bench:ci` runs nightly, the baseline is re-set after the freeze, and CI commits `latest.md`. The committed table dates from 09-18. | S |
 | S8 | **Jake: keep as later; ask again when the shards are closer to done (E423 grill, 2026-10-03).** **A golden-path phone run per shard** (GW2-ZONES §3 / §14, [docs/design/gw2-zones/GW2-ZONES.md](../design/gw2-zones/GW2-ZONES.md); Jake, 2026-10-01: "later"). One person plays each shard on the phone: touch, no dev flags, no forged saves, timed and split into active play, traversal, forced waiting, retries and walk-backs, and completion. Pine's and Nalati's friction (night-only steps, gate respawns, the fight frame rate, wolf balance) is fixed first. **Done when** every shard has one timed, unforged run on record, with its split. Waits on Jake's go ("later") | M |
+| S9 | **Jake: yes, later (E388 / E423 grill, 2026-10-03).** **Derive the parity SSIM limit from noise.** It is still `min(0.99, selfMin − 0.01)` (`scripts/parity/compare.mjs`). Record each pose's selfMin over several `node scripts/parity.mjs --record` sessions on one unchanged commit (~1–2 h of browser lane), then switch to 1 − 2 × (1 − selfMin) and delete the 0.99 and the 0.01. Three runs in one session understate the noise: replayed on the 72 gate runs since 10-01, that rule would have failed 10. | S |
 
 ## P — player mode (every shard, a day's work)
 
