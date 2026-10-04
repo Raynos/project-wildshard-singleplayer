@@ -40,8 +40,9 @@ Each line is a rule; the date or ask id is where he said it.
   ("each its own ask is just the eternal backlog / graveyard", 2026-10-03).
 - **Shard agents are never restarted from scratch** to prove a clean run (2026-10-01: "super wasteful"). Signal Dunes and
   Sky Reach content is built by Opus subagents only, never a GPT Sol builder.
-- **MMO big-picture docs** (vision, GW2 comparisons) live in `~/projects/games/project-wildshard-meta/docs/<theme>/`,
-  never in this repo.
+- **MMO docs live in this repo** (2026-10-03, E431: "requirements goes into wildshard singleplayer repo"; GW2-ZONES moved
+  here by E430): the requirements in `docs/design/mmo/`, the route in `docs/plans/SHARD-PLATFORM.md`.
+  `~/projects/games/project-wildshard-meta` keeps the vision background (VISION, GLOSSARY, SHARD-PLATFORM-PLAN, ideas).
 - **Clef / decision-model research is closed** (E394: "That's enough experimentation"). Using `decide.sh qa` in capture
   work is fine; don't propose new pilots.
 - **The director loop** (2026-10-01) is how a shard is designed: pitch and style → a verb greybox he plays → beats and a
