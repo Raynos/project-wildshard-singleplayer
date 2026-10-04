@@ -1,0 +1,27 @@
+{
+  "opts": {
+    "out": "/private/tmp/claude-501/sp-builders/sp-x3/sf22d-final/memory/off",
+    "expectedBuild": "31dc7e1-muttg9b6",
+    "play": 60,
+    "fly": 60,
+    "settings": [
+      "memorySaver=off"
+    ]
+  },
+  "runs": [
+    {
+      "label": "pine-hollow",
+      "shard": "pine-hollow",
+      "base": "http://127.0.0.1:4400/",
+      "round": 1,
+      "tag": "pine-hollow-r1"
+    },
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4400/",
+      "round": 1,
+      "tag": "driftwood-isle-r1"
+    }
+  ]
+}

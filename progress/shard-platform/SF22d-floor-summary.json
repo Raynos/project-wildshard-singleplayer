@@ -1,0 +1,68 @@
+{
+  "row": "SF22d",
+  "method": "Live 2x render-scale desktop and Mac-backed Simulator; Debug setting seeded before reload and observed; standing spawn plus two heaviest scanned poses per shard; shipped fps caps; raw rAF timestamp grading. No physical-phone claim.",
+  "variants": [
+    {
+      "setting": "off",
+      "artifact": "progress/frame-floor/31dc7e17e-50961-1791115077261.json",
+      "sha": "31dc7e17e1317883d1f5f6e6c1c82c8355fbc3ca",
+      "seconds": 158.606,
+      "pass": true,
+      "surfaces": [
+        {
+          "surface": "desktop",
+          "poses": 6,
+          "pass": true,
+          "minMedianFps": 59.88,
+          "maxP95Ms": 16.8,
+          "maxWorkP95Ms": 10.3,
+          "errors": 0,
+          "skipped": 0,
+          "contextLost": false
+        },
+        {
+          "surface": "sim",
+          "poses": 6,
+          "pass": true,
+          "minMedianFps": 30.303,
+          "maxP95Ms": 34,
+          "maxWorkP95Ms": 6,
+          "errors": 0,
+          "skipped": 0,
+          "contextLost": false
+        }
+      ]
+    },
+    {
+      "setting": "on",
+      "artifact": "progress/frame-floor/31dc7e17e-63905-1791115269056.json",
+      "sha": "31dc7e17e1317883d1f5f6e6c1c82c8355fbc3ca",
+      "seconds": 159.699,
+      "pass": true,
+      "surfaces": [
+        {
+          "surface": "desktop",
+          "poses": 6,
+          "pass": true,
+          "minMedianFps": 59.88,
+          "maxP95Ms": 16.8,
+          "maxWorkP95Ms": 9.2,
+          "errors": 0,
+          "skipped": 0,
+          "contextLost": false
+        },
+        {
+          "surface": "sim",
+          "poses": 6,
+          "pass": true,
+          "minMedianFps": 30.303,
+          "maxP95Ms": 35,
+          "maxWorkP95Ms": 6,
+          "errors": 0,
+          "skipped": 0,
+          "contextLost": false
+        }
+      ]
+    }
+  ]
+}
