@@ -1,0 +1,24 @@
+{
+  "sizes": {
+    "base": {
+      "minBytes": 527991,
+      "gzipBytes": 130096
+    },
+    "spike": {
+      "minBytes": 940426,
+      "gzipBytes": 247146
+    },
+    "full": {
+      "minBytes": 1462221,
+      "gzipBytes": 385808
+    }
+  },
+  "spikeAdds": {
+    "minBytes": 412435,
+    "gzipBytes": 117050
+  },
+  "fullTslAdds": {
+    "minBytes": 934230,
+    "gzipBytes": 255712
+  }
+}

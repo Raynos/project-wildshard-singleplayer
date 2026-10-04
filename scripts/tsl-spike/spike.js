@@ -223,7 +223,9 @@ function tslPost() {
   m.name = 'tsl:post';
   m.fog = false;
   const q = uv();
-  let c = texture(target.texture, q).rgb.mul(uniform(post.exposure));
+  // TextureNode flips every render-target sample for WebGPURenderer's WebGL backend, which stores targets upside down;
+  // the classic WebGLRenderer does not, so a node graph reading the engine's target must cancel the flip (engine fix)
+  let c = texture(target.texture, vec2(q.x, float(1).sub(q.y))).rgb.mul(uniform(post.exposure));
   c = mix(vec3(luminance(c)), c, uniform(post.saturation));
   c = c.mul(uniform(new THREE.Vector3(...post.gain))).add(uniform(new THREE.Vector3(...post.lift)));
   c = clamp(c.mul(c.mul(2.51).add(0.03)).div(c.mul(c.mul(2.43).add(0.59)).add(0.14)), 0, 1);
@@ -292,6 +294,10 @@ async function run() {
   });
   const stat = (a) => { const s = [...a].sort((x, y) => x - y); const q = (p) => s[Math.min(s.length - 1, Math.floor(p * s.length))] ?? 0; return { median: round(q(0.5), 2), p95: round(q(0.95), 2), max: round(s[s.length - 1] ?? 0, 2) }; };
   const rafStat = stat(raf);
+  // the GPU cost of a frame: rAF is vsync-capped wherever the frame fits, so it cannot tell a 5 % difference; a frame
+  // followed by a 1-pixel read waits for the GPU to finish it (the frame's wall time, CPU submit + GPU)
+  const synced = [];
+  for (let i = 0; i < 60; i++) { const s0 = performance.now(); frame(); sync(); synced.push(performance.now() - s0); }
   // a fixed-time parity frame (the sway variant at t = 0 is still the static layout)
   frame();
   const shot = renderer.domElement.toDataURL('image/png');
@@ -303,7 +309,7 @@ async function run() {
     compileMs: round(tCompile, 1), firstDrawMs: round(tFirst, 1), stallMs: round(tCompile + tFirst, 1),
     nodeBuildMs: handler ? round(handler.buildMs, 1) : 0, nodeBuilds: handler ? handler.builds : 0,
     programs: programsAfterFirst, programsAtEnd: programs().length, shaders: shaderSizes(),
-    rafMs: rafStat, fps: round(1000 / rafStat.median, 1), workMs: stat(work),
+    rafMs: rafStat, fps: round(1000 / rafStat.median, 1), workMs: stat(work), syncedMs: stat(synced),
     calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, memory: { ...renderer.info.memory },
     heapMB: heap0 === null ? null : round((heap() ?? 0) / 1048576, 1), heapAtStartMB: heap0 === null ? null : round(heap0 / 1048576, 1),
     errors, shot,

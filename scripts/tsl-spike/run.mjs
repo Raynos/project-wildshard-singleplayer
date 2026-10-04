@@ -12,7 +12,7 @@
 // Variants: family · tsl · tsl-raw · tsl-post · tsl-sway (spike.js's header says what each draws).
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { extname, join, resolve as resolvePath } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -35,6 +35,9 @@ if (argv.includes('--bundle')) {
     spike: "import { WebGLRenderer, MeshStandardMaterial, InstancedMesh, BoxGeometry, Scene } from 'three';\nimport { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';\nimport { MeshStandardNodeMaterial, MeshBasicNodeMaterial } from 'three/webgpu';\nimport { Fn, float, vec2, vec3, vec4, uniform, reference, positionLocal, positionWorld, normalWorldGeometry, cameraPosition, uv, fwidth, abs, fract, floor, smoothstep, max, min, mix, exp, clamp, pow, dot, length, select, sin, time, instanceIndex, texture, luminance, workingToColorSpace, hash } from 'three/tsl';\nconst r = new WebGLRenderer(); r.setNodesHandler(new WebGLNodesHandler()); const s = new Scene(); const m = new MeshStandardNodeMaterial(); m.colorNode = mix(vec3(1), vec3(fwidth(uv()), 0), smoothstep(0, 1, length(positionWorld.sub(cameraPosition)))); s.add(new InstancedMesh(new BoxGeometry(), m, 9), new InstancedMesh(new BoxGeometry(), new MeshStandardMaterial(), 9)); globalThis.k = [Fn, float, vec2, vec4, uniform, reference, positionLocal, normalWorldGeometry, abs, fract, floor, max, min, exp, clamp, pow, dot, select, sin, time, instanceIndex, texture, luminance, workingToColorSpace, hash, MeshBasicNodeMaterial]; r.render(s, null);",
     full: "import { WebGLRenderer, MeshStandardMaterial, InstancedMesh, BoxGeometry, Scene } from 'three';\nimport { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';\nimport * as WEBGPU from 'three/webgpu';\nimport * as TSL from 'three/tsl';\nconst r = new WebGLRenderer(); r.setNodesHandler(new WebGLNodesHandler()); const s = new Scene(); s.add(new InstancedMesh(new BoxGeometry(), new MeshStandardMaterial(), 9)); globalThis.k = [WEBGPU, TSL]; r.render(s, null);",
   };
+  // the entries live in the scratch dir, outside the repo: give it the one package they import (three), by its own link
+  mkdirSync(join(SCRATCH, 'node_modules'), { recursive: true });
+  symlinkSync(join(ROOT, 'node_modules/three'), join(SCRATCH, 'node_modules/three'));
   const sizes = {};
   for (const [name, code] of Object.entries(entries)) {
     const dir = join(SCRATCH, `bundle-${name}`);
@@ -151,5 +154,5 @@ print(json.dumps(parity))
 const outJson = join(OUT_DIR, `tsl-spike-${SURFACE}.json`);
 writeFileSync(outJson, JSON.stringify(rows));
 execFileSync('python3', ['-c', PY, SCRATCH, outJson, join(OUT_DIR, `tsl-spike-${SURFACE}.jpg`), SURFACE], { stdio: 'inherit' });
-for (const r of rows) console.log(JSON.stringify({ variant: r.variant, failed: r.failed, fps: r.fps, rafMs: r.rafMs, workMs: r.workMs, stallMs: r.stallMs, nodeBuildMs: r.nodeBuildMs, programs: r.programs, errors: r.errors?.slice(0, 3) }));
+for (const r of rows) console.log(JSON.stringify({ variant: r.variant, failed: r.failed, fps: r.fps, rafMs: r.rafMs, workMs: r.workMs, syncedMs: r.syncedMs, stallMs: r.stallMs, nodeBuildMs: r.nodeBuildMs, programs: r.programs, errors: r.errors?.slice(0, 3) }));
 if (flag('scratch', '') === '') rmSync(SCRATCH, { recursive: true, force: true });

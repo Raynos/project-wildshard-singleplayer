@@ -24,6 +24,8 @@ try {
       page.on('framenavigated', (frame) => { if (frame === page.mainFrame()) navigations++; });
       await page.goto(`${base}/?chunk=nine-dragon-stack&tier=${profile.tier}&touch=1&nolock=1&mute=1&sw=0`, { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => Boolean(window.__wildshard?.world) || Boolean(document.querySelector('#wserr')), null, { timeout: 90_000 });
+      // SF21a's main menu sits over the shard deck: SHARD SELECT opens it, then EXPLORE WORLD
+      if (await page.locator('.ws-main:not(.hide) .ws-main-select').count() > 0) await page.locator('.ws-main-select').click({ timeout: 10_000 });
       await page.locator('.ws-menu-explore').click({ timeout: 10_000 });
       await page.locator('.ws-x-card[data-m="world"]').click();
       await page.waitForFunction(() => Boolean(document.querySelector('.ws-x.show[data-mode="world"]')) &&
