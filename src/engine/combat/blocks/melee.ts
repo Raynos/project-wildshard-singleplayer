@@ -1,3 +1,4 @@
+import type { AimCommand } from '../../input/commands';
 import type { Vector3 } from 'three';
 import type { CombatPipeline, DamageDealt, DamageRequest } from '../pipeline';
 
@@ -7,10 +8,10 @@ export function melee(combat: CombatPipeline): { hit: (req: DamageRequest) => Da
 }
 
 /** Aim block shared by custom and family weapons; no camera or scene dependency. */
-export function aimRay(view: { position: Vector3; getWorldDirection: (out: Vector3) => Vector3 }): {
+export function aimRay(command: () => AimCommand): {
   solve: (origin: Vector3, dir: Vector3) => Vector3; dispose: () => void;
 } {
-  return { solve: (origin, dir) => { origin.copy(view.position); return view.getWorldDirection(dir); }, dispose: () => undefined };
+  return { solve: (origin, dir) => { const aim = command(); origin.copy(aim.origin); return dir.copy(aim.direction); }, dispose: () => undefined };
 }
 
 export function fovForAspect(base: number, aspect: number): number {

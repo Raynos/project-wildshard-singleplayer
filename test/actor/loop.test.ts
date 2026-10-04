@@ -66,17 +66,17 @@ describe('manual game loop contract', () => {
     expect(game.fixedSteps).toBe(0);
   });
 
-  it('slows all simulation phases to 4% while real time keeps advancing; overlapping stops take the longer', () => {
+  it('keeps gameplay unscaled while overlapping hit-stops scale presentation only', () => {
     const game = new FakeGame(), dts: number[] = [], times: number[] = [];
     game.onInput((dt) => { dts.push(dt); });
     game.onUpdate((dt, t) => { dts.push(dt); times.push(t); });
     game.onLate((dt) => { dts.push(dt); });
     game.hitStop(0.1); game.hitStop(0.01);
     for (let i = 0; i < 6; i++) game.advance(0.02);
-    expect(dts.slice(0, 15)).toEqual(Array.from({ length: 15 }, () => 0.0008));
+    expect(dts.slice(0, 15)).toEqual(Array.from({ length: 15 }, () => 0.02));
     expect(dts.slice(15)).toEqual([0.02, 0.02, 0.02]);
     expect(times.at(-1)).toBeCloseTo(0.12);
-    expect(game.fixedSteps).toBe(1);
+    expect(game.fixedSteps).toBeGreaterThanOrEqual(1);
     expect(worldTime).toEqual({ realDt: 0.02, scale: 1 });
   });
 

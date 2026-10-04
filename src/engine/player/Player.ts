@@ -1,4 +1,4 @@
-import type { PlayerCommand } from '../input/commands';
+import type { AimCommand, PlayerCommand } from '../input/commands';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../events/events';
 import { dodgeFx, dodgeEnv } from './dodge';
@@ -404,12 +404,19 @@ export class Player {
    *  stays out while you ride — bootstrap re-enables it every fixed step, so the gate is here). */
   setBodyEnabled(on: boolean): void { this.motor.setEnabled(on && this.ride === null); }   // in the saddle the horse is the body (N17)
 
+  /** Canonical eye and heading. Presentation offsets never affect hit selection. */
+  sampleAimCommand(): AimCommand {
+    const cos = Math.cos(this.pitch);
+    return { origin: { x: this.position.x, y: this.position.y + (this.crouching ? EYE - 0.65 : EYE), z: this.position.z },
+      direction: { x: -Math.sin(this.yaw) * cos, y: Math.sin(this.pitch), z: -Math.cos(this.yaw) * cos } };
+  }
+
   /** Device edge. The motor never reads keys, touch state or the input service. */
   sampleCommand(): PlayerCommand {
     const input = this.inputService, k = this.keys;
     return {
       moveX: this.inStr, moveY: this.inFwd, yaw: this.yaw, pitch: this.pitch,
-      crouch: this.crouchWanted,
+      crouch: this.crouchWanted, aim: this.sampleAimCommand(),
       sprint: (input?.held('sprint') ?? k.has('ShiftLeft')) || this.touchSprint,
       jump: input?.pressed('jump') ?? this.jumpQueued,
       dodge: (input?.pressed('dodge') ?? false) || this.dodgeQueued,

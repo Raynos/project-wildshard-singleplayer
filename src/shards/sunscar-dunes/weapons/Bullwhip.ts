@@ -80,7 +80,8 @@ export class Bullwhip extends Weapon {
    */
   private land(second: boolean): void {
     const host = this.app.equipmentHost; if (host === null) return;
-    const camera = host.game.camera, from = camera.position.clone(), dir = new Vector3(); camera.getWorldDirection(dir);
+    const from = new Vector3(), dir = new Vector3();
+    this.setAimSource(() => host.player.sampleAimCommand()); this.aimRay(from, dir);
     const reach = this.crackHeavy ? CRACK.heavyReach : CRACK.reach;
     const hit = this.targets?.raycast(from, dir, reach) ?? null, port = hit === null ? null : this.app.combat.target(hit.animal);
     if (hit !== null && port?.hittable === true) { this.strike(whipTarget(port), hit.point, dir, from, this.crackHeavy, second); this.onFire?.(); return; }

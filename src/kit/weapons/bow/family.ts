@@ -113,6 +113,7 @@ export class Bow extends Weapon {
     this.magazine = this.profile.quiver;
     this.state = quiverState({ bolts: this.profile.quiver, loaded: true, reloading: false, reloadProgress: 1, ads: false }, this.profile.quiver);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
+    this.setAimSource(() => this.player.sampleAimCommand());
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
@@ -196,20 +197,13 @@ export class Bow extends Weapon {
 
   /** the arrow's start (on the aim line, just in front of the eye, where the nocked arrow's tip is) and velocity */
   private launchFrom(dir: THREE.Vector3, p: number, pos: THREE.Vector3, vel: THREE.Vector3): void {
-    const cam = this.game.camera;
-    pos.setFromMatrixPosition(cam.matrixWorld).addScaledVector(dir, 0.55);
-    this.nocked.getWorldPosition(_v3); // the nocked arrow's origin is its tip
-    pos.lerp(_v3, 0.15);
+    this.aimRay(pos, _fwd);
+    pos.addScaledVector(dir, 0.55);
     vel.copy(dir).multiplyScalar(this.profile.speedBase + this.profile.speedDraw * p).add(this.carrierVelocity);
   }
 
   /** the aim is the CAMERA forward — the rider's head, not the horse / body */
-  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
-    const cam = this.game.camera;
-    cam.getWorldDirection(dir);
-    origin.setFromMatrixPosition(cam.matrixWorld);
-    return dir;
-  }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
   /** Apply authored mounting data (draw, spread, rear shots and arc) without changing an unmounted profile.
    * Carrier velocity belongs to the saddle; external source and draw multipliers keep their own share. */

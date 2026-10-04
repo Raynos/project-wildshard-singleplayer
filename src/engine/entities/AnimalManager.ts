@@ -1,3 +1,4 @@
+import { EntityIds } from './ids';
 import { app } from '../app/runtime';
 import { ParticlePool } from '../fx/ParticlePool';
 import { tap } from '../core/harnessTap';
@@ -402,6 +403,7 @@ export class AnimalManager {
   /** the animals' own world-matrix pass: a still, far animal's bones are not recomputed (animalMatrices.ts) */
   group = new AnimalGroup();
   animals: Animal[] = [];
+  private readonly entityIds = new EntityIds('creature');
   herds: Herd[] = [];
   factory: AnimalFactory;
   onKill?: (animal: Animal) => void;
@@ -647,14 +649,14 @@ export class AnimalManager {
   }
 
   /** Spawn below a WORLD ray origin (fromY), or at an exact initial world feet height (y). */
-  spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number }): Animal {
+  spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number; entityId?: string }): Animal {
     if ((placement?.y !== undefined && !Number.isFinite(placement.y)) || (placement?.fromY !== undefined && !Number.isFinite(placement.fromY))) throw new Error('Creature spawn placement must be finite');
     const sp = speciesDef(kind);
     const v = typeof variant === 'string' ? variantDef(kind, variant) : rollVariant(sp, this.rng, variant, this.hasLegendary(kind));
     const model = this.factory.model(kind, v.id);
     const scale = this.rng.range(v.scale[0], v.scale[1]);
     const rig = this.factory.instantiate(model, this.rng.next());
-    const a = new Animal(rig, model, this.rng.next(), scale);
+    const a = new Animal(rig, model, this.rng.next(), scale, this.entityIds.allocate(placement?.entityId));
     a.maxHp = a.hp = v.hp ?? this.tuningFor(a).hp;
     const physics = worldPhysics();
     const fromY = placement?.fromY ?? Math.max(activeLevel().spawn.y ?? heightAt(x, z), heightAt(x, z)) + 1;

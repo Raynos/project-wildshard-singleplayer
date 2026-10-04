@@ -33,8 +33,9 @@ export class TemplateWhip extends Weapon {
   private swing(heavy: boolean): void {
     if (this.cooldown > 0 || !this.enabled) return; this.cooldown = heavy ? 0.8 : 0.4;
     this.onSwing?.(heavy);
-    const host = this.app.equipmentHost; if (host === null || this.targets === null) return;
-    const from = host.game.camera.position.clone(), dir = new Vector3(); host.game.camera.getWorldDirection(dir);
+    const host = this.app.equipmentHost; if (this.targets === null) return;
+    const from = new Vector3(), dir = new Vector3();
+    if (host !== null) this.setAimSource(() => host.player.sampleAimCommand()); this.aimRay(from, dir);
     const hit = this.targets.raycast(from, dir, 5); if (hit?.animal === undefined) return;
     const actor = this.actorFor(hit.animal); if (actor === null) return; this.strike(actor, hit.point, dir, from, heavy); this.onFire?.();
   }

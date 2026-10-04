@@ -367,6 +367,7 @@ export class LeverRifle extends Firearm {
     super(LEVER);
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.ranged' } };
     this.game = world.game; this.sky = world.sky; this.player = world.player;
+    this.setAimSource(() => this.player.sampleAimCommand());
     this.flashLight = opts.muzzleLight === false ? new THREE.PointLight(0xffb060, 0, 8, 2) : LightPool.for(this.game.scene).acquire(0xffb060, 0, 8, 2);
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
@@ -539,12 +540,7 @@ export class LeverRifle extends Firearm {
   }
 
   /** the aim line is the camera forward, hip or sighted */
-  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
-    const cam = this.game.camera;
-    cam.getWorldDirection(dir);
-    origin.copy(cam.position);
-    return dir;
-  }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
   private hitscan(): void {
     const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.adsBlend, 0, this.player.speedFactor);

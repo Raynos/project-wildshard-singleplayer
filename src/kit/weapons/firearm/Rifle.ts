@@ -221,6 +221,7 @@ export class Rifle extends Firearm {
     this.profile = opts.profile ?? AR15;
     this.state = { ammo: this.profile.magazine, magazine: this.profile.magazine, reserve: this.profile.reserve, loaded: true, reloading: false, reloadProgress: 0, ads: false };
     this.game = world.game; this.sky = world.sky; this.player = world.player;
+    this.setAimSource(() => this.player.sampleAimCommand());
     // the muzzle light is a pooled scene light (B7), taken now, at boot: in the viewmodel it came and went with the
     // model's visibility, and every change of the scene's light count recompiled every lit program in view (taking the
     // AR-15 mid-play: 28 programs). Dark at rest, lit by intensity only, placed at the muzzle in world space when it fires.
@@ -288,12 +289,7 @@ export class Rifle extends Firearm {
   }
 
   /** The aim line is the camera forward, hip or sighted (the crosshair / the ring's centre). */
-  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
-    const cam = this.game.camera;
-    cam.getWorldDirection(dir);
-    origin.copy(cam.position);
-    return dir;
-  }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
   private hitscan(): void {
     const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.adsBlend, this.bloom, this.player.speedFactor);

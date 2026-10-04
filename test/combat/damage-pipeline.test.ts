@@ -82,7 +82,7 @@ describe('current executable damage rules (09 §3.6)', () => {
   it('broadhead product stays unrounded until the real applyDamage rules run', () => {
     const target = damageTarget({ bodyMul: 0.6, speciesMul: 1.25 }), world = fakeWorld();
     const hit: TargetHit = { animal: target.animal, point: target.body, distance: 20, headshot: false };
-    const bolt = legacyActor(Crossbow.prototype, { onBoltHit: () => undefined, profile: CROSSBOW_PROFILE, targets: { raycast: () => hit }, game: world.game.asGame(), onHit: undefined, stopBolt: () => undefined });
+    const bolt = legacyActor(Crossbow.prototype, { onBoltHit: () => undefined, profile: CROSSBOW_PROFILE, player: world.player, targets: { raycast: () => hit }, game: world.game.asGame(), onHit: undefined, stopBolt: () => undefined });
     const b = { pos: new THREE.Vector3(0, 0.8, -1), mod: { damage: (kind: string) => boltDamage('broadhead', kind) } };
     expect(invokeLegacy(bolt, 'testHit', b, new THREE.Vector3(0, 0.8, 0))).toBe(true);
     expect(target.dealt).toEqual([39]); // 37*1.4=51.8 → round(*.6)=31 → round(*1.25)=39

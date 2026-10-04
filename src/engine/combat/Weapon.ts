@@ -1,5 +1,6 @@
-import type { Vector3, Matrix4 } from 'three';
+import type { Vector3, Matrix4, Quaternion } from 'three';
 import { Equipment, type WeaponId, type EquipmentRow, type EquipContext } from './Equipment';
+import type { AimCommand, FightCommand } from '../input/commands';
 import type { WeaponChargePhase } from './cues';
 
 export type ImpactSurface = 'wood' | 'ground' | 'flesh';
@@ -30,6 +31,19 @@ export abstract class Weapon extends Equipment implements WeaponHooks {
     if (row.legacySlot === undefined) throw new Error(`Equipment ${row.id} has no main slot`);
     this.id = row.legacySlot;
   }
+  private commandedAim: AimCommand | null = null;
+  private aimSource: (() => AimCommand) | null = null;
+  /** Live input edge supplies command data; recorded fights set an explicit command instead. */
+  setAimSource(source: () => AimCommand): void { this.aimSource = source; }
+  setAimCommand(command: AimCommand | null): void {
+    this.commandedAim = command === null ? null : { origin: { ...command.origin }, direction: { ...command.direction } };
+  }
+  executeCommand(command: FightCommand): void {
+    this.setAimCommand(command.aim);
+    try {
+      if (command.action === 'attack') this.tryFire(); else this.reload();
+    } finally { this.setAimCommand(null); }
+  }
   abstract readonly model: EquipmentView;
   abstract readonly state: WeaponState;
   abstract adsHeld: boolean;
@@ -54,9 +68,19 @@ export abstract class Weapon extends Equipment implements WeaponHooks {
   reload(): void { /* Melee weapons and tools have no reload action. */ }
   addBolts(_n: number): void { /* Ammo families override the refill. */ }
   aimRay(origin: Vector3, dir: Vector3): Vector3 {
-    const camera = this.model.parent;
-    if (!camera) throw new Error(`Equipment ${this.row.id} has no viewmodel camera`);
-    camera.getWorldDirection(dir); origin.setFromMatrixPosition(camera.matrixWorld); return dir;
+    const aim = this.commandedAim ?? this.aimSource?.();
+    if (aim === undefined) throw new Error(`Equipment ${this.row.id} has no aim command source`);
+    origin.copy(aim.origin); return dir.copy(aim.direction);
+  }
+  /** Rotation of the commanded heading, for authored sweep/launch offsets (no presentation roll). */
+  aimPose(origin: Vector3, rotation: Quaternion): void {
+    const aim = this.commandedAim ?? this.aimSource?.();
+    if (aim === undefined) throw new Error(`Equipment ${this.row.id} has no aim command source`);
+    origin.copy(aim.origin);
+    const yaw = Math.atan2(-aim.direction.x, -aim.direction.z);
+    const pitch = Math.asin(Math.max(-1, Math.min(1, aim.direction.y)));
+    const cy = Math.cos(yaw / 2), sy = Math.sin(yaw / 2), cp = Math.cos(pitch / 2), sp = Math.sin(pitch / 2);
+    rotation.set(sp * cy, cp * sy, -sp * sy, cp * cy);
   }
   setActive(on: boolean): void { this.model.visible = on; if (!on) this.enabled = false; }
 }

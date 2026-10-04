@@ -69,6 +69,7 @@ export interface SpearWorld { game: Game; sky: Sky; player: Player; forest: Fore
 export interface SpearOptions { allowUnlocked?: boolean; profile?: typeof SPEAR_PROFILE }
 export interface MountState { speed: number; yaw: number }
 
+const _commandOrigin = new THREE.Vector3(), _commandRotation = new THREE.Quaternion();
 export const REACH = 3.2;
 const THRUST_DAMAGE = 30, THRUST_STAGGER = 0.5;
 const T_WIND = 0.12, T_ACTIVE_END = 0.22, T_TOTAL = 0.35;
@@ -293,6 +294,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     super(opts.profile ?? SPEAR_PROFILE);
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.spear' } };
     this.game = w.game; this.sky = w.sky; this.player = w.player;
+    this.setAimSource(() => this.player.sampleAimCommand());
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
@@ -300,7 +302,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     const cam = this.game.camera;
     cam.add(this.model);
     if (!cam.parent) this.game.scene.add(cam);
-    this.aimBlock = aimRay(cam); this.blocks.aim = this.aimBlock; this.blocks.vm = this.lookBlock;
+    this.aimBlock = aimRay(() => this.player.sampleAimCommand()); this.blocks.aim = this.aimBlock; this.blocks.vm = this.lookBlock;
   }
 
   // ── kit surface ──
@@ -312,7 +314,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
   get javelinsOut(): number { let n = 0; for (const j of this.javs) if (j.state !== 0) n++; return n; }
   override addBolts(n: number): void { this.javelins = Math.min(this.maxJavelins, this.javelins + Math.max(0, n)); }
   override reload(): void { /* nothing to reload: javelins are picked up */ }
-  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return this.aimBlock.solve(origin, dir); }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
   private readonly lookBlock = viewmodel(this.profile.feel.lag);
   private readonly lookState = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
@@ -411,11 +413,11 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     const j = this.javs.find((x) => x.state === 0);
     if (j === undefined || this.javelins <= 0) return;
     if (!this.thrown.release()) return;
-    const cam = this.game.camera;
-    cam.getWorldDirection(_fwd);
+    this.aimPose(_commandOrigin, _commandRotation);
+    this.aimRay(_commandOrigin, _fwd);
     // leave from beside the right ear, aimed 2° over the crosshair (a heavy javelin is thrown a little up)
-    _v1.set(0.22, 0.05, -0.3).applyQuaternion(cam.quaternion).add(cam.position);
-    _v2.set(1, 0, 0).applyQuaternion(cam.quaternion);
+    _v1.set(0.22, 0.05, -0.3).applyQuaternion(_commandRotation).add(_commandOrigin);
+    _v2.set(1, 0, 0).applyQuaternion(_commandRotation);
     _dir.copy(_fwd).applyAxisAngle(_v2, 0.035).normalize();
     j.state = 1; j.age = 0; j.pos.copy(_v1); j.vel.copy(_dir).multiplyScalar(this.thrown.profile.speed);
     const m = this.mount;
@@ -517,10 +519,10 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     this.arc.visible = alpha > 0.01;
     this.arcMat.opacity = alpha * 0.85;
     if (!this.arc.visible) return;
-    const cam = this.game.camera;
-    cam.getWorldDirection(_fwd);
-    _v1.set(0.22, 0.05, -0.3).applyQuaternion(cam.quaternion).add(cam.position);
-    _v2.set(1, 0, 0).applyQuaternion(cam.quaternion);
+    this.aimPose(_commandOrigin, _commandRotation);
+    this.aimRay(_commandOrigin, _fwd);
+    _v1.set(0.22, 0.05, -0.3).applyQuaternion(_commandRotation).add(_commandOrigin);
+    _v2.set(1, 0, 0).applyQuaternion(_commandRotation);
     _dir.copy(_fwd).applyAxisAngle(_v2, 0.035).normalize().multiplyScalar(this.thrown.profile.speed);
     const P = this.arcPos;
     let hitAt = this.thrown.profile.arcPoints;
@@ -540,7 +542,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
 
   // ── couched lance contact: anything closing on the point ──
   private contacts(dt: number, t: number): void {
-    const p = this.player.position, cam = this.game.camera;
+    const p = this.player.position; this.aimPose(_commandOrigin, _commandRotation);
     const heading = this.mount !== null ? this.mount.yaw : this.player.yaw;
     const fx = -Math.sin(heading), fz = -Math.cos(heading);
     for (const a of app.aimTargets) {
@@ -563,11 +565,11 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
       if (t - last < LANCE_REHIT) continue;
       // confirm through the real hit volumes (Targets): a ray from the eye to its body
       _v1.set(a.position.x, a.position.y + (a.dims?.bodyY ?? 0.6) * (a.scale ?? 1), a.position.z);
-      _dir.subVectors(_v1, cam.position); const len = _dir.length(); _dir.multiplyScalar(1 / Math.max(len, 1e-4));
-      const hit = this.targets?.raycast(cam.position, _dir, len + 1) ?? null;
+      _dir.subVectors(_v1, _commandOrigin); const len = _dir.length(); _dir.multiplyScalar(1 / Math.max(len, 1e-4));
+      const hit = this.targets?.raycast(_commandOrigin, _dir, len + 1) ?? null;
       if (hit === null || !this.same(hit.animal, a)) continue;
       const dmg = Math.round(this.profile.lance.baseDamage + this.profile.lance.speedDamage * speed);
-      const result = this.contact(hit.animal, dmg, hit.point, _dir, cam.position, 'move.lance');
+      const result = this.contact(hit.animal, dmg, hit.point, _dir, _commandOrigin, 'move.lance');
       if (!result) continue;
       this.rehit.set(a, t);
       const killed = result.killed;
@@ -581,16 +583,16 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
 
   private thrustHit(): void {
     if (this.targets === undefined) return;
-    const cam = this.game.camera;
-    cam.getWorldDirection(_fwd);
+    this.aimPose(_commandOrigin, _commandRotation);
+    this.aimRay(_commandOrigin, _fwd);
     _e.set(0, 0, 0, 'YXZ');
     for (const pitch of this.profile.thrust.fan.pitches) for (const yaw of this.profile.thrust.fan.yaws) {
       _e.y = yaw; _e.x = pitch;
-      _q.setFromEuler(_e); _q.premultiply(cam.quaternion);
+      _q.setFromEuler(_e); _q.premultiply(_commandRotation);
       _dir.set(0, 0, -1).applyQuaternion(_q);
-      const hit = this.targets.raycast(cam.position, _dir, this.profile.reach);
+      const hit = this.targets.raycast(_commandOrigin, _dir, this.profile.reach);
       if (!hit || !hit.animal.alive) continue;
-      const result = this.contact(hit.animal, this.profile.thrust.damage, hit.point, _fwd, cam.position, 'move.thrust');
+      const result = this.contact(hit.animal, this.profile.thrust.damage, hit.point, _fwd, _commandOrigin, 'move.thrust');
       if (!result) continue;
       const killed = result.killed;
       if (!killed) hit.animal.stagger?.(_v2.set(_fwd.x, 0, _fwd.z).normalize(), this.profile.thrust.stagger);
@@ -739,8 +741,8 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
 
     // aim readout (HUD "WOLF · 15 M")
     if (this.targets && inHand && (++this.aimFrame & 3) === 0) {
-      cam.getWorldDirection(_fwd);
-      const hit = this.targets.raycast(cam.position, _fwd, 120);
+      this.aimRay(_commandOrigin, _fwd);
+      const hit = this.targets.raycast(_commandOrigin, _fwd, 120);
       if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
       else this.aimInfo = null;
     }

@@ -104,7 +104,8 @@ export class WarFan extends Weapon {
   override tryFire(): void { this.swing(false); }
   private view(): { from: Vector3; dir: Vector3 } | null {
     const host = this.app.equipmentHost; if (host === null) return null;
-    const from = host.game.camera.position.clone(), dir = new Vector3(); host.game.camera.getWorldDirection(dir);
+    const from = new Vector3(), dir = new Vector3();
+    this.setAimSource(() => host.player.sampleAimCommand()); this.aimRay(from, dir);
     return { from, dir };
   }
   swing(heavy: boolean): void {

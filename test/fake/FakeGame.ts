@@ -68,7 +68,7 @@ export class FakeGame {
     let scale = 1;
     if (this.stopLeft > 0) { this.stopLeft -= realDt; scale = 0.04; }
     worldTime.scale = scale; worldTime.realDt = realDt;
-    const dt = realDt * scale, step = 1 / fixedHz;
+    const dt = realDt, step = 1 / fixedHz;
     this.frameCount++;
     this.renderer.info.render.calls = 0;
     this.run(this.inputs, (fn) => fn(dt));

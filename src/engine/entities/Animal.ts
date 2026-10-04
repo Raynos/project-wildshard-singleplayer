@@ -121,6 +121,7 @@ const _want = { x: 0, y: 0, z: 0 };
 const combatActors = new WeakMap<Animal, Actor>();
 
 export class Animal {
+  readonly entityId: string;
   private readonly flight: FlightMotion | null;
   private readonly impulseVelocity = new THREE.Vector3();
   private falling = false;
@@ -225,7 +226,8 @@ export class Animal {
   /** the death's ragdoll (PHYSICS P8): drives the mesh + bones while live, then holds the frozen corpse; null = keyframed */
   private ragdoll: Ragdoll | null = null;
 
-  constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1) {
+  constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityId = `creature.${model.kind}.${String(seed)}`) {
+    this.entityId = entityId;
     this.kind = model.kind;
     this.flight = model.species.flight === undefined ? null : new FlightMotion(model.species.flight);
     const v = model.variantDef;
@@ -1007,7 +1009,7 @@ function animalCombatActor(animal: Animal, model: AnimalModel): Actor {
   const cached = combatActors.get(animal);
   if (cached !== undefined) return cached;
   const actor: Actor = {
-    id: `creature.${animal.kind}`, tags: ['actor.creature', `creature.${animal.kind}`], state: [],
+    id: animal.entityId, tags: ['actor.creature', `creature.${animal.kind}`], state: [],
     get alive() { return animal.alive; },
     onDamageRequest: (req) => { tap.hit?.(animal.kind, req.amount); },
     attributes: {

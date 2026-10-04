@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Player } from '../../src/engine/player/Player';
+import { Player } from '../../src/engine/player/Player';
 import type { SkyRig as Sky } from '../../src/engine/world/skyRig';
 import type { Forest } from '../../src/engine/world/forest/Forest';
 import type { CharacterMotor } from '../../src/engine/physics/CharacterMotor';
@@ -34,7 +34,8 @@ export function fakeWorld(): {
 } {
   const game = new FakeGame();
   // Cast only at the legacy constructor boundary: these doubles deliberately implement a small surface.
-  const player = legacyDouble<Player>({
+  const player: Player = legacyDouble<Player>({
+    sampleAimCommand: () => Player.prototype.sampleAimCommand.call(player), crouching: false,
     position: new THREE.Vector3(), yaw: 0, pitch: 0, locked: true, fovKick: 0,
     sprinting: false, speedFactor: 0, bobTime: 0, dashing: false, swinging: false,
     motor: legacyDouble<CharacterMotor>({ collider: legacyDouble<Collider>({}) }), dashTo: (): boolean => false,

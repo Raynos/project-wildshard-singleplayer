@@ -551,6 +551,7 @@ export class Crossbow extends Weapon {
     this.profile = opts.profile ?? CROSSBOW_PROFILE;
     this.state = quiverState({ bolts: this.profile.quiver, loaded: true, reloading: false, reloadProgress: 0, ads: false }, this.profile.quiver);
     this.game = world.game; this.sky = world.sky; this.player = world.player;
+    this.setAimSource(() => this.player.sampleAimCommand());
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
@@ -662,29 +663,20 @@ export class Crossbow extends Weapon {
   /** The aim line is ALWAYS the camera forward (the crosshair / the peep ring's centre), hip or sighted — the user
    *  found sighted shots landing low when they flew along the eye→tip ray. Sighted bolts start at the tip, which is
    *  a few cm under the eye, and fly parallel to the forward: at any range that is the same point as the hip shot. */
-  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
-    const cam = this.game.camera;
-    cam.getWorldDirection(dir);
-    origin.copy(cam.position);
-    return dir;
-  }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
   private spawnBolt(): void {
     let b = this.bolts.find((x) => !x.active);
     b ??= this.bolts.reduce((a, x) => (x.age > a.age ? x : a));
-    const cam = this.game.camera, a = sstep(0, 1, this.adsBlend);
+    const a = sstep(0, 1, this.adsBlend);
     this.aimRay(_v3, _fwd);
     // spread: tight at ADS, a touch wider from the hip
     const spread = THREE.MathUtils.degToRad(0.15 + (1 - a) * 0.6);
     _dir.copy(_fwd);
     _v1.set((gameplayRandom() - 0.5) * 2, (gameplayRandom() - 0.5) * 2, (gameplayRandom() - 0.5) * 2).cross(_fwd).normalize();
     _dir.addScaledVector(_v1, Math.tan(spread * gameplayRandom())).normalize();
-    // hip: start where the rail bolt is (so it visibly leaves the weapon) pulled most of the way onto the aim line;
-    // sighted: from the tip itself, which lies on the sight ray, so the flight stays under the tip all the way out
-    this.loadedBolt.getWorldPosition(this.spawnPos);
-    cam.getWorldDirection(_v2).multiplyScalar(0.35).add(cam.position);
-    this.spawnPos.lerp(_v2, 0.8);
-    b.pos.copy(this.spawnPos).lerp(this.tipWorld(_v2), a);
+    // Simulation launches from command data; the drawn bolt never chooses a shot's origin.
+    b.pos.copy(_v3).addScaledVector(_fwd, 0.35);
     b.vel.copy(_dir).multiplyScalar(this.profile.speed);
     b.active = true; b.age = 0; b.roll = 0; b.glanced = false;
     b.mod = this.boltMod; b.ammo = this.nextAmmo(); this.onShot(b); b.mesh.material = b.mod.material ?? this.boltMat;
@@ -920,7 +912,7 @@ export class Crossbow extends Weapon {
       const hit = this.targets.raycast(prev, _dir, wall ? wall.distance : segLen);
       if (hit) {
         this.onBoltHit(hit);
-        const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.game.camera.position)) * b.mod.damage(hit.animal.kind), hit.point, _dir);
+        const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.player.position)) * b.mod.damage(hit.animal.kind), hit.point, _dir);
         this.onHit?.(hit.animal.kind, hit.headshot, killed);
         const frame = hit.animal.stuckFrame?.(hit.point) ?? null; // a practice dummy keeps the bolt, on the bone it hit
         const attached = frame instanceof THREE.Object3D ? frame : null;

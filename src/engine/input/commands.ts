@@ -1,3 +1,14 @@
+/** World-space aim is command data, independent of camera shake, bob and render interpolation. */
+export interface AimCommand {
+  readonly origin: { readonly x: number; readonly y: number; readonly z: number };
+  readonly direction: { readonly x: number; readonly y: number; readonly z: number };
+}
+
+export interface FightCommand {
+  readonly aim: AimCommand;
+  readonly action: 'attack' | 'reload';
+}
+
 /** Resolved device input for one fixed step. Replays supply these values directly. */
 export interface PlayerCommand {
   readonly moveX: number;
@@ -10,4 +21,5 @@ export interface PlayerCommand {
   readonly dodge: boolean;
   readonly dive: boolean;
   readonly surface: boolean;
+  readonly aim: AimCommand;
 }

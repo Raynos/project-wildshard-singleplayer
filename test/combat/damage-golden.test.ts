@@ -50,7 +50,7 @@ function dealt(source: Source, rule: Rule, headshot: boolean, distance: number, 
     invokeLegacy(pool, 'testHit', { pos: new THREE.Vector3(0, 1, -1), origin: new THREE.Vector3(),
       scale: source === 'longbow' ? 1.35 : 1.2, hitScale: bow.damageMultiplier }, new THREE.Vector3(0, 1, 0));
   } else if (source === 'iron' || source === 'broadhead') {
-    const bolt = legacyActor(Crossbow.prototype, { onBoltHit: () => undefined, profile: CROSSBOW_PROFILE, targets: { raycast }, game: f.game.asGame(), onHit: undefined, stopBolt: noop });
+    const bolt = legacyActor(Crossbow.prototype, { onBoltHit: () => undefined, profile: CROSSBOW_PROFILE, player: f.player, targets: { raycast }, game: f.game.asGame(), onHit: undefined, stopBolt: noop });
     invokeLegacy(bolt, 'testHit', { pos: new THREE.Vector3(0, 1, -1), mod: { damage: (kind: string) => boltDamage(source, kind) } }, new THREE.Vector3(0, 1, 0));
   } else if (source === 'javelin') {
     const jav = { state: 1, age: 0, pos: new THREE.Vector3(0, 1, -1), vel: new THREE.Vector3(0, 0, -55) };

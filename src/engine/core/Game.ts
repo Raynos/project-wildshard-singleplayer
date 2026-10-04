@@ -204,7 +204,7 @@ export class Game {
   private fixedAcc = 0;
   /** 0‥1: how far this frame's render sits past the last fixed step (interpolate anything the fixed step moves) */
   alpha = 0;
-  /** fixed steps run this frame (0 during most of a hit-stop) */
+  /** fixed steps run this frame (hit-stop does not change simulation time) */
   fixedSteps = 0;
   stats = { fps: 0, frames: 0, acc: 0 };
   /** last 120 frame times in ms (ring; `frameI` is the next slot) — the perf meter reads p50/p95 from it */
@@ -589,7 +589,7 @@ export class Game {
     try { this.app.events.flush(phase); } catch (error) { this.fault(this.eventSystem, error); }
   }
 
-  /** Run the fixed steps this frame's (scaled) dt owes: hit-stop slows them with everything else. */
+  /** Run the fixed steps owed by real time; hit-stop only scales presentation. */
   private runFixed(dt: number): void {
     if ('app' in this && this.app.state === 'paused') { this.fixedSteps = 0; return; }
     this.fixedAcc += dt;
@@ -606,11 +606,7 @@ export class Game {
   }
 
   private stopLeft = 0;
-  /**
-   * Hit-stop (C2): for `seconds` of real time every updater gets `dt × HIT_STOP_SCALE` — the swing, the target, the
-   * player hang on the contact frame — while `worldTime.realDt` (src/engine/core/time.ts) keeps the real step for what must keep
-   * moving (particles, camera shake). Overlapping stops take the longer. The sky and the post chain always run real time.
-   */
+  /** Visual hit-stop. Presentation reads worldTime.scale; gameplay keeps real deltas and clocks. */
   hitStop(seconds: number): void { this.stopLeft = Math.max(this.stopLeft, seconds); }
   /** skip n8ao's depth-free transparency pre-pass (buildComposer; PH-P2) — a live switch for A/B captures */
   aoLeanTransparency = true;
@@ -750,13 +746,13 @@ export class Game {
       const liveDt = Math.min(0.1, this.clock.getDelta());
       const realDt = this.app.clock.delta(liveDt);
       const t = this.app.clock.mode === 'capture' ? this.app.clock.real + realDt : this.clock.elapsedTime;
-      // world time scale (hit-stop): updaters see the scaled step, realDt stays in worldTime for particles / camera
+      // Visual hit-stop never changes simulation clocks, input, fixed steps or gameplay updates.
       let scale = 1;
       if (this.stopLeft > 0) { this.stopLeft -= realDt; scale = HIT_STOP_SCALE; }
-      this.app.clock.timeScale = scale;
+      this.app.clock.timeScale = 1;
       this.app.clock.tick(liveDt);
       worldTime.scale = scale; worldTime.realDt = realDt;
-      const dt = realDt * scale;
+      const dt = realDt;
       this._frameTime += dt;
       this.frameNo++;
       this.app.events.beginFrame();

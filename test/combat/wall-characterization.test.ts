@@ -103,7 +103,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   });
   it('B1 thrust rejects a registered yurt wall and retains30 in the open', () => {
     wall(); const f = fakeWorld(), a = target();
-    const spear = legacyActor(Spear.prototype, { row: SPEAR_PROFILE, profile: SPEAR_PROFILE, game: f.game.asGame(), targets: { raycast: a.raycast }, onHit: undefined, onImpact: undefined });
+    const spear = legacyActor(Spear.prototype, { row: SPEAR_PROFILE, profile: SPEAR_PROFILE, player: f.player, game: f.game.asGame(), targets: { raycast: a.raycast }, onHit: undefined, onImpact: undefined });
     invokeLegacy(spear, 'thrustHit'); expect(a.dealt).toEqual([]);
     setActivePhysics(null); invokeLegacy(spear, 'thrustHit'); expect(a.dealt).toEqual([30]);
   });

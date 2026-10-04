@@ -319,6 +319,7 @@ class Stars {
 // ───────────────────────────── the sword ─────────────────────────────
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _push = new THREE.Vector3();
+const _aimOrigin = new THREE.Vector3(), _aimRotation = new THREE.Quaternion();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler();
 const _b = new THREE.Vector3(), _g0 = new THREE.Vector3(), _g1 = new THREE.Vector3(), _t0 = new THREE.Vector3(), _t1 = new THREE.Vector3(), _hitPoint = new THREE.Vector3();
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
@@ -445,8 +446,9 @@ export class Sword extends Melee {
     super({ ...profile, ...opts.row });
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.melee' } };
     this.game = world.game; this.sky = world.sky; this.player = world.player;
+    this.setAimSource(() => this.player.sampleAimCommand());
     this.targets = targets;
-    this.aimBlock = aimRay(this.game.camera);
+    this.aimBlock = aimRay(() => this.player.sampleAimCommand());
     this.blocks.aim = this.aimBlock; this.blocks.vm = this.lookBlock;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.damage = opts.damage ?? profile.damage;
@@ -570,7 +572,7 @@ export class Sword extends Melee {
   override addBolts(_n: number): void { /* melee */ }
   override reload(): void { /* melee */ }
   /** the aim line: the camera forward from the eye (what the crosshair shows) */
-  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return this.aimBlock.solve(origin, dir); }
+  override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
   /** shown + held (true) or holstered (false: hidden, input off) */
   override setActive(on: boolean): void {
     this.model.visible = on;
@@ -685,7 +687,7 @@ export class Sword extends Melee {
     this.bladeDirs(_g1, _t1);
     if (active && !this.clanged) this.clangTest(move);
     if (!active || this.targets === undefined || !this.sweepHave || !this.anyInReach()) { this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1); this.sweepHave = true; return; }
-    const cam = this.game.camera, physics = app.physics;
+    const physics = app.physics; this.aimPose(_aimOrigin, _aimRotation);
     const ang = Math.max(this.sweepGrip.angleTo(_g1), this.sweepTip.angleTo(_t1));
     const subs = Math.min(this.profile.sweep.maxSamples, Math.max(1, Math.ceil(ang / this.profile.sweep.step)));
     for (let s = 1; s <= subs && this.struckN < this.profile.sweep.maxHits; s++) {
@@ -699,10 +701,10 @@ export class Sword extends Melee {
           const a = this.profile.sweep.extensions[ext - 1] ?? 0, c = Math.cos(a), sn = Math.sin(a);
           _dir.set(_b.x, _b.y * c + _b.z * sn, -_b.y * sn + _b.z * c);
         }
-        _dir.applyQuaternion(cam.quaternion);
-        const hit = this.targets.raycast(cam.position, _dir, move.reach ?? this.reach);
+        _dir.applyQuaternion(_aimRotation);
+        const hit = this.targets.raycast(_aimOrigin, _dir, move.reach ?? this.reach);
         if (hit === null || !hit.animal.alive || this.struck.includes(hit.animal)) continue;
-        if (bladeBlocked(physics, cam.position, hit.point, this.player.motor.collider)) continue;
+        if (bladeBlocked(physics, _aimOrigin, hit.point, this.player.motor.collider)) continue;
         this.struck[this.struckN++] = hit.animal;
         this.strike(move, hit);
         if (this.struckN >= this.profile.sweep.maxHits) break;
@@ -715,9 +717,9 @@ export class Sword extends Melee {
    * swing: a clang, debris by the struck material (stone → sparks, wood → splinters), a short stop
    */
   private clangTest(move: Move): void {
-    const cam = this.game.camera;
-    _dir.copy(_t1).applyQuaternion(cam.quaternion);
-    const contact = bladeContact(app.physics, cam.position, _dir, (move.reach ?? this.reach) * 0.9, this.player.motor.collider);
+    this.aimPose(_aimOrigin, _aimRotation);
+    _dir.copy(_t1).applyQuaternion(_aimRotation);
+    const contact = bladeContact(app.physics, _aimOrigin, _dir, (move.reach ?? this.reach) * 0.9, this.player.motor.collider);
     if (contact === null) return;
     this.clanged = true;
     const { hit, clang } = contact;
@@ -734,7 +736,7 @@ export class Sword extends Melee {
   }
   /** a live animal's body is within REACH (+ its radius, + a metre of slack) of the eye */
   private anyInReach(): boolean {
-    const e = this.game.camera.position;
+    this.aimPose(_aimOrigin, _aimRotation); const e = _aimOrigin;
     for (const t of app.aimTargets) {
       if (!t.alive || t.hidden) continue;
       const r = this.reach + 0.6 + targetRadius(t) + 1; // + 0.6: a move may reach further than the rig (the sabre's pass)
@@ -743,8 +745,8 @@ export class Sword extends Melee {
     return false;
   }
   private strike(move: Move, hit: TargetHit): void {
-    const cam = this.game.camera;
-    cam.getWorldDirection(_fwd);
+    this.aimPose(_aimOrigin, _aimRotation);
+    this.aimRay(_aimOrigin, _fwd);
     // strike direction = the sweep (across the forward, the move's way), not the ray: the flinch reads as a side-on blow;
     // an overhead chop (sweep ≈ 0) drives forward and down
     _v2.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2);                                       // the player's left
@@ -753,7 +755,7 @@ export class Sword extends Melee {
     const dmg = Math.round(this.moveDamage(move));
     const point = _hitPoint.copy(hit.point); // the raycast result object is reused by the next ray
     const animal = hit.animal;
-    const result = this.contact(hit.animal, dmg, point, _v1, cam.position, `move.${move.name}`, true);
+    const result = this.contact(hit.animal, dmg, point, _v1, _aimOrigin, `move.${move.name}`, true);
     if (!result) return;
     const killed = result.killed;
     animal.hitFlash?.(move === this.mv.heavy ? 1 : 0.8); // the white hit flash (C5, Animal.ts)
