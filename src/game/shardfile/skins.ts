@@ -11,9 +11,12 @@
  * `attackSpan` is the attack duration the export sampled the attack clip with (seconds).
  */
 import * as v from 'valibot';
-import { parseSkinBindings, parseSkinRows, type SkinBinding, type SkinRow } from './skinPlayback';
+import { parseSkinBindings, parseSkinRows, type SkinBinding, type SkinRow } from './skinData';
 import type { ShardRows } from './rows';
 import type { Shardfile } from './schema';
+import { parseGlb } from './assets';
+import { skinLayerDecoded } from './skinLayers';
+import { MaterialsSchema } from './materials';
 
 /** The look recipe for an exported skin, and its animation recipe. */
 export const SKIN_LOOK_RECIPE = 'platform.skin';
@@ -53,4 +56,24 @@ export function skinLookRules(source: Pick<Shardfile, 'rows' | 'files' | 'librar
     if (file?.kind !== 'json' || glb?.kind !== 'glb' || !source.library.includes(skin)) errors.push('skin look file references');
   }
   return errors;
+}
+
+/** Admit each rig binding and its exact GLB dependency before allocating a client view. */
+export function validateSkinAssets(source: Pick<Shardfile, 'rows' | 'files'>, assets: ReadonlyMap<string, Uint8Array>): void {
+  const files = new Map(source.files.map((file) => [file.hash, file]));
+  for (const look of source.rows.looks) {
+    if (look.recipe !== SKIN_LOOK_RECIPE) continue;
+    const skinHash = skinLookParameters(look).skin, bytes = assets.get(skinHash);
+    if (bytes === undefined) throw new Error('skin file missing');
+    const { row, binding } = parseSkinFile(bytes);
+    if (files.get(skinHash)?.dependencies[0] !== row.file) throw new Error('skin rig dependency mismatch');
+    v.parse(MaterialsSchema, { skin: binding.material });
+    const glb = assets.get(row.file), declared = files.get(row.file);
+    if (glb === undefined || declared === undefined) throw new Error('skin GLB missing');
+    const cost = parseGlb(glb);
+    cost.decoded += skinLayerDecoded(binding.poseLayers ?? {}, row.rig.joints[0]?.length ?? 0);
+    for (const key of ['decoded', 'gpu', 'triangles', 'draws'] as const) {
+      if (cost[key] > row.cost[key] || cost[key] > declared[key]) throw new Error('skin cost understated');
+    }
+  }
 }

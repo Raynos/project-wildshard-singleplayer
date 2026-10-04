@@ -226,3 +226,9 @@ First-party picker manifests may carry a built `shardfile` URL. The normal entry
 admits that same-origin source before starting the session, retaining the manifest's
 canonical slug, picker art and catalogue save instance. Offline admission reads the
 complete visited product without requesting its source or immutable files again.
+
+Creature look recipe `platform.skin` names a library JSON hash in `parameters.skin`.
+The JSON contains one exported `{row, binding}` rig declaration and depends on exactly
+one admitted GLB. Animation recipe `platform.clips` takes an `attackSpan` in seconds
+(default 1, bounded 0.05–10). The rig, clips and numeric pose layers are validated
+without importing a renderer; the client samples the same exported clips as the skin player.

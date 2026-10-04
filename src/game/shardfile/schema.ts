@@ -18,6 +18,7 @@ import { TargetsSchema, targetRules } from './targets';
 import { ItemsSchema, itemRules } from './items';
 import { TraversalSchema } from './traversal';
 import { RuntimeSchema } from './runtime';
+import { skinLookRules } from './skins';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs } from './materials';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
@@ -132,6 +133,7 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...hookRules(s.hooks, s.state));
   errors.push(...targetRules(s.targets, s, s.props));
   errors.push(...itemRules(s.items, s.sim.scripts));
+  errors.push(...skinLookRules(s));
   if (s.props !== null) {
     try { validatePropsReferences(s.props, s); } catch { errors.push('declared prop references'); }
     if (!materialExists(s.look.materials, s.props.family)) errors.push('declared prop material');
