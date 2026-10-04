@@ -5,6 +5,7 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { validateProject } from '@wildshard/sdk/project';
 import { emptyShardfileSource, installManifestShardfile } from '../src/game/shardfile/loader';
 import type { ShardfileClientBindings } from '../src/game/shardfile/client';
+import type { ShardManifest } from '../src/game/shard/manifest';
 import template from '../src/shards/_template/shard.config';
 
 const empty = () => emptyShardfile({ slug: 'accent-fixture', name: 'Accent fixture', author: 'Test', revision: 1, seed: 1 });
@@ -32,7 +33,7 @@ it('hydrates the admitted accent rather than the picker manifest accent', async 
   const base = empty();
   const source = parseShardfile({ ...base, identity: { ...base.identity, slug: 'template' }, accent: 'moss' });
   expect(emptyShardfileSource(source).accent).toBe('moss');
-  const selected = { ...emptyShardfileSource(source), slug: '_template', accent: parseAccent('ember'), shardfile: '/shardfiles/accent-fixture/shard.json' };
+  const selected: ShardManifest = { ...emptyShardfileSource(source), slug: '_template', accent: parseAccent('ember'), shardfile: '/shardfiles/accent-fixture/shard.json' };
   const bindings: ShardfileClientBindings = { instance: 'fixture', catalogue: [], items: new Map(), recipes: new Map(), icon: () => 'glyph', voices: () => new Map() };
   const hydrated = await installManifestShardfile(selected, { base: 'https://accent.test/', firstParty: true, offline: false,
     fetch: () => Promise.resolve(Response.json(source)), hash: () => Promise.reject(new Error('No assets')),
