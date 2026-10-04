@@ -1,11 +1,12 @@
 import * as v from 'valibot';
+import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
 
 const finite = v.pipe(v.number(), v.finite());
 const points = { north: [0, 0, 250], south: [0, 0, -250], east: [250, 0, 0], west: [-250, 0, 0] } as const;
 /** A legal 500 m cube has exactly one opening at each edge midpoint, meeting the highway at y=0. */
 export const EntrywaysSchema = v.pipe(v.array(v.strictObject({ edge: v.picklist(['north', 'east', 'south', 'west']), at: v.tuple([finite, finite, finite]),
-  width: v.pipe(finite, v.minValue(0.1), v.maxValue(60)) }), 'illegal shard: four midpoint entryways are required'),
+  width: v.literal(ENTRY_WIDTH, 'illegal shard: entryways must be 8 metres wide') }), 'illegal shard: four midpoint entryways are required'),
 v.length(4, 'illegal shard: exactly four midpoint entryways are required'),
 v.check((rows) => new Set(rows.map((row) => row.edge)).size === 4 && rows.every((row) => row.at.every((coordinate, axis) => coordinate === points[row.edge][axis])),
   'illegal shard: entryways must be unique edge midpoints at road height y=0'));

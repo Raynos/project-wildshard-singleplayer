@@ -16,7 +16,9 @@ for a missing, duplicate, displaced or elevated midpoint entryway. North is +z;
 south is −z. Boundary samples must be flat at y=0 across the opening's full width,
 and admission checks the critical baked collider bytes as well. An author cannot
 forge a zero-height edge row to hide a raised collision surface. Empty author
-projects and the template explicitly declare four 6 m openings.
+projects and the template explicitly declare four 8 m openings. Canonical
+`ENTRY_WIDTH = 8` and `ENTRY_ASPHALT = 15` live in the engine core config;
+entry width is independent from the boulevard width.
 
 | Section | Contract |
 |---|---|
@@ -40,7 +42,7 @@ projects and the template explicitly declare four 6 m openings.
 | `serverBudget` | Positive tick budget ≤16,666 μs, positive memory ≤25 MB, ≤10,000 entities, ≤1,024 commands per tick. These are author declarations, not a server implementation. |
 | `edge` | Four ordered perimeter profiles with exactly 256 (legacy native bake) or 257 (tile-bake native lattice) height and RGB samples of equal length, heights inside ±250 m, colours in [0,1], road height exactly 0. North/south samples run west→east; east/west run south→north. |
 | `files` | Unique lowercase 64-character SHA-256 hash, kind (`glb`, `ktx2`, `audio`, `json`, `wasm`, `binary`), compressed/decoded/GPU byte sizes, triangles, draws including shadows, dependency references, critical flag. |
-| `entryways` | Required, four unique openings: north `[0,0,250]`, east `[250,0,0]`, south `[0,0,-250]`, west `[-250,0,0]`; width 0.1–60 m. Every opening reaches road height y=0. |
+| `entryways` | Required, four unique openings: north `[0,0,250]`, east `[250,0,0]`, south `[0,0,-250]`, west `[-250,0,0]`; width exactly 8 m (`ENTRY_WIDTH`). Every opening reaches road height y=0. |
 | `tiles` | L0 62.5 m or L1 125 m; integer x/z address; exact horizontal grid bounds and vertical bounds inside the 500 m cube; nonnegative geometric error; file roots and declared costs. |
 | `library`, `critical`, `far` | Library roots, critical roots, optional whole-shard proxy with bounds and costs. Critical flags match critical roots. |
 | `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |

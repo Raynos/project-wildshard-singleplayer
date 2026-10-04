@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest';
+import { ENTRY_WIDTH, ENTRY_ASPHALT } from '../src/engine/core/config';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the shipped critical terrain bytes, not an analytic proxy.
 import { readFileSync } from 'node:fs';
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -10,9 +11,17 @@ import { decodeTerrainTile, encodeTerrainTile } from '../src/engine/world/terrai
 import template from '../src/shards/_template/shard.config';
 
 const empty = () => emptyShardfile({ slug: 'entry-test', name: 'Entry test', author: 'Test', seed: 1, revision: 1 });
-it('authors four 6 m openings at the grid midpoints and road height', () => {
+it('authors four 8 m openings at the grid midpoints and road height', () => {
+  expect(ENTRY_WIDTH).toBe(8); expect(ENTRY_ASPHALT).toBe(15);
   expect(template.entryways).toEqual(empty().entryways);
+  expect(template.entryways.map(row => row.width)).toEqual([8, 8, 8, 8]);
   expect(template.entryways.map((row) => [row.edge, row.at])).toEqual([['north', [0, 0, 250]], ['east', [250, 0, 0]], ['south', [0, 0, -250]], ['west', [-250, 0, 0]]]);
+});
+it.each([6, 0.1, 60, 8 + Number.EPSILON * 8])('refuses a noncanonical %s m entry even over flat ground', (width) => {
+  const source = empty();
+  const entries = [];
+  for (const row of source.entryways) entries.push({ ...row, width });
+  expect(() => parseShardfile({ ...source, entryways: entries })).toThrow('illegal shard');
 });
 it('refuses missing, duplicate, extra or non-midpoint openings as an illegal shard', () => {
   const { entryways: _entries, ...missing } = empty(); expect(() => parseShardfile(missing)).toThrow('illegal shard');
