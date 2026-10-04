@@ -22,7 +22,7 @@ export function isMirroredSave(key: string, knownNamespaces: readonly string[] =
   const prefix = appIdentity().savePrefix;
   if (!key.startsWith(prefix)) return false;
   const scope = key.slice(prefix.length);
-  return scope === 'global' || knownNamespaces.includes(scope);
+  return scope === 'global' || scope === 'profile' || knownNamespaces.includes(scope);
 }
 
 export function forgetLegacy(keys: readonly string[]): void {

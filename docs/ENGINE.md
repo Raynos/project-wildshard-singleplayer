@@ -581,6 +581,7 @@ interface SaveSlot<T> { peek(ns?): T | null; read(ns?): T; write(value: T, ns?):
 |---|---|---|
 | `'shard'` | `wildshard.save.v2.<slug>` | everything that belongs to one shard: coins, progress, compendium, gear, bosses. Pass your slug as the namespace |
 | `'global'` | `wildshard.save.v2.global` | settings, controls, the Wildshard summary |
+| `'profile'` | `wildshard.save.v2.profile` | **reserved, no key yet**: the player above every shard (identity, inventory, gear, titles) that will travel between shards (MMO-REQUIREMENTS M6, SHARD-PLATFORM SP2). Exported and imported like `'global'`; no shard namespace may be named after a scope |
 | `'device'` | machine-local | bookkeeping that is never exported or reset (Debug row values) |
 | `'session'` | sessionStorage | per tab |
 

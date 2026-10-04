@@ -4,7 +4,7 @@
 
 The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by area; this is the full list.
 
-903 exports; 470 without a doc line (—).
+903 exports; 469 without a doc line (—).
 
 | Export | Kind | What it is |
 |---|---|---|
@@ -651,7 +651,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `SampleVoice` | interface | — |
 | `SaveKeyDef` | interface | — |
 | `saves` | const | The same service exposed as app.saves, available before the app/renderer graph evaluates. |
-| `SaveScope` | type | — |
+| `SaveScope` | type | Where a save key lives; `profile` (reserved, no key yet) is the player above every level. |
 | `SaveSlot` | interface | — |
 | `saveStorage` | function | String codec for injected diagnostics APIs. Values still validate and persist through defined SaveSlots. |
 | `SaveStore` | class · game only | Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys. |

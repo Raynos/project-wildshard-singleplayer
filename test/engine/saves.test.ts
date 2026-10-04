@@ -45,6 +45,18 @@ describe('SaveStore in node', () => {
     store.define({ scope: 'global', key: 'second', version: 1, schema: v.string(), initial: () => '' }).write('ok');
     expect(local.getItem('wildshard.save.v2.global')).toContain('"foreign":{"v":9,"data":"keep"}');
   });
+  it('keeps the reserved profile scope in its own document, exported and imported like global (SHARD-PLATFORM SP2)', () => {
+    const first = fixture(), second = fixture();
+    const definition = { scope: 'profile', key: 'profile.title', version: 1, schema: v.string(), initial: () => '' } as const;
+    first.store.define(definition).write('Wayfarer');
+    expect(first.local.getItem('wildshard.save.v2.profile')).toContain('"data":"Wayfarer"');
+    expect(first.local.getItem('wildshard.save.v2.global') ?? '').not.toContain('Wayfarer');
+    const restored = second.store.define(definition);
+    expect(second.store.importAll(first.store.exportAll()).imported).toEqual(['profile/profile.title']);
+    expect(restored.read()).toBe('Wayfarer');
+    const level = first.store.define({ scope: 'shard', key: 'test', version: 1, schema: v.number(), initial: () => 0 });
+    for (const reserved of ['global', 'profile', 'device', 'session']) expect(() => level.write(1, reserved)).toThrow('Shard saves need a slug');
+  });
   it('migrates 1 → 2 → 3 in order, and writes the validated version back', () => {
     const { store, local } = fixture();
     local.setItem('wildshard.save.v2.global', '{"keys":{"chain":{"v":1,"data":2}}}');

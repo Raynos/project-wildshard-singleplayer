@@ -2,7 +2,14 @@ import { appIdentity, installedIdentity } from '../app/identity';
 import * as v from 'valibot';
 import { resetLegacy } from './legacy';
 
-export type SaveScope = 'global' | 'shard' | 'device' | 'session';
+/**
+ * Where a save key lives; `profile` (reserved, no key yet) is the player above every level.
+ * The profile is identity, inventory, gear and titles that travel between levels (docs/design/mmo/MMO-REQUIREMENTS.md
+ * M6, SHARD-PLATFORM SP2); it is exported and imported like `global`.
+ */
+export type SaveScope = 'global' | 'profile' | 'shard' | 'device' | 'session';
+/** scope names a `'shard'` namespace may never take: they would share a stored document with that scope */
+const RESERVED_NAMESPACES: ReadonlySet<string> = new Set(['global', 'profile', 'device', 'session']);
 export interface SaveKeyDef<T> {
   key: string; scope: SaveScope; version: number; schema: v.GenericSchema<unknown, T>; initial: () => T;
   migrate?: Readonly<Record<number, (old: unknown) => unknown>>;
@@ -31,7 +38,7 @@ const savePrefix = (): string => appIdentity().savePrefix;
 const scopeOf = (name: string): string => { const p = installedIdentity()?.savePrefix ?? 'unsaved.'; return name.startsWith(p) ? name.slice(p.length) : name; };
 const keyPrefix = (persisted: boolean): string => installedIdentity()?.savePrefix ?? (persisted ? savePrefix() : 'unsaved.');
 /** Hidden content namespaces use one leading underscore; paths and embedded underscores stay invalid. */
-const shardNamespace = (slug: string): boolean => /^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(slug);
+const shardNamespace = (slug: string): boolean => /^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(slug) && !RESERVED_NAMESPACES.has(slug);
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const entry = (value: unknown): value is Entry => object(value) && typeof value['v'] === 'number' && Number.isInteger(value['v']) && value['v'] > 0 && Object.hasOwn(value, 'data');
 const doc = (value: unknown): value is Document => object(value) && object(value['keys']);
@@ -203,8 +210,8 @@ export class SaveStore {
     try { value = JSON.parse(json); } catch { return { imported: [], skipped: [{ key: '*', reason: 'Invalid JSON' }] }; }
     if (!object(value) || value['format'] !== appIdentity().saveFormat || value['version'] !== 2 || !object(value['docs'])) return { imported: [], skipped: [{ key: '*', reason: 'Unknown save format' }] };
     for (const [scope, savedDoc] of Object.entries(value['docs'])) {
-      if (scope === 'device' || scope === 'session' || (scope !== 'global' && !shardNamespace(scope)) || !doc(savedDoc)) { report.skipped.push({ key: scope, reason: 'Invalid or private scope' }); continue; }
-      const kind = scope === 'global' ? 'global' : 'shard';
+      if (scope === 'device' || scope === 'session' || (scope !== 'global' && scope !== 'profile' && !shardNamespace(scope)) || !doc(savedDoc)) { report.skipped.push({ key: scope, reason: 'Invalid or private scope' }); continue; }
+      const kind = scope === 'global' || scope === 'profile' ? scope : 'shard';
       for (const [key, raw] of Object.entries(savedDoc.keys)) {
         const identity = `${scope}/${key}`, definition = this.definitions.get(`${kind}/${key}`);
         if (!definition || !entry(raw)) { report.skipped.push({ key: identity, reason: 'Unknown key or invalid entry' }); continue; }

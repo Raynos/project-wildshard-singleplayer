@@ -3236,7 +3236,7 @@
       {
         "name": "SaveScope",
         "kind": "type",
-        "doc": ""
+        "doc": "Where a save key lives; `profile` (reserved, no key yet) is the player above every level."
       },
       {
         "name": "SaveSlot",
