@@ -32,3 +32,29 @@ export const ScriptBrainSchema = v.pipe(v.strictObject({
 export type ShardScriptBrain = v.InferOutput<typeof ScriptBrainSchema>;
 /** Validate a custom policy before module admission, trusted actor binding or physics allocation. */
 export function parseScriptBrain(data: unknown): ShardScriptBrain { return v.parse(ScriptBrainSchema, data); }
+
+/** Interior guardian policy; native floor and rise/sink recipes publish completion through trusted ports. */
+export const GuardianSchema = v.pipe(v.strictObject({
+  id: key, kind: v.literal('guardian'), wakeRadius: radius, guardRadius: radius, approachRadius: radius,
+  swingRadius: radius, swingDuration: v.pipe(duration, v.minValue(Number.MIN_VALUE)),
+  speed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)), holdRadius: radius,
+  sideSpeed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)),
+  sideFlipSeconds: duration, sinkAfterSeconds: duration, cooldownSeconds: duration,
+  hideOffset: v.pipe(v.number(), v.finite(), v.minValue(-15), v.maxValue(15)), noticeCue: cue,
+}), v.check(row => row.wakeRadius <= row.guardRadius && row.swingRadius <= row.approachRadius, 'Ordered guardian radii'));
+/** Admitted interior guardian tuning, independent from a native rig or floor recipe. */
+export type ShardGuardian = v.InferOutput<typeof GuardianSchema>;
+/** Validate guardian decisions before selecting the existing native motion and strike recipes. */
+export function parseGuardian(data: unknown): ShardGuardian { return v.parse(GuardianSchema, data); }
+
+/** Perch hunting decisions; native perch selection, vertical completion and shared attack RNG remain trusted host ports. */
+export const PerchHunterSchema = v.pipe(v.strictObject({
+  id: key, kind: v.literal('perch-hunter'), throwRadius: radius, throwDuration: v.pipe(duration, v.minValue(Number.MIN_VALUE)),
+  biteRadius: radius, biteDuration: v.pipe(duration, v.minValue(Number.MIN_VALUE)), underRadius: radius, underSeconds: duration,
+  holdRadius: radius, runSpeed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)), activeGroundSeconds: duration,
+  biteCooldown: duration, throwCooldownMin: duration, throwCooldownMax: duration, alertCue: cue, noticeCue: cue,
+}), v.check(row => row.biteRadius <= row.throwRadius && row.throwCooldownMin <= row.throwCooldownMax, 'Ordered perch attack ranges and cooldowns'));
+/** Admitted ranged-perch and ground-attack policy parameters. */
+export type ShardPerchHunter = v.InferOutput<typeof PerchHunterSchema>;
+/** Validate policy data while retaining the loader's authority over perches, projectiles and tokens. */
+export function parsePerchHunter(data: unknown): ShardPerchHunter { return v.parse(PerchHunterSchema, data); }

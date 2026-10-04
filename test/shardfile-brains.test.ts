@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parseSkirmisher, parseScriptBrain } from '../src/game/shardfile/brains';
-import { CRAB_BRAIN } from '../src/shards/driftwood-isle/data/brains';
+import { parseSkirmisher, parseScriptBrain, parseGuardian, parsePerchHunter } from '../src/game/shardfile/brains';
+import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 
 describe('declared skirmisher admission', () => {
   it('admits the unchanged shipping crab parameters', () => {
@@ -13,6 +13,15 @@ describe('declared skirmisher admission', () => {
   ])('rejects invalid or undeclared policy fields: %j', (invalid) => {
     expect(() => parseSkirmisher({ ...CRAB_BRAIN, ...invalid })).toThrow();
   });
+});
+
+it('admits native guardian/perch policies and rejects invalid authored ranges', () => {
+  expect(parseGuardian(SAILOR_BRAIN)).toEqual(SAILOR_BRAIN);
+  expect(parsePerchHunter(MONKEY_BRAIN)).toEqual(MONKEY_BRAIN);
+  expect(() => parseGuardian({ ...SAILOR_BRAIN, hideOffset: -16 })).toThrow();
+  expect(() => parseGuardian({ ...SAILOR_BRAIN, swingDuration: 0 })).toThrow();
+  expect(() => parsePerchHunter({ ...MONKEY_BRAIN, throwCooldownMin: 5 })).toThrow();
+  expect(() => parsePerchHunter({ ...MONKEY_BRAIN, runSpeed: Infinity })).toThrow();
 });
 
 describe('declared custom brain admission', () => {
