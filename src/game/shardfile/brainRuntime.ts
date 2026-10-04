@@ -3,14 +3,15 @@ import { SkirmisherBrain, type SkirmisherPorts } from '@wildshard/engine/ai/skir
 import { GuardianBrain, type GuardianPorts } from '@wildshard/engine/ai/guardian';
 import { PerchHunterBrain, type PerchHunterPorts } from '@wildshard/engine/ai/perchHunter';
 import { RamGrazerBrain, type RamGrazerPorts } from '@wildshard/engine/ai/ramGrazer';
+import { ChallengeGrazerBrain, type ChallengeGrazerPorts } from '@wildshard/engine/ai/challengeGrazer';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimStateAdapter } from '@wildshard/engine/sim';
 import { parseSkirmisher, parseGuardian, parsePerchHunter, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from './brains';
-import { parseRamGrazer, type ShardRamGrazer } from './grazers';
+import { parseRamGrazer, parseChallengeGrazer, type ShardRamGrazer, type ShardChallengeGrazer } from './grazers';
 
 /** Native decision families and the existing pursuit family; custom scripts require a composed host. */
-export type DeclaredNativeBrain = PlatformBrainSpec | ShardSkirmisher | ShardGuardian | ShardPerchHunter | ShardRamGrazer;
+export type DeclaredNativeBrain = PlatformBrainSpec | ShardSkirmisher | ShardGuardian | ShardPerchHunter | ShardRamGrazer | ShardChallengeGrazer;
 /** One trusted actor's observations and body recipe; construction must not execute gameplay or consume RNG. */
 export interface DeclaredBrainRecipe<P> { observe: (dt: number) => P; body: (dt: number) => void }
 /** Loader-injected native recipes retain navigation, vertical movement, attack tokens and strike ownership. */
@@ -21,6 +22,8 @@ export interface DeclaredBrainPorts {
   perchHunter?: (actor: AnimalSim, host: SimHost) => DeclaredBrainRecipe<PerchHunterPorts<AnimalSim>>;
   /** Pure preparation binds the declared strike and native floor/body without executing gameplay. */
   ramGrazer?: (actor: AnimalSim, declaration: ShardRamGrazer, host: SimHost) => DeclaredBrainRecipe<RamGrazerPorts<AnimalSim>> & { strike: StrikeSpec };
+  /** Pure preparation binds both named strikes and the stable actor phase; the installer owns their mutable clock. */
+  challengeGrazer?: (actor: AnimalSim, declaration: ShardChallengeGrazer, host: SimHost) => DeclaredBrainRecipe<ChallengeGrazerPorts<AnimalSim>> & { charge: StrikeSpec; close: StrikeSpec };
 }
 interface Registration { id: string; run: (dt: number) => void; adapter: SimStateAdapter }
 function nativeRegistration<P>(id: string, actor: AnimalSim, divisor: number, brain: SimStateAdapter & { think: (ports: P) => void }, recipe: DeclaredBrainRecipe<P>, host: SimHost): Registration {
@@ -34,6 +37,18 @@ function nativeRegistration<P>(id: string, actor: AnimalSim, divisor: number, br
     if (saved !== contract) throw new Error('Incompatible native brain continuation');
   } } };
 }
+function mutableRegistration<P>(id: string, actor: AnimalSim, divisor: number,
+  brain: SimStateAdapter & { think: (ports: P) => void; act: (ports: P) => void }, recipe: DeclaredBrainRecipe<P>, host: SimHost): Registration {
+  const contract = JSON.stringify({ version: 1, divisor });
+  return { id, run: dt => {
+    if (!actor.alive) return;
+    if (host.state.tick % divisor === 0) brain.think(recipe.observe(divisor / 60));
+    brain.act(recipe.observe(dt)); recipe.body(dt);
+  }, adapter: { snapshot: () => [contract, brain.snapshot()], restore: saved => {
+    if (!Array.isArray(saved) || saved.length !== 2 || saved[0] !== contract || saved[1] === undefined) throw new Error('Incompatible grazer cadence continuation');
+    brain.restore(saved[1]);
+  } } };
+}
 /** Preflight every actor, declaration and native port before registering any callback; restore installs without running recipes. */
 export function installDeclaredBrains(host: SimHost, rows: readonly PlatformSpawn[], declarations: readonly DeclaredNativeBrain[], ports: DeclaredBrainPorts = {}): ReadonlyMap<string, SimStateAdapter> {
   const definitions = new Map(declarations.map(row => [row.id, row]));
@@ -45,6 +60,7 @@ export function installDeclaredBrains(host: SimHost, rows: readonly PlatformSpaw
       case 'guardian': parseGuardian(row); break;
       case 'perch-hunter': parsePerchHunter(row); break;
       case 'ram-grazer': parseRamGrazer(row); break;
+      case 'challenge-grazer': parseChallengeGrazer(row); break;
       default: throw new Error('Unsupported declared brain family');
     }
   }
@@ -54,7 +70,8 @@ export function installDeclaredBrains(host: SimHost, rows: readonly PlatformSpaw
     if (!host.entities.has(row.id) || spec === undefined || host.adapters.has(`brain.${row.id}`)) throw new Error('Unresolved or installed declared brain');
     if ((spec.kind === 'skirmisher' && ports.skirmisher === undefined) || (spec.kind === 'guardian' && ports.guardian === undefined)
       || (spec.kind === 'perch-hunter' && ports.perchHunter === undefined)
-      || (spec.kind === 'ram-grazer' && ports.ramGrazer === undefined)) throw new Error('Missing native brain port');
+      || (spec.kind === 'ram-grazer' && ports.ramGrazer === undefined)
+      || (spec.kind === 'challenge-grazer' && ports.challengeGrazer === undefined)) throw new Error('Missing native brain port');
   }
   const pursueRows = rows.filter(row => row.brain !== null && definitions.get(row.brain)?.kind === 'pursue');
   const pursuits = preparePlatformBrains(host, pursueRows, declarations.filter(row => row.kind === 'pursue'), ports.navigation);
@@ -80,15 +97,14 @@ export function installDeclaredBrains(host: SimHost, rows: readonly PlatformSpaw
         if (ports.ramGrazer === undefined) throw new Error('Missing native brain port');
         const recipe = ports.ramGrazer(actor, spec, host);
         if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function' || recipe.strike.id !== spec.strike) throw new Error('Unresolved declared grazer strike or recipe');
-        const brain = new RamGrazerBrain(actor, spec, recipe.strike), contract = JSON.stringify({ version: 1, divisor: spec.thinkDivisor });
-        registrations.push({ id, run: dt => {
-          if (!actor.alive) return;
-          if (host.state.tick % spec.thinkDivisor === 0) brain.think(recipe.observe(spec.thinkDivisor / 60));
-          brain.act(recipe.observe(dt)); recipe.body(dt);
-        }, adapter: { snapshot: () => [contract, brain.snapshot()], restore: saved => {
-          if (!Array.isArray(saved) || saved.length !== 2 || saved[0] !== contract || saved[1] === undefined) throw new Error('Incompatible grazer cadence continuation');
-          brain.restore(saved[1]);
-        } } }); break;
+        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new RamGrazerBrain(actor, spec, recipe.strike), recipe, host)); break;
+      }
+      case 'challenge-grazer': {
+        if (ports.challengeGrazer === undefined) throw new Error('Missing native brain port');
+        const recipe = ports.challengeGrazer(actor, spec, host);
+        if (typeof recipe.observe !== 'function' || typeof recipe.body !== 'function' || recipe.charge.id !== spec.charge
+          || recipe.close.id !== spec.close) throw new Error('Unresolved declared grazer strikes or recipe');
+        registrations.push(mutableRegistration(id, actor, spec.thinkDivisor, new ChallengeGrazerBrain(actor, spec, recipe.charge, recipe.close), recipe, host)); break;
       }
       default: throw new Error('Unsupported declared brain family');
     }
