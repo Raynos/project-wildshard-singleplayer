@@ -10,7 +10,9 @@
  *   minus the home origin, and the rings get world positions (local + home origin).
  * - **neighbours as their declared fallback** (§3.3): no neighbour is a resident shardfile sim in the page yet, so each
  *   shows its baked far proxy (SF23) through the render rings (SF18b) and one residency allocator; its edge holds as a
- *   soft wall at the 6 m re-frame line (SF18d `ReadinessWalls`, closed while its sim is not ready, which today is always).
+ *   soft wall at the 6 m re-frame line (SF18d `ReadinessWalls`, closed while its sim is not ready). Step 2
+ *   (`attach`, `liveSession.ts`) admits shardfile neighbours (the template copies) into regional hosts, opens their walls
+ *   when ready and crosses the one page traveller at the fixed boundary; the rest stay closed until M3.
  *   The grid's outer rim is a closed edge past the outer strips (the empty neighbour: open sea at road level).
  * - **cell events**: `gridCells.enter` while the player's feet are in the home cell's interior, `leave` on the deck
  *   (SF46's hybrid runtime runs only inside its cell).
@@ -39,6 +41,7 @@ import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './r
 import { farRingPorts, type FarPrepared } from './farView';
 import type { FarLookRuntime } from './farProxy';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
+import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
 
 /** In grid mode the level's own chunk-edge walls and veil yield to the platform (the standalone path is unchanged). */
 export function gridLevel(spec: LevelSpec): LevelSpec {
@@ -69,6 +72,8 @@ export interface GridSessionState {
   readonly rings: { readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number };
   /** SF19a's one frame (null with its Debug row off) */
   readonly frame: GridFrameState | null;
+  /** step 2's live crossing (null until the page attaches its player) */
+  readonly live: LiveGridSessionState | null;
 }
 
 const FALLBACK = (): never => { throw new Error('Grid neighbours have no streamed tiles yet (their far proxy is the fallback)'); };
@@ -118,14 +123,14 @@ function deckMesh(strips: readonly GeneratedStrip[], home: GridCell): Mesh {
   return mesh;
 }
 
-/** A neighbour's four soft walls on the 6 m re-frame line, in the home frame (`ReadinessWalls` edges). */
-function neighbourEdges(cell: GridCell, home: GridCell): ReadinessEdge[] {
+/** A neighbour's four soft walls on the 6 m re-frame line, in the frame whose origin is given (`ReadinessWalls` edges). */
+function neighbourEdges(cell: GridCell, home: Readonly<{ origin: Readonly<{ x: number; z: number }> }>): ReadinessEdge[] {
   const x = cell.origin.x - home.origin.x, z = cell.origin.z - home.origin.z, r = CHUNK_HALF + 6, halfLength = CHUNK_HALF + 6;
   const edge = (ex: number, ez: number, axis: 'x' | 'z'): ReadinessEdge => ({ instance: cell.instance, x: ex, z: ez, axis, halfLength, floor: 0 });
   return [edge(x + r, z, 'x'), edge(x - r, z, 'x'), edge(x, z + r, 'z'), edge(x, z - r, 'z')];
 }
 /** The closed outer rim, just past the outer strips (the empty neighbour has no sim to wait for). */
-function rimEdges(assembly: GridAssembly, home: GridCell): ReadinessEdge[] {
+function rimEdges(assembly: GridAssembly, home: Readonly<{ origin: Readonly<{ x: number; z: number }> }>): ReadinessEdge[] {
   const xs = assembly.cells.map((c) => c.cell[0]), zs = assembly.cells.map((c) => c.cell[1]), p = assembly.pitch;
   const minX = Math.min(...xs) * p - p / 2, maxX = Math.max(...xs) * p + p / 2, minZ = Math.min(...zs) * p - p / 2, maxZ = Math.max(...zs) * p + p / 2;
   const cx = (minX + maxX) / 2 - home.origin.x, cz = (minZ + maxZ) / 2 - home.origin.z, hx = (maxX - minX) / 2, hz = (maxZ - minZ) / 2;
@@ -148,6 +153,8 @@ export class GridSession {
   private last: { x: number; z: number } | null = null;
   private velocity = { x: 0, z: 0 };
   private readonly frame: GridFrame | null;
+  private readonly walls: ReadinessWalls;
+  private live: LiveGridSession | null = null;
 
   constructor(host: GridSessionHost) {
     this.host = host;
@@ -171,7 +178,7 @@ export class GridSession {
     if (frame !== null && frameHost !== undefined) { frame.deck(deck); frameHost.onLate(() => { frame.frame(); }); }
     host.scene.add(deck);
     for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
-    new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // never synced open: no neighbour sim is resident in the page yet
+    this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // synced open by the live host once a neighbour is ready
     installGridBorders(host.physics, host.scope); // the home cell's creatures stay home (SF20d)
     // neighbours: the far ring through the one allocator; each cell's root sits at its render origin
     const roots = new Map<string, Group>();
@@ -198,9 +205,20 @@ export class GridSession {
     host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state() })); // the harness readout: __wildshard.shard.grid.state()
   }
 
+  /** Step 2: the live crossing, once the page's player health and equipment exist (play.ts). */
+  attach(page: LiveGridPage): LiveGridSession {
+    if (this.live !== null) throw new Error('The grid session already has its live crossing');
+    this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
+      neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
+    return this.live;
+  }
+
   private rebased(mesh: StripMesh): StripMesh { return { ...mesh, origin: { x: mesh.origin.x - this.home.origin.x, z: mesh.origin.z - this.home.origin.z } }; }
   /** World feet (grid metres) from the home-frame feet. */
-  private world(): { x: number; z: number } { const feet = this.host.feet(); return { x: feet.x + this.home.origin.x, z: feet.z + this.home.origin.z }; }
+  private world(): { x: number; z: number } {
+    if (this.live !== null) { const feet = this.live.worldFeet(); return { x: feet.x, z: feet.z }; }
+    const feet = this.host.feet(); return { x: feet.x + this.home.origin.x, z: feet.z + this.home.origin.z };
+  }
 
   /** One fixed step: the rings from the player's world pose and velocity, then the cell events. */
   step(dt: number): void {
@@ -209,9 +227,9 @@ export class GridSession {
     this.last = at;
     const speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
-    const inside = this.assembly.at(at.x, at.z);
-    if (inside?.instance === this.home.instance) gridCells.enter({ instance: this.home.instance, slug: this.home.slug });
-    else gridCells.leave();
+    const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
+    if (inside === undefined || inside.instance !== active) gridCells.leave();
+    else gridCells.enter({ instance: inside.instance, slug: inside.slug });
   }
 
   /** Hold the loading screen until every visible neighbour is drawn (or the time limit: the soft walls hold anyway). */
@@ -231,11 +249,12 @@ export class GridSession {
     return {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
-        shows: cell.instance === this.home.instance ? 'playing' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
+        shows: cell.instance === (this.live?.live.current() ?? this.home.instance) ? 'playing' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
       strips: this.strips.length, ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused },
       frame: this.frame?.state() ?? null,
+      live: this.live?.state() ?? null,
     };
   }
 }

@@ -106,6 +106,11 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     impulse: (velocity) => player.impulse(velocity),
   });
   app.registerPlayer(playerHealth, game.levelScope);
+  // the grid client step 2: the live crossing (LiveGridHost + GridCrossing in the page's one fixed step; G68's safe zone)
+  grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
+    setPhysics: (physics) => { world.physics = physics; app.physics = physics; },
+    onFixedPre: (fn) => { game.onFixed('pre', fn, 'game.grid.live.pre'); }, onFixedPost: (fn) => { game.onFixed('post', fn, 'game.grid.live.post'); },
+    onInput: (fn) => { game.onInput(fn, 'game.grid.origin.restore'); }, onUpdate: (fn) => { game.onUpdate(fn, 'game.grid.origin'); } });
   const effects = new EffectService(app.levelRegistrations.list('effect'), game.levelScope, app.events);
   app.registerEffects(effects, game.levelScope);
   playerHealth.attributes.incomingCap = chunk.fight?.maxHitDamage ?? Infinity;
