@@ -63,6 +63,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     expect(first.session.frame()).toBe(target.instance);
     const region = regions.find((value) => value.host.state.tick > 0);
     if (region === undefined) throw new Error('Missing running native region');
+    expect(first.session.simulation(target.instance)).toBe(region);
     pageHost.player.position.set(0, 1, -9); first.tick();
     const blob = region.host.entities.get('grey-blob:1'); if (blob === undefined) throw new Error('Missing quest blob');
     region.host.combat.hit({ source: pageHost.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: blob.combatActor(), amount: 1000,

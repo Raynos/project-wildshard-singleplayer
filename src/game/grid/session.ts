@@ -27,6 +27,7 @@ import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { app } from '@wildshard/engine/app/runtime';
+import { harnessPins } from '@wildshard/engine/app/identity';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
@@ -222,7 +223,9 @@ export class GridSession {
       for (const root of roots.values()) root.removeFromParent();
     });
     host.onFixed((dt) => { this.step(dt); });
-    host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state() })); // the harness readout: __wildshard.shard.grid.state()
+    host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state(),
+      ...(harnessPins() === undefined ? {} : { simulation: (instanceId: string) => this.live?.simulation(instanceId) }),
+    }));
   }
 
   /**

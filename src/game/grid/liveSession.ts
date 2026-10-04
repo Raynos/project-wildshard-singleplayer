@@ -128,7 +128,7 @@ export class LiveGridSession {
   private readonly applied = new Vector3();
   private readonly loadout: GridLoadout;
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
-  private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries }>();
+  private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation }>();
   private homeSim: GridHomeSimulation | null = null;
 
   constructor(ports: LiveGridSessionPorts, page: LiveGridPage) {
@@ -243,7 +243,7 @@ export class LiveGridSession {
       const region = sim, start = region.host.level.player, host = region.host, water = region.water;
       this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
         // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
-        queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] } });
+        queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region });
       return Promise.resolve({ host: region.host, dispose: () => { this.regions.delete(cell.instance); region.dispose(); } });
     } };
   }
@@ -271,6 +271,9 @@ export class LiveGridSession {
   }
   /** The active frame's identity (the home instance, a region, or null for the highway). */
   frame(): string | null { return this.live.current(); }
+
+  /** The admitted native simulation for a browser witness; the page exposes this only when harness pins exist. */
+  simulation(instance: string): ShardfileSimulation | undefined { return this.regions.get(instance)?.simulation; }
 
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
