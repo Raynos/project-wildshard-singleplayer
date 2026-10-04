@@ -14,12 +14,16 @@ import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from '../../..
 import type { NineDragonWorld } from '../../../src/shards/nine-dragon-stack/world/build';
 import { FakeGame } from '../../fake/FakeGame';
 import { WorldRegistry } from '../../../src/engine/world/registry';
+import { entryDeckColliders, entryDeckFloor } from '../../../src/shards/nine-dragon-stack/world/entries';
+import { withDecks } from '../../../src/shards/nine-dragon-stack/world/install';
+import { Y0 } from '../../../src/shards/nine-dragon-stack/layout';
 
 const noop = (): void => { /* No GPU work in this node contract. */ };
 const loaded = new Set<App>();
+const built: boolean[] = [];
 afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); });
 
-function setup(): { app: App; world: NineDragonWorld; plugin: NdPlugin; context: (ctx: LevelContext) => ReturnType<typeof shardContext>; fake: FakeGame } {
+function setup(entries: 'off' | 'on' = 'off'): { app: App; world: NineDragonWorld; plugin: NdPlugin; context: (ctx: LevelContext) => ReturnType<typeof shardContext>; fake: FakeGame } {
   const app = new App(), fake = new FakeGame();
   app.registryValue = new WorldRegistry();
   app.render = fake.asGame(); app.scene = fake.scene;
@@ -27,9 +31,11 @@ function setup(): { app: App; world: NineDragonWorld; plugin: NdPlugin; context:
     kit: noop, loadout: noop, play: noop, finish: noop };
   app.levelDriver = driver;
   app.levelAdapters.playground = () => noop;
+  // the row service applies a saved pick through `change` as the row registers (engine/ui/debugOptions.ts)
+  app.levelAdapters.debugRow = (row) => { if (row.id === 'nineDragonEntries' && entries === 'on') row.change('on'); return noop; };
   const world: NineDragonWorld = { root: new Group(), shared: new Shared(), ctx: { hooks: [] },
     update: vi.fn<() => void>(), cull: vi.fn<() => void>(), culler: new InstanceCuller() };
-  const plugin = new NdPlugin(() => Promise.resolve({ world, camera: fake.camera }));
+  const plugin = new NdPlugin((_ctx, decks) => { built.push(decks); return Promise.resolve({ world, camera: fake.camera }); });
   const game: GameServices = { shard: manifest, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
   loaded.add(app);
   return { app, world, plugin, fake, context: (ctx) => shardContext(ctx, manifest, game) };
@@ -70,6 +76,38 @@ describe('Nine Dragon world hook', () => {
     runtime.cull(); expect(world.cull).toHaveBeenCalledOnce();
     await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(context(ctx)) });
     expect(ndRuntime()).not.toBe(runtime);
+  });
+
+  it('SF51-g: Debug ▸ Nine Dragon entries adds the four road-height decks and drops the fall floor under them (every boot sets it)', async () => {
+    const off = setup();
+    built.length = 0;
+    await off.app.loadLevel(toLevelSpec(manifest), { world: (ctx) => off.plugin.world(off.context(ctx)) });
+    expect(built).toEqual([false]); expect(off.app.registry.get('nds-floors')?.colliders).toEqual(fragmentColliders().floors);
+    expect(toLevelSpec(manifest).bounds?.floor).toBe(Y0 - 100);
+    await off.app.unloadLevel();
+    const on = setup('on');
+    await on.app.loadLevel(toLevelSpec(manifest), { world: (ctx) => on.plugin.world(on.context(ctx)) });
+    expect(built).toEqual([false, true]);
+    const floors = on.app.registry.get('nds-floors');
+    expect(on.app.registry.pieces).toHaveLength(4);
+    expect(floors?.colliders).toEqual([...fragmentColliders().floors, ...entryDeckColliders()]); expect(floors?.floor).toBe(withDecks);
+    expect(withDecks(0, 240)).toBe(0); expect(withDecks(5, 0)).toBe(Y0);
+    expect(toLevelSpec(manifest).bounds?.floor).toBeLessThan(-1.2);
+    await on.app.unloadLevel();
+  });
+
+  it('SF51-g: each deck carries the 8 x 15 m socket footprint flat at y = 0 with its side walls outside the opening', () => {
+    const boxes = entryDeckColliders().flatMap((c) => (c.kind === 'box' ? [c] : []));
+    const rects = { north: [-4, 4, 235, 250], south: [-4, 4, -250, -235], east: [235, 250, -4, 4], west: [-250, -235, -4, 4] } as const;
+    for (const [x0, x1, z0, z1] of Object.values(rects)) {
+      for (let x = x0 + 0.125; x < x1; x += 0.25) for (let z = z0 + 0.125; z < z1; z += 0.25) {
+        // the highest box top over the point: exactly the road
+        const tops = boxes.filter((b) => Math.abs(x - b.x) <= b.hx && Math.abs(z - b.z) <= b.hz).map((b) => b.y + b.hy);
+        expect(Math.max(...tops)).toBeCloseTo(0, 6);
+        expect(entryDeckFloor(x, z)).toBe(0);
+      }
+    }
+    expect(boxes).toHaveLength(16);
   });
 
   it.each(['world', 'kit', 'play'] as const)('releases the world when the %s hook throws', async (stage) => {

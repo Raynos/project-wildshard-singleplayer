@@ -63,6 +63,7 @@ import { cableGondola, drone, monorailTrain } from '../models/movers';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
 import { buildWell } from './well';
+import { buildEntryDecks } from './entries';
 import { wellSheets } from './well-lower';
 import { CABLE, SHAFT, WELL_RECTS } from './well-plan';
 import { merge } from './hero/kitx';
@@ -156,7 +157,7 @@ export interface NineDragonWorld {
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes */
-export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier): Promise<NineDragonWorld> {
+export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { entries?: boolean } = {}): Promise<NineDragonWorld> {
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -198,6 +199,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.25, 'layout: well');
   await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
   buildWell(ctx);
+  // SF51-g: the four landing decks at road height (world/entries.ts), only with Debug ▸ Nine Dragon entries on
+  if (opts.entries === true) buildEntryDecks(ctx);
   progress(0.3, 'signs');
   await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)

@@ -11,17 +11,20 @@ import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { STRINGS } from './strings';
+import { ndEntriesEnabled } from './debug';
+import { setEntryDecksFloor } from './world/entryFloor';
 
 
-type WorldBuilder = (ctx: ShardContext) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
+/** `entries`: the SF51-g landing decks at road height (pause ▸ Settings ▸ Debug ▸ Nine Dragon entries, default off) */
+type WorldBuilder = (ctx: ShardContext, entries: boolean) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
 
-async function buildWorld(ctx: ShardContext): ReturnType<WorldBuilder> {
+async function buildWorld(ctx: ShardContext, entries: boolean): ReturnType<WorldBuilder> {
   const render = ctx.app.render;
   if (render === null) throw new Error('Nine Dragon needs the render service in its world stage');
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);
     if (detail !== undefined) ctx.progress.detail(detail);
-  }, render.tier);
+  }, render.tier, { entries });
   return { world, camera: render.camera };
 }
 
@@ -54,9 +57,11 @@ export class NdPlugin extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
     ctx.playground(GRAPPLE_PLAYGROUND);
-    const { world, camera } = await this.build(ctx);
+    const entries = ndEntriesEnabled(ctx);
+    setEntryDecksFloor(entries); // every boot sets it (only this shard's bounds read it)
+    const { world, camera } = await this.build(ctx, entries);
     if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
-    const rt = installWorld(ctx, world, camera);
+    const rt = installWorld(ctx, world, camera, entries);
     installSpecimenLight(ctx.app.events, ctx.scope, (on, key) => { rt.specimenLight(on, key); });
   }
 }
