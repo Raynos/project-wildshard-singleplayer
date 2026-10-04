@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import type { Scope } from '../../app/scope';
 import type { CompileJob } from '../precompile';
 import { engineString } from '../../strings';
+import { copyShaderPatches } from '../shaderPatches';
 import { parseFamilyMaterial, type FamilyMaterialParams } from './params';
 import { compileEmissive, type EmissiveLook } from './emissive';
 import { compilePainterly, type PainterlyLook } from './painterly';
@@ -53,6 +54,30 @@ export function familyMaterial(entry: unknown, ctx: FamilyContext): THREE.Materi
   const m = compile(params, ctx);
   live.set(m, params);
   ctx.scope.onDispose(() => { live.delete(m); });
+  return m;
+}
+
+/**
+ * A variant of `base` (a family material, or any material) that keeps its family's program: three's `clone()` copies the
+ * numbers but drops the shader patches, the program key and `onBeforeRender`, so a cloned toon or painterly material
+ * renders plain. The variant runs `base`'s patch chain under its key, shares its look and per-material uniforms (one
+ * `familyUniforms` object), keeps its render hook, then takes `configure`'s per-object changes (a colour, a map, a side).
+ * A variant of a live family material is live too, for the shader step, until `scope` is disposed. Share one variant per
+ * distinct configuration: equal variants are one material, one set of uniforms.
+ */
+export function familyVariant(base: THREE.Material, scope: Scope, configure: (m: THREE.Material) => void = () => undefined): THREE.Material {
+  // three's copy deep-copies userData through JSON: a family's uniforms (textures among them) are shared, not serialised
+  const userData = base.userData;
+  base.userData = {};
+  let m: THREE.Material;
+  try { m = base.clone(); } finally { base.userData = userData; }
+  m.userData = { ...userData };
+  copyShaderPatches(base, m);
+  const render = Object.getOwnPropertyDescriptor(base, 'onBeforeRender');
+  if (render !== undefined) Object.defineProperty(m, 'onBeforeRender', render);
+  configure(m);
+  const params = live.get(base);
+  if (params !== undefined) { live.set(m, params); scope.onDispose(() => { live.delete(m); }); }
   return m;
 }
 

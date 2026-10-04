@@ -7344,6 +7344,12 @@
         "from": "@wildshard/engine/render/families/registry"
       },
       {
+        "name": "familyVariant",
+        "kind": "function",
+        "doc": "A variant of `base` (a family material, or any material) that keeps its family's program: three's `clone()` copies the",
+        "from": "@wildshard/engine/render/families/registry"
+      },
+      {
         "name": "liveFamilyMaterials",
         "kind": "function",
         "doc": "every live family material and the parameters it was made from",
@@ -7612,6 +7618,12 @@
         "kind": "type",
         "doc": "the renderer every layer is handed (today three's WebGL renderer)",
         "from": "@wildshard/engine/render/renderer"
+      },
+      {
+        "name": "copyShaderPatches",
+        "kind": "function",
+        "doc": "Give `to` (a fresh `clone()` of `from`: three's `copy` drops `onBeforeCompile` and `customProgramCacheKey`) the patch",
+        "from": "@wildshard/engine/render/shaderPatches"
       },
       {
         "name": "hasProgramKey",
@@ -9660,7 +9672,7 @@
       {
         "name": "installDeclaredProps",
         "kind": "function",
-        "doc": "Parse only admitted memory, apply a resolved family and texture catalogue, and dispose everything with the level.",
+        "doc": "Parse only admitted memory, apply a resolved family and texture catalogue, and dispose everything with the level. Every",
         "from": "@wildshard/engine/world/declaredProps"
       },
       {

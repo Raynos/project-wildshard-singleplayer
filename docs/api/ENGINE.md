@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1870 members; 831 without a doc line (—).
+1872 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1229,6 +1229,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `familyCompileJobs` | function | @wildshard/engine/render/families/registry | Shader-step jobs for every live family program not yet compiled: one plain stand-in mesh per distinct program variant |
 | `FamilyContext` | interface | @wildshard/engine/render/families/registry | What a compiler may read besides the material's own parameters. |
 | `familyMaterial` | function | @wildshard/engine/render/families/registry | A family material from a material entry (validated here, defaults filled), tracked for the shader step until |
+| `familyVariant` | function | @wildshard/engine/render/families/registry | A variant of `base` (a family material, or any material) that keeps its family's program: three's `clone()` copies the |
 | `liveFamilyMaterials` | function | @wildshard/engine/render/families/registry | every live family material and the parameters it was made from |
 | `compileToon` | function | @wildshard/engine/render/families/toon | Compile a toon surface under `look` to a three.js material (WebGL v1 renderer). |
 | `injectToon` | function | @wildshard/engine/render/families/toon | The toon light model injected into a MeshStandard / MeshPhysical fragment source (throws if three's chunk moved). |
@@ -1274,6 +1275,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `isRenderer` | function | @wildshard/engine/render/renderer | a value is the renderer (the scene-ownership walk skips it) |
 | `probeRenderer` | function | @wildshard/engine/render/renderer | a throw-away renderer on its own canvas, to probe the GPU's formats before the game's exists (KTX2 support) |
 | `Renderer` | type | @wildshard/engine/render/renderer | the renderer every layer is handed (today three's WebGL renderer) |
+| `copyShaderPatches` | function | @wildshard/engine/render/shaderPatches | Give `to` (a fresh `clone()` of `from`: three's `copy` drops `onBeforeCompile` and `customProgramCacheKey`) the patch |
 | `hasProgramKey` | function | @wildshard/engine/render/shaderPatches | Whether a site gave the material a program key of its own (Sky.fillSlots skips those). |
 | `PATCH_ORDER` | const | @wildshard/engine/render/shaderPatches | the order bands (lower runs first; ties run in the order they were added) |
 | `patchIds` | function | @wildshard/engine/render/shaderPatches | The patch ids in this material's chain, in run order (tests, the inventory). |
@@ -1614,7 +1616,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `smooth` | function | @wildshard/engine/world/dayCycle | — |
 | `TimePick` | type | @wildshard/engine/world/dayCycle | — |
 | `DeclaredProps` | interface | @wildshard/engine/world/declaredProps | Admitted prop bindings; the game validates hashes and tile relationships before handing bytes to this renderer. |
-| `installDeclaredProps` | function | @wildshard/engine/world/declaredProps | Parse only admitted memory, apply a resolved family and texture catalogue, and dispose everything with the level. |
+| `installDeclaredProps` | function | @wildshard/engine/world/declaredProps | Parse only admitted memory, apply a resolved family and texture catalogue, and dispose everything with the level. Every |
 | `InstalledProps` | interface | @wildshard/engine/world/declaredProps | Level-owned roots and stable panel/model ports. Visibility/pose commands act on the returned roots. |
 | `FaunaCell` | interface | @wildshard/engine/world/faunaLayout | One cell of the layout — returned by `layoutFaunaCells` for tests / the dev overlay. |
 | `FaunaGroup` | interface | @wildshard/engine/world/faunaLayout | Fauna layout — MANY SMALL GROUPS SPREAD OVER THE WHOLE SHARD, instead of a few big herds. |

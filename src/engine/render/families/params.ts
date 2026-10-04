@@ -156,6 +156,8 @@ export const PbrMaterialSchema = v.strictObject({
   /** image-based light strength */
   envStrength: v.optional(v.pipe(nonNegative, v.maxValue(8)), 1),
   vertexColours: v.optional(v.boolean(), false),
+  /** flat-shaded facets (one normal per triangle: a low-poly prop, the template's terrain); false = smooth normals */
+  faceted: v.optional(v.boolean(), false),
   doubleSided: v.optional(v.boolean(), false),
   /** alpha test threshold (0 = opaque) */
   alphaCutoff: v.optional(unit, 0),

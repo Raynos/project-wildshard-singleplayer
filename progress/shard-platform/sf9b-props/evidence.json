@@ -1,0 +1,72 @@
+{
+  "rows": [
+    {
+      "kind": "toon",
+      "diff": {
+        "afterVsReference": {
+          "mean": 0.172,
+          "over8": 0.31,
+          "max": 118
+        },
+        "beforeVsReference": {
+          "mean": 4.832,
+          "over8": 23.03,
+          "max": 125
+        }
+      },
+      "precompile": {
+        "familyJobs": 1,
+        "built": 2,
+        "firstDraw": 0,
+        "firstDrawPrograms": []
+      },
+      "errors": []
+    },
+    {
+      "kind": "painterly",
+      "diff": {
+        "afterVsReference": {
+          "mean": 0,
+          "over8": 0,
+          "max": 26
+        },
+        "beforeVsReference": {
+          "mean": 9.21,
+          "over8": 62.9,
+          "max": 68
+        }
+      },
+      "precompile": {
+        "familyJobs": 1,
+        "built": 1,
+        "firstDraw": 0,
+        "firstDrawPrograms": []
+      },
+      "errors": []
+    },
+    {
+      "kind": "pool",
+      "diff": {
+        "afterVsReference": {
+          "mean": 0.893,
+          "over8": 2.99,
+          "max": 35
+        },
+        "beforeVsReference": {
+          "mean": 1.026,
+          "over8": 3.95,
+          "max": 31
+        }
+      },
+      "precompile": {
+        "familyJobs": 1,
+        "built": 2,
+        "firstDraw": 0,
+        "firstDrawPrograms": []
+      },
+      "tiles": 9,
+      "errors": []
+    }
+  ],
+  "source": "scripts/family-props-board: BEFORE = old installer clone / smooth PBR, AFTER = installDeclaredProps family variants / PBR faceted, REFERENCE = family material built directly / today's template terrainPainter; iPhone 16 Pro context, muted headless Chromium on Metal"
+}

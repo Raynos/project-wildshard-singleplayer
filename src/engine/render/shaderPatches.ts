@@ -149,6 +149,28 @@ export function patchShader(mat: THREE.Material, id: string, order: number, fn: 
 }
 
 /**
+ * Give `to` (a fresh `clone()` of `from`: three's `copy` drops `onBeforeCompile` and `customProgramCacheKey`) the patch
+ * chain and program key `from` runs now, so both compile one program source under one key. The patch functions are the
+ * same closures, so uniforms a patch hands the shader stay shared. A snapshot: patches added to either material later
+ * stay its own. No-op when `from` has no registry patches.
+ */
+export function copyShaderPatches(from: THREE.Material, to: THREE.Material): void {
+  const source = states.get(from);
+  if (source === undefined || from.onBeforeCompile !== source.runner) return;
+  const before = { hook: Object.getOwnPropertyDescriptor(to, 'onBeforeCompile'), key: Object.getOwnPropertyDescriptor(to, 'customProgramCacheKey') };
+  const key = from.customProgramCacheKey === source.keyFn ? source.key : ownKey(from);
+  const state: State = {
+    entries: [...source.entries], key, explicitKey: source.explicitKey, before,
+    runner: (shader, renderer) => { for (const e of state.entries) e.fn(shader, renderer); },
+    keyFn: () => (state.key === null ? defaultKey(state.entries) : state.key()),
+  };
+  states.set(to, state);
+  to.onBeforeCompile = state.runner;
+  to.customProgramCacheKey = state.keyFn;
+  for (const e of state.entries) if (e.id !== 'inherited') used.set(e.id, (used.get(e.id) ?? 0) + 1);
+}
+
+/**
  * The hook every material inherits until a `replace` patch drops it (Atmosphere's fog uniforms). It stays on the
  * prototype, as before, so three's default key (its source text) is the one every unpatched material shares.
  * An optional scoped chain restores the previous inherited hook when disposed.

@@ -1741,7 +1741,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 `@wildshard/sdk/bake/props` merges opaque rough prop surfaces into the canonical tile grid, clips edge-crossing triangles, keeps interior scatter as `EXT_mesh_gpu_instancing` transform lists and produces a self-contained coarse/far mesh. Named panels and gear remain library GLBs. `bakeColourTexture` in `bake/texture` invokes the trusted local Basis encoder for mipmapped UASTC KTX2; the existing loader chooses ASTC on supported GPUs. Declared costs include CPU buffers, GPU buffers, instance matrices and shadow draws. Every resulting row must fit the content caps.
 
-`@wildshard/game/shardfile/props` validates file, tile, library and texture dependencies. The admitted bytes enter `installDeclaredProps` from `@wildshard/engine/world/declaredProps`; `selectedTiles` contains `lod/x/z` keys, `includeLibrary:false` skips subsequent panel/model loads, and `disposeTile(key)` removes and disposes a streamed tile. Family materials and textures come from resolved catalogues. Stable panel roots expose visibility and pose ports to admitted scripts; collision remains separate declared data. `propColliderDescriptors` passes bounded box/stair shapes into `installDeclaredPropColliders` in `@wildshard/engine/physics/declaredProps`. Its stable-ID owners serialize without callbacks; activation ports have handle snapshots, a lazy Physics getter and a restoring mode that allocates no duplicate colliders. Scope cleanup removes render and collision resources.
+`@wildshard/game/shardfile/props` validates file, tile, library and texture dependencies. The admitted bytes enter `installDeclaredProps` from `@wildshard/engine/world/declaredProps`; `selectedTiles` contains `lod/x/z` keys, `includeLibrary:false` skips subsequent panel/model loads, and `disposeTile(key)` removes and disposes a streamed tile. Family materials and textures come from resolved catalogues; each prop mesh draws with a shared, counted `familyVariant` (`@wildshard/engine/render/families/registry`) of its family material, which keeps the family's shader patches, program key and uniforms (`copyShaderPatches` in `@wildshard/engine/render/shaderPatches`), so toon and painterly props shade as their family and equal surfaces are one material. Stable panel roots expose visibility and pose ports to admitted scripts; collision remains separate declared data. `propColliderDescriptors` passes bounded box/stair shapes into `installDeclaredPropColliders` in `@wildshard/engine/physics/declaredProps`. Its stable-ID owners serialize without callbacks; activation ports have handle snapshots, a lazy Physics getter and a restoring mode that allocates no duplicate colliders. Scope cleanup removes render and collision resources.
 
 
 ### Declared items (SHARD-PLATFORM SF7e)
@@ -1762,7 +1762,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1853 exports, grouped by the module to import them from.
+1855 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1967,14 +1967,14 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/families/painterly`: `compilePainterly`, `gradeRgb`, `injectPainterly`, `PAINTERLY_PROGRAM_KEY`, `PainterlyLook`, `PainterlyLookUniforms`, `PainterlyMaterialUniforms`
 - `@wildshard/engine/render/families/params`: `EmissiveLookParams`, `EmissiveLookSchema`, `EmissiveMaterialParams`, `EmissiveMaterialSchema`, `FAMILY_IDS`, `FamilyId`, `FamilyMaterialInput`, `FamilyMaterialParams`, `FamilyMaterialSchema`, `GradeParams`, `GradeSchema`, `GroundLayerParams`, `GroundLayerSchema`, `NeonTubeSchema`, `PainterlyLookParams`, `PainterlyLookSchema`, `PainterlyMaterialParams`, `PainterlyMaterialSchema`, `parseEmissiveLook`, `parseFamilyMaterial`, `parseGroundLayer`, `parsePainterlyLook`, `parseToonLook`, `PbrMaterialParams`, `PbrMaterialSchema`, `Rgb`, `SkyDomeSchema`, `ToonLookParams`, `ToonLookSchema`, `ToonMaterialParams`, `ToonMaterialSchema`
 - `@wildshard/engine/render/families/pbr`: `compilePbr`, `pbrFillers`, `TextureResolver`, `TextureUse`
-- `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `liveFamilyMaterials`
+- `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `familyVariant`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`
 - `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
 - `@wildshard/engine/render/look`: `EngineChainKind`, `EngineEffects`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
 - `@wildshard/engine/render/lut`: `fetchLut`, `LUT_SIZE`
 - `@wildshard/engine/render/precompile`: `backgroundJob`, `collectTextures`, `CompileJob`, `postJobs`, `precompileLevel`, `PrecompileReport`, `runPrecompile`, `sceneJobs`, `shadowJobs`
 - `@wildshard/engine/render/renderer`: `createRenderer`, `isRenderer`, `probeRenderer`, `Renderer`
-- `@wildshard/engine/render/shaderPatches`: `hasProgramKey`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
+- `@wildshard/engine/render/shaderPatches`: `copyShaderPatches`, `hasProgramKey`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
 - `@wildshard/engine/render/textureBytes`: `textureBytes`
 - `@wildshard/engine/render/viewmodelFeel`: `DrawingBuffer`, `LookLag`, `LookSpring`, `viewmodel`
 - `@wildshard/engine/saves/runtime`: `homeScreenPersistence`, `installLegacyMirror`, `installSaveReporter`, `persistHomeScreen`, `saves`, `standaloneDisplay`
