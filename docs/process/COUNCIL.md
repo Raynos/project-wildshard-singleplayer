@@ -25,7 +25,6 @@ A **council** is a fixed number of review **rounds** run on one document by inde
 Jake asks for it by name: "do 3 council rounds on X". He sets the number of rounds, and without a number it is 4.
 
 **Four rounds at most, always.** This is the most important rule (Jake, 2026-10-01).
-- **The one exception is Jake raising the cap for a named document**: SHARD-PLATFORM runs eight rounds (E435, 2026-10-04).
 - Never loop "until two rounds in a row come back clean". An unbounded loop just burns agents and tokens.
 - Two clean rounds in a row may **end** a council early. They never extend it past 4.
 - After the last round, whatever is still open goes to Jake as decisions, one recommended answer each, and the doc is

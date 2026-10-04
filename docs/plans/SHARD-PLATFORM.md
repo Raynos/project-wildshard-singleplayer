@@ -1,10 +1,6 @@
 # Plan: SHARD-PLATFORM — MMO-compatible shardfiles in the singleplayer game (E431, E435)
 
-**State:** `draft` 2026-10-04 — rewritten from Jake's E435 grill (§10, G1–G56) and the clean-room audits
-([Wildshard MMO Review](../reviews/wildshard-mmo-review.md)); **council round 1 folded in** (103 findings, register in
-[`shard-platform/reviews/`](shard-platform/reviews/register.md)). P0 done. Next: council rounds 2–8 (G56), then F0; SF0 and the stable F0 rows may start while later rounds run (§9.5).
-Jake (G51): *"No fence, build the whole thing … the fence is the 80/20 split."* Built by Codex and Opus lanes the
-coordinator dispatches (§9). Owned by the shard-platform agent. Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md).
+**State:** `draft` 2026-10-04 — rewritten from Jake's E435 grill (§10, G1–G59) and the clean-room audits ([Wildshard MMO Review](../reviews/wildshard-mmo-review.md)); council round 1 folded in (register in [`shard-platform/reviews/`](shard-platform/reviews/register.md)). **Two parts** (G57): Part A, the core (the format, the seven shards ported, the 3 × 3 grid, loading and seamless travel; milestones M1 the package, M2 the grid, M3 the seven at 80/20), then Part B, stretch goals. The grid is a second main-menu entry, **EXPERIMENTAL Wildshard**, beside Select a shard (G58). P0 done. Next: council rounds 2–4 (G59); SF22a (memory) and SF0 (the frame floor) start now. Built by Codex and Opus lanes the coordinator dispatches (§9). Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md).
 
 ## 0. Read this first
 
@@ -22,7 +18,8 @@ code to port in a ./runtime/ directory in typescript."*
 products a future MMO server could load unchanged together with the platform's headless sim (`@wildshard/engine/sim`,
 SF4a). All seven shards are ported to 80/20 (G49): the template, Driftwood Isle, Pine Hollow, Nalati Grasslands, Signal
 Dunes (slug `sunscar-dunes`), Sky Reach (slug `far-reach`) and Nine Dragon Stack. They meet on a **3 × 3 singleplayer
-grid** joined by the highway and generated no-man's land (§3.3).
+grid** joined by the highway and generated no-man's land (§3.3), reached from the main menu's **EXPERIMENTAL Wildshard**
+entry; **Select a shard** keeps today's one-shard-at-a-time flow (G58).
 
 **Compatible** means (G45, bounded determinism G48): the shard's sim runs headless in Node; a snapshot taken
 mid-encounter restores and replays to the same state hash on the same engine; behaviour is AssemblyScript (bit-identical
@@ -65,7 +62,7 @@ Generated and baked output never counts.
 - **Measure 2, runtime ceiling** = `runtime/` lines ≤ 20 % of the shard's lines at the baseline (`lint/shard-platform.json`,
   `b96fed1a1`; the template 550, Thin Ice from its own first commit).
 - **Milestone booleans** the gate prints: the template boots from its shardfile with no trusted chunk; its sim steps
-  headless in Node; snapshot → restore → replay passes; the SF16 gap log is committed; per shard: grid-ready and
+  headless in Node; snapshot → restore → replay passes; per shard: grid-ready and
   compatible (headless + replay + ledger, A15).
 - An 80/20 shard whose gameplay still partly lives in `runtime/` is **transitional**, and the gate says so; its
   remaining runtime is an open conversion item, never "compatible" by percentage alone (A15).
@@ -144,10 +141,12 @@ template in the empty slots. In dev mode we have 5 shards, so you render 4 templ
   instances are one shardfile placed several times, each with its own save namespace keyed by cell.
 - The outer ring's no-man's land eases to an **empty-neighbour profile**: open sea at road level with fog (C15).
 - Pitch 555 m (N = 20 m, G37), tuned by SF22. Render origin rebases per cell (C39).
-- Explore mode explores one shard at a time with the level selector, behind the dev toggle. Dev mode changes apply at the
-  next grid assembly (return to title), never live under the player (A17, C23).
-- **The grid ships default-off behind a Debug row** (the title deck stays default) until SF22's physical-iPhone reading
-  backs it; then SF21b flips the default (C7, ledger 5).
+- **The main menu has two entries** (Jake, G58): *"Select a shard => existing shard selection UI; EXPERIMENTAL wildshard =>
+  the 3x3 seamless grid. Basically if loading the 3x3 seamless grid crashes the game on iphone with memory error I want to
+  be able to go back to select a shard and the existing load one shard at a time flow."* Select a shard is today's flow,
+  unchanged; it is also where explore mode lives (behind the dev toggle, G46). The grid stays behind its EXPERIMENTAL label
+  until Jake says otherwise; that label is what satisfies the default-off rule for risky memory changes (C7, ledger 5).
+- Dev mode changes apply at the next grid start (return to title), never live under the player (A17, C23).
 
 ### 3.4 Versioning (G29)
 
@@ -156,7 +155,7 @@ template in the empty slots. In dev mode we have 5 shards, so you render 4 templ
 - The client loads the current version and the one before it during the window (~72 h until the public grid), and shows
   a "needs upgrade" card for older ones; their source and saves are untouched (A16).
 - First-party shardfiles rebuild on every build, so they're always current; an outside author upgrades with
-  `wildshard upgrade` (SF44).
+  `wildshard upgrade` (stretch goal S18).
 
 ### 3.5 Where a shard project lives and how it builds (B4, B17)
 
@@ -186,7 +185,11 @@ Every row names its **lane** (routing, §9): **X** = Codex GPT-6.1 Sol high, **O
 Opus does the visual part or judges it. Sizes: S ≤ ½ day, M ≤ 2 days, L ≤ 5 days for one agent; an L row splits
 further when it starts if it can.
 
-### P0 — Guardrails and the metric (before any move)
+### Part A — the core: shardfiles, the seven shards ported, the 3 × 3 grid and seamless travel
+
+Jake (G57): *"we want to get the 6 shards ported over to the shardfile format first, we want to render the 3x3 grid first, we want to figure out the traversal and loading and seamless travel first."*
+
+#### P0 — Guardrails and the metric (before any move)
 
 | Row | What | Done when | Size |
 |---|---|---|---|
@@ -197,7 +200,8 @@ further when it starts if it can.
 | SP4 | **The world contract** (SHARD-PLATFORM-PLAN G-5, MMO W1–W6). Jake 10-03: the 500 m cell splits **250 m below and 250 m above** the highway level (O1); Driftwood (open sea) and Sky Reach (floating islands) are **exempt now and fixed in P5** (SP22, SP23). Built: `CELL_HEIGHT` / `CELL_BELOW` / `CELL_ABOVE` in `@wildshard/engine/core/config`; `test/world/world-contract.test.ts` holds every level's ground inside the cell and level with the highway across each edge entry (15 m wide, 50 m in); `lint/edge-exemptions.json` may only shrink. Moved: the full walk from each edge (colliders, water, structures) is SP10's validator; `placement` leaving the manifests is SP29 (server-owned fields leave the package) | **done** (`b96fed1a1`): all seven levels pass; the exempt two are listed with their fixing row | M |
 | SP5 | **The metric and the folders**: `generators/`, `data/`, `runtime/` join `lint/shard-layout.json` (AG9) and SHARDS.md; `lint/shard-platform.json` with today's baselines; the gate prints each shard's custom share; `wildshard/no-runtime-generator`; the chunk check for `generators/`; `sim-no-render` widened over each shard's `data/` and simulation folders and the kit's (from SP1) | **done**: part 1 (`94c4a55ed`) the three folders in `lint/shard-layout.json` and SHARDS.md; `check-chunks` refuses generator code in any chunk; `scripts/shard-platform.mjs` prints each shard's custom share against `lint/shard-platform.json` (baselines at `b96fed1a1`, every shard 100 % today: nothing is sorted yet) and `test/shard-platform.test.ts` holds the ceilings; a shard's ceiling is enforced from its conversion row on. Part 2 (`94c4a55ed`): `wildshard/no-runtime-generator` (hard in `.oxlintrc.json`: only generators import a `generators/` module, template specifiers included), `sim-no-render` over `src/shards/*/data/` (`SHARD_SIM_DIRS`; 0 sites, no shard has one yet), and `scripts/vercel-tree-gate.sh` prints the share table. The kit's and the shards' other simulation folders join when P2 creates them | M |
 
-### F0 — Honest foundations
+
+#### F0 — Honest foundations, and memory measured first
 
 | Row | Lane | What | Done when | Size |
 |---|---|---|---|---|
@@ -218,9 +222,9 @@ further when it starts if it can.
 | SF4c | X | **Snapshot → restore → replay** (same engine): the snapshot holds entity state, timers and pending events, RNG streams, physics state, script memory and globals, quest state and the ledger's dedupe record; restore into a fresh host mid-encounter and replay the suffix (A6) | The template, snapshotted during its boss fight, replays the suffix to the same hash in Node | M |
 | SF4d | — | ~~Motor cross-engine hash~~ **dropped** (Jake, 2026-10-04: identical results everywhere only for scripts; same-engine Node replay for everything else) | — | — |
 | SF6 | X | **The two measures** (§1) and the booleans in `scripts/shard-platform.mjs` and the push gate; today's metric renamed "legacy TS" (A4, B5, B15, B16, C20) | Fixtures: moving code to the kit doesn't raise the share; padding generated output doesn't; AS files count public | M |
-| SF22a | O | **Measure before designing the format** (C31): the empty template's engine base on the iOS Simulator, and a synthetic 2 × 2 rig of tiles at §3.2's caps, no shardfile needed | §3.2's engine base and caps are confirmed or revised in this plan before SF7a freezes them | M |
+| SF22a | O | **Measure before designing the format** (C31): the empty template's engine base on the iOS Simulator, and a synthetic 2 × 2 rig of tiles at §3.2's caps, no shardfile needed | §3.2's engine base and caps are confirmed or revised in this plan before SF7a freezes them | M (starts first, alongside SF0) |
 
-### F1 — The shardfile → **M1 the package**
+#### F1 — The shardfile → **M1 the package**
 
 | Row | Lane | What | Done when | Size |
 |---|---|---|---|---|
@@ -245,9 +249,9 @@ further when it starts if it can.
 | SF14 | X | **The ledger interface**: fact id = shard + revision + entity id + sim tick + ordinal, made by the host (C25); provenance; an allowed reward mapping (platform things only, G25); one atomic durable write with the dedupe record; a failed write retries and never grants twice (A11) | Replayed, reloaded and retried facts grant once; no shard code writes the profile | M |
 | SF15a | X | **The shardfile loader**: boots a shard from its shardfile with no trusted chunk; scope-owned; leak test; current and previous `SHARDFILE_VERSION` (§3.4); offline boot of a visited shardfile (B26) | `check-chunks` finds no template chunk; load → unload leaves nothing; the offline-reload gate passes | M |
 | SF15b | X | **The hybrid loader** for converted first-party shards: shardfile + its trusted `runtime/` chunk; placement read from the grid file (B6) | Driftwood boots as shardfile + runtime chunk with parity identical | M |
-| SF16 | X+O | **M1 proof.** The template (per §4.1) boots from its shardfile; headless in Node; snapshot → restore → replay passes; then a clean-room agent outside the repo builds the battery's shard (a door puzzle, one creature, a two-step quest, a reward) with only the tarball, no repo imports and no SDK patches during the trial; expected gaps pre-registered (no rigs beyond procedural, no UI kit, no audio system, B38); every surprise becomes a row. Opus judges the trial shard's look | All milestone booleans true for the template; the gap log committed | M |
+| SF16 | X+O | **M1 proof.** The template (per §4.1) boots from its shardfile with no trusted chunk; its sim steps headless in Node; snapshot → restore → replay passes; Opus judges the look against today's on a board. (The outside-author trial moved to the stretch goals, S19) | All the template's milestone booleans true | M |
 
-### 4.1 The template inventory (SF7d fills the gaps)
+#### 4.1 The template inventory (SF7d fills the gaps)
 
 | Trusted surface today | Replaced at M1 by |
 |---|---|
@@ -261,13 +265,12 @@ further when it starts if it can.
 | Quest install with closures | SF12 |
 | Bag fragments, HUD widgets | SF7e + SF7f |
 
-### F2 — The singleplayer grid → **M2 the crossroads**
+#### F2 — The 3 × 3 grid, loading and seamless travel → **M2 the grid**
 
 | Row | Lane | What | Done when | Size |
 |---|---|---|---|---|
 | SF17a | X | **The grid file and assembly** (§3.3): signed coordinates, the 3 × 3 layout, the empty-neighbour profile, render origin per cell | The grid assembles from `singleplayer.json` with placeholder cells | M |
 | SF17b | O | **Highway deck and seams**: the engine-owned deck; no-man's land generated from both neighbours' edge profiles, four-way at crossroads (G37) | At every seam the height step ≤ 2 cm and ground colour ΔE ≤ 3; a portrait board of each crossroads | L |
-| SF17c | O | **Signposts**: shard name and author (rating later) | Each edge entry has a signpost | S |
 | SF18a | X | **Sim residency per shard**: a shard's whole sim (colliders, heightfield, entities, scripts) loads in a fixed order when the player nears it, in its own local frame with a physics world per active shard; the highway is its own space; neighbours stay frozen and visible (C4, C5, C14, A14) | The template at cell (1, 0) hashes the same as at (0, 0); an opened door and a hurt creature survive unload → reload | L |
 | SF18b | O | **Render streaming**: rings (L0 to 150 m + a lookahead, L1 to 400 m, far proxies in bounded rings), parent-first refinement, decoding in workers, one residency allocator (A18) | Driving the grid never shows a hole; resident memory stays in the envelope | L |
 | SF18c | X | **The tile cache**: content-addressed Cache Storage with a quota policy (C35) | A second drive downloads nothing; offline replay works | M |
@@ -275,48 +278,29 @@ further when it starts if it can.
 | SF19a | O | **One frame**: the camera owns sun, sky, fog and exposure under one world clock; per-shard time overrides blend across edge bands; a shard-id buffer picks each pixel's grade; a neutral highway look | Four looks read as one view at a crossroads (board) | L |
 | SF19b | O | **Each shard's look under one frame**: the old full-screen look stays as a Debug variant (and stays live in explore mode); a portrait board per changed look goes to Jake | Jake's pick per shard; losing variants deleted in the pick commit | M |
 | SF20a | X | **Seamless crossing**: no page reload between shards (replaces `travel.ts`); platform things travel, shard items stay in their shard's save, a held shard weapon is stowed at the border (G25, B23) | Crossing has no hitch and loses nothing; the old handoff is deleted | M |
-| SF20b | O | **The highway car**: a minimal platform car on the highway deck only, 30 m/s, with its HUD control announced over herdr and picked by Jake (E332, C17) | A car drives the highway at 30 m/s on the phone tier | M |
-| SF20c | X+O | **Auto-path** along the highway to a shard's edge entry; its HUD control goes over herdr and to Jake | Auto-path reaches every edge entry | M |
-| SF20d | X | **Speed and border rules**: hoverboard and horse ~15 m/s inside shards (HOVER_TOP is 14 today); an author may lower it; creatures stay home; no cross-border combat; the highway is safe; a vehicle crosses with its passengers as one unit; neighbours visible, read-only (W7g) | One test per rule | S |
-| SF21a | O | **The grid's modes** (§3.3): the grid behind a Debug row (default off), dev mode's five + four, DEVSERVER's Nine Dragon cell and explore mode, the boot path (title → spawn cell), hidden shards' saves kept | Each surface reachable as specified; saves of hidden shards intact | M |
-| SF21b | O | **Flip the default to the grid** after SF22's physical reading | The shipped game opens on the grid | S |
-| SF22 | O | **The crossroads gates**: the SF22a rig plus the grid's real crossroads at 2× render scale, a scripted 30 m/s drive through 5 Mbit/s with 3–10 s stalls; the Simulator first, then one physical-iPhone reading by Jake | ≤ 0.85 GB peak; 95 % of frames ≤ 33.3 ms; no holes or falls; no shader compile at the first crossroads; no tab kill in three runs | M |
+| SF20d | X | **Speed and border rules**: hoverboard and horse ~15 m/s inside shards (HOVER_TOP is 14 today); an author may lower it; creatures stay home; no cross-border combat; the highway is safe; a mount crosses with its rider as one unit; neighbours visible, read-only (W7g) | One test per rule | S |
+| SF21a | O | **The main menu: two entries** (G58): **Select a shard** (today's shard selection, one shard at a time, unchanged) and **EXPERIMENTAL Wildshard** (the 3 × 3 seamless grid). If the grid crashes or runs out of memory on the phone, Select a shard still works and is the way back. Dev mode adds Signal Dunes and Sky Reach to the grid (applied at the next grid start); DEVSERVER adds Nine Dragon and explore mode | Both entries reachable from the title; a forced grid failure returns to the title with Select a shard working; saves of every shard intact | M |
+| SF22 | O | **The crossroads gates**: the SF22a rig plus the grid's real crossroads at 2× render scale, a scripted 30 m/s drive through 5 Mbit/s with 3–10 s stalls; the Simulator first, then one physical-iPhone reading by Jake; the grid stays behind the EXPERIMENTAL entry either way | ≤ 0.85 GB peak; 95 % of frames ≤ 33.3 ms; no holes or falls; no shader compile at the first crossroads; no tab kill in three runs | M |
 | SF23 | O | **The far view** in bounded rings: a baked low-poly proxy per shard; impostors beyond ~2.5 km (B28) | Every shard within the rings is visible; boot residency doesn't grow with the grid | M |
 
+#### Systems the seven shards use today (pulled by their conversion rows)
 
-### L — Platform systems lane (from M1; each pulled by its first consumer, C18)
-
-| Row | Lane | System | First consumer | Done when | Size |
+| Row | Lane | System | Used today by | Done when | Size |
 |---|---|---|---|---|---|
-| SF24 | X | The **shard director** and typed events; grid-event subscriptions in the API from day one (G9, G36) | The template's finale | The finale runs from a director script | M |
-| SF25 | X | **Client scripts**: presentation only, a read-only view of declared state (G10) | Driftwood's ambient life | A client script drives particles; a fixture proves it can't write shared state | M |
-| SF26 | O | **Standard rigs** (humanoid, quadruped, bird, serpent, insect), the shared clip library, **the commons v0** cached across shards (G6, G8); ANIMATION-REMASTER is told | The template's creatures | The grey blob and boar run on a commons quadruped; a commons asset downloads once for two shards | L |
-| SF27 | X | **Brains**: the archetype set, boss phase tables, custom AssemblyScript brains over SF11b's host queries (G12) | Pine Hollow's Antler King | The King runs as an AS brain; its fight passes its parity scene | L |
-| SF28 | O | **The UI kit** (dialogs, shop, quest panels, counters, markers, timers, scoreboards in platform slots), then the sandboxed panel canvas; HUD over herdr and Jake (E332) (G22) | Nalati's shop | The shop is a declared panel; no shard DOM | L |
-| SF29 | X | **Adaptive audio**: spatial audio, reverb and ambience zones, director-driven music stems (G24) | Driftwood | Driftwood's score follows its director state | M |
-| SF30 | X | **Physics toys and vehicles**: ropes, boats, carts, gliders, ragdolls, destructibles; phone-cheap (G21) | Sky Reach's bridges and winch | Sky Reach's movers run on toys; physics baseline 0 stuck | L |
-| SF31 | X+O | **Crowds**: hundreds of creatures or NPCs with LOD AI and animation (G21) | Nalati's herds | 200 herd animals hold the frame budget on the phone tier | L |
-| SF32 | O+X | **Interiors and verticality**: stacked spaces with streaming and occlusion (G21) | Nine Dragon's stack | Nine Dragon's strata stream and cull | L |
-| SF33 | X | **Persistence**: per-player progress and declared shared state with reset rules; additive schemas, author migrations tested on saves (G7, G18) | Driftwood's shared state | A schema change with a migration keeps a real save | M |
-| SF34 | X+O | **Platform player modes**: glide, swim, climb, drive, grapple, ride; later author modes in AS (G3, G14) | Sky Reach glide, Nalati ride, Nine Dragon grapple | Each consumer's mode runs from the SDK | L |
-| SF35 | O | **Material graphs** (stage 2), then **restricted shader code** (stage 3), per renderer (G4, G32) | Signal Dunes' sand ripple, Nine Dragon's facades | Both compile from graphs within a cost cap | L |
-| SF36 | X | **Items** in full: weapon families, signature items (stats + behaviour) and cosmetic skins, format only (G13) | Nalati's four weapons | Nalati's weapons are rows + scripts | M |
-| SF37 | O | **The WebGPU spike** continues, default-off behind a Debug row (G32, old SP32, B1) | The template | Measured against WebGL on the desktop and Simulator lanes | M |
+| SF24 | X | The **shard director** and typed events (G9); grid-event subscriptions reserved in the API (G36) | The template's finale; Nalati's and Pine Hollow's shard-wide events | Each consumer's events run from a director script | M |
+| SF25 | X | **Client scripts**: presentation only, a read-only view of declared state (G10) | Driftwood's ambient life, every shard's particles | A client script drives particles; a fixture proves it can't write shared state | M |
+| SF26 | X+O | **The commons v0**: the kit content the shards share today (props, species, sounds) shipped once and cached across shards, referenced with `commons:` (G6) | Every shard using kit content | A commons asset downloads once for two shards; memory at a crossroads counts it once | M |
+| SF27 | X | **Brains**: the archetypes the shards use today, boss phase tables, custom AssemblyScript brains over the host queries (G12) | Every shard's creatures; Pine Hollow's Antler King | Each shard's creatures run on platform or AS brains (unique bosses may stay in `runtime/`) | L |
+| SF28 | O | **The UI kit** for what shards show today (markers, toasts, quest panels, the trader and shop panels, counters) in platform slots; HUD changes over herdr (E332) (G22) | Pine Hollow's trader, Nalati's camps, the template's markers | No shard builds DOM; each panel is declared | L |
+| SF29 | X | **Audio as data**: the cue maps, ambience zones and scores the shards use today (G24) | Every shard | Each shard's audio comes from its shardfile | M |
+| SF30 | X | **Movers and toys the shards use today**: Sky Reach's winch and bridges, Nine Dragon's movers, rope bridges, sails (G21) | Sky Reach, Nine Dragon, Driftwood | Their movers run from data + scripts; physics baseline 0 stuck | L |
+| SF33 | X | **Saves in the format**: per-player progress, declared shared-state fields, additive schemas and author migrations tested on real saves (G18, C26) | Every conversion | A conversion keeps a current save of its shard | M |
+| SF34 | X+O | **The player modes used today** as platform modes: hover (the hoverboard), ride (Nalati's horse), grapple (Nine Dragon's Fei Zhua) (G3) | Nalati, Nine Dragon, Sky Reach | Each runs from the SDK | L |
+| SF36 | X | **Items**: the weapons and tools the shards use today as rows over kit families with AS hooks (the whip, the war fan, the Lever Rifle, Nalati's four); signature-item and skin fields reserved (G13) | Every shard's loadout | Every shard weapon is a row + script or sits in `runtime/` | M |
+| SF38 | O | **The points budget overlay** in `wildshard dev` and the dev build: one cost score per tile and shard, green / amber / red, raw numbers one tap away (G30) | Every conversion (memory) | The overlay shows each shard's and the crossroads' cost | M |
+| SF45 | X | **`docs/SHARDFILE.md` and the SDK docs** from the schemas (A1) | Every conversion | Every schema field and ABI call documented | M |
 
-### SDK + UX lane (from M1)
-
-| Row | Lane | What | Done when | Size |
-|---|---|---|---|---|
-| SF38 | X+O | `wildshard dev` **phone QR** (the author's phone joins over the LAN) and the **points budget overlay** (G2, G30; Opus does the overlay UI) | Scanning the QR plays the build on a phone; the overlay shows one score per tile and shard | M |
-| SF39 | X | The **Vercel preview**: one command deploys the static client + the shardfile to the author's own Vercel account (G2) | A preview URL serves the trial shard | S |
-| SF40 | X | **Bot playtests** at validate: every edge entry walked, every quest objective reached, no stuck spots or falls, within budget on the phone tier (G16) | Each check has a failing fixture | M |
-| SF41 | X+O | **The AI playtester**: `wildshard playtest` sends Opus 5.5 through the real client at phone size; judged by Clef locally when present (Apple Silicon, ~7 GB) or Opus alone (Jev is the hosted text-only decision model, E394) (G31, B32) | A playtest writes notes, screenshots and a clip for the template | M |
-| SF42 | X | **Starters**: `npm create wildshard` with three starter shards (adventure, arena, puzzle) (G15) | Each starter builds, validates and passes bot playtests | M |
-| SF43 | X | **`/wildshard-quickstart`** skill: a playable shard in about five minutes (G47) | A fresh agent gets a playable shard from the skill alone | S |
-| SF44 | X | **`wildshard upgrade`**: codemods + re-run playtests across a `SHARDFILE_VERSION` bump (G29) | A v0 project upgrades to v1 and passes | M |
-| SF45 | X | **SDK docs** from the schemas (A1) | Every schema field and ABI call documented | M |
-
-### C — Conversion lane (from M1): all seven to 80/20 (G49)
+#### C — The seven shards ported → **M3** (from M1; all seven to 80/20, G49)
 
 Every conversion row: grid-ready first, then behaviour into AS or `runtime/`; a **save migration** tested on a current
 save of that shard (C26); the legacy plugin path stays as a Debug variant until Jake picks, the measures count only the
@@ -328,35 +312,70 @@ ledger) pass on whatever it claims (A15).
 | SF46 | X+O | Driftwood Isle (grid centre) | Four edge entries (pier / sandbar roads) walked by validate and `driftwood-isle` removed from `edge-exemptions.json` (B10, C9); a board to Jake for the level change; DRIFTWOOD-REMASTER-V2's V-B1 Blender pass is still open, so bake through SF9 or after it (B29) | L |
 | SF47 | X+O | Pine Hollow | Starts with a `gpuTrace` breakdown of its 587 MB; targets from §3.2 (library ≤ 25 MB, tiles in caps), work ordered by MB saved (C21) | L |
 | SF48 | X+O | Nalati Grasslands | Riding (SF34), two bosses (the Golden King, the Storm Titan; B42), four weapons (SF36); its painterly look under one frame (SF19b) | L |
-| SF49 | X+O | Sky Reach (`far-reach`) | Its edges get entries or a seam treatment; `far-reach` leaves `edge-exemptions.json`; glide (SF34), toys (SF30) | L |
-| SF50 | X+O | Signal Dunes (`sunscar-dunes`) | Sky and sand shaders onto families, then graphs (SF35); the bullwhip onto items | L |
-| SF51 | X+O | Nine Dragon Stack (DEVSERVER only) | Strata on SF32; neon look and arm rig checked against SF19 and SF26; grapple on SF34 | L |
+| SF49 | X+O | Sky Reach (`far-reach`) | Its edges get entries or a seam treatment; `far-reach` leaves `edge-exemptions.json`; hover bridges (SF34), movers (SF30) | L |
+| SF50 | X+O | Signal Dunes (`sunscar-dunes`) | Sky and sand shaders onto families, or into `runtime/` until the graphs stretch goal (S5); the bullwhip onto items | L |
+| SF51 | X+O | Nine Dragon Stack (DEVSERVER only) | Its strata as they work today (interiors culling is the stretch goal S2); neon look checked against SF19; grapple on SF34 | L |
 | SF52 | X | The template | Done at M1 (SF16): the reference shard, no `runtime/` | — |
 | SF53 | — | Thin Ice | Its own plans; only its `runtime/` ceiling is measured here (T4, G47) | — |
 
-This plan **archives at 80/20** for all seven; 90/10 and 100/0 are its successors (C38).
+Part A ends at 80/20 for all seven; 90/10 and 100/0 are successor plans (C38).
+
+### Part B — stretch goals
+
+Jake (G57): *"Stretch goals at the bottom like "crodws of hundreds of creatures", "interiors", "physics toys", "ai playtesters", "one lcick vercel preview". Basically anything in the plan that's being built that is not being used in the 6 shards today, goes to the bottom of the plan as stretch goals."* Each starts only after Part A, or earlier when a shard's port needs it. Their decisions in §10 stand; done-whens are written when one starts.
+
+| Row | Was | What |
+|---|---|---|
+| S1 | SF31 | **Crowds**: hundreds of creatures or NPCs with LOD AI and animation |
+| S2 | SF32 | **Interiors and verticality**: stacked spaces with streaming and occlusion culling |
+| S3 | SF30, SF20b, SF20c | **New physics toys and vehicles**: boats, carts, gliders, ragdolls, destructibles; the **highway car** (30 m/s, its HUD control over herdr and to Jake) and **auto-path** along the highway (G33, G39, G40) |
+| S4 | SF34 | **New player modes** (swim, climb, drive) and **author movement modes** in AssemblyScript (G14) |
+| S5 | SF35 | **Material graphs**, then **restricted shader code**, compiled per renderer (G4 stages 2–3) |
+| S6 | SF37 | **The WebGPU spike**, default-off behind a Debug row (G32) |
+| S7 | SF26 | **Standard rigs** (humanoid, quadruped, bird, serpent, insect) and a shared clip library (G8) |
+| S8 | SF29 | **Adaptive music**: director-driven stems, reverb zones (G24) |
+| S9 | SF28 | **The sandboxed UI panel canvas** for minigames (G22) |
+| S10 | SF33 | **Shared world state with reset rules**, and later **player building** after three building shards (G7) |
+| S11 | SF17c | **Signposts** on the highway: shard name, author, rating (G35) |
+| S12 | SF38 | **The phone QR** in `wildshard dev` (G2) |
+| S13 | SF39 | **The one-click Vercel preview** (G2) |
+| S14 | SF40 | **Bot playtests** at validate: every quest objective reached, no stuck spots (G16) |
+| S15 | SF41 | **The AI playtester** with Clef / Jev (G31) |
+| S16 | SF42 | **Starters**: `npm create wildshard` with three starter shards (G15) |
+| S17 | SF43 | **`/wildshard-quickstart`** (G47) |
+| S18 | SF44 | **`wildshard upgrade`** and a version window past "rebuild every build" (G29) |
+| S19 | SF16 | **The outside-author trial**: a clean-room agent builds the battery shard from the SDK tarball alone (A6) |
+| S20 | — | **Grid-wide events** through the director's reserved subscriptions (G36) |
 
 ## 5. Order and why
 
-1. **F0**: SF1a → SF1b → (SF1c, SF1d, SF1e, SF2) in parallel; SF3a → SF3b → SF3c; SF4a after SF3b; SF5a → SF5b → SF5c
-   → SF4c; SF6 after SF1a; **SF22a** alongside, on the Opus lane.
-2. **F1**: SF7a (after SF22a's numbers) → SF7b → (SF7c, SF7d, SF7e, SF7f, SF8a, SF8b, SF9a, SF10a, SF11a, SF12, SF13,
-   SF14) in parallel → (SF9b, SF10b, SF11b → SF11c, SF15a, SF15b, SF8c) → SF16. **M1** = SF16 passing.
-3. After M1, lanes in parallel: **F2** (SF17a → SF17b, SF17c; SF18a → SF18b, SF18c, SF18d; SF19a → SF19b; SF20a–d;
-   SF21a; SF23; then SF22 → SF21b); **L** (each row when its consumer pulls it); **SDK**; **C** (Driftwood first, then
-   Pine Hollow and Nalati so the grid's shipped cells are grid-ready, then Sky Reach, Signal Dunes, Nine Dragon).
-4. **M2** = SF22 passing on the real grid and SF21b flipping the default. The format freezes after M2 and the first
-   three conversions.
+1. **Now, alongside the council:** SF22a (memory: the empty template's engine base and a synthetic four-corner rig on the
+   Simulator; Jake: memory is a huge problem) and SF0 (the frame-floor baseline). Their numbers set §3.2's caps before
+   SF7a freezes them.
+2. **F0**: SF1a → SF1b → (SF1c, SF1d, SF1e, SF2) in parallel; SF3a → SF3b → SF3c; SF4a after SF3b; SF5a → SF5b → SF5c →
+   SF4c; SF6 after SF1a.
+3. **F1**: SF7a → SF7b → (SF7c–SF7f, SF8a, SF8b, SF9a, SF10a, SF11a, SF12, SF13, SF14) in parallel → (SF9b, SF10b,
+   SF11b → SF11c, SF15a, SF15b, SF8c) → SF16. **M1** = SF16 passing.
+4. After M1, in parallel: **F2** (SF17a → SF17b; SF18a → SF18b, SF18c, SF18d; SF19a → SF19b; SF20a, SF20d; SF21a; SF23;
+   then SF22) and **the conversions** (Driftwood first, then Pine Hollow and Nalati, then Sky Reach, Signal Dunes, Nine
+   Dragon), each pulling the systems it uses from the "used today" table. **M2** = the 3 × 3 grid playable from
+   EXPERIMENTAL Wildshard with seamless travel and SF22's gates passed. **M3** = all seven at 80/20 by both measures.
+5. **Part B** after M3, or a single stretch goal earlier when a shard's port needs it.
 
 ## 6. Done when
 
-- **M1:** every milestone boolean true for the template; the outside author's gap log committed and each gap a row.
-- **M2:** the shipped game opens on the 3 × 3 grid; travel is seamless; the crossroads gates passed on the phone.
-- All seven shards at **80/20 by both measures**, grid-ready, with their compatibility checks green (transitional
+Part A (this plan's goal):
+- **M1:** every milestone boolean true for the template.
+- **M2:** the 3 × 3 grid plays from EXPERIMENTAL Wildshard with seamless travel; SF22's gates passed on the Simulator and
+  one physical-iPhone reading; Select a shard still works and is the way back.
+- **M3:** all seven shards at **80/20 by both measures**, grid-ready, with their compatibility checks green (transitional
   runtime listed per shard).
-- Every L and SDK row landed with its consumer and its done-when.
+- Every "used today" system row landed with its consumer.
 - **The frame floor held throughout** (§9.4).
 - `docs/SHARDFILE.md`, SHARDS.md and ENGINE.md describe the format, the systems and the ABI.
+
+Part B rows are done one by one when they start; the plan archives when Part A is done and Part B's open rows move to a
+successor plan.
 
 ## 7. Touches other plans
 
@@ -372,7 +391,7 @@ This plan **archives at 80/20** for all seven; 90/10 and 100/0 are its successor
 - **NATIVE-APPS**: the shells need the shardfile loader and the save scopes (SF15a).
 - **DRIFTWOOD-REMASTER-V2, SIGNAL-DUNES, SKY-REACH**: conversion waits for those agents to be idle.
 - **DEPLOYMENT_ASSET_TRIM**: tiles change the pack layout; its offline-reload gate holds (SF15a).
-- **HUD (E332)**: SF20b, SF20c, SF28 and any HUD change go over herdr and to Jake.
+- **HUD (E332)**: SF28, S3 (the car and auto-path) and any HUD change go over herdr and to Jake.
 
 ## 8. Jake's picks before the grill (2026-10-03)
 
@@ -389,7 +408,7 @@ This plan **archives at 80/20** for all seven; 90/10 and 100/0 are its successor
 
 Jake, 2026-10-04: *"Finish the plan … Run the 8 council rounds as discussed … Autonomously build the plan to completion
 … At all moments the game must be at 60-120 fps on desktop/laptop and at 30-60 fps on iOS simulator. I'm going to bed,
-you are in charge. No ask user tools, only autonomous planning & building."* The other agents are paused (Jake: *"they
+you are in charge. No ask user tools, only autonomous planning & building."* (The council was later cut to four rounds, G59.) The other agents are paused (Jake: *"they
 are paused this is more important"*).
 
 ### 9.1 The coordinator and the two kinds of agent (G52)
@@ -439,12 +458,13 @@ Jake: *"At all moments the game must be at 60-120 fps on desktop/laptop and at 3
   floor before it merges; a miss blocks the merge. Engine-only and tooling rows run it every few merges.
 - A risky render or memory change still ships default-off behind a Debug row until a reading backs it (RENDERING.md).
 
-### 9.5 Councils (G44, G56)
+### 9.5 Councils (G59)
 
-**Eight council rounds** (Jake, 2026-10-04: "Run the 8 council rounds as discussed"; COUNCIL.md's cap is lifted for this
-plan). Files in `docs/plans/shard-platform/reviews/`. Round 1 reviewed everything; from round 2 a seat reviews the diff
-since the last round plus the battery. F0 rows that the council has stopped changing may start while later rounds run;
-any row a round changes is re-briefed. Two clean rounds in a row end the council early.
+**Four council rounds** (Jake, 2026-10-04: "I've also been told that 4 round council approach is better then 8 rounds";
+COUNCIL.md's normal cap). Round 1 reviewed everything; rounds 2–4 review the diff since the last round plus the battery,
+with two Codex seats and one Claude seat. SF22a, SF0 and the F0 rows the council has stopped changing may start while
+rounds 2–4 run; a row a round changes is re-briefed. After round 4, whatever is still open is decided by the coordinator
+with a recorded reason (Jake set no questions for the night, G56) and listed for his review.
 
 ### 9.6 Every merge
 
@@ -519,18 +539,21 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G54 | Budget | `openusage` before every dispatch; the bulk to Codex; pause a lane near its limit; never spend Codex credits or rate-limit resets; both plans may be used up to 100 % (§9.3) |
 | G55 | The frame floor | *"At all moments the game must be at 60-120 fps on desktop/laptop and at 30-60 fps on iOS simulator"* (§9.4, SF0) |
 | G56 | Councils and autonomy | *"Run the 8 council rounds as discussed … Autonomously build the plan to completion … No ask user tools, only autonomous planning & building."* (§9.5) |
+| G57 | Two parts | **Part A, the core, then Part B, stretch goals** (Jake: *"Can we re-order the milestones and work in the plan in two big segments - What we need for shardfiles, porting the shard implementations over to the data representation, the sdk, the json files, etc etc etc. - Stretch goals at the bottom … Basically anything in the plan that's being built that is not being used in the 6 shards today, goes to the bottom of the plan as stretch goals, we want to get the 6 shards ported over to the shardfile format first, we want to render the 3x3 grid first, we want to figure out the traversal and loading and seamless travel first."*) |
+| G58 | The main menu | **Two entries**: Select a shard (today's flow) and EXPERIMENTAL Wildshard (the grid), so a memory crash on the grid always has a way back (§3.3). Jake on memory: *"memory is a huge problem"*; SF22a measures it first |
+| G59 | Council length | **Four rounds** (Jake: *"I've also been told that 4 round council approach is better then 8 rounds."*); replaces G44's six and G56's eight |
 
 ## Handoff (shard-platform)
 
 Written 2026-10-04 by the shard-platform coordinator, after council round 1 (asks E431, E433, E435; E436 for repo
-weight). Jake is asleep; he set the goal: finish the plan, run 8 council rounds, build it to completion, keep the frame
-floor, no questions to him (G56).
+weight). Jake is asleep; he set the goal: finish the plan, run the council (four rounds, G59), build it, keep the frame floor,
+no questions to him (G56); Part A first, stretch goals after (G57).
 
 **Read first:** §0, §3 and §9 of this plan; §10 (G1–G56); the register in `shard-platform/reviews/`; the
 [Wildshard MMO Review](../reviews/wildshard-mmo-review.md); MMO-REQUIREMENTS decisions 1–20.
 
-**Next, in order:** council rounds 2–8 (two Codex seats + one Claude seat, §9.5); SF0 (the frame-floor baseline) and the
-stable F0 rows start on Codex panes while later rounds run; then F1 → M1, then the lanes (§5).
+**Next, in order:** council rounds 2–4 (§9.5); SF22a (memory) and SF0 (the frame floor) now; then F0 → F1 (M1) → F2 and
+the conversions (M2, M3) → Part B (§5).
 
 **Lessons:** run the vercel gate before pushing code; imports name the defining module (E434, no barrels); a guard with
 zero targets proves nothing; numbers in a plan come from a committed script.
