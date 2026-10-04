@@ -1,10 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Use shipped native physics and admitted immutable template assets.
 import { readFileSync } from 'node:fs';
 import { expect, it, vi } from 'vitest';
+import * as v from 'valibot';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import { SaveStore } from '../src/engine/saves/store';
+import { fnv1a32 } from '../src/engine/core/rng';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { ReadinessWalls, type ReadinessEdge } from '../src/engine/physics/readinessWalls';
 import { createSimHost } from '../src/engine/sim';
@@ -167,7 +169,13 @@ it('admits an old-revision region through its logical companion before exposing 
     const snapshot = snapshotSimHost(previous.host); expect(old.checkpoint(snapshot)).toBe(true);
     const key = `wildshard.save.v2.${target.instance}`, bytes = local.getItem(key);
     if (bytes === null) throw new Error('Missing old regional save');
-    local.setItem(key, bytes.replace(JSON.stringify(serializeSimSnapshot(snapshot, basis)), JSON.stringify('old engine unavailable')));
+    const document = v.parse(v.looseObject({ keys: v.record(v.string(), v.looseObject({ data: v.unknown() })) }), JSON.parse(bytes));
+    const slot = document.keys['platform.region']; if (slot === undefined) throw new Error('Missing old regional continuation');
+    const region = v.parse(v.looseObject({ revision: v.number(), snapshot: v.string(), logical: v.unknown(), mode: v.string(), integrity: v.number() }), slot.data);
+    expect(region.snapshot).toBe(serializeSimSnapshot(snapshot, basis));
+    region.snapshot = 'old engine unavailable';
+    region.integrity = fnv1a32(JSON.stringify({ revision: region.revision, snapshot: region.snapshot, logical: region.logical, mode: region.mode }));
+    slot.data = region; local.setItem(key, JSON.stringify(document)); // genuine sealed old-engine checkpoint, not damaged bytes
   } finally { previous.dispose(); }
   const pageHost = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   const restoreGlobals = browserEvents();
