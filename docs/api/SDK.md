@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-18 members; 0 without a doc line (—).
+19 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -21,6 +21,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `projectAssets` | function | @wildshard/sdk/project | Read content-addressed source assets inside the project's assets and commons directories. |
 | `readProject` | function | @wildshard/sdk/project | Compile a trusted local TypeScript config; only its serialisable default export enters the product. |
 | `validateProject` | function | @wildshard/sdk/project | Validate graph closure costs, actual assets and the worst resident disc before writing a product. |
+| `assertStateCompatibility` | function | @wildshard/sdk/shardfile | Refuse saved-state identity changes between two validated revisions of the same shard. |
 | `parseShardfile` | function | @wildshard/sdk/shardfile | Parse untrusted author output using the same contract as the client. |
 | `Shardfile` | type | @wildshard/sdk/shardfile | Author-facing serialisable renderer-neutral shardfile contract. |
 | `shardfileRules` | function | @wildshard/sdk/shardfile | Inspect semantic author errors using the client contract. |

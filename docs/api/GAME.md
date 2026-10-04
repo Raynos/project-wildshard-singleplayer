@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-231 members; 112 without a doc line (—).
+232 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -211,6 +211,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `installShardfileSource` | function | @wildshard/game/shardfile/loader | Select a validated external source before the normal session starts. |
 | `loadShardfile` | function | @wildshard/game/shardfile/loader | Load through an installed engine driver; the ordinary unloadLevel owns every resource. |
 | `shardfileLevelSpec` | function | @wildshard/game/shardfile/loader | Project an empty shardfile into the same engine spec consumed by legacy sources. |
+| `assertStateCompatibility` | function | @wildshard/game/shardfile/revision | Preserve saved field identities across validated author revisions; declaration ordering is immaterial. |
 | `LOOK_LUT_BYTES` | const | @wildshard/game/shardfile/schema | A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). |
 | `parseShardfile` | function | @wildshard/game/shardfile/schema | Parse untrusted JSON as a validated shardfile, or throw a Valibot error. |
 | `Shardfile` | type | @wildshard/game/shardfile/schema | A serialisable shardfile v0, independent of renderer and placement. |

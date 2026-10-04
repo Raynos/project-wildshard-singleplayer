@@ -8,7 +8,8 @@ import { createHash } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import { build } from 'vite';
 import { CONTENT_CAPS as C } from '@wildshard/engine/core/config';
-import { admitScript } from '@wildshard/engine/script/admission';
+import { admitScript, type ScriptAdmission } from '@wildshard/engine/script/admission';
+import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 import { worstContentCost } from '@wildshard/game/shardfile/budget';
 import { parseShardfile, type Shardfile } from './shardfile';
 import { assetCost } from './assets';
@@ -46,19 +47,20 @@ export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint
     return { resident, compressed, triangles, draws };
   };
   let commons = 0;
+  const commonsCosts = new Map<string, ReturnType<typeof assetCost>>(), admissions = new Map<string, ScriptAdmission>();
   for (const hash of s.requires.commons) {
     const bytes = assets.get(`commons:${hash}`); if (bytes === undefined || contentHash(bytes) !== hash) throw new Error('unavailable commons asset');
     const kind = bytes[0] === 171 ? 'ktx2' : bytes[0] === 103 ? 'glb' : bytes[0] === 82 ? 'audio' : 'binary';
-    const cost = assetCost(kind, bytes); commons += cost.decoded + cost.gpu;
+    const cost = assetCost(kind, bytes); commons += cost.decoded + cost.gpu; commonsCosts.set(`commons:${hash}`, cost);
   }
   for (const f of s.files) {
     const bytes = assets.get(f.hash); if (bytes === undefined || bytes.length !== f.compressed || contentHash(bytes) !== f.hash) throw new Error('file hash or wire size mismatch');
     const actual = assetCost(f.kind, bytes);
-    if (f.kind === 'wasm') admitScript(bytes);
+    if (f.kind === 'wasm') admissions.set(f.hash, admitScript(bytes));
     if (actual.decoded > f.decoded || actual.gpu > f.gpu || actual.triangles > f.triangles || actual.draws > f.draws) throw new Error('asset cost declaration understated');
   }
   const library = closure(s.library);
-  if (s.sim.scripts.some((id) => files.get(id)?.kind !== 'wasm')) throw new Error('script reference is not an admitted Wasm file');
+  if (s.sim.scripts.some((id) => !id.startsWith('commons:') && files.get(id)?.kind !== 'wasm')) throw new Error('script reference is not an admitted Wasm file');
   for (const t of s.tiles) {
     const roots = closure(t.files);
     if (t.lod === 1 && [...roots].some((r) => library.has(r))) throw new Error('coarse dependency on library');
@@ -73,7 +75,25 @@ export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint
   for (const [roots, budget] of [[s.library, s.budgets.library], [s.critical, s.budgets.sim]] as const) {
     const cost = sum(roots); if (cost.resident > budget.resident || cost.compressed > budget.compressed) throw new Error('bundle dependency budget understated');
   }
-  if (sum(s.critical).compressed > C.sim.compressed || s.sim.scripts.some((r) => !closure(s.critical).has(r)) || [...closure(s.critical)].some((r) => library.has(r))) throw new Error('critical bundle cap, render-library dependency or script omitted');
+  const critical = closure(s.critical), criticalCost = sum(s.critical);
+  let criticalResident = criticalCost.resident, criticalWire = criticalCost.compressed;
+  for (const ref of critical) if (ref.startsWith('commons:')) {
+    const bytes = assets.get(ref), actual = commonsCosts.get(ref);
+    if (bytes === undefined || actual === undefined) throw new Error('unavailable critical commons');
+    criticalResident += actual.decoded + actual.gpu; criticalWire += bytes.length;
+  }
+  if (criticalWire > C.sim.compressed || criticalWire > s.budgets.sim.compressed || s.sim.scripts.some((r) => !critical.has(r)) || [...critical].some((r) => library.has(r))) throw new Error('critical bundle cap, declared wire budget, render-library dependency or script omitted');
+  let scriptMemory = 0;
+  for (const module of new Set(s.sim.scripts)) {
+    let admission = admissions.get(module);
+    if (admission === undefined) {
+      const bytes = assets.get(module); if (bytes === undefined) throw new Error('unavailable script');
+      admission = admitScript(bytes); admissions.set(module, admission);
+    }
+    // One guest per module: live, last-good and in-flight copies at the admitted growth ceiling.
+    scriptMemory += admission.maximumPages * 65536 * 3;
+  }
+  if (s.sim.scripts.length > SCRIPT_LIMITS.instances || scriptMemory > SCRIPT_LIMITS.memoryBytes || criticalResident + scriptMemory > s.budgets.sim.resident || criticalResident + scriptMemory > s.serverBudget.memory) throw new Error('script memory budget understated or above host cap');
   const cost = worstContentCost(s, commons);
   if (cost.playing > C.playing || cost.loading > C.loading) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
   return s;

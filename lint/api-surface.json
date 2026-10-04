@@ -12030,6 +12030,12 @@
         "from": "@wildshard/game/shardfile/loader"
       },
       {
+        "name": "assertStateCompatibility",
+        "kind": "function",
+        "doc": "Preserve saved field identities across validated author revisions; declaration ordering is immaterial.",
+        "from": "@wildshard/game/shardfile/revision"
+      },
+      {
         "name": "LOOK_LUT_BYTES",
         "kind": "const",
         "doc": "A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format).",
@@ -13586,6 +13592,12 @@
         "kind": "function",
         "doc": "Validate graph closure costs, actual assets and the worst resident disc before writing a product.",
         "from": "@wildshard/sdk/project"
+      },
+      {
+        "name": "assertStateCompatibility",
+        "kind": "function",
+        "doc": "Refuse saved-state identity changes between two validated revisions of the same shard.",
+        "from": "@wildshard/sdk/shardfile"
       },
       {
         "name": "parseShardfile",

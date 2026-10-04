@@ -8,8 +8,13 @@ import { execFileSync } from 'node:child_process';
 const root = resolve(import.meta.dirname, '..');
 process.chdir(root);
 execFileSync('node', ['scripts/gen.mjs'], { cwd: root, stdio: 'inherit' });
+const sdk = JSON.parse(readFileSync(resolve(root, 'src/sdk/package.json'), 'utf8'));
+const modules = Object.entries(sdk.exports).map(([specifier, target]) => {
+  if (!specifier.startsWith('./') || typeof target !== 'string' || !target.endsWith('.ts')) throw new Error('SDK workspace exports must name defining TypeScript modules');
+  return { name: specifier.slice(2), source: resolve(root, 'src/sdk', target), declaration: target.slice(2, -3) };
+});
 await build({ configFile: false, publicDir: false, logLevel: 'warn', build: { outDir: resolve(root, 'src/sdk/dist'), emptyOutDir: true, minify: false, lib: {
-  entry: Object.fromEntries(['version', 'shardfile', 'author', 'assets', 'project', 'cli'].map((name) => [name, resolve(root, `src/sdk/${name}.ts`)])), formats: ['es'], fileName: (_format, name) => `${name}.js`,
+  entry: Object.fromEntries([...modules.map(({ name, source }) => [name, source]), ['cli', resolve(root, 'src/sdk/cli.ts')]]), formats: ['es'], fileName: (_format, name) => `${name}.js`,
 }, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite'] } } });
 
 // Ship declarations without requiring the repository's internal workspace packages.
@@ -36,7 +41,7 @@ function declaration(layer, module) {
   }
   mkdirSync(resolve(output, '..'), { recursive: true }); writeFileSync(output, text);
 }
-for (const name of ['version', 'shardfile', 'author', 'assets', 'project']) declaration('sdk', name);
+for (const module of modules) declaration('sdk', module.declaration);
 
 // The prebuilt client is the normal Game bundle; the SDK only distributes it.
 await build({ root, configFile: resolve(root, 'vite.config.ts'), logLevel: 'warn', build: {

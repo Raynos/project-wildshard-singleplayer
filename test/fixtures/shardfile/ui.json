@@ -52,7 +52,8 @@
         "name": "lantern.oil",
         "type": "f64",
         "privacy": "owner",
-        "default": 1
+        "default": 1,
+        "id": 1
       }
     ]
   },

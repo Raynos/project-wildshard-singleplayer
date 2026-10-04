@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { SHARDFILE_VERSION } from './version';
 import { UiSchema, uiRules } from './ui';
+import { ScriptBindingsSchema, scriptBindingRules } from './scripts';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const positive = v.pipe(natural, v.minValue(1));
@@ -14,7 +15,7 @@ const channel = v.pipe(finite, v.minValue(0), v.maxValue(1));
 const colour = v.tuple([channel, channel, channel]);
 const bounds = v.pipe(v.strictObject({ min: vec3, max: vec3 }), v.check((b) => b.min.every((n, i) => n <= (b.max[i] ?? -Infinity)), 'ordered bounds'), v.check((b) => b.min[0] >= -CHUNK_HALF && b.max[0] <= CHUNK_HALF && b.min[2] >= -CHUNK_HALF && b.max[2] <= CHUNK_HALF && b.min[1] >= -CELL_BELOW && b.max[1] <= CELL_ABOVE, 'cell bounds'));
 const costs = { compressed: natural, decoded: natural, gpu: natural, triangles: natural, draws: natural };
-const field = v.strictObject({ name, type: v.picklist(['bool', 'i32', 'f64', 'string']), privacy: v.picklist(['public', 'owner', 'host']), default: v.union([v.boolean(), finite, v.string()]) });
+const field = v.strictObject({ id: v.pipe(positive, v.maxValue(0x7fffffff)), name, type: v.picklist(['bool', 'i32', 'f64', 'string']), privacy: v.picklist(['public', 'owner', 'host']), default: v.union([v.boolean(), finite, v.string()]), min: v.optional(finite), max: v.optional(finite) });
 const unsigned = v.pipe(finite, v.minValue(0));
 const key = v.strictObject({ time: channel, sky: v.strictObject({ zenith: colour, horizon: colour }), fog: v.strictObject({ colour, density: unsigned }), sun: v.strictObject({ colour, intensity: unsigned }), ambient: v.strictObject({ sky: colour, ground: colour, intensity: unsigned }) });
 const day = v.strictObject({ minutes: v.pipe(finite, v.minValue(1), v.maxValue(1440)), start: channel, maxElevation: v.pipe(finite, v.minValue(0), v.maxValue(90)), azimuth: v.pipe(finite, v.minValue(-180), v.maxValue(180)) });
@@ -29,7 +30,7 @@ const rawSchema = v.strictObject({
   requires: v.strictObject({ sdk: v.literal(0), capabilities: v.array(name), commons: v.array(hash) }),
   budgets: v.strictObject({ library: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.compressed)) }), sim: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.compressed)) }), overlap: v.pipe(natural, v.maxValue(CONTENT_CAPS.overlap)) }),
   look: v.strictObject({ families: v.array(name), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
-  sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: v.array(ref) }),
+  sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: v.array(ref), bindings: v.optional(ScriptBindingsSchema, []) }),
   state: v.strictObject({ version: positive, sharedOwner: v.literal('host'), playerKey: v.literal('actorId'), shared: v.array(field), player: v.array(field) }),
   authorCaps: v.strictObject({ players: v.pipe(positive, v.maxValue(32)), speed: v.pipe(finite, v.minValue(0), v.maxValue(15)) }),
   serverBudget: v.strictObject({ tickMicros: v.pipe(positive, v.maxValue(16_666)), memory: v.pipe(positive, v.maxValue(CONTENT_CAPS.sim.resident)), entities: v.pipe(natural, v.maxValue(10_000)), commandsPerTick: v.pipe(natural, v.maxValue(1024)) }),
@@ -61,6 +62,19 @@ export function shardfileRules(s: Shardfile): string[] {
     if (new Set(list.map((f) => f.name)).size !== list.length) errors.push('unique state fields');
     for (const f of list) if (f.type === 'bool' ? typeof f.default !== 'boolean' : f.type === 'string' ? typeof f.default !== 'string' : typeof f.default !== 'number' || (f.type === 'i32' && (!Number.isInteger(f.default) || f.default < -2147483648 || f.default > 2147483647))) errors.push('typed state default');
   }
+  const fields = [...s.state.shared, ...s.state.player];
+  if (new Set(fields.map((f) => f.id)).size !== fields.length) errors.push('unique stable state ids');
+  if (fields.filter((f) => f.type !== 'string').length > 24) errors.push('numeric script state capacity');
+  for (const f of fields) {
+    if (f.type === 'string') {
+      if (f.min !== undefined || f.max !== undefined) errors.push('numeric state bounds only');
+      continue;
+    }
+    const low = f.type === 'bool' ? 0 : f.type === 'i32' ? -2147483648 : -Number.MAX_VALUE;
+    const high = f.type === 'bool' ? 1 : f.type === 'i32' ? 2147483647 : Number.MAX_VALUE;
+    const min = f.min ?? low, max = f.max ?? high, value = typeof f.default === 'boolean' ? Number(f.default) : f.default;
+    if (min < low || max > high || min > max || (f.type !== 'f64' && (!Number.isInteger(min) || !Number.isInteger(max))) || typeof value !== 'number' || value < min || value > max) errors.push('typed state bounds');
+  }
   const lut = s.look.grade.lut === null || s.look.grade.lut.startsWith('commons:') ? null : files.get(s.look.grade.lut);
   if (lut !== undefined && lut !== null && (lut.kind !== 'binary' || lut.compressed !== LOOK_LUT_BYTES)) errors.push('look LUT is a 33³ RGBA8 binary file');
   if (s.look.keys.some((k, i) => i > 0 && k.time <= (s.look.keys[i - 1]?.time ?? Infinity))) errors.push('ordered day keys');
@@ -77,6 +91,9 @@ export function shardfileRules(s: Shardfile): string[] {
   if (s.far !== null && (s.far.decoded + s.far.gpu > CONTENT_CAPS.far.resident || s.far.compressed > CONTENT_CAPS.far.compressed || s.far.triangles > CONTENT_CAPS.far.triangles || s.far.draws > CONTENT_CAPS.far.draws)) errors.push('far caps');
   for (const f of s.files) if (f.critical !== s.critical.includes(f.hash)) errors.push('critical flags match roots');
   errors.push(...uiRules(s.ui, s.state));
+  errors.push(...scriptBindingRules(s.sim.bindings, s.sim.scripts));
+  if (new Set(s.sim.scripts).size !== s.sim.scripts.length) errors.push('unique script modules');
+  if (s.sim.scripts.some((module) => !module.startsWith('commons:') && files.get(module)?.kind !== 'wasm')) errors.push('script module is a Wasm file');
   return [...new Set(errors)];
 }
 /** Strict schema for the public SDK format; rejects unknown fields and invalid references. */

@@ -54,6 +54,26 @@ by time and wrap across midnight. `grade.lut` names a `binary` file of exactly 3
 `(b·33 + g)·33 + r`, display sRGB in and out), applied last in the grade. The fixture is
 `test/fixtures/shardfile/look/` (`shard.json` beside its LUT file, the product layout).
 
+State fields carry explicit stable positive `id` values (1–2³¹−1), unique across
+shared and player fields. IDs never come from declaration positions. The numeric
+script input supports at most 24 bool/i32/f64 fields; string fields stay outside
+that ABI. Optional finite `min`/`max` tighten the type bounds (bool 0–1, signed i32,
+finite f64); defaults must fit, and integer types require integer bounds. The
+public `assertStateCompatibility(previous, next)` checks two parsed revisions of
+the same shard: existing scope/name/id/type must remain, and old IDs cannot name
+another field. Declaration reordering and new fields are allowed. Outside authors
+must assign an ID to every pre-existing v0 field before rebuilding; an empty
+world has no fields to migrate. This is a provisional v0 refinement before freeze.
+
+`sim.bindings` optionally binds a declared script module to a positive entity ID,
+`server` or `entity` role, and a nullable host actor ID. Both roles may be actor-bound;
+the runtime checks actor provenance. Modules are unique in `sim.scripts` and must
+belong to the critical closure. Validation reserves three full maximum-sized
+memories per unique module (live, last-good, in-flight), including permitted growth,
+plus the critical assets. Multiple bindings share that module reservation. The
+result must fit both declared sim resident and server memory budgets and the host
+24 MB script pool. Critical commons bytes also count against the wire cap.
+
 Local references are file hashes; shared references are `commons:<hash>` and must be
 declared in `requires.commons`. Every local dependency resolves. The dependency graph
 is acyclic. A file's compressed bytes are its stored wire representation, decoded

@@ -36,6 +36,7 @@
     "./shard/registry": "./shard/registry.ts",
     "./shard/runtime": "./shard/runtime.ts",
     "./travel/travel": "./travel/travel.ts",
+    "./shardfile/revision": "./shardfile/revision.ts",
     "./shardfile/schema": "./shardfile/schema.ts",
     "./shardfile/version": "./shardfile/version.ts",
     "./shardfile/budget": "./shardfile/budget.ts",
