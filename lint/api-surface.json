@@ -7596,6 +7596,24 @@
         "from": "@wildshard/engine/saves/store"
       },
       {
+        "name": "InstanceSaveKeyDef",
+        "kind": "type",
+        "doc": "Instance binding accepts only shard-local definitions; profile/device/session retain their existing scopes.",
+        "from": "@wildshard/engine/saves/store"
+      },
+      {
+        "name": "InstanceSaveSlot",
+        "kind": "interface",
+        "doc": "A save slot bound to one durable instance, with no caller-supplied namespace on each operation.",
+        "from": "@wildshard/engine/saves/store"
+      },
+      {
+        "name": "SaveInstance",
+        "kind": "interface",
+        "doc": "Stable local-state identity; an explicit legacy namespace can be copied without depending on a grid cell.",
+        "from": "@wildshard/engine/saves/store"
+      },
+      {
         "name": "SaveKeyDef",
         "kind": "interface",
         "doc": "",
@@ -11380,6 +11398,18 @@
         "kind": "function",
         "doc": "Six copies of one template package have independent facts and local state, wherever they are placed.",
         "from": "@wildshard/game/grid/instances"
+      },
+      {
+        "name": "instanceSave",
+        "kind": "function",
+        "doc": "Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent.",
+        "from": "@wildshard/game/instanceSaves"
+      },
+      {
+        "name": "LocalSaveInstance",
+        "kind": "interface",
+        "doc": "Stable placement identity passed by the session, independent of cell or launch mode.",
+        "from": "@wildshard/game/instanceSaves"
       },
       {
         "name": "harvestOf",

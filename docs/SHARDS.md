@@ -17,6 +17,14 @@ document. Cells never enter a save or fact key. First-party modes resolve one id
 through `@wildshard/game/grid/instances`; template copies use `template-1` … `template-6`,
 while Select a shard uses `template-solo`. The legacy template switches at SF16.
 
+Instance-local saves bind through `SaveStore.instance`, or the game’s `instanceSave`
+helper with the session’s stable id and shard. Canonical first-party slug namespaces stay
+unchanged; `template-solo` copies the legacy `_template` document while retaining its
+source. Destination entries win, including unknown/future-version entries. Failed copies
+remain in memory and retry on read/write; `peek` stays read-only. Template copies never
+inherit one another’s progress, and cells never enter the save API. Client integration
+follows at SF20a/SF46.
+
 Quest authors use `@wildshard/sdk/quests` to compile declared flags, quest steps,
 world markers, region/death triggers and finite dialogue trees. The platform binds them
 to the existing `QuestState`, preserving journal/chip/marker text and counters. Custom

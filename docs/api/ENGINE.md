@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1819 members; 831 without a doc line (—).
+1822 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1271,6 +1271,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `saveStorage` | function | @wildshard/engine/saves/slots | String codec for injected diagnostics APIs. Values still validate and persist through defined SaveSlots. |
 | `CorruptSave` | interface | @wildshard/engine/saves/store | — |
 | `ImportReport` | interface | @wildshard/engine/saves/store | — |
+| `InstanceSaveKeyDef` | type | @wildshard/engine/saves/store | Instance binding accepts only shard-local definitions; profile/device/session retain their existing scopes. |
+| `InstanceSaveSlot` | interface | @wildshard/engine/saves/store | A save slot bound to one durable instance, with no caller-supplied namespace on each operation. |
+| `SaveInstance` | interface | @wildshard/engine/saves/store | Stable local-state identity; an explicit legacy namespace can be copied without depending on a grid cell. |
 | `SaveKeyDef` | interface | @wildshard/engine/saves/store | — |
 | `SaveScope` | type | @wildshard/engine/saves/store | Where a save key lives; `profile` (reserved, no key yet) is the player above every level. |
 | `SaveSlot` | interface | @wildshard/engine/saves/store | — |

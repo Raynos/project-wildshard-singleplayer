@@ -1725,7 +1725,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1802 exports, grouped by the module to import them from.
+1805 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1932,7 +1932,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/viewmodelFeel`: `DrawingBuffer`, `LookLag`, `LookSpring`, `viewmodel`
 - `@wildshard/engine/saves/runtime`: `homeScreenPersistence`, `installLegacyMirror`, `installSaveReporter`, `persistHomeScreen`, `saves`, `standaloneDisplay`
 - `@wildshard/engine/saves/slots`: `Json`, `jsonRecord`, `jsonSchema`, `jsonSlot`, `saveStorage`
-- `@wildshard/engine/saves/store`: `CorruptSave`, `ImportReport`, `SaveKeyDef`, `SaveScope`, `SaveSlot`, `SaveStorage`, `SaveStore`, `SchemaFailure`
+- `@wildshard/engine/saves/store`: `CorruptSave`, `ImportReport`, `InstanceSaveKeyDef`, `InstanceSaveSlot`, `SaveInstance`, `SaveKeyDef`, `SaveScope`, `SaveSlot`, `SaveStorage`, `SaveStore`, `SchemaFailure`
 - `@wildshard/engine/saves/view/storage`: `installBrowserSaveEnvironment`
 - `@wildshard/engine/script/abi`: `SCRIPT_ABI`, `SCRIPT_EXPORTS`, `SCRIPT_IMPORTS`
 - `@wildshard/engine/script/admission`: `admitScript`, `ScriptAdmission`
@@ -2027,7 +2027,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-289 exports, grouped by the module to import them from.
+291 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2044,6 +2044,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/cosmetics/locker`: `CosmeticDef`, `CosmeticProfile`, `CosmeticsLocker`, `CosmeticState`, `SkinLocker`
 - `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
+- `@wildshard/game/instanceSaves`: `instanceSave`, `LocalSaveInstance`
 - `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`
 - `@wildshard/game/ledger`: `installLedgerEmitter`, `Ledger`, `LedgerCatalogueItem`, `LedgerEmitter`, `ledgerFactId`, `LedgerInstance`, `LedgerReceipt`
 - `@wildshard/game/loot/CoinBurst`: `CoinBurst`, `nearScale`

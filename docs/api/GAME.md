@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-289 members; 112 without a doc line (—).
+291 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -82,6 +82,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GroundTellWedgeStyle` | interface | @wildshard/game/Elite | Wedge-specific shader parameters are authored by the caller; geometry/draping is shared. |
 | `firstPartyInstance` | function | @wildshard/game/grid/instances | Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix. |
 | `templateInstance` | function | @wildshard/game/grid/instances | Six copies of one template package have independent facts and local state, wherever they are placed. |
+| `instanceSave` | function | @wildshard/game/instanceSaves | Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent. |
+| `LocalSaveInstance` | interface | @wildshard/game/instanceSaves | Stable placement identity passed by the session, independent of cell or launch mode. |
 | `harvestOf` | function | @wildshard/game/Inventory | what a carcass of (kind, variant) yields when harvested |
 | `Inventory` | class | @wildshard/game/Inventory | — |
 | `ItemId` | type | @wildshard/game/Inventory | Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle |

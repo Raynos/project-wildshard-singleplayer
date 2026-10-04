@@ -16,6 +16,12 @@ export interface SaveKeyDef<T> {
   migrate?: Readonly<Record<number, (old: unknown) => unknown>>;
 }
 export interface SaveSlot<T> { /** Validated existing data, without creating or changing a save. */ peek: (namespace?: string) => T | null; read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean; reset: (namespace?: string) => void }
+/** Stable local-state identity; an explicit legacy namespace can be copied without depending on a grid cell. */
+export interface SaveInstance { id: string; legacy?: string }
+/** Instance binding accepts only shard-local definitions; profile/device/session retain their existing scopes. */
+export type InstanceSaveKeyDef<T> = SaveKeyDef<T> & { scope: 'shard' };
+/** A save slot bound to one durable instance, with no caller-supplied namespace on each operation. */
+export interface InstanceSaveSlot<T> { readonly instanceId: string; peek: () => T | null; read: () => T; write: (value: T) => boolean; reset: () => void }
 export interface SaveStorage { readonly length: number; key: (index: number) => string | null; getItem: (key: string) => string | null; setItem: (key: string, value: string) => void; removeItem: (key: string) => void }
 export interface SchemaFailure { kind: 'save-schema'; scope: string; key: string; version: number; issue: string }
 export interface CorruptSave { scope: string; key: string; at: string; bytes: number }
@@ -181,6 +187,23 @@ export class SaveStore {
       } catch { return null; }
     };
     return { peek, read, write, reset: (namespace) => { write(definition.initial(), namespace); } };
+  }
+  /** Bind local state to an instance; copy legacy keys once missing, preserve target/future entries and retry failed writes. */
+  instance<T>(definition: InstanceSaveKeyDef<T>, identity: SaveInstance): InstanceSaveSlot<T> {
+    if (!shardNamespace(identity.id) || (identity.legacy !== undefined && !shardNamespace(identity.legacy))) throw new Error('Invalid save instance');
+    const id = identity.id, legacy = identity.legacy, slot = this.define(definition);
+    const migrate = (): void => {
+      if (legacy === undefined || legacy === id) return;
+      const source = this.name('shard', legacy), target = this.name('shard', id);
+      this.initialize();
+      if (this.get('shard', source) === null) return;
+      const old = this.savedDoc('shard', source), current = this.savedDoc('shard', target);
+      const merged = JSON.stringify({ keys: { ...old.keys, ...current.keys } });
+      if (merged !== this.get('shard', target) || this.failedWrites.has(target)) this.put('shard', target, merged);
+    };
+    migrate();
+    return { instanceId: id, peek: () => slot.peek(id), read: () => { migrate(); return slot.read(id); },
+      write: (value) => { migrate(); return slot.write(value, id); }, reset: () => { migrate(); slot.reset(id); } };
   }
   persist(): Promise<boolean> {
     this.persistence ??= (async () => {
