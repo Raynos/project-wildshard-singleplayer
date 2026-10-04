@@ -978,7 +978,9 @@ latest commits and each pane's reply, reuse an active owner, never duplicate a s
 7. The E437 audit leftovers: §2 "Where it stands" is stale; SP3 shipped only the ratchet; SF14 was marked done early.
 
 **5. Open questions for Jake:** none ready to ask in chat; the picks waiting are on `docs/reviews/shard-platform-for-jake.md`
-(SF56's A / B board first). G129–G132 (2026-10-04) answered the respawn threshold, the safe-zone line
+(SF56's A / B board first). The next mockup wave (E449: fade-reload, the view from the road, the Blender
+Template's look, a refused cell, the script-error message, SF59's art styles) is planned in
+`shard-platform/mockup-wave-E449.md`. G129–G132 (2026-10-04) answered the respawn threshold, the safe-zone line
 (the cell edge), the entry width (two lanes, ≈ 8 m) and FINISH-LINE M1 (inside SHARD SELECT). The double jump exists
 (`Player.ts` jumpsLeft).
 
