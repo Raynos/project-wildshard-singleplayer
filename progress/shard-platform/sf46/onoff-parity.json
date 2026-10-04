@@ -1,7 +1,6 @@
 {
- "$doc": "SHARD-PLATFORM SF46 part 2: Driftwood's interior with the hybrid row OFF (baseline) vs ON (now), same build 8c669dbfb, sp-x1's SF46-parity runner (09ead640a) with one build and the row fixture per pass (scratch variant). Red is expected: what moved is the lowered sea and its water-tied props. Phone tier is emulated Chromium.",
- "current": "8c669dbfb8db04ac6f82fd9b8ee67a814ae3db1d",
- "when": "2026-10-04T19:18:28.784Z",
+ "current": "f77fbb106981f2c9a2599377e09a3cf0d9e56c2b",
+ "when": "2026-10-04T22:18:17.215Z",
  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
  "reports": [
   {
@@ -10,114 +9,63 @@
    "images": [
     {
      "name": "pier",
-     "ssim": 0.8322436604643556
+     "ssim": 0.9055593551107418,
+     "full": 0.9060438214739085,
+     "masked": 0.027,
+     "note": null
     },
     {
      "name": "beach",
-     "ssim": 0.9891494893927144
+     "ssim": 0.9888893990068646,
+     "full": 0.9890930504902826,
+     "masked": 0.052,
+     "note": null
     },
     {
      "name": "wreck",
-     "ssim": 0.9987409189612265
+     "ssim": 0.9982029524881936,
+     "full": 0.9953456033581978,
+     "masked": 0.129,
+     "note": null
     }
    ],
    "differences": [
     {
      "field": "walk.sounds.event",
-     "baseline": {
-      "gullCallAt": 15,
-      "gullCall": 15,
-      "voices:step-planks": 85,
-      "splash": 1,
-      "land": 2,
-      "wadeStep": 22,
-      "voices:step-water": 4,
-      "waterExit": 1,
-      "voices:step-wetSand": 15,
-      "voices:step-sand": 52,
-      "voices:ui-chime": 3,
-      "pickupHum": 2,
-      "shrine.bed": 1,
-      "voices:step-stone": 10,
-      "dodge": 1,
-      "audio.startSampleBed": 1
-     },
-     "now": {
-      "land": 5,
-      "voices:step-water": 8,
-      "voices:step-planks": 83,
-      "gullCallAt": 18,
-      "gullCall": 18,
-      "splash": 1,
-      "waterExit": 1,
-      "voices:step-wetSand": 12,
-      "voices:step-sand": 71,
-      "voices:ui-chime": 3,
-      "pickupHum": 2,
-      "shrine.bed": 1,
-      "voices:step-stone": 8,
-      "voices:step-grass": 1,
-      "dodge": 1,
-      "audio.startSampleBed": 1
-     },
+     "baseline": "{\"gullCallAt\":15,\"gullCall\":15,\"voices:step-planks\":85,\"splash\":1,\"land\":2,\"wadeStep\":22,\"voices:step-water\":4,\"waterExit\":1,\"voices:step-wetSand\":15,\"voices:step-sand\":52,\"voices:ui-chime\":3,\"pickupHum\":2,\"shrine.bed\":1,\"voices:step-stone\":10,\"dodge\":1,\"audio.startSampleBed\":1}",
+     "now": "{\"gullCallAt\":20,\"gullCall\":20,\"land\":9,\"voices:step-planks\":86,\"voices:step-water\":5,\"splash\":1,\"wadeStep\":21,\"waterExit\":1,\"voices:step-wetSand\":17,\"voices:step-sand\":52,\"voices:ui-chime\":3,\"pickupHum\":2,\"shrine.bed\":1,\"voices:step-stone\":10,\"dodge\":1,\"audio.startSampleBed\":1}",
      "class": "A",
      "band": "exact multiset",
      "verdict": "red"
     },
     {
      "field": "combat.sounds.event",
-     "baseline": {
-      "lunge": 1,
-      "voices:whoosh": 3,
-      "voices:step-sand": 1,
-      "animal:crab_click": 3,
-      "voices:impact-shell": 3,
-      "hitMarker": 3,
-      "voices:vocal-crab": 1,
-      "kill": 1,
-      "voices:ui-chime": 1
-     },
-     "now": {
-      "lunge": 1,
-      "voices:whoosh": 3,
-      "animal:crab_click": 3,
-      "voices:impact-shell": 3,
-      "hitMarker": 3,
-      "voices:vocal-crab": 1,
-      "kill": 1,
-      "voices:ui-chime": 1
-     },
+     "baseline": "{\"lunge\":1,\"voices:whoosh\":3,\"voices:step-sand\":1,\"animal:crab_click\":3,\"voices:impact-shell\":3,\"hitMarker\":3,\"voices:vocal-crab\":1,\"kill\":1,\"voices:ui-chime\":1}",
+     "now": "{\"lunge\":1,\"voices:whoosh\":3,\"animal:crab_click\":3,\"voices:impact-shell\":3,\"hitMarker\":3,\"voices:vocal-crab\":1,\"kill\":1,\"voices:ui-chime\":1}",
      "class": "A",
      "band": "exact multiset",
      "verdict": "red"
     },
     {
      "field": "boot.systems.fixed.pre",
-     "baseline": [
-      "physics.bodies.pre",
-      "physics.movers"
-     ],
-     "now": [
-      "physics.bodies.pre",
-      "shard.driftwood.movers",
-      "physics.movers"
-     ],
+     "baseline": "[\"physics.bodies.pre\",\"physics.movers\"]",
+     "now": "[\"physics.bodies.pre\",\"shard.driftwood.movers\",\"physics.movers\"]",
      "class": "A",
      "band": "exact",
      "verdict": "red"
     },
     {
      "field": "boot.systems.update",
-     "baseline": "(long; see the run)",
-     "now": "(long; see the run)",
+     "baseline": "[\"player.update\",\"main.2\",\"shard.driftwood.cover\",\"shard.driftwood.blenderIsland\",\"shard.driftwood.ocean\",\"shard.driftwood.boat\",\"shard.driftwood.palms\",\"shard.driftwood.gulls\",\"shard.driftwood.bridge.pose\",\"shard.driftwood.seabed\",\"shard.driftwood.cove\",\"shard.driftwood.shrine\",\"world.impacts\",\"eng",
+     "now": "[\"player.update\",\"main.2\",\"shard.driftwood.cover\",\"shard.driftwood.blenderIsland\",\"shard.driftwood.ocean\",\"shard.driftwood.palms\",\"shard.driftwood.gulls\",\"shard.driftwood.bridge.pose\",\"shard.driftwood.seabed\",\"shard.driftwood.cove\",\"shard.driftwood.shrine\",\"world.impacts\",\"engine.player.for\",\"traini",
      "class": "A",
      "band": "exact",
      "verdict": "red"
     },
     {
      "field": "boot.registry",
-     "baseline": "(long; see the run)",
-     "now": "(long; see the run)",
+     "baseline": "[{\"id\":\"boat\",\"category\":\"buildings\",\"surface\":\"planks\",\"floor\":true,\"solidFloor\":true,\"follows\":true,\"shapes\":{\"cuboid\":5,\"ball\":0,\"capsule\":0,\"convex\":0,\"trimesh\":0,\"treads\":0}},{\"id\":\"bridge\",\"category\":\"buildings\",\"surface\":\"planks\",\"floor\":true,\"solidFloor\":true,\"follows\":false,\"shapes\":{\"cuboi",
+     "now": "[{\"id\":\"boat\",\"category\":\"buildings\",\"surface\":\"planks\",\"floor\":true,\"solidFloor\":true,\"follows\":true,\"shapes\":{\"cuboid\":5,\"ball\":0,\"capsule\":0,\"convex\":0,\"trimesh\":0,\"treads\":0}},{\"id\":\"bridge\",\"category\":\"buildings\",\"surface\":\"planks\",\"floor\":true,\"solidFloor\":true,\"follows\":false,\"shapes\":{\"cuboi",
      "class": "A",
      "band": "exact",
      "verdict": "red"
@@ -125,23 +73,7 @@
     {
      "field": "boot.physics.colliders",
      "baseline": 2200,
-     "now": 2166,
-     "class": "A",
-     "band": "exact",
-     "verdict": "red"
-    },
-    {
-     "field": "boot.scene.totals.mesh",
-     "baseline": 604,
-     "now": 596,
-     "class": "A",
-     "band": "exact",
-     "verdict": "red"
-    },
-    {
-     "field": "boot.scene.named",
-     "baseline": "(long; see the run)",
-     "now": "(long; see the run)",
+     "now": 2172,
      "class": "A",
      "band": "exact",
      "verdict": "red"
@@ -157,113 +89,121 @@
     {
      "field": "boot.render.memory.geometries",
      "baseline": 436,
-     "now": 434,
+     "now": 439,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "boot.gpuBytes.buffers",
      "baseline": 127709473,
-     "now": 126485377,
+     "now": 127160209,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "boot.gpuBytes.total",
      "baseline": 230096265,
-     "now": 228872169,
+     "now": 229547001,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "poses.pier.pos",
-     "baseline": [
-      1.1088525659508353e-05,
-      2.0050033503763554,
-      -193.99999452402338
-     ],
-     "now": [
-      -2.3204458610426304e-05,
-      1.2139823901749334,
-      -194.00001676429565
-     ],
+     "baseline": "[0.000011088525659508353,2.0050033503763554,-193.99999452402338]",
+     "now": "[-0.00001964370231605228,1.2184764266310957,-194.00005629210602]",
      "class": "B",
-     "band": "\u00b1 [0,0,0]",
+     "band": "± [0,0,0]",
      "verdict": "red"
     },
     {
      "field": "poses.pier.calls",
      "baseline": 223,
-     "now": 226,
+     "now": 225,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "poses.pier.tris",
      "baseline": 1125728,
-     "now": 1116504,
+     "now": 1122110,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "poses.pier.ssim",
      "baseline": 1,
-     "now": 0.8322436604643556,
+     "now": 0.9055593551107418,
      "class": "B",
-     "band": "\u2265 0.99",
+     "band": "≥ 0.99",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.beach.pos",
+     "baseline": "[-9.99866775789701,1.507045904773258,-150.00086653002296]",
+     "now": "[-9.998668627669986,0.7071458506448831,-150.0008747053146]",
+     "class": "B",
+     "band": "± [0,0,0]",
      "verdict": "red"
     },
     {
      "field": "poses.beach.tris",
      "baseline": 1065774,
-     "now": 1053694,
+     "now": 1059548,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "poses.beach.ssim",
      "baseline": 1,
-     "now": 0.9891494893927144,
+     "now": 0.9888893990068646,
      "class": "B",
-     "band": "\u2265 0.99",
+     "band": "≥ 0.99",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.wreck.pos",
+     "baseline": "[105.00040426866872,3.6318565603614887,-0.017621197486732854]",
+     "now": "[105.00039855222349,2.8319549034014972,-0.01762171576046967]",
+     "class": "B",
+     "band": "± [0,0,0]",
      "verdict": "red"
     },
     {
      "field": "poses.wreck.tris",
      "baseline": 936154,
-     "now": 926718,
+     "now": 932498,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.pier.end.x",
      "baseline": -19.773,
-     "now": -19.746,
+     "now": -19.797,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.pier.end.y",
      "baseline": 1.339,
-     "now": 1.336,
+     "now": 0.543,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.pier.end.z",
      "baseline": -150.548,
-     "now": -150.604,
+     "now": -150.486,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -271,31 +211,207 @@
      "baseline": 2.033,
      "now": 2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.hut.end.y",
+     "baseline": 19.711,
+     "now": 18.911,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.hut.end.z",
+     "baseline": -64.394,
+     "now": -64.327,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.hut.maxY",
+     "baseline": 19.711,
+     "now": 18.915,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.bridge.end.x",
+     "baseline": 35.359,
+     "now": 35.382,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.bridge.end.y",
+     "baseline": 13.122,
+     "now": 12.34,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.bridge.end.z",
+     "baseline": 33.328,
+     "now": 33.352,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.bridge.maxY",
+     "baseline": 13.067,
+     "now": 12.284,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.lookout.end.x",
+     "baseline": 93.802,
+     "now": 93.881,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.lookout.end.y",
+     "baseline": 41.329,
+     "now": 40.529,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.lookout.end.z",
+     "baseline": 93.707,
+     "now": 93.824,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.lookout.maxY",
+     "baseline": 41.33,
+     "now": 40.53,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.wreck.end.x",
+     "baseline": 151.229,
+     "now": 151.198,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.wreck.end.y",
+     "baseline": 4.609,
+     "now": 3.812,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.wreck.end.z",
+     "baseline": 7.764,
+     "now": 7.824,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.wreck.maxY",
+     "baseline": 4.605,
+     "now": 3.808,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.cave.end.y",
+     "baseline": 1.22,
+     "now": 0.42,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.cave.end.z",
+     "baseline": 18.686,
+     "now": 18.73,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.cave.maxY",
+     "baseline": 1.369,
+     "now": 1.13,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.shrine.end.x",
+     "baseline": -97.028,
+     "now": -97.027,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.shrine.end.y",
+     "baseline": 11.018,
+     "now": 10.218,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.shrine.end.z",
+     "baseline": 106.672,
+     "now": 106.67,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.shrine.maxY",
+     "baseline": 11.022,
+     "now": 10.223,
+     "class": "B",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.boat.end.x",
      "baseline": -4.418,
-     "now": -4.486,
+     "now": -4.39,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.boat.end.y",
      "baseline": 1.301,
-     "now": 0.013,
+     "now": 0.414,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.boat.end.z",
      "baseline": -202.297,
-     "now": -202.304,
+     "now": -202.3,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -303,7 +419,7 @@
      "baseline": 2.01,
      "now": 2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -311,7 +427,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -319,7 +435,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -327,7 +443,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -335,7 +451,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -343,7 +459,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -351,7 +467,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -359,7 +475,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -367,7 +483,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -375,7 +491,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -383,7 +499,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -391,7 +507,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -399,7 +515,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -407,7 +523,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -415,7 +531,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -423,7 +539,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -431,22 +547,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
-     "verdict": "red"
-    },
-    {
-     "field": "combat.sounds.ambient",
-     "baseline": [
-      "island.bird",
-      "island.drip",
-      "island.swell"
-     ],
-     "now": [
-      "island.drip",
-      "island.swell"
-     ],
-     "class": "A",
-     "band": "no baseline scheduler missing",
+     "band": "± 0",
      "verdict": "red"
     }
    ]
@@ -457,83 +558,63 @@
    "images": [
     {
      "name": "pier",
-     "ssim": 0.7749568512523243
+     "ssim": 0.8928020613473193,
+     "full": 0.8914986063502917,
+     "masked": 0.03,
+     "note": null
     },
     {
      "name": "beach",
-     "ssim": 0.9485894627920882
+     "ssim": 0.9604800795706747,
+     "full": 0.9635907191718416,
+     "masked": 0.128,
+     "note": null
     },
     {
      "name": "wreck",
-     "ssim": 0.9844242573231713
+     "ssim": 0.9924608494187146,
+     "full": 0.9908657633585993,
+     "masked": 0.061,
+     "note": null
     }
    ],
    "differences": [
     {
      "field": "walk.sounds.event",
-     "baseline": {
-      "gullCallAt": 12,
-      "gullCall": 12,
-      "voices:step-planks": 77,
-      "splash": 1,
-      "land": 2,
-      "wadeStep": 22,
-      "voices:step-water": 4,
-      "waterExit": 1,
-      "voices:step-wetSand": 15,
-      "voices:step-sand": 52,
-      "voices:ui-chime": 1,
-      "pickupHum": 2,
-      "shrine.bed": 1,
-      "voices:step-stone": 10
-     },
-     "now": {
-      "land": 5,
-      "voices:step-water": 8,
-      "voices:step-planks": 74,
-      "gullCallAt": 15,
-      "gullCall": 15,
-      "splash": 1,
-      "waterExit": 1,
-      "voices:step-wetSand": 12,
-      "voices:step-sand": 72,
-      "voices:ui-chime": 1,
-      "pickupHum": 2,
-      "shrine.bed": 1,
-      "voices:step-stone": 8,
-      "voices:step-grass": 1
-     },
+     "baseline": "{\"gullCallAt\":12,\"gullCall\":12,\"voices:step-planks\":77,\"splash\":1,\"land\":2,\"wadeStep\":22,\"voices:step-water\":4,\"waterExit\":1,\"voices:step-wetSand\":15,\"voices:step-sand\":52,\"voices:ui-chime\":1,\"pickupHum\":2,\"shrine.bed\":1,\"voices:step-stone\":10}",
+     "now": "{\"gullCallAt\":18,\"gullCall\":18,\"land\":10,\"voices:step-planks\":77,\"voices:step-water\":6,\"splash\":1,\"wadeStep\":21,\"waterExit\":1,\"voices:step-wetSand\":17,\"voices:step-sand\":51,\"voices:ui-chime\":1,\"pickupHum\":2,\"shrine.bed\":1,\"voices:step-stone\":10}",
+     "class": "A",
+     "band": "exact multiset",
+     "verdict": "red"
+    },
+    {
+     "field": "combat.sounds.event",
+     "baseline": "{\"audio.startSampleBed\":1,\"lunge\":1,\"voices:whoosh\":3,\"animal:crab_click\":3,\"voices:impact-shell\":3,\"hitMarker\":3,\"voices:vocal-crab\":1,\"kill\":1,\"voices:ui-chime\":1}",
+     "now": "{\"audio.startSampleBed\":1,\"lunge\":1,\"voices:whoosh\":3,\"voices:step-sand\":1,\"animal:crab_click\":3,\"voices:impact-shell\":3,\"hitMarker\":3,\"voices:vocal-crab\":1,\"kill\":1,\"voices:ui-chime\":1}",
      "class": "A",
      "band": "exact multiset",
      "verdict": "red"
     },
     {
      "field": "boot.systems.fixed.pre",
-     "baseline": [
-      "physics.bodies.pre",
-      "physics.movers"
-     ],
-     "now": [
-      "physics.bodies.pre",
-      "shard.driftwood.movers",
-      "physics.movers"
-     ],
+     "baseline": "[\"physics.bodies.pre\",\"physics.movers\"]",
+     "now": "[\"physics.bodies.pre\",\"shard.driftwood.movers\",\"physics.movers\"]",
      "class": "A",
      "band": "exact",
      "verdict": "red"
     },
     {
      "field": "boot.systems.update",
-     "baseline": "(long; see the run)",
-     "now": "(long; see the run)",
+     "baseline": "[\"player.update\",\"main.2\",\"shard.driftwood.cover\",\"shard.driftwood.blenderIsland\",\"shard.driftwood.ocean\",\"shard.driftwood.boat\",\"shard.driftwood.palms\",\"shard.driftwood.gulls\",\"shard.driftwood.bridge.pose\",\"shard.driftwood.seabed\",\"shard.driftwood.cove\",\"shard.driftwood.shrine\",\"world.impacts\",\"eng",
+     "now": "[\"player.update\",\"main.2\",\"shard.driftwood.cover\",\"shard.driftwood.blenderIsland\",\"shard.driftwood.ocean\",\"shard.driftwood.palms\",\"shard.driftwood.gulls\",\"shard.driftwood.bridge.pose\",\"shard.driftwood.seabed\",\"shard.driftwood.cove\",\"shard.driftwood.shrine\",\"world.impacts\",\"engine.player.for\",\"traini",
      "class": "A",
      "band": "exact",
      "verdict": "red"
     },
     {
      "field": "boot.registry",
-     "baseline": "(long; see the run)",
-     "now": "(long; see the run)",
+     "baseline": "[{\"id\":\"boat\",\"category\":\"buildings\",\"surface\":\"planks\",\"floor\":true,\"solidFloor\":true,\"follows\":true,\"shapes\":{\"cuboid\":5,\"ball\":0,\"capsule\":0,\"convex\":0,\"trimesh\":0,\"treads\":0}},{\"id\":\"bridge\",\"category\":\"buildings\",\"surface\":\"planks\",\"floor\":true,\"solidFloor\":true,\"follows\":false,\"shapes\":{\"cuboi",
+     "now": "[{\"id\":\"boat\",\"category\":\"buildings\",\"surface\":\"planks\",\"floor\":true,\"solidFloor\":true,\"follows\":true,\"shapes\":{\"cuboid\":5,\"ball\":0,\"capsule\":0,\"convex\":0,\"trimesh\":0,\"treads\":0}},{\"id\":\"bridge\",\"category\":\"buildings\",\"surface\":\"planks\",\"floor\":true,\"solidFloor\":true,\"follows\":false,\"shapes\":{\"cuboi",
      "class": "A",
      "band": "exact",
      "verdict": "red"
@@ -541,23 +622,7 @@
     {
      "field": "boot.physics.colliders",
      "baseline": 2353,
-     "now": 2319,
-     "class": "A",
-     "band": "exact",
-     "verdict": "red"
-    },
-    {
-     "field": "boot.scene.totals.mesh",
-     "baseline": 991,
-     "now": 983,
-     "class": "A",
-     "band": "exact",
-     "verdict": "red"
-    },
-    {
-     "field": "boot.scene.named",
-     "baseline": "(long; see the run)",
-     "now": "(long; see the run)",
+     "now": 2325,
      "class": "A",
      "band": "exact",
      "verdict": "red"
@@ -571,131 +636,123 @@
      "verdict": "red"
     },
     {
-     "field": "boot.render.memory.geometries",
-     "baseline": 757,
-     "now": 749,
-     "class": "B",
-     "band": "\u00b1 0",
-     "verdict": "red"
-    },
-    {
      "field": "boot.gpuBytes.buffers",
      "baseline": 248151906,
-     "now": 246927810,
+     "now": 247602642,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "boot.gpuBytes.total",
      "baseline": 611883178,
-     "now": 610659082,
+     "now": 611333914,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "poses.pier.pos",
-     "baseline": [
-      1.1088525659508353e-05,
-      2.0050033503763554,
-      -193.99999452402338
-     ],
-     "now": [
-      -2.3204458610426304e-05,
-      1.2139823901749334,
-      -194.00001676429565
-     ],
+     "baseline": "[0.000011088525659508353,2.0050033503763554,-193.99999452402338]",
+     "now": "[-0.00001964370231605228,1.2184764266310957,-194.00005629210602]",
      "class": "B",
-     "band": "\u00b1 [0,0,0]",
+     "band": "± [0,0,0]",
      "verdict": "red"
     },
     {
      "field": "poses.pier.calls",
      "baseline": 945,
-     "now": 938,
+     "now": 946,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "poses.pier.tris",
      "baseline": 3295289,
-     "now": 3273044,
+     "now": 3281605,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "poses.pier.ssim",
      "baseline": 1,
-     "now": 0.7749568512523243,
+     "now": 0.8928020613473193,
      "class": "B",
-     "band": "\u2265 0.99",
+     "band": "≥ 0.99",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.beach.pos",
+     "baseline": "[-9.99866775789701,1.507045904773258,-150.00086653002296]",
+     "now": "[-9.998668627669986,0.7071458506448831,-150.0008747053146]",
+     "class": "B",
+     "band": "± [0,0,0]",
      "verdict": "red"
     },
     {
      "field": "poses.beach.calls",
      "baseline": 566,
-     "now": 565,
+     "now": 567,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "poses.beach.tris",
      "baseline": 2320154,
-     "now": 2304974,
+     "now": 2314656,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "poses.beach.ssim",
      "baseline": 1,
-     "now": 0.9485894627920882,
+     "now": 0.9604800795706747,
      "class": "B",
-     "band": "\u2265 0.99",
+     "band": "≥ 0.99",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.wreck.pos",
+     "baseline": "[105.00040426866872,3.6318565603614887,-0.017621197486732854]",
+     "now": "[105.00039855222349,2.8319549034014972,-0.01762171576046967]",
+     "class": "B",
+     "band": "± [0,0,0]",
      "verdict": "red"
     },
     {
      "field": "poses.wreck.tris",
      "baseline": 1456449,
-     "now": 1444589,
+     "now": 1450965,
      "class": "B",
-     "band": "\u00b1 0",
-     "verdict": "red"
-    },
-    {
-     "field": "poses.wreck.ssim",
-     "baseline": 1,
-     "now": 0.9844242573231713,
-     "class": "B",
-     "band": "\u2265 0.99",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.pier.end.x",
      "baseline": -19.773,
-     "now": -19.746,
+     "now": -19.797,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.pier.end.y",
      "baseline": 1.339,
-     "now": 1.336,
+     "now": 0.543,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.pier.end.z",
      "baseline": -150.548,
-     "now": -150.604,
+     "now": -150.486,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -703,31 +760,207 @@
      "baseline": 2.033,
      "now": 2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.hut.end.y",
+     "baseline": 19.711,
+     "now": 18.911,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.hut.end.z",
+     "baseline": -64.394,
+     "now": -64.327,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.hut.maxY",
+     "baseline": 19.711,
+     "now": 18.915,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.bridge.end.x",
+     "baseline": 35.356,
+     "now": 35.409,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.bridge.end.y",
+     "baseline": 13.114,
+     "now": 12.354,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.bridge.end.z",
+     "baseline": 33.31,
+     "now": 33.366,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.bridge.maxY",
+     "baseline": 13.058,
+     "now": 12.298,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.lookout.end.x",
+     "baseline": 93.802,
+     "now": 93.881,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.lookout.end.y",
+     "baseline": 41.329,
+     "now": 40.529,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.lookout.end.z",
+     "baseline": 93.707,
+     "now": 93.824,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.lookout.maxY",
+     "baseline": 41.33,
+     "now": 40.53,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.wreck.end.x",
+     "baseline": 151.229,
+     "now": 151.198,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.wreck.end.y",
+     "baseline": 4.609,
+     "now": 3.812,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.wreck.end.z",
+     "baseline": 7.764,
+     "now": 7.824,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.wreck.maxY",
+     "baseline": 4.605,
+     "now": 3.808,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.cave.end.y",
+     "baseline": 1.22,
+     "now": 0.42,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.cave.end.z",
+     "baseline": 18.686,
+     "now": 18.73,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.cave.maxY",
+     "baseline": 1.369,
+     "now": 1.13,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.shrine.end.x",
+     "baseline": -97.028,
+     "now": -97.027,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.shrine.end.y",
+     "baseline": 11.018,
+     "now": 10.218,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.shrine.end.z",
+     "baseline": 106.672,
+     "now": 106.67,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.shrine.maxY",
+     "baseline": 11.022,
+     "now": 10.223,
+     "class": "B",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.boat.end.x",
      "baseline": -4.416,
-     "now": -4.486,
+     "now": -4.345,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.boat.end.y",
      "baseline": 1.302,
-     "now": 0.013,
+     "now": 0.41,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
      "field": "walk.legs.boat.end.z",
      "baseline": -202.297,
-     "now": -202.304,
+     "now": -202.3,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -735,7 +968,7 @@
      "baseline": 2.01,
      "now": 2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -743,7 +976,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -751,7 +984,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -759,7 +992,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -767,7 +1000,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -775,7 +1008,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -783,7 +1016,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -791,7 +1024,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -799,7 +1032,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -807,7 +1040,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -815,7 +1048,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -823,7 +1056,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -831,7 +1064,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -839,7 +1072,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -847,7 +1080,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -855,7 +1088,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     },
     {
@@ -863,7 +1096,7 @@
      "baseline": 2,
      "now": 1.2,
      "class": "B",
-     "band": "\u00b1 0",
+     "band": "± 0",
      "verdict": "red"
     }
    ]
