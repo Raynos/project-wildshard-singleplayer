@@ -241,7 +241,7 @@ const THROW_R = 14, THROW_DUR = 1.0, THROW_RELEASE = 0.62, BITE_R = 1.3, BITE_DA
 /** E297 fight rules: a monkey on the sand waiting its turn (two others attacking) hangs back this far (m) */
 const HOLD_R = 3.4;
 
-function pickPerch(a: Animal, c: ThinkCtx, minD: number, maxD: number, awayFrom?: THREE.Vector3): number {
+export function pickPerch(a: Animal, c: ThinkCtx, minD: number, maxD: number, awayFrom?: THREE.Vector3): number {
   const P = c.world.perches; if (P === undefined || P.length === 0) return -1;
   let best = -1, bestScore = -Infinity;
   for (let i = 0; i < P.length; i++) {
@@ -255,7 +255,7 @@ function pickPerch(a: Animal, c: ThinkCtx, minD: number, maxD: number, awayFrom?
   }
   return best;
 }
-function setPerch(a: Animal, c: ThinkCtx, i: number): void {
+export function setPerch(a: Animal, c: ThinkCtx, i: number): void {
   const m = a.mem as MonkeyMem;
   const p = c.world.perches?.[i];
   if (p === undefined) throw new Error(`monkey: no perch ${i}`);   // i came from pickPerch
@@ -264,13 +264,13 @@ function setPerch(a: Animal, c: ThinkCtx, i: number): void {
   m.perchH = Math.max(0.5, p.y - c.heightAt(p.x, p.z) + 0.05);
 }
 
-function decideMonkey(a: Animal, c: ThinkCtx): void {
+export function legacyMonkeyDecision(a: Animal, c: ThinkCtx): void {
   const m = a.mem as MonkeyMem, rng = c.rng;
   if (!m.init) {
     m.init = 1; m.cd = rng.range(1, 3); m.under = 0; m.hitT = 0; m.fled = 0; m.onGround = 0;
     const i = pickPerch(a, c, 0, 12);
     if (i >= 0) { setPerch(a, c, i); a.position.x = m.px; a.position.z = m.pz; a.yOffset = m.perchH; m.st = ST_PERCH; }
-    else { m.st = ST_GROUND_IDLE; m.onGround = 1; m.hx = a.position.x; m.hz = a.position.z; }
+    else { m.st = ST_GROUND_IDLE; m.perch = -1; m.onGround = 1; m.hx = a.position.x; m.hz = a.position.z; }
   }
   const dx = c.player.x - a.position.x, dz = c.player.z - a.position.z, d = Math.hypot(dx, dz);
   const toPlayer = Math.atan2(dx, dz);
@@ -390,7 +390,7 @@ const STATES = ['perch', 'ground-idle', 'attack', 'drop', 'ground', 'return', 'c
 export class MonkeyBrain extends CreatureBrain<typeof STATES[number], Animal> {
   constructor(actor: Animal) { super(actor, STATES); }
   override think(ctx: ThinkCtx): void {
-    decideMonkey(this.actor, ctx);
+    legacyMonkeyDecision(this.actor, ctx);
     const state = STATES[this.actor.mem['st'] ?? 0];
     if (state !== undefined) this.transition(state);
   }
