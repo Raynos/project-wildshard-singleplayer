@@ -1,0 +1,181 @@
+{
+  "url": "http://127.0.0.1:4400",
+  "steps": [
+    {
+      "step": "entered",
+      "quest": {
+        "adventure": {
+          "adventure": [],
+          "quest": []
+        },
+        "level": []
+      }
+    },
+    {
+      "step": "hut",
+      "quest": {
+        "adventure": {
+          "adventure": [
+            "template.hut"
+          ],
+          "quest": [
+            "template.hut"
+          ]
+        },
+        "level": []
+      }
+    },
+    {
+      "step": "blob",
+      "kinds": [
+        "greyBlob@1.1,-18.2",
+        "boar@15.0,-12.0",
+        "greyBlob@-15.0,-20.0"
+      ]
+    },
+    {
+      "step": "played",
+      "kills": [],
+      "quest": {
+        "adventure": {
+          "adventure": [
+            "template.hut",
+            "dead:grey-blob:1",
+            "template.blob",
+            "template.complete"
+          ],
+          "quest": [
+            "template.hut",
+            "dead:grey-blob:1",
+            "template.blob",
+            "template.complete"
+          ]
+        },
+        "level": []
+      },
+      "keys": [
+        "compendium",
+        "platform.continuation",
+        "platform.encounters",
+        "purse"
+      ]
+    },
+    {
+      "step": "saves",
+      "cards": [
+        {
+          "instance": "template-solo",
+          "text": "HERE TEMPLATE SHARD QUESTS 1 DONE 5 COINS NEW GAME"
+        },
+        {
+          "instance": "driftwood-isle",
+          "text": "DRIFTWOOD ISLE QUESTS 0 DONE EMPTY NEW GAME"
+        },
+        {
+          "instance": "pine-hollow",
+          "text": "PINE HOLLOW QUESTS STARTED 2 ITEMS NEW GAME"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "text": "NALATI GRASSLANDS QUESTS 0 DONE EMPTY NEW GAME"
+        },
+        {
+          "instance": "nine-dragon-stack",
+          "text": "NINE DRAGON STACK QUESTS 0 DONE EMPTY NEW GAME"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "text": "SIGNAL DUNES QUESTS 0 DONE EMPTY NEW GAME"
+        },
+        {
+          "instance": "far-reach",
+          "text": "SKY REACH QUESTS 0 DONE EMPTY NEW GAME"
+        }
+      ]
+    },
+    {
+      "step": "sheet",
+      "sheet": "NEW GAME · TEMPLATE SHARD | QUESTS | 1 DONE → 0 DONE | INVENTORY | 5 COINS → EMPTY | FLAGS | RESET | KEPT: PROFILE, FEATS, OTHER SHARDS | NEW GAME | KEEP PLAYING"
+    },
+    {
+      "step": "reloaded",
+      "quest": {
+        "adventure": {
+          "adventure": [],
+          "quest": []
+        },
+        "level": []
+      },
+      "keys": [],
+      "reset": 1
+    },
+    {
+      "step": "saves-after",
+      "cards": [
+        {
+          "instance": "template-solo",
+          "text": "HERE TEMPLATE SHARD QUESTS 0 DONE EMPTY NEW GAME"
+        },
+        {
+          "instance": "driftwood-isle",
+          "text": "DRIFTWOOD ISLE QUESTS 0 DONE EMPTY NEW GAME"
+        },
+        {
+          "instance": "pine-hollow",
+          "text": "PINE HOLLOW QUESTS STARTED 2 ITEMS NEW GAME"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "text": "NALATI GRASSLANDS QUESTS 0 DONE EMPTY NEW GAME"
+        },
+        {
+          "instance": "nine-dragon-stack",
+          "text": "NINE DRAGON STACK QUESTS 0 DONE EMPTY NEW GAME"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "text": "SIGNAL DUNES QUESTS 0 DONE EMPTY NEW GAME"
+        },
+        {
+          "instance": "far-reach",
+          "text": "SKY REACH QUESTS 0 DONE EMPTY NEW GAME"
+        }
+      ]
+    },
+    {
+      "step": "verdict",
+      "questPlayed": true,
+      "playedFlags": [
+        "dead:grey-blob:1",
+        "template.blob",
+        "template.complete",
+        "template.hut"
+      ],
+      "flagsAfter": [],
+      "questAvailableAgain": true,
+      "packEmpty": true,
+      "profileKept": true,
+      "profilePresent": true,
+      "featsKept": true,
+      "otherShardKept": true,
+      "errors": []
+    }
+  ],
+  "verdict": {
+    "questPlayed": true,
+    "playedFlags": [
+      "dead:grey-blob:1",
+      "template.blob",
+      "template.complete",
+      "template.hut"
+    ],
+    "flagsAfter": [],
+    "questAvailableAgain": true,
+    "packEmpty": true,
+    "profileKept": true,
+    "profilePresent": true,
+    "featsKept": true,
+    "otherShardKept": true,
+    "errors": []
+  }
+}
