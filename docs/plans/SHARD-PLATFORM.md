@@ -36,14 +36,30 @@ service (G41, G47), or anything in WorldClaw (G47). Repo weight has its own plan
 Decisions about the MMO platform (G13, G17, G19, G20, G23, G25, G26, G28, G34) are requirements the format stays
 compatible with; G7's building and G36's grid events are later.
 
-**The words:**
-- **Shardfile:** the build product: `shard.json`, tiles with levels of detail, content rows, baked assets, AssemblyScript
-  modules, declared budgets and state schema. Renderer-neutral (G32). Built, never hand-edited (G1).
-- **Shard project:** `src/shards/<slug>/` as an SDK project (§3.5): generators (author's machine only), data, behaviour
-  (AssemblyScript), quests, and during the transition `runtime/`.
-- **Platform systems:** engine and kit code every shard uses through `@wildshard/sdk`: families, the script host, brains,
-  quests, rigs, the commons, the UI kit, audio, toys, crowds …
-- **Custom runtime:** a first-party shard's trusted TypeScript in `runtime/`. Transition only; the 20 %.
+**The words** (the same three boxes as the [Shardfiles Explained](../reviews/shardfiles-explained.md) page):
+- **① Shardfile:** the build product a future MMO receives, and **only compiled output**: `shard.json` (identity,
+  version, budgets, entries, accent, state schema, every file by content hash), baked tiles with levels of detail,
+  colliders, the far proxy, `.glb` models, textures, sounds, data rows and compiled AssemblyScript (`.wasm`), plus
+  `commons:<hash>` references. **No generator, no TypeScript, no source** is in it (G146, G150). Renderer-neutral (G32).
+  Built, never hand-edited (G1). An MMO server loads it unchanged.
+- **② Shard project (local, never uploaded):** `src/shards/<slug>/` in the monorepo (§3.5): generators, data and quest
+  authoring, AssemblyScript sources, raw assets, and during the transition `runtime/`. `wildshard build` (the SDK's CLI)
+  compiles it into ①.
+- **Generator:** any tool that makes a shard's geometry or content on the author's machine: our six shards' existing
+  three.js TypeScript run once at build time, AI mesh models (TRELLIS, Hunyuan3D), Blender scripts, Rust, Go or hand
+  modelling (G150). **Optional**: a shard can have zero generators and be one big Blender world GLB plus data (Template
+  2, SF55; Template 1, SF52, is the generator-heavy opposite, G151). Generators never ship; only their output does.
+- **The SDK's build** does the platform work for any authored geometry: cuts it into 62.5 m tiles with LODs, makes the
+  colliders and the far proxy, checks the four 8 m entries, the edge profile and the 1.0 GB budget, and maps materials
+  onto the engine's material families, which is where the shaders come from (G5).
+- **Platform systems:** engine-backed behaviour every shard uses through `@wildshard/sdk`: families, the script host,
+  brains, quests, rigs, the UI kit, audio, toys, crowds … (the kit package dissolves into the SDK, G135).
+- **The commons:** one `@wildshard/commons` package of build-time packs that emit shared, hash-named content (models,
+  clips, sounds, WASM, rows), cached once across shards; no commons code runs in the game (G137, G138).
+- **③ Custom runtime:** a first-party shard's trusted TypeScript in `runtime/`, at most 20 % of its lines. It is **not
+  part of the shardfile**: in our singleplayer game it ships as a separate trusted chunk next to the shardfile (the
+  hybrid loader, SF46), and it never goes to the MMO. Transition only; 90/10 and later plans shrink it to zero (G136,
+  G146).
 - **Grid-ready:** baked tiles + an edge profile + looks on families under one frame + within the 1.0 GB cap (G110) +
   **four midpoint entryways at y = 0, 8 m wide, each carrying 15 m of the platform's asphalt into the shard** (G93, G99,
   G103, G131; the platform draws the asphalt and the shard keeps the 8 × 15 m footprint clear, SF8c; `validate` checks them) + a declared HUD accent (G104). Behaviour may still sit in `runtime/` (C16). Grid-ready is separate from 80/20 so the grid doesn't wait on the hardest conversions.
