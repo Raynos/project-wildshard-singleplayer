@@ -4,6 +4,8 @@ import { PerspectiveCamera } from 'three';
 import { Scope } from '../../src/engine/app/scope';
 import { Events } from '../../src/engine/events/events';
 import { Player } from '../../src/engine/player/Player';
+import type { PlayerCommand } from '../../src/engine/input/commands';
+import { fnv1a32 } from '../../src/engine/core/rng';
 import { InputService } from '../../src/engine/input/InputService';
 import { Physics } from '../../src/engine/physics/Physics';
 import { loadRapier } from '../../src/engine/physics/rapier';
@@ -26,7 +28,7 @@ async function fixture(crouchEnabled = true) {
   if (crouchEnabled) events.answer('player.crouch', () => ({ allowed: true, latched: false }), scope);
   player.inputService = input; player.onGround = true; player.onJump = () => { jumps++; launches.push(player.velocity.y); };
   const step = (ms: number) => { now += ms; player.input(ms / 1000); physics.step(); player.step(ms / 1000); };
-  return { player, input, step, scope, jumps: () => jumps, launches, dispose: () => { scope.dispose(); player.motor.dispose(); physics.dispose(); } };
+  return { player, input, step, scope, physics, jumps: () => jumps, launches, dispose: () => { scope.dispose(); player.motor.dispose(); physics.dispose(); } };
 }
 it('keeps a blocked jump until it can execute inside120ms and consumes it exactly once', async () => {
   const f = await fixture();
@@ -84,4 +86,32 @@ it('ignores raw and injected crouch without a scoped shard answer, including aft
     scoped.scope.dispose(); scoped.step(16); expect(scoped.player.crouching).toBe(false);
     scoped.input.press('jump'); scoped.step(16); expect(scoped.jumps()).toBe(1);
   } finally { scoped.dispose(); }
+});
+
+it('replays a recorded fixed-step walk in Node without consulting live controls', async () => {
+  const commands: PlayerCommand[] = [], original = await fixture();
+  const stateHash = (player: Player) => fnv1a32(JSON.stringify({ position: player.position.toArray(), velocity: player.velocity.toArray(), yaw: player.yaw, pitch: player.pitch, onGround: player.onGround }));
+  let expected = 0;
+  try {
+    original.player.recordCommand = (command) => { commands.push(command); };
+    for (let i = 0; i < 240; i++) {
+      original.input.setHeld('move.forward', i < 180);
+      original.input.setHeld('move.right', i >= 60 && i < 120);
+      original.input.setHeld('sprint', i < 60);
+      original.player.yaw = i / 240;
+      original.player.pitch = Math.sin(i / 40) * 0.2;
+      if (i === 90 || i === 96) original.input.press('jump');
+      original.step(1000 / 60);
+    }
+    expect(commands).toHaveLength(240);
+    expect(original.player.position.length()).toBeGreaterThan(10);
+    expected = stateHash(original.player);
+  } finally { original.dispose(); }
+  const replay = await fixture();
+  try {
+    // Opposite held controls must have no effect on replay commands.
+    replay.input.setHeld('move.back', true); replay.input.setHeld('dive', true);
+    for (const command of commands) { replay.player.inputService = null; replay.player.keys.add('ShiftLeft'); replay.player.touchMove.x = -1; replay.player.touchDive = true; replay.player.touchSprint = true; replay.player.yaw = 99; replay.physics.step(); replay.player.step(1 / 60, command); }
+    expect(stateHash(replay.player)).toBe(expected);
+  } finally { replay.dispose(); }
 });

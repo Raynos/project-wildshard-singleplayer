@@ -1,3 +1,4 @@
+import type { PlayerCommand } from '../input/commands';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../events/events';
 import { dodgeFx, dodgeEnv } from './dodge';
@@ -194,6 +195,11 @@ export class Player {
   carried = false;
   // ── the fixed step (PHYSICS.md P2): input() reads intents, step() moves at 60 Hz, update() poses the camera ──
   private inFwd = 0; private inStr = 0; private jumpQueued = false;
+  private commandJumpUsed = false;
+  private commandDodgeUsed = false;
+  private dodgeQueued = false;
+  /** Optional recording sink; called once per fixed step, before the command is applied. */
+  recordCommand: ((command: PlayerCommand) => void) | null = null;
   /** the feet before the last fixed step: update() interpolates the camera between it and `position` */
   private readonly prevFeet = new THREE.Vector3();
   private readonly renderFeet = new THREE.Vector3();
@@ -386,8 +392,7 @@ export class Player {
       if (jumpDown && !this.jumpWasDown) this.jumpQueued = true;
       this.jumpWasDown = jumpDown;
     }
-    if (this.inputService?.pressed('dodge') === true && this.dodge()) this.inputService.consume('dodge');
-    if (this.touchDodge) { this.touchDodge = false; this.dodge(); }
+    if (this.touchDodge) { this.touchDodge = false; this.dodgeQueued = true; }
   }
 
   /** Sample jump edges before contexts claim them; movement still reads at its original input point. */
@@ -399,21 +404,49 @@ export class Player {
    *  stays out while you ride — bootstrap re-enables it every fixed step, so the gate is here). */
   setBodyEnabled(on: boolean): void { this.motor.setEnabled(on && this.ride === null); }   // in the saddle the horse is the body (N17)
 
+  /** Device edge. The motor never reads keys, touch state or the input service. */
+  sampleCommand(): PlayerCommand {
+    const input = this.inputService, k = this.keys;
+    return {
+      moveX: this.inStr, moveY: this.inFwd, yaw: this.yaw, pitch: this.pitch,
+      crouch: this.crouchWanted,
+      sprint: (input?.held('sprint') ?? k.has('ShiftLeft')) || this.touchSprint,
+      jump: input?.pressed('jump') ?? this.jumpQueued,
+      dodge: (input?.pressed('dodge') ?? false) || this.dodgeQueued,
+      dive: (input?.held('dive') ?? k.has('Space')) || this.touchDive,
+      surface: (input?.held('surface') ?? (k.has('ShiftLeft') || k.has('ShiftRight'))) || this.touchSurface,
+    };
+  }
+
+  /** Live callers sample at the edge; Node replays pass a recorded command. */
+  step(dt: number, command?: PlayerCommand): void {
+    const resolved = command ?? this.sampleCommand();
+    this.recordCommand?.({ ...resolved });
+    this.commandJumpUsed = false; this.commandDodgeUsed = false;
+    this.stepCommand(dt, resolved);
+    if (command === undefined && this.commandJumpUsed) this.inputService?.consume('jump');
+    if (command === undefined && this.commandDodgeUsed) this.inputService?.consume('dodge');
+  }
+
   /** One fixed step (Game's `post` slot, dt = FIXED_STEP): the move, against the stepped physics world. */
-  step(dt: number): void {
+  private stepCommand(dt: number, command: PlayerCommand): void {
+    this.yaw = command.yaw; this.pitch = command.pitch;
+    this.crouchWanted = command.crouch;
+    if (command.dodge && this.dodge()) {
+      this.dodgeQueued = false; this.commandDodgeUsed = true;
+    }
     this.prevFeet.copy(this.position);
     // in the saddle the horse carries you (Mount.step, on the horse's own motor): no walk, no motor of yours
     if (this.ride !== null) { this.impulseVelocity.set(0, 0, 0); this.ride.step(dt); return; }
     if (this.traversalEvents?.ask('player.traversal', dt) === true) { this.impulseVelocity.set(0, 0, 0); this.jumpQueued = false; return; }
     if (this.carried || this.effectMoveLocked) { this.impulseVelocity.set(0, 0, 0); this.velocity.set(0, 0, 0); this.onGround = false; return; }
-    const k = this.keys;
-    const fwd = this.inFwd, str = this.inStr;
+    const fwd = command.moveY, str = command.moveX;
     const hover = this.hover;
     const swim = this.swimming && !hover;
     // wading: how deep the feet are right now (last step's resolve) — slows walking, kills sprint past the knee
     const wadeT = !hover && !swim && this.onGround ? Math.min(1, this.depth / WADE_MAX) : 0;
     this.crouching = !hover && !swim && this.crouchWanted;
-    this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && ((this.inputService?.held('sprint') ?? k.has('ShiftLeft')) || this.touchSprint) && fwd > 0 && !this.crouching;
+    this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && command.sprint && fwd > 0 && !this.crouching;
     const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT) * this.moveScale * this.effectMoveScale;
     this.waveTime += dt;
 
@@ -435,10 +468,10 @@ export class Player {
     }
     const len = Math.hypot(mx, mz);
     if (len > 1) { mx /= len; mz /= len; }
-    const jump = (this.inputService?.pressed('jump') ?? this.jumpQueued) && !swim; this.jumpQueued = false;
+    const jump = command.jump && !swim; this.jumpQueued = false;
     // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
-    this.diveHeld = swim && ((this.inputService?.held('dive') ?? k.has('Space')) || this.touchDive);
-    this.surfaceHeld = swim && ((this.inputService?.held('surface') ?? (k.has('ShiftLeft') || k.has('ShiftRight'))) || this.touchSurface);
+    this.diveHeld = swim && command.dive;
+    this.surfaceHeld = swim && command.surface;
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
     this.dodgeT = this.dashT > 0 ? Math.max(0, this.dodgeT - dt) : 0; // a shove / the water ends the burst: the guard with it
     if (hover || swim) this.dashT = 0;
@@ -501,7 +534,7 @@ export class Player {
       const target = g + HOVER_HEIGHT;
       const err = target - this.position.y;
       this.hoverLanded = 0; this.hoverJumpKick = Math.max(0, this.hoverJumpKick - dt * 4);
-      if (jump && this.onGround && !this.hoverAir) { this.inputService?.consume('jump'); v.y = HOVER_JUMP; this.hoverAir = true; this.hoverJumpKick = 1; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
+      if (jump && this.onGround && !this.hoverAir) { this.commandJumpUsed = true; v.y = HOVER_JUMP; this.hoverAir = true; this.hoverJumpKick = 1; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
       if (this.hoverAir) {
         // ── airborne: the repulsors can't reach the ground — ballistic, a little floaty, until we fall back to the ride height
         v.y -= HOVER_JUMP_GRAVITY * dt;
@@ -635,8 +668,8 @@ export class Player {
       this.groundedAgo = this.onGround ? 0 : this.groundedAgo + dt * 1000;
       if (this.onGround) this.jumpsLeft = 1; // one more jump available once you've left the ground
       const jumpV = 7.2 * (1 - 0.35 * wadeT); // wading: the water saps the push-off
-      if (jump && (this.onGround || this.groundedAgo <= this.coyoteMs) && !this.crouching && !this.sliding) { this.inputService?.consume('jump'); this.groundedAgo = Infinity; this.velocity.y = jumpV; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
-      else if (jump && !this.onGround && this.jumpsLeft > 0) { this.inputService?.consume('jump'); this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; app.events.emit('player.jump', true); this.onJump?.(); } // double jump
+      if (jump && (this.onGround || this.groundedAgo <= this.coyoteMs) && !this.crouching && !this.sliding) { this.commandJumpUsed = true; this.groundedAgo = Infinity; this.velocity.y = jumpV; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
+      else if (jump && !this.onGround && this.jumpsLeft > 0) { this.commandJumpUsed = true; this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; app.events.emit('player.jump', true); this.onJump?.(); } // double jump
       this.velocity.y -= GRAVITY * dt;
 
       // the move: walls, posts, trunks and the terrain stop it, steps ≤ 0.35 m are climbed, the feet snap down slopes
