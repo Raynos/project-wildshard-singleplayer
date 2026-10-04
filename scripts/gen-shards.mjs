@@ -87,8 +87,30 @@ export type ShardSlug = BuiltinShardSlug | import('./slug').ValidatedShardSlug;
 
 const LOAD = /\bload:\s*\(\)\s*=>\s*import\(\s*['"]\.\/plugin(?:\.ts)?['"]\s*\)/u;
 const BUDGET_FILE = 'lint/manifest-closure-budget.json';
+/** Only the exported manifest object can opt into the data-descriptor contract. */
+function descriptorContract(root, slug, text) {
+  const source = ts.createSourceFile('manifest.ts', text, ts.ScriptTarget.Latest, true);
+  const variables = new Map(); let expression;
+  for (const statement of source.statements) {
+    if (ts.isVariableStatement(statement)) for (const declaration of statement.declarationList.declarations) {
+      if (ts.isIdentifier(declaration.name)) variables.set(declaration.name.text, declaration.initializer);
+    }
+    if (ts.isExportAssignment(statement) && !statement.isExportEquals) expression = statement.expression;
+  }
+  if (expression && ts.isIdentifier(expression)) expression = variables.get(expression.text);
+  while (expression && (ts.isSatisfiesExpression(expression) || ts.isAsExpression(expression) || ts.isParenthesizedExpression(expression))) expression = expression.expression;
+  if (!expression || !ts.isObjectLiteralExpression(expression)) return null;
+  const named = (property, name) => property.name && (ts.isIdentifier(property.name) || ts.isStringLiteral(property.name)) && property.name.text === name;
+  const property = expression.properties.find((row) => named(row, 'shardfile'));
+  if (property === undefined) return null;
+  const failures = [];
+  if (!ts.isPropertyAssignment(property) || !ts.isStringLiteral(property.initializer) || property.initializer.text !== `/shardfiles/${slug}/shard.json`) failures.push('shardfile must be the literal canonical /shardfiles/<slug>/shard.json path');
+  if (!existsSync(resolve(root, `src/shards/${slug}/shard.config.ts`))) failures.push('shardfile descriptor requires its buildable shard.config.ts project');
+  if (expression.properties.some((row) => named(row, 'load'))) failures.push('shardfile descriptor cannot also load a runtime plugin');
+  return failures;
+}
 /**
- * E362 AG10, the manifest contract: `load` is `() => import('./plugin')` (the plugin never rides in cold boot); the
+ * E362 AG10: a legacy `load` is `() => import('./plugin')`; a data descriptor has a canonical shardfile path and no load.
  * manifest's static closure stays inside its file budget (`lint/manifest-closure-budget.json`, `default` for a new
  * shard; it may only fall); every `ShardManifest` field is read by the engine, the game or the tooling (`fields`).
  * Slug = folder is check-shards' (AG9).
@@ -99,7 +121,9 @@ export function manifestContract(root, closure, fields = false) {
   const budgets = existsSync(budgetPath) ? JSON.parse(readFileSync(budgetPath, 'utf8')).budgets : {};
   for (const slug of shardFolders(root)) {
     const source = readFileSync(resolve(root, `src/shards/${slug}/manifest.ts`), 'utf8');
-    if (!LOAD.test(source)) failures.push(`src/shards/${slug}/manifest.ts: load must be \`() => import('./plugin')\` (a lazy plugin, never a static import)`);
+    const descriptor = descriptorContract(root, slug, source);
+    if (descriptor !== null) failures.push(...descriptor.map((message) => `src/shards/${slug}/manifest.ts: ${message}`));
+    else if (!LOAD.test(source)) failures.push(`src/shards/${slug}/manifest.ts: load must be \`() => import('./plugin')\` (a lazy plugin, never a static import)`);
     if (/^import\s[^;]*['"]\.\/plugin(?:\.ts)?['"]/mu.test(source)) failures.push(`src/shards/${slug}/manifest.ts imports ./plugin statically: it would ride in cold boot`);
     const budget = budgets[slug] ?? budgets.default, size = closure[slug]?.length ?? 0;
     if (typeof budget === 'number' && size > budget) failures.push(`src/shards/${slug}/manifest.ts: its static closure is ${size} files, over its budget ${budget} (${BUDGET_FILE}); move the new imports behind load / a lazy thunk`);
