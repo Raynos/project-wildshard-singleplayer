@@ -45,7 +45,7 @@ import { installGridHoverSpeed } from './rules';
 import { gridHomeSim, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
 import { gridShardfileProduct } from './products';
-import { RoadRecovery } from './roadRecovery';
+import { RoadRecovery, type RoadRecoveryCell } from './roadRecovery';
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../shardfile/simulation';
 
 /** The page traveller the live host rebinds (the existing Player; never a second capsule). */
@@ -139,12 +139,24 @@ export class LiveGridSession {
   private homeSim: GridHomeSimulation | null = null;
   /** G101: the last road point, where a fall that began from the road recovers */
   private readonly road: RoadRecovery;
+  private readonly respawnCells = new Map<string, RoadRecoveryCell>();
 
   constructor(ports: LiveGridSessionPorts, page: LiveGridPage) {
     this.ports = ports; this.page = page;
     const { assembly, home, scope } = ports, rapier = ports.physics.R;
     const traveller = page.traveller;
     this.road = new RoadRecovery(assembly);
+    for (const cell of assembly.cells) {
+      const entryways = ports.strips.flatMap((strip): RoadRecoveryCell['entryways'] => {
+        const duplicate = strip.duplicates.find((row) => row.instance === cell.instance), turn = strip.turnIn;
+        if (duplicate === undefined || turn === undefined) return [];
+        const axis = strip.id.startsWith('gap.x.') ? 'x' : 'z', positive = duplicate.mesh.origin[axis] > 0;
+        const width = turn.widths[positive ? 0 : 1];
+        if (width <= 0) return [];
+        return [{ edge: axis === 'x' ? positive ? 'east' : 'west' : positive ? 'north' : 'south', width }];
+      });
+      this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways });
+    }
     const player = { get position() { return traveller.position; }, get yaw() { return traveller.yaw; }, health: page.health, owner: traveller, motor: traveller.motor };
     const highwayBytes = ports.strips.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0);
     this.live = new LiveGridHost(assembly, {
@@ -191,7 +203,8 @@ export class LiveGridSession {
       if (scope.disposed) return;
       this.live.afterPlayerStep();
       const feet = this.live.worldFeet();
-      this.road.observe(feet, traveller.yaw, traveller.onGround === true, assembly.at(feet.x, feet.z) !== undefined);
+      const cell = assembly.at(feet.x, feet.z);
+      this.road.observe(feet, traveller.yaw, traveller.onGround === true, cell === undefined ? undefined : this.respawnCells.get(cell.instance));
       if (++saveTicks >= 300) { saveTicks = 0; this.checkpoint(); }
     });
     page.onInput(() => { traveller.camera.position.sub(this.applied); this.applied.set(0, 0, 0); });
@@ -267,6 +280,7 @@ export class LiveGridSession {
         this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
           // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
           queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region });
+        this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: source.entryways });
         return Promise.resolve({ host: region.host, dispose: () => {
           this.regions.delete(cell.instance); savedRegion.unbind();
           try { region.dispose(); } finally { releaseBasis(); }
