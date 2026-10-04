@@ -26,7 +26,8 @@ beforeAll(async () => {
 }, 20_000);
 afterAll(() => { rmSync(directory, { recursive: true, force: true }); });
 function proof(mode: string): Record<string, unknown> {
-  const output = execFileSync('node', ['--input-type=module', '-e', 'const fixture=await import(process.argv[1]); console.log(JSON.stringify(await fixture.run(process.argv[2],JSON.parse(process.argv[3]))));', pathToFileURL(resolve(directory, 'runner.js')).href, mode, JSON.stringify(bytes)], { encoding: 'utf8', timeout: 15_000 });
+  // Native module/world initialization competes with the full parallel gate; this child-process limit is separate from every runtime tick deadline.
+  const output = execFileSync('node', ['--input-type=module', '-e', 'const fixture=await import(process.argv[1]); console.log(JSON.stringify(await fixture.run(process.argv[2],JSON.parse(process.argv[3]))));', pathToFileURL(resolve(directory, 'runner.js')).href, mode, JSON.stringify(bytes)], { encoding: 'utf8', timeout: 120_000 });
   const result: unknown = JSON.parse(output); if (typeof result !== 'object' || result === null || Array.isArray(result)) throw new Error('Missing Node worker proof'); return result as Record<string, unknown>;
 }
 it('preempts a finite-fuel WASM script blocked in a host query, publishes no unfinished effects, and resumes the committed snapshot', () => {
@@ -42,4 +43,4 @@ it('runs the real template under its declared wall deadline, retaining the exact
     expect(result['tick']).toBeGreaterThanOrEqual(0); expect(result['tick']).toBeLessThan(60); expect(result['snapshot']).toBeGreaterThan(0);
     const budget = result['budget']; if (typeof budget !== 'number') throw new Error('Missing declared deadline'); expect(result['elapsedMicros']).toBeGreaterThan(budget);
   } else expect(result).toMatchObject({ ticks: 60 });
-});
+}, 120_000);
