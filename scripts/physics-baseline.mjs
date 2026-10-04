@@ -198,7 +198,7 @@ if (MODE.includes('grid')) {
     await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
     // the sky-down reveal (G98) drops the player's input while it runs: skip it with its one tap and wait for its end
     await page.mouse.click(195, 420).catch(() => undefined);
-    await page.waitForFunction(() => window.__wsReveal === undefined || window.__wsReveal.endedMs != null, null, { timeout: 60000, polling: 250 }).catch(() => undefined);
+    await page.waitForFunction(() => window.__wsReveal === undefined || (window.__wsReveal.endedMs ?? null) !== null, null, { timeout: 60000, polling: 250 }).catch(() => undefined);
     result.activation.grid = await activationWitness(page, 'grid');
     await page.waitForTimeout(SETTLE_MS);
     for (const speed of [15, 30]) {

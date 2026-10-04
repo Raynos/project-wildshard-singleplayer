@@ -71,7 +71,7 @@ try {
   await sleep(1500);
   // skip the sky-down reveal (G98): its layer takes one tap; wait for it to end so the shots have no caption
   await page.mouse.click(200, 500).catch(() => undefined);
-  await page.waitForFunction(() => window.__wsReveal?.endedMs != null, null, { timeout: 60000 }).catch(() => undefined);
+  await page.waitForFunction(() => (window.__wsReveal?.endedMs ?? null) !== null, null, { timeout: 60000 }).catch(() => undefined);
   await sleep(1000);
   out.resident = await page.evaluate(() => window.__wildshard.shard.grid.roadResident?.() ?? null); // null: a build before the readout (shots only)
   out.seams = await page.evaluate(() => window.__wildshard.shard.grid.state().seams);
