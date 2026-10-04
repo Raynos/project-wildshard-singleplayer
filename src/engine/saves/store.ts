@@ -27,7 +27,7 @@ export interface SchemaFailure { kind: 'save-schema'; scope: string; key: string
 export interface CorruptSave { scope: string; key: string; at: string; bytes: number }
 export interface ImportReport { imported: string[]; skipped: { key: string; reason: string }[] }
 interface Entry { v: number; data: unknown }
-interface Document { keys: Record<string, unknown> }
+interface Document { keys: Record<string, unknown>; reset?: number }
 interface StoreOptions {
   local?: SaveStorage | null; session?: SaveStorage | null; build?: string; now?: () => string;
   report?: (failure: SchemaFailure) => void;
@@ -48,7 +48,8 @@ const keyPrefix = (persisted: boolean): string => installedIdentity()?.savePrefi
 const shardNamespace = (slug: string): boolean => /^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(slug) && !RESERVED_NAMESPACES.has(slug);
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const entry = (value: unknown): value is Entry => object(value) && typeof value['v'] === 'number' && Number.isInteger(value['v']) && value['v'] > 0 && Object.hasOwn(value, 'data');
-const doc = (value: unknown): value is Document => object(value) && object(value['keys']);
+const doc = (value: unknown): value is Document => object(value) && object(value['keys'])
+  && (value['reset'] === undefined || (typeof value['reset'] === 'number' && Number.isSafeInteger(value['reset']) && value['reset'] > 0));
 const clone = <T>(value: T): T => structuredClone(value);
 
 
@@ -125,8 +126,11 @@ export class SaveStore {
     const priorDef = this.definitions.get(id);
     if (priorDef && priorDef !== definition) throw new Error(`Duplicate save definition: ${id}`);
     this.definitions.set(id, definition);
+    const generations = new Map<string, number>();
+    const remember = (name: string, stored: Document): void => { if (!generations.has(name)) generations.set(name, stored.reset ?? 0); };
     const read = (namespace?: string): T => {
       const name = this.name(definition.scope, namespace), savedDoc = this.savedDoc(definition.scope, name);
+      remember(name, savedDoc);
       const raw = savedDoc.keys[definition.key];
       if (raw === undefined) return clone(definition.initial());
       const identity = `${name}/${definition.key}`;
@@ -160,6 +164,8 @@ export class SaveStore {
     };
     const write = (value: T, namespace?: string): boolean => {
       const name = this.name(definition.scope, namespace), savedDoc = this.savedDoc(definition.scope, name);
+      remember(name, savedDoc);
+      if (generations.get(name) !== (savedDoc.reset ?? 0)) return false;
       const prior = savedDoc.keys[definition.key];
       if (this.readonlyKeys.has(`${name}/${definition.key}`) || (entry(prior) && prior.v > definition.version)) return false;
       const result = v.safeParse(definition.schema, value);
@@ -170,10 +176,11 @@ export class SaveStore {
     const peek = (namespace?: string): T | null => {
       this.initialize();
       const raw = this.get(definition.scope, this.name(definition.scope, namespace));
-      if (raw === null) return null;
+      if (raw === null) { remember(this.name(definition.scope, namespace), { keys: {} }); return null; }
       try {
         const parsed: unknown = JSON.parse(raw);
         if (!doc(parsed)) return null;
+        remember(this.name(definition.scope, namespace), parsed);
         const stored = parsed.keys[definition.key];
         if (!entry(stored) || stored.v > definition.version) return null;
         let data = stored.data, version = stored.v;
@@ -198,12 +205,47 @@ export class SaveStore {
       this.initialize();
       if (this.get('shard', source) === null) return;
       const old = this.savedDoc('shard', source), current = this.savedDoc('shard', target);
+      if (current.reset !== undefined) return;
       const merged = JSON.stringify({ keys: { ...old.keys, ...current.keys } });
       if (merged !== this.get('shard', target) || this.failedWrites.has(target)) this.put('shard', target, merged);
     };
     migrate();
+    slot.peek(id);
     return { instanceId: id, peek: () => slot.peek(id), read: () => { migrate(); return slot.read(id); },
       write: (value) => { migrate(); return slot.write(value, id); }, reset: () => { migrate(); slot.reset(id); } };
+  }
+  /** Detached local entries for a preview, without creating, repairing or migrating a document. */
+  inspectShard(identity: SaveInstance): Readonly<Record<string, unknown>> {
+    this.name('shard', identity.id);
+    if (identity.legacy !== undefined) this.name('shard', identity.legacy);
+    this.initialize();
+    const inspect = (id: string): Document => {
+      const raw = this.get('shard', this.name('shard', id));
+      if (raw === null) return { keys: {} };
+      const parsed: unknown = JSON.parse(raw);
+      if (!doc(parsed)) throw new Error('Invalid shard save document');
+      return parsed;
+    };
+    const current = inspect(identity.id);
+    const legacy = identity.legacy === undefined || identity.legacy === identity.id || current.reset !== undefined ? {} : inspect(identity.legacy).keys;
+    return clone({ ...legacy, ...current.keys });
+  }
+  /** Atomically reset one namespace, retaining explicit entries and preventing stale bindings or legacy imports from reviving it. False leaves the prior save intact. */
+  resetShard(identity: SaveInstance, keptKeys: readonly string[] = []): boolean {
+    const entries = this.inspectShard(identity), name = this.name('shard', identity.id);
+    const current = this.savedDoc('shard', name), generation = current.reset ?? 0;
+    if (!Number.isSafeInteger(generation) || generation < 0 || generation === Number.MAX_SAFE_INTEGER) throw new Error('Invalid shard reset generation');
+    const keep = new Set(keptKeys);
+    const stored: Document = { keys: Object.fromEntries(Object.entries(entries).filter(([key]) => keep.has(key))), reset: generation + 1 };
+    const raw = JSON.stringify(stored);
+    try {
+      const storage = this.storage('shard');
+      if (storage === null) return false;
+      storage.setItem(name, raw);
+    } catch { return false; }
+    this.memory.set(name, raw); this.failedWrites.delete(name);
+    for (const key of this.readonlyKeys) if (key.startsWith(`${name}/`) && !keep.has(key.slice(name.length + 1))) this.readonlyKeys.delete(key);
+    return true;
   }
   persist(): Promise<boolean> {
     this.persistence ??= (async () => {
