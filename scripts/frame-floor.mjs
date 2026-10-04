@@ -42,6 +42,12 @@ const deviceSaves = Object.fromEntries(deviceSaveArgs.map((arg) => {
   if (!match) throw new Error('Invalid device save; expected key=value');
   return [match[1], match[2]];
 }));
+const systemArgs = args.filter((arg) => arg.startsWith('--expect-system='));
+const expectedSystems = systemArgs.map((arg) => {
+  const match = /^--expect-system=([a-zA-Z0-9_-]+):([a-zA-Z0-9._-]+)=(on|off)$/u.exec(arg);
+  if (!match || !shards.includes(match[1])) throw new Error('Expected system must name a measured shard:system=on|off');
+  return { shard: match[1], id: match[2], present: match[3] === 'on' };
+});
 const fixture = (tier) => [
   saveFixtureCode({ scope: 'global', key: 'settings', data: { ...settings, tier }, merge: true }),
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
@@ -96,6 +102,7 @@ function metadata() {
   return { renderer: ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER)),
     viewport: [innerWidth, innerHeight], devicePixelRatio, renderScale: g.renderer.getPixelRatio(), canvas: [g.canvas.width, g.canvas.height],
     settings: saved.keys?.settings?.data, gfx: saved.keys?.gfx?.data, deviceSaves: Object.fromEntries(Object.entries(deviceSaved.keys ?? {}).map(([key, value]) => [key, value.data])), clock: g.app.clock.mode,
+    systems: Object.values(g.app.systemsByPhase()).flat().map((system) => system.id),
     spawn: { name: 'spawn', x: w.player.position.x, y: w.player.position.y, z: w.player.position.z, yaw: w.player.yaw, pitch: w.player.pitch }, userAgent: navigator.userAgent };
 }
 async function cameras() {
@@ -192,6 +199,7 @@ async function measureShard(driver, shard, deadline) {
     await sleep(settleMs);
     const meta = await driver.evaluate(`(${metadata.toString()})()`);
     if (meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== (surface === 'sim' ? 'phone' : 'desktop') || meta.settings.fps !== 'auto' || Object.entries(picks).some(([key, value]) => meta.settings[key] !== value) || Object.entries(deviceSaves).some(([key, value]) => meta.deviceSaves[key] !== value)) throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
+    for (const expected of expectedSystems.filter((row) => row.shard === shard)) if (meta.systems.includes(expected.id) !== expected.present) throw new Error(`Activation witness failed: ${expected.id} expected ${expected.present ? 'on' : 'off'}; installed ${meta.systems.join(', ')}`);
     if (surface === 'sim' && (meta.viewport[0] >= meta.viewport[1] || !meta.userAgent.includes('iPhone'))) throw new Error('Simulator must be portrait iPhone Safari');
     if (surface === 'desktop' && !meta.renderer.includes('ANGLE Metal Renderer')) throw new Error(`Metal required, got ${meta.renderer}`);
     const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' ? GRID_POSES : [])];
@@ -374,7 +382,7 @@ async function main() {
     writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
-      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs];
+      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
@@ -383,7 +391,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, shards, surface, settings, deviceSaves, complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, shards, surface, settings, deviceSaves, expectedSystems, complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds only live harness pose pins before the byte-identical clean HEAD modules.'], results });
