@@ -19,3 +19,21 @@ pnpm exec vitest run test/director.test.ts test/director-client.test.ts test/dir
 The focused run passes **30 tests in 8 files**. All new imports are defining public modules. JSON source imports use `with { type: 'json' }` for Node bake-check. Modules use the existing unchanged engine fuel, query, memory and event allowances; hashes are verified before allocation. Complete author memory/globals, budgets, quarantine state and pending typed requests participate in the same-engine continuation.
 
 G51 residuals are explicit: Driftwood captain combat, renderer and reward camera remain native; Nalati pack/prey selection, spawn viability, shepherd rig/control and its existing shared RNG draw port remain native; Pine sky interpolation, lights, captions, inventory and creature recipes remain native. These recipes consume bounded typed decisions and supply live observations. The source/Script choice stays default off until conversion parity and the selection decision. No grid delivery is implemented in v1.
+
+ON frame floor, pinned `8de907da2`, both surfaces:
+
+```
+node scripts/frame-floor.mjs --rev=8de907da2 --shards=driftwood-isle,nalati-grasslands,pine-hollow --surface=both \
+  --device-save=debug.plugin.driftwood-isle.driftwoodHybrid=on \
+  --device-save=debug.plugin.driftwood-isle.shardDirectors=on \
+  --device-save=debug.plugin.nalati-grasslands.shardDirectors=on \
+  --device-save=debug.plugin.pine-hollow.shardDirectors=on \
+  --expect-system=driftwood-isle:shard.driftwood.movers=on \
+  --expect-system=driftwood-isle:shard.driftwood.director=on \
+  --expect-system=nalati-grasslands:shard.nalati.director=on \
+  --expect-system=pine-hollow:shard.pine.director=on
+```
+
+Desktop: all nine poses pass, raw median 59.88 fps (rounded 60), maximum p95 **16.8 ms**. Simulator: Driftwood and Nalati pass six poses, raw median 30.303 fps (rounded 30), maximum p95 **34 ms**. The first Pine Simulator load timed out at 90 seconds with no captured page errors; the failed receipt is retained at `progress/frame-floor/8de907da2-39365-1791127943947.json` (267.4 seconds, incomplete).
+
+The coordinator granted one isolated Pine Simulator retry with the same revision and device keys, `--shards=pine-hollow --surface=sim --expect-system=pine-hollow:shard.pine.director=on`. It passed all three poses, 30.303 fps, maximum p95 **34 ms**, no errors, in **58.2 seconds**. Its receipt is `progress/frame-floor/8de907da2-54243-1791128345769.json`. Every passing load records the device keys and installed director system; Driftwood additionally records its declared mover system. Thus all six requested shard/surface combinations have passing witnessed measurements, across the original attempt and isolated retry. The initial timeout is not explained by this successful retry. These Simulator numbers are not a physical iPhone performance or memory measurement.
