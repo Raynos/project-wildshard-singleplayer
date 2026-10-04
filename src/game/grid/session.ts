@@ -64,7 +64,7 @@ export interface GridSessionState {
   readonly home: string; readonly inside: string | null; readonly feet: { x: number; z: number };
   readonly cells: readonly { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly shows: GridCellShows }[];
   readonly strips: number; readonly ringsReady: boolean;
-  /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 850 MB envelope) */
+  /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   readonly rings: { readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number };
   /** SF19a's one frame (null with its Debug row off) */

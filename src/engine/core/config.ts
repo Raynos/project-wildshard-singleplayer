@@ -19,7 +19,7 @@ export const CONTENT_CAPS = {
   far: { resident: 1.6 * CONTENT_MB, compressed: CONTENT_MB, triangles: 8_000, draws: 1 },
   library: { resident: 25 * CONTENT_MB, compressed: 8 * CONTENT_MB },
   sim: { resident: 25 * CONTENT_MB, compressed: 2 * CONTENT_MB },
-  engineBase: 300 * CONTENT_MB, playing: 850 * CONTENT_MB, loading: 1800 * CONTENT_MB,
+  engineBase: 300 * CONTENT_MB, playing: 1000 * CONTENT_MB, loading: 1800 * CONTENT_MB,
   l0Count: 40, l1Count: 32, farCount: 9, simCount: 4, libraryCount: 4,
   overlap: 80 * CONTENT_MB, residentFactor: 1.11, nearRadius: 150, shadowRadius: 80, pitch: 555,
 } as const;

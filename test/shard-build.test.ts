@@ -49,7 +49,7 @@ it('counts all categories at the worst location: saturated v1 fits, commons can 
   for (let x = 0; x < 8; x++) for (let z = 0; z < 8; z++) s.tiles.push({ lod: 0, x, z, bounds: { min: [-250 + x * 62.5, -250, -250 + z * 62.5], max: [-250 + (x + 1) * 62.5, 250, -250 + (z + 1) * 62.5] }, geometricError: 0, files: [], compressed: C.l0.compressed, decoded: 0, gpu: C.l0.resident, triangles: C.l0.triangles, draws: C.l0.draws });
   const cost = worstContentCost(s); expect(cost.playing).toBeLessThanOrEqual(C.playing);
   expect(validateProject(s, new Map())).toEqual(s);
-  expect(worstContentCost(s, 100_000_000).playing).toBeGreaterThan(C.playing);
+  expect(worstContentCost(s, 200_000_000).playing).toBeGreaterThan(C.playing); // 200 MB of commons breaks the 1.0 GB envelope (G65)
   const tile = s.tiles[0]; if (tile === undefined) throw new Error('fixture missing'); tile.gpu++;
   expect(() => validateProject(s, new Map())).toThrow();
 });

@@ -50,7 +50,7 @@ interface Entry { id: string; category: ResidencyCategory; bytes: number; owner:
 
 const field = { l0: 'l0', l1: 'l1', far: 'far', library: 'libraries', sim: 'sims', commons: 'commons' } as const;
 
-/** One allocator per grid session. `playing` defaults to the §3.2 envelope (850 MB). */
+/** One allocator per grid session. `playing` defaults to the §3.2 envelope (1.0 GB, G65). */
 export class ResidencyAllocator {
   private readonly entries_ = new Map<string, Entry>();
   private readonly totals: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, library: 0, sim: 0, commons: 0 };

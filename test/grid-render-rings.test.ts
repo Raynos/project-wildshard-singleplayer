@@ -13,7 +13,7 @@ import { RenderRings, type RingCell, type RingLevel, type RingTile, type RingVie
  * SF18b's deterministic drive: a scripted camera at 15 and 30 m/s across the 3 × 3 grid (a U-turn, a stall, a 10 s network
  * stall), a serial 5 Mbit/s link, caps-sized tiles and four whole sims + libraries charged in the same allocator. Every
  * frame checks that each patch of each visible cell is drawn by exactly one level and that the cost model stays inside
- * the 850 MB envelope; the same path twice gives the same residency trace.
+ * the 1.0 GB envelope (G65); the same path twice gives the same residency trace.
  */
 const DT = 1 / 60, LINK = 5_000_000, LATENCY = 0.1;
 const resident = { far: Math.round(C.far.resident), l1: C.l1.resident, l0: C.l0.resident } as const;
