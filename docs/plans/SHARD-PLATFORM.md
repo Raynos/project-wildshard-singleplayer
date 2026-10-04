@@ -1,6 +1,6 @@
 # Plan: SHARD-PLATFORM — the 80/20 split: shards become data and approved systems (E431)
 
-**State:** `in progress` 2026-10-03 — P0 only (SP1–SP5, Jake's Q4: "start P0"), building now (wildshard-new); P1–P6 stay a draft until a council round (§9). Jake's picks (ask tool, 10-03): Q1 Thin Ice **starts as code** with the 20 % allowance (a seventh shard to convert, SP31); Q2 our own material-graph compiler onto `patchShader`; Q3 only the ordinary bosses move to phase tables. Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md). SP0 done (`4a95c2454`).
+**State:** `in progress` 2026-10-03 — P0 only (SP1–SP5, Jake's Q4: "start P0"), building now (wildshard-new); P1–P6 stay a draft until a council round (§9). Jake's picks (ask tool, 10-03): Q1 Thin Ice **starts as code** with the 20 % allowance (a seventh shard to convert, SP31); Q2 our own material-graph compiler onto `patchShader`; Q3 only the ordinary bosses move to phase tables; WebGPU (10-03): no port yet, SP18 compiles to WebGL and TSL, SP32 is a measured spike. Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md). SP0 done (`4a95c2454`).
 
 ## 0. Read this first
 
@@ -163,17 +163,18 @@ test, and is switched onto its first shard with parity, then the others. Ordered
 | SP15 | **World devices**: water body (sea, stream, waterfall, pool), scatter / ground-cover and grass streaming, flock / herd / ambient life, movers and rotators (bridge, sails, monorail, gondola), wind / updraft zones, rope / zipline / grapple points, floating platform, particle / fire emitter, trail ribbon, cloth flutter | D, P, N, ND, SD, FR |
 | SP16 | **Sky, weather and ambience as data**: sky dome / painted backdrop / cloud sea, `DayCycle` keys without function curves, weather profiles as data (the rain / snow program in the kit), ambience zones | All six |
 | SP17 | **Look stacks**: the post chain as an ordered list of engine passes with parameters (toon ramp, painterly, PBR grade, Jiehua neon, bloom, haze, LUT, fog, rim / shade floor), from `LookStrategy` code to a `look` block in `shard.json` | All six |
-| SP18 | **Material graphs**: a validated node graph (allowlisted nodes, cost cap) compiled to the WebGL renderer's shader patches through the existing `patchShader` registry (Q2); first targets: sand ripple, facade windows, water, wind sway, the dune shadow | ND, SD, FR, N |
+| SP18 | **Material graphs**: a validated node graph (allowlisted nodes, cost cap) compiled by our own compiler (Q2) to **two targets** (Jake, 10-03): the WebGL renderer's shader patches through the existing `patchShader` registry, and TSL for three.js's WebGPURenderer, so every effect moved to a graph is already WebGPU-ready; a contract test compiles each graph both ways; first targets: sand ripple, facade windows, water, wind sway, the dune shadow | ND, SD, FR, N |
 | SP19 | **Kit content families** for what one shard still hand-builds: the shop / trade panel, loot / trophy display, NPC talker and guide, the GLB preload and material-tweak loaders and rigid-hull creature builder that SD and FR duplicate, the Sabre / Naizagai / Golden Bow / whip as weapon-family profiles | D, P, N, SD, FR |
 
 Most of the S rows can run in parallel lanes. SP11 comes first because every other system's verb hangs off it.
 
-### P4 — WASM plugins (an approved system; the way down for the 20 %)
+### P4 — WASM plugins (an approved system; the way down for the 20 %) and the WebGPU spike
 
 | Row | What | Done when | Size |
 |---|---|---|---|
 | SP20 | **The plugin host**: a language-neutral host ABI (ids, numbers, typed arrays, events in and effects out; no three.js, no DOM), a per-call fuel limit (instrumented module) and memory cap, deterministic (the seeded RNG through the ABI), the same module in Node and the browser, owned by the shard scope. First toolchain: Rust (MMO-REQUIREMENTS O4) | A test plugin runs identically in Node and on the phone tier; a runaway plugin is stopped by fuel; the leak test passes |
 | SP21 | **Pilot**: port one small piece of custom gameplay logic to WASM. Candidate: the Antler King's move policy (`combat/KingGoals.ts` + `combat/combatMath.ts`, ~190 lines, Pine) | Parity identical; frame-time cost measured on the phone tier |
+| SP32 | **WebGPU spike** (Jake, 10-03: WebGPU is three.js's future, but no full port yet): one shard (the template, then Sky Reach) on `WebGPURenderer` through the engine's `Renderer` interface, **default-off behind a Debug row** (RENDERING.md: the one exception to "no phone checks"); its graphs from SP18's TSL target, its other shaders stubbed or ported; measured against WebGL on the M5 lanes (frame, GPU, CPU, draws) and by one physical-iPhone reading (fps hot, memory against 1.0 / 1.8 GB). The full port (~92 shader patches, 114 `ShaderMaterial` sites in 68 files, the post stack: `docs/design/webgpu-port-inventory.md`) becomes its own plan only when one of these holds: three.js fixes its many-draws regression ([#30560](https://github.com/mrdoob/three.js/issues/30560)), three.js deprecates `WebGLRenderer`, or the iPhone reading beats WebGL | A written verdict with the numbers; the Debug row deleted with the losing code once Jake decides | M |
 
 ### P5 — Convert each shard (C → `runtime/`, ≤ 20 %)
 
