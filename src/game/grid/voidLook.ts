@@ -11,9 +11,8 @@
 import {
   BoxGeometry, BufferAttribute, BufferGeometry, Color, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshLambertMaterial, type Object3D, ShaderMaterial,
 } from 'three';
-import type { Scope } from '@wildshard/engine/app/scope';
 import type { GridCell } from './assembly';
-import type { RailBox } from './roadLayout';
+import type { LookScope, RailBox } from './roadLayout';
 
 /** The void floor's reach past the rail (well beyond the camera's 2.6 km far plane). */
 const REACH = 6000;
@@ -79,7 +78,7 @@ function floorGeometry(box: RailBox, home: GridCell): BufferGeometry {
 export interface VoidLookState { readonly rail: RailBox; readonly posts: number }
 
 /** Draw the void and its rail; everything is disposed with the scope. */
-export function installVoidLook(input: { readonly rail: RailBox; readonly home: GridCell; readonly scene: Object3D; readonly scope: Scope }): VoidLookState {
+export function installVoidLook(input: { readonly rail: RailBox; readonly home: GridCell; readonly scene: Object3D; readonly scope: LookScope }): VoidLookState {
   const { rail: box, home, scene, scope } = input, group = new Group();
   group.name = 'grid-void';
   const x0 = box.minX - home.origin.x, x1 = box.maxX - home.origin.x, z0 = box.minZ - home.origin.z, z1 = box.maxZ - home.origin.z;

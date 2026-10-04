@@ -11,11 +11,10 @@ import {
   BufferAttribute, BufferGeometry, CanvasTexture, Color, DynamicDrawUsage, Group, InstancedMesh, LinearMipmapLinearFilter, Matrix4, Mesh, MeshBasicMaterial,
   MeshLambertMaterial, type Object3D, Quaternion, RepeatWrapping, SRGBColorSpace, Vector3,
 } from 'three';
-import type { Scope } from '@wildshard/engine/app/scope';
 import type { GridCell } from './assembly';
 import {
   GAP_HALF, RING_ISLAND, RING_OUTER, ROAD_HALF, SEGMENT_HALF, TURN_IN_HALF, segmentPoint,
-  type ArmSide, type RoadJunction, type RoadLayout, type RoadSign, type SignLine,
+  type ArmSide, type LookScope, type RoadJunction, type RoadLayout, type RoadSign, type SignLine,
 } from './roadLayout';
 
 /** What the look draws into and how it hands its meshes to the frame (SF19a's neutral highway slot). */
@@ -23,7 +22,7 @@ export interface RoadLookInput {
   readonly layout: RoadLayout;
   readonly home: GridCell;
   readonly scene: Object3D;
-  readonly scope: Scope;
+  readonly scope: LookScope;
   /** SF19a: tag a mesh as highway (its grade is the neutral road grade, G75) */
   readonly tag?: (mesh: Mesh) => void;
 }

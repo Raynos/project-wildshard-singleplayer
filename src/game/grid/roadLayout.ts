@@ -27,6 +27,8 @@ export const TURN_IN_HALF = 6;
 export const RING_OUTER = 15.5;
 export const RING_ISLAND = 6;
 
+/** The lifetime a look is disposed with (the session's level scope). */
+export interface LookScope { readonly onDispose: (fn: () => void) => void }
 /** One road segment: it runs along `axis`, centred at `centre`; `low` is the cell on its negative side, `high` its positive side. */
 export interface RoadSegment {
   readonly id: string;
