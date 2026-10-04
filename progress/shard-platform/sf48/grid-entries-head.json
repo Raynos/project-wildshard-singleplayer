@@ -1,0 +1,61 @@
+{
+ "base": "http://127.0.0.1:4400",
+ "footprints": [
+  {
+   "edge": "north",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "wet": 0,
+   "blockers": []
+  },
+  {
+   "edge": "south",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "wet": 0,
+   "blockers": []
+  },
+  {
+   "edge": "east",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "wet": 0,
+   "blockers": []
+  },
+  {
+   "edge": "west",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "wet": 0,
+   "blockers": []
+  }
+ ],
+ "legs": [],
+ "shots": [],
+ "errors": [],
+ "grid": {
+  "home": "nalati-grasslands",
+  "cells": [
+   "_template@-1,1",
+   "pine-hollow@0,1",
+   "_template@1,1",
+   "sunscar-dunes@-1,0",
+   "driftwood-isle@0,0",
+   "nalati-grasslands@1,0",
+   "_template@-1,-1",
+   "far-reach@0,-1",
+   "_template@1,-1"
+  ],
+  "live": "nalati-grasslands"
+ },
+ "stateInside": "{\"live\":{\"current\":\"nalati-grasslands\",\"worldFeet\":{\"x\":555.0000002441332,\"y\":0.020024825258587953,\"z\":232.0000000145119},\"crossings\":0,\"transitions\":[],\"residents\":[\"template-2\"],\"pending\":[],\"issues\":{\"pine-hollow\":\"pine-hollow is not a shardfile shard (it stays a far proxy until M3)\",\"driftwood-isle\":\"driftwood-isle is not a shardfile shard (it stays a far proxy until M3)\"},\"gameplayReady\":true,\"continuations\":{\"entries\":0,\"storedChars\":0,\"capacityChars\":0,\"claimedBytes\":0}},\"refusals\":null}",
+ "stateRoad": "{\"live\":{\"current\":null,\"worldFeet\":{\"x\":554.9999998378581,\"y\":0.020099969646253157,\"z\":262.00000093616643},\"crossings\":1,\"transitions\":[{\"from\":\"nalati-grasslands\",\"to\":null}],\"residents\":[\"template-2\"],\"pending\":[],\"issues\":{\"pine-hollow\":\"pine-hollow is not a shardfile shard (it stays a far proxy until M3)\",\"driftwood-isle\":\"driftwood-isle is not a shardfile shard (it stays a far proxy until M3)\"},\"gameplayReady\":true,\"continuations\":{\"entries\":0,\"storedChars\":0,\"capacityChars\":0,\"claimedBytes\":0}},\"refusals\":null}"
+}

@@ -1,0 +1,277 @@
+{
+ "$doc": "SHARD-PLATFORM SF48-g (G93 / G103 / G131): Nalati Grasslands' four midpoint entries walked road <-> shard in the live grid (INFINITE WILDSHARD, Nalati the home cell; shard-local coordinates, north = +z, east = +x). Each inward leg starts on the boulevard 12 m past the cell edge, crosses the platform's 8 x 15 m asphalt socket and walks 58 m up the entry road through the berm's gap; each outward leg walks it back onto the boulevard. Run: scripts/browser-lane.sh node progress/shard-platform/sf48/grid-entries.mjs --url=<served build> --out=<dir>",
+ "nalati-grasslands": [
+  {
+   "name": "north in",
+   "start": {
+    "x": 0,
+    "z": 262,
+    "yaw": 0
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 250
+    },
+    {
+     "x": 0,
+     "z": 242
+    },
+    {
+     "x": 0,
+     "z": 235
+    },
+    {
+     "x": 0,
+     "z": 220
+    },
+    {
+     "x": 0,
+     "z": 205
+    },
+    {
+     "x": 0,
+     "z": 192
+    }
+   ]
+  },
+  {
+   "name": "north out",
+   "start": {
+    "x": 0,
+    "z": 192,
+    "yaw": -3.1416
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 205
+    },
+    {
+     "x": 0,
+     "z": 220
+    },
+    {
+     "x": 0,
+     "z": 235
+    },
+    {
+     "x": 0,
+     "z": 242
+    },
+    {
+     "x": 0,
+     "z": 250
+    },
+    {
+     "x": 0,
+     "z": 262
+    }
+   ]
+  },
+  {
+   "name": "east in",
+   "start": {
+    "x": 262,
+    "z": 0,
+    "yaw": 1.5708
+   },
+   "waypoints": [
+    {
+     "x": 250,
+     "z": 0
+    },
+    {
+     "x": 242,
+     "z": 0
+    },
+    {
+     "x": 235,
+     "z": 0
+    },
+    {
+     "x": 220,
+     "z": 0
+    },
+    {
+     "x": 205,
+     "z": 0
+    },
+    {
+     "x": 192,
+     "z": 0
+    }
+   ]
+  },
+  {
+   "name": "east out",
+   "start": {
+    "x": 192,
+    "z": 0,
+    "yaw": -1.5708
+   },
+   "waypoints": [
+    {
+     "x": 205,
+     "z": 0
+    },
+    {
+     "x": 220,
+     "z": 0
+    },
+    {
+     "x": 235,
+     "z": 0
+    },
+    {
+     "x": 242,
+     "z": 0
+    },
+    {
+     "x": 250,
+     "z": 0
+    },
+    {
+     "x": 262,
+     "z": 0
+    }
+   ]
+  },
+  {
+   "name": "south in",
+   "start": {
+    "x": 0,
+    "z": -262,
+    "yaw": 3.1416
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -250
+    },
+    {
+     "x": 0,
+     "z": -242
+    },
+    {
+     "x": 0,
+     "z": -235
+    },
+    {
+     "x": 0,
+     "z": -220
+    },
+    {
+     "x": 0,
+     "z": -205
+    },
+    {
+     "x": 0,
+     "z": -192
+    }
+   ]
+  },
+  {
+   "name": "south out",
+   "start": {
+    "x": 0,
+    "z": -192,
+    "yaw": 0
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -205
+    },
+    {
+     "x": 0,
+     "z": -220
+    },
+    {
+     "x": 0,
+     "z": -235
+    },
+    {
+     "x": 0,
+     "z": -242
+    },
+    {
+     "x": 0,
+     "z": -250
+    },
+    {
+     "x": 0,
+     "z": -262
+    }
+   ]
+  },
+  {
+   "name": "west in",
+   "start": {
+    "x": -262,
+    "z": 0,
+    "yaw": -1.5708
+   },
+   "waypoints": [
+    {
+     "x": -250,
+     "z": 0
+    },
+    {
+     "x": -242,
+     "z": 0
+    },
+    {
+     "x": -235,
+     "z": 0
+    },
+    {
+     "x": -220,
+     "z": 0
+    },
+    {
+     "x": -205,
+     "z": 0
+    },
+    {
+     "x": -192,
+     "z": 0
+    }
+   ]
+  },
+  {
+   "name": "west out",
+   "start": {
+    "x": -192,
+    "z": 0,
+    "yaw": 1.5708
+   },
+   "waypoints": [
+    {
+     "x": -205,
+     "z": 0
+    },
+    {
+     "x": -220,
+     "z": 0
+    },
+    {
+     "x": -235,
+     "z": 0
+    },
+    {
+     "x": -242,
+     "z": 0
+    },
+    {
+     "x": -250,
+     "z": 0
+    },
+    {
+     "x": -262,
+     "z": 0
+    }
+   ]
+  }
+ ]
+}
