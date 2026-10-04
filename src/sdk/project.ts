@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI verifies and writes local build products.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve source assets inside the author project.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Content addresses are SHA-256 of the exact wire bytes.
@@ -17,7 +17,7 @@ import { assetCost } from './assets';
 export function canonicalJson(value: unknown): string {
   const canonical = (input: unknown): unknown => {
     if (Array.isArray(input)) return input.map(canonical);
-    if (typeof input === 'object' && input !== null) return Object.fromEntries(Object.entries(input).sort(([a], [b]) => a.localeCompare(b)).map(([key, val]) => [key, canonical(val)]));
+    if (typeof input === 'object' && input !== null) return Object.fromEntries(Object.entries(input).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([key, val]) => [key, canonical(val)]));
     return input;
   };
   return `${JSON.stringify(canonical(value))}\n`;
@@ -95,14 +95,23 @@ export async function readProject(project: string): Promise<Shardfile> {
 export function projectAssets(project: string, shard: Shardfile): Map<string, Uint8Array> {
   return new Map([...shard.files.map((f) => [f.hash, readFileSync(resolve(project, 'assets', f.hash))] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, readFileSync(resolve(project, 'commons', h))] as const)]);
 }
-/** Build a validated deterministic shard.json and its immutable files. */
+/** Build a deterministic shard.json, immutable files and the distributed normal client when present. */
 export async function buildProject(project: string, output?: string): Promise<Shardfile> {
   const raw = await readProject(project), assets = projectAssets(project, raw), shard = validateProject(raw, assets);
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
   shard.files.sort((a, b) => a.hash.localeCompare(b.hash)); shard.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
   mkdirSync(destination, { recursive: true });
-  for (const [hash, bytes] of assets) if (!hash.startsWith('commons:')) writeFileSync(resolve(destination, hash.replace('commons:', '')), bytes);
-  writeFileSync(resolve(destination, 'shard.json'), canonicalJson(shard)); return shard;
+  for (const [hash, bytes] of assets) writeFileSync(resolve(destination, hash.replace('commons:', '')), bytes);
+  writeFileSync(resolve(destination, 'shard.json'), canonicalJson(shard));
+  const directory = import.meta.dirname;
+  const client = [resolve(directory, 'client'), resolve(directory, 'dist/client')].find((path) => existsSync(resolve(path, 'index.html')));
+  if (client !== undefined) {
+    cpSync(client, destination, { recursive: true });
+    const json = canonicalJson(shard).replaceAll('<', String.raw`\u003c`);
+    const html = readFileSync(resolve(destination, 'index.html'), 'utf8').replace('</head>', `<script id="ws-shardfile" type="application/json">${json}</script></head>`);
+    writeFileSync(resolve(destination, 'index.html'), html);
+  }
+  return shard;
 }
 /** Create the canonical SDK project layout without replacing existing work. */
 export function newProject(project: string, slug: string): void {

@@ -14,7 +14,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parseGlb` | function | @wildshard/sdk/assets | Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. |
 | `parseKtx2` | function | @wildshard/sdk/assets | Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. |
 | `emptyShardfile` | function | @wildshard/sdk/author | Start an author project with a valid empty world; add baked content before shipping a playable shard. |
-| `buildProject` | function | @wildshard/sdk/project | Build a validated deterministic shard.json and its immutable files. |
+| `buildProject` | function | @wildshard/sdk/project | Build a deterministic shard.json, immutable files and the distributed normal client when present. |
 | `canonicalJson` | function | @wildshard/sdk/project | Stable JSON encoding: sorted object keys, no timestamps or host paths. |
 | `contentHash` | function | @wildshard/sdk/project | Hash of immutable wire bytes; this is also their output filename. |
 | `newProject` | function | @wildshard/sdk/project | Create the canonical SDK project layout without replacing existing work. |

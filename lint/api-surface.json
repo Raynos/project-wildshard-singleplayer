@@ -13170,7 +13170,7 @@
       {
         "name": "buildProject",
         "kind": "function",
-        "doc": "Build a validated deterministic shard.json and its immutable files.",
+        "doc": "Build a deterministic shard.json, immutable files and the distributed normal client when present.",
         "from": "@wildshard/sdk/project"
       },
       {

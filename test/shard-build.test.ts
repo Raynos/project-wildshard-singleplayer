@@ -1,10 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Build integration fixtures own their temporary directories.
-import { mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolated author projects live outside the repository.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture paths and SDK workspace links.
 import { join, resolve } from 'node:path';
 import { expect, it } from 'vitest';
+import binaryen from 'binaryen';
 import { CONTENT_CAPS as C } from '../src/engine/core/config';
 import { worstContentCost } from '../src/game/shardfile/budget';
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -12,11 +13,14 @@ import { assetCost } from '@wildshard/sdk/assets';
 import { buildProject, contentHash, newProject, validateProject } from '@wildshard/sdk/project';
 
 const empty = (): ReturnType<typeof emptyShardfile> => emptyShardfile({ slug: 'example', name: 'Example', author: 'Local', seed: 1, revision: 1 });
-it('rejects a valid-hash structurally valid Wasm module before execution when admission is missing', () => {
-  const bytes = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]), hash = contentHash(bytes), s = empty();
+it('rejects a valid-hash Wasm module with an unmetered endless loop before execution', () => {
+  const module = binaryen.parseText('(module (import "env" "memory" (memory 1 64)) (func (export "on_tick") (loop $spin (br $spin))))');
+  let bytes: Uint8Array;
+  try { bytes = module.emitBinary(); } finally { module.dispose(); }
+  const hash = contentHash(bytes), s = empty();
   s.files.push({ hash, kind: 'wasm', compressed: bytes.length, decoded: bytes.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
   s.critical.push(hash); s.sim.scripts.push(hash); s.budgets.sim = { resident: bytes.length, compressed: bytes.length };
-  expect(WebAssembly.validate(bytes)).toBe(true);
+  expect(WebAssembly.validate(Uint8Array.from(bytes))).toBe(true);
   expect(() => validateProject(s, new Map([[hash, bytes]]))).toThrow();
 });
 it.each([['glb', 'triangle.glb'], ['ktx2', 'pixel.ktx2'], ['audio', 'sample.wav']])('parses bounded %s assets and rejects a malformed fixture', (kind, file) => {
@@ -57,5 +61,17 @@ it('two clean author builds produce identical shardfiles and the canonical layou
     expect(readFileSync(join(root, 'one/shard.json'))).toEqual(readFileSync(join(root, 'two/shard.json')));
     expect(readdirSync(project)).toEqual(expect.arrayContaining(['shard.config.ts', 'generators', 'data', 'behaviour', 'quests', 'assets']));
     expect(() => newProject(project, 'example')).toThrow();
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}, 30_000);
+it('writes commons bytes once under their immutable hash in the built product', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'shard-commons-'));
+  try {
+    const project = join(root, 'example'), bytes = new Uint8Array([1, 2, 3]), hash = contentHash(bytes);
+    newProject(project, 'example'); symlinkSync(resolve('node_modules'), join(project, 'node_modules'));
+    mkdirSync(join(project, 'commons')); writeFileSync(join(project, 'commons', hash), bytes);
+    writeFileSync(join(project, 'shard.config.ts'), `import { emptyShardfile } from '@wildshard/sdk/author';\nconst shard=emptyShardfile({slug:'example',name:'Example',author:'Local',seed:1,revision:1});\nshard.requires.commons.push('${hash}');\nexport default shard;\n`);
+    await buildProject(project, join(root, 'product'));
+    expect([...readFileSync(join(root, 'product', hash))]).toEqual([...bytes]);
+    expect(readdirSync(join(root, 'product')).filter((name) => name === hash)).toHaveLength(1);
   } finally { rmSync(root, { recursive: true, force: true }); }
 }, 30_000);

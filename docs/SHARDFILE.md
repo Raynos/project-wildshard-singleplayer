@@ -89,6 +89,19 @@ verifies wire hashes and parser costs, rejects understated transitive budgets an
 critical wire >2 MB, then writes stable sorted-key JSON and unchanged immutable
 bytes. Configs and generators execute only on the author's machine.
 
+SDK distribution (SF8b): `pnpm --dir src/sdk pack --pack-destination <directory>`
+builds portable ESM author tools, their complete declaration closure and the normal
+Game client. An outside project installs the tarball with a `file:` dependency;
+`wildshard build` copies that prebuilt client and embeds its validated shardfile in
+`index.html`. Serve the output directory as a static site. The bundle includes the
+normal client's fonts and physics Wasm; it owns no separate render loop. Workspace
+source exports remain `.ts`, while the tarball's exports name its packaged JS and
+declarations. `node scripts/test-sdk-distribution.mjs` proves installation outside
+the workspace, two byte-identical clean products and standalone strict TypeScript.
+For the browser load/unload census, run `scripts/browser-lane.sh node
+scripts/test-sdk-client.mjs <built-product-directory> [report.json]` from scratch
+after any active performance quiet window; it serves only that installed product.
+
 The initial parsers accept GLB 2 with embedded buffers and separate KTX2 textures,
 2D KTX2 within 4096² (RGBA transcode is the conservative GPU bound), and PCM WAV
 within 180 seconds / two channels. Unsupported mesh compression, sparse accessors,

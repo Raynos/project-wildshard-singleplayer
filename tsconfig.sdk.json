@@ -20,7 +20,7 @@
     }
   ],
   "include": [
-    "src/sdk",
+    "src/sdk/*.ts",
     "src/engine/**/*.d.ts",
     "src/game/**/*.merge.d.ts",
     "src/kit/**/*.merge.d.ts"

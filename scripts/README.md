@@ -105,6 +105,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [test-ios-compressed-upload.mjs](./test-ios-compressed-upload.mjs)
 - [test-nine-crash-reports.mjs](./test-nine-crash-reports.mjs)
 - [test-nine-native-startup.mjs](./test-nine-native-startup.mjs)
+- [test-sdk-client.mjs](./test-sdk-client.mjs)
+- [test-sdk-distribution.mjs](./test-sdk-distribution.mjs)
 - [test-template-gate.mjs](./test-template-gate.mjs)
 
 ## Capture, boards and mockups

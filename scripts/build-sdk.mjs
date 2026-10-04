@@ -1,9 +1,45 @@
 #!/usr/bin/env node
 // Build author tools against the same public contract as the game; pnpm pack uses these portable JS modules.
 import { build } from 'vite';
-import { resolve } from 'node:path';
+import { relative, resolve } from 'node:path';
+import { cpSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 
 const root = resolve(import.meta.dirname, '..');
-await build({ configFile: false, logLevel: 'warn', build: { outDir: resolve(root, 'src/sdk/dist'), emptyOutDir: true, minify: false, lib: {
+process.chdir(root);
+execFileSync('node', ['scripts/gen.mjs'], { cwd: root, stdio: 'inherit' });
+await build({ configFile: false, publicDir: false, logLevel: 'warn', build: { outDir: resolve(root, 'src/sdk/dist'), emptyOutDir: true, minify: false, lib: {
   entry: Object.fromEntries(['version', 'shardfile', 'author', 'assets', 'project', 'cli'].map((name) => [name, resolve(root, `src/sdk/${name}.ts`)])), formats: ['es'], fileName: (_format, name) => `${name}.js`,
 }, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite'] } } });
+
+// Ship declarations without requiring the repository's internal workspace packages.
+execFileSync('pnpm', ['exec', 'tsc', '-b', '--force', 'tsconfig.layers.json'], { cwd: root, stdio: 'inherit' });
+const seen = new Set();
+function declaration(layer, module) {
+  const key = `${layer}/${module}`;
+  if (seen.has(key)) return;
+  seen.add(key);
+  const source = resolve(root, `.tsc-layers/${layer}/src/${layer}/${module}.d.ts`);
+  const output = resolve(root, `src/sdk/dist/types/${key}.d.ts`);
+  let text = readFileSync(source, 'utf8');
+  text = text.replaceAll(/(['"])@wildshard\/(engine|game|kit|sdk)\/([^'"]+)\1/gu, (_match, quote, dependencyLayer, dependency) => {
+    declaration(dependencyLayer, dependency);
+    const from = resolve(root, `src/sdk/dist/types/${layer}`, module, '..');
+    const to = resolve(root, `src/sdk/dist/types/${dependencyLayer}/${dependency}`);
+    // Public declarations may only refer to packaged files or third-party dependencies.
+    return `${quote}${relative(from, to).replaceAll('\\', '/')}${quote}`;
+  });
+  // Relative declaration imports remain in the same copied module tree.
+  for (const match of text.matchAll(/(?:from\s*|import\s*\()(['"])(\.[^'"]+)\1/gu)) {
+    const dependency = relative(resolve(root, `src/${layer}`), resolve(root, `src/${layer}`, module, '..', match[2]));
+    if (!dependency.startsWith('..')) declaration(layer, dependency.replace(/\.js$/u, ''));
+  }
+  mkdirSync(resolve(output, '..'), { recursive: true }); writeFileSync(output, text);
+}
+for (const name of ['version', 'shardfile', 'author', 'assets', 'project']) declaration('sdk', name);
+
+// The prebuilt client is the normal Game bundle; the SDK only distributes it.
+await build({ root, configFile: resolve(root, 'vite.config.ts'), logLevel: 'warn', build: {
+  outDir: resolve(root, 'src/sdk/dist/client'), emptyOutDir: true, copyPublicDir: false, sourcemap: false,
+} });
+for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'assets/physics']) cpSync(resolve(root, 'public', entry), resolve(root, 'src/sdk/dist/client', entry), { recursive: true });

@@ -11,5 +11,39 @@
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": { "prepack": "node ../../scripts/build-sdk.mjs" },
+  "engines": { "node": ">=22.18" },
+  "dependencies": {
+    "valibot": "1.5.0",
+    "vite": "^8.3.0"
+  },
+  "publishConfig": {
+    "exports": {
+      "./version": {
+        "types": "./dist/types/sdk/version.d.ts",
+        "default": "./dist/version.js"
+      },
+      "./shardfile": {
+        "types": "./dist/types/sdk/shardfile.d.ts",
+        "default": "./dist/shardfile.js"
+      },
+      "./author": {
+        "types": "./dist/types/sdk/author.d.ts",
+        "default": "./dist/author.js"
+      },
+      "./assets": {
+        "types": "./dist/types/sdk/assets.d.ts",
+        "default": "./dist/assets.js"
+      },
+      "./project": {
+        "types": "./dist/types/sdk/project.d.ts",
+        "default": "./dist/project.js"
+      }
+    }
   }
 }

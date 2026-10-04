@@ -1,0 +1,11 @@
+{
+  "pass": true,
+  "tarballBytes": 14657977,
+  "files": 344,
+  "identicalBuilds": 2,
+  "installedBy": "file:",
+  "standaloneTypes": true,
+  "normalClient": true,
+  "sourceCommit": "04c692c449ac811696b81dc7873f434df74b828a",
+  "command": "node scripts/test-sdk-distribution.mjs --keep"
+}
