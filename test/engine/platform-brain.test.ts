@@ -36,6 +36,8 @@ describe('declared platform creature brain and spawner', () => {
       policy.step(3); expect(policy.mode).toBe('idle'); expect(attack).not.toHaveBeenCalled();
       visible = true; policy.step(6); expect(policy.mode).toBe('pursue'); expect(actor.desiredSpeed).toBe(0); expect(ports.path).toHaveBeenCalled();
       target.position.z = 100; actor.position.x = 4; policy.step(9); expect(policy.mode).toBe('return');
+      const different = new PlatformBrain(actor, { ...brain, speed: 3 }, { x: 0, y: 0, z: 5 }, ports);
+      expect(() => different.restore(policy.snapshot())).toThrow('Incompatible');
       actor.alive = false; policy.step(10); expect(policy.mode).toBe('dead'); expect(actor.desiredSpeed).toBe(0);
     } finally { sim.dispose(); }
   });

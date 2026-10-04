@@ -22,6 +22,7 @@ const mode = v.picklist(['idle', 'wander', 'pursue', 'attack', 'return', 'dead']
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0));
 const stateSchema = v.strictObject({ mode, target: v.nullable(v.string()), cooldown: natural, wanderUntil: natural, waypoint: v.tuple([finite, finite, finite]), tick: natural });
+const brainCheckpoint = v.strictObject({ contract: v.string(), state: stateSchema });
 type BrainState = v.InferOutput<typeof stateSchema>;
 const distance = (a: BrainTarget['position'], b: BrainTarget['position']): number => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 /** Per-entity fixed-tick pursuit, perception, leashing and idle wandering with a complete continuation. */
@@ -29,6 +30,7 @@ export class PlatformBrain {
   private state: BrainState;
   private readonly spec: PlatformBrainSpec;
   private readonly home: BrainTarget['position'];
+  private readonly contract: string;
   private readonly actor: AnimalSim;
   private readonly ports: PlatformBrainPorts;
   constructor(actor: AnimalSim, spec: PlatformBrainSpec, home: BrainTarget['position'], ports: PlatformBrainPorts) {
@@ -37,14 +39,18 @@ export class PlatformBrain {
       || !Number.isSafeInteger(spec.thinkDivisor) || spec.thinkDivisor < 1 || 60 % spec.thinkDivisor !== 0
       || !Number.isSafeInteger(spec.attackCooldownTicks) || spec.attackCooldownTicks < 1 || !Number.isSafeInteger(spec.wanderEveryTicks) || spec.wanderEveryTicks < 1) throw new Error('Invalid platform brain');
     this.actor = actor; this.spec = { ...spec }; this.home = { ...home }; this.ports = ports;
+    this.contract = JSON.stringify({ spec: this.spec, home: this.home });
     this.state = { mode: 'idle', target: null, cooldown: 0, wanderUntil: 0, waypoint: [home.x, home.y, home.z], tick: 0 };
   }
   /** Observable state for diagnostics and data-driven encounter hooks. */
   get mode(): BrainState['mode'] { return this.state.mode; }
   /** Plain numeric continuation; no ports, actor objects or navigation heap are serialized. */
-  snapshot(): SimValue { return { ...this.state, waypoint: [...this.state.waypoint] }; }
+  snapshot(): SimValue { return { contract: this.contract, state: { ...this.state, waypoint: [...this.state.waypoint] } }; }
   /** Restore a validated continuation on a matching registered actor. */
-  restore(saved: SimValue): void { this.state = v.parse(stateSchema, saved); }
+  restore(saved: SimValue): void {
+    const checked = v.parse(brainCheckpoint, saved); if (checked.contract !== this.contract) throw new Error('Incompatible brain continuation');
+    this.state = checked.state;
+  }
   /** Think at the authored divisor; motion remains fixed-step through AnimalSim and its collision motor. */
   step(tick: number): void {
     if (!Number.isSafeInteger(tick) || tick <= this.state.tick) throw new Error('Non-monotonic brain tick');
