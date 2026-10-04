@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
 import { Scope } from './app/scope';
+import { withOwner } from './app/ownership';
 import { Events } from './events/events';
 import { GameClock } from './core/clock';
 import { RngService } from './core/rng';
@@ -284,5 +285,5 @@ export class SimHost {
     this.scope.dispose();
   }
 }
-/** Embed a level with an initialized Rapier module. Loading WASM belongs to the Node/client composition root. */
-export function createSimHost(level: SimLevel, ports: SimHostPorts): SimHost { return new SimHost(level, ports); }
+/** Embed a level with an initialized Rapier module. Its own scope owns teardown, independently of the caller's ambient page callback. */
+export function createSimHost(level: SimLevel, ports: SimHostPorts): SimHost { return withOwner(null, () => new SimHost(level, ports)); }
