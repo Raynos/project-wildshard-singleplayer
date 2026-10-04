@@ -6,7 +6,11 @@ import type { ShardRuntime } from '../shard/runtime';
 import { ShardPlugin } from '../shard/plugin';
 import type { ShardManifest } from '../shard/manifest';
 import { bindScopedRuntime } from '../shard/scopedRuntime';
-import type { GridCellEvents, GridCellRef } from '../grid/boot';
+import { gridCells, pageGridInstance, type GridCellEvents, type GridCellRef } from '../grid/boot';
+import { shardfileSource } from './loader';
+import type { ProductOptions } from './product';
+import type { ShardfileClientBindings } from './client';
+import type { Shardfile } from './schema';
 import { prepareTrustedRuntime, type RuntimeDeclaration, type TrustedRuntimeEntry } from './runtime';
 
 /** A resident's data world stays alive when its independently scoped trusted play hooks leave. */
@@ -34,25 +38,56 @@ export function hybridInstallation(base: ShardContext, scope: Scope, runtime: Sh
   return { ...installation, context: shardContext(installation.context, base.manifest, { ...base.game, runtime }) };
 }
 
+/** Interior events for one catalogue resident; another cell never activates its trusted hooks. */
+export interface HybridCellBinding {
+  readonly instance: string;
+  readonly cells: Pick<GridCellEvents, 'cell' | 'onEnter' | 'onLeave'>;
+}
+
 /** Standalone staged composition keeps the resident data plugin and trusted hooks on the existing Game boot path. */
 export class HybridShardPlugin extends ShardPlugin {
   private readonly data: ShardPlugin;
   private readonly Runtime: new () => ShardPlugin;
   private custom: { plugin: ShardPlugin; installation: LevelInstallation & { context: ShardContext } } | undefined;
-  constructor(data: ShardPlugin, Runtime: new () => ShardPlugin) { super(); this.data = data; this.Runtime = Runtime; }
+  private readonly binding: HybridCellBinding | undefined;
+  private generation = 0;
+  constructor(data: ShardPlugin, Runtime: new () => ShardPlugin, binding?: HybridCellBinding) {
+    super(); this.data = data; this.Runtime = Runtime; this.binding = binding;
+  }
   override async world(ctx: ShardContext): Promise<void> {
     await this.data.world?.(ctx);
     if (ctx.scope.disposed) throw new Error('Hybrid world was unloaded during admission');
+    if (this.binding !== undefined) {
+      const binding = this.binding;
+      ctx.scope.onDispose(binding.cells.onLeave((cell) => {
+        if (cell.instance === binding.instance) { this.generation++; this.custom?.installation.context.scope.dispose(); }
+      }));
+    }
+    await this.runtimeWorld(ctx);
+  }
+  private async runtimeWorld(ctx: ShardContext): Promise<void> {
+    if (this.binding !== undefined && this.binding.cells.cell?.instance !== this.binding.instance) throw new Error('Trusted hooks require the entered cell interior');
+    this.generation++;
     const parent = ctx.game.runtime; if (parent === undefined) throw new Error('Hybrid requires the normal runtime host');
-    const scope = ctx.scope.child('runtime.play'), runtime = bindScopedRuntime(parent, scope);
-    const installation = hybridInstallation(ctx, scope, runtime), plugin = withOwner(scope, () => new this.Runtime());
-    this.custom = { plugin, installation };
-    scope.onDispose(() => { this.custom = undefined; });
-    await withOwner(scope, () => plugin.world?.(installation.context));
-    if (scope.disposed) throw new Error('Hybrid runtime left during world installation');
+    const scope = ctx.scope.child('runtime.play');
+    try {
+      const runtime = bindScopedRuntime(parent, scope), installation = hybridInstallation(ctx, scope, runtime);
+      const plugin = withOwner(scope, () => new this.Runtime());
+      const custom = { plugin, installation }; this.custom = custom;
+      scope.onDispose(() => { if (this.custom === custom) this.custom = undefined; });
+      await withOwner(scope, () => plugin.world?.(installation.context));
+      if (scope.disposed) throw new Error('Hybrid runtime left during world installation');
+    } catch (error) {
+      try { scope.dispose(); }
+      catch (cleanup) { throw new AggregateError([error, cleanup], 'Hybrid world installation and cleanup failed', { cause: cleanup }); }
+      throw error;
+    }
   }
   override async kit(ctx: ShardContext): Promise<void> {
     await this.data.kit?.(ctx);
+    await this.runtimeKit();
+  }
+  private async runtimeKit(): Promise<void> {
     const custom = this.custom; if (custom === undefined) throw new Error('Hybrid runtime world is not installed');
     custom.installation.openKit();
     try { await withOwner(custom.installation.context.scope, () => custom.plugin.kit?.(custom.installation.context)); }
@@ -61,10 +96,41 @@ export class HybridShardPlugin extends ShardPlugin {
   }
   override async play(ctx: ShardContext): Promise<void> {
     await this.data.play?.(ctx);
+    await this.runtimePlay();
+    const binding = this.binding;
+    if (binding !== undefined) ctx.scope.onDispose(binding.cells.onEnter((cell) => {
+      if (cell.instance !== binding.instance || this.custom !== undefined) return;
+      void this.reenter(ctx);
+    }));
+  }
+  private async reenter(ctx: ShardContext): Promise<void> {
+    const generation = this.generation + 1;
+    try { await this.runtimeWorld(ctx); await this.runtimeKit(); await this.runtimePlay(); }
+    catch (error) {
+      if (generation !== this.generation || ctx.scope.disposed) return;
+      let failure = error;
+      try { this.custom?.installation.context.scope.dispose(); }
+      catch (cleanup) { failure = new AggregateError([error, cleanup], 'Hybrid activation and cleanup failed'); }
+      ctx.app.events.emit('fault', { source: 'hybrid.runtime', message: failure instanceof Error ? failure.message : String(failure), error: failure });
+    }
+  }
+  private async runtimePlay(): Promise<void> {
     const custom = this.custom; if (custom === undefined) throw new Error('Hybrid runtime kit is not installed');
     await withOwner(custom.installation.context.scope, () => custom.plugin.play?.(custom.installation.context));
     if (custom.installation.context.scope.disposed) throw new Error('Hybrid runtime left during play installation');
   }
+}
+
+/** Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. */
+export async function prepareHybridShard(source: Shardfile, options: ProductOptions,
+  bindings: Omit<ShardfileClientBindings, 'instance' | 'trustedRuntime'>,
+  entries: readonly TrustedRuntimeEntry[]): Promise<HybridShardPlugin> {
+  if (source.runtime === null) throw new Error('Hybrid requires a declared runtime entry');
+  const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
+  const data = await shardfileSource(source, options, { ...bindings, instance, trustedRuntime: true });
+  const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
+  const [{ default: Data }, Runtime] = await Promise.all([load(), prepareTrustedRuntime(source.runtime, source.identity.slug, options.firstParty, entries)]);
+  return new HybridShardPlugin(new Data(), Runtime, gridInstance === null ? undefined : { instance, cells: gridCells });
 }
 
 /** Keep a transitional shard's existing standalone presentation while admitting data and resolving its declared code separately. */

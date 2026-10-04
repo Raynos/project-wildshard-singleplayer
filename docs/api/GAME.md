@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-386 members; 112 without a doc line (—).
+388 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -282,6 +282,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `encounterRules` | function | @wildshard/game/shardfile/encounters | Full-loader references: declared actor spawn and the existing SF7f boss panel (if any). |
 | `EncountersSchema` | const | @wildshard/game/shardfile/encounters | Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references. |
 | `ShardEncounters` | type | @wildshard/game/shardfile/encounters | Validated data-only encounter tables. |
+| `HybridCellBinding` | interface | @wildshard/game/shardfile/hybrid | Interior events for one catalogue resident; another cell never activates its trusted hooks. |
 | `hybridInstallation` | function | @wildshard/game/shardfile/hybrid | Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations. |
 | `HybridResident` | interface | @wildshard/game/shardfile/hybrid | A resident's data world stays alive when its independently scoped trusted play hooks leave. |
 | `HybridRuntimeSession` | class | @wildshard/game/shardfile/hybrid | Only the entered cell owns trusted hooks. Prefetch imports the declared chunk without constructing or running it. |
@@ -289,6 +290,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `hybridShardManifest` | function | @wildshard/game/shardfile/hybrid | Keep a transitional shard's existing standalone presentation while admitting data and resolving its declared code separately. |
 | `HybridShardPlugin` | class | @wildshard/game/shardfile/hybrid | Standalone staged composition keeps the resident data plugin and trusted hooks on the existing Game boot path. |
 | `installHybridRuntime` | function | @wildshard/game/shardfile/hybrid | Consume the grid client's interior events; a late subscriber installs the current cell, never its neighbours. |
+| `prepareHybridShard` | function | @wildshard/game/shardfile/hybrid | Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. |
 | `DeclaredItemPorts` | interface | @wildshard/game/shardfile/items | Trusted loader dependencies; factories and icons are resolved below the game layer. |
 | `DeclaredItems` | interface | @wildshard/game/shardfile/items | Normal equipment factory result plus authoritative fixed-step runtimes, scoped to the one session. |
 | `declaredItemScriptEntities` | function | @wildshard/game/shardfile/items | Build trusted item-handle aliases for the one script lane; actor identity comes from the host session. |

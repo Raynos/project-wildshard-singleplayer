@@ -13014,6 +13014,12 @@
         "from": "@wildshard/game/shardfile/encounters"
       },
       {
+        "name": "HybridCellBinding",
+        "kind": "interface",
+        "doc": "Interior events for one catalogue resident; another cell never activates its trusted hooks.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
         "name": "hybridInstallation",
         "kind": "function",
         "doc": "Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations.",
@@ -13053,6 +13059,12 @@
         "name": "installHybridRuntime",
         "kind": "function",
         "doc": "Consume the grid client's interior events; a late subscriber installs the current cell, never its neighbours.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
+        "name": "prepareHybridShard",
+        "kind": "function",
+        "doc": "Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer.",
         "from": "@wildshard/game/shardfile/hybrid"
       },
       {

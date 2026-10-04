@@ -8,7 +8,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import type { LevelDriver } from '../src/engine/level/load';
 import { emptyShardfile } from '../src/sdk/author';
 import { RuntimeSchema, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
-import { HybridRuntimeSession, hybridShardManifest, installHybridRuntime, type HybridResident } from '../src/game/shardfile/hybrid';
+import { HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { bindScopedRuntime } from '../src/game/shard/scopedRuntime';
 import { shardContext, type GameServices, type ShardContext } from '../src/game/shard/context';
@@ -160,4 +160,80 @@ it('isolates trusted writes to borrowed shell services while following later pla
   const parent = runtime(), scope = new Scope('runtime.fixture'), first = parent.viewer, next = () => new Vector3(1, 2, 3);
   const local = bindScopedRuntime(parent, scope); parent.viewer = next; expect(local.viewer).toBe(next);
   local.viewer = first; expect(parent.viewer).toBe(next); scope.dispose(); expect(parent.viewer).toBe(next);
+});
+
+it('the admitted empty hybrid preserves the legacy service census and staged hooks', async () => {
+  const app = new App(), parent = runtime(), calls: string[] = [];
+  const source = { ...emptyShardfile({ slug: 'template', name: 'Template', author: 'Fixture', seed: 357, revision: 1 }), runtime: { entry } };
+  class Runtime extends ShardPlugin {
+    override world(): void { calls.push('world'); }
+    override kit(ctx: ShardContext): void { calls.push('kit'); const rt = ctx.game.runtime; if (rt !== undefined) rt.hooks.meleeSilent = true; }
+    override play(): void { calls.push('play'); }
+  }
+  const plugin = await prepareHybridShard(source, { base: 'https://fixture.test/', firstParty: true, offline: false,
+    fetch: () => Promise.reject(new Error('Empty data cannot fetch')), hash: () => Promise.reject(new Error('Empty data cannot hash')) },
+  { catalogue: [], recipes: new Map(), items: new Map(), voices: () => new Map(), icon: () => { throw new Error('No icons'); } },
+  [{ slug: 'template', entry, load: () => Promise.resolve({ default: Runtime }) }]);
+  const scope = app.engineScope.child('data'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  const before = Object.getOwnPropertyDescriptors(parent);
+  try {
+    await plugin.world(ctx); await plugin.kit(ctx); await plugin.play(ctx);
+    expect(calls).toEqual(['world', 'kit', 'play']); expect(app.systemIds(app.engineScope)).toEqual([]);
+    expect(parent.hooks.meleeSilent).toBe(true); scope.dispose(); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
+  } finally { app.engineScope.dispose(); }
+});
+
+it('staged home-cell runtime leaves on the strip, ignores neighbours and re-enters without reinstalling data', async () => {
+  const app = new App(), parent = runtime(), cells = new GridCellEvents(), calls: string[] = [];
+  const scope = app.engineScope.child('data'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  class Data extends ShardPlugin { override world(): void { calls.push('data'); } }
+  class Runtime extends ShardPlugin {
+    override world(context: ShardContext): void { calls.push('world'); context.debug.expose('home-runtime', true); }
+    override kit(): void { calls.push('kit'); }
+    override play(context: ShardContext): void { calls.push('play'); context.system({ id: 'home.runtime', phase: 'update', run: noop }); }
+  }
+  cells.enter({ instance: 'template-1', slug: 'template' });
+  const plugin = new HybridShardPlugin(new Data(), Runtime, { instance: 'template-1', cells });
+  try {
+    await plugin.world(ctx); await plugin.kit(ctx); await plugin.play(ctx);
+    cells.leave(); expect(app.systemIds(app.engineScope)).toEqual([]); expect(app.debug.snapshot()).toEqual({});
+    cells.enter({ instance: 'neighbour', slug: 'hybrid-b' });
+    for (let turn = 0; turn < 12; turn++) await Promise.resolve();
+    expect(calls).toEqual(['data', 'world', 'kit', 'play']);
+    cells.enter({ instance: 'template-1', slug: 'template' });
+    for (let turn = 0; turn < 20; turn++) await Promise.resolve();
+    expect(calls).toEqual(['data', 'world', 'kit', 'play', 'world', 'kit', 'play']);
+    expect(app.systemIds(app.engineScope)).toEqual(['home.runtime']); cells.leave(); expect(app.systemIds(app.engineScope)).toEqual([]);
+  } finally { app.engineScope.dispose(); }
+});
+
+it('a cancelled staged re-entry cannot dispose the next scope when its world hook completes late', async () => {
+  const app = new App(), parent = runtime(), cells = new GridCellEvents(), faults: unknown[] = [];
+  const scope = app.engineScope.child('data'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  let calls = 0, release = noop;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  class Runtime extends ShardPlugin {
+    override async world(context: ShardContext): Promise<void> {
+      const call = ++calls; if (call === 2) await gate;
+      const rt = context.game.runtime; if (rt === undefined) throw new Error('Missing runtime'); rt.objects['call'] = call;
+    }
+    override play(context: ShardContext): void { context.system({ id: 'home.runtime', phase: 'update', run: noop }); }
+  }
+  cells.enter({ instance: 'template-1', slug: 'template' });
+  class Data extends ShardPlugin {}
+  const plugin = new HybridShardPlugin(new Data(), Runtime, { instance: 'template-1', cells });
+  app.events.on('fault', (fault) => { faults.push(fault); }, scope);
+  try {
+    await plugin.world(ctx); await plugin.kit(ctx); await plugin.play(ctx);
+    cells.leave(); cells.enter({ instance: 'template-1', slug: 'template' });
+    cells.leave(); cells.enter({ instance: 'template-1', slug: 'template' });
+    for (let turn = 0; turn < 20; turn++) await Promise.resolve();
+    expect(parent.objects['call']).toBe(3); release();
+    for (let turn = 0; turn < 20; turn++) await Promise.resolve();
+    expect(parent.objects['call']).toBe(3); expect(app.systemIds(app.engineScope)).toEqual(['home.runtime']); expect(faults).toEqual([]);
+    cells.leave(); expect(app.systemIds(app.engineScope)).toEqual([]);
+  } finally { release(); app.engineScope.dispose(); }
 });

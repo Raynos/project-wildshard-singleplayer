@@ -15,6 +15,17 @@ layers, so breathing, sway and gestures continue across gait loops without accum
 The trusted skin baker compacts constant GLB channels and samples the walk at 120 Hz; runtime content
 contains numeric data, with no procedural pose callback.
 
+`@wildshard/engine/level/installation` constructs the ordinary level registration context for a supplied scope;
+`LevelLoader` and child installations share that implementation and the same kit registration window.
+`@wildshard/game/shardfile/runtime` resolves a declared `runtime/*.ts` entry only through a trusted first-party
+registry. `prepareHybridShard` admits the shardfile and its trusted entry, chooses the catalogue instance inside
+the game layer, and composes their world, kit and play stages. Empty transitional data adds no gameplay services.
+`HybridRuntimeSession` prefetches module code without running hooks, activates only the entered cell and removes
+its play scope on leave while resident data remains frozen. `bindScopedRuntime` restores each parent slot's original
+descriptor on exit; late hooks retain a private overlay and cannot register into a disposed scope. The staged home-cell
+adapter consumes the same cell events and reinstalls only trusted hooks on re-entry. Driftwood's first transition
+keeps its legacy presentation and gameplay in the declared entry; it does not claim a baked or grid-ready conversion.
+
 This is the public API a shard is written against. It covers the three public layers and what each one gives a
 shard. One section per § of [01-architecture](../project/archive/game-normalization/01-architecture.md), in the same order.
 
@@ -2098,7 +2109,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-386 exports, grouped by the module to import them from.
+388 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2153,7 +2164,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
 - `@wildshard/game/shardfile/creatures`: `creatureRules`, `CreaturesSchema`, `ShardCreatures`
 - `@wildshard/game/shardfile/encounters`: `encounterRules`, `EncountersSchema`, `ShardEncounters`
-- `@wildshard/game/shardfile/hybrid`: `hybridInstallation`, `HybridResident`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`
+- `@wildshard/game/shardfile/hybrid`: `HybridCellBinding`, `hybridInstallation`, `HybridResident`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`, `prepareHybridShard`
 - `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `ShardItems`
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
