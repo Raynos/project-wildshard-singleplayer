@@ -18,6 +18,8 @@ import { GridSimulation, type GridResident } from '../src/game/grid/simulation';
 import { regionalState } from '../src/game/grid/state';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { prepareFrameMotors } from '../src/engine/physics/frame';
+import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { CONTENT_CAPS } from '../src/engine/core/config';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
@@ -117,6 +119,19 @@ describe('world-local grid residency', () => {
       const commit = sim.prepareUnload(id); if (commit === null) throw new Error('Missing eviction'); commit.commit(); commit.commit();
       expect(sim.ready(id)).toBe(false); expect(events.filter((event) => event === 'released')).toHaveLength(1);
     } finally { sim.dispose(); }
+  });
+  it('holds soft admission when the shared budget refuses, then evicts a durable frozen sim through the allocator', async () => {
+    const assembly = new GridAssembly({ developer: false, devserver: false }), first = assembly.cells[0]?.instance, second = assembly.cells[1]?.instance;
+    if (first === undefined || second === undefined) throw new Error('Missing grid');
+    const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil(25_000_000 * CONTENT_CAPS.residentFactor) });
+    const sim = new GridSimulation(assembly, { highway: resident(), allocator, residentBytes: () => 25_000_000, load: () => Promise.resolve(resident()), save: () => true });
+    try {
+      await sim.prefetch([first]); expect(allocator.entries().map((e) => e.id)).toEqual([`sim:${first}`]);
+      sim.retain(first, true, 10); await expect(sim.prefetch([second])).rejects.toThrow('deferred'); expect(sim.ready(first)).toBe(true); expect(sim.current()).toBeNull();
+      sim.retain(first, false, 200); await sim.prefetch([second]); expect(sim.ready(first)).toBe(false); expect(sim.ready(second)).toBe(true);
+      expect(allocator.entries().map((e) => e.id)).toEqual([`sim:${second}`]); expect(sim.disposalIssues()).toEqual([]);
+    } finally { sim.dispose(); }
+    expect(allocator.entries()).toEqual([]);
   });
   it('walks the shared field across both frame changes at 15 and 30 m/s with no falls or snags', async () => {
     for (const speed of [15, 30]) {
