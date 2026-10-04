@@ -12,6 +12,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { swellBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterExtent } from '@wildshard/engine/world/waves';
+import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
 import { jsonSlot } from '@wildshard/engine/saves/slots';
 
 /** the waterline the island's terrain was built round (the manifest's OCEAN.level) */
@@ -46,11 +47,9 @@ export function declaredSeaLevel(): number { return hybridRowOn() ? LOWERED_SEA 
 export const CORAL_CLEARANCE = 0.1;
 
 /** G149: how far in from the cell edge the platform's rip-rap shore revetment (crest +0.6 m, spanning ±0.8 m about the
- *  edge) puts its inner face; the lowered sea, confined to a grid cell, stops there (ocean and swim water), hidden under
- *  the crest even at the +0.4 m swell. Standalone (unbounded) nothing changes.
- *  TODO(G149): import SHORE_REVETMENT_INNER_FACE (the same 0.8, d63506d19) from '@wildshard/engine/sim/seamGeometry' once
- *  the engine package exports that module. */
-export const SHORE_INNER_FACE = 0.8;
+ *  edge) puts its inner face (the platform's SHORE_REVETMENT_INNER_FACE); the lowered sea, confined to a grid cell, stops
+ *  there (ocean and swim water), hidden under the crest even at the +0.4 m swell. Standalone (unbounded) nothing changes. */
+export const SHORE_INNER_FACE = SHORE_REVETMENT_INNER_FACE;
 /** whether the lowered sea's rest surface reaches (x, z): inside the confining square less the revetment's inset, out of
  *  the entry sockets */
 function loweredReaches(x: number, z: number): boolean {
