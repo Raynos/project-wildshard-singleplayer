@@ -85,6 +85,7 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 
 | Id | Requirement | Level | Src |
 |---|---|---|---|
+| A0 | **Any player can become a shard builder** (Jake, E435): *"A player of the game can become a shard builder, and it's done by getting the claude code skill / quickstart / cli for wildshard and building their own shard the same way first party shards are built."* One path: first-party shards are built with the same public skill, quickstart and CLI; there is no private first-party route (the six's transition allowance, X1, aside) | MUST | J |
 | A1 | **Claude Code is the editor.** An author needs nothing but Claude Code and the Wildshard SDK | MUST | V |
 | A2 | Authors may make content with **any tool on their own machine**; only the output ships | MUST | N |
 | A3 | The author's local check runs **the same validation the server runs**, so a shard that passes locally passes on upload | MUST | N |
@@ -214,6 +215,8 @@ declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLAT
 12. **Seamless travel and the far view are designed first** (E435, W7–W8): both were SHOULDs; they decide the
     format, the budgets and the rooms, so the crossroads (four shards in the near field) is the design case and a
     phone prototype precedes the format freeze.
+13. **Any player can become a shard builder** (E435, A0), with the same skill, quickstart and CLI that first-party
+    shards are built with: one path, no private first-party route.
 
 ## 7. Open decisions (each with a recommended answer)
 
