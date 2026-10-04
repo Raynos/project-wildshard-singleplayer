@@ -4,6 +4,7 @@ import type { ItemRuntime } from '@wildshard/engine/combat/items';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
+import { inventoryKey, purseKey } from '../localSaveKeys';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
@@ -16,8 +17,6 @@ const loadoutSchema = v.pipe(v.strictObject({ selected: v.nullable(name), items:
     && (data.selected === null || data.items.some((item) => item.id === data.selected)), 'Unique local items and admitted selection'));
 type LocalPack = v.InferOutput<typeof packSchema>;
 type LocalLoadout = v.InferOutput<typeof loadoutSchema>;
-const packKey = { key: 'inventory', scope: 'shard' as const, version: 1, schema: packSchema, initial: (): LocalPack => ({ counts: {}, order: [] }) };
-const coinKey = { key: 'purse', scope: 'shard' as const, version: 1, schema: natural, initial: () => 0 };
 const loadoutKey = { key: 'platform.loadout', scope: 'shard' as const, version: 1, schema: loadoutSchema,
   initial: (): LocalLoadout => ({ selected: null, items: [] }) };
 
@@ -29,8 +28,8 @@ export class GridWallet {
   private readonly loadout: InstanceSaveSlot<LocalLoadout>;
   constructor(store: SaveStore, identity: LocalSaveInstance) {
     this.instance = identity.id;
-    this.bag = instanceSave(store, packKey, identity);
-    this.purse = instanceSave(store, coinKey, identity);
+    this.bag = instanceSave(store, inventoryKey, identity);
+    this.purse = instanceSave(store, purseKey, identity);
     this.loadout = instanceSave(store, loadoutKey, identity);
   }
   /** Local coins are never part of a crossing payload or a profile balance. */

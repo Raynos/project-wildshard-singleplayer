@@ -12,6 +12,9 @@ import { declaredKitItemFamilies } from '../src/kit/items/declared';
 import { Ledger } from '../src/game/ledger';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { MemoryStorage } from './setup';
+import { app } from '../src/engine/app/runtime';
+import { Inventory } from '../src/game/Inventory';
+import { Purse } from '../src/game/loot/Purse';
 import itemSource from './fixtures/shardfile/items/template.json';
 
 class Storage extends MemoryStorage {
@@ -36,6 +39,13 @@ function items() {
   declared.install(equipment);
   return { scope, declared, equipment, aim };
 }
+it('shares the production save definitions with the legacy inventory and coin owner', () => {
+  const inventory = new Inventory('driftwood-isle'), purse = new Purse('driftwood-isle');
+  inventory.add('coconut', 2); purse.add(11);
+  const wallet = new GridWallet(app.saves, { id: 'driftwood-isle', shard: 'driftwood-isle' });
+  expect(wallet.coins()).toBe(11); expect(wallet.pack().counts['coconut']).toBe(2);
+  expect(wallet.flush()).toBe(true);
+});
 it('keeps shard coins/items isolated and first-party grid/Select saves on the same stable identity', () => {
   const local = new Storage(), store = new SaveStore({ local, session: null });
   const driftwood = new GridWallet(store, { id: 'driftwood-isle', shard: 'driftwood-isle' });
