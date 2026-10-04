@@ -378,7 +378,7 @@ equipment viewmodel host, including off-hand tools, and leave with the level sco
 Edge rows retain every native boundary vertex; 129-point decimation is refused. A modern terrain collider is 257² and carries 257 samples per side, without resampling. When a 256-point neighbour meets a 257-point neighbour, the platform strip uses the sorted union of their native positions (511 points), so both exact boundaries survive.
 
 `creatures.brains` accepts `pursue`, `skirmisher`, `guardian`, `perch-hunter`,
-`ram-grazer`, `challenge-grazer` and `script`
+`ram-grazer`, `challenge-grazer`, `orbit-diver`, `patrol-diver`, `burst-flyer` and `script`
 policies. The three native families use the strict schemas in `shardfile/brains`;
 their optional `thinkDivisor` defaults to six and must divide 60. Decisions run at
 that cadence, and the owning body recipe runs once per fixed step. The loader
@@ -407,6 +407,18 @@ writes. One actor callback runs divisor-scheduled decisions, fixed-step policy
 action and native body work. Mutable policy and strike clocks are snapshotted
 with their cadence and tuning contracts; restoration runs no observations,
 body work or random draws.
+
+Flying policies use `shardfile/flyers` and name a declared sphere strike and a
+home inside the cell. Their spawned species must declare `flight`: finite
+`altitude` (-250..250), positive `climbRate` and `diveRate` (at most 30 m/s),
+optional `above` (`ground` or `world`, engine default ground), positive
+`lockRange` (at most 600 m), and optional `bank` strictly between 0 and pi/2.
+The species resolver copies this data into the existing flight motor; omission
+keeps a ground species. Trusted `brains.orbitDiver`, `brains.patrolDiver` and
+`brains.burstFlyer` recipes supply observations, native body work and the named
+sphere strike; the burst contact shove is an authorized host operation. Decisions
+default to six ticks, policy action and body work run once per fixed step, and
+mutable flight/policy/strike state restores without observations or RNG draws.
 
 Custom policies and numeric state share one module union and one host: memory,
 fuel, queries, effects, events and quarantine are charged once per fixed tick,

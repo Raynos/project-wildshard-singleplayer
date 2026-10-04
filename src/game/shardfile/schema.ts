@@ -167,6 +167,11 @@ export function shardfileRules(s: Shardfile): string[] {
       const strike = strikes.get(brain.strike);
       if (strike?.shape.kind !== 'lane' || strike.windup <= 0 || strike.range <= 0) errors.push('declared ram grazer lane strike');
     } else if (brain.kind === 'challenge-grazer' && (strikes.get(brain.charge)?.shape.kind !== 'lane' || strikes.get(brain.close)?.shape.kind !== 'arc')) errors.push('declared challenge grazer charge/close strikes');
+    else if (brain.kind === 'orbit-diver' || brain.kind === 'patrol-diver' || brain.kind === 'burst-flyer') {
+      if (strikes.get(brain.strike)?.shape.kind !== 'sphere') errors.push('declared flyer sphere strike');
+      if (Math.abs(brain.home.x) > CHUNK_HALF || Math.abs(brain.home.z) > CHUNK_HALF || ('y' in brain.home && (brain.home.y < -CELL_BELOW || brain.home.y > CELL_ABOVE))) errors.push('declared flyer home in cell');
+      if (s.creatures.spawns.some(spawn => spawn.brain === brain.id && species.get(spawn.species)?.flight === undefined)) errors.push('declared flyer species flight');
+    }
   }
   if (s.creatures.spawns.length > s.serverBudget.entities) errors.push('declared entity capacity');
   for (const spawn of s.creatures.spawns) if (!species.get(spawn.species)?.variants.some((row) => row.id === spawn.variant) || (spawn.strike !== null && !strikes.has(spawn.strike))) errors.push('declared spawn species/variant/strike');

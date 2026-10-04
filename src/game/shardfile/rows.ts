@@ -35,7 +35,10 @@ const mods = v.strictObject({ speed: positive, chargeDist: positive, damageTaken
 const dims = v.strictObject({ bodyY: dimension, bodyHalfLen: dimension, bodyRadius: dimension, headRadius: dimension, legLen: dimension,
   feet: v.pipe(v.array(v.tuple([finite, finite])), v.maxLength(16)), halfWidth: dimension });
 const variant = v.strictObject({ id, label: text, rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']), weight: nonnegative, scale: ordered, hp: positive, mods });
-const species = v.strictObject({ id, kind: id, label: text, aggressive: v.boolean(), lockable: v.boolean(), dims,
+const flight = v.strictObject({ altitude: v.pipe(finite, v.minValue(-250), v.maxValue(250)),
+  above: v.exactOptional(v.picklist(['ground', 'world'])), climbRate: v.pipe(positive, v.maxValue(30)), diveRate: v.pipe(positive, v.maxValue(30)),
+  lockRange: v.exactOptional(v.pipe(positive, v.maxValue(600))), bank: v.exactOptional(v.pipe(finite, v.check(n => n > 0 && n < Math.PI / 2, 'flight bank between 0 and pi/2'))) });
+const species = v.strictObject({ id, kind: id, label: text, aggressive: v.boolean(), lockable: v.boolean(), dims, flight: v.exactOptional(flight),
   variants: v.pipe(v.array(variant), v.minLength(1), v.maxLength(64)) });
 const parameter = v.union([finite, v.boolean(), text, v.pipe(v.array(finite), v.maxLength(16))]);
 const look = v.strictObject({ id, species: id, recipe: id, material: v.optional(v.nullable(id), null), parameters: v.record(id, parameter),
@@ -77,7 +80,7 @@ export function speciesResolver(rows: ShardRows): (speciesId: string, variantId:
     const row = catalogue.get(speciesId), selected = row?.variants.find((variantRow) => variantRow.id === variantId);
     if (row === undefined || selected === undefined) throw new Error('Unresolved declared species/variant');
     return { kind: row.kind, label: selected.label, variant: selected.id, rarity: selected.rarity, hp: selected.hp, aggressive: row.aggressive, lockable: row.lockable,
-      dims: { ...row.dims, feet: row.dims.feet.map(([x, z]) => [x, z]) }, mods: { ...selected.mods } };
+      dims: { ...row.dims, feet: row.dims.feet.map(([x, z]) => [x, z]) }, mods: { ...selected.mods }, ...(row.flight === undefined ? {} : { flight: { ...row.flight } }) };
   };
 }
 /** Numeric strike rows feed the authoritative sim without a score callback. */
