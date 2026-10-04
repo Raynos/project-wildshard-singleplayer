@@ -2309,12 +2309,12 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-85 exports, grouped by the module to import them from.
+86 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
-- `@wildshard/sdk/author`: `emptyShardfile`
+- `@wildshard/sdk/author`: `declareLookLut`, `emptyShardfile`
 - `@wildshard/sdk/bake/export`: `SampledSkinClip`, `sampleSkinClip`, `skinnedGlb`
 - `@wildshard/sdk/bake/glb`: `GlbPrimitive`, `propBounds`, `staticGlb`
 - `@wildshard/sdk/bake/props`: `BakedProps`, `bakeProps`, `PropsBakeSource`, `PropScatter`

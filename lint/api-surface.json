@@ -16444,6 +16444,12 @@
         "from": "@wildshard/sdk/audio"
       },
       {
+        "name": "declareLookLut",
+        "kind": "function",
+        "doc": "Attach an already declared 33³ LUT to the charged library, accounting for both its CPU and GPU bytes once.",
+        "from": "@wildshard/sdk/author"
+      },
+      {
         "name": "emptyShardfile",
         "kind": "function",
         "doc": "Start an author project with a valid empty world; add baked content before shipping a playable shard.",
@@ -16752,7 +16758,7 @@
       {
         "name": "projectAssets",
         "kind": "function",
-        "doc": "Read content-addressed source assets inside the project's assets and commons directories.",
+        "doc": "Preflight and read bounded immutable files from an author project or flat built product.",
         "from": "@wildshard/sdk/project"
       },
       {

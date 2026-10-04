@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-85 members; 0 without a doc line (—).
+86 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -21,6 +21,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `AudioData` | type | @wildshard/sdk/audio | A serialisable audio recipe whose voice ids the platform catalogue admits. |
 | `AudioDataSchema` | const | @wildshard/sdk/audio | Compile cue mappings, wind ambience and silent/default score declarations. |
 | `parseAudioData` | function | @wildshard/sdk/audio | Validate the thin audio section before compiling a shardfile. |
+| `declareLookLut` | function | @wildshard/sdk/author | Attach an already declared 33³ LUT to the charged library, accounting for both its CPU and GPU bytes once. |
 | `emptyShardfile` | function | @wildshard/sdk/author | Start an author project with a valid empty world; add baked content before shipping a playable shard. |
 | `SampledSkinClip` | interface | @wildshard/sdk/bake/export | Uniform local TRS samples for the mesh root and each joint, in the declared skeleton order. |
 | `sampleSkinClip` | function | @wildshard/sdk/bake/export | Sample an existing pose closure at bounded cadence, including both endpoints; restore the mesh's initial joint pose afterward. |
@@ -72,7 +73,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `canonicalJson` | function | @wildshard/sdk/project | Stable JSON encoding: sorted object keys, no timestamps or host paths. |
 | `contentHash` | function | @wildshard/sdk/project | Hash of immutable wire bytes; this is also their output filename. |
 | `newProject` | function | @wildshard/sdk/project | Create the canonical SDK project layout without replacing existing work. |
-| `projectAssets` | function | @wildshard/sdk/project | Read content-addressed source assets inside the project's assets and commons directories. |
+| `projectAssets` | function | @wildshard/sdk/project | Preflight and read bounded immutable files from an author project or flat built product. |
 | `readProject` | function | @wildshard/sdk/project | Compile a trusted local TypeScript config; only its serialisable default export enters the product. |
 | `validateProject` | function | @wildshard/sdk/project | Validate graph closure costs and actual bytes through the same admission used by the browser loader. |
 | `parseQuestData` | function | @wildshard/sdk/quests | Compile TypeScript author data after checking declared flags and graph references. |
