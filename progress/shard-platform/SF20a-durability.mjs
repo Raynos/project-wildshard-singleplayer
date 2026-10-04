@@ -27,8 +27,8 @@ try {
   page.on('console', (message) => { if (message.type() === 'error') result.errors.push(message.text()); });
 
   const enter = async () => {
-    await page.waitForSelector('.ws-menu-entry-grid', { timeout: 120000 });
-    await page.click('.ws-menu-entry-grid');
+    await page.waitForSelector('.ws-main-grid', { timeout: 120000 });
+    await page.click('.ws-main-grid');
     await page.waitForFunction(() => window.__wildshard?.shard?.grid?.simulation !== undefined && !document.querySelector('.ws-load'), null, { timeout: 240000 });
     await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
   };
@@ -91,7 +91,7 @@ try {
   if (result.beforeReload.coins !== 5 || result.beforeReload.facts !== 1 || !result.beforeReload.saved) throw new Error('Quest reward or continuation was not durable');
 
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('.ws-menu-entry-grid', { timeout: 120000 });
+  await page.waitForSelector('.ws-main-grid', { timeout: 120000 });
   result.afterReload = await coinsAndFacts(cell.instance); await enter();
   await page.evaluate(() => window.__wildshard.pose({ name: 'grid.durability.return', x: -235, z: 235, yaw: Math.PI / 2 }));
   result.phases.push({ name: 'return-copy', drive: await drive([{ x: -277.5, z: 277.5 }, { x: -277.5, z: origin.z }, { x: origin.x + 235, z: origin.z }]) });
