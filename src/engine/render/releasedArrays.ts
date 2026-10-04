@@ -3,7 +3,7 @@
  * census labels (gpuLabels.ts, imported by the renderer) can ask without pulling the saver and the Settings store into the
  * renderer's import graph: that import moved the Settings module's evaluation and changed the lighting of a booted shard.
  */
-const released = new WeakSet<object>();
+const released = new WeakSet();
 
 /** memorySaver: `a` gave up its array (reading `a.array` reads it back from the GPU) */
 export function markArrayReleased(a: object): void { released.add(a); }
