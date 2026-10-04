@@ -33,6 +33,14 @@ export interface PierLanding {
   readonly postGround: readonly [number, number];
 }
 
+/** SF46 (G134): a ramp at the sea end from the sand the pier starts on up to the deck (the lowered world's entry sandbars) */
+export interface PierSeaRamp {
+  /** how far the ramp runs from the sea end, metres */
+  readonly run: number;
+  /** the sand at the sea end, own y (the deck's top is 0) */
+  readonly landY: number;
+}
+
 export interface PierParams {
   /** the deck's run along +Z, metres (the landing's run included) */
   readonly length: number;
@@ -47,6 +55,8 @@ export interface PierParams {
   /** where the pennant flies, metres from the sea end: on the −X piling nearest it (E308: half way down the south pier, by
    *  the spawn and the boat); absent = on the sea-end bollard (E111) */
   readonly pennantAt?: number;
+  /** a ramp up from the sand at the sea end (absent: the deck is flat to the sea end, over the water) */
+  readonly seaRamp?: PierSeaRamp;
 }
 
 const C = {
@@ -152,6 +162,7 @@ function pennantGeometry(x: number, z: number, yTop: number, dir: readonly [numb
 /** the deck's top at `along` metres from the sea end, own y: flat, then the landing's step-down onto the sand */
 export function pierDeckAt(p: PierParams, along: number): number {
   const rampFrom = p.landing?.rampFrom ?? p.length, landY = p.landing?.landY ?? 0;
+  if (p.seaRamp !== undefined && along < p.seaRamp.run) return p.seaRamp.landY * (1 - Math.max(0, along) / p.seaRamp.run);
   if (along <= rampFrom) return 0;
   const t = Math.min(1, (along - rampFrom) / Math.max(0.1, p.length - rampFrom));
   return landY * t;
@@ -195,8 +206,15 @@ export function pierColliders(p: PierParams): ColliderDesc[] {
   // a box along the pier: `a0`‥`a1` metres from the sea end, top at `top`, `hy` half thick
   const slab = (a0: number, a1: number, top: number, hy: number): ColliderDesc => ({ kind: 'box', x: 0, y: top - hy, z: (a0 + a1) / 2, hx: halfW, hy, hz: (a1 - a0) / 2, yaw: 0 });
   const length = p.length, rampFrom = p.landing?.rampFrom ?? length, landY = p.landing?.landY ?? 0;
-  const ramped = length > rampFrom + 0.1;
-  out.push(slab(-0.2, ramped ? rampFrom : length + 0.2, 0, 0.15));
+  const ramped = length > rampFrom + 0.1, sea = p.seaRamp;
+  out.push(slab(sea === undefined ? -0.2 : sea.run, ramped ? rampFrom : length + 0.2, 0, 0.15));
+  if (sea !== undefined) {
+    // SF46: the sea-end ramp, its top face on the line (0, landY) → (run, 0), plus 0.2 m of flat sand-level deck before it
+    const rise = -sea.landY, pitch = -Math.atan2(rise, sea.run), half = Math.hypot(sea.run, rise) / 2, hy = 0.1;
+    const nAlong = Math.sin(pitch), nUp = Math.cos(pitch);
+    out.push({ kind: 'box', x: 0, y: sea.landY / 2 - hy * nUp, z: sea.run / 2 - hy * nAlong, hx: halfW, hy, hz: half, rot: { x: Math.sin(pitch / 2), y: 0, z: 0, w: Math.cos(pitch / 2) } });
+    out.push(slab(-0.2, 0, sea.landY, 0.1));
+  }
   if (ramped) {
     // the ramp: its top face on the line (rampFrom, 0) → (length, landY); pitched about the pier's across axis
     const run = length - rampFrom, drop = -landY, pitch = Math.atan2(drop, run), half = Math.hypot(run, drop) / 2, hy = 0.1;
@@ -247,8 +265,17 @@ function deckGeometry(p: PierParams, rng: Rng): { deck: THREE.BufferGeometry; cl
     add(put(g, a + plankW / 2, rng.range(-0.03, 0.03), deckAt(a + plankW / 2) - thick / 2 + dy), shade < 0.2 ? C.plankDark : shade > 0.8 ? C.plankLight : C.plank, 0.06);
   }
   // ── two bearers (stringers) under the planks, full length ──
-  const flat = rampFrom;
-  for (const s of [-1, 1]) add(put(new THREE.BoxGeometry(0.22, 0.28, flat + 0.4), flat / 2, s * (width / 2 - 0.35), bearerY), C.plankDark, 0.05);
+  const flat = rampFrom, seaRun = p.seaRamp?.run ?? 0;
+  if (p.seaRamp === undefined) for (const s of [-1, 1]) add(put(new THREE.BoxGeometry(0.22, 0.28, flat + 0.4), flat / 2, s * (width / 2 - 0.35), bearerY), C.plankDark, 0.05);
+  else {
+    // SF46: the bearers start where the sea-end ramp tops out; the ramp has its own pitched pair
+    const rise = -p.seaRamp.landY, len = Math.hypot(seaRun, rise), ang = -Math.atan2(rise, seaRun);
+    for (const s of [-1, 1]) add(put(new THREE.BoxGeometry(0.22, 0.28, flat - seaRun + 0.2), (flat + seaRun) / 2, s * (width / 2 - 0.35), bearerY), C.plankDark, 0.05);
+    for (const s of [-1, 1]) {
+      const g = new THREE.BoxGeometry(0.22, 0.28, len); g.rotateX(ang);
+      add(put(g, seaRun / 2, s * (width / 2 - 0.35), bearerY - rise / 2), C.plankDark, 0.05);
+    }
+  }
   if (length > flat + 0.1) {
     const drop = deckY - landY, len = Math.hypot(length - flat, drop), ang = Math.atan2(drop, length - flat);
     for (const s of [-1, 1]) {
@@ -271,7 +298,8 @@ function deckGeometry(p: PierParams, rng: Rng): { deck: THREE.BufferGeometry; cl
       // rope wrap: three short 8-sided bands just under the cap (a torus each was 100 tris; the pier is drawn twice with shadows)
       for (let r = 0; r < 3; r++) add(put(new THREE.CylinderGeometry(postR + 0.06, postR + 0.06, 0.08, 8), a, across, postTop - 0.16 - r * 0.1), r === 1 ? C.ropeDark : C.rope, 0.04);
     }
-    // cross brace under the deck between the two posts
+    // cross brace under the deck between the two posts (none under the sea-end ramp: it would cross the walk)
+    if (a < seaRun + 0.5) continue;
     const b = new THREE.BoxGeometry(width + 0.4, 0.12, 0.12);
     add(put(b, a, 0, bearerY - 0.3), C.plankDark, 0.05);
   }

@@ -31,6 +31,7 @@ import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
 import { tintTerrain } from './coverTint';
 import type { BlenderIsland } from './BlenderIsland';
+import { ANCHORED_BOAT, ENTRY_FOOTPRINTS, LOWERED_SEA, PIER_START, type DryRect } from './sea';
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
@@ -41,6 +42,16 @@ export interface DriftwoodWorld {
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
 
+/** SF46 (G134, the hybrid entry only): the sea and its water-tied props lowered to road level, each pier and jetty starting
+ *  past its entry's asphalt socket with a ramp up from the sandbar. Absent, the world is the legacy build exactly. */
+export interface DriftwoodLowered {
+  readonly level: number; readonly pierStart: number; readonly seaRamp: number; readonly dry: readonly DryRect[];
+  /** the boat at anchor here (xz), its anchor line `anchorAhead` m ahead of the bow on the seabed */
+  readonly boat: { readonly x: number; readonly z: number; readonly anchorAhead: number };
+}
+/** G134's lowering: the sea at road level, the decks from 18 m in, a 6 m ramp (1.2 m up: ≈ 11°) */
+export const G134_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: 6, dry: ENTRY_FOOTPRINTS, boat: ANCHORED_BOAT };
+
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
   return { ocean: null, pier: null, jetties: [], boat: null, rocks: null, hut: null, lookout: null, wreck: null, shrine: null,
@@ -48,26 +59,32 @@ export function noDriftwoodWorld(): DriftwoodWorld {
     bridgeDeck: null, blenderIsland: null };
 }
 
-/** main.ts:366-467's Driftwood builders, verbatim (`sea` is the manifest's OCEAN). */
-export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3): Promise<DriftwoodWorld> {
+/** main.ts:366-467's Driftwood builders, verbatim (`sea` is the manifest's OCEAN, or SF46's lowered sea). */
+export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, lowered?: DriftwoodLowered): Promise<DriftwoodWorld> {
   const { game, sky, player, registry } = world;
   const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield')]); // the deferred world code (cut, the live baked heightfield)
-  const sea = OCEAN;
+  const sea = { level: lowered?.level ?? OCEAN.level };
+  const cut = lowered?.pierStart ?? 0, seaRamp = lowered === undefined ? {} : { seaRamp: lowered.seaRamp };
   // the built things' legacy boxes, for the ocean's foam rings (every one registers itself: models through
   // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
   const statics: Collider[] = [];
   const slice = slicer(); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
-  const ocean = new Ocean(sky).build();
+  const ocean = new Ocean(sky).build(sea.level, lowered?.dry);
   game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
-  const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT }).place(registry, 'pier');
+  // SF46: lowered, it starts `cut` in (past the entry socket) and ramps up from the sandbar
+  const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF + cut, length: ROAD_LENGTH - cut, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT - cut, ...seaRamp }).place(registry, 'pier');
   statics.push(...pier.colliders);
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
   // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
-  const boat = new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(BOAT_MOOR.x, BOAT_MOOR.z) }).place(registry);
+  // SF46: lowered, it rides at anchor off the sandbar (heading 0: the bow toward −z, the anchor line ahead of it)
+  const anchor = lowered?.boat, anchorZ = anchor === undefined ? 0 : anchor.z - anchor.anchorAhead;
+  const boat = anchor === undefined
+    ? new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(BOAT_MOOR.x, BOAT_MOOR.z) }).place(registry)
+    : new Boat(sky, { x: anchor.x, z: anchor.z, heading: 0, waterY: sea.level, moorTo: [{ x: anchor.x, z: anchorZ, y: heightAt(anchor.x, anchorZ) }] }).place(registry);
   statics.push(...boat.colliders);
   if (boat.ropes) game.scene.add(boat.ropes);
   await slice();
@@ -96,7 +113,10 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await slice();
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   const jetties: Pier[] = [];
-  for (const [i, j] of JETTIES.entries()) { const jetty = new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice(); }
+  for (const [i, j] of JETTIES.entries()) {
+    const x = cut === 0 ? j.x : j.x + Math.sin(j.rot) * cut, z = cut === 0 ? j.z : j.z + Math.cos(j.rot) * cut; // `rot` 0 runs +z
+    const jetty = new Pier(sky, { x, z, rot: j.rot, length: j.length - cut, width: 3, deckY: sea.level + 1.2, ...seaRamp }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice();
+  }
   await slice();
   const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
   const bushes = new Bushes(sky).place(Bushes.scatterIsland(manifest.seed, undefined, AVOID), registry);
@@ -106,7 +126,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     perches: [
       ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
       ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
-      new THREE.Vector3(-4.2, sea.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, sea.level + 0.7, -CHUNK_HALF + 6 + 3.0),
+      // the boat's bow and stern (SF46 lowered: the anchored boat's; the legacy pair stays where it always stood)
+      new THREE.Vector3(anchor?.x ?? -4.2, sea.level + 0.78, (anchor?.z ?? -CHUNK_HALF + 6) - 3.0), new THREE.Vector3(anchor?.x ?? -4.2, sea.level + 0.7, (anchor?.z ?? -CHUNK_HALF + 6) + 3.0),
       ...rockSpecs.filter((b) => b.r > 1.8).map((b) => new THREE.Vector3(b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z)),
       ...Gulls.beachPerches(manifest.seed, 10, { x: 0, z: -195, r: 90 }),
     ],
@@ -140,7 +161,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const palms = new Palms(sky).place(palmSpecs, registry);
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const cover = new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build();
+  const cover = new GroundCover(sky, { sea: OCEAN.level, palms: palmSpecs }).build(); // the land cover keeps the terrain's waterline (G134)
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover'); tintTerrain(world.terrain.mesh); // E156: the ground wears the cover
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
   await macrotask();

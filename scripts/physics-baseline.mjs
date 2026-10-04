@@ -24,6 +24,7 @@
 //   node scripts/physics-baseline.mjs --no-build --mode=walk --video
 //   node scripts/physics-baseline.mjs --label=p2 --mode=walk
 //   node scripts/physics-baseline.mjs --no-build --mode=walk --tier=desktop # same portrait walk, desktop assets
+//   node scripts/physics-baseline.mjs --no-build --mode=walk --route=progress/shard-platform/sf46/entries-route.json  # a row's own legs
 //   node scripts/physics-baseline.mjs --compare progress/physics/p0-x.json progress/physics/p2-y.json
 //   node scripts/physics-baseline.mjs --mode=walk --shard=nalati-grasslands --url=http://127.0.0.1:5188   # a served build, no build
 //   scripts/browser-lane.sh node scripts/physics-baseline.mjs --mode=grid --url=http://127.0.0.1:5188
@@ -254,7 +255,8 @@ if (MODE.includes('poses')) {
 
 // ── walk ──
 if (MODE.includes('walk')) {
-  const route = JSON.parse(readFileSync(resolvePath(ROOT, 'scripts/physics-route.json'), 'utf8'));
+  // --route=<file>: another route file in the same shape (a row's own legs, e.g. SF46's entries), default the shared one
+  const route = JSON.parse(readFileSync(resolvePath(ROOT, flag('route', 'scripts/physics-route.json')), 'utf8'));
   for (const [shard, legs] of Object.entries(route)) {
     if (shard.startsWith('$') || (ONLY && shard !== ONLY)) continue;
     const first = legs[0];

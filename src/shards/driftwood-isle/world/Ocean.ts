@@ -25,6 +25,7 @@
  */
 import * as THREE from 'three';
 import { OCEAN } from '../manifest';
+import type { DryRect } from './sea';
 import { islandKnobs } from '../tiers';
 import { toonUniforms } from '../look/toon';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
@@ -52,8 +53,12 @@ export class Ocean {
 
   constructor(private sky: Sky) {}
 
-  build(): this {
-    const def = OCEAN;
+  /** `level`: the still level (SF46's lowered world passes road height; default the manifest's OCEAN.level). `dry`: up to
+   *  four level-space rectangles the sea is clipped out of (SF46: the entries' 8 × 15 m sockets); none by default */
+  build(level = OCEAN.level, dry: readonly DryRect[] = []): this {
+    if (dry.length > 4) throw new RangeError('The ocean clips at most four dry rectangles');
+    const holes = dry.map((r) => new THREE.Vector4(r.minX, r.minZ, r.maxX, r.maxZ));
+    const def = { ...OCEAN, level };
     this.level = def.level;
     toonUniforms.uSeaLevel.value = def.level; // the caustics under it (look/toon.ts, W4)
 
@@ -122,6 +127,7 @@ export class Ocean {
         // matte's islands when seen from altitude
         uSeaEnd: { value: HORIZON_RADIUS },
         uWaterHalf: waterExtent.uWaterHalf, // the level's open-water square (unbounded standalone; its own cell in a grid)
+        ...(holes.length === 0 ? {} : { uDry: { value: holes } }),
       });
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
@@ -142,7 +148,7 @@ export class Ocean {
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', /* glsl */`#include <common>
           uniform vec3 uShallow; uniform vec3 uDeep; uniform float uDeepDepth; uniform float uTime; uniform float uLevel;
-          uniform sampler2D tSea; uniform float uChunkHalf; uniform float uSeaEnd; uniform float uWaterHalf;
+          uniform sampler2D tSea; uniform float uChunkHalf; uniform float uSeaEnd; uniform float uWaterHalf;${holes.length === 0 ? '' : ` uniform vec4 uDry[${holes.length}];`}
           varying float vCrest; varying vec3 vOceanW; varying vec2 vRest; varying float vDamp;
           ${WAVES_NORMAL_GLSL}
           vec3 seaN;
@@ -233,7 +239,8 @@ export class Ocean {
           normal = normalize((viewMatrix * vec4(seaN * faceDirection, 0.0)).xyz);   // E151: the toon lighting reads the smooth wave too
           nonPerturbedNormal = normal;`)
         .replace('#include <opaque_fragment>', /* glsl */`
-          if (max(abs(vRest.x), abs(vRest.y)) > uWaterHalf) discard;   // the sea stays inside its level's square
+          if (max(abs(vRest.x), abs(vRest.y)) > uWaterHalf) discard;   // the sea stays inside its level's square${holes.length === 0 ? '' : `
+          for (int i = 0; i < ${holes.length}; i++) if (all(greaterThanEqual(vRest, uDry[i].xy)) && all(lessThanEqual(vRest, uDry[i].zw))) discard; // SF46: dry entry sockets`}
           {
             // fade out over the last 300 m before the painted horizon, so the islands' feet stand on the sea's own far edge
             float seaEnd = 1.0 - smoothstep(uSeaEnd - 300.0, uSeaEnd, length(vOceanW.xz - cameraPosition.xz));

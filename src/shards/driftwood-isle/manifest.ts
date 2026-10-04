@@ -23,10 +23,10 @@ import compareOverlookTarget from './explore/compare/driftwood-overlook-target.j
 import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
 import { smoothstep, clamp } from '@wildshard/engine/core/noise';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
-import { swellBody } from '@wildshard/engine/world/water/body';
 import type { ShardManifest, OceanDef } from '@wildshard/game/shard/manifest';
 import { lateReads } from './boot/lateReads';
 import { bootSources } from './boot/sources';
+import { DRIFTWOOD_SEA, SHORE_LEVEL } from './world/sea';
 import thumbnail from './thumbs/driftwood-isle.jpg';
 import heroPortrait from './thumbs/driftwood-isle-portrait.jpg';
 import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
@@ -41,7 +41,7 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
   ] } satisfies NonNullable<ShardManifest['explore']>;
 
 export const OCEAN: OceanDef = {
-  level: 0.8,
+  level: SHORE_LEVEL, // the terrain's waterline; the hybrid world lowers the sea itself (./world/sea.ts, G134)
   // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
   shallowColor: [0.0, 0.8, 0.88],
   deepColor: [0.008, 0.15, 0.52],
@@ -195,7 +195,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   ],
 
   // the sea is a water body (app.world.water), registered at level.data: the edge step's Boundary and every sea reader ask it
-  ground: { paths: 'plugin', water: [swellBody('sea', OCEAN.level)], terrain: buildTerrain(SEED, {
+  ground: { paths: 'plugin', water: [DRIFTWOOD_SEA], terrain: buildTerrain(SEED, {
     oceanLevel: OCEAN.level,
     /**
      * The island: a noise-warped disc centred a little north of the chunk centre. `m` is signed

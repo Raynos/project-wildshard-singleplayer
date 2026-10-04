@@ -2,7 +2,8 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { installDeclaredMovers } from '@wildshard/game/shardfile/moverRuntime';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import RuntimePlugin from './index';
-import { buildDriftwoodWorld, type DriftwoodWorld } from '../world/build';
+import { buildDriftwoodWorld, G134_LOWERED, type DriftwoodWorld } from '../world/build';
+import { lowerSea } from '../world/sea';
 import { driftwoodMoverViews } from './movers';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { declaredCreatureRows } from './brains';
@@ -18,7 +19,8 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
     super(async (world, viewer) => {
       const context = binding.context;
       if (context === undefined) throw new Error('Declared Driftwood movers require their scoped world hook');
-      const built = await residentWorld.load(context, () => buildDriftwoodWorld(world, viewer));
+      // SF46 (G134): the resident's world is built with the sea at road level; the registered sea follows it while it lives
+      const built = await residentWorld.load(context, (owner) => { lowerSea(owner); return buildDriftwoodWorld(world, viewer, G134_LOWERED); });
       const options = driftwoodMoverViews(built);
       if (options === null) throw new Error('Declared Driftwood movers require the bridge and moored boat');
       await installDeclaredMovers(context, world, options);

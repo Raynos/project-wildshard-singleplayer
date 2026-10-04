@@ -1,7 +1,8 @@
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { swordEvents } from '@wildshard/kit/weapons/melee/SweptMelee';
-import { OCEAN, SHRINE } from '../../manifest';
+import { SHRINE } from '../../manifest';
+import { seaLevel } from '../../world/sea';
 import { driftwoodWorld } from '../../world/build';
 import { Cove } from '../../world/Cove';
 import { IslandSfx } from './sfx';
@@ -23,9 +24,10 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const built = driftwoodWorld(shell), { trailDistance } = await import('@wildshard/engine/world/Heightfield');
   const shrineHum = built.shrine === null ? null : new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z });
   const islandSfx = new IslandSfx(audio, ctx.scope);
-  const surfaces = new SurfaceMap({ sea: OCEAN.level, heightAt, trailDistance,
+  const sea = seaLevel(); // SF46: the lowered sea in the hybrid world
+  const surfaces = new SurfaceMap({ sea, heightAt, trailDistance,
     decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] });
-  const ambience = new IslandAmbience(audio, { sea: OCEAN.level, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: Cove.forIsland() });
+  const ambience = new IslandAmbience(audio, { sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: Cove.forIsland() });
   const cues = driftwoodCueMap(islandSfx, player);
   audio.installCues(cues, ctx.scope);
   ctx.answer('player.stepSurface', (request) => ({ ...request, surface: surfaces.surfaceAt(request.x, request.z, request.y) }));

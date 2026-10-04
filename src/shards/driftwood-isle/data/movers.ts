@@ -8,9 +8,9 @@ export const MOVERS: MoverData = [
     "module": "9a5171bc3dd84488aae9de29ebd07fdb12dfbd2500c45cf91cf37e5bbbc712f0",
     "kind": "platform",
     "at": {
-      "x": -4.2,
-      "y": 0.8,
-      "z": -203
+      "x": -24,
+      "y": 0,
+      "z": -240
     },
     "euler": {
       "x": 0,
@@ -91,11 +91,11 @@ export const MOVERS: MoverData = [
       }
     ],
     "input": [
-      -4.2,
-      0.8,
-      -203,
+      -24,
       0,
-      0.7099089439875738,
+      -240,
+      0,
+      0.7540300859772924,
       0.86,
       0.51,
       0.17,
