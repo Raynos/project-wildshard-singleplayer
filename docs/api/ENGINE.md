@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1901 members; 830 without a doc line (—).
+1903 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1383,8 +1383,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ReadinessStatus` | interface | @wildshard/engine/sim/readiness | Frozen public status; unknown and out-of-bounds neighbours are closed by default. |
 | `ReadinessTicket` | interface | @wildshard/engine/sim/readiness | Completion belongs to this particular residency attempt, never merely a slug shared by several placements. |
 | `TraversalReadiness` | class | @wildshard/engine/sim/readiness | Node-safe readiness fence. Call request from radial distance every fixed step, so a U-turn cannot skip prefetch. |
+| `decodeSimSnapshot` | function | @wildshard/engine/sim/snapshot | Decode untrusted packed JSON (text or parsed data); refuse unknown fields, corrupt bytes and other engine versions. |
 | `regionalContinuation` | function | @wildshard/engine/sim/snapshot | Canonical logical continuation for a local authored region, without the profile-owned traveler or opaque world bytes. |
 | `restoreSimHost` | function | @wildshard/engine/sim/snapshot | Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. |
+| `serializeSimSnapshot` | function | @wildshard/engine/sim/snapshot | Serialize a strict, versioned JSON continuation with canonical base64 physics bytes and an integrity checksum. |
 | `SIM_SNAPSHOT_VERSION` | const | @wildshard/engine/sim/snapshot | Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. |
 | `SimSnapshot` | interface | @wildshard/engine/sim/snapshot | Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. |
 | `snapshotSimHost` | function | @wildshard/engine/sim/snapshot | Capture at a fixed-step boundary; pending events are preserved without flushing them. |

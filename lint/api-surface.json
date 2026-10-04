@@ -8269,6 +8269,12 @@
         "from": "@wildshard/engine/sim/readiness"
       },
       {
+        "name": "decodeSimSnapshot",
+        "kind": "function",
+        "doc": "Decode untrusted packed JSON (text or parsed data); refuse unknown fields, corrupt bytes and other engine versions.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
         "name": "regionalContinuation",
         "kind": "function",
         "doc": "Canonical logical continuation for a local authored region, without the profile-owned traveler or opaque world bytes.",
@@ -8278,6 +8284,12 @@
         "name": "restoreSimHost",
         "kind": "function",
         "doc": "Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
+        "name": "serializeSimSnapshot",
+        "kind": "function",
+        "doc": "Serialize a strict, versioned JSON continuation with canonical base64 physics bytes and an integrity checksum.",
         "from": "@wildshard/engine/sim/snapshot"
       },
       {
