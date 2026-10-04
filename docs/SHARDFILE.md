@@ -86,3 +86,9 @@ asset rows extend supported encodings; they do not bypass these caps. The shared
 model is `@wildshard/engine/core/contentCost`, consumed by the game's
 `@wildshard/game/shardfile/budget`. The validator expands its 5 m search grid's
 radius by the sample spacing's half diagonal, so gaps cannot hide a heavier disc.
+
+## Minimal singleplayer load
+
+The normal client accepts an embedded `<script id="ws-shardfile" type="application/json">` source. The game validates it before selecting the level, then uses the existing session, Game, player, physics, HUD and staged LevelLoader. `loadShardfile(app, input)` also feeds an installed level driver; `app.unloadLevel()` owns disposal. External names cross `parseShardSlug`; built-in names keep their generated union.
+
+SF15a-min accepts an empty authored world only. It refuses content, declared state and non-empty UI before allocation; the full loader binds those in SF15a. The asset-free backdrop and inert primary satisfy the current session ports. Unsupported format versions request a compatible client.

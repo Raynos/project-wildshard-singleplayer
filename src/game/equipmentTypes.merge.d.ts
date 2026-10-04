@@ -3,7 +3,7 @@
 import type { IconId } from '@wildshard/engine/ui/icons';
 
 declare module '@wildshard/engine/combat/Equipment' {
-  interface EquipmentSlotMap { crossbow: true; sword: true; rifle: true; 'sword-iron': true; bow: true; sabre: true; spear: true }
+  interface EquipmentSlotMap { crossbow: true; sword: true; rifle: true; 'sword-iron': true; bow: true; sabre: true; spear: true; empty: true }
   // oxlint-disable-next-line typescript/no-empty-object-type, typescript/no-empty-interface -- This declaration merges the icon library vocabulary into the engine extension point.
   interface EquipmentIconMap extends Record<IconId, true> {}
   interface EquipmentTouchMap { throwing: true }

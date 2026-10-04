@@ -43,7 +43,7 @@ if (rescueBoot) {
 }
 
 /** resolves once the title or the selected shard's entry has been evaluated */
-export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? (async () => {
+export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly && document.getElementById('ws-shardfile') === null ? (async () => {
   await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
   const [{ showStartTitle }, { buildTitleDeck, titleCards }, { travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/titleDeck'), import('./game/travel/travel')]));
   // the composition root wires the game's deck into the engine's title (E405)
@@ -72,7 +72,10 @@ export async function start(): Promise<void> {
     retried(() => import('./kit/models/pickups')), retried(() => import('./kit/models/interact')), retried(() => import('./kit/bag/items')),
     retried(() => import('./kit/tools/hoverboard')), retried(() => import('./kit/audio/weaponVoices')), retried(() => import('./kit/audio/combatCues')),
   ]);
-  const manifest = game.shard;
+  const { configuredShardfile, installShardfileSource } = await retried(() => import('./game/shardfile/loader'));
+  const source = configuredShardfile(document);
+  const manifest = source === null ? game.shard : installShardfileSource(source);
+  if (source !== null) document.documentElement.classList.remove('title-first');
   installKitSpecies();
   installKitIcons();
   installKitPickups();

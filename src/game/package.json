@@ -40,6 +40,8 @@
     "./shardfile/version": "./shardfile/version.ts",
     "./shardfile/budget": "./shardfile/budget.ts",
     "./shardfile/ui": "./shardfile/ui.ts",
-    "./shard/declaredUi": "./shard/declaredUi.ts"
+    "./shard/declaredUi": "./shard/declaredUi.ts",
+    "./shardfile/loader": "./shardfile/loader.ts",
+    "./shard/slug": "./shard/slug.ts"
   }
 }

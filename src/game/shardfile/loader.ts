@@ -1,0 +1,68 @@
+import type { App } from '@wildshard/engine/app/app';
+import type { LevelSpec } from '@wildshard/engine/level/spec';
+import { _applyChunkConstants } from '@wildshard/engine/core/config';
+import { configureLevel } from '@wildshard/engine/level/selection';
+import type { ShardManifest } from '../shard/manifest';
+import { game } from '../shard/registry';
+import { installShards } from '../shard/list';
+import { toLevelSpec } from '../shard/spec';
+import { parseShardSlug } from '../shard/slug';
+import { parseShardfile, type Shardfile } from './schema';
+import { SHARDFILE_VERSION } from './version';
+import { emptyLook } from './emptyLook';
+import { EmptyEquipment } from './emptyEquipment';
+import type { ShardContext } from '../shard/context';
+
+/** Validate before allocating a level. Content bindings belong to the full loader. */
+export function emptyShardfileSource(input: unknown): ShardManifest {
+  if (typeof input === 'object' && input !== null && 'version' in input && input.version !== SHARDFILE_VERSION) throw new Error(`Shardfile version ${String(input.version)} requires a compatible client (this client supports ${SHARDFILE_VERSION})`);
+  const source = parseShardfile(input);
+  if (source.ui.length + source.files.length + source.tiles.length + source.library.length + source.requires.commons.length + source.requires.capabilities.length + source.sim.scripts.length + source.look.families.length + source.look.keys.length > 0 || source.far !== null || source.look.grade.lut !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
+  const card = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/%3E';
+  return {
+    api: 1, slug: parseShardSlug(source.identity.slug), name: source.identity.name, seed: source.identity.seed,
+    order: 0, status: 'live', label: '(0, 0)', biome: 'Empty world', blurb: 'An empty shardfile world.',
+    card: { thumb: card, portrait: card, landscape: card }, style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom',
+    treeCount: 0, trees: { factory: 'none', noun: 'trees' }, ground: { structures: true, paths: 'plugin' }, horizon: { rings: [], cloudSea: false },
+    spawn: { x: 0, y: 2, z: 0, yaw: 0 }, spawns: [], species: [], uses: [], boundary: { visible: false },
+    sky: { sunColor: [1, 1, 1], sunIntensity: 1, envIntensity: 0.5, bgIntensity: 1, fogSunColor: [1, 1, 1], cloudSunColor: [1, 1, 1], hemiSky: 0x9ca7b4, hemiGround: 0x606060, hemiIntensity: 0.7, sun: { azimuth: 35, elevation: 45 } },
+    atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },
+    grade: { saturation: source.look.grade.saturation - 1, brightness: 0, contrast: source.look.grade.contrast - 1, bloomIntensity: 0, bloomThreshold: 1, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
+    budgets: {}, fight: {}, loadout: { weapons: [], tools: [], start: [] }, minimap: {},
+    render: () => Promise.resolve(emptyLook(source.look.dayOverride)), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
+    audio: { ambience: 'none', score: 'none' },
+    boot: { files: () => [], sources: () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] }), viewmodelSets: [], audio: () => Promise.resolve([]), precache: [] },
+    // A plugin source enters the ordinary staged LevelLoader, even with no authored hooks.
+    load: () => Promise.resolve({ default: class {
+      kit(ctx: ShardContext): void {
+        const runtime = ctx.game.runtime;
+        if (runtime === undefined) throw new Error('Shardfile source requires the session host');
+        runtime.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), secondary: null, rifle: null });
+      }
+    } }),
+  };
+}
+
+/** Project an empty shardfile into the same engine spec consumed by legacy sources. */
+export function shardfileLevelSpec(input: unknown): LevelSpec { return toLevelSpec(emptyShardfileSource(input)); }
+
+/** Load through an installed engine driver; the ordinary unloadLevel owns every resource. */
+export async function loadShardfile(app: App, input: unknown): Promise<void> {
+  await app.loadLevel(shardfileLevelSpec(input), {});
+}
+
+/** The prebuilt client's HTML supplies data, without a second boot loop or URL switch. */
+export function configuredShardfile(document: Pick<Document, 'getElementById'>): Shardfile | null {
+  const element = document.getElementById('ws-shardfile');
+  return element === null ? null : parseShardfile(JSON.parse(element.textContent));
+}
+
+/** Select a validated external source before the normal session starts. */
+export function installShardfileSource(input: unknown): ShardManifest {
+  const source = emptyShardfileSource(input);
+  installShards([source]);
+  game.shard = source;
+  _applyChunkConstants(source);
+  configureLevel(toLevelSpec(source));
+  return source;
+}

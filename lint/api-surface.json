@@ -11340,10 +11340,52 @@
         "from": "@wildshard/game/shard/runtime"
       },
       {
+        "name": "parseShardSlug",
+        "kind": "function",
+        "doc": "Brand only validated identities; callers cannot supply arbitrary strings as shard keys.",
+        "from": "@wildshard/game/shard/slug"
+      },
+      {
+        "name": "ValidatedShardSlug",
+        "kind": "type",
+        "doc": "An external identity whose format was validated at the catalogue or shardfile boundary.",
+        "from": "@wildshard/game/shard/slug"
+      },
+      {
         "name": "worstContentCost",
         "kind": "function",
         "doc": "Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps.",
         "from": "@wildshard/game/shardfile/budget"
+      },
+      {
+        "name": "configuredShardfile",
+        "kind": "function",
+        "doc": "The prebuilt client's HTML supplies data, without a second boot loop or URL switch.",
+        "from": "@wildshard/game/shardfile/loader"
+      },
+      {
+        "name": "emptyShardfileSource",
+        "kind": "function",
+        "doc": "Validate before allocating a level. Content bindings belong to the full loader.",
+        "from": "@wildshard/game/shardfile/loader"
+      },
+      {
+        "name": "installShardfileSource",
+        "kind": "function",
+        "doc": "Select a validated external source before the normal session starts.",
+        "from": "@wildshard/game/shardfile/loader"
+      },
+      {
+        "name": "loadShardfile",
+        "kind": "function",
+        "doc": "Load through an installed engine driver; the ordinary unloadLevel owns every resource.",
+        "from": "@wildshard/game/shardfile/loader"
+      },
+      {
+        "name": "shardfileLevelSpec",
+        "kind": "function",
+        "doc": "Project an empty shardfile into the same engine spec consumed by legacy sources.",
+        "from": "@wildshard/game/shardfile/loader"
       },
       {
         "name": "parseShardfile",

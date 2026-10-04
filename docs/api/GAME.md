@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-211 members; 112 without a doc line (—).
+218 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -199,7 +199,14 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardPlayHooks` | interface | @wildshard/game/shard/runtime | — |
 | `ShardPlayHost` | interface | @wildshard/game/shard/runtime | Services supplied by the gameplay shell after it has built the player kit and UI. |
 | `ShardRuntime` | interface | @wildshard/game/shard/runtime | Typed, per-build handoff between the staged shell and an authored plugin. |
+| `parseShardSlug` | function | @wildshard/game/shard/slug | Brand only validated identities; callers cannot supply arbitrary strings as shard keys. |
+| `ValidatedShardSlug` | type | @wildshard/game/shard/slug | An external identity whose format was validated at the catalogue or shardfile boundary. |
 | `worstContentCost` | function | @wildshard/game/shardfile/budget | Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps. |
+| `configuredShardfile` | function | @wildshard/game/shardfile/loader | The prebuilt client's HTML supplies data, without a second boot loop or URL switch. |
+| `emptyShardfileSource` | function | @wildshard/game/shardfile/loader | Validate before allocating a level. Content bindings belong to the full loader. |
+| `installShardfileSource` | function | @wildshard/game/shardfile/loader | Select a validated external source before the normal session starts. |
+| `loadShardfile` | function | @wildshard/game/shardfile/loader | Load through an installed engine driver; the ordinary unloadLevel owns every resource. |
+| `shardfileLevelSpec` | function | @wildshard/game/shardfile/loader | Project an empty shardfile into the same engine spec consumed by legacy sources. |
 | `parseShardfile` | function | @wildshard/game/shardfile/schema | Parse untrusted JSON as a validated shardfile, or throw a Valibot error. |
 | `Shardfile` | type | @wildshard/game/shardfile/schema | A serialisable shardfile v0, independent of renderer and placement. |
 | `shardfileRules` | function | @wildshard/game/shardfile/schema | Semantic format violations, including reference integrity and the acyclic dependency graph. |

@@ -1959,7 +1959,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-211 exports, grouped by the module to import them from.
+218 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -1993,7 +1993,9 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/runtime`: `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
+- `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
+- `@wildshard/game/shardfile/loader`: `configuredShardfile`, `emptyShardfileSource`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`
 - `@wildshard/game/shardfile/schema`: `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
 - `@wildshard/game/shardfile/version`: `SHARDFILE_VERSION`
