@@ -49,6 +49,8 @@
     "./ledger": "./ledger.ts",
     "./grid/instances": "./grid/instances.ts",
     "./shardfile/ledger": "./shardfile/ledger.ts",
-    "./shardfile/terrain": "./shardfile/terrain.ts"
+    "./shardfile/terrain": "./shardfile/terrain.ts",
+    "./shardfile/encounters": "./shardfile/encounters.ts",
+    "./shard/declaredEncounters": "./shard/declaredEncounters.ts"
   }
 }

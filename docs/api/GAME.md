@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-249 members; 112 without a doc line (—).
+253 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -155,6 +155,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GameServices` | interface | @wildshard/game/shard/context | — |
 | `shardContext` | function | @wildshard/game/shard/context | — |
 | `ShardContext` | interface | @wildshard/game/shard/context | — |
+| `installDeclaredEncounters` | function | @wildshard/game/shard/declaredEncounters | Bind the existing declared boss panel; headless hosts omit HUD handles without importing DOM/rendering. |
 | `DeclaredUiPorts` | interface | @wildshard/game/shard/declaredUi | the engine's HUD ports plus the shard's Bag |
 | `mountDeclaredUi` | function | @wildshard/game/shard/declaredUi | SF7f: draw a shardfile's `ui` declarations. Markers, counters, boss panels and relabels go to the engine's shared HUD; |
 | `CabinSite` | interface | @wildshard/game/shard/manifest | — |
@@ -215,6 +216,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `creatureRules` | function | @wildshard/game/shardfile/creatures | Unique ids and brain references; species and strikes are resolved against the loader's declared catalogues. |
 | `CreaturesSchema` | const | @wildshard/game/shardfile/creatures | Pure-data creature archetypes and stable spawn layouts, expanded before the local sim boots. |
 | `ShardCreatures` | type | @wildshard/game/shardfile/creatures | Validated brain parameters and spawn layout, with no rig or runtime closure. |
+| `encounterRules` | function | @wildshard/game/shardfile/encounters | Full-loader references: declared actor spawn and the existing SF7f boss panel (if any). |
+| `EncountersSchema` | const | @wildshard/game/shardfile/encounters | Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references. |
+| `ShardEncounters` | type | @wildshard/game/shardfile/encounters | Validated data-only encounter tables. |
 | `LedgerFact` | type | @wildshard/game/shardfile/ledger | One witnessed engine/script outcome, with a stable six-part identity. |
 | `LedgerFactSchema` | const | @wildshard/game/shardfile/ledger | Facts carry host-assigned identity and provenance; cell coordinates never participate. |
 | `LedgerRule` | type | @wildshard/game/shardfile/ledger | Data mapping declared facts to platform-controlled profile rewards. |

@@ -6,6 +6,8 @@ import { Hfsm } from './hfsm';
 /** a boss fight's state: dormant, armed, the intro, the fight, a beat between phases, victory */
 export type BossState = 'dormant' | 'armed' | 'intro' | 'fight' | 'beat' | 'victory';
 export interface BossSaved { defeated: boolean; rewardTaken: boolean; kills: number }
+/** Complete encounter continuation for same-engine fixed-step restoration. */
+export interface BossContinuation { state: BossState; phase: number; checkpoint: number; attempts: number; t: number; skipT: number; short: boolean; saved: BossSaved }
 export interface BossPhaseDef { at: number; caption: string; name: string }
 export interface BossDefinition {
   id: string; name: string; title: string; retryTitle: string;
@@ -87,6 +89,17 @@ export class BossBrain {
   get defeated(): boolean { return this.saved.defeated; }
   get rewardTaken(): boolean { return this.saved.rewardTaken; }
   get engaged(): boolean { return this.state === 'intro' || this.state === 'fight' || this.state === 'beat'; }
+  /** Snapshot the phase/checkpoint/retry clocks as plain data; actor and arena state belong to their own adapters. */
+  snapshot(): BossContinuation { return { state: this.state, phase: this.phase, checkpoint: this.checkpoint, attempts: this.attempts, t: this.t, skipT: this.skipT, short: this.short, saved: { ...this.saved } }; }
+  /** Restore without replaying intro/victory actions or persistence callbacks. */
+  restore(value: BossContinuation): void {
+    if (!['dormant', 'armed', 'intro', 'fight', 'beat', 'victory'].includes(value.state)
+      || ![value.phase, value.checkpoint].every((n) => Number.isInteger(n) && n >= 0 && n < this.def.phases.length)
+      || !Number.isSafeInteger(value.attempts) || value.attempts < 1 || ![value.t, value.skipT].every((n) => Number.isFinite(n) && n >= 0)
+      || typeof value.short !== 'boolean' || typeof value.saved.defeated !== 'boolean' || typeof value.saved.rewardTaken !== 'boolean' || !Number.isSafeInteger(value.saved.kills) || value.saved.kills < 0) throw new Error('Invalid boss continuation');
+    this.state = value.state; this.phase = value.phase; this.checkpoint = value.checkpoint; this.attempts = value.attempts;
+    this.t = value.t; this.skipT = value.skipT; this.short = value.short; Object.assign(this.saved, value.saved);
+  }
 
   protected save(): void { this.host.persist(this.saved); }
 

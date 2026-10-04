@@ -17,6 +17,19 @@ const level = { ...SIM_LEVEL, entities: buildPlatformSpawns(rows, species, strik
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()); });
 describe('declared platform creature brain and spawner', () => {
+  it('resolves variant health and keeps phase-controlled spawns out of the ordinary brain installer', () => {
+    const content = v.parse(CreaturesSchema, CREATURES), strike = strikes.get('boar.charge');
+    if (!strike) throw new Error('Missing strike');
+    const spawns = buildPlatformSpawns(content.spawns, (_species, variant) => ({ ...original.spec, hp: variant === 'big' ? 180 : 60 }),
+      new Map([...strikes, ['template.blob.bump', { ...strike, damage: 8 }]]));
+    const sim = createSimHost({ ...SIM_LEVEL, quests: [], entities: spawns }, { rapier });
+    try {
+      const installed = installPlatformBrains(sim, content.spawns, content.brains);
+      expect([...installed.keys()]).toEqual(['grey-blob:1']);
+      expect(sim.entities.get('big-blob')?.maxHp).toBe(180); expect(sim.entities.get('big-blob')?.scale).toBe(1.8);
+      expect(sim.adapters.has('brain.big-blob')).toBe(false);
+    } finally { sim.dispose(); }
+  });
   it('expands stable data spawns then perceives, navigates and attacks through the real fixed-step sim', () => {
     const sim = createSimHost(level, { rapier }), navigation = vi.fn<BrainNavigation>((_from, to) => [to]), brains = installPlatformBrains(sim, rows, [brain], navigation);
     try {

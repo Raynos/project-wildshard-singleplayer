@@ -301,6 +301,7 @@
     "./script/lane": "./script/lane.ts",
     "./ai/platform": "./ai/platform.ts",
     "./world/terrainTileData": "./world/terrainTileData.ts",
-    "./physics/terrainTiles": "./physics/terrainTiles.ts"
+    "./physics/terrainTiles": "./physics/terrainTiles.ts",
+    "./ai/phases": "./ai/phases.ts"
   }
 }

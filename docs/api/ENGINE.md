@@ -4,11 +4,12 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1805 members; 831 without a doc line (—).
+1812 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
 | `BossBrain` | class | @wildshard/engine/ai/BossBrain | — |
+| `BossContinuation` | interface | @wildshard/engine/ai/BossBrain | Complete encounter continuation for same-engine fixed-step restoration. |
 | `BossDefinition` | interface | @wildshard/engine/ai/BossBrain | — |
 | `BossPhaseDef` | interface | @wildshard/engine/ai/BossBrain | — |
 | `BossPorts` | interface | @wildshard/engine/ai/BossBrain | — |
@@ -38,6 +39,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `inspectBrain` | function | @wildshard/engine/ai/inspect | — |
 | `inspectTick` | function | @wildshard/engine/ai/inspect | — |
 | `pinBrain` | function | @wildshard/engine/ai/inspect | — |
+| `EncounterPhase` | interface | @wildshard/engine/ai/phases | One ordered phase: health threshold, steering and a presentation caption, authored without callbacks. |
+| `PhaseEncounter` | class | @wildshard/engine/ai/phases | Data-driven encounter over today's phase/checkpoint/retry machinery and the real damage pipeline. |
+| `PhaseEncounterPorts` | interface | @wildshard/engine/ai/phases | Profile/instance persistence and rewards arrive through explicit platform ports. No shard save is imported. |
+| `PhaseEncounterSpec` | interface | @wildshard/engine/ai/phases | Elite and boss fights share this data table; zero intro and one phase describes the simple elite. |
+| `silentBossPresentation` | function | @wildshard/engine/ai/phases | Renderer-free boss presentation records; the real declared panel can implement exactly the same ports. |
 | `BrainNavigation` | type | @wildshard/engine/ai/platform | A bounded path port can be backed by the engine navmesh; direct pursuit still resolves collisions in the motor. |
 | `BrainTarget` | interface | @wildshard/engine/ai/platform | A perceived live target, identified independently of its renderer or collision handle. |
 | `buildPlatformSpawns` | function | @wildshard/engine/ai/platform | Expand declarative spawns before boot: no hidden allocations or random entity ids appear mid-tick. |
@@ -46,6 +52,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PlatformBrainPorts` | interface | @wildshard/engine/ai/platform | Read-only perception/navigation and an explicit attack request; the motor and damage pipeline stay authoritative. |
 | `PlatformBrainSpec` | interface | @wildshard/engine/ai/platform | One reusable pursuit archetype; all tuning is authored data, never a shard callback. |
 | `PlatformSpawn` | interface | @wildshard/engine/ai/platform | Stable spawn identities produce the exact same entity set when a fresh sim restores a snapshot. |
+| `PlatformSpecies` | type | @wildshard/engine/ai/platform | Catalogue lookup may resolve variant-specific health/modifiers before a spawn is constructed. |
 | `canReach` | function | @wildshard/engine/ai/reach | Same chest/aim-point/slack query in every level, evaluated at the contact frame. |
 | `ReachActor` | interface | @wildshard/engine/ai/reach | — |
 | `deriveSpecies` | function | @wildshard/engine/ai/species | Child rows retain all unspecified parent fields and merge tuning without losing the hunter policy. |

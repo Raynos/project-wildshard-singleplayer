@@ -8,6 +8,12 @@
         "from": "@wildshard/engine/ai/BossBrain"
       },
       {
+        "name": "BossContinuation",
+        "kind": "interface",
+        "doc": "Complete encounter continuation for same-engine fixed-step restoration.",
+        "from": "@wildshard/engine/ai/BossBrain"
+      },
+      {
         "name": "BossDefinition",
         "kind": "interface",
         "doc": "",
@@ -182,6 +188,36 @@
         "from": "@wildshard/engine/ai/inspect"
       },
       {
+        "name": "EncounterPhase",
+        "kind": "interface",
+        "doc": "One ordered phase: health threshold, steering and a presentation caption, authored without callbacks.",
+        "from": "@wildshard/engine/ai/phases"
+      },
+      {
+        "name": "PhaseEncounter",
+        "kind": "class",
+        "doc": "Data-driven encounter over today's phase/checkpoint/retry machinery and the real damage pipeline.",
+        "from": "@wildshard/engine/ai/phases"
+      },
+      {
+        "name": "PhaseEncounterPorts",
+        "kind": "interface",
+        "doc": "Profile/instance persistence and rewards arrive through explicit platform ports. No shard save is imported.",
+        "from": "@wildshard/engine/ai/phases"
+      },
+      {
+        "name": "PhaseEncounterSpec",
+        "kind": "interface",
+        "doc": "Elite and boss fights share this data table; zero intro and one phase describes the simple elite.",
+        "from": "@wildshard/engine/ai/phases"
+      },
+      {
+        "name": "silentBossPresentation",
+        "kind": "function",
+        "doc": "Renderer-free boss presentation records; the real declared panel can implement exactly the same ports.",
+        "from": "@wildshard/engine/ai/phases"
+      },
+      {
         "name": "BrainNavigation",
         "kind": "type",
         "doc": "A bounded path port can be backed by the engine navmesh; direct pursuit still resolves collisions in the motor.",
@@ -227,6 +263,12 @@
         "name": "PlatformSpawn",
         "kind": "interface",
         "doc": "Stable spawn identities produce the exact same entity set when a fresh sim restores a snapshot.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
+        "name": "PlatformSpecies",
+        "kind": "type",
+        "doc": "Catalogue lookup may resolve variant-specific health/modifiers before a spawn is constructed.",
         "from": "@wildshard/engine/ai/platform"
       },
       {
@@ -11736,6 +11778,12 @@
         "from": "@wildshard/game/shard/context"
       },
       {
+        "name": "installDeclaredEncounters",
+        "kind": "function",
+        "doc": "Bind the existing declared boss panel; headless hosts omit HUD handles without importing DOM/rendering.",
+        "from": "@wildshard/game/shard/declaredEncounters"
+      },
+      {
         "name": "DeclaredUiPorts",
         "kind": "interface",
         "doc": "the engine's HUD ports plus the shard's Bag",
@@ -12094,6 +12142,24 @@
         "kind": "type",
         "doc": "Validated brain parameters and spawn layout, with no rig or runtime closure.",
         "from": "@wildshard/game/shardfile/creatures"
+      },
+      {
+        "name": "encounterRules",
+        "kind": "function",
+        "doc": "Full-loader references: declared actor spawn and the existing SF7f boss panel (if any).",
+        "from": "@wildshard/game/shardfile/encounters"
+      },
+      {
+        "name": "EncountersSchema",
+        "kind": "const",
+        "doc": "Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references.",
+        "from": "@wildshard/game/shardfile/encounters"
+      },
+      {
+        "name": "ShardEncounters",
+        "kind": "type",
+        "doc": "Validated data-only encounter tables.",
+        "from": "@wildshard/game/shardfile/encounters"
       },
       {
         "name": "LedgerFact",

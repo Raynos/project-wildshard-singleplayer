@@ -9,7 +9,7 @@ export interface PlatformBrainSpec {
   stopDistance: number; turnRate: number; thinkDivisor: number; attackCooldownTicks: number; wanderRadius: number; wanderEveryTicks: number;
 }
 /** Stable spawn identities produce the exact same entity set when a fresh sim restores a snapshot. */
-export interface PlatformSpawn { id: string; species: string; variant: string; brain: string; strike: string | null; seed: number; scale: number; at: readonly [number, number, number]; yaw: number }
+export interface PlatformSpawn { id: string; species: string; variant: string; brain: string | null; strike: string | null; seed: number; scale: number; at: readonly [number, number, number]; yaw: number }
 /** A perceived live target, identified independently of its renderer or collision handle. */
 export interface BrainTarget { id: string; position: { x: number; y: number; z: number }; alive: boolean }
 /** Read-only perception/navigation and an explicit attack request; the motor and damage pipeline stay authoritative. */
@@ -87,11 +87,13 @@ export class PlatformBrain {
     this.actor.setMotion(Math.atan2(point.x - at.x, point.z - at.z), distance(at, target) > this.spec.stopDistance ? speed : 0, this.spec.turnRate);
   }
 }
+/** Catalogue lookup may resolve variant-specific health/modifiers before a spawn is constructed. */
+export type PlatformSpecies = ReadonlyMap<string, AnimalSimSpec> | ((species: string, variant: string) => AnimalSimSpec);
 /** Expand declarative spawns before boot: no hidden allocations or random entity ids appear mid-tick. */
-export function buildPlatformSpawns(rows: readonly PlatformSpawn[], species: ReadonlyMap<string, AnimalSimSpec>, strikes: ReadonlyMap<string, SimStrike> = new Map()): SimSpawn[] {
+export function buildPlatformSpawns(rows: readonly PlatformSpawn[], species: PlatformSpecies, strikes: ReadonlyMap<string, SimStrike> = new Map()): SimSpawn[] {
   if (rows.length > 10000 || new Set(rows.map((row) => row.id)).size !== rows.length) throw new Error('Spawn identity/count');
   return rows.map((row) => {
-    const spec = species.get(row.species);
+    const spec = typeof species === 'function' ? species(row.species, row.variant) : species.get(row.species);
     if (!spec || !row.at.every((n) => Number.isFinite(n) && Math.abs(n) <= 250) || !Number.isFinite(row.scale) || row.scale <= 0 || row.scale > 10 || !Number.isFinite(row.yaw) || !Number.isSafeInteger(row.seed)) throw new Error('Invalid declared spawn');
     const strike = row.strike === null ? undefined : strikes.get(row.strike); if (row.strike !== null && !strike) throw new Error('Unresolved spawn strike');
     return { id: row.id, spec: { ...spec, variant: row.variant, mods: { ...spec.mods }, dims: { ...spec.dims, feet: [...spec.dims.feet] } }, seed: row.seed, scale: row.scale, at: { x: row.at[0], y: row.at[1], z: row.at[2] }, yaw: row.yaw, ...(strike ? { strike: { ...strike, shape: { ...strike.shape }, tags: [...strike.tags] } } : {}) };
@@ -104,6 +106,7 @@ export function installPlatformBrains(sim: SimHost, rows: readonly PlatformSpawn
   const definitions = new Map(specs.map((spec) => [spec.id, spec])), result = new Map<string, PlatformBrain>();
   if (definitions.size !== specs.length) throw new Error('Duplicate brain archetype');
   for (const row of rows) {
+    if (row.brain === null) continue; // A phase encounter owns this actor.
     const actor = sim.entities.get(row.id), spec = definitions.get(row.brain);
     if (!actor || !spec || result.has(row.id)) throw new Error('Unresolved brain/spawn');
     const brain = new PlatformBrain(actor, spec, { x: row.at[0], y: row.at[1], z: row.at[2] }, {
