@@ -57,7 +57,7 @@ const grid = { debugRow: globalRow };
 export function installGridFrameRow(): () => void {
   const strings = GAME_STRINGS.grid;
   return grid.debugRow({
-    id: FRAME_ROW, group: 'look', label: strings.oneFrame, choices: [{ value: 'off', text: strings.off }, { value: 'on', text: strings.on }], initial: 'off',
+    id: 'gridOneFrame', group: 'look', label: strings.oneFrame, choices: [{ value: 'off', text: strings.off }, { value: 'on', text: strings.on }], initial: 'off',
     change: () => undefined, note: strings.oneFrameNote, ask: 'E435', reviewBy: '2026-12-30',
   });
 }
