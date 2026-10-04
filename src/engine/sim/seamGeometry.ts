@@ -1,9 +1,10 @@
 import { edgeSample, edgeSampleLocations } from './edgeProfiles';
 import { seamLatticeRows } from './seamLattice';
+import { SHORE_DEPTH, SHORE_REVETMENT_INNER_FACE } from './shore';
 import type { StripCorner, StripMesh, StripProfile } from './strips';
 
 /** Collision and rendering share these ordered triangle ranges; materials never reconstruct seam geometry. */
-export type SeamFeatureKind = 'deck' | 'neutral-buffer' | 'gradient' | 'overlap' | 'retaining-wall' | 'cliff' | 'talus' | 'parapet' | 'dike' | 'culvert' | 'guard-rail' | 'road-wall' | 'turn-in';
+export type SeamFeatureKind = 'deck' | 'neutral-buffer' | 'gradient' | 'overlap' | 'retaining-wall' | 'cliff' | 'talus' | 'parapet' | 'dike' | 'culvert' | 'guard-rail' | 'road-wall' | 'turn-in' | 'revetment';
 /** Index offsets refer directly to the returned mesh, including every physical wall and rail face. */
 export interface SeamFeature { readonly kind: SeamFeatureKind; readonly firstIndex: number; readonly indexCount: number; readonly side: -1 | 0 | 1; readonly from: number; readonly to: number; readonly bottom: number; readonly top: number; readonly sourceSurface?: string }
 /** Admitted edge observations, with an explicit absence of blendable ground instead of an invented terrain height. */
@@ -17,6 +18,20 @@ export const SEAM_OFFSETS: readonly number[] = Object.freeze([...Array.from({ le
 const neutral = [0.25, 0.25, 0.25] as const;
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 const bounded = (h: number): number => Math.max(-1.5, Math.min(6, h));
+/** G134 / G149: an edge whose observed sea is at exactly 0 (and has ground) is a shore: its seabed gets the shore rule. */
+const shoreEdge = (edge: SeamEdge): boolean => edge.waterSurface === 0 && edge.geometry !== 'void';
+/** An edge sample's floor height B: G90's clamp, held at 0 or above on a shore (B = max(0, clamp(H, −1.5, 6))). */
+const edgeFloor = (edge: SeamEdge, h: number): number => (shoreEdge(edge) ? Math.max(0, bounded(h)) : bounded(h));
+/** The revetment's section (G149), metres from the cell edge (positive into the cell) and up from the road: the landward
+ *  toe, the crest (+0.6 m: the +0.4 m swell plus freeboard) across the cell edge to the inner face, then a 1 : 1.4 rip-rap
+ *  slope down to 0.4 m below the seabed. Runs that reach a cell corner carry on past it so the two edges' crests meet. */
+const REVETMENT = { toe: -1.8, crest: 0.6, crestIn: -0.8, slope: 1.4, bury: 0.4, station: 3.9, corner: 1.8 } as const;
+/** A deterministic 0..1 value per station and channel (integer hash: the same bytes on every engine, unlike Math.sin). */
+function rubble(at: number, side: number, channel: number): number {
+  let h = Math.imul(Math.round(at * 1000) ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(side + 3, 0xc2b2ae35) ^ Math.imul(channel + 1, 0x27d4eb2f);
+  h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); h = Math.imul(h ^ (h >>> 12), 0x297a2d39); h ^= h >>> 15;
+  return (h >>> 0) / 4294967296;
+}
 /** A corner's floor height: B, held at 0 or above for a shore corner (the §3.2 shore rule: B = max(0, clamp(H, −1.5, 6))). */
 const cornerFloor = (corner: StripCorner): number => (corner.shore === true ? Math.max(0, bounded(corner.height)) : bounded(corner.height));
 const blend = (u: number): number => smooth(Math.max(0, Math.min(1, (Math.abs(u) - 11.5) / 16)));
@@ -80,7 +95,7 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
   const floorGroups = new Map<string, { kind: SeamFeatureKind; side: -1 | 0 | 1; indices: number[] }>();
   for (const v of along) for (const u of SEAM_OFFSETS) {
     const edge = input.edges[u < 0 ? 0 : 1], sample = edgeSample(edge.profile, v), weight = blend(u);
-    writer.vertex(u, weight === 0 ? 0 : bounded(sample.height) * weight, v, neutral.map((c, channel) => c + ((sample.colour[channel] ?? c) - c) * weight));
+    writer.vertex(u, weight === 0 ? 0 : edgeFloor(edge, sample.height) * weight, v, neutral.map((c, channel) => c + ((sample.colour[channel] ?? c) - c) * weight));
   }
   const retained = seamLatticeRows({ positions: writer.positions, colours: writer.colours, columns: count, along });
   const columns = Array.from({ length: count }, (_, col) => col);
@@ -135,7 +150,8 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
       const from = along[row] ?? 0, to = along[row + 1] ?? 0;
       if (Math.abs((from + to) / 2) < edge.entryWidth / 2) return false;
       const a = edgeSample(edge.profile, from).height, b = edgeSample(edge.profile, to).height;
-      return Math.max(a, b) > 14 || Math.min(a, b) < -1.5 || edge.geometry === 'void';
+      // a shore's seabed is not a drop: its revetment closes it, and no cyan drop wall crosses a shoreline (G149)
+      return Math.max(a, b) > 14 || (Math.min(a, b) < -1.5 && !shoreEdge(edge)) || edge.geometry === 'void';
     };
     // Guard heights do not follow H: one continuous solid replaces the old
     // coplanar boxes even when the protected cliff changes at every native sample.
@@ -172,17 +188,82 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
       if (cliff) {
         const fa = cliffFoot(input.id, side, a, from), fb = cliffFoot(input.id, side, b, to);
         writer.quad([[side * fa.u, fa.bottom, from], [side * fb.u, fb.bottom, to], [side * 27.5, a, from], [side * 27.5, b, to]], feature('cliff', Math.min(fa.bottom, fb.bottom), max));
-        writer.quad([[side * (fa.u - 4), bounded(a) * blend(fa.u - 4), from], [side * (fb.u - 4), bounded(b) * blend(fb.u - 4), to], [side * fa.u, fa.bottom, from], [side * fb.u, fb.bottom, to]], feature('talus', Math.min(fa.bottom, fb.bottom) - 1.5, Math.max(fa.bottom, fb.bottom)));
-      } else if (max > 6 || min < -1.5) {
+        writer.quad([[side * (fa.u - 4), edgeFloor(edge, a) * blend(fa.u - 4), from], [side * (fb.u - 4), edgeFloor(edge, b) * blend(fb.u - 4), to], [side * fa.u, fa.bottom, from], [side * fb.u, fb.bottom, to]], feature('talus', Math.min(fa.bottom, fb.bottom) - 1.5, Math.max(fa.bottom, fb.bottom)));
+      } else if (max > 6 || min < -1.5 || (shoreEdge(edge) && min < -SHORE_DEPTH)) {
         // Coordinator G90 gap decision: isolated >14 m runs shorter than30 m retain a face; never widen them over a legal entry.
-        writer.quad([[side * 27.5, bounded(a), from], [side * 27.5, bounded(b), to], [side * 27.5, a, from], [side * 27.5, b, to]], feature(max > 6 ? 'retaining-wall' : 'parapet', min, max));
+        // On a shore the face drops from the held floor (0) to the seabed, under the revetment.
+        writer.quad([[side * 27.5, edgeFloor(edge, a), from], [side * 27.5, edgeFloor(edge, b), to], [side * 27.5, a, from], [side * 27.5, b, to]], feature(max > 6 ? 'retaining-wall' : 'parapet', min, max));
       }
       const outflow = edge.outflows?.some((flow) => middle >= flow.from && middle <= flow.to) ?? false;
       if (edge.waterSurface !== undefined && edge.waterSurface > 0 && !outflow) writer.box(side * 27.4, from, to, Math.min(bounded(a), bounded(b)), Math.max(1.3, edge.waterSurface + 0.5), 0.2, feature('dike', min, Math.max(1.3, edge.waterSurface + 0.5)));
-      if (outflow) writer.quad([[side * 27.5, bounded(a), from], [side * 27.5, bounded(b), to], [side * 7.5, -1.5, from], [side * 7.5, -1.5, to]], feature('culvert', -1.5, 0));
+      if (outflow) writer.quad([[side * 27.5, edgeFloor(edge, a), from], [side * 27.5, edgeFloor(edge, b), to], [side * 7.5, -1.5, from], [side * 7.5, -1.5, to]], feature('culvert', -1.5, 0));
     }
+    if (shoreEdge(edge)) revetment(writer, edge, side, along);
   }
   return { mesh: writer.mesh(input.origin), features: writer.features, turnIn: { at: 0, widths: [input.edges[0].entryWidth, input.edges[1].entryWidth] } };
+}
+
+/**
+ * G149's rip-rap revetment along one shore edge: wherever its boundary row is seabed (below −SHORE_DEPTH) outside the
+ * midpoint entry and any outflow, a low stone mound straddles the cell edge (`REVETMENT`), its crest covering
+ * `SHORE_REVETMENT_INNER_FACE` so the shard's clipped sea ends under it. A station every ~4 m with a small deterministic
+ * rubble jitter; the same triangles collide (they are the strip's mesh) and draw in the retaining walls' stone.
+ */
+function revetment(writer: MeshWriter, edge: SeamEdge, side: -1 | 1, along: readonly number[]): void {
+  const seabed = (row: number): boolean => {
+    const from = along[row] ?? 0, to = along[row + 1] ?? 0, middle = (from + to) / 2;
+    if (Math.abs(middle) < edge.entryWidth / 2 || (edge.outflows?.some((flow) => middle >= flow.from && middle <= flow.to) ?? false)) return false;
+    return Math.min(edgeSample(edge.profile, from).height, edgeSample(edge.profile, to).height) < -SHORE_DEPTH;
+  };
+  const first = along[0] ?? -250, last = along[along.length - 1] ?? 250;
+  for (let row = 0; row < along.length - 1;) {
+    if (!seabed(row)) { row++; continue; }
+    let end = row + 1;
+    while (end < along.length - 1 && seabed(end)) end++;
+    const stations: number[] = [along[row] ?? 0];
+    for (let k = row + 1; k < end; k++) { const at = along[k] ?? 0; if (at - (stations[stations.length - 1] ?? at) >= REVETMENT.station && (along[end] ?? 0) - at >= REVETMENT.station / 2) stations.push(at); }
+    stations.push(along[end] ?? 0);
+    if (row === 0) stations.unshift(first - REVETMENT.corner);
+    if (end === along.length - 1) stations.push(last + REVETMENT.corner);
+    row = end;
+    const firstIndex = writer.indices.length, u = (d: number): number => side * (27.5 + d);
+    let bottom = Infinity, top = -Infinity;
+    // the section at each station: landward toe, landward crest, inner crest, seabed toe (its rubble jitter never lowers
+    // the crest below +0.54 m or pulls the inner crest edge nearer the cell edge than the inner face)
+    const sections = stations.map((at): readonly (readonly [number, number])[] => {
+      const h = edgeSample(edge.profile, Math.max(first, Math.min(last, at))).height, toe = Math.min(0, h) - REVETMENT.bury;
+      const landY = REVETMENT.crest - 0.04 + rubble(at, side, 0) * 0.12, seaY = REVETMENT.crest - 0.04 + rubble(at, side, 1) * 0.12;
+      const seaD = SHORE_REVETMENT_INNER_FACE + rubble(at, side, 2) * 0.25;
+      bottom = Math.min(bottom, toe); top = Math.max(top, landY, seaY);
+      return [[REVETMENT.toe, -0.05], [REVETMENT.crestIn - rubble(at, side, 3) * 0.15, landY], [seaD, seaY], [seaD + REVETMENT.slope * (seaY - toe), toe]];
+    });
+    const vertex = (at: number, [d, y]: readonly [number, number]): number => writer.vertex(u(d), y, at);
+    const world = (n: number): readonly [number, number, number] => [writer.positions[n * 3] ?? 0, writer.positions[n * 3 + 1] ?? 0, writer.positions[n * 3 + 2] ?? 0];
+    const along3 = (x: number): readonly [number, number, number] => (writer.axis === 'x' ? [0, 0, x] : [x, 0, 0]);
+    const across3 = (x: number): readonly [number, number, number] => (writer.axis === 'x' ? [x, 0, 0] : [0, 0, x]);
+    // wind each triangle so its normal faces `out` (world frame), whatever the strip's axis mirroring does
+    const triangle = (a: number, b: number, c: number, out: readonly [number, number, number]): void => {
+      const pa = world(a), pb = world(b), pc = world(c), e1 = [pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2]], e2 = [pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2]];
+      const n = [(e1[1] ?? 0) * (e2[2] ?? 0) - (e1[2] ?? 0) * (e2[1] ?? 0), (e1[2] ?? 0) * (e2[0] ?? 0) - (e1[0] ?? 0) * (e2[2] ?? 0), (e1[0] ?? 0) * (e2[1] ?? 0) - (e1[1] ?? 0) * (e2[0] ?? 0)];
+      writer.indices.push(...((n[0] ?? 0) * out[0] + (n[1] ?? 0) * out[1] + (n[2] ?? 0) * out[2] >= 0 ? [a, b, c] : [a, c, b]));
+    };
+    const rows = stations.map((at, k) => (sections[k] ?? []).map((point) => vertex(at, point)));
+    const faceOut = [[-side * 0.5, 1], [0, 1], [side, 0.6]] as const;
+    for (let k = 1; k < rows.length; k++) for (let f = 0; f < 3; f++) {
+      const p = rows[k - 1], q = rows[k], o = faceOut[f];
+      if (p === undefined || q === undefined || o === undefined) throw new Error('Missing revetment station');
+      const a = p[f] ?? 0, b = p[f + 1] ?? 0, c = q[f] ?? 0, d = q[f + 1] ?? 0, out = [across3(o[0])[0], o[1], across3(o[0])[2]] as const;
+      triangle(a, b, d, out); triangle(a, d, c, out);
+    }
+    // the run's two ends, each its own vertices (a flat cap, not smoothed into the slopes)
+    for (const [k, direction] of [[0, -1], [stations.length - 1, 1]] as const) {
+      const at = stations[k] ?? 0, section = sections[k] ?? [], cap = section.map((point) => vertex(at, point)), out = along3(direction);
+      const [c0 = 0, c1 = 0, c2 = 0, c3 = 0] = cap;
+      triangle(c0, c1, c2, out); triangle(c0, c2, c3, out);
+    }
+    writer.features.push({ kind: 'revetment', side, from: stations[0] ?? 0, to: stations[stations.length - 1] ?? 0, bottom, top, firstIndex, indexCount: writer.indices.length - firstIndex,
+      ...(edge.sourceSurface === undefined ? {} : { sourceSurface: edge.sourceSurface }) });
+  }
 }
 
 /** Four B-clamped corner fields join the corridors; physical faces turn10m around each corner, outside both road lanes. */

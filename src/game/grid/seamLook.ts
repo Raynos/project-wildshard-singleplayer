@@ -9,7 +9,8 @@
  *
  * - **ground** (deck, neutral buffer, gradient, the quarter-metre overlap, turn-ins): the generator's vertex colours, the
  *   neutral platform grey easing into each shard's own edge colour, under a fine gravel grain.
- * - **stone** (retaining walls, parapets, the culvert): neutral dressed stone, the same for every shard (G90).
+ * - **stone** (retaining walls, parapets, the culvert, a shore's rip-rap revetment, G149): neutral dressed stone, the same
+ *   for every shard (G90).
  * - **rock** (a shard's cliff and its talus apron): the shard's own surface (G90): its `sourceSurface` colour when the
  *   reader resolves one, else the shard's edge colour sampled from the gradient row beside it, under rock strata.
  * - **dike** (G91): the dike's stone revetment, rounded rip-rap boulders.
@@ -26,7 +27,7 @@ export type SeamBucket = 'ground' | 'stone' | 'rock' | 'dike' | 'curtain' | 'rai
 export const SEAM_BUCKETS: readonly SeamBucket[] = ['ground', 'stone', 'rock', 'dike', 'rail', 'curtain'];
 const BUCKET_OF: Readonly<Record<string, SeamBucket>> = {
   'deck': 'ground', 'neutral-buffer': 'ground', 'gradient': 'ground', 'overlap': 'ground', 'turn-in': 'ground',
-  'retaining-wall': 'stone', 'parapet': 'stone', 'culvert': 'stone', 'cliff': 'rock', 'talus': 'rock', 'dike': 'dike',
+  'retaining-wall': 'stone', 'parapet': 'stone', 'culvert': 'stone', 'revetment': 'stone', 'cliff': 'rock', 'talus': 'rock', 'dike': 'dike',
   'road-wall': 'curtain', 'guard-rail': 'rail',
 };
 /** A feature kind's material; an unknown kind (a newer generator) draws as ground rather than vanishing. */

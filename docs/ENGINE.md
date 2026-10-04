@@ -2,7 +2,10 @@
 
 `@wildshard/game/grid/simulation` owns local physics residencies, prepared fixed-step frame changes and durable
 two-phase unloads through the session's one allocator. `@wildshard/engine/sim/strips` generates deterministic
-highway, strip and crossroads meshes with local duplicates; `@wildshard/engine/physics/frame` prepares rider/mount
+highway, strip and crossroads meshes with local duplicates; where an edge observes a sea at exactly 0 over seabed (the
+shore rule, G149) the strip holds 0 to the cell edge and builds a +0.6 m rip-rap revetment there (feature `revetment`,
+part of the collider), and a shard clips its sea at `SHORE_REVETMENT_INNER_FACE` from `@wildshard/engine/sim/shore`.
+`@wildshard/engine/physics/frame` prepares rider/mount
 motor transfers. `@wildshard/game/grid/state` fingerprints authored continuation without global placement or
 platform colliders. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
 

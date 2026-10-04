@@ -7,7 +7,8 @@
  *   (`public/assets/baked/<slug>/terrain.bin`, the WSTR lattice), coloured by its own map palette's ground ramp, and the
  *   platform's neutral grey when it declares none.
  * - **entries**: admitted shardfile midpoint declarations open their exact width; undeclared legacy edges stay closed.
- * - **water** (G91): a shard with open water (its map's `openWater` level) holds it with the dike along every edge.
+ * - **water**: a shard's open water (its map's `openWater` level). Above the road (G91) the dike holds it; a sea at exactly 0
+ *   is kept as 0 (C2-R3-B1), so its seabed edges get the shore rule's revetment (G134 / G149); below 0 none is reported.
  *
  * A proper format field for the observations is sp-x5's follow-up (the coordinator's interim decision).
  */
@@ -51,7 +52,7 @@ function latticeRows(res: number, heights: Float32Array, colour: (x: number, z: 
 }
 
 function observe(entries: ShardEntryways, water: number | undefined): GridEdgeObservations {
-  const edge = (side: typeof SIDES[number]): GridEdgeObservations['north'] => ({ entryWidth: entries.find(row => row.edge === side)?.width ?? 0, geometry: 'ground', ...(water === undefined || water <= 0 ? {} : { waterSurface: water }) });
+  const edge = (side: typeof SIDES[number]): GridEdgeObservations['north'] => ({ entryWidth: entries.find(row => row.edge === side)?.width ?? 0, geometry: 'ground', ...(water === undefined || !Number.isFinite(water) || water < 0 ? {} : { waterSurface: water }) });
   return { north: edge('north'), east: edge('east'), south: edge('south'), west: edge('west') };
 }
 
