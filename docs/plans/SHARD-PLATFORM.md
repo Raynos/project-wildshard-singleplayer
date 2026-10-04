@@ -268,6 +268,33 @@ parallelise the same way.
 - Every step is identical under the harness, or a small difference batched onto one board per wave (systems,
   looks, bosses).
 
+## 10. The shardfile: the grill with Jake (E435, in progress)
+
+Jake, 2026-10-03: *"Grill me, let's brainstorm … everything is on the table, nothing is decided, let's make the perfect
+shardfile plan together, let's fight against the limits of the existing shards, lets make it powerful and super
+creative and fully open for great thing. But still give a stable baseline and development SDK + UX for building
+performant & fun shards."* The evidence behind the earlier calls is the [Wildshard MMO Review](../reviews/wildshard-mmo-review.md).
+Rows P1–P6 above are rewritten from these answers when the grill ends.
+
+| # | Question | Jake's answer |
+|---|---|---|
+| G1 | The source of truth for a shard | **Code-first**: the author's project is TypeScript (generators on their machine + AssemblyScript behaviour); `wildshard build` emits the shardfile, a validated build product nobody edits by hand |
+| G2 | The development loop | **`wildshard dev` + a phone QR, and a cloud preview**: local hot reload in the real client with a live budget overlay; scan a QR to play the same build on your phone over the LAN; and a one-click deploy of a preview to the author's own free Vercel account, done by Claude Code |
+| G3 | How far a shard bends the game | **Fixed core + modes**: the platform owns the core verbs (move, look, jump, interact, attack, mount) and the HUD; shards add approved player modes (glide, swim, climb, drive, grapple, ride) and invent mechanics inside them |
+| G4 | Visual freedom | **Material families, then material graphs, then restricted shader code**: v1 ships rich parameterised families; validated, cost-capped graphs follow as the creative path; a validated, cost-checked shading-language subset comes after |
+| G5 | Tiles and levels of detail | **Auto-bake + overrides**: authors build freely in shard-local space; `wildshard build` cuts tiles, makes every LOD, the far proxy and the impostor, and reports per-tile budgets; any LOD or tile can be hand-tuned |
+| G6 | A shared asset commons | **Commons + community**: a curated platform commons (models, rigged creatures and clips, materials, sounds, music stems), cached across shards so it costs nothing at a corner; later, authors publish reviewed assets others can remix, with attribution |
+| G7 | What players change, and whether it stays | **Per-player progress + author-declared shared world state** with author-set reset rules. **Building comes later**, and only after **three brand-new shards built around building** stress-test it (Jake) |
+| G8 | Creatures and characters | **Standard rigs + custom**: a few platform skeletons (humanoid, quadruped, bird, serpent, insect) with a shared clip library in the commons; custom clips on top; custom rigs allowed within a budget |
+| G9 | How behaviour is structured | **Entity scripts + a shard director**: AssemblyScript scripts on entities react to events (tick, hit, enter, interact); an optional director per shard runs shard-wide pacing (events, waves, weather drama, the finale); typed events between them |
+| G10 | Where scripts run | **Server scripts + client scripts**: server scripts are authoritative and their state replicates automatically (authors never write netcode); client scripts are presentation only and read, never write, shared state. Prediction stays limited to the player's own character |
+| G11 | Quests, dialogue and NPCs | **Data + script hooks**: quest graphs and dialogue trees are validated data written in TypeScript; scripts only for custom conditions and scenes; tracking, journal, markers, localisation and reward checks come from the platform |
+| G12 | Creature AI | **Platform brains + custom brains**: configurable archetype brains and boss phase tables over perception and navigation built-ins; custom AssemblyScript brains over the same perception, navigation and strike APIs |
+| G13 | Signature items | **Submit + review, and cosmetic travel**: an author submits an item to the catalogue; after review it travels at a server-capped power tier, credited to its author, behaviour included. An author item may also travel as a cosmetic skin over a catalogue weapon |
+| G14 | Who makes movement modes | **Platform first, then authors**: v1 ships platform modes; later authors write AssemblyScript movement modes, predicted on both sides, under a stricter fuel budget, reviewed before going public |
+| G15 | A builder's first hour | **Both: a guided `/wildshard` flow and the full WorldClaw flow**; the CLI and docs always exist. Jake: *"Worldclaw is definitly the best way to build shards, but the guided /wildshard flow can probably get something playable in 5 minutes."* Starters: `npm create wildshard` with three starter shards |
+| G16 | What an upload must pass | **Safety + playability + review**: safety and budgets, and bot playtests (every edge entry walked, every quest objective reached, no stuck spots or falls, within budget on the phone tier) gate the upload; an AI quality council scores fun and polish for featuring and centre placement |
+
 ## Handoff (shard-platform)
 
 Written 2026-10-03 by the shard-platform agent, working the plan with Jake (asks E431, E433). P0 is done.
