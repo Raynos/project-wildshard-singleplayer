@@ -6636,6 +6636,168 @@
         "from": "@wildshard/engine/quest/view/ui"
       },
       {
+        "name": "FAMILY_IDS",
+        "kind": "const",
+        "doc": "The families v1 knows. Part 2 of SF10a adds `painterly` and `emissive`.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "FamilyId",
+        "kind": "type",
+        "doc": "A family id a material entry names.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "FamilyMaterialInput",
+        "kind": "type",
+        "doc": "What an author or a build writes: omitted fields take the family's defaults.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "FamilyMaterialParams",
+        "kind": "type",
+        "doc": "Any family's validated material entry (what a compiler receives).",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "FamilyMaterialSchema",
+        "kind": "const",
+        "doc": "Any family's material entry, discriminated by `family`.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "parseFamilyMaterial",
+        "kind": "function",
+        "doc": "Validate a material entry and fill the family's defaults; throws a readable error on bad data.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "parseToonLook",
+        "kind": "function",
+        "doc": "Validate the toon look and fill its defaults.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PbrMaterialParams",
+        "kind": "type",
+        "doc": "A PBR material entry with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PbrMaterialSchema",
+        "kind": "const",
+        "doc": "One PBR surface: metal / rough with colour, normal and packed ORM maps (occlusion r, roughness g, metalness b).",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "Rgb",
+        "kind": "type",
+        "doc": "An sRGB or linear colour as three numbers.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "ToonLookParams",
+        "kind": "type",
+        "doc": "A toon look with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "ToonLookSchema",
+        "kind": "const",
+        "doc": "The toon family's look: a two-band ramp with coloured shade, a terminator band and a banded rim, plus the environment",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "ToonMaterialParams",
+        "kind": "type",
+        "doc": "A toon material entry with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "ToonMaterialSchema",
+        "kind": "const",
+        "doc": "One toon surface: flat-shaded, vertex-coloured facets by default (no textures).",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "compilePbr",
+        "kind": "function",
+        "doc": "Compile a PBR surface to a three.js material (WebGL v1 renderer).",
+        "from": "@wildshard/engine/render/families/pbr"
+      },
+      {
+        "name": "pbrFillers",
+        "kind": "function",
+        "doc": "the shared 1×1 fillers: white multiplies by one, the flat normal leaves the geometry normal",
+        "from": "@wildshard/engine/render/families/pbr"
+      },
+      {
+        "name": "TextureResolver",
+        "kind": "type",
+        "doc": "Turns a parameter's texture reference into a texture (a shardfile file hash through the asset store, or an asset",
+        "from": "@wildshard/engine/render/families/pbr"
+      },
+      {
+        "name": "TextureUse",
+        "kind": "type",
+        "doc": "How a texture is read: `colour` is sRGB, `data` is linear (normals, ORM).",
+        "from": "@wildshard/engine/render/families/pbr"
+      },
+      {
+        "name": "familyCompileJobs",
+        "kind": "function",
+        "doc": "Shader-step jobs for every live family program not yet compiled: one plain stand-in mesh per distinct program variant",
+        "from": "@wildshard/engine/render/families/registry"
+      },
+      {
+        "name": "FamilyContext",
+        "kind": "interface",
+        "doc": "What a compiler may read besides the material's own parameters.",
+        "from": "@wildshard/engine/render/families/registry"
+      },
+      {
+        "name": "familyMaterial",
+        "kind": "function",
+        "doc": "A family material from a material entry (validated here, defaults filled), tracked for the shader step until",
+        "from": "@wildshard/engine/render/families/registry"
+      },
+      {
+        "name": "liveFamilyMaterials",
+        "kind": "function",
+        "doc": "every live family material and the parameters it was made from",
+        "from": "@wildshard/engine/render/families/registry"
+      },
+      {
+        "name": "compileToon",
+        "kind": "function",
+        "doc": "Compile a toon surface under `look` to a three.js material (WebGL v1 renderer).",
+        "from": "@wildshard/engine/render/families/toon"
+      },
+      {
+        "name": "injectToon",
+        "kind": "function",
+        "doc": "The toon light model injected into a MeshStandard / MeshPhysical fragment source (throws if three's chunk moved).",
+        "from": "@wildshard/engine/render/families/toon"
+      },
+      {
+        "name": "TOON_PROGRAM_KEY",
+        "kind": "const",
+        "doc": "the program-cache key every toon material shares (the source is the same for all of them)",
+        "from": "@wildshard/engine/render/families/toon"
+      },
+      {
+        "name": "ToonLook",
+        "kind": "class",
+        "doc": "One toon look: the shared uniforms of every toon material made under it. Several looks can be live in one frame",
+        "from": "@wildshard/engine/render/families/toon"
+      },
+      {
+        "name": "ToonLookUniforms",
+        "kind": "interface",
+        "doc": "The uniforms one toon look shares with every material made under it.",
+        "from": "@wildshard/engine/render/families/toon"
+      },
+      {
         "name": "buildHoverboard",
         "kind": "function",
         "doc": "The board, built into `g` (the viewmodel's model, or the Model Explorer's specimen: src/engine/models/hoverboard.ts, E348): the",

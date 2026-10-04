@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1695 members; 831 without a doc line (—).
+1722 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1111,6 +1111,33 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `DialogueBox` | class | @wildshard/engine/quest/view/ui | the NPC dialogue panel: the speaker's name and the typed-out lines, advanced with E or a tap |
 | `ObjectiveLine` | class | @wildshard/engine/quest/view/ui | the quest chip: one slim glass line under the minimap with the goal, its count and the nearest marker's bearing |
 | `RewardCaption` | class | @wildshard/engine/quest/view/ui | the reward caption: a kicker, a title and a sub line, shown when a quest pays out |
+| `FAMILY_IDS` | const | @wildshard/engine/render/families/params | The families v1 knows. Part 2 of SF10a adds `painterly` and `emissive`. |
+| `FamilyId` | type | @wildshard/engine/render/families/params | A family id a material entry names. |
+| `FamilyMaterialInput` | type | @wildshard/engine/render/families/params | What an author or a build writes: omitted fields take the family's defaults. |
+| `FamilyMaterialParams` | type | @wildshard/engine/render/families/params | Any family's validated material entry (what a compiler receives). |
+| `FamilyMaterialSchema` | const | @wildshard/engine/render/families/params | Any family's material entry, discriminated by `family`. |
+| `parseFamilyMaterial` | function | @wildshard/engine/render/families/params | Validate a material entry and fill the family's defaults; throws a readable error on bad data. |
+| `parseToonLook` | function | @wildshard/engine/render/families/params | Validate the toon look and fill its defaults. |
+| `PbrMaterialParams` | type | @wildshard/engine/render/families/params | A PBR material entry with every default filled. |
+| `PbrMaterialSchema` | const | @wildshard/engine/render/families/params | One PBR surface: metal / rough with colour, normal and packed ORM maps (occlusion r, roughness g, metalness b). |
+| `Rgb` | type | @wildshard/engine/render/families/params | An sRGB or linear colour as three numbers. |
+| `ToonLookParams` | type | @wildshard/engine/render/families/params | A toon look with every default filled. |
+| `ToonLookSchema` | const | @wildshard/engine/render/families/params | The toon family's look: a two-band ramp with coloured shade, a terminator band and a banded rim, plus the environment |
+| `ToonMaterialParams` | type | @wildshard/engine/render/families/params | A toon material entry with every default filled. |
+| `ToonMaterialSchema` | const | @wildshard/engine/render/families/params | One toon surface: flat-shaded, vertex-coloured facets by default (no textures). |
+| `compilePbr` | function | @wildshard/engine/render/families/pbr | Compile a PBR surface to a three.js material (WebGL v1 renderer). |
+| `pbrFillers` | function | @wildshard/engine/render/families/pbr | the shared 1×1 fillers: white multiplies by one, the flat normal leaves the geometry normal |
+| `TextureResolver` | type | @wildshard/engine/render/families/pbr | Turns a parameter's texture reference into a texture (a shardfile file hash through the asset store, or an asset |
+| `TextureUse` | type | @wildshard/engine/render/families/pbr | How a texture is read: `colour` is sRGB, `data` is linear (normals, ORM). |
+| `familyCompileJobs` | function | @wildshard/engine/render/families/registry | Shader-step jobs for every live family program not yet compiled: one plain stand-in mesh per distinct program variant |
+| `FamilyContext` | interface | @wildshard/engine/render/families/registry | What a compiler may read besides the material's own parameters. |
+| `familyMaterial` | function | @wildshard/engine/render/families/registry | A family material from a material entry (validated here, defaults filled), tracked for the shader step until |
+| `liveFamilyMaterials` | function | @wildshard/engine/render/families/registry | every live family material and the parameters it was made from |
+| `compileToon` | function | @wildshard/engine/render/families/toon | Compile a toon surface under `look` to a three.js material (WebGL v1 renderer). |
+| `injectToon` | function | @wildshard/engine/render/families/toon | The toon light model injected into a MeshStandard / MeshPhysical fragment source (throws if three's chunk moved). |
+| `TOON_PROGRAM_KEY` | const | @wildshard/engine/render/families/toon | the program-cache key every toon material shares (the source is the same for all of them) |
+| `ToonLook` | class | @wildshard/engine/render/families/toon | One toon look: the shared uniforms of every toon material made under it. Several looks can be live in one frame |
+| `ToonLookUniforms` | interface | @wildshard/engine/render/families/toon | The uniforms one toon look shares with every material made under it. |
 | `buildHoverboard` | function | @wildshard/engine/render/hoverboardGeometry | The board, built into `g` (the viewmodel's model, or the Model Explorer's specimen: src/engine/models/hoverboard.ts, E348): the |
 | `EngineChainKind` | type | @wildshard/engine/render/look | the engine's two colour chains (Game.buildComposer): 'cinematic' (volumetrics, god rays, grain, fringe, the level's |
 | `EngineEffects` | interface | @wildshard/engine/render/look | — |
