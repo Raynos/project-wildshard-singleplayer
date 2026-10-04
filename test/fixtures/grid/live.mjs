@@ -43,7 +43,7 @@ const registry = new LiveGridHost(assembly, {
   readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 10 }, bundle: () => ({ criticalWireBytes: 2_000_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 }) },
   save: (id, snapshot) => { if (!durable) return false; saves.set(id, structuredClone(snapshot)); return true; },
   gameplayReady: () => gameplay,
-  bindFrame: ({ physics }) => { currentPhysics = physics; frameBinds++; },
+  bindFrame: ({ physics, host, instance }) => { assert.equal(host === undefined, instance === homeCell.instance); if (host !== undefined) assert.equal(host.physics, physics); currentPhysics = physics; frameBinds++; },
   admit: async () => ({ bytes: source.budgets.sim.resident, create: async (saved) => {
     regionCreations++;
     let sim = createShardfileSim(source, assets, { rapier, playerBody: false, quest });

@@ -22,6 +22,10 @@ it('steps only regional systems with the existing traveller and snapshots its tr
   const step = region.physics.step.bind(region.physics); region.physics.step = () => { physicsSteps++; step(); };
   region.onStep('probe', () => { updates++; });
   try {
+    expect(region.groundHeightAt(3, 4)).toBe(level.ground.height);
+    region.setHeightQuery((x, z) => x + z); expect(region.groundHeightAt(3, 4)).toBe(7);
+    expect(() => region.groundHeightAt(Number.NaN, 4)).toThrow('ground query');
+    region.setHeightQuery(() => level.ground.height);
     expect(region.hasPlayerMotor).toBe(false); expect(() => region.stepExternal()).toThrow('not bound');
     const release = region.bindExternalPlayer({ position, get yaw() { return page.yaw; }, health, owner: page });
     expect(() => region.bindExternalPlayer({ position, yaw: 0, health, owner: page })).toThrow('Invalid');

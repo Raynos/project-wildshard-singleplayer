@@ -151,6 +151,11 @@ export class SimHost {
   }
   /** Reinstall the admitted terrain height query before a fresh host's same-engine continuation resumes. */
   setHeightQuery(heightAt: (x: number, z: number) => number): void { this.heightAt = heightAt; }
+  /** Read admitted frame-local terrain without decoding a second copy for the page traveller. */
+  groundHeightAt(x: number, z: number): number {
+    if (!Number.isFinite(x) || !Number.isFinite(z)) throw new RangeError('Invalid regional ground query');
+    return this.heightAt(x, z);
+  }
   /** True only while this regional world owns the traveller's capsule and controller. */
   get hasPlayerMotor(): boolean { return this.embedded || this.playerMotor !== undefined; }
   /** Freeze a regional host after its checkpoint; its authored creatures and colliders remain available for views. */

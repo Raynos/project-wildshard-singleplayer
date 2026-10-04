@@ -22,7 +22,7 @@ export interface LiveGridHome {
   afterPlayerStep?: () => void; walls?: ReadinessWalls;
 }
 /** An infallible prepared assignment rebinds the existing page world/player and the renderer's local origin. */
-export interface LiveGridFrame { instance: string | null; physics: Physics; motor: FrameMember['motor']; origin: Readonly<{ x: number; z: number }> }
+export interface LiveGridFrame { instance: string | null; physics: Physics; motor: FrameMember['motor']; origin: Readonly<{ x: number; z: number }>; host?: SimHost }
 /** One live fixed-step owner supplies movement; region clocks/systems run only after that move. */
 export interface LiveGridPorts {
   home: LiveGridHome; player: SimExternalPlayer & FrameMember; allocator: ResidencyAllocator;
@@ -228,7 +228,7 @@ export class LiveGridHost {
       motors.commit(); this.unbind?.(); this.unbind = undefined;
       this.ports.player.motor = rider.motor; this.active = to;
       const host = this.region(to)?.host; if (host !== undefined) this.unbind = host.bindExternalPlayer(this.ports.player);
-      this.ports.bindFrame({ instance: to, physics: this.physics(to), motor: rider.motor, origin });
+      this.ports.bindFrame({ instance: to, physics: this.physics(to), motor: rider.motor, origin, ...(host === undefined ? {} : { host }) });
       this.residents.get(to ?? '')?.lease.update({ needed: true }); this.residents.get(from ?? '')?.lease.update({ needed: false });
       this.crossings++; this.transitions.push({ from, to }); if (this.transitions.length > 256) this.transitions.shift(); finish();
     } };
