@@ -1,4 +1,5 @@
 import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { CombatCueOpts } from '@wildshard/engine/combat/cues';
 import { crossbowFire, dryFire, boltImpact, reload } from '../weapons/crossbow/sounds';
 import { rifleFire, rifleReload } from '../weapons/firearm/sounds';
 import { swordSwing, swordHeavy, swordHit } from '../weapons/melee/sounds';
@@ -26,4 +27,14 @@ export function sharedWeaponVoices(audio: Audio): {
     swordHit: (kind, pan, gain) => { swordHit(audio, kind, pan, gain); },
     weaponSwap: () => { audio.weaponSwap(); },
   };
+}
+
+/** Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing. */
+export function declaredWeaponVoices(audio: Audio): ReadonlyMap<string, (opts: CombatCueOpts) => void> {
+  const voices = sharedWeaponVoices(audio);
+  return new Map<string, (opts: CombatCueOpts) => void>([
+    ['sword.swing', () => { voices.swordSwing(); }], ['sword.heavy', () => { voices.swordHeavy(); }],
+    ['sword.hit', (opts) => { voices.swordHit(opts.surface === 'wood' ? 'wood' : 'flesh', opts.pan, opts.gain); }],
+    ['weapon.reload', () => { voices.reload(); }], ['weapon.swap', () => { voices.weaponSwap(); }],
+  ]);
 }

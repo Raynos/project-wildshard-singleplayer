@@ -1715,7 +1715,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1795 exports, grouped by the module to import them from.
+1798 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1749,6 +1749,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/audio/Audio`: `AmbientBed`, `AnimalSound`, `Audio`, `CallVoice`, `GameAudio`, `HoofSurface`, `ImpactKind`, `LoopName`, `OneShot`, `SampleLoop`, `SynthBed`
 - `@wildshard/engine/audio/audioLog`: `audioLog`, `AudioLogEntry`
 - `@wildshard/engine/audio/Cues`: `CueBank`, `cueFiles`, `CueMap`, `CueOpts`, `CuePlayer`, `decodeCueSet`, `SampleClip`
+- `@wildshard/engine/audio/declared`: `DeclaredAudioData`, `DeclaredAudioPorts`, `installDeclaredAudio`
 - `@wildshard/engine/audio/gen`: `bubbleBed`, `death`, `footstep`, `hurt`, `impact`, `impulse`, `impulseChannel`, `interact`, `INTERACT_SOUNDS`, `InteractSound`, `Material`, `MATERIALS`, `noiseLoop`, `plunge`, `Room`, `ROOMS`, `STEP_KINDS`, `StepKind`, `synthKit`, `whoosh`
 - `@wildshard/engine/audio/interactSfx`: `InteractSfx`
 - `@wildshard/engine/audio/levelAudio`: `AudioMixer`, `LevelAudioBank`, `LevelAudioProfile`, `NO_AUDIO`
@@ -2015,7 +2016,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-263 exports, grouped by the module to import them from.
+266 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2054,6 +2055,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/runtime`: `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
+- `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
 - `@wildshard/game/shardfile/creatures`: `creatureRules`, `CreaturesSchema`, `ShardCreatures`
 - `@wildshard/game/shardfile/encounters`: `encounterRules`, `EncountersSchema`, `ShardEncounters`
@@ -2070,11 +2072,11 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-215 exports, grouped by the module to import them from.
+216 exports, grouped by the module to import them from.
 
 - `@wildshard/kit/audio/creatureVoices`: `CREATURE_VOICES`, `CreatureVoice`, `CreatureWindup`, `vocal`, `windup`
 - `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`, `installSilentScore`
-- `@wildshard/kit/audio/weaponVoices`: `sharedWeaponVoices`, `WeaponSynth`
+- `@wildshard/kit/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
 - `@wildshard/kit/effects/install`: `installStarterEffects`
 - `@wildshard/kit/effects/starter`: `STARTER_CHOICES`, `STARTER_EFFECTS`, `StarterChoice`, `starterId`
 - `@wildshard/kit/icons`: `BAG_ICONS`, `installKitIcons`
@@ -2119,9 +2121,10 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-31 exports, grouped by the module to import them from.
+34 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
+- `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/sdk/author`: `emptyShardfile`
 - `@wildshard/sdk/bake/terrain`: `BakedTerrain`, `bakeTerrain`, `TerrainBakeSource`, `TerrainOverride`
 - `@wildshard/sdk/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`

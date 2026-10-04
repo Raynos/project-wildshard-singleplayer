@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-31 members; 0 without a doc line (—).
+34 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -13,6 +13,9 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parseAudio` | function | @wildshard/sdk/assets | Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory. |
 | `parseGlb` | function | @wildshard/sdk/assets | Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. |
 | `parseKtx2` | function | @wildshard/sdk/assets | Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. |
+| `AudioData` | type | @wildshard/sdk/audio | A serialisable audio recipe whose voice ids the platform catalogue admits. |
+| `AudioDataSchema` | const | @wildshard/sdk/audio | Compile cue mappings, wind ambience and silent/default score declarations. |
+| `parseAudioData` | function | @wildshard/sdk/audio | Validate the thin audio section before compiling a shardfile. |
 | `emptyShardfile` | function | @wildshard/sdk/author | Start an author project with a valid empty world; add baked content before shipping a playable shard. |
 | `BakedTerrain` | interface | @wildshard/sdk/bake/terrain | Immutable wire files plus the ordinary shardfile rows and a validated terrain section. |
 | `bakeTerrain` | function | @wildshard/sdk/bake/terrain | Bake a shared 257² lattice into 64 L0 and 16 L1 tiles, with an independent whole-sim collision file. |

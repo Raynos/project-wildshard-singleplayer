@@ -10,7 +10,8 @@
     "./project": "./project.ts",
     "./ledger": "./ledger.ts",
     "./bake/terrain": "./bake/terrain.ts",
-    "./quests": "./quests.ts"
+    "./quests": "./quests.ts",
+    "./audio": "./audio.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -62,6 +63,10 @@
       "./quests": {
         "types": "./dist/types/sdk/quests.d.ts",
         "default": "./dist/quests.js"
+      },
+      "./audio": {
+        "types": "./dist/types/sdk/audio.d.ts",
+        "default": "./dist/audio.js"
       }
     }
   }

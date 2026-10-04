@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-263 members; 112 without a doc line (—).
+266 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -218,6 +218,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardRuntime` | interface | @wildshard/game/shard/runtime | Typed, per-build handoff between the staged shell and an authored plugin. |
 | `parseShardSlug` | function | @wildshard/game/shard/slug | Brand only validated identities; callers cannot supply arbitrary strings as shard keys. |
 | `ValidatedShardSlug` | type | @wildshard/game/shard/slug | An external identity whose format was validated at the catalogue or shardfile boundary. |
+| `AudioData` | type | @wildshard/game/shardfile/audio | Validated audio data; voice ids are resolved only through the platform's admitted catalogue. |
+| `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
+| `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |
 | `worstContentCost` | function | @wildshard/game/shardfile/budget | Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps. |
 | `creatureRules` | function | @wildshard/game/shardfile/creatures | Unique ids and brain references; species and strikes are resolved against the loader's declared catalogues. |
 | `CreaturesSchema` | const | @wildshard/game/shardfile/creatures | Pure-data creature archetypes and stable spawn layouts, expanded before the local sim boots. |

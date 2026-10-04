@@ -53,6 +53,7 @@
     "./shardfile/encounters": "./shardfile/encounters.ts",
     "./shard/declaredEncounters": "./shard/declaredEncounters.ts",
     "./quest/declared": "./quest/declared.ts",
-    "./shardfile/quests": "./shardfile/quests.ts"
+    "./shardfile/quests": "./shardfile/quests.ts",
+    "./shardfile/audio": "./shardfile/audio.ts"
   }
 }

@@ -915,6 +915,24 @@
         "from": "@wildshard/engine/audio/Cues"
       },
       {
+        "name": "DeclaredAudioData",
+        "kind": "interface",
+        "doc": "Catalogue cue ids plus bounded wind recipes and a score mode, supplied as validated level data.",
+        "from": "@wildshard/engine/audio/declared"
+      },
+      {
+        "name": "DeclaredAudioPorts",
+        "kind": "interface",
+        "doc": "Audio source lifetime and cue/score ports, independent of content packages and renderer state.",
+        "from": "@wildshard/engine/audio/declared"
+      },
+      {
+        "name": "installDeclaredAudio",
+        "kind": "function",
+        "doc": "Admit every voice before installing; route real engine cues and stop all bed sources with the level scope.",
+        "from": "@wildshard/engine/audio/declared"
+      },
+      {
         "name": "bubbleBed",
         "kind": "function",
         "doc": "a seamless underwater loop: sparse bubbles near and far over a slow pressure rumble (the end crossfaded into the start)",
@@ -12156,6 +12174,24 @@
         "from": "@wildshard/game/shard/slug"
       },
       {
+        "name": "AudioData",
+        "kind": "type",
+        "doc": "Validated audio data; voice ids are resolved only through the platform's admitted catalogue.",
+        "from": "@wildshard/game/shardfile/audio"
+      },
+      {
+        "name": "AudioDataSchema",
+        "kind": "const",
+        "doc": "The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score.",
+        "from": "@wildshard/game/shardfile/audio"
+      },
+      {
+        "name": "parseAudioData",
+        "kind": "function",
+        "doc": "Compile the TypeScript-authored cue map, ambience and score without executable audio closures.",
+        "from": "@wildshard/game/shardfile/audio"
+      },
+      {
         "name": "worstContentCost",
         "kind": "function",
         "doc": "Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps.",
@@ -12522,6 +12558,12 @@
         "kind": "function",
         "doc": "Silence this score's output, preserving the user's volume setting and the other sound buses.",
         "from": "@wildshard/kit/audio/forest"
+      },
+      {
+        "name": "declaredWeaponVoices",
+        "kind": "function",
+        "doc": "Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing.",
+        "from": "@wildshard/kit/audio/weaponVoices"
       },
       {
         "name": "sharedWeaponVoices",
@@ -13814,6 +13856,24 @@
         "kind": "function",
         "doc": "Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound.",
         "from": "@wildshard/sdk/assets"
+      },
+      {
+        "name": "AudioData",
+        "kind": "type",
+        "doc": "A serialisable audio recipe whose voice ids the platform catalogue admits.",
+        "from": "@wildshard/sdk/audio"
+      },
+      {
+        "name": "AudioDataSchema",
+        "kind": "const",
+        "doc": "Compile cue mappings, wind ambience and silent/default score declarations.",
+        "from": "@wildshard/sdk/audio"
+      },
+      {
+        "name": "parseAudioData",
+        "kind": "function",
+        "doc": "Validate the thin audio section before compiling a shardfile.",
+        "from": "@wildshard/sdk/audio"
       },
       {
         "name": "emptyShardfile",

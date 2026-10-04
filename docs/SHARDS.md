@@ -25,6 +25,12 @@ queue declared events for the next script tick with the session's actor binding.
 outcomes pass through the ledger fact port, while coins remain local. Dialogue cursors
 and quest state restore at the same simulation checkpoint.
 
+Audio authors use `@wildshard/sdk/audio` for a cue-to-catalogue voice map, bounded wind
+recipes and a silent/default score. `installDeclaredAudio` admits every voice before
+installing anything; the kit's `declaredWeaponVoices` retains the existing weapon sounds
+and impact surface routing. Level scopes remove cue routes, stop bed sources and restore
+the score output gain. The template's data keeps its two forest wind bands and silent score.
+
 A shard is one Wildshard level: a folder `src/shards/<slug>/` with a manifest (data) and a plugin (code). The engine,
 the game layer and the kit do the rest. This guide takes you from a copy of the template to a shard that is `live` on
 the title deck.

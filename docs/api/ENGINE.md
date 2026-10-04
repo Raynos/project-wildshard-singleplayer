@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1812 members; 831 without a doc line (—).
+1815 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -160,6 +160,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `CuePlayer` | class | @wildshard/engine/audio/Cues | Content calls tap.sound with its literal id, then asks this shared positional shot player. |
 | `decodeCueSet` | function | @wildshard/engine/audio/Cues | — |
 | `SampleClip` | interface | @wildshard/engine/audio/Cues | — |
+| `DeclaredAudioData` | interface | @wildshard/engine/audio/declared | Catalogue cue ids plus bounded wind recipes and a score mode, supplied as validated level data. |
+| `DeclaredAudioPorts` | interface | @wildshard/engine/audio/declared | Audio source lifetime and cue/score ports, independent of content packages and renderer state. |
+| `installDeclaredAudio` | function | @wildshard/engine/audio/declared | Admit every voice before installing; route real engine cues and stop all bed sources with the level scope. |
 | `bubbleBed` | function | @wildshard/engine/audio/gen | a seamless underwater loop: sparse bubbles near and far over a slow pressure rumble (the end crossfaded into the start) |
 | `death` | function | @wildshard/engine/audio/gen | the player dies: the hit, a falling groan that runs out of breath, the body hitting the ground |
 | `footstep` | function | @wildshard/engine/audio/gen | one step: heel strike, then the toe 45–75 ms later; each surface is its own recipe |
