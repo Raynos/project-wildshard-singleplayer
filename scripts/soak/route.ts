@@ -6,7 +6,7 @@ interface Window { readonly start: number; readonly end: number }
 interface Entry { readonly instance: string; readonly admitted: boolean }
 interface Leak { readonly disposalErrors: readonly string[]; readonly scope: { readonly bodies: number; readonly colliders: number }; readonly after: { readonly bodies: number; readonly colliders: number; readonly [key: string]: unknown } }
 interface Witness { readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[] }
-interface Grade { memoryPass: boolean; gatePass: boolean; peakBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; recovery: boolean; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null }
+interface Grade { memoryPass: boolean; gatePass: boolean; peakBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; recovery: boolean; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null }
 /** The drive uses the admitted catalogue, never a second hand-maintained shard list. */
 export function soakRoute(cells: readonly Cell[], pitch = 555): { reference: Point; steps: readonly Step[] } {
   const roads = [-1.5, -0.5, 0.5, 1.5].map((n) => n * pitch);
@@ -53,8 +53,9 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
     return { ...window, samples: points.length, bytes: points.length === 0 ? null : median(points.map((row) => row.footprint)) };
   });
   const first = baselines.at(0)?.bytes;
-  const recovery = first !== null && first !== undefined && baselines.length >= 2
+  const recovery = first !== null && first !== undefined && baselines.length >= Math.max(2, circuits + 1)
     && baselines.every((row) => row.bytes !== null && row.samples >= 5 && Math.abs(row.bytes - first) <= 30_000_000);
+  const baselineDeltaBytes = baselines.map((row) => row.bytes === null || first === null || first === undefined ? null : row.bytes - first);
   const gaps = active.slice(1).map((row, index) => row.elapsed - (active.at(index)?.elapsed ?? row.elapsed));
   const sampling = drive.length >= seconds * 0.95 && gaps.every((gap) => gap <= 2.5)
     && drive.every((row) => row.footprint > 0);
@@ -67,6 +68,6 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
     && zeroCensus(leak.after);
   const memoryPass = seconds >= 1800 && circuits >= 2 && evictions > 0 && sampling && peakBytes < 1_000_000_000 && recovery && leakZero && errors.length === 0;
   return { memoryPass, gatePass: memoryPass && refused.length === 0 && visited && new Set(crossroads).size === 16,
-    peakBytes, baselines, recovery, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size,
+    peakBytes, baselines, baselineDeltaBytes, recovery, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size,
     limitation: refused.length === 0 ? null : 'M3 runtime cells remain behind production admission walls. A far proxy is not an entry; rerun after SF46–48.' };
 }

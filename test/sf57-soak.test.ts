@@ -41,6 +41,7 @@ describe('SF57 honest drive and native memory gate', () => {
     const gap = witness(); gap.samples.splice(20, 5); expect(gradeSoak(gap).sampling).toBe(false);
     const drift = witness(); for (const sample of drift.samples) if (sample.elapsed >= 600) sample.footprint = 431_000_000;
     expect(gradeSoak(drift).recovery).toBe(false);
+    const missing = witness(); missing.windows.pop(); expect(gradeSoak(missing).recovery).toBe(false);
     const leak = witness(); leak.leak.after.timers.intervals = 1; expect(gradeSoak(leak).leakZero).toBe(false);
   });
   it('reports a refused runtime cell as M3 incomplete even if its proxy and the memory readings look good', () => {
