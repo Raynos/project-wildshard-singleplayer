@@ -9,5 +9,5 @@
     "tsBuildInfoFile": ".tsc-layers/game.tsbuildinfo"
   },
   "references": [{ "path": "./tsconfig.engine.json" }],
-  "include": ["src/game", "src/engine/**/*.d.ts"]
+  "include": ["src/game", "src/game/**/*.json", "src/engine/**/*.d.ts"]
 }
