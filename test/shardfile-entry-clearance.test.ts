@@ -68,7 +68,7 @@ it('respects nested GLB node transforms and refuses nonfinite binary positions',
   expect(() => inspect(section, [], new Map([[hash, transformed]]))).not.toThrow();
   let count = 0; visitGlbTriangles(transformed, () => { count++; }); expect(count).toBe(12);
   const bytes = glb(), view = new DataView(bytes.buffer); view.setFloat32(28 + view.getUint32(12, true), Number.NaN, true);
-  expect(() => visitGlbTriangles(bytes, () => { throw new Error('Unexpected geometry callback'); })).toThrow('Nonfinite GLB geometry');
+  expect(() => visitGlbTriangles(bytes, () => { throw new Error('Unexpected geometry callback'); })).toThrow('nonfinite GLB position');
 });
 it('refuses pools and narrow streams between sparse sample points, including water at road height', () => {
   const pool: ShardWater = [{ id: 'pool', kind: 'pool', level: 0, shape: { kind: 'circle', x: 0.3, z: 240.3, radius: 0.01 } }];
