@@ -1,3 +1,4 @@
+import type { Scope } from '@wildshard/engine/app/scope';
 import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from '@wildshard/engine/ui/tabs';
 import { registerItemRow } from '../bag/itemCatalog';
 import { registerAchievements, type AchievementDef } from '../achievements';
@@ -25,6 +26,8 @@ export interface GameServices {
   };
 }
 export interface ShardContext extends LevelContext {
+  /** Retained home runtimes install transient services here; each entered scope releases them on leave. */
+  readonly whileEntered?: (install: (scope: Scope) => void) => void;
   /** the shard's own manifest */
   readonly manifest: ShardManifest;
   /** the game's services: progress, inventory, loot, the compendium, travel */

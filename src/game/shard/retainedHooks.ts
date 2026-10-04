@@ -23,6 +23,7 @@ export class RetainedRuntimeHooks {
       this.installers.push(install);
     };
     this.context = { ...base, get progress() { return base.progress; },
+      whileEntered: register,
       system: (spec) => { register((scope) => { base.app.addSystem(spec, scope); }); },
       on: (name, fn, options) => { register((scope) => { base.app.events.on(name, fn, scope, options); }); },
       answer: (name, fn, options) => { register((scope) => { base.app.events.answer(name, fn, scope, options); }); },
