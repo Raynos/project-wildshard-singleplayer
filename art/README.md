@@ -95,6 +95,12 @@ when the images were generated.
 | | `round-22-portrait-grapple-final` (09-26) | [Current 15 s portrait trailer review cut](nine-dragon-stack/round-22-portrait-grapple-final/README.md) with recaptured Fei Zhua crossing and three-talon flying claw |
 | | `round-25-phone-perf` (09-29) | E283 the phone's GPU frame, before / after stills of the Debug ▸ Performance rows at the four mockup cameras with 100 % crops: `vm-lite.jpg` (the lighter viewmodel: Jake's pick, now permanent), `lod-meshes.jpg` (distance LODs: coarser meshes — hooks, lions, crowd, far lanterns), `lod-detail.jpg` (distance LODs: thin detail — the facade's bars, brackets and cords, the balustrade's scrolls) |
 | | `round-26-grapple-ux` (09-29) | E286 the Fei Zhua on the baseline touch HUD: `board.jpg` (before: LOCK dim, no hook in reach at the spawn or the rim; after: LOCK lit at rest → GRAPPLE with ◇ markers → LOCKED + ZIP → the landing, at the spawn, the rim across the Well and the rim → square mast hook) |
+| `grid/` | `round-1-overview` … `round-12-vr-void` (10-04) | E438, SHARD-PLATFORM's grid mockups (Jake's picks G72–G98 in the plan's §10): world from above, highway, seams, crossroads grade, far view, outer edge, safe zone, soft wall, hoverboard speed, asphalt road + crossroads, seam heights (66 World Explorer edge captures + blend board), VR void. Each round has a `board.jpg` and a README; [review page](https://claude.ai/artifact/ULYWRuxwbqYWKVUXZFKAwH) |
+| `menu/` | `round-4-two-entries` … `round-7-new-main-menu` (10-04) | E438: the two title entries (rejected), entering the grid, the needs-upgrade card, the new main menu (G88: B crossroads + cards) |
+| `hud/` | `round-18-border-crossing`, `round-19-ui-kit` (10-04) | E438: crossing into a shard (G82: A title card), the platform UI kit (G87: big cards + a shard accent) |
+| `minimap/` | `round-2-grid-map` (10-04) | E438: a 3 × 3 grid map (rejected, G84: the map stays per shard) |
+| `settings/` | `round-2-new-game` (10-04) | E438 / E439: New game per shard (G83: C save cards + before/after sheet) |
+| `driftwood-isle/`, `far-reach/`, `sunscar-dunes/`, `nine-dragon-stack/`, `nalati-grasslands/` | `round-15-grid-entries`, `round-38-grid-edges`, `round-30-grid-look`, `round-29-grid-look`, `round-13-grid-look` (10-04) | E438: each shard meeting the grid (G93 midpoint entries, G99 Sky Reach rules, G94 Dunes haze, G95 Nine Dragon dusk fog, G96 Nalati painterly kept) |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 
