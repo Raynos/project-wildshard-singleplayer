@@ -54,6 +54,8 @@ export interface SimHostPorts {
   rapier: Rapier; physics?: Physics; player?: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
   events?: Events; clock?: GameClock; combat?: CombatPipeline; scope?: Scope;
   ground?: boolean; heightAt?: (x: number, z: number) => number;
+  /** Grid-only native flat boundary lattice; absent preserves the standalone two-triangle datum. */
+  groundResolution?: 256 | 257;
   /** Frozen grid neighbours have logical player state, but no player capsule or controller. */
   playerBody?: boolean;
   fixedStep?: (run: () => void) => () => void;
@@ -98,14 +100,16 @@ export class SimHost {
     if (new Set(ids).size !== ids.length || ids.includes(ports.player?.id ?? 'actor.player')) throw new Error('Duplicate simulation entity identity');
     if ((ports.physics === undefined) !== (ports.player === undefined) || (ports.physics !== undefined && (ports.events === undefined || ports.clock === undefined || ports.combat === undefined))) throw new Error('Borrowed simulation needs physics, player, events, clock and combat together');
     if (ports.fixedStep !== undefined && ports.physics === undefined) throw new Error('A fixed-step driver belongs to a borrowed world');
+    if (ports.groundResolution !== undefined && ![256, 257].includes(ports.groundResolution)) throw new RangeError('Invalid native ground resolution');
     this.embedded = ports.physics !== undefined; this.ownsPlayer = ports.player === undefined;
     this.level = level; this.scope = ports.scope?.child(`sim:${level.id}`) ?? new Scope(`sim:${level.id}`); this.rng = new RngService(level.seed);
     this.heightAt = ports.heightAt ?? (() => level.ground.height);
     this.events = ports.events ?? new Events(); this.clock = ports.clock ?? new GameClock();
     this.physics = ports.physics ?? new Physics(ports.rapier);
     if (ports.ground !== false && !this.embedded) {
-      const ground = this.physics.world.createCollider(ports.rapier.ColliderDesc.heightfield(1, 1,
-      new Float32Array(4).fill(level.ground.height), { x: level.ground.size, y: 1, z: level.ground.size }).setCollisionGroups(groups('WORLD')));
+      const count = ports.groundResolution ?? 2;
+      const ground = this.physics.world.createCollider(ports.rapier.ColliderDesc.heightfield(count - 1, count - 1,
+      new Float32Array(count ** 2).fill(level.ground.height), { x: level.ground.size, y: 1, z: level.ground.size }).setCollisionGroups(groups('WORLD')));
       tagCollider(ground, 'ground');
     }
     this.combat = ports.combat ?? new CombatPipeline(this.events, this.scope, () => this.physics);
