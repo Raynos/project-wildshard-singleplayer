@@ -7,9 +7,10 @@ import { firstPartyInstance } from '../../../src/game/grid/instances';
 import { progressSave } from '../../../src/game/saves';
 import { DRIFTWOOD_QUEST, QUEST_DONE } from '../../../src/shards/driftwood-isle/quest/questLine';
 import source from '../../../src/shards/driftwood-isle/shard.config';
+import { DRIFTWOOD_RUNTIME_COST } from '../../../src/shards/driftwood-isle/data/runtimeCost';
 
 it('declares the trusted entry and uses one completed quest and achievement save in standalone and the placed grid cell', () => {
-  expect(source.runtime).toEqual({ entry: 'runtime/hybrid.ts' });
+  expect(source.runtime).toEqual({ entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST });
   const slug = source.identity.slug, assembly = new GridAssembly({ developer: false, devserver: false });
   const cell = assembly.cell(firstPartyInstance(slug));
   expect(cell.instance).toBe(slug); expect(cell.slug).toBe(slug);
