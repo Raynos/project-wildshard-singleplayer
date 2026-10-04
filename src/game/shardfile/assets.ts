@@ -38,26 +38,49 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
   }
   const views = list(doc['bufferViews'] ?? []).map(object);
   for (const b of views) if (count(b['buffer'] ?? 0, 0) !== 0 || count(b['byteOffset'] ?? 0, MAX_BYTES) + count(b['byteLength'], MAX_BYTES) > binaryBytes) throw new Error('GLB buffer view outside buffer');
-  let gpu = 0;
+  let gpu = 0, elements = 0;
   const accessors = list(doc['accessors'] ?? []).map((entry) => {
     const a = object(entry), components: Record<string, number> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT4: 16, MAT3: 9, MAT2: 4 };
     const widths: Record<string, number> = { '5120': 1, '5121': 1, '5122': 2, '5123': 2, '5125': 4, '5126': 4 };
     const width = widths[String(a['componentType'])], dimension = components[String(a['type'])], n = count(a['count']);
     if (width === undefined || dimension === undefined || a['sparse'] !== undefined) throw new Error('unsupported GLB accessor');
+    elements += n * dimension;
+    if (elements > MAX_ELEMENTS * 16) throw new Error('GLB aggregate accessor cap');
     const bufferView = views[count(a['bufferView'], 10_000)]; if (bufferView === undefined) throw new Error('missing GLB accessor view');
     const size = width * dimension, stride = count(bufferView['byteStride'] ?? size, 252), offset = count(a['byteOffset'] ?? 0, MAX_BYTES);
     if (stride < size || offset + (n === 0 ? 0 : (n - 1) * stride + size) > count(bufferView['byteLength'], MAX_BYTES)) throw new Error('GLB accessor outside view');
     gpu += n * size; return { n, type: a['type'], component: a['componentType'], offset: count(bufferView['byteOffset'] ?? 0, MAX_BYTES) + offset, stride, width, dimension, normalized: a['normalized'] === true };
   });
+  const read = (a: typeof accessors[number], row: number, component: number): number => {
+    const at = 28 + length + a.offset + row * a.stride + component * a.width;
+    switch (a.component) {
+      case 5121: return view.getUint8(at);
+      case 5123: return view.getUint16(at, true);
+      case 5125: return view.getUint32(at, true);
+      case 5126: return view.getFloat32(at, true);
+      default: throw new Error('unsupported GLB rig component');
+    }
+  };
+  const checkedPositions = new Set<number>(), maximumIndices = new Map<number, number>();
   if (list(doc['images'] ?? []).length > 0) throw new Error('GLB textures must be separate declared KTX2 assets');
   const meshCosts = list(doc['meshes'] ?? []).map((mesh) => {
     let triangles = 0, draws = 0;
     for (const primitive of list(object(mesh)['primitives'])) {
       const p = object(primitive); if ((p['mode'] ?? 4) !== 4 || p['extensions'] !== undefined) throw new Error('unsupported GLB primitive');
       const attributes = object(p['attributes']);
-      const position = accessors[count(attributes['POSITION'], 10_000)];
-      const index = accessors[count(p['indices'] ?? attributes['POSITION'], 10_000)];
-      if (position === undefined || position.type !== 'VEC3' || index === undefined || index.n % 3 !== 0) throw new Error('invalid GLB triangle accessor');
+      const positionId = count(attributes['POSITION'], 10_000), position = accessors[positionId];
+      const indexId = count(p['indices'] ?? attributes['POSITION'], 10_000), index = accessors[indexId];
+      if (position === undefined || position.type !== 'VEC3' || position.component !== 5126 || index === undefined || index.n % 3 !== 0) throw new Error('invalid GLB triangle accessor');
+      if (!checkedPositions.has(positionId)) {
+        for (let i = 0; i < position.n; i++) for (let c = 0; c < 3; c++) if (!Number.isFinite(read(position, i, c))) throw new Error('nonfinite GLB position');
+        checkedPositions.add(positionId);
+      }
+      if (p['indices'] !== undefined) {
+        if (index.type !== 'SCALAR' || ![5121, 5123, 5125].includes(Number(index.component))) throw new Error('invalid GLB index encoding');
+        let maximum = maximumIndices.get(indexId);
+        if (maximum === undefined) { maximum = -1; for (let i = 0; i < index.n; i++) maximum = Math.max(maximum, read(index, i, 0)); maximumIndices.set(indexId, maximum); }
+        if (maximum >= position.n) throw new Error('GLB index outside positions');
+      }
       triangles += index.n / 3; draws++;
       for (const id of Object.values(attributes)) if (accessors[count(id, 10_000)] === undefined) throw new Error('missing GLB attribute');
     }
@@ -96,16 +119,6 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
     triangles += cost.triangles * instances; draws += cost.draws * (shadow ? 2 : 1);
   }
   // Skins and clips are admitted before GLTFLoader allocates skeletons or animation tracks.
-  const read = (a: typeof accessors[number], row: number, component: number): number => {
-    const at = 28 + length + a.offset + row * a.stride + component * a.width;
-    switch (a.component) {
-      case 5121: return view.getUint8(at);
-      case 5123: return view.getUint16(at, true);
-      case 5125: return view.getUint32(at, true);
-      case 5126: return view.getFloat32(at, true);
-      default: throw new Error('unsupported GLB rig component');
-    }
-  };
   const nodeIndex = (value: unknown): number => { const id = count(value, 10000); if (nodes[id] === undefined) throw new Error('missing GLB rig node'); return id; };
   const parents = new Map<number, number>();
   nodes.forEach((node, id) => {
