@@ -12,6 +12,7 @@ import { BufferAttribute, BufferGeometry, Color, Group, Mesh, type Object3D, Sha
 import { uniformPart, type SolidPart } from './roadSolid';
 import type { GridCell } from './assembly';
 import type { LookScope, RailBox } from './roadLayout';
+import type { PlatformRenderAdmission, PlatformRenderBytePlan } from './renderResidency';
 
 /** The void floor's reach past the rail (well beyond the camera's 2.6 km far plane). */
 const REACH = 6000;
@@ -73,6 +74,15 @@ function floorGeometry(box: RailBox, home: GridCell): BufferGeometry {
   return g;
 }
 
+/** The floor's vertices and Uint16 indices (`floorGeometry`: a square annulus, 8 corners, 4 quads). */
+const FLOOR_VERTICES = 8, FLOOR_INDICES = 24;
+/** G144's preflight for the void: the floor's retained position and index buffers (CPU + GPU; no texture). The rail and its
+ *  posts belong to the deck's plan. */
+export function voidFloorPlan(): PlatformRenderBytePlan {
+  const bytes = FLOOR_VERTICES * 3 * Float32Array.BYTES_PER_ELEMENT + FLOOR_INDICES * Uint16Array.BYTES_PER_ELEMENT;
+  return { id: 'road.void', jsBytes: bytes, gpuBytes: bytes };
+}
+
 /** The readout. */
 export interface VoidLookState { readonly rail: RailBox; readonly posts: number }
 
@@ -106,18 +116,22 @@ class SolidMesher {
  * (unlit cyan, in ≤ 50 m beams so the per-view cull can drop what is out of view) and its posts go to `solid`, the road
  * system's one solid material (SF17b per-view budget).
  */
-export function installVoidLook(input: { readonly rail: RailBox; readonly home: GridCell; readonly scene: Object3D; readonly scope: LookScope; readonly solid: (part: SolidPart) => void }): VoidLookState {
+export function installVoidLook(input: { readonly rail: RailBox; readonly home: GridCell; readonly scene: Object3D; readonly scope: LookScope; readonly solid: (part: SolidPart) => void; readonly admission?: PlatformRenderAdmission }): VoidLookState {
   const { rail: box, home, scene, scope } = input, group = new Group();
   group.name = 'grid-void';
   const x0 = box.minX - home.origin.x, x1 = box.maxX - home.origin.x, z0 = box.minZ - home.origin.z, z1 = box.maxZ - home.origin.z;
-  const floorMaterial = new ShaderMaterial({
-    vertexShader: vertex, fragmentShader: fragment, fog: false, lights: false,
-    uniforms: { uOrigin: { value: [home.origin.x, home.origin.z] }, uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x02050a) }, uRail: { value: [x0, x1, z0, z1] } },
-  });
-  floorMaterial.name = 'grid-void-floor';
-  const floor = new Mesh(floorGeometry(box, home), floorMaterial);
-  floor.name = 'grid-void-floor'; floor.frustumCulled = false;
-  floor.castShadow = false; floor.receiveShadow = false; floor.matrixAutoUpdate = false; floor.updateMatrix(); group.add(floor);
+  const build = (owner: LookScope): void => {
+    const floorMaterial = new ShaderMaterial({
+      vertexShader: vertex, fragmentShader: fragment, fog: false, lights: false,
+      uniforms: { uOrigin: { value: [home.origin.x, home.origin.z] }, uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x02050a) }, uRail: { value: [x0, x1, z0, z1] } },
+    });
+    floorMaterial.name = 'grid-void-floor';
+    const floor = new Mesh(floorGeometry(box, home), floorMaterial);
+    floor.name = 'grid-void-floor'; floor.frustumCulled = false;
+    floor.castShadow = false; floor.receiveShadow = false; floor.matrixAutoUpdate = false; floor.updateMatrix(); group.add(floor);
+    owner.onDispose(() => { floor.removeFromParent(); floor.geometry.dispose(); floorMaterial.dispose(); });
+  };
+  if (input.admission === undefined) build(scope); else input.admission.allocate(voidFloorPlan(), build);
   // the rail: thin beams along the four sides (unlit, the HUD's cyan); short dark posts carry it
   const sides: readonly [number, number, number, number][] = [[x0, z0, x1, z0], [x1, z0, x1, z1], [x1, z1, x0, z1], [x0, z1, x0, z0]];
   const rail = new SolidMesher(), posts = new SolidMesher(), cyan = CYAN.clone().multiplyScalar(1.6), dark = new Color(0x2b3036);
@@ -136,6 +150,6 @@ export function installVoidLook(input: { readonly rail: RailBox; readonly home: 
   }
   input.solid(uniformPart(rail.part(), 'white', true)); input.solid(uniformPart(posts.part(), 'white'));
   scene.add(group);
-  scope.onDispose(() => { group.removeFromParent(); floor.geometry.dispose(); floorMaterial.dispose(); });
+  scope.onDispose(() => { group.removeFromParent(); });
   return { rail: box, posts: count };
 }

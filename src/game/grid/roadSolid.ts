@@ -121,3 +121,24 @@ export function solidMaterial(grain: DataArrayTexture): MeshLambertMaterial {
 
 /** Linear colour of a hex (three converts sRGB hex to the linear working space). */
 export const linear = (hex: number): Color => new Color(hex);
+
+/** Float32 values per solid vertex: `position`, `normal`, `color` (3 each) and `grainUv` (4). */
+export const SOLID_FLOATS = 13;
+/** The grain array's layer size (texels), as `grainArray` paints it by default. */
+export const GRAIN_SIZE = 256;
+
+/** Texels in a full mip chain of a `width` × `height` image (WebGL2 allocates every level down to 1 × 1). */
+export function mipTexels(width: number, height: number): number {
+  let texels = 0;
+  for (let w = width, h = height; ; w = Math.max(1, w >> 1), h = Math.max(1, h >> 1)) { texels += w * h; if (w === 1 && h === 1) break; }
+  return texels;
+}
+/** An RGBA8 texture's retained bytes: its pixels on the CPU (the canvas backing store or the data array) and every mip level on the GPU. */
+export function rgbaTextureBytes(width: number, height: number, layers = 1): { readonly jsBytes: number; readonly gpuBytes: number } {
+  return { jsBytes: width * height * 4 * layers, gpuBytes: mipTexels(width, height) * 4 * layers };
+}
+
+/** A solid part as `solidGeometry` will store it (Float32 positions, its one grain layer and unlit flag), for the cull count. */
+export function solidSource(part: SolidPart): { vertices: number; position: (k: number) => number; indices: ArrayLike<number>; layer: number; unlit: number } {
+  return { vertices: part.positions.length / 3, position: (k) => Math.fround(part.positions[k] ?? 0), indices: part.indices, layer: Math.fround(part.grain[0] ?? 0), unlit: Math.fround(part.grain[1] ?? 0) };
+}

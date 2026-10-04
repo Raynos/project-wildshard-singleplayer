@@ -220,21 +220,38 @@ const LAYER_OF: Readonly<Record<Exclude<SeamBucket, 'curtain'>, GrainLayer>> = {
  * the additive curtain its own small geometry. The triangles are exactly `seamLookGeometry`'s.
  */
 export function seamSolid(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { parts: SolidPart[]; curtain: BufferGeometry; state: SeamLookState } {
+  const { parts, curtain, state } = seamSolidSource(pieces, home, surfaces, pitch);
+  return { parts, curtain: curtainGeometry(curtain), state };
+}
+/** `seamSolid` with the curtain still as arrays, so its geometry is built (and admitted, G144) by `roadLookPlatform.ts`. */
+export function seamSolidSource(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { parts: SolidPart[]; curtain: SeamCurtain; state: SeamLookState } {
   const { geometry, state } = seamLookGeometry(pieces, home, surfaces, pitch), bucketOfTriangle = new Int8Array((geometry.getIndex()?.count ?? 0) / 3).fill(-1);
   for (const g of geometry.groups) bucketOfTriangle.fill(g.materialIndex ?? 0, g.start / 3, (g.start + g.count) / 3);
   const split = splitByKey(geometry, (t) => bucketOfTriangle[t] ?? 0, SEAM_BUCKETS.length), parts: SolidPart[] = [];
-  let curtain = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(0), 3)).setIndex(new BufferAttribute(new Uint32Array(0), 1));
+  let curtain: SeamCurtain = { positions: new Float32Array(0), indices: new Uint32Array(0) };
   SEAM_BUCKETS.forEach((bucket, k) => {
     const part = split[k]; if (part === undefined || part.indices.length === 0) return;
-    if (bucket === 'curtain') {
-      curtain = new BufferGeometry().setAttribute('position', new BufferAttribute(part.positions, 3)).setIndex(new BufferAttribute(part.indices, 1));
-      curtain.computeBoundingSphere(); return;
-    }
+    if (bucket === 'curtain') { curtain = { positions: part.positions, indices: part.indices }; return; }
     const layered = uniformPart(part, LAYER_OF[bucket], bucket === 'rail');
     parts.push(bucket === 'stone' ? tintedPart(layered, linear(STONE)) : bucket === 'dike' ? tintedPart(layered, linear(DIKE)) : bucket === 'rail' ? tintedPart(layered, CYAN.clone().multiplyScalar(1.6)) : layered);
   });
   geometry.dispose();
   return { parts, curtain, state };
+}
+
+/** The curtain's triangles (positions only, home frame) before they become a geometry. */
+export interface SeamCurtain { readonly positions: Float32Array; readonly indices: Uint32Array }
+/** The curtain's geometry: its own arrays, no copy (an empty curtain is an empty geometry, still one culled mesh). */
+export function curtainGeometry(curtain: SeamCurtain): BufferGeometry {
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(curtain.positions, 3)).setIndex(new BufferAttribute(curtain.indices, 1));
+  if (curtain.indices.length > 0) geometry.computeBoundingSphere();
+  return geometry;
+}
+/** Float32 values per curtain vertex (`position`). */
+export const CURTAIN_FLOATS = 3;
+/** The curtain as the cull count reads it (`roadCull.ts` `CullSource`). */
+export function curtainSource(curtain: SeamCurtain): { vertices: number; position: (k: number) => number; indices: ArrayLike<number> } {
+  return { vertices: curtain.positions.length / 3, position: (k) => curtain.positions[k] ?? 0, indices: curtain.indices };
 }
 
 /** The additive curtain material (G99 / G101), drawn in one pass (additive needs no back-then-front order). */

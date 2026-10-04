@@ -12,7 +12,9 @@ import {
   MeshLambertMaterial, type Object3D, Quaternion, RepeatWrapping, SRGBColorSpace, Vector3,
 } from 'three';
 import type { GridCell } from './assembly';
-import { uniformPart, type SolidPart } from './roadSolid';
+import { rgbaTextureBytes, uniformPart, type SolidPart } from './roadSolid';
+import { bytePlan, cullInto, meshBytes, type CullSource, type RoadCuller } from './roadCull';
+import type { PlatformRenderAdmission, PlatformRenderBytePlan } from './renderResidency';
 import {
   ENTRY_ASPHALT, GAP_HALF, RING_ISLAND, RING_OUTER, ROAD_HALF, SEGMENT_HALF, TURN_IN_HALF, segmentPoint,
   type ArmSide, type LookScope, type RoadJunction, type RoadLayout, type RoadSign, type SignLine,
@@ -26,8 +28,10 @@ export interface RoadLookInput {
   readonly scope: LookScope;
   /** the road system's one solid material takes the kerbs, islands and streetlights (SF17b per-view budget) */
   readonly solid: (part: SolidPart) => void;
-  /** the per-view cull for each textured mesh (`roadCull.ts`) */
-  readonly cull?: (mesh: Mesh) => void;
+  /** the per-view cull for each textured mesh (`roadCull.ts`); a bare hook is the pre-G144 call (no admission with it) */
+  readonly cull?: RoadCuller | ((mesh: Mesh) => void);
+  /** G144: admit each textured mesh's byte plan before building it (absent: the unchanged build) */
+  readonly admission?: PlatformRenderAdmission;
 }
 /** The readout (tests, the board). */
 export interface RoadLookState { readonly segments: number; readonly junctions: number; readonly roundabouts: number; readonly signs: number; readonly lights: number; readonly draws: number }
@@ -165,7 +169,7 @@ function junctionTexture(): CanvasTexture {
 }
 
 /** The asphalt over every segment: three quads each (the middle one the turn-in section), UVs into the road canvas. */
-function asphalt(layout: RoadLayout, home: GridCell): BufferGeometry {
+function asphalt(layout: RoadLayout, home: GridCell): Mesher {
   const m = new Mesher();
   for (const segment of layout.segments) {
     for (const [s0, s1, base] of [[-SEGMENT_HALF, -TURN_IN_HALF, 0], [-TURN_IN_HALF, TURN_IN_HALF, 0.5], [TURN_IN_HALF, SEGMENT_HALF, 0]] as const) {
@@ -188,14 +192,14 @@ function asphalt(layout: RoadLayout, home: GridCell): BufferGeometry {
       }
     }
   }
-  return m.geometry();
+  return m;
 }
 
 const RETURN = 6; // a plain junction's kerb-return radius
 const ARM_UNIT: Readonly<Record<ArmSide, { x: number; z: number }>> = { east: { x: 1, z: 0 }, west: { x: -1, z: 0 }, north: { x: 0, z: 1 }, south: { x: 0, z: -1 } };
 /** The junctions' asphalt: a roundabout's disc and arms with planar UVs into the junction canvas; a plain junction's square,
  *  arms and kerb-return fillets mapped into the canvas's plain corner. */
-function junctionAsphalt(layout: RoadLayout, home: GridCell): BufferGeometry {
+function junctionAsphalt(layout: RoadLayout, home: GridCell): Mesher {
   const m = new Mesher(), span = 2 * GAP_HALF;
   for (const j of layout.junctions) {
     const ox = j.centre.x - home.origin.x, oz = j.centre.z - home.origin.z;
@@ -221,7 +225,7 @@ function junctionAsphalt(layout: RoadLayout, home: GridCell): BufferGeometry {
       for (let k = 0; k < 8; k++) m.tri(corner, pts[k] ?? corner, pts[k + 1] ?? corner);
     }
   }
-  return m.geometry();
+  return m;
 }
 /** Each quadrant (qx, qz) with whether its x-arm and z-arm exist. */
 function quadrants(j: RoadJunction): [1 | -1, 1 | -1, boolean, boolean][] {
@@ -303,13 +307,30 @@ function streetlights(layout: RoadLayout, home: GridCell): { poles: SolidPart; h
 /** Sign text atlas: one cell per unique line (white on sign green), plus green / grey / white swatches for boards and posts. */
 const LINE_W = 512, LINE_H = 64;
 function lineKey(line: SignLine): string { return `${line.arrow}|${line.names.join(' · ')}|${line.metres === null ? '' : String(line.metres)}`; }
-function signAtlas(signs: readonly RoadSign[]): { texture: CanvasTexture; cell: (line: SignLine) => readonly [number, number, number, number]; swatch: Readonly<Record<'green' | 'grey' | 'white', readonly [number, number]>> } {
+/** The atlas's layout, pure (its size and every uv), so the sign mesh and its byte plan never need the canvas. */
+interface SignAtlasLayout {
+  readonly keys: readonly string[]; readonly lines: ReadonlyMap<string, SignLine>; readonly width: number; readonly height: number;
+  readonly slot: (k: number) => [number, number];
+  readonly cell: (line: SignLine) => readonly [number, number, number, number];
+  readonly swatch: Readonly<Record<'green' | 'grey' | 'white', readonly [number, number]>>;
+}
+function signAtlasLayout(signs: readonly RoadSign[]): SignAtlasLayout {
   const keys = [...new Set(signs.flatMap((s) => s.lines.map(lineKey)))], lines = new Map<string, SignLine>();
   for (const s of signs) for (const l of s.lines) lines.set(lineKey(l), l);
   const W = 1024, perRow = W / LINE_W, rows = Math.ceil((keys.length + 1) / perRow), H = 2 ** Math.ceil(Math.log2(Math.max(64, rows * LINE_H)));
-  const { el, g } = canvas(W, H);
-  g.fillStyle = SIGN_GREEN; g.fillRect(0, 0, W, H);
   const slot = (k: number): [number, number] => [(k % perRow) * LINE_W, Math.floor(k / perRow) * LINE_H];
+  const [sx, sy] = slot(keys.length); // swatches in the last cell
+  const uv = (px: number, py: number): readonly [number, number] => [px / W, 1 - py / H];
+  const index = new Map(keys.map((k, i) => [k, i]));
+  return {
+    keys, lines, width: W, height: H, slot,
+    cell: (line) => { const [x, y] = slot(index.get(lineKey(line)) ?? 0); return [x / W, 1 - (y + LINE_H) / H, (x + LINE_W) / W, 1 - y / H]; },
+    swatch: { green: uv(sx + 32, sy + LINE_H / 2), grey: uv(sx + 96, sy + LINE_H / 2), white: uv(sx + 160, sy + LINE_H / 2) },
+  };
+}
+function signAtlasTexture(atlas: SignAtlasLayout): CanvasTexture {
+  const { keys, lines, slot, width: W, height: H } = atlas, { el, g } = canvas(W, H);
+  g.fillStyle = SIGN_GREEN; g.fillRect(0, 0, W, H);
   keys.forEach((key, k) => {
     const line = lines.get(key); if (line === undefined) return;
     const [x, y] = slot(k), mid = y + LINE_H / 2;
@@ -327,17 +348,11 @@ function signAtlas(signs: readonly RoadSign[]): { texture: CanvasTexture; cell: 
   });
   const [sx, sy] = slot(keys.length); // swatches in the last cell
   g.fillStyle = '#6f7378'; g.fillRect(sx + 64, sy, 64, LINE_H); g.fillStyle = WHITE; g.fillRect(sx + 128, sy, 64, LINE_H);
-  const uv = (px: number, py: number): readonly [number, number] => [px / W, 1 - py / H];
-  const index = new Map(keys.map((k, i) => [k, i]));
-  return {
-    texture: texture(el, false),
-    cell: (line) => { const [x, y] = slot(index.get(lineKey(line)) ?? 0); return [x / W, 1 - (y + LINE_H) / H, (x + LINE_W) / W, 1 - y / H]; },
-    swatch: { green: uv(sx + 32, sy + LINE_H / 2), grey: uv(sx + 96, sy + LINE_H / 2), white: uv(sx + 160, sy + LINE_H / 2) },
-  };
+  return texture(el, false);
 }
 /** Every sign: two posts, a white-rimmed green board, a quad per line on its face. One mesh, one material. */
-function signMesh(signs: readonly RoadSign[], home: GridCell): Mesh {
-  const atlas = signAtlas(signs), m = new Mesher(), BOARD_W = 3.6, LINE = 0.42, BOTTOM = 2.3;
+function signMesher(signs: readonly RoadSign[], home: GridCell, atlas: SignAtlasLayout): Mesher {
+  const m = new Mesher(), BOARD_W = 3.6, LINE = 0.42, BOTTOM = 2.3;
   for (const sign of signs) {
     const fx = sign.facing.x, fz = sign.facing.z, rx = fz, rz = -fx; // the board's right as its reader sees it (they look along −facing)
     const ox = sign.at.x - home.origin.x, oz = sign.at.z - home.origin.z, h = sign.lines.length * LINE + 0.3, top = BOTTOM + h;
@@ -357,41 +372,61 @@ function signMesh(signs: readonly RoadSign[], home: GridCell): Mesh {
     panel(BOARD_W + 0.12, BOTTOM - 0.06, top + 0.06, -0.06, atlas.swatch.grey, true);
     sign.lines.forEach((line, k) => { const y1 = top - 0.15 - k * LINE; panel(BOARD_W - 0.2, y1 - LINE, y1, 0.08, atlas.cell(line)); });
   }
-  const mesh = new Mesh(m.geometry(), new MeshLambertMaterial({ map: atlas.texture }));
-  mesh.name = 'grid-signs';
-  return mesh;
+  return m;
+}
+
+/** Float32 values per textured road vertex (`position`, `normal`, `uv`; `Mesher.geometry()` without colours). */
+const ROAD_FLOATS = 8;
+/** A mesher's triangles as the cull count reads them (positions exactly as its Float32 geometry will store them). */
+function mesherSource(m: Mesher): CullSource { return { vertices: m.p.length / 3, position: (k) => Math.fround(m.p[k] ?? 0), indices: m.i }; }
+/** One textured road mesh before it is built: its triangles, its canvas's size and how to paint it. */
+interface TexturedSource { readonly id: string; readonly name: string; readonly mesher: Mesher; readonly width: number; readonly height: number; readonly paint: () => CanvasTexture; readonly overlay: boolean }
+function texturedSources(layout: RoadLayout, home: GridCell): TexturedSource[] {
+  const atlas = signAtlasLayout(layout.signs);
+  return [
+    { id: 'road.asphalt', name: 'grid-asphalt', mesher: asphalt(layout, home), width: 1024, height: 512, paint: roadTexture, overlay: true },
+    { id: 'road.junctions', name: 'grid-junctions', mesher: junctionAsphalt(layout, home), width: 1024, height: 1024, paint: junctionTexture, overlay: true },
+    { id: 'road.signs', name: 'grid-signs', mesher: signMesher(layout.signs, home, atlas), width: atlas.width, height: atlas.height, paint: () => signAtlasTexture(atlas), overlay: false },
+  ];
+}
+function texturedPlan(source: TexturedSource, cull: RoadCuller | undefined): PlatformRenderBytePlan {
+  return bytePlan(source.id, meshBytes([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch }), rgbaTextureBytes(source.width, source.height));
+}
+/**
+ * G144's preflight for the boulevard: per textured mesh (asphalt, junctions, signs) the exact retained bytes its build will
+ * allocate (vertex buffers, the culled index buffers, the canvas and its mips), from the same meshers and the atlas layout,
+ * without building a geometry or painting a canvas. The kerbs, islands and streetlights belong to the deck's plan.
+ */
+export function roadLookPlans(layout: RoadLayout, home: GridCell, cull?: RoadCuller): PlatformRenderBytePlan[] {
+  return texturedSources(layout, home).map((source) => texturedPlan(source, cull));
 }
 
 /**
  * Draw the boulevard; everything is disposed with the scope. The asphalt, junctions and signs are three textured meshes (each
- * handed to `cull`, the per-view budget); the kerbs, islands and streetlights go to `solid`, the road system's one solid
- * material.
+ * culled per view through `cull`, the per-view budget); the kerbs, islands and streetlights go to `solid`, the road system's
+ * one solid material. With `admission` (G144, the Grid memory admission row) each textured mesh is built only after its
+ * byte plan is admitted, and disposes on the admission's scope; without it the build is unchanged.
  */
 export function installRoadLook(input: RoadLookInput): RoadLookState {
-  const { layout, home, scene, scope } = input, group = new Group();
+  const { layout, home, scene, scope, admission } = input, group = new Group(), hook = typeof input.cull === 'function' ? input.cull : undefined, cull = typeof input.cull === 'function' ? undefined : input.cull;
+  if (admission !== undefined && hook !== undefined) throw new Error('Road admission needs a RoadCuller (its pitch plans the culled bytes)');
   group.name = 'grid-boulevard';
-  const overlay = (geometry: BufferGeometry, map: CanvasTexture, name: string): Mesh => {
-    const mesh = new Mesh(geometry, new MeshLambertMaterial({ map, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
-    mesh.name = name; mesh.receiveShadow = true; return mesh;
-  };
-  const road = overlay(asphalt(layout, home), roadTexture(), 'grid-asphalt');
-  const junctions = overlay(junctionAsphalt(layout, home), junctionTexture(), 'grid-junctions');
-  const signs = signMesh(layout.signs, home);
+  const sources = texturedSources(layout, home);
   const { poles, heads } = streetlights(layout, home);
   for (const part of [kerbs(layout, home), poles, heads]) input.solid(part);
-  const meshes: Mesh[] = [road, junctions, signs];
-  for (const mesh of meshes) { mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); group.add(mesh); input.cull?.(mesh); }
   scene.add(group);
-  scope.onDispose(() => {
-    group.removeFromParent();
-    for (const mesh of meshes) {
-      mesh.geometry.dispose();
-      const material = mesh.material;
-      for (const mat of Array.isArray(material) ? material : [material]) {
-        if (mat instanceof MeshLambertMaterial) mat.map?.dispose();
-        mat.dispose();
-      }
-    }
-  });
-  return { segments: layout.segments.length, junctions: layout.junctions.length, roundabouts: layout.junctions.filter((j) => j.roundabout).length, signs: layout.signs.length, lights: layout.lights.length, draws: meshes.length };
+  scope.onDispose(() => { group.removeFromParent(); });
+  for (const source of sources) {
+    const build = (owner: LookScope): Mesh => {
+      const map = source.paint(), material = source.overlay ? new MeshLambertMaterial({ map, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }) : new MeshLambertMaterial({ map });
+      const mesh = new Mesh(source.mesher.geometry(), material);
+      owner.onDispose(() => { mesh.removeFromParent(); mesh.geometry.dispose(); map.dispose(); material.dispose(); });
+      mesh.name = source.name; if (source.overlay) mesh.receiveShadow = true;
+      mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); group.add(mesh);
+      if (cull !== undefined) cullInto(cull, mesh); else hook?.(mesh);
+      return mesh;
+    };
+    if (admission === undefined) build(scope); else admission.allocate(texturedPlan(source, cull), build);
+  }
+  return { segments: layout.segments.length, junctions: layout.junctions.length, roundabouts: layout.junctions.filter((j) => j.roundabout).length, signs: layout.signs.length, lights: layout.lights.length, draws: sources.length };
 }
