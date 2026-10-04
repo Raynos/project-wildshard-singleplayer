@@ -8,6 +8,8 @@ import { PackBrain } from '../../../src/engine/ai/pack';
 import { HerdBrain } from '../../../src/engine/ai/herd';
 import { Pack } from '../../../src/shards/nalati-grasslands/runtime/packLegacy';
 import { HorseHerd } from '../../../src/shards/nalati-grasslands/runtime/herdLegacy';
+import { Pack as ShippingPack } from '../../fixtures/nalati-group-oracle/pack';
+import { HorseHerd as ShippingHorseHerd } from '../../fixtures/nalati-group-oracle/herd';
 import { Wildlife } from '../../../src/shards/nalati-grasslands/creatures/wildlife';
 import { declaredGroupFactories } from '../../../src/shards/nalati-grasslands/runtime/groupDeclared';
 import { manager } from '../../fake/manager';
@@ -22,7 +24,8 @@ function fixture(on: boolean): { world: ReturnType<typeof manager>; wildlife: Wi
     layout: { packs: [{ x: 20, z: 0, variants: ['alpha', 'grey', 'scout'] }],
       herds: [{ x: -20, z: 0, mares: 2, foals: 1, stallion: true }], flocks: [{ x: 0, z: 20, count: 3, dog: false }] } });
   wildlife.build(on ? declaredGroupFactories({ preyIdentity: prey => wildlife.preyIdentity(prey), resolvePrey: id => wildlife.resolvePrey(id),
-    resolveActor: id => world.manager.animals.find(actor => actor.entityId === id) ?? null }) : undefined);
+    resolveActor: id => world.manager.animals.find(actor => actor.entityId === id) ?? null }) : { pack: (members, x, z) => { const policy = new ShippingPack(members, x, z); Pack.register(policy); return policy; },
+    herd: members => { const policy = new ShippingHorseHerd(members); HorseHerd.register(policy); return policy; } });
   return { world, wildlife };
 }
 describe('Nalati native world group binding', () => {
@@ -44,9 +47,9 @@ describe('Nalati native world group binding', () => {
     }
     expect(replay(true)).toEqual(replay(false));
   });
-  it('leaves the default shipping controllers and selects declared policies with identical placement, setup memory and shared RNG', () => {
+  it('compares captured shipping controllers and declared policies with identical placement, setup memory and shared RNG', () => {
     const off = fixture(false), actors = off.world.manager.animals.map(actor => actor.snapshot()), rng = app.rng.snapshot();
-    expect(off.wildlife.packs[0]).toBeInstanceOf(Pack); expect(off.wildlife.herds[0]).toBeInstanceOf(HorseHerd);
+    expect(off.wildlife.packs[0]).toBeInstanceOf(ShippingPack); expect(off.wildlife.herds[0]).toBeInstanceOf(ShippingHorseHerd);
     const on = fixture(true);
     expect(on.wildlife.packs[0]).toBeInstanceOf(PackBrain); expect(on.wildlife.herds[0]).toBeInstanceOf(HerdBrain);
     expect(on.world.manager.animals.map(actor => actor.snapshot())).toEqual(actors); expect(app.rng.snapshot()).toEqual(rng);

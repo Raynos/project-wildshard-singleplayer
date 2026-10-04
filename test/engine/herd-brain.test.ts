@@ -9,6 +9,7 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { app } from '../../src/engine/app/runtime';
 import { Rng } from '../../src/engine/core/rng';
 import { HorseHerd } from '../../src/shards/nalati-grasslands/runtime/herdLegacy';
+import { HorseHerd as ShippingHorseHerd } from '../fixtures/nalati-group-oracle/herd';
 import { declaredGroupFactories } from '../../src/shards/nalati-grasslands/runtime/groupDeclared';
 import { Pack } from '../../src/shards/nalati-grasslands/runtime/packLegacy';
 import { wildEnv, playerVisibility, downwindOf, hearingRadius } from '../../src/shards/nalati-grasslands/creatures/env';
@@ -21,7 +22,7 @@ const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 
 afterAll(restoreTerrain);
 const originalEnv = { ...wildEnv }, originalHerds = HorseHerd.all;
 afterEach(() => { Object.assign(wildEnv, originalEnv); HorseHerd.all = originalHerds; });
-function fixture(platform: boolean | 'bound', restoring = false): { policy: HorseHerd | HerdBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx']; events: unknown[]; ports: HerdPorts<Animal>;
+function fixture(platform: boolean | 'bound', restoring = false): { policy: ShippingHorseHerd | HerdBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx']; events: unknown[]; ports: HerdPorts<Animal>;
   construction: { beforeRng: ReturnType<Rng['snapshot']>; afterRng: ReturnType<Rng['snapshot']>; beforeMemory: Record<string, number>[]; afterMemory: Record<string, number>[] } } {
   app.rng.seed(357); HorseHerd.all = [];
   const f = creature('crab', 'small'), factory = new AnimalFactory(f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } }), model = factory.model('crab', 'small');
@@ -48,8 +49,8 @@ function fixture(platform: boolean | 'bound', restoring = false): { policy: Hors
   const beforeRng = app.rng.stream('ai').snapshot(), beforeMemory = members.map(actor => ({ ...actor.mem }));
   const policy = platform === 'bound' ? declaredGroupFactories({ preyIdentity: () => 'prey.none', resolvePrey: () => null,
     resolveActor: id => members.find(actor => actor.entityId === id) ?? null }).herd(members)
-    : platform ? new HerdBrain(members, NALATI_HERD_BRAIN, ports) : new HorseHerd(members);
-  if (!(policy instanceof HerdBrain) && !(policy instanceof HorseHerd)) throw new Error('Missing fixture policy');
+    : platform ? new HerdBrain(members, NALATI_HERD_BRAIN, ports) : new ShippingHorseHerd(members);
+  if (!(policy instanceof HerdBrain) && !(policy instanceof ShippingHorseHerd)) throw new Error('Missing fixture policy');
   const construction = { beforeRng, afterRng: app.rng.stream('ai').snapshot(), beforeMemory, afterMemory: members.map(actor => ({ ...actor.mem })) };
   if (policy instanceof HerdBrain && platform !== 'bound' && !restoring) policy.initialize();
   f.ctx.rng = new Rng(357); f.ctx.herd = members;
@@ -60,7 +61,7 @@ function fixture(platform: boolean | 'bound', restoring = false): { policy: Hors
   return { policy, members, context: f.ctx, events, ports, construction };
 }
 const stateKeys = ['mode', 'stampeding', 'stallionState', 'trust', 'alert', 'alertOwned', 'cx', 'cz', 'spotX', 'spotZ', 'spotT', 'fleeX', 'fleeZ', 'fleeRun', 'fleeLen', 'fleeFromX', 'fleeFromZ', 'modeT', 'sT', 'chargeCd', 'beatenT', 'beaten', 'knockCd'] as const;
-function state(policy: HorseHerd | HerdBrain<Animal>): unknown[] {
+function state(policy: ShippingHorseHerd | HerdBrain<Animal>): unknown[] {
   return stateKeys.map(key => { const value: unknown = Reflect.get(policy, key); if (!['number', 'string', 'boolean'].includes(typeof value)) throw new Error(`Missing group state ${key}`); return value; });
 }
 function step(f: ReturnType<typeof fixture>, tick: number, scenario: 'senses' | 'stampede' | 'guard' | 'taming'): void {

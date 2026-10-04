@@ -9,6 +9,7 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { app } from '../../src/engine/app/runtime';
 import { Rng } from '../../src/engine/core/rng';
 import { Pack, type PackController } from '../../src/shards/nalati-grasslands/runtime/packLegacy';
+import { Pack as ShippingPack } from '../fixtures/nalati-group-oracle/pack';
 import { declaredGroupFactories } from '../../src/shards/nalati-grasslands/runtime/groupDeclared';
 import { wildEnv, playerVisibility, downwindOf, hearingRadius } from '../../src/shards/nalati-grasslands/creatures/env';
 import { NALATI_STRIKES, sampleStrike } from '../../src/shards/nalati-grasslands/combat/strikes';
@@ -48,7 +49,7 @@ function fixture(platform: boolean | 'bound', restoring = false): {
   const beforeRng = app.rng.stream('ai').snapshot(), beforeMemory = members.map(actor => ({ ...actor.mem }));
   const policy = platform === 'bound' ? declaredGroupFactories({ preyIdentity: value => { if (value !== prey) throw new Error('Unknown prey'); return 'sheep.0'; },
     resolvePrey: id => id === 'sheep.0' ? prey : null, resolveActor: id => members.find(actor => actor.entityId === id) ?? null }).pack(members, 0, 0)
-    : platform ? new PackBrain(members, 0, 0, NALATI_PACK_BRAIN, ports) : new Pack(members, 0, 0);
+    : platform ? new PackBrain(members, 0, 0, NALATI_PACK_BRAIN, ports) : new ShippingPack(members, 0, 0);
   const construction = { beforeRng, afterRng: app.rng.stream('ai').snapshot(), beforeMemory, afterMemory: members.map(actor => ({ ...actor.mem })) };
   if (policy instanceof PackBrain && platform !== 'bound' && !restoring) policy.initialize();
   f.ctx.rng = new Rng(357); f.ctx.herd = members;

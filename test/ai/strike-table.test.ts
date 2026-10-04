@@ -10,8 +10,8 @@ import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { legacyConstants } from '../fake/legacySource';
 import { creature } from '../fake/creature';
 import { fakeWorld } from '../fake/world';
-import { HorseHerd } from '../../src/shards/nalati-grasslands/runtime/herdLegacy';
-import { Pack } from '../../src/shards/nalati-grasslands/runtime/packLegacy';
+import { HorseHerd } from '../fixtures/nalati-group-oracle/herd';
+import { Pack } from '../fixtures/nalati-group-oracle/pack';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 // a flat, dry world through the terrain port, not a module mock (E422)
