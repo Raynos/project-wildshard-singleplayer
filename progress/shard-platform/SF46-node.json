@@ -1,0 +1,142 @@
+{
+  "row": "SF46 step 1",
+  "ask": "E435",
+  "extraction": "89ec5c7ccdafb4da09c715afea219cd2b8412893",
+  "hybrid": "8ac19cb9bb1bcfa4dfd63d42f2d45fa2317975f9",
+  "format": [
+    "e79c39c27",
+    "c21d09104"
+  ],
+  "method": "Clean HEAD d143452b1 plus only SF46 source, fixtures and regenerated public docs. No foreign working-tree hunks.",
+  "typecheck": {
+    "command": "pnpm exec tsc --noEmit",
+    "pass": true
+  },
+  "focused": {
+    "command": "pnpm exec vitest run test/engine-docs.test.ts test/hybrid-runtime.test.ts test/shards/driftwood-isle/hybrid.test.ts test/shards/driftwood-isle/plugin.test.ts test/proof/_template/headless.test.ts",
+    "files": 5,
+    "tests": 22,
+    "pass": true
+  },
+  "leak": {
+    "cycles": 20,
+    "worldActivations": 40,
+    "residents": [
+      "template-1",
+      "hybrid-b"
+    ],
+    "dataRootsPreserved": true,
+    "censusReturnsExactlyToBaseline": true,
+    "enumerated": [
+      "all parent runtime property descriptors",
+      "event listeners and answerers",
+      "phase systems",
+      "debug exposures",
+      "input contexts",
+      "ammo and knob rows",
+      "string bindings",
+      "per-resident game rows",
+      "achievement registry",
+      "global item catalog",
+      "world pieces",
+      "bag registrations",
+      "scene roots",
+      "scope census",
+      "native timers and event listeners"
+    ],
+    "lateHooks": "Both a two-resident late activation and a cancelled staged re-entry keep the next scope intact; disposed context registrations are refused.",
+    "hiddenAndSymbolSlotsRestoredAfterDisposalFailure": true
+  },
+  "progress": {
+    "canonicalInstance": "driftwood-isle",
+    "quest": "sealed-ring",
+    "completeFlag": "quest:driftwood-done",
+    "achievement": "quest",
+    "standaloneToGrid": true,
+    "gridToStandalone": true,
+    "placedCellIdentityIndependentOfOrigin": true
+  },
+  "headless": {
+    "command": "node --import ./scripts/sim-node-loader.mjs test/proof/_template/run.mjs headless",
+    "ticks": 10000,
+    "before": "7d5ac6d6a8333863be8b212594c6ecddb253154ae51c15d74782b488bae2904f",
+    "after": "7d5ac6d6a8333863be8b212594c6ecddb253154ae51c15d74782b488bae2904f"
+  },
+  "sdkBuild": {
+    "command": "node scripts/build-shardfiles.mjs",
+    "projects": [
+      "template",
+      "driftwood-isle"
+    ],
+    "pass": true
+  },
+  "transition": {
+    "runtimeEntry": "runtime/index.ts",
+    "legacyHookImplementationUnchanged": true,
+    "baked": false,
+    "gridReady": false,
+    "eightyTwentyConversion": false
+  },
+  "browserParity": {
+    "hybridComparison": {
+      "parent": "d143452b19bc06348bc1fafeff8b528a3ba1bb86",
+      "current": "c5d2e8ca549725f7e0e389dda5c1e8e1b7a08cbb",
+      "verdict": "red",
+      "minSsim": {
+        "phone": 0.9001193325,
+        "desktop": 0.8066961105
+      },
+      "disposalErrors": true,
+      "remainingColliders": 4,
+      "followup": "cad11c1bc; browser verification pending"
+    },
+    "extractionComparison": "f49cebb7c -> 89ec5c7cc running; completed Driftwood desktop and emulated phone unload with errors=[], bodies=0, colliders=0 on both pins",
+    "defaultOffComparison": "pending"
+  },
+  "floor": "pending serialized window",
+  "fullGateAndOriginPush": {
+    "initialStackOrigin": "6ce58df88",
+    "cleanupFollowup": "queued with serialized pusher sp-x5"
+  },
+  "descriptorFollowup": "f28e2ee87807d52dd537171f2abbc609f0712761",
+  "nativeCompatibility": {
+    "commits": [
+      "978219ef6",
+      "3c2dd822e",
+      "c5d2e8ca5"
+    ],
+    "command": "node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs --check driftwood-isle",
+    "pass": true,
+    "colliders": 2081,
+    "triangles": 121272,
+    "layers": [
+      {
+        "radius": 0.3,
+        "tiles": 174,
+        "polys": 4104,
+        "detailTris": 422
+      },
+      {
+        "radius": 0.5,
+        "tiles": 165,
+        "polys": 3822,
+        "detailTris": 285
+      }
+    ],
+    "committedBytesUnchanged": true,
+    "gameOwnsBrowserBase": true
+  },
+  "cleanupFollowup": {
+    "commit": "cad11c1bc",
+    "command": "pnpm exec vitest run test/hybrid-runtime.test.ts test/shards/driftwood-isle/hybrid.test.ts",
+    "tests": 13,
+    "pass": true,
+    "typecheck": true,
+    "scopedTypedLint": true,
+    "browserVerification": "pending",
+    "proves": [
+      "trusted dependants release before shell motors allocated between kit and play",
+      "default-off returns the legacy plugin without data admission or a runtime overlay"
+    ]
+  }
+}
