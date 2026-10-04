@@ -42,6 +42,10 @@ describe('SF3a headless import closure', () => {
     expect(simRoot('src/engine/combat/view/melee.ts')).toBe(false);
     expect(simRoot('src/engine/quest/view.ts')).toBe(false);
   });
+  it('keeps creature simulation and the remaining engine/kit closure free of rendering', () => {
+    expect(simClosure(cwd(), ['src/engine/entities/AnimalSim.ts'])).toEqual([]);
+    expect(simClosure(cwd()).filter((site) => /^src\/(?:engine|kit)\//u.test(site.id))).toEqual([]);
+  });
   it('measures every allowance and assigns a removing row', () => {
     const list = JSON.parse(readFileSync('lint/sim-closure.json', 'utf8')) as { violations: Record<string, { count: number; row: string }> };
     expect(Object.fromEntries(simClosure(cwd()).map((v) => [v.id, v.count]))).toEqual(Object.fromEntries(Object.entries(list.violations).map(([id, v]) => [id, v.count])));

@@ -1,4 +1,5 @@
 import { SaveStore, type SchemaFailure } from './store';
+import { saveEnvironment } from './environment';
 
 declare const __BUILD_ID__: string;
 let report: ((failure: SchemaFailure) => void) | null = null;
@@ -14,8 +15,7 @@ export function installSaveReporter(fn: (failure: SchemaFailure) => void): void 
 export function installLegacyMirror(fn: (keys: readonly string[]) => void): void { forget = fn; }
 /** a home-screen app (standalone display): the PWA whose storage the browser may keep */
 export function standaloneDisplay(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  return (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches) || Reflect.get(navigator, 'standalone') === true;
+  return saveEnvironment().standalone?.() ?? false;
 }
 /** asks for persistent storage once, on a home-screen page; each call to this factory has its own "once" (E422) */
 export function homeScreenPersistence(standalone: () => boolean = standaloneDisplay): (store?: Pick<SaveStore, 'persist'>) => void {

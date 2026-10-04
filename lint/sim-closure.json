@@ -1,94 +1,10 @@
 {
   "violations": {
-    "src/engine/app/scope.ts:global:cancelAnimationFrame": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/app/scope.ts:global:document": {
-      "count": 2,
-      "row": "SF3c"
-    },
-    "src/engine/app/scope.ts:global:HTMLCanvasElement": {
-      "count": 2,
-      "row": "SF3c"
-    },
-    "src/engine/app/scope.ts:global:requestAnimationFrame": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/app/scope.ts:global:window": {
-      "count": 2,
-      "row": "SF3c"
-    },
-    "src/engine/entities/species/rigs.ts:import:three": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/input/equipmentInput.ts:import:src/engine/app/runtime.ts": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/saves/runtime.ts:global:matchMedia": {
-      "count": 2,
-      "row": "SF3c"
-    },
-    "src/engine/saves/runtime.ts:global:navigator": {
-      "count": 2,
-      "row": "SF3c"
-    },
-    "src/engine/world/Atmosphere.ts:import:src/engine/render/fogPatches.ts": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/Atmosphere.ts:import:src/engine/render/shaderPatches.ts": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/Atmosphere.ts:import:three": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/geometryKit.ts:import:three": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/geometryKit.ts:import:three/examples/jsm/utils/BufferGeometryUtils.js": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/lowpolyKit.ts:import:src/engine/render/shaderPatches.ts": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/lowpolyKit.ts:import:three": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/lowpolyKit.ts:import:three/examples/jsm/utils/BufferGeometryUtils.js": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/voxelAO.ts:import:three": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/wind.ts:import:src/engine/render/shaderPatches.ts": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/world/wind.ts:import:three": {
-      "count": 1,
-      "row": "SF3c"
-    },
     "src/game/loot/CoinBurst.ts:import:src/engine/app/runtime.ts": {
       "count": 1,
       "row": "SF12"
     },
     "src/game/loot/CoinBurst.ts:import:three": {
-      "count": 1,
-      "row": "SF12"
-    },
-    "src/game/loot/coinModel.ts:import:three": {
       "count": 1,
       "row": "SF12"
     },

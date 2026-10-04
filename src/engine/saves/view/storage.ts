@@ -6,5 +6,6 @@ export function installBrowserSaveEnvironment(): void {
     storage: (scope) => { try { return scope === 'session' ? globalThis.sessionStorage : globalThis.localStorage; } catch { return null; } },
     persistent: () => typeof window !== 'undefined',
     persist: async () => { try { return await navigator.storage.persist(); } catch { return false; } },
+    standalone: () => typeof navigator !== 'undefined' && ((typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches) || Reflect.get(navigator, 'standalone') === true),
   });
 }

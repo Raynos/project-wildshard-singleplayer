@@ -1,11 +1,11 @@
-import * as THREE from 'three';
-import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import type { BufferGeometry } from 'three';
 
-const done = (kit: LowPolyKit): THREE.BufferGeometry => kit.finish({ ao: false });
+let build: ((seed: number) => BufferGeometry) | undefined;
 
-/** a gold coin (the loot's coins: CoinBurst, the coin pickup) — moved from the engine's interactables (E405) */
-export function coinModel(seed: number): THREE.BufferGeometry {
-  const k = new LowPolyKit(seed);
-  k.add(new THREE.CylinderGeometry(0.07, 0.07, 0.014, 8).rotateX(Math.PI / 2), '#f2c44d', { jitter: 0.1 });
-  return done(k);
+/** The composition root installs a reusable content recipe; loot simulation owns no geometry builder. */
+export function installCoinModel(factory: (seed: number) => BufferGeometry): void { build = factory; }
+/** A gold coin rendered by the installed content recipe. */
+export function coinModel(seed: number): BufferGeometry {
+  if (build === undefined) throw new Error('No coin geometry recipe installed');
+  return build(seed);
 }

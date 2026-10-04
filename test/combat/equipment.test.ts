@@ -34,7 +34,8 @@ beforeEach(() => {
 afterEach(() => { inputScope.dispose(); });
 function fixture() {
   const a = new FixtureWeapon(SABRE, 'sabre'), b = new FixtureWeapon(BOW, 'bow', true), c = new FixtureWeapon(SPEAR, 'spear'), game = new FakeGame();
-  const weapons = new EquipmentService(a, { order: ['bow', 'sabre', 'spear'] });
+  const weapons: EquipmentService = new EquipmentService(a, { order: ['bow', 'sabre', 'spear'],
+    input: { bind: (action, run, scope) => { inputApp.input.bind(action, run, scope, () => weapons.current.enabled); } } });
   weapons.add(b, { locked: true }); weapons.add(c, { locked: true });
   game.onUpdate((dt, t) => weapons.update(dt, t));
   return { weapons, game, a, b, c };
@@ -125,7 +126,8 @@ describe('equipment contracts and lifecycle', () => {
   });
   it('owns its action bindings/listeners and equipment through the supplied scope', () => {
     const parent = new Scope('level'), a = new FixtureWeapon(SABRE, 'sabre'), b = new FixtureWeapon(BOW, 'bow', true);
-    const weapons = new EquipmentService(a, { scope: parent }); weapons.add(b, { locked: false });
+    const weapons: EquipmentService = new EquipmentService(a, { scope: parent,
+      input: { bind: (action, run, scope) => { inputApp.input.bind(action, run, scope, () => weapons.current.enabled); } } }); weapons.add(b, { locked: false });
     expect(parent.census.listeners).toBe(0); key('KeyQ'); weapons.update(0.5, 0.5); expect(weapons.current).toBe(b);
     const camera = new THREE.Group(); camera.add(a.model, b.model);
     parent.dispose(); expect(parent.census.listeners).toBe(0); expect(a.enabled).toBe(false); expect(b.enabled).toBe(false);

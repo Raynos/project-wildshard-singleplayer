@@ -1,4 +1,5 @@
 import { withOwner } from './ownership';
+import { scopeEnvironment } from './scopeEnvironment';
 
 export interface Disposable3 { dispose: () => void }
 export interface PhysicsHandle { remove: () => void }
@@ -36,7 +37,7 @@ export function scopeRegistrations(include: (scope: Scope) => boolean): NativeCe
   for (const r of registrations) {
     if (!include(r.scope)) continue;
     if (r.kind !== 'listeners') result.timers[r.kind]++;
-    else if (r.target !== undefined) result.listeners[typeof window !== 'undefined' && r.target === window ? 'window' : typeof document !== 'undefined' && r.target === document ? 'document' : typeof HTMLCanvasElement !== 'undefined' && r.target instanceof HTMLCanvasElement ? 'canvas' : 'other']++;
+    else if (r.target !== undefined) result.listeners[scopeEnvironment().targetKind(r.target)]++;
   }
   return result;
 }
@@ -226,8 +227,9 @@ export class Scope {
   raf(fn: FrameRequestCallback): number {
     if (this.closed) return 0;
     let forget = () => { /* Filled before the frame can fire. */ };
-    const id = requestAnimationFrame((time) => { forget(); this.rafCancels.delete(id); if (!this.closed) withOwner(this, () => fn(time)); });
-    const cancel = (): void => { cancelAnimationFrame(id); this.rafCancels.delete(id); forget(); };
+    const native = scopeEnvironment();
+    const id = native.frame((time) => { forget(); this.rafCancels.delete(id); if (!this.closed) withOwner(this, () => fn(time)); });
+    const cancel = (): void => { native.cancelFrame(id); this.rafCancels.delete(id); forget(); };
     forget = this.registration({ kind: 'raf' }, 'rafs', cancel); this.rafCancels.set(id, cancel);
     return id;
   }

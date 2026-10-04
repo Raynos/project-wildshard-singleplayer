@@ -289,6 +289,7 @@
     "./script/host": "./script/host.ts",
     "./script/effects": "./script/effects.ts",
     "./script/queries": "./script/queries.ts",
-    "./ui/declared": "./ui/declared.ts"
+    "./ui/declared": "./ui/declared.ts",
+    "./app/view/scopeEnvironment": "./app/view/scopeEnvironment.ts"
   }
 }

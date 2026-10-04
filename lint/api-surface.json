@@ -657,6 +657,12 @@
         "from": "@wildshard/engine/app/systems"
       },
       {
+        "name": "installBrowserScopeEnvironment",
+        "kind": "function",
+        "doc": "Called by the page composition root before a scope registers browser work.",
+        "from": "@wildshard/engine/app/view/scopeEnvironment"
+      },
+      {
         "name": "AmbienceZones",
         "kind": "class",
         "doc": "Shared loop lifecycle; profiles keep their zone weights, fade constants and literal taps.",
@@ -10826,7 +10832,13 @@
       {
         "name": "coinModel",
         "kind": "function",
-        "doc": "a gold coin (the loot's coins: CoinBurst, the coin pickup) — moved from the engine's interactables (E405)",
+        "doc": "A gold coin rendered by the installed content recipe.",
+        "from": "@wildshard/game/loot/coinModel"
+      },
+      {
+        "name": "installCoinModel",
+        "kind": "function",
+        "doc": "The composition root installs a reusable content recipe; loot simulation owns no geometry builder.",
         "from": "@wildshard/game/loot/coinModel"
       },
       {

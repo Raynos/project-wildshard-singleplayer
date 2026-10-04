@@ -2,6 +2,7 @@
 // loads this as its first module script, src/native.ts and scripts/bake-loader.mjs import it first, because the
 // service-worker entry, the saves and the boot read them. The tables are already in the first paint's graph.
 import { installBrowserSaveEnvironment } from '@wildshard/engine/saves/view/storage';
+import { installBrowserScopeEnvironment } from '@wildshard/engine/app/view/scopeEnvironment';
 import { installAppIdentity } from './engine/app/identity';
 import { installAssetTables } from './engine/boot/tables';
 import { WILDSHARD_IDENTITY } from './game/identity';
@@ -12,4 +13,5 @@ import { PACKS } from './game/boot/packs.generated';
 
 installAppIdentity(WILDSHARD_IDENTITY);
 installBrowserSaveEnvironment();
+installBrowserScopeEnvironment();
 installAssetTables({ bytes: PUBLIC_BYTES, versions: ASSET_VERSIONS, music: MUSIC_MANIFESTS, sfx: SFX_MANIFESTS, packs: PACKS });

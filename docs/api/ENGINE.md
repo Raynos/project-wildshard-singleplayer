@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1722 members; 831 without a doc line (—).
+1723 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -117,6 +117,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `sortSystems` | function | @wildshard/engine/app/systems | Stable Kahn ordering: choose the earliest registered ready system at every step. |
 | `SystemSpec` | interface | @wildshard/engine/app/systems | — |
 | `TickRateId` | type | @wildshard/engine/app/systems | — |
+| `installBrowserScopeEnvironment` | function | @wildshard/engine/app/view/scopeEnvironment | Called by the page composition root before a scope registers browser work. |
 | `AmbienceZones` | class | @wildshard/engine/audio/ambience | Shared loop lifecycle; profiles keep their zone weights, fade constants and literal taps. |
 | `ZoneBed` | interface | @wildshard/engine/audio/ambience | — |
 | `ZoneVoice` | interface | @wildshard/engine/audio/ambience | — |

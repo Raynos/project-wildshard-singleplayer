@@ -4,6 +4,7 @@ export interface SaveEnvironment {
   storage: (scope: SaveScope) => SaveStorage | null;
   persistent: () => boolean;
   persist: () => Promise<boolean>;
+  standalone?: () => boolean;
 }
 const memoryOnly: SaveEnvironment = { storage: () => null, persistent: () => false, persist: () => Promise.resolve(false) };
 let environment = memoryOnly;

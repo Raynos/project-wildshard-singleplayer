@@ -4,7 +4,7 @@ import { rock } from '@wildshard/engine/world/geometryKit';
 import { interactParts } from '@wildshard/engine/world/interact/kit';
 import { registerPickupLook, type PickupLook } from '@wildshard/engine/world/interact/types';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { coinModel } from '@wildshard/game/loot/coinModel';
+import { coinModel, installCoinModel } from '@wildshard/game/loot/coinModel';
 
 const M = new THREE.Matrix4();
 const at = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0): THREE.Matrix4 =>
@@ -96,4 +96,11 @@ const LOOKS: Readonly<Record<string, PickupLook>> = {
   shard: { model: glyphShard, batch: 'glow', lift: 1.2, parts: [{ key: 'shard', batch: 'glow', geometry: glyphShardGeometry, bob: [1.2, 0.12, 0.9], pulse: 2.2 }] },
 };
 
-export function installKitPickups(): void { for (const [id, look] of Object.entries(LOOKS)) registerPickupLook(id, look); }
+export function installKitPickups(): void {
+  installCoinModel((seed) => {
+    const k = new LowPolyKit(seed);
+    k.add(new THREE.CylinderGeometry(0.07, 0.07, 0.014, 8).rotateX(Math.PI / 2), '#f2c44d', { jitter: 0.1 });
+    return done(k);
+  });
+  for (const [id, look] of Object.entries(LOOKS)) registerPickupLook(id, look);
+}

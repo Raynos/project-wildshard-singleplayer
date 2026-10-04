@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-218 members; 112 without a doc line (—).
+219 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -86,7 +86,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `PACK_SLOTS` | const | @wildshard/game/Inventory | — |
 | `CoinBurst` | class | @wildshard/game/loot/CoinBurst | — |
 | `nearScale` | function | @wildshard/game/loot/CoinBurst | a coin's size factor at `near` metres from the eye: 1 past SHRINK_R, easing in to MIN_SCALE at NEAR_EYE |
-| `coinModel` | function | @wildshard/game/loot/coinModel | a gold coin (the loot's coins: CoinBurst, the coin pickup) — moved from the engine's interactables (E405) |
+| `coinModel` | function | @wildshard/game/loot/coinModel | A gold coin rendered by the installed content recipe. |
+| `installCoinModel` | function | @wildshard/game/loot/coinModel | The composition root installs a reusable content recipe; loot simulation owns no geometry builder. |
 | `CreatureDeathSource` | interface | @wildshard/game/loot/deaths | — |
 | `DEATH_ORDER` | const | @wildshard/game/loot/deaths | — |
 | `onCreatureDeath` | function | @wildshard/game/loot/deaths | Actor ids identify a species, so resolve the exact instance rather than paying the first of its kind. |

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { MathUtils, Vector3, type Bone } from 'three';
 import type { RigAnimCtx, FurStyle } from './registry';
 import { smoothstep } from '../../core/noise';
 
@@ -9,13 +9,13 @@ import { smoothstep } from '../../core/noise';
  */
 
 export const smooth01 = (t: number): number => smoothstep(0, 1, t);   // the one smoothstep (E357 X5)
-export const clamp = THREE.MathUtils.clamp;
+export const clamp = MathUtils.clamp;
 /** a unit bump: 0 → 1 → 0 over [a, b] */
 export const bump = (x: number, a: number, b: number): number => (x <= a || x >= b ? 0 : Math.sin(((x - a) / (b - a)) * Math.PI));
 /** 0 before a, 1 after b, smooth between */
 export const step = (x: number, a: number, b: number): number => smooth01((x - a) / (b - a));
 
-const _v = new THREE.Vector3();
+const _v = new Vector3();
 const _look = { yaw: 0, pitch: 0 };
 
 /** the look target in the animal's frame: yaw (+ = to the animal's left) and pitch (+ = up), scaled by lookWeight, clamped */
@@ -41,7 +41,7 @@ export const NO_FUR: FurStyle = {
  * root bone driven by the rig's `flinch` (1 at the blow, decaying to 0) — squashed flat at the blow, a stretch as it
  * springs back, settling. Every custom rig calls it last in `animate`: `squashBody(b.body, c.flinch)`.
  */
-export function squashBody(b: THREE.Bone, flinch: number, amt = 0.2): void {
+export function squashBody(b: Bone, flinch: number, amt = 0.2): void {
   const k = clamp(flinch, 0, 1);
   const w = k * k * Math.cos((1 - k) * 10) * amt;
   const sy = 1 - w, sxz = 1 / Math.sqrt(Math.max(0.5, sy));

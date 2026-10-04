@@ -213,6 +213,10 @@ shard's scope (`ctx.scope`), so a verb never takes a scope.
 **The construction owner.** Engine code that builds a reusable service doesn't take a scope argument everywhere;
 it asks for the current owner instead.
 
+The browser composition root calls `installBrowserScopeEnvironment()` from `app/view/scopeEnvironment` before
+registering presentation work. It supplies frame scheduling and diagnostic DOM target classification; a headless
+scope owns callbacks and resources without importing browser globals.
+
 | Export | What it does |
 |---|---|
 | `withOwner(scope, fn)` | runs `fn` with `scope` as the owner; callbacks registered inside re-enter it |
@@ -1050,6 +1054,9 @@ abstract class Tool extends Equipment { slot: 'tool' | 'offhand'; actions: reado
 | `EquipmentService` | `app.equipment`: the loadout, `add`, `unlock`, swapping |
 | `EquipmentHost` | `app.equipmentHost`: the scene/player ports and `viewmodel` root for camera-space equipment |
 
+`EquipmentService` accepts an explicit `input` binding port. The client session connects it to `app.input` and
+the active weapon's enabled predicate; a simulation service can omit device bindings.
+
 Mount a finished custom model in `app.equipmentHost.viewmodel` during `play`, and remove it with your scope.
 The engine keeps the camera in the scene and owns one depth clear at transparent render order 999. Added meshes
 draw at order 1000 or their higher declared order, without frustum culling or shadow casting; their materials use
@@ -1600,6 +1607,9 @@ in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that alrea
 **Capture.** `app.clock.setCapture(fps)` plus seeded streams make a frame-exact capture. The only URL params are the
 `harness` allowlist in `lint/url-params.json`; never add one (AGENTS.md "No URL switches").
 
+The kit composition root installs the gold coin geometry recipe with `installCoinModel()` from
+`@wildshard/game/loot/coinModel`; loot simulation imports only the recipe port, without geometry construction.
+
 ## 24. Lint rules and the ratchet
 
 | Rule | What it refuses | Status |
@@ -1676,7 +1686,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1706 exports, grouped by the module to import them from.
+1707 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1702,6 +1712,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/app/scheduler`: `InterruptReason`, `TickActor`, `TickBand`, `TickPoint`, `TickRate`, `TickScheduler`
 - `@wildshard/engine/app/scope`: `Disposable3`, `disposalErrorMessages`, `NativeCensus`, `nodeOwner`, `PhysicsHandle`, `registrationTimerIds`, `Scope`, `ScopeCensus`, `scopeRegistrations`, `SoundHandle`
 - `@wildshard/engine/app/systems`: `AppState`, `inState`, `Phase`, `PHASES`, `RunCondition`, `sortSystems`, `SystemSpec`, `TickRateId`
+- `@wildshard/engine/app/view/scopeEnvironment`: `installBrowserScopeEnvironment`
 - `@wildshard/engine/audio/ambience`: `AmbienceZones`, `ZoneBed`, `ZoneVoice`
 - `@wildshard/engine/audio/AmbienceBeds`: `AmbienceBeds`, `BedDef`, `PositionalLoops`, `ZoneWeights`
 - `@wildshard/engine/audio/Audio`: `AmbientBed`, `AnimalSound`, `Audio`, `CallVoice`, `GameAudio`, `HoofSurface`, `ImpactKind`, `LoopName`, `OneShot`, `SampleLoop`, `SynthBed`
@@ -1963,7 +1974,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-218 exports, grouped by the module to import them from.
+219 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -1981,7 +1992,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
 - `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`
 - `@wildshard/game/loot/CoinBurst`: `CoinBurst`, `nearScale`
-- `@wildshard/game/loot/coinModel`: `coinModel`
+- `@wildshard/game/loot/coinModel`: `coinModel`, `installCoinModel`
 - `@wildshard/game/loot/deaths`: `CreatureDeathSource`, `DEATH_ORDER`, `onCreatureDeath`
 - `@wildshard/game/loot/Owned`: `CosmeticId`, `isCosmetic`, `isOwnedId`, `Owned`, `OWNED`, `OwnedId`, `OwnedKind`
 - `@wildshard/game/loot/runtime`: `installLoot`, `LootBody`, `LootPresentation`, `LootShop`, `ScopedLoot`, `ScopedLootHost`

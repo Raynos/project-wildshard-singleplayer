@@ -3,7 +3,7 @@ import { Scope } from '../app/scope';
 import type { WeaponId, ToolId } from './Equipment';
 import type { Weapon, WeaponHooks, WeaponState, AimInfo } from './Weapon';
 import { Tool } from './Tool';
-import { EquipmentActionInput, type EquipmentInput } from '../input/equipmentInput';
+import type { EquipmentInput } from '../input/equipmentInput';
 import type { Events } from '../events/events';
 import type { EquipmentPickup, EquipmentPickupHost, PickupLoadout } from './EquipmentPickup';
 
@@ -82,11 +82,11 @@ export class EquipmentService implements WeaponHooks {
     this.events = opts.events;
     this.list = []; this.current = first; this.order = opts.order;
     this.add(first, { locked: false });
-    const input = opts.input ?? new EquipmentActionInput(this.scope, () => this.current.enabled);
-    input.bind('swap', () => this.swap(), this.scope);
-    input.bind('swap.next', () => this.step(1), this.scope);
-    input.bind('swap.prev', () => this.step(-1), this.scope);
-    for (const digit of [1, 2, 3, 4, 5, 6, 7, 8, 9] as const) input.bind(`swap.slot.${digit}`, () => {
+    const input = opts.input;
+    input?.bind('swap', () => this.swap(), this.scope);
+    input?.bind('swap.next', () => this.step(1), this.scope);
+    input?.bind('swap.prev', () => this.step(-1), this.scope);
+    for (const digit of [1, 2, 3, 4, 5, 6, 7, 8, 9] as const) input?.bind(`swap.slot.${digit}`, () => {
       const w = this.available[digit - 1]; if (w) this.select(w.id);
     }, this.scope);
   }
@@ -262,4 +262,3 @@ export class EquipmentService implements WeaponHooks {
     for (const tool of this.tools) if (this.has(tool.id)) tool.update(dt, t);
   }
 }
-
