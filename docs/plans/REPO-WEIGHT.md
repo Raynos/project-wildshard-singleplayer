@@ -1,9 +1,6 @@
 # Plan: REPO-WEIGHT — what to do with the media committed to git (E436)
 
-**State:** `draft` 2026-10-04 — written by a subagent of the shard-platform agent from measured numbers (§2). Nothing
-built. Recommended route (§5): stop the growth with guards + a content-addressed media store (manifest in git, files as
-GitHub release assets), move the archive out of HEAD in one commit, then, **only on Jake's explicit go**, rewrite history
-once with `git filter-repo` during an agent pause. Waits on Jake's answers to Q1–Q5 (§9).
+**State:** `draft` 2026-10-04 — Jake answered (E436, 2026-10-04, via the plan-status agent): **Cloudflare R2** as the store and **one history rewrite**, and **the plan stays a draft, not built** (his words: "Yes R2 and history rewrite but plan stays draft not built"). He approved the retention policy (Q1) in the same answer. R2's free tier (10 GB/month storage, zero egress) covers the ~2.9 GiB archive; Cloudflare asks for a payment method on file to enable R2. Q4 (which refs survive the rewrite) and Q5 (one repo per shard: recommended not now) stay open until he greenlights building. Nothing built.
 
 ## 0. Read this first
 
@@ -235,6 +232,8 @@ answers Q1 and Q2.
 - **MOCKUPS.md / GIT.md / AGENTS.md**: RW8 rewrites their media lines.
 
 ## 9. Open questions for Jake
+
+**Jake's answers (2026-10-04):** Q1 yes (retention policy); Q2 **Cloudflare R2**; Q3 **yes, one rewrite**; the plan stays draft until he says build. Q4 and Q5 open.
 
 Asked with the question tool when the plan goes to him (ASKS.md); each has one recommendation.
 
