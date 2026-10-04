@@ -1,5 +1,6 @@
 // Fresh SF29 parent comparisons. Never writes or accepts a stored parity baseline.
 // node progress/shard-platform/SF29-parity.mjs --current=<green sha> --out=<owned scratch>
+// --shards=a,b --tiers=phone,desktop --parent-<slug>=<sha> --resume select an explicit control.
 import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
@@ -21,6 +22,8 @@ const parents = {
 };
 const shards = flag('shards', Object.keys(parents).join(',')).split(',');
 if (shards.some(shard => !Object.hasOwn(parents, shard))) throw new Error('Unknown SF29 shard');
+const tiers = flag('tiers', 'phone,desktop').split(',');
+if (tiers.some(tier => !['phone', 'desktop'].includes(tier)) || new Set(tiers).size !== tiers.length) throw new Error('Invalid SF29 tiers');
 for (const shard of shards) parents[shard] = flag(`parent-${shard}`, parents[shard]);
 const out = resolve(flag('out', `/private/tmp/claude-501/sp-builders/sp-x3/sf29-parity`));
 mkdirSync(out, { recursive: true });
@@ -37,20 +40,20 @@ async function run(command, values) {
   });
 }
 async function measure(label, sha, selected) {
-  if (args.includes('--resume')) for (const shard of selected) for (const tier of ['phone', 'desktop']) {
+  if (args.includes('--resume')) for (const shard of selected) for (const tier of tiers) {
     const path = join(out, `${label}-${shard}-${tier}`, 'capture.json');
     if (!existsSync(path)) continue;
     const record = JSON.parse(readFileSync(path, 'utf8')), boot = object(record.boot);
     if (boot.sha !== sha || boot.shard !== shard || boot.tier !== tier) throw new Error(`Resume identity mismatch: ${path}`);
     records[`${label}/${shard}/${tier}`] = record; resumed.push({ path, sha, shard, tier });
   }
-  if (selected.every(shard => ['phone', 'desktop'].every(tier => records[`${label}/${shard}/${tier}`]))) return;
+  if (selected.every(shard => tiers.every(tier => records[`${label}/${shard}/${tier}`]))) return;
   const base = String(await run(join(ROOT, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `sf29-${label}`, '--hours', '1'])).replace(/\/$/u, '');
   try {
     const version = await (await fetch(`${base}/version.json`)).json();
     if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error('Preview identity mismatch');
     const browser = await pool.browser(0);
-    for (const shard of selected) for (const tier of ['phone', 'desktop']) {
+    for (const shard of selected) for (const tier of tiers) {
       if (records[`${label}/${shard}/${tier}`]) continue;
       const folder = join(out, `${label}-${shard}-${tier}`); mkdirSync(folder, { recursive: true });
       const opts = { shard, tier, lane: 'm5', sha, root: ROOT, out: folder, timeout: 240,
@@ -71,7 +74,7 @@ try {
   await measure('current', current, shards);
   const browser = await pool.browser(0), context = await browser.newContext(), page = await context.newPage();
   try {
-    for (const shard of shards) for (const tier of ['phone', 'desktop']) {
+    for (const shard of shards) for (const tier of tiers) {
       const parent = rev(parents[shard]);
       const before = records[`parent-${shard}/${shard}/${tier}`], record = records[`current/${shard}/${tier}`];
       const baseline = await aggregate(page, [before], { sha: parent, browser: browser.version() });
@@ -89,8 +92,8 @@ try {
       console.log(`SF29 ${shard}/${tier}: ${result.verdict}`);
     }
   } finally { await context.close(); }
-  const report = { row: 'SF29', current, parents, resumed, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
-    method: 'Fresh pre-audio parent and current pinned builds; shared capture/weatherLeak/aggregate/imageScore/compare. Both tiers, full poses/walk/combat/pause/unload, Metal, seeded accelerated clock, Memory saver OFF, default boot variants. Emulated phone Chromium; Safari is measured separately by frame-floor. No stored baseline writes or new quarantine.',
+  const report = { row: 'SF29', current, parents, tiers, resumed, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
+    method: 'Fresh explicit parent and current pinned builds; shared capture/weatherLeak/aggregate/imageScore/compare. Selected tiers, full poses/walk/combat/pause/unload, Metal, seeded accelerated clock, Memory saver OFF, default boot variants. Emulated phone Chromium; Safari is measured separately by frame-floor. No stored baseline writes or new quarantine.',
     reports };
   writeFileSync(join(out, 'SF29-parity.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(`Report ${join(out, 'SF29-parity.json')}`);
