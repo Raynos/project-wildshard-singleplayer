@@ -21,7 +21,7 @@ it('round trips every template row category, with no authored runtime closure', 
   shard.rows = parsed;
   const wire = JSON.stringify(shard);
   expect(parseShardfile(JSON.parse(wire)).rows).toEqual(parsed);
-  expect(parsed.looks.map((look) => look.recipe)).toEqual(['engine.sphere', 'kit.look.boar']);
+  expect(parsed.looks).toEqual([]); // the blob and the boar are declared skins now (data/skins.json, recipe platform.skin, SF16)
   expect(simStrikes(parsed).get('template.blob.bump')?.damage).toBe(8);
   expect(scoredStrikes(parsed).map((strike) => strike.weight(legacyDouble<StrikeContext>({})))).toEqual([2, 1, 1]);
 });

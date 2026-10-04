@@ -365,45 +365,7 @@
       ]
     }
   ],
-  "looks": [
-    {
-      "id": "template.look.greyBlob",
-      "species": "grey-blob",
-      "recipe": "engine.sphere",
-      "parameters": {
-        "radius": 0.65,
-        "widthSegments": 10,
-        "heightSegments": 6,
-        "colour": [
-          0.45,
-          0.45,
-          0.45
-        ],
-        "bone": "body"
-      },
-      "animation": {
-        "recipe": "engine.scale-wave",
-        "parameters": {
-          "bone": "body",
-          "axis": "y",
-          "frequency": 4,
-          "amplitude": 0.08,
-          "rest": 1,
-          "dead": 0.4
-        }
-      }
-    },
-    {
-      "id": "template.look.boar",
-      "species": "boar",
-      "recipe": "kit.look.boar",
-      "parameters": {},
-      "animation": {
-        "recipe": "kit.pose.quadruped",
-        "parameters": {}
-      }
-    }
-  ],
+  "looks": [],
   "compendiums": [
     {
       "id": "template.compendium",
