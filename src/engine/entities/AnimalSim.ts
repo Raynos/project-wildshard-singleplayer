@@ -23,6 +23,11 @@ export interface AnimalSimPorts {
   random: () => number;
   hit?: (request: DamageRequest) => DamageDealt | null;
 }
+/** Mutable presentation sample. A view owns this buffer; sampling never advances authoritative state. */
+export interface AnimalPoseSample {
+  attackT: number; attackDur: number; groundY: number; tiltRollT: number; stunT: number;
+  flinch: number; flinchRoll: number; flinchPitch: number; brace: number; deathSide: number;
+}
 /** Legacy bolt base damage and range falloff shared by client and simulation. */
 export const DAMAGE = { bodyMin: 32, bodyMax: 40, headMul: 2.5, falloffStart: 40, falloffEnd: 90, falloffMin: 0.6 };
 /** Sample the legacy bolt formula from an explicit gameplay random source. */
@@ -91,6 +96,12 @@ export class AnimalSim {
     this.flight = spec.flight === undefined ? null : new FlightMotion(spec.flight);
   }
   get dims(): AnimalDims { return this.simSpec.dims; }
+  /** Copy just pose inputs into a reused view buffer, without allocating a snapshot. */
+  samplePose(out: AnimalPoseSample): void {
+    out.attackT = this.attackT; out.attackDur = this.attackDur; out.groundY = this.groundY;
+    out.tiltRollT = this.tiltRollT; out.stunT = this.stunT; out.flinch = this.flinch;
+    out.flinchRoll = this.flinchRoll; out.flinchPitch = this.flinchPitch; out.brace = this.brace; out.deathSide = this.deathSide;
+  }
   /** Full motor/contact continuation; authored ports and rig state remain with the fresh instance. */
   snapshot(): AnimalSnapshot {
     return { version: 1, id: this.entityId,

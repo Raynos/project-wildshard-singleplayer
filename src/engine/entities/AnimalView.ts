@@ -10,7 +10,7 @@ import type { AnimalModel, AnimalRig } from './AnimalFactory';
 import { variantMods, type RigAnimCtx } from './species/registry';
 import { app, gameplayRandom } from '../app/runtime';
 import type { DamageRequest } from '../combat/pipeline';
-import { AnimalSim, damageFor as simDamageFor } from './AnimalSim';
+import { AnimalSim, damageFor as simDamageFor, type AnimalPoseSample } from './AnimalSim';
 import { floorBelow } from '../physics/query';
 
 /**
@@ -150,6 +150,61 @@ export class Animal extends AnimalSim {
   private lodBase: { geometry: THREE.BufferGeometry; materials: THREE.Material[] } | null = null;
   private legAbd = new Float32Array(4);
   private ragdoll: Ragdoll | null = null;
+  private externalSimulation: AnimalSim | null = null;
+  private observedHit = -Infinity;
+  private observedAlive = true;
+  private readonly simPose: AnimalPoseSample = { attackT: -1, attackDur: 1, groundY: 0, tiltRollT: 0,
+    stunT: 0, flinch: 0, flinchRoll: 0, flinchPitch: 0, brace: 0, deathSide: 1 };
+
+  /** Bind a fresh rig to the host creature. Rendering never advances or disposes its simulation body. */
+  bindSimulation(sim: AnimalSim): this {
+    if (this.externalSimulation !== null || this.motor !== null || this.ragdoll !== null
+      || sim === this || sim.entityId !== this.entityId || sim.kind !== this.kind) throw new Error('Incompatible creature view binding');
+    this.externalSimulation = sim;
+    const share = (key: keyof AnimalSim): void => {
+      Object.defineProperty(this, key, { configurable: false, enumerable: true,
+        get: () => sim[key], set: (value: unknown) => { Reflect.set(sim, key, value); } });
+    };
+    for (const key of ['kind', 'variant', 'rarity', 'label', 'aggressive', 'mods', 'alive', 'hp', 'maxHp',
+      'position', 'yaw', 'speed', 'state', 'herd', 'desiredYaw', 'desiredSpeed', 'turnRate', 'lastHitT',
+      'lookTarget', 'lookWeight', 'seed', 'scale', 'strafe', 'desiredStrafe', 'yOffset', 'driven', 'levelGround',
+      'groundHeight', 'mem', 'attackTurnCap', 'scripted', 'harnessHold'] as const) share(key);
+    Object.defineProperties(this, {
+      combatActor: { value: sim.combatActor.bind(sim) }, applyDamage: { value: sim.applyDamage.bind(sim) },
+      applyFinalDamage: { value: sim.applyFinalDamage.bind(sim) }, stagger: { value: sim.stagger.bind(sim) },
+      setMotion: { value: sim.setMotion.bind(sim) }, setStrafe: { value: sim.setStrafe.bind(sim) },
+      impulse: { value: sim.impulse.bind(sim) }, fly: { value: sim.fly.bind(sim) },
+      startAttack: { value: sim.startAttack.bind(sim) }, cancelAttack: { value: sim.cancelAttack.bind(sim) },
+      damageFor: { value: sim.damageFor.bind(sim) }, step: { value: sim.step.bind(sim) },
+      snapshot: { value: sim.snapshot.bind(sim) }, restore: { value: sim.restore.bind(sim) },
+      attackPhase: { get: () => sim.attackPhase }, stunned: { get: () => sim.stunned },
+      flying: { get: () => sim.flying }, lockable: { get: () => sim.lockable },
+      lockRange: { get: () => sim.lockRange }, hasImpulse: { get: () => sim.hasImpulse },
+      place: { value: (x: number, z: number, yaw: number, y?: number): void => {
+        sim.place(x, z, yaw, y); this.mesh.position.copy(sim.position); this.mesh.rotation.y = sim.yaw;
+      } },
+    });
+    this.rigCtx.position = sim.position; this.rigCtx.lookTarget = sim.lookTarget; this.rigCtx.mem = sim.mem;
+    this.observedHit = sim.lastHitT; this.observedAlive = sim.alive;
+    return this;
+  }
+
+  private readSimulationPose(): void {
+    const sim = this.externalSimulation;
+    if (sim === null) return;
+    const motion = this.simPose; sim.samplePose(motion);
+    this.attackT = motion.attackT; this.attackDur = motion.attackDur; this.groundY = motion.groundY;
+    this.tiltRollT = motion.tiltRollT; this.stunT = motion.stunT;
+    if (sim.lastHitT !== this.observedHit) {
+      this.observedHit = sim.lastHitT; this.flinch = motion.flinch;
+      this.flinchRoll = motion.flinchRoll; this.flinchPitch = motion.flinchPitch; this.brace = motion.brace;
+      this.hitFlash();
+    }
+    if (sim.alive !== this.observedAlive) {
+      this.observedAlive = sim.alive; this.deathT = sim.alive ? -1 : 0; this.deathSide = motion.deathSide;
+    }
+    this.rigCtx.mem = sim.mem;
+  }
 
 constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityId = `creature.${model.kind}.${String(seed)}`) {
     const v = model.variantDef;
@@ -328,7 +383,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
   /** Explicit retirement releases a corpse's ragdoll even when it receives no later update. */
   retireBody(): void {
     this.ragdoll?.dispose(); this.ragdoll = null;
-    this.motor?.dispose(); this.motor = null;
+    if (this.externalSimulation === null) { this.motor?.dispose(); this.motor = null; }
   }
   /** the last update left the skeleton's pose as it was (the far LOD): the animals' group may keep its bones' world
    *  matrices while the root stands still too (src/engine/entities/animalMatrices.ts) */
@@ -367,7 +422,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
     const d = this.model.dims;
     if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
     if (this.ragdoll !== null) { this.updateRagdoll(this.ragdoll, dt, t, near); return; }
-    this.stepMotion(dt);
+    if (this.externalSimulation === null) this.stepMotion(dt); else this.readSimulationPose();
 
     // gait weights from speed
     const gw = this.gaitTarget;
@@ -376,7 +431,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
     if (this.debugGait) {
       const gi = ['idle', 'graze', 'walk', 'trot', 'gallop'].indexOf(this.debugGait.gait);
       this.gaitW.fill(0); this.gaitW[Math.max(0, gi)] = 1; this.phase = this.debugGait.phase;
-      this.speed = 0; this.desiredSpeed = 0;
+      if (this.externalSimulation === null) { this.speed = 0; this.desiredSpeed = 0; }
       gw.set(this.gaitW);
     } else if (!this.alive) { gw[G_IDLE] = 1; }
     else if (s < 0.15) { if (this.state === 'graze') gw[G_GRAZE] = 1; else gw[G_IDLE] = 1; }
@@ -398,7 +453,7 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
       const freq = Math.max(0.6, Math.hypot(this.speed, this.strafe) * g.stance / stride);
       this.phase = (this.phase + freq * dt) % 1;
     }
-    if (this.attackT >= 0) this.attackT += dt;
+    if (this.externalSimulation === null && this.attackT >= 0) this.attackT += dt;
 
     if (!near) {
       // far LOD: just move the root; skip pose maths (skeleton keeps its last pose). A flier still eases into its bank:

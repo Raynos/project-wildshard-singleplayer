@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1817 members; 831 without a doc line (—).
+1818 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -686,6 +686,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `HuntTuning` | interface | @wildshard/engine/entities/AnimalManager | One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. |
 | `WanderGoalQuery` | interface | @wildshard/engine/entities/AnimalManager | — |
 | `AnimalMotor` | interface | @wildshard/engine/entities/AnimalSim | Collision-only displacement port; the creature retains its own feet position. |
+| `AnimalPoseSample` | interface | @wildshard/engine/entities/AnimalSim | Mutable presentation sample. A view owns this buffer; sampling never advances authoritative state. |
 | `AnimalSim` | class | @wildshard/engine/entities/AnimalSim | Creature state and motion. All world services arrive as ports; there is no scene, rig or active app. |
 | `AnimalSimPorts` | interface | @wildshard/engine/entities/AnimalSim | Per-host world height, time, random stream and optional damage pipeline. |
 | `AnimalSimSpec` | interface | @wildshard/engine/entities/AnimalSim | Authored creature health, dimensions and motion settings, without a rig. |
