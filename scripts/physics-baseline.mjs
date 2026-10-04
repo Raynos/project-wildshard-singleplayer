@@ -192,10 +192,13 @@ if (MODE.includes('grid')) {
   try {
     if (WALK_CPU > 1) await (await ctx.newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: WALK_CPU });
     await page.goto(`${BASE}/?tier=${TIER}&mute=1&nolock=1&sw=0`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
-    await page.locator('.ws-menu-entry-grid').waitFor({ timeout: TIMEOUT_MS });
-    await page.locator('.ws-menu-entry-grid').click();
+    await page.locator('.ws-main-grid').waitFor({ timeout: TIMEOUT_MS }); // the main menu's INFINITE WILDSHARD card (SF21a)
+    await page.evaluate(() => { setTimeout(() => { document.querySelector('.ws-main-grid')?.click(); }, 100); }); // the tap navigates: return first
     await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
     await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
+    // the sky-down reveal (G98) drops the player's input while it runs: skip it with its one tap and wait for its end
+    await page.mouse.click(195, 420).catch(() => undefined);
+    await page.waitForFunction(() => window.__wsReveal === undefined || window.__wsReveal.endedMs != null, null, { timeout: 60000, polling: 250 }).catch(() => undefined);
     result.activation.grid = await activationWitness(page, 'grid');
     await page.waitForTimeout(SETTLE_MS);
     for (const speed of [15, 30]) {
