@@ -160,8 +160,14 @@ export function shardfileRules(s: Shardfile): string[] {
   if (s.sim.scripts.some((module) => !module.startsWith('commons:') && files.get(module)?.kind !== 'wasm')) errors.push('script module is a Wasm file');
   if (s.terrain !== null && (!s.critical.includes(s.terrain.collider) || files.get(s.terrain.collider)?.kind !== 'binary' || s.terrain.tiles.some((payload) => files.get(payload.file)?.kind !== 'binary' || !s.tiles.some((row) => row.lod === payload.lod && row.x === payload.x && row.z === payload.z && row.files.includes(payload.file))))) errors.push('declared terrain payload references');
   if (s.look.families.some((family) => !materialExists({}, family)) || (s.terrain !== null && !materialExists(s.look.materials, s.terrain.family)) || s.rows.looks.some((row) => row.material !== null && !materialExists(s.look.materials, row.material))) errors.push('declared platform material family');
-  const species = new Map(s.rows.species.map((row) => [row.id, row])), strikes = new Set(s.rows.strikes.map((row) => row.id));
+  const species = new Map(s.rows.species.map((row) => [row.id, row])), strikes = new Map(s.rows.strikes.map((row) => [row.id, row]));
   for (const brain of s.creatures.brains) if (brain.kind === 'script' && (!s.sim.scripts.includes(brain.module) || brain.strikes.some((request) => !strikes.has(request.strike)))) errors.push('declared custom brain module and strikes');
+  for (const brain of s.creatures.brains) {
+    if (brain.kind === 'ram-grazer') {
+      const strike = strikes.get(brain.strike);
+      if (strike?.shape.kind !== 'lane' || strike.windup <= 0 || strike.range <= 0) errors.push('declared ram grazer lane strike');
+    } else if (brain.kind === 'challenge-grazer' && (strikes.get(brain.charge)?.shape.kind !== 'lane' || strikes.get(brain.close)?.shape.kind !== 'arc')) errors.push('declared challenge grazer charge/close strikes');
+  }
   if (s.creatures.spawns.length > s.serverBudget.entities) errors.push('declared entity capacity');
   for (const spawn of s.creatures.spawns) if (!species.get(spawn.species)?.variants.some((row) => row.id === spawn.variant) || (spawn.strike !== null && !strikes.has(spawn.strike))) errors.push('declared spawn species/variant/strike');
   errors.push(...encounterRules(s.encounters, s.creatures.spawns.map((spawn) => spawn.id), s.ui.filter((row) => row.kind === 'bossPanel')));

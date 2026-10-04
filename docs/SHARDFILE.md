@@ -377,7 +377,8 @@ equipment viewmodel host, including off-hand tools, and leave with the level sco
 
 Edge rows retain every native boundary vertex; 129-point decimation is refused. A modern terrain collider is 257² and carries 257 samples per side, without resampling. When a 256-point neighbour meets a 257-point neighbour, the platform strip uses the sorted union of their native positions (511 points), so both exact boundaries survive.
 
-`creatures.brains` accepts `pursue`, `skirmisher`, `guardian`, `perch-hunter` and `script`
+`creatures.brains` accepts `pursue`, `skirmisher`, `guardian`, `perch-hunter`,
+`ram-grazer`, `challenge-grazer` and `script`
 policies. The three native families use the strict schemas in `shardfile/brains`;
 their optional `thinkDivisor` defaults to six and must divide 60. Decisions run at
 that cadence, and the owning body recipe runs once per fixed step. The loader
@@ -393,6 +394,19 @@ an admitted module in `sim.scripts`, a `thinkDivisor` dividing 60, bounded
 accepted from this declaration. The factory derives a trusted `brain:<actorId>`
 alias per spawn and rejects collisions with actor, item and director handles.
 All aliases count toward the one `serverBudget.entities` allowance.
+
+The two grazer families use `shardfile/grazers` and the author adapter
+`@wildshard/sdk/grazers`. A ram grazer names a `rows.strikes` lane profile with
+positive windup and range; a challenge grazer names distinct lane-charge and
+arc-close profiles plus distinct windup/recovery actor-memory fields. Both
+default to a six-tick decision divisor. The full factory and client require
+explicit `brains.ramGrazer` or `brains.challengeGrazer` recipes for observations,
+native body work and the matching named strikes. Missing ports or mismatched
+strike identities refuse before brain callbacks, RNG draws or actor-memory
+writes. One actor callback runs divisor-scheduled decisions, fixed-step policy
+action and native body work. Mutable policy and strike clocks are snapshotted
+with their cadence and tuning contracts; restoration runs no observations,
+body work or random draws.
 
 Custom policies and numeric state share one module union and one host: memory,
 fuel, queries, effects, events and quarantine are charged once per fixed tick,
