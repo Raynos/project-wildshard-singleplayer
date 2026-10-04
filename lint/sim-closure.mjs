@@ -5,6 +5,9 @@ import { parseSync } from 'vite';
 
 const VIEW = /^src\/engine\/(?:app\/view\/|ai\/view\/|combat\/view\/|quest\/view(?:\/|\.ts$)|saves\/view\/|entities\/AnimalView\.ts$)/u;
 const FORBIDDEN = /^src\/engine\/(?:app\/runtime(?:\.ts)?$|core\/(?:tier|frameCost)(?:\.ts)?$|render\/|ui\/|fx\/|anim\/)/u;
+// Approved SF16 transition: lint/sim-schema-leaves.json records the owner/removal obligation.
+// This exact data leaf is traversed; Three and DOM remain forbidden throughout its closure.
+const SCHEMA_LEAF = 'src/engine/render/families/params.ts';
 const MATH = new Set(['Vector2', 'Vector3', 'Vector4', 'Euler', 'Quaternion', 'Matrix3', 'Matrix4', 'Box2', 'Box3', 'Ray', 'Sphere', 'Plane', 'Frustum', 'MathUtils', 'Color']);
 const DOM = new Set(['window', 'document', 'navigator', 'localStorage', 'sessionStorage', 'HTMLElement', 'HTMLCanvasElement', 'Element', 'requestAnimationFrame', 'cancelAnimationFrame', 'matchMedia', 'ResizeObserver', 'Image', 'Audio']);
 export const simRoot = (path) => /^src\/(?:engine\/(?:ai|combat|events|quest|saves)\/|shards\/[^/]+\/(?:data|behaviour)\/|shards\/_template\/(?:combat\/|species\/|quest\/|world\/climate\.ts$)|engine\/entities\/AnimalSim\.ts$|engine\/sim\.ts$)/u.test(path) && !VIEW.test(path);
@@ -60,6 +63,7 @@ export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }
         const source = value(node.source);
         if (source === null) { if (node.source) add('import', 'dynamic'); return; }
         if (source === 'three' || source.startsWith('three/')) {
+          if (trace.includes(SCHEMA_LEAF)) { add('import', source); return; }
           if (source !== 'three' || !node.specifiers?.length || node.specifiers.some((s) => s.importKind !== 'type' && (s.type !== 'ImportSpecifier' || !MATH.has(s.imported.name)))) add('import', source);
           return;
         }
@@ -69,7 +73,7 @@ export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }
           return;
         }
         const destPath = relative(root, dest).replaceAll('\\', '/');
-        if (FORBIDDEN.test(destPath) || VIEW.test(destPath)) add('import', destPath);
+        if ((FORBIDDEN.test(destPath) && destPath !== SCHEMA_LEAF) || VIEW.test(destPath)) add('import', destPath);
         else if (/\.[cm]?[jt]s$/u.test(destPath)) next.push(destPath);
       }
       if (simRoot(path) && node.type === 'Identifier' && ['HTMLElement', 'HTMLCanvasElement'].includes(node.name) && parent?.type === 'TSTypeReference') add('global', node.name);

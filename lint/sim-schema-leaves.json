@@ -1,0 +1,7 @@
+{
+  "src/engine/render/families/params.ts": {
+    "reason": "Pure Valibot schema leaf; zero Three or DOM dependencies. Exact-path transition only; its dependency closure remains guarded.",
+    "owner": "SF16",
+    "removal": "Move the material parameters to a renderer-neutral data module and remove this exception."
+  }
+}
