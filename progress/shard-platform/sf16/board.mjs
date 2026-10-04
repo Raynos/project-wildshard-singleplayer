@@ -75,7 +75,7 @@ try {
     poolBasin: 'intended: the baked terrain samples the generator\'s -3 m pool step every 1.95 m (257 over 500 m), so the basin wall shows up to one sample outside the 5 m waterline; today\'s 40 x 40 ground (5 m grid) dips only at the pool centre vertex',
     scatter: 'intended: the 20 grey cubes are baked from RngService(357) at desktop density; today draws 10 (phone tier) from the session cosmetic stream, so positions differ',
     creatures: 'animation phase only: the grey blob idles in a different squash at capture; same exported skins and triangle counts',
-    rampTreads: 'the immutable-byte geometry proof verifies all ten treads and the slope; each capture awaits the full camera refinement disc before rendering',
+    rampTreads: 'not a difference: the ten-tread stair right of the hut shows on both sides of the real and world frames; the immutable-byte proof verifies every tread and slope vertex, test/shardfile-fine-props-drawn.test.ts proves resident fine props are drawn, and each capture awaits the full refinement disc and asserts both real frames render from one camera pose (recorded per side)',
     horizon: 'intended: baked terrain covers the whole cell, so the far ground meets the sky as a soft band where today\'s 200 m plane stops in a hard edge',
   };
   const evidence = { named, cameras: {}, creatures: { today: await census(today.page), shardfile: await census(declared.page) }, errors: {} };
@@ -125,9 +125,22 @@ try {
       // Render after the awaited installs; both sides advance the same fixed frames.
       await side.page.evaluate(() => window.__parity.advance(2));
       const jpeg = await side.page.screenshot({ type: 'jpeg', quality: 88 });
-      const draws = await side.page.evaluate(() => ({ calls: window.__wildshard.world.game.lastFrame.calls, triangles: window.__wildshard.world.game.lastFrame.triangles, fov: window.__wildshard.world.game.camera.fov }));
+      const draws = await side.page.evaluate(() => {
+        const world = window.__wildshard.world, camera = world.game.camera, round = (n) => Math.round(n * 1e4) / 1e4;
+        camera.updateMatrixWorld(true);
+        const e = camera.matrixWorld.elements, forward = [-e[8], -e[9], -e[10]];
+        // the real frame's render pose: the camera's world position and facing, beside the player feet the pose set
+        const pose = { camera: [e[12], e[13], e[14]].map(round), yaw: round(Math.atan2(-forward[0], -forward[2])), pitch: round(Math.asin(Math.max(-1, Math.min(1, forward[1])))),
+          feet: [world.player.position.x, world.player.position.y, world.player.position.z].map(round), playerYaw: round(world.player.yaw) };
+        return { calls: world.game.lastFrame.calls, triangles: world.game.lastFrame.triangles, fov: camera.fov, pose };
+      });
       pair.push({ jpeg, draws });
     }
+    // both real frames render from one pose (SF16): a drift here would read as missing content at the frame's edge
+    const [a, b] = pair.map((shot) => shot.draws.pose);
+    // eye height follows each side's own ground (the pool basin differs by design), so only x, z, yaw and pitch must agree
+    const drift = Math.max(Math.abs(a.camera[0] - b.camera[0]), Math.abs(a.camera[2] - b.camera[2]), Math.abs(a.yaw - b.yaw) * 10, Math.abs(a.pitch - b.pitch) * 10);
+    if (drift > 0.05) throw new Error(`${camera.name}: the two real frames render from different poses: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
     const file = (i) => join(outDir, `${camera.name.replace(' ', '-')}-${i === 0 ? 'today' : 'shardfile'}.jpg`);
     pair.forEach((shot, i) => { writeFileSync(file(i), shot.jpeg); });
     const score = async (a, b) => (await today.page.evaluate(ssim, { a: a.toString('base64'), b: b.toString('base64') })).ssim;
@@ -144,7 +157,7 @@ try {
     evidence.cameras[camera.name] = { ssim: full, ladder, today: pair[0].draws, shardfile: pair[1].draws, residency, at: camera.at, look: camera.look };
     shots.push({ name: camera.name, today: file(0), shardfile: file(1), ssim: full, ladder,
       world: { today: join(outDir, `${camera.name.replace(' ', '-')}-reference.jpg`), shardfile: join(outDir, `${camera.name.replace(' ', '-')}-fov.jpg`) } });
-    console.log(`${camera.name.padEnd(11)} SSIM ${full.toFixed(4)}  world ${ladder.world.toFixed(4)}  +fov ${ladder.fov.toFixed(4)}  -shadows ${ladder.shadows.toFixed(4)}  fov ${pair[0].draws.fov.toFixed(1)} vs ${pair[1].draws.fov.toFixed(1)}  draws ${pair[0].draws.calls} vs ${pair[1].draws.calls}`);
+    console.log(`${camera.name.padEnd(11)} SSIM ${full.toFixed(4)}  world ${ladder.world.toFixed(4)}  +fov ${ladder.fov.toFixed(4)}  -shadows ${ladder.shadows.toFixed(4)}  fov ${pair[0].draws.fov.toFixed(1)} vs ${pair[1].draws.fov.toFixed(1)}  draws ${pair[0].draws.calls} vs ${pair[1].draws.calls}  eye ${a.camera.join(',')} yaw ${a.yaw} vs ${b.camera.join(',')} yaw ${b.yaw}`);
   }
   evidence.errors = { today: today.errors, shardfile: declared.errors };
   writeFileSync(join(outDir, 'shots.json'), JSON.stringify(shots));
