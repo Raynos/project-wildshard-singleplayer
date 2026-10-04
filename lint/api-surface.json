@@ -3142,6 +3142,18 @@
         "from": "@wildshard/engine/core/config"
       },
       {
+        "name": "CONTENT_CAPS",
+        "kind": "const",
+        "doc": "Provisional phone caps v1 (SF22a); shadow draws count in each draw cap.",
+        "from": "@wildshard/engine/core/config"
+      },
+      {
+        "name": "CONTENT_MB",
+        "kind": "const",
+        "doc": "Decimal bytes per MB in the streaming cost model.",
+        "from": "@wildshard/engine/core/config"
+      },
+      {
         "name": "PAGE_LEVEL",
         "kind": "const",
         "doc": "the level this page booted: the registry's first apply (from ?chunk= at its import, before standalone mode strips the",
@@ -6989,6 +7001,12 @@
         "kind": "interface",
         "doc": "",
         "from": "@wildshard/engine/saves/store"
+      },
+      {
+        "name": "installBrowserSaveEnvironment",
+        "kind": "function",
+        "doc": "Installed before save readers run. Keep browser APIs out of the save schema/store import graph.",
+        "from": "@wildshard/engine/saves/view/storage"
       },
       {
         "name": "ENGINE_STRINGS",
@@ -11028,6 +11046,36 @@
         "from": "@wildshard/game/shard/runtime"
       },
       {
+        "name": "parseShardfile",
+        "kind": "function",
+        "doc": "Parse untrusted JSON as a validated shardfile, or throw a Valibot error.",
+        "from": "@wildshard/game/shardfile/schema"
+      },
+      {
+        "name": "Shardfile",
+        "kind": "type",
+        "doc": "A serialisable shardfile v0, independent of renderer and placement.",
+        "from": "@wildshard/game/shardfile/schema"
+      },
+      {
+        "name": "shardfileRules",
+        "kind": "function",
+        "doc": "Semantic format violations, including reference integrity and the acyclic dependency graph.",
+        "from": "@wildshard/game/shardfile/schema"
+      },
+      {
+        "name": "ShardfileSchema",
+        "kind": "const",
+        "doc": "Strict schema for the public SDK format; rejects unknown fields and invalid references.",
+        "from": "@wildshard/game/shardfile/schema"
+      },
+      {
+        "name": "SHARDFILE_VERSION",
+        "kind": "const",
+        "doc": "The shardfile format and script ABI revision; v0 is provisional until the phone gate.",
+        "from": "@wildshard/game/shardfile/version"
+      },
+      {
         "name": "applyTravelCarry",
         "kind": "function",
         "doc": "Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly.",
@@ -12394,9 +12442,33 @@
     ],
     "sdk": [
       {
+        "name": "parseShardfile",
+        "kind": "function",
+        "doc": "Parse untrusted author output using the same contract as the client.",
+        "from": "@wildshard/sdk/shardfile"
+      },
+      {
+        "name": "Shardfile",
+        "kind": "type",
+        "doc": "Author-facing serialisable renderer-neutral shardfile contract.",
+        "from": "@wildshard/sdk/shardfile"
+      },
+      {
+        "name": "shardfileRules",
+        "kind": "function",
+        "doc": "Inspect semantic author errors using the client contract.",
+        "from": "@wildshard/sdk/shardfile"
+      },
+      {
+        "name": "ShardfileSchema",
+        "kind": "const",
+        "doc": "Author-facing strict schema, sharing the client's validator without a barrel.",
+        "from": "@wildshard/sdk/shardfile"
+      },
+      {
         "name": "SHARDFILE_VERSION",
         "kind": "const",
-        "doc": "The shardfile format and script ABI revision; v0 is provisional until the phone gate.",
+        "doc": "Author-facing revision of the shardfile format and script ABI.",
         "from": "@wildshard/sdk/version"
       }
     ]

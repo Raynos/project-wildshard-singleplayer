@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-198 members; 112 without a doc line (—).
+203 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -197,6 +197,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardPlayHooks` | interface | @wildshard/game/shard/runtime | — |
 | `ShardPlayHost` | interface | @wildshard/game/shard/runtime | Services supplied by the gameplay shell after it has built the player kit and UI. |
 | `ShardRuntime` | interface | @wildshard/game/shard/runtime | Typed, per-build handoff between the staged shell and an authored plugin. |
+| `parseShardfile` | function | @wildshard/game/shardfile/schema | Parse untrusted JSON as a validated shardfile, or throw a Valibot error. |
+| `Shardfile` | type | @wildshard/game/shardfile/schema | A serialisable shardfile v0, independent of renderer and placement. |
+| `shardfileRules` | function | @wildshard/game/shardfile/schema | Semantic format violations, including reference integrity and the acyclic dependency graph. |
+| `ShardfileSchema` | const | @wildshard/game/shardfile/schema | Strict schema for the public SDK format; rejects unknown fields and invalid references. |
+| `SHARDFILE_VERSION` | const | @wildshard/game/shardfile/version | The shardfile format and script ABI revision; v0 is provisional until the phone gate. |
 | `applyTravelCarry` | function | @wildshard/game/travel/travel | Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly. |
 | `bindTravelInventory` | function | @wildshard/game/travel/travel | The composition root binds the live Bag and rows; the cold title has no running shard. |
 | `consumeTravelHandoff` | function | @wildshard/game/travel/travel | — |

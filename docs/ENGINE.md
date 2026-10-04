@@ -1650,7 +1650,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1632 exports, grouped by the module to import them from.
+1633 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1842,6 +1842,7 @@ sections above describe what to use; this list is the complete inventory.
 - `@wildshard/engine/saves/runtime`: `homeScreenPersistence`, `installLegacyMirror`, `installSaveReporter`, `persistHomeScreen`, `saves`, `standaloneDisplay`
 - `@wildshard/engine/saves/slots`: `Json`, `jsonRecord`, `jsonSchema`, `jsonSlot`, `saveStorage`
 - `@wildshard/engine/saves/store`: `CorruptSave`, `ImportReport`, `SaveKeyDef`, `SaveScope`, `SaveSlot`, `SaveStorage`, `SaveStore`, `SchemaFailure`
+- `@wildshard/engine/saves/view/storage`: `installBrowserSaveEnvironment`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
 - `@wildshard/engine/ui/authoredDebugRows`: `authoredRows`, `GlobalDebugActionSpec`, `registerGlobalDebugAction`
 - `@wildshard/engine/ui/BossBar`: `BossBar`
@@ -1923,7 +1924,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-198 exports, grouped by the module to import them from.
+203 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -1956,6 +1957,8 @@ sections above describe what to use; this list is the complete inventory.
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/runtime`: `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
+- `@wildshard/game/shardfile/schema`: `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
+- `@wildshard/game/shardfile/version`: `SHARDFILE_VERSION`
 - `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
 
 ### `@wildshard/kit` (`src/kit/package.json`)

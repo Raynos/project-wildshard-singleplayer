@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
-    "./version": "./version.ts"
+    "./version": "./version.ts",
+    "./shardfile": "./shardfile.ts"
   }
 }

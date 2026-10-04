@@ -4,8 +4,12 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-1 members; 0 without a doc line (—).
+5 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
-| `SHARDFILE_VERSION` | const | @wildshard/sdk/version | The shardfile format and script ABI revision; v0 is provisional until the phone gate. |
+| `parseShardfile` | function | @wildshard/sdk/shardfile | Parse untrusted author output using the same contract as the client. |
+| `Shardfile` | type | @wildshard/sdk/shardfile | Author-facing serialisable renderer-neutral shardfile contract. |
+| `shardfileRules` | function | @wildshard/sdk/shardfile | Inspect semantic author errors using the client contract. |
+| `ShardfileSchema` | const | @wildshard/sdk/shardfile | Author-facing strict schema, sharing the client's validator without a barrel. |
+| `SHARDFILE_VERSION` | const | @wildshard/sdk/version | Author-facing revision of the shardfile format and script ABI. |

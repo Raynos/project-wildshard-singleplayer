@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1645 members; 832 without a doc line (—).
+1648 members; 832 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -530,6 +530,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `CHUNK_DEPTH` | const | @wildshard/engine/core/config | — |
 | `CHUNK_HALF` | const | @wildshard/engine/core/config | — |
 | `CHUNK_SIZE` | const | @wildshard/engine/core/config | — |
+| `CONTENT_CAPS` | const | @wildshard/engine/core/config | Provisional phone caps v1 (SF22a); shadow draws count in each draw cap. |
+| `CONTENT_MB` | const | @wildshard/engine/core/config | Decimal bytes per MB in the streaming cost model. |
 | `PAGE_LEVEL` | const | @wildshard/engine/core/config | the level this page booted: the registry's first apply (from ?chunk= at its import, before standalone mode strips the |
 | `ROAD_LENGTH` | const | @wildshard/engine/core/config | — |
 | `ROAD_WIDTH` | const | @wildshard/engine/core/config | — |
@@ -1170,6 +1172,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SaveStorage` | interface | @wildshard/engine/saves/store | — |
 | `SaveStore` | class · game only | @wildshard/engine/saves/store | Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys. |
 | `SchemaFailure` | interface | @wildshard/engine/saves/store | — |
+| `installBrowserSaveEnvironment` | function | @wildshard/engine/saves/view/storage | Installed before save readers run. Keep browser APIs out of the save schema/store import graph. |
 | `ENGINE_STRINGS` | const | @wildshard/engine/strings | English engine UI strings. Content-owned overrides are installed by the composition root. |
 | `engineString` | function | @wildshard/engine/strings | — |
 | `EngineStringKey` | type | @wildshard/engine/strings | — |
