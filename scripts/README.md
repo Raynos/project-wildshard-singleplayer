@@ -155,6 +155,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [explore-view-taps.mjs](./explore-view-taps.mjs)
 - [fetch-assets.mjs](./fetch-assets.mjs)
 - [fit-lut.py](./fit-lut.py)
+- [frame-floor.mjs](./frame-floor.mjs)
 - [gen-api.mjs](./gen-api.mjs)
 - [gen-ask-ids.mjs](./gen-ask-ids.mjs)
 - [gen-budget-derivations.d.mts](./gen-budget-derivations.d.mts)
