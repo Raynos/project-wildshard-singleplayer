@@ -48,6 +48,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
   const pageHost = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
+  const homeBaseline = { bodies: pageHost.physics.world.bodies.len(), colliders: pageHost.physics.world.colliders.len() };
   const restoreGlobals = browserEvents();
   const local = new Storage(), store = new SaveStore({ local, session: null });
   let homeDurable = false;
@@ -95,7 +96,15 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     pageHost.player.position.set(target.origin.x, 1, target.origin.z); await settle(first.tick);
     expect(first.session.frame()).toBe(target.instance);
   } finally {
-    withOwner(first.scope, () => { first.scope.dispose(); }); pageHost.attachPlayerMotor(first.traveller.motor); pageHost.dispose(); restoreGlobals();
+    try {
+      withOwner(first.scope, () => { first.scope.dispose(); });
+      expect(regions.every((region) => region.host.scope.disposed)).toBe(true);
+      expect(first.session.live.state().residents).toEqual([]);
+      expect({ bodies: pageHost.physics.world.bodies.len(), colliders: pageHost.physics.world.colliders.len() }).toEqual(homeBaseline);
+    } finally {
+      pageHost.attachPlayerMotor(first.traveller.motor); pageHost.dispose(); restoreGlobals();
+    }
+    expect(pageHost.physics.world.colliders).toBeUndefined(); expect(pageHost.physics.world.bodies).toBeUndefined();
   }
 });
 
