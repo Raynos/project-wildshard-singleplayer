@@ -26,9 +26,10 @@ import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
+import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { createSimHost, SIM_API_VERSION, type SimLevel } from '@wildshard/engine/sim';
-import { restoreSimHost, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { restoreSimHost } from '@wildshard/engine/sim/snapshot';
 import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readiness';
@@ -38,6 +39,8 @@ import type { ResidencyAllocator } from './allocator';
 import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from './live';
 import { installGridCrossing, type GridCrossingSession, type GridCrossingState } from './crossing';
 import type { GridLoadout } from './wallet';
+import { GridRegionDurability } from './durability';
+import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed } from './rules';
 import { gridHomeSim, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
@@ -58,6 +61,12 @@ export interface LiveGridPage {
   readonly health: PlayerHealth;
   readonly equipment: EquipmentService;
   readonly events: Events;
+  /** The existing page save service; regional continuations use stable catalogue instance ids. */
+  readonly saves: SaveStore;
+  /** Flush the page's real progress/loadout owner; storage refusal must hold the source frame. */
+  readonly checkpoint: () => boolean;
+  /** Profile rewards are restricted to the platform's admitted catalogue. */
+  readonly catalogue: readonly LedgerCatalogueItem[];
   /** switch the page's stepped world (world.physics and app.physics) */
   readonly setPhysics: (physics: Physics) => void;
   readonly onFixedPre: (fn: () => void) => void;
@@ -90,10 +99,10 @@ const PLATFORM_LEVEL: SimLevel = { version: SIM_API_VERSION, id: 'platform.highw
   weapon: { id: 'platform.hands', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
 /** The home cell's G68 loadout: stow silently to hands at the border, restore the shard's weapon on re-entry. */
-function homeLoadout(equipment: EquipmentService, scope: Scope): GridLoadout {
+function homeLoadout(equipment: EquipmentService, scope: Scope, checkpoint: () => boolean): GridLoadout {
   let before: { stowed: boolean; tools: readonly { tool: EquipmentService['tools'][number]; enabled: boolean }[] } | undefined;
   return {
-    checkpoint: () => true, // the borrowed home keeps its own save owner
+    checkpoint,
     stow: () => {
       if (scope.disposed || before !== undefined) return;
       before = { stowed: equipment.stowed, tools: equipment.tools.map((tool) => ({ tool, enabled: tool.enabled })) };
@@ -108,16 +117,13 @@ function homeLoadout(equipment: EquipmentService, scope: Scope): GridLoadout {
     },
   };
 }
-/** A template cell's loadout is its empty equipment: the traveller stays on bare hands inside it. */
-const HANDS: GridLoadout = { checkpoint: () => true, stow: () => undefined, interior: () => undefined };
-
 /** The live crossing for one grid page; disposed with the level scope. */
 export class LiveGridSession {
   readonly live: LiveGridHost;
   private readonly crossing: GridCrossingSession;
   private readonly ports: LiveGridSessionPorts;
   private readonly page: LiveGridPage;
-  private readonly snapshots = new Map<string, SimSnapshot>();
+  private readonly durability = new Map<string, GridRegionDurability>();
   private readonly offset = new Vector3();
   private readonly applied = new Vector3();
   private readonly loadout: GridLoadout;
@@ -132,7 +138,7 @@ export class LiveGridSession {
     const player = { get position() { return traveller.position; }, get yaw() { return traveller.yaw; }, health: page.health, owner: traveller, motor: traveller.motor };
     const highwayBytes = ports.strips.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0);
     this.live = new LiveGridHost(assembly, {
-      home: { instance: home.instance, physics: ports.physics, bytes: 1, checkpoint: () => true, walls: ports.walls }, // the home world is the page's engine base (§3.2)
+      home: { instance: home.instance, physics: ports.physics, bytes: 1, checkpoint: () => this.checkpointHome(), walls: ports.walls },
       player, allocator: ports.allocator,
       highway: { bytes: highwayBytes, create: () => {
         const host = createSimHost(PLATFORM_LEVEL, { rapier, playerBody: false, ground: false });
@@ -142,18 +148,20 @@ export class LiveGridSession {
         return { host, walls, dispose: () => { host.dispose(); } };
       } },
       admit: (cell) => this.admit(cell),
-      save: (instance, snapshot) => { this.snapshots.set(instance, snapshot); return true; },
-      read: (instance) => this.snapshots.get(instance),
+      save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
+      read: (instance) => this.regionSave(instance).read(),
       bindFrame: (frame) => { this.bind(frame); },
       gameplayReady: () => true, // a template copy has no entered hooks; Driftwood's hybrid stays default-off (its fence is SF46's)
       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },
     });
     scope.onDispose(() => { this.live.dispose(); });
-    this.loadout = homeLoadout(page.equipment, scope);
+    this.loadout = homeLoadout(page.equipment, scope, page.checkpoint);
     this.crossing = installGridCrossing({
       current: () => this.live.current(), prepare: (from, to) => this.live.prepare(from, to), ready: (instance) => this.live.ready(instance),
       checkpoint: (instance) => this.live.checkpoint(instance), target: (feet) => this.live.target(feet),
-    }, assembly, (instance) => (instance === home.instance ? this.loadout : HANDS), scope);
+    }, assembly, (instance) => (instance === home.instance ? this.loadout : {
+      checkpoint: () => this.regionSave(instance).flush(), stow: () => undefined, interior: () => undefined,
+    }), scope);
     // G68: off the home frame (the deck, the strips, another cell) the page pipeline admits no damage to or from the traveller
     page.events.answer('damage.admit', (request) => {
       if (request === null || this.live.current() === home.instance) return request;
@@ -169,10 +177,35 @@ export class LiveGridSession {
     scope.onDispose(gridHomeSim.take((sim) => { this.homeSim = sim; sim.setActive(this.live.current() === home.instance); }));
     scope.onDispose(() => { this.homeSim?.setActive(true); this.homeSim = null; });
     page.onFixedPre(() => { if (scope.disposed) return; this.live.beforeFixed(); this.crossing.step(this.live.worldFeet()); });
-    page.onFixedPost(() => { if (!scope.disposed) this.live.afterPlayerStep(); });
+    let saveTicks = 0;
+    page.onFixedPost(() => {
+      if (scope.disposed) return;
+      this.live.afterPlayerStep();
+      if (++saveTicks >= 300) { saveTicks = 0; this.checkpoint(); }
+    });
     page.onInput(() => { traveller.camera.position.sub(this.applied); this.applied.set(0, 0, 0); });
     page.onUpdate(() => { if (this.offset.lengthSq() === 0) return; traveller.camera.position.add(this.offset); this.applied.copy(this.offset); });
     scope.onDispose(() => { traveller.camera.position.sub(this.applied); this.applied.set(0, 0, 0); });
+    scope.listen(window, 'pagehide', () => { this.checkpoint(); });
+    scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') this.checkpoint(); });
+    scope.onDispose(() => { this.checkpoint(); });
+  }
+
+  private checkpointHome(): boolean {
+    const sim = this.homeSim;
+    return sim !== null && !sim.disposed() ? sim.checkpoint() : this.page.checkpoint();
+  }
+
+  private regionSave(instance: string): GridRegionDurability {
+    const saved = this.durability.get(instance);
+    if (saved === undefined) throw new Error('Regional durability was not admitted');
+    return saved;
+  }
+
+  /** Save the active region and retry its pending profile/local rewards before a reload or page exit. */
+  checkpoint(): boolean {
+    const current = this.live.current();
+    return current === null ? this.checkpointHome() : this.live.checkpoint(current);
   }
 
   /** The traveller's world feet (grid metres), whatever frame it is in. */
@@ -188,16 +221,25 @@ export class LiveGridSession {
     if (pending === null) throw new Error(`${cell.slug} is not a shardfile shard (it stays a far proxy until M3)`);
     const { source, assets } = (await pending).admitted;
     if (source.runtime !== null) throw new Error(`${cell.slug} declares a hybrid runtime (M3)`);
-    // a frozen region's quest facts and coins have no page owner yet (the template's quest runs only in its own save: SF20a's open row)
-    const quest = { fact: (): void => undefined, coins: (): void => undefined };
+    let durability = this.durability.get(cell.instance);
+    if (durability === undefined) {
+      durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
+      this.durability.set(cell.instance, durability);
+    }
+    const savedRegion = durability, quest = savedRegion.quest;
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
     return { bytes: source.budgets.sim.resident, create: (saved) => {
       let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false, quest });
       if (saved !== undefined) {
         const authored = sim.host.level; sim.dispose();
-        const host = restoreSimHost(authored, { rapier }, saved, (restored) => { sim = bindShardfileSim(restored, source, assets, { rapier, restoring: true, quest }); });
+        const host = restoreSimHost(authored, { rapier }, saved, (restored) => {
+          sim = bindShardfileSim(restored, source, assets, { rapier, restoring: true, quest }); savedRegion.bind(restored);
+        });
         host.detachPlayerMotor(); // the restored world carries its strip duplicates already
-      } else for (const mesh of duplicates) installStripCollider(sim.host.physics, mesh, sim.host.scope);
+      } else {
+        savedRegion.bind(sim.host);
+        for (const mesh of duplicates) installStripCollider(sim.host.physics, mesh, sim.host.scope);
+      }
       const region = sim, start = region.host.level.player, host = region.host, water = region.water;
       this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
         // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
