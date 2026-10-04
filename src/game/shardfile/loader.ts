@@ -18,6 +18,7 @@ import { ClientAssets } from './clientAssets';
 import { ShardfileClient, type ShardfileClientBindings } from './client';
 import { clientGround } from './clientGround';
 import { shardfileWater } from './water';
+import { ResidencyAllocator } from '../grid/allocator';
 
 /** Validate before allocating a level. Content bindings belong to the full loader. */
 export function emptyShardfileSource(input: unknown): ShardManifest {
@@ -61,13 +62,14 @@ function sourceManifest(source: Shardfile): ShardManifest {
 export async function shardfileSource(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
   const admitted = await admitProduct(input, options), source = admitted.source, assets = new ClientAssets(source, admitted.assets, options);
   const manifest = sourceManifest(source);
+  const clientBindings = { ...bindings, allocator: bindings.allocator ?? new ResidencyAllocator() };
   return { ...manifest, biome: 'Authored world', blurb: source.identity.name,
     ground: { ...(source.terrain === null ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
     species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],
     loot: { coins: source.rows.loot.length > 0 },
     creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
     render: () => Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look, assets.retained)),
-    load: () => Promise.resolve({ default: class extends ShardfileClient { constructor() { super(source, assets, bindings); } } }),
+    load: () => Promise.resolve({ default: class extends ShardfileClient { constructor() { super(source, assets, clientBindings); } } }),
   };
 }
 

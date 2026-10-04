@@ -67,7 +67,8 @@ in every key. It blends by world-space camera distance, matching the template's
 
 `look.materials` is an optional record from stable material ID to the engine's
 `FamilyMaterialSchema` parameters (`toon`, `pbr`, `painterly`, `emissive`, including
-PBR ground layers). `look.familyLooks` optionally carries `toon`, `painterly` and
+PBR ground layers). PBR `faceted` defaults to false; true selects flat shading.
+`look.familyLooks` optionally carries `toon`, `painterly` and
 `emissive` look parameters. Engine schemas fill defaults and reject unknown family
 names or shader fields. Terrain and prop `family` bindings select a material ID;
 the four family names also select platform defaults. Creature look rows may name a
@@ -199,3 +200,11 @@ admission again on every load. A visited product is published to Cache Storage o
 an offline load reads those files without fetching and refuses missing or corrupted bytes. A revision keeps each saved
 field's scope, name, id and type. Previous-format readers are trusted client code, and only an offline visited first-party
 product may select one; provisional v0 currently has no previous format reader.
+
+The client reserves library and commons claims in the session residency allocator;
+shared dependencies are charged once and leases end with the level. The grid sim
+registry owns sim claims and render rings own tile claims. Local instance checkpoints
+retain admitted script continuation, item fuel/cooldowns/queued commands, quest flags,
+current steps and dialogue. They restore silently before panel/collider bindings,
+without replaying rewards or replacing the Game physics world. A changed revision
+or incompatible continuation starts fresh; revision migrations remain explicit.

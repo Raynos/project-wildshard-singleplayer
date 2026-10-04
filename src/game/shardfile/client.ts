@@ -20,6 +20,8 @@ import { installQuestPresentation } from '../quest/presentation';
 import { instanceSave } from '../instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
 import { EmptyEquipment } from './emptyEquipment';
+import type { ResidencyAllocator } from '../grid/allocator';
+import { leaseClientLibrary } from './clientLibrary';
 import { clientMaterials } from './clientMaterials';
 import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
 import { clientViews } from './clientViews';
@@ -27,6 +29,8 @@ import { installClientWater } from './clientWater';
 import { clientWorld } from './clientWorld';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields } from './clientItems';
+import { captureClientState, restoreClientState, installClientItemState, clientStateSave } from './clientState';
+import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
 import { createShardfileSim, type ShardfileSimulation } from './simulation';
@@ -37,6 +41,7 @@ export interface ShardfileClientBindings {
   recipes: ReadonlyMap<string, ShardViewRecipe>; items: ReadonlyMap<string, ItemFamily>; icon: (name: string) => EquipmentIcon;
   voices: (audio: ShardPlayHost['audio']) => DeclaredAudioPorts['voices']; catalogue: readonly LedgerCatalogueItem[];
   instance: string;
+  allocator?: ResidencyAllocator;
 }
 const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
 const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
@@ -57,6 +62,8 @@ export class ShardfileClient {
     const runtime = ctx.game.runtime, world = runtime?.world;
     if (runtime === undefined || world === null || world === undefined) throw new Error('Shardfile requires the normal world stage');
     ctx.scope.onDispose(this.assets.pin());
+    const allocator = this.bindings.allocator; if (allocator === undefined) throw new Error('Shardfile requires its session residency allocator');
+    leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance });
     const presentation = await clientMaterials(this.source, this.assets.retained, world.game.renderer, ctx.scope);
     this.presentation = presentation;
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials });
@@ -165,11 +172,20 @@ export class ShardfileClient {
       const core = sim.host.entities.get(id); if (core === undefined) throw new Error('Missing authoritative creature');
       view.bindSimulation(core); view.mesh.scale.setScalar(core.scale);
     }
-    sim.host.onStep('items.declared', (dt) => {
-      items.step(sim.host.state.tick, dt);
+    installClientItemState(sim, items.runtimes, () => {
+      items.step(sim.host.state.tick, 1 / 60);
       const lane = sim.lane, player = sim.actors.get(health.id);
       if (lane !== undefined && player !== undefined) projectItemFields(source, items.runtimes, lane, player);
     });
+    const continuation = instanceSave(ctx.app.saves, clientStateSave, { id: identity.instance, shard: identity.shard });
+    const prior = continuation.read();
+    if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) continuation.write(null);
+    syncTargetColliders(source.targets, sim.colliders, read);
+    const checkpoint = (): void => { continuation.write(captureClientState(source, sim, items.runtimes)); };
+    sim.host.onStep('client.save', () => { if (sim.host.state.tick % 300 === 0) checkpoint(); });
+    ctx.scope.onDispose(checkpoint);
+    ctx.scope.listen(window, 'pagehide', checkpoint);
+    ctx.scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') checkpoint(); });
     const hooks = sim.lane === undefined ? null : createQuestScriptPorts(sim.lane, source.hooks, sim.actors);
     const scene = clientScene(source, items.runtimes, (id) => { if (hooks === null) throw new Error('Missing admitted scene lane'); hooks.scene(id, health.id); });
     if (source.plumbing !== null) installDeclaredPlumbing(source.plumbing, { instance: source.identity.slug, tier: TIER, scope: ctx.scope, input: ctx.app.input,
