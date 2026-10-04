@@ -36,3 +36,10 @@ it('refuses unknown score slots, path traversal, nonfinite gains and unbound pro
     expect(() => emptyShardfileSource(source)).toThrow('full shardfile loader');
   }
 });
+
+it('retains an exact authored fade width and refuses an inconsistent outer radius', () => {
+  const zones = audio().zones; if (zones === undefined) throw new Error('Missing zones');
+  const row = { id: 'fractional', x: 0, z: 0, inner: 17.36, outer: 47.36, fade: 30, gain: 1 };
+  expect(parseAudioData({ ...audio(), zones: { ...zones, zones: [row] } }).zones?.zones[0]?.fade).toBe(30);
+  expect(() => parseAudioData({ ...audio(), zones: { ...zones, zones: [{ ...row, fade: 29 }] } })).toThrow();
+});

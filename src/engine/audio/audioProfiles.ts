@@ -9,7 +9,7 @@ export interface AudioMusicProfile {
   selection: readonly ScoreSelection[]; selectMode: 'first' | 'all';
 }
 /** Named circular ambience zones; a source id resolves a trusted moving-emitter or geometry port. */
-export interface AudioZone { id: string; x: number; z: number; inner: number; outer: number; gain: number; open?: boolean | undefined; source?: string | undefined }
+export interface AudioZone { id: string; x: number; z: number; inner: number; outer: number; gain: number; /** Exact authored width; avoids subtracting rounded outer/inner radii. */ fade?: number | undefined; open?: boolean | undefined; source?: string | undefined }
 /** Mixer timing, bed levels, room sends and named zones consumed by a trusted catalogue recipe. */
 export interface AudioZoneProfile {
   id: string; smoothSeconds: number; tickHz: number; silentSeconds: number; holdSeconds: number;
