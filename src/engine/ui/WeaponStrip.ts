@@ -2,6 +2,7 @@ import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import type { EquipmentService } from '../combat/EquipmentService';
 import type { WeaponId } from '../combat/Equipment';
+import { app } from '../app/runtime';
 
 /**
  * WeaponStrip — the one weapon-swap control of every shard, built once by main.ts.
@@ -126,7 +127,7 @@ export class WeaponStrip {
       if (ammo === null) return;
       this.scope.listen(b, 'pointerdown', (e) => {
         e.stopPropagation(); e.preventDefault();
-        if (this.weapons.enabled) this.weapons.select(k.id);
+        if (this.weapons.enabled) app.input.press(`swap.weapon.${k.id}`);
       });
       this.el.append(b);
       this.slots.push({ id: k.id, el: b, ammo, shownAmmo: null, on: false });
@@ -167,11 +168,11 @@ export class WeaponStrip {
       ring.classList.remove('down');
       if (ring.hasPointerCapture(e.pointerId)) ring.releasePointerCapture(e.pointerId);
       if (!this.weapons.enabled) { this.closePie(); return; }
-      if (!p.open) { if (!cancelled) this.weapons.swap(); return; }
+      if (!p.open) { if (!cancelled) app.input.press('swap.ui'); return; }
       if (!cancelled) this.hover(e.clientX, e.clientY);
       const pick = cancelled ? null : this.pick;
       this.closePie();
-      if (pick !== null && pick !== this.weapons.current.id) this.weapons.select(pick);
+      if (pick !== null && pick !== this.weapons.current.id) app.input.press(`swap.weapon.${pick}`);
     };
     this.scope.listen(ring, 'pointerup', (e) => { end(e, false); });
     this.scope.listen(ring, 'pointercancel', (e) => { end(e, true); });

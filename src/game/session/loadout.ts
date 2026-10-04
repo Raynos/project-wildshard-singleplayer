@@ -59,7 +59,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   await macrotask();
   const longbow = authoredKit.secondary ?? null;
   const weapons: EquipmentService = new EquipmentService(crossbow, { scope: game.levelScope, events: app.events,
-    input: { bind: (action, run, scope) => { app.input.bind(action, run, scope, () => weapons.current.enabled); } },
+    input: { bind: (action, run, scope, allowed) => { app.input.bind(action, run, scope, allowed ?? (() => weapons.current.enabled)); } },
     ...(authoredKit.order === undefined ? {} : { order: [...authoredKit.order] }) });
   for (const w of [...(rifle ? [rifle] : []), ...(authoredKit.extras ?? []), ...(longbow ? [longbow] : [])]) weapons.add(w, { locked: true });
   weaponInputContext(weapons, game.levelScope);

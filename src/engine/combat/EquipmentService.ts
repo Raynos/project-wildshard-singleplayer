@@ -76,9 +76,11 @@ export class EquipmentService implements WeaponHooks {
 
   readonly tools: Tool[] = [];
   private readonly scope: Scope;
+  private readonly input: EquipmentInput | undefined;
   readonly events: Events | undefined;
   constructor(first: Weapon, opts: { scope?: Scope; events?: Events; input?: EquipmentInput; order?: WeaponId[] } = {}) {
     this.scope = opts.scope?.child('equipment') ?? new Scope('equipment');
+    this.input = opts.input;
     this.events = opts.events;
     this.list = []; this.current = first; this.order = opts.order;
     this.add(first, { locked: false });
@@ -86,6 +88,7 @@ export class EquipmentService implements WeaponHooks {
     input?.bind('swap', () => this.swap(), this.scope);
     input?.bind('swap.next', () => this.step(1), this.scope);
     input?.bind('swap.prev', () => this.step(-1), this.scope);
+    input?.bind('swap.ui', () => this.swap(), this.scope, () => this.enabled);
     for (const digit of [1, 2, 3, 4, 5, 6, 7, 8, 9] as const) input?.bind(`swap.slot.${digit}`, () => {
       const w = this.available[digit - 1]; if (w) this.select(w.id);
     }, this.scope);
@@ -104,6 +107,7 @@ export class EquipmentService implements WeaponHooks {
     w.install({ scope: this.scope.child(w.row.id), ...(this.events === undefined ? {} : { events: this.events }) });
     if (w instanceof Tool) this.tools.push(w);
     else {
+      this.input?.bind(`swap.weapon.${w.id}`, () => { this.select(w.id); }, this.scope, () => this.enabled);
       this.wire(w);
       if (opts.order === undefined) this.list.push(w); else this.list.splice(opts.order, 0, w);
       w.setActive(w === this.current); this.apply();
