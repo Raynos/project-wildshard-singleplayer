@@ -11,6 +11,7 @@ import { Terrain } from '../../src/engine/world/Terrain';
 import { toLevelSpec } from '../../src/game/shard/spec';
 import { terrainFor, type ShardManifest } from '../../src/game/shard/manifest';
 import { TEMPLATE } from '../../src/shards/_template/manifest';
+import { AUTHORED_TERRAIN } from '../fixtures/authoredTerrain';
 
 const FIXTURE: ShardManifest = { ...TEMPLATE, ground: { structures: true },
   spawn: { x: 0, y: 2, z: 0, yaw: 0 }, uses: [], spawns: [], treeCount: 0 };
@@ -49,8 +50,7 @@ it('loads a structures-only manifest with no authored terrain, terrain mesh or t
 });
 
 it('rebinds all terrain readers from an authored/baked world to structures and back', () => {
-  const authored = toLevelSpec(TEMPLATE), field = authored.ground.terrain;
-  if (field === undefined) throw new Error('template terrain missing');
+  const field = AUTHORED_TERRAIN, authored = toLevelSpec({ ...TEMPLATE, ground: { terrain: field } });
   configureLevel(authored);
   heightfield._installBakedTerrain({ heightAt: () => 42, normalAt: () => [1, 0, 0], splatAt: () => [0, 0, 0, 1] });
   expect(heightfield.heightAt(0, 0)).toBe(42);
@@ -72,7 +72,7 @@ it('rebinds all terrain readers from an authored/baked world to structures and b
 });
 
 it('keeps authored terrain for mixed worlds and rejects missing ground policy', () => {
-  const mixed: ShardManifest = { ...TEMPLATE, ground: { ...TEMPLATE.ground, structures: true } };
-  expect(terrainFor(mixed)).toBe(TEMPLATE.ground.terrain);
+  const mixed: ShardManifest = { ...TEMPLATE, ground: { terrain: AUTHORED_TERRAIN, structures: true } };
+  expect(terrainFor(mixed)).toBe(AUTHORED_TERRAIN);
   expect(() => terrainFieldFor({}, 'invalid')).toThrow('No terrain for invalid');
 });

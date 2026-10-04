@@ -17,6 +17,7 @@ import { TEMPLATE } from '../../src/shards/_template/manifest';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { manager } from '../fake/manager';
 import { fakeWorld } from '../fake/world';
+import { AUTHORED_TERRAIN } from '../fixtures/authoredTerrain';
 
 const FIXTURE: ShardManifest = { ...TEMPLATE, ground: { structures: true },
   spawn: { x: 0, y: 20, z: 0, yaw: 0 }, world: { killY: -80 }, uses: [], spawns: [], treeCount: 0 };
@@ -122,8 +123,7 @@ it.each(['ground', 'world'] as const)('starts above-%s flyers at their declared 
 });
 
 it('retains exact analytic heights on normal terrain instead of collider triangulation', async () => {
-  const ph = await platforms(), terrain = TEMPLATE.ground.terrain;
-  if (terrain === undefined) throw new Error('template terrain missing');
+  const ph = await platforms(), terrain = AUTHORED_TERRAIN;
   configureLevel(toLevelSpec({ ...TEMPLATE, ground: { terrain: { ...terrain, heightAt: () => 0.07 } } }));
   // Different heights deliberately prove that the original analytical path remains exact.
   addTerrain(ph, new Float32Array(4), 2, 100); ph.step();

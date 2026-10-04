@@ -19,6 +19,8 @@ import { setBootCatalog } from '../src/engine/boot/catalog';
 import { OPTION_VALUES, saveSetting } from '../src/engine/ui/Settings';
 
 type SP = typeof sp;
+// Unadmitted descriptors carry picker metadata. Their immutable KTX2 files enter the separate shardfile admission path.
+const LEGACY_SHARDS = SHARDS.filter((manifest) => manifest.shardfile === undefined);
 const texPick = (v: string | undefined): (typeof OPTION_VALUES.tex)[number] => OPTION_VALUES.tex.find((x) => x === v) ?? 'auto';
 
 /**
@@ -112,7 +114,8 @@ describe('the KTX2 sets', () => {
   it.each(['phone', 'desktop'] as const)('every %s shard has the KTX2 stand-ins it declares + the transcoder, or an empty set without GPU assets', async (tier) => {
     await load({ tier });
     // Include experimental and hidden shards: assets and KTX2 mappings are optional for either.
-    for (const def of SHARDS) {
+    for (const def of SHARDS.filter((manifest) => manifest.shardfile !== undefined)) expect(def.boot).toBeUndefined();
+    for (const def of LEGACY_SHARDS) {
       const set = sp.ktx2Set(def);
       const gpu = [...Object.values(chunkFiles(def, 'ktx2')).flat(), ...sp.lateReads(def, 'ktx2')].filter((url) => url.startsWith('/assets/gpu/'));
       if (gpu.length === 0) {
@@ -165,7 +168,7 @@ describe('the bake keeps no file a KTX2 set does not read (E173, scripts/bake-kt
     const used = new Set<string>();
     for (const tier of ['phone', 'desktop'] as const) {
       await load({ tier });
-      for (const def of SHARDS) for (const u of sp.ktx2Set(def)) used.add(u.split('?')[0] ?? u);
+      for (const def of LEGACY_SHARDS) for (const u of sp.ktx2Set(def)) used.add(u.split('?')[0] ?? u);
     }
     for (const u of used) { // the textures a .gltf adds are .ktx2: visited, never expanded
       const raw = GLTF[`../public${u}`];

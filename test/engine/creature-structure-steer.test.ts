@@ -7,6 +7,7 @@ import { TEMPLATE } from '../../src/shards/_template/manifest';
 import type { Animal } from '../../src/engine/entities/AnimalView';
 import type { ThinkCtx } from '../../src/engine/entities/species/registry';
 import { manager } from '../fake/manager';
+import { AUTHORED_TERRAIN } from '../fixtures/authoredTerrain';
 
 afterEach(() => { configureLevel(toLevelSpec(TEMPLATE)); vi.restoreAllMocks(); });
 
@@ -29,7 +30,7 @@ it('keeps ctx.steer heading, speed and turn outside the analytic chunk in a stru
 });
 
 it('retains analytic chunk-edge avoidance for authored terrain and mixed worlds', () => {
-  for (const ground of [TEMPLATE.ground, { ...TEMPLATE.ground, structures: true as const }]) {
+  for (const ground of [{ terrain: AUTHORED_TERRAIN }, { terrain: AUTHORED_TERRAIN, structures: true as const }]) {
     configureLevel(toLevelSpec({ ...TEMPLATE, ground }));
     expect(activeLevel().ground.terrain).toBeDefined();
     const { animal, steer } = steering();
