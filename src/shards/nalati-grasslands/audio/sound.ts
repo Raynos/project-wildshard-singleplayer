@@ -32,13 +32,13 @@ import { createSteppeScore, type SteppeScene } from './SteppeScore';
 import * as THREE from 'three';
 import { SteppeAmbience } from './SteppeAmbience';
 import { installSteppeVoices, STEPPE_BED, type SteppeCall, type SteppeVoices } from './synth';
-import type { Nalati } from '../runtime';
+import type { Nalati } from '../runtime/state';
 import type { NalatiWeather } from '../world/installWeather';
 import { CAMP, SUMMER_YURTS, GLACIER, MELT_STREAM as BROOK } from '../layout';
 import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../world/terrain';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
-const surfaceOf = (surface: string | undefined): ImpactKind => surface === 'wood' || surface === 'flesh' ? surface : 'ground';
+import { nalatiCombatCues } from './combatCues';
 
 export interface NalatiSound {
   bind: (audio: Audio, music?: Music, animals?: AnimalManager, wildlife?: Wildlife) => void;
@@ -103,27 +103,10 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
 
   // ── the kit: the bow's twang carries the draw's power; the spear's thrust vs throw is known only after onFire ──
   let thrustPending = false;
-  const cues = new CombatCues((id, opts) => {
-    const v = voices;
-    if (audio === null || v === null) return false;
-    switch (id) {
-      case 'cue.bow.loose': return true; // powered twang is the loose callback, never a second shot sound
-      case 'cue.bow.loose.power': v.bowTwang(opts.strength ?? 1); return true;
-      case 'cue.bow.draw': v.bowDraw(); return true;
-      case 'cue.bow.full': v.bowFullDraw(); return true;
-      case 'cue.bow.letdown': v.bowLetDown(); return true;
-      case 'cue.spear.throw': v.javelinThrow(); return true;
-      case 'cue.sabre.swing': v.sabreSwing(); return true;
-      case 'cue.spear.thrust':
-        thrustPending = true;
-        queueMicrotask(() => { if (thrustPending) { thrustPending = false; voices?.spearThrust(); } });
-        return true;
-      case 'cue.arrow.hit': v.arrowImpact(surfaceOf(opts.surface), opts.pan ?? 0, opts.gain ?? 1); return true;
-      case 'cue.javelin.hit': v.javelinImpact(surfaceOf(opts.surface), opts.pan ?? 0, opts.gain ?? 1); return true;
-      case 'cue.sabre.hit': v.sabreHit(surfaceOf(opts.surface), opts.pan ?? 0, opts.gain ?? 1); return true;
-      default: return false;
-    }
-  });
+  const cues = new CombatCues(nalatiCombatCues({ ready: () => audio !== null, voices: () => voices, thrust: () => {
+    thrustPending = true;
+    queueMicrotask(() => { if (thrustPending) { thrustPending = false; voices?.spearThrust(); } });
+  } }));
   let manager: AnimalManager | null = null;
   ctx.on('creature.signal', ({ name, x, z }) => { event(name, x, z); });
   ctx.on('weapon.charge', ({ id, phase, value }) => {

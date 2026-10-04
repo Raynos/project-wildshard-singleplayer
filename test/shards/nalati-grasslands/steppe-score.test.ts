@@ -2,7 +2,7 @@
 // build ships; decoded on demand (the wanted + the playing slot resident, nothing else); a slot that fails is skipped.
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { assetVersions, bootPacks, installAssetTables, musicManifests, publicBytes, sfxManifests } from '../../../src/engine/boot/tables';
-import { createSteppeScore, steppeFiles, steppeBootFiles } from '../../../src/shards/nalati-grasslands/audio/SteppeScore';
+import { createSteppeScore, steppeFiles, steppeBootFiles, steppePick } from '../../../src/shards/nalati-grasslands/audio/SteppeScore';
 
 // The score reads the app's asset tables (E415): this test installs its own small build, then puts the real one back.
 const slot = (n: string) => ({ calm: `${n}-calm.m4a`, tension: `${n}-tension.m4a`, bpm: 100, beatsPerBar: 4, loopStart: 1, loopEnd: 20, duration: 22 });
@@ -61,4 +61,10 @@ describe('SteppeScore', () => {
     await tick(); await tick();
     expect(s.target()).toBe('steppe-grass');
   });
+});
+
+test('all 24 scenes retain the original ordered fallback chain including repeated grass', () => {
+  for (const zone of ['grass', 'sky', 'snow'] as const) for (const night of [false, true]) for (const storm of [false, true]) for (const boss of [null, 'king'] as const) {
+    expect(steppePick({ zone, night, storm, boss })).toEqual([...(boss === 'king' ? ['steppe-king'] : []), ...(storm ? ['steppe-storm'] : []), ...(night ? ['steppe-night'] : []), `steppe-${zone}`, 'steppe-grass']);
+  }
 });

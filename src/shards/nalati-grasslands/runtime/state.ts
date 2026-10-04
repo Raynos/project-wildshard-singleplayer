@@ -1,8 +1,8 @@
-import { Wildlife, type SheepHit } from './creatures/wildlife';
-import { wildEnv } from './creatures/env';
+import { Wildlife, type SheepHit } from '../creatures/wildlife';
+import { wildEnv } from '../creatures/env';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
-import { installRide } from './ride/input';
+import { installRide } from '../ride/input';
 import { Color, Vector3, type Object3D } from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
@@ -22,29 +22,29 @@ import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 
 
 
-import { NalatiWater } from './water';
-import { buildOutcrops } from './outcrops';
-import { buildCragRock } from './cragRock';
-import { NalatiPOIs } from './world/index';
-import { NalatiDressing } from './world/dressing/index';
-import { wireKurgan, type KurganBoss } from './combat/goldenKing';
-import { wireElites, type NalatiElites } from './combat/elites';
-import { wireWeather, type NalatiWeather } from './world/installWeather';
+import { NalatiWater } from '../water';
+import { buildOutcrops } from '../outcrops';
+import { buildCragRock } from '../cragRock';
+import { NalatiPOIs } from '../world/index';
+import { NalatiDressing } from '../world/dressing/index';
+import { wireKurgan, type KurganBoss } from '../combat/goldenKing';
+import { wireElites, type NalatiElites } from '../combat/elites';
+import { wireWeather, type NalatiWeather } from '../world/installWeather';
 
 
-import type { NalatiLoadout } from './weapons/loadout';
-import { nalatiWetAt } from './wet';
-import { wireNightEnemies } from './combat/night';
-import { installStealth, type Stealth } from './stealth';
-import { wireSound, type NalatiSound } from './audio/sound';
+import type { NalatiLoadout } from '../weapons/loadout';
+import { nalatiWetAt } from '../wet';
+import { wireNightEnemies } from '../combat/night';
+import { installStealth, type Stealth } from '../stealth';
+import { wireSound, type NalatiSound } from '../audio/sound';
 import { loadGrassField } from '@wildshard/kit/lookApi';
-import { wireLookV2 } from './look/index';
-import { reseedGrassV2 } from './look/grass';
-import { wireRide, type Ride } from './ride/ride';
-import { wireStormTitan, type StormTitan } from './combat/stormTitan';
-import { NalatiSkinLocker, NalatiSkinPainter } from './weapons/nalatiSkins';
-import { HITCHING_RAIL } from './world/layout';
-import { registerNalatiPlaces } from './world/places';
+import { wireLookV2 } from '../look/index';
+import { reseedGrassV2 } from '../look/grass';
+import { wireRide, type Ride } from '../ride/ride';
+import { wireStormTitan, type StormTitan } from '../combat/stormTitan';
+import { NalatiSkinLocker, NalatiSkinPainter } from '../weapons/nalatiSkins';
+import { HITCHING_RAIL } from '../world/layout';
+import { registerNalatiPlaces } from '../world/places';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ShardManifest; params: URLSearchParams }

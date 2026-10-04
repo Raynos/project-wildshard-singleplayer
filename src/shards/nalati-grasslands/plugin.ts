@@ -14,7 +14,7 @@ import { loadParticles, loadGrassField } from '@wildshard/kit/lookApi';
 import { Rifle } from '@wildshard/kit/weapons/firearm/Rifle';
 import { NALATI_GRASS_LAYOUT } from './look/grassFieldLayout';
 import { Vector3 } from 'three';
-import { buildNalatiWorld, type Nalati } from './runtime';
+import { buildNalatiWorld, type Nalati } from './runtime/state';
 import { buildNalatiLoadout, type NalatiLoadout } from './weapons/loadout';
 import { AR15, BOW, SABRE, SPEAR } from './weapons/equipment';
 import { installNalatiAdventure, CAPTIONED_EVENTS } from './adventure';

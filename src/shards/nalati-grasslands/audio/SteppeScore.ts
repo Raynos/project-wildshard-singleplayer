@@ -17,23 +17,26 @@
 // while the old one plays on, then crossfades in.
 import { SetScore, decodeScore, scoreFiles, scoreManifest, type AudioRead, type AudioDecode, type ScoreBank } from '@wildshard/engine/audio/SetScore';
 import type { MusicManifest } from '@wildshard/engine/audio/Stems';
+import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import { selectScoreSlots } from '@wildshard/engine/audio/scoreSelection';
+import source from '../shard.config';
+
+const PROFILE = requireAudioProfile(source.audio.music, 'score.nalati');
 /** NALATI-MERGE A2: Nalati's own score (public/assets/music/nalati/music.json — one Kazakh-folk score whatever the style):
  *  a theme per zone, the night, the storm (Jel Ata's cue), the Golden King */
 export type SteppeSlot = 'steppe-grass' | 'steppe-sky' | 'steppe-snow' | 'steppe-night' | 'steppe-storm' | 'steppe-king';
 
 export type SteppeZone = 'grass' | 'sky' | 'snow';
 export interface SteppeScene { zone: SteppeZone; night: boolean; storm: boolean; boss: 'king' | null }
-export const STEPPE_DIR = '/assets/music/nalati/';
-const SET = { dir: STEPPE_DIR, manifestKey: 'nalati' };
-const ZONE_SLOT: Record<SteppeZone, SteppeSlot> = { grass: 'steppe-grass', sky: 'steppe-sky', snow: 'steppe-snow' };
+const SET = requireAudioProfile(PROFILE.source ?? undefined, 'nalati.music.source');
+export const STEPPE_DIR = SET.dir;
 export const steppeManifest = (): MusicManifest | undefined => scoreManifest(SET);
 export const steppeFiles = (): string[] => scoreFiles(SET);
 export const steppeBootFiles = (first: SteppeSlot = 'steppe-grass'): string[] => scoreFiles(SET, [first]);
 export type SteppeBank = ScoreBank;
 export const decodeSteppe = (slots: readonly SteppeSlot[], read: AudioRead, decode: AudioDecode, withStings: boolean, onFile?: () => void): Promise<SteppeBank> => decodeScore(SET, slots, read, decode, withStings, onFile);
 export function steppePick(scene: SteppeScene): readonly string[] {
-  return [...(scene.boss === 'king' ? ['steppe-king'] : []), ...(scene.storm ? ['steppe-storm'] : []),
-    ...(scene.night ? ['steppe-night'] : []), ZONE_SLOT[scene.zone], 'steppe-grass'];
+  return selectScoreSlots(PROFILE.selection, PROFILE.selectMode, { boss: scene.boss, storm: scene.storm, night: scene.night, zone: scene.zone });
 }
 export function createSteppeScore(read: AudioRead, decode: AudioDecode, onReady: () => void): SetScore<SteppeScene> {
   return new SetScore<SteppeScene>({ ...SET, scene: { zone: 'grass', night: false, storm: false, boss: null }, pick: steppePick, read, decode, onReady });
