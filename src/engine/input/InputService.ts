@@ -1,3 +1,4 @@
+import type { AimCommand } from './commands';
 import { Bindings } from './bindings';
 import type { Scope } from '../app/scope';
 import { withOwner } from '../app/ownership';
@@ -14,9 +15,86 @@ export type Action = Extract<keyof ActionMap, string> | EquipmentAction | 'crouc
   | 'skip' | 'focus' | 'quickNote' | 'help' | 'ride.whistle' | 'ride.offer' | 'ride.gallop' | 'ride.horseTab' | 'lean.left' | 'lean.right';
 export interface TouchVerb { action: Action; label: string; icon: string; hold?: boolean; element?: HTMLButtonElement; show?: () => boolean }
 export type TouchVerbSpec = Action | TouchVerb;
+/** Semantic input accepted by the host. UI gestures, interact and traversal all use this boundary. */
+export type ActionCommand = (
+  | { kind: 'press' | 'queue' | 'release'; action: Action; at: number }
+  | { kind: 'held'; action: Action; on: boolean; at: number }
+  | { kind: 'axis'; action: Action; x: number; y: number; at: number }
+  | { kind: 'physical'; code: string; on: boolean; at: number }
+  | { kind: 'look'; x: number; y: number; at: number }
+  | { kind: 'clear'; at: number }) & { aim?: AimCommand };
+/** Serializable held actions, press buffer and context order; callbacks remain host-owned. */
+export interface InputState {
+  version: number; physical: string[]; manual: Action[]; down: Action[]; ups: Action[];
+  presses: { action: Action; at: number }[]; axes: { action: Action; x: number; y: number }[];
+  bufferMs: number; contexts: string[]; recent: { action: Action; at: number }[];
+}
 interface Context { def: InputContextDef; scope: Scope }
 /** Additive contexts and a shared press buffer. Consuming a press removes it for every later system. */
 export class InputService {
+  recordCommand: ((command: ActionCommand) => void) | null = null;
+  private commandDepth = 0;
+  private activeAim: AimCommand | undefined;
+  captureAim: (() => AimCommand) | null = null;
+  get commandAim(): AimCommand | undefined { return this.activeAim; }
+  /** Replay invokes precisely the same semantic action path as a device or UI gesture. */
+  executeCommand(command: ActionCommand): void {
+    if (!Number.isFinite(command.at) || command.at < 0 || ((command.kind === 'axis' || command.kind === 'look') && ![command.x, command.y].every(Number.isFinite))) throw new RangeError('Invalid input command');
+    const previousAim = this.activeAim, aim = command.aim ?? previousAim ?? this.captureAim?.();
+    this.activeAim = aim;
+    if (this.commandDepth === 0) this.recordCommand?.({ ...command, ...(aim === undefined ? {} : { aim: { origin: { ...aim.origin }, direction: { ...aim.direction } } }) });
+    this.commandDepth++;
+    try {
+      switch (command.kind) {
+        case 'press':
+          this.presses.set(command.action, command.at);
+          this.recent.push({ action: command.action, at: command.at }); if (this.recent.length > 20) this.recent.shift();
+          if (this.allowed(command.action)) for (const binding of this.callbacks) if (binding.action === command.action && binding.enabled()) binding.run();
+          break;
+        case 'physical': if (command.on) this.physical.add(command.code); else this.physical.delete(command.code); this.refresh(); break;
+        case 'look': {
+          const previous = this.axes.get('look') ?? { x: 0, y: 0 }; this.axes.set('look', { x: previous.x + command.x, y: previous.y + command.y });
+          if (this.allowed('look')) for (const run of this.motion) run(command.x, command.y);
+          break;
+        }
+        case 'queue': this.presses.set(command.action, command.at); break;
+        case 'held': if (command.on) this.manual.add(command.action); else this.manual.delete(command.action); this.refresh(); break;
+        case 'release': this.release(command.action); break;
+        case 'axis': this.axes.set(command.action, { x: command.x, y: command.y }); break;
+        case 'clear':
+          this.physical.clear(); this.manual.clear(); this.refresh(); this.presses.clear(); this.axes.clear(); for (const reset of this.resets) reset();
+          break;
+        default: throw new Error('Unsupported input command');
+      }
+    } finally { this.commandDepth--; this.activeAim = previousAim; }
+  }
+  snapshot(): InputState {
+    return { version: 1, physical: [...this.physical], manual: [...this.manual], down: [...this.down], ups: [...this.ups],
+      presses: [...this.presses].map(([action, at]) => ({ action, at })), axes: [...this.axes].map(([action, axis]) => ({ action, x: axis.x, y: axis.y })),
+      bufferMs: this.buffer.ms, contexts: this.stack.map(({ def }) => def.id), recent: this.recent.map((entry) => ({ ...entry })) };
+  }
+  restore(state: InputState): void {
+    if (state.version !== 1 || !Number.isFinite(state.bufferMs) || state.bufferMs < 0
+      || [...state.presses, ...state.recent].some((entry) => !Number.isFinite(entry.at) || entry.at < 0)
+      || state.axes.some((entry) => ![entry.x, entry.y].every(Number.isFinite))
+      || state.contexts.some((id) => !this.definitions.has(id))) throw new RangeError('Invalid input snapshot');
+    this.physical.clear(); for (const code of state.physical) this.physical.add(code);
+    this.manual.clear(); for (const action of state.manual) this.manual.add(action);
+    this.down.clear(); for (const action of state.down) this.down.add(action);
+    this.ups.clear(); for (const action of state.ups) this.ups.add(action);
+    this.presses.clear(); for (const entry of state.presses) this.presses.set(entry.action, entry.at);
+    this.axes.clear(); for (const entry of state.axes) this.axes.set(entry.action, { x: entry.x, y: entry.y });
+    this.buffer.ms = state.bufferMs; this.recent.splice(0, this.recent.length, ...state.recent.map((entry) => ({ ...entry })));
+    // Keep scope ownership and disposers; only the stack order is saved data.
+    const removed = this.stack.filter((entry) => !state.contexts.includes(entry.def.id));
+    for (const entry of removed) this.pop(entry.def.id);
+    this.stack.length = 0;
+    for (const id of state.contexts) { const entry = this.definitions.get(id); if (entry !== undefined) { this.stack.push(entry); if (!this.pushed.has(id)) this.pushed.set(id, entry.scope.capture('disposers', () => { this.pop(id); })); } }
+    this.repaint();
+  }
+  private release(action: Action): void {
+    this.ups.add(action); for (const binding of this.releases) if (binding.action === action) binding.run(); this.down.delete(action);
+  }
   private readonly definitions = new Map<string, Context>();
   private readonly stack: Context[] = [];
   private readonly physical = new Set<string>();
@@ -66,12 +144,8 @@ export class InputService {
     }
     return true;
   }
-  queue(action: Action): void { this.presses.set(action, this.now()); }
-  press(action: Action): void {
-    this.queue(action);
-    this.recent.push({ action, at: this.now() }); if (this.recent.length > 20) this.recent.shift();
-    if (this.allowed(action)) for (const binding of this.callbacks) if (binding.action === action && binding.enabled()) binding.run();
-  }
+  queue(action: Action): void { this.executeCommand({ kind: 'queue', action, at: this.now() }); }
+  press(action: Action): void { this.executeCommand({ kind: 'press', action, at: this.now() }); }
   /** A real touch gesture unlocks audio before its interaction; scripted actions do not. */
   pressGesture(action: Action): void { this.gesture(); this.press(action); }
   bind(action: Action, run: () => void, scope: Scope, enabled: () => boolean = () => true): void {
@@ -96,12 +170,12 @@ export class InputService {
     }
     for (const action of new Set([...this.down, ...wanted])) this.transition(action, wanted.has(action), edges);
   }
-  setHeld(action: Action, on: boolean): void { if (on) this.manual.add(action); else this.manual.delete(action); this.refresh(); }
+  setHeld(action: Action, on: boolean): void { this.executeCommand({ kind: 'held', action, on, at: this.now() }); }
   private transition(action: Action, on: boolean, edges: boolean): void {
     const newlyDown = on && !this.down.has(action);
     if (on) this.down.add(action);
     if (newlyDown && edges) this.press(action);
-    if (!on && this.down.has(action)) { this.ups.add(action); for (const binding of this.releases) if (binding.action === action) binding.run(); }
+    if (!on && this.down.has(action)) this.executeCommand({ kind: 'release', action, at: this.now() });
     if (on) this.down.add(action); else this.down.delete(action);
   }
   pressed(action: Action): boolean {
@@ -113,9 +187,9 @@ export class InputService {
   held(action: Action): boolean { return this.allowed(action) && this.down.has(action); }
   released(action: Action): boolean { return this.allowed(action) && this.ups.has(action); }
   consume(action: Action): boolean { if (!this.pressed(action)) return false; this.presses.delete(action); return true; }
-  clear(): void { this.physical.clear(); this.manual.clear(); this.refresh(); this.presses.clear(); this.axes.clear(); for (const reset of this.resets) reset(); }
+  clear(): void { this.executeCommand({ kind: 'clear', at: this.now() }); }
   endFrame(): void { this.ups.clear(); this.axes.delete('look'); }
-  setAxis(action: Action, x: number, y: number): void { this.axes.set(action, { x, y }); }
+  setAxis(action: Action, x: number, y: number): void { this.executeCommand({ kind: 'axis', action, x, y, at: this.now() }); }
   axis2(action: Action): { x: number; y: number } {
     if (!this.allowed(action)) return { x: 0, y: 0 };
     const axis = this.axes.get(action) ?? { x: 0, y: 0 };
@@ -128,6 +202,7 @@ export class InputService {
   }
   install(scope: Scope, canvas?: HTMLCanvasElement, look?: (x: number, y: number) => void): void {
     if (this.installed) throw new Error('Input listeners already installed'); this.installed = true;
+    if (look !== undefined) this.observeLook(look, scope);
     const keyboard = (event: Event, on: boolean): void => {
       if (!(event instanceof KeyboardEvent)) return;
       if (this.keyCapture !== undefined && on) { event.preventDefault(); event.stopImmediatePropagation(); const run = this.keyCapture; this.keyCapture = undefined; run(event.code); return; }
@@ -137,7 +212,7 @@ export class InputService {
       if (on && event.code !== 'Escape' && target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
       if (on && (event.repeat || event.metaKey || event.ctrlKey)) return;
       if (on) this.gesture();
-      if (on) this.physical.add(event.code); else this.physical.delete(event.code); this.refresh();
+      this.executeCommand({ kind: 'physical', code: event.code, on, at: this.now() });
       if (['Space', 'AltLeft', 'Tab'].includes(event.code)) event.preventDefault();
     };
     scope.listen(document, 'keydown', (event) => { keyboard(event, true); }, { capture: true });
@@ -146,7 +221,7 @@ export class InputService {
       if (!(event instanceof MouseEvent)) return;
       if (on && document.pointerLockElement === null && !(event.target instanceof HTMLCanvasElement)) return;
       if (on) this.gesture();
-      const code = `Mouse${event.button}`; if (on) this.physical.add(code); else this.physical.delete(code); this.refresh();
+      this.executeCommand({ kind: 'physical', code: `Mouse${event.button}`, on, at: this.now() });
     };
     const pointers = new Set<number>();
     scope.listen(document, 'pointerdown', (event) => { pointers.add(event.pointerId); this.setHeld('skip', true); });
@@ -157,8 +232,7 @@ export class InputService {
     scope.listen(document, 'mouseup', (event) => { mouse(event, false); });
     scope.listen(document, 'mousemove', (event) => {
       if (!(event instanceof MouseEvent) || (canvas !== undefined && document.pointerLockElement !== canvas)) return;
-      const previous = this.axes.get('look') ?? { x: 0, y: 0 }; this.setAxis('look', previous.x + event.movementX, previous.y + event.movementY);
-      if (this.allowed('look')) { look?.(event.movementX, event.movementY); for (const run of this.motion) run(event.movementX, event.movementY); }
+      this.executeCommand({ kind: 'look', x: event.movementX, y: event.movementY, at: this.now() });
     });
     scope.listen(document, 'contextmenu', (event) => { if (document.pointerLockElement !== null || event.target instanceof HTMLCanvasElement) event.preventDefault(); });
     let wheel = 0, wheelAt = 0;

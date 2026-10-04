@@ -9,6 +9,8 @@ import { installInputTrace } from './trace';
 export function installGameplayInput(player: Player, canvas: HTMLCanvasElement, scope: Scope, contexts: readonly InputContextDef[]): void {
   const input = app.input;
   player.inputService = input;
+  input.captureAim = () => player.sampleAimCommand();
+  scope.onDispose(() => { input.captureAim = null; });
   input.install(scope, canvas, (x, y) => { player.look(x, y); });
   for (const def of contexts) input.register(def, scope);
   input.push('onFoot', scope);

@@ -1,9 +1,20 @@
+/** Mulberry32 continuation, including fork seed and the legacy scrambled-fork mode. */
+export interface RngState { version: number; state: number; initial: number; scrambledFork: boolean }
+const uint32 = (value: number): boolean => Number.isInteger(value) && value >= 0 && value <= 0xffffffff;
+function validateRngState(state: RngState): void {
+  if (state.version !== 1 || !uint32(state.state) || !uint32(state.initial) || typeof state.scrambledFork !== 'boolean') throw new RangeError('Invalid RNG snapshot');
+}
 // Deterministic PRNG (mulberry32) so every playtest sees the same chunk.
 export class Rng {
   private s: number;
-  private readonly initial: number;
+  private initial: number;
   private scrambledFork = false;
   constructor(seed: number) { this.s = seed >>> 0; this.initial = this.s; }
+  snapshot(): RngState { return { version: 1, state: this.s, initial: this.initial, scrambledFork: this.scrambledFork }; }
+  restore(state: RngState): void {
+    validateRngState(state);
+    this.s = state.state; this.initial = state.initial; this.scrambledFork = state.scrambledFork;
+  }
   /** Preserve the facade grammar's multiplicative constructor and numeric forks. */
   static scrambled(seed: number): Rng {
     const rng = new Rng((seed * 2654435761) >>> 0);
@@ -44,10 +55,23 @@ export function fnv1a32(text: string): number {
 }
 export interface RngStreams { gameplay: true; ai: true; spawn: true; cosmetic: true }
 export type RngStream = keyof RngStreams;
+/** Seed and complete continuation state for every instantiated named random stream. */
+export interface RngStreamsState { version: number; seed: number; streams: readonly { name: RngStream; state: RngState }[] }
 class RandomStreams {
   private streams = new Map<RngStream, Rng>();
   private value: number;
   constructor(seed = 0) { this.value = seed >>> 0; }
+  snapshot(): RngStreamsState {
+    return { version: 1, seed: this.value, streams: [...this.streams].sort(([a], [b]) => a.localeCompare(b)).map(([name, rng]) => ({ name, state: rng.snapshot() })) };
+  }
+  restore(state: RngStreamsState): void {
+    if (state.version !== 1 || !uint32(state.seed) || new Set(state.streams.map((entry) => entry.name)).size !== state.streams.length) throw new RangeError('Invalid RNG streams snapshot');
+    for (const entry of state.streams) validateRngState(entry.state);
+    this.value = state.seed;
+    const keep = new Set(state.streams.map((entry) => entry.name));
+    for (const name of this.streams.keys()) if (!keep.has(name)) this.streams.delete(name);
+    for (const entry of state.streams) this.stream(entry.name).restore(entry.state);
+  }
   get seedValue(): number { return this.value; }
   seed(value: number): void { this.value = value >>> 0; this.streams.clear(); }
   stream(name: RngStream): Rng {

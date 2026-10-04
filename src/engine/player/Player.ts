@@ -406,6 +406,8 @@ export class Player {
 
   /** Canonical eye and heading. Presentation offsets never affect hit selection. */
   sampleAimCommand(): AimCommand {
+    const recorded = this.inputService?.commandAim;
+    if (recorded !== undefined) return recorded;
     const cos = Math.cos(this.pitch);
     return { origin: { x: this.position.x, y: this.position.y + (this.crouching ? EYE - 0.65 : EYE), z: this.position.z },
       direction: { x: -Math.sin(this.yaw) * cos, y: Math.sin(this.pitch), z: -Math.cos(this.yaw) * cos } };

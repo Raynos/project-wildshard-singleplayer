@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1648 members; 832 without a doc line (—).
+1652 members; 832 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -598,8 +598,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `pageSeed` | function | @wildshard/engine/core/rng | Harness pins every stream; a live page gets one crypto salt without consuming gameplay draws. |
 | `Rng` | class | @wildshard/engine/core/rng | — |
 | `RngService` | class | @wildshard/engine/core/rng | — |
+| `RngState` | interface | @wildshard/engine/core/rng | Mulberry32 continuation, including fork seed and the legacy scrambled-fork mode. |
 | `RngStream` | type | @wildshard/engine/core/rng | — |
 | `RngStreams` | interface | @wildshard/engine/core/rng | — |
+| `RngStreamsState` | interface | @wildshard/engine/core/rng | Seed and complete continuation state for every instantiated named random stream. |
 | `SHADOW_LAYER` | const | @wildshard/engine/core/shadowLayer | The layer of shadow-only casters: meshes drawn into the sun's shadow map and nowhere else (Cabin.ts's static depth |
 | `_buildAs` | function | @wildshard/engine/core/tier | — |
 | `applyLevelTier` | function | @wildshard/engine/core/tier | Resolve the numeric tier row before the level builds sky, forest and carpet. |
@@ -770,8 +772,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `installGameplayInput` | function · game only | @wildshard/engine/input/gameplay | The level installs one device listener set; mode contexts compose with plugin verbs. |
 | `weaponInputContext` | function | @wildshard/engine/input/gameplay | — |
 | `Action` | type | @wildshard/engine/input/InputService | — |
+| `ActionCommand` | type | @wildshard/engine/input/InputService | Semantic input accepted by the host. UI gestures, interact and traversal all use this boundary. |
 | `ActionMap` | interface | @wildshard/engine/input/InputService | — |
 | `InputService` | class | @wildshard/engine/input/InputService | Additive contexts and a shared press buffer. Consuming a press removes it for every later system. |
+| `InputState` | interface | @wildshard/engine/input/InputService | Serializable held actions, press buffer and context order; callbacks remain host-owned. |
 | `TouchStack` | interface | @wildshard/engine/input/InputService | — |
 | `TouchVerb` | interface | @wildshard/engine/input/InputService | — |
 | `TouchVerbSpec` | type | @wildshard/engine/input/InputService | — |

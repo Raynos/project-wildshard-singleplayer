@@ -3551,6 +3551,12 @@
         "from": "@wildshard/engine/core/rng"
       },
       {
+        "name": "RngState",
+        "kind": "interface",
+        "doc": "Mulberry32 continuation, including fork seed and the legacy scrambled-fork mode.",
+        "from": "@wildshard/engine/core/rng"
+      },
+      {
         "name": "RngStream",
         "kind": "type",
         "doc": "",
@@ -3560,6 +3566,12 @@
         "name": "RngStreams",
         "kind": "interface",
         "doc": "",
+        "from": "@wildshard/engine/core/rng"
+      },
+      {
+        "name": "RngStreamsState",
+        "kind": "interface",
+        "doc": "Seed and complete continuation state for every instantiated named random stream.",
         "from": "@wildshard/engine/core/rng"
       },
       {
@@ -4586,6 +4598,12 @@
         "from": "@wildshard/engine/input/InputService"
       },
       {
+        "name": "ActionCommand",
+        "kind": "type",
+        "doc": "Semantic input accepted by the host. UI gestures, interact and traversal all use this boundary.",
+        "from": "@wildshard/engine/input/InputService"
+      },
+      {
         "name": "ActionMap",
         "kind": "interface",
         "doc": "",
@@ -4595,6 +4613,12 @@
         "name": "InputService",
         "kind": "class",
         "doc": "Additive contexts and a shared press buffer. Consuming a press removes it for every later system.",
+        "from": "@wildshard/engine/input/InputService"
+      },
+      {
+        "name": "InputState",
+        "kind": "interface",
+        "doc": "Serializable held actions, press buffer and context order; callbacks remain host-owned.",
         "from": "@wildshard/engine/input/InputService"
       },
       {

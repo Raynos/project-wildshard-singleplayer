@@ -102,11 +102,17 @@ without it; its fault is fatal.
 
 | Export | What it does |
 |---|---|
-| `GameClock` | `app.clock`: `now` (game seconds, paused time excluded, hit-stop slows it), `real` (wall seconds), `frame`, `mode` (`'live' \| 'capture'`), `setCapture(fps)` |
+| `GameClock` | `app.clock`: `now` (game seconds, paused time excluded), `real` (wall seconds), `frame`, `mode` (`'live' \| 'capture'`), `setCapture(fps)`, `snapshot()`, `restore(state)` |
 | `RngService`, `Rng`, `RngStream`, `RngStreams` | `app.rng.stream(name)` returns a seeded `Rng`: `next()`, `range(a, b)`, `int(a, b)` (inclusive), `pick(list)`, `chance(p)`, `weighted(pairs)`, `fork(salt)`. Streams: `'gameplay' · 'ai' · 'spawn' · 'cosmetic'`; add one by merging into `RngStreams` |
 | `gameplayRandom` | The `gameplay` stream as a plain `() => number`, for code that takes a function |
 | `fnv1a32`, `pageSeed` | Stable hashing and the page's seed |
-| `worldTime` | `{ scale, realDt }`: the world's time scale (hit-stop, slow motion) for legacy readers (a port) |
+| `worldTime` | `{ scale, realDt }`: presentation time scale for hit-stop; gameplay phases and the simulation clock keep their unscaled delta |
+
+`RngState` and `RngStreamsState` from `core/rng` preserve the continuation and fork seed of each instantiated
+stream. `Rng.snapshot()` / `restore(state)` save one generator; `RngService.snapshot()` / `restore(state)` save
+the seed and all named streams, retaining existing generator references. `GameClockState` from `core/clock`
+also saves pause, capture rate and time scale. Each state carries version `1`; restore validates before changing
+state. These continuations support replay in the same engine version.
 
 Use the stream the randomness belongs to. The harness seeds every stream, so a seeded run repeats.
 
@@ -635,6 +641,15 @@ listeners attach (E362 AG18); `no-raw-input` also refuses the helper form (`scop
 | `bind(action, run, scope, enabled?)`, `bindRelease(action, run, scope)` | callbacks |
 | `observeLook`, `observeWheel`, `firstGesture`, `onReset` | look deltas, wheel, the first user gesture, a reset |
 | `bindings` | keyboard / mouse / touch bindings; rebinding persists as a global save |
+| `recordCommand`, `executeCommand(command)` | record and replay `ActionCommand` through the same callbacks and action buffers used by device input and UI gestures |
+| `snapshot()`, `restore(state)` | save and restore versioned `InputState`: held controls, buffered presses, axes and context order; the fresh host registers contexts and callbacks first |
+
+`ActionCommand` from `input/InputService` covers presses, queues, releases, held controls, axes, physical
+keyboard/mouse transitions, look and clear, with a simulation timestamp in milliseconds and optional canonical
+`AimCommand`. Interact, mount and UI actions use this boundary. Recording saves each outer command once;
+actions derived by its callback run again during replay. `captureAim` supplies the live player's eye and heading;
+`commandAim` carries that recorded aim while callbacks execute. `PlayerCommand` and `FightCommand` from
+`input/commands` carry motor/look and weapon actions; camera and viewmodel offsets do not select contacts.
 
 **Contexts are additive.** An action resolves top-down through the stack; a context blocks only what its `blocks`
 names. Touch draws the merged discs of the whole stack, and a higher context's relabel wins per disc. A Tool's context
@@ -1650,7 +1665,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1633 exports, grouped by the module to import them from.
+1637 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1753,7 +1768,7 @@ sections above describe what to use; this list is the complete inventory.
 - `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
 - `@wildshard/engine/core/perfLap`: `LapPlayer`, `LapSpot`, `perfLap`, `PerfLapHost`
 - `@wildshard/engine/core/practiceRoom`: `practiceRoom`
-- `@wildshard/engine/core/rng`: `fnv1a32`, `pageSeed`, `Rng`, `RngService`, `RngStream`, `RngStreams`
+- `@wildshard/engine/core/rng`: `fnv1a32`, `pageSeed`, `Rng`, `RngService`, `RngState`, `RngStream`, `RngStreams`, `RngStreamsState`
 - `@wildshard/engine/core/shadowLayer`: `SHADOW_LAYER`
 - `@wildshard/engine/core/tier`: `_buildAs`, `applyLevelTier`, `automaticTier`, `buildTier`, `frameCapFps`, `frameProbe`, `gfxPrefs`, `GfxPrefs`, `initializeTier`, `MOBILE_DEVICE`, `practiceFps`, `saveGfxPrefs`, `Tier`, `TIER`, `TIER_CONFIG`
 - `@wildshard/engine/core/time`: `worldTime`
@@ -1776,7 +1791,7 @@ sections above describe what to use; this list is the complete inventory.
 - `@wildshard/engine/fx/ParticlePool`: `ParticleAttr`, `ParticlePool`, `ParticlePoolSpec`, `pointScale`
 - `@wildshard/engine/input/dom`: `listenDom`, `listenPage`, `mountDom`, `PageInputEvent`
 - `@wildshard/engine/input/gameplay`: `installGameplayInput`, `weaponInputContext`
-- `@wildshard/engine/input/InputService`: `Action`, `ActionMap`, `InputService`, `TouchStack`, `TouchVerb`, `TouchVerbSpec`
+- `@wildshard/engine/input/InputService`: `Action`, `ActionCommand`, `ActionMap`, `InputService`, `InputState`, `TouchStack`, `TouchVerb`, `TouchVerbSpec`
 - `@wildshard/engine/input/weaponActions`: `weaponActionGate`
 - `@wildshard/engine/level/context`: `ContentRow`, `ContentRowMap`, `CreatureMaterialFactory`, `DebugRowSpec`, `EngineRows`, `HudVerbs`, `InputContextDef`, `LevelAdapters`, `LevelContext`, `LevelHooks`, `PlaygroundSpec`, `ResidentMemory`, `RowVerb`, `StringTable`, `TierKnobSchema`, `VerbSlotOpts`
 - `@wildshard/engine/level/data`: `AtmosphereSpec`, `CabinSite`, `CompareTarget`, `exploreArt`, `ExploreArt`, `ExploreSpec`, `FaunaKind`, `ForestSpec`, `GradeLook`, `GradeSpec`, `HerdPlan`, `HorizonBand`, `HorizonRing`, `HorizonSpec`, `HudSpec`, `LevelAssets`, `MapLook`, `MinimapSpec`, `PoiSpec`, `PondDef`, `RGB`, `SkySpec`, `SpawnPose`, `TerrainField`, `TerrainNoise`, `TerrainSpec`, `TreeSpec`, `Vec2`
