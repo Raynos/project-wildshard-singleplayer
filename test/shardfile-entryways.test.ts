@@ -26,8 +26,8 @@ it.each(['north', 'east', 'south', 'west'] as const)('refuses %s road height plu
   entry.at[1] = Number.EPSILON; expect(() => parseShardfile(s)).toThrow('illegal shard');
 });
 it('requires the entire opening to reach y0, rather than only its center sample', () => {
-  const s = empty(); s.edge.north.heights = Array.from({ length: 129 }, () => 0); s.edge.north.colours = Array.from({ length: 129 }, () => [0.5, 0.5, 0.5]);
-  s.edge.north.heights[65] = 1; expect(() => parseShardfile(s)).toThrow('illegal shard');
+  const s = empty(); s.edge.north.heights = Array.from({ length: 257 }, () => 0); s.edge.north.colours = Array.from({ length: 257 }, () => [0.5, 0.5, 0.5]);
+  s.edge.north.heights[129] = 1; expect(() => parseShardfile(s)).toThrow('illegal shard');
 });
 it('validates the template bytes and refuses a valid-hash collider with a forged zero edge row', () => {
   const assets = new Map<string, Uint8Array>(template.files.map((file) => [file.hash, new Uint8Array(readFileSync(`src/shards/_template/assets/${file.hash}`))]));

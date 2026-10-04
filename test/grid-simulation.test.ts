@@ -18,6 +18,7 @@ import { GridSimulation, type GridResident } from '../src/game/grid/simulation';
 import { regionalState } from '../src/game/grid/state';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { prepareFrameMotors } from '../src/engine/physics/frame';
+import { groups } from '../src/engine/physics/groups';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -56,7 +57,7 @@ describe('world-local grid residency', () => {
   });
   it('hashes identical local authored state at different placements with different platform duplicates', () => {
     const a = resident(), b = resident();
-    const profile = { heights: Array.from({ length: 129 }, () => 0), colours: Array.from({ length: 129 }, () => [0.25, 0.25, 0.25]), roadHeight: 0 };
+    const profile = { heights: Array.from({ length: 257 }, () => 0), colours: Array.from({ length: 257 }, () => [0.25, 0.25, 0.25]), roadHeight: 0 };
     const strip = generateStrip({ id: 'shared', axis: 'x', origin: { x: 277.5, z: 0 }, profiles: [profile, profile], adjacent: [{ instance: 'a', origin: { x: 0, z: 0 } }, { instance: 'b', origin: { x: 555, z: 0 } }] });
     try {
       for (const [i, value] of [a, b].entries()) { const duplicate = strip.duplicates[i]; if (duplicate === undefined) throw new Error('Missing strip'); installStripCollider(value.host.physics, duplicate.mesh, value.host.scope); }
@@ -144,26 +145,27 @@ describe('world-local grid residency', () => {
     sim.dispose();
   });
   it('walks the shared field across both frame changes at 15 and 30 m/s with no falls or snags', async () => {
-    for (const speed of [15, 30]) {
+    for (const axis of ['x', 'z'] as const) for (const speed of [15, 30]) {
       const assembly = new GridAssembly({ developer: false, devserver: false }), cell = assembly.cells.find((c) => c.cell[0] === 0 && c.cell[1] === 0);
       if (cell === undefined) throw new Error('Missing central cell');
-      const profile = { heights: Array.from({ length: 129 }, () => 0), colours: Array.from({ length: 129 }, () => [0.25, 0.25, 0.25]), roadHeight: 0 };
-      const strip = generateStrip({ id: 'east', axis: 'x', origin: { x: 277.5, z: 0 }, profiles: [profile, profile], adjacent: [cell] });
+      const profile = { heights: Array.from({ length: 257 }, () => 0), colours: Array.from({ length: 257 }, () => [0.25, 0.25, 0.25]), roadHeight: 0 };
+      const strip = generateStrip({ id: 'east', axis, origin: axis === 'x' ? { x: 277.5, z: 0 } : { x: 0, z: 277.5 }, profiles: [profile, profile], adjacent: [cell] });
       const highwayHost = createSimHost({ ...level, entities: [], quests: [] }, { rapier, ground: false });
-      installStripCollider(highwayHost.physics, strip.mesh, highwayHost.scope); highwayHost.player.position.set(277.5, 0, 0);
+      installStripCollider(highwayHost.physics, strip.mesh, highwayHost.scope); highwayHost.player.position.set(axis === 'x' ? 277.5 : 0, 0, axis === 'z' ? 277.5 : 0);
       const sim = new GridSimulation(assembly, { highway: { host: highwayHost, dispose: () => { highwayHost.dispose(); } }, load: () => {
-        const value = resident(), mesh = strip.duplicates[0]?.mesh; if (mesh === undefined) throw new Error('Missing duplicate');
-        installStripCollider(value.host.physics, mesh, value.host.scope); return Promise.resolve(value);
+        const host = createSimHost({ ...level, entities: [], quests: [] }, { rapier, ground: false }), mesh = strip.duplicates[0]?.mesh; if (mesh === undefined) throw new Error('Missing duplicate');
+        host.physics.world.createCollider(rapier.ColliderDesc.heightfield(256, 256, new Float32Array(257 ** 2), { x: 500, y: 1, z: 500 }).setCollisionGroups(groups('WORLD')));
+        installStripCollider(host.physics, mesh, host.scope); return Promise.resolve({ host, dispose: () => host.dispose() });
       }, save: () => true });
       let crossings = 0;
       try {
         for (const direction of [-1, 1]) for (let tick = 0; tick < 180; tick++) {
           const target = sim.target(sim.worldFeet());
           if (target !== sim.current()) { if (sim.current() !== null) expect(sim.checkpoint(cell.instance)).toBe(true); const prepared = await sim.prepare(sim.current(), target); prepared.commit(); crossings++; }
-          sim.step({ moveX: direction * speed / 30, moveZ: 0, yaw: direction * Math.PI / 2 });
-          expect(Math.abs(sim.worldFeet().y)).toBeLessThan(0.06); expect(sim.host().player.motor.result.horizontalFreedom).toBeGreaterThan(0.98);
+          sim.step({ moveX: axis === 'x' ? direction * speed / 30 : 0, moveZ: axis === 'z' ? direction * speed / 30 : 0, yaw: direction * Math.PI / 2 });
+          expect(Math.abs(sim.worldFeet().y)).toBeLessThan(0.06); expect(sim.host().player.motor.result.horizontalFreedom, JSON.stringify({ axis, speed, direction, tick, current: sim.current(), feet: sim.worldFeet() })).toBeGreaterThan(0.98);
         }
-        expect(crossings).toBe(2); expect(sim.current()).toBeNull(); expect(sim.worldFeet().x).toBeCloseTo(277.5, 2);
+        expect(crossings).toBe(2); expect(sim.current()).toBeNull(); expect(sim.worldFeet()[axis]).toBeCloseTo(277.5, 2);
       } finally { sim.dispose(); }
     }
   });

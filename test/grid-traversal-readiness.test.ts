@@ -19,7 +19,7 @@ const level: SimLevel = { ...SIM_LEVEL, ground: { size: 500, height: 0 }, player
 for (const maxStallSeconds of [3, 10]) it(`joins cold 30 m/s traversal, a ${maxStallSeconds}s stall, late colliders and a U-turn with the actual strip and residency driver`, async () => {
   const assembly = new GridAssembly({ developer: false, devserver: false }), cell = assembly.cells.find((row) => row.cell[0] === 0 && row.cell[1] === 0);
   if (cell === undefined) throw new Error('Central cell');
-  const profile = { heights: Array.from({ length: 129 }, () => 0), colours: Array.from({ length: 129 }, () => [0.25, 0.25, 0.25]), roadHeight: 0 };
+  const profile = { heights: Array.from({ length: 257 }, () => 0), colours: Array.from({ length: 257 }, () => [0.25, 0.25, 0.25]), roadHeight: 0 };
   const strip = generateStrip({ id: 'readiness.east', axis: 'x', origin: { x: 277.5, z: 0 }, profiles: [profile, profile], adjacent: [cell] });
   const estimate = readinessModel({ criticalWireBytes: 2_000_000, hybridWireBytes: 500_000, decodeSeconds: 0.8, runtimeParseSeconds: 0.2 },
     { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.5, maxStallSeconds });

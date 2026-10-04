@@ -328,6 +328,7 @@
     "./physics/Physics": "./physics/Physics.ts",
     "./script/client": "./script/client.ts",
     "./ai/skirmisher": "./ai/skirmisher.ts",
-    "./ai/scriptBrain": "./ai/scriptBrain.ts"
+    "./ai/scriptBrain": "./ai/scriptBrain.ts",
+    "./sim/edgeProfiles": "./sim/edgeProfiles.ts"
   }
 }

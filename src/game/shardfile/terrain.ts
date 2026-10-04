@@ -38,13 +38,13 @@ export function validateTerrainAssets(terrain: ShardTerrain, assets: ReadonlyMap
     if (row.geometricError + 1e-5 < error) throw new Error('Terrain geometric error understated');
   }
   for (const [side, edge] of Object.entries(content.edge)) {
-    if (edge.heights.length !== 129 || edge.colours.length !== 129) throw new Error('Terrain edge profile sample count');
+    if (edge.heights.length !== 257 || edge.colours.length !== 257) throw new Error('Terrain edge profile sample count');
     edge.heights.forEach((height, i) => {
-      const p = -250 + i * 500 / 128, x = side === 'east' ? 250 : side === 'west' ? -250 : p, z = side === 'north' ? 250 : side === 'south' ? -250 : p;
+      const p = -250 + i * 500 / 256, x = side === 'east' ? 250 : side === 'west' ? -250 : p, z = side === 'north' ? 250 : side === 'south' ? -250 : p;
       if (Math.abs(height - terrainTileHeight(collider, x, z)) > 1e-5) throw new Error('Terrain edge profile mismatch');
       const key = `${Math.round((x + 250) / 500 * 256)}/${Math.round((z + 250) / 500 * 256)}`, rgb = colours.get(key), declared = edge.colours[i];
       if (rgb === undefined || declared?.length !== 3 || rgb.some((c, channel) => c !== declared[channel])) throw new Error('Terrain edge colour mismatch');
     });
-    if (edge.heights[64] !== 0) throw new Error('Terrain entry road must meet road height zero');
+    if (edge.heights[128] !== 0) throw new Error('Terrain entry road must meet road height zero');
   }
 }

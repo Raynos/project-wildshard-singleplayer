@@ -1,8 +1,8 @@
 import { edgeSample, edgeSampleLocations } from './edgeProfiles';
-import type { StripMesh, StripProfile } from './strips';
+import type { StripCorner, StripMesh, StripProfile } from './strips';
 
 /** Collision and rendering share these ordered triangle ranges; materials never reconstruct seam geometry. */
-export type SeamFeatureKind = 'deck' | 'neutral-buffer' | 'gradient' | 'retaining-wall' | 'cliff' | 'talus' | 'parapet' | 'dike' | 'culvert' | 'guard-rail' | 'road-wall' | 'turn-in';
+export type SeamFeatureKind = 'deck' | 'neutral-buffer' | 'gradient' | 'overlap' | 'retaining-wall' | 'cliff' | 'talus' | 'parapet' | 'dike' | 'culvert' | 'guard-rail' | 'road-wall' | 'turn-in';
 /** Index offsets refer directly to the returned mesh, including every physical wall and rail face. */
 export interface SeamFeature { readonly kind: SeamFeatureKind; readonly firstIndex: number; readonly indexCount: number; readonly side: -1 | 0 | 1; readonly from: number; readonly to: number; readonly bottom: number; readonly top: number; readonly sourceSurface?: string }
 /** Admitted edge observations, with an explicit absence of blendable ground instead of an invented terrain height. */
@@ -35,7 +35,7 @@ class MeshWriter {
     const firstIndex = this.indices.length, at = points.map(([u, y, v]) => this.vertex(u, y, v));
     const [a, b, c, d] = at;
     if (a === undefined || b === undefined || c === undefined || d === undefined) throw new Error('Missing seam face');
-    this.indices.push(a, b, c, b, d, c); this.features.push({ ...feature, firstIndex, indexCount: 6 });
+    this.indices.push(...(this.axis === 'x' ? [a, b, c, b, d, c] : [a, c, b, b, c, d])); this.features.push({ ...feature, firstIndex, indexCount: 6 });
   }
   box(u: number, v0: number, v1: number, bottom: number, top: number, thickness: number, feature: Omit<SeamFeature, 'firstIndex' | 'indexCount'>): void {
     const firstIndex = this.indices.length, left = u - thickness / 2, right = u + thickness / 2;
@@ -58,8 +58,8 @@ function validateEdge(edge: SeamEdge): void {
   }
 }
 /** The 85° cliff and its 4 m talus fit inside w=4..20. An edge above this envelope refuses instead of becoming vertical. */
-function cliffFoot(id: string, side: number, height: number, along: number): { u: number; bottom: number } {
-  const base = (w: number): number => bounded(height) * smooth((w - 4) / 16) + 1.5;
+function cliffFoot(id: string, side: number, height: number, along: number, cornerWeight = 1): { u: number; bottom: number } {
+  const base = (w: number): number => bounded(height) * smooth((w - 4) / 16) * cornerWeight + 1.5;
   if (height - base(8) > 12 * tan85) throw new RangeError(`Platform seam ${id} edge ${side} at ${along}: H=${height} exceeds the 85-degree cliff/talus envelope`);
   let low = 8, high = 20;
   for (let i = 0; i < 48; i++) { const mid = (low + high) / 2; if (height - base(mid) > (20 - mid) * tan85) high = mid; else low = mid; }
@@ -83,7 +83,7 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
     const kind = side === 0 ? 'deck' : Math.max(Math.abs(u0), Math.abs(u1)) <= 11.5 ? 'neutral-buffer' : 'gradient';
     const key = `${kind}/${side}`, group = floorGroups.get(key) ?? { kind, side, indices: [] };
     const d = row * count + col, c = d - 1, b = d - count, a = b - 1;
-    group.indices.push(...(input.axis === 'x' ? [a, c, b, b, c, d] : [a, b, c, b, d, c])); floorGroups.set(key, group);
+    group.indices.push(...(input.axis === 'x' ? [a, c, d, a, d, b] : [a, d, c, a, b, d])); floorGroups.set(key, group);
   }
   for (const group of floorGroups.values()) {
     const firstIndex = writer.indices.length; writer.indices.push(...group.indices);
@@ -102,9 +102,13 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
     }
     for (let row = 0; row < along.length - 1; row++) {
       const from = along[row] ?? 0, to = along[row + 1] ?? 0, middle = (from + to) / 2;
-      if (Math.abs(middle) < edge.entryWidth / 2) continue;
       const a = edgeSample(edge.profile, from).height, b = edgeSample(edge.profile, to).height, min = Math.min(a, b), max = Math.max(a, b);
       const feature = (kind: SeamFeatureKind, bottom: number, top: number): Omit<SeamFeature, 'firstIndex' | 'indexCount'> => ({ kind, side, from, to, bottom, top, ...(edge.sourceSurface === undefined ? {} : { sourceSurface: edge.sourceSurface }) });
+      // The shared native row stays at the cell boundary. A quarter-metre same-mesh apron
+      // continues its upper surface under regional terrain so KCC never meets an open seam edge.
+      const ia: Point = [side * 27.5, a, from], ib: Point = [side * 27.5, b, to], oa: Point = [side * 27.75, a, from], ob: Point = [side * 27.75, b, to];
+      writer.quad(side < 0 ? [ia, oa, ib, ob] : [ia, ib, oa, ob], feature('overlap', min, max));
+      if (Math.abs(middle) < edge.entryWidth / 2) continue;
       const cliff = max > 14 && (runs.get(row) ?? 0) >= 30;
       if (cliff) {
         const fa = cliffFoot(input.id, side, a, from), fb = cliffFoot(input.id, side, b, to);
@@ -125,4 +129,52 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
     }
   }
   return { mesh: writer.mesh(input.origin), features: writer.features, turnIn: { at: 0, widths: [input.edges[0].entryWidth, input.edges[1].entryWidth] } };
+}
+
+/** Four B-clamped corner fields join the corridors; physical faces turn10m around each corner, outside both road lanes. */
+export function cornerSeamGeometry(input: { readonly id: string; readonly origin: { readonly x: number; readonly z: number }; readonly corners: readonly [StripCorner, StripCorner, StripCorner, StripCorner] }): { readonly mesh: StripMesh; readonly features: readonly SeamFeature[] } {
+  if (input.corners.some((c) => !Number.isFinite(c.height) || Math.abs(c.height) > 250 || c.colour.some((n) => !Number.isFinite(n) || n < 0 || n > 1))) throw new RangeError('Invalid seam corner');
+  const writer = new MeshWriter('x'), count = SEAM_OFFSETS.length;
+  for (const z of SEAM_OFFSETS) for (const x of SEAM_OFFSETS) {
+    const corner = input.corners[(z < 0 ? 0 : 2) + (x < 0 ? 0 : 1)];
+    if (corner === undefined) throw new Error('Missing seam corner');
+    const weight = blend(x) * blend(z);
+    writer.vertex(x, weight === 0 ? 0 : bounded(corner.height) * weight, z, neutral.map((c, i) => c + ((corner.colour[i] ?? c) - c) * weight));
+  }
+  for (let row = 1; row < count; row++) for (let col = 1; col < count; col++) {
+    const d = row * count + col, c = d - 1, b = d - count, a = b - 1;
+    writer.indices.push(a, c, b, b, c, d);
+  }
+  writer.features.push({ kind: 'gradient', firstIndex: 0, indexCount: writer.indices.length, side: 0, from: -27.5, to: 27.5, bottom: -1.5, top: 6 });
+  for (const [index, corner] of input.corners.entries()) {
+    const sx = index % 2 === 0 ? -1 : 1, sz = index < 2 ? -1 : 1;
+    for (const axis of ['x', 'z'] as const) {
+      const across = axis === 'x' ? sx : sz, along = axis === 'x' ? sz : sx;
+      const start = writer.positions.length / 3, before = writer.features.length;
+      const from = along * 27.5, to = along * 17.5;
+      const feature = (kind: SeamFeatureKind, bottom: number, top: number): Omit<SeamFeature, 'firstIndex' | 'indexCount'> => ({ kind, side: across, from: Math.min(from, to), to: Math.max(from, to), bottom, top });
+      const h = corner.height, a = bounded(h), b = bounded(h) * blend(to);
+      if (h > 14) {
+        const fa = cliffFoot(input.id, across, h, from), fb = cliffFoot(input.id, across, h, to, blend(to));
+        writer.quad([[across * fa.u, fa.bottom, from], [across * fb.u, fb.bottom, to], [across * 27.5, h, from], [across * 27.5, h, to]], feature('cliff', Math.min(fa.bottom, fb.bottom), h));
+        writer.quad([[across * (fa.u - 4), bounded(h) * blend(fa.u - 4), from], [across * (fb.u - 4), bounded(h) * blend(fb.u - 4) * blend(to), to], [across * fa.u, fa.bottom, from], [across * fb.u, fb.bottom, to]], feature('talus', Math.min(a, b), Math.max(fa.bottom, fb.bottom)));
+      } else if (h > 6 || h < -1.5) writer.quad([[across * 27.5, a, from], [across * 27.5, b, to], [across * 27.5, h, from], [across * 27.5, h, to]], feature(h > 6 ? 'retaining-wall' : 'parapet', Math.min(h, a, b), Math.max(h, a, b)));
+      if (h > 14 || h < -1.5) {
+        writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), 0, 0.9, 0.25, feature('road-wall', 0, 0.9));
+        writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), 0.9, 1.3, 0.15, feature('guard-rail', 0.9, 1.3));
+      }
+      if (axis === 'z') {
+        for (let vertex = start; vertex < writer.positions.length / 3; vertex++) {
+          const x = writer.positions[vertex * 3] ?? 0; writer.positions[vertex * 3] = writer.positions[vertex * 3 + 2] ?? 0; writer.positions[vertex * 3 + 2] = x;
+        }
+        for (let f = before; f < writer.features.length; f++) {
+          const range = writer.features[f]; if (range === undefined) continue;
+          for (let i = range.firstIndex; i < range.firstIndex + range.indexCount; i += 3) {
+            const aIndex = writer.indices[i]; writer.indices[i] = writer.indices[i + 1] ?? 0; writer.indices[i + 1] = aIndex ?? 0;
+          }
+        }
+      }
+    }
+  }
+  return { mesh: writer.mesh(input.origin), features: writer.features };
 }

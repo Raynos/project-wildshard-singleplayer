@@ -19,6 +19,7 @@ import { ItemsSchema, itemRules } from './items';
 import { TraversalSchema } from './traversal';
 import { RuntimeSchema } from './runtime';
 import { ClientScriptsSchema, clientScriptRules } from './clientScripts';
+import { EdgeProfilesSchema } from './edgeProfiles';
 import { EntrywaysSchema, entrywayRules } from './entryways';
 import { StateSchema, stateRules } from './state';
 import { MigrationsSchema, migrationRules } from './migrations';
@@ -41,7 +42,6 @@ const key = v.strictObject({ time: channel, sky: v.strictObject({ zenith: colour
 const day = v.strictObject({ minutes: v.pipe(finite, v.minValue(1), v.maxValue(1440)), start: channel, maxElevation: v.pipe(finite, v.minValue(0), v.maxValue(90)), azimuth: v.pipe(finite, v.minValue(-180), v.maxValue(180)) });
 /** A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). */
 export const LOOK_LUT_BYTES = 33 ** 3 * 4;
-const edge = v.strictObject({ heights: v.pipe(v.array(v.pipe(finite, v.minValue(-CELL_BELOW), v.maxValue(CELL_ABOVE))), v.minLength(2), v.maxLength(129)), colours: v.pipe(v.array(colour), v.minLength(2), v.maxLength(129)), roadHeight: v.literal(0) });
 const tile = v.strictObject({ lod: v.picklist([0, 1]), x: natural, z: natural, bounds, geometricError: v.pipe(finite, v.minValue(0)), files: v.array(ref), ...costs });
 const file = v.strictObject({ hash, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'binary']), ...costs, dependencies: v.array(ref), critical: v.boolean() });
 const rawSchema = v.strictObject({
@@ -55,7 +55,7 @@ const rawSchema = v.strictObject({
   migrations: v.optional(MigrationsSchema, []),
   authorCaps: v.strictObject({ players: v.pipe(positive, v.maxValue(32)), speed: v.pipe(finite, v.minValue(0), v.maxValue(15)) }),
   serverBudget: v.strictObject({ tickMicros: v.pipe(positive, v.maxValue(16_666)), memory: v.pipe(positive, v.maxValue(CONTENT_CAPS.sim.resident)), entities: v.pipe(natural, v.maxValue(10_000)), commandsPerTick: v.pipe(natural, v.maxValue(1024)) }),
-  edge: v.strictObject({ north: edge, east: edge, south: edge, west: edge }),
+  edge: EdgeProfilesSchema,
   entryways: EntrywaysSchema,
   files: v.array(file), tiles: v.array(tile), library: v.array(ref), critical: v.array(ref),
   far: v.nullable(v.strictObject({ files: v.array(ref), bounds, ...costs })),

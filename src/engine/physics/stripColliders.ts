@@ -10,7 +10,7 @@ export const PLATFORM_COLLIDER_OWNER = 'platform.grid';
 export function installStripCollider(physics: Physics, mesh: StripMesh, scope: Scope): void {
   if (scope.disposed) throw new Error('Cannot install a strip into a disposed scope');
   withOwner(scope, () => {
-    const collider = physics.world.createCollider(physics.R.ColliderDesc.trimesh(mesh.positions, mesh.indices)
+    const collider = physics.world.createCollider(physics.R.ColliderDesc.trimesh(mesh.positions, mesh.indices, physics.R.TriMeshFlags.FIX_INTERNAL_EDGES)
       .setTranslation(mesh.origin.x, 0, mesh.origin.z).setCollisionGroups(groups('WORLD')));
     tagCollider(collider, 'stone', PLATFORM_COLLIDER_OWNER);
   });

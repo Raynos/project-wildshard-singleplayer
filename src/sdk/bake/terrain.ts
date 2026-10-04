@@ -68,8 +68,8 @@ export function bakeTerrain(source: TerrainBakeSource): BakedTerrain {
   }
   const edgeAt = (side: 'north' | 'east' | 'south' | 'west'): Shardfile['edge']['north'] => {
     const samples: number[] = [], rgb: [number, number, number][] = [];
-    for (let i = 0; i < 129; i++) {
-      const x = side === 'east' ? 256 : side === 'west' ? 0 : i * 2, z = side === 'north' ? 256 : side === 'south' ? 0 : i * 2, at = z * 257 + x;
+    for (let i = 0; i < 257; i++) {
+      const x = side === 'east' ? 256 : side === 'west' ? 0 : i, z = side === 'north' ? 256 : side === 'south' ? 0 : i, at = z * 257 + x;
       samples.push(heights[at] ?? 0); rgb.push([colours[at * 3] ?? 0, colours[at * 3 + 1] ?? 0, colours[at * 3 + 2] ?? 0]);
     }
     return { heights: samples, colours: rgb, roadHeight: 0 };

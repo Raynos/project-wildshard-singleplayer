@@ -37,7 +37,7 @@ projects and the template explicitly declare four 6 m openings.
 | Field `privacy` | `public` replicates to everyone; `owner` only to the owning actor; `host` never leaves the host. Shared writes always belong to the host regardless of visibility. Names are unique within each state scope. |
 | `authorCaps` | 1–32 players (authors may lower the room cap); in-cell speed 0–15 m/s. Highway speed belongs to the platform. |
 | `serverBudget` | Positive tick budget ≤16,666 μs, positive memory ≤25 MB, ≤10,000 entities, ≤1,024 commands per tick. These are author declarations, not a server implementation. |
-| `edge` | Four ordered perimeter profiles with 2–129 height and RGB samples of equal length, heights inside ±250 m, colours in [0,1], road height exactly 0. North/south samples run west→east; east/west run south→north. |
+| `edge` | Four ordered perimeter profiles with exactly 256 (legacy native bake) or 257 (tile-bake native lattice) height and RGB samples of equal length, heights inside ±250 m, colours in [0,1], road height exactly 0. North/south samples run west→east; east/west run south→north. |
 | `files` | Unique lowercase 64-character SHA-256 hash, kind (`glb`, `ktx2`, `audio`, `json`, `wasm`, `binary`), compressed/decoded/GPU byte sizes, triangles, draws including shadows, dependency references, critical flag. |
 | `entryways` | Required, four unique openings: north `[0,0,250]`, east `[250,0,0]`, south `[0,0,-250]`, west `[-250,0,0]`; width 0.1–60 m. Every opening reaches road height y=0. |
 | `tiles` | L0 62.5 m or L1 125 m; integer x/z address; exact horizontal grid bounds and vertical bounds inside the 500 m cube; nonnegative geometric error; file roots and declared costs. |
@@ -150,6 +150,9 @@ live across all bindings. Authoritative writes, spawns, events and physics queri
 are refused. The complete batch validates before any visual output commits.
 Modules share one private guest per module; three maximum-sized memory copies
 are charged to the library budget and a per-instance library allocator claim.
+The pooled particle view adds 56 CPU and 32 GPU bytes per live slot, capped at
+4,096 slots across all emitters. `clientScriptViewCost` supplies this cost for
+the library budget; each instance owns its own view claim.
 Same-engine visual continuation restores memory, globals, lifetimes, quotas and
 failure history without running an authoritative tick.
 
@@ -284,3 +287,5 @@ Quest `track` defaults to true; false leaves the HUD tracker empty while retaini
 quest state, map presentation and completion/reward handling. The teaching template
 keeps its previous untracked adventure. Declared item views mount in the normal
 equipment viewmodel host, including off-hand tools, and leave with the level scope.
+
+Edge rows retain every native boundary vertex; 129-point decimation is refused. A modern terrain collider is 257² and carries 257 samples per side, without resampling. When a 256-point neighbour meets a 257-point neighbour, the platform strip uses the sorted union of their native positions (511 points), so both exact boundaries survive.

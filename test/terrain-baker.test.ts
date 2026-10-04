@@ -32,7 +32,7 @@ const product = () => ({ ...emptyShardfile({ slug: 'terrain-fixture', name: 'Ter
 describe('terrain baker', () => {
   it('bakes complete L0/L1 grids, bounded actual costs and a critical collider, then validates through the CLI', async () => {
     expect(baked.tiles.filter((t) => t.lod === 0)).toHaveLength(64); expect(baked.tiles.filter((t) => t.lod === 1)).toHaveLength(16);
-    expect(baked.assets.size).toBe(81); expect(baked.edge.north.heights).toHaveLength(129);
+    expect(baked.assets.size).toBe(81); expect(baked.edge.north.heights).toHaveLength(257);
     expect(baked.tiles.filter((t) => t.lod === 0).every((t) => t.geometricError === 0)).toBe(true);
     expect(baked.tiles.some((t) => t.lod === 1 && t.geometricError > 0.1)).toBe(true);
     expect(() => validateTerrainAssets(baked.terrain, baked.assets, baked)).not.toThrow();

@@ -35,7 +35,7 @@ export class GridAssembly {
     this.byInstance = new Map(this.cells.map((row) => [row.instance, row])); this.byCell = new Map(this.cells.map((row) => [row.cell.join(','), row]));
     const colour = Object.freeze([...data.emptyNeighbour.edgeColour] as const);
     this.emptyNeighbour = Object.freeze({ kind: 'sea', level: 0, fog: Object.freeze({ colour: Object.freeze([...data.emptyNeighbour.fog.colour] as const), near: data.emptyNeighbour.fog.near, far: data.emptyNeighbour.fog.far }),
-      edge: Object.freeze({ roadHeight: 0, heights: Object.freeze(Array.from({ length: 129 }, () => 0)), colours: Object.freeze(Array.from({ length: 129 }, () => colour)) }) });
+      edge: Object.freeze({ roadHeight: 0, heights: Object.freeze(Array.from({ length: 257 }, () => 0)), colours: Object.freeze(Array.from({ length: 257 }, () => colour)) }) });
   }
   /** Resolve a stable save/fact identity, independent of its current cell. */
   cell(instance: string): GridCell { const row = this.byInstance.get(instance); if (row === undefined) throw new Error(`Unknown grid instance ${instance}`); return row; }

@@ -37,7 +37,7 @@ it('supplies an explicit open-sea fog profile for every missing outer neighbour'
   const grid = new GridAssembly({ developer: false, devserver: false }), corner = grid.cell('template-1');
   expect(grid.neighbour(corner, 'east')).toBe(grid.cell('pine-hollow'));
   expect(grid.neighbour(corner, 'north')).toBe(grid.emptyNeighbour); expect(grid.neighbour(corner, 'west')).toBe(grid.emptyNeighbour);
-  expect(grid.emptyNeighbour.level).toBe(0); expect(grid.emptyNeighbour.edge.heights).toHaveLength(129);
+  expect(grid.emptyNeighbour.level).toBe(0); expect(grid.emptyNeighbour.edge.heights).toHaveLength(257);
   expect(grid.emptyNeighbour.edge.heights.every((value) => value === 0)).toBe(true); expect(grid.emptyNeighbour.fog.far).toBeGreaterThan(grid.emptyNeighbour.fog.near);
 });
 
