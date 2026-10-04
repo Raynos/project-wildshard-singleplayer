@@ -6,6 +6,7 @@
 import { findShard } from '../shard/registry';
 import { admitProduct, boundedResponse, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
 import { browserShardfileOptions } from '../shardfile/loader';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '../shardfile/admissionLimits';
 
 /** One admitted product and the options its assets resolve against (ClientAssets reads further tiles through them). */
 export interface GridProduct { readonly admitted: AdmittedProduct; readonly options: ProductOptions }
@@ -19,7 +20,7 @@ export function gridShardfileProduct(slug: string): Promise<GridProduct> | null 
   if (product === undefined) {
     const url = new URL(descriptor, location.href), options = browserShardfileOptions(new URL('.', url).href, true);
     product = (async () => {
-      const input: unknown = JSON.parse(new TextDecoder().decode(await boundedResponse(await fetch(url.href), 4_000_000)));
+      const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await fetch(url.href), limits.sourceBytes)));
       return { admitted: await admitProduct(input, options), options };
     })();
     product.catch(() => { products.delete(slug); });
