@@ -25,7 +25,7 @@ it('words the card and the sheet from the preview: before → after, kept, quote
   expect(cardLines(summary)).toEqual(['QUESTS 1 DONE', '4 ITEMS']);
   expect(cardLines(summary, 4)).toEqual(['QUESTS 1 / 4', '4 ITEMS']);
   expect(sheetRows(summary, 4)).toEqual([{ label: 'QUESTS', value: '1 / 4 → 0 / 4' }, { label: 'INVENTORY', value: '4 ITEMS → EMPTY' }, { label: 'FLAGS', value: 'RESET' }]);
-  expect(cardLines(previewNewGame(store, id))[0]).toBe('QUESTS IN PROGRESS'); // legacy flags without a quest catalogue
+  expect(cardLines(previewNewGame(store, id))[0]).toBe('QUESTS STARTED'); // legacy flags without a quest catalogue
   expect(resetNewGame(store, id).applied).toBe(true);
   expect(cardLines(previewNewGame(store, id))).toEqual(['QUESTS 0 DONE', 'EMPTY']);
 });

@@ -28,7 +28,7 @@ export const SAVES_STRINGS = {
   quests: 'QUESTS', inventory: 'INVENTORY', flags: 'FLAGS',
   questsLine: (value: string): string => `QUESTS ${value}`,
   questCount: (completed: number, total: number | null): string => total === null ? `${completed} DONE` : `${completed} / ${total}`,
-  questsUnknown: 'IN PROGRESS',
+  questsUnknown: 'STARTED',
   items: (n: number): string => `${n} ${n === 1 ? 'ITEM' : 'ITEMS'}`,
   coins: (n: number): string => `${n} ${n === 1 ? 'COIN' : 'COINS'}`,
   empty: 'EMPTY',
