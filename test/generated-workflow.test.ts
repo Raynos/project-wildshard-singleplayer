@@ -12,15 +12,16 @@ import { describe, expect, it } from 'vitest';
 import { generatedFiles } from '../scripts/generated-files.mjs';
 import { checkCommitted, regenerateCommitted } from '../scripts/regenerate-committed.mjs';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
+import { precommitGenerated } from '../scripts/precommit-generated.mjs';
 
-function fixture(run: (root: string, put: (file: string, value: string) => void, git: (args: string[]) => string) => Promise<void>): Promise<void> {
+function fixture(run: (root: string, put: (file: string, value: string) => void, git: (args: string[]) => string) => void | Promise<void>): Promise<void> {
   const root = realpathSync(mkdtempSync(resolve(tmpdir(), 'sf6b-fixture-')));
   const put = (file: string, value: string): void => { mkdirSync(dirname(resolve(root, file)), { recursive: true }); writeFileSync(resolve(root, file), value); };
   const git = (args: string[]): string => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
   return (async () => {
     try {
       cpSync('lint', resolve(root, 'lint'), { recursive: true });
-      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/regenerate-committed.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs']) {
+      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs']) {
         mkdirSync(dirname(resolve(root, file)), { recursive: true }); cpSync(file, resolve(root, file));
       }
       for (const file of ['.oxlintrc.json', '.oxlintrc.ratchet.json']) cpSync(file, resolve(root, file));
@@ -43,6 +44,21 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
   })();
 }
 describe('SF6b clean committed regeneration', () => {
+  it('checks staged generated edits while allowing source-only commits and manual prose or policy edits', async () => {
+    await fixture((root, put, git) => {
+      const baseline = readFileSync(resolve(root, 'lint/api-surface.json'), 'utf8');
+      // A foreign disk edit does not participate until it is explicitly staged in this fixture.
+      put('lint/api-surface.json', `${baseline}\n`);
+      expect(() => precommitGenerated(root)).not.toThrow();
+      git(['add', '--', 'lint/api-surface.json']);
+      expect(() => precommitGenerated(root)).toThrow('Builders commit source only');
+      put('lint/api-surface.json', baseline); git(['add', '--', 'lint/api-surface.json']);
+      const doc = readFileSync(resolve(root, 'docs/ENGINE.md'), 'utf8');
+      put('docs/ENGINE.md', `Manual API explanation.\n${doc}`);
+      git(['add', '--', 'docs/ENGINE.md']);
+      expect(() => precommitGenerated(root)).not.toThrow();
+    });
+  });
   it('joins two export/import source commits within a minute with one regeneration, preserving foreign WIP and policy', async () => {
     await fixture(async (root, put, git) => {
       const start = Date.now();
