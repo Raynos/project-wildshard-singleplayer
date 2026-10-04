@@ -8,8 +8,8 @@
 .ws-main { position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 3); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; transition: opacity 0.3s ease; color: var(--ws-text); }
 .ws-main.hide { opacity: 0; pointer-events: none; }
 .ws-main .ws-main-hero { position: absolute; inset: 0; background-size: cover; background-position: 50% 30%; background-color: #0b1622; pointer-events: none; }
-.ws-main::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(6, 10, 18, 0.42) 0%, rgba(6, 10, 18, 0) 22%, rgba(6, 10, 18, 0) 55%, rgba(6, 10, 18, 0.5) 100%); }
-.ws-main .ws-main-head, .ws-main .ws-main-foot { position: relative; z-index: 2; }
+.ws-main::before { content: ''; position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 1); pointer-events: none; background: linear-gradient(180deg, rgba(6, 10, 18, 0.42) 0%, rgba(6, 10, 18, 0) 22%, rgba(6, 10, 18, 0) 55%, rgba(6, 10, 18, 0.5) 100%); }
+.ws-main .ws-main-head, .ws-main .ws-main-foot { position: relative; z-index: calc(var(--ws-layer-hud) + 2); }
 .ws-main .ws-main-head { padding: calc(18px + env(safe-area-inset-top, 0px)) 24px 0; }
 .ws-main .ws-main-logo { font-family: var(--ws-display); font-weight: 700; font-size: 44px; line-height: 1; letter-spacing: 0.16em; text-transform: uppercase; color: #eaf8ff; text-shadow: 0 0 18px rgba(143, 227, 255, 0.45), 0 4px 24px rgba(0, 0, 0, 0.55); }
 .ws-main .ws-main-logo::after { content: ''; display: block; width: 52px; height: 3px; margin-top: 10px; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
