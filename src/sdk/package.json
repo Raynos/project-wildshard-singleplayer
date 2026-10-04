@@ -7,7 +7,8 @@
     "./shardfile": "./shardfile.ts",
     "./author": "./author.ts",
     "./assets": "./assets.ts",
-    "./project": "./project.ts"
+    "./project": "./project.ts",
+    "./ledger": "./ledger.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -16,8 +17,12 @@
     "dist",
     "bin"
   ],
-  "scripts": { "prepack": "node ../../scripts/build-sdk.mjs" },
-  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "prepack": "node ../../scripts/build-sdk.mjs"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
   "dependencies": {
     "valibot": "1.5.0",
     "vite": "^8.3.0"
@@ -43,6 +48,10 @@
       "./project": {
         "types": "./dist/types/sdk/project.d.ts",
         "default": "./dist/project.js"
+      },
+      "./ledger": {
+        "types": "./dist/types/sdk/ledger.d.ts",
+        "default": "./dist/ledger.js"
       }
     }
   }

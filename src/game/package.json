@@ -45,6 +45,9 @@
     "./shardfile/loader": "./shardfile/loader.ts",
     "./shard/slug": "./shard/slug.ts",
     "./shardfile/scripts": "./shardfile/scripts.ts",
-    "./shardfile/creatures": "./shardfile/creatures.ts"
+    "./shardfile/creatures": "./shardfile/creatures.ts",
+    "./ledger": "./ledger.ts",
+    "./grid/instances": "./grid/instances.ts",
+    "./shardfile/ledger": "./shardfile/ledger.ts"
   }
 }

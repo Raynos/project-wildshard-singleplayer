@@ -11244,6 +11244,18 @@
         "from": "@wildshard/game/Elite"
       },
       {
+        "name": "firstPartyInstance",
+        "kind": "function",
+        "doc": "Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix.",
+        "from": "@wildshard/game/grid/instances"
+      },
+      {
+        "name": "templateInstance",
+        "kind": "function",
+        "doc": "Six copies of one template package have independent facts and local state, wherever they are placed.",
+        "from": "@wildshard/game/grid/instances"
+      },
+      {
         "name": "harvestOf",
         "kind": "function",
         "doc": "what a carcass of (kind, variant) yields when harvested",
@@ -11266,6 +11278,48 @@
         "kind": "const",
         "doc": "",
         "from": "@wildshard/game/Inventory"
+      },
+      {
+        "name": "installLedgerEmitter",
+        "kind": "function",
+        "doc": "Register the fact cursor with the same-engine snapshot host and retry failed durable writes in fixed steps.",
+        "from": "@wildshard/game/ledger"
+      },
+      {
+        "name": "Ledger",
+        "kind": "class",
+        "doc": "Local ledger implementation: profile grants and their fact dedupe record share one atomic SaveStore write.",
+        "from": "@wildshard/game/ledger"
+      },
+      {
+        "name": "LedgerCatalogueItem",
+        "kind": "interface",
+        "doc": "The platform admits catalogue items at capped power tiers, independently of author data.",
+        "from": "@wildshard/game/ledger"
+      },
+      {
+        "name": "LedgerEmitter",
+        "kind": "class",
+        "doc": "Per-host fact cursor. The host supplies identity, tick and provenance; callers submit only an outcome and entity.",
+        "from": "@wildshard/game/ledger"
+      },
+      {
+        "name": "ledgerFactId",
+        "kind": "function",
+        "doc": "Collision-free instance + package + revision + entity + tick + ordinal; relocation changes no key.",
+        "from": "@wildshard/game/ledger"
+      },
+      {
+        "name": "LedgerInstance",
+        "kind": "interface",
+        "doc": "A placement identity remains stable when its cell changes; several instances may use one package.",
+        "from": "@wildshard/game/ledger"
+      },
+      {
+        "name": "LedgerReceipt",
+        "kind": "interface",
+        "doc": "A grant is confirmed only by a durable save write; a pending receipt may be retried.",
+        "from": "@wildshard/game/ledger"
       },
       {
         "name": "CoinBurst",
@@ -11998,6 +12052,36 @@
         "kind": "type",
         "doc": "Validated brain parameters and spawn layout, with no rig or runtime closure.",
         "from": "@wildshard/game/shardfile/creatures"
+      },
+      {
+        "name": "LedgerFact",
+        "kind": "type",
+        "doc": "One witnessed engine/script outcome, with a stable six-part identity.",
+        "from": "@wildshard/game/shardfile/ledger"
+      },
+      {
+        "name": "LedgerFactSchema",
+        "kind": "const",
+        "doc": "Facts carry host-assigned identity and provenance; cell coordinates never participate.",
+        "from": "@wildshard/game/shardfile/ledger"
+      },
+      {
+        "name": "LedgerRule",
+        "kind": "type",
+        "doc": "Data mapping declared facts to platform-controlled profile rewards.",
+        "from": "@wildshard/game/shardfile/ledger"
+      },
+      {
+        "name": "LedgerRulesSchema",
+        "kind": "const",
+        "doc": "Profile rewards are approved catalogue objects or achievements/titles; shard coins are excluded.",
+        "from": "@wildshard/game/shardfile/ledger"
+      },
+      {
+        "name": "parseLedgerRules",
+        "kind": "function",
+        "doc": "Validate compiled author data before the platform binds its allowed reward mappings.",
+        "from": "@wildshard/game/shardfile/ledger"
       },
       {
         "name": "configuredShardfile",
@@ -13550,6 +13634,36 @@
         "kind": "function",
         "doc": "Start an author project with a valid empty world; add baked content before shipping a playable shard.",
         "from": "@wildshard/sdk/author"
+      },
+      {
+        "name": "LedgerFact",
+        "kind": "type",
+        "doc": "The compiled fact contract consumed by the platform ledger.",
+        "from": "@wildshard/sdk/ledger"
+      },
+      {
+        "name": "LedgerFactSchema",
+        "kind": "const",
+        "doc": "Compile a host-witnessed fact with placement identity and provenance.",
+        "from": "@wildshard/sdk/ledger"
+      },
+      {
+        "name": "LedgerRule",
+        "kind": "type",
+        "doc": "One declared fact-to-platform reward mapping.",
+        "from": "@wildshard/sdk/ledger"
+      },
+      {
+        "name": "LedgerRulesSchema",
+        "kind": "const",
+        "doc": "Compile profile reward mappings; coins and unreviewed local items stay outside the travelling profile.",
+        "from": "@wildshard/sdk/ledger"
+      },
+      {
+        "name": "parseLedgerRules",
+        "kind": "function",
+        "doc": "Validate ledger declarations in an author project before writing its shardfile.",
+        "from": "@wildshard/sdk/ledger"
       },
       {
         "name": "buildProject",

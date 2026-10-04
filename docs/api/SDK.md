@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-19 members; 0 without a doc line (—).
+24 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -14,6 +14,11 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parseGlb` | function | @wildshard/sdk/assets | Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. |
 | `parseKtx2` | function | @wildshard/sdk/assets | Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. |
 | `emptyShardfile` | function | @wildshard/sdk/author | Start an author project with a valid empty world; add baked content before shipping a playable shard. |
+| `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |
+| `LedgerFactSchema` | const | @wildshard/sdk/ledger | Compile a host-witnessed fact with placement identity and provenance. |
+| `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |
+| `LedgerRulesSchema` | const | @wildshard/sdk/ledger | Compile profile reward mappings; coins and unreviewed local items stay outside the travelling profile. |
+| `parseLedgerRules` | function | @wildshard/sdk/ledger | Validate ledger declarations in an author project before writing its shardfile. |
 | `buildProject` | function | @wildshard/sdk/project | Build a deterministic shard.json, immutable files and the distributed normal client when present. |
 | `canonicalJson` | function | @wildshard/sdk/project | Stable JSON encoding: sorted object keys, no timestamps or host paths. |
 | `contentHash` | function | @wildshard/sdk/project | Hash of immutable wire bytes; this is also their output filename. |

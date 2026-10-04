@@ -8,6 +8,15 @@ Build output goes in git-ignored `public/shardfiles/`. Placement is platform dat
 `src/game/grid/singleplayer.json`, attached by `scripts/gen-shards.mjs`; source manifests
 and shardfiles carry no placement. SF17a changes the catalogue to the 3 × 3 grid.
 
+Ledger declarations use `@wildshard/sdk/ledger`: validate fact-to-reward mappings with
+`parseLedgerRules`. Authors emit a named outcome; the host assigns its stable instance,
+package revision, entity, tick, ordinal and engine/script provenance. The platform admits
+catalogue rewards at capped tiers and records achievements/titles once per package in the
+profile. Grants and fact dedupe share one durable write; failed writes retry the same
+document. Cells never enter a save or fact key. First-party modes resolve one identity
+through `@wildshard/game/grid/instances`; template copies use `template-1` … `template-6`,
+while Select a shard uses `template-solo`. The legacy template switches at SF16.
+
 A shard is one Wildshard level: a folder `src/shards/<slug>/` with a manifest (data) and a plugin (code). The engine,
 the game layer and the kit do the rest. This guide takes you from a copy of the template to a shard that is `live` on
 the title deck.

@@ -2,7 +2,7 @@
   "version": 0,
   "placements": [
     {
-      "instance": "solo._template",
+      "instance": "template-solo",
       "slug": "_template",
       "cell": [
         0,
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "instance": "solo.driftwood-isle",
+      "instance": "driftwood-isle",
       "slug": "driftwood-isle",
       "cell": [
         -1,
@@ -28,7 +28,7 @@
       ]
     },
     {
-      "instance": "solo.far-reach",
+      "instance": "far-reach",
       "slug": "far-reach",
       "cell": [
         1,
@@ -41,7 +41,7 @@
       ]
     },
     {
-      "instance": "solo.nalati-grasslands",
+      "instance": "nalati-grasslands",
       "slug": "nalati-grasslands",
       "cell": [
         4,
@@ -54,7 +54,7 @@
       ]
     },
     {
-      "instance": "solo.nine-dragon-stack",
+      "instance": "nine-dragon-stack",
       "slug": "nine-dragon-stack",
       "cell": [
         -2,
@@ -67,7 +67,7 @@
       ]
     },
     {
-      "instance": "solo.pine-hollow",
+      "instance": "pine-hollow",
       "slug": "pine-hollow",
       "cell": [
         3,
@@ -80,7 +80,7 @@
       ]
     },
     {
-      "instance": "solo.sunscar-dunes",
+      "instance": "sunscar-dunes",
       "slug": "sunscar-dunes",
       "cell": [
         2,

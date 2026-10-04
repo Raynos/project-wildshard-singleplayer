@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-232 members; 112 without a doc line (—).
+246 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -80,10 +80,19 @@ The game layer's public modules (src/game/package.json `exports`).
 | `EliteScript` | interface | @wildshard/game/Elite | — |
 | `GroundTell` | class | @wildshard/game/Elite | — |
 | `GroundTellWedgeStyle` | interface | @wildshard/game/Elite | Wedge-specific shader parameters are authored by the caller; geometry/draping is shared. |
+| `firstPartyInstance` | function | @wildshard/game/grid/instances | Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix. |
+| `templateInstance` | function | @wildshard/game/grid/instances | Six copies of one template package have independent facts and local state, wherever they are placed. |
 | `harvestOf` | function | @wildshard/game/Inventory | what a carcass of (kind, variant) yields when harvested |
 | `Inventory` | class | @wildshard/game/Inventory | — |
 | `ItemId` | type | @wildshard/game/Inventory | Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle |
 | `PACK_SLOTS` | const | @wildshard/game/Inventory | — |
+| `installLedgerEmitter` | function | @wildshard/game/ledger | Register the fact cursor with the same-engine snapshot host and retry failed durable writes in fixed steps. |
+| `Ledger` | class | @wildshard/game/ledger | Local ledger implementation: profile grants and their fact dedupe record share one atomic SaveStore write. |
+| `LedgerCatalogueItem` | interface | @wildshard/game/ledger | The platform admits catalogue items at capped power tiers, independently of author data. |
+| `LedgerEmitter` | class | @wildshard/game/ledger | Per-host fact cursor. The host supplies identity, tick and provenance; callers submit only an outcome and entity. |
+| `ledgerFactId` | function | @wildshard/game/ledger | Collision-free instance + package + revision + entity + tick + ordinal; relocation changes no key. |
+| `LedgerInstance` | interface | @wildshard/game/ledger | A placement identity remains stable when its cell changes; several instances may use one package. |
+| `LedgerReceipt` | interface | @wildshard/game/ledger | A grant is confirmed only by a durable save write; a pending receipt may be retried. |
 | `CoinBurst` | class | @wildshard/game/loot/CoinBurst | — |
 | `nearScale` | function | @wildshard/game/loot/CoinBurst | a coin's size factor at `near` metres from the eye: 1 past SHRINK_R, easing in to MIN_SCALE at NEAR_EYE |
 | `coinModel` | function | @wildshard/game/loot/coinModel | A gold coin rendered by the installed content recipe. |
@@ -206,6 +215,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `creatureRules` | function | @wildshard/game/shardfile/creatures | Unique ids and brain references; species and strikes are resolved against the loader's declared catalogues. |
 | `CreaturesSchema` | const | @wildshard/game/shardfile/creatures | Pure-data creature archetypes and stable spawn layouts, expanded before the local sim boots. |
 | `ShardCreatures` | type | @wildshard/game/shardfile/creatures | Validated brain parameters and spawn layout, with no rig or runtime closure. |
+| `LedgerFact` | type | @wildshard/game/shardfile/ledger | One witnessed engine/script outcome, with a stable six-part identity. |
+| `LedgerFactSchema` | const | @wildshard/game/shardfile/ledger | Facts carry host-assigned identity and provenance; cell coordinates never participate. |
+| `LedgerRule` | type | @wildshard/game/shardfile/ledger | Data mapping declared facts to platform-controlled profile rewards. |
+| `LedgerRulesSchema` | const | @wildshard/game/shardfile/ledger | Profile rewards are approved catalogue objects or achievements/titles; shard coins are excluded. |
+| `parseLedgerRules` | function | @wildshard/game/shardfile/ledger | Validate compiled author data before the platform binds its allowed reward mappings. |
 | `configuredShardfile` | function | @wildshard/game/shardfile/loader | The prebuilt client's HTML supplies data, without a second boot loop or URL switch. |
 | `emptyShardfileSource` | function | @wildshard/game/shardfile/loader | Validate before allocating a level. Content bindings belong to the full loader. |
 | `installShardfileSource` | function | @wildshard/game/shardfile/loader | Select a validated external source before the normal session starts. |
