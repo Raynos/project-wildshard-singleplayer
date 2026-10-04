@@ -1,4 +1,5 @@
 import { decodeTerrainTile, isTerrainTileData, terrainTileCost } from '@wildshard/engine/world/terrainTileData';
+import { visitGlbGeometry, type GlbVertex } from './glbTriangles';
 
 /** Actual costs derived from a bounded parser, never trusted from the author declaration. */
 export interface AssetCost { decoded: number; gpu: number; triangles: number; draws: number }
@@ -16,7 +17,10 @@ function count(value: unknown, max = MAX_ELEMENTS): number { if (typeof value !=
 function json(bytes: Uint8Array): unknown { return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); }
 
 /** Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. */
-export function parseGlb(bytes: Uint8Array): AssetCost {
+export function parseGlb(bytes: Uint8Array): AssetCost { return parseGlbData(bytes); }
+/** Inspect exact static triangles only after the bounded GLB parser admits the complete payload. */
+export function visitGlbTriangles(bytes: Uint8Array, visit: (triangle: readonly GlbVertex[]) => void): void { parseGlbData(bytes, visit); }
+function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]) => void): AssetCost {
   requireRange(bytes, 0, 20); const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (bytes.length > MAX_BYTES || view.getUint32(0, true) !== 0x46546c67 || view.getUint32(4, true) !== 2 || view.getUint32(8, true) !== bytes.length) throw new Error('invalid GLB header');
   const length = view.getUint32(12, true); requireRange(bytes, 20, length);
@@ -159,6 +163,7 @@ export function parseGlb(bytes: Uint8Array): AssetCost {
   // Old GLB fixtures omit scene nodes; count their mesh resources conservatively too.
   if (nodes.length === 0) for (const cost of meshCosts) { triangles += cost.triangles; draws += cost.draws * 2; }
   if (length + binaryBytes + instanceCpu + rigCpu > MAX_BYTES || gpu > MAX_BYTES || triangles > 400_000 || draws > 512) throw new Error('GLB resource cap');
+  if (visit !== undefined) visitGlbGeometry({ nodes, meshes, accessors, parents, read }, visit);
   return { decoded: length + binaryBytes + instanceCpu + rigCpu, gpu, triangles, draws };
 }
 

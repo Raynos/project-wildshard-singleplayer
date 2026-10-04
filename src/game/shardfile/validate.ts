@@ -7,6 +7,7 @@ import { assetCost } from './assets';
 import { validateTerrainAssets } from './terrain';
 import { validateSkinAssets } from './skins';
 import { validateEntrywayTerrain } from './entryways';
+import { validateEntrywayClearance } from './entryClearance';
 import { clientScriptViewCost } from './clientScripts';
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
@@ -92,6 +93,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   const cost = worstContentCost(s, commons);
   if (cost.playing > C.playing || cost.loading > C.loading) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
   validateEntrywayTerrain(s, assets);
+  validateEntrywayClearance(s, assets);
   if (s.terrain !== null) validateTerrainAssets(s.terrain, assets, s);
   validateSkinAssets(s, assets);
   return s;

@@ -35,3 +35,15 @@ export function clipEntryPolygon(vertices: readonly EntryVertex[], rect: EntryFo
   }
   return polygon;
 }
+/** Does any triangle surface rise above the road inside its open clearance rectangle? Touching a side wall is legal. */
+export function obstructsEntry(vertices: readonly EntryVertex[], rect: EntryFootprint): boolean {
+  const clipped = clipEntryPolygon(vertices, rect), above: EntryVertex[] = [];
+  for (let i = 0; i < clipped.length; i++) {
+    const a = clipped[i], b = clipped[(i + 1) % clipped.length]; if (a === undefined || b === undefined) continue;
+    if (a.y >= 0) above.push(a);
+    if ((a.y < 0) !== (b.y < 0)) { const t = a.y / (a.y - b.y); above.push({ x: a.x + (b.x - a.x) * t, y: 0, z: a.z + (b.z - a.z) * t }); }
+  }
+  if (!above.some((point) => point.y > 0)) return false;
+  const x = above.reduce((sum, p) => sum + p.x, 0) / above.length, z = above.reduce((sum, p) => sum + p.z, 0) / above.length;
+  return x > rect.minX && x < rect.maxX && z > rect.minZ && z < rect.maxZ;
+}

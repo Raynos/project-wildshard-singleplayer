@@ -39,6 +39,15 @@ projects and the template explicitly declare four 8 m openings. Canonical
 `ENTRY_WIDTH = 8` and `ENTRY_ASPHALT = 15` live in the engine core config;
 entry width is independent from the boulevard width.
 
+Each approach must also stay clear and dry. Admission inspects actual placed GLB
+triangles (including node hierarchy and GPU instance transforms), every declared
+box/stair collider, and water regions. Hidden panels and inactive colliders still
+count because they can become active. Reusable unplaced model assets do not count
+as scenery. Side walls may touch the boundary of the 8 m opening; no surface above
+y=0 may enter it. Water at road height is refused; a declared sea must remain below
+the road even at its bounded maximum swell. These checks run without allocating
+socket floors and apply equally to implicit-flat non-terrain data products.
+
 | Section | Contract |
 |---|---|
 | `identity` | Kebab/dot slug, nonempty display name and author (128 characters max), positive revision, unsigned seed. No grid coordinates. |
