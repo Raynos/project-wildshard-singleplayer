@@ -1,5 +1,5 @@
-import { onRoad, type RoadGrid } from './roadRecovery';
-import type { GridReloadExit, GridReloadHandoff } from './reloadHandoff';
+import type { RoadGrid } from './roadRecovery';
+import { gridReloadDeck, type GridReloadExit, type GridReloadHandoff } from './reloadHandoff';
 
 /** A fixed-step observation of the admitted active frame and the actual deck contact. */
 export interface RoadReloadObservation {
@@ -32,7 +32,7 @@ export class RoadReload {
     const { inside, instance, feet } = observation;
     if (inside !== null) { this.source = inside === instance ? inside : null; return; }
     if (this.source === null || instance !== null || !observation.grounded || !observation.ready
-      || Math.abs(feet.y) > 0.6 || !onRoad(this.ports.grid, feet.x, feet.z)) return;
+      || Math.abs(feet.y) > 0.6 || !gridReloadDeck(this.ports.grid, feet.x, feet.z)) return;
     this.active = this.ports.transaction(this.source); this.start();
   }
   private start(): void {

@@ -31,6 +31,7 @@ it('refuses unsafe road poses, stale/future records, revision changes and unknow
   const value = handoff();
   expect(valid(value)).toBe(true);
   expect(valid({ ...value, roadPose: { x: 0, y: 0, z: 0 } })).toBe(false);
+  expect(valid({ ...value, roadPose: { x: 277.5, y: 0, z: 277.5 } })).toBe(false);
   expect(valid({ ...value, roadPose: { ...value.roadPose, y: 4 } })).toBe(false);
   expect(valid({ ...value, at: 2000 })).toBe(false);
   expect(validGridReload(value, assembly, () => 1, 61001)).toBe(false);

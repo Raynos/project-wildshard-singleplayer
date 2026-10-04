@@ -1,7 +1,8 @@
 import * as v from 'valibot';
 import type { SaveStore, SaveSlot } from '@wildshard/engine/saves/store';
 import type { GridAssembly } from './assembly';
-import { onRoad } from './roadRecovery';
+import { onRoad, type RoadGrid } from './roadRecovery';
+import { RING_ISLAND } from './roadLayout';
 
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
@@ -14,7 +15,7 @@ export const GridReloadHandoffSchema = v.strictObject({
   instance: id, revision: v.pipe(natural, v.minValue(1)), cell: v.tuple([finite, finite]),
   roadPose: v.strictObject({ x: finite, y: finite, z: finite }), heading: finite,
   mount: v.nullable(v.literal('hoverboard')),
-  loadout: v.strictObject({ selected: v.nullable(id), tools: v.pipe(v.array(id), v.maxLength(64)) }),
+  loadout: v.strictObject({ selected: v.null(), tools: v.pipe(v.array(v.literal('tool.hoverboard')), v.maxLength(1)) }),
   clock: v.strictObject({ version: v.literal(1), elapsed: v.pipe(finite, v.minValue(0)), wall: v.pipe(finite, v.minValue(0)), frames: natural,
     captureFps: v.nullable(v.pipe(finite, v.minValue(Number.MIN_VALUE))), paused: v.boolean(), scale: v.pipe(finite, v.minValue(0)) }),
   recovery: v.strictObject({ lastSafeRoadPoint: roadPoint, state: v.literal('on-road') }), at: natural,
@@ -26,13 +27,20 @@ const definition = { key: 'grid.reload.once', scope: 'device' as const, version:
 /** Device storage survives sessionStorage loss; the shared definition also permits repeated installer calls. */
 export function gridReloadSlot(store: SaveStore): SaveSlot<GridReloadHandoff | null> { return store.define(definition); }
 
+/** Junction islands are ground, but never a safe asphalt transfer point. */
+export function gridReloadDeck(grid: RoadGrid, x: number, z: number): boolean {
+  if (!onRoad(grid, x, z)) return false;
+  const offset = (value: number): number => value - (Math.round((value - grid.pitch / 2) / grid.pitch) * grid.pitch + grid.pitch / 2);
+  return Math.hypot(offset(x), offset(z)) > RING_ISLAND + 0.5;
+}
+
 /** Geometry/revision admission is separate from asynchronous critical-bundle readiness at boot. */
 export function validGridReload(value: GridReloadHandoff, assembly: GridAssembly, revision: (instance: string) => number | undefined, now: number): boolean {
   const age = now - value.at, cell = assembly.cells.find((entry) => entry.instance === value.instance);
   return age >= 0 && age <= 60_000 && cell !== undefined && revision(value.instance) === value.revision
     && cell.cell[0] === value.cell[0] && cell.cell[1] === value.cell[1]
-    && Math.abs(value.roadPose.y) <= 0.6 && onRoad(assembly, value.roadPose.x, value.roadPose.z)
-    && onRoad(assembly, value.recovery.lastSafeRoadPoint.x, value.recovery.lastSafeRoadPoint.z);
+    && Math.abs(value.roadPose.y) <= 0.6 && gridReloadDeck(assembly, value.roadPose.x, value.roadPose.z)
+    && gridReloadDeck(assembly, value.recovery.lastSafeRoadPoint.x, value.recovery.lastSafeRoadPoint.z);
 }
 /** Consume before any world mutation, regardless of the Debug or public-grid gate. Failed deletion never restores. */
 export function consumeGridReload(slot: SaveSlot<GridReloadHandoff | null>, valid: (value: GridReloadHandoff) => boolean): GridReloadHandoff | null {
