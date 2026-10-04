@@ -35,6 +35,16 @@ function install(host: SimHost): ScriptBrainLane {
 }
 const motion = 'store<f64>(24576,1);store<f64>(24584,2);store<f64>(24592,2);';
 describe('trusted AssemblyScript creature intentions', () => {
+  it('moves the real collision motor from validated guest intentions', () => {
+    const host = createSimHost(SIM_LEVEL, { rapier });
+    try {
+      host.player.position.z = 6;
+      const actor = host.entities.get('boar:1'); if (actor === undefined) throw new Error('Missing fixture actor');
+      actor.yaw = 0; install(host);
+      for (let tick = 0; tick < 30; tick++) host.step();
+      expect(host.entities.get('boar:1')?.position.z).toBeGreaterThan(2);
+    } finally { host.dispose(); }
+  });
   it('uses real engine queries and the strike pipeline; denied attack tokens suppress damage', () => {
     const active = createSimHost(SIM_LEVEL, { rapier }), denied = createSimHost(SIM_LEVEL, { rapier });
     try {
@@ -80,6 +90,17 @@ describe('trusted AssemblyScript creature intentions', () => {
       expect(() => lane.restore(saved.replace('"2":0', '"2":4'))).toThrow();
       expect(lane.snapshot()).toBe(saved);
       expect(() => create(host, bytes, true, { ...binding, actorId: 'another.actor' })).toThrow('trusted');
+    } finally { host.dispose(); }
+  });
+  it('rejects an author-selected parameter identity and validates observations before advancing', async () => {
+    const host = createSimHost(SIM_LEVEL, { rapier });
+    try {
+      const source = await compileScript(scriptSource('store<f64>(31000,8);query(410,31000,32000);',
+        '@external("env","query") declare function query(kind:i32,input:i32,output:i32):i32;'));
+      expect(create(host, source).step(0)[0]).toMatchObject({ ok: false, reason: 'Brain parameters require trusted self' });
+      const lane = create(host), before = lane.snapshot();
+      host.player.position.z = Number.NaN;
+      expect(() => lane.step(0)).toThrow('observations'); expect(lane.snapshot()).toBe(before);
     } finally { host.dispose(); }
   });
 });
