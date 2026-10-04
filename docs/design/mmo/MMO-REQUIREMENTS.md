@@ -127,27 +127,29 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 | Id | Requirement | Level | Src |
 |---|---|---|---|
 | B1 | The reference device is the phone: **30 fps sustained hot**, 60-ready; memory within **1.0 GB in world, 1.8 GB while loading** | MUST | singleplayer budgets |
-| B2 | Budgets are **checked statically on upload** (S3) and **enforced at runtime**: a shard that runs slow drops its quality tier, and a plugin that runs out of fuel is stopped, not waited on | MUST | N |
-| B3 | Static assets are served content-addressed and cacheable; a shard boots offline once visited | SHOULD | N |
+| B2 | Limits are **checked before play** (S3) and **enforced while playing**: a shard that overruns is degraded or stopped, never waited on | MUST | N |
+| B3 | Assets are served content-addressed and cacheable; a shard boots offline once visited, within iOS's storage quota for a home-screen app | SHOULD | N |
+| B4 | **A server budget per shard**: the server cost of a shard (time per tick, memory, players per room) is measured at upload under bot load, and a shard over budget is refused. An overloaded room slows down on purpose rather than crashing | MUST | N, J |
 
 ### 3.7 Multiplayer
 
 | Id | Requirement | Level | Src |
 |---|---|---|---|
-| M1 | **The server is authoritative.** Each shard runs as a **room** on a **host**; most rooms start on the main host | MUST | F |
+| M1 | **The server is authoritative over everything shared** (Jake, E435, Fork C: full authority, hybrid): each shard runs as a **room** that runs the shared simulation headless (creatures, combat, loot, quests); phones send **inputs, not positions**, and predict only their own character; hits are settled on the server against what the player saw (a capped rewind); cosmetics (particles, flocks, wind) stay local and change no shared state. Server cost is load-tested early | MUST | F, J |
 | M2 | The simulation runs **headless**: no renderer, no DOM. Hits are resolved from aim inputs, not from what the first-person view draws | MUST | N |
 | M3 | World state is serialisable with **stable entity ids**; gameplay changes arrive as input commands, so snapshot → restore → replay is exact | MUST | N |
 | M4 | Identity: log in or play anonymously. A **Name** with a **Title** beneath it | MUST | V |
-| M5 | Chat: global, shard and proximity | MUST | V |
+| M5 | Chat: global, shard and proximity ; everything players and authors write is shown as plain text, and chat is moderated | MUST | V |
 | M6 | A **player profile** above the shards travels between shards. **Two wallets** (Jake, E435): the profile holds only what the platform controls (identity, cosmetics, titles, achievements, a platform currency at server-set rates, and gear from the shared item catalogue at server-capped power tiers). Anything a shard invents (its own items, keys, coins, progress) stays in that shard's save and never leaves it | MUST | V (R10), J |
-| M7 | Shard modes and law (persistent, instanced, scheduled, competitive; PvP, gravity, permadeath) are declared data the server enforces | SHOULD | N (SHARD-IDEAS §5.3) |
+| M8 | **One progress ledger**: only events the server witnessed can grant profile things (loot, XP, titles, achievements, activity credit), and every grant is idempotent: a disconnect, a retry or a lag switch never duplicates or repeats one | MUST | N, J |
+| M7 | Shard modes and law (persistent, instanced, scheduled, competitive; PvP, gravity, permadeath) declared as data the server enforces. Later (Jake, E435): the first grid is PvE in persistent shards | LATER | N, J |
 
 ### 3.8 Upload and lifecycle
 
 | Id | Requirement | Level | Src |
 |---|---|---|---|
 | U1 | **The upload ritual:** in localhost mode the author plants a beacon at the 8 corners and a 9th at the centre, then completes a ~30 s upload sequence. No CLI or API upload replaces it; the SDK never uploads | MUST | F |
-| U2 | The server validates (A3), quarantines, then activates a revision by an atomic head flip. Every revision is kept | MUST | N |
+| U2 | The server validates (A3) and quarantines a revision, then activates it all-or-nothing. Every revision is kept | MUST | N |
 | U3 | **Live update with players inside** is designed and tested: revision swap while occupied, relocation mid-session, capacity, crash recovery (open decision O5) | MUST | V |
 | U4 | **Private shards never leak**, including through public asset URLs | MUST | V |
 
@@ -160,16 +162,17 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 | O3 | **Collaboration:** invite editors; an editor downloads the current revision to edit it cleanly in Claude Code | MUST | F |
 | O4 | **Renovation:** abandoned shards can be claimed by new authors | MUST | F |
 | O5 | **No ghost-town centre:** rank, bin-pack, archive and relocate shards by meaningful activity (edits, play, authored quests, achievements, puzzles, pickups), **excluding the author**, resistant to farming. The centre stays fixed. What happens to players, saves and archived work on a move is defined | MUST | F |
-| O6 | Moderation: report, review and take down a shard or a revision; content checks on upload where they are cheap | MUST | N |
+| O6 | Moderation: report, review and take down a shard or a revision, including copyright takedowns; content checks on upload where they are cheap | MUST | N |
 
 ### 3.10 The transition: the six shards keep working
 
 | Id | Requirement | Level | Src |
 |---|---|---|---|
 | T1 | **Nothing breaks.** Driftwood Isle, Pine Hollow, Nalati Grasslands, Nine Dragon Stack, Signal Dunes and Sky Reach stay playable and live through every step; the singleplayer parity gate proves each step | MUST | J |
-| T2 | **The 80/20 split:** each first-party shard reaches **≥ 80 % data and approved systems, ≤ 20 % custom runtime TypeScript** (the metric is defined in SHARD-PLATFORM), without a rewrite in one go | MUST | J |
+| T2 | **The 80/20 split, measured two ways** (Jake, E435): (1) **the public-SDK share**: ≥ 80 % of each first-party shard is built the way a player builds a shard (A0), and code outside the public SDK path counts as custom; (2) **the runtime ceiling**: the lines of TypeScript in the shard's `runtime/` are ≤ 20 % of the shard folder's TypeScript lines today. Moving code into a shared non-SDK library lowers neither. **Staged: 80/20, then 90/10, then 100/0** | MUST | J |
 | T3 | The 20 % lives in each shard's `runtime/` folder, behind the shard API, under a per-shard ratchet that only falls. It shrinks later by graduation (R8) or a port to a WASM plugin (R7) | MUST | J |
-| T4 | **New shards are born on the format** with no `runtime/` folder; what they lack becomes an approved system. One exception: **Thin Ice** (shard 7) starts as code with the six's 20 % allowance and converts last (Jake, SHARD-PLATFORM Q1) | MUST | J |
+| T4 | **New shards are born on the format** with no `runtime/` folder. One exception, confirmed by Jake in E435 after both audits flagged it: **Thin Ice** (shard 7) starts as code with the six's 20 % allowance and converts last (SHARD-PLATFORM Q1) | MUST | J |
+| T6 | **The kit becomes the SDK** (Jake, E435): shared code that today's shards import at runtime is split over time into the public SDK (generation on the author's machine, and libraries an author's sandboxed behaviour may use) and platform built-ins behind the versioned API. The kit stays during the transition, as a stepping stone to 100/0, never as a way to lower a shard's count | MUST | J |
 | T5 | Until the first public grid, single-player stays the shipping product | MUST | N |
 
 ## 4. What the singleplayer engine already gives us
@@ -182,12 +185,16 @@ declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLAT
 
 ## 5. How we will know
 
+In order (Jake, E435: package-first; seamless travel designed first):
+
 | Milestone | Exit test |
 |---|---|
-| **80/20** (SHARD-PLATFORM) | Every first-party shard reports ≥ 80 % in the gate; the shards boot from their packages; a new shard ships with no `runtime/` folder; the template's simulation runs in Node with no renderer |
-| **Multiplayer** | Two players in one shard on an authoritative server, from the same packages |
+| **The package** | The template boots from its package with no trusted code; a fresh author builds a small shard outside the repo with only the SDK (A0, A6); the template's simulation runs in Node with no renderer |
+| **The crossroads** | A phone prototype at a four-shard crossroads, driven at speed through a throttled link, meets the W7 limits on the physical iPhone |
+| **Multiplayer** | Two players in one shard on an authoritative server, from the same package, with the progress ledger |
 | **Upload** | An outside author uploads a validated shard through the ritual and it appears on the grid |
-| **The grid** | 25 shards live, travel over the highway without a reload, profiles that travel |
+| **The grid** | 25 shards live, seamless travel over the highway, profiles that travel |
+| **80/20 → 90/10 → 100/0** (alongside) | Each first-party shard passes both T2 measures at each stage |
 
 ## 6. Decisions recorded (Jake, 2026-10-03)
 
@@ -217,6 +224,12 @@ declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLAT
     phone prototype precedes the format freeze.
 13. **Any player can become a shard builder** (E435, A0), with the same skill, quickstart and CLI that first-party
     shards are built with: one path, no private first-party route.
+14. **Full server authority, hybrid** (E435, Fork C, M1, M8): the server runs the shared sim; inputs not positions;
+    own-character prediction; server-settled hits; local cosmetics; one idempotent progress ledger.
+15. **80/20 measured two ways, staged to 100/0, and the kit becomes the SDK** (E435, T2, T6).
+16. **Thin Ice stays code** (E435, T4): Jake kept Q1 after both audits flagged it.
+17. **Shard modes and law are later** (E435, M7): the first grid is PvE.
+18. **Server authority, cost and seamless travel are in scope** (E435, §5, §8); the milestones are re-ordered.
 
 ## 7. Open decisions (each with a recommended answer)
 
@@ -232,5 +245,5 @@ declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLAT
 
 ## 8. Out of scope here
 
-Pocket spaces (W9, cut by E435). Server technology, hosting and cost model, accounts and payments, and the multiplayer protocol: they are the
-milestones after 80/20 and get their own plans. Crafting. Accessibility features.
+Pocket spaces (W9, cut by E435). Accounts and payments. Crafting. Accessibility features. (Server authority, cost and
+seamless travel moved **in scope** in E435: they shape the package format, so they are designed before it freezes.)
