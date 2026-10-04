@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { saveFixtureCode } from './debug-settings.mjs';
+import { deviceSavePicks, saveFixtureCode } from './debug-settings.mjs';
 // E357: per-shard cold Safari phases; the caller holds sim-lane.sh.
 import { shardFolders } from './gen-shards.mjs';
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
@@ -205,8 +205,10 @@ async function oneRun(udid, run, opts) {
     };
     // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/boot/titleArrival.ts)
     const settings = Object.fromEntries(opts.settings.map((s) => s.split('=')));
+    const deviceSaves = opts.deviceSaves;
     const arrival = { slug: run.shard, mode: 'enter', at: Date.now() };
-    await evaluate(`${saveFixtureCode({ scope: 'session', key: 'titleArrival', data: arrival })};${saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: arrival })};${saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};1`); // developer mode: EXPLORE WORLD is developer-only (E386)
+    const deviceCode = Object.entries(deviceSaves).map(([key, data]) => saveFixtureCode({ scope: 'device', key, data })).join(';');
+    await evaluate(`${saveFixtureCode({ scope: 'session', key: 'titleArrival', data: arrival })};${saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: arrival })};${saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${deviceCode};1`); // developer mode: EXPLORE WORLD is developer-only (E386)
     setPhase('loading');
     const loadStart = Date.now();
     await evaluate(`location.href = ${JSON.stringify(`${run.base}?chunk=${run.shard}&mute=1`)}; 1`, 1);
@@ -230,6 +232,8 @@ async function oneRun(udid, run, opts) {
     result.identity = await checkIdentity();
     result.settings = JSON.parse(await evaluate('JSON.stringify(JSON.parse(localStorage.getItem("wildshard.save.v2.global") ?? "{}").keys?.settings?.data ?? {})'));
     if (Object.entries(settings).some(([key, value]) => result.settings[key] !== value)) throw new Error('Debug settings fixture did not survive the cold load');
+    result.deviceSaves = JSON.parse(await evaluate('JSON.stringify(Object.fromEntries(Object.entries(JSON.parse(localStorage.getItem("wildshard.save.v2.device") ?? "{}").keys ?? {}).map(([key, value]) => [key, value.data])))'));
+    if (Object.entries(deviceSaves).some(([key, value]) => result.deviceSaves[key] !== value)) throw new Error('Device Debug fixture did not survive the cold load');
     say(`verified runtime ${result.identity.build}/${result.identity.shard}`);
     await settle();
 
@@ -333,7 +337,7 @@ async function main() {
   const count = Number(flag('runs', '1'));
   const expectedBuild = (await (await fetch(new URL('version.json', base))).json()).build;
   if (typeof expectedBuild !== 'string' || !expectedBuild) throw new Error('server build identity missing');
-  const opts = { out, expectedBuild, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting') };
+  const opts = { out, expectedBuild, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting'), deviceSaves: deviceSavePicks(flags('device-save')) };
   if (!Number.isInteger(count) || count < 1 || !Number.isFinite(opts.play) || opts.play <= 0 || !Number.isFinite(opts.fly) || opts.fly <= 0) throw new Error('invalid run count/duration');
   if (shards.some((shard) => !/^_?[a-z0-9-]+$/.test(shard))) throw new Error('invalid shard');
   const previousReport = flag('previous', '') ? JSON.parse(readFileSync(flag('previous', ''), 'utf8')) : null;

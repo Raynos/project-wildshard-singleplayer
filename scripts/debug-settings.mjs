@@ -1,4 +1,17 @@
 // Save fixtures for the v2 trust boundary. Safe to serialize into a browser init script or an external evaluator.
+/** Parse explicit device-row picks without treating them as global Settings. @param {readonly string[]} values */
+export function deviceSavePicks(values) {
+  /** @type {Record<string, string>} */
+  const picks = {};
+  for (const value of values) {
+    const match = /^([a-zA-Z][a-zA-Z0-9._-]*)=(.+)$/u.exec(value);
+    if (match === null) throw new Error('Invalid device save; expected key=value');
+    const key = match[1], data = match[2];
+    if (Object.hasOwn(picks, key)) throw new Error('Duplicate device save');
+    Object.defineProperty(picks, key, { value: data, enumerable: true, configurable: true, writable: true });
+  }
+  return picks;
+}
 /** @param {{scope: string, key: string, data: unknown, merge?: boolean, once?: string}} fixture */
 export function writeSaveFixture(fixture) {
   try {

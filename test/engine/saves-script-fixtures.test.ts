@@ -32,3 +32,21 @@ it('serializes external-evaluator fixtures without needing a page closure', () =
   expect(local.getItem('wildshard.save.v2.device')).toContain('"data":true');
   expect(local.getItem('wildshard.save.v2.global')).toBe('{"keys":{}}');
 });
+
+it('seeds explicit memory variants in device slots and refuses ambiguous picks', () => {
+  const localStorage = new MemoryStorage(), context: Record<string, unknown> = { localStorage, sessionStorage: new MemoryStorage() };
+  runInNewContext(source.replaceAll(/^export /gmu, ''), context);
+  const parser = context['deviceSavePicks'], code = context['saveFixtureCode'];
+  if (typeof parser !== 'function' || typeof code !== 'function') throw new Error('Device fixture helpers missing');
+  const parse = parser as (values: readonly string[]) => Record<string, string>;
+  const makeCode = code as (value: { scope: string; key: string; data: unknown }) => string;
+  const key = 'debug.plugin.driftwood-isle.driftwoodGpuOnlyCopies';
+  const picks = parse([`${key}=on`, 'debug.plugin.driftwood-isle.driftwoodHybrid=off']);
+  for (const [name, data] of Object.entries(picks)) runInNewContext(makeCode({ scope: 'device', key: name, data }), context);
+  expect(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}')).toEqual({ keys: {
+    [key]: { v: 1, data: 'on' }, 'debug.plugin.driftwood-isle.driftwoodHybrid': { v: 1, data: 'off' },
+  } });
+  expect(localStorage.getItem('wildshard.save.v2.global')).toBe('{"keys":{}}');
+  expect(() => parse([`${key}=on`, `${key}=off`])).toThrow('Duplicate');
+  expect(() => parse([`${key}=`])).toThrow('Invalid');
+});

@@ -15,6 +15,7 @@
 import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { GL_INIT } from '../parity/glbytes.mjs';
+import { deviceSavePicks, saveFixture } from '../debug-settings.mjs';
 
 const { chromium, devices } = await import('playwright');
 const argv = process.argv.slice(2);
@@ -23,6 +24,8 @@ const flags = (name) => argv.filter((x) => x.startsWith(`--${name}=`)).map((x) =
 const BASE = flag('base', 'http://127.0.0.1:4400');
 const SETTLE = Number(flag('settle', '15')) * 1000;
 const OUT = flag('out', '');
+const DEVICE_SAVES = deviceSavePicks(flags('device-save'));
+const VERSION = await (await fetch(`${BASE}/version.json`)).json();
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const mb = (b) => Math.round(b / 1e5) / 10;
 const median = (a) => { if (a.length === 0) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
@@ -50,6 +53,7 @@ async function probe(target) {
   let sampler = null;
   try {
     const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'], viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 });
+    for (const [key, data] of Object.entries(DEVICE_SAVES)) await saveFixture(ctx, { scope: 'device', key, data });
     const page = await ctx.newPage();
     await page.addInitScript(GL_INIT);
     const cdp = await ctx.newCDPSession(page);
@@ -77,6 +81,9 @@ async function probe(target) {
     } else if (target.kind === 'shard') {
       await page.goto(`${BASE}/?chunk=${target.slug}&skipintro=1&nolock=1&mute=1&touch=1&tier=phone`, { waitUntil: 'commit', timeout: 180_000 });
       await page.waitForFunction(() => Boolean(window.__wildshard?.world) && !document.querySelector('.ws-load'), null, { timeout: 300_000, polling: 250 });
+      const witness = await page.evaluate(() => ({ build: window.__wildshard?.boot?.build,
+        device: Object.fromEntries(Object.entries(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys ?? {}).map(([key, value]) => [key, value.data])) }));
+      if (witness.build !== VERSION.build || Object.entries(DEVICE_SAVES).some(([key, value]) => witness.device[key] !== value)) throw new Error('Wrong build or missing device fixture in desktop memory run');
       mark('loaded');
       await sleep(SETTLE / 2);
       await cdp.send('HeapProfiler.collectGarbage').catch(() => null); // the settled reading is post-GC (the rig's is too)
@@ -144,6 +151,6 @@ for (const t of targets) {
   const m = r.phases?.measure ?? r.phases?.done;
   console.log(`${t.label}: ${m ? `renderer ${m.rendererMB} MB · GPU proc ${m.gpuMB} MB · JS ${m.jsMB} MB` : r.error ?? 'no measure phase'}`);
 }
-const out = { tool: 'scripts/crossroads-rig/desktop-probe.mjs', date: new Date().toISOString(), base: BASE, device: 'Chromium headless (Metal), iPhone 16 Pro 390x844@3', results };
+const out = { tool: 'scripts/crossroads-rig/desktop-probe.mjs', date: new Date().toISOString(), base: BASE, version: VERSION, deviceSaves: DEVICE_SAVES, device: 'Chromium headless (Metal), iPhone 16 Pro 390x844@3', results };
 if (OUT) writeFileSync(OUT, `${JSON.stringify(out, null, 1)}\n`);
 else console.log(JSON.stringify(out, null, 1));
