@@ -1,4 +1,6 @@
 // @vitest-environment happy-dom
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the generated build binary inside the clean export.
+import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { beforeAll, expect, it } from 'vitest';
 import { Vector3 } from 'three';
@@ -10,10 +12,9 @@ import { EncountersSchema } from '../../src/game/shardfile/encounters';
 import { UiSchema } from '../../src/game/shardfile/ui';
 import { ENCOUNTERS, ENCOUNTER_UI } from '../../src/shards/_template/data/encounters';
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
-import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
-beforeAll(async () => { rapier = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()); });
+beforeAll(async () => { rapier = await loadRapier(new Uint8Array(readFileSync('public/assets/physics/rapier.wasm')).buffer); });
 it('drives the one mounted SF7f panel through intro, phase, checkpoint retry and victory', () => {
   const row = v.parse(EncountersSchema, ENCOUNTERS)[1], actor = SIM_LEVEL.entities[0];
   if (!row || !actor) throw new Error('Missing encounter fixture');
