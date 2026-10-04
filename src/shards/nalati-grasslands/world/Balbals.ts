@@ -13,11 +13,10 @@
  */
 import * as THREE from 'three';
 import { M, poiMaterial } from './paint';
-import { type BoxSpec as Collider, boxDesc, type WorldRegistry, type Placement } from '#engine';
+import { type BoxSpec as Collider, boxDesc, type WorldRegistry, type Placement, place } from '#engine';
 import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
 import { MODEL_TRIS } from './glbPaint';
-import { place } from '#engine/models/place';
 import { balbal, wearGenerated, type BalbalCarving, type BalbalParams } from '../models/balbal';
 
 export interface Statue { x: number; y: number; z: number; yaw: number; scale: number; tilt: number; variant: number; slot: number; collider: Collider }

@@ -9,8 +9,7 @@
  */
 import * as THREE from 'three';
 import { loadLod, prepModel } from '../world/homestead';
-import { bakePart } from '#engine/models/hull';
-import { defineModel, type ModelContext, type ColliderDesc } from '#engine';
+import { defineModel, type ModelContext, type ColliderDesc, bakePart } from '#engine';
 
 interface Log {
   parts: { geometry: THREE.BufferGeometry; material: THREE.Material }[];

@@ -1,7 +1,6 @@
 import { elitesSave } from './saves';
 import * as THREE from 'three';
-import { resourceScope, fxMaterial, annulus, FX, type FxMaterial, type Renderer, type Animal, heightAt, type Interactable, type EliteBar } from '#engine';
-import { WeaponPickup } from '#engine/player/WeaponPickup';
+import { resourceScope, fxMaterial, annulus, FX, type FxMaterial, type Renderer, type Animal, heightAt, type Interactable, type EliteBar, WeaponPickup } from '#engine';
 
 /**
  * Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). "Elites

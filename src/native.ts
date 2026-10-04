@@ -5,7 +5,7 @@
  */
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
-import { nativeBoot } from '#engine/native/boot';
+import { nativeBoot } from './engine/native/boot';
 
 void nativeBoot({
   pageServices: async () => { (await import('./pageServices')).startPageServices(); },

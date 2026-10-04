@@ -2,8 +2,11 @@ import { musicManifests } from '../boot/tables';
 import { parseManifest, shipped, type MusicManifest, type SlotAudio, type StemSting, type BossPhase } from './Stems';
 import type { MusicState } from './Music';
 
+/** reads a stem file's bytes (fetch by default; a test hands its own) */
 export type AudioRead = (url: string) => Promise<ArrayBuffer>;
+/** decodes a stem's bytes into an AudioBuffer (the audio context by default; a test hands its own) */
 export type AudioDecode = (bytes: ArrayBuffer) => Promise<AudioBuffer>;
+/** a set's decoded score: every slot's stems and the stings, ready for SetScore to play */
 export interface ScoreBank { slots: Map<string, SlotAudio>; stings: Map<StemSting, AudioBuffer> }
 export interface ScoreSource {
   readonly slots: readonly string[];
@@ -24,7 +27,9 @@ export interface ScoreSource {
 }
 export interface ScoreSet { dir: string; manifestKey: string }
 const STINGS: readonly StemSting[] = ['pickup', 'death', 'chunk'];
+/** the music manifest of a score set (its slots, stems and stings), or undefined when the build has none */
 export function scoreManifest(set: ScoreSet): MusicManifest | undefined { return parseManifest(musicManifests()[set.manifestKey]); }
+/** the files a score set plays: the given slots' stems (every slot by default) and its stings */
 export function scoreFiles(set: ScoreSet, slots?: readonly string[], withStings = true): string[] {
   const m = scoreManifest(set);
   if (!m) return [];

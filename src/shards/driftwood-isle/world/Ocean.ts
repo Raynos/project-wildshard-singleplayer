@@ -24,12 +24,10 @@
  * Fogged through the shared atmosphere; transparent, drawn after the world (renderOrder 4). One draw call.
  */
 import * as THREE from 'three';
-import { heightAt, inChunk } from '#engine/world/Heightfield';
 import { OCEAN } from '../manifest';
 import { islandKnobs } from '../tiers';
 import { toonUniforms } from '../look/toon';
-import { HORIZON_RADIUS } from '#engine/world/HorizonMatte';
-import { PATCH_ORDER, patchShader, CHUNK_HALF, CHUNK_SIZE, attachFogUniforms, type Sky, WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock } from '#engine';
+import { PATCH_ORDER, patchShader, CHUNK_HALF, CHUNK_SIZE, attachFogUniforms, type Sky, WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock, heightAt, inChunk, HORIZON_RADIUS } from '#engine';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 

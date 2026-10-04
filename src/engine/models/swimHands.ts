@@ -16,6 +16,7 @@ export interface SwimHandsParams { readonly style: SwimStyle }
 
 const FWD = new THREE.Vector3(0, 0, -1);
 
+/** the first-person swimming hands, smooth or faceted */
 export const swimHands = defineModel<SwimHandsParams>({
   id: 'shared/swim-hands', name: 'Swimming hands', category: 'gear', pipeline: 'code', file: 'src/engine/models/swimHands.ts', surface: 'flesh',
   defaults: { style: 'pbr' },

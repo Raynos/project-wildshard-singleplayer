@@ -15,9 +15,8 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type BoxSpec as Collider, type Sky, heightAt, waveHeight, seaDamp, lowPolyMaterial, type ColliderDesc, type WorldRegistry, modelContext } from '#engine';
+import { type BoxSpec as Collider, type Sky, heightAt, waveHeight, seaDamp, lowPolyMaterial, type ColliderDesc, type WorldRegistry, modelContext, place, type Placed } from '#engine';
 import { BEAM, BOAT_CLEATS, BOAT_FLOOR, LENGTH, boat, boatColliders } from '../models/boat';
-import { place, type Placed } from '#engine/models/place';
 
 export interface BoatSpec {
   x: number; z: number;

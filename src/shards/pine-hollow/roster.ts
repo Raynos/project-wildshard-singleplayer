@@ -7,7 +7,7 @@
  * `pipeline`: a generated mesh on a code rig lists its generator(s) first, then 'code'; a GLB posed in a shader (the
  * birds) is its generator alone.
  */
-import { live, type RosterEntry } from '#engine';
+import { live, type RosterEntry, swimHands } from '#engine';
 import { bear, boar, deer } from '#kit/models/creatures';
 import { elk } from './models/creatures';
 import { antlerKing } from './models/antlerKing';
@@ -15,7 +15,6 @@ import { owl, raven, woodpecker } from './models/birds';
 import { snowshoeHare } from './models/wildlife';
 import { millerBrandt, rangerHale, traderMott } from './models/people';
 import { GEAR } from './models/gear';
-import { swimHands } from '#engine/models/swimHands';
 
 /** the small wildlife's copies (src/shards/pine-hollow/life/index.ts, one instanced draw): N_RAVEN 4 at the kills + N_GUIDE 3
  *  breadcrumb ravens, the owl, the woodpecker, N_HARE 5 hares */

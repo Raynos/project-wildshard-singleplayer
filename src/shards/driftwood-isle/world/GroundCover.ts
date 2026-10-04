@@ -51,7 +51,6 @@
  * under 0.24, sand below; never on the sand paths, on steep rock, in the water, or inside a POI's footprint.
  */
 import * as THREE from 'three';
-import { heightAt, normalAt, trailDistance } from '#engine/world/Heightfield';
 import { addDriftLog, DRIFT } from './driftLogs';
 import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../manifest';
 import { Cove } from './Cove';
@@ -59,8 +58,7 @@ import { rockGeometry } from './rockKit';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter, triAreas } from './coverTint';
 import { driftLog, driftLogBox } from '../models/driftLog';
-import { place, type Placed } from '#engine/models/place';
-import { PATCH_ORDER, patchShader, attachFogUniforms, SEED, Rng, LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part, windFieldUniforms as windUniforms, TIER, type BlenderArea, type Sky, modelContext } from '#engine';
+import { PATCH_ORDER, patchShader, attachFogUniforms, SEED, Rng, LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part, windFieldUniforms as windUniforms, TIER, type BlenderArea, type Sky, modelContext, heightAt, normalAt, trailDistance, place, type Placed } from '#engine';
 
 export interface GroundCoverOpts {
   sea: number;

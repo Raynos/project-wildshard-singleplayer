@@ -26,6 +26,24 @@ Many `#engine` exports are **ports**: legacy classes a shard still needs while t
 `AnimalManager`, `Animal`, `getActiveChunk`). They are listed so the test passes, and each section says which ones are
 ports. Prefer the context verbs (`ctx.*`) and the services on `ctx.app` where both exist.
 
+**No deep paths (AG5).** `#engine/*` does not resolve: a deep path is a build error in TypeScript, Vite and node alike,
+so `#engine` carries everything the layers above use. The names AG5 brought up from deep paths, by area:
+placement (`place`, `PlaceOptions`, `Draw`, `CullOptions`, `CullView`, `copiesAt`, `copiesNear`, `placedGroups`, `weld`,
+`finishWeld`, `placeSet`, `poseOf`, `SlotGeometry`, `SlotRecorder`, `bakePart`, `supportPoints`, `vertexHull`,
+`loadLodPairInto`, `lodPairOf`, `GlbPart`); models (`creature`, `creatureFactory`, `CreatureParams`, `CREATURE_CLIPS`,
+`loadingSpecimen`, `skinVariants`, `wearSkin`, `GearSkinParams`, `swimHands`, `applySkin`); the live terrain field
+(`normalAt`, `splatAt`, `trailDistance`, `cabinMask`, `pondMask`, `waterLevel`, `streamAt`, `inChunk`, `hasPond`, `POND`,
+`TRAILS`, `CABIN_SITES`, `HORIZON_RADIUS`, `createWaterMaterial`, `waterWeather`, `HeightPatch`, `layoutFauna`,
+`bakedUndergrowth`, `FOREST_BANDS`, `trunkCapsule`, `placeUndergrowth`, `DecisionLog`, `placementChecksum`,
+`sameChecksum`, `UndergrowthPlacement`); audio (`SetScore`, `scoreManifest`, `scoreFiles`, `decodeScore`, `ScoreBank`,
+`AudioRead`, `AudioDecode`, `cachedBytes`, `decodeBytes`, `InteractSfx`, `audioLog`); the adventure view (`QuestChip`,
+`NpcTalk`, `NpcTalkOpts`, `ChipSource`, `Places`, `PlacePoint`, `LiveMarker`, `placesWithDiscovery`, `ObjectiveLine`,
+`DialogueBox`, `RewardCaption`, `Interactables`); pickups and the playgrounds (`ItemPickup` / `WeaponPickup`,
+`PickupTier`, `DevKit`, `devLabel`, `devMaterial`, `PlaygroundChip`, `clock`, `PLAYGROUND_Y`); `Animal` as a value;
+and `perfLap` / `LapSpot`. The composition root (`src/*.ts`, outside the layers) keeps its relative paths
+into the engine so the pre-entry stays small. Tests reach engine internals
+through the vitest-only `#engine-internal/*` alias; `src/` never does.
+
 ## 0. Conventions
 
 | Rule | What it means for you |
@@ -548,7 +566,7 @@ Boot helpers on `#engine`: `StepProgress`, `StepRunner`, `macrotask`, `slicer` (
 `loadBootRuntime` / `BootRuntime`, `preloadBakedTextures`, `loadBakedSky`, `loadLUT`, `fetchLut`, `LUT_SIZE`,
 `PUBLIC_BYTES`, `markUnload`, `setTitleArrival` / `TitleArrival`, `Ktx2Table`, `LoadFailure`. `#engine/data` has
 `filePolicy`, `PUBLIC_BYTES`, `ChunkFiles`, `Tier`, `TexMode` for node-side tools, and for a manifest's creature and
-loot tables (E405 AG5) `ROAD_LENGTH`, `SEED`, `Noise2D`, `Rng`, `deriveSpecies`, `WeightedTable`.
+loot tables (E405 AG5) `CHUNK_SIZE`, `TERRAIN_RES`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `Noise2D`, `Rng`, `deriveSpecies`, `WeightedTable`.
 
 ## 9. Saves
 
@@ -1619,7 +1637,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine` (`src/engine/index.ts`)
 
-818 exports, grouped by the module they come from.
+903 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`, `ROAD_WIDTH`, `_applyChunkConstants`
@@ -1656,7 +1674,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./saves/runtime`: `saves`, `persistHomeScreen`
 - `./saves/slots`: `jsonSlot`, `jsonSchema`, `jsonRecord`, `saveStorage`
 - `./audio/contentApi`: `loadAudio`
-- `./audio/SetScore`: `ScoreSource`, `SetScore`
+- `./audio/SetScore`: `ScoreSource`, `SetScore`, `decodeScore`, `scoreFiles`, `scoreManifest`, `AudioRead`, `AudioDecode`, `ScoreBank`
 - `./audio/Cues`: `CuePlayer`, `CueMap`, `CueOpts`, `CueBank`, `SampleClip`
 - `./audio/AmbienceBeds`: `ZoneWeights`
 - `./audio/levelAudio`: `LevelAudioProfile`
@@ -1679,7 +1697,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./render/viewmodelFeel`: `viewmodel`, `DrawingBuffer`, `LookSpring`, `LookLag`
 - `./core/Game`: `Game`
 - `./world/Sky`: `Sky`
-- `./world/forest/Forest`: `Forest`
+- `./world/forest/Forest`: `Forest`, `FOREST_BANDS`, `trunkCapsule`
 - `./combat/types`: `Targets`, `TargetAnimal`, `TargetHit`
 - `./combat/view/melee`: `Move`, `Key`, `Trail`, `SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet`
 - `./player/bladeGlow`: `BladeGlow`
@@ -1737,15 +1755,13 @@ sections above describe what to use; this list is the complete inventory.
 - `./audio/Audio`: `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind`, `SampleLoop`
 - `./ui/HUD`: `HUD`
 - `./ui/Map`: `FullMap`, `FullMapPoi`, `MapQuest`
-- `./player/Skins`: `SkinDef`
+- `./player/Skins`: `SkinDef`, `applySkin`
 - `./contentApi`: `loadWorldContent`
-- `./entities/Animal`: `Animal`
 - `./combat/view/rangedFeel`: `installRangedFeel`, `RangedFeelProfile`
 - `./ai/inspect`: `inspectBrain`, `pinBrain`, `brainInspection`, `BrainInspection`
 - `./ai/view/DebugOverlay`: `installAiDebug`, `AiDebugHost`, `AiDebugView`
 - `./ai/weighted`: `WeightedTable`, `WeightedRow`, `TableDrop`, `TableSpec`
 - `./quest/core`: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`, `CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`
-- `./quest/view`: `QuestChip`, `NpcTalk`
 - `./quest/contentApi`: `loadQuest`
 - `./ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
 - `./ai/flight`: `SpeciesFlight`
@@ -1771,7 +1787,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./world/forest/treeSpecies`: `TreeSpeciesTraits`, `TreeSetVariant`, `SpeciesWeights`
 - `./combat/targets`: `authoredTargets`, `RayTargets`
 - `./meadowApi`: `loadMeadow`
-- `./practice/playground/Playground`: `PlaygroundHost`, `Playground`
+- `./practice/playground/Playground`: `PlaygroundHost`, `Playground`, `PLAYGROUND_Y`
 - `./physics/paths`: `pathRampDescs`
 - `./analytics`: `AnalyticsSink`, `AnalyticsEvent`, `AnalyticsMap`, `AnalyticsBatch`
 - `./audio/Stems`: `SlotAudio`, `StyleBank`, `StemSting`, `BossPhase`, `MusicManifest`
@@ -1791,7 +1807,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./physics/groups`: `GroupName`, `groups`
 - `./core/practiceRoom`: `practiceRoom`
 - `./world/interact/flags`: `Flags`, `test`
-- `./world/interact/Interactables`: `Interactables`, `InteractEvent`
+- `./world/interact/Interactables`: `InteractEvent`, `Interactables`
 - `./ui/FirstHints`: `FirstHints`
 - `./physics/bodies`: `activeBodies`, `Body`, `BodySpec`
 - `./world/waves`: `waveHeight`, `WAVES_GLSL`, `WAVES_NORMAL_GLSL`, `seaDamp`, `waveClock`
@@ -1826,7 +1842,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./boot/bytes`: `fetchImage`, `phoneUrl`, `versionedUrl`
 - `./core/ktx2`: `ktx2Texture`, `readTexturePixels`
 - `./entities/AnimalFactory`: `AnimalFactory`
-- `./models/place`: `HandedBatch`, `InstancedCuller`, `Placed`
+- `./models/place`: `HandedBatch`, `InstancedCuller`, `Placed`, `place`, `PlaceOptions`, `Draw`, `copiesAt`, `finishWeld`, `weld`, `CullOptions`, `copiesNear`, `placedGroups`, `CullView`
 - `./physics/active`: `activePhysics`
 - `./physics/CharacterMotor`: `CharacterMotor`
 - `./physics/surface`: `tagOf`, `Material`
@@ -1835,14 +1851,38 @@ sections above describe what to use; this list is the complete inventory.
 - `./telemetry/runtime`: `startTelemetry`
 - `./ui/roomMap`: `RoomMap`, `RoomMarker`, `RoomShape`
 - `./world/blenderArea`: `BlenderArea`
-- `./world/forest/placement`: `GroundPlacement`, `TreeInstance`, `UnderPlacements`
+- `./world/forest/placement`: `GroundPlacement`, `TreeInstance`, `UnderPlacements`, `DecisionLog`, `placeUndergrowth`, `placementChecksum`, `sameChecksum`, `UndergrowthPlacement`
+- `./audio/audioLog`: `audioLog`
+- `./audio/interactSfx`: `InteractSfx`
+- `./audio/preload`: `cachedBytes`, `decodeBytes`
+- `./core/perfLap`: `perfLap`, `LapSpot`
+- `./entities/Animal`: `Animal`
+- `./models/colliders`: `poseOf`
+- `./models/creature`: `creature`, `CreatureParams`, `creatureFactory`, `CREATURE_CLIPS`
+- `./models/gear`: `loadingSpecimen`, `skinVariants`, `wearSkin`, `GearSkinParams`
+- `./models/glb`: `vertexHull`, `loadLodPairInto`, `lodPairOf`, `GlbPart`
+- `./models/hull`: `bakePart`, `supportPoints`
+- `./models/sets`: `placeSet`
+- `./models/slots`: `SlotGeometry`, `SlotRecorder`
+- `./models/swimHands`: `swimHands`
+- `./physics/heightPatch`: `HeightPatch`
+- `./player/WeaponPickup`: `WeaponPickup`, `ItemPickup`, `PickupTier`
+- `./practice/playground/devGrid`: `DevKit`, `devLabel`, `devMaterial`
+- `./practice/playground/hud`: `PlaygroundChip`, `clock`
+- `./quest/view`: `NpcTalk`, `QuestChip`, `placesWithDiscovery`, `LiveMarker`, `ChipSource`, `NpcTalkOpts`, `PlacePoint`, `Places`
+- `./quest/view/ui`: `ObjectiveLine`, `DialogueBox`, `RewardCaption`
+- `./world/BakedTerrain`: `bakedUndergrowth`
+- `./world/faunaLayout`: `layoutFauna`
+- `./world/Heightfield`: `normalAt`, `splatAt`, `trailDistance`, `cabinMask`, `pondMask`, `waterLevel`, `inChunk`, `POND`, `TRAILS`, `CABIN_SITES`, `hasPond`, `streamAt`
+- `./world/HorizonMatte`: `HORIZON_RADIUS`
+- `./world/waterSurface`: `createWaterMaterial`, `waterWeather`
 - `(local)`: `ENGINE_API`
 
 ### `#engine/data` (`src/engine/data.ts`)
 
-30 exports, grouped by the module they come from.
+33 exports, grouped by the module they come from.
 
-- `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`
+- `./core/config`: `CHUNK_HALF`, `CHUNK_SIZE`, `TERRAIN_RES`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`
 - `./core/noise`: `Noise2D`, `smoothstep`, `clamp`, `lerp`
 - `./core/rng`: `Rng`
 - `./ai/species`: `deriveSpecies`

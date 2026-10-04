@@ -25,6 +25,7 @@ import { installLifecycle } from './lifecycle';
 // Steps 1–3 never keep the game from starting: each failure is logged and the boot goes on.
 // Saves hydrate first: the updater keeps its own state in `ws.ota.*` keys, and its boot-time writes (consuming the
 // staged marker, recording an activation) must go through the Preferences mirror, not only the evictable WebView copy.
+/** the native shell's boot: restore the saves mirror, apply a staged update, then start the page */
 export async function nativeBoot(game: { pageServices: () => Promise<void>; main: () => Promise<unknown> }): Promise<void> {
   try { console.info(`[native] ${await hydrateSaves()} saves restored`); } catch (error) { console.warn('[native] save mirror off', error); }
   let ota: OtaSession | null | undefined;

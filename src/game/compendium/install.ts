@@ -1,5 +1,5 @@
 import { bagMenu } from '../bag/tabs';
-import { app, hudSlots, lineOfSight, type HUD, type GameMenu, type AnimalManager, type Interactable } from '#engine';
+import { app, hudSlots, lineOfSight, type HUD, type GameMenu, type AnimalManager, type Interactable, perfLap } from '#engine';
 /**
  * installCompendium — wires the active shard's compendium into the game (one call from main.ts; nothing happens on a
  * shard that registered none). It owns: the state + its save, the tracker's hooks, the book, the ways in, the trophy wall.
@@ -19,7 +19,6 @@ import { CompendiumState } from './state';
 import { CompendiumTracker } from './tracker';
 import { Journal } from './Journal';
 import { compendiumFinds } from './finds';
-import { perfLap } from '#engine/core/perfLap';
 
 export interface CompendiumHost {
   chunkId: string;

@@ -138,6 +138,7 @@ function makeSigil(): THREE.BufferGeometry {
 const _size = new THREE.Vector2(), _eye = new THREE.Vector3(), _to = new THREE.Vector3(), _q = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0);
 const _q2 = new THREE.Quaternion(), _qIdentity = new THREE.Quaternion(), _xAxis = new THREE.Vector3(1, 0, 0);
 
+/** an item lying in the world in a glowing orb, taken with USE (also exported as WeaponPickup) */
 export class ItemPickup {
   readonly group = new THREE.Group();
   readonly interactable: Interactable;

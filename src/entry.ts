@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
 import { startPageServices } from './pageServices';
-import { persistHomeScreen } from '#engine/saves/runtime';
+import { persistHomeScreen } from './engine/saves/runtime';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -17,10 +17,10 @@ import { persistHomeScreen } from '#engine/saves/runtime';
  * iOS26.5 keeps a failed module URL errored (L7 Simulator proof): SW network retries must finish the body before
  * WebKit sees it. A module that fetched fine but threw is not run twice: the engine keeps it errored and rethrows at once.
  */
-import { guardBoot } from '#engine/boot/stuck';
-import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '#engine/boot/bootTrace';
-import { setting } from '#engine/ui/Settings';
-import { Scope } from '#engine/app/scope';
+import { guardBoot } from './engine/boot/stuck';
+import { inspectPreviousBoot, previousBootLine, previousBootLevel } from './engine/boot/bootTrace';
+import { setting } from './engine/ui/Settings';
+import { Scope } from './engine/app/scope';
 import { retried } from '#engine/retry';
 import { bootRoute } from './bootRoute';
 
@@ -43,9 +43,9 @@ if (rescueBoot) {
 }
 
 /** resolves once the title or the selected shard's entry has been evaluated */
-export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('#engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? (async () => {
+export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? (async () => {
   await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
-  const [{ showStartTitle }, { buildTitleDeck, titleCards, travel }] = await retried(() => Promise.all([import('#engine/ui/StartTitle'), import('#game/titleDeck')]));
+  const [{ showStartTitle }, { buildTitleDeck, titleCards, travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('#game/titleDeck')]));
   // the composition root wires the game's deck into the engine's title (E405)
   showStartTitle(({ settings, notice }) => buildTitleDeck({
     cards: titleCards(), active: null,
@@ -54,7 +54,7 @@ export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import
     onSettings: settings, ...(notice === undefined ? {} : { notice }),
   }));
 })() : (async () => {
-  const { initializeTier } = await retried(() => import('#engine/core/tier'));
+  const { initializeTier } = await retried(() => import('./engine/core/tier'));
   await initializeTier();
   await retried(() => import('three')); 
   await task();

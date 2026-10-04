@@ -17,13 +17,11 @@
  *     where it hits the pond, tinted by the fog / sun colours so they follow the clock.
  */
 import * as THREE from 'three';
-import { heightAt, normalAt, waterLevel } from '#engine/world/Heightfield';
-import { createWaterMaterial } from '#engine/world/waterSurface';
 import { fogGLSL, makeMistTexture } from '#kit/looks/particles';
 import {
   CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt, type XZ,
 } from '../layout';
-import { PATCH_ORDER, patchShader, attachFogUniforms, type Sky, windFieldUniforms as windUniforms, WIND_DIR } from '#engine';
+import { PATCH_ORDER, patchShader, attachFogUniforms, type Sky, windFieldUniforms as windUniforms, WIND_DIR, heightAt, normalAt, waterLevel, createWaterMaterial } from '#engine';
 import { smoothstep } from '#engine/data';
 
 /** the creek ribbon's across-stream offsets (m): dense where the water meets the banks */

@@ -1,8 +1,8 @@
 import { ENGINE_CONTENT_STRINGS } from '#game/engineStrings';
-import { installEngineStrings } from '#engine/strings';
-import { installScore } from '#engine/audio/score/score';
+import { installEngineStrings } from './engine/strings';
+import { installScore } from './engine/audio/score/score';
 import { WILDSHARD_SCORE } from '#game/audio/theme';
-import { startTelemetry } from '#engine/telemetry/runtime';
+import { startTelemetry } from './engine/telemetry/runtime';
 
 /** Install before the view module graph evaluates, on web and native after save hydration. */
 export function startPageServices(): void {

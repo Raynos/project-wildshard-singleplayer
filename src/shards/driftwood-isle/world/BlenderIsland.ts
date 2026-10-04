@@ -35,11 +35,10 @@ import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.mo
 import { CELL } from '#engine/data';
 import { area, inArea, BLENDER_MODELS } from './blenderArea';
 import type { PalmSpec } from './Palms';
-import { place as placeModel } from '#engine/models/place';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
-import { PATCH_ORDER, patchShader, ktx2Texture, attachFogUniforms, CHUNK_HALF, TERRAIN_RES, TIER, type Sky, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, slicer, modelContext, type ModelContext, type Placement } from '#engine';
+import { PATCH_ORDER, patchShader, ktx2Texture, attachFogUniforms, CHUNK_HALF, TERRAIN_RES, TIER, type Sky, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, slicer, modelContext, type ModelContext, type Placement, place as placeModel } from '#engine';
 
 const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are this file's own
 /** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */

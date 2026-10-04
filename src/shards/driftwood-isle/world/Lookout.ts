@@ -14,10 +14,9 @@
  * (see the model).
  */
 import type * as THREE from 'three';
-import { heightAt, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, modelContext } from '#engine';
+import { heightAt, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, modelContext, place, type Placed } from '#engine';
 import { Cove } from './Cove';
 import { lookout, lookoutLayout, lookoutOrigin, type LookoutAnchor, type LookoutParams } from '../models/lookout';
-import { place, type Placed } from '#engine/models/place';
 
 export type { LookoutAnchor } from '../models/lookout';
 export interface LookoutSpec { x: number; z: number; rot: number }

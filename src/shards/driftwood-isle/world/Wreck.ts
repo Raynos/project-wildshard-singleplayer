@@ -20,14 +20,13 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { heightAt, SEED, log, plank, rock, rope, lowPolyMaterial, swayDepthMaterial, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement } from '#engine';
+import { heightAt, SEED, log, plank, rock, rope, lowPolyMaterial, swayDepthMaterial, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, place, type Placed } from '#engine';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
 import { addDriftLog, DRIFT } from './driftLogs';
 import { ShipwreckBuilder, shipwreck, WRECK_COLOURS as C, type CargoCopy, type WreckAnchor, type HoldBounds, type WreckSpec, type WreckAround } from '../models/shipwreck';
 import { barrel as barrelModel, crate as crateModel, ropeCoil, cargoBox, addBarrel, addCoil, addCrate } from '../models/cargo';
 import { driftLog, driftLogBox } from '../models/driftLog';
 import { reefRock } from '../models/reefRock';
-import { place, type Placed } from '#engine/models/place';
 
 export type { WreckSpec, WreckAnchor, HoldBounds } from '../models/shipwreck';
 

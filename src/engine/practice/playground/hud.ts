@@ -20,6 +20,7 @@ export function clock(s: number): string {
   return `${String(m).padStart(2, '0')}:${r.toFixed(1).padStart(4, '0')}`;
 }
 
+/** the playgrounds' one HUD chip: the name, the run's time and best, ↺ and the status */
 export class PlaygroundChip {
   readonly scope = uiScope('playgroundChip');
   readonly el: HTMLElement;

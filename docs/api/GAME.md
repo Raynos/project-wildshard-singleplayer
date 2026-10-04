@@ -4,7 +4,7 @@
 
 The game layer's public index (src/game/index.ts).
 
-133 exports; 94 without a doc line (—).
+133 exports; 90 without a doc line (—).
 
 | Export | Kind | What it is |
 |---|---|---|
@@ -31,7 +31,7 @@ The game layer's public index (src/game/index.ts).
 | `CosmeticState` | interface | — |
 | `CreatureDeathSource` | interface | — |
 | `DEATH_ORDER` | const | — |
-| `DialogueBox` | class | — |
+| `DialogueBox` | class | the NPC dialogue panel: the speaker's name and the typed-out lines, advanced with E or a tap |
 | `EliteDef` | interface | — |
 | `EliteRule` | type | Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). "Elites |
 | `Elites` | class | — |
@@ -77,14 +77,14 @@ The game layer's public index (src/game/index.ts).
 | `normalizeItemRow` | function | — |
 | `NpcDef` | interface | — |
 | `NpcTalk` | class | one NPC's talk prompt + dialogue over a (shared) DialogueBox |
-| `ObjectiveLine` | class | — |
+| `ObjectiveLine` | class | the quest chip: one slim glass line under the minimap with the goal, its count and the nearest marker's bearing |
 | `onCreatureDeath` | function | Actor ids identify a species, so resolve the exact instance rather than paying the first of its kind. |
 | `Owned` | class | — |
 | `OWNED` | const | — |
 | `OwnedId` | type | — |
 | `ownedSave` | const | — |
 | `PlacePoint` | interface | a named place in world coordinates: discovered within `r`; `quiet` = discovered without a toast (the arrival point) |
-| `Places` | interface | — |
+| `Places` | interface | a level's named places: the map's points, discovery as the player walks, and the chip's markers |
 | `placesWithDiscovery` | function | named places with saved discovery (`seen:<id>` flags) + the live quest markers, for the full map |
 | `PresentedQuestDef` | interface | — |
 | `PresentedQuestStep` | interface | — |
@@ -112,7 +112,7 @@ The game layer's public index (src/game/index.ts).
 | `registerItemRow` | function | A catalog entry follows the row's level scope; starter registrations may be replaced by a level. |
 | `registerLootTable` | function | Authored rewards resolve against the active resident; unscoped rows support pure content tools. |
 | `renderFinds` | function | — |
-| `RewardCaption` | class | — |
+| `RewardCaption` | class | the reward caption: a kicker, a title and a sub line, shown when a quest pays out |
 | `RGB` | type | linear-space RGB triple, 0..1 (values above 1 are allowed for HDR sun colours) |
 | `rollLoot` | function | — |
 | `saveSlug` | function | Legacy actor APIs accept strings until their shard phase; normalize the old identifier at this boundary. |

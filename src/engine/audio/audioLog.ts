@@ -12,6 +12,7 @@ const MAX = 400;
 const log: AudioLogEntry[] = [];
 if (typeof window !== 'undefined') (window as unknown as { __audioLog: AudioLogEntry[] }).__audioLog = log;
 
+/** record one audio trigger (music, sfx, bark, bed …) in the `window.__audioLog` ring a headless check reads */
 export function audioLog(kind: AudioLogEntry['kind'], name: string, ok?: boolean, detail?: string): void {
   const e: AudioLogEntry = { t: Math.round(typeof performance === 'undefined' ? 0 : performance.now()), kind, name };
   if (ok !== undefined) e.ok = ok;

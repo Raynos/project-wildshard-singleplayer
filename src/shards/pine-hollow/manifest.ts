@@ -21,8 +21,7 @@ import explorePractice from './explore/practice-pine-hollow.webp';
  * running SE from the pond to the Mill hamlet, and the Hollow with its cabins and the crossroads at the centre. Every
  * coordinate lives in ./pineHollowLayout.ts (+z north, +x WEST — see its header). Golden-hour sunset sky.
  */
-import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '#engine/core/config';
-import { layoutFauna } from '#engine/world/faunaLayout';
+import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES, layoutFauna } from '#engine/data';
 import type { ShardManifest } from '#game/shard/manifest';
 import { TERRAIN, forestDensity, oldGrowthMask, speciesMix } from './world/terrain';
 import { PINE_WATER } from './world/water';

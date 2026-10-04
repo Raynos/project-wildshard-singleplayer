@@ -27,15 +27,12 @@
  *                                                                        // trophy in front of you
  */
 import * as THREE from 'three';
-import { app, type Audio, modelContext, practiceRoom, type Sky, type WorldRegistry, type Renderer } from '#engine';
+import { app, type Audio, modelContext, practiceRoom, type Sky, type WorldRegistry, type Renderer, InteractSfx, place, ItemPickup, type PickupTier } from '#engine';
 import { islandTrophies } from './tables';
-import { InteractSfx } from '#engine/audio/interactSfx';
-import { place } from '#engine/models/place';
 import { seaGlassChime, SeaGlassChime } from '../models/seaGlassChime';
 import { buildTrophy, trophyPlaques, TrophyPlaques } from '../models/trophyPlaques';
 import { buildCaptainHat } from '../models/captainHat';
 import { buildSailclothCape } from '../models/sailclothCape';
-import { ItemPickup, type PickupTier } from '#engine/player/WeaponPickup';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../quest/interactables';
 import type { Adventure } from '../quest/adventure';
 import type { BodyShadow, ShardContext, Owned } from '#game';

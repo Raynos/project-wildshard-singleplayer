@@ -12,9 +12,8 @@
  * `anchors` (world coords, y = floor, yaw = world facing, 0 = +Z): npc, hutChest, door, porch (see the model).
  */
 import type * as THREE from 'three';
-import { heightAt, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, modelContext } from '#engine';
+import { heightAt, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, modelContext, place, type Placed } from '#engine';
 import { hut, hutLayout, hutOrigin, type HutAnchor, type HutParams } from '../models/hut';
-import { place, type Placed } from '#engine/models/place';
 
 export type { HutAnchor } from '../models/hut';
 export interface HutSpec { x: number; z: number; rot: number }

@@ -1,4 +1,4 @@
-import { publicBytes, sfxManifests, resourceScope, app, tap, getSfxSet, type Audio } from '#engine';
+import { publicBytes, sfxManifests, resourceScope, app, tap, getSfxSet, type Audio, cachedBytes, decodeBytes, audioLog } from '#engine';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
  * the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium (scripts/music/gen/sfx_merge.py --jobs
@@ -28,8 +28,6 @@ import { publicBytes, sfxManifests, resourceScope, app, tap, getSfxSet, type Aud
  * offline cache when a zone first wants one (~6 MB of PCM each, the mono ones half; ForestAmbience lets them go again).
  * Settings ▸ Sound effects = Synth silences the set. Every play / bark lands in `window.__audioLog` (src/engine/audio/audioLog.ts).
  */
-import { cachedBytes, decodeBytes } from '#engine/audio/preload';
-import { audioLog } from '#engine/audio/audioLog';
 
 export type PhBed = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill' | 'ridge' | 'oldgrowth' | 'cave' | 'night' | 'nightfog'
   | 'rain-canopy' | 'rain-open' | 'dawn';

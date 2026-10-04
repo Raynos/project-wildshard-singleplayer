@@ -22,6 +22,7 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?:
   const e = document.createElement(tag); e.className = cls; parent?.append(e); return e;
 };
 
+/** the quest chip: one slim glass line under the minimap with the goal, its count and the nearest marker's bearing */
 export class ObjectiveLine {
   readonly scope = uiScope('objective');
   readonly root = el('div', 'ws-quest-obj');
@@ -82,6 +83,7 @@ export class ObjectiveLine {
   }
 }
 
+/** the NPC dialogue panel: the speaker's name and the typed-out lines, advanced with E or a tap */
 export class DialogueBox {
   readonly root = el('div', 'ws-quest-talk');
   private name = el('div', 'ws-quest-talk-name', this.root);
@@ -158,6 +160,7 @@ export class DialogueBox {
   }
 }
 
+/** the reward caption: a kicker, a title and a sub line, shown when a quest pays out */
 export class RewardCaption {
   readonly scope = uiScope('reward');
   readonly root = el('div', 'ws-quest-reward');

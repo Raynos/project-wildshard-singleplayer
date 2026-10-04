@@ -4,7 +4,7 @@
 
 The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by area; this is the full list.
 
-818 exports; 471 without a doc line (—).
+903 exports; 470 without a doc line (—).
 
 | Export | Kind | What it is |
 |---|---|---|
@@ -50,6 +50,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `App` | class | — |
 | `appIdentity` | function | — |
 | `AppIdentity` | interface | — |
+| `applySkin` | function | Restyle `root` (a viewmodel or a display copy) as `skin`; a different skin on the same root swaps cleanly. |
 | `AppState` | type | — |
 | `ARM_PAL` | const | nalatiArms — the Nalati rider's first-person arms, shared by every Nalati viewmodel (Bow.ts, Sabre.ts, Spear.ts) so |
 | `Arrangement` | interface | — |
@@ -66,10 +67,15 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `AttributeSet` | type | Numeric attributes stay live at the simulation ports; modifiers retain a separate base. |
 | `Audio` | class | — |
 | `audioCueMap` | function | Adapter for the S1.5 generic Audio cue map without renaming its existing samples/taps. |
+| `AudioDecode` | type | decodes a stem's bytes into an AudioBuffer (the audio context by default; a test hands its own) |
+| `audioLog` | function | record one audio trigger (music, sfx, bark, bed …) in the `window.__audioLog` ring a headless check reads |
 | `audioRandom` | const | — |
+| `AudioRead` | type | reads a stem file's bytes (fetch by default; a test hands its own) |
 | `authoredTargets` | function | An authored target source may refine the nearer creature hit. Practice uses its own isolated targets. |
 | `BakedLight` | interface | — |
+| `bakedUndergrowth` | function | The active chunk's undergrowth decision log from its installed bake, if it has one (src/shards/pine-hollow/world/undergrowth.ts). |
 | `bakeLight` | function | Bake warm lantern / ember light into the vertex colours (after `finish`, so the AO is under it): every face that |
+| `bakePart` | function | Bake a part's transform into its geometry (its own space), keeping the bounding sphere the old per-instance culling |
 | `BARK_LAYERS` | const | the bark array's layers, in the order treegen.py's BARK_* constants index them |
 | `beam` | function | a squared timber (w × h cross-section) between two points; `roll` spins it about its own axis |
 | `bindRig` | function | Check authored metadata against the actual loaded scene, without posing or rebinding it. |
@@ -112,6 +118,9 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `buildTerrain` | function | — |
 | `buildTier` | function | the tier a model builds at: TIER, or the one Explore's DETAIL TIERS builds it as (explore/tiers.ts `withTier`). A level's |
 | `bump` | const | a unit bump: 0 → 1 → 0 over [a, b] |
+| `CABIN_SITES` | const | The level's cabin pads (x, z and yaw), flattened into its terrain. |
+| `cabinMask` | const | 0 off the cabin pads → 1 on them |
+| `cachedBytes` | function | the bytes of `url` from the offline cache the bar filled — a style / set switch never touches the network |
 | `CameraFX` | class | — |
 | `canReach` | function | Same chest/aim-point/slack query in every level, evaluated at the contact frame. |
 | `castRay` | function | The first thing along the ray from `origin` in direction `dir` (unit length) within `maxDist`, among the kinds in |
@@ -120,6 +129,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `ChestDims` | interface | — |
 | `ChestLook` | type | the chest looks and door looks the runtime knows (InteractDef's `look`s) |
 | `CHIP_MAX` | const | the longest chip label / marker short name that fits the HUD chip on a 390 px phone without an ellipsis |
+| `ChipSource` | interface | what the quest chip (ObjectiveLine) shows: the goal's label and count and the live markers |
 | `ChordEv` | interface | — |
 | `ChordName` | type | a chord's name in the score's own vocabulary |
 | `CHUNK_DEPTH` | const | — |
@@ -130,6 +140,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `Clang` | type | What the blade makes of a surface: `stone` — a ringing clang and sparks (stone, rock, metal, shell); `wood` — a dull |
 | `ClipChannel` | class | one arm's clip channel: a base (idle ↔ walk) under crossfading one-shot moves |
 | `ClipName` | type | — |
+| `clock` | function | 83.4 s → "01:23.4" |
 | `ColliderDesc` | type | — |
 | `ColliderSpec` | type | A collider in the model's own space, or the convex hull of the vertices this copy draws. |
 | `CombatCueMap` | type | — |
@@ -142,9 +153,16 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `configureLevel` | function · game only | The composition root supplies engine data before constructing the renderer or world. |
 | `ContentRow` | interface | — |
 | `ContentRowMap` | interface | Subsystems refine their registration contracts here as their row implementations land. |
+| `copiesAt` | function | Copies `at` (indices into the call's placement order) of a `place` call as a `Placed` of their own, like `copiesNear`'s |
+| `copiesNear` | function | The copies of a `place` call whose box centre stands within each circle (x, z, r: metres, on the ground), as a `Placed` |
 | `CorruptSave` | interface | — |
+| `createWaterMaterial` | function | create a water material (the shared 'ph-water' program; `sky.setupMaterial` wires the CSM shadows) |
+| `creature` | function | The fields of the model of one species (all but its id, file and pipeline). |
+| `CREATURE_CLIPS` | const | the clips a species rig plays on the Explorer's turntable (Animal.ts gaits and reactions) |
 | `CreatureBrain` | class | Authored creature goals share an inspectable HFSM; movement and strike clocks remain separate. |
+| `creatureFactory` | function | the shard's AnimalFactory in its creature style: seeded by `creatureContext`, else a pbr one on the context's sky |
 | `CreatureHull` | interface | — |
+| `CreatureParams` | interface | a creature model's params: the species variant its rig is built for |
 | `CreatureSoundDefaults` | interface | The calls a species with no `sounds` falls back on, by temperament: the composition root installs them (the kit's, |
 | `crestSpikes` | function | The boar's dorsal crest as a serrated row of faceted spikes. `pts` are the crest points of species/boar.ts |
 | `CrossbowOptions` | type | — |
@@ -154,6 +172,8 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `CueMap` | type | — |
 | `CueOpts` | interface | — |
 | `CuePlayer` | class | Content calls tap.sound with its literal id, then asks this shared positional shot player. |
+| `CullOptions` | interface | when copies are dropped (all optional: none = only the frustum and the LODs) |
+| `CullView` | interface | a view that tells its cullers when it changed (`CullOptions.view`) |
 | `currentOwner` | function | — |
 | `cyl` | function | — |
 | `DamageDealt` | interface | — |
@@ -167,8 +187,15 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `DayPhase` | type | — |
 | `DeathCause` | interface | — |
 | `DebugRowSpec` | interface | — |
+| `DecisionLog` | class | One kept / skipped bit per undergrowth candidate, in candidate order. `record` runs the tests and |
+| `decodeBytes` | function | decode compressed audio into an AudioBuffer without an AudioContext (the bytes are detached) |
+| `decodeScore` | function | Decode the requested stems only; absent or invalid files keep the next fallback or synth. |
 | `defineModel` | function | Define a model. Its id must be unique; the definition is returned as given. |
 | `deriveSpecies` | function | Child rows retain all unspecified parent fields and merge tuning without losing the hunter policy. |
+| `DevKit` | class | builds a playground from developer-textured boxes and planes, merged into one mesh per tone |
+| `devLabel` | function | A painted label (START, FINISH, P2 …) lying on a floor or standing on a wall: one small canvas texture on a quad, |
+| `devMaterial` | function | the shared developer-texture material of one tone (grey / orange / dark …), made once |
+| `DialogueBox` | class | the NPC dialogue panel: the speaker's name and the typed-out lines, advanced with E or a tap |
 | `DialogueEntry` | interface | — |
 | `DiscOpts` | interface | — |
 | `DiscSpot` | type | — |
@@ -176,6 +203,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `dodgeEnv` | function | the shared envelope (DODGE-FEEL "Shared timeline"): load 0–40 ms, burst to 120, hold to 250, then an underdamped spring |
 | `dodgeFx` | const | the running dodge, for the viewmodel (Sword.ts) and the screen FX (SpeedLines.ts): `t` ms since it started (-1 = none), |
 | `DoorLook` | type | — |
+| `Draw` | type | how the copies are drawn (see ./model.ts step 3) |
 | `DrawingBuffer` | type | Drawing-buffer port used by viewmodel effects without exposing a renderer backend. |
 | `DropArc` | class | — |
 | `edgeWear` | function | Lighten vertex colour on bevel/edge vertices (normals off-axis) → worn, handled edges. |
@@ -232,6 +260,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `fern` | function | a fern: 7–9 long narrow fronds fanning out and up from the crown |
 | `fetchImage` | function | Decode an image off the main thread through the counted fetch, downscaled to `maxSize` when the |
 | `fetchLut` | function | the LUT file's bytes; null (and a warning) when it is missing, unreadable or the wrong size |
+| `finishWeld` | function | Draw a weld's shared meshes, start its bands, and register its copies' pieces (in the order they were placed). |
 | `FirstHints` | class | — |
 | `fixIBL` | function | — |
 | `Flags` | class | — |
@@ -242,6 +271,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `fogUniforms` | const | — |
 | `forearm` | function | Drop-in for `meleeGeo.forearm` (Sabre.ts / Spear.ts): the fist in grip space (grip along +Y through the origin), |
 | `Forest` | class | Per-frame bucketing: every tree has one precomputed matrix; on move (> 1.5 m) or turn (> 3°) the |
+| `FOREST_BANDS` | const | The forest's LOD bands, for a tree model the shard places (E315 second pass: Pine Hollow's forest tree): near cards + |
 | `FOV_ADS` | const | — |
 | `FOV_HIP` | const | — |
 | `fovForAspect` | function | — |
@@ -257,10 +287,12 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `GameMenu` | class | — |
 | `GameMenuOptions` | interface | — |
 | `gameplayRandom` | function | One gameplay draw from the seeded `gameplay` stream (01 §2): aim spread and other rolls that change a hit. |
+| `GearSkinParams` | interface | a skinnable weapon's params: the legendary skin its specimen wears (null: plain) |
 | `getAimTargets` | function | — |
 | `getNumber` | function | — |
 | `getSetting` | function | — |
 | `getSfxSet` | function | — |
+| `GlbPart` | interface | one mesh of a GLB in the file's own space, and its bounds |
 | `GlobalDebugActionSpec` | type | Global developer buttons run only when pressed; they never persist or replay a choice. |
 | `gloveFist` | function | — |
 | `gpuOnlyAttributes` | function | E264: a static mesh's vertex data, on the GPU only once drawn. Every static attribute but `keep` gives up its CPU copy |
@@ -268,18 +300,20 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `GrassDriver` | interface | a level's own grass in place of the engine's carpet (Grass.build) |
 | `GrassLayer` | interface | what a `GrassDriver` builds: its group goes in the scene, `update` runs every frame from the engine's Grass |
 | `grassTuft` | function | a grass tuft: 5–8 bent blades (one triangle each) |
-| `GroundPlacement` | interface | — |
+| `GroundPlacement` | interface | one undergrowth copy: its position, the ground normal, yaw, scale and tint |
 | `GroupBrain` | class | Shared roster, blackboard and decision clock. Authored goals remain in the owning content. |
 | `GroupMember` | interface | — |
 | `GroupName` | type | — |
 | `groups` | function | The packed `collisionGroups` / `solverGroups` value for a collider of this kind. |
 | `HandedBatch` | interface | one part of one variant of a `place` call, handed to an `InstancedCuller` |
 | `HarnessPins` | interface | — |
+| `hasPond` | function | whether the running level has a pond (`POND` is a zero-size placeholder when it has none) |
 | `hasProgramKey` | function | Whether a site gave the material a program key of its own (Sky.fillSlots skips those). |
 | `hasSpecies` | function | — |
 | `hasTag` | function | — |
 | `HealthAttributes` | interface | — |
 | `heightAt` | function | — |
+| `HeightPatch` | class | a small heightfield collider re-shaped at run time (a floor that grows and drains) |
 | `HemiDir` | type | — |
 | `HemiRing` | type | a ring of hemisphere directions: [cos of the angle from the normal, how many round it] |
 | `hemisphere` | function | fixed hemisphere directions in a +Z-up tangent frame, ring by ring, each ring turned by `cz × twist` (deterministic bakes) |
@@ -293,6 +327,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `HitscanResult` | interface | — |
 | `HitStopProfile` | interface | — |
 | `HoofSurface` | type | the ground under a hoof (the level's `hoofSurfaceAt`): turf, gravel, a wooden deck |
+| `HORIZON_RADIUS` | const | the band's radius: the sea (Ocean.ts) fades out just inside it, so the painted islands stand on its far edge (E125) |
 | `HUD` | class | — |
 | `HudBand` | type | — |
 | `hudSlots` | const | — |
@@ -308,6 +343,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `ImpactSurface` | type | — |
 | `impactSurfaceOf` | function | The impact sound / puff family of what was hit (three sample sets): bark and planks are wood, everything else ground. |
 | `ImportReport` | interface | — |
+| `inChunk` | function | whether (x, z) lies inside the level's square, `margin` metres in from its edge |
 | `InputContextDef` | interface | — |
 | `InputService` | class | Additive contexts and a shared press buffer. Consuming a press removes it for every later system. |
 | `inspectBrain` | function | — |
@@ -327,12 +363,14 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `InteractEvent` | interface | — |
 | `interactParts` | const | a lit part (the shared low-poly material) and a glowing one (unlit, the glow batch's), for a pickup look's model |
 | `InteractProps` | interface | The props the interaction runtime draws (E405 E417: the props are content, the kit's — src/kit/props/interact.ts — |
+| `InteractSfx` | class | the adventure kit's interaction sounds (chests, locks, levers, plates, doors, grates, pickups, glyphs) |
 | `InteractTable` | interface | — |
 | `InterruptReason` | type | — |
 | `isDev` | function | — |
 | `isLowPoly` | function | — |
 | `isMesh` | function | `Mesh` type guard for `Object3D.traverse` callbacks (three sets `isMesh` on every Mesh) |
 | `isRenderer` | function | a value is the renderer (the scene-ownership walk skips it) |
+| `ItemPickup` | class | an item lying in the world in a glowing orb, taken with USE (also exported as WeaponPickup) |
 | `jsonRecord` | const | — |
 | `jsonSchema` | const | — |
 | `jsonSlot` | function | — |
@@ -340,8 +378,10 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `KitEntry` | interface | the weapons as the GEAR tab shows them — read live from Weapons (src/engine/player/Weapons.ts) |
 | `Ktx2Table` | interface | — |
 | `ktx2Texture` | function | The KTX2 texture standing in for `served` (a clone sharing one source per file), or null: load the image instead. |
+| `LapSpot` | interface | a spot the lap stands at: feet at (x, z) (on the ground, or at `y`), facing (−sin yaw, −cos yaw) before the turn |
 | `lathe` | function | a lathe from a (radius, height) profile, `seg` around; smooth normals |
 | `LayerId` | type | — |
+| `layoutFauna` | function | The generated HerdPlans (empty cells omitted). |
 | `lerp` | const | — |
 | `LevelAdapters` | interface | A UI/input service returns the inverse of each mutation, owned by the caller's scope. |
 | `LevelAudioProfile` | interface | Boot downloads and decodes this content profile through the same counted/deferred queue. |
@@ -366,12 +406,15 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `listenPage` | function | A page-wide input listener (E362 AG18): a drag that leaves its widget, "a touch anywhere" that dismisses or skips, |
 | `listModel` | function | List a live model in this shard's Model Explorer (see the header). Listing the same model again is a no-op. |
 | `live` | function | A roster entry: `pipeline` how this shard makes it (a shared model), `planned` the copies it stands up when none is |
+| `LiveMarker` | interface | a quest marker resolved to world coordinates |
 | `loadAudio` | function | — |
 | `loadBakedCards` | function | — |
 | `loadBakedSky` | function | — |
 | `loadBootRuntime` | function | Load browser mechanisms after the root selects its authored level. |
 | `LoadFailure` | interface | — |
 | `loadGLTF` | function | — |
+| `loadingSpecimen` | function | A specimen whose parts load (a GLB): a wireframe box of about its size until `fill` resolves, then what `fill` made and a |
+| `loadLodPairInto` | function | Load a LOD pair into `ctx` under `key` (once per shard; a second call reuses the first load). |
 | `loadLUT` | function | — |
 | `loadMeadow` | function | Runtime meadow services load after pure manifest discovery. |
 | `LoadoutSpec` | interface | — |
@@ -384,6 +427,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `loadTreeSetGeometry` | function | The set's GLB, as `name → part → geometry` for the given variants (a missing mesh is an error: the set is stale). |
 | `loadWorldContent` | function | Authored world builders are loaded after manifest discovery. |
 | `lockOn` | const | The Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md — src/engine/player/LockOnTarget.ts runs it): `state` 'off' (nothing to lock), |
+| `lodPairOf` | function | the pair loaded under `key` (throws when its loader has not run: `place` is synchronous, load first) |
 | `loft` | function | Loft a closed tube through `st` stations with `seg` sides; returns an indexed geometry with position/normal/uv/color/skinIndex/skinWeight. |
 | `log` | function | A faceted log / beam / post between two points: an n-sided prism (default 6) tapering r0 → r1, the |
 | `lookAngles` | function | the look target in the animal's frame: yaw (+ = to the animal's left) and pitch (+ = up), scaled by lookWeight, clamped |
@@ -439,9 +483,12 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `needsTerrainCollider` | function | — |
 | `NO_FUR` | const | the faceted species never draw fur; the registry contract wants a FurStyle regardless |
 | `Noise2D` | class | — |
+| `normalAt` | const | unit surface normal by central differences |
 | `NoteEv` | interface | — |
 | `NpcDef` | interface | — |
 | `NpcTalk` | class | one NPC's talk prompt + dialogue over a (shared) DialogueBox |
+| `NpcTalkOpts` | interface | an NPC talk's parts: the dialogue box, the quest flags and the NPC's lines |
+| `ObjectiveLine` | class | the quest chip: one slim glass line under the minimap with the goal, its count and the nearest marker's bearing |
 | `onDev` | function | — |
 | `onGpuRestored` | function | — |
 | `onLevelChange` | function | — |
@@ -481,6 +528,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `pathRampDescs` | function | — |
 | `pbrMaterial` | function | — |
 | `PBRSet` | interface | — |
+| `perfLap` | const | the PERF LAP's gate (`active` for the whole lap) and the host a lappable level registers |
 | `persistHomeScreen` | const | the page's: the entry calls it at boot |
 | `Phase` | type | — |
 | `PHASES` | const | — |
@@ -490,12 +538,22 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `PickupLook` | interface | — |
 | `pickupModel` | function | a pickup: its part floating at its bob's rest height (the kit spins and bobs it round there) |
 | `PickupPart` | interface | A pickup's look (E405: content registers its own — the kit's, src/kit/models/pickups.ts): its batched model, and the |
+| `PickupTier` | type | ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like |
 | `pinBrain` | function | — |
 | `Pipeline` | type | How a model is made (E306): the Model Explorer card's badge. `code` is procedural three.js; `blender` a Blender |
+| `place` | function | Place copies of a model (see the file header and ./model.ts's migration guide). |
 | `Place` | interface | — |
 | `placeArm` | function | pose an arm mesh (built along +Y from the wrist) at `wrist`, heading along `dir` (same space as the mesh's parent) |
 | `Placed` | interface | what a `place` call built |
+| `placedGroups` | function | every `place` call this shard has registered, in the order they were made (a shard's named places sort them into Sets) |
 | `Placement` | interface | Where one copy stands. The pose applies in this order: `scale`, then `yaw` (about +Y), then `leanX` (about world X), |
+| `placementChecksum` | function | A fingerprint of a placement result: its counts and a position sum (a stale decision log fails it). |
+| `PlaceOptions` | interface | how `place` draws a model's copies: the model context, the draw, merging into cells and culling |
+| `PlacePoint` | interface | a named place in world coordinates: discovered within `r`; `quiet` = discovered without a toast (the arrival point) |
+| `Places` | interface | a level's named places: the map's points, discovery as the player walks, and the chip's markers |
+| `placeSet` | function | Register a set of placed models; returns what was registered (members summed per model, bounds in world space). |
+| `placesWithDiscovery` | function | named places with saved discovery (`seen:<id>` flags) + the live quest markers, for the full map |
+| `placeUndergrowth` | function | The forest-floor placement of the active chunk around `trees`; yields between its passes (one rng |
 | `plank` | function | a flat-bottomed plank/board: a box with its corners nudged (± wob) so rows of them look hand-sawn |
 | `PLANT` | const | — |
 | `Player` | class | — |
@@ -503,13 +561,18 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `PlayerHealthPorts` | interface | — |
 | `PlayerMode` | type | — |
 | `Playground` | interface | — |
+| `PLAYGROUND_Y` | const | metres over the shard's datum a playground's floor stands: every shard (≤ ~300 m tall) is past the 2 600 m far plane |
+| `PlaygroundChip` | class | the playgrounds' one HUD chip: the name, the run's time and best, ↺ and the status |
 | `PlaygroundHost` | interface | — |
 | `PlaygroundId` | type | — |
 | `PlaygroundSpec` | interface | — |
 | `PoiId` | type | Interactables kit — the DATA schema (A2, project/archive/2026-09-23-driftwood-remaster.md). Every chest, key, door, lever, pressure |
 | `pointScale` | function | pixels per metre at 1 m for a screen-sized point (`gl_PointSize = size * uScale / depth`): the drawing buffer's height |
 | `pole` | function | a smooth round pole / log from a to b, radius r0 at a → r1 at b; `segs` rings along it (for a painter that varies along the length) |
+| `POND` | const | The level's pond (r = 0 when it has none — check `hasPond()`). |
 | `pondGrid` | function | The shared pond tessellation; pure so public manifest imports cannot load the world. |
+| `pondMask` | const | 0 outside the pond basin → 1 at its centre |
+| `poseOf` | function | The pose of a placement: scale, yaw, lean X, lean Z, then the position (or its matrix). |
 | `practiceFps` | const | the practice arena is open: the one place mobile targets 60 (E290, below) |
 | `practiceRoom` | const | A practice room is up: the Practice arena (src/engine/practice/TrainingArena.ts, 900 m over the shard) or a feature playground |
 | `preloadBakedTextures` | function | — |
@@ -555,6 +618,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `retried` | function · game only | Retry an async module download after 800 ms and 2500 ms; preserve the final rejection. |
 | `revolve` | function | A surface of revolution with an arbitrary radius / height per (angle, t): `fn(theta, t) → [r, y]`, `segU` round, |
 | `revolveUV` | function | `revolve` with texture coordinates: u = angle / 2π × `uReps` (the seam column is doubled so u runs 0 → uReps without |
+| `RewardCaption` | class | the reward caption: a kicker, a title and a sub line, shown when a quest pays out |
 | `RGB` | type | — |
 | `riderArm` | function | The arm from the wrist, along +Y: a flared leather gauntlet with a rolled, stitched edge (0 … 7 cm), a thick fleece |
 | `RigAnimCtx` | interface | Per-frame animation context of a CUSTOM rig (`SpeciesDef.rig === 'custom'`: crab, monkey, sailor — anything that is |
@@ -580,6 +644,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `RunCondition` | type | — |
 | `S` | const | station helper |
 | `sagLine` | function | points along a catenary-ish sag from a to b (n segments), for ropes and rigging |
+| `sameChecksum` | function | Same fingerprint? Counts exactly; the sum to 1e-9 relative (another engine's Math.cos may differ in the last bit). |
 | `SampleClip` | interface | — |
 | `SampleLoop` | interface | a decoded loop (a bed or a hum): the buffer, its loop points in the file, and a gain from sfx.json (default per kind) |
 | `SamplePolicy` | interface | — |
@@ -594,6 +659,9 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `Scope` | class | — |
 | `ScopeCensus` | interface | — |
 | `Score` | interface | everything Music needs of a score |
+| `ScoreBank` | interface | a set's decoded score: every slot's stems and the stings, ready for SetScore to play |
+| `scoreFiles` | function | the files a score set plays: the given slots' stems (every slot by default) and its stings |
+| `scoreManifest` | function | the music manifest of a score set (its slots, stems and stings), or undefined when the build has none |
 | `ScoreSource` | interface | — |
 | `seaDamp` | function | shore damping from the water depth (m): the swell flattens over the sand so the foam line stays put |
 | `SEED` | const | — |
@@ -624,6 +692,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `SkinDef` | interface | — |
 | `skinPlain` | function | Give a plain geometry (sphere) colour + skin attributes for one bone. |
 | `SkinRow` | interface | `locked`: not owned yet — dim, not tappable; `icon`: the card's glyph (default laurel) |
+| `skinVariants` | function | a skinnable weapon's variants: plain, then every legendary skin made for it (Skins.ts SKINS, by `weapon`) |
 | `Sky` | class | Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the |
 | `SkyBackdrop` | interface | — |
 | `SkyBackdropContext` | interface | — |
@@ -637,6 +706,8 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `SlashTrailProfile` | interface | — |
 | `slicer` | function | A yield point that ends the task only once it has run `budgetMs` (wall): sprinkle `await slice()` between |
 | `SlotAudio` | interface | a decoded slot: its spec and the stems (tension absent for the title cut; layers only on the boss) |
+| `SlotGeometry` | class | one merged geometry whose recorded parts (slots) show and hide without another draw |
+| `SlotRecorder` | class | records the kit's vertex ranges as parts are added: call `mark()` after each slot's parts |
 | `smooth01` | const | Helpers shared by the CUSTOM rigs (crab / monkey / sailor — `SpeciesDef.rig: 'custom'`): pose maths that every |
 | `smoothstep` | const | — |
 | `SocketName` | type | — |
@@ -659,6 +730,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `SpeciesVariant` | interface | Gameplay data only. A procedural builder, palette or hull never belongs on this row. |
 | `SpeciesWeights` | type | — |
 | `speciesWithLook` | function | The legacy view/body adapter is assembled at the factory boundary, after kit registration. |
+| `splatAt` | const | splat weights for the four ground layers of the level |
 | `squashBody` | function | Squash & stretch on a hit (remaster M3, a hook for the feel-agent's hit reactions): a volume-preserving wobble of the |
 | `srgb` | const | — |
 | `sstep` | const | — |
@@ -675,6 +747,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `StepRunner` | type | Runs one step: what code outside main.ts (bootstrap) receives, so it need not know the plan type. |
 | `StepSurface` | type | — |
 | `sticksIn` | function | Materials a bolt / arrow sticks in; anything else it glances off (stone, rock, metal, shell). |
+| `streamAt` | const | running water's surface at (x, z) (a creek), or null off it |
 | `StrikeActor` | interface | — |
 | `StrikeContext` | interface | — |
 | `StrikePhase` | type | — |
@@ -684,10 +757,12 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `StringTable` | type | — |
 | `stripExtra` | function | — |
 | `StyleBank` | type | one genre, decoded: the slots this shard can play and the stings, plus what each file cost |
+| `supportPoints` | function | the support points of `g` under `m` (x, y, z each) |
 | `swayByHeight` | function | an aSway attribute for a geometry: weight rises with height from 0 at `y0` to `w` at `y1` (a bush, a frond) or falls |
 | `swayDepthMaterial` | function | the shadow-pass material for swaying meshes (one shared program) |
 | `swellBody` | function | A body whose surface rides the engine's Gerstner swell (../waves.ts) over a flat rest level: an open sea. |
 | `SwimArms` | interface | a skinned arm rig's swimming (ShardSword.swim): drawn under `root` in the camera's viewmodel queue |
+| `swimHands` | const | the first-person swimming hands, smooth or faceted |
 | `SwordArms` | interface | — |
 | `SwordFraming` | interface | — |
 | `SwordMoveSet` | interface | — |
@@ -745,6 +820,8 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `TRACER_ORDER` | const | — |
 | `TRACER_RED` | const | — |
 | `Trail` | interface | — |
+| `trailDistance` | const | distance to the nearest trail centreline |
+| `TRAILS` | const | Trail polylines (xz). The first four enter at the edge midpoints. |
 | `TrainingArena` | class | — |
 | `TRANSIENT_PREFIXES` | const | flags that describe a moment, not progress — never persisted |
 | `TREE_SPECS` | const | Pure tree geometry specifications and file fallback selection. |
@@ -756,6 +833,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `TreeSpeciesTraits` | interface | how a species is planted: its scale range; whether it follows the zone's growth (ForestSpec.scale); the trunk's extra |
 | `TreeVariant` | interface | — |
 | `tris` | function | a flat list of triangles ([x,y,z]×3 per face) as a geometry for `kit.add` |
+| `trunkCapsule` | function | A tree's trunk as the capsule it collides as (PHYSICS P3): its centre `y` above the tree's foot, half its straight |
 | `tube` | function | Sweep a tapered tube along a polyline (antler beams, tusks). |
 | `twoSidedPositions` | function | `geo`'s positions only, moved by `m`, indexed with every triangle twice — as it is and with its winding reversed — for |
 | `UiHandle` | interface | — |
@@ -763,6 +841,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `UiLayers` | class | A single back/input owner; resident scopes retain their own overlay entries. |
 | `uiScope` | function | Construction may run before the level becomes active; use its explicit boot owner. |
 | `UiView` | interface | — |
+| `UndergrowthPlacement` | interface | one undergrowth copy: its position, the ground normal, yaw, scale and tint |
 | `UnderPlacements` | type | — |
 | `UnitParts` | class | Parts gathered for one unit, merged once: one slot per (material, band), in the order they first came. |
 | `updatePainterly` | function | Advance the shared clock that drives `sway`. |
@@ -774,6 +853,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `VariantMods` | interface | Per-variant gameplay multipliers, applied by AnimalManager at spawn on top of the species' HuntTuning. |
 | `VerbSlotOpts` | interface | — |
 | `versionedUrl` | function | The URL the network sees for a file under public/assets whose name is not content-addressed (vite.config.ts |
+| `vertexHull` | function | a convex hull's points from a part's vertices (≤ `maxPts`, every n-th), in its own space |
 | `viewmodel` | function | — |
 | `VIEWMODEL_GROUP` | const | — |
 | `viewmodelMaterial` | function | — |
@@ -787,6 +867,8 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `VoxelAOParams` | interface | — |
 | `WaterBodies` | class | `app.world.water`: the level's registered bodies; each leaves with the scope that added it. |
 | `WaterBody` | interface | A body of water a level registers with the engine (01 §6, §17; 08 §6.1 step 4): the sea (S4.1), a still basin (a |
+| `waterLevel` | const | still-water surface height (far below the terrain when the level has no pond) |
+| `waterWeather` | const | the rain on the water (PH-L10, src/shards/pine-hollow/world/weather.ts): 0 … 1 rings on every water surface (pond, creek, puddles) |
 | `waveClock` | const | — |
 | `waveHeight` | function | surface height above the still level at world (x, z) — what a floating thing should ride |
 | `WAVES_GLSL` | const | the same waves in GLSL: `vec3 gerstner(vec2 p, float t, float damp)` → displacement |
@@ -796,8 +878,10 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `WeaponHooks` | interface | — |
 | `WeaponId` | type | — |
 | `weaponInputContext` | function | — |
+| `WeaponPickup` | class | an item lying in the world in a glowing orb, taken with USE (also exported as WeaponPickup) |
 | `WeaponState` | interface | — |
 | `WeaponUi` | interface | — |
+| `wearSkin` | function | dress a specimen in its variant's skin: Skins.applySkin clones the materials the skin changes, for this root alone |
 | `Weather` | class | Shared seeded transition loop; content supplies the continuous numbers and hold policy. |
 | `weatherFog` | function | A level's weather fog: `set(strength)` (0 = clear … 1 = the spec) every time it changes; the level eases it. The fog |
 | `WeatherFog` | interface | — |
@@ -807,6 +891,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `weatherUniforms` | const | Pine Hollow's weather (PH-L10, src/shards/pine-hollow/world/weather.ts drives them), compiled into Pine Hollow's shaders only — every |
 | `WeightedRow` | interface | — |
 | `WeightedTable` | class | Authoring order and the supplied random stream determine both selection and counts. |
+| `weld` | function | A merge across several models' copies (see `WeldOptions`, ./weld.ts); `finishWeld` once every building is in. |
 | `WeldBuild` | interface | One copy of a site-fitted model as it hands itself to a weld (`ModelDef.weld`, `place(…, { draw: 'merged', weld })`): |
 | `WeldPart` | interface | Geometries of one welded copy that merge into one mesh with their unit's of the same material and band. |
 | `whiteColors` | function | An all-white (×1) vertex-colour attribute where a geometry has none, so it can share a vertex-coloured program. |

@@ -21,9 +21,8 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { heightAt, Rng, SEED, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type ModelBuild, type ModelPart, type Placement } from '#engine';
+import { heightAt, Rng, SEED, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type ModelBuild, type ModelPart, type Placement, place, type Placed } from '#engine';
 import { fencePost, plankStep, signpost, trailMaterial, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from '../models/trailside';
-import { place, type Placed } from '#engine/models/place';
 
 export interface FenceSpec { path: [number, number][]; spacing?: number }
 export interface StepsSpec { from: [number, number]; to: [number, number]; width?: number }

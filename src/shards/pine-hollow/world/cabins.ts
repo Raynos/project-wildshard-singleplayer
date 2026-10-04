@@ -16,9 +16,7 @@
  *   await placeCabins({ cabins, sky, registry });   // main.ts's cabins step, once `cabins.build()` has run
  */
 import * as THREE from 'three';
-import { finishWeld, place, weld, type Placed } from '#engine/models/place';
-import { type ModelDef, type Placement, macrotask, TIER_CONFIG, type WorldRegistry, type Sky } from '#engine';
-import { placeSet } from '#engine/models/sets';
+import { type ModelDef, type Placement, macrotask, TIER_CONFIG, type WorldRegistry, type Sky, finishWeld, place, weld, type Placed, placeSet } from '#engine';
 import type { Cabins, CabinBuilding, CabinPropKind } from './homestead';
 import { pineModels } from './context';
 import { CABIN_VARIANTS, logCabin, useCabins } from '../models/logCabin';

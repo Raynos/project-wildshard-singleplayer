@@ -39,7 +39,7 @@ export { jsonSlot, jsonSchema, jsonRecord, saveStorage } from './saves/slots';
 
 // Audio content ports: runtime implementations are loaded after manifest discovery.
 export { loadAudio } from './audio/contentApi';
-export type { ScoreSource, SetScore } from './audio/SetScore';
+export type { ScoreSource } from './audio/SetScore';
 export type { CuePlayer, CueMap, CueOpts, CueBank, SampleClip } from './audio/Cues';
 export type { ZoneWeights } from './audio/AmbienceBeds';
 export type { LevelAudioProfile } from './audio/levelAudio';
@@ -149,7 +149,6 @@ export type { GameMenu, GameMenuOptions } from './ui/Menu';
 export type { FullMap } from './ui/Map';
 export type { SkinDef } from './player/Skins';
 export { loadWorldContent } from './contentApi';
-export type { Animal } from './entities/Animal';
 export { installRangedFeel, type RangedFeelProfile } from './combat/view/rangedFeel';
 
 export { inspectBrain, pinBrain, brainInspection, type BrainInspection } from './ai/inspect';
@@ -158,7 +157,6 @@ export { installAiDebug, type AiDebugHost, type AiDebugView } from './ai/view/De
 export { WeightedTable, type WeightedRow, type TableDrop, type TableSpec } from './ai/weighted';
 
 export { QuestState, QuestLine, lineFor, validateQuest, CHIP_MAX, type QuestDef, type QuestStep, type QuestMarker, type NpcDef, type DialogueEntry } from './quest/core';
-export type { QuestChip, NpcTalk } from './quest/view';
 export { loadQuest } from './quest/contentApi';
 
 // Hunting simulation rows and their separate rendering adapters (E357 S2.3).
@@ -249,7 +247,7 @@ export { practiceRoom } from './core/practiceRoom';
 
 
 export { Flags } from './world/interact/flags';
-export type { Interactables, InteractEvent } from './world/interact/Interactables';
+export type { InteractEvent } from './world/interact/Interactables';
 export type { PoiId, Place } from './world/interact/types';
 export type { MapPoi as FullMapPoi, MapQuest } from './ui/Map';
 export type { MapMark } from './ui/Minimap';
@@ -344,3 +342,36 @@ export { painterlyKnobs } from './world/painterly';
 export { WIND_GLSL } from './world/steppeWind';
 export { WAVES_GLSL, WAVES_NORMAL_GLSL, seaDamp, waveClock } from './world/waves';
 export { patchSway, patchWindField, swayByHeight, swayDepthMaterial, updateWind, windBoost, windUniforms as windFieldUniforms } from './world/wind';
+
+// E362 AG5: the rest of what the layers above reached through deep paths (the #engine/* wildcard is gone)
+export { audioLog } from './audio/audioLog';
+export { InteractSfx } from './audio/interactSfx';
+export { cachedBytes, decodeBytes } from './audio/preload';
+export { SetScore, decodeScore, scoreFiles, scoreManifest, type AudioRead, type AudioDecode, type ScoreBank } from './audio/SetScore';
+export { perfLap, type LapSpot } from './core/perfLap';
+export { Animal } from './entities/Animal';
+export { poseOf } from './models/colliders';
+export { creature, type CreatureParams, creatureFactory, CREATURE_CLIPS } from './models/creature';
+export { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from './models/gear';
+export { vertexHull, loadLodPairInto, lodPairOf, type GlbPart } from './models/glb';
+export { bakePart, supportPoints } from './models/hull';
+export { place, type PlaceOptions, type Draw, copiesAt, finishWeld, weld, type CullOptions, copiesNear, placedGroups, type CullView } from './models/place';
+export { placeSet } from './models/sets';
+export { SlotGeometry, SlotRecorder } from './models/slots';
+export { swimHands } from './models/swimHands';
+export { HeightPatch } from './physics/heightPatch';
+export { applySkin } from './player/Skins';
+export { WeaponPickup, ItemPickup, type PickupTier } from './player/WeaponPickup';
+export { DevKit, devLabel, devMaterial } from './practice/playground/devGrid';
+export { PlaygroundChip, clock } from './practice/playground/hud';
+export { PLAYGROUND_Y } from './practice/playground/Playground';
+export { NpcTalk, QuestChip, placesWithDiscovery, type LiveMarker, type ChipSource, type NpcTalkOpts, type PlacePoint, type Places } from './quest/view';
+export { ObjectiveLine, DialogueBox, RewardCaption } from './quest/view/ui';
+export { bakedUndergrowth } from './world/BakedTerrain';
+export { layoutFauna } from './world/faunaLayout';
+export { FOREST_BANDS, trunkCapsule } from './world/forest/Forest';
+export { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement as UndergrowthPlacement } from './world/forest/placement';
+export { normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, inChunk, POND, TRAILS, CABIN_SITES, hasPond, streamAt } from './world/Heightfield';
+export { HORIZON_RADIUS } from './world/HorizonMatte';
+export { Interactables } from './world/interact/Interactables';
+export { createWaterMaterial, waterWeather } from './world/waterSurface';

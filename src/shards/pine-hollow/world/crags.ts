@@ -30,19 +30,17 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { heightAt, normalAt, trailDistance, cabinMask, inChunk } from '#engine/world/Heightfield';
 import {
   BEAR_CAVE, DEN, LOOKOUT, ZIPLINE, WATERFALL, RIDGE_STREAM, POND, RIDGE, CABIN_SITES, ridgeFootZ, nearestOnPolyline, type XZ,
 } from '../layout';
 import { CRAG_VIEWS, pineOption } from '../debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
-import { place, type Placed } from '#engine/models/place';
 import { pineModels } from './context';
 import { CRAG_LOD, useCragKit } from './cragKit';
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
-import { PATCH_ORDER, patchShader, setProgramKey, type ColliderDesc, type WorldRegistry, type TerrainCut, attachFogUniforms, loadPBR, type PBRSet, TIER, Rng, CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES, type Sky, type ModelDef, type Placement } from '#engine';
+import { PATCH_ORDER, patchShader, setProgramKey, type ColliderDesc, type WorldRegistry, type TerrainCut, attachFogUniforms, loadPBR, type PBRSet, TIER, Rng, CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES, type Sky, type ModelDef, type Placement, heightAt, normalAt, trailDistance, cabinMask, inChunk, place, type Placed } from '#engine';
 
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
 

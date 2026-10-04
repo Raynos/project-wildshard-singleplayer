@@ -18,6 +18,7 @@ interface At { x: number; y: number; z: number }
 
 const INTERACT_LEVEL: Record<InteractSound, number> = { chest: 0.7, locked: 0.6, lever: 0.7, plate: 0.65, door: 0.7, grate: 0.6, chime: 0.45, glyph: 0.6, ignite: 0.8 };
 
+/** the adventure kit's interaction sounds (chests, locks, levers, plates, doors, grates, pickups, glyphs) */
 export class InteractSfx {
   private readonly audio: Pick<Audio, 'voices'>;
   constructor(audio: Pick<Audio, 'voices'>) {

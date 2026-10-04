@@ -18,6 +18,7 @@ import type { ModelCategory } from '../world/registry';
 import { modelContext, type ModelContext, type ModelDef } from './model';
 import type { Renderer } from '../render/renderer';
 
+/** a creature model's params: the species variant its rig is built for */
 export interface CreatureParams { readonly variant: string }
 
 /** the clips a species rig plays on the Explorer's turntable (Animal.ts gaits and reactions) */

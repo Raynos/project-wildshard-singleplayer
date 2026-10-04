@@ -16,6 +16,7 @@ import { toColumnMajor } from './terrain';
 
 export interface HeightPatchOpts { x: number; y: number; z: number; size: number; res: number; material: Material; owner?: unknown; flat?: number }
 
+/** a small heightfield collider re-shaped at run time (a floor that grows and drains) */
 export class HeightPatch {
   private collider: Collider | null = null;
 

@@ -15,12 +15,10 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { CHUNK_HALF, ROAD_WIDTH, Rng, Noise2D, type Sky, modelContext, type ModelPart, type Placement } from '#engine';
-import { heightAt, normalAt, inChunk } from '#engine/world/Heightfield';
+import { CHUNK_HALF, ROAD_WIDTH, Rng, Noise2D, type Sky, modelContext, type ModelPart, type Placement, heightAt, normalAt, inChunk, place, type Placed } from '#engine';
 import { OCEAN } from '../manifest';
 import { REEF, reefMaterial, type ReefParams } from '../models/reef';
 import { REEF_FISH_COLOURS, reefFish } from '../models/reefFish';
-import { place, type Placed } from '#engine/models/place';
 
 export type SeabedKind = 'coral' | 'weed' | 'star';
 export interface SeabedSpec { kind: SeabedKind; x: number; z: number; s: number; rot: number; v: number }

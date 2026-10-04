@@ -36,9 +36,8 @@ import { Flutter } from './Flutter';
 import { Smoke } from './Smoke';
 import { boxDescs, highest, type Box } from './solid';
 import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './glbPaint';
-import { heightAt, type ColliderDesc, type WorldRegistry, type Sky, type Rng, type ModelBuild, type ModelContext, type ModelDef, type ModelPart, type Placement } from '#engine';
+import { heightAt, type ColliderDesc, type WorldRegistry, type Sky, type Rng, type ModelBuild, type ModelContext, type ModelDef, type ModelPart, type Placement, place, type Draw, type Placed } from '#engine';
 import type { NalatiTexName } from '../look/nalatiTextures';
-import { place, type Draw, type Placed } from '#engine/models/place';
 import type { Ground, Platform } from './types';
 
 /** what a painted model paints into: a place's kit (its one rng stream) */

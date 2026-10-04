@@ -17,8 +17,7 @@
  *   · each instance carries its own draw distance: small things go early, and inside a drift the outer clumps go
  *     before the heart, so a drift shrinks to its core with distance instead of vanishing at a ring
  */
-import { Rng, Noise2D, smoothstep, clamp, lerp, type Forest } from '#engine';
-import { heightAt, normalAt, trailDistance, inChunk, TRAILS } from '#engine/world/Heightfield';
+import { Rng, Noise2D, smoothstep, clamp, lerp, type Forest, heightAt, normalAt, trailDistance, inChunk, TRAILS } from '#engine';
 import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '#kit/looks/grassField';
 import { RIVER, riverMask, BROOK, CRAGS, WEST_CRAGS, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD, CAMP_SPUR, zoneAt, snowValleyX, snowValleyHalf, glacierMask } from '../../manifest';
 import { inPoiClearing } from '../clearings';

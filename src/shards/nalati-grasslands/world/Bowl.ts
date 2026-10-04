@@ -34,8 +34,7 @@ import { kokparRider } from '../models/kokparRider';
 import { herdHorse } from '../models/herdHorse';
 import { snowLotus } from '../models/snowLotus';
 import { glacierSnout, snoutGeometry, snoutAt } from '../models/glacierSnout';
-import { place as placeModel } from '#engine/models/place';
-import { PATCH_ORDER, patchShader, painterlyMaterial, painterlyUniforms, type Sky, Rng, TIER } from '#engine';
+import { PATCH_ORDER, patchShader, painterlyMaterial, painterlyUniforms, type Sky, Rng, TIER, place as placeModel } from '#engine';
 
 const PHONE = TIER === 'phone';
 

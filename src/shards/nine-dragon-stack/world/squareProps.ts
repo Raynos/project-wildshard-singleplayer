@@ -3,9 +3,7 @@
 // pavilions), each its model (../models/) drawn as one InstancedMesh and handed to the fragment's culler. The lion's cast
 // is loaded first (`place` is synchronous); a set's geometry is the one its builder made at the first copy.
 import type { Group, Matrix4 } from 'three';
-import type { ModelContext, ModelDef, Placement } from '#engine';
-import { type InstancedCuller, type Placed, copiesAt, place } from '#engine/models/place';
-import { placeSet } from '#engine/models/sets';
+import { type ModelContext, type ModelDef, type Placement, type InstancedCuller, type Placed, copiesAt, place, placeSet } from '#engine';
 import { guardianLion, loadLion } from '../models/lion';
 import { diningPavilion, marketBooth, parasolTable } from '../models/market';
 import { balustradePanel } from '../models/balustradePanel';

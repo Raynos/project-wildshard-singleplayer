@@ -33,4 +33,5 @@ export interface PerfLapHost {
   toast: (text: string) => void;
 }
 
+/** the PERF LAP's gate (`active` for the whole lap) and the host a lappable level registers */
 export const perfLap: { active: boolean; host: PerfLapHost | null } = { active: false, host: null };

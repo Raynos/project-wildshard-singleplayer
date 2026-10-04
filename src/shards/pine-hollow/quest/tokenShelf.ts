@@ -10,8 +10,7 @@
  * Past `CULL` metres it is not drawn.
  */
 import * as THREE from 'three';
-import type { Sky, WorldRegistry } from '#engine';
-import { place } from '#engine/models/place';
+import { type Sky, type WorldRegistry, place } from '#engine';
 import { pineModels } from '../world/context';
 import { tokenShelf } from '../models/tokenShelf';
 

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { saves, jsonSchema, boxInFrame, QuestLine, loadQuest, type NpcDef, type NpcTalk, type SkinDef, type Game, type Sky, type Player, type AnimalManager, type WorldRegistry, type HUD, type Audio, type Music, type FullMap, type FullMapPoi as MapPoi, type TreeInstance, heightAt, Flags, test, type Place } from '#engine';
+import { saves, jsonSchema, boxInFrame, QuestLine, loadQuest, type NpcDef, type NpcTalk, type SkinDef, type Game, type Sky, type Player, type AnimalManager, type WorldRegistry, type HUD, type Audio, type Music, type FullMap, type FullMapPoi as MapPoi, type TreeInstance, heightAt, Flags, test, type Place, InteractSfx, Interactables, type InteractEvent, place as placeModel, perfLap } from '#engine';
 import type { SkinLocker, ShardContext, Inventory, ItemId, Progress, CompendiumState } from '#game';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
@@ -22,11 +22,9 @@ import type { SkinLocker, ShardContext, Inventory, ItemId, Progress, CompendiumS
 import * as THREE from 'three';
 import type { Interactable, Cabins } from '../world/homestead';
 import type { PineHollowSfx } from '../audio/sfx';
-import { InteractSfx } from '#engine/audio/interactSfx';
 import { SKINS } from '../loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
 import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildings, type PineLandmarks } from '../world/landmarks';
-import { Interactables, type InteractEvent } from '#engine/world/interact/Interactables';
 import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../layout';
 import { KING_KIND } from '../combat/antlerKing';
 import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type LanternId } from './wardensHollow';
@@ -38,7 +36,6 @@ import type { Room, Trade, TradeItem } from './trades';
 import { BoardPanel, TradePanel, CountChip } from './ui';
 import { ZipRide, CanoeRide } from './rides';
 import { hollowLogFloor, hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
-import { place as placeModel } from '#engine/models/place';
 import { hollowLog, loadHollowLog } from '../models/hollowLog';
 import { pineModels } from '../world/context';
 import { StagLead } from './stagLead';
@@ -47,7 +44,6 @@ import { BEATS, beatFlags, isBeat, type Beat } from './beats';
 import { placeTokenShelf } from './tokenShelf';
 import { PINE_QUEST_CONTENT } from './content';
 import { BeaverPool } from '../world/beaverPool';
-import { perfLap } from '#engine/core/perfLap';
 
 const lodgeSave = saves.define({ key: 'lodge', scope: 'shard', version: 1, schema: jsonSchema, initial: () => null });
 

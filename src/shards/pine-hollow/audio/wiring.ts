@@ -1,8 +1,7 @@
 import { pineScore, pineScorePick } from './score';
-import type { Game, Sky, Music, AnimalManager, Animal } from '#engine';
+import { type Game, type Sky, type Music, type AnimalManager, type Animal, audioLog } from '#engine';
 import type { ForestAmbience, ZoneSpot } from './ambience';
 import type { Interactable } from '../world/homestead';
-import { audioLog } from '#engine/audio/audioLog';
 import {
   BEAR_CAVE, CREEK, HAMLET_SITES, LOOKOUT, OLD_GROWTH, RIDGE, RIDGE_STREAM, WATERFALL, ridgeFootZ, type XZ,
 } from '../layout';

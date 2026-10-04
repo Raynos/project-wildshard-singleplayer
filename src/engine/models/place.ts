@@ -59,6 +59,7 @@ export interface PieceOptions {
   readonly split?: { readonly every: number; readonly yieldTask: () => Promise<void> };
 }
 
+/** how `place` draws a model's copies: the model context, the draw, merging into cells and culling */
 export interface PlaceOptions {
   readonly ctx: ModelContext;
   readonly draw: Draw;

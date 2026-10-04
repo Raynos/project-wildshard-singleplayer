@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import { app, type Player, type Forest, type Interactable, CharacterMotor, castRay, floorBelow, tagOf, lockOn, type InputService, type EquipmentService } from '#engine';
-import { Animal } from '#engine/entities/Animal';
-import { heightAt, inChunk, waterLevel } from '#engine/world/Heightfield';
+import { app, type Player, type Forest, type Interactable, CharacterMotor, castRay, floorBelow, tagOf, lockOn, type InputService, type EquipmentService, Animal, heightAt, inChunk, waterLevel } from '#engine';
 import { HorseHerd } from '../creatures/herd';
 import { HORSE_SPEED } from '../species/horse';
 import { wildEnv } from '../creatures/env';

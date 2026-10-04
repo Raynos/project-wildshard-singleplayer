@@ -60,6 +60,7 @@ export function devTexture(tone: DevTone): THREE.CanvasTexture {
 }
 
 const materials = new Map<DevTone, THREE.MeshBasicMaterial>();
+/** the shared developer-texture material of one tone (grey / orange / dark …), made once */
 export function devMaterial(tone: DevTone): THREE.MeshBasicMaterial {
   let m = materials.get(tone);
   if (m === undefined) {
@@ -96,6 +97,7 @@ function dress(g: THREE.BufferGeometry, tint = 1): THREE.BufferGeometry {
   return g;
 }
 
+/** builds a playground from developer-textured boxes and planes, merged into one mesh per tone */
 export class DevKit {
   private readonly parts = new Map<DevTone, THREE.BufferGeometry[]>();
 

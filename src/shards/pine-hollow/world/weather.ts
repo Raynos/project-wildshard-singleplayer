@@ -23,13 +23,12 @@
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
 import * as THREE from 'three';
-import { type Game, type Sky, type TreeInstance, type AnimalManager, type Herd, fogUniforms, weatherUniforms, volumetricFog, windBoost, windFieldUniforms as windUniforms, WIND_DIR, setting, onSettingChange, TIER, SEED, practiceRoom, type LevelContext } from '#engine';
+import { type Game, type Sky, type TreeInstance, type AnimalManager, type Herd, fogUniforms, weatherUniforms, volumetricFog, windBoost, windFieldUniforms as windUniforms, WIND_DIR, setting, onSettingChange, TIER, SEED, practiceRoom, type LevelContext, waterWeather } from '#engine';
 import type { Particles } from '#kit';
 import type { ForestAmbience } from '../audio/ambience';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfile';
 import { PineWeatherFX } from './PineWeatherFX';
-import { waterWeather } from '#engine/world/waterSurface';
 import { OLD_GROWTH } from '../layout';
 
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */

@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import { SEED, Rng, smoothstep, type Sky, type TreeInstance, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, TIER_CONFIG, type Placement, type Renderer } from '#engine';
-import { heightAt, normalAt, trailDistance, cabinMask, inChunk, CABIN_SITES, TRAILS } from '#engine/world/Heightfield';
-import { place, type CullOptions, type CullView, type Placed } from '#engine/models/place';
+import { SEED, Rng, smoothstep, type Sky, type TreeInstance, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, TIER_CONFIG, type Placement, type Renderer, heightAt, normalAt, trailDistance, cabinMask, inChunk, CABIN_SITES, TRAILS, place, type CullOptions, type CullView, type Placed } from '#engine';
 import { BOULDER_SHAPES, ROCK_SOLID_ABOVE, boulderSizes, loadMossyBoulder, mossyBoulder, type MossyBoulderParams } from '../models/mossyBoulder';
 import { loadTreeStump, treeStump } from '../models/treeStump';
 import { fallenLog, fallenLogSize, loadFallenLog } from '../models/fallenLog';

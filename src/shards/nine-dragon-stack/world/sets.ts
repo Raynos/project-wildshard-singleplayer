@@ -14,8 +14,7 @@
 //   the crossings    the crossings' kits ('well-c-…': the gate bridge's paifang, the decks' dragon hooks)
 //   the galleries    every other Well kit (the run north's and the lower Well's galleries: their laundry) and the wall
 //                    kit's gallery plants there
-import type { Placed } from '#engine';
-import { placeSet } from '#engine/models/sets';
+import { type Placed, placeSet } from '#engine';
 import type { InKitPlaced } from './inKit';
 
 const FILE = 'src/shards/nine-dragon-stack/world/sets.ts';

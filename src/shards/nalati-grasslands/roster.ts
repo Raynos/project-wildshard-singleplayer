@@ -4,7 +4,7 @@
  * the Model Explorer at boot (src/engine/models/roster.ts) in the shard's painterly creature style; the steppe keeps spawning,
  * drawing and animating every copy as before.
  */
-import { live, type RosterEntry } from '#engine';
+import { live, type RosterEntry, swimHands } from '#engine';
 import { NALATI_WILDLIFE } from './creatures/wildlife';
 import { CAMP_PEOPLE } from './quest';
 import { aqbars, argymaq, balbalWarrior, ghostRider, goldenKing, horse, kokbori, marmot, qyran, sheep, sheepdog, stormTitan, wolf } from './models/creatures';
@@ -12,7 +12,6 @@ import { campPeople, shepherd } from './models/people';
 import { GEAR } from './models/gear';
 import { BUTTERFLIES, butterfly, RAPTORS, raptor } from './models/ambientLife';
 import { reins } from './models/reins';
-import { swimHands } from '#engine/models/swimHands';
 
 /** the camp's flock (Wildlife NALATI_WILDLIFE: 40 sheep, one instanced draw) */
 const FLOCK = NALATI_WILDLIFE.flocks.reduce((n, f) => n + f.count, 0);

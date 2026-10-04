@@ -181,6 +181,7 @@ export class DecisionLog {
   bits(): Uint8Array { return this.bytes.slice(0, (this.n + 7) >> 3); }
 }
 
+/** one undergrowth copy: its position, the ground normal, yaw, scale and tint */
 export interface Placement { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number; r: number; g: number; b: number }
 export const UNDER_KINDS = ['ferns', 'shrubs', 'litter', 'stones', 'moss', 'reeds'] as const;
 export type UnderPlacements = Record<(typeof UNDER_KINDS)[number], Placement[]>;

@@ -48,10 +48,12 @@ export let waterLevel: TerrainField['waterLevel'] = () => field().waterLevel();
 export let streamAt: NonNullable<TerrainField['streamAt']> = (x, z) => (field().streamAt ?? noStream)(x, z);
 /** Trail polylines (xz). The first four enter at the edge midpoints. */
 export let TRAILS: TerrainField['trails'] = [];
+/** The level's cabin pads (x, z and yaw), flattened into its terrain. */
 export let CABIN_SITES: TerrainField['cabinSites'] = [];
 /** The level's pond (r = 0 when it has none — check `hasPond()`). */
 export let POND: PondDef = NO_POND;
 
+/** whether the running level has a pond (`POND` is a zero-size placeholder when it has none) */
 export function hasPond(): boolean { return field().pond !== null; }
 
 function bind(T: TerrainField): TerrainField {
@@ -92,6 +94,7 @@ export function overrideTerrain(over: TerrainOverride): () => void {
   return () => { override = prev; bindBase(bound.base ?? terrainOf(activeLevel())); };
 }
 
+/** whether (x, z) lies inside the level's square, `margin` metres in from its edge */
 export function inChunk(x: number, z: number, margin = 0): boolean {
   return Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin;
 }

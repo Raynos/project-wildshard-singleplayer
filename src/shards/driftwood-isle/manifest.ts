@@ -20,10 +20,7 @@ import compareOverlookTarget from './explore/compare/driftwood-overlook-target.j
  * Build order (docs/tasks/ASKS.md D12): water + pier → boat → beach → the island piece by piece.
  * The landscape below is the sea floor; the island rises out of it as the pieces land.
  */
-import { smoothstep, clamp } from '#engine/core/noise';
-import { CHUNK_HALF, ROAD_LENGTH } from '#engine/core/config';
-import { buildTerrain } from '#engine/world/terrainField';
-import { swellBody } from '#engine/data';
+import { smoothstep, clamp, CHUNK_HALF, ROAD_LENGTH, buildTerrain, swellBody } from '#engine/data';
 import type { ShardManifest, OceanDef } from '#game/shard/manifest';
 import { lateReads } from './boot/lateReads';
 import { bootSources } from './boot/sources';

@@ -38,6 +38,7 @@ export class SlotRecorder {
   }
 }
 
+/** one merged geometry whose recorded parts (slots) show and hide without another draw */
 export class SlotGeometry {
   readonly geometry: THREE.BufferGeometry;
   private readonly ranges: readonly SlotRange[];

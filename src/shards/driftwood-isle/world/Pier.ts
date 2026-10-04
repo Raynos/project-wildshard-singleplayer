@@ -17,10 +17,8 @@
  * `Boat.moorTo`.
  */
 import type * as THREE from 'three';
-import { type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement } from '#engine';
-import { heightAt, waterLevel } from '#engine/world/Heightfield';
+import { type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, heightAt, waterLevel, place, type Placed } from '#engine';
 import { PENNANT_WIND, pier, pierBoxes, pierDeckAt, pierPosts, type PierParams } from '../models/pier';
-import { place, type Placed } from '#engine/models/place';
 
 export interface PierSpec {
   x: number; z: number;

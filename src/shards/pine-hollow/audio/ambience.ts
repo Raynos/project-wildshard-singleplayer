@@ -1,4 +1,4 @@
-import { resourceScope, audioRandom, AmbienceZones, type ZoneVoice, tap, ambientTick, type Audio, type StepSurface } from '#engine';
+import { resourceScope, audioRandom, AmbienceZones, type ZoneVoice, tap, ambientTick, type Audio, type StepSurface, CABIN_SITES, POND, hasPond, audioLog } from '#engine';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
  * pattern with generated beds (src/shards/pine-hollow/audio/sfx.ts: public/assets/sfx/pine-hollow/, MOSS-SoundEffect v2 vs Stable
@@ -34,8 +34,6 @@ import { resourceScope, audioRandom, AmbienceZones, type ZoneVoice, tap, ambient
  */
 import type { Camera } from 'three';
 import { PineHollowSfx, type PhBed } from './sfx';
-import { CABIN_SITES, POND, hasPond } from '#engine/world/Heightfield';
-import { audioLog } from '#engine/audio/audioLog';
 
 export type ForestZone = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill' | 'ridge' | 'oldgrowth' | 'cave';
 type Room = 'cabin' | 'den' | 'oldgrowth' | 'bowl';

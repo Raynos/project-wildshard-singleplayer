@@ -28,8 +28,7 @@
  * v2 chain. Budget (phone): 5 draws, ~0.3 M submitted triangles (the cards ~16 k).
  */
 import * as THREE from 'three';
-import { TIER, CHUNK_HALF, wind, WIND_GLSL, painterlyUniforms, fogUniforms, type Sky, type Forest, macrotask, type Renderer } from '#engine';
-import { heightAt, trailDistance, splatAt } from '#engine/world/Heightfield';
+import { TIER, CHUNK_HALF, wind, WIND_GLSL, painterlyUniforms, fogUniforms, type Sky, type Forest, macrotask, type Renderer, heightAt, trailDistance, splatAt } from '#engine';
 import { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt, flowerSpeciesAt } from '#kit/looks/grassField';
 import { trample, TRAMPLE_GLSL } from '#kit/looks/trample';
 import { paintedAir } from './air';

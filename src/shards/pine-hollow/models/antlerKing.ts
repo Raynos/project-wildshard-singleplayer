@@ -1,9 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Animal } from '#engine/entities/Animal';
-import { type AnimalSpecies, type SpeciesDef, type VariantDef, skinPlain, type Paint, type Sky, defineModel, type ModelDef } from '#engine';
+import { type AnimalSpecies, type SpeciesDef, type VariantDef, skinPlain, type Paint, type Sky, defineModel, type ModelDef, Animal, CREATURE_CLIPS, creatureFactory, type CreatureParams } from '#engine';
 import { KING_BONES, animateKing } from '../combat/kingRig';
-import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '#engine/models/creature';
 
 /**
  * The Antler King's STAND-IN look (PINE-HOLLOW-REMASTER PH-C2; the final model is PH-M3, board B2 pick A "the Bark

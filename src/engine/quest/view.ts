@@ -10,6 +10,7 @@ import { practiceRoom } from '../core/practiceRoom';
 /** a quest marker resolved to world coordinates */
 export interface LiveMarker { id: string; label: string; short: string; x: number; z: number }
 
+/** what the quest chip (ObjectiveLine) shows: the goal's label and count and the live markers */
 export interface ChipSource {
   /** the chip's goal: a short label and its counter ('' for none) */
   chip: () => { label: string; count: string };
@@ -43,6 +44,7 @@ export class QuestChip {
   }
 }
 
+/** an NPC talk's parts: the dialogue box, the quest flags and the NPC's lines */
 export interface NpcTalkOpts {
   dialogue: DialogueBox;
   flags: Flags;
@@ -107,6 +109,7 @@ export class NpcTalk {
 /** a named place in world coordinates: discovered within `r`; `quiet` = discovered without a toast (the arrival point) */
 export interface PlacePoint { id: string; label: string; x: number; z: number; r: number; quiet?: boolean; y?: number }
 
+/** a level's named places: the map's points, discovery as the player walks, and the chip's markers */
 export interface Places {
   /** the full map's list: places (named / "?") + the quest's markers */
   mapPois: () => MapPoi[];

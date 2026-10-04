@@ -1,4 +1,4 @@
-import { app, fxMaterial, annulus, FX, type FxMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, type Material, type Rng } from '#engine';
+import { app, fxMaterial, annulus, FX, type FxMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, type Material, type Rng, HeightPatch } from '#engine';
 /**
  * KurganDungeon — the INSIDE of the great kurgan (plan row B13; design docs/design/nalati/elites-and-bosses.md §2 "The Golden
  * King fight"; mockups art/nalati-grasslands/round-2/5-bosses/boss-1…4). A timber-lined dromos (the entrance corridor, the
@@ -42,7 +42,6 @@ import { app, fxMaterial, annulus, FX, type FxMaterial, type BoxSpec as Collider
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob, lathe } from './paint';
 import { balbalGeometry } from '../models/balbal';
-import { HeightPatch } from '#engine/physics/heightPatch';
 
 /** where the interior lives (world): the chamber floor centre. Flat plateau under it (see the header). */
 export const DUNGEON = { x: -40, y: 140, z: -95 };

@@ -13,8 +13,7 @@
  *   placeDriftwoodPlaces(adventure.place, [hut.placed, lookout.placed, …], { wreck: [...wreck.placed, ...cove.placed] });   // main.ts, after the adventure
  */
 import * as THREE from 'three';
-import type { Placed, Place } from '#engine';
-import { placeSet } from '#engine/models/sets';
+import { type Placed, type Place, placeSet } from '#engine';
 import { DRIFTWOOD_PLACES } from '../quest/Places';
 
 const FILE = 'src/shards/driftwood-isle/world/places.ts';

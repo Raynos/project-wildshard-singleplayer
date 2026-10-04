@@ -6,8 +6,7 @@
  * gulls, one instanced draw, wings in the vertex shader). The deer, boar and bear are shared (src/kit/models/creatures.ts).
  */
 import * as THREE from 'three';
-import { defineModel, type ModelDef } from '#engine';
-import { creature, type CreatureParams } from '#engine/models/creature';
+import { defineModel, type ModelDef, creature, type CreatureParams } from '#engine';
 import { Gulls } from '../world/Gulls';
 
 const FILE = 'src/shards/driftwood-isle/models/creatures.ts';

@@ -1,4 +1,4 @@
-import { app, type ColliderDesc, practiceFps, type RoomMap, type RoomShape } from '#engine';
+import { app, type ColliderDesc, practiceFps, type RoomMap, type RoomShape, DevKit, devLabel, PlaygroundChip, clock, PLAYGROUND_Y, type Playground, type PlaygroundHost } from '#engine';
 /**
  * Nine Dragon ▸ Grapple playground (E307, Jake: "a really simple developer level … an acrobatic course for the grappling
  * hook, a custom parkour level to get a feel for the grappling hook and how it works"). A closed dev-grid room high over
@@ -16,10 +16,7 @@ import { app, type ColliderDesc, practiceFps, type RoomMap, type RoomShape } fro
 import * as THREE from 'three';
 import type { GrappleCourse } from '../grapple/course';
 import { FeiZhua } from '../grapple/FeiZhua';
-import { DevKit, devLabel } from '#engine/practice/playground/devGrid';
 import { COLUMN, FALL_Y, HOOKS, PADS, RING_UP, ROOM, RUN, coursePad, padLabelAt, type CoursePad } from './grappleCourse';
-import { PlaygroundChip, clock } from '#engine/practice/playground/hud';
-import { PLAYGROUND_Y, type Playground, type PlaygroundHost } from '#engine/practice/playground/Playground';
 
 const FILE = 'src/shards/nine-dragon-stack/playground/GrapplePlayground.ts';
 const SLAB = 1;                  // a pad's slab thickness (m): thick, so the capsule never sinks through (E285)

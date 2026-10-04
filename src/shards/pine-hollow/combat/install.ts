@@ -1,12 +1,11 @@
 import { type SkinLocker, type Inventory, Elites, GroundTell, type EliteRule } from '#game';
-import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight, canReach, type AnimalManager, type Animal, CameraFX, type HUD, type Audio, type Music, EliteBar } from '#engine';
+import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight, canReach, type AnimalManager, type Animal, CameraFX, type HUD, type Audio, type Music, EliteBar, applySkin, type SkinDef, perfLap } from '#engine';
 import * as THREE from 'three';
 
 
 
 
 import { Crossbow, MAX_BOLTS, crossbowDisplayModel } from '#kit';
-import { applySkin, type SkinDef } from '#engine/player/Skins';
 import { SKINS, type SkinId } from '../loadout/skins';
 import type { PineHollowSfx } from '../audio/sfx';
 import type { Interactable } from '../world/homestead';
@@ -15,7 +14,6 @@ import { installPinePresentation } from './chargeTells';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
 import { AntlerKing, KING_KIND } from './antlerKing';
 
-import { perfLap } from '#engine/core/perfLap';
 import { registerPineLap } from '../dev/perfLap';
 
 /**

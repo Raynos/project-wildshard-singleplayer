@@ -25,7 +25,7 @@
  * scaled down on the phone tier.
  */
 import * as THREE from 'three';
-import { TIER, painterlyMaterial, type Sky, type Forest, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, modelContext, type ModelDef, type Renderer } from '#engine';
+import { TIER, painterlyMaterial, type Sky, type Forest, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, modelContext, type ModelDef, type Renderer, place, type PlaceOptions, type Placed } from '#engine';
 import { Flutter } from '../Flutter';
 import { DressLayer, type Inst } from './layer';
 import { planDressing, type DressPlan } from './place';
@@ -34,7 +34,6 @@ import { DressLife } from './life';
 import { loadNalatiModel, modelsOn } from '../glbPaint';
 import type { NalatiSet } from '../painted';
 import { hullAt, hullCandidates, type Box } from '../solid';
-import { place, type PlaceOptions, type Placed } from '#engine/models/place';
 import {
   boulder, slab, stone, juniper, wildRose, dwarfWillow, lupin, daisy, reeds, fitRock, GENERATED_ROCK, ROCK_LOOK,
   boulderGeo, slabGeo, stoneGeo, juniperGeo, roseGeo, willowGeo, lupinGeo, daisyGeo, reedGeo,

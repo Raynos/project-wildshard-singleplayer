@@ -5,9 +5,8 @@
  * ones; each card is a separate build by the weapon's own builder on its own materials (src/engine/models/gear.ts says why).
  */
 import * as THREE from 'three';
-import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '#engine/models/gear';
 import { buildBolt, buildCrossbow, MAX_BOLTS, crossbowDisplayModel } from '#kit';
-import { isMesh, whiteColors, defineModel, type ModelDef, live, type RosterEntry } from '#engine';
+import { isMesh, whiteColors, defineModel, type ModelDef, live, type RosterEntry, loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '#engine';
 import { PINE_FINISHES } from '../loadout/skins';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
 import { arrowMaterial, buildArrowGeometry, longbowSpecimen, QUIVER_MAX } from '#shards/pine-hollow/weapons/Longbow';

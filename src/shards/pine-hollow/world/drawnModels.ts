@@ -15,8 +15,7 @@
  *   fieldModels: async () => (await import('./pine-hollow/world/drawnModels')).placeDrawnModels,
  */
 import * as THREE from 'three';
-import { place } from '#engine/models/place';
-import type { Placement, GroundPlacement as UnderPlacement } from '#engine';
+import { place, type Placement, type GroundPlacement as UnderPlacement } from '#engine';
 import { matrixOf, UNDER_CELLS, type Undergrowth } from './undergrowth';
 import type { FieldModelsContext } from '#game';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
