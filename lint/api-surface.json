@@ -12494,7 +12494,7 @@
       {
         "name": "resetNewGame",
         "kind": "function",
-        "doc": "Confirm a fresh preview and reset durably; old live checkpoints cannot revive it. Reload/rebind the active instance only when applied is true; a refusal keeps playing intact.",
+        "doc": "Confirm a fresh preview and reset durably; old live checkpoints cannot revive it. Reload the page or evict/rebind this instance including frozen grid residents only when applied is true; a refusal keeps playing intact.",
         "from": "@wildshard/game/newGame"
       },
       {

@@ -174,7 +174,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `NewGameQuest` | interface | @wildshard/game/newGame | Optional quest identities let an unloaded shard's card count completion from its legacy flags without executing its runtime. |
 | `NewGameSummary` | interface | @wildshard/game/newGame | A reset affects one stable instance. The kept categories include legacy shard feat progress as well as the profile ledger. |
 | `previewNewGame` | function | @wildshard/game/newGame | Preview without mutating saves or loading a shard runtime. Cards must pass an explicit copy id, never a grid cell. |
-| `resetNewGame` | function | @wildshard/game/newGame | Confirm a fresh preview and reset durably; old live checkpoints cannot revive it. Reload/rebind the active instance only when applied is true; a refusal keeps playing intact. |
+| `resetNewGame` | function | @wildshard/game/newGame | Confirm a fresh preview and reset durably; old live checkpoints cannot revive it. Reload the page or evict/rebind this instance including frozen grid residents only when applied is true; a refusal keeps playing intact. |
 | `Progress` | class | @wildshard/game/Progress | — |
 | `ProgressRow` | interface | @wildshard/game/Progress | — |
 | `ProgressSink` | interface | @wildshard/game/Progress | what a shard's feats code records into (Driftwood's quest/Feats.ts, Nalati's adventure): the game layer's type, so two shards share it without importing each other (E357 F6) |
