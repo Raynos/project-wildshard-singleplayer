@@ -49,6 +49,18 @@ it('walks the full 15 metre socket at road height in either axis without introdu
     }
   } finally { motor.dispose(); scope.dispose(); physics.dispose(); }
 });
+it('keeps admitted-ground backstops 5 mm below the road, scoped and platform-tagged', () => {
+  const physics = new Physics(rapier), scope = new Scope('backstop');
+  try {
+    const handles = installEntrySockets(physics, scope, [{ x: 555, z: -555 }], 'backstop'); physics.step();
+    expect(handles.length).toBe(4);
+    for (const socket of entrySockets({ x: 555, z: -555 })) {
+      const hit = castRay(physics, { x: socket.x, y: 2, z: socket.z }, { x: 0, y: -1, z: 0 }, 3);
+      expect(hit?.point.y).toBeCloseTo(-0.005, 6); expect(hit?.owner).toBe('platform.grid'); expect(hit?.material).toBe('stone');
+    }
+    scope.dispose(); expect(physics.world.colliders.len()).toBe(0);
+  } finally { scope.dispose(); physics.dispose(); }
+});
 it('rejects duplicate, nonfinite and disposed origins before allocating any collider', () => {
   const physics = new Physics(rapier), scope = new Scope('reject');
   try {
