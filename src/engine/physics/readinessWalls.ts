@@ -5,6 +5,7 @@ import type { TraversalReadiness } from '../sim/readiness';
 import type { Physics } from './Physics';
 import { groups } from './groups';
 import { tagCollider } from './surface';
+import { PLATFORM_COLLIDER_OWNER } from './stripColliders';
 
 /** A platform edge in this physics world's frame; null instance means an out-of-bounds proxy. */
 export interface ReadinessEdge { instance: string | null; x: number; z: number; halfLength: number; axis: 'x' | 'z'; floor: number }
@@ -20,11 +21,12 @@ export class ReadinessWalls {
     for (const edge of edges) if (![edge.x, edge.z, edge.halfLength, edge.floor].every(Number.isFinite) || edge.halfLength <= 0 || edge.instance === '') throw new RangeError('Invalid readiness edge');
     if (scope.disposed) throw new RangeError('Disposed readiness scope');
     const halfHeight = (CELL_ABOVE + CELL_BELOW) / 2;
+    // Grid entry walls sit at the 6 m re-frame line on shared strip ground, before the capsule reaches the cell seam.
     for (const source of edges) {
       const edge = { ...source }, acrossX = edge.axis === 'x';
       const collider = physics.world.createCollider(physics.R.ColliderDesc.cuboid(acrossX ? 0.25 : edge.halfLength, halfHeight, acrossX ? edge.halfLength : 0.25)
         .setTranslation(edge.x, edge.floor + (CELL_ABOVE - CELL_BELOW) / 2, edge.z).setCollisionGroups(groups('WORLD')));
-      tagCollider(collider, 'stone', { readiness: edge.instance });
+      tagCollider(collider, 'edge', PLATFORM_COLLIDER_OWNER);
       this.walls.push({ edge, collider });
     }
     scope.onDispose(() => this.dispose());
