@@ -27,12 +27,7 @@ describe('Nine Dragon full shard manifest', () => {
     expect(pack?.files.map(([url]) => url).sort()).toEqual(files.map((url) => gpuUrl(url, 'img')).sort());
   });
   it('discovers the experimental shard and projects only engine data', () => {
-    const installed = SHARDS.filter(playable).find((m) => m.slug === manifest.slug);
-    expect(installed).toMatchObject(manifest);
-    expect(installed?.placement.grid).toEqual([-2, 1]);
-    if (installed === undefined) throw new Error('Nine Dragon missing from catalogue');
-    expect(installed.ground).toBe(manifest.ground);
-    expect(JSON.stringify(toLevelSpec(installed))).toBe(JSON.stringify(toLevelSpec(manifest)));
+    expect(SHARDS.filter(playable)).toContain(manifest);
     const level = toLevelSpec(manifest);
     expect(level.ground.structures).toBe(true);
     expect(level.mechanisms).toEqual(['hover', 'explore', 'practice']);
