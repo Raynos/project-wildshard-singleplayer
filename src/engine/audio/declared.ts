@@ -1,10 +1,13 @@
 import type { Scope } from '../app/scope';
 import type { Audio } from './Audio';
 import type { CombatCues, CombatCueOpts } from '../combat/cues';
+import { createCueRouter, type CueRoute } from './cueRouting';
 
 /** Catalogue cue ids plus bounded wind recipes and a score mode, supplied as validated level data. */
 export interface DeclaredAudioData {
   cues: readonly { id: string; voice: string }[];
+  /** Ordered cue rules resolve the same admitted voice catalogue, with scoped delayed playback. */
+  routing?: readonly CueRoute[] | undefined;
   ambience: { bed: string; winds: readonly { frequency: number; q: number; pan: number; rate: number; gain: number }[] } | null;
   score: 'silent' | 'default';
 }
@@ -24,7 +27,12 @@ export function installDeclaredAudio(data: DeclaredAudioData, ports: DeclaredAud
     return [cue.id, voice] as const;
   }));
   if (voices.size !== data.cues.length) throw new Error('Duplicate audio cue');
+  const routes = data.routing ?? [], routing = createCueRouter(routes, {
+    voices: new Map([...ports.voices].map(([id, voice]) => [id, (opts: CombatCueOpts): boolean => { voice(opts); return true; }])),
+    later: (run, seconds) => { ports.scope.timeout(seconds * 1000, run); },
+  });
   ports.cues.use((id, opts) => { const voice = voices.get(id); if (voice === undefined) return false; voice(opts); return true; }, ports.scope);
+  if (routes.length > 0) ports.cues.use(routing, ports.scope);
   if (data.score === 'silent') {
     const gain = ports.music.out.gain, before = gain.value; gain.value = 0;
     ports.scope.onDispose(() => { gain.value = before; });

@@ -37,6 +37,19 @@ it('rejects invalid parameters and unknown voices before installing any source, 
     expect(f.beds).toEqual([]); expect(f.gain.value).toBe(0.4); expect(f.cues.cue('cue.forbidden')).toBe(false);
   } finally { f.scope.dispose(); }
 });
+it('dispatches conditional data before thin fallback and cancels declared echoes when the owner leaves', () => {
+  vi.useFakeTimers();
+  const f = fixture(), data = parseAudioData({ ...TEMPLATE_AUDIO, ambience: null, score: 'default', routing: [
+    { id: 'cue.sword.swing', when: [{ op: 'number', field: 'dir' }], actions: [{ voice: 'weapon.swap' }, { voice: 'sword.hit', delay: 0.42, defaults: { gain: 0.55 } }] },
+  ] });
+  try {
+    installDeclaredAudio(data, f.ports);
+    expect(f.cues.cue('cue.sword.swing', { dir: 1 })).toBe(true); expect(f.calls.map((call) => call.voice)).toEqual(['weapon.swap']);
+    expect(f.cues.cue('cue.sword.swing')).toBe(true); expect(f.calls.map((call) => call.voice)).toEqual(['weapon.swap', 'sword.swing']);
+    f.scope.dispose(); vi.advanceTimersByTime(1000);
+    expect(f.calls).toHaveLength(2); expect(f.cues.cue('cue.sword.swing', { dir: 1 })).toBe(false);
+  } finally { f.scope.dispose(); }
+});
 
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); });
 it('starts and unloads the data bed through the actual engine mixer lifetime', () => {

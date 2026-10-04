@@ -18,7 +18,7 @@ it('keeps legacy empty fixtures compatible and default sections empty', () => {
   const source = empty();
   expect(source.terrain).toBeNull(); expect(source.water).toEqual([]); expect(source.creatures).toEqual({ brains: [], spawns: [] });
   expect(source.quests).toEqual({ flags: [], quests: [], triggers: [], dialogue: [] });
-  expect(source.audio).toEqual({ cues: [], ambience: null, score: 'silent' });
+  expect(source.audio).toEqual({ cues: [], routing: [], ambience: null, score: 'silent' });
   expect(() => emptyShardfileSource(source)).not.toThrow();
 });
 it('composes template declarations with matching species strikes actors and boss panels', () => {
@@ -42,6 +42,6 @@ it('refuses every unbound section in the minimal loader', () => {
   expect(() => emptyShardfileSource(source)).toThrow('full shardfile loader');
   source.water = []; source.audio = TEMPLATE_AUDIO;
   expect(() => emptyShardfileSource(source)).toThrow('full shardfile loader');
-  source.audio = { cues: [], ambience: null, score: 'silent' }; source.ledger = TEMPLATE_LEDGER;
+  source.audio = { cues: [], routing: [], ambience: null, score: 'silent' }; source.ledger = TEMPLATE_LEDGER;
   expect(() => emptyShardfileSource(source)).toThrow('full shardfile loader');
 });
