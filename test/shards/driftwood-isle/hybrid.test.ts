@@ -9,7 +9,7 @@ import { DRIFTWOOD_QUEST, QUEST_DONE } from '../../../src/shards/driftwood-isle/
 import source from '../../../src/shards/driftwood-isle/shard.config';
 
 it('declares the trusted entry and uses one completed quest and achievement save in standalone and the placed grid cell', () => {
-  expect(source.runtime).toEqual({ entry: 'runtime/index.ts' });
+  expect(source.runtime).toEqual({ entry: 'runtime/hybrid.ts' });
   const slug = source.identity.slug, assembly = new GridAssembly({ developer: false, devserver: false });
   const cell = assembly.cell(firstPartyInstance(slug));
   expect(cell.instance).toBe(slug); expect(cell.slug).toBe(slug);
