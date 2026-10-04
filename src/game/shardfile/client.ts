@@ -59,6 +59,8 @@ export interface ShardfileClientBindings {
   audioOwner?: 'declared' | 'runtime';
   /** Platform catalogue installers bind extended audio data to the existing play host. */
   audioProfiles?: (play: ShardPlayHost) => DeclaredAudioPorts['profiles'];
+  /** Announced during construction only when this data client will create a simulation; empty trusted transitions never announce a handoff. */
+  onSimulationExpected?: () => void;
   /** Production handoff after restoration; checkpoint confirms ledger, coins, encounters and continuation writes. The existing Game driver remains the home tick owner. */
   onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void }) => void;
 }
@@ -85,7 +87,10 @@ export class ShardfileClient {
   private items: DeclaredItems | undefined;
   private readonly animals = new Map<string, Animal>();
   private readonly emptyTrustedData: boolean;
-  constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) { this.source = source; this.assets = assets; this.bindings = bindings; this.emptyTrustedData = bindings.trustedRuntime === true && emptyHybridData(source, bindings.audioOwner); }
+  constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) {
+    this.source = source; this.assets = assets; this.bindings = bindings; this.emptyTrustedData = bindings.trustedRuntime === true && emptyHybridData(source, bindings.audioOwner);
+    if (!this.emptyTrustedData) bindings.onSimulationExpected?.();
+  }
 
   async world(ctx: ShardContext): Promise<void> {
     if (this.emptyTrustedData) return;
