@@ -483,7 +483,7 @@ successor plan.
   born on the format and that Thin Ice's `runtime/` is allowlisted (B12).
 - **NINE-DRAGON-STACK**: Nine Dragon becomes DEVSERVER-only (G46); its owner is told (B11).
 - **EXPLORE-V2, WORLDCLAW-TOOLS**: explore mode is one shard at a time behind the dev toggle (G46).
-- **FINISH-LINE**: its M1 (Jake, E423: CONTINUE + a shard map with progress on the title) moves inside the SHARD SELECT screen; the main menu stays the two cards (G132).
+- **FINISH-LINE**: its M1 (Jake, E423: CONTINUE + a shard map with progress on the title) moves inside the SHARD SELECT screen; the main menu stays the two cards (G132): progress on the carousel's main card and CONTINUE, no map or grid in SHARD SELECT (G133).
 - **ANIMATION-REMASTER**: standard rigs and the clip library (S7); skinned assets in the format (SF9c).
 - **PHYSICS-POLISH**: colliders move into tiles and per-shard worlds (SF9a, SF18a).
 - **NATIVE-APPS**: the shells need the shardfile loader and the save scopes (SF15a).
@@ -717,6 +717,7 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G130 | Where the safe zone ends | **At the cell edge** (Jake: *"At the cell edge"*): the title card, weapon, mount rule and HUD accent switch at the border shimmer; the 15 m of entry asphalt is the shard's |
 | G131 | Entry width | **Two lanes, ≈ 8 m** (Jake: *"Two lanes, ~8 m"*): each midpoint entry is a two-lane asphalt side road ≈ 8 m wide branching off the boulevard, 15 m deep into the shard (G103); the schema's 6 m and the contract test's 15 m both become 8 |
 | G132 | FINISH-LINE M1 vs the new menu | **Both inside SHARD SELECT** (Jake: *"Both inside SHARD SELECT"*): the main menu stays the two cards (G88); FINISH-LINE M1's CONTINUE and the shard map with progress live on the SHARD SELECT screen |
+| G133 | FINISH-LINE M1's layout inside SHARD SELECT (mockups `art/menu/round-10-continue-progress/`) | **C, made far less busy** (Jake: *"A and C is the idea but it's way too fucking busy … we want something like C. But the progress on top, no. Get rid of all that shit above the card. Progress on the main card is great. The progress on the mini cards underneath the main card, which you can paginate through, that's too busy. So we want something like C, but cards, carousel, some progress, but way less busy"*): the carousel's main card shows the shard's progress (quests, feats, a bar) and a CONTINUE button when it has progress; nothing above the card (no progress row, no ring strip); the thumbnail strip underneath carries no progress; **no map or grid anywhere in SHARD SELECT** (Jake: *"definitely do not want a map or a grid … No map or grid in the level select"*), so FINISH-LINE M1's "shard map" becomes progress on the cards. **Target picked:** `art/menu/round-10-continue-progress/E-calm-crisp-1.jpg` (Jake: *"1 Card + plain thumbnails"*): the big card (picture, name, QUESTS n/m with a bar, FEATS n, LAST PLAYED, one CONTINUE button that reads ENTER for an unstarted shard), one row of plain thumbnails under it (DEV tags only), SETTINGS; no separate ENTER WORLD |
 
 ## Handoff (shard-platform)
 
