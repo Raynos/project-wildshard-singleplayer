@@ -64,7 +64,7 @@ describe('data-selected circling melee archetype', () => {
     expect(() => new SkirmisherBrain(f.animal, { ...CRAB_BRAIN, attackCooldown: Number.NaN })).toThrow('parameters');
     const data = { ...CRAB_BRAIN, awareRadius: 9 }, brain = new SkirmisherBrain(f.animal, data);
     data.awareRadius = 0; f.ctx.player.z = 8; brain.think(f.ctx);
-    expect(() => new SkirmisherBrain(f.animal, data).restore(brain.snapshot())).toThrow('Incompatible');
+    expect(() => new SkirmisherBrain(f.animal, { ...CRAB_BRAIN, awareRadius: 10 }).restore(brain.snapshot())).toThrow('Incompatible');
     expect(f.animal.mem['st']).toBe(1);
   });
 });
