@@ -393,14 +393,14 @@
   },
   {
     "id": "sim-namespace",
-    "file": "src/engine/effects/namespace.ts",
+    "file": "src/engine/combat/namespace.ts",
     "rule": "sim-no-render",
     "code": "import * as THREE from 'three';",
     "count": 1
   },
   {
     "id": "sim-visual",
-    "file": "src/engine/quests/visual.ts",
+    "file": "src/engine/quest/visual.ts",
     "rule": "sim-no-render",
     "code": "import { value } from '#engine/fx/value';",
     "count": 1
