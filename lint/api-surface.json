@@ -6630,6 +6630,12 @@
         "from": "@wildshard/engine/player/Player"
       },
       {
+        "name": "PlayerFrameQueries",
+        "kind": "interface",
+        "doc": "Frame-local surfaces supplied with a motor rebind; null restores the standalone level's existing queries.",
+        "from": "@wildshard/engine/player/Player"
+      },
+      {
         "name": "STROKE_PERIOD",
         "kind": "const",
         "doc": "",
@@ -11254,9 +11260,27 @@
         "from": "@wildshard/engine/world/waterSurface"
       },
       {
+        "name": "insideWaterExtent",
+        "kind": "function",
+        "doc": "The open water's rest surface reaches (x, z) (inside the confining square, or anywhere when unbounded).",
+        "from": "@wildshard/engine/world/waves"
+      },
+      {
         "name": "seaDamp",
         "kind": "function",
         "doc": "shore damping from the water depth (m): the swell flattens over the sand so the foam line stays put",
+        "from": "@wildshard/engine/world/waves"
+      },
+      {
+        "name": "WATER_UNBOUNDED",
+        "kind": "const",
+        "doc": "Unbounded open water (the standalone level's sea runs to the horizon).",
+        "from": "@wildshard/engine/world/waves"
+      },
+      {
+        "name": "waterExtent",
+        "kind": "const",
+        "doc": "The square half-extent (level metres, around the level's origin) the level's open water reaches: its swell body's rest",
         "from": "@wildshard/engine/world/waves"
       },
       {

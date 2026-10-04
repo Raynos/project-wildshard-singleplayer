@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1896 members; 830 without a doc line (—).
+1901 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1110,6 +1110,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `riderArm` | function | @wildshard/engine/player/nalatiArms | The arm from the wrist, along +Y: a flared leather gauntlet with a rolled, stitched edge (0 … 7 cm), a thick fleece |
 | `HOVER_TOP` | const | @wildshard/engine/player/Player | — |
 | `Player` | class | @wildshard/engine/player/Player | — |
+| `PlayerFrameQueries` | interface | @wildshard/engine/player/Player | Frame-local surfaces supplied with a motor rebind; null restores the standalone level's existing queries. |
 | `STROKE_PERIOD` | const | @wildshard/engine/player/Player | — |
 | `SWIM_SPEED` | const | @wildshard/engine/player/Player | — |
 | `applySkin` | function | @wildshard/engine/player/Skins | Restyle `root` (a viewmodel or a display copy) as `skin`; a different skin on the same root swaps cleanly. |
@@ -1365,6 +1366,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `createSimHost` | function | @wildshard/engine/sim | Embed a level with an initialized Rapier module. Loading WASM belongs to the Node/client composition root. |
 | `SIM_API_VERSION` | const | @wildshard/engine/sim | The embedded simulation contract. Versions change when level or command semantics change. |
 | `SimCommand` | interface | @wildshard/engine/sim | Resolved world-space movement and an optional targeted attack for one fixed tick. |
+| `SimExternalPlayer` | interface | @wildshard/engine/sim | The existing page owns this traveller, its health update and its one physics/movement step. |
 | `SimHost` | class | @wildshard/engine/sim | A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client. |
 | `SimHostPorts` | interface | @wildshard/engine/sim | Borrowed client state is stepped and disposed by its existing world owner. |
 | `SimLevel` | interface | @wildshard/engine/sim | A renderer-free level. F1 installs richer behaviours through scoped step callbacks. |
@@ -1879,7 +1881,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `waterTexture` | function | @wildshard/engine/world/waterSurface | The tiling ripple texture: RGB a tangent-space normal from a periodic fbm height field (value noise on integer |
 | `waterTime` | function | @wildshard/engine/world/waterSurface | the wind clock the water scrolls on (wind.ts, advanced by Forest.update) — for callers that animate on the CPU |
 | `waterWeather` | const | @wildshard/engine/world/waterSurface | the rain on the water (PH-L10, src/shards/pine-hollow/world/weather.ts): 0 … 1 rings on every water surface (pond, creek, puddles) |
+| `insideWaterExtent` | function | @wildshard/engine/world/waves | The open water's rest surface reaches (x, z) (inside the confining square, or anywhere when unbounded). |
 | `seaDamp` | function | @wildshard/engine/world/waves | shore damping from the water depth (m): the swell flattens over the sand so the foam line stays put |
+| `WATER_UNBOUNDED` | const | @wildshard/engine/world/waves | Unbounded open water (the standalone level's sea runs to the horizon). |
+| `waterExtent` | const | @wildshard/engine/world/waves | The square half-extent (level metres, around the level's origin) the level's open water reaches: its swell body's rest |
 | `waveClock` | const | @wildshard/engine/world/waves | — |
 | `waveDisplace` | function | @wildshard/engine/world/waves | displacement (dx, dy, dz) of the surface point whose rest position is (x, z) |
 | `waveHeight` | function | @wildshard/engine/world/waves | surface height above the still level at world (x, z) — what a floating thing should ride |

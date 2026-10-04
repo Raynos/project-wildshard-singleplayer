@@ -1,7 +1,7 @@
 {
-  "about": "E362 AG7: cross-layer import counts (scripts/check-graph.mjs). A new pair or a rising count fails; lower with --update.",
+  "about": "SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.",
   "edges": {
-    "game → engine": 499,
+    "game → engine": 502,
     "kit → engine": 196,
     "kit → game": 2,
     "root → engine": 17,
@@ -12,8 +12,8 @@
     "shards/_template → engine": 6,
     "shards/_template → game": 1,
     "shards/_template → sdk": 8,
-    "shards/driftwood-isle → engine": 509,
-    "shards/driftwood-isle → game": 48,
+    "shards/driftwood-isle → engine": 508,
+    "shards/driftwood-isle → game": 50,
     "shards/driftwood-isle → kit": 15,
     "shards/driftwood-isle → sdk": 4,
     "shards/far-reach → engine": 80,

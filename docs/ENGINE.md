@@ -1807,7 +1807,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1880 exports, grouped by the module to import them from.
+1884 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1998,7 +1998,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/player/LockOnTarget`: `addLockOffset`, `aimPoint`, `FlickDir`, `FlickTracker`, `LOCK`, `LockOnSystem`, `lockScore`, `pickSwitch`, `wrapAngle`
 - `@wildshard/engine/player/MeleeSweep`: `BLADE_SLACK`, `bladeBlocked`, `bladeContact`, `BladeContact`, `Clang`, `clangOf`
 - `@wildshard/engine/player/nalatiArms`: `ARM_PAL`, `Fist`, `FistOpts`, `forearm`, `gloveFist`, `placeArm`, `riderArm`
-- `@wildshard/engine/player/Player`: `HOVER_TOP`, `Player`, `STROKE_PERIOD`, `SWIM_SPEED`
+- `@wildshard/engine/player/Player`: `HOVER_TOP`, `Player`, `PlayerFrameQueries`, `STROKE_PERIOD`, `SWIM_SPEED`
 - `@wildshard/engine/player/Skins`: `applySkin`, `clearSkin`, `SkinDef`, `SkinId`, `WeaponKind`
 - `@wildshard/engine/player/TouchControls`: `IS_TOUCH`, `TouchControls`
 - `@wildshard/engine/player/viewmodelTextures`: `clamp01`, `CLASSIC_SETS`, `Ctx2D`, `makeNoise`, `makePixels`, `MODERN_SETS`, `Noise`, `normalPixels`, `Pixels`, `SetName`, `sstep`
@@ -2124,7 +2124,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/water/declared`: `declaredWaterBody`, `WaterDeclaration`
 - `@wildshard/engine/world/water/view`: `surfaceReflect`, `waterView`, `WaterView`
 - `@wildshard/engine/world/waterSurface`: `buildSkyline`, `createWaterMaterial`, `WaterMaterial`, `WaterMaterialOptions`, `waterTexture`, `waterTime`, `waterWeather`
-- `@wildshard/engine/world/waves`: `seaDamp`, `waveClock`, `waveDisplace`, `waveHeight`, `WAVES`, `WAVES_GLSL`, `WAVES_NORMAL_GLSL`
+- `@wildshard/engine/world/waves`: `insideWaterExtent`, `seaDamp`, `WATER_UNBOUNDED`, `waterExtent`, `waveClock`, `waveDisplace`, `waveHeight`, `WAVES`, `WAVES_GLSL`, `WAVES_NORMAL_GLSL`
 - `@wildshard/engine/world/weather`: `Weather`, `WeatherFrame`, `WeatherNumbers`, `WeatherProfile`
 - `@wildshard/engine/world/wind`: `FRONT_LEN`, `FRONT_SPEED`, `FRONT2_LEN`, `patchSway`, `patchWindField`, `swayByHeight`, `swayDepthMaterial`, `updateWind`, `WIND_DIR`, `WIND_FIELD_GLSL`, `windBoost`, `windGustAt`, `windStrength`, `windUniforms`
 
