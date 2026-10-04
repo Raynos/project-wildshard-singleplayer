@@ -56,28 +56,25 @@ function standIn(): THREE.BufferGeometry {
 }
 
 /** the parts of a family material that change its program, beyond the family's shared key */
-function variantKey(m: THREE.Material, instanced: boolean): string {
+function variantKey(m: THREE.Material): string {
   const s = m as THREE.MeshStandardMaterial;
-  return `${m.customProgramCacheKey()}|${m.type}|${s.vertexColors ? 'v' : ''}${s.flatShading ? 'f' : ''}|${m.side}|${m.alphaTest > 0 ? 't' : ''}|${m.transparent ? 'a' : ''}|${instanced ? 'i' : ''}`;
+  return `${m.customProgramCacheKey()}|${m.type}|${s.vertexColors ? 'v' : ''}${s.flatShading ? 'f' : ''}|${m.side}|${m.alphaTest > 0 ? 't' : ''}|${m.transparent ? 'a' : ''}`;
 }
 
 /**
- * Shader-step jobs for every live family program not yet compiled: one stand-in mesh per distinct program variant (a
- * plain mesh, plus an instanced one when `instanced`), drawn with `target`'s fog and lights into `rt`. Programs the scene
+ * Shader-step jobs for every live family program not yet compiled: one plain stand-in mesh per distinct program variant
+ * (instanced and skinned variants already in the scene are the scene jobs' clones), drawn with `target`'s fog and lights into `rt`. Programs the scene
  * already holds are cache hits. Empty when no family material is live.
  */
-export function familyCompileJobs(target: THREE.Scene | null, rt: THREE.WebGLRenderTarget | null, opts: { instanced?: boolean; per?: number } = {}): CompileJob[] {
-  const per = opts.per ?? 6;
+export function familyCompileJobs(target: THREE.Scene | null, rt: THREE.WebGLRenderTarget | null, per = 6): CompileJob[] {
   const seen = new Set<string>();
   const meshes: THREE.Mesh[] = [];
   const geometry = standIn();
   for (const m of live.keys()) {
-    for (const instanced of opts.instanced === true ? [false, true] : [false]) {
-      const key = variantKey(m, instanced);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      meshes.push(instanced ? new THREE.InstancedMesh(geometry, m, 1) : new THREE.Mesh(geometry, m));
-    }
+    const key = variantKey(m);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    meshes.push(new THREE.Mesh(geometry, m));
   }
   const jobs: CompileJob[] = [];
   for (let i = 0; i < meshes.length; i += per) {

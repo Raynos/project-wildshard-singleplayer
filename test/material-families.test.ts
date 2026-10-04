@@ -97,9 +97,6 @@ describe('the family registry and the shader step', () => {
     expect(liveFamilyMaterials().get(toonA)?.family).toBe('toon');
     const meshes = (jobs: ReturnType<typeof familyCompileJobs>): THREE.Mesh[] => jobs.flatMap((j) => j.root.children).filter((o): o is THREE.Mesh => o instanceof THREE.Mesh);
     expect(meshes(familyCompileJobs(null, null))).toHaveLength(3);
-    const both = meshes(familyCompileJobs(null, null, { instanced: true }));
-    expect(both).toHaveLength(6);
-    expect(both.filter((o) => o instanceof THREE.InstancedMesh)).toHaveLength(3);
     expect(() => familyMaterial({ family: 'toon', roughness: 3 }, ctx)).toThrow();
     scope.dispose();
     expect(liveFamilyMaterials().size).toBe(0);
