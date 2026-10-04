@@ -60,9 +60,9 @@ async function safari() {
   const sim = (args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   const socket = sim(['getenv', udid, 'RWI_LISTEN_SOCKET']).trim();
   const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${socket}`, '-c', 'null:9221,:9232-9240', '-F'], { stdio: 'ignore' });
-  let connection;
-  const connect = async (url) => { connection?.close(); connection = inspector(await pageSocket(url)); await connection.opened; await sleep(500); };
-  const evaluate = async (expression, url = base) => {
+  let connection, currentUrl = base;
+  const connect = async (url) => { connection?.close(); currentUrl = url; connection = inspector(await pageSocket(url)); await connection.opened; await sleep(500); };
+  const evaluate = async (expression, url = currentUrl) => {
     try { return await connection.raw(expression); } catch (error) {
       if (!String(error).includes('timed out')) throw error;
       await connect(url); return connection.raw(expression);
@@ -74,7 +74,7 @@ async function safari() {
     await evaluate(`(()=>{${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })}; return true;})()`, `${base}version.json`);
     connection.close(); connection = undefined;
     const game = `${base}?chunk=_template&mute=1&skipintro=1&sw=0`;
-    sim(['openurl', udid, game]); await connect(base);
+    sim(['openurl', udid, game]); await connect(game);
     const start = Date.now();
     while (!(await evaluate('Boolean(document.querySelector(".ws-touch-pause") && !document.querySelector(".ws-load"))'))) {
       if (Date.now() - start > 90000) throw new Error('Template boot timed out'); await sleep(250);
