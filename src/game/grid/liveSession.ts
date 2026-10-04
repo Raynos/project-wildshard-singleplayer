@@ -45,11 +45,14 @@ import { installGridHoverSpeed } from './rules';
 import { gridHomeSim, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
 import { gridShardfileProduct } from './products';
+import { RoadRecovery } from './roadRecovery';
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../shardfile/simulation';
 
 /** The page traveller the live host rebinds (the existing Player; never a second capsule). */
 export interface LiveTraveller {
   readonly position: Vector3; readonly yaw: number; readonly motor: CharacterMotor; readonly camera: PerspectiveCamera;
+  /** feet on the ground this step (the road respawn remembers only where the traveller stood, G101; absent: never) */
+  readonly onGround?: boolean;
   /** `queries`: the frame's own ground, water and surfaces (null: the home level's, sp-x2's frame-query primitive) */
   bindFrame: (physics: Physics, motor: CharacterMotor, queries: PlayerFrameQueries | null) => void;
   /** the board's live speed cap (SF20d `installGridHoverSpeed` owns it while the grid runs) */
@@ -130,11 +133,14 @@ export class LiveGridSession {
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
   private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation }>();
   private homeSim: GridHomeSimulation | null = null;
+  /** G101: the last road point, where a fall that began from the road recovers */
+  private readonly road: RoadRecovery;
 
   constructor(ports: LiveGridSessionPorts, page: LiveGridPage) {
     this.ports = ports; this.page = page;
     const { assembly, home, scope } = ports, rapier = ports.physics.R;
     const traveller = page.traveller;
+    this.road = new RoadRecovery(assembly);
     const player = { get position() { return traveller.position; }, get yaw() { return traveller.yaw; }, health: page.health, owner: traveller, motor: traveller.motor };
     const highwayBytes = ports.strips.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0);
     this.live = new LiveGridHost(assembly, {
@@ -181,6 +187,8 @@ export class LiveGridSession {
     page.onFixedPost(() => {
       if (scope.disposed) return;
       this.live.afterPlayerStep();
+      const feet = this.live.worldFeet();
+      this.road.observe(feet, traveller.yaw, traveller.onGround === true, assembly.at(feet.x, feet.z) !== undefined);
       if (++saveTicks >= 300) { saveTicks = 0; this.checkpoint(); }
     });
     page.onInput(() => { traveller.camera.position.sub(this.applied); this.applied.set(0, 0, 0); });
@@ -227,9 +235,11 @@ export class LiveGridSession {
       this.durability.set(cell.instance, durability);
     }
     const savedRegion = durability, quest = savedRegion.quest;
+    const groundResolution = source.edge.north.heights.length === 256 ? 256 : 257;
+    const generatedGroundBytes = source.terrain === null ? 2 * groundResolution ** 2 * Float32Array.BYTES_PER_ELEMENT : 0;
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
-    return { bytes: source.budgets.sim.resident, create: (saved) => {
-      let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false, quest });
+    return { bytes: source.budgets.sim.resident + generatedGroundBytes, create: (saved) => {
+      let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false, quest, groundResolution });
       if (saved !== undefined) {
         const authored = sim.host.level; sim.dispose();
         const host = restoreSimHost(authored, { rapier }, saved, (restored) => {
@@ -264,9 +274,15 @@ export class LiveGridSession {
 
   /**
    * Where fall recovery and respawn put the traveller when it is not in the home frame (null: the home's own spawn): an
-   * admitted region's authored start, or on the highway the deck under the feet (road level).
+   * admitted region's authored start, or on the highway the deck under the feet (road level). A fall that began from the
+   * road (G101: no ground inside a cell since) recovers on the road, in the active frame's coordinates, whatever the frame.
    */
   spawn(): LiveGridSpawn | null {
+    const road = this.road.target();
+    if (road !== null) {
+      const x = this.ports.home.origin.x + this.offset.x, z = this.ports.home.origin.z + this.offset.z; // the active frame's origin
+      return { x: road.x - x, y: 0.5, z: road.z - z, yaw: road.yaw };
+    }
     const current = this.live.current();
     if (current === this.ports.home.instance) return null;
     const p = this.page.traveller.position;

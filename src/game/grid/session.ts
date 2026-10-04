@@ -19,7 +19,7 @@
  * - **legacy bounds yield** (SF17a): the session asks the level to leave out its chunk-edge walls and hide the edge
  *   veil (`gridLevel`), the bounds' horizontal check reads `grid`; fall recovery stays.
  */
-import { BufferAttribute, BufferGeometry, Group, Mesh, MeshLambertMaterial, type Material, type Object3D } from 'three';
+import { BufferGeometry, Group, Mesh, type Material, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as v from 'valibot';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
@@ -50,6 +50,7 @@ import { RAIL_OFFSET, roadLayout } from './roadLayout';
 import { installRoadLook, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
+import { seamMesh, type SeamLookState } from './seamLook';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
 import { clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/clientRings';
@@ -87,6 +88,8 @@ export interface GridSessionState {
   readonly strips: number; readonly ringsReady: boolean;
   /** SF17b's boulevard look: segments, junctions, roundabouts, signs, lights and draws */
   readonly road: RoadLookState;
+  /** the seams' materials: triangles and draws per material (phase 2, G90 / G91 / G101) */
+  readonly seams: SeamLookState;
   /** G85's soft walls: how many edges are closed and which shard's loading panel shows (null: none in range) */
   readonly softWalls: SoftWallState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
@@ -129,28 +132,6 @@ const FarRow = v.object({ far: v.object({ gpu: num, decoded: num }),
 function farLook(row: unknown): FarLookRuntime { return v.parse(FarRow, row).look; }
 function farBytes(row: unknown): number { const { far } = v.parse(FarRow, row); return Math.round(far.gpu + far.decoded); }
 
-/** One draw for every strip and crossroads, in the home frame, vertex-coloured (the generator's colours). */
-function deckMesh(strips: readonly GeneratedStrip[], home: GridCell): Mesh {
-  let vertices = 0, indices = 0;
-  for (const strip of strips) { vertices += strip.mesh.positions.length / 3; indices += strip.mesh.indices.length; }
-  const position = new Float32Array(vertices * 3), colour = new Float32Array(vertices * 3), index = new Uint32Array(indices);
-  let vert = 0, i = 0;
-  for (const { mesh } of strips) {
-    const dx = mesh.origin.x - home.origin.x, dz = mesh.origin.z - home.origin.z, base = vert;
-    for (let k = 0; k < mesh.positions.length; k += 3) {
-      position[vert * 3] = (mesh.positions[k] ?? 0) + dx; position[vert * 3 + 1] = mesh.positions[k + 1] ?? 0; position[vert * 3 + 2] = (mesh.positions[k + 2] ?? 0) + dz;
-      colour[vert * 3] = mesh.colours[k] ?? 0; colour[vert * 3 + 1] = mesh.colours[k + 1] ?? 0; colour[vert * 3 + 2] = mesh.colours[k + 2] ?? 0;
-      vert++;
-    }
-    for (const n of mesh.indices) index[i++] = n + base;
-  }
-  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(position, 3)).setAttribute('color', new BufferAttribute(colour, 3)).setIndex(new BufferAttribute(index, 1));
-  geometry.computeVertexNormals(); geometry.computeBoundingSphere();
-  const mesh = new Mesh(geometry, new MeshLambertMaterial({ vertexColors: true }));
-  mesh.name = 'grid-deck'; mesh.receiveShadow = true; mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
-  return mesh;
-}
-
 /** A neighbour's four soft walls on the 6 m re-frame line, in the frame whose origin is given (`ReadinessWalls` edges). */
 function neighbourEdges(cell: GridCell, home: Readonly<{ origin: Readonly<{ x: number; z: number }> }>): ReadinessEdge[] {
   const x = cell.origin.x - home.origin.x, z = cell.origin.z - home.origin.z, r = CHUNK_HALF + 6, halfLength = CHUNK_HALF + 6;
@@ -184,6 +165,7 @@ export class GridSession {
   private readonly walls: ReadinessWalls;
   private live: LiveGridSession | null = null;
   private readonly road: RoadLookState;
+  private readonly seams: SeamLookState;
   private readonly life: NeighbourLife;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
 
@@ -199,7 +181,9 @@ export class GridSession {
     const cells = this.assembly.cells.map((cell): PlatformCell => ({ instance: cell.instance, cell: cell.cell, origin: { x: cell.origin.x, z: cell.origin.z },
       edges: { north: empty, east: empty, south: empty, west: empty } }));
     this.strips = generatePlatform(cells, empty);
-    const deck = deckMesh(this.strips, home);
+    // the seams' materials keyed by the generator's feature ranges (phase 2): the same triangles the world collides with
+    const seams = seamMesh(this.strips, home);
+    const deck = seams.mesh; this.seams = seams.state;
     // SF19a: one frame for the grid, behind its Debug row (default off; applies at the next grid start)
     host.scope.onDispose(installGridFrameRow());
     const frameHost = host.frame;
@@ -246,8 +230,7 @@ export class GridSession {
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
     if (host.renderer !== undefined) void this.admitTiles(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
-      this.rings.dispose(); deck.removeFromParent(); deck.geometry.dispose();
-      const material = deck.material; if (!Array.isArray(material)) material.dispose();
+      this.rings.dispose(); deck.removeFromParent(); seams.dispose();
       for (const root of roots.values()) root.removeFromParent();
     });
     host.onFixed((dt) => { this.step(dt); this.life.fixed(); });
@@ -313,6 +296,9 @@ export class GridSession {
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
   }
 
+  /** every visible neighbour is drawn now (the entry reveal's readiness, G98) */
+  ringsReady(): boolean { return this.rings.ready(); }
+
   /** Hold the loading screen until every visible neighbour is drawn (or the time limit: the soft walls hold anyway). */
   async ready(limitMs = 20_000): Promise<boolean> {
     for (let waited = 0; ; waited += 16) {
@@ -331,7 +317,7 @@ export class GridSession {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
         shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
-      strips: this.strips.length, road: this.road, softWalls: this.softWalls.state(), ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused },
       frame: this.frame?.state() ?? null,

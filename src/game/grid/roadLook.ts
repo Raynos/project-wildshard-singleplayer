@@ -13,7 +13,7 @@ import {
 } from 'three';
 import type { GridCell } from './assembly';
 import {
-  GAP_HALF, RING_ISLAND, RING_OUTER, ROAD_HALF, SEGMENT_HALF, TURN_IN_HALF, segmentPoint,
+  ENTRY_ASPHALT, GAP_HALF, RING_ISLAND, RING_OUTER, ROAD_HALF, SEGMENT_HALF, TURN_IN_HALF, segmentPoint,
   type ArmSide, type LookScope, type RoadJunction, type RoadLayout, type RoadSign, type SignLine,
 } from './roadLayout';
 
@@ -169,12 +169,16 @@ function asphalt(layout: RoadLayout, home: GridCell): BufferGeometry {
       const a = corner(s0, -ROAD_HALF), b = corner(s1, -ROAD_HALF), c = corner(s1, ROAD_HALF), d = corner(s0, ROAD_HALF);
       m.quad(a, b, c, d);
     }
-    // turn-in aprons (G93): asphalt from the road edge to the cell edge on each side with a cell
+    // turn-in aprons (G93 / G103): asphalt from the road edge across the strip and 15 m INTO the shard past its cell edge
+    // (the platform's style is forced into the shard: the entry is at road height, G99), edge lines down both sides
     for (const [cell, t] of [[segment.low, -1], [segment.high, 1]] as const) {
       if (cell === undefined) continue;
-      const v = (s: number, tt: number): number => { const p = segmentPoint(segment, s, tt); return m.vertex(p.x - home.origin.x, LIFT, p.z - home.origin.z, 0, 1, 0, 0.5 + 0.0005, s / ROAD_PERIOD); };
-      const a = v(-TURN_IN_HALF, t * ROAD_HALF), b = v(TURN_IN_HALF, t * ROAD_HALF), c = v(TURN_IN_HALF, t * GAP_HALF), d = v(-TURN_IN_HALF, t * GAP_HALF);
-      m.quad(a, b, c, d);
+      const v = (s: number, tt: number, u: number): number => { const p = segmentPoint(segment, s, tt); return m.vertex(p.x - home.origin.x, LIFT, p.z - home.origin.z, 0, 1, 0, u, tt / ROAD_PERIOD); };
+      // the plain turn-in section for the floor; the normal section's solid edge line (t = 7) for the two edge strips
+      const far = t * (GAP_HALF + ENTRY_ASPHALT), plain = 0.5 + 0.0005, line = (7.0 + ROAD_HALF) / (2 * ROAD_HALF) * 0.5;
+      for (const [s0, s1, u] of [[-TURN_IN_HALF, -TURN_IN_HALF + 0.15, line], [-TURN_IN_HALF + 0.15, TURN_IN_HALF - 0.15, plain], [TURN_IN_HALF - 0.15, TURN_IN_HALF, line]] as const) {
+        m.quad(v(s0, t * ROAD_HALF, u), v(s1, t * ROAD_HALF, u), v(s1, far, u), v(s0, far, u));
+      }
     }
   }
   return m.geometry();
@@ -286,7 +290,7 @@ function streetlights(layout: RoadLayout, home: GridCell): { poles: InstancedMes
 
 /** Sign text atlas: one cell per unique line (white on sign green), plus green / grey / white swatches for boards and posts. */
 const LINE_W = 512, LINE_H = 64;
-function lineKey(line: SignLine): string { return `${line.arrow}|${line.names.join(' · ')}|${String(line.metres)}`; }
+function lineKey(line: SignLine): string { return `${line.arrow}|${line.names.join(' · ')}|${line.metres === null ? '' : String(line.metres)}`; }
 function signAtlas(signs: readonly RoadSign[]): { texture: CanvasTexture; cell: (line: SignLine) => readonly [number, number, number, number]; swatch: Readonly<Record<'green' | 'grey' | 'white', readonly [number, number]>> } {
   const keys = [...new Set(signs.flatMap((s) => s.lines.map(lineKey)))], lines = new Map<string, SignLine>();
   for (const s of signs) for (const l of s.lines) lines.set(lineKey(l), l);
@@ -303,7 +307,7 @@ function signAtlas(signs: readonly RoadSign[]): { texture: CanvasTexture; cell: 
     if (line.arrow === 'ahead') { g.moveTo(ax, mid + 18); g.lineTo(ax, mid - 14); g.moveTo(ax - 12, mid - 4); g.lineTo(ax, mid - 18); g.lineTo(ax + 12, mid - 4); }
     else { const s = line.arrow === 'left' ? -1 : 1; g.moveTo(ax - s * 16, mid); g.lineTo(ax + s * 16, mid); g.moveTo(ax + s * 4, mid - 12); g.lineTo(ax + s * 18, mid); g.lineTo(ax + s * 4, mid + 12); }
     g.stroke();
-    const text = line.names.join(' · ').toUpperCase(), dist = `${String(line.metres)} M`, left = line.arrow === 'right' ? x + 18 : x + 64, right = line.arrow === 'right' ? x + LINE_W - 72 : x + LINE_W - 18;
+    const text = line.names.join(' · ').toUpperCase(), dist = line.metres === null ? '' : `${String(line.metres)} M`, left = line.arrow === 'right' ? x + 18 : x + 64, right = line.arrow === 'right' ? x + LINE_W - 72 : x + LINE_W - 18;
     g.font = '600 34px "Helvetica Neue", Arial, sans-serif'; g.textBaseline = 'middle';
     const dw = g.measureText(dist).width, room = right - left - dw - 22, tw = g.measureText(text).width;
     g.save(); g.translate(left, mid); g.scale(Math.min(1, room / Math.max(1, tw)), 1); g.textAlign = 'left'; g.fillText(text, 0, 2); g.restore();

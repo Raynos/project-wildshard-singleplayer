@@ -47,3 +47,15 @@ it('names the shards ahead on green signs from the catalogue, on the traveller\'
   const slugs = new Set(grid.cells.map((c) => c.slug.toUpperCase()));
   for (const sign of layout.signs) for (const line of sign.lines) for (const name of line.names) expect(slugs.has(name)).toBe(true);
 });
+
+it('puts a green shard-name sign at every turn-in, on its far corner, an arrow into the shard and no distance (G100)', () => {
+  const turnIns = layout.signs.filter((s) => s.lines.length === 1 && s.lines[0]?.metres === null);
+  const sides = layout.segments.reduce((n, s) => n + (s.low === undefined ? 0 : 1) + (s.high === undefined ? 0 : 1), 0);
+  expect(turnIns).toHaveLength(sides);
+  const between = layout.segments.find((s) => s.id === 'gap.x.-1.0');
+  const driftwood = turnIns.find((s) => s.lines[0]?.names[0] === 'DRIFTWOOD-ISLE' && Math.abs(s.at.x - (between?.centre.x ?? 0)) < 15 && Math.abs(s.at.z) < 15);
+  expect(driftwood?.lines[0]?.arrow).toBe('right');
+  // on Driftwood's side of the road (+x), just past the 12 m opening, facing the traffic whose right hand the entry is on
+  expect(driftwood?.at.x).toBeGreaterThan(-277.5 + ROAD_HALF);
+  expect(Math.abs(driftwood?.at.z ?? 0)).toBeGreaterThan(6);
+});

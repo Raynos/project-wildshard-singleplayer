@@ -23,6 +23,8 @@ export const SEGMENT_HALF = 250;
 export const RAIL_OFFSET = ROAD_HALF + 1.5;
 /** A turn-in's half width at a segment midpoint (G93). */
 export const TURN_IN_HALF = 6;
+/** How far each entry carries the platform's neutral asphalt INTO the shard past its cell edge (G103). */
+export const ENTRY_ASPHALT = 15;
 /** The roundabout's outer kerb radius and its island radius (G81). */
 export const RING_OUTER = 15.5;
 export const RING_ISLAND = 6;
@@ -46,8 +48,8 @@ export interface RoadJunction {
   readonly roundabout: boolean;
 }
 export type ArmSide = 'east' | 'west' | 'north' | 'south';
-/** One line of a distance sign: an arrow, the shard names that way and the distance to their turn-in. */
-export interface SignLine { readonly arrow: 'left' | 'right' | 'ahead'; readonly names: readonly string[]; readonly metres: number }
+/** One line of a sign: an arrow, the shard names that way and the distance to their turn-in (null: a turn-in's own name sign). */
+export interface SignLine { readonly arrow: 'left' | 'right' | 'ahead'; readonly names: readonly string[]; readonly metres: number | null }
 /** A green distance sign: where it stands (grid metres), which way its face looks (unit, horizontal) and its lines. */
 export interface RoadSign { readonly at: { readonly x: number; readonly z: number }; readonly facing: { readonly x: number; readonly z: number }; readonly lines: readonly SignLine[] }
 /** A streetlight: its foot and the unit direction its arm reaches (toward the road). */
@@ -138,6 +140,13 @@ export function roadLayout(assembly: GridAssembly, name: (slug: string) => strin
       lines.sort((a, b) => order[a.arrow] - order[b.arrow]);
       if (lines.length > 0) signs.push({ at: segmentPoint(segment, dir * APPROACH_SIGN, right * SIGN_SIDE), facing: { x: -heading.x, z: -heading.z }, lines });
     }
+  }
+  // turn-in signs (G100): a plain T-junction with a green shard-name sign on its far corner, facing the traffic whose
+  // right-hand side the entry is on, an arrow into the shard
+  for (const segment of segments) for (const [cell, t] of [[segment.low, -1], [segment.high, 1]] as const) {
+    if (cell === undefined) continue;
+    const dir: 1 | -1 = rightSide(segment, 1) === t ? 1 : -1, unit = alongUnit(segment);
+    signs.push({ at: segmentPoint(segment, dir * (TURN_IN_HALF + 3), t * SIGN_SIDE), facing: { x: -unit.x * dir, z: -unit.z * dir }, lines: [{ arrow: 'right', names: [name(cell.slug)], metres: null }] });
   }
   // streetlights (G80): every 50 m both sides, never on a void side (the rail is there) nor in a turn-in
   const lights: RoadLight[] = [];
