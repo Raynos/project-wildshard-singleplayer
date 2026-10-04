@@ -47,7 +47,7 @@ export function installGridReload(host: GridReloadHost): void {
       const cell = host.assembly.cell(instance), feet = host.live.worldFeet(), state = host.capture();
       const point = host.live.roadPoint();
       if (point === null) throw new Error('Planned exit has no safe road recovery point');
-      const revision = await gridReloadRevision(host.assembly, instance);
+      const revision = await gridReloadRevision(host.assembly, instance, scope);
       // A lane snap beside a junction may land on its island. The currently grounded asphalt is a safe fallback.
       const recovery = gridReloadDeck(host.assembly, point.x, point.z) ? point : { x: feet.x, z: feet.z, yaw: state.heading };
       const value: GridReloadHandoff = { v: 1, mode: 'grid', layout: { ...mode, nineDragon: mode.nineDragon ?? false },
