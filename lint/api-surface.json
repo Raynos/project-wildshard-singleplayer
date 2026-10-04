@@ -14382,6 +14382,24 @@
         "from": "@wildshard/game/shardfile/schema"
       },
       {
+        "name": "createShardfileComposedLane",
+        "kind": "function",
+        "doc": "One authoritative module union and allowance set for numeric state, items, directors and custom creature decisions.",
+        "from": "@wildshard/game/shardfile/scriptComposition"
+      },
+      {
+        "name": "DeclaredScriptBrainActor",
+        "kind": "interface",
+        "doc": "Session-owned alias handles keep brain motion fields separate from the same actor's numeric declared fields.",
+        "from": "@wildshard/game/shardfile/scriptComposition"
+      },
+      {
+        "name": "DeclaredScriptBrainPorts",
+        "kind": "interface",
+        "doc": "The loader supplies actor identities, observations, physics queries and authoritative strike execution.",
+        "from": "@wildshard/game/shardfile/scriptComposition"
+      },
+      {
         "name": "createShardfileScriptLane",
         "kind": "function",
         "doc": "Create the local authoritative lane explicitly; its constructor admits every module before execution.",

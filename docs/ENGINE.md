@@ -2140,7 +2140,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-471 exports, grouped by the module to import them from.
+474 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2223,6 +2223,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/rows`: `parseRows`, `rowRules`, `RowsSchema`, `scoredStrikes`, `ShardRows`, `simStrikes`, `speciesResolver`
 - `@wildshard/game/shardfile/runtime`: `prepareTrustedRuntime`, `RuntimeDeclaration`, `RuntimeSchema`, `TrustedRuntimeEntry`
 - `@wildshard/game/shardfile/schema`: `LOOK_LUT_BYTES`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
+- `@wildshard/game/shardfile/scriptComposition`: `createShardfileComposedLane`, `DeclaredScriptBrainActor`, `DeclaredScriptBrainPorts`
 - `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `prepareShardfileScriptOptions`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
 - `@wildshard/game/shardfile/simulation`: `bindShardfileSim`, `createShardfileSim`, `numericScriptEntityId`, `ShardfileSimPorts`, `ShardfileSimulation`
 - `@wildshard/game/shardfile/skinLayers`: `skinLayerDecoded`, `SkinPoseLayer`, `SkinPoseLayerSchema`, `validateSkinLayers`

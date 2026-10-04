@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-471 members; 113 without a doc line (—).
+474 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -436,6 +436,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `Shardfile` | type | @wildshard/game/shardfile/schema | A serialisable shardfile v0, independent of renderer and placement. |
 | `shardfileRules` | function | @wildshard/game/shardfile/schema | Semantic format violations, including reference integrity and the acyclic dependency graph. |
 | `ShardfileSchema` | const | @wildshard/game/shardfile/schema | Strict schema for the public SDK format; rejects unknown fields and invalid references. |
+| `createShardfileComposedLane` | function | @wildshard/game/shardfile/scriptComposition | One authoritative module union and allowance set for numeric state, items, directors and custom creature decisions. |
+| `DeclaredScriptBrainActor` | interface | @wildshard/game/shardfile/scriptComposition | Session-owned alias handles keep brain motion fields separate from the same actor's numeric declared fields. |
+| `DeclaredScriptBrainPorts` | interface | @wildshard/game/shardfile/scriptComposition | The loader supplies actor identities, observations, physics queries and authoritative strike execution. |
 | `createShardfileScriptLane` | function | @wildshard/game/shardfile/scripts | Create the local authoritative lane explicitly; its constructor admits every module before execution. |
 | `numericScriptState` | function | @wildshard/game/shardfile/scripts | Translate only numeric fields; string values never become forged numeric ids. Stable ids determine input order. |
 | `prepareShardfileScriptOptions` | function | @wildshard/game/shardfile/scripts | Prepare declared state and admitted modules without allocating a host or executing author initialization. |
