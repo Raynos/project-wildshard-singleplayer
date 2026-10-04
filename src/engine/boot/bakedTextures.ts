@@ -17,6 +17,7 @@ import * as THREE from 'three';
 import { fetchImage, tierUrl } from './bytes';
 import { ktx2Texture } from '../core/ktx2';
 import { activeLevel } from '../level/selection';
+import { labelAsset, labelClone } from '../render/gpuLabels';
 
 const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
 export const BAKE_EXPORT = params.has('bakeexport');
@@ -67,7 +68,7 @@ export function bakedTexture(name: string, make: () => THREE.Texture, opts: { lo
   if (image instanceof THREE.CompressedTexture) { // mips come with the file; callers set wrap / filters / colorSpace as for an image
     const t = image.clone();
     t.needsUpdate = true;
-    return t;
+    return labelClone(t, image, 'engine/bakedTexture', url ?? `generated/baked/${slug}/${name}`);
   }
   if (image) {
     // settings come from the procedural template: build it cheaply? No — `make` is the expensive part.
@@ -75,11 +76,11 @@ export function bakedTexture(name: string, make: () => THREE.Texture, opts: { lo
     const t = new THREE.Texture(image);
     t.flipY = false; // fetchImage flips at decode (ImageBitmapLoader convention)
     t.needsUpdate = true;
-    return t;
+    return labelAsset(t, 'engine/bakedTexture', url ?? `generated/baked/${slug}/${name}`);
   }
   const t = make();
   if (BAKE_EXPORT) exported.set(name, { texture: t, lossless: Boolean(opts.lossless) });
-  return t;
+  return labelAsset(t, 'engine/bakedTexture', `generated/baked/${slug}/${name}`);
 }
 
 /** What the page baked this run, as data URLs — read by scripts/bake-textures.mjs. */

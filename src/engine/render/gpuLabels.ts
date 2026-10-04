@@ -25,6 +25,11 @@ export function labelAsset<T extends object>(resource: T, owner: string, asset: 
   if (enabled()) remember(resource, { owner, asset: asset.split('?')[0] ?? asset, priority: 3 });
   return resource;
 }
+/** Texture clones retain the resolved file identity, including a KTX2 stand-in's actual URL. */
+export function labelClone<T extends object>(resource: T, source: object, owner: string, asset: string): T {
+  if (enabled()) remember(resource, labels.get(source) ?? { owner, asset, priority: 3 });
+  return resource;
+}
 export function labelledCreation<T>(owner: string, asset: string, create: () => T): T {
   const fn = hook('__sc_gl_scope');
   return typeof fn === 'function' ? Reflect.apply(fn, window, [owner, asset, create]) as T : create();
@@ -66,6 +71,12 @@ function nodeResources(node: Object3D, label: Label): void {
   const geo: unknown = Reflect.get(node, 'geometry'), mats: unknown = Reflect.get(node, 'material');
   if (isGeometry(geo)) markGeometry(geo, label);
   for (const mat of Array.isArray(mats) ? mats : [mats]) if (isMaterial(mat)) markMaterial(mat, label);
+  const skeleton: unknown = Reflect.get(node, 'skeleton');
+  const bones: unknown = skeleton !== null && typeof skeleton === 'object' ? Reflect.get(skeleton, 'boneTexture') : undefined;
+  if (isTexture(bones)) {
+    const owner = isGeometry(geo) ? labels.get(geo) ?? label : label;
+    markTexture(bones, { ...owner, asset: `${owner.asset}/skeleton/bones` });
+  }
   for (const [role, value] of Object.entries(node)) {
     if (value instanceof BufferAttribute) data(value.array, { ...label, asset: `${label.asset}/${role}` });
     else if (isTexture(value)) markTexture(value, { ...label, asset: `${label.asset}/${role}` });

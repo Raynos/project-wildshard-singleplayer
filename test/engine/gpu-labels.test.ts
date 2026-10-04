@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, DataTexture, Group, InstancedMesh, Line, MeshBasicMaterial, LineBasicMaterial, Points, PointsMaterial } from 'three';
 import { afterEach, expect, it } from 'vitest';
-import { labelAsset, labelledCreation, labelObjectTree } from '../../src/engine/render/gpuLabels';
+import { labelAsset, labelClone, labelledCreation, labelObjectTree } from '../../src/engine/render/gpuLabels';
 
 const originalWindow: unknown = Reflect.get(globalThis, 'window');
 afterEach(() => { Reflect.set(globalThis, 'window', originalWindow); });
@@ -43,4 +43,18 @@ it('normal gameplay does not inspect a registered tree or wrap its creation', ()
   const object = {};
   expect(labelAsset(object, 'piece', 'world.ts')).toBe(object);
   expect(labelledCreation('piece', 'world.ts', () => object)).toBe(object);
+});
+it('preserves a resolved texture URL through cloning and attributes bone uploads to their model', () => {
+  const sources = new Map<object, string>();
+  Reflect.set(globalThis, 'window', { __sc_label_gl: () => undefined,
+    __sc_label_source: (source: object, _owner: string, asset: string) => { sources.set(source, asset); } });
+  const pixels = new Uint8Array(16), bones = new Float32Array(16);
+  const source = labelAsset(new DataTexture(pixels, 2, 2), 'texture-loader', '/assets/sky.astc.ktx2');
+  const clone = labelClone(source.clone(), source, 'baked-loader', '/assets/sky.jpg');
+  const geo = labelAsset(new BufferGeometry(), 'file-loader', '/assets/horse.glb#body');
+  const root = new Group();
+  Object.assign(root, { geometry: geo, material: new MeshBasicMaterial({ map: clone }), skeleton: { boneTexture: new DataTexture(bones, 2, 2) } });
+  labelObjectTree(root, 'piece', 'horse.ts');
+  expect(sources.get(pixels)).toBe('/assets/sky.astc.ktx2');
+  expect(sources.get(bones)).toBe('/assets/horse.glb#body/skeleton/bones');
 });

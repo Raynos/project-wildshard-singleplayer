@@ -288,6 +288,7 @@ export class PineSkyBackdrop {
         const urls = { color: URL.createObjectURL(color), gain: URL.createObjectURL(gain) };
         try {
           const tex = await loadBakedSky(urls);
+          tex.name = `hdri/${PINE_SKY_KEYS[k].id}_2k.key.jpg + gain.png`;
           tex.wrapS = THREE.RepeatWrapping; // the equirect seam blends across u = 0 / 1
           const horizon = horizonOf(tex);
           this.renderer.initTexture(tex); // upload now, not on the frame that first draws it
