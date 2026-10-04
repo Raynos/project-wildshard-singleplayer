@@ -537,5 +537,12 @@
     "rule": "engine-internal",
     "code": "import { configureLevel } from '#engine';\nexport const used = configureLevel;\n",
     "count": 0
+  },
+  {
+    "id": "shard-services-import",
+    "file": "src/shards/demo/world.ts",
+    "rule": "shard-services",
+    "code": "import { app, Rng, type Scope } from '#engine';\nimport type { saves } from '#engine';\nexport const used: [unknown, unknown, Scope | null, unknown] = [app, Rng, null, null as unknown as typeof saves];\n",
+    "count": 1
   }
 ]

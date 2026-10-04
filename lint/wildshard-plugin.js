@@ -760,6 +760,19 @@ const engineInternalRule = rule('Game-only engine exports stay out of the kit an
     }
   } };
 });
+// E362 AG12: a shard reaches the engine's page services through its ShardContext (ctx.app, ctx.hud, ctx.game, …),
+// never by importing the singletons; types, classes, pure helpers and constants stay importable.
+const SHARD_SERVICES = new Set(['app', 'saves', 'hudSlots', 'practiceRoom', 'lockOn']);
+const shardServices = rule('Shards get engine services through ShardContext (E362 AG12)', (context) => {
+  if (!pathOf(context).startsWith('src/shards/')) return {};
+  return { ImportDeclaration(node) {
+    if (stringOf(node.source) !== '#engine' || node.importKind === 'type') return;
+    for (const s of node.specifiers ?? []) {
+      const name = s.type === 'ImportSpecifier' && s.importKind !== 'type' ? nameOf(s.imported) : null;
+      if (name !== null && SHARD_SERVICES.has(name)) report(context, s, `${name} is a page service: use the ShardContext (ctx.app, ctx.hud …) instead of importing it`);
+    }
+  } };
+});
 const shardNames = rule('The game and the kit name no particular shard (E405 LAYER-PURITY)', (context) => {
   const own = layerOf(pathOf(context));
   if (own?.name !== 'game' && own?.name !== 'kit') return {};
@@ -792,6 +805,7 @@ const plugin = {
     'shard-sandbox': shardSandbox,
     'shard-names': shardNames,
     'engine-internal': engineInternalRule,
+    'shard-services': shardServices,
   },
 };
 export default plugin; // oxlint loads a JS plugin from its default export
