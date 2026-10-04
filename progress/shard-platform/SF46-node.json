@@ -90,7 +90,20 @@
       "remainingColliders": 4,
       "followup": "cad11c1bc; browser verification pending"
     },
-    "extractionComparison": "f49cebb7c -> 89ec5c7cc running; completed Driftwood desktop and emulated phone unload with errors=[], bodies=0, colliders=0 on both pins",
+    "extractionComparison": {
+      "artifact": "SF46-extraction-parity.json",
+      "pairs": 14,
+      "strictGreen": 11,
+      "allDifferencesInheritedAndEqual": true,
+      "visuals": 38,
+      "minimumSsim": 0.9942190739103732,
+      "driftwoodBothTiersGreen": true,
+      "driftwoodUnload": {
+        "errors": 0,
+        "bodies": 0,
+        "colliders": 0
+      }
+    },
     "defaultOffComparison": "pending"
   },
   "floor": "pending serialized window",
