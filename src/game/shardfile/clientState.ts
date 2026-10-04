@@ -2,6 +2,9 @@ import * as v from 'valibot';
 import type { ShardfileSimulation } from './simulation';
 import type { DeclaredItems } from './items';
 import type { Shardfile } from './schema';
+import { LogicalStateSchema, migrateLogicalState, type DeclaredMigrations } from './migrations';
+import { logicalStateFromLane, restoreLogicalLane } from './logicalState';
+import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
 
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
@@ -14,12 +17,15 @@ const item = v.strictObject({ version: v.literal(1), id: name,
   pending: v.pipe(v.array(v.strictObject({ action: v.picklist([1, 2, 3, 4]), aim: v.nullable(v.strictObject({ origin: vector, direction: vector })) })), v.maxLength(16)),
 });
 const itemsSchema = v.record(name, item);
-const checkpoint = v.strictObject({ version: v.literal(1), revision: natural, tick: natural,
+const fields = { revision: natural, tick: natural,
   lane: v.nullable(v.pipe(v.string(), v.maxLength(32 * 1024 * 1024))), items: itemsSchema,
   flags: v.pipe(v.array(name), v.maxLength(4096)),
   quests: v.pipe(v.array(v.strictObject({ version: v.literal(1), id: name, started: v.boolean(), currentId: v.nullable(name) })), v.maxLength(256)),
   dialogue: v.record(name, v.nullable(name)),
-});
+};
+const legacyCheckpoint = v.strictObject({ version: v.literal(1), ...fields });
+const logicalCheckpoint = v.strictObject({ version: v.literal(2), shard: name, state: LogicalStateSchema, ...fields });
+const checkpoint = v.union([legacyCheckpoint, logicalCheckpoint]);
 type ClientCheckpoint = v.InferOutput<typeof checkpoint>;
 /** Logical level progress, independent of the Game's borrowed physics world and player motor. */
 export const clientStateSave = { key: 'platform.continuation', scope: 'shard' as const, version: 1,
@@ -53,8 +59,9 @@ export function installClientItemState(sim: ShardfileSimulation, items: Runtimes
 }
 /** Snapshot only logical authored progress; regional whole-world snapshots remain owned by the grid sim registry. */
 export function captureClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes): ClientCheckpoint {
-  return v.parse(checkpoint, { version: 1, revision: source.identity.revision, tick: sim.host.state.tick,
-    lane: sim.lane?.snapshot() ?? null, items: itemStates(items), flags: sim.host.flags.all,
+  const lane = sim.lane?.snapshot() ?? null;
+  return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state: migrateLogicalState(logicalStateFromLane(source.state.version, lane), source.state), revision: source.identity.revision, tick: sim.host.state.tick,
+    lane, items: itemStates(items), flags: sim.host.flags.all,
     quests: sim.quest.quests.map((quest) => quest.snapshot()), dialogue: sim.quest.snapshot() });
 }
 function apply(sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
@@ -67,10 +74,40 @@ function apply(sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoin
   }
   sim.quest.restore(state.dialogue); sim.host.state.tick = state.tick;
 }
+function applyMigrated(source: Shardfile & { migrations?: DeclaredMigrations }, sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
+  // All historical version-1 client checkpoints predate authored state-version migrations and used state version 1.
+  const logical = state.version === 2 ? state.state : logicalStateFromLane(1, state.lane);
+  const migrated = migrateLogicalState(logical, source.state, source.migrations ?? []);
+  restoreLogicalLane(sim.lane, migrated);
+  for (const [id, runtime] of items) {
+    const saved = state.items[id]; if (saved === undefined) continue;
+    runtime.restore({ ...saved, tick: state.tick, cooldown: 0, held: false, chargeTime: 0, pending: [] });
+  }
+  sim.host.flags.restore(state.flags);
+  for (const quest of sim.quest.quests) {
+    const previous = state.quests.find((row) => row.id === quest.def.id);
+    const currentId = previous?.currentId;
+    const valid = currentId === null || (currentId !== undefined && quest.def.steps.some((step) => step.id === currentId));
+    quest.restore(previous !== undefined && valid ? previous : { version: 1, id: quest.def.id,
+      started: flagsMatch(sim.host.flags, quest.def.startWhen), currentId: quest.def.steps.find((step) => !flagsMatch(sim.host.flags, step.done))?.id ?? null });
+  }
+  const dialogue = sim.quest.snapshot();
+  if (dialogue === null || typeof dialogue !== 'object' || Array.isArray(dialogue)) throw new Error('Invalid fresh dialogue');
+  for (const row of source.quests.dialogue) {
+    const saved = state.dialogue[row.id];
+    if (saved === null || (saved !== undefined && row.nodes.some((node) => node.id === saved))) dialogue[row.id] = saved;
+  }
+  sim.quest.restore(dialogue); sim.host.state.tick = state.tick;
+}
 /** Refuse incompatible/corrupt progress atomically. Silent quest restore never repeats profile rewards or scene events. */
-export function restoreClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, input: unknown): boolean {
-  const result = v.safeParse(checkpoint, input); if (!result.success || result.output.revision !== source.identity.revision) return false;
+export function restoreClientState(source: Shardfile & { migrations?: DeclaredMigrations }, sim: ShardfileSimulation, items: Runtimes, input: unknown): boolean {
+  const result = v.safeParse(checkpoint, input); if (!result.success || result.output.revision > source.identity.revision
+    || (result.output.version === 2 && !v.safeParse(v.literal(source.identity.slug), result.output.shard).success)) return false;
   const previous = captureClientState(source, sim, items);
-  try { apply(sim, items, result.output); return true; }
+  try {
+    if (result.output.revision === source.identity.revision) apply(sim, items, result.output);
+    else applyMigrated(source, sim, items, result.output);
+    return true;
+  }
   catch { apply(sim, items, previous); return false; }
 }
