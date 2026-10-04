@@ -10,8 +10,8 @@ import { DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE } from './tables
 import { Enemies } from './Enemies';
 
 /** Kit rows precede AnimalManager construction; the ready hook preserves the original placement stage. */
-export function installDriftwoodCreatures(ctx: ShardContext): void {
-  ctx.rows.species([...DRIFTWOOD_SPECIES, ISLAND_BOAR, ISLAND_BEAR]);
+export function installDriftwoodCreatures(ctx: ShardContext, species = DRIFTWOOD_SPECIES): void {
+  ctx.rows.species([...species, ISLAND_BOAR, ISLAND_BEAR]);
   ctx.rows.speciesLook(DRIFTWOOD_LOOKS);
   registerDriftwoodToonPaints(ctx.scope); // the boar / deer / elk / bear toon palettes (B50)
   ctx.rows.spawnTable([DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE]);

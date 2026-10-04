@@ -256,9 +256,10 @@ function strikeCrab(a: Animal, c: ThinkCtx): void {
 }
 const STATES = ['idle', 'sidestep', 'attack', 'flee'] as const;
 export class CrabBrain extends CreatureBrain<typeof STATES[number], Animal> {
-  constructor(actor: Animal) { super(actor, STATES); }
+  private readonly decide: typeof legacyCrabDecision;
+  constructor(actor: Animal, decide = legacyCrabDecision) { super(actor, STATES); this.decide = decide; }
   override think(ctx: ThinkCtx): void {
-    legacyCrabDecision(this.actor, ctx);
+    this.decide(this.actor, ctx);
     const state = STATES[this.actor.mem['st'] ?? 0];
     if (state !== undefined) this.transition(state);
   }

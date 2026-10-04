@@ -3,6 +3,8 @@ import { installDeclaredMovers } from '@wildshard/game/shardfile/moverRuntime';
 import RuntimePlugin from './index';
 import { buildDriftwoodWorld } from '../world/build';
 import { driftwoodMoverViews } from './movers';
+import { installDriftwoodCreatures } from '../creatures/install';
+import { declaredCreatureRows } from './brains';
 
 /** SF30 activation is confined to SF46's default-off hybrid path; the ordinary entry keeps the exact legacy world. */
 class DriftwoodMoverPlugin extends RuntimePlugin {
@@ -24,6 +26,7 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
     this.binding.context = context;
     await super.world(context);
   }
+  protected override installCreatures(context: ShardContext): void { installDriftwoodCreatures(context, declaredCreatureRows()); }
 }
 
 // oxlint-disable-next-line import/no-default-export -- The declared trusted runtime loader consumes a constructor.

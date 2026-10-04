@@ -54,13 +54,16 @@ export class DriftwoodPlugin extends ShardPlugin {
     const shell = ctx.game.runtime;
     if (shell === undefined) throw new Error('Driftwood kit requires its world host');
     if (shell.world === null) throw new Error('Driftwood kit requires its world host');
-    installDriftwoodCreatures(ctx);
+    this.installCreatures(ctx);
     const rows = driftwoodLoadoutRows(shell.world, shell);
     ctx.rows.weapon(rows); installDriftwoodLoadout(shell.world, shell, rows);
     ctx.scope.onDispose(() => { clearDriftwoodDrop(shell); });
     ctx.rows.item(DRIFTWOOD_ITEMS); ctx.rows.feat(DRIFTWOOD_FEATS);
     ctx.rows.effect(DRIFTWOOD_EFFECTS); ctx.rows.shop(GOODS);
   }
+
+  /** SF27: the hybrid subclass selects admitted decisions; the ordinary entry keeps the shipping species rows. */
+  protected installCreatures(ctx: ShardContext): void { installDriftwoodCreatures(ctx); }
 
   override async play(ctx: ShardContext): Promise<void> {
     await installDriftwoodAudio(ctx);

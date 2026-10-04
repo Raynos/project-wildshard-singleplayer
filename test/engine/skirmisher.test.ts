@@ -11,6 +11,7 @@ import { Rng } from '../../src/engine/core/rng';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { CRAB_BRAIN } from '../../src/shards/driftwood-isle/data/brains';
 import { creature } from '../fake/creature';
+import { declaredCreatureRows } from '../../src/shards/driftwood-isle/runtime/brains';
 
 const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
 afterAll(restoreTerrain);
@@ -43,6 +44,13 @@ function replay(platform: boolean, scenario: 'approach' | 'tokens' | 'scatter'):
   return { frames, hits: f.hits, sounds: f.sounds, starts: f.starts, rng: f.ctx.rng.snapshot() };
 }
 describe('data-selected circling melee archetype', () => {
+  it('replaces only the crab policy in the hybrid catalogue, retaining the shipping body/rig recipes', () => {
+    const row = declaredCreatureRows().find(species => species.kind === 'crab');
+    if (row?.think === undefined) throw new Error('Missing declared crab policy');
+    const f = creature('crab', 'small', {}, undefined, row.think); f.advance(80);
+    expect(f.states).toEqual(['idle', 'sidestep', 'attack', 'sidestep']);
+    expect(f.hits).toEqual([{ frame: 43, damage: 10 }]);
+  });
   it.each(['approach', 'tokens', 'scatter'] as const)('matches the real shipping crab for 10,000 fixed body frames: %s', scenario => {
     expect(replay(true, scenario)).toEqual(replay(false, scenario));
   });
