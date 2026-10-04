@@ -4,10 +4,15 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-76 members; 0 without a doc line (—).
+81 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
+| `ACCENT_IDS` | const | @wildshard/sdk/accent | The admitted palette IDs in palette order; the road's cyan is excluded. |
+| `AccentId` | type | @wildshard/sdk/accent | A shard accent from the fixed platform palette. |
+| `ACCENTS` | const | @wildshard/sdk/accent | The platform's 20 shard accents, keyed by the required shardfile palette ID. |
+| `AccentSchema` | const | @wildshard/sdk/accent | Strict required accent grammar; reserved road cyan and raw colours are refused. |
+| `parseAccent` | function | @wildshard/sdk/accent | Validate author metadata and return a typed palette ID. |
 | `assetCost` | function | @wildshard/sdk/assets | Select the game's shared asset parser for CLI and browser admission. |
 | `AssetCost` | type | @wildshard/sdk/assets | Actual parsed residency and draw costs, independent of author declarations. |
 | `parseAudio` | function | @wildshard/sdk/assets | Admit bounded PCM audio and derive decoded sample residency. |

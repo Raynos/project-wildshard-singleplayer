@@ -1807,7 +1807,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1934 exports, grouped by the module to import them from.
+1938 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2075,7 +2075,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ui/LockOn`: `LockOn`
 - `@wildshard/engine/ui/Map`: `FullMap`, `MapPoi`, `MapQuest`, `MapZone`
 - `@wildshard/engine/ui/Menu`: `GameMenu`, `GameMenuOptions`, `KitEntry`, `MenuGroup`, `MenuTab`, `SkinRow`
-- `@wildshard/engine/ui/Minimap`: `LAYER_PPM`, `MapFeatures`, `MapMark`, `MapOverlay`, `MapPoi`, `mapPois`, `Minimap`, `MinimapAnimal`, `MinimapPalette`
+- `@wildshard/engine/ui/Minimap`: `LAYER_PPM`, `MapExtraImage`, `MapExtraLabel`, `MapExtraRect`, `MapExtras`, `MapFeatures`, `MapMark`, `MapOverlay`, `MapPoi`, `mapPois`, `Minimap`, `MinimapAnimal`, `MinimapPalette`
 - `@wildshard/engine/ui/ownership`: `mountUi`, `uiScope`
 - `@wildshard/engine/ui/Perf`: `Perf`, `PerfBudget`
 - `@wildshard/engine/ui/playerDeath`: `installPlayerDeath`
@@ -2139,7 +2139,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-462 exports, grouped by the module to import them from.
+469 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2193,6 +2193,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/runtimeVariant`: `runtimeVariantEnabled`
 - `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
+- `@wildshard/game/shardfile/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `accentVars`, `parseAccent`, `ROAD_ACCENT`
 - `@wildshard/game/shardfile/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/game/shardfile/brainRuntime`: `DeclaredBrainPorts`, `DeclaredBrainRecipe`, `DeclaredNativeBrain`, `installDeclaredBrains`
@@ -2284,8 +2285,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-76 exports, grouped by the module to import them from.
+81 exports, grouped by the module to import them from.
 
+- `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/sdk/author`: `emptyShardfile`

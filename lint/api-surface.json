@@ -9274,6 +9274,30 @@
         "from": "@wildshard/engine/ui/Minimap"
       },
       {
+        "name": "MapExtraImage",
+        "kind": "interface",
+        "doc": "a square image: its centre, its side (m) and its opacity",
+        "from": "@wildshard/engine/ui/Minimap"
+      },
+      {
+        "name": "MapExtraLabel",
+        "kind": "interface",
+        "doc": "a text label at a point; one past the rim is pinned just inside it, in its direction",
+        "from": "@wildshard/engine/ui/Minimap"
+      },
+      {
+        "name": "MapExtraRect",
+        "kind": "interface",
+        "doc": "an axis-aligned rectangle: its centre and half extents (m)",
+        "from": "@wildshard/engine/ui/Minimap"
+      },
+      {
+        "name": "MapExtras",
+        "kind": "interface",
+        "doc": "Extra map content a level supplies each frame (`Minimap.setExtras`), data only, in the same metres as `update`'s",
+        "from": "@wildshard/engine/ui/Minimap"
+      },
+      {
         "name": "MapFeatures",
         "kind": "interface",
         "doc": "a shard's own map features (Minimap.setFeatures)",
@@ -13386,6 +13410,48 @@
         "from": "@wildshard/game/shard/slug"
       },
       {
+        "name": "ACCENT_IDS",
+        "kind": "const",
+        "doc": "",
+        "from": "@wildshard/game/shardfile/accent"
+      },
+      {
+        "name": "AccentId",
+        "kind": "type",
+        "doc": "A palette id (`marigold`, `moss` …).",
+        "from": "@wildshard/game/shardfile/accent"
+      },
+      {
+        "name": "ACCENTS",
+        "kind": "const",
+        "doc": "The 20 accents in palette order (01 EMBER … 20 SAND), sRGB hex.",
+        "from": "@wildshard/game/shardfile/accent"
+      },
+      {
+        "name": "AccentSchema",
+        "kind": "const",
+        "doc": "The shardfile field: a palette id; the road's cyan is refused by name or hex.",
+        "from": "@wildshard/game/shardfile/accent"
+      },
+      {
+        "name": "accentVars",
+        "kind": "function",
+        "doc": "The HUD's accent variables for an accent hex (the `--ws-cyan` family in src/engine/ui/styles/base.css).",
+        "from": "@wildshard/game/shardfile/accent"
+      },
+      {
+        "name": "parseAccent",
+        "kind": "function",
+        "doc": "Validate a declared accent (throws with the schema's message), returning its id.",
+        "from": "@wildshard/game/shardfile/accent"
+      },
+      {
+        "name": "ROAD_ACCENT",
+        "kind": "const",
+        "doc": "The reserved 21st: the road, the safe zone and every menu (no shard may declare it).",
+        "from": "@wildshard/game/shardfile/accent"
+      },
+      {
         "name": "assetCost",
         "kind": "function",
         "doc": "Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run.",
@@ -15825,6 +15891,36 @@
       }
     ],
     "sdk": [
+      {
+        "name": "ACCENT_IDS",
+        "kind": "const",
+        "doc": "The admitted palette IDs in palette order; the road's cyan is excluded.",
+        "from": "@wildshard/sdk/accent"
+      },
+      {
+        "name": "AccentId",
+        "kind": "type",
+        "doc": "A shard accent from the fixed platform palette.",
+        "from": "@wildshard/sdk/accent"
+      },
+      {
+        "name": "ACCENTS",
+        "kind": "const",
+        "doc": "The platform's 20 shard accents, keyed by the required shardfile palette ID.",
+        "from": "@wildshard/sdk/accent"
+      },
+      {
+        "name": "AccentSchema",
+        "kind": "const",
+        "doc": "Strict required accent grammar; reserved road cyan and raw colours are refused.",
+        "from": "@wildshard/sdk/accent"
+      },
+      {
+        "name": "parseAccent",
+        "kind": "function",
+        "doc": "Validate author metadata and return a typed palette ID.",
+        "from": "@wildshard/sdk/accent"
+      },
       {
         "name": "assetCost",
         "kind": "function",

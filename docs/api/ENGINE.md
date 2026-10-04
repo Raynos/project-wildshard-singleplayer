@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1951 members; 830 without a doc line (—).
+1955 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1550,6 +1550,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `MenuTab` | type | @wildshard/engine/ui/Menu | — |
 | `SkinRow` | interface | @wildshard/engine/ui/Menu | `locked`: not owned yet — dim, not tappable; `icon`: the card's glyph (default laurel) |
 | `LAYER_PPM` | const | @wildshard/engine/ui/Minimap | — |
+| `MapExtraImage` | interface | @wildshard/engine/ui/Minimap | a square image: its centre, its side (m) and its opacity |
+| `MapExtraLabel` | interface | @wildshard/engine/ui/Minimap | a text label at a point; one past the rim is pinned just inside it, in its direction |
+| `MapExtraRect` | interface | @wildshard/engine/ui/Minimap | an axis-aligned rectangle: its centre and half extents (m) |
+| `MapExtras` | interface | @wildshard/engine/ui/Minimap | Extra map content a level supplies each frame (`Minimap.setExtras`), data only, in the same metres as `update`'s |
 | `MapFeatures` | interface | @wildshard/engine/ui/Minimap | a shard's own map features (Minimap.setFeatures) |
 | `MapMark` | interface | @wildshard/engine/ui/Minimap | a point the map marks with a small diamond (Minimap.setMarks) |
 | `MapOverlay` | interface | @wildshard/engine/ui/Minimap | what a palette's overlay paints with: the terrain layer's context, world → layer px, px per metre, the trails |

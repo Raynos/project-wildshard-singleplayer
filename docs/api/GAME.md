@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-462 members; 112 without a doc line (—).
+469 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -284,6 +284,13 @@ The game layer's public modules (src/game/package.json `exports`).
 | `bindScopedRuntime` | function | @wildshard/game/shard/scopedRuntime | Bind every staged runtime slot to this play scope, retaining the resident world's previous handoff on exit. |
 | `parseShardSlug` | function | @wildshard/game/shard/slug | Brand only validated identities; callers cannot supply arbitrary strings as shard keys. |
 | `ValidatedShardSlug` | type | @wildshard/game/shard/slug | An external identity whose format was validated at the catalogue or shardfile boundary. |
+| `ACCENT_IDS` | const | @wildshard/game/shardfile/accent | — |
+| `AccentId` | type | @wildshard/game/shardfile/accent | A palette id (`marigold`, `moss` …). |
+| `ACCENTS` | const | @wildshard/game/shardfile/accent | The 20 accents in palette order (01 EMBER … 20 SAND), sRGB hex. |
+| `AccentSchema` | const | @wildshard/game/shardfile/accent | The shardfile field: a palette id; the road's cyan is refused by name or hex. |
+| `accentVars` | function | @wildshard/game/shardfile/accent | The HUD's accent variables for an accent hex (the `--ws-cyan` family in src/engine/ui/styles/base.css). |
+| `parseAccent` | function | @wildshard/game/shardfile/accent | Validate a declared accent (throws with the schema's message), returning its id. |
+| `ROAD_ACCENT` | const | @wildshard/game/shardfile/accent | The reserved 21st: the road, the safe zone and every menu (no shard may declare it). |
 | `assetCost` | function | @wildshard/game/shardfile/assets | Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. |
 | `AssetCost` | interface | @wildshard/game/shardfile/assets | Actual costs derived from a bounded parser, never trusted from the author declaration. |
 | `parseAudio` | function | @wildshard/game/shardfile/assets | Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory. |
