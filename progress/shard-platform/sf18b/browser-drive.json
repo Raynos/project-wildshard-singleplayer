@@ -1,7 +1,7 @@
 {
   "holes": 0,
   "overlaps": 0,
-  "frames": 3603,
+  "frames": 3602,
   "steps": 4533,
   "bootSeconds": 15.333333333333675,
   "peakMB": 777.824001,
@@ -11,7 +11,7 @@
     "l0": 13
   },
   "uploads": 117,
-  "uploadMsMean": 0.13333333251822707,
+  "uploadMsMean": 0.14444445341061324,
   "workers": true,
   "fps": {
     "median": 60,

@@ -22,8 +22,9 @@ const camera = new PerspectiveCamera(60, innerWidth / innerHeight, 0.5, 2000);
 scene.background = new Color(0.62, 0.7, 0.78); scene.fog = new Fog(new Color(0.62, 0.7, 0.78), 500, 1300);
 const sun = new DirectionalLight(0xffffff, 1.6); sun.position.set(300, 500, 200);
 scene.add(sun, new HemisphereLight(0xcfe3ff, 0x50483c, 0.9));
-// the platform deck under the grid (highway and strips stand-in), so the gaps between cells are not read as holes
-const deck = new Mesh(new PlaneGeometry(2400, 2400).rotateX(-Math.PI / 2), new MeshLambertMaterial({ color: 0x5a5d61 })); deck.position.y = -6; scene.add(deck);
+// the platform deck under the grid (highway and strips stand-in), so the gaps between cells are not read as holes;
+// 8 km wide so its edge stays past the camera's 2 km far plane from anywhere on the grid (no hard edge at the horizon)
+const deck = new Mesh(new PlaneGeometry(8000, 8000).rotateX(-Math.PI / 2), new MeshLambertMaterial({ color: 0x5a5d61 })); deck.position.y = -6; scene.add(deck);
 const material = new MeshLambertMaterial({ vertexColors: true });
 
 const cells: RingCell[] = [];
