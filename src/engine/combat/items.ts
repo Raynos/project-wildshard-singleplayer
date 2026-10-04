@@ -85,10 +85,10 @@ export class ItemRuntime {
     this.pending.push({ action, aim: aim === null ? null : { origin: { ...aim.origin }, direction: { ...aim.direction } } });
   }
   /** Hold/release is command state; charge duration advances only on fixed ticks. */
-  hold(on: boolean, aim: AimCommand): void {
+  hold(on: boolean, aim: AimCommand, fireOnRelease = true): void {
     if (this.spec.kind !== 'weapon' || !finiteAim(aim)) throw new RangeError('Invalid item hold');
     if (this.held === on) return;
-    if (!on && this.chargeTime >= this.spec.charge) this.queue(2, aim);
+    if (!on && fireOnRelease && this.chargeTime >= this.spec.charge) this.queue(2, aim);
     this.held = on; if (!on) this.chargeTime = 0;
   }
   /** Run after the shared script host begins this fixed tick; fuel, contacts and cooldown use only dt. */

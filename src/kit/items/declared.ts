@@ -25,7 +25,7 @@ class DeclaredMelee extends Weapon {
   private held = false;
   private readonly origin = new Vector3(); private readonly direction = new Vector3();
   get adsHeld(): boolean { return this.held; }
-  set adsHeld(on: boolean) { this.held = on; this.ports.runtime.hold(on, this.ports.aim()); }
+  set adsHeld(on: boolean) { this.held = this.enabled && on; this.ports.runtime.hold(this.held, this.ports.aim(), this.enabled); }
   constructor(row: EquipmentRow, _spec: Extract<ItemSpec, { kind: 'weapon' }>, ports: ItemFamilyPorts) {
     super(row); this.ports = ports; this.model = itemMesh(ports); this.setAimSource(ports.aim);
     ports.runtime.observe(ports.scope, (phase, contact) => {

@@ -84,6 +84,16 @@ describe('declared kit items through admitted AssemblyScript and normal equipmen
       expect(() => weapon.restore({ ...saved, fuel: Number.NaN })).toThrow(); expect(weapon.snapshot()).toEqual(saved);
     } finally { f.sim.dispose(); }
   });
+  it('cancels a charged release when normal equipment disables the outgoing weapon', () => {
+    const f = fixture(); try {
+      f.service.adsHeld = true; f.step(40);
+      f.service.enabled = false; f.step();
+      expect(f.target.hp).toBe(100);
+      expect(f.items.runtimes.get('weapon.template-whip')?.snapshot().held).toBe(false);
+      f.service.adsHeld = false; f.service.enabled = true;
+      f.input.press('attack'); f.step(); expect(f.target.hp).toBe(82);
+    } finally { f.sim.dispose(); }
+  });
   it('rejects closures, unresolved ids/contexts/families/actors and duplicate data before equipment runs', () => {
     const aliases = declaredItemScriptEntities(itemSource, 'actor.player');
     expect([...aliases.actors]).toEqual([[1001, 'actor.player'], [1002, 'actor.player']]);
