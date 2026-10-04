@@ -4,6 +4,7 @@ import { Animal } from '../../src/engine/entities/AnimalView';
 import { AnimalSim } from '../../src/engine/entities/AnimalSim';
 import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { fakeWorld } from '../fake/world';
+import { manager } from '../fake/manager';
 
 function fixture() {
   const world = fakeWorld(), factory = new AnimalFactory(world.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true } });
@@ -34,6 +35,15 @@ describe('creature rig over one authoritative simulation', () => {
     sim.place(1, 2, 0); const saved = sim.snapshot(); sim.place(4, 5, 0);
     view.restore(saved); view.update(1 / 60, 0, false);
     expect(view.position.toArray()).toEqual(saved.position); view.retireBody(); expect(dispose).not.toHaveBeenCalled();
+  });
+  it('legacy manager renders bound views but never runs their brain, acts or retirement damage', () => {
+    const { sim } = fixture(), world = manager();
+    const view = world.manager.spawn('boar', 0, 0, 0, 'boar', { entityId: sim.entityId }); view.bindSimulation(sim);
+    sim.place(0, 0, 0); sim.setMotion(0, 2); sim.state = 'charge'; sim.step(0.1);
+    const saved = sim.snapshot();
+    for (let i = 0; i < 30; i++) world.manager.update(1 / 60, i / 60, new Vector3(0, 0, 1));
+    expect(sim.snapshot()).toEqual(saved); expect(view.mesh.position.toArray()).toEqual(sim.position.toArray());
+    world.manager.retire(view); expect(sim.snapshot()).toEqual(saved); expect(world.manager.animals).not.toContain(view);
   });
   it('refuses rebinding and mismatched instance identities', () => {
     const { sim, view } = fixture(); expect(() => view.bindSimulation(view)).toThrow();

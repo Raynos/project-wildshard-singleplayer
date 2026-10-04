@@ -640,7 +640,8 @@ export class AnimalManager {
    */
   /** Retire a scripted creature through the same body and manager ownership boundary. */
   retire(a: Animal): void {
-    a.hidden = true; a.mesh.visible = false; a.alive = false; a.position.y = -9999;
+    a.hidden = true; a.mesh.visible = false;
+    if (!a.simulationBound) { a.alive = false; a.position.y = -9999; }
     const i = this.animals.indexOf(a); if (i !== -1) this.animals.splice(i, 1);
     this.brains.delete(a); this.farRigs.delete(a); this.casters.delete(a); this.tokens.release(a); this.scheduler.forget(a);
     this.bodies?.remove(a);
@@ -677,7 +678,7 @@ export class AnimalManager {
       return { brainHz: rate === 'always' ? this.scheduler.frameHz : this.scheduler.brainHz(rate, a), pinned: rate === 'always' || this.scheduler.pinned(a) };
     });
     this.scheduler.onInterrupt(a, () => {
-      if (a.hidden || a.harnessHold || !a.alive || (speciesDef(a.kind).think !== undefined && speciesDef(a.kind).tick === undefined)) return;
+      if (a.simulationBound || a.hidden || a.harnessHold || !a.alive || (speciesDef(a.kind).think !== undefined && speciesDef(a.kind).tick === undefined)) return;
       const dt = this.scheduler.takeBrainDt(this.tickRate(a), a);
       this.think(a, dt, this.playerPos, this.playerSprinting);
     });
@@ -755,7 +756,7 @@ export class AnimalManager {
       const t0 = frameCost.on ? performance.now() : 0;
       if (this.dodgeId !== dodgeFx.id) { this.dodgeId = dodgeFx.id; this.interruptTargets('target.dodge'); }
       for (const a of this.animals) {
-        if (a.harnessHold || a.hidden) { this.scheduler.forget(a); continue; }
+        if (a.simulationBound || a.harnessHold || a.hidden) { this.scheduler.forget(a); continue; }
         const rate = this.tickRate(a);
         if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
           const seen = this.canReach(a, playerPos);
@@ -780,15 +781,15 @@ export class AnimalManager {
       if (a === undefined || a.hidden) continue;
       const d2 = a.position.distanceToSquared(viewPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
-      const bodyDt = a.harnessHold ? 0 : this.scheduler.bodyDt(this.tickRate(a), a);
+      const bodyDt = a.harnessHold ? 0 : a.simulationBound ? dt : this.scheduler.bodyDt(this.tickRate(a), a);
       if (bodyDt > 0) {
-        if (a.alive && !a.stunned && a.state === 'charge' && speciesDef(a.kind).think === undefined) this.advanceCharge(a, bodyDt, playerPos);
+        if (!a.simulationBound && a.alive && !a.stunned && a.state === 'charge' && speciesDef(a.kind).think === undefined) this.advanceCharge(a, bodyDt, playerPos);
         const act = speciesDef(a.kind).act;
-        if (act !== undefined && a.alive && !a.stunned) act(a, this.customContext(a, bodyDt, playerPos, this.playerSprinting));
+        if (!a.simulationBound && act !== undefined && a.alive && !a.stunned) act(a, this.customContext(a, bodyDt, playerPos, this.playerSprinting));
         a.update(bodyDt, t, near);
-        if (a.alive) killBelowWorld(a, activeLevel().world, app.combat);
-        if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
-        if (this.rules !== null && a.alive && a.position.distanceToSquared(playerPos) < 36) this.clearBody(a, playerPos);
+        if (!a.simulationBound && a.alive) killBelowWorld(a, activeLevel().world, app.combat);
+        if (!a.simulationBound && this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
+        if (!a.simulationBound && this.rules !== null && a.alive && a.position.distanceToSquared(playerPos) < 36) this.clearBody(a, playerPos);
       }
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
       // … shrinking away over the last 15 % of the draw distance rather than blinking out at it (E117: no pop)
@@ -842,7 +843,7 @@ export class AnimalManager {
 
   /** Hit/target edges bypass the decision interval, including for a far animal. */
   interrupt(a: Animal, why: InterruptReason): void {
-    if (a.hidden || a.harnessHold || !a.alive || (speciesDef(a.kind).think !== undefined && speciesDef(a.kind).tick === undefined)) return;
+    if (a.simulationBound || a.hidden || a.harnessHold || !a.alive || (speciesDef(a.kind).think !== undefined && speciesDef(a.kind).tick === undefined)) return;
     this.scheduler.interrupt(a, why);
   }
   private interruptTargets(why: InterruptReason): void {
@@ -889,6 +890,7 @@ export class AnimalManager {
   }
 
   private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): void {
+    if (a.simulationBound) return;
     const br = this.brains.get(a);
     if (br === undefined) throw new Error(`AnimalManager: ${a.kind} has no brain (not spawned through spawn())`);
     const self = speciesDef(a.kind).think;

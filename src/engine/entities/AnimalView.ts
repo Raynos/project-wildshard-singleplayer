@@ -156,6 +156,8 @@ export class Animal extends AnimalSim {
   private readonly simPose: AnimalPoseSample = { attackT: -1, attackDur: 1, groundY: 0, tiltRollT: 0,
     stunT: 0, flinch: 0, flinchRoll: 0, flinchPitch: 0, brace: 0, deathSide: 1 };
 
+  /** True when the authoritative host, rather than the legacy manager, owns decisions and physics. */
+  get simulationBound(): boolean { return this.externalSimulation !== null; }
   /** Bind a fresh rig to the host creature. Rendering never advances or disposes its simulation body. */
   bindSimulation(sim: AnimalSim): this {
     if (this.externalSimulation !== null || this.motor !== null || this.ragdoll !== null

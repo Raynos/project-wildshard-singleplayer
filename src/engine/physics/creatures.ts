@@ -31,6 +31,8 @@ export interface Creature {
   motor: CharacterMotor | null;
   /** another body carries it (the ridden horse, on Mount's motor): no creature body of its own */
   readonly driven: boolean;
+  /** External host owns the movement body; this adapter creates query hitboxes only. */
+  readonly simulationBound?: boolean;
 }
 
 /** The owner tag on a hitbox: which animal, which part. */
@@ -104,6 +106,7 @@ export class CreatureBodies<C extends Creature = Creature> {
         }
       }
       // the creature physics LOD
+      if (c.simulationBound === true) continue;
       const dist = Math.hypot(c.position.x - player.x, c.position.z - player.z);
       if (c.motor === null && live && dist < NEAR && !c.driven) c.motor = this.motorFor(c);
       else if (c.motor !== null && (!live || dist > FAR || c.driven)) { c.motor.dispose(); c.motor = null; }
