@@ -2130,7 +2130,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-418 exports, grouped by the module to import them from.
+424 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2155,7 +2155,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
 - `@wildshard/game/grid/state`: `regionalState`
 - `@wildshard/game/grid/wallet`: `GridLoadout`, `GridWallet`, `installGridLoadout`, `stowGridEquipment`
-- `@wildshard/game/instanceSaves`: `instanceSave`, `LocalSaveInstance`
+- `@wildshard/game/instanceSaves`: `instanceSave`, `instanceSaveIdentity`, `LocalSaveInstance`
 - `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`
 - `@wildshard/game/ledger`: `installLedgerEmitter`, `Ledger`, `LedgerCatalogueItem`, `LedgerEmitter`, `ledgerFactId`, `LedgerInstance`, `LedgerReceipt`
 - `@wildshard/game/loot/CoinBurst`: `CoinBurst`, `nearScale`
@@ -2165,6 +2165,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/loot/runtime`: `installLoot`, `LootBody`, `LootPresentation`, `LootShop`, `ScopedLoot`, `ScopedLootHost`
 - `@wildshard/game/loot/tables`: `getLootTable`, `LootContext`, `LootTableRow`, `registerLootTable`, `rollLoot`
 - `@wildshard/game/loot/ui/ShopPanel`: `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopState`
+- `@wildshard/game/newGame`: `NewGameProgress`, `NewGameQuest`, `NewGameSummary`, `previewNewGame`, `resetNewGame`
 - `@wildshard/game/Progress`: `Progress`, `ProgressRow`, `ProgressSink`
 - `@wildshard/game/quest/declared`: `createQuestScriptPorts`, `DeclaredQuests`, `DialogueView`, `QuestDataPorts`, `QuestScriptBindings`, `QuestScriptPorts`
 - `@wildshard/game/quest/presentation`: `installQuestPresentation`, `PresentedQuestDef`, `PresentedQuestStep`, `presentQuest`, `QuestPresentation`, `QuestPresentationContext`, `QuestPresentationHost`, `QuestPresentationNpc`, `QuestPresentationOptions`, `QuestTarget`

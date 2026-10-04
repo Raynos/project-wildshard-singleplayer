@@ -12162,6 +12162,12 @@
         "from": "@wildshard/game/instanceSaves"
       },
       {
+        "name": "instanceSaveIdentity",
+        "kind": "function",
+        "doc": "Resolve exactly the same durable namespace and legacy alias for reading, previewing and resetting either entry mode.",
+        "from": "@wildshard/game/instanceSaves"
+      },
+      {
         "name": "LocalSaveInstance",
         "kind": "interface",
         "doc": "Stable placement identity passed by the session, independent of cell or launch mode.",
@@ -12406,6 +12412,36 @@
         "kind": "type",
         "doc": "",
         "from": "@wildshard/game/loot/ui/ShopPanel"
+      },
+      {
+        "name": "NewGameProgress",
+        "kind": "interface",
+        "doc": "Detached before/after progress for the Settings confirmation. Null quest counts mean legacy flags exist without a declared quest catalogue.",
+        "from": "@wildshard/game/newGame"
+      },
+      {
+        "name": "NewGameQuest",
+        "kind": "interface",
+        "doc": "Optional quest identities let an unloaded shard's card count completion from its legacy flags without executing its runtime.",
+        "from": "@wildshard/game/newGame"
+      },
+      {
+        "name": "NewGameSummary",
+        "kind": "interface",
+        "doc": "A reset affects one stable instance. The kept categories include legacy shard feat progress as well as the profile ledger.",
+        "from": "@wildshard/game/newGame"
+      },
+      {
+        "name": "previewNewGame",
+        "kind": "function",
+        "doc": "Preview without mutating saves or loading a shard runtime. Cards must pass an explicit copy id, never a grid cell.",
+        "from": "@wildshard/game/newGame"
+      },
+      {
+        "name": "resetNewGame",
+        "kind": "function",
+        "doc": "Confirm a fresh preview and reset durably; old live checkpoints cannot revive it. Reload/rebind the active instance only when applied is true; a refusal keeps playing intact.",
+        "from": "@wildshard/game/newGame"
       },
       {
         "name": "Progress",

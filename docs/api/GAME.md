@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-418 members; 112 without a doc line (—).
+424 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -128,6 +128,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `installGridLoadout` | function | @wildshard/game/grid/wallet | Restore one instance's held selection and bind reversible border stow to the existing equipment and scope. |
 | `stowGridEquipment` | function | @wildshard/game/grid/wallet | At the cell edge cancel local input immediately; ownership, ammo, fuel and selection stay in the source shard. |
 | `instanceSave` | function | @wildshard/game/instanceSaves | Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent. |
+| `instanceSaveIdentity` | function | @wildshard/game/instanceSaves | Resolve exactly the same durable namespace and legacy alias for reading, previewing and resetting either entry mode. |
 | `LocalSaveInstance` | interface | @wildshard/game/instanceSaves | Stable placement identity passed by the session, independent of cell or launch mode. |
 | `harvestOf` | function | @wildshard/game/Inventory | what a carcass of (kind, variant) yields when harvested |
 | `Inventory` | class | @wildshard/game/Inventory | — |
@@ -169,6 +170,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShopOpts` | interface | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopPanel` | class | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopState` | type | @wildshard/game/loot/ui/ShopPanel | — |
+| `NewGameProgress` | interface | @wildshard/game/newGame | Detached before/after progress for the Settings confirmation. Null quest counts mean legacy flags exist without a declared quest catalogue. |
+| `NewGameQuest` | interface | @wildshard/game/newGame | Optional quest identities let an unloaded shard's card count completion from its legacy flags without executing its runtime. |
+| `NewGameSummary` | interface | @wildshard/game/newGame | A reset affects one stable instance. The kept categories include legacy shard feat progress as well as the profile ledger. |
+| `previewNewGame` | function | @wildshard/game/newGame | Preview without mutating saves or loading a shard runtime. Cards must pass an explicit copy id, never a grid cell. |
+| `resetNewGame` | function | @wildshard/game/newGame | Confirm a fresh preview and reset durably; old live checkpoints cannot revive it. Reload/rebind the active instance only when applied is true; a refusal keeps playing intact. |
 | `Progress` | class | @wildshard/game/Progress | — |
 | `ProgressRow` | interface | @wildshard/game/Progress | — |
 | `ProgressSink` | interface | @wildshard/game/Progress | what a shard's feats code records into (Driftwood's quest/Feats.ts, Nalati's adventure): the game layer's type, so two shards share it without importing each other (E357 F6) |
