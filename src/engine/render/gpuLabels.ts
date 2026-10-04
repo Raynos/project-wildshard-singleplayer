@@ -1,8 +1,9 @@
-import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, Texture, WebGLRenderTarget } from 'three';
+import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, Skeleton, Texture, WebGLRenderTarget } from 'three';
 import type { Renderer } from './renderer';
 
 interface Label { owner: string; asset: string; priority: number }
 const labels = new WeakMap<object, Label>();
+let skeletonBridgeInstalled = false;
 const isTexture = (value: unknown): value is Texture => value instanceof Texture;
 const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
 const isMaterial = (value: unknown): value is Material => value instanceof Material;
@@ -73,7 +74,11 @@ function nodeResources(node: Object3D, label: Label): void {
   for (const mat of Array.isArray(mats) ? mats : [mats]) if (isMaterial(mat)) markMaterial(mat, label);
   const skeleton: unknown = Reflect.get(node, 'skeleton');
   const bones: unknown = skeleton !== null && typeof skeleton === 'object' ? Reflect.get(skeleton, 'boneTexture') : undefined;
-  if (isTexture(bones)) {
+  if (skeleton instanceof Skeleton) {
+    const owner = isGeometry(geo) ? labels.get(geo) ?? label : label;
+    const boneLabel = remember(skeleton, { ...owner, asset: `${owner.asset}/skeleton/bones` });
+    if (isTexture(bones)) markTexture(bones, boneLabel);
+  } else if (isTexture(bones)) {
     const owner = isGeometry(geo) ? labels.get(geo) ?? label : label;
     markTexture(bones, { ...owner, asset: `${owner.asset}/skeleton/bones` });
   }
@@ -106,9 +111,26 @@ function resourceLabel(value: unknown): Label {
 /** Bridge Three's CPU resource identity to the GL object at allocation/upload, solely for the census harness. */
 export function installGpuLabels(renderer: Renderer): void {
   if (!enabled()) return;
+  // Bone textures are allocated inside Three after the scene walk, including one-shot warm draws and pooled rigs.
+  // Tag that allocation immediately: a later scene walk cannot recover models that already left the visible tree.
+  if (!skeletonBridgeInstalled) {
+    skeletonBridgeInstalled = true;
+    const compute: unknown = Reflect.get(Skeleton.prototype, 'computeBoneTexture');
+    if (typeof compute !== 'function') throw new Error('Three Skeleton has no bone-texture allocator');
+    Skeleton.prototype.computeBoneTexture = function computeBoneTexture() {
+      Reflect.apply(compute, this, []);
+      if (this.boneTexture) markTexture(this.boneTexture, labels.get(this) ?? { owner: 'engine/skeleton', asset: 'generated/skeleton/bones', priority: 1 });
+      return this;
+    };
+  }
   const proxies = new WeakMap<object, object>();
   const get = renderer.properties.get.bind(renderer.properties);
   renderer.properties.get = (resource) => {
+    if (isTarget(resource)) {
+      const label = resourceLabel(resource);
+      remember(resource.texture, { ...label, asset: `${label.asset}/color` });
+      if (resource.depthTexture) remember(resource.depthTexture, { ...label, asset: `${label.asset}/depth` });
+    }
     const properties = get(resource);
     if (properties === null || typeof properties !== 'object') return properties;
     const stamp = (value: unknown, role: string): unknown => {
