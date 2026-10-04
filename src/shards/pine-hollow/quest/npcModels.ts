@@ -20,6 +20,7 @@ import { loadRigFile, TIER, type Sky } from '#engine';
  *   walk   the legs step (NpcFigure.walkTo)
  */
 import * as THREE from 'three';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { NpcKind } from '../models/people';
 import { legBones, legPose, legRigOf } from './npcRig';
 
@@ -31,8 +32,6 @@ export function npcModelUrl(kind: NpcKind, tier: 'phone' | 'desktop' = TIER): st
 }
 
 interface Source { geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null }
-const sources = new Map<NpcKind, Source>();
-const loading = new Map<NpcKind, Promise<Source | null>>();
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
 
@@ -47,34 +46,6 @@ function asFloat(src: THREE.BufferGeometry): THREE.BufferGeometry {
   const idx = src.getIndex();
   if (idx) g.setIndex(Array.from(idx.array));
   return g;
-}
-
-/** load one person's model (cached; null when it fails — the stand-in stays) */
-export function loadNpcModel(kind: NpcKind): Promise<Source | null> {
-  let p = loading.get(kind);
-  if (!p) {
-    p = loadRigFile(npcModelUrl(kind)).then((gltf) => {
-      gltf.scene.updateMatrixWorld(true);
-      const found: Source[] = [];
-      gltf.scene.traverse((o) => {
-        if (found.length > 0 || !isMesh(o)) return;
-        const g = asFloat(o.geometry).applyMatrix4(o.matrixWorld);
-        const mat = Array.isArray(o.material) ? o.material[0] : o.material;
-        const std = mat instanceof THREE.MeshStandardMaterial ? mat : null;
-        found.push({ geometry: g, map: std?.map ?? null, normalMap: std?.normalMap ?? null });
-      });
-      const hit = found[0] ?? null;
-      if (hit !== null) sources.set(kind, hit);
-      if (hit !== null) legRigOf(kind, hit.geometry);   // E322 F-M3: the rig now, one person a frame, not all three on their first update
-      return hit;
-    }).catch((e: unknown) => { console.warn(`[pine-hollow] npc model ${kind} failed`, e); return null; });
-    loading.set(kind, p);
-  }
-  return p;
-}
-
-export async function preloadNpcModels(): Promise<void> {
-  await Promise.all(NPC_KINDS.map(loadNpcModel));
 }
 
 export interface NpcRig {
@@ -97,29 +68,74 @@ export interface NpcRig {
   readonly walkCycle: number;
 }
 
-const sharedMats = new Map<NpcKind, THREE.MeshStandardMaterial>();
-/** a skinned instance of `kind`'s model, or null until it has loaded */
-export function npcRig(kind: NpcKind, sky: Sky): NpcRig | null {
-  const src = sources.get(kind);
-  if (!src) return null;
-  let mat = sharedMats.get(kind);
-  if (!mat) {
-    mat = new THREE.MeshStandardMaterial({ map: src.map, normalMap: src.normalMap, normalScale: new THREE.Vector2(1, -1), roughness: 0.85, metalness: 0 });
-    mat.name = `ph-npc-${kind}`;
-    if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
-    sky.setupMaterial(mat);
-    sharedMats.set(kind, mat);
+/**
+ * The people's models: loaded once each, shared by every figure. The page has one (`npcModels`); a test builds its own with
+ * its own file loader instead of reloading the module or spying on a loader (E422).
+ */
+export class NpcModels {
+  private readonly sources = new Map<NpcKind, Source>();
+  private readonly loading = new Map<NpcKind, Promise<Source | null>>();
+  private readonly sharedMats = new Map<NpcKind, THREE.MeshStandardMaterial>();
+  private readonly loadFile: (url: string) => Promise<GLTF>;
+  constructor(loadFile: (url: string) => Promise<GLTF> = loadRigFile) { this.loadFile = loadFile; }
+
+  /** load one person's model (cached; null when it fails — the stand-in stays) */
+  load(kind: NpcKind): Promise<Source | null> {
+    let p = this.loading.get(kind);
+    if (!p) {
+      p = this.loadFile(npcModelUrl(kind)).then((gltf) => {
+        gltf.scene.updateMatrixWorld(true);
+        const found: Source[] = [];
+        gltf.scene.traverse((o) => {
+          if (found.length > 0 || !isMesh(o)) return;
+          const g = asFloat(o.geometry).applyMatrix4(o.matrixWorld);
+          const mat = Array.isArray(o.material) ? o.material[0] : o.material;
+          const std = mat instanceof THREE.MeshStandardMaterial ? mat : null;
+          found.push({ geometry: g, map: std?.map ?? null, normalMap: std?.normalMap ?? null });
+        });
+        const hit = found[0] ?? null;
+        if (hit !== null) this.sources.set(kind, hit);
+        if (hit !== null) legRigOf(kind, hit.geometry);   // E322 F-M3: the rig now, one person a frame, not all three on their first update
+        return hit;
+      }).catch((e: unknown) => { console.warn(`[pine-hollow] npc model ${kind} failed`, e); return null; });
+      this.loading.set(kind, p);
+    }
+    return p;
   }
-  // E322 F-M3: legs, a clavicle and a twist bone, the walk clip (npcRig.ts)
-  const lb = legRigOf(kind, src.geometry), lbones = legBones(lb), pose = legPose(lbones, lb);
-  const mesh = new THREE.SkinnedMesh(lb.geometry, mat);
-  const root = lbones[0];
-  if (root) mesh.add(root);
-  mesh.updateMatrixWorld(true);
-  mesh.bind(new THREE.Skeleton(lbones));
-  mesh.castShadow = true; mesh.receiveShadow = true;
-  return {
-    mesh, height: lb.height, lanternAt: lb.lantern, handR: lbones.find((x) => x.name === 'handR') ?? new THREE.Bone(), walkSpeed: lb.walkSpeed, walkCycle: lb.walkCycle,
-    pose: (t, talk, point, pointYaw, look, walk = 0, phase = 0) => { pose({ t, talk, point, pointYaw, look, walk, phase }); },
-  };
+
+  async preload(): Promise<void> { await Promise.all(NPC_KINDS.map((kind) => this.load(kind))); }
+
+  /** a skinned instance of `kind`'s model, or null until it has loaded */
+  rig(kind: NpcKind, sky: Sky): NpcRig | null {
+    const src = this.sources.get(kind);
+    if (!src) return null;
+    let mat = this.sharedMats.get(kind);
+    if (!mat) {
+      mat = new THREE.MeshStandardMaterial({ map: src.map, normalMap: src.normalMap, normalScale: new THREE.Vector2(1, -1), roughness: 0.85, metalness: 0 });
+      mat.name = `ph-npc-${kind}`;
+      if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
+      sky.setupMaterial(mat);
+      this.sharedMats.set(kind, mat);
+    }
+    // E322 F-M3: legs, a clavicle and a twist bone, the walk clip (npcRig.ts)
+    const lb = legRigOf(kind, src.geometry), lbones = legBones(lb), pose = legPose(lbones, lb);
+    const mesh = new THREE.SkinnedMesh(lb.geometry, mat);
+    const root = lbones[0];
+    if (root) mesh.add(root);
+    mesh.updateMatrixWorld(true);
+    mesh.bind(new THREE.Skeleton(lbones));
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    return {
+      mesh, height: lb.height, lanternAt: lb.lantern, handR: lbones.find((x) => x.name === 'handR') ?? new THREE.Bone(), walkSpeed: lb.walkSpeed, walkCycle: lb.walkCycle,
+      pose: (t, talk, point, pointYaw, look, walk = 0, phase = 0) => { pose({ t, talk, point, pointYaw, look, walk, phase }); },
+    };
+  }
 }
+
+/** the page's people */
+export const npcModels = new NpcModels();
+/** load one person's model (cached; null when it fails — the stand-in stays) */
+export function loadNpcModel(kind: NpcKind): Promise<Source | null> { return npcModels.load(kind); }
+export function preloadNpcModels(): Promise<void> { return npcModels.preload(); }
+/** a skinned instance of `kind`'s model, or null until it has loaded */
+export function npcRig(kind: NpcKind, sky: Sky): NpcRig | null { return npcModels.rig(kind, sky); }

@@ -1,7 +1,7 @@
 import { CreatureBrain, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp } from '#engine';
 import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
-import { captainMeshFor, captainMeshLoaded } from './captainMesh';
+import { captainMesh, type CaptainMesh } from './captainMesh';
 
 /**
  * The Drowned Captain — Driftwood Isle's guardian boss (DRIFTWOOD-REMASTER A6, D5): Captain Brine of the Gull's Lament,
@@ -73,7 +73,7 @@ function captainPaint(v: VariantDef): Paint {
 
 const CAPTAIN_DIMS: AnimalSpecies['dims'] = { bodyY: 0.95, bodyHalfLen: 0.5, bodyRadius: 0.3, headRadius: 0.16, legLen: 0.85, feet: [[0.12, 0.05], [-0.12, 0.05], [0.12, -0.05], [-0.12, -0.05]], halfWidth: 0.28, capsuleAxis: 'y' };
 
-function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
+function buildCaptain(v: VariantDef, rng: Rng, mesh: CaptainMesh = captainMesh): AnimalSpecies {
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.95, 0] },
     { name: 'spine', parent: 'body', pos: [0, 1.12, 0] },
@@ -93,7 +93,7 @@ function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
   }
   // the generated captain (captainMesh.ts) hangs his arms lower and wider than the loft stand-in, and stands wider: fit the
   // limb joints to the mesh (measured band by band, E70 round 3) so the elbows and shoulders pivot where his arms bend
-  if (captainMeshLoaded()) {
+  if (mesh.loaded()) {
     const fit: Record<string, [number, number, number]> = {
       _sh: [0.26, 1.42, 0], _el: [0.40, 1.12, 0.02], _hand: [0.47, 0.84, 0.05], _hip: [0.12, 0.90, 0], _knee: [0.16, 0.48, 0.01], _foot: [0.17, 0.08, 0.02],
     };
@@ -115,12 +115,12 @@ function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
   ], 16, 'skull', paint, true, true));
   // (the generated head's painted cyan eyes sit at x 0.022 ± 0.034, y 1.70, z 0.084 of its 1.9 m frame — measured off the
   // file's texture, E343; the loft stand-in's at ± 0.043, 1.635, 0.115)
-  const gen = captainMeshLoaded();
+  const gen = mesh.loaded();
   for (const sx of [1, -1]) eyes.push(skinPlain(gen ? new THREE.SphereGeometry(0.02, 8, 6).translate(0.022 + sx * 0.034, 1.70, 0.092) : new THREE.SphereGeometry(0.027, 8, 6).translate(sx * 0.043, 1.635, 0.115), head, 'eye', paint));
   // v0.2: the generated captain (codex concept → Hunyuan3D-2, src/engine/entities/species/captainMesh.ts) once it has loaded —
   // bound to these same bones, so animateCaptain() drives it unchanged; the glowing eye spheres ride on top. The play
   // installer awaits the file; a failed load uses the loft stand-in below. A pending build throws instead of caching it.
-  const generated = captainMeshFor(bones);
+  const generated = mesh.meshFor(bones);
   if (generated) return { bones, furParts: [generated.parts[0]], hardParts: [generated.parts[1]], eyeParts: eyes, dims: CAPTAIN_DIMS, ...(generated.map ? { map: generated.map, selfLight: 0.5 } : {}), facetJitter: 0 };
   // the tricorn: a flat brim turned up in three corners + a low crown
   hard.push(loft([S(0, 1.72, -0.01, 0.2, 0.2, head), S(0, 1.75, -0.01, 0.23, 0.23, head), S(0, 1.79, -0.01, 0.13, 0.13, head), S(0, 1.86, -0.01, 0.11, 0.11, head), S(0, 1.88, -0.01, 0.02, 0.02, head)], 3, 'hat', paint, true, true));
@@ -325,16 +325,18 @@ export const CAPTAIN: SpeciesRow = {
   think: thinkCaptain,
 };
 
-export const CAPTAIN_LOOK: SpeciesLook = {
+/** the captain's look over a mesh (the page's by default; a test passes its own) */
+export function captainLook(mesh: CaptainMesh = captainMesh): SpeciesLook { return {
   rigContract: { skeleton: 'captain.v1', clips: [], sockets: ['body', 'head'] },
   id: 'driftwood.look.captain', species: CAPTAIN.id, kind: 'captain',
   standMem: { init: 1, rise: 1 }, // it waits sunk in its pool until woken: the Explorer shows it risen
   fur: NO_FUR,
   rig: 'custom',
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.4,
-  build: buildCaptain,
+  build: (v, rng) => buildCaptain(v, rng, mesh),
   animate: animateCaptain,
-};
+}; }
+export const CAPTAIN_LOOK: SpeciesLook = captainLook();
 
 function strikeCaptain(a: Animal, c: ThinkCtx): void {
   const m = a.mem as CaptainMem, p = a.attackPhase;

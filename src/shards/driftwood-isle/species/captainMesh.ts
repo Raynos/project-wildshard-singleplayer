@@ -1,5 +1,6 @@
 import { loadRigFile, type BoneDef } from '#engine';
 import * as THREE from 'three';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 /**
  * The Drowned Captain's generated mesh (v0.2, DRIFTWOOD-REMASTER M3): a codex concept (art/driftwood-isle/round-8-assets/
@@ -22,10 +23,6 @@ const URL_GLB = CAPTAIN_GLB_URL;
 const HEIGHT = 1.9;
 /** metres from the centre line below which a vertex under the shoulders never rides an arm bone (the coat skirt) */
 const ARM_MIN_X = 0.36;
-let source: THREE.BufferGeometry | null = null;
-let texture: THREE.Texture | null = null;
-let loading: Promise<void> | null = null;
-let settled = false;
 
 /**
  * gltf-transform's meshopt pass quantizes position / normal / uv to normalized ints (KHR_mesh_quantization): copy every
@@ -45,9 +42,21 @@ function asFloat(src: THREE.BufferGeometry): THREE.BufferGeometry {
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
 
-async function load(): Promise<void> {
+/**
+ * The generated captain mesh: loaded once, fitted to the rig at build. The page has one (`captainMesh`); a test builds its
+ * own with its own file loader instead of reloading the module or spying on a loader (E422).
+ */
+export class CaptainMesh {
+  private source: THREE.BufferGeometry | null = null;
+  private texture: THREE.Texture | null = null;
+  private loading: Promise<void> | null = null;
+  private settled = false;
+  private readonly loadFile: (url: string) => Promise<GLTF>;
+  constructor(loadFile: (url: string) => Promise<GLTF> = loadRigFile) { this.loadFile = loadFile; }
+
+  private async load(): Promise<void> {
   try {
-    const gltf = await loadRigFile(URL_GLB);
+    const gltf = await this.loadFile(URL_GLB);
     const hit: { geo: THREE.BufferGeometry | null; map: THREE.Texture | null } = { geo: null, map: null };
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse((o) => {
@@ -63,29 +72,29 @@ async function load(): Promise<void> {
     if (bb === null) throw new Error('Captain mesh has no bounds');
     const k = HEIGHT / Math.max(1e-6, bb.max.y - bb.min.y);
     g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2).scale(k, k, k);
-    source = g;
-    texture = hit.map;
+    this.source = g;
+    this.texture = hit.map;
   } catch (e: unknown) { console.warn('[captain] generated mesh not loaded, using the stand-in:', e); }
-  finally { settled = true; }
-}
+  finally { this.settled = true; }
+  }
 
-/** the generated mesh has loaded (buildCaptain then fits the rig to it before binding) */
-export function captainMeshLoaded(): boolean { return source !== null; }
+  /** the generated mesh has loaded (buildCaptain then fits the rig to it before binding) */
+  loaded(): boolean { return this.source !== null; }
 
-export function preloadCaptainMesh(): Promise<void> {
-  loading ??= load();
-  return loading;
-}
+  preload(): Promise<void> {
+    this.loading ??= this.load();
+    return this.loading;
+  }
 
 /**
  * The mesh bound to `bones` (the attributes every species part carries) as TWO geometries — its triangles split in half —
  * because AnimalFactory merges furParts and hardParts separately and neither list may be empty (the captain has no fur,
  * so both halves draw alike), plus its texture. Null before / without the load.
  */
-export function captainMeshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry, THREE.BufferGeometry]; map: THREE.Texture | null } | null {
-  if (loading !== null && !settled) throw new Error('Captain mesh is still loading; await preloadCaptainMesh before building');
-  if (source === null) return null;
-  const g = source.clone();
+  meshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry, THREE.BufferGeometry]; map: THREE.Texture | null } | null {
+  if (this.loading !== null && !this.settled) throw new Error('Captain mesh is still loading; await preloadCaptainMesh before building');
+  if (this.source === null) return null;
+  const g = this.source.clone();
   const pos = g.getAttribute('position');
   const n = pos.count;
   g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3)); // white: the texture carries the albedo
@@ -132,5 +141,13 @@ export function captainMeshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry
   const a = g.clone(), b = g.clone();
   a.setIndex(ids.slice(0, cut)); b.setIndex(ids.slice(cut));
   g.dispose();
-  return { parts: [a, b], map: texture };
+  return { parts: [a, b], map: this.texture };
 }
+}
+
+/** the page's captain mesh */
+export const captainMesh = new CaptainMesh();
+/** the generated mesh has loaded (buildCaptain then fits the rig to it before binding) */
+export function captainMeshLoaded(): boolean { return captainMesh.loaded(); }
+export function preloadCaptainMesh(): Promise<void> { return captainMesh.preload(); }
+export function captainMeshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry, THREE.BufferGeometry]; map: THREE.Texture | null } | null { return captainMesh.meshFor(bones); }

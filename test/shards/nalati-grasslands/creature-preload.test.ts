@@ -1,6 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Bone, BufferGeometry, Float32BufferAttribute, Group, MeshStandardMaterial, Skeleton, SkinnedMesh, Texture, Uint16BufferAttribute } from 'three';
-import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { NALATI_DEFINITIONS, NALATI_SPECIES, nalatiLook } from '#shards/nalati-grasslands/species/rows';
+import { CreatureRigs } from '#shards/nalati-grasslands/species/hulls';
+import manifest from '#shards/nalati-grasslands/manifest';
+import { AnimalFactory } from '#engine/entities/AnimalFactory';
+import { app, Scope } from '#engine';
 import { fakeWorld } from '../../fake/world';
 
 function rig(): GLTF {
@@ -16,17 +21,13 @@ function rig(): GLTF {
   return { scene, scenes: [scene], animations: [], cameras: [], asset: { version: '2.0' }, parser: {} as GLTF['parser'], userData: {} };
 }
 
-beforeEach(() => { vi.resetModules(); });
-
+// each case builds its own creature rigs with its own file loader (no module reset, no loader spy, E422)
 describe('Nalati creature boot barrier (E357 R9)', () => {
   it.each([false, true])('factory.ready waits for every rig, including when the last file fails (%s)', async (failLast) => {
     const pending: { resolve: (value: GLTF) => void; reject: (reason: Error) => void }[] = [];
     const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => new Promise<GLTF>((resolve, reject) => { pending.push({ resolve, reject }); }));
-    const { NALATI_LOOKS, NALATI_SPECIES } = await import('#shards/nalati-grasslands/species/rows');
-    const { default: manifest } = await import('#shards/nalati-grasslands/manifest');
-    const { AnimalFactory } = await import('#engine/entities/AnimalFactory');
-    const { app, Scope } = await import('#engine');
+    const load = vi.fn(() => new Promise<GLTF>((resolve, reject) => { pending.push({ resolve, reject }); }));
+    const rigs = new CreatureRigs(load), NALATI_LOOKS = NALATI_DEFINITIONS.map((def) => nalatiLook(def, rigs));
     const scope = new Scope('nalati-preload-test');
     app.levelScope = scope;
     for (const row of NALATI_SPECIES) app.species.registerRow(row, scope);

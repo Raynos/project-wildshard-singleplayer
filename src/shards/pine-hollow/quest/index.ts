@@ -82,10 +82,11 @@ export interface PineQuest {
 const TALK_R = 3.2;
 const _v = new THREE.Vector3();
 
-export async function installPineQuest(h: PineQuestHost): Promise<PineQuest> {
-  await preloadNpcModels();
+/** `deps`: the people's preload and the quest UI's loader (the page's by default; a test passes its own) */
+export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
+  await (deps.preload ?? preloadNpcModels)();
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
-  const { DialogueBox, QuestChip, NpcTalk, RewardCaption } = await loadQuest();
+  const { DialogueBox, QuestChip, NpcTalk, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
   const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const flags = new Flags(h.chunkId);

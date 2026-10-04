@@ -19,6 +19,7 @@ import { loadRigFile, retainCachedResources, variantDef, type BoneDef } from '#e
  * young wolves) — a hull can't be recoloured into a chestnut or a black horse.
  */
 import * as THREE from 'three';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { creatureRigUrl, type CreatureRigName } from './rigs';
 import { modelsOn } from '../world/glbPaint';
 
@@ -62,8 +63,6 @@ export interface RigAsset { geometry: THREE.BufferGeometry; map: THREE.Texture |
 
 /** the rigs whose surfaces are thin sheets (a wing is one layer of feathers): no back-face culling */
 const DOUBLE_SIDED: ReadonlySet<CreatureRigName> = new Set(['eagle']);
-const loading = new Map<CreatureRigName, Promise<RigAsset>>();
-const ready = new Map<CreatureRigName, RigAsset>();
 
 const isSkinned = (o: THREE.Object3D): o is THREE.SkinnedMesh => (o as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true;
 
@@ -74,10 +73,27 @@ function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute):
 }
 
 /** load one rig (cached): its geometry in the skeleton's rest space, the atlas, the joints' rest positions */
-export function loadCreatureRig(name: CreatureRigName): Promise<RigAsset> {
-  let p = loading.get(name);
+/** true when the rig's skin joints are `bones` by name, in order (their rest positions may be retargeted) */
+function jointsMatch(rig: RigAsset, bones: readonly BoneDef[]): boolean {
+  return rig.joints.length === bones.length && bones.every((b, i) => rig.joints[i]?.name === b.name);
+}
+
+/**
+ * The creature rig files: loaded once each, shared by every creature. The page has one (`creatureRigs`); a test builds its
+ * own with its own file loader instead of reloading the module or spying on a loader (E422).
+ */
+export class CreatureRigs {
+  private readonly loading = new Map<CreatureRigName, Promise<RigAsset>>();
+  private readonly ready = new Map<CreatureRigName, RigAsset>();
+  private preloaded: Promise<void> | null = null;
+  private readonly loadFile: (url: string) => Promise<GLTF>;
+  constructor(loadFile: (url: string) => Promise<GLTF> = loadRigFile) { this.loadFile = loadFile; }
+
+  /** one rig file, loaded and prepared once */
+  load(name: CreatureRigName): Promise<RigAsset> {
+  let p = this.loading.get(name);
   if (!p) {
-    p = loadRigFile(creatureRigUrl(name)).then((gltf) => {
+    p = this.loadFile(creatureRigUrl(name)).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const found: THREE.SkinnedMesh[] = [];
       gltf.scene.traverse((o) => { if (isSkinned(o)) found.push(o); });
@@ -111,34 +127,29 @@ export function loadCreatureRig(name: CreatureRigName): Promise<RigAsset> {
       const joints = sm.skeleton.bones.map((b) => ({ name: b.name, pos: new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) }));
       const out: RigAsset = { geometry, map, joints };
       retainCachedResources(out);
-      ready.set(name, out);
+      this.ready.set(name, out);
       return out;
     });
-    loading.set(name, p);
+    this.loading.set(name, p);
   }
   return p;
 }
 
-let preloaded: Promise<void> | null = null;
-export function preloadCreatureGlbs(): Promise<void> {
+  /** every rig, behind the loading screen (a failed one warns; its creatures stay procedural) */
+  preload(): Promise<void> {
   if (!modelsOn('creatures')) return Promise.resolve();
-  preloaded ??= Promise.all([...new Set(Object.values(HULL))].map((n) => loadCreatureRig(n).catch((e: unknown) => { console.warn(`[nalati] creature rig ${n} failed`, e); }))).then(() => undefined);
-  return preloaded;
-}
-
-/** true when the rig's skin joints are `bones` by name, in order (their rest positions may be retargeted) */
-function jointsMatch(rig: RigAsset, bones: readonly BoneDef[]): boolean {
-  return rig.joints.length === bones.length && bones.every((b, i) => rig.joints[i]?.name === b.name);
-}
+  this.preloaded ??= Promise.all([...new Set(Object.values(HULL))].map((n) => this.load(n).catch((e: unknown) => { console.warn(`[nalati] creature rig ${n} failed`, e); }))).then(() => undefined);
+  return this.preloaded;
+  }
 
 /**
  * The rigged hull for (kind, variant), bound to `bones` (the variant's skeleton). Null when the creature models are
  * off, the variant has no hull, the rig hasn't loaded yet, or it was baked against other bones.
  */
-export function skinCreatureGlb(kind: string, variant: string, bones: readonly BoneDef[]): SkinnedHull | null {
+  skin(kind: string, variant: string, bones: readonly BoneDef[]): SkinnedHull | null {
   const name = creatureHull(kind, variant);
   if (name === null) return null;
-  const rig = ready.get(name);
+  const rig = this.ready.get(name);
   if (!rig) return null;
   if (!jointsMatch(rig, bones)) { console.warn(`[nalati] creature rig ${name}: baked against other bones than ${kind}:${variant} — re-run scripts/nalati-rig-bake.mjs`); return null; }
   const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
@@ -146,3 +157,10 @@ export function skinCreatureGlb(kind: string, variant: string, bones: readonly B
   const map = coat && rig.map ? coatAtlas(`${name}:${kind}:${variant}`, coat, rig.geometry, rig.map, variantDef(kind, variant).tint) : rig.map;
   return { geometry: rig.geometry, map, bones: out, doubleSided: DOUBLE_SIDED.has(name) };
 }
+}
+
+/** the page's creature rigs */
+export const creatureRigs = new CreatureRigs();
+export function loadCreatureRig(name: CreatureRigName): Promise<RigAsset> { return creatureRigs.load(name); }
+export function preloadCreatureGlbs(): Promise<void> { return creatureRigs.preload(); }
+export function skinCreatureGlb(kind: string, variant: string, bones: readonly BoneDef[]): SkinnedHull | null { return creatureRigs.skin(kind, variant, bones); }

@@ -11,16 +11,17 @@ import { ironSwordDrop } from '../loadout/rows';
 import { preloadCaptainMesh } from '../species/captainMesh';
 import { preloadSailorHead } from '../species/sailor';
 
-export async function installDriftwoodAdventure(ctx: ShardContext): Promise<Adventure> {
+/** `deps`: the heroes' preload and the adventure's install (the shard's by default; a test passes its own) */
+export async function installDriftwoodAdventure(ctx: ShardContext, deps: { preload?: () => Promise<unknown>; install?: typeof installAdventure } = {}): Promise<Adventure> {
   const shell = ctx.game.runtime;
   const world = shell?.world, h = shell?.play;
   if (shell === undefined || world === undefined || world === null || h === undefined || h === null) throw new Error('Driftwood adventure requires the play host');
   // Saved used:altar restores the boss synchronously in Finale; resolve the hull before any quest restore/spawn.
-  await Promise.all([preloadCaptainMesh(), preloadSailorHead()]);
+  await (deps.preload ?? (() => Promise.all([preloadCaptainMesh(), preloadSailorHead()])))();
   if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during the creature mesh load');
   const { game, sky, player, registry, params } = world;
   const d = driftwoodWorld(shell);
-  const adventure = await installAdventure(ctx, { game, sky, player, registry, params, chunk: ctx.manifest,
+  const adventure = await (deps.install ?? installAdventure)(ctx, { game, sky, player, registry, params, chunk: ctx.manifest,
     prompts: shell.interactables, hud: h.hud, audio: h.audio, music: h.music, inventory: h.inventory, progress: h.progress, fullMap: h.fullMap, animals: h.animals,
     ironDrop: ironSwordDrop(shell), setViewmodel: (on) => { h.weapons.visible = on; }, stowWeapon: (on) => { h.weapons.stowed = on; },
     bridgeFloor: d.bridge === null ? undefined : (x, z) => d.bridge?.floorHeightAt(x, z),

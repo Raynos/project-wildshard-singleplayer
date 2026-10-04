@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Bone, BoxGeometry, MeshLambertMaterial, SkinnedMesh, Vector3 } from 'three';
 import type { PeopleRig, PersonKey } from '#shards/nalati-grasslands/campPeopleModels';
+import { buildCampPeople } from '#shards/nalati-grasslands/campPeople';
 import { fakeWorld } from '../../fake/world';
 
 function people(): PeopleRig<PersonKey> {
@@ -9,18 +10,14 @@ function people(): PeopleRig<PersonKey> {
     bones: { elder: bones(), herderGate: bones(), herderRail: bones(), child: bones(), cook: bones() } };
 }
 
-beforeEach(() => { vi.resetModules(); });
-
+// the rig loader is passed in, not spied on a module (E422)
 describe('Nalati people boot barrier (E357 R9)', () => {
   it.each([false, true])('ready resolves only after adoption or load failure (%s)', async (fail) => {
     let finish: (value: PeopleRig<PersonKey>) => void = () => { throw new Error('Not initialized'); };
     let failure: (reason: Error) => void = () => { throw new Error('Not initialized'); };
     const pending = new Promise<PeopleRig<PersonKey>>((resolve, reject) => { finish = resolve; failure = reject; });
-    const models = await import('#shards/nalati-grasslands/campPeopleModels');
-    vi.spyOn(models, 'loadPeopleRig').mockReturnValue(pending);
     const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const { buildCampPeople } = await import('#shards/nalati-grasslands/campPeople');
-    const built = buildCampPeople(fakeWorld().sky, () => 0, null);
+    const built = buildCampPeople(fakeWorld().sky, () => 0, null, undefined, () => pending);
     let ready = false;
     const done = built.ready.then(() => { ready = true; return undefined; });
     await Promise.resolve(); expect(ready).toBe(false);

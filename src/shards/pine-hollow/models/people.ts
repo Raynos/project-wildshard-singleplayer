@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { type Sky, type BoxSpec as Collider, defineModel, type ModelContext, type ModelDef } from '#engine';
 import { KINGS_CLEARING } from '../layout';
-import { loadNpcModel, npcRig, preloadNpcModels, type NpcRig } from '../quest/npcModels';
+import { npcModels, type NpcModels, type NpcRig } from '../quest/npcModels';
 import { MILLER, RANGER, TRADER } from '../quest/wardensHollow';
 
 export type NpcKind = 'ranger' | 'miller' | 'trader';
@@ -148,10 +148,10 @@ function lanternGlass(): THREE.BufferGeometry {
   return k.finish();
 }
 
-/** a stand-in NPC at `feet` facing `yaw` (the quest's one factory: PH-M4 replaces this body, nothing else) */
-export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: number; z: number }, yaw: number): NpcFigure {
+/** a stand-in NPC at `feet` facing `yaw` (the quest's one factory: PH-M4 replaces this body, nothing else); `models`: the page's people unless a test passes its own */
+export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: number; z: number }, yaw: number, models: NpcModels = npcModels): NpcFigure {
   const L = LOOKS[kind];
-  void preloadNpcModels(); // the play installer already awaited these; standalone specimens may still request them
+  void models.preload(); // the play installer already awaited these; standalone specimens may still request them
   const group = new THREE.Group();
   group.name = `npc-${kind}`;
   group.position.set(feet.x, feet.y, feet.z);
@@ -223,7 +223,7 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
       let d = want - cur; d = Math.atan2(Math.sin(d), Math.cos(d));
       cur += d * Math.min(1, dt * (heading === null ? 3 : 6));
       group.rotation.y = cur;
-      if (rig === null) { const r = npcRig(kind, sky); if (r) adopt(r); }
+      if (rig === null) { const r = models.rig(kind, sky); if (r) adopt(r); }
       if (rig !== null) {
         // idle / talk / point (npcModels.ts): the talk eases in and out; the ranger points toward the old-growth now and then
         talkK += ((fig.talking ? 1 : 0) - talkK) * Math.min(1, dt * 4);
@@ -240,7 +240,7 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
       mesh.rotation.z = fig.talking ? Math.sin(t * 2.3) * 0.025 : 0;
     },
   };
-  const loaded = npcRig(kind, sky);
+  const loaded = models.rig(kind, sky);
   if (loaded !== null) adopt(loaded);
   return fig;
 }
@@ -264,7 +264,7 @@ function person(id: string, kind: NpcKind): (ctx: ModelContext) => THREE.Object3
     fig.update(0, 0, NOBODY); // adopts the generated person when it has loaded, posed at rest
     if (!rigged()) {
       void (async (): Promise<void> => {
-        if (await loadNpcModel(kind) === null) return; // it failed: the stand-in stays, as in the hamlet
+        if (await npcModels.load(kind) === null) return; // it failed: the stand-in stays, as in the hamlet
         fig.update(0, 0, NOBODY);
         if (rigged() && 'document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));
       })();

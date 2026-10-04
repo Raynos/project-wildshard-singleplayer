@@ -1,6 +1,6 @@
 import { app, registerSpecies, speciesWithLook, type SpeciesDef, type SpeciesRow, type SpeciesLook, type SpeciesVariant, type VariantDef, type Scope } from '#engine';
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
-import { creatureHull, skinCreatureGlb, loadCreatureRig, preloadCreatureGlbs } from './hulls';
+import { creatureHull, creatureRigs, type CreatureRigs } from './hulls';
 import { HORSE_SPECIES } from './horse';
 import { WOLF_SPECIES } from './wolf';
 import { SHEEPDOG_SPECIES } from './sheepdog';
@@ -22,7 +22,8 @@ export function nalatiRow(def: SpeciesDef): SpeciesRow {
   return { ...row, id: `species.nalati.${def.kind}`, variants: variants.map(variantRow),
     ...(spawnOnly === undefined ? {} : { spawnOnly: spawnOnly.map(variantRow) }) };
 }
-export function nalatiLook(def: SpeciesDef): SpeciesLook {
+/** `rigs`: the page's creature rigs unless a test passes its own */
+export function nalatiLook(def: SpeciesDef, rigs: CreatureRigs = creatureRigs): SpeciesLook {
   const row = nalatiRow(def);
   const { rigContract, fur, build, pose, gait, postPose, rig, animate, damageMul, eyeGlow, eyeGlowIntensity } = def;
   return { id: `look.nalati.${def.kind}`, species: row.id, kind: def.kind, rigContract, fur, build,
@@ -35,14 +36,14 @@ export function nalatiLook(def: SpeciesDef): SpeciesLook {
       ...(v.traits === undefined ? {} : { traits: v.traits }),
     }])),
     material: painterlyAnimalMaterial,
-    preload: preloadCreatureGlbs,
+    preload: () => rigs.preload(),
     hasSkin: v => creatureHull(def.kind, v.id) !== null,
-    loadSkin: async v => { const name = creatureHull(def.kind, v.id); if (name !== null) await loadCreatureRig(name); },
-    skin: (v, bones) => { const hull = skinCreatureGlb(def.kind, v.id, bones); return hull === null ? null : { ...hull, normalMap: null, overgrown: false }; },
+    loadSkin: async v => { const name = creatureHull(def.kind, v.id); if (name !== null) await rigs.load(name); },
+    skin: (v, bones) => { const hull = rigs.skin(def.kind, v.id, bones); return hull === null ? null : { ...hull, normalMap: null, overgrown: false }; },
   };
 }
 export const NALATI_SPECIES = NALATI_DEFINITIONS.map(nalatiRow);
-export const NALATI_LOOKS = NALATI_DEFINITIONS.map(nalatiLook);
+export const NALATI_LOOKS = NALATI_DEFINITIONS.map((def) => nalatiLook(def));
 /** Dynamically derived elite kinds belong to the same resident scope as their parent. */
 export function registerNalatiDefinition(def: SpeciesDef, scope: Scope | null = app.levelScope): void {
   if (scope === null) { registerSpecies(def); return; }

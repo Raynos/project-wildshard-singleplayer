@@ -247,7 +247,8 @@ interface Live extends Person {
 
 const CHILD_RING = 2.3;
 
-export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => number, registry: WorldRegistry | null, scope?: Scope): CampPeople {
+/** `loadRig`: the people's rig loader (the shard's by default; a test passes its own) */
+export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => number, registry: WorldRegistry | null, scope?: Scope, loadRig: typeof loadPeopleRig = loadPeopleRig): CampPeople {
   const built: Record<PersonId, Parts> = { elder: BUILD.elder(), herderGate: BUILD.herderGate(), herderRail: BUILD.herderRail(), child: BUILD.child(), cook: BUILD.cook() };
   const ids = Object.keys(built) as PersonId[];
   let verts = 0;
@@ -311,7 +312,7 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
 
   // The play hook awaits ready behind the loading screen; the procedural batch remains only on a load failure.
   for (const id of ids) pose(fig[id]);
-  const ready = loadPeopleRig(sky, frames, models).then((r) => {
+  const ready = loadRig(sky, frames, models).then((r) => {
     scope?.own(r.mesh.geometry); scope?.own(r.mesh.skeleton);
     for (const material of Array.isArray(r.mesh.material) ? r.mesh.material : [r.mesh.material]) {
       if (material instanceof THREE.MeshLambertMaterial && material.map) scope?.own(material.map);
