@@ -135,7 +135,9 @@ export function compareEdges(recorded, current) {
 
 const sorted = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
 
-function main(argv) {
+function main(input) {
+  const sourceOnly = input.includes('--source-only');
+  const argv = input.filter((arg) => arg !== '--source-only');
   const exists = (p) => existsSync(resolve(ROOT, p));
   if (argv[0] === '--paths') {
     // pre-commit: for the staged files only, the edges they add against HEAD's copy (counts may only fall)
@@ -149,15 +151,19 @@ function main(argv) {
     // and a file the commit deletes still counts in HEAD's graph (its edges leave with it)
     const deleted = execFileSync('git', ['diff', '--cached', '--no-renames', '--name-only', '--diff-filter=D', '--', 'src'], { cwd: ROOT, encoding: 'utf8' }).split('\n')
       .filter((p) => /^src\/.*\.[cm]?[jt]sx?$/u.test(p) && !p.endsWith('.d.ts') && !paths.includes(p));
-    const now = graph(present, staged, exists), before = graph([...paths, ...deleted].filter((p) => head(p) !== ''), head, (p) => headModuleExists(p, headFiles, exists));
+    const stagedFiles = new Set(execFileSync('git', ['ls-files', '--cached', '--', 'src'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 }).split('\n'));
+    const now = graph(present, staged, (p) => headModuleExists(p, stagedFiles, exists)), before = graph([...paths, ...deleted].filter((p) => head(p) !== ''), head, (p) => headModuleExists(p, headFiles, exists));
     const failures = [];
     // a rise the same commit records in lint/layer-edges.json (`--update`, a reviewed crossing) passes
     const recorded = (read) => { try { return JSON.parse(read(EDGES_FILE)).edges ?? {}; } catch { return {}; } };
     const headRec = recorded(head), stagedRec = recorded(staged);
     for (const [key, n] of Object.entries(now.edges)) {
       const rise = n - (before.edges[key] ?? 0), allowed = (stagedRec[key] ?? 0) - (headRec[key] ?? 0);
-      if (rise > 0 && rise > allowed) failures.push(`${key} rises by ${rise} in this commit (record a reviewed crossing with node scripts/check-graph.mjs --update)`);
+      if (rise > 0 && sourceOnly) console.warn(`check-graph: ${key} rises by ${rise}; coordinator approval required in the serialized regeneration commit`);
+      else if (rise > 0 && rise > allowed) failures.push(`${key} rises by ${rise} in this commit (record a reviewed crossing with node scripts/check-graph.mjs --update)`);
     }
+    const combined = { ...headRec, ...now.edges };
+    failures.push(...compareEdges(combined, combined).failures);
     const old = new Set(before.violations);
     failures.push(...now.violations.filter((v) => !old.has(v)));
     if (failures.length > 0) { console.error(`check-graph (AG7):\n  ${failures.join('\n  ')}`); return 1; }

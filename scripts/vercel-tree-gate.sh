@@ -18,11 +18,22 @@ ROOT="$PWD"
 sha="$(git rev-parse --verify "${1:-HEAD}^{commit}")" || exit 1
 short="$(git rev-parse --short "$sha")"
 stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate-platform-ratchets-v5-devserver"
+# Historical pins keep their original gate; the source-only workflow begins with its runner wiring.
+generated_workflow=0
+if git show "$sha:scripts/push-main.sh" | grep -q 'node scripts/regenerate-committed.mjs'; then
+  generated_workflow=1
+  stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate-platform-ratchets-v6-generated"
+fi
 if [ -f "$stamp_dir/$sha" ]; then echo "vercel-gate: $short already passed"; exit 0; fi
 
 work="$(cd "$(mktemp -d -t vercel-gate)" && pwd -P)" || exit 1 # canonical: /var is a symlink on macOS (E432)
 trap 'rm -rf "$work"' EXIT
 fail() { echo "vercel-gate: FAILED at $short — $1" >&2; echo "            (Vercel would have built this tree and gone red; fix it and commit, then push again)" >&2; exit 1; }
+
+# Verify the full committed docs and policy inputs before Vercel's filter drops docs/.
+if [ "$generated_workflow" = 1 ]; then
+  node "$ROOT/scripts/regenerate-committed.mjs" --check "$sha" || fail "generated outputs and increase receipts"
+fi
 
 # ── 1. what Vercel uploads: the commit's files minus its .vercelignore (gitignore syntax, checked in an empty repo) ──
 git init -q "$work/ign"

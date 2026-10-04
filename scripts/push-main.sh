@@ -24,6 +24,9 @@ if [ "${1:-}" != "--locked" ]; then
 fi
 
 for _ in 1 2 3 4 5 6; do
+  # SF6b: one clean committed export and private-index regeneration while this pusher holds the lock.
+  # Increases require GENERATED_APPROVAL_FILE with the coordinator's exact reviewed receipt.
+  node scripts/regenerate-committed.mjs || exit $?
   ahead="$(git rev-list --count origin/main..main)"
   if [ "$ahead" = 0 ]; then
     echo "push-main: origin/main has every local commit ($(git rev-parse --short main))"

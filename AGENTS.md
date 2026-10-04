@@ -59,8 +59,8 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 - **The guards** (`lint/wildshard-plugin.js`, ENGINE.md §24): `layer`, `public-index`, `engine-words`, `shard-names`,
   `shard-sandbox`, `no-level-identity`, `no-shard-branch`, the `no-raw-*` rules, the ratchet (`lint/ratchet.json`), the
   layout check and the pre-commit runner. Never disable one; fix the code.
-- ENGINE.md is the public API: after an index change run `ENGINE_DOC_WRITE=1 pnpm exec vitest run
-  test/engine-docs.test.ts` and describe the new API. A new shard starts from `src/shards/_template/` per SHARDS.md.
+- ENGINE.md is the public API: document new APIs in source and its manual sections. Builders commit source only;
+  the serialized pusher regenerates tables, graph counts and debt from clean HEAD (SF6b; GIT.md). A new shard starts from `src/shards/_template/` per SHARDS.md.
 - **The E357 lock** is lifted (GAME-NORMALIZATION archived 2026-10-01; `.github/lock.json` `"locked": false`).
 
 ## Version control → [docs/process/GIT.md](docs/process/GIT.md)

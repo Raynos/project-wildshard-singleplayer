@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { GENERATED_FILES, generatedIncreases, generatedPart, increaseTrailers, replaceDebt, verifyIncreaseTrailers } from './generated-policy.mjs';
 
@@ -42,9 +43,17 @@ export async function regenerateCommitted(root, approvalFile) {
       const changed = Object.entries(candidate.outputs).filter(([file, content]) => execFileSync('git', ['show', `${base}:${file}`], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }) !== content);
       if (text(root, ['rev-parse', 'HEAD']) !== base) continue;
       if (changed.length === 0) { console.log(`generated-files: ${base.slice(0, 9)} already current`); return base; }
-      const index = resolve(scratch, 'index'), env = { ...process.env, GIT_INDEX_FILE: index };
+      const index = resolve(scratch, 'index'), env = { ...process.env, GIT_INDEX_FILE: index, WILDSHARD_GENERATED_SOURCE: base };
       text(root, ['read-tree', base], undefined, env);
       for (const [file, content] of changed) text(root, ['update-index', '--add', '--cacheinfo', `100644,${text(root, ['hash-object', '-w', '--stdin'], content)},${file}`], undefined, env);
+      if (existsSync(resolve(root, '.githooks/pre-commit'))) {
+        const hook = spawnSync(resolve(root, '.githooks/pre-commit'), [], { cwd: root, env, encoding: 'utf8' });
+        if (hook.error) throw hook.error;
+        if (hook.status !== 0) {
+          if (text(root, ['rev-parse', 'HEAD']) !== base) continue;
+          throw new Error(`Generated pre-commit failed: ${hook.stderr.length > 0 ? hook.stderr : hook.stdout}`);
+        }
+      }
       const message = `SHARD-PLATFORM SF6b: regenerate committed outputs at the serialized push (E435)\n\nGenerated-Source: ${base}\n${trailers}\n\nCo-Authored-By: Codex GPT-6.1 Sol <noreply@openai.com>\nPlan-State: unchanged\n`;
       const messageFile = resolve(scratch, 'message'); writeFileSync(messageFile, message);
       if (existsSync(resolve(root, '.githooks/commit-msg'))) execFileSync(resolve(root, '.githooks/commit-msg'), [messageFile], { cwd: root, env, stdio: 'inherit' });
@@ -57,10 +66,19 @@ export async function regenerateCommitted(root, approvalFile) {
         const old = text(root, ['rev-parse', `${base}:${file}`]);
         let staged;
         try { staged = text(root, ['rev-parse', `:${file}`]); } catch { staged = ''; }
-        if (staged === old) text(root, ['update-index', '--cacheinfo', `100644,${text(root, ['rev-parse', `${sha}:${file}`])},${file}`]);
+        if (staged === old) {
+          for (let retry = 0; retry < 20; retry++) {
+            if (text(root, ['rev-parse', `:${file}`]) !== old) { staged = ''; break; }
+            const aligned = spawnSync('git', ['update-index', '--cacheinfo', `100644,${text(root, ['rev-parse', `${sha}:${file}`])},${file}`], { cwd: root, encoding: 'utf8' });
+            if (aligned.error) throw aligned.error;
+            if (aligned.status === 0) break;
+            if (!aligned.stderr.includes('index.lock') || retry === 19) throw new Error(aligned.stderr);
+            await sleep(100);
+          }
+        }
         const disk = resolve(root, file);
         const original = execFileSync('git', ['show', `${base}:${file}`], { cwd: root, encoding: 'utf8' });
-        if (existsSync(disk) && readFileSync(disk, 'utf8') === original) writeFileSync(disk, content);
+        if (staged === old && existsSync(disk) && readFileSync(disk, 'utf8') === original) writeFileSync(disk, content);
         else console.warn(`generated-files: preserved working edits in ${file}; committed output is current`);
       }
       console.log(`generated-files: committed ${sha} from ${base} (${changed.length} outputs)`);

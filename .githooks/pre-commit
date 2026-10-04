@@ -39,8 +39,10 @@ Save them as JPEG / WebP instead:
 EOF
   exit 1
 fi
-# E362 AG7: the layer edges the staged src files add against HEAD (counts may only fall; no new shard reach).
-node scripts/check-graph.mjs --paths $(git diff --cached --name-only --diff-filter=ACMR -- src) || exit 1
+# SF6b: builders land source only; the serialized pusher owns generated measurements and docs.
+node scripts/precommit-generated.mjs || exit 1
+# E362 AG7: increases warn for exact coordinator approval; reach and cycle checks stay fatal.
+node scripts/check-graph.mjs --source-only --paths $(git diff --cached --name-only --diff-filter=ACMR -- src) || exit 1
 # E423: a staged ask file follows the ask rules (docs/process/ASKS.md: Status vocabulary, folds name a target,
 # one live Handoff per lane, none once closed).
 node scripts/asks.mjs check || exit 1

@@ -187,14 +187,17 @@ describe('AG20 staged content isolation', () => {
     put(f.root, 'src/engine/example.ts', 'export const value = 2;');
     const result = f.run(); expect(result.status).toBe(1); expect(result.stderr).toContain('no-raw-save');
   });
-  it('checks the per-file ratchet, locks a cleaned staged file and permits a lowered staged baseline', () => {
+  it('warns about per-file legacy changes for central regeneration while keeping source commits independent', () => {
     const f = repo();
     put(f.root, 'lint/ratchet.json', JSON.stringify({ 'wildshard/no-raw-random-time': { 'src/engine/example.ts': 1, 'src/engine/unrelated.ts': 2 } }));
     put(f.root, 'src/engine/example.ts', 'export const value = Math.random();');
     f.git('add', '--', 'lint/ratchet.json', 'src/engine/example.ts');
     expect(f.run().status).toBe(0);
     put(f.root, 'src/engine/example.ts', 'export const value = 2;'); f.git('add', '--', 'src/engine/example.ts');
-    expect(f.run().stderr).toContain('is clean');
+    const cleaned = f.run(); expect(cleaned.status).toBe(0); expect(cleaned.stderr).toContain('central regeneration');
+    put(f.root, 'src/engine/example.ts', 'export const value = Math.random() + Math.random();'); f.git('add', '--', 'src/engine/example.ts');
+    const rose = f.run(); expect(rose.status).toBe(0); expect(rose.stderr).toContain('coordinator approval');
+    put(f.root, 'src/engine/example.ts', 'export const value = 2;'); f.git('add', '--', 'src/engine/example.ts');
     put(f.root, 'lint/ratchet.json', JSON.stringify({ 'wildshard/no-raw-random-time': { 'src/engine/unrelated.ts': 2 } }));
     f.git('add', '--', 'lint/ratchet.json'); expect(f.run().status).toBe(0);
   });

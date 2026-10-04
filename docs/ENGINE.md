@@ -53,9 +53,9 @@ shard. One section per § of [01-architecture](../project/archive/game-normaliza
   under another name, the section says so.
 - **It can't drift.** [`test/engine-docs.test.ts`](../test/engine-docs.test.ts) reads `lint/api-surface.json` (every
   export of every public module, built by `scripts/gen-api.mjs`) and fails when an export is missing from the
-  [appendix](#appendix-every-export) or the appendix names one that is gone. After a public module changes, run
-  `node scripts/gen-api.mjs` and `ENGINE_DOC_WRITE=1 pnpm exec vitest run test/engine-docs.test.ts`, then describe the
-  new API in its section.
+  [appendix](#appendix-every-export) or the appendix names one that is gone. Builders document public APIs in source
+  and in the manual sections here; the serialized pusher regenerates the tables and appendix from clean committed
+  input before the gate (SF6b). Do not generate or commit these outputs from the shared working tree.
 
 **No barrels (E434).** There is no index file. The three layers are workspace packages (`pnpm-workspace.yaml`), and
 each `package.json`'s `exports` lists the layer's public modules one by one. An import names the module that defines
@@ -1707,10 +1707,12 @@ collision, and proves damage and quest completion without a renderer, DOM or act
 | `wildshard/no-hook-chain` | `const prev = x.onFoo` hook chaining | ratchet |
 | `wildshard/no-renderer-type` | `WebGLRenderer` outside `src/engine/render` | ratchet |
 
-**How the ratchet works.** `lint/ratchet.json` holds `{ rule: { file: count } }`. A count may only go down; a file not
-listed is allowed 0, so a new shard starts clean on every rule. A file that reached 0 must lower its line in the same
-commit (`node lint/ratchet.mjs --update`). A rule whose total reaches 0 moves to `.oxlintrc.json` as a hard error. The
-Debug-row count has its own cap (`debugRows`).
+**How the ratchet works.** `lint/ratchet.json` holds `{ rule: { file: count } }`. Builders commit source only; the
+serialized pusher measures and lowers debt from a clean HEAD export. A new file starts at 0; an increase warns in
+pre-commit and requires an exact coordinator approval trailer in the generated commit before the gate accepts it.
+A rule whose total reaches 0 still moves to `.oxlintrc.json` as a hard error. Allow lists, budgets and the Debug-row
+cap (`debugRows`) are human-reviewed source policy and never regenerate. Historical allowances and SF2's
+`lint/shard-coupling.json` remain shrink-only. See [GIT.md](process/GIT.md) for the receipt and source-only workflow.
 
 **The other checks a shard meets**
 
@@ -1719,7 +1721,7 @@ Debug-row count has its own cap (`debugRows`).
 | `scripts/precommit-guards.mjs` (`.githooks/pre-commit`) | every `git commit` | the commit's own files: oxlint, the custom rules against the ratchet, the shard layout when `src/shards/**` is touched, `gen-shards --check` when a manifest is touched |
 | `tsc -b tsconfig.layers.json` (AG4) | `pnpm typecheck` (CI), the push gate | the layers as TypeScript projects (`tsconfig.engine.json` → `.game` → `.kit` → `.shards`, declarations to the gitignored `.tsc-layers/`): an import that reaches up a layer in any syntax (type-only, `import()` types, a JSON file) fails with TS6307. The shard list is the composition root's (`src/shards.generated.ts`, installed by `src/shardList.ts` into `src/game/shard/list.ts`); the game sees only `ShardSlug` (`src/game/shard/slugs.generated.ts`); content icons reach the game as data (`BagIcons` from the kit, a compendium skin's `icon`) |
 | `scripts/gen-api.mjs` (AG21) | `pnpm test` | the public surface, generated: every `@wildshard/engine` / `@wildshard/game` / `@wildshard/kit` export and `ShardContext` member with its kind and first doc line in `lint/api-surface.json`, rendered to `docs/api/` (ENGINE, GAME, KIT, SHARD-CONTEXT). `--check` fails when stale, or when more lack a doc line than `lint/api-undocumented.json` allows (647, may only fall) |
-| `scripts/check-graph.mjs` (AG7) | pre-commit (`--paths`: the edges the staged files add), `pnpm test` (CI, push gate) | cross-layer import counts per pair in `lint/layer-edges.json` (`shards/pine-hollow → engine 349`): a new pair, a rising count or a two-way pair fails, `--update` lowers; only `src/game/shard/shards.generated.ts` imports a shard (its manifest), and a plugin loads only by `import()` from its own manifest |
+| `scripts/check-graph.mjs` (AG7) | pre-commit (`--source-only --paths`), `pnpm test` (CI, push gate) | staged increases warn for exact coordinator approval in central regeneration; committed counts are checked from clean input. Shard reach and two-way pairs stay fatal; only the generated registry imports shard manifests, and a plugin loads only by `import()` from its own manifest |
 | `scripts/gen-shards.mjs --check` (AG10) | push gate, `pnpm test` (`test/gen-shards.test.ts`) | the manifest contract: `load` is `() => import('./plugin')` and nothing imports `./plugin` statically; the manifest's static closure stays within `lint/manifest-closure-budget.json` (may only fall; `default` for a new shard); every `ShardManifest` field is read by the engine, the game or the tooling |
 | `scripts/check-shards.mjs` (AG9) | pre-commit, `pnpm test` via `check-paths` | the folder layout in `lint/shard-layout.json`: required files, canonical folders, slug = folder name, `manifest.slug` = folder |
 | `scripts/gen-shards.mjs --check` | gate | the generated registry and the shard word list are current |

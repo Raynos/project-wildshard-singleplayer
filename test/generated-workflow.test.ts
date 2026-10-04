@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real commits and child generators run in an isolated fixture repository.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own throwaway repositories only.
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Canonical temporary fixture paths.
@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Canonical temporary fixture paths.
 import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture package links from the real checkout.
-import { cwd } from 'node:process';
+import { cwd, execPath } from 'node:process';
 import { describe, expect, it } from 'vitest';
 import { generatedFiles } from '../scripts/generated-files.mjs';
 import { checkCommitted, regenerateCommitted } from '../scripts/regenerate-committed.mjs';
@@ -44,6 +44,22 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
   })();
 }
 describe('SF6b clean committed regeneration', () => {
+  it('warns about source-only graph increases but keeps shard reach and cross-layer cycles fatal', async () => {
+    await fixture((root, put, git) => {
+      put('src/game/clock.ts', "import { tick } from '@wildshard/engine/clock';\nexport const gameTick = tick;\n");
+      git(['add', '--', 'src/game/clock.ts']);
+      const args = ['scripts/check-graph.mjs', '--source-only', '--paths', 'src/game/clock.ts'];
+      const warning = spawnSync(execPath, args, { cwd: root, encoding: 'utf8' });
+      expect(warning.status, warning.stderr).toBe(0); expect(warning.stderr).toContain('coordinator approval');
+      put('src/engine/clock.ts', "import { gameTick } from '@wildshard/game/clock';\nexport const tick = gameTick;\n"); git(['add', '--', 'src/engine/clock.ts']);
+      const cycle = spawnSync(execPath, [...args, 'src/engine/clock.ts'], { cwd: root, encoding: 'utf8' });
+      expect(cycle.status).toBe(1); expect(cycle.stderr).toContain('cycle across');
+      put('src/shards/alpha/plugin.ts', 'export const run = 1;'); git(['add', '--', 'src/shards/alpha/plugin.ts']);
+      put('src/game/clock.ts', "import { run } from '../shards/alpha/plugin';\nexport const gameTick = run;\n"); git(['add', '--', 'src/game/clock.ts']);
+      const reach = spawnSync(execPath, args, { cwd: root, encoding: 'utf8' });
+      expect(reach.status).toBe(1); expect(reach.stderr).toContain('reaches into');
+    });
+  });
   it('checks staged generated edits while allowing source-only commits and manual prose or policy edits', async () => {
     await fixture((root, put, git) => {
       const baseline = readFileSync(resolve(root, 'lint/api-surface.json'), 'utf8');
@@ -76,6 +92,7 @@ describe('SF6b clean committed regeneration', () => {
       // Independent working edits must not enter the clean export or be overwritten by its private-index landing.
       put('src/engine/clock.ts', '/** Foreign WIP. */\nexport const unpublished = 9;\n');
       put('lint/layer-edges.json', '{"edges":{"foreign":99}}');
+      put('docs/api/ENGINE.md', 'Independent staged table edit.\n'); git(['add', '--', 'docs/api/ENGINE.md']);
       const sha = await pending;
       expect(git(['rev-list', '--count', `${source}..HEAD`])).toBe('1');
       expect(git(['show', '-s', '--format=%B', sha])).toContain(`Generated-Source: ${source}`);
@@ -84,7 +101,9 @@ describe('SF6b clean committed regeneration', () => {
       expect(git(['show', `${sha}:src/engine/clock.ts`])).toContain('paused');
       expect(readFileSync(resolve(root, 'src/engine/clock.ts'), 'utf8')).toContain('unpublished');
       expect(readFileSync(resolve(root, 'lint/layer-edges.json'), 'utf8')).toContain('foreign');
-      expect(git(['diff', '--cached', '--name-only'])).toBe('');
+      expect(git(['diff', '--cached', '--name-only'])).toBe('docs/api/ENGINE.md');
+      expect(git(['show', ':docs/api/ENGINE.md'])).toBe('Independent staged table edit.');
+      expect(readFileSync(resolve(root, 'docs/api/ENGINE.md'), 'utf8')).toBe('Independent staged table edit.\n');
       expect(JSON.parse(git(['show', `${sha}:lint/ratchet.json`]))).toEqual(policy);
       await expect(checkCommitted(root, sha)).resolves.toBeUndefined();
       expect(await regenerateCommitted(root)).toBe(sha);

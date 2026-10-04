@@ -28,6 +28,19 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **Push with `scripts/push-main.sh`, never `git push`** (enforced by `.claude/hooks/guard-bash-safety.sh`). It takes
   `.git/push.lock`. If another push holds the lock, your commits stay local and it exits 0: that push re-checks
   `origin/main..main` before it lets go, so it carries yours. Rare escape: `SKIP_PUSHLOCK=1`.
+- **Builders commit source only (E435 SF6b).** Leave `lint/api-surface.json`, `docs/api/*.md`, ENGINE.md's marked
+  export appendix, `lint/layer-edges.json`, ratchet debt counts and `scripts/README.md` to the serialized pusher.
+  It renders a clean committed export into a private index, retries a moved HEAD, and lands one generated commit
+  before the gate. Working and staged edits from another builder stay untouched; never hand-merge these outputs.
+  Write JSDoc and manual API explanations with the source. The gate checks the complete committed docs before
+  Vercel filters them out, and refuses stale bytes or generated edits outside the regeneration commit.
+- **Policy is source, never generated.** Ratchet allow lists, budgets and Debug-row caps require the coordinator's
+  reviewed source commit. SF2 `lint/shard-coupling.json` and historical allowances remain shrink-only. Debt and
+  graph reductions regenerate automatically; increases warn in pre-commit and require the coordinator's exact
+  receipt at push: `GENERATED_APPROVAL_FILE=<absolute-json-file> scripts/push-main.sh`. The JSON contains
+  `approver: "wildshard-new"` and the exact `increases` list printed by the runner; it refuses absent, duplicate,
+  extra or stale entries. The generated commit records `Generated-Source`, `Generated-Approver` and each
+  canonical `Generated-Increase` trailer. Hard rules, zero-debt promotion and ambient checks stay fatal.
 - **No tree-wide destructive git, no escape:** `git restore .` / `checkout .`, a bare `git stash`, `git reset --hard`
   and `git clean -f` without paths are blocked. Name the paths you authored.
 - **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB (save JPEG / WebP) and any

@@ -40,7 +40,7 @@ export function compareCounts(baseline, current, hard, paths, update = false, de
       const was = previous[file] ?? 0, count = now[file] ?? 0;
       if (count > was) (defer && !hard.has(key) ? warnings : failures).push(`${file}: ${key} was ${was}, now ${count}${defer && !hard.has(key) ? ' (requires coordinator approval in the pusher regeneration commit)' : ''}`);
       else if (was > 0 && count === 0 && !update && !defer) failures.push(`${file}: ${key} is clean; run pnpm lint:ratchet --update in this commit`);
-      else if (count < was) warnings.push(`${file}: ${key} was ${was}, now ${count} (partial slack; lower the ratchet)`);
+      else if (count < was) warnings.push(`${file}: ${key} was ${was}, now ${count} (${defer ? 'central regeneration will lower the debt' : 'partial slack; lower the ratchet'})`);
     }
     if (!selected && Object.hasOwn(baseline, key) && Object.values(now).every((n) => n === 0) && !hard.has(key)) {
       failures.push(`${key} reached zero: move it to .oxlintrc.json's src override before removing its ratchet section`);
