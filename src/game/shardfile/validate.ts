@@ -75,6 +75,17 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     scriptMemory += admission.maximumPages * 65536 * 3;
   }
   if (s.sim.scripts.length > SCRIPT_LIMITS.instances || scriptMemory > SCRIPT_LIMITS.memoryBytes || criticalResident + scriptMemory > s.budgets.sim.resident || criticalResident + scriptMemory > s.serverBudget.memory) throw new Error('script memory budget understated or above host cap');
+  let clientMemory = 0;
+  const clientModules = new Set(s.clientScripts.bindings.map((binding) => binding.module));
+  for (const module of clientModules) {
+    let admission = admissions.get(module);
+    if (admission === undefined) {
+      const bytes = assets.get(module); if (bytes === undefined) throw new Error('unavailable client script');
+      admission = admitScript(bytes); admissions.set(module, admission);
+    }
+    clientMemory += admission.maximumPages * 65536 * 3;
+  }
+  if (clientModules.size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || sum(s.library).resident + clientMemory > s.budgets.library.resident) throw new Error('client script memory budget understated or above host cap');
   const cost = worstContentCost(s, commons);
   if (cost.playing > C.playing || cost.loading > C.loading) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
   if (s.terrain !== null) validateTerrainAssets(s.terrain, assets, s);

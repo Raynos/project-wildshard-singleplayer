@@ -18,6 +18,7 @@ integers. MB means 1,000,000 bytes. The platform owns caps in
 | `budgets` | Library resident ≤25 MB and wire ≤8 MB; sim resident ≤25 MB and critical wire ≤2 MB; decode/refinement slack ≤80 MB. |
 | `look` | Fixed platform family names; grade exposure/saturation/contrast and optional LUT reference; engine clock with an optional `day`; optional normalised day override; ordered day keys carrying sky gradient, fog, sun and ambient values (below). |
 | `sim` | 60 Hz fixed step; positive script tick divisor dividing 60; command and snapshot schema version 0; script references. |
+| `clientScripts` | Optional/default-empty presentation lane: cadence dividing 60, named creature/panel/prop/particle targets, selected public/owner numeric fields, bounded pose and emitters. |
 | `rows` | Optional/default-empty numeric strikes, weather output tables, day schedules, species/variants, registered look recipes, compendium and loot presentation data. |
 | `terrain`, `water` | Optional/null bounded baked terrain binding; optional/default-empty declared pools, sea and streams. |
 | `creatures`, `encounters` | Optional/default-empty reusable brains, stable spawns and phase tables; each actor has one controller and resolves declared species/variant/strike and boss panel references. |
@@ -105,6 +106,32 @@ memories per unique module (live, last-good, in-flight), including permitted gro
 plus the critical assets. Multiple bindings share that module reservation. The
 result must fit both declared sim resident and server memory budgets and the host
 24 MB script pool. Critical commons bytes also count against the wire cap.
+
+Client scripts run in an isolated `ClientScriptLane`, independently of authoritative
+simulation ticks. Frozen neighbours animate without changing colliders, health,
+shared state or the simulation clock. Bindings select a library Wasm module,
+stable positive visual entity ID, name and target (`creature`, `panel`, `prop`, or
+`particles` with a cell-local `at`). Creature/panel/prop IDs must exist; each target
+has one visual writer. Modules cannot also be sim modules. `reads: [{scope, id}]`
+selects up to 24 numeric fields by stable ID: shared reads must be public, player
+reads public or owner-visible. The platform supplies the actor and copies its
+permitted state. Bytecode receives no authoritative world or physics-query port.
+A frozen render-only neighbour with `reads: []` needs no state world; requested
+reads require an owned state view.
+
+Input is `[tick, divisor/60, frozen, self, x, y, z, readCount, ...values]`. Query 410
+with eight zero arguments returns up to 64 declared numeric parameters. Effects
+101/102/103 set relative offset/rotation/scale, within authored limits: offset at
+most 50 m, rotation ±π, scale 0.01–16. Effect 104 requests
+`[emitterId, count, 0, 0]` particles. An admitted `platform.particles` emitter
+declares linear RGB colour, size, velocity, gravity, lifetime (1–3,600 ticks),
+per-tick and live counts. Aggregate ceilings are 256 particles/tick and 4,096
+live across all bindings. Authoritative writes, spawns, events and physics queries
+are refused. The complete batch validates before any visual output commits.
+Modules share one private guest per module; three maximum-sized memory copies
+are charged to the library budget and a per-instance library allocator claim.
+Same-engine visual continuation restores memory, globals, lifetimes, quotas and
+failure history without running an authoritative tick.
 
 Named hook conditions resolve a stable numeric field ID and a typed equality value.
 Shared conditions read public fields; player conditions may read the owning actor's

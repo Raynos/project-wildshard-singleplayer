@@ -18,6 +18,7 @@ import { TargetsSchema, targetRules } from './targets';
 import { ItemsSchema, itemRules } from './items';
 import { TraversalSchema } from './traversal';
 import { RuntimeSchema } from './runtime';
+import { ClientScriptsSchema, clientScriptRules } from './clientScripts';
 import { skinLookRules } from './skins';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs } from './materials';
 
@@ -69,6 +70,7 @@ const rawSchema = v.strictObject({
   props: v.optional(v.nullable(PropsSchema), null),
   targets: v.optional(TargetsSchema, { panels: [], interactions: [] }),
   traversal: v.optional(TraversalSchema, { hoverCap: 15 }),
+  clientScripts: v.optional(ClientScriptsSchema, { divisor: 2, bindings: [] }),
   runtime: v.optional(v.nullable(RuntimeSchema), null),
   spawn: v.optional(v.strictObject({ x: finite, y: finite, z: finite, yaw: finite }), { x: 0, y: 2, z: 0, yaw: 0 }),
 });
@@ -134,6 +136,7 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...targetRules(s.targets, s, s.props));
   errors.push(...itemRules(s.items, s.sim.scripts));
   errors.push(...skinLookRules(s));
+  errors.push(...clientScriptRules(s));
   if (s.props !== null) {
     try { validatePropsReferences(s.props, s); } catch { errors.push('declared prop references'); }
     if (!materialExists(s.look.materials, s.props.family)) errors.push('declared prop material');

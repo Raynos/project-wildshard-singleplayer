@@ -20,7 +20,8 @@
     "./bake/export": "./bake/export.ts",
     "./traversal": "./traversal.ts",
     "./movers": "./movers.ts",
-    "./director": "./director.ts"
+    "./director": "./director.ts",
+    "./clientScripts": "./clientScripts.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -116,6 +117,10 @@
       "./director": {
         "types": "./dist/types/sdk/director.d.ts",
         "default": "./dist/director.js"
+      },
+      "./clientScripts": {
+        "types": "./dist/types/sdk/clientScripts.d.ts",
+        "default": "./dist/clientScripts.js"
       }
     }
   }

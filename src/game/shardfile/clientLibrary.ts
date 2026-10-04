@@ -1,6 +1,7 @@
 import type { ShardContext } from '../shard/context';
 import type { ResidencyAllocator, ResidencyClaim } from '../grid/allocator';
 import { assetCost } from './assets';
+import { admitScript } from '@wildshard/engine/script/admission';
 import type { Shardfile } from './schema';
 
 /** Reserve only library and commons bytes in the session's one allocator; render rings and the sim registry own their claims. */
@@ -18,6 +19,11 @@ export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string
     const bytes = assets.get(`commons:${hash}`); if (bytes === undefined) throw new Error('Missing admitted commons residency');
     const kind = bytes[0] === 171 ? 'ktx2' : bytes[0] === 103 ? 'glb' : bytes[0] === 82 ? 'audio' : 'binary', cost = assetCost(kind, bytes);
     claims.push({ id: `commons:${hash}`, category: 'commons', bytes: cost.decoded + cost.gpu, owner: 'platform', distance: 0, needed: true });
+  }
+  for (const module of new Set(source.clientScripts.bindings.map((binding) => binding.module))) {
+    const bytes = assets.get(module); if (bytes === undefined) throw new Error('Missing admitted client script');
+    // Guest memory is per instance, unlike shared immutable library bytes.
+    claims.push({ id: `library:${ports.owner}:client-memory:${module}`, category: 'library', bytes: admitScript(bytes).maximumPages * 65536 * 3, owner: ports.owner, distance: 0, needed: true });
   }
   const leases: ReturnType<ResidencyAllocator['reserve']>[] = [];
   try {
