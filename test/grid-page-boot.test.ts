@@ -2,7 +2,9 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as boot from '../src/game/grid/boot';
 import * as debug from '../src/game/grid/debug';
-import { preparePageResidency, validatePlannedGridReload } from '../src/game/grid/pageBoot';
+import { preparePageResidency, validatePlannedGridReload, preflightGridReload } from '../src/game/grid/pageBoot';
+import { PageResidency } from '../src/game/grid/pageResidency';
+import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { installPlannedGridReload } from '../src/game/grid/reloadBoot';
 import { GridAssembly } from '../src/game/grid/assembly';
 import * as revisions from '../src/game/grid/reloadRevision';
@@ -58,7 +60,7 @@ it('lets admitted data reserve its sim before bootstrap and refuses any late com
   expect(() => owner.admitHome('template-1', 25_000_000)).toThrow('disposed');
 });
 
-it('refuses a consumed source revision before creating a page owner or hydrating any assets', async () => {
+it('keeps planned resume in row-OFF admission mode and refuses a changed source before hydration', async () => {
   const assembly = new GridAssembly({ developer: false, devserver: false, nineDragon: false });
   const cell = assembly.cell('template-4'), home = assembly.cell('driftwood-isle');
   installPlannedGridReload({ kind: 'resume', home, value: { v: 1, mode: 'grid', instance: cell.instance, revision: 1,
@@ -67,6 +69,28 @@ it('refuses a consumed source revision before creating a page owner or hydrating
     clock: { version: 1, elapsed: 10, wall: 10, frames: 600, paused: false, scale: 1, captureFps: null },
     recovery: { lastSafeRoadPoint: { x: 277.5, z: 0, yaw: 0 }, state: 'on-road' }, at: Date.now() } });
   const read = vi.spyOn(revisions, 'gridReloadRevision').mockResolvedValue(2);
+  vi.spyOn(debug, 'gridMemoryAdmissionOn').mockReturnValue(false);
+  const consume = vi.spyOn(boot, 'bootPageMode');
+  expect(preparePageResidency(manifest)).toBeUndefined(); expect(consume).not.toHaveBeenCalled();
   await expect(validatePlannedGridReload()).rejects.toThrow('revision or geometry changed');
   expect(read).toHaveBeenCalledExactlyOnceWith(expect.any(GridAssembly), cell.instance);
+});
+
+it('preflights the real mandatory claims in row-ON mode without evicting or changing the current page', () => {
+  const row = vi.spyOn(debug, 'gridMemoryAdmissionOn').mockReturnValue(false);
+  expect(preflightGridReload(undefined, manifest.slug)).toBe(true);
+  row.mockReturnValue(true); expect(preflightGridReload(undefined, manifest.slug)).toBe(false);
+  const owner = new PageResidency(new ResidencyAllocator({ playing: 2_000_000_000 }));
+  owner.admitHome(manifest.slug, 527_927_928);
+  const lease = owner.allocator.reserve({ id: 'platform:render.road', category: 'l0', owner: 'platform',
+    bytes: 20_000_000, distance: 0, needed: true });
+  if (lease === null) throw new Error('Missing admitted platform');
+  expect(preflightGridReload(owner, manifest.slug)).toBe(true);
+  const oversize = owner.allocator.reserve({ id: 'platform:render.signs', category: 'l0', owner: 'platform',
+    bytes: 22_732_832, distance: 0, needed: true });
+  if (oversize === null) throw new Error('Missing over-cap diagnostic claim');
+  const before = owner.allocator.entries();
+  expect(preflightGridReload(owner, manifest.slug)).toBe(false); expect(owner.allocator.entries()).toEqual(before);
+  expect(preflightGridReload(owner, 'other')).toBe(false);
+  oversize.release(); lease.release(); owner.dispose();
 });

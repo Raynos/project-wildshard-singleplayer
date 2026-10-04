@@ -64,6 +64,15 @@ it('holds on checkpoint/write failure, retries and navigates only after the fade
   finish?.(); expect(await done).toBe(true); expect(navigations).toBe(1);
   expect(await exit.start(handoff())).toBe(false); expect(navigations).toBe(1);
 });
+it('refuses an over-budget planned boot before checkpoint/write/fade/navigation and holds for retry', async () => {
+  const slot = gridReloadSlot(new SaveStore({ local: new Storage(), session: null })), calls: string[] = [];
+  let admitted = false, held = false;
+  const exit = new GridReloadExit({ admit: () => admitted, slot, checkpoint: () => { calls.push('checkpoint'); return true; },
+    hold: (value) => { held = value; }, fade: () => { calls.push('fade'); return Promise.resolve(); }, navigate: () => { calls.push('navigate'); } });
+  expect(await exit.start(handoff())).toBe(false); expect(exit.state()).toBe('failed'); expect(held).toBe(true);
+  expect(calls).toEqual([]); expect(slot.read()).toBeNull();
+  admitted = true; expect(await exit.start(handoff())).toBe(true); expect(calls).toEqual(['checkpoint', 'fade', 'navigate']);
+});
 it('refuses a restore when one-use deletion fails and cancels a U-turn before navigation', async () => {
   const local = new Storage(), slot = gridReloadSlot(new SaveStore({ local, session: null })); slot.write(handoff());
   local.fail = true; expect(consumeGridReload(slot, valid)).toBeNull();

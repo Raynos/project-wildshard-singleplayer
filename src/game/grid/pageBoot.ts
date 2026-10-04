@@ -2,6 +2,7 @@ import type { ShardManifest } from '../shard/manifest';
 import { bootPageMode, pageGridInstance, type PageMode } from './boot';
 import { gridMemoryAdmissionOn, devserverCellOn } from './debug';
 import { PageResidency } from './pageResidency';
+import { ResidencyAllocator } from './allocator';
 import { runtimeAccountedBytes } from './runtimeCost';
 import { plannedGridReload } from './reloadBoot';
 import { GridAssembly } from './assembly';
@@ -34,7 +35,7 @@ export interface PageResidencyBoot {
  * successful session installs the owner's level lifetime. Row OFF preserves the existing late page-mode selection.
  */
 export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'shardfile' | 'runtimeCost'>, configuredSlug?: string): PageResidencyBoot | undefined {
-  if (!gridMemoryAdmissionOn() && plannedGridReload() === null) return undefined;
+  if (!gridMemoryAdmissionOn()) return undefined;
   const mode = bootPageMode(configuredSlug ?? manifest.slug);
   if (mode !== 'grid') return { mode, instance: null };
   const instance = pageGridInstance();
@@ -47,4 +48,18 @@ export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'sha
     }
     return { mode, instance, residency };
   } catch (error) { residency.dispose(); throw error; }
+}
+
+/** Preflight the fresh page's already measured mandatory home/platform claims without evicting the current world. */
+export function preflightGridReload(owner: PageResidency | undefined, home: string): boolean {
+  if (!gridMemoryAdmissionOn()) return true;
+  if (owner === undefined) return false; // A row enabled after boot has not admitted this page's platform yet.
+  try {
+    if (owner.home().instance !== home) return false;
+    const fresh = new ResidencyAllocator();
+    const claims = owner.allocator.entries().filter((entry) => entry.id === `sim:${home}`
+      || entry.owner === 'platform' || entry.id === 'sim:platform.highway');
+    return claims.every((entry) => fresh.reserve({ id: entry.id, category: entry.category, bytes: entry.bytes,
+      owner: entry.owner, distance: 0, needed: true }) !== null);
+  } catch { return false; }
 }

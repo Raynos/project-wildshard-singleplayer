@@ -73,6 +73,7 @@ import { ACCENTS } from '../shardfile/accent';
 import { installMinimapBlend } from '../grid/minimapBlend';
 import { findShard } from '../shard/registry';
 import { firstPartyInstance } from '../grid/instances';
+import { preflightGridReload } from '../grid/pageBoot';
 import { installSavesSettings } from '../savesSettings';
 import { GridSession } from '../grid/session';
 import type { LiveGridSession } from '../grid/liveSession';
@@ -645,6 +646,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   if (grid !== null && gridLive !== null && reloadExitOn) {
     const live = gridLive;
     installGridReload({ scope: game.levelScope, store: app.saves, assembly: grid.assembly, live, homeSlug: grid.home.slug,
+      admit: () => preflightGridReload(session.residency, grid.home.instance),
       grounded: () => player.onGround,
       capture: () => ({ heading: player.yaw, mount: player.hover ? 'hoverboard' : null,
         loadout: { selected: null, tools: weapons.has('tool.hoverboard') ? ['tool.hoverboard'] : [] }, clock: { ...app.clock.snapshot(), version: 1 } }),

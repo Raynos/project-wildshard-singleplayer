@@ -52,6 +52,8 @@ export function consumeGridReload(slot: SaveSlot<GridReloadHandoff | null>, vali
 
 /** The page supplies real durable checkpoint, motion hold, fade and fresh-document navigation ports. */
 export interface GridReloadExitPorts {
+  /** The selected boot admission mode must fit before capturing, checkpointing or writing a transfer. */
+  admit?: () => boolean;
   checkpoint: () => boolean;
   slot: SaveSlot<GridReloadHandoff | null>;
   hold: (held: boolean) => void;
@@ -71,6 +73,7 @@ export class GridReloadExit {
     if (this.cancelled || this.phase === 'saving' || this.phase === 'navigating') return false;
     this.phase = 'saving'; this.ports.hold(true);
     try {
+      if (this.ports.admit?.() === false) { this.phase = 'failed'; return false; }
       const admitted = typeof value === 'function' ? await value() : value;
       if (this.isCancelled()) return false;
       const parsed = v.parse(GridReloadHandoffSchema, admitted);

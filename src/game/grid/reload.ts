@@ -17,6 +17,7 @@ export interface GridReloadHost {
   readonly live: Pick<LiveGridSession, 'frame' | 'worldFeet' | 'roadPoint' | 'checkpointInstance' | 'bindReloadStatus'>
     & { readonly live: Pick<LiveGridSession['live'], 'ready'> };
   readonly homeSlug: string; readonly grounded: () => boolean;
+  readonly admit?: () => boolean;
   readonly capture: () => Pick<GridReloadHandoff, 'heading' | 'mount' | 'loadout' | 'clock'>;
   readonly hold: (held: boolean) => void;
   readonly onFixed: (run: () => void) => void;
@@ -57,6 +58,7 @@ export function installGridReload(host: GridReloadHost): void {
       return value;
     },
     transaction: (source) => new GridReloadExit({ slot: gridReloadSlot(host.store), hold: host.hold,
+      ...(host.admit === undefined ? {} : { admit: host.admit }),
       checkpoint: () => host.live.checkpointInstance(source), fade: fade.out,
       navigate: () => {
         const url = new URL('/', location.origin); url.searchParams.set('chunk', host.homeSlug);
