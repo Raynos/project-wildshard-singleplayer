@@ -71,10 +71,12 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
   if (bindings.trustedRuntime === true && (!options.firstParty || source.runtime === null)) throw new Error('Empty hybrid policy requires a trusted first-party runtime declaration');
   if (bindings.audioOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime audio ownership requires a trusted first-party runtime declaration');
   if (bindings.worldOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime world ownership requires a trusted first-party runtime declaration');
-  const residency = clientResidency(source, bindings);
+  if (!options.firstParty && admitted.instance === undefined) throw new Error('Outside shardfile is missing its admitted save identity');
+  const ownedBindings = { ...bindings, ...(options.firstParty ? {} : { instance: admitted.instance ?? '' }) };
+  const residency = clientResidency(source, ownedBindings);
   const assets = new ClientAssets(source, admitted.assets, options);
   const manifest = sourceManifest(source);
-  const clientBindings = { ...bindings, allocator: residency.allocator };
+  const clientBindings = { ...ownedBindings, allocator: residency.allocator };
   return { ...manifest, biome: 'Authored world', blurb: source.identity.name,
     ground: { ...(source.terrain === null ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
     species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],

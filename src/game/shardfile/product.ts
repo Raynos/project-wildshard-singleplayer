@@ -6,6 +6,7 @@ import { ContentCache } from '@wildshard/engine/boot/contentCache';
 import { preflightShardfile } from './preflight';
 import { preflightAssetGraph } from './assetGraph';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
+import { assertExternalShardSlug, externalShardInstance } from './identity';
 
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
@@ -29,7 +30,7 @@ export interface ProductOptions {
   versions?: ProductVersions;
 }
 /** Admitted owned wire bytes; callers release this map when decoded resources take over. */
-export interface AdmittedProduct { source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean }
+export interface AdmittedProduct { source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean; instance?: string }
 function version(input: unknown): number {
   if (typeof input !== 'object' || input === null || !('version' in input) || typeof input.version !== 'number' || !Number.isSafeInteger(input.version)) throw new Error('Shardfile needs a format version');
   return input.version;
@@ -71,6 +72,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const revision = version(raw), reader = versions.readers.get(revision);
   if (reader === undefined || (revision !== versions.current && !(revision === versions.current - 1 && options.offline && cached?.firstParty === true && options.firstParty))) throw new Error(`Shardfile version ${revision} needs a compatible client`);
   const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
+  if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   preflightAssetGraph(source);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && version(visited.source) === versions.current) assertStateCompatibility(parseStateLineage(visited.source), source);
@@ -99,7 +101,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
       if (complete) await cache.putProduct(base, { source: raw, firstParty: options.firstParty });
     } finally { release?.(); }
   }
-  return { source, assets, cached: cached !== null && cached !== undefined };
+  return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
 export function browserProductCache(storage: Pick<CacheStorage, 'open'>): ProductCache {
