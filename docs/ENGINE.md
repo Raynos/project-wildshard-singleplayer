@@ -2162,3 +2162,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 ### Declared phase encounters (SF13b)
 
 `@wildshard/engine/ai/phases` drives declared elite and boss tables over the existing `BossBrain`, combat pipeline, checkpoint/retry clocks and scoped sim snapshot adapters. `BossBrain.snapshot/restore` captures the complete continuation without replaying grants. `@wildshard/game/shardfile/encounters` validates ordered phases and actor/panel references; `@wildshard/game/shard/declaredEncounters` binds an already mounted SF7f panel. Encounter-owned spawns use a null ordinary brain, while `buildPlatformSpawns` accepts a catalogue variant resolver. See [PLATFORM-AI.md](PLATFORM-AI.md) for thresholds, persistence ports, restore and presentation.
+
+### Author dev client (SF8c)
+
+`buildProject` in `@wildshard/sdk/project` accepts an optional third argument choosing the compiled client or a product-only build. `wildshard dev` rebuilds admitted static products and reloads the normal client, using a separate compiled author mode. `__DEVSERVER__` is false in production/native modes; the production artifact checker refuses an enabled flag. See [SDK-DEV.md](SDK-DEV.md) for commands, cleanup and build-mode checks.

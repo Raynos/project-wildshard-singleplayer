@@ -43,8 +43,10 @@ function declaration(layer, module) {
 }
 for (const module of modules) declaration('sdk', module.declaration);
 
-// The prebuilt client is the normal Game bundle; the SDK only distributes it.
-await build({ root, configFile: resolve(root, 'vite.config.ts'), logLevel: 'warn', build: {
-  outDir: resolve(root, 'src/sdk/dist/client'), emptyOutDir: true, copyPublicDir: false, sourcemap: false,
-} });
-for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'assets/physics']) cpSync(resolve(root, 'public', entry), resolve(root, 'src/sdk/dist/client', entry), { recursive: true });
+// Both clients use the normal Game bundle. Author dev is a separate compiled mode, never enabled by requests.
+for (const [mode, folder] of [['production', 'client'], ['devserver', 'client-devserver']]) {
+  await build({ root, mode, configFile: resolve(root, 'vite.config.ts'), logLevel: 'warn', build: {
+    outDir: resolve(root, `src/sdk/dist/${folder}`), emptyOutDir: true, copyPublicDir: false, sourcemap: false,
+  } });
+  for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'assets/physics']) cpSync(resolve(root, 'public', entry), resolve(root, `src/sdk/dist/${folder}`, entry), { recursive: true });
+}

@@ -10,6 +10,7 @@ import { assetIndex } from './vite/gen';
 import { genShardsPlugin } from './vite/genShards';
 import { backdropPrefixPlugin } from './vite/backdropPrefix';
 import { chunkReport } from './vite/chunkReport';
+import { devserverFlags } from './vite/devserver';
 import { crossroadsRigPlugin } from './vite/crossroadsRig';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
@@ -92,7 +93,7 @@ export default defineConfig(({ mode }) => {
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
-    define: { __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
-    plugins: native ? [genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
+    define: { __DEVSERVER__: mode === 'devserver', __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
+    plugins: native ? [devserverFlags(false), genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [devserverFlags(mode === 'devserver'), genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
   };
 });

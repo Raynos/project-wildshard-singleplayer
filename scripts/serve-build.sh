@@ -2,7 +2,7 @@
 # serve-build.sh — build the game and serve that build: the ONLY way to run it locally (E317, Jake 2026-09-29: "Vite dev
 # sucks. No one should be using Vite dev … a combination of vite build and vite start"). No `vite` dev servers.
 #
-#   scripts/serve-build.sh [--head | --rev <rev>] [--port <n>] [--hours <h>] [--name <label>]
+#   scripts/serve-build.sh [--head | --rev <rev>] [--port <n>] [--hours <h>] [--name <label>] [--devserver]
 #        vite build → a private out dir → `vite preview` on a free port (4400–4999), detached. Prints the URL.
 #        --head   build a clean `git archive HEAD` export instead of the working tree (nobody's WIP in it)
 #        --rev    the same for any commit (a before / after pair, e.g. scripts/nine-sim-memory.mjs --rev=f9ca6490)
@@ -48,9 +48,10 @@ case "${1:-}" in
     exit 0;;
 esac
 
-HEAD_ONLY=0; REV=HEAD; PORT=""; HOURS=4; NAME="build"
+MODE=production; HEAD_ONLY=0; REV=HEAD; PORT=""; HOURS=4; NAME="build"
 while [ $# -gt 0 ]; do
   case "$1" in
+    --devserver) MODE=devserver; shift;;
     --head) HEAD_ONLY=1; shift;;
     --rev) HEAD_ONLY=1; REV="$2"; shift 2;;
     --port) PORT="$2"; shift 2;;
@@ -147,7 +148,7 @@ export default async (env) => {
 JS
 # the generated files first, as CI's `pnpm build` does: without them a new asset (round 13: Sky Reach's LUT) had no
 # bytes.generated entry, the build skipped it, and every capture scored a game the deploy doesn't ship (E399)
-( cd "$SRC" && node scripts/gen.mjs && pnpm exec vite build --config "$CFG" ) > "$BASE/$stamp/build.log" 2>&1 \
+( cd "$SRC" && node scripts/gen.mjs && pnpm exec vite build --mode "$MODE" --config "$CFG" ) > "$BASE/$stamp/build.log" 2>&1 \
   || { tail -30 "$BASE/$stamp/build.log" >&2; exit 1; }
 # public/ by symlink (vite preview follows them): an entry the build didn't write is linked whole; a folder both have
 # (assets/: the build's JS chunks + public's models) is merged one level down, recursively; a file the build wrote wins

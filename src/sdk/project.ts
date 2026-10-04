@@ -116,7 +116,7 @@ export function projectAssets(project: string, shard: Shardfile): Map<string, Ui
   return new Map([...shard.files.map((f) => [f.hash, readFileSync(resolve(project, 'assets', f.hash))] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, readFileSync(resolve(project, 'commons', h))] as const)]);
 }
 /** Build a deterministic shard.json, immutable files and the distributed normal client when present. */
-export async function buildProject(project: string, output?: string): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null } = {}): Promise<Shardfile> {
   const raw = await readProject(project), assets = projectAssets(project, raw), shard = validateProject(raw, assets);
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
   shard.files.sort((a, b) => a.hash.localeCompare(b.hash)); shard.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
@@ -124,7 +124,8 @@ export async function buildProject(project: string, output?: string): Promise<Sh
   for (const [hash, bytes] of assets) writeFileSync(resolve(destination, hash.replace('commons:', '')), bytes);
   writeFileSync(resolve(destination, 'shard.json'), canonicalJson(shard));
   const directory = import.meta.dirname;
-  const client = [resolve(directory, 'client'), resolve(directory, 'dist/client')].find((path) => existsSync(resolve(path, 'index.html')));
+  const clientFolder = options.devserver === true ? 'client-devserver' : 'client';
+  const client = options.client === null ? undefined : options.client ?? [resolve(directory, clientFolder), resolve(directory, 'dist', clientFolder)].find((path) => existsSync(resolve(path, 'index.html')));
   if (client !== undefined) {
     cpSync(client, destination, { recursive: true });
     const json = canonicalJson(shard).replaceAll('<', String.raw`\u003c`);
