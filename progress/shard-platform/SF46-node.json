@@ -61,7 +61,7 @@
     "ticks": 10000,
     "before": "7d5ac6d6a8333863be8b212594c6ecddb253154ae51c15d74782b488bae2904f",
     "after": "7d5ac6d6a8333863be8b212594c6ecddb253154ae51c15d74782b488bae2904f",
-    "latestRecheck": "cad11c1bc; exact 10000-tick hash unchanged"
+    "latestRecheck": "5d4a4ee5c; exact 10000-tick hash unchanged"
   },
   "sdkBuild": {
     "command": "node scripts/build-shardfiles.mjs",
@@ -106,17 +106,20 @@
       }
     },
     "defaultOffComparison": {
-      "artifact": "SF46-shipped-off-parity.json",
+      "artifact": "SF46-shipped-off-fixed-parity.json",
       "parent": "d143452b19bc06348bc1fafeff8b528a3ba1bb86",
-      "current": "659066b1dc449cdedd1c281236909d66bf8ab8ca",
-      "verdict": "red",
+      "current": "5d4a4ee5cf4923014df905725e813fe56e206b22",
+      "verdict": "green",
+      "pairs": 2,
       "visuals": 6,
-      "visualsPass": 6,
-      "minimumSsim": 0.9901372952294992,
+      "minimumSsim": 0.9908263788247554,
+      "strictRedFields": 0,
+      "stuck": 0,
       "unloadErrors": 0,
       "remainingBodies": 0,
       "remainingColliders": 0,
-      "followup": "SF30 legacy bridge restore8d6b4f91c and OFF bypass; fresh comparison pending"
+      "allMovementEndpointsAndAudioEventsMatch": true,
+      "baselineWritten": false
     }
   },
   "floor": "pending serialized window",
@@ -191,5 +194,13 @@
     "regionalTicksAfterLeave": 30,
     "physicalPlayerControllers": 1,
     "actualClientInputFreeze": "caller wiring belongs to grid-client2; fixture proves regional freeze and readiness callback"
+  },
+  "offBypass": {
+    "commit": "5d4a4ee5c",
+    "registrar": "src/game/shard/runtimeVariant.ts",
+    "staticLegacyImport": true,
+    "hybridAndSourceImportsOnlyWhenEnabled": true,
+    "focusedTests": 11,
+    "cleanStrictAndTypedLint": true
   }
 }
