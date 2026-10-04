@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
-import { Scope } from '#engine/app/scope';
-import { app } from '#engine/app/runtime';
-import { buildControlsPanel } from '#engine/input/ControlsPanel';
+import { Scope } from '#engine-internal/app/scope';
+import { app } from '#engine-internal/app/runtime';
+import { buildControlsPanel } from '#engine-internal/input/ControlsPanel';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { KEY_BINDINGS } from '../../src/game/keyBindings';
 

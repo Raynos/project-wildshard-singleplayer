@@ -2,9 +2,9 @@
 // one builds its specimen at rest on the origin, and the kit places each row's drawnInto its batches.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import type { Sky } from '#engine/world/Sky';
-import { modelContext } from '#engine/models/model';
-import { place } from '#engine/models/place';
+import type { Sky } from '#engine-internal/world/Sky';
+import { modelContext } from '#engine-internal/models/model';
+import { place } from '#engine-internal/models/place';
 import * as Models from '#kit/models/interact';
 import * as Pickups from '#kit/models/pickups';
 

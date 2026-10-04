@@ -1,5 +1,5 @@
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * The reload prompt (E65 Look Lab): a pick that only takes effect on a fresh page (the lighting model, the sky) asks
  * right away — "Needs a reload · Reload now / Later" — instead of leaving a note to go and find an Apply button.

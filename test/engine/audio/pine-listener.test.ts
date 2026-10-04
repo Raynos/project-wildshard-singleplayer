@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { VoicePool } from '#engine/audio/Voices';
-import type { AudioMixer } from '#engine/audio/levelAudio';
-import type { Audio } from '#engine/audio/Audio';
+import { VoicePool } from '#engine-internal/audio/Voices';
+import type { AudioMixer } from '#engine-internal/audio/levelAudio';
+import type { Audio } from '#engine-internal/audio/Audio';
 import { PineHollowSfx } from '#shards/pine-hollow/audio/sfx';
 import { legacyDouble } from '../../fake/FakeGame';
 

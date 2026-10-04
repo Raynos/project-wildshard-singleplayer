@@ -5,8 +5,8 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryStorage } from './setup';
-import { PageLife } from '#engine/boot/lastEnd';
-import { Scope } from '#engine/app/scope';
+import { PageLife } from '#engine-internal/boot/lastEnd';
+import { Scope } from '#engine-internal/app/scope';
 
 let session: MemoryStorage;
 const listeners = new Map<string, (e: unknown) => void>();

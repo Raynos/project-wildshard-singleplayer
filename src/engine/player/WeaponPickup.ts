@@ -1,9 +1,9 @@
 import { app } from '../app/runtime';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Interactable } from '../world/interact/types';
-import { isMesh } from '#engine/combat/view/ranged';
+import { isMesh } from '../combat/view/ranged';
 import { TIER_CONFIG } from '../core/tier';
 import { LightPool } from '../fx/LightPool';
 import { floorBelow } from '../physics/query';

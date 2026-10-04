@@ -1,5 +1,5 @@
 import { pageScope } from '../app/resources';
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 /** A small durable breadcrumb for an enabled level boot. A terminated WebContent process cannot run a final handler. */
 import { deliverBrowserError } from '../telemetry/browserErrors';
 import type { ProgressView } from './plan';

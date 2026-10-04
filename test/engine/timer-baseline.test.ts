@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { ExternalTimerBaseline } from '#engine/debug/timerBaseline';
+import { ExternalTimerBaseline } from '#engine-internal/debug/timerBaseline';
 
 it('counts only still-live pre-engine shell timers and never hides new or registered timers', () => {
   const baseline = new ExternalTimerBaseline({ timeouts: [1, 2], intervals: [3, 4] }, { timeouts: [2], intervals: [4] });

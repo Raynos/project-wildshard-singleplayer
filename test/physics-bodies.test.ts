@@ -2,13 +2,13 @@
 // slope and stops, the puzzle barrel pushed by a CharacterMotor until a wall stops it, and a plate that trips for a body
 // standing on it and not for one beside it.
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '#engine/physics/rapier';
-import { Physics } from '#engine/physics/Physics';
-import { Bodies, type Body } from '#engine/physics/bodies';
-import { CharacterMotor } from '#engine/physics/CharacterMotor';
-import { groups } from '#engine/physics/groups';
+import { loadRapier } from '#engine-internal/physics/rapier';
+import { Physics } from '#engine-internal/physics/Physics';
+import { Bodies, type Body } from '#engine-internal/physics/bodies';
+import { CharacterMotor } from '#engine-internal/physics/CharacterMotor';
+import { groups } from '#engine-internal/physics/groups';
 import { COCONUT_BODY } from '#shards/driftwood-isle/creatures/Enemies';
-import { BARREL_BODY, plateDown } from '#engine/world/interact/Interactables';
+import { BARREL_BODY, plateDown } from '#engine-internal/world/interact/Interactables';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

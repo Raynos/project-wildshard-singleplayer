@@ -1,6 +1,6 @@
 import { appIdentity } from '../app/identity';
 import { uiScope, mountUi } from './ownership';
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 
 const savedStorage = saveStorage('session');
 /**

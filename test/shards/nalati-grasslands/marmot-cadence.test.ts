@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
-import { Rng } from '#engine/core/rng';
+import { Rng } from '#engine-internal/core/rng';
 import { Marmots } from '../../../src/shards/nalati-grasslands/creatures/marmots';
 import { fakeWorld } from '../../fake/world';
 

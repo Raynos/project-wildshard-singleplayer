@@ -2,7 +2,7 @@ import { mountUi } from '../ui/ownership';
 import { app } from '../app/runtime';
 import { listenDom } from '../input/dom';
 import type { Action, TouchVerbSpec } from '../input/InputService';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * TouchControls — on-screen first-person controls for coarse-pointer devices (phones, tablets).
  *

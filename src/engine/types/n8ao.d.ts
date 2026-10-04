@@ -2,7 +2,7 @@
 declare module 'n8ao' {
   import type * as THREE from 'three';
   import type * as PP from 'postprocessing';
-  import type { Renderer } from '#engine/render/renderer';
+  import type { Renderer } from '#engine';
 
   /** the `configuration` proxy: every write re-tunes the pass (see n8ao's N8AOPostPass source) */
   export interface N8AOConfiguration {

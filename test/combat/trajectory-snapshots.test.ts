@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { projectileFlightStep, type ProjectileKind } from '#engine/combat/view/projectile';
+import { projectileFlightStep, type ProjectileKind } from '#engine-internal/combat/view/projectile';
 import { boltFlightStep } from '#kit/weapons/crossbow/Crossbow';
 import { javelinFlightStep } from '#shards/nalati-grasslands/weapons/Spear';
 import { arrowKind as bowArrow } from '#kit/weapons/bow/index';

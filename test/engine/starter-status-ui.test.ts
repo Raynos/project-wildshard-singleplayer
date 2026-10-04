@@ -4,9 +4,9 @@ import { Vector3 } from 'three';
 import { App, Scope, EffectService, PlayerHealth, type DebugRowSpec } from '#engine';
 import { STARTER_EFFECTS } from '#kit/effects/starter';
 import { installStarterEffects } from '#kit/effects/install';
-import { DialogueBox } from '#engine/quest/view/ui';
-import { Flags } from '#engine/world/interact/flags';
-import { NpcTalk } from '#engine/quest/view';
+import { DialogueBox } from '#engine-internal/quest/view/ui';
+import { Flags } from '#engine-internal/world/interact/flags';
+import { NpcTalk } from '#engine-internal/quest/view';
 import { BoardPanel, TradePanel, CountChip } from '#shards/pine-hollow/quest/ui';
 import { newBoard } from '#shards/pine-hollow/quest/contracts';
 

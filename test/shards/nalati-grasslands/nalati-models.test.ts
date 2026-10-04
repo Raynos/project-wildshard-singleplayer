@@ -4,11 +4,11 @@
 // one piece per model with no object of its own, the colliders the copies made, one catalog entry, the set's tap target.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { WorldRegistry } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
-import { modelContext, defineModel } from '#engine/models/model';
-import { place, placedCopies } from '#engine/models/place';
-import { placeSet } from '#engine/models/sets';
+import { WorldRegistry } from '#engine-internal/world/registry';
+import type { Sky } from '#engine-internal/world/Sky';
+import { modelContext, defineModel } from '#engine-internal/models/model';
+import { place, placedCopies } from '#engine-internal/models/place';
+import { placeSet } from '#engine-internal/models/sets';
 import { PaintKit, M, blob } from '#shards/nalati-grasslands/world/paint';
 import { Flutter } from '#shards/nalati-grasslands/world/Flutter';
 import { Smoke } from '#shards/nalati-grasslands/world/Smoke';
@@ -26,7 +26,7 @@ import { signpost, boardSpots } from '#shards/nalati-grasslands/models/signpost'
 import type { Box } from '#shards/nalati-grasslands/world/solid';
 import { stump, fallenLog } from '#shards/nalati-grasslands/models/dressingProps';
 import { boulder } from '#shards/nalati-grasslands/models/dressing';
-import { Rng } from '#engine/core/rng';
+import { Rng } from '#engine-internal/core/rng';
 import { graniteOutcrop, roundedBoulder } from '#shards/nalati-grasslands/models/outcrop';
 import { cragRock, finGeometry } from '#shards/nalati-grasslands/models/cragRock';
 import { registerNalatiPlaces, PLACE_SETS } from '#shards/nalati-grasslands/world/places';

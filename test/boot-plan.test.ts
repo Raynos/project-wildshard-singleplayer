@@ -2,9 +2,9 @@ import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
 // src/engine/boot/plan.ts + steps.ts + timing.ts — the loading screen's progress invariants (header of plan.ts):
 // both fractions are monotone, a running step never reads complete, and done() reads exactly 1 / 1.
 import { describe, expect, it, vi } from 'vitest';
-import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, shardTimingKey, useShardSteps, type BootStep, type ByteKey } from '#engine/boot/steps';
-import { createBootPlan, formatMB, runDirect, type Plan, type PlanOptions, type ProgressView, type StepProgress } from '#engine/boot/plan';
-import { expectedDurations, loadTimings, saveTimings, type Timings } from '#engine/boot/timing';
+import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, shardTimingKey, useShardSteps, type BootStep, type ByteKey } from '#engine-internal/boot/steps';
+import { createBootPlan, formatMB, runDirect, type Plan, type PlanOptions, type ProgressView, type StepProgress } from '#engine-internal/boot/plan';
+import { expectedDurations, loadTimings, saveTimings, type Timings } from '#engine-internal/boot/timing';
 
 type Totals = PlanOptions['totals'];
 const totals = (bytes: number, files = 2): Totals => {

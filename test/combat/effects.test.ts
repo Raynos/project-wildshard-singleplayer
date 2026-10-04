@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { EffectService } from '#engine/combat/effects/EffectService';
-import { sourceMultiplier, type EffectTarget, type EffectDef } from '#engine/combat/effects/types';
+import { EffectService } from '#engine-internal/combat/effects/EffectService';
+import { sourceMultiplier, type EffectTarget, type EffectDef } from '#engine-internal/combat/effects/types';
 import { DRIFTWOOD_EFFECTS, driftwoodAttributes, bindDriftwoodEffects } from '#shards/driftwood-isle/loot/effects';
 import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS, nalatiSkinEffect, balbalPiercing } from '#shards/nalati-grasslands/weapons/effects';
 import { AMMO_ROWS, PINE_AMMO_EFFECTS, PINE_SOURCE_MULTIPLIERS, pineFinishEffect } from '#shards/pine-hollow/loadout/effects';
-import { Scope } from '#engine/app/scope';
+import { Scope } from '#engine-internal/app/scope';
 import { Vector3 } from 'three';
-import { PlayerHealth } from '#engine/combat/health';
+import { PlayerHealth } from '#engine-internal/combat/health';
 import { balbalCombat, BALBAL_WEAK } from '#shards/nalati-grasslands/species/balbal';
-import { speciesDef } from '#engine/entities/species/registry';
-import { app } from '#engine/app/runtime';
+import { speciesDef } from '#engine-internal/entities/species/registry';
+import { app } from '#engine-internal/app/runtime';
 import { damageTarget } from '../fake/legacyActor';
-import { Events } from '#engine/events/events';
+import { Events } from '#engine-internal/events/events';
 import type { OwnedId } from '#game/loot/Owned';
 
 const owns = (...ids: OwnedId[]): { has: (id: OwnedId) => boolean } => ({ has: (id) => ids.includes(id) });

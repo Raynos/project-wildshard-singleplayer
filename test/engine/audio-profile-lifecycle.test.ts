@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
 import { App, type LevelDriver } from '#engine';
-import { Audio } from '#engine/audio/Audio';
-import { Music } from '#engine/audio/Music';
-import { WorldRegistry } from '#engine/world/registry';
+import { Audio } from '#engine-internal/audio/Audio';
+import { Music } from '#engine-internal/audio/Music';
+import { WorldRegistry } from '#engine-internal/world/registry';
 import { shardContext, toLevelSpec, type GameServices } from '#game';
 import manifest from '#shards/nine-dragon-stack/manifest';
 import { installAudio } from '#shards/nine-dragon-stack/audio/ambience';

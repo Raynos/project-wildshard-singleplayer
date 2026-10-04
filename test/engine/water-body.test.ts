@@ -6,7 +6,7 @@ import nalati from '#shards/nalati-grasslands/manifest';
 import { Scope } from '../../src/engine/app/scope';
 import { waveHeight } from '../../src/engine/world/waves';
 import { App, type LevelDriver } from '#engine';
-import { WorldRegistry } from '#engine/world/registry';
+import { WorldRegistry } from '#engine-internal/world/registry';
 import { toLevelSpec } from '#game/shard/spec';
 import manifest from '#shards/nine-dragon-stack/manifest';
 import { FakeGame } from '../fake/FakeGame';

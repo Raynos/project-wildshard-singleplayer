@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { hudSlots } from '#engine/ui/hudSlots';
+import { hudSlots } from '#engine-internal/ui/hudSlots';
 import { Mount } from '#shards/nalati-grasslands/ride/Mount';
 import { RideHUD, type TamingView } from '#shards/nalati-grasslands/ride/RideHUD';
 import { fakeWorld } from '../../fake/world';

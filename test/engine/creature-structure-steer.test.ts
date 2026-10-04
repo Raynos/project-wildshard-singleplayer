@@ -1,11 +1,11 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { activeLevel, configureLevel } from '#engine/level/selection';
-import { setActivePhysics } from '#engine/physics/active';
-import { setActiveNavmesh } from '#engine/physics/navmesh';
+import { activeLevel, configureLevel } from '#engine-internal/level/selection';
+import { setActivePhysics } from '#engine-internal/physics/active';
+import { setActiveNavmesh } from '#engine-internal/physics/navmesh';
 import { toLevelSpec } from '#game/shard/spec';
 import { TEMPLATE } from '#shards/_template/manifest';
-import type { Animal } from '#engine/entities/Animal';
-import type { ThinkCtx } from '#engine/entities/AnimalFactory';
+import type { Animal } from '#engine-internal/entities/Animal';
+import type { ThinkCtx } from '#engine-internal/entities/AnimalFactory';
 import { manager } from '../fake/manager';
 
 afterEach(() => { configureLevel(toLevelSpec(TEMPLATE)); vi.restoreAllMocks(); });

@@ -242,7 +242,7 @@ For each weapon:
    raises `adsHeld`, fills your `charge` readout, and its true → false transition releases the heavy. A light tap
    already fires on touch-down; do not read `altHeld` for melee heavy (that field serves a bow's draw).
    The template's `TemplateWhip.install/update` shows both paths and cancels a pending charge when holstered.
-5. **Its slot type:** merge the legacy slot into `EquipmentSlotMap` (`declare module '#engine/combat/Equipment'`, its defining module; a merge through `#engine` depends on file order).
+5. **Its slot type:** merge the legacy slot into `EquipmentSlotMap` (`declare module '#engine' { interface EquipmentSlotMap { … } }`).
 6. **Damage** goes through the pipeline (`blocks.melee(app.combat).hit(req)` or a family's own path). An effect on a
    hit is `app.effects.apply(actor, 'effect.poison')`.
 

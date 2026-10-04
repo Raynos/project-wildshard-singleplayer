@@ -1,5 +1,5 @@
 import { uiScope } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * The on-device perf probe (E142, the heavy GPU lane): where a real phone's frame goes, measured ON the phone.
  *

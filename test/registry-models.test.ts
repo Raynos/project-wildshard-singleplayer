@@ -3,7 +3,7 @@
 // earlier one in place), and a piece without one is not in it; Explore's taps on batch meshes are the same registry's.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { WorldRegistry, type ModelEntry } from '#engine/world/registry';
+import { WorldRegistry, type ModelEntry } from '#engine-internal/world/registry';
 
 const entry = (id: string, object: THREE.Object3D, live = true): ModelEntry => ({ id, category: 'buildings', live, object: () => object });
 

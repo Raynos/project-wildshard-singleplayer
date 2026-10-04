@@ -1,18 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { VoicePool } from '#engine/audio/Voices';
-import { panFromYaw } from '#engine/audio/util';
-import { Scope } from '#engine/app/scope';
-import type { SampleLoop } from '#engine/audio/Audio';
-import type { AudioMixer } from '#engine/audio/levelAudio';
-import { AmbienceBeds, PositionalLoops } from '#engine/audio/AmbienceBeds';
-import { CuePlayer, cueFiles, decodeCueSet } from '#engine/audio/Cues';
-import { SetScore, scoreFiles, decodeScore } from '#engine/audio/SetScore';
+import { VoicePool } from '#engine-internal/audio/Voices';
+import { panFromYaw } from '#engine-internal/audio/util';
+import { Scope } from '#engine-internal/app/scope';
+import type { SampleLoop } from '#engine-internal/audio/Audio';
+import type { AudioMixer } from '#engine-internal/audio/levelAudio';
+import { AmbienceBeds, PositionalLoops } from '#engine-internal/audio/AmbienceBeds';
+import { CuePlayer, cueFiles, decodeCueSet } from '#engine-internal/audio/Cues';
+import { SetScore, scoreFiles, decodeScore } from '#engine-internal/audio/SetScore';
 import { ndPick, createNdAudio, SCORE_SET } from '#shards/nine-dragon-stack/audio/files';
 import { ndZones } from '#shards/nine-dragon-stack/audio/ambience';
 import { ndCueMap } from '#shards/nine-dragon-stack/audio/cues';
-import { tap, ambientTick } from '#engine/core/harnessTap';
-import type { MusicState } from '#engine/audio/Music';
+import { tap, ambientTick } from '#engine-internal/core/harnessTap';
+import type { MusicState } from '#engine-internal/audio/Music';
 
 const buffer = (duration = 100): AudioBuffer => ({ duration } as AudioBuffer);
 class Param implements AudioParam {

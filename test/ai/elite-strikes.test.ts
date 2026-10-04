@@ -1,10 +1,10 @@
 import { app } from '#engine';
-import { EliteBrain } from '#engine/ai/EliteBrain';
-import { canReach } from '#engine/ai/reach';
+import { EliteBrain } from '#engine-internal/ai/EliteBrain';
+import { canReach } from '#engine-internal/ai/reach';
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
-import type { Animal } from '#engine/entities/Animal';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
+import type { Animal } from '#engine-internal/entities/Animal';
 import { wildEnv } from '#shards/nalati-grasslands/creatures/env';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { legacyMethods } from '../fake/legacySource';

@@ -1,4 +1,4 @@
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 /**
  * The shared budget for reloads a broken page offers or makes (E144): the error modal's RELOAD HERE / TITLE SCREEN
  * (src/engine/ui/ErrorModal.ts) and the boot's stuck-loader recovery (src/engine/boot/stuck.ts) count into one list, so the two

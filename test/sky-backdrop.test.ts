@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { Object3D, Scene, Vector3 } from 'three';
 import { Scope, type Renderer, type Sky } from '#engine';
-import { SkyBackdropView } from '#engine/world/skyBackdrop';
+import { SkyBackdropView } from '#engine-internal/world/skyBackdrop';
 
 function fixture<T extends object>(fields: Partial<T>): T {
   return new Proxy(fields, { get: (target, key) => {

@@ -4,10 +4,10 @@ import type * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Rifle } from '#kit/weapons/firearm/Rifle';
 
-import { app } from '#engine/app/runtime';
-import { setSetting } from '#engine/ui/Settings';
-import { setActivePhysics } from '#engine/physics/active';
-import { damageFor } from '#engine/entities/Animal';
+import { app } from '#engine-internal/app/runtime';
+import { setSetting } from '#engine-internal/ui/Settings';
+import { setActivePhysics } from '#engine-internal/physics/active';
+import { damageFor } from '#engine-internal/entities/Animal';
 import { legacyActor, invokeLegacy, damageTarget } from '../fake/legacyActor';
 import { fakeWorld } from '../fake/world';
 

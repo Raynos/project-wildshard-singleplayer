@@ -1,5 +1,5 @@
 import { expect, expectTypeOf, it } from 'vitest';
-import type { Player } from '#engine/player/Player';
+import type { Player } from '#engine-internal/player/Player';
 
 it('has no player collider list or legacy bridge anywhere in the nonempty source tree', () => {
   expectTypeOf<Extract<keyof Player, 'colliders'>>().toEqualTypeOf<never>();

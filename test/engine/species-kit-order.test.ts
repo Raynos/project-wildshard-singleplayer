@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
-import { AnimalFactory, DEFAULT_CREATURE_RENDER } from '#engine/entities/AnimalFactory';
-import { registeredSpecies } from '#engine/entities/species/registry';
-import type { SpeciesLook, CreatureHull } from '#engine/entities/species/look';
-import { app } from '#engine/app/runtime';
-import { Scope } from '#engine/app/scope';
+import { AnimalFactory, DEFAULT_CREATURE_RENDER } from '#engine-internal/entities/AnimalFactory';
+import { registeredSpecies } from '#engine-internal/entities/species/registry';
+import type { SpeciesLook, CreatureHull } from '#engine-internal/entities/species/look';
+import { app } from '#engine-internal/app/runtime';
+import { Scope } from '#engine-internal/app/scope';
 import { fakeWorld } from '../fake/world';
 
 /**

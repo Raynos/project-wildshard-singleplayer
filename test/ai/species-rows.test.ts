@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { AnimalFactory } from '#engine/entities/AnimalFactory';
-import { speciesDef, rollVariant, type AnimalSpecies } from '#engine/entities/species/registry';
-import { Rng } from '#engine/core/rng';
-import { setLowPoly } from '#engine/entities/species/loft';
-import { SpeciesService, speciesWithLook } from '#engine/entities/species/look';
-import { Scope } from '#engine/app/scope';
+import { AnimalFactory } from '#engine-internal/entities/AnimalFactory';
+import { speciesDef, rollVariant, type AnimalSpecies } from '#engine-internal/entities/species/registry';
+import { Rng } from '#engine-internal/core/rng';
+import { setLowPoly } from '#engine-internal/entities/species/loft';
+import { SpeciesService, speciesWithLook } from '#engine-internal/entities/species/look';
+import { Scope } from '#engine-internal/app/scope';
 import { BOAR } from '#kit/species/boar';
 import { BEAR } from '#kit/species/bear';
 import { BOAR_LOOK } from '#kit/species/view/boar';

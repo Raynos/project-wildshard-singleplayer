@@ -3,7 +3,7 @@
 // goes round the camp's hitching rail; the river is not walkable but the bridge is; `clearAhead` (the packs' and the
 // herd's steering) sees the rail; the P4 footpaths reach Eagle Rock's scramble, the cave porch and Argymaq's pasture.
 import { describe, expect, it } from 'vitest';
-import { parseNavmesh, type Navmesh } from '#engine/physics/navmesh';
+import { parseNavmesh, type Navmesh } from '#engine-internal/physics/navmesh';
 import { ARGYMAQ_TRAIL, CAVE_TRAIL, EAGLE_TRAIL, riverZAt } from '#shards/nalati-grasslands/layout';
 import nalatiNav from '../../../public/assets/baked/nalati-grasslands/navmesh.bin?inline';
 

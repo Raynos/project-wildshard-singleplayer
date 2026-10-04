@@ -10,7 +10,7 @@ import { InstanceCuller } from '#shards/nine-dragon-stack/world/cull';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from '#shards/nine-dragon-stack/world/colliders';
 import type { NineDragonWorld } from '#shards/nine-dragon-stack/world/build';
 import { FakeGame } from '../../fake/FakeGame';
-import { WorldRegistry } from '#engine/world/registry';
+import { WorldRegistry } from '#engine-internal/world/registry';
 
 const noop = (): void => { /* No GPU work in this node contract. */ };
 const loaded = new Set<App>();

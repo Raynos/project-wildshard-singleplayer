@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '#engine/app/scope';
-import { Events } from '#engine/events/events';
-import { PlayerHealth } from '#engine/combat/health';
-import { installPlayerDeath } from '#engine/ui/playerDeath';
+import { Scope } from '#engine-internal/app/scope';
+import { Events } from '#engine-internal/events/events';
+import { PlayerHealth } from '#engine-internal/combat/health';
+import { installPlayerDeath } from '#engine-internal/ui/playerDeath';
 import { Quiver } from '#shards/pine-hollow/loadout/ammo';
 import { bindLoadoutDeath } from '#shards/pine-hollow/loadout/events';
 

@@ -1,5 +1,5 @@
 import { listenDom, listenPage } from '../input/dom';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * Model Explorer (project/archive/2026-09-23-explore-world.md X3; mockups round-3 p04 catalog, p03 turntable, p17 close-up): the Explore pane that
  * puts one model at a time on a turntable — isolated IN the live scene (same renderer, lights, day/night, post chain),

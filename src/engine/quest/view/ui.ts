@@ -1,6 +1,6 @@
 import type { UiHandle } from '../../ui/layers';
 import { uiScope, mountUi } from '../../ui/ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../../strings';
 /**
  * The adventure's own HUD pieces (kept out of HUD.ts, which the HUD agent owns) — DOM in `#hud`, styled by
  * src/engine/ui/styles/quest.css (prefix ws-quest-):

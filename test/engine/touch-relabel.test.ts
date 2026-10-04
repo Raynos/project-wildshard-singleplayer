@@ -2,7 +2,7 @@
 import { expect, it } from 'vitest';
 import { EquipmentService, Scope, app } from '#engine';
 import { INPUT_CONTEXTS } from '#game/inputContexts';
-import { TouchControls } from '#engine/player/TouchControls';
+import { TouchControls } from '#engine-internal/player/TouchControls';
 import { TemplateWhip } from '#shards/_template/weapons/TemplateWhip';
 import { fakeWorld } from '../fake/world';
 

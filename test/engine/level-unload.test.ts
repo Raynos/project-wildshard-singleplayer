@@ -6,11 +6,11 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture, DirectionalLight, WebGLRenderTarget, Bone, Skeleton, SkinnedMesh } from 'three';
 import { App, Scope, AssetService } from '#engine';
-import { SceneOwnership } from '#engine/app/sceneOwnership';
-import { enterOwner, withOwner } from '#engine/app/ownership';
-import { scopeRegistrations, registrationTimerIds } from '#engine/app/scope';
-import { Physics } from '#engine/physics/Physics';
-import { loadRapier } from '#engine/physics/rapier';
+import { SceneOwnership } from '#engine-internal/app/sceneOwnership';
+import { enterOwner, withOwner } from '#engine-internal/app/ownership';
+import { scopeRegistrations, registrationTimerIds } from '#engine-internal/app/scope';
+import { Physics } from '#engine-internal/physics/Physics';
+import { loadRapier } from '#engine-internal/physics/rapier';
 
 describe('level unload keeps the engine usable', () => {
   it('removes real Rapier handles and scene ownership, releases acquired textures, and runs another engine frame', async () => {

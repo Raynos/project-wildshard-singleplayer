@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import type { Events } from '../events/events';
 import type { Vector3 } from 'three';
 import { Hfsm } from './hfsm';

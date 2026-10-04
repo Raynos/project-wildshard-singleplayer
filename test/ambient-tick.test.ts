@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { Audio } from '#engine/audio/Audio';
-import { ambientTick, tap } from '#engine/core/harnessTap';
+import { Audio } from '#engine-internal/audio/Audio';
+import { ambientTick, tap } from '#engine-internal/core/harnessTap';
 
 afterEach(() => { tap.sound = null; tap.ambientDepth = 0; });
 

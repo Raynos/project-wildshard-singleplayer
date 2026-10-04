@@ -4,15 +4,15 @@
 // again, and draw by hand only what they declare world.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import type { Sky } from '#engine/world/Sky';
-import { WorldRegistry } from '#engine/world/registry';
-import { defineModel, definedModels, modelContext } from '#engine/models/model';
-import { copiesNear, cullPlaced, place } from '#engine/models/place';
-import { placeCollider, poseOf } from '#engine/models/colliders';
+import type { Sky } from '#engine-internal/world/Sky';
+import { WorldRegistry } from '#engine-internal/world/registry';
+import { defineModel, definedModels, modelContext } from '#engine-internal/models/model';
+import { copiesNear, cullPlaced, place } from '#engine-internal/models/place';
+import { placeCollider, poseOf } from '#engine-internal/models/colliders';
 import { hollowLog } from '#shards/pine-hollow/models/hollowLog';
 import { forestTree } from '#shards/pine-hollow/models/forestTree';
 import { mossyBoulder } from '#shards/pine-hollow/models/mossyBoulder';
-import { Forest } from '#engine/world/forest/Forest';
+import { Forest } from '#engine-internal/world/forest/Forest';
 
 /** the migrated files' sources and the shard's setup, as text (the M8 check below) */
 const SOURCES = import.meta.glob<string>(["../../../src/engine/world/*.ts","../../../src/main.ts","../../../src/shards/pine-hollow/world/*.ts","../../../src/shards/pine-hollow/quest/*.ts"], { query: '?raw', import: 'default', eager: true });

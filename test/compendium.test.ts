@@ -3,7 +3,7 @@ import { saveFixture, readFixture } from './fake/saveFixture';
 // state machine (unknown → discovered → seen → taken, forward only), its per-shard save, and the tracker's hooks.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
-import { hasSpecies, speciesDef } from '#engine/entities/species/registry';
+import { hasSpecies, speciesDef } from '#engine-internal/entities/species/registry';
 import { PINE_HOLLOW_POIS } from '#shards/pine-hollow/layout';
 import { PINE_HOLLOW_COMPENDIUM } from '#shards/pine-hollow/compendium';
 import { compendiumFor, registerCompendium } from '#game/compendium/registry';

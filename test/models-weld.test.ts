@@ -3,9 +3,9 @@
 // copies (one batch, a view per copy), the bands culled by distance and the hosted copies following their unit (WeldCull).
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { UnitParts, WeldBatch, WeldView, nearProxy, weldAcross, type WeldPart } from '#engine/models/weld';
-import { WeldCull } from '#engine/models/cull';
-import { SHADOW_LAYER } from '#engine/core/shadowLayer';
+import { UnitParts, WeldBatch, WeldView, nearProxy, weldAcross, type WeldPart } from '#engine-internal/models/weld';
+import { WeldCull } from '#engine-internal/models/cull';
+import { SHADOW_LAYER } from '#engine-internal/core/shadowLayer';
 
 const box = (x: number): THREE.BufferGeometry => new THREE.BoxGeometry(1, 1, 1).translate(x, 0, 0).toNonIndexed();
 const count = (m: THREE.Mesh): number => m.geometry.getAttribute('position').count;

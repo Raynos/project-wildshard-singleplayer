@@ -49,7 +49,7 @@ through the vitest-only `#engine-internal/*` alias; `src/` never does.
 | Rule | What it means for you |
 |---|---|
 | **Layers** | `src/engine/` → `src/game/` → `src/kit/` → `src/shards/<slug>/`. Imports point down the arrow only. A shard never imports another shard |
-| **Public index only** | A shard imports `#engine`, `#engine/data`, `#game`, `#kit` and `#kit/data`, nothing deeper. `#engine/combat/pipeline` is a `wildshard/layer` error. Inside your own folder, use `./` |
+| **Public index only** | A shard imports `#engine`, `#engine/data`, `#game`, `#kit` and `#kit/data`, nothing deeper. `#engine/combat/pipeline` does not resolve (AG5: no `#engine/*` in `package.json`), and `wildshard/layer` names it. Inside your own folder, use `./` |
 | **Composition root** | `src/entry.ts` and `src/main.ts` sit outside the layers. You never edit them for a shard |
 | **Node-safe manifest** | `manifest.ts` imports only data and types: `#engine/data`, `#game` types and its own data files. Code arrives through lazy thunks (`load`, `render`, `cues`, `roster`, `preload`). `test/manifests-node-safe.test.ts` imports every manifest in bare node |
 | **Extractable engine** | `src/engine/**` holds no Wildshard word: no slug, no "shard", no Bag, coin, loot, compendium or feat. The engine says `level` |
@@ -169,14 +169,13 @@ the template's `plugin.ts`:
 declare module '#engine' {
   interface TierKnobMap { 'template.propCount': number }
   interface ActionMap { 'template.lantern.toggle': true }
-}
-declare module '#engine/combat/Equipment' {
   interface EquipmentSlotMap { 'template-whip': true }
 }
 ```
 
-`EquipmentSlotMap` merges into its defining module, `#engine/combat/Equipment`. A merge through the `#engine` re-export
-depends on the order TypeScript reads files, and one program (`tsc -p scripts`) lost it (E405).
+Every extension point merges through `#engine` (AG5: deep engine paths do not resolve). A merge through a named
+re-export does not depend on the order TypeScript reads files (checked in AG5); a program sees a merge only when it
+includes the file that declares it, so declare it in a file the shard's code imports.
 
 Use them through the scoped verbs:
 
@@ -703,7 +702,7 @@ Bows use manual hold/release draw on both devices; the automatic-shot action has
 | `TabRegistry`, `TabId`, `TabSpec`, `TabFragment` | the Bag / menu tab registry the game builds on; game-owned GEAR / FINDS / PACK / FEATS renderers register TabSpecs and ordered fragments. Menu options carry Settings capabilities rather than Bag kit / skins / tools / pack data |
 | `registerPickupLook`, `PickupLook`, `PickupPart`, `pickupModel`, `interactParts`, `LowPolyKit` | a pickup row's look is registered content (its batched model and the parts drawn up close); `LowPolyKit` builds their flat-shaded geometry (E405) |
 | `registerInteractProps`, `InteractProps`, `ChestLook`, `DoorLook`, `ChestDims` | the props the interaction runtime draws (chest, key, door, lever, plate, barrel, brazier, bench, altar: each part's geometry, and the catalog model it places a kind's rows as) are registered content; the engine keeps the kinds, poses, colliders and prompts (E405 E417; the kit's: `installKitProps`) |
-| `IconId`, `IconMap`, `icon`, `registerIcons`, `iconParts` | the icon registry: the engine's UI glyphs (lock, check, map pins, the Bag's tabs); a content library merges its ids into `IconMap` on `#engine/ui/icons` and registers SVGs drawn with `iconParts` (the kit's `installKitIcons`; E405) |
+| `IconId`, `IconMap`, `icon`, `registerIcons`, `iconParts` | the icon registry: the engine's UI glyphs (lock, check, map pins, the Bag's tabs); a content library merges its ids into `IconMap` through `declare module '#engine'` and registers SVGs drawn with `iconParts` (the kit's `installKitIcons`; E405) |
 | `BossBar`, `EliteBar` | the shared encounter bars (decision 91: one boss bar look) |
 | `HUD`, `GameMenu`, `GameMenuOptions`, `FullMap`, `FullMapPoi`, `MapQuest`, `MapMark`, `MapPoi`, `MapOverlay`, `MinimapPalette`, `FirstHints`, `Feedback`, `KitEntry` | **ports**: the legacy HUD, menu and map types `runtime.play` hands over |
 
@@ -1581,8 +1580,8 @@ in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that alrea
 
 | Rule | What it refuses | Status |
 |---|---|---|
-| `wildshard/layer` | import direction (engine < game < kit < shards); shard ↔ shard; a file or import outside the four layers | hard (`.oxlintrc.json`, E405 AG28) |
-| `wildshard/public-index` | a cross-layer import skips the public index (`#engine/x/y`, relative ones too); `#engine/data` and `#engine/retry` are the sanctioned sub-entries | ratchet (per file) |
+| `wildshard/layer` | import direction (engine < game < kit < shards); shard ↔ shard; a file or import outside the four layers; the tests' `#engine-internal/*` alias in `src/` (AG5) | hard (`.oxlintrc.json`, E405 AG28) |
+| `wildshard/public-index` | a cross-layer import skips the public index (`#engine/x/y` no longer resolves at all since AG5; relative ones too); `#engine/data`, `#engine/retry` and `#kit/data` are the sanctioned sub-entries | ratchet (per file) |
 | `wildshard/engine-words` | Wildshard vocabulary (shard names, species, items, the word "shard") in engine code; comments are not counted. A wire contract's field may keep the name `shard` (telemetry tags, reports, the harness probe, a model id) only as a property name or key, only in the files `lint/ratchet.json` `allow['wildshard/engine-words']` lists with the reason (E405, Jake). Engine copy says "level" and the game supplies its word (`s_level_word`) | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
 | `wildshard/shard-names` | the game and the kit name no particular shard: slugs, display names, camelCase forms, distinctive stems and shard-declared ids, from `lint/shard-words.generated.json`; comments and ordinary words (pine, driftwood) pass | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
 | `wildshard/no-shard-branch` | outside `src/shards/`: a branch on a slug or a style (`slug ===`, `style ===`, `isNalati`, a slug literal in a comparison or `case`) | hard error |

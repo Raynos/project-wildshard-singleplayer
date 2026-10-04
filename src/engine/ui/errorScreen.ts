@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import type { LoadFailure } from '../core/errorReport';
 import { app } from '../app/runtime';
 import { uiScope, mountUi } from './ownership';

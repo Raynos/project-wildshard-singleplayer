@@ -1,12 +1,12 @@
 import { expect, it, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
 import { PerspectiveCamera } from 'three';
 import { Events, Scope } from '#engine';
-import { Player } from '#engine/player/Player';
-import { InputService } from '#engine/input/InputService';
-import { Physics } from '#engine/physics/Physics';
-import { loadRapier } from '#engine/physics/rapier';
-import { groups } from '#engine/physics/groups';
+import { Player } from '#engine-internal/player/Player';
+import { InputService } from '#engine-internal/input/InputService';
+import { Physics } from '#engine-internal/physics/Physics';
+import { loadRapier } from '#engine-internal/physics/rapier';
+import { groups } from '#engine-internal/physics/groups';
 import { legacyDouble } from '../fake/FakeGame';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 

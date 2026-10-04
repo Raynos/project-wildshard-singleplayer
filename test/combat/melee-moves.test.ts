@@ -1,12 +1,12 @@
 import { SWORD } from '#kit';
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { onFault } from '#engine/core/faults';
+import { onFault } from '#engine-internal/core/faults';
 import { Sword, type SwordArms } from '#kit/weapons/melee/SweptMelee';
 import { COMBO, HEAVY, REST, CHARGE, SPRINT, type Move } from '#kit/weapons/melee/moves';
 import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '#shards/nalati-grasslands/weapons/Sabre';
-import { setAimTargets } from '#engine/player/AimTargets';
-import { setActivePhysics } from '#engine/physics/active';
+import { setAimTargets } from '#engine-internal/player/AimTargets';
+import { setActivePhysics } from '#engine-internal/physics/active';
 import { fakeWorld } from '../fake/world';
 import { seedRandom } from '../fake/FakeGame';
 

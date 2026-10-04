@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { DayCycle } from '#engine/world/dayCycle';
+import { DayCycle } from '#engine-internal/world/dayCycle';
 import { PINE_DAY } from '#shards/pine-hollow/look/dayKeys';
 import { DRIFTWOOD_DAY } from '#shards/driftwood-isle/look/dayKeys';
 import { steppeClock } from '#shards/nalati-grasslands/look/dayKeys';
-import { App } from '#engine/app/app';
-import { Scope } from '#engine/app/scope';
+import { App } from '#engine-internal/app/app';
+import { Scope } from '#engine-internal/app/scope';
 import frozen from './fixtures/day-cycle-e357.json';
 import sequence from './fixtures/sky-sequence-e357.json';
 

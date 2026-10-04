@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Rng } from '#engine/core/rng';
-import { rollVariant, speciesDef } from '#engine/entities/species/registry';
+import { Rng } from '#engine-internal/core/rng';
+import { rollVariant, speciesDef } from '#engine-internal/entities/species/registry';
 import { loadSpecies } from '../species';
 
 loadSpecies();

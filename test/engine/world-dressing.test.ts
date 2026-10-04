@@ -1,9 +1,9 @@
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
 import { Vector3, type Material } from 'three';
-import { Boundary } from '#engine/world/Boundary';
-import { Horizon } from '#engine/world/Horizon';
-import { configureLevel } from '#engine/level/selection';
+import { Boundary } from '#engine-internal/world/Boundary';
+import { Horizon } from '#engine-internal/world/Horizon';
+import { configureLevel } from '#engine-internal/level/selection';
 import { toLevelSpec } from '#game/shard/spec';
 import { SHARDS } from '../../src/shards.generated';
 

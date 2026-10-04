@@ -1,4 +1,4 @@
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 /**
  * Expected step durations for the SETUP track (project/archive/2026-09-22-load-perf.md, job 2 "continuous bar").
  *

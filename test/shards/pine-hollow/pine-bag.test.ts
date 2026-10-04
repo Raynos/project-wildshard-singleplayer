@@ -3,7 +3,7 @@ import { saveFixture } from '../../fake/saveFixture';
 // what Mott trades for, nothing he gives goes into it, and the unlocks never ride in a pack slot.
 import { describe, expect, it } from 'vitest';
 import { loadSpecies } from '../../species';
-import { speciesDef } from '#engine/entities/species/registry';
+import { speciesDef } from '#engine-internal/entities/species/registry';
 import { Inventory, harvestOf, type ItemId } from '#game/Inventory';
 import { PINE_PACK_KINDS, PINE_PACK_SLOTS, isPineItem } from '#shards/pine-hollow/items';
 import { Owned } from '#game/loot/Owned';

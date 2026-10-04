@@ -30,7 +30,7 @@ import { waterOf } from '../water';
 import { smoothstep } from '#engine/data';
 
 type WeatherHUD = Parameters<HUD['setWeather']>[0];
-declare module '#engine/events/maps' { interface EventMap { 'weather.changed': WeatherHUD } }
+declare module '#engine' { interface EventMap { 'weather.changed': WeatherHUD } }
 
 export interface WeatherCtx {
   ctx: ShardContext; manifest: ShardManifest;

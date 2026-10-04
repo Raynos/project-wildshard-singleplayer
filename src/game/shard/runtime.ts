@@ -54,7 +54,7 @@ export interface ShardRuntime {
   horizonVeil: { value: Vector2 } | null;
 }
 
-declare module '#engine/events/maps' {
+declare module '#engine' {
   interface AskMap {
     'feat.toast': [{ id: string; event?: string; allowed: boolean }, { id: string; event?: string; allowed: boolean }];
   }

@@ -1,6 +1,6 @@
 import { listenDom } from '../input/dom';
 import { app } from '../app/runtime';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * Select — tap / click a model in the World Explorer (project/archive/2026-09-23-explore-world.md X4; mockups round-3 p09, round-4 g09 / g13;
  * E67: round-6 midway 04): a cyan box, its size in a tag over the box's top, and a glass card standing beside it —

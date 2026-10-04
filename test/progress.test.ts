@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
 import { achievementsFor, registerAchievements, type AchievementDef } from '#game/achievements';
 import { Progress } from '#game/Progress';
-import { hasSpecies, speciesDef } from '#engine/entities/species/registry';
+import { hasSpecies, speciesDef } from '#engine-internal/entities/species/registry';
 import { SHARDS } from '../src/shards.generated';
 import { playable } from '#game/shard/registry';
 

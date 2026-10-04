@@ -2,9 +2,9 @@
 // sound renders finite, in range and not silent; the surfaces / materials differ where the ear says they should (spectral
 // balance); the reverb rooms decay in their target times; loops are seamless; renders are deterministic.
 import { describe, expect, test } from 'vitest';
-import * as G from '#engine/audio/gen';
+import * as G from '#engine-internal/audio/gen';
 import * as V from '#kit/audio/creatureVoices';
-import { Biquad, bandEnergy, centroid, rt60 } from '#engine/audio/dsp';
+import { Biquad, bandEnergy, centroid, rt60 } from '#engine-internal/audio/dsp';
 import { SurfaceMap } from '../src/shards/driftwood-isle/audio/surface';
 
 const sr = 48000;

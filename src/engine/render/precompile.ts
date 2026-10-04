@@ -1,5 +1,5 @@
 import { resourceScope } from '../app/resources';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import * as THREE from 'three';
 import { Pass, type EffectComposer } from 'postprocessing';
 import { PERFLOAD, perfLog, describeProgram, newProgramsSince, snapshotPrograms, type ProgramLike, parallelCompile } from '../boot/perflog';

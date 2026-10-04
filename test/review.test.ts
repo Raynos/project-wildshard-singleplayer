@@ -2,8 +2,8 @@ import { saveStorageFixture } from './fake/saveFixture';
 // src/engine/ui/review.ts (unlock, Quick note switch, send + offline queue) and the pure helpers of src/ui/Feedback.ts.
 // a ReviewDesk reads storage once when built, so each test builds its own (a fresh page); fetch is stubbed per test.
 import { describe, expect, it, vi } from 'vitest';
-import { QUEUE_MAX, ReviewDesk, readQueue, writeQueue, type NotePayload } from '#engine/ui/review';
-import { headingDeg, reproUrl } from '#engine/ui/Feedback';
+import { QUEUE_MAX, ReviewDesk, readQueue, writeQueue, type NotePayload } from '#engine-internal/ui/review';
+import { headingDeg, reproUrl } from '#engine-internal/ui/Feedback';
 
 const fixtures = saveStorageFixture('global');
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { WeightedTable } from '#engine/ai/weighted';
+import { WeightedTable } from '#engine-internal/ai/weighted';
 
 describe('weighted spawn and loot tables', () => {
   it('keeps author order, clamped weights, boundary behavior and exact draw consumption', () => {

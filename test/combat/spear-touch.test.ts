@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { EquipmentService, Scope, app } from '#engine';
 import { INPUT_CONTEXTS } from '#game/inputContexts';
-import { TouchControls } from '#engine/player/TouchControls';
+import { TouchControls } from '#engine-internal/player/TouchControls';
 import { Spear } from '#shards/nalati-grasslands/weapons/Spear';
 import { fakeWorld } from '../fake/world';
 

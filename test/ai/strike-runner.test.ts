@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
-import { StrikeRunner, type StrikePhase, type StrikeSpec } from '#engine/ai/strikes';
-import { fnv1a32 } from '#engine/core/rng';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
+import { StrikeRunner, type StrikePhase, type StrikeSpec } from '#engine-internal/ai/strikes';
+import { fnv1a32 } from '#engine-internal/core/rng';
 import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
 import { creature } from '../fake/creature';
 

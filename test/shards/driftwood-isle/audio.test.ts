@@ -1,17 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Camera, Vector3 } from 'three';
-import { Audio } from '#engine/audio/Audio';
-import { tap } from '#engine/core/harnessTap';
+import { Audio } from '#engine-internal/audio/Audio';
+import { tap } from '#engine-internal/core/harnessTap';
 import { IslandAmbience } from '../../../src/shards/driftwood-isle/audio/ambience';
 import { IslandBed, IslandSfx, ISLAND_BED } from '../../../src/shards/driftwood-isle/audio/sfx';
 import { driftwoodCueMap } from '../../../src/shards/driftwood-isle/audio/cues';
 import { SurfaceMap } from '../../../src/shards/driftwood-isle/audio/surface';
 import { DriftwoodScore } from '../../../src/shards/driftwood-isle/audio/score';
-import { Scope } from '#engine/app/scope';
-import { Events } from '#engine/events/events';
-import { sortSystems, type SystemSpec } from '#engine/app/systems';
+import { Scope } from '#engine-internal/app/scope';
+import { Events } from '#engine-internal/events/events';
+import { sortSystems, type SystemSpec } from '#engine-internal/app/systems';
 import { driftwoodAudioSystems } from '../../../src/shards/driftwood-isle/audio/systems';
-import { Music } from '#engine/audio/Music';
+import { Music } from '#engine-internal/audio/Music';
 import { createDriftwoodAudio } from '../../../src/shards/driftwood-isle/audio/files';
 
 // E357 S4.3 (08 §6.3 C): the island's bed, gulls and voices left the engine mixer for Driftwood's audio folder.

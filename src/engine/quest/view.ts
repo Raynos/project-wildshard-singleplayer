@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './view/ui';
 import { lineFor, type DialogueEntry, type NpcDef } from './core';

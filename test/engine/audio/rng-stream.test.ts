@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { app } from '#engine/app/runtime';
-import { audioRandom } from '#engine/audio/util';
-import { Rng, fnv1a32 } from '#engine/core/rng';
+import { app } from '#engine-internal/app/runtime';
+import { audioRandom } from '#engine-internal/audio/util';
+import { Rng, fnv1a32 } from '#engine-internal/core/rng';
 
 describe('audio RNG isolation', () => {
   it('keeps the bark/visual stream unchanged through noise-buffer and playback draws and reseeds audio', () => {

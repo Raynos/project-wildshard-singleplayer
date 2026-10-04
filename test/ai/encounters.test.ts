@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Scope } from '#engine/app/scope';
-import { EncounterRegistry } from '#engine/ai/encounters';
+import { Scope } from '#engine-internal/app/scope';
+import { EncounterRegistry } from '#engine-internal/ai/encounters';
 
 describe('resident encounter metadata', () => {
   it('keeps names and head-bar policy scoped to the active level', () => {

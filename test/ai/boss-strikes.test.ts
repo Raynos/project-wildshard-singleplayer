@@ -1,7 +1,7 @@
 import { app } from '#engine';
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
 import { GoldenKingFight } from '#shards/nalati-grasslands/combat/goldenKing';
 import { StormTitan, StormTitanFight } from '#shards/nalati-grasslands/combat/stormTitan';
 import { AntlerKingFight } from '#shards/pine-hollow/combat/antlerKing';

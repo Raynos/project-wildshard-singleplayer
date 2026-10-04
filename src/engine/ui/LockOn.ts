@@ -1,5 +1,5 @@
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * LockOn — the target frame over enemies (mockups: art/hud/round-7-sword-touch/B-lunge.jpg, art/combat/round-1-lockon/N.jpg):
  *

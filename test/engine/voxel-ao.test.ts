@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { bakeAO, type AOOptions } from '#engine/world/lowpolyKit';
+import { bakeAO, type AOOptions } from '#engine-internal/world/lowpolyKit';
 import { bakeSmoothAO, type AOOpts } from '#shards/nalati-grasslands/world/paint';
 import { bakeVertexAO } from '#shards/nalati-grasslands/world/glbPaint';
 

@@ -33,7 +33,7 @@ registerAchievements('driftwood-isle', DRIFTWOOD_FEATS);
 
 // The composition root owns shared species; the engine has no upward kit import.
 const { registerSpecies, speciesWithLook } = await import('#engine');
-const { installScore } = await import('#engine/audio/score/score');
+const { installScore } = await import('#engine-internal/audio/score/score');
 const { WILDSHARD_SCORE } = await import('#game/audio/theme');
 installScore(WILDSHARD_SCORE);
 const { installKitSpecies, installKitIcons, installKitPickups, installKitProps } = await import('#kit');

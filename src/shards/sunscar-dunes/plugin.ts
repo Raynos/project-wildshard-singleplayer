@@ -19,9 +19,8 @@ import { DUNE_STRIDER, DUNE_STRIDER_LOOK } from './species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
 import { installMatriarch, type DuneMatriarch } from './combat/matriarch';
 
-// the slot merges into its defining module, as src/game/equipmentTypes.ts does: a merge through the #engine re-export
-// depends on file order (E405: tsc -p scripts lost it)
-declare module '#engine/combat/Equipment' {
+// the slot merges through #engine (AG5: deep engine paths do not resolve); a program sees it only when it includes this file
+declare module '#engine' {
   interface EquipmentSlotMap { 'sunscar-whip': true }
 }
 

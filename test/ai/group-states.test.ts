@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
 import { Pack } from '#shards/nalati-grasslands/creatures/pack';
 import { HorseHerd } from '#shards/nalati-grasslands/creatures/herd';
 import { Flock } from '#shards/nalati-grasslands/creatures/flock';
 import { wildEnv } from '#shards/nalati-grasslands/creatures/env';
-import { speciesDef } from '#engine/entities/species/registry';
+import { speciesDef } from '#engine-internal/entities/species/registry';
 import { creature } from '../fake/creature';
 import { invokeLegacy } from '../fake/legacyActor';
 

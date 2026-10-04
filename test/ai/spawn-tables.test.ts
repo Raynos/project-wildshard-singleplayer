@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { layoutFauna, layoutFaunaCells, type FaunaLayoutOpts } from '#engine/world/faunaLayout';
+import { layoutFauna, layoutFaunaCells, type FaunaLayoutOpts } from '#engine-internal/world/faunaLayout';
 import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
 import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
 import { NINE_DRAGON_STACK } from '#shards/nine-dragon-stack/manifest';
-import { speciesDef } from '#engine/entities/species/registry';
-import { AnimalFactory } from '#engine/entities/AnimalFactory';
+import { speciesDef } from '#engine-internal/entities/species/registry';
+import { AnimalFactory } from '#engine-internal/entities/AnimalFactory';
 
 const opts: FaunaLayoutOpts = { seed: 1337, half: 100, margin: 25, spacing: 56, jitter: 15, ring: 20, emptyWeight: 10,
   trailDistance: (x, z) => Math.hypot(x, z) * 0.2,

@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Vector3, Group } from 'three';
-import { CombatCues, resolveHitStop } from '#engine/combat/cues';
+import { CombatCues, resolveHitStop } from '#engine-internal/combat/cues';
 import { sharedCombatCues } from '#kit/audio/combatCues';
 import { driftwoodCombatCues } from '#shards/driftwood-isle/audio/combatCues';
 import { pineCombatCues } from '#shards/pine-hollow/audio/combatCues';
 import { ndCueMap } from '#shards/nine-dragon-stack/audio/cues';
-import { tap } from '#engine/core/harnessTap';
+import { tap } from '#engine-internal/core/harnessTap';
 import { PINE_BOLT_HIT_STOP, CROSSBOW, LEVER, LONGBOW } from '#shards/pine-hollow/weapons/equipment';
-import { Weapon, type WeaponState } from '#engine/combat/Weapon';
-import { EquipmentService } from '#engine/combat/EquipmentService';
-import { Events } from '#engine/events/events';
-import { Scope } from '#engine/app/scope';
-import type { CueOpts } from '#engine/audio/Cues';
+import { Weapon, type WeaponState } from '#engine-internal/combat/Weapon';
+import { EquipmentService } from '#engine-internal/combat/EquipmentService';
+import { Events } from '#engine-internal/events/events';
+import { Scope } from '#engine-internal/app/scope';
+import type { CueOpts } from '#engine-internal/audio/Cues';
 
 describe('combat cues preserve existing sound boundaries', () => {
   it('a resident cue map overrides fallback exactly once and leaves no route after disposal', () => {

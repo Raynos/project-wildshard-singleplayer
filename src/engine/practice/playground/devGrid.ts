@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../../strings';
 /**
  * The playgrounds' developer look (E307, Jake: "clearly-developer graphics … the Counter-Strike Source maps with developer
  * textures"): flat grey and orange measure tiles, a 1 m grid in a 4 m tile, every box face shaded by its facing so the

@@ -3,16 +3,16 @@
 // sends it home when it is wedged, lost offshore, or past its leash — so the cave puzzle never jams. The last test
 // pushes it across Driftwood's real beach (the baked heightfield) from its start onto the cave's tide plate.
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '#engine/physics/rapier';
-import { Physics } from '#engine/physics/Physics';
-import { Bodies, type Body } from '#engine/physics/bodies';
-import { CharacterMotor } from '#engine/physics/CharacterMotor';
-import { groups } from '#engine/physics/groups';
-import { addTerrain } from '#engine/physics/terrain';
-import { floorBelow } from '#engine/physics/query';
-import { parseBakedTerrain } from '#engine/world/BakedTerrain';
-import { BARREL_BODY, BARREL_LOST_T, BARREL_WEDGE_T, BarrelWatch, Live, plateDown, type BarrelEnv } from '#engine/world/interact/Interactables';
-import type { BarrelDef } from '#engine/world/interact/types';
+import { loadRapier } from '#engine-internal/physics/rapier';
+import { Physics } from '#engine-internal/physics/Physics';
+import { Bodies, type Body } from '#engine-internal/physics/bodies';
+import { CharacterMotor } from '#engine-internal/physics/CharacterMotor';
+import { groups } from '#engine-internal/physics/groups';
+import { addTerrain } from '#engine-internal/physics/terrain';
+import { floorBelow } from '#engine-internal/physics/query';
+import { parseBakedTerrain } from '#engine-internal/world/BakedTerrain';
+import { BARREL_BODY, BARREL_LOST_T, BARREL_WEDGE_T, BarrelWatch, Live, plateDown, type BarrelEnv } from '#engine-internal/world/interact/Interactables';
+import type { BarrelDef } from '#engine-internal/world/interact/types';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import driftwoodBake from '../public/assets/baked/driftwood-isle/terrain.bin?inline';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Hfsm } from '#engine/ai/hfsm';
+import { Hfsm } from '#engine-internal/ai/hfsm';
 
 describe('hierarchical brain transitions', () => {
   it('exits leaf first, preserves shared parents, and enters the next leaf', () => {

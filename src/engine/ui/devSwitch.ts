@@ -1,5 +1,5 @@
 import { uiScope } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * Settings ▸ DEVELOPER (E140, the user's 1c): the one visible switch for developer mode (src/engine/core/devMode.ts), in the pause
  * menu's Settings (src/engine/ui/Menu.ts) and the title's (src/engine/ui/BootSettings.ts). Styled by gmenu.css like every other switch.

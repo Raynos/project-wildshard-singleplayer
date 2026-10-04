@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { SpeciesService, type SpeciesLook } from '#engine/entities/species/look';
-import { registeredSpecies, registerSpecies } from '#engine/entities/species/registry';
-import { AnimalFactory, DEFAULT_CREATURE_RENDER } from '#engine/entities/AnimalFactory';
-import { Scope } from '#engine/app/scope';
-import { app } from '#engine/app/runtime';
+import { SpeciesService, type SpeciesLook } from '#engine-internal/entities/species/look';
+import { registeredSpecies, registerSpecies } from '#engine-internal/entities/species/registry';
+import { AnimalFactory, DEFAULT_CREATURE_RENDER } from '#engine-internal/entities/AnimalFactory';
+import { Scope } from '#engine-internal/app/scope';
+import { app } from '#engine-internal/app/runtime';
 import { BOAR } from '#kit';
 import { fakeWorld } from '../fake/world';
 

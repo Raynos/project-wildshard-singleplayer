@@ -271,6 +271,9 @@ const pathOf = (context) => {
 const modulePath = (filename, source) => {
   const target = source.startsWith('#') ? aliasTarget(source) : null;
   if (target !== null) return target.replace(/^\.\//u, '');
+  // AG5: `#engine/*` maps nowhere any more; a deep `#engine/x` is still the deep path src/engine/x, so it is reported
+  const deep = /^#(engine|game|kit|shards)\/(.+)$/u.exec(source);
+  if (deep) return `src/${deep[1]}/${deep[2]}`;
   if (!source.startsWith('.')) return source;
   return relative(REPO, resolve(dirname(filename), source)).replaceAll('\\', '/').replace(/^.*\/src\//u, 'src/');
 };
@@ -350,6 +353,11 @@ const layerWalk = (kind) => (context) => {
   }
   const checkImport = (node, source, dynamic = false) => {
     if (typeof source !== 'string' || source === '') return;
+    // E362 AG5: engine internals are reachable from tests only (the vitest alias + tsconfig.json `paths`)
+    if (source.startsWith('#engine-internal')) {
+      if (kind === 'layer') report(context, node, `#engine-internal/* is the tests' alias; src imports #engine or #engine/data: ${source}`);
+      return;
+    }
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
     if (!target) {

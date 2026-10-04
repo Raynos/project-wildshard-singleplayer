@@ -1,5 +1,5 @@
 import { pageScope } from '../app/resources';
-import { saveStorage,jsonSlot } from '#engine/saves/slots';
+import { saveStorage,jsonSlot } from '../saves/slots';
 /**
  * Debug ▸ Clear downloads (E172, the user: "I need a button to nuke the cache so i can test it"; their pick 1: downloads
  * only). Throws away every downloaded game file so the next load is a true first visit — and nothing the player made:

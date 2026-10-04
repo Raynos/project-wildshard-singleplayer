@@ -1,6 +1,6 @@
 import { Scope } from '../app/scope';
 import { hudSlots } from './hudSlots';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * Build pill on the title screen: shows the running build and reloads on tap.
  * Bookmarked as a home-screen PWA on iOS there is no address bar, so this is the only

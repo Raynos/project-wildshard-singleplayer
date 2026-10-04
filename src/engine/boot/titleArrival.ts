@@ -1,4 +1,4 @@
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 /** One-shot intent from the renderer-free title page to the selected shard's fresh document. */
 export type TitleArrivalMode = 'enter' | 'explore' | 'arena';
 export interface TitleArrival { slug: string; mode: TitleArrivalMode }

@@ -1,6 +1,6 @@
 import { appIdentity } from '../app/identity';
 import { listenDom, mountDom } from '../input/dom';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import { app } from '../app/runtime';
 /**
  * Explore World — the viewer (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel opens it over the already

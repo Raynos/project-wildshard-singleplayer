@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * The swimming hands (E348, the E315 M5 leftover): a shared model — the white-gloved forearms and mitten hands you see
  * while swimming on a shard without its own arm rig (Nalati's river, Pine Hollow's pond and creek; Driftwood swims in the

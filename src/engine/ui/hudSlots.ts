@@ -1,5 +1,5 @@
 import { nodeOwner, type Scope } from '../app/scope';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 
 
 export type DiscSpot = 'r0' | 'r1' | 'r2' | 'r3' | 'aim' | 'up0' | 'lean-l' | 'lean-r' | 'edge-r' | 'edge-l' | 'lock' | 'jump';

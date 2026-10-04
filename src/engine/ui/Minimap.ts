@@ -1,5 +1,5 @@
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * Minimap — the circular top-down map top-right of the HUD (mockup B, art/minimap/round-1/minimap-k1-B-terrain.png).
  *

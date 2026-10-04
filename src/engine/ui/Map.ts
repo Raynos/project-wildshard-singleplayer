@@ -2,7 +2,7 @@ import { app } from '../app/runtime';
 import type { UiHandle } from './layers';
 import type { Scope } from '../app/scope';
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * The full map — the MAP tab of the in-game menu (src/engine/ui/Menu.ts): tap the minimap or press M.
  *

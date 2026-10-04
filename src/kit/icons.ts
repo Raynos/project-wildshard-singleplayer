@@ -6,7 +6,7 @@ import { iconParts, registerIcons } from '#engine';
  * GEAR / FINDS stickers, drawn in the engine's 64×64 frame (`iconParts`). installKitIcons registers them; a level that
  * needs one names its id.
  */
-declare module '#engine/ui/icons' {
+declare module '#engine' {
   interface IconMap {
     deer: true;
     elk: true;

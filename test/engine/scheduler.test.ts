@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { TickScheduler } from '#engine/app/scheduler';
-import { Scope } from '#engine/app/scope';
-import type { SystemSpec } from '#engine/app/systems';
+import { TickScheduler } from '#engine-internal/app/scheduler';
+import { Scope } from '#engine-internal/app/scope';
+import type { SystemSpec } from '#engine-internal/app/systems';
 
 const player = { x: 0, y: 0, z: 0 };
 const actorAt = (z: number) => ({ position: { x: 0, y: 0, z } });

@@ -1,6 +1,6 @@
 import { uiScope, mountUi } from './ownership';
 import { app } from '../app/runtime';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import './styles/combat.css';
 import type { DeathCause } from '../combat/pipeline';
 

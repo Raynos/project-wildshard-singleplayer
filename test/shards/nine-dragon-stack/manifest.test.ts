@@ -4,9 +4,9 @@ import { SHARDS } from '../../../src/shards.generated';
 import { playable } from '#game/shard/registry';
 import { PUBLIC_BYTES } from '#game/boot/bytes.generated';
 import { PACKS } from '#game/boot/packs.generated';
-import { gpuUrl } from '#engine/boot/bytes';
-import { chunkFiles } from '#engine/boot/manifest';
-import { initializeTier, TIER } from '#engine/core/tier';
+import { gpuUrl } from '#engine-internal/boot/bytes';
+import { chunkFiles } from '#engine-internal/boot/manifest';
+import { initializeTier, TIER } from '#engine-internal/core/tier';
 import manifest from '#shards/nine-dragon-stack/manifest';
 
 const originalTier = TIER;

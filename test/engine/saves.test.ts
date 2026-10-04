@@ -2,8 +2,8 @@ import globalFixture from '../fixtures/saves/v2-global.json';
 import driftFixture from '../fixtures/saves/v2-driftwood-isle.json';
 import { describe, expect, it, vi } from 'vitest';
 import * as v from 'valibot';
-import { SaveStore, type SchemaFailure } from '#engine/saves/store';
-import { LEGACY_GAME_KEYS } from '#engine/saves/legacy';
+import { SaveStore, type SchemaFailure } from '#engine-internal/saves/store';
+import { LEGACY_GAME_KEYS } from '#engine-internal/saves/legacy';
 import { MemoryStorage } from '../setup';
 
 const fixture = (): { local: MemoryStorage; session: MemoryStorage; store: SaveStore; report: ReturnType<typeof vi.fn<(failure: SchemaFailure) => void>> } => {

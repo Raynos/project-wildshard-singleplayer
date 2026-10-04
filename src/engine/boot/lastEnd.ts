@@ -1,6 +1,6 @@
 import { pageScope } from '../app/resources';
 import type { Scope } from '../app/scope';
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 /**
  * Why the last page ended (E179). Jake's iPhone lost Pine Hollow on an ENTER WORLD: the Debug readout went from two
  * resident shards to "nalati-grasslands (playing)" alone, so the page had reloaded, and nothing said whether the game

@@ -2,10 +2,10 @@
 // (`piece.follows: 'copy'`, the sailboat), and the island's models build in their own space (origin at their foot).
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { WorldRegistry } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
-import { defineModel, modelContext } from '#engine/models/model';
-import { place } from '#engine/models/place';
+import { WorldRegistry } from '#engine-internal/world/registry';
+import type { Sky } from '#engine-internal/world/Sky';
+import { defineModel, modelContext } from '#engine-internal/models/model';
+import { place } from '#engine-internal/models/place';
 import { boat, boatColliders } from '#shards/driftwood-isle/models/boat';
 import { palm } from '#shards/driftwood-isle/models/palm';
 import { hut, hutLayout } from '#shards/driftwood-isle/models/hut';

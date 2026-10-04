@@ -1,5 +1,5 @@
 import { uiScope, mountUi } from '../../ui/ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../../strings';
 import { Vector3 } from 'three';
 import type { Game } from '../../core/Game';
 import type { LevelContext } from '../../level/context';

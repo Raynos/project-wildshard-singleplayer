@@ -6,7 +6,7 @@
  *   icon('lock')  → '<svg …>…</svg>'
  */
 /** The icon ids: the engine's UI glyphs; a content library merges its own in (the kit's, src/kit/icons.ts: creatures, items,
- *  weapons; E405: the engine names no content) with `declare module '#engine/ui/icons' { interface IconMap { … } }`. */
+ *  weapons; E405: the engine names no content) with `declare module '#engine' { interface IconMap { … } }`. */
 export interface IconMap { lock: true; check: true; poi: true; you: true; map: true; pack: true; star: true; book: true; heart: true; pin: true; laurel: true }
 export type IconId = keyof IconMap;
 

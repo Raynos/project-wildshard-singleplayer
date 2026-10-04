@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { App, Scope, type LevelContext, type InputContextDef } from '#engine';
 import * as THREE from 'three';
-import { BindingTable } from '#engine/input/bindingTable';
+import { BindingTable } from '#engine-internal/input/bindingTable';
 import { INPUT_CONTEXTS } from '#game/inputContexts';
 import { KEY_BINDINGS } from '#game/keyBindings';
 import { installRide } from '#shards/nalati-grasslands/ride/input';

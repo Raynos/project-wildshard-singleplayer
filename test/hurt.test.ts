@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { app, Scope } from '#engine';
-import { deathLine, respawnWhere } from '#engine/ui/HurtArc';
+import { deathLine, respawnWhere } from '#engine-internal/ui/HurtArc';
 import { STRINGS as DRIFTWOOD } from '#shards/driftwood-isle/strings';
 import { STRINGS as PINE } from '#shards/pine-hollow/strings';
 import { STRINGS as NALATI_STRINGS } from '#shards/nalati-grasslands/strings';

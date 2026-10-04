@@ -3,8 +3,8 @@
 // empty mesh — and every facade piece the grammar can place is a model (a new piece can't slip past the catalog).
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { defineModel, definedModels, modelContext } from '#engine/models/model';
-import { type HandedBatch, place } from '#engine/models/place';
+import { defineModel, definedModels, modelContext } from '#engine-internal/models/model';
+import { type HandedBatch, place } from '#engine-internal/models/place';
 import { BAKED, DRAWN_AS, PIECES, type PieceId } from '#shards/nine-dragon-stack/world/facade/pieces';
 import { FACADE_BAKED, FACADE_MODELS } from '#shards/nine-dragon-stack/models/facade';
 import { balustradePanel } from '#shards/nine-dragon-stack/models/balustradePanel';
@@ -29,8 +29,8 @@ import { GATE, PLAZA, WELL, Y0 } from '#shards/nine-dragon-stack/layout';
 import { STAIR_GATE } from '#shards/nine-dragon-stack/world/stairstreet';
 import { WELL_BALUSTRADE_AT } from '#shards/nine-dragon-stack/world/square';
 import { RIM } from '#shards/nine-dragon-stack/world/well-plan';
-import { placeCollider, poseOf } from '#engine/models/colliders';
-import type { ColliderDesc } from '#engine/world/registry';
+import { placeCollider, poseOf } from '#engine-internal/models/colliders';
+import type { ColliderDesc } from '#engine-internal/world/registry';
 
 /** every Nine Dragon model but the facade's (FACADE_MODELS, FACADE_BAKED) */
 const OTHERS = [balustradePanel, umbrellaWalker, mahjongSitter, feiZhuaHook, guardianLion, marketBooth, parasolTable, diningPavilion, monorailTrain, cableGondola, drone, paperLantern, galleryPlant, airConBox, brassDragonHook, drumStool, parkedScooter, mahjongTableModel, inkFigure, paifang,

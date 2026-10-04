@@ -3,14 +3,14 @@
 // no taller than their rise, so the character motor climbs them.
 import { describe, expect, it } from 'vitest';
 import { Object3D } from 'three';
-import { boxInFrame } from '#engine/physics/box';
-import { loadRapier } from '#engine/physics/rapier';
-import { Physics } from '#engine/physics/Physics';
-import { addPiece, treadBoxes } from '#engine/physics/pieces';
-import { tagOf } from '#engine/physics/surface';
-import { CharacterMotor } from '#engine/physics/CharacterMotor';
-import { groups } from '#engine/physics/groups';
-import { WorldRegistry, boxDesc, type Piece } from '#engine/world/registry';
+import { boxInFrame } from '#engine-internal/physics/box';
+import { loadRapier } from '#engine-internal/physics/rapier';
+import { Physics } from '#engine-internal/physics/Physics';
+import { addPiece, treadBoxes } from '#engine-internal/physics/pieces';
+import { tagOf } from '#engine-internal/physics/surface';
+import { CharacterMotor } from '#engine-internal/physics/CharacterMotor';
+import { groups } from '#engine-internal/physics/groups';
+import { WorldRegistry, boxDesc, type Piece } from '#engine-internal/world/registry';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

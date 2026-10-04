@@ -1,6 +1,6 @@
 import { listenDom, listenPage } from '../input/dom';
 import { app } from '../app/runtime';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * Set Explorer (E306 / E315 M7, project/archive/2026-09-30-model-architecture.md): the Explore pane between single models and the whole
  * world. A set is a named group of placed models — a camp, a market square, a kurgan field (`placeSet`,

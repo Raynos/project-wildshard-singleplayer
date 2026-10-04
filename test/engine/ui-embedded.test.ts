@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
-import { UiLayers } from '#engine/ui/layers';
-import { Scope } from '#engine/app/scope';
+import { UiLayers } from '#engine-internal/ui/layers';
+import { Scope } from '#engine-internal/app/scope';
 
 describe('embedded layer handles', () => {
   it('registers map/debug descendants without blocking or inerting their menu ancestor', () => {

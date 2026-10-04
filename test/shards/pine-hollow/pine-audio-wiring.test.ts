@@ -3,7 +3,7 @@ import { createDriftwoodAudio } from '#shards/driftwood-isle/audio/files';
 // The audio-wiring lane (PINE-HOLLOW-REMASTER A-rows): Pine Hollow's own music + SFX ride on its loading bar only (E44 —
 // Driftwood's list is unchanged), and the layout's zones become ambience spots.
 import { describe, expect, it } from 'vitest';
-import { audioFiles, manifestFiles } from '#engine/boot/audioFiles';
+import { audioFiles, manifestFiles } from '#engine-internal/boot/audioFiles';
 import { MUSIC_MANIFESTS, SFX_MANIFESTS } from '#game/boot/audio.generated';
 import { pineZoneSpots } from '#shards/pine-hollow/audio/wiring';
 

@@ -1,5 +1,5 @@
 import type { Scope } from '../app/scope';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 
 export const SETTINGS_CATS = ['video', 'audio', 'controls', 'keys', 'gameplay', 'save', 'review', 'debug'] as const;
 export type SettingsCat = typeof SETTINGS_CATS[number];

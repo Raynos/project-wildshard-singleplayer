@@ -32,7 +32,10 @@
     "forceConsistentCasingInFileNames": true,
 
     "isolatedModules": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+
+    // E362 AG5: the tests' alias for engine internals (vitest.config.ts); wildshard/layer refuses it in src/
+    "paths": { "#engine-internal/*": ["./src/engine/*"] }
   },
   "include": ["src", "test"]
 }

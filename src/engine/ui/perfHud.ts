@@ -1,8 +1,8 @@
 import { appIdentity } from '../app/identity';
 import { app } from '../app/runtime';
 import { uiScope } from './ownership';
-import { engineString } from '#engine/strings';
-import { saveStorage } from '#engine/saves/slots';
+import { engineString } from '../strings';
+import { saveStorage } from '../saves/slots';
 /**
  * The developer fps panel's on-device perf HUD (E142 aggro-perf; Jake: "Can you add the debug info you need for the game
  * loop that's not rendering for the fps drop? Or anything else you can think of I can't think of."). Perf.ts owns the

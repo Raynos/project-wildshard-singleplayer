@@ -5,9 +5,9 @@ import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Sword, type SwordArms } from '#kit/weapons/melee/SweptMelee';
 import { COMBO, type Move } from '#kit/weapons/melee/moves';
-import { setAimTargets } from '#engine/player/AimTargets';
-import type { TargetAnimal, Targets } from '#engine/combat/types';
-import { setActivePhysics } from '#engine/physics/active';
+import { setAimTargets } from '#engine-internal/player/AimTargets';
+import type { TargetAnimal, Targets } from '#engine-internal/combat/types';
+import { setActivePhysics } from '#engine-internal/physics/active';
 import { fakeWorld } from '../fake/world';
 import { seedRandom } from '../fake/FakeGame';
 

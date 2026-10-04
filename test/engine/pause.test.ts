@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { App } from '#engine';
-import { Game } from '#engine/core/Game';
+import { Game } from '#engine-internal/core/Game';
 
 it('runs no fixed phase while paused, including a forced redraw, and resumes the accumulator unchanged', () => {
   const runFixed: unknown = Reflect.get(Game.prototype, 'runFixed');

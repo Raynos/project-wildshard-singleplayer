@@ -1,9 +1,9 @@
 // src/shards/pine-hollow/quest/* (PINE-HOLLOW-REMASTER PH-C1 / C6 / C8): The Warden's Hollow over the shard's flags, the
 // interactables table, the `?quest=` beats, the lodge's rotating contracts + their save, the trader's swaps.
 import { describe, expect, it } from 'vitest';
-import { Flags } from '#engine/world/interact/flags';
-import { flagsRaised } from '#engine/world/interact/types';
-import { validateTable } from '#engine/world/interact/validate';
+import { Flags } from '#engine-internal/world/interact/flags';
+import { flagsRaised } from '#engine-internal/world/interact/types';
+import { validateTable } from '#engine-internal/world/interact/validate';
 import { QuestState, lineFor, validateQuest } from '#game/quest/quest';
 import { ITEMS } from '#game/Inventory';
 import { achievementsFor } from '#game/achievements';

@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { chunkFiles } from '#engine/boot/manifest';
-import { bootFetches } from '#engine/boot/prefetch';
-import { registerGpuFiles } from '#engine/boot/gpuFiles';
-import { initializeTier, TIER } from '#engine/core/tier';
+import { chunkFiles } from '#engine-internal/boot/manifest';
+import { bootFetches } from '#engine-internal/boot/prefetch';
+import { registerGpuFiles } from '#engine-internal/boot/gpuFiles';
+import { initializeTier, TIER } from '#engine-internal/core/tier';
 import manifest from '#shards/driftwood-isle/manifest';
 import { GPU_FILES } from '#shards/driftwood-isle/ktx2.generated';
 

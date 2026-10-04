@@ -1,5 +1,5 @@
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import * as THREE from 'three';
 import { app } from '../app/runtime';
 import type { Game } from '../core/Game';

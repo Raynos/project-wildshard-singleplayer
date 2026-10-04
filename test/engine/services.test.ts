@@ -1,9 +1,9 @@
 import { afterEach, expect, it } from 'vitest';
 import { App, app } from '#engine';
-import { activeRegistry, WorldRegistry } from '#engine/world/registry';
-import { activePhysics, setActivePhysics } from '#engine/physics/active';
-import { activeBodies, setActiveBodies } from '#engine/physics/bodies';
-import { activeNavmesh, setActiveNavmesh } from '#engine/physics/navmesh';
+import { activeRegistry, WorldRegistry } from '#engine-internal/world/registry';
+import { activePhysics, setActivePhysics } from '#engine-internal/physics/active';
+import { activeBodies, setActiveBodies } from '#engine-internal/physics/bodies';
+import { activeNavmesh, setActiveNavmesh } from '#engine-internal/physics/navmesh';
 
 afterEach(() => { app.registryValue = null; setActivePhysics(null); setActiveBodies(null); setActiveNavmesh('', null); });
 it('legacy getters delegate to the same typed app services, including lazy registry creation', () => {

@@ -2,8 +2,8 @@ import { app } from '../app/runtime';
 import type { UiHandle } from './layers';
 import { uiScope } from './ownership';
 import type { Scope } from '../app/scope';
-import { engineString } from '#engine/strings';
-import { saveStorage } from '#engine/saves/slots';
+import { engineString } from '../strings';
+import { saveStorage } from '../saves/slots';
 /**
  * pause ▸ Settings ▸ Debug and main menu ▸ Settings ▸ Debug (E172: one registry, both menus), rendered from the registry (E162, src/engine/ui/debugOptions.ts): a filter box, then one section per
  * group — collapsed by default, its header says how many toggles it holds here, its open / closed state remembered

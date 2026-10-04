@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { StrikeRunner } from '#engine/ai/strikes';
+import { StrikeRunner } from '#engine-internal/ai/strikes';
 import { PINE_STRIKES } from '#shards/pine-hollow/combat/strikes';
 import { inArc, ringCatches } from '#shards/pine-hollow/combat/combatMath';
 import { manager } from '../fake/manager';

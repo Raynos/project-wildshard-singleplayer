@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 // src/engine/audio/credits.ts — the model credits the licences ask the UI to show (project/archive/2026-09-23-music.md v3): MiniMax-Music3 for the
 // score, and the sound-effect set's own `credit` string (public/assets/sfx/best/sfx.json). The one generated set is the better
 // take per sound of MOSS-SoundEffect v2 (Apache-2.0) and Stable Audio 3 Medium (Stability AI Community licence, which asks

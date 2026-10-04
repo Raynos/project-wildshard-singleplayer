@@ -4,7 +4,7 @@ import { TabRegistry, type TabSpec, type TabFragment } from './tabs';
 import { uiScope, mountUi } from './ownership';
 import { buildControlsPanel } from '../input/ControlsPanel';
 import { installKeyHelp } from './KeyHelp';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import { buildSavePanel } from './SavePanel';
 import { app } from '../app/runtime';
 import type { AppState } from '../app/systems';

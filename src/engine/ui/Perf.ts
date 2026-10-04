@@ -1,7 +1,7 @@
 import { appIdentity, currentProbe } from '../app/identity';
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
-import { saveStorage } from '#engine/saves/slots';
+import { engineString } from '../strings';
+import { saveStorage } from '../saves/slots';
 /**
  * Frame meter, top-right — after trials-gauntlet-demo's `src/ui/perf.ts`: fps and frame ms p50 / p95
  * from the game's ring of frame times, draw calls and triangles from renderer.info, the tier and DPR.

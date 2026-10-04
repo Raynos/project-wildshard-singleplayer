@@ -1,5 +1,5 @@
 import { precompileLevel } from '../render/precompile';
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 /**
  * GPU recovery (E54) and the app-switch resume (E61): what the game does when the phone takes its graphics away — the
  * iOS home-screen app switched out and back, Safari backgrounded, a driver reset.

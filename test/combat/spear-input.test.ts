@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Spear } from '#shards/nalati-grasslands/weapons/Spear';
-import { activePhysics, setActivePhysics } from '#engine/physics/active';
+import { activePhysics, setActivePhysics } from '#engine-internal/physics/active';
 import { app, Scope } from '#engine';
 import { INPUT_CONTEXTS } from '#game/inputContexts';
-import { setAimTargets } from '#engine/player/AimTargets';
+import { setAimTargets } from '#engine-internal/player/AimTargets';
 import { fakeWorld } from '../fake/world';
 
 const previousPhysics = activePhysics();

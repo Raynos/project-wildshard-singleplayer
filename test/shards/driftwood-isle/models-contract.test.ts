@@ -5,14 +5,14 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '#engine/core/rng';
-import { WorldRegistry } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
+import { Rng } from '#engine-internal/core/rng';
+import { WorldRegistry } from '#engine-internal/world/registry';
+import type { Sky } from '#engine-internal/world/Sky';
 import { rockGeometry, SHORE_ROCK } from '#shards/driftwood-isle/world/rockKit';
-import { defineModel, definedModels, modelContext, type Placement } from '#engine/models/model';
-import { cullPlaced, place, placedCopies } from '#engine/models/place';
-import { placeCollider, poseOf } from '#engine/models/colliders';
-import { placeSet } from '#engine/models/sets';
+import { defineModel, definedModels, modelContext, type Placement } from '#engine-internal/models/model';
+import { cullPlaced, place, placedCopies } from '#engine-internal/models/place';
+import { placeCollider, poseOf } from '#engine-internal/models/colliders';
+import { placeSet } from '#engine-internal/models/sets';
 import { shoreBoulder, type ShoreBoulderParams } from '#shards/driftwood-isle/models/shoreBoulder';
 import { checkModels } from '../../../scripts/check-models.mjs';
 

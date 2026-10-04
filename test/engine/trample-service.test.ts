@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { App } from '#engine/app/app';
+import { App } from '#engine-internal/app/app';
 
 describe('active level trampling', () => {
   it('resolves each resident field independently and drops disposed registrations', () => {

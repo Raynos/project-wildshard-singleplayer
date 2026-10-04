@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FlickTracker, LOCK, lockScore, pickSwitch, wrapAngle } from '#engine/player/LockOnTarget';
+import { FlickTracker, LOCK, lockScore, pickSwitch, wrapAngle } from '#engine-internal/player/LockOnTarget';
 
 const DEG = Math.PI / 180;
 

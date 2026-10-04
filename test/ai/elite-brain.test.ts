@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { describe, expect, it, vi } from 'vitest';
-import { EliteBrain, type EliteActor } from '#engine/ai/EliteBrain';
+import { EliteBrain, type EliteActor } from '#engine-internal/ai/EliteBrain';
 
 class Encounter extends EliteBrain<EliteActor> {
   readonly contacts: [number, number][] = [];

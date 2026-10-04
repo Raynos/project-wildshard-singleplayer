@@ -1,5 +1,5 @@
 import { pageScope } from '../app/resources';
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 import { installSaveReporter } from '../saves/runtime';
 import type { SchemaFailure } from '../saves/store';
 /**

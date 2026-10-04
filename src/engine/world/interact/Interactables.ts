@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../../strings';
 /**
  * Interactables — the runtime of the interactables kit (A2): builds every row of an `InteractTable` (types.ts) into TWO
  * BatchedMeshes for the whole shard (lit parts on the shared `lowPolyMaterial`, glowing parts unlit — 2 draw calls,

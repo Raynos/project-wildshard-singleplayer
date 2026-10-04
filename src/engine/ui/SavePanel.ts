@@ -1,5 +1,5 @@
 import { appIdentity } from '../app/identity';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import { currentOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
 import { app } from '../app/runtime';

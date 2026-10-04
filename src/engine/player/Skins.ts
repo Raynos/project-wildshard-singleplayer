@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { WeaponId } from '../combat/Equipment';
 import type { Sky } from '../world/Sky';
-import { fixIBL, isMesh, VIEWMODEL_GROUP } from '#engine/combat/view/ranged';
+import { fixIBL, isMesh, VIEWMODEL_GROUP } from '../combat/view/ranged';
 
 
 /** Material cosmetics supplied by the host's registered rows. */

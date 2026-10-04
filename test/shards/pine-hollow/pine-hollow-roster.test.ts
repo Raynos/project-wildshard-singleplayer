@@ -4,12 +4,12 @@
 // `creature('antler-king')` gives once his fight has registered his species.
 import { describe, expect, it } from 'vitest';
 import type * as THREE from 'three';
-import type { Sky } from '#engine/world/Sky';
-import { WorldRegistry } from '#engine/world/registry';
-import { definedModels, modelContext } from '#engine/models/model';
-import { listRoster } from '#engine/models/live';
-import { creature } from '#engine/models/creature';
-import { hasSpecies, registerSpecies, speciesDef } from '#engine/entities/AnimalFactory'; // (the factory registers every species file)
+import type { Sky } from '#engine-internal/world/Sky';
+import { WorldRegistry } from '#engine-internal/world/registry';
+import { definedModels, modelContext } from '#engine-internal/models/model';
+import { listRoster } from '#engine-internal/models/live';
+import { creature } from '#engine-internal/models/creature';
+import { hasSpecies, registerSpecies, speciesDef } from '#engine-internal/entities/AnimalFactory'; // (the factory registers every species file)
 import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
 import { ROSTER } from '#shards/pine-hollow/roster';
 import { GEAR } from '#shards/pine-hollow/models/gear';

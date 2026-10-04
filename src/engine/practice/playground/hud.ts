@@ -1,6 +1,6 @@
 import { uiScope, mountUi } from '../../ui/ownership';
 import { app } from '../../app/runtime';
-import { engineString } from '#engine/strings';
+import { engineString } from '../../strings';
 /**
  * The playgrounds' one HUD chip (E307): the playground's short name, the run's time and ↺ (back to the start), then the
  * status (READY · RUNNING · a pad, a lap) and the best. On the phone it is a row of the base HUD's top-left status column

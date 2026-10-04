@@ -1,7 +1,7 @@
-import { Scope } from '#engine/app/scope';
+import { Scope } from '#engine-internal/app/scope';
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { HudSlots, hudSlots } from '#engine/ui/hudSlots';
+import { HudSlots, hudSlots } from '#engine-internal/ui/hudSlots';
 
 describe('scoped HUD placement before touch controls mount', () => {
   it('does not resurrect disposed rows, discs or layer callbacks from a parked snapshot', () => {

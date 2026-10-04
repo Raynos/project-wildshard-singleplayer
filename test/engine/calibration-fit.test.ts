@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fit, slope } from '#engine/calibrate/math';
+import { fit, slope } from '#engine-internal/calibrate/math';
 
 describe('calibration publication fit', () => {
   it('refuses flat and frame-paced series', () => {

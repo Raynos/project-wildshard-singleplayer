@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Projectiles } from './projectile';
-import { sstep } from '#engine/player/viewmodelTextures';
+import { sstep } from '../../player/viewmodelTextures';
 
 const ARC_MAX = 56, ARC_SPACING = 0.8, ARC_SKIP = 0.5, ARC_BLEND = 11;
 const _up = new THREE.Vector3(0, 1, 0);

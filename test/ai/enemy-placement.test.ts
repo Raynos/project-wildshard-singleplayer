@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { afterEach, describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
 import { Scope } from '#engine';
 import { Enemies } from '#shards/driftwood-isle/creatures/Enemies';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';

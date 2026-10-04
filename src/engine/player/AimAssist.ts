@@ -1,5 +1,5 @@
 import { app } from '../app/runtime';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * AimAssist — console-style (CoD / GTA pad) aim help for TOUCH play. Mouse users never get it: only TouchControls
  * drives it. Three classic parts, all against alive animals within RANGE m and in front of the camera, all gated by

@@ -1,6 +1,6 @@
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
-import { saveStorage } from '#engine/saves/slots';
+import { engineString } from '../strings';
+import { saveStorage } from '../saves/slots';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { PERFLOAD, barTrace } from '../boot/perflog';

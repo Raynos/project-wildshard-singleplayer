@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * The gear several shards' players hold (E306 / E315 M5, category `gear`), and what every shard's gear cards share.
  *

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { app as inputApp, EquipmentService, Weapon, Scope, Tool, quiverState, type EquipmentRow, type WeaponId, type WeaponState } from '#engine';
 import { SABRE, BOW, SPEAR } from '#shards/nalati-grasslands/weapons/equipment';
 import { CROSSBOW } from '#shards/pine-hollow/weapons/equipment';
-import { App } from '#engine/app/app';
+import { App } from '#engine-internal/app/app';
 import { equipmentEntry } from '#game/bag/equipment';
 import { FakeGame } from '../fake/FakeGame';
 

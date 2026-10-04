@@ -3,10 +3,10 @@
 // nearest copy, metres away — and the shared object is raycast once per tap, not once per model drawn into it.
 import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { WorldRegistry, type RegisteredPick } from '#engine/world/registry';
-import { defineModel, modelContext } from '#engine/models/model';
-import { CLAIM_MARGIN, claimCopy, place } from '#engine/models/place';
-import { MIN_PICK, pickTarget, type SelectTarget } from '#engine/explore/pick';
+import { WorldRegistry, type RegisteredPick } from '#engine-internal/world/registry';
+import { defineModel, modelContext } from '#engine-internal/models/model';
+import { CLAIM_MARGIN, claimCopy, place } from '#engine-internal/models/place';
+import { MIN_PICK, pickTarget, type SelectTarget } from '#engine-internal/explore/pick';
 
 const ctx = modelContext(null);
 const mat = new THREE.MeshBasicMaterial();

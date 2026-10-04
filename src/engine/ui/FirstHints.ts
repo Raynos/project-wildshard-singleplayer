@@ -1,8 +1,8 @@
 import { mountUi } from './ownership';
 import { listenPage } from '../input/dom';
 import { app } from '../app/runtime';
-import { engineString } from '#engine/strings';
-import { saveStorage } from '#engine/saves/slots';
+import { engineString } from '../strings';
+import { saveStorage } from '../saves/slots';
 import './styles/hints.css';
 import type { Player } from '../player/Player';
 import { lockOn } from '../player/AimTargets';

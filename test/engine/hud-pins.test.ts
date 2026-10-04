@@ -2,8 +2,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { App, Scope, type DiscSpot, type TouchRelabel } from '#engine';
-import { hudAdapters } from '#engine/ui/hudAdapters';
-import type { Game } from '#engine/core/Game';
+import { hudAdapters } from '#engine-internal/ui/hudAdapters';
+import type { Game } from '#engine-internal/core/Game';
 import { legacyDouble } from '../fake/FakeGame';
 import manifest from '#shards/nine-dragon-stack/manifest';
 import { toLevelSpec } from '#game/shard/spec';

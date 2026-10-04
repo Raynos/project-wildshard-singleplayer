@@ -1,4 +1,4 @@
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 // src/engine/ui/Settings.ts — persisted player toggles + sliders (localStorage 'settings'); the menu's Settings tab (src/engine/ui/Menu.ts) writes here.
 //
 //   getSetting('aimAssist')                          → boolean (default true)

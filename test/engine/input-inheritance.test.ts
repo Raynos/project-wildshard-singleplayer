@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
 import { InputService, Scope } from '#engine';
-import { Bindings } from '#engine/input/bindings';
-import { BindingTable } from '#engine/input/bindingTable';
+import { Bindings } from '#engine-internal/input/bindings';
+import { BindingTable } from '#engine-internal/input/bindingTable';
 import { INPUT_CONTEXTS } from '#game/inputContexts';
 import { KEY_BINDINGS } from '#game/keyBindings';
 

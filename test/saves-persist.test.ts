@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
-import { SaveStore } from '#engine/saves/store';
-import { homeScreenPersistence } from '#engine/saves/runtime';
+import { SaveStore } from '#engine-internal/saves/store';
+import { homeScreenPersistence } from '#engine-internal/saves/runtime';
 import { MemoryStorage } from './setup';
 
 // each test builds its own persistence with the display it stands in (no module reset, no stubbed globals: E422)

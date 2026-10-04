@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Mesh, MeshLambertMaterial, PlaneGeometry } from 'three';
-import { Terrain } from '#engine/world/Terrain';
-import { Scope } from '#engine/app/scope';
-import type { TerrainPainter } from '#engine/render/look';
-import { patchShader, patchIds, PATCH_ORDER } from '#engine/render/shaderPatches';
+import { Terrain } from '#engine-internal/world/Terrain';
+import { Scope } from '#engine-internal/app/scope';
+import type { TerrainPainter } from '#engine-internal/render/look';
+import { patchShader, patchIds, PATCH_ORDER } from '#engine-internal/render/shaderPatches';
 
 describe('terrain painter ownership', () => {
   it('passes the owning scope so resources and shader edits disappear on unload', async () => {

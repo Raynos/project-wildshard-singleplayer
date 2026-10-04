@@ -4,21 +4,21 @@ import { LEVER_PROFILE, LeverRifle } from '#shards/pine-hollow/weapons/LeverRifl
 import { Thrown } from '#kit';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { damageFor } from '#engine/entities/Animal';
-import { speciesDef } from '#engine/entities/species/registry';
+import { damageFor } from '#engine-internal/entities/Animal';
+import { speciesDef } from '#engine-internal/entities/species/registry';
 import { balbalCombat } from '#shards/nalati-grasslands/species/balbal';
-import { Projectiles } from '#engine/combat/view/projectile';
+import { Projectiles } from '#engine-internal/combat/view/projectile';
 import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
-import type { TargetHit } from '#engine/combat/view/targets';
+import type { TargetHit } from '#engine-internal/combat/view/targets';
 import { Bow } from '#kit/weapons/bow/index';
 import { Rifle } from '#kit/weapons/firearm/Rifle';
 
 import { Spear, JAVELIN, SPEAR_PROFILE } from '#shards/nalati-grasslands/weapons/Spear';
 import { GoldenBowPower } from '#shards/nalati-grasslands/weapons/GoldenBow';
 import { boltDamage } from '#shards/pine-hollow/loadout/ammo';
-import { app } from '#engine/app/runtime';
-import { setSetting } from '#engine/ui/Settings';
-import { setActivePhysics } from '#engine/physics/active';
+import { app } from '#engine-internal/app/runtime';
+import { setSetting } from '#engine-internal/ui/Settings';
+import { setActivePhysics } from '#engine-internal/physics/active';
 import { fakeWorld } from '../fake/world';
 import { damageTarget, invokeLegacy, legacyActor } from '../fake/legacyActor';
 

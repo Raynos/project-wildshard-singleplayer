@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Scope } from '#engine/app/scope';
-import { app } from '#engine/app/runtime';
-import { hudSlots } from '#engine/ui/hudSlots';
-import { HUD, type HUDState } from '#engine/ui/HUD';
+import { Scope } from '#engine-internal/app/scope';
+import { app } from '#engine-internal/app/runtime';
+import { hudSlots } from '#engine-internal/ui/hudSlots';
+import { HUD, type HUDState } from '#engine-internal/ui/HUD';
 import { INPUT_CONTEXTS } from '#game/inputContexts';
 import { LEVER, CROSSBOW, LONGBOW } from '#shards/pine-hollow/weapons/equipment';
 import { AR15 } from '#shards/nalati-grasslands/weapons/equipment';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { EffectService } from '#engine/combat/effects/EffectService';
-import type { EffectDef } from '#engine/combat/effects/types';
-import { Scope } from '#engine/app/scope';
+import { EffectService } from '#engine-internal/combat/effects/EffectService';
+import type { EffectDef } from '#engine-internal/combat/effects/types';
+import { Scope } from '#engine-internal/app/scope';
 
 const stun: EffectDef = { id: 'effect.stun', kind: 'timed', duration: 1.3, modifiers: [{ attr: 'moveLocked', op: 'override', value: 1 }], stacking: 'refresh', tags: [], grants: ['state.stunned'] };
 describe('starter effect core ports', () => {

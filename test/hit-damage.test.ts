@@ -6,7 +6,7 @@ import { loadSpecies } from './species';
 import { SHARDS } from '../src/shards.generated';
 import { playable, findChunk } from '#game/shard/registry';
 import { DRIFTWOOD_ISLE, PATHS, WRECK, SHRINE, HUT, LOOKOUT, OCEAN } from '#shards/driftwood-isle/manifest';
-import { speciesDef, variantMods } from '#engine/entities/species/registry';
+import { speciesDef, variantMods } from '#engine-internal/entities/species/registry';
 
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 

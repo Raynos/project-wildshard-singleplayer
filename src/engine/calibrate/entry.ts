@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import { app } from '../app/runtime';
 import { frameProbe } from '../core/tier';
 import { saveSetting } from '../ui/Settings';

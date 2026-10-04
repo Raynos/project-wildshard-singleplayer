@@ -1,5 +1,5 @@
 import { uiScope, mountUi } from '../ui/ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';
 /** Shared HUD + Weapon Explorer: a 100 × 100 m enclosed grid room and three hit-reactive humanoid dummies. */
@@ -9,7 +9,7 @@ import { practiceFps } from '../core/tier';
 import type { Physics } from '../physics/Physics';
 import { addTrainingTarget, trainingTargetRaycast, type TrainingTargetBodies } from '../physics/trainingTargets';
 import type { Player } from '../player/Player';
-import type { TargetAnimal, TargetHit } from '#engine/combat/types';
+import type { TargetAnimal, TargetHit } from '../combat/types';
 import type { EquipmentService } from '../combat/EquipmentService';
 import { practiceActor } from './targets';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';

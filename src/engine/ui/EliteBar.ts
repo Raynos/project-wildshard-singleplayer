@@ -1,5 +1,5 @@
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import * as THREE from 'three';
 import './styles/elite.css';
 import { toastArea } from './ToastStack';

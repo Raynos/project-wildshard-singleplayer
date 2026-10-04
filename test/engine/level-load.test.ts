@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Group } from 'three';
 import { App, type LevelContext, type LevelDriver, type LevelSpec } from '#engine';
-import { WorldRegistry } from '#engine/world/registry';
+import { WorldRegistry } from '#engine-internal/world/registry';
 import { FakeGame } from '../fake/FakeGame';
 import manifest from '#shards/nine-dragon-stack/manifest';
 import { toLevelSpec } from '#game/shard/spec';

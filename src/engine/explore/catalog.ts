@@ -1,4 +1,4 @@
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *

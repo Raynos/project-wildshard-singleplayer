@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Texture } from 'three';
 import { App, type LevelAdapters, type LevelContext, type LevelDriver } from '#engine';
-import { WorldRegistry } from '#engine/world/registry';
+import { WorldRegistry } from '#engine-internal/world/registry';
 import manifest from '#shards/nine-dragon-stack/manifest';
 import { toLevelSpec } from '#game/shard/spec';
 

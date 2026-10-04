@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
 import { App, Scope } from '#engine';
-import { currentOwner, enterOwner, withOwner } from '#engine/app/ownership';
-import { registrationTimerIds, scopeRegistrations } from '#engine/app/scope';
+import { currentOwner, enterOwner, withOwner } from '#engine-internal/app/ownership';
+import { registrationTimerIds, scopeRegistrations } from '#engine-internal/app/scope';
 
 it('re-enters level owners under the retained engine frame and restores the caller even on failure', () => {
   const app = new App(), level = new Scope('level'); enterOwner(app.engineScope);

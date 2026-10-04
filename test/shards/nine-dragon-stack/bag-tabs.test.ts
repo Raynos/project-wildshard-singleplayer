@@ -7,7 +7,7 @@ import { registerAchievements } from '#game/achievements';
  */
 import { describe, expect, it } from 'vitest';
 import { bagTabs } from '#game/bag/bag';
-import { icon } from '#engine/ui/icons';
+import { icon } from '#engine-internal/ui/icons';
 import { Inventory } from '#game/Inventory';
 import { Progress } from '#game/Progress';
 import { FEI_ZHUA_ROW } from '#shards/nine-dragon-stack/grapple/row';

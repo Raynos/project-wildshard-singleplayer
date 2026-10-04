@@ -1,5 +1,5 @@
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import type { WeaponUi } from '../combat/Equipment';
 import { app } from '../app/runtime';
 import { tap } from '../core/harnessTap';

@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { Scene, ShaderMaterial } from 'three';
 import { GroundTell } from '#game';
 import { setTerrainHeight } from '#engine';
-import { heightAt as fieldHeight } from '#engine/world/Heightfield';
+import { heightAt as fieldHeight } from '#engine-internal/world/Heightfield';
 
 it('drapes the legacy balbal sector byte-for-byte and updates its fill uniforms', () => {
   // the terrain the wedge drapes over, through the engine's placement-height port (no module mock, E422)

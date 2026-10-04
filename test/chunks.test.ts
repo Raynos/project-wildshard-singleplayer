@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
 import { SHARDS } from '../src/shards.generated';
 import { playable, chunkSlugFromUrl, chunkUrl, findChunk, getActiveChunk, onActiveChunkChange, setActiveChunk, defaultChunk } from '#game/shard/registry';
-import { landscapeHash } from '#engine/world/terrainField';
-import { hasSpecies, speciesDef } from '#engine/entities/species/registry';
-import * as config from '#engine/core/config';
+import { landscapeHash } from '#engine-internal/world/terrainField';
+import { hasSpecies, speciesDef } from '#engine-internal/entities/species/registry';
+import * as config from '#engine-internal/core/config';
 
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 /** G23: a structures-only world authors no terrain; the terrain checks below are for shards that do */

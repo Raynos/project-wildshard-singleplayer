@@ -1,6 +1,6 @@
 import { TIER_TABLE, type EngineTierKnobs } from '../render/tiers';
 import type { TierKnobs } from '../level/spec';
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 /**
  * Quality tier, picked once at boot. Phones get smaller textures, fewer shadow cascades, no AO and a
  * DPR cap — the difference between "loads in minutes then dies" and playable. `?tier=phone|desktop`

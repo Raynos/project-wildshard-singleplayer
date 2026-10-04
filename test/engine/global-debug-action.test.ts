@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { registerGlobalDebugAction } from '#engine';
-import { levelDebugRows } from '#engine/ui/debugOptions';
+import { levelDebugRows } from '#engine-internal/ui/debugOptions';
 import { SHARDS } from '../../src/shards.generated';
 import { toLevelSpec } from '#game';
 

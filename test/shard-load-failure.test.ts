@@ -1,9 +1,9 @@
 import { saveStorageFixture } from './fake/saveFixture';
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Scope } from '#engine/app/scope';
-import { QUEUE_KEY, reportError, type LoadFailure } from '#engine/core/errorReport';
-import { showLoadFailure } from '#engine/ui/errorScreen';
+import { Scope } from '#engine-internal/app/scope';
+import { QUEUE_KEY, reportError, type LoadFailure } from '#engine-internal/core/errorReport';
+import { showLoadFailure } from '#engine-internal/ui/errorScreen';
 import { runShardLoad, withShardHooks } from '#game/shard/load';
 import { SHARDS } from '../src/shards.generated';
 import type { ShardManifest } from '#game/shard/manifest';

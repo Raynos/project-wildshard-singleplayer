@@ -6,7 +6,7 @@ import { Inventory } from '#game/Inventory';
 import { Purse } from '#game/loot/Purse';
 import { Owned } from '#game/loot/Owned';
 import { Bounty } from '#game/loot/Bounty';
-import { Flags } from '#engine/world/interact/flags';
+import { Flags } from '#engine-internal/world/interact/flags';
 import { FakeStorage } from '../fake/fakeStorage';
 
 const DRIFT = 'chunk://local/driftwood-isle', PINE = 'chunk://local/pine-hollow';

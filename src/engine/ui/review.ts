@@ -1,6 +1,6 @@
 import { app } from '../app/runtime';
 import { uiScope } from './ownership';
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 // src/engine/ui/review.ts — the review inbox's always-loaded half (project/archive/2026-09-22-feedback-inbox.md): the Settings REVIEW unlock, the
 // Quick note switch, and sending a note (with an offline queue). The composer itself (quick bar, sheet, pen) is the lazy
 // src/engine/ui/Feedback.ts; the server is api/inbox.ts; notes come down with `pnpm inbox:pull`.

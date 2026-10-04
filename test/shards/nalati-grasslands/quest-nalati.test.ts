@@ -1,7 +1,7 @@
 // NALATI-MERGE Q1–Q5: the shared quest core (places with saved discovery, the chained line) and Nalati's three chapters
 // as data — validated, walked, caught up from a save that already tamed / won / beat a boss, and the elder's dialogue order.
 import { describe, expect, it } from 'vitest';
-import { Flags } from '#engine/world/interact/flags';
+import { Flags } from '#engine-internal/world/interact/flags';
 import { lineFor, validateQuest } from '#game/quest/quest';
 import { QuestLine, placesWithDiscovery } from '#game/quest/core';
 import { CAMP_NPCS, CLUE_FLAGS, ELDER, FEATHER_FLAGS, KING_DONE, NALATI_PLACES, NALATI_QUESTS, NALATI_QUEST_EXTERNAL, TULPAR_DONE, TULPAR_QUEST, WIND_DONE } from '#shards/nalati-grasslands/quest';

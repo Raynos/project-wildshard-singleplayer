@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { app, Rng, Scope, speciesWithLook } from '#engine';
-import { AnimalFactory } from '#engine/entities/AnimalFactory';
+import { AnimalFactory } from '#engine-internal/entities/AnimalFactory';
 import { CaptainMesh } from '#shards/driftwood-isle/species/captainMesh';
 import { CAPTAIN, captainLook } from '#shards/driftwood-isle/species/captain';
 import { installDriftwoodAdventure } from '#shards/driftwood-isle/quest/install';

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { gameplayRandom } from '#engine/app/runtime';
+import { gameplayRandom } from '../../app/runtime';
 import { worldHit, impactSurfaceOf, sstep } from './ranged';
-import type { Targets, TargetHit } from '#engine/combat/types';
-import type { ImpactSurface } from '#engine/combat/Weapon';
+import type { Targets, TargetHit } from '../types';
+import type { ImpactSurface } from '../Weapon';
 
 export interface HitscanProfile { range: number; damageScale: number; spreadAds: number; spreadHip: number; spreadRadius: 'linear' | 'sqrt'; movingSpread: number; movingAimReduction: number }
 export interface HitscanResult { point: THREE.Vector3; direction: THREE.Vector3; surface: ImpactSurface | null; hit: TargetHit | null; killed: boolean }

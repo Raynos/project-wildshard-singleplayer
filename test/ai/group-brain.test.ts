@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GroupBrain } from '#engine/ai/GroupBrain';
+import { GroupBrain } from '#engine-internal/ai/GroupBrain';
 
 class Group extends GroupBrain<{ alive: boolean }> {
   step(t: number, dt: number): number { return this.groupDelta(t, dt); }

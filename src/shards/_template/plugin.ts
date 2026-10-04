@@ -20,10 +20,6 @@ import { installTemplateCues } from './audio/cues';
 declare module '#engine' {
   interface TierKnobMap { 'template.propCount': number }
   interface ActionMap { 'template.lantern.toggle': true }
-}
-// the slot merges into its defining module, as src/game/equipmentTypes.ts does: a merge through the #engine re-export
-// depends on file order (E405: tsc -p scripts lost it)
-declare module '#engine/combat/Equipment' {
   interface EquipmentSlotMap { 'template-whip': true }
 }
 

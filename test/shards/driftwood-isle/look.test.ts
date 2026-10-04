@@ -4,8 +4,8 @@
 // cannot drift unseen.
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { installAtmosphere } from '#engine/world/Atmosphere';
-import { fnv1a32 } from '#engine/core/rng';
+import { installAtmosphere } from '#engine-internal/world/Atmosphere';
+import { fnv1a32 } from '#engine-internal/core/rng';
 import { lowPolyGroundColor } from '#shards/driftwood-isle/look/groundColor';
 import { installRampFog, installToonLighting, resumeRampFog, suspendRampFog, toonUniforms } from '#shards/driftwood-isle/look/toon';
 import { shardRender } from '#shards/driftwood-isle/look/render';

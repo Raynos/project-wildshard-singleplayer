@@ -3,8 +3,8 @@
 // where the shadow map's sampler2DShadow sits — "two textures of different types use the same sampler location" (E357).
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { fixIBL } from '#engine/combat/view/ranged';
-import { addFogUniforms, fogUniforms } from '#engine/world/Atmosphere';
+import { fixIBL } from '#engine-internal/combat/view/ranged';
+import { addFogUniforms, fogUniforms } from '#engine-internal/world/Atmosphere';
 
 describe('viewmodel fog uniforms', () => {
   it('fixIBL keeps the IBL fix and attaches the engine and level fog uniforms', () => {

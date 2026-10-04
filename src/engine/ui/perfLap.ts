@@ -1,7 +1,7 @@
 import type { Scope } from '../app/scope';
 import { uiScope } from './ownership';
-import { engineString } from '#engine/strings';
-import { saveStorage } from '#engine/saves/slots';
+import { engineString } from '../strings';
+import { saveStorage } from '../saves/slots';
 /**
  * The PERF LAP (E350 F-J1, Jake picked "Automate it": the iPhone reading of Pine Hollow's locked 30 fps at the gate, the
  * cabin, the pond, the hamlet, the lookout and the King's clearing, without doing it by hand). One tap on PERF LAP in the

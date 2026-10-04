@@ -1,7 +1,7 @@
 import { uiScope, mountUi } from './ownership';
 import { app } from '../app/runtime';
 import type { UiHandle } from './layers';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * The review inbox's composer (project/archive/2026-09-22-feedback-inbox.md, mockups art/feedback/round-1-inbox/) — loaded lazily on the first
  * F8 / ✎ / FEEDBACK tab, so the boot bundle never carries it. Styled by src/engine/ui/styles/feedback.css (prefix ws-fb-).

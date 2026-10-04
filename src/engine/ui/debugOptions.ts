@@ -1,7 +1,7 @@
 import { currentProbe } from '../app/identity';
 import { authoredRows } from './authoredDebugRows';
 import { uiScope } from './ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 import { app } from '../app/runtime';
 /**
  * The DEBUG menu's registry (E162, Jake 2026-09-25: "we are going to have an ungodly amount of toggles and we need to

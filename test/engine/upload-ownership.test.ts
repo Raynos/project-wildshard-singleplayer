@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
 import { BoxGeometry, MeshBasicMaterial, Texture } from 'three';
-import { app } from '#engine/app/runtime';
-import { Scope } from '#engine/app/scope';
-import { enterOwner } from '#engine/app/ownership';
-import { UploadOwnership } from '#engine/render/uploadOwnership';
+import { app } from '#engine-internal/app/runtime';
+import { Scope } from '#engine-internal/app/scope';
+import { enterOwner } from '#engine-internal/app/ownership';
+import { UploadOwnership } from '#engine-internal/render/uploadOwnership';
 
 it('frees uploaded orphan resources while preserving named acquisitions and already-disposed resources', () => {
   const scope = new Scope('test'); enterOwner(scope);

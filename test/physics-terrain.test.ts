@@ -2,11 +2,11 @@
 // straight down must land within 2 cm of the rendered mesh's triangles (three's PlaneGeometry, rotated flat: each cell
 // split along its (x0, z1)–(x1, z0) diagonal) — which also proves the row / column layout and the diagonal match.
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '#engine/physics/rapier';
-import { Physics } from '#engine/physics/Physics';
-import { addEdgeWalls, addTerrain, EDGE_WALL_INSET } from '#engine/physics/terrain';
-import { parseBakedTerrain } from '#engine/world/BakedTerrain';
-import { Rng } from '#engine/core/rng';
+import { loadRapier } from '#engine-internal/physics/rapier';
+import { Physics } from '#engine-internal/physics/Physics';
+import { addEdgeWalls, addTerrain, EDGE_WALL_INSET } from '#engine-internal/physics/terrain';
+import { parseBakedTerrain } from '#engine-internal/world/BakedTerrain';
+import { Rng } from '#engine-internal/core/rng';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import driftwoodBake from '../public/assets/baked/driftwood-isle/terrain.bin?inline';
 import pineBake from '../public/assets/baked/pine-hollow/terrain.bin?inline';

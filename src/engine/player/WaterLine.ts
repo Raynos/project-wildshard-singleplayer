@@ -1,5 +1,5 @@
 import { uiScope, mountUi } from '../ui/ownership';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * WaterLine — the cheap water-line effect for swimming: a DOM gradient (no render pass) that tints the bottom of the
  * view as the eye nears the surface, and the UNDERWATER LOOK once it dips under: a teal-blue wash that deepens with

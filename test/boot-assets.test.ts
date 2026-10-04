@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { auditInventory, type InventoryRow } from '../scripts/audit-assets.mjs';
-import { prepareBootAudio, bootAudioFiles } from '#engine/boot/audioInventory';
-import type { BootSpec } from '#engine/level/spec';
+import { prepareBootAudio, bootAudioFiles } from '#engine-internal/boot/audioInventory';
+import type { BootSpec } from '#engine-internal/level/spec';
 
 describe('manifest asset audit', () => {
   const row: InventoryRow = { slug: 'fixture', tier: 'phone', files: ['/a.jpg'], packFiles: ['/a.jpg'], packed: ['/a.jpg'], gpu: { '/a.jpg': '/a.ktx2' }, ktxFiles: ['/a.ktx2'] };

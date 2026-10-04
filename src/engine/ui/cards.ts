@@ -1,5 +1,5 @@
 import { uiScope } from './ownership';
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 
 const savedStorage = saveStorage('device');
 /**

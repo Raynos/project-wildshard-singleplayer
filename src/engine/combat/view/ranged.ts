@@ -1,21 +1,21 @@
-import { app } from '#engine/app/runtime';
+import { app } from '../../app/runtime';
 import * as THREE from 'three';
-import type { Game } from '#engine/core/Game';
-import type { Sky } from '#engine/world/Sky';
-import type { Player } from '#engine/player/Player';
-import type { Forest } from '#engine/world/forest/Forest';
-import type { EquipmentRow } from '#engine/combat/Equipment';
-import type { ImpactSurface } from '#engine/combat/Weapon';
-import { castSegment, sweepBall, type Hit } from '#engine/physics/query';
-import { attachFogUniforms } from '#engine/world/Atmosphere';
-import type { Material } from '#engine/physics/surface';
-import { makePixels, clamp01, CLASSIC_SETS, MODERN_SETS, type Pixels, type SetName, type Ctx2D } from '#engine/player/viewmodelTextures';
+import type { Game } from '../../core/Game';
+import type { Sky } from '../../world/Sky';
+import type { Player } from '../../player/Player';
+import type { Forest } from '../../world/forest/Forest';
+import type { EquipmentRow } from '../Equipment';
+import type { ImpactSurface } from '../Weapon';
+import { castSegment, sweepBall, type Hit } from '../../physics/query';
+import { attachFogUniforms } from '../../world/Atmosphere';
+import type { Material } from '../../physics/surface';
+import { makePixels, clamp01, CLASSIC_SETS, MODERN_SETS, type Pixels, type SetName, type Ctx2D } from '../../player/viewmodelTextures';
 import { PATCH_ORDER, patchShader } from '../../render/shaderPatches';
 import { ParticlePool, pointScale } from '../../fx/ParticlePool';
 
-export type { ImpactSurface } from '#engine/combat/Weapon';
-export type { TargetAnimal, TargetHit, Targets } from '#engine/combat/types';
-export { clamp01, sstep, makeNoise, type Noise } from '#engine/player/viewmodelTextures';
+export type { ImpactSurface } from '../Weapon';
+export type { TargetAnimal, TargetHit, Targets } from '../types';
+export { clamp01, sstep, makeNoise, type Noise } from '../../player/viewmodelTextures';
 export interface RangedWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface RangedOptions { row: EquipmentRow; allowUnlocked?: boolean }
 export type CrossbowWorld = RangedWorld;
@@ -80,7 +80,7 @@ export function startViewmodelTextures(requested: boolean | readonly SetName[]):
   texturesReady = (async () => {
   let worker: Worker;
   try {
-    const { default: TexturesWorker } = await import('#engine/player/viewmodelTextures.worker?worker&inline');
+    const { default: TexturesWorker } = await import('../../player/viewmodelTextures.worker?worker&inline');
     worker = new TexturesWorker();
   } catch { return; } // no workers: drawn on the main thread
   await new Promise<void>((resolve) => {

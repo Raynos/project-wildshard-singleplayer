@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { manager } from '../fake/manager';
 import { creature } from '../fake/creature';

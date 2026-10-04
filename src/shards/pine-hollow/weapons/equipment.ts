@@ -91,4 +91,4 @@ export const LEVER: EquipmentRow = {
   }
 };
 
-declare module '#engine/core/rng' { interface RngStreams { loot: true } }
+declare module '#engine' { interface RngStreams { loot: true } }

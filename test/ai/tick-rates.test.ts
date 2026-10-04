@@ -1,14 +1,14 @@
-import { registerSpecies, speciesDef } from '#engine/entities/species/registry';
+import { registerSpecies, speciesDef } from '#engine-internal/entities/species/registry';
 import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
-import type { Animal } from '#engine/entities/Animal';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
+import type { Animal } from '#engine-internal/entities/Animal';
 import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
 import { manager } from '../fake/manager';
-import { pinBrain } from '#engine/ai/inspect';
+import { pinBrain } from '#engine-internal/ai/inspect';
 import { Flock } from '#shards/nalati-grasslands/creatures/flock';
 import { Marmots } from '#shards/nalati-grasslands/creatures/marmots';
-import { app } from '#engine/app/runtime';
-import { Scope } from '#engine/app/scope';
+import { app } from '#engine-internal/app/runtime';
+import { Scope } from '#engine-internal/app/scope';
 
 // a flat, dry world through the terrain port, not a module mock (E422)
 const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });

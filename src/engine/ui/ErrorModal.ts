@@ -1,7 +1,7 @@
 import type { UiHandle } from './layers';
 import { uiScope, mountUi } from './ownership';
-import { engineString } from '#engine/strings';
-import { saveStorage } from '#engine/saves/slots';
+import { engineString } from '../strings';
+import { saveStorage } from '../saves/slots';
 import { app } from '../app/runtime';
 /**
  * ErrorModal — what the player sees when the game hits an error, and the wiring that reports every error (E133).

@@ -1,8 +1,8 @@
 /** E285: the practice dummies' hit-driven springs (src/engine/practice/DummyMotion.ts) and the pose they write to a skeleton. */
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { DummyMotion, DummyPose, type DummyHit } from '#engine/practice/DummyMotion';
-import { buildTrainingDummy } from '#engine/practice/TrainingDummy';
+import { DummyMotion, DummyPose, type DummyHit } from '#engine-internal/practice/DummyMotion';
+import { buildTrainingDummy } from '#engine-internal/practice/TrainingDummy';
 
 interface Peak { rock: number; body: number; head: number; arm: number; settle: number }
 

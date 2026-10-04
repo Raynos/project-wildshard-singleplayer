@@ -1,8 +1,8 @@
 import { pageScope } from '../app/resources';
 import { Scope } from '../app/scope';
 import { hudSlots } from '../ui/hudSlots';
-import { engineString } from '#engine/strings';
-import { saveStorage } from '#engine/saves/slots';
+import { engineString } from '../strings';
+import { saveStorage } from '../saves/slots';
 /**
  * The boot's safety net under the game's own error handling (E144). src/engine/ui/ErrorModal.ts is armed by src/main.ts, so a
  * failure BEFORE main evaluates never reached it: a main chunk that 404'd (a service worker holding a build the host no

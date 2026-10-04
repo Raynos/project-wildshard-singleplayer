@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Audio } from '#engine/audio/Audio';
-import { Scope } from '#engine/app/scope';
-import { tap } from '#engine/core/harnessTap';
+import { Audio } from '#engine-internal/audio/Audio';
+import { Scope } from '#engine-internal/app/scope';
+import { tap } from '#engine-internal/core/harnessTap';
 import { SteppeVoices, STEPPE_BED } from '../../../src/shards/nalati-grasslands/audio/synth';
 
 // S3.5 (07 §6.5 A.3 / E): Nalati's synth voices left the engine mixer; the mixer keeps only the mechanisms.

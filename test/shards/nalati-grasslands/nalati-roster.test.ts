@@ -3,10 +3,10 @@
 // kind the roster doesn't list fails here.
 import { describe, expect, it } from 'vitest';
 import type * as THREE from 'three';
-import { WorldRegistry } from '#engine/world/registry';
-import type { Sky } from '#engine/world/Sky';
-import { modelContext } from '#engine/models/model';
-import { listRoster } from '#engine/models/live';
+import { WorldRegistry } from '#engine-internal/world/registry';
+import type { Sky } from '#engine-internal/world/Sky';
+import { modelContext } from '#engine-internal/models/model';
+import { listRoster } from '#engine-internal/models/live';
 import { ROSTER } from '#shards/nalati-grasslands/roster';
 import { GOLDEN_KING } from '#shards/nalati-grasslands/species/goldenKing';
 import { KURGAN_BALBAL } from '#shards/nalati-grasslands/species/kurganBalbal';

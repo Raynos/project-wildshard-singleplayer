@@ -1,14 +1,14 @@
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine/world/Heightfield';
+import { overrideTerrain } from '#engine-internal/world/Heightfield';
 import { Vector3 } from 'three';
-import { App } from '#engine/app/app';
-import type { DamageRequest } from '#engine/combat/pipeline';
-import { killBelowWorld } from '#engine/entities/killHeight';
+import { App } from '#engine-internal/app/app';
+import type { DamageRequest } from '#engine-internal/combat/pipeline';
+import { killBelowWorld } from '#engine-internal/entities/killHeight';
 import { creature } from '../fake/creature';
-import { Physics } from '#engine/physics/Physics';
-import { CharacterMotor } from '#engine/physics/CharacterMotor';
-import { loadRapier } from '#engine/physics/rapier';
-import { groups } from '#engine/physics/groups';
+import { Physics } from '#engine-internal/physics/Physics';
+import { CharacterMotor } from '#engine-internal/physics/CharacterMotor';
+import { loadRapier } from '#engine-internal/physics/rapier';
+import { groups } from '#engine-internal/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 // a flat, dry world through the terrain port, not a module mock (E422)

@@ -1,7 +1,7 @@
-import { app } from '#engine/app/runtime';
+import { app } from '../../app/runtime';
 import type * as THREE from 'three';
-import { terrainHeight as heightAt } from '#engine/world/terrainHeight';
-import { floorBelow } from '#engine/physics/query';
+import { terrainHeight as heightAt } from '../../world/terrainHeight';
+import { floorBelow } from '../../physics/query';
 
 export function brassFloor(p: THREE.Vector3, v: THREE.Vector3): number {
   const physics = app.physics;

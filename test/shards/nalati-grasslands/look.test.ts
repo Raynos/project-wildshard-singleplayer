@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { RenderPass, EffectPass } from 'postprocessing';
 import { describe, expect, it } from 'vitest';
-import { installAtmosphere, attachFogUniforms } from '#engine/world/Atmosphere';
+import { installAtmosphere, attachFogUniforms } from '#engine-internal/world/Atmosphere';
 import { installPaintedAir, isPaintedAir, paintedAir, patchCloudShadows, NALATI_SKY } from '#shards/nalati-grasslands/look/air';
 import { installLookV2Fog, fogLut } from '#shards/nalati-grasslands/look/fog';
 import { lookV2Passes } from '#shards/nalati-grasslands/look/grade';

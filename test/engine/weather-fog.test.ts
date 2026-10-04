@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { Scope } from '#engine/app/scope';
-import { installAtmosphere, weatherFog, weatherFogUniforms } from '#engine/world/Atmosphere';
+import { Scope } from '#engine-internal/app/scope';
+import { installAtmosphere, weatherFog, weatherFogUniforms } from '#engine-internal/world/Atmosphere';
 
 // The engine fog installs once a page (one Game per page; travel navigates), so this file installs it once, opted in.
 describe('weather fog (E390)', () => {

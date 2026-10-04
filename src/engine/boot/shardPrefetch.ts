@@ -1,6 +1,6 @@
 import { publicBytes } from './tables';
 import { pageScope } from '../app/resources';
-import { saveStorage } from '#engine/saves/slots';
+import { saveStorage } from '../saves/slots';
 import { prepareBootAudio } from './audioInventory';
 /**
  * The other shards, downloaded in the background (E158; the user: "skip the download phase when swapping shards and only

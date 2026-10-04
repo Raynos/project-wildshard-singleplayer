@@ -4,7 +4,7 @@ import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { NALATI_DEFINITIONS, NALATI_SPECIES, nalatiLook } from '#shards/nalati-grasslands/species/rows';
 import { CreatureRigs } from '#shards/nalati-grasslands/species/hulls';
 import manifest from '#shards/nalati-grasslands/manifest';
-import { AnimalFactory } from '#engine/entities/AnimalFactory';
+import { AnimalFactory } from '#engine-internal/entities/AnimalFactory';
 import { app, Scope } from '#engine';
 import { fakeWorld } from '../../fake/world';
 

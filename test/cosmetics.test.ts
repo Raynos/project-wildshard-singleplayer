@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { WEAR_SOCKET, Wardrobe } from '#game/cosmetics/cosmetics';
-import { SHADOW_LAYER } from '#engine/core/shadowLayer';
+import { SHADOW_LAYER } from '#engine-internal/core/shadowLayer';
 
 function hat(): { root: THREE.Group; brim: THREE.Mesh; crown: THREE.Mesh; brimMat: THREE.Material; crownMat: THREE.Material } {
   const brimMat = new THREE.MeshStandardMaterial(), crownMat = new THREE.MeshStandardMaterial();

@@ -3,16 +3,16 @@
 import { BOAR } from '#kit/species/boar';
 import { BEAR } from '#kit/species/bear';
 import { describe, expect, it } from 'vitest';
-import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, BACKOFF_PAST, type ReengageIn } from '#engine/entities/fightRules';
+import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, BACKOFF_PAST, type ReengageIn } from '#engine-internal/entities/fightRules';
 import { SHARDS } from '../src/shards.generated';
-import { AggressionDirector } from '#engine/ai/director';
+import { AggressionDirector } from '#engine-internal/ai/director';
 import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
 import * as THREE from 'three';
-import { clearBody } from '#engine/entities/AnimalManager';
-import { loadRapier } from '#engine/physics/rapier';
-import { Physics } from '#engine/physics/Physics';
-import { CharacterMotor } from '#engine/physics/CharacterMotor';
-import { groups } from '#engine/physics/groups';
+import { clearBody } from '#engine-internal/entities/AnimalManager';
+import { loadRapier } from '#engine-internal/physics/rapier';
+import { Physics } from '#engine-internal/physics/Physics';
+import { CharacterMotor } from '#engine-internal/physics/CharacterMotor';
+import { groups } from '#engine-internal/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 describe('AttackTokens (E297: at most 2 attackers)', () => {

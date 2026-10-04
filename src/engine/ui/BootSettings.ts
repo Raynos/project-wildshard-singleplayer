@@ -2,7 +2,7 @@ import { uiScope, mountUi } from './ownership';
 import { app } from '../app/runtime';
 import type { UiHandle } from './layers';
 import type { Scope } from '../app/scope';
-import { engineString } from '#engine/strings';
+import { engineString } from '../strings';
 /**
  * Main menu ▸ SETTINGS (E55): the picks that are read once while the page loads — renderer, quality tier, render scale,
  * anti-aliasing, touch controls — with APPLY & RELOAD. The title's SETTINGS link (src/engine/ui/HUD.ts showIntro) opens it.

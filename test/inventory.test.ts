@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
 import { ITEMS, Inventory, PACK_SLOTS, harvestOf, type ItemId } from '#game/Inventory';
 import { PINE_PACK_SLOTS } from '#shards/pine-hollow/items';
-import { speciesDef } from '#engine/entities/species/registry';
+import { speciesDef } from '#engine-internal/entities/species/registry';
 
 const PINE = 'chunk://local/pine-hollow';
 const DRIFT = 'chunk://local/driftwood-isle';

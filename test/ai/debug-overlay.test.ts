@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { App } from '#engine/app/app';
-import type { DebugRowSpec } from '#engine/level/context';
-import { installAiDebug } from '#engine/ai/view/DebugOverlay';
-import { brainInspection, inspectBrain, pinBrain } from '#engine/ai/inspect';
+import { App } from '#engine-internal/app/app';
+import type { DebugRowSpec } from '#engine-internal/level/context';
+import { installAiDebug } from '#engine-internal/ai/view/DebugOverlay';
+import { brainInspection, inspectBrain, pinBrain } from '#engine-internal/ai/inspect';
 import { FakeGame } from '../fake/FakeGame';
 
 describe('AI inspection', () => {

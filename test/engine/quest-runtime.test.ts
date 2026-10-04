@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { QuestLine, Events, Scope } from '#engine';
-import { Flags } from '#engine/world/interact/flags';
+import { Flags } from '#engine-internal/world/interact/flags';
 import { WARDENS_HOLLOW } from '#shards/pine-hollow/quest/wardensHollow';
 import { BEATS, beatFlags, type Beat } from '#shards/pine-hollow/quest/beats';
 
