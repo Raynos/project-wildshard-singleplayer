@@ -23,6 +23,7 @@ class DriftwoodHybrid extends ShardPlugin {
       import('@wildshard/game/shardfile/hybrid'), import('./shard.config'),
     ]);
     this.composite = await prepareHybridShard(source, { firstParty: true }, {
+      residencyContext: ctx,
       catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
       icon: () => { throw new Error('Transitional Driftwood has no declared item icon'); },
     }, [{ slug: source.identity.slug, entry: 'runtime/hybrid.ts', load: () => import('./runtime/hybrid') }]);

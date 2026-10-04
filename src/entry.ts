@@ -81,25 +81,30 @@ export async function start(): Promise<void> {
   ]);
   const { configuredShardfile, installShardfileProduct, installManifestShardfile, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
   const source = configuredShardfile(document);
-  const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
-  const bindings: Parameters<typeof installShardfileProduct>[2] = {
-    instance: source === null ? 'template-solo' : `standalone-${source.identity.slug}`, catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,
-    icon: (name) => { const id = declaredIcons.find((entry) => entry === name); if (id === undefined) throw new Error(`Unknown catalogue item icon ${name}`); return id; },
-    recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
-  };
-  const manifest = source === null
-    ? await installManifestShardfile(game.shard, browserShardfileOptions(document.baseURI, true), bindings)
-    : await installShardfileProduct(source, browserShardfileOptions(document.baseURI), bindings);
-  if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
-  installKitSpecies();
-  installKitIcons();
-  installKitPickups();
-  installKitProps();
-  const { startSession } = await retried(() => import('./game/session/session'));
-  await startSession(manifest, {
-    items: KIT_ITEMS,
-    tools: [HOVERBOARD_TOOL],
-    combatCues: (audio, silent) => sharedCombatCues(sharedWeaponVoices(audio), silent),
-    bagIcons: BAG_ICONS,
-  });
+  const { preparePageResidency } = await retried(() => import('@wildshard/game/grid/pageBoot'));
+  const page = preparePageResidency(game.shard, source?.identity.slug);
+  try {
+    const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
+    const bindings: Parameters<typeof installShardfileProduct>[2] = {
+      instance: page?.instance ?? (source === null ? 'template-solo' : `standalone-${source.identity.slug}`), catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,
+      ...(page?.residency === undefined ? {} : { residency: page.residency }),
+      icon: (name) => { const id = declaredIcons.find((entry) => entry === name); if (id === undefined) throw new Error(`Unknown catalogue item icon ${name}`); return id; },
+      recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
+    };
+    const manifest = source === null
+      ? await installManifestShardfile(game.shard, browserShardfileOptions(document.baseURI, true), bindings)
+      : await installShardfileProduct(source, browserShardfileOptions(document.baseURI), bindings);
+    if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
+    installKitSpecies();
+    installKitIcons();
+    installKitPickups();
+    installKitProps();
+    const { startSession } = await retried(() => import('./game/session/session'));
+    await startSession(manifest, {
+      items: KIT_ITEMS,
+      tools: [HOVERBOARD_TOOL],
+      combatCues: (audio, silent) => sharedCombatCues(sharedWeaponVoices(audio), silent),
+      bagIcons: BAG_ICONS,
+    }, page === undefined ? {} : { mode: page.mode, ...(page.residency === undefined ? {} : { residency: page.residency }) });
+  } catch (error) { page?.residency?.dispose(); throw error; }
 }
