@@ -62,6 +62,14 @@ export class Progress {
   }
   private save() { progressSave.write(this.shard, saveSlug(this.chunkId)); this.updateSummary(); }
 
+  /** Persist current progress and unsaved play time; false keeps the state available for a later retry. */
+  checkpoint(): boolean {
+    const durable = progressSave.write(this.shard, saveSlug(this.chunkId));
+    if (durable) this.unsaved = 0;
+    this.updateSummary();
+    return durable;
+  }
+
   /** one kill of (kind, variant) — bumps every matching achievement, unlocks the ones that reach their count */
   recordKill(kind: string, variant?: string): void {
     let changed = false;

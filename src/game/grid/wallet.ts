@@ -53,6 +53,11 @@ export class GridWallet {
     if (new Set(parsed.order).size !== parsed.order.length || Object.keys(parsed.counts).some((id) => !parsed.order.includes(id))) throw new Error('Invalid local bag order');
     return this.bag.write(parsed);
   }
+  /** Retry local money and bag persistence without changing the saved equipment selection or continuation. */
+  flush(): boolean {
+    const bag = this.bag.write(this.bag.read()), purse = this.purse.write(this.purse.read());
+    return bag && purse;
+  }
   /** Persist continuation after stowing: charge/input edges do not fire when the shard is revisited. */
   checkpoint(selected: string | null, runtimes: ReadonlyMap<string, ItemRuntime>): boolean {
     if (selected !== null && !runtimes.has(selected)) throw new Error('Selected item is not local');
@@ -60,8 +65,8 @@ export class GridWallet {
       const state = runtime.snapshot();
       return { id: state.id, tick: state.tick, cooldown: state.cooldown, fuel: state.fuel, lit: state.lit };
     });
-    const bag = this.bag.write(this.bag.read()), purse = this.purse.write(this.purse.read());
-    return this.loadout.write({ selected, items }) && bag && purse;
+    const durable = this.flush();
+    return this.loadout.write({ selected, items }) && durable;
   }
   /** Restore into the current host clock (or a fresh document); input edges remain cancelled and new items keep defaults. */
   restore(runtimes: ReadonlyMap<string, ItemRuntime>, tick = -1): string | null {

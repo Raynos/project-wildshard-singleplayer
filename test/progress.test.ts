@@ -167,4 +167,16 @@ describe('Progress', () => {
     kill(p, 'elk', 'cow', 3);
     expect(p.earned('elk3')).toBe(true);
   });
+  it('refuses a non-durable checkpoint and retries progress plus pending play time', () => {
+    const p = new Progress(PINE);
+    const write = vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('Quota'); });
+    p.recordKill('deer', 'hind');
+    p.addPlay(0.25);
+    expect(p.checkpoint()).toBe(false);
+    write.mockRestore();
+    expect(p.checkpoint()).toBe(true);
+    const reload = new Progress(PINE);
+    expect(reload.count('deer5')).toBe(1);
+    expect(reload.playS).toBe(0.25);
+  });
 });

@@ -119,6 +119,22 @@ it('retries durable checkpoints without granting or moving any coins/items twice
   const reload = new GridWallet(new SaveStore({ local, session: null }), { id: 'template-1', shard: '_template' });
   expect(reload.coins()).toBe(9); expect(reload.pack().counts).toEqual({ shardToken: 2 });
 });
+it('flushes a failed reward write without erasing the saved local loadout', () => {
+  const local = new Storage(), wallet = new GridWallet(new SaveStore({ local, session: null }), { id: 'template-1', shard: '_template' });
+  const source = items(), target = items();
+  try {
+    const selected = source.equipment.current.row.id;
+    expect(wallet.checkpoint(selected, source.declared.runtimes)).toBe(true);
+    local.fail = true;
+    expect(wallet.addCoins(13)).toBe(false);
+    expect(wallet.flush()).toBe(false);
+    local.fail = false;
+    expect(wallet.flush()).toBe(true);
+    const reload = new GridWallet(new SaveStore({ local, session: null }), { id: 'template-1', shard: '_template' });
+    expect(reload.coins()).toBe(13);
+    expect(reload.restore(target.declared.runtimes)).toBe(selected);
+  } finally { source.scope.dispose(); target.scope.dispose(); }
+});
 it('leaves travelling catalogue gear and achievements in the same profile across local wallet checkpoints', () => {
   const local = new Storage(), store = new SaveStore({ local, session: null });
   const instances = [{ id: 'template-1', shard: 'template' }, { id: 'template-2', shard: 'template' }];
