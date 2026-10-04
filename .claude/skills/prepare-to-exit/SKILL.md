@@ -76,7 +76,7 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    D=<scratchpad>/tree-$(git rev-parse --short HEAD); mkdir -p $D   # a fresh dir per HEAD
    git archive HEAD -- . ':!art' ':!progress' ':!sources' | tar -x -C $D && ln -s $PWD/node_modules $D/node_modules
    cd $D && PATH=$PWD/node_modules/.bin:$PATH     # the shims resolve through the symlink; never `pnpm exec` here
-   tsc --noEmit && oxlint && node scripts/check-css.mjs && vite build
+   node scripts/gen.mjs && tsc --noEmit && oxlint && node scripts/check-css.mjs && vite build   # gen first: src/shards.generated is not in git
    ```
    The pathspec leaves out `art/`, `progress/` and `sources/` (2.6 GB of the 3.3 GB tree): no gate reads them and
    Vercel ignores them. Once the gates are read, delete the export with its literal path (`rm -rf <scratchpad>/tree-<sha>`, not `$D`) —
