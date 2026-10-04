@@ -14,7 +14,8 @@ export interface NewGameSummary {
   instance: LocalSaveInstance; before: NewGameProgress; after: NewGameProgress;
   kept: readonly ['profile', 'feats', 'other-shards']; removedKeys: readonly string[];
 }
-const record = (value: unknown): Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value) ? value : {};
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+const record = (value: unknown): Record<string, unknown> => isRecord(value) ? value : {};
 const strings = (value: unknown): string[] => Array.isArray(value) ? value.filter((row: unknown): row is string => typeof row === 'string') : [];
 const natural = (value: unknown): number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : 0;
 const empty = (): NewGameProgress => ({ quests: { saved: false, started: 0, completed: 0 }, inventory: { items: [], quantity: 0, coins: 0 }, flags: [] });
