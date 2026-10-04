@@ -156,11 +156,20 @@ function identities(saved: SimSnapshot, apiVersion: number): SimSnapshot {
     || saved.entities.some((entity) => entity.id !== entity.state.id || entity.id === saved.player.id)) throw new RangeError('Invalid snapshot identities');
   return saved;
 }
+// JSON.parse preserves the valid numeric literal -0; JSON.stringify normally loses its sign.
+function stringify(value: unknown): string {
+  if (typeof value === 'number' && Object.is(value, -0)) return '-0';
+  if (value === null || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map((item: unknown) => stringify(item)).join(',')}]`;
+  if (typeof value === 'object') return `{${Object.entries(value).map(([key, item]) => `${JSON.stringify(key)}:${stringify(item)}`).join(',')}}`;
+  throw new TypeError('Snapshot contains a non-JSON value');
+}
+
 /** Internal packed wire writer; the defining public entry supplies its current engine version. */
 export function serializeSnapshotData(input: SimSnapshot, apiVersion: number): string {
   jsonTree(input);
   const saved = identities(v.parse(snapshot, input), apiVersion);
-  return JSON.stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved,
+  return stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved,
     physics: { encoding: 'base64', data: pack(saved.physics), checksum: checksum(saved.physics) } } });
 }
 /** Internal strict wire parser; unknown static fields are refused at every nesting level. */

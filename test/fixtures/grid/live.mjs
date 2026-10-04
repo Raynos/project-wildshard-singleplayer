@@ -6,7 +6,7 @@ import { Vector3 } from 'three';
 import source from '../../../src/shards/_template/shard.config.ts';
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/shardfile/simulation.ts';
 import { createSimHost } from '../../../src/engine/sim.ts';
-import { restoreSimHost } from '../../../src/engine/sim/snapshot.ts';
+import { restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { prepareFrameMotors } from '../../../src/engine/physics/frame.ts';
 import { generateStrip } from '../../../src/engine/sim/strips.ts';
@@ -41,7 +41,7 @@ const registry = new LiveGridHost(assembly, {
     installStripCollider(host.physics, strip.mesh, host.scope); return { host, dispose: () => host.dispose() };
   } },
   readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 10 }, bundle: () => ({ criticalWireBytes: 2_000_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 }) },
-  save: (id, snapshot) => { if (!durable) return false; saves.set(id, structuredClone(snapshot)); return true; },
+  save: (id, snapshot) => { if (!durable) return false; const packed = serializeSimSnapshot(snapshot); assert.deepEqual(decodeSimSnapshot(packed), snapshot); saves.set(id, packed); return true; },
   gameplayReady: () => gameplay,
   bindFrame: ({ physics, host, instance }) => { assert.equal(host === undefined, instance === homeCell.instance); if (host !== undefined) assert.equal(host.physics, physics); currentPhysics = physics; frameBinds++; },
   admit: async () => ({ bytes: source.budgets.sim.resident, create: async (saved) => {

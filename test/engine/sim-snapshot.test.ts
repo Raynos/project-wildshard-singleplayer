@@ -98,9 +98,12 @@ it('packs every byte value canonically, with smaller physics transport and an in
   const host = createSimHost(SIM_LEVEL, { rapier });
   try {
     const saved = snapshotSimHost(host);
+    saved.player.yaw = -0; saved.slots.scriptGlobals['signedZero'] = -0;
     const packed = serializeSimSnapshot(saved);
     expect(packed.length).toBeLessThan(JSON.stringify(saved).length);
     expect(decodeSimSnapshot(packed)).toEqual(saved);
+    expect(Object.is(decodeSimSnapshot(packed).player.yaw, -0)).toBe(true);
+    expect(Object.is(decodeSimSnapshot(packed).slots.scriptGlobals['signedZero'], -0)).toBe(true);
     const parsed: unknown = JSON.parse(packed);
     expect(decodeSimSnapshot(parsed)).toEqual(saved);
     for (const length of [256, 257, 258]) {
