@@ -74,7 +74,7 @@ socket floors and apply equally to implicit-flat non-terrain data products.
 | `tiles` | L0 62.5 m or L1 125 m; integer x/z address; exact horizontal grid bounds and vertical bounds inside the 500 m cube; nonnegative geometric error; file roots and declared costs. |
 | `library`, `critical`, `far` | Library roots, critical roots, optional whole-shard proxy with bounds and costs. Critical flags match critical roots. |
 | `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |
-| `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts"}`; a bounded relative TypeScript entry resolved only through the trusted registry. |
+| `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts", cost?}`; a bounded relative TypeScript entry resolved only through the trusted registry. Optional measured cost carries decimal-MB WebContent, GL and engine-base totals plus revision, device and evidence provenance. |
 
 HUD accent (`@wildshard/sdk/accent`) is one required palette ID: `ember`, `coral`,
 `tangerine`, `apricot`, `marigold`, `citron`, `lime`, `moss`, `jade`, `mint`, `teal`,
@@ -295,10 +295,17 @@ The client reserves library and commons claims in the session residency allocato
 shared dependencies are charged once and leases end with the level. The grid sim
 registry owns sim claims and render rings own tile claims. A grid page may share an
 early home claim through an explicitly injected page residency owner.
-The loader uses that owner's allocator before bootstrap, preserves a measured whole-home
-claim and checks that the declared sim resident budget fits inside it. Trusted runtime
+The loader uses that owner's allocator before bootstrap and checks that the declared
+sim resident budget fits inside the existing home claim. Data-only products account
+their admitted parts separately; only opaque trusted runtime homes use a measured total.
+Trusted runtime
 homes require that claim before their shell world runs; no empty budget or one-byte
-placeholder substitutes for the measurement. The live registry retains the same claim,
+placeholder substitutes for the measurement. Optional `runtime.cost` contains
+`webContentMB`, `glMB`, `engineBaseMB`, `rev`, `device` and a `progress/memory/*.json`
+evidence path. Accounted bytes are derived once as the upward-rounded
+`(webContentMB + glMB - engineBaseMB) * 1e6 / residentFactor`; the allocator applies
+its calibration and current engine base. Root activation requires reviewed metadata;
+missing metadata never acquires a placeholder claim. The live registry retains the same claim,
 while the composition root releases the boot reference after consumers dispose.
 Local instance checkpoints
 retain admitted script continuation, item fuel/cooldowns/queued commands, quest flags,

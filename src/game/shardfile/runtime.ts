@@ -1,9 +1,15 @@
 import * as v from 'valibot';
 import type { ShardPlugin } from '../shard/plugin';
+import { RuntimeCostSchema, runtimeAccountedBytes } from '../grid/runtimeCost';
+
+const cost = v.pipe(RuntimeCostSchema, v.check((row) => {
+  try { runtimeAccountedBytes(row); return true; } catch { return false; }
+}, 'Runtime cost must contain a positive safe measured content bound'));
 
 /** A first-party transition entry, relative to its own shard folder; never an asset URL or arbitrary import. */
 export const RuntimeSchema = v.strictObject({
   entry: v.pipe(v.string(), v.maxLength(160), v.regex(/^runtime\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u)),
+  cost: v.optional(cost),
 });
 /** Serializable declaration of the trusted TypeScript that remains during an 80/20 conversion. */
 export type RuntimeDeclaration = v.InferOutput<typeof RuntimeSchema>;
