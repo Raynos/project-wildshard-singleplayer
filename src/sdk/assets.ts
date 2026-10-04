@@ -43,19 +43,58 @@ export function parseGlb(bytes: Uint8Array): AssetCost {
     const bufferView = views[count(a['bufferView'], 10_000)]; if (bufferView === undefined) throw new Error('missing GLB accessor view');
     const size = width * dimension, stride = count(bufferView['byteStride'] ?? size, 252), offset = count(a['byteOffset'] ?? 0, MAX_BYTES);
     if (stride < size || offset + (n === 0 ? 0 : (n - 1) * stride + size) > count(bufferView['byteLength'], MAX_BYTES)) throw new Error('GLB accessor outside view');
-    gpu += n * size; return n;
+    gpu += n * size; return { n, type: a['type'], component: a['componentType'], offset: count(bufferView['byteOffset'] ?? 0, MAX_BYTES) + offset, stride, width, dimension };
   });
   if (list(doc['images'] ?? []).length > 0) throw new Error('GLB textures must be separate declared KTX2 assets');
-  let triangles = 0, draws = 0;
-  for (const mesh of list(doc['meshes'] ?? [])) for (const primitive of list(object(mesh)['primitives'])) {
-    const p = object(primitive); if ((p['mode'] ?? 4) !== 4 || p['extensions'] !== undefined) throw new Error('unsupported GLB primitive');
-    const attributes = object(p['attributes']);
-    const accessor = p['indices'] ?? attributes['POSITION']; const n = accessors[count(accessor, 10_000)];
-    if (n === undefined || n % 3 !== 0) throw new Error('invalid GLB triangle accessor'); triangles += n / 3; draws++;
-    for (const id of Object.values(attributes)) if (accessors[count(id, 10_000)] === undefined) throw new Error('missing GLB attribute');
+  const meshCosts = list(doc['meshes'] ?? []).map((mesh) => {
+    let triangles = 0, draws = 0;
+    for (const primitive of list(object(mesh)['primitives'])) {
+      const p = object(primitive); if ((p['mode'] ?? 4) !== 4 || p['extensions'] !== undefined) throw new Error('unsupported GLB primitive');
+      const attributes = object(p['attributes']);
+      const position = accessors[count(attributes['POSITION'], 10_000)];
+      const index = accessors[count(p['indices'] ?? attributes['POSITION'], 10_000)];
+      if (position === undefined || position.type !== 'VEC3' || index === undefined || index.n % 3 !== 0) throw new Error('invalid GLB triangle accessor');
+      triangles += index.n / 3; draws++;
+      for (const id of Object.values(attributes)) if (accessors[count(id, 10_000)] === undefined) throw new Error('missing GLB attribute');
+    }
+    return { triangles, draws };
+  });
+  let triangles = 0, draws = 0, instanceCpu = 0;
+  const nodes = list(doc['nodes'] ?? []).map(object);
+  for (const node of nodes) {
+    if (node['mesh'] === undefined) continue;
+    const cost = meshCosts[count(node['mesh'], 10_000)]; if (cost === undefined) throw new Error('missing GLB mesh');
+    let instances = 1;
+    if (node['extensions'] !== undefined) {
+      const extensions = object(node['extensions']);
+      if (Object.keys(extensions).some((key) => key !== 'EXT_mesh_gpu_instancing')) throw new Error('unsupported GLB node extension');
+      const attributes = object(object(extensions['EXT_mesh_gpu_instancing'])['attributes']);
+      let size: number | undefined;
+      for (const [key, id] of Object.entries(attributes)) {
+        const a = accessors[count(id, 10_000)], dimension = key === 'ROTATION' ? 4 : 3;
+        if (!['TRANSLATION', 'ROTATION', 'SCALE'].includes(key) || a === undefined || a.component !== 5126 || a.dimension !== dimension || a.n === 0 || a.n > 10_000 || (size !== undefined && a.n !== size)) throw new Error('invalid GLB instance attribute');
+        size = a.n;
+        for (let i = 0; i < a.n; i++) {
+          let norm = 0;
+          for (let c = 0; c < dimension; c++) {
+            const n = view.getFloat32(28 + length + a.offset + i * a.stride + c * 4, true);
+            if (!Number.isFinite(n) || (key === 'SCALE' && (n <= 0 || n > 1000))) throw new Error('invalid GLB instance transform');
+            norm += n * n;
+          }
+          if (key === 'ROTATION' && Math.abs(norm - 1) > 1e-4) throw new Error('invalid GLB instance quaternion');
+        }
+      }
+      if (size === undefined) throw new Error('empty GLB instance list');
+      instances = size; gpu += size * 64; instanceCpu += size * 64;
+    }
+    const shadow = node['extras'] === undefined ? true : object(node['extras'])['castShadow'] ?? true;
+    if (typeof shadow !== 'boolean') throw new Error('invalid GLB shadow flag');
+    triangles += cost.triangles * instances; draws += cost.draws * (shadow ? 2 : 1);
   }
+  // Old GLB fixtures omit scene nodes; count their mesh resources conservatively too.
+  if (nodes.length === 0) for (const cost of meshCosts) { triangles += cost.triangles; draws += cost.draws * 2; }
   if (gpu > MAX_BYTES || triangles > 400_000 || draws > 512) throw new Error('GLB resource cap');
-  return { decoded: length, gpu, triangles, draws: draws * 2 };
+  return { decoded: length + binaryBytes + instanceCpu, gpu, triangles, draws };
 }
 
 /** Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. */
