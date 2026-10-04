@@ -11,6 +11,7 @@ import { parseLedgerRules, type LedgerFact } from '../src/game/shardfile/ledger'
 import { firstPartyInstance, templateInstance } from '../src/game/grid/instances';
 import { TEMPLATE_LEDGER } from '../src/shards/_template/data/ledger';
 import { MemoryStorage } from './setup';
+import { resetNewGame } from '../src/game/newGame';
 import { SIM_LEVEL, fightCommand } from './fixtures/sim-level/level';
 
 const PROFILE = 'wildshard.save.v2.profile';
@@ -56,8 +57,33 @@ it('replayed and reloaded facts grant once; separate instances grant gear indepe
   expect(itemQuantity(reloaded.ledger)).toBe(2); expect(Object.keys(reloaded.ledger.state().facts)).toHaveLength(2);
   expect(Object.keys(reloaded.ledger.state().achievements)).toHaveLength(1);
   const revised = fixture(first.local, new SaveStore({ local: first.local, session: null }), 2);
-  revised.ledger.record(fact({ revision: 2 })); expect(itemQuantity(revised.ledger)).toBe(3);
+  expect(revised.ledger.record(fact({ revision: 2 })).status).toBe('duplicate'); expect(itemQuantity(revised.ledger)).toBe(2);
   expect(Object.keys(revised.ledger.state().achievements)).toHaveLength(1);
+});
+
+it('caps distinct facts every tick without growing profile receipts, including renamed facts, revisions and New game', () => {
+  const first = fixture(); first.ledger.record(fact()); const bytes = first.local.getItem(PROFILE);
+  for (let tick = 142; tick < 1142; tick++) expect(first.ledger.record(fact({ tick })).status).toBe('duplicate');
+  expect(first.local.getItem(PROFILE)).toBe(bytes); expect(first.local.writes).toHaveLength(1); expect(Object.keys(first.ledger.state().facts)).toHaveLength(1);
+  expect(resetNewGame(first.store, { id: 'template-1', shard: 'template' }).applied).toBe(true);
+  const renamed = rules.map((rule) => ({ ...rule, fact: 'renamed.outcome' }));
+  const reload = new Ledger(new SaveStore({ local: first.local, session: null }), instances, [{ shard: 'template', revision: 2, rules: renamed }], [{ id: 'gear.iron-sword', maxTier: 2 }]);
+  expect(reload.record(fact({ revision: 2, name: 'renamed.outcome', tick: 1 })).status).toBe('duplicate'); expect(itemQuantity(reload)).toBe(1);
+  expect(Object.keys(reload.state().entitlements)).toEqual(['["template-1","template","gear.iron-sword"]']);
+  expect(reload.record(fact({ revision: 2, name: 'renamed.outcome', instance: 'template-2', tick: 1 })).status).toBe('granted'); expect(itemQuantity(reload)).toBe(2);
+});
+
+it('uses only the trusted repeat quantity, durable interval and lifetime grant cap', () => {
+  const local = new Storage(), repeatRules = parseLedgerRules([{ fact: 'repeat', origin, rewards: [{ kind: 'catalogue', item: 'gear.iron-sword', tier: 1, quantity: 2 }] }]);
+  const catalogue = [{ id: 'gear.iron-sword', maxTier: 1, reward: { id: 'platform.repeat-sword', quantity: 2, repeat: { everyTicks: 10, maxGrants: 2 } } }];
+  const create = () => new Ledger(new SaveStore({ local, session: null }), instances, [{ shard: 'template', revision: 1, rules: repeatRules }], catalogue);
+  const first = create(); expect(first.record(fact({ name: 'repeat', tick: 10 })).status).toBe('granted');
+  for (const tick of [0, 11, 19]) expect(first.record(fact({ name: 'repeat', tick })).status).toBe('duplicate');
+  const reload = create(); expect(reload.record(fact({ name: 'repeat', tick: 20 })).status).toBe('granted');
+  expect(reload.record(fact({ name: 'repeat', tick: 1000000 })).status).toBe('duplicate'); expect(itemQuantity(reload)).toBe(4);
+  const state = Object.values(reload.state().entitlements)[0]; expect(state).toEqual({ grants: 2, lastTick: 20 });
+  const raised = parseLedgerRules([{ fact: 'raise', origin, rewards: [{ kind: 'catalogue', item: 'gear.iron-sword', tier: 1, quantity: 3 }] }]);
+  expect(() => new Ledger(new SaveStore({ local, session: null }), instances, [{ shard: 'template', revision: 1, rules: raised }], catalogue)).toThrow('policy');
 });
 
 it('retries failed atomic writes without applying the reward twice, including reconstruction against memory fallback', () => {

@@ -5,15 +5,18 @@ import { LedgerFactSchema, parseLedgerRules, type LedgerFact, type LedgerRule } 
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const schema = v.strictObject({ facts: v.record(v.string(), LedgerFactSchema),
+  entitlements: v.optional(v.record(v.string(), v.strictObject({ grants: natural, lastTick: natural })), {}),
   items: v.record(v.string(), v.strictObject({ item: v.string(), tier: natural, quantity: natural })),
   achievements: v.record(v.string(), v.strictObject({ shard: v.string(), id: v.string(), title: v.string(), count: natural, threshold: natural, earned: v.boolean() })) });
 type LedgerState = v.InferOutput<typeof schema>;
-const definition = { key: 'platform.ledger', scope: 'profile' as const, version: 1, schema, initial: (): LedgerState => ({ facts: {}, items: {}, achievements: {} }) };
+const definition = { key: 'platform.ledger', scope: 'profile' as const, version: 1, schema, initial: (): LedgerState => ({ facts: {}, entitlements: {}, items: {}, achievements: {} }) };
 
 /** A placement identity remains stable when its cell changes; several instances may use one package. */
 export interface LedgerInstance { id: string; shard: string; cell?: readonly [number, number] }
-/** The platform admits catalogue items at capped power tiers, independently of author data. */
-export interface LedgerCatalogueItem { id: string; maxTier: number }
+/** Only the trusted platform defines reward identity, quantity and an optional durable repeat allowance. */
+export interface LedgerRewardPolicy { id: string; quantity: number; repeat?: { everyTicks: number; maxGrants: number } }
+/** Catalogue grants default to one item, once per stable instance and shard, independent of author facts or revisions. */
+export interface LedgerCatalogueItem { id: string; maxTier: number; reward?: LedgerRewardPolicy }
 /** A grant is confirmed only by a durable save write; a pending receipt may be retried. */
 export interface LedgerReceipt { id: string; status: 'granted' | 'duplicate' | 'pending' }
 /** Collision-free instance + package + revision + entity + tick + ordinal; relocation changes no key. */
@@ -25,18 +28,24 @@ export class Ledger {
   private readonly instances: Map<string, string>;
   private readonly rules: Map<string, { revision: number; rule: LedgerRule }>;
   private readonly pending = new Set<string>();
+  private readonly catalogue: ReadonlyMap<string, LedgerRewardPolicy>;
   constructor(store: SaveStore, instances: readonly LedgerInstance[], mappings: readonly { shard: string; revision: number; rules: readonly LedgerRule[] }[], catalogue: readonly LedgerCatalogueItem[]) {
     this.instances = new Map(instances.map((instance) => [instance.id, instance.shard]));
     if (this.instances.size !== instances.length) throw new Error('Duplicate ledger instance');
     const items = new Map(catalogue.map((item) => [item.id, item.maxTier]));
     if (items.size !== catalogue.length || catalogue.some((item) => !Number.isSafeInteger(item.maxTier) || item.maxTier < 0)) throw new Error('Invalid platform catalogue');
+    this.catalogue = new Map(catalogue.map((item) => [item.id, structuredClone(item.reward ?? { id: item.id, quantity: 1 })]));
+    const policies = [...this.catalogue.values()];
+    if (new Set(policies.map((policy) => policy.id)).size !== policies.length || policies.some((policy) => policy.id.length === 0 || policy.id.length > 128
+      || !Number.isSafeInteger(policy.quantity) || policy.quantity < 1 || policy.quantity > 100
+      || (policy.repeat !== undefined && (!Number.isSafeInteger(policy.repeat.everyTicks) || policy.repeat.everyTicks < 1 || !Number.isSafeInteger(policy.repeat.maxGrants) || policy.repeat.maxGrants < 1)))) throw new Error('Invalid platform reward policy');
     this.rules = new Map();
     for (const mapping of mappings) {
       if (!Number.isSafeInteger(mapping.revision) || mapping.revision < 1) throw new Error('Invalid ledger revision');
       for (const rule of parseLedgerRules(mapping.rules)) {
         const key = JSON.stringify([mapping.shard, mapping.revision, rule.fact]);
         if (this.rules.has(key)) throw new Error('Duplicate ledger mapping');
-        for (const reward of rule.rewards) if (reward.kind === 'catalogue' && (items.get(reward.item) === undefined || reward.tier > (items.get(reward.item) ?? -1))) throw new Error('Reward is outside the platform catalogue');
+        for (const reward of rule.rewards) if (reward.kind === 'catalogue' && (items.get(reward.item) === undefined || reward.tier > (items.get(reward.item) ?? -1) || reward.quantity !== this.catalogue.get(reward.item)?.quantity)) throw new Error('Reward is outside the platform catalogue policy');
         this.rules.set(key, { revision: mapping.revision, rule });
       }
     }
@@ -51,7 +60,10 @@ export class Ledger {
     const state = this.slot.read(), prior = state.facts[id];
     if (prior !== undefined && (prior.name !== fact.name || prior.origin.kind !== fact.origin.kind || prior.origin.source !== fact.origin.source)) throw new Error('Fact identity reused for another outcome');
     if (prior === undefined) {
-      for (const reward of mapping.rule.rewards) this.grant(state, fact.shard, reward);
+      let changed = false;
+      for (const reward of mapping.rule.rewards) changed = this.grant(state, fact, reward) || changed;
+      // An already entitled outcome cannot grow profile storage by minting fresh fact ids every tick.
+      if (!changed && this.pending.size === 0) return { id, status: 'duplicate' };
       state.facts[id] = fact;
     }
     // A duplicate also retries the identical document: SaveStore may contain a failed-write memory fallback,
@@ -60,18 +72,24 @@ export class Ledger {
     const retried = this.pending.has(id); this.pending.clear();
     return { id, status: prior === undefined || retried ? 'granted' : 'duplicate' };
   }
-  private grant(state: LedgerState, shard: string, reward: LedgerRule['rewards'][number]): void {
+  private grant(state: LedgerState, fact: LedgerFact, reward: LedgerRule['rewards'][number]): boolean {
     if (reward.kind === 'catalogue') {
+      const policy = this.catalogue.get(reward.item); if (policy === undefined) throw new Error('Missing admitted reward policy');
+      const entitlement = JSON.stringify([fact.instance, fact.shard, policy.id]), prior = state.entitlements[entitlement];
+      if (prior !== undefined && (policy.repeat === undefined || prior.grants >= policy.repeat.maxGrants || fact.tick < prior.lastTick || fact.tick - prior.lastTick < policy.repeat.everyTicks)) return false;
       const key = JSON.stringify([reward.item, reward.tier]), previous = state.items[key]?.quantity ?? 0;
-      const quantity = previous + reward.quantity;
+      const quantity = previous + policy.quantity;
       if (!Number.isSafeInteger(quantity)) throw new RangeError('Catalogue quantity overflow');
       state.items[key] = { item: reward.item, tier: reward.tier, quantity };
-      return;
+      state.entitlements[entitlement] = { grants: (prior?.grants ?? 0) + 1, lastTick: fact.tick };
+      return true;
     }
-    const key = JSON.stringify([shard, reward.id]), current = state.achievements[key];
+    const key = JSON.stringify([fact.shard, reward.id]), current = state.achievements[key];
     if (current !== undefined && (current.title !== reward.title || current.threshold !== reward.threshold)) throw new Error('Achievement identity changed');
+    if (current?.earned === true) return false;
     const count = Math.min(reward.threshold, (current?.count ?? 0) + 1);
-    state.achievements[key] = { shard, id: reward.id, title: reward.title, count, threshold: reward.threshold, earned: count === reward.threshold };
+    state.achievements[key] = { shard: fact.shard, id: reward.id, title: reward.title, count, threshold: reward.threshold, earned: count === reward.threshold };
+    return true;
   }
   /** Retry all pending profile grants together without recomputing any reward. */
   flush(): boolean { if (this.pending.size === 0) return true; if (!this.slot.write(this.slot.read())) return false; this.pending.clear(); return true; }
