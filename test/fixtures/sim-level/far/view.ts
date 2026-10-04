@@ -61,7 +61,7 @@ async function load(instance: string): Promise<FarPrepared> {
   return { geometry, look: look(shard.json) };
 }
 const allocator = new ResidencyAllocator(), farBytes = farRingCatalogue(bytes);
-const rings = new RenderRings<FarPrepared>(cells, allocator, (instance, level) => farBytes(instance, level), farRingPorts({ root: (i) => roots.get(i) ?? scene, load }), { viewDistance: FAR_RING.viewDistance, farPrefetch: FAR_RING.farPrefetch });
+const rings = new RenderRings<FarPrepared>(cells, allocator, (instance, level) => farBytes(instance, level), farRingPorts({ root: (i) => roots.get(i) ?? scene, load }), { farCount: FAR_RING.count, viewDistance: FAR_RING.viewDistance, farPrefetch: FAR_RING.farPrefetch, residentCaps: { far: FAR_RING.count } });
 
 const hud = document.getElementById('hud');
 const views: Record<string, { label: string; yaw: number }> = {};

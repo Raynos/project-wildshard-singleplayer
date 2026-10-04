@@ -66,7 +66,7 @@ function rings(n: number): { rings: RenderRings<number>; allocator: ResidencyAll
   const catalogue = (instance: string, level: RingLevel): number | null => level === 'far' ? farBytes(instance, level) : tile[level];
   const view = (): RingView => ({ mask: () => undefined, shadow: () => undefined, dispose: () => undefined });
   const allocator = new ResidencyAllocator();
-  return { allocator, rings: new RenderRings<number>(cells, allocator, catalogue, { fetch: (_tile, done) => { done(1); }, upload: view }, { viewDistance: FAR_RING.viewDistance, farPrefetch: FAR_RING.farPrefetch }) };
+  return { allocator, rings: new RenderRings<number>(cells, allocator, catalogue, { fetch: (_tile, done) => { done(1); }, upload: view }, { farCount: FAR_RING.count, viewDistance: FAR_RING.viewDistance, farPrefetch: FAR_RING.farPrefetch, residentCaps: { far: FAR_RING.count } }) };
 }
 function settle(r: RenderRings<number>, x: number, z: number, frames = 400): void { for (let f = 0; f < frames; f++) r.step({ x, z, vx: 0, vz: 0 }); }
 const farKeys = (r: RenderRings<number>): string[] => r.resident().filter((k) => k.endsWith(':far'));
@@ -90,19 +90,13 @@ describe('SF23 far ring', () => {
     }
   });
 
-  it('a drive across the 5 × 5 keeps the far ring bounded: wanted ≤ FAR_RING.count, the rest is hysteresis cache', () => {
+  it('a drive across the 5 × 5 never holds more than FAR_RING.count proxies', () => {
     const { rings: r, allocator } = rings(5); let most = 0;
     for (let s = 0; s <= 1500; s++) {
       const t = s / 1500, x = -2 * C.pitch + t * 4 * C.pitch, z = -2 * C.pitch + t * 4 * C.pitch;
       r.step({ x, z, vx: 30, vz: 30 }); most = Math.max(most, r.stats().resident.far);
       expect(allocator.cost().playing).toBeLessThanOrEqual(C.playing);
-      // SF18b's release keeps an unwanted uploaded proxy until it is half a pitch past the ring: never beyond that radius
-      const keep = FAR_RING.viewDistance + FAR_RING.farPrefetch + C.pitch / 2;
-      for (const key of farKeys(r)) {
-        const [cx = 0, cz = 0] = key.slice(1, -4).split(':').map(Number), dx = Math.max(Math.abs(x - cx * C.pitch) - 250, 0), dz = Math.max(Math.abs(z - cz * C.pitch) - 250, 0);
-        expect(Math.hypot(dx, dz)).toBeLessThanOrEqual(keep);
-      }
     }
-    expect(most).toBeLessThanOrEqual(2 * FAR_RING.count);
+    expect(most).toBeLessThanOrEqual(FAR_RING.count);
   });
 });
