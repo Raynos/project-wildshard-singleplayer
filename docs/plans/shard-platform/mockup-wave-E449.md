@@ -50,5 +50,5 @@ Order: M1–M4 are one batch (four questions); M5–M6 the next.
 
 | Item | Status |
 |---|---|
-| Wave 0 | sent to Jake 2026-10-04 |
+| Wave 0 | answered 2026-10-04: 0a B, the dev map (G163); 0b neither option: lower the whole world 0.8 m, sea and island together (G164) |
 | M1–M6 | in flight (2026-10-04, the plan-status agent's subagents) |
