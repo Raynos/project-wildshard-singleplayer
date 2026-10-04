@@ -26,10 +26,7 @@ import { leaseClientLibrary } from './clientLibrary';
 import { clientMaterials } from './clientMaterials';
 import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
 import { loadClientSkins, type ClientSkin } from './clientSkins';
-import { clientViews, clientTileViews } from './clientViews';
-import { clientRingCatalogue, clientRingPorts } from './clientRings';
-import { RenderRings } from '../grid/rings';
-import { TileDecoder } from '../grid/tileDecoder';
+import { clientViews } from './clientViews';
 import { installClientWater } from './clientWater';
 import { clientWorld } from './clientWorld';
 import { clientSimStep } from './clientStep';
@@ -87,22 +84,18 @@ export class ShardfileClient {
     this.presentation = presentation;
     this.skins = await loadClientSkins(this.source, this.assets.retained, presentation.compile, ctx.scope);
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials });
-    const decoder = new TileDecoder(); ctx.scope.onDispose(() => { decoder.dispose(); });
-    const tileViews = clientTileViews({ terrain: this.source.terrain?.family ?? null, ...presentation });
-    const instance = this.bindings.instance;
-    const instances = new Map([[instance, { source: this.source, assets: this.assets, root: ctx.root, views: tileViews }]]);
-    const rings = new RenderRings([{ instance, origin: { x: 0, z: 0 } }], allocator, clientRingCatalogue(instances), clientRingPorts(instances, { scope: ctx.scope, decoder }));
-    this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z, rings,
+    this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
       views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, ...presentation }),
     });
     const tiles = this.worldTiles; let priorX = this.source.spawn.x, priorZ = this.source.spawn.z;
-    ctx.system({ id: 'game.shardfile.residency', phase: 'fixed.post', after: ['player.step'], run: (dt) => {
+    ctx.system({ id: 'game.shardfile.residency', phase: 'fixed.post', after: ['player.step'], run: () => {
       const position = runtime.viewer();
-      tiles.step({ x: position.x, z: position.z, vx: dt > 0 ? (position.x - priorX) / dt : 0, vz: dt > 0 ? (position.z - priorZ) / dt : 0 });
+      if (Math.hypot(position.x - priorX, position.z - priorZ) < 5) return;
+      void tiles.refresh(position.x, position.z);
       priorX = position.x; priorZ = position.z;
     } });
     ctx.system({ id: 'game.shardfile.presentation', phase: 'update', run: (dt) => { presentation.tick(dt); } });
-    ctx.debug.expose('shardfileRings', { rings, allocator, workers: decoder.threaded });
+    ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'standalone', workers: false });
   }
 
   kit(ctx: ShardContext): void {

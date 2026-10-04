@@ -101,3 +101,21 @@ it('waits for injected coarse coverage and releases the one ring owner when its 
   world.step({ x: 10, z: 20, vx: 3, vz: 4 }); expect(steps).toBe(3);
   scope.dispose(); expect(released).toBe(1); expect(world.fine.size).toBe(0);
 });
+
+it('standalone admission and movement keep coarse coverage with bounded fine tiles without a ring scheduler', async () => {
+  const f = residentFixture(), scope = new Scope('standalone-world');
+  f.source.terrain = { version: 1, family: 'pbr', collider: f.libraryHash, tiles: [] };
+  for (const lod of [0, 1] as const) for (let z = 0; z < (lod === 0 ? 8 : 4); z++) for (let x = 0; x < (lod === 0 ? 8 : 4); x++) f.source.terrain.tiles.push({ lod, x, z, file: f.tileHash });
+  const live = new Set<Scope>(), masks: ReadonlySet<number>[] = [];
+  const world = await clientWorld(f.source, f.assets, { scope, x: 0, z: 0, views: {
+    terrain: (_bytes, tileScope) => { live.add(tileScope); tileScope.onDispose(() => { live.delete(tileScope); }); return { shadow: () => undefined, mask: (mask) => { masks.push(mask); } }; },
+    props: () => { throw new Error('No prop tiles'); }, library: () => { throw new Error('No prop library'); },
+  } });
+  for (const x of [0, 70, 140, 220, -220]) {
+    await world.refresh(x, 30);
+    expect(world.fine.size).toBeGreaterThan(0); expect(world.fine.size).toBeLessThanOrEqual(40);
+    expect(live.size).toBe(16 + world.fine.size);
+    expect(masks.slice(-16).reduce((count, mask) => count + mask.size, 0)).toBe(world.fine.size);
+  }
+  scope.dispose(); expect(live.size).toBe(0);
+});

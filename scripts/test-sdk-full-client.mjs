@@ -48,7 +48,8 @@ try {
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
   if (mode === 'first-party') assert.equal(await page.evaluate(() => window.__wildshard.shard.slug), '_template', 'Descriptor lost its canonical picker identity');
   const first = await page.evaluate(async () => {
-    const probe = window.__wildshard, data = probe.shard.shardfile, rings = probe.shard.shardfileRings;
+    const probe = window.__wildshard, data = probe.shard.shardfile, residency = probe.shard.shardfileResidency;
+    if (residency.mode !== 'standalone' || residency.workers || probe.shard.shardfileRings !== undefined) throw new Error('Select a shard entered the grid ring/worker path');
     if (!data.host.embedded || probe.world.animals.animals.some((view) => !view.simulationBound)) throw new Error('Client allocated a second simulation owner');
     const tool = probe.world.game.app.equipment.tools.find((row) => row.id === 'tool.template-lantern');
     if (tool?.model.parent !== probe.world.game.app.equipmentHost.viewmodel) throw new Error('Declared lantern was not mounted in the normal viewmodel host');
@@ -69,11 +70,12 @@ try {
     probe.world.game.app.input.clear(); probe.world.player.setHover(false);
     await window.__parity.advance(20);
     const position = probe.world.player.position;
-    if (position.x < 130 || !rings.rings.ready() || rings.rings.stats().resident.l0 === 0) throw new Error(`Drive did not cross two tile boundaries and refine actual ring tiles: ${JSON.stringify({ position, rings: rings.rings.stats() })}`);
+    await residency.tiles.refresh(position.x, position.z);
+    if (position.x < 130 || residency.tiles.fine.size === 0 || residency.tiles.fine.size > 40) throw new Error(`Drive did not cross two tile boundaries with bounded standalone refinement: ${JSON.stringify({ position, fine: [...residency.tiles.fine] })}`);
     return { embedded: data.host.embedded, creatures: data.host.entities.size, boundViews: probe.world.animals.animals.length,
       ticks: data.host.state.tick, position: { x: position.x, y: position.y, z: position.z }, fuel: lamp.remainingFuel,
-      open: data.lane.world.view(data.host.player.id).shared['template.door.open'], rings: rings.rings.stats(), workers: rings.workers,
-      allocator: rings.allocator.cost().input, errors: [...window.__wildshardHarness.errors] };
+      open: data.lane.world.view(data.host.player.id).shared['template.door.open'], fine: [...residency.tiles.fine], workers: residency.workers,
+      allocator: residency.allocator.cost().input, errors: [...window.__wildshardHarness.errors] };
   });
   assert.equal(first.errors.length, 0, `Cold drive browser errors: ${JSON.stringify(first)}`);
   const contentRequests = () => requests.filter((path) => /\/[a-f0-9]{64}$/u.test(path)).length;
