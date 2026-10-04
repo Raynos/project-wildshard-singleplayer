@@ -1,6 +1,7 @@
 /** Anonymous session/analytics records, private Blob reads and rolling thirty-day retention (E357 X8). */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { blobStore, type BlobPage } from './_blobStore';
+import { cleanCrossroads, type CrossroadsReading } from './_crossroads';
 
 const PREFIX = 'telemetry/';
 const DAY = 86_400_000;
@@ -10,8 +11,9 @@ const names = new Set(['death.cause', 'quest.step', 'weapon.used', 'shard.time',
 const native = new Set(['capacitor://localhost', 'https://localhost', 'http://localhost']);
 interface Event { name: string; data: Record<string, string | number> }
 export interface TelemetryRecord {
-  kind: 'session' | 'analytics'; build: string; install: string; receivedAt: string;
+  kind: 'session' | 'analytics' | 'crossroads'; build: string; install: string; receivedAt: string;
   session?: string; end?: string; shard?: string; stage?: string; fps?: number; events?: Event[];
+  rig?: CrossroadsReading;
 }
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const text = (value: unknown, max = 64): string => typeof value === 'string' ? value.slice(0, max) : '';
@@ -37,9 +39,13 @@ function limited(req: Request): boolean {
   return value.count > 120;
 }
 export function cleanRecord(body: unknown, now = new Date()): TelemetryRecord | null {
-  if (!object(body) || !['session', 'analytics'].includes(text(body['kind']))) return null;
+  if (!object(body) || !['session', 'analytics', 'crossroads'].includes(text(body['kind']))) return null;
   const base = { build: text(body['build']), install: text(body['install']), receivedAt: now.toISOString() };
   if (!base.build || !base.install) return null;
+  if (body['kind'] === 'crossroads') {
+    const rig = cleanCrossroads(body['rig'] ?? body);
+    return rig ? { ...base, kind: 'crossroads', rig } : null;
+  }
   if (body['kind'] === 'session') {
     const heartbeat = body['heartbeat'];
     if (!object(heartbeat) || !outcomes.has(text(body['end'])) || !text(heartbeat['session'])) return null;
@@ -107,7 +113,8 @@ export async function GET(req: Request): Promise<Response> {
   if (!passwordOk(req.headers.get('x-review-password'))) return json(req, 401, { error: 'bad password' });
   const url = new URL(req.url), day = url.searchParams.get('digest');
   if (day !== null && !/^\d{4}-\d{2}-\d{2}$/u.test(day)) return json(req, 400, { error: 'bad date' });
-  if (day === null && url.searchParams.get('rate') !== 'builds') return json(req, 400, { error: 'choose rate or digest' });
+  const rigs = url.searchParams.get('rig') === 'crossroads';
+  if (day === null && url.searchParams.get('rate') !== 'builds' && !rigs) return json(req, 400, { error: 'choose rate, digest or rig' });
   const records: TelemetryRecord[] = [];
   for (const blob of await blobs()) {
     if (day !== null && !blob.pathname.startsWith(`${PREFIX}${day}/`)) continue;
@@ -121,5 +128,6 @@ export async function GET(req: Request): Promise<Response> {
       if (record) records.push(record);
     }
   }
+  if (rigs) return json(req, 200, { records: records.filter((record) => record.kind === 'crossroads').toSorted((a, b) => b.receivedAt.localeCompare(a.receivedAt)).slice(0, 50) });
   return json(req, 200, day === null ? { builds: buildRates(records, Math.max(1, Math.min(20, Number(url.searchParams.get('n')) || 3))) } : { day, ...dailyDigest(records) });
 }

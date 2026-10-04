@@ -4,6 +4,7 @@ import { Scope } from '../app/scope';
 import { saves } from '../saves/runtime';
 import { SessionHealth } from './health';
 import { AnalyticsSink } from './model';
+import { flushCrossroads } from './crossroads';
 
 declare const __BUILD_ID__: string;
 let health: SessionHealth | null = null;
@@ -23,6 +24,10 @@ export function startTelemetry(): void {
   health = new SessionHealth(saves, build, send);
   analytics = new AnalyticsSink(build, health.install, send);
   scope = new Scope('telemetry');
+  if (harnessPins() === undefined) {
+    void flushCrossroads();
+    scope.listen(window, 'online', () => { void flushCrossroads(); });
+  }
   const fps: number[] = [];
   scope.interval(1000, () => { const value = bound?.render?.stats.fps; if (value !== undefined && value > 0) { fps.push(value); if (fps.length > 5) fps.shift(); } });
   scope.interval(5000, () => { const sorted = [...fps].sort((a, b) => a - b); health?.beat(level, bound?.state ?? 'boot', sorted[Math.floor(sorted.length / 2)] ?? 0); });
