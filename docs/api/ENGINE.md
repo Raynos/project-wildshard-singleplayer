@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1655 members; 832 without a doc line (—).
+1660 members; 832 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1180,6 +1180,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SaveStore` | class · game only | @wildshard/engine/saves/store | Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys. |
 | `SchemaFailure` | interface | @wildshard/engine/saves/store | — |
 | `installBrowserSaveEnvironment` | function | @wildshard/engine/saves/view/storage | Installed before save readers run. Keep browser APIs out of the save schema/store import graph. |
+| `SCRIPT_ABI` | const | @wildshard/engine/script/abi | Core numeric script ABI v0. Compiler/instrumenter revisions are part of this contract. |
+| `SCRIPT_EXPORTS` | const | @wildshard/engine/script/abi | Required export signatures; parameter types followed by the numeric result, or zero for void. |
+| `SCRIPT_IMPORTS` | const | @wildshard/engine/script/abi | Import signatures: parameter types followed by a single result, or zero for void. |
+| `admitScript` | function | @wildshard/engine/script/admission | Validate bytes and metering without instantiating or executing any module code. Tables are capped at zero in v0. |
+| `ScriptAdmission` | interface | @wildshard/engine/script/admission | Limits and complete mutable-global snapshot names established without executing module code. |
 | `ENGINE_STRINGS` | const | @wildshard/engine/strings | English engine UI strings. Content-owned overrides are installed by the composition root. |
 | `engineString` | function | @wildshard/engine/strings | — |
 | `EngineStringKey` | type | @wildshard/engine/strings | — |

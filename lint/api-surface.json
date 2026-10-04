@@ -7051,6 +7051,36 @@
         "from": "@wildshard/engine/saves/view/storage"
       },
       {
+        "name": "SCRIPT_ABI",
+        "kind": "const",
+        "doc": "Core numeric script ABI v0. Compiler/instrumenter revisions are part of this contract.",
+        "from": "@wildshard/engine/script/abi"
+      },
+      {
+        "name": "SCRIPT_EXPORTS",
+        "kind": "const",
+        "doc": "Required export signatures; parameter types followed by the numeric result, or zero for void.",
+        "from": "@wildshard/engine/script/abi"
+      },
+      {
+        "name": "SCRIPT_IMPORTS",
+        "kind": "const",
+        "doc": "Import signatures: parameter types followed by a single result, or zero for void.",
+        "from": "@wildshard/engine/script/abi"
+      },
+      {
+        "name": "admitScript",
+        "kind": "function",
+        "doc": "Validate bytes and metering without instantiating or executing any module code. Tables are capped at zero in v0.",
+        "from": "@wildshard/engine/script/admission"
+      },
+      {
+        "name": "ScriptAdmission",
+        "kind": "interface",
+        "doc": "Limits and complete mutable-global snapshot names established without executing module code.",
+        "from": "@wildshard/engine/script/admission"
+      },
+      {
         "name": "ENGINE_STRINGS",
         "kind": "const",
         "doc": "English engine UI strings. Content-owned overrides are installed by the composition root.",
