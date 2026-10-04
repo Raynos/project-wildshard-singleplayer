@@ -21,7 +21,10 @@ export interface ChipSource {
 export class QuestChip {
   readonly line = new ObjectiveLine();
   private navT = 0;
-  constructor(private readonly src: ChipSource) {}
+  private readonly src: ChipSource;
+  constructor(src: ChipSource) {
+    this.src = src;
+  }
 
   update(t: number, player: { position: THREE.Vector3; yaw: number }): void {
     this.line.update(t);
@@ -63,7 +66,9 @@ export interface NpcTalkOpts {
 export class NpcTalk {
   readonly prompt: Interactable;
   private mine = false;
-  constructor(private readonly o: NpcTalkOpts) {
+  private readonly o: NpcTalkOpts;
+  constructor(o: NpcTalkOpts) {
+    this.o = o;
     const dialogue = o.dialogue, r = o.radius;
     this.prompt = {
       position: o.at,

@@ -173,7 +173,9 @@ export class Explore {
   /** the level's name and picker art */
   readonly title: ExploreTitle;
 
-  constructor(private readonly host: ExploreHost) {
+  private readonly host: ExploreHost;
+  constructor(host: ExploreHost) {
+    this.host = host;
     const { game } = host.world;
     this.title = host.title;
     this.cam = new FreeCam(game.camera, game.canvas, { moveSpeed: SPEEDS[1][1], damping: 0.82, pointerLock: true });

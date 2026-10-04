@@ -71,12 +71,13 @@ const MARCH = (steps: number) => /* glsl */`
  * with real depth occlusion — the "volumetrics" line in docs/AAA-PLAN.md.
  */
 export class VolumetricsEffect extends Effect {
+  private readonly scale: number;
   /**
    * @param steps  ray-march steps (14 desktop, 8 phone)
    * @param scale  < 1 → the march runs in a separate render target of this scale (phone: 0.5) and the
    *               effect only composites it; 1 → the march runs in the effect's own fragment (desktop, as before)
    */
-  constructor(camera: PerspectiveCamera, blueNoise: Texture, steps = 14, private readonly scale = 1) {
+  constructor(camera: PerspectiveCamera, blueNoise: Texture, steps = 14, scale = 1) {
     // held as our own typed uniform: the Effect's uniform map is typed loosely (postprocessing's bare `Uniform`)
     const scatter = new Uniform<Texture | null>(null);
     super('VolumetricsEffect', scale < 1
@@ -93,6 +94,7 @@ export class VolumetricsEffect extends Effect {
       attributes: EffectAttribute.DEPTH,
       uniforms: new Map<string, Uniform>(scale < 1 ? [['tScatter', scatter]] : []),
     });
+    this.scale = scale;
     this.camera = camera;
     this.nearU = new Uniform(camera.near); this.farU = new Uniform(camera.far);
     this.marchUniforms = {

@@ -141,7 +141,13 @@ export class TouchControls {
   private hintLock?: HintDisc; private hintJump?: HintDisc; // LOCK / JUMP as a shard's traversal verb re-dresses them (E286)
   private hintAttackMelee?: HintDisc; private hintAttackRanged?: HintDisc;
 
-  constructor(private player: Player, private weapons: EquipmentService, force = false, private lock?: LockOnSystem) {
+  private player: Player;
+  private weapons: EquipmentService;
+  private lock: LockOnSystem | undefined;
+  constructor(player: Player, weapons: EquipmentService, force = false, lock?: LockOnSystem) {
+    this.player = player;
+    this.weapons = weapons;
+    this.lock = lock;
     this.active = force || IS_TOUCH;
     if (!this.active) return;
     const hud = document.getElementById('hud') ?? document.body;

@@ -87,7 +87,10 @@ export class VoicePool {
   private done = new Set<string>();
 
   private readonly tables = new Map<string, Family | { clips: () => readonly SampleVoice[] | undefined; policy?: SamplePolicy }>();
-  constructor(private readonly host: Host) {}
+  private readonly host: Host;
+  constructor(host: Host) {
+    this.host = host;
+  }
   register(table: VoiceTable, scope?: Scope): () => void {
     for (const [id, entry] of Object.entries(table)) this.tables.set(id, entry);
     const remove = (): void => { for (const [id, entry] of Object.entries(table)) if (this.tables.get(id) === entry) this.tables.delete(id); };

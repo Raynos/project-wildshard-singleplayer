@@ -461,8 +461,14 @@ export class AnimalManager {
   private readonly shadowHerd = new FarHerd<FarRig>((m) => m.model.fur, { shadow: true });
   private readonly pbr: boolean;
 
+  private readonly scene: THREE.Scene;
+  private readonly sky: Sky;
+  private readonly forest: Forest;
   /** `opts.style` forces the render style (dev harness); production reads `ShardManifest.style` ('pbr' | 'lowpoly') */
-  constructor(private readonly scene: THREE.Scene, private readonly sky: Sky, private readonly forest: Forest, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined } = {}) {
+  constructor(scene: THREE.Scene, sky: Sky, forest: Forest, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined } = {}) {
+    this.scene = scene;
+    this.sky = sky;
+    this.forest = forest;
     const style = opts.style ?? activeLevel().creatureStyle ?? 'pbr';
     this.factory = new AnimalFactory(sky, { style, render: opts.render ?? activeLevel().creatures });
     this.pbr = this.factory.render.furRim;

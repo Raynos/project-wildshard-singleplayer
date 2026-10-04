@@ -109,7 +109,12 @@ export function systemFault(s: GameSystem<unknown>, error: unknown, frame: numbe
 
 /** an error already described as text (main().catch hands the modal strings): reported as-is */
 export class DescribedError {
-  constructor(readonly message: string, readonly stack: string) {}
+  readonly message: string;
+  readonly stack: string;
+  constructor(message: string, stack: string) {
+    this.message = message;
+    this.stack = stack;
+  }
 }
 
 /** `{ message, stack }` of anything thrown */

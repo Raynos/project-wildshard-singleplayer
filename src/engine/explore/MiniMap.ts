@@ -40,7 +40,13 @@ export class MiniMap {
   /** the square the map shows: the land and every pin, not the whole chunk (an island in its sea fills the sheet) */
   private readonly view: { x: number; z: number; half: number };
 
-  constructor(private readonly explore: Explore, private readonly world: World, private readonly overhead: readonly THREE.Object3D[] = []) {
+  private readonly explore: Explore;
+  private readonly world: World;
+  private readonly overhead: readonly THREE.Object3D[];
+  constructor(explore: Explore, world: World, overhead: readonly THREE.Object3D[] = []) {
+    this.explore = explore;
+    this.world = world;
+    this.overhead = overhead;
     this.pois = world.game.level.pois ?? [];
     this.view = this.frame();
     this.button = html('button', 'ws-x-mapbtn', '<svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14 M15 6v14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Map</span>');

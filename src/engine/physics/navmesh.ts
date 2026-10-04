@@ -109,7 +109,9 @@ export class Navmesh {
   private readonly a: Vec3 = [0, 0, 0];
   private readonly b: Vec3 = [0, 0, 0];
 
-  constructor(layers: NavLayer[], readonly bytes = 0) {
+  readonly bytes: number;
+  constructor(layers: NavLayer[], bytes = 0) {
+    this.bytes = bytes;
     if (layers.length === 0) throw new Error('Navmesh: no layers');
     this.layers = [...layers].sort((x, y) => x.radius - y.radius);
   }

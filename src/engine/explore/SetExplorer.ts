@@ -111,7 +111,13 @@ export class SetExplorer implements ExplorePane {
   private order: SetOrder = 'map';
   private readoutT = 0;
 
-  constructor(private readonly explore: Explore, private readonly world: World, private readonly entries: readonly CatalogEntry[]) {
+  private readonly explore: Explore;
+  private readonly world: World;
+  private readonly entries: readonly CatalogEntry[];
+  constructor(explore: Explore, world: World, entries: readonly CatalogEntry[]) {
+    this.explore = explore;
+    this.world = world;
+    this.entries = entries;
     this.el = html('div', 'ws-x-sets');
     const levelName = explore.title.name;
     this.listEl = html('div', 'ws-x-setlist', `

@@ -39,7 +39,15 @@ export class Select {
   private current: { entry: CatalogEntry; label: string } | null = null;
   private down: { x: number; y: number; t: number } | null = null;
 
-  constructor(private readonly explore: Explore, private readonly world: World, private readonly targets: SelectTarget[], private readonly entries: readonly CatalogEntry[]) {
+  private readonly explore: Explore;
+  private readonly world: World;
+  private readonly targets: SelectTarget[];
+  private readonly entries: readonly CatalogEntry[];
+  constructor(explore: Explore, world: World, targets: SelectTarget[], entries: readonly CatalogEntry[]) {
+    this.explore = explore;
+    this.world = world;
+    this.targets = targets;
+    this.entries = entries;
     this.helper = new THREE.Box3Helper(this.box, 0x8fe3ff);
     const m = this.helper.material as THREE.LineBasicMaterial;
     m.depthTest = false; m.transparent = true; m.opacity = 0.9; m.fog = false; m.toneMapped = false;

@@ -29,7 +29,12 @@ export class Boundary {
   private mats: THREE.ShaderMaterial[] = [];
   private beaconLights: THREE.PointLight[] = [];
 
-  constructor(private sky: Pick<Sky, 'setupMaterial'>, private spec?: LevelSpec['boundary']) {}
+  private sky: Pick<Sky, 'setupMaterial'>;
+  private spec?: LevelSpec['boundary'];
+  constructor(sky: Pick<Sky, 'setupMaterial'>, spec?: LevelSpec['boundary']) {
+    this.sky = sky;
+    this.spec = spec;
+  }
 
   build(): this {
     // Drawing only: the physics edge walls are registered independently.

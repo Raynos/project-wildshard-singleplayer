@@ -78,8 +78,11 @@ class View {
   private readonly inv = new THREE.Matrix4();
   private primed = false;
   private readonly lastEye = new THREE.Vector3();
+  private readonly step: number;
   /** `step` > 0: only a move of the eye past it counts (a culler with no frustum test ignores turning) */
-  constructor(private readonly step = 0) {}
+  constructor(step = 0) {
+    this.step = step;
+  }
   changed(camera: THREE.Camera): boolean {
     camera.updateMatrixWorld();
     if (this.step > 0) {
@@ -124,8 +127,12 @@ class Chooser {
   private readonly flat: boolean;
   private readonly bias: number;
   private readonly frustum: boolean;
+  private readonly bounds: Float32Array | Float64Array;
+  private readonly origins: Float32Array | Float64Array | null;
   /** `origins`: x, y, z per copy to measure from (`from: 'origin'`), else the bounds' centres; `fades`: each level's `fade` */
-  constructor(from: readonly number[], o: CullOptions, private readonly bounds: Float32Array | Float64Array, private readonly origins: Float32Array | Float64Array | null = null, fades: readonly number[] = []) {
+  constructor(from: readonly number[], o: CullOptions, bounds: Float32Array | Float64Array, origins: Float32Array | Float64Array | null = null, fades: readonly number[] = []) {
+    this.bounds = bounds;
+    this.origins = origins;
     this.fade2 = Float64Array.from(from, (d, l) => { const f = fades[l] ?? 0; return l > 0 && f > 0 ? (d - f) * (d - f) : Number.POSITIVE_INFINITY; });
     this.test = o.test ?? null;
     this.from2 = Float32Array.from(from, (d) => d * d);
@@ -205,7 +212,11 @@ class Sinks {
   private readonly until2: Float64Array;
   /** each sink's upload ranges, reused (only the drawn prefix of a buffer goes to the GPU; nothing allocated per update) */
   private readonly ranges: readonly { matrix: { start: number; count: number }; color: { start: number; count: number } }[];
-  constructor(groups: readonly (readonly InstancedSink[])[], private readonly matrices: Float32Array, private readonly colors: Float32Array | null) {
+  private readonly matrices: Float32Array;
+  private readonly colors: Float32Array | null;
+  constructor(groups: readonly (readonly InstancedSink[])[], matrices: Float32Array, colors: Float32Array | null) {
+    this.matrices = matrices;
+    this.colors = colors;
     this.first = new Uint32Array(groups.length + 1);
     groups.forEach((g, k) => { this.first[k] = this.flat.length; this.flat.push(...g); });
     this.first[groups.length] = this.flat.length;
@@ -247,16 +258,20 @@ export class InstancedCull {
   private readonly view: View;
   private readonly chooser: Chooser;
   private readonly sinks: Sinks;
+  private readonly levels: number;
+  private readonly variantOf: Uint16Array;
   /**
    * `groups[v * levels + l]` are variant v's level l's sinks (empty: a level that draws nothing); `variantOf[i]` copy i's
    * variant; `matrices` 16 floats per copy; `colors` 3 per copy or null; `bounds` x, y, z, r per copy (world); `origins`
    * x, y, z per copy (`from: 'origin'`); `fades` each level's dissolve band (a copy in it is drawn at both levels)
    */
   constructor(
-    groups: readonly (readonly InstancedSink[])[], private readonly levels: number, private readonly variantOf: Uint16Array,
+    groups: readonly (readonly InstancedSink[])[], levels: number, variantOf: Uint16Array,
     matrices: Float32Array, colors: Float32Array | null, bounds: Float32Array, from: readonly number[], o: CullOptions,
     origins: Float32Array | Float64Array | null = null, fades: readonly number[] = [],
   ) {
+    this.levels = levels;
+    this.variantOf = variantOf;
     this.view = viewFor(o);
     this.chooser = new Chooser(from, o, bounds, origins, fades);
     this.sinks = new Sinks(groups, matrices, colors);
@@ -302,12 +317,18 @@ export class CelledCopiesCull {
   private readonly order: Uint32Array;
   private readonly far: number;
   private readonly from2: Float32Array;
+  private readonly levels: number;
+  private readonly variantOf: Uint16Array;
+  private readonly origins: Float32Array;
   /** `origins`: each copy's placement point (x, y, z), float32 */
   constructor(
-    groups: readonly (readonly InstancedSink[])[], private readonly levels: number, private readonly variantOf: Uint16Array,
-    matrices: Float32Array, colors: Float32Array | null, private readonly origins: Float32Array,
+    groups: readonly (readonly InstancedSink[])[], levels: number, variantOf: Uint16Array,
+    matrices: Float32Array, colors: Float32Array | null, origins: Float32Array,
     from: readonly number[], o: CullOptions & { readonly cells: { readonly size: number; readonly pad: number } },
   ) {
+    this.levels = levels;
+    this.variantOf = variantOf;
+    this.origins = origins;
     this.view = viewFor(o);
     this.sinks = new Sinks(groups, matrices, colors);
     this.far = o.far ?? Number.POSITIVE_INFINITY;
@@ -384,9 +405,13 @@ export class BatchedCull {
   private readonly chooser: Chooser;
   /** the level each slot draws now (-1: hidden), so only changes touch the batch */
   private readonly shown: Int8Array;
+  private readonly slots: readonly BatchedSlot[];
+  private readonly start: Uint32Array;
   /** `slots` are grouped per copy: copy i owns slots [start[i], start[i + 1]); `fades` each level's dissolve band */
-  constructor(private readonly slots: readonly BatchedSlot[], private readonly start: Uint32Array, bounds: Float32Array, from: readonly number[], o: CullOptions,
+  constructor(slots: readonly BatchedSlot[], start: Uint32Array, bounds: Float32Array, from: readonly number[], o: CullOptions,
     origins: Float32Array | Float64Array | null = null, fades: readonly number[] = []) {
+    this.slots = slots;
+    this.start = start;
     this.view = viewFor(o);
     this.chooser = new Chooser(from, o, bounds, origins, fades);
     this.shown = new Int8Array(slots.length).fill(-2);
@@ -433,8 +458,12 @@ export class CellCull {
   private readonly shown: Int8Array;
   private readonly from2: Float32Array;
   private readonly far2: number;
+  private readonly cells: readonly (readonly (THREE.Object3D | null)[])[];
+  private readonly centres: Float32Array;
   /** `cells[c]` = its levels (null: that level draws nothing); `centres` x, y, z per cell */
-  constructor(private readonly cells: readonly (readonly (THREE.Object3D | null)[])[], private readonly centres: Float32Array, from: readonly number[], o: CullOptions) {
+  constructor(cells: readonly (readonly (THREE.Object3D | null)[])[], centres: Float32Array, from: readonly number[], o: CullOptions) {
+    this.cells = cells;
+    this.centres = centres;
     this.view = viewFor(o);
     this.shown = new Int8Array(cells.length).fill(-2);
     this.from2 = Float32Array.from(from, (d) => d * d);
@@ -475,8 +504,12 @@ export class SetCull {
   private readonly view: View;
   private readonly chooser: Chooser;
   private shown = -2;
+  private readonly levels: readonly (readonly THREE.Object3D[])[];
+  private readonly n: number;
   /** `levels[l]` = the meshes of level l (every variant's); `bounds` x, y, z, r per copy; `origins` x, y, z per copy (`from: 'origin'`) */
-  constructor(private readonly levels: readonly (readonly THREE.Object3D[])[], private readonly n: number, bounds: Float32Array, from: readonly number[], o: CullOptions, origins: Float32Array | Float64Array | null = null) {
+  constructor(levels: readonly (readonly THREE.Object3D[])[], n: number, bounds: Float32Array, from: readonly number[], o: CullOptions, origins: Float32Array | Float64Array | null = null) {
+    this.levels = levels;
+    this.n = n;
     this.view = viewFor(o);
     this.chooser = new Chooser(from, o, bounds, origins);
     this.show(0); // as built: the full model, until the first view says otherwise
@@ -513,8 +546,16 @@ export class SetCull {
 export class UntilCull {
   private readonly view = new View();
   private readonly shown: Int8Array;
+  private readonly parts: readonly THREE.Object3D[];
+  private readonly until: Float32Array;
+  private readonly copyOf: Uint32Array;
+  private readonly origins: Float32Array;
   /** `parts[k]` is shown while the eye is within `until[k]` of copy `copyOf[k]`, whose origin is `origins[3 × copy …]` */
-  constructor(private readonly parts: readonly THREE.Object3D[], private readonly until: Float32Array, private readonly copyOf: Uint32Array, private readonly origins: Float32Array) {
+  constructor(parts: readonly THREE.Object3D[], until: Float32Array, copyOf: Uint32Array, origins: Float32Array) {
+    this.parts = parts;
+    this.until = until;
+    this.copyOf = copyOf;
+    this.origins = origins;
     this.shown = new Int8Array(parts.length).fill(-1);
   }
 
@@ -553,14 +594,28 @@ export class WeldCull {
   private readonly unitOn: Int8Array;
   private readonly hosted: { set: HostedSet; dirty: boolean }[] = [];
   private pending = false;
+  private readonly objects: readonly THREE.Object3D[];
+  private readonly reach2: Float64Array;
+  private readonly cast: Uint8Array;
+  private readonly at: Uint32Array;
+  private readonly origins: Float64Array;
+  private readonly units: Uint32Array;
+  private readonly detail2: Float64Array;
   /**
    * `objects[k]` is shown while the eye is within √`reach2[k]` of origin `at[k]` (`cast[k]` 1: casts a shadow only from that
    * far instead); `origins` x, y, z per origin; unit u's origin is `units[u]` and its detail band √`detail2[u]`
    */
   constructor(
-    private readonly objects: readonly THREE.Object3D[], private readonly reach2: Float64Array, private readonly cast: Uint8Array,
-    private readonly at: Uint32Array, private readonly origins: Float64Array, private readonly units: Uint32Array, private readonly detail2: Float64Array,
+    objects: readonly THREE.Object3D[], reach2: Float64Array, cast: Uint8Array,
+    at: Uint32Array, origins: Float64Array, units: Uint32Array, detail2: Float64Array,
   ) {
+    this.objects = objects;
+    this.reach2 = reach2;
+    this.cast = cast;
+    this.at = at;
+    this.origins = origins;
+    this.units = units;
+    this.detail2 = detail2;
     this.shown = new Int8Array(objects.length).fill(-1);
     this.unitOn = new Int8Array(units.length).fill(-1);
   }

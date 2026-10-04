@@ -178,7 +178,9 @@ export class Ragdoll {
   /** the righting bias: the whole ragdoll's weight × half width (N·m per unit gain), the side it falls to on a tie (+1: left side up) */
   private rightScale = 0; private rightSide = 1;
 
-  constructor(private readonly system: Ragdolls, spec: RagdollSpec) {
+  private readonly system: Ragdolls;
+  constructor(system: Ragdolls, spec: RagdollSpec) {
+    this.system = system;
     const { R, world } = system.physics;
     this.root = spec.root; this.build = spec.build; this.scale = spec.scale;
     const s = spec.scale, d = spec.dims;
@@ -426,7 +428,12 @@ export class Ragdolls {
   /** ragdolls with bodies in the world right now (the bench reads it) */
   live = 0;
 
-  constructor(readonly physics: Physics, readonly cap: number = RAGDOLL_CAP[TIER]) {}
+  readonly physics: Physics;
+  readonly cap: number;
+  constructor(physics: Physics, cap: number = RAGDOLL_CAP[TIER]) {
+    this.physics = physics;
+    this.cap = cap;
+  }
 
   /** A ragdoll for this death, or null past the cap (the caller falls back to its keyframed collapse). */
   spawn(spec: RagdollSpec): Ragdoll | null {

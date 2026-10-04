@@ -86,7 +86,11 @@ export class Combat {
   /** read at every fire, not once: the kit swaps between the sword (reach 2.2 m) and ranged weapons (no reach) mid-play */
   private weapon: { readonly reach?: number | undefined };
 
-  constructor(game: Game, private animals: AnimalManager, weapon: Pick<Weapon, 'onFire' | 'onImpact'> & { readonly reach?: number | undefined }, private camera: THREE.Camera) {
+  private animals: AnimalManager;
+  private camera: THREE.Camera;
+  constructor(game: Game, animals: AnimalManager, weapon: Pick<Weapon, 'onFire' | 'onImpact'> & { readonly reach?: number | undefined }, camera: THREE.Camera) {
+    this.animals = animals;
+    this.camera = camera;
     this.weapon = weapon;
     this.layer = document.createElement('div');
     this.layer.className = 'ws-combat-layer';

@@ -20,7 +20,9 @@ export class FlightMotion {
   private sampleIn = 0;
   private floor: number | undefined;
   private smoothFloor: number | undefined;
-  constructor(private readonly spec: SpeciesFlight) {
+  private readonly spec: SpeciesFlight;
+  constructor(spec: SpeciesFlight) {
+    this.spec = spec;
     if (!Number.isFinite(spec.altitude) || !Number.isFinite(spec.climbRate) || !Number.isFinite(spec.diveRate) || spec.climbRate <= 0 || spec.diveRate <= 0) throw new Error('Flight needs finite altitude and positive climb/dive rates');
     if (spec.lockRange !== undefined && (!Number.isFinite(spec.lockRange) || spec.lockRange <= 0)) throw new Error('Flight lock range must be finite and positive');
     if (spec.bank !== undefined && !(spec.bank > 0 && spec.bank < Math.PI / 2)) throw new Error('Flight bank must be between 0 and π/2');

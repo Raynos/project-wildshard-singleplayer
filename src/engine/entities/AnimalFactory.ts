@@ -293,7 +293,9 @@ export class AnimalFactory {
    *  made before it is the procedural one for good, so AnimalManager.buildAsync waits for it before the first herd */
   readonly ready: Promise<void>;
 
-  constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined } = {}) {
+  private readonly sky: Sky;
+  constructor(sky: Sky, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined } = {}) {
+    this.sky = sky;
     this.style = opts.style ?? 'pbr';
     this.render = opts.render ?? selectedLevel()?.creatures ?? DEFAULT_CREATURE_RENDER;
     this.ready = this.render.waitForModels ? Promise.all(app.species.preloads().map((preload) => preload())).then(() => undefined) : Promise.resolve();

@@ -75,7 +75,9 @@ export class FullMap {
   /** the zoom changed (pinch / wheel / setZoom) — the menu's zoom chips follow */
   onZoom?: (zoom: number) => void;
 
-  constructor(private minimap: Minimap) {
+  private minimap: Minimap;
+  constructor(minimap: Minimap) {
+    this.minimap = minimap;
     this.root = document.createElement('div');
     this.root.className = 'ws-gmenu-mapcanvas';
     Object.assign(this.root.style, { position: 'absolute', inset: '0', display: 'none', pointerEvents: 'auto', touchAction: 'none', userSelect: 'none', overflow: 'hidden' } as CSSStyleDeclaration);

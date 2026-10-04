@@ -68,7 +68,9 @@ export class PerfLap {
   onStatus: ((text: string | null) => void) | null = null;
   onDone: ((text: string) => void) | null = null;
 
-  constructor(private readonly game: Game) {
+  private readonly game: Game;
+  constructor(game: Game) {
+    this.game = game;
     try { this.lastText = savedStorage.getItem(LAP_STORE) ?? ''; } catch { this.lastText = ''; }
   }
 

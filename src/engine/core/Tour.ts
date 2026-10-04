@@ -14,7 +14,9 @@ export class Tour {
   /** when true the tour owns the camera (set by ?tour=1 or the intro attract mode) */
   active = false;
 
-  constructor(private camera: THREE.PerspectiveCamera) {
+  private camera: THREE.PerspectiveCamera;
+  constructor(camera: THREE.PerspectiveCamera) {
+    this.camera = camera;
     const eye = (x: number, z: number, h = 1.7) => new THREE.Vector3(x, heightAt(x, z) + h, z);
     // south gate → up the trail → cabin 1 hollow → across to cabin 2 → ridge cabin 3 → ends looking over the planet
     // follows the trail centrelines (guaranteed clear of trunks): south gate → hollow (cabin 1)

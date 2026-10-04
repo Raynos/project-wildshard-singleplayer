@@ -95,7 +95,11 @@ export class FreeCam {
   private pivotDistance = 10;
   private locked = false;
 
-  constructor(private readonly camera: PerspectiveCamera, private readonly dom: HTMLElement, options: FreeCamOptions = {}) {
+  private readonly camera: PerspectiveCamera;
+  private readonly dom: HTMLElement;
+  constructor(camera: PerspectiveCamera, dom: HTMLElement, options: FreeCamOptions = {}) {
+    this.camera = camera;
+    this.dom = dom;
     this.moveSpeed = options.moveSpeed ?? 12;
     this.boost = options.boost ?? 4;
     this.lookSpeed = options.lookSpeed ?? 0.0022;

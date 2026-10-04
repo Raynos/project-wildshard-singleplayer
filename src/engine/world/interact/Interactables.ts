@@ -100,7 +100,10 @@ export class Live {
   watch: BarrelWatch | null = null;
   /** glow tint (pickups' `color`) */
   tint = new THREE.Color(1, 1, 1);
-  constructor(readonly def: InteractDef) {}
+  readonly def: InteractDef;
+  constructor(def: InteractDef) {
+    this.def = def;
+  }
 }
 
 const PROMPT_R = 2.5, TOUCH_R = 1.1, BARREL_R = 0.38, BARREL_HALF = 0.475, PLAYER_R = 0.35;
@@ -195,7 +198,12 @@ export class BarrelWatch {
   wedge = 0;
   private readonly from = { x: 0, y: 0, z: 0 };
 
-  constructor(readonly home: V3, readonly leash: number) {}
+  readonly home: V3;
+  readonly leash: number;
+  constructor(home: V3, leash: number) {
+    this.home = home;
+    this.leash = leash;
+  }
 
   check(c: V3, dt: number, env: BarrelEnv): boolean {
     const h = this.home, dx = c.x - h.x, dz = c.z - h.z, dy = c.y - BARREL_HALF - h.y;
@@ -236,7 +244,10 @@ export class Interactables {
   private seed = 0x1a7e;
   private unsub: (() => void) | null = null;
 
-  constructor(private host: InteractHost) {}
+  private host: InteractHost;
+  constructor(host: InteractHost) {
+    this.host = host;
+  }
 
   live(id: string): Live | undefined { return this.byId.get(id); }
 
@@ -285,7 +296,12 @@ export class Interactables {
     class Rows<P extends object> {
       private readonly pls: Placement<P>[] = [];
       private readonly boxes: number[] = [];
-      constructor(readonly def: ModelDef<P>, readonly batch: BatchId) {}
+      readonly def: ModelDef<P>;
+      readonly batch: BatchId;
+      constructor(def: ModelDef<P>, batch: BatchId) {
+        this.def = def;
+        this.batch = batch;
+      }
       add(lv: Live, params: P, half: readonly [number, number, number], lift = 0, variant?: string): void {
         const p = lv.home, [hx, hy, hz] = half, cy = p.y + lift + hy;
         this.pls.push({ x: p.x, y: p.y, z: p.z, yaw: lv.yaw, params, ...(variant === undefined ? {} : { variant }) });

@@ -101,7 +101,10 @@ export class Feedback {
   private sending = false;
   private held = false;
 
-  constructor(private host: FeedbackHost) {}
+  private host: FeedbackHost;
+  constructor(host: FeedbackHost) {
+    this.host = host;
+  }
 
   get isOpen(): boolean { return this.mode === 'bar' || this.mode === 'sheet'; }
 

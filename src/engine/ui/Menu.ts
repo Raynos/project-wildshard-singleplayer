@@ -108,7 +108,9 @@ export class GameMenu {
   private cats: SettingsCats | undefined;
   private gated: { el: HTMLElement; when: When }[] = [];
 
-  constructor(private opts: GameMenuOptions) {
+  private opts: GameMenuOptions;
+  constructor(opts: GameMenuOptions) {
+    this.opts = opts;
     const levelName = this.opts.levelName ?? '';
     this.root = el('ws-gmenu');
     this.root.inert = true; // closed until open()

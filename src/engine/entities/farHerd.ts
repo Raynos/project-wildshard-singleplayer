@@ -65,7 +65,11 @@ class FarBatch {
   private readonly bounds = new THREE.Box3();
   private readonly sphere = new THREE.Sphere();
 
-  constructor(private readonly src: THREE.BufferGeometry, material: THREE.Material, bones: number, private readonly shadow: boolean) {
+  private readonly src: THREE.BufferGeometry;
+  private readonly shadow: boolean;
+  constructor(src: THREE.BufferGeometry, material: THREE.Material, bones: number, shadow: boolean) {
+    this.src = src;
+    this.shadow = shadow;
     this.bones = bones;
     this.verts = src.getAttribute('position').count;
     const index = src.getIndex();
@@ -239,6 +243,8 @@ export class FarHerd<M extends FarMember = FarMember> {
   private halfW = 0;
   private readonly eye = new THREE.Vector3();
 
+  private readonly materialFor: (m: M) => THREE.Material | null;
+  private readonly opts: { shadow?: boolean; keyOf?: (m: M) => object };
   /**
    * `materialFor(m)` is m's model's white fur (AnimalFactory.farMaterial), made once per model; null = never batched
    */
@@ -246,7 +252,9 @@ export class FarHerd<M extends FarMember = FarMember> {
    * `opts.keyOf`: what one batch holds — the view herd's is the member's model (a variant: its own coat atlas on a hull
    * geometry the species' other variants share), the shadow herd's the geometry (depth is the same whatever the coat)
    */
-  constructor(private readonly materialFor: (m: M) => THREE.Material | null, private readonly opts: { shadow?: boolean; keyOf?: (m: M) => object } = {}) {
+  constructor(materialFor: (m: M) => THREE.Material | null, opts: { shadow?: boolean; keyOf?: (m: M) => object } = {}) {
+    this.materialFor = materialFor;
+    this.opts = opts;
     this.group.name = opts.shadow === true ? 'herd-shadow' : 'far-herd';
   }
 

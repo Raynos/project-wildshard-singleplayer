@@ -122,7 +122,14 @@ export class Water {
   /** the lily pads + a few flowers (one mesh, bobbing on the wind) */
   lilies: THREE.Mesh | null = null;
 
-  constructor(private sky: Sky, private trees: readonly TreeInstance[] = [], private readonly policy: { clip?: (x: number, z: number) => boolean; lilyExclusions?: readonly { x: number; z: number; r: number }[] } = {}) {}
+  private sky: Sky;
+  private trees: readonly TreeInstance[];
+  private readonly policy: { clip?: (x: number, z: number) => boolean; lilyExclusions?: readonly { x: number; z: number; r: number }[] };
+  constructor(sky: Sky, trees: readonly TreeInstance[] = [], policy: { clip?: (x: number, z: number) => boolean; lilyExclusions?: readonly { x: number; z: number; r: number }[] } = {}) {
+    this.sky = sky;
+    this.trees = trees;
+    this.policy = policy;
+  }
 
   build(): this {
     this.mesh = this.buildProbe();

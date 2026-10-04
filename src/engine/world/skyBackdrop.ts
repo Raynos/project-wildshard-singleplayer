@@ -37,7 +37,16 @@ export class SkyBackdropView {
   lut: LookupTexture | null = null;
   private level!: LevelSpec;
   private dressing: SkyDressing | null = null;
-  constructor(private readonly scene: THREE.Scene, private readonly renderer: Renderer, private readonly scope: Scope, private readonly sky: Sky) {}
+  private readonly scene: THREE.Scene;
+  private readonly renderer: Renderer;
+  private readonly scope: Scope;
+  private readonly sky: Sky;
+  constructor(scene: THREE.Scene, renderer: Renderer, scope: Scope, sky: Sky) {
+    this.scene = scene;
+    this.renderer = renderer;
+    this.scope = scope;
+    this.sky = sky;
+  }
   private get sunDir(): THREE.Vector3 { return this.sky.sunDir; }
   private setupMaterial(material: THREE.Material): void { this.sky.setupMaterial(material); }
   configure(level: LevelSpec, dressing: SkyDressing | null): void { this.level = level; this.dressing = dressing; }

@@ -86,12 +86,16 @@ export class WorldRenderPass extends RenderPass {
   /** the depth slices (above): the next one a clear moves to; DEPTH_SLICES.length = past the last (it stays there) */
   private slice = 0;
 
+  private readonly composer: EffectComposer;
+  readonly slices: boolean;
   /**
    * `slices` (E142): the viewmodels draw into the near depth slices instead of clearing, and the effects read the scene
    * target's own depth texture (Game.buildComposer points them at it) — no copy, no merge
    */
-  constructor(scene: THREE.Scene, camera: THREE.Camera, private readonly composer: EffectComposer, readonly slices = false) {
+  constructor(scene: THREE.Scene, camera: THREE.Camera, composer: EffectComposer, slices = false) {
     super(scene, camera);
+    this.composer = composer;
+    this.slices = slices;
     Reflect.set(this, 'needsDepthBlit', false); // this pass fills the stable depth itself (render below)
     const tri = new THREE.BufferGeometry();
     tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));

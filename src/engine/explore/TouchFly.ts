@@ -74,7 +74,9 @@ class MultiTouchTaps {
   private readonly taps = new Map<number, PendingTap>();
   private relayed: { btn: HTMLElement; until: number } | null = null;
 
-  constructor(private readonly overlay: HTMLElement) {
+  private readonly overlay: HTMLElement;
+  constructor(overlay: HTMLElement) {
+    this.overlay = overlay;
     listenPage(this.uiScope, 'pointerdown', this.onDown, { capture: true });
     listenPage(this.uiScope, 'pointerup', this.onUp, { capture: true });
     listenPage(this.uiScope, 'pointercancel', this.onCancel, { capture: true });
@@ -138,7 +140,11 @@ export class TouchFly {
   private pinch = 0;
   private readonly taps: MultiTouchTaps;
 
-  constructor(private readonly surface: HTMLElement, private readonly cam: FreeCam, host: HTMLElement) {
+  private readonly surface: HTMLElement;
+  private readonly cam: FreeCam;
+  constructor(surface: HTMLElement, cam: FreeCam, host: HTMLElement) {
+    this.surface = surface;
+    this.cam = cam;
     this.stick = document.createElement('div'); this.stick.className = 'ws-x-stick';
     this.knob = document.createElement('i'); this.stick.append(this.knob);
     const label = document.createElement('b'); label.textContent = engineString('s_31bbe05d4315'); this.stick.append(label);

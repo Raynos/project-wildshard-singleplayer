@@ -160,7 +160,11 @@ export class Deck {
   private _phase: BossPhase = 1;
   stopAt = Infinity;
 
-  constructor(ctx: BaseAudioContext, readonly audio: SlotAudio, dest: AudioNode, readonly t0: number, fadeIn: number, tension = 0, phase: BossPhase = 1) {
+  readonly audio: SlotAudio;
+  readonly t0: number;
+  constructor(ctx: BaseAudioContext, audio: SlotAudio, dest: AudioNode, t0: number, fadeIn: number, tension = 0, phase: BossPhase = 1) {
+    this.audio = audio;
+    this.t0 = t0;
     tap.sound?.(`stems.bed:${audio.slot}`);
     const { spec } = audio;
     this.bar = (60 / spec.bpm) * spec.beatsPerBar;

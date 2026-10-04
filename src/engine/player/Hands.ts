@@ -126,7 +126,11 @@ export class Hands {
   private blend = 0; private speed = 0; private phase = 0; private t = 0;
   private tmp = { p: new THREE.Vector3(), q: new THREE.Vector3(), e: new THREE.Vector3(), d: new THREE.Vector3(), fwd: new THREE.Vector3(0, 0, -1) };
 
-  constructor(sky: Sky, private camera: THREE.PerspectiveCamera, private rig: SwimArms | null = null) {
+  private camera: THREE.PerspectiveCamera;
+  private rig: SwimArms | null;
+  constructor(sky: Sky, camera: THREE.PerspectiveCamera, rig: SwimArms | null = null) {
+    this.camera = camera;
+    this.rig = rig;
     this.style = activeLevel().hands ?? 'pbr'; // the level's own pick (its manifest's `hands`)
     if (rig !== null) rig.setup(sky);
     else this.buildGloves(sky);

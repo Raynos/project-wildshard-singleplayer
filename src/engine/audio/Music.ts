@@ -517,7 +517,9 @@ export class Music {
   private source: ScoreSource | undefined;
   private sourceId: string | undefined;
 
-  constructor(private audio: Audio) {
+  private audio: Audio;
+  constructor(audio: Audio) {
+    this.audio = audio;
     this._volume = getNumber('music');
     onNumber('music', (v) => { this._volume = v; if (this.rig) this.rig.out.gain.setTargetAtTime(v, this.rig.ctx.currentTime, 0.05); });
     onMusicStyle((v) => { this._genre = v; this.failed.clear(); if (!this.rig || !this.playing) this.prepare(v); this.sync(); });

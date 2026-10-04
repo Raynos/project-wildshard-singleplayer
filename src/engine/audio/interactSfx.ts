@@ -19,7 +19,10 @@ interface At { x: number; y: number; z: number }
 const INTERACT_LEVEL: Record<InteractSound, number> = { chest: 0.7, locked: 0.6, lever: 0.7, plate: 0.65, door: 0.7, grate: 0.6, chime: 0.45, glyph: 0.6, ignite: 0.8 };
 
 export class InteractSfx {
-  constructor(private readonly audio: Pick<Audio, 'voices'>) {}
+  private readonly audio: Pick<Audio, 'voices'>;
+  constructor(audio: Pick<Audio, 'voices'>) {
+    this.audio = audio;
+  }
 
   /** an interactable's sound, placed at the object */
   interact(sound: InteractSound, at?: At, o: { gain?: number; delay?: number; release?: boolean } = {}): void {

@@ -276,7 +276,9 @@ export class Game {
   get sky(): Sky { if (this._sky === null) throw new Error('Game.sky read before buildSky()'); return this._sky; }
 
   readonly level: LevelSpec;
-  constructor(public canvas: HTMLCanvasElement, context: WebGL2RenderingContext, level: LevelSpec) {
+  public canvas: HTMLCanvasElement;
+  constructor(canvas: HTMLCanvasElement, context: WebGL2RenderingContext, level: LevelSpec) {
+    this.canvas = canvas;
     this.level = level;
     this.app.scene = this.scene;
     this.app.render = this;

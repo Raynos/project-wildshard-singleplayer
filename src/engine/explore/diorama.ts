@@ -130,7 +130,11 @@ export class Diorama {
   private saved: { planes: THREE.Plane[]; background: THREE.Scene['background'] } | null = null;
   private vol: DioramaVolume | null = null;
 
-  constructor(private readonly world: World, private readonly backdrop: () => THREE.Texture) {
+  private readonly world: World;
+  private readonly backdrop: () => THREE.Texture;
+  constructor(world: World, backdrop: () => THREE.Texture) {
+    this.world = world;
+    this.backdrop = backdrop;
     this.group.add(this.rim.group, this.lid.group);
     this.group.visible = false;
     this.group.name = 'diorama';

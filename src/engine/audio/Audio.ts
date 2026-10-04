@@ -164,9 +164,11 @@ export class Audio extends PlayerVoices {
     this.worldMuted = true;
   }
 
+  private readonly profile: { bed?: string; samples?: SfxDecodePolicy; decode?: (set: SfxSet) => Promise<SfxBank> };
   /** `decode`: the sample decoder when no scope installed one (the offline cache's by default; a test passes its own) */
-  constructor(private readonly profile: { bed?: string; samples?: SfxDecodePolicy; decode?: (set: SfxSet) => Promise<SfxBank> } = {}) {
+  constructor(profile: { bed?: string; samples?: SfxDecodePolicy; decode?: (set: SfxSet) => Promise<SfxBank> } = {}) {
     super();
+    this.profile = profile;
     this.bed = profile.bed ?? '';
     onSfxSet((v) => { this.switchSet(v); });
   }

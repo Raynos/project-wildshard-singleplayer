@@ -59,7 +59,9 @@ export class Perf {
   private live: { box: HTMLElement; fps: HTMLElement; ms: HTMLElement };
   private rows: { p50: HTMLElement; p95: HTMLElement; calls: HTMLElement; tris: HTMLElement; tier: HTMLElement; gl: HTMLElement };
 
-  constructor(private game: Game) {
+  private game: Game;
+  constructor(game: Game) {
+    this.game = game;
     const limit = frameBudget(game.level.id, TIER, game.level.budgets);
     this.budget.calls = limit.draws ?? Infinity; this.budget.tris = limit.tris ?? Infinity;
     game.app.debug.expose('render.tierPick', { read: tierPickInfo, repick: () => { forgetTierPick(); markUnload('tier pick: repick'); location.reload(); } });

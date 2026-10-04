@@ -78,7 +78,11 @@ export class ShadowFade {
   /** E174 (shadowVariants.ts): a ghost smaller than its cascade takes its cascade's normal bias × this (its texel is larger) */
   biasScale = 1;
 
-  constructor(private readonly csm: CSM, private readonly camera: THREE.Camera, parent: THREE.Object3D) {
+  private readonly csm: CSM;
+  private readonly camera: THREE.Camera;
+  constructor(csm: CSM, camera: THREE.Camera, parent: THREE.Object3D) {
+    this.csm = csm;
+    this.camera = camera;
     const n = Math.max(1, csm.lights.length - 1);
     for (let i = 0; i < n; i++) {
       const src = csm.lights[i];

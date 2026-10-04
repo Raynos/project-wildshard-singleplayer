@@ -137,7 +137,13 @@ export class LockOnSystem {
   private cands: Cand[] = [];
   private mouseSamples: { t: number; dx: number; dy: number }[] = [];
 
-  constructor(private player: Player, private weapons: EquipmentService, private camera: THREE.PerspectiveCamera) {
+  private player: Player;
+  private weapons: EquipmentService;
+  private camera: THREE.PerspectiveCamera;
+  constructor(player: Player, weapons: EquipmentService, camera: THREE.PerspectiveCamera) {
+    this.player = player;
+    this.weapons = weapons;
+    this.camera = camera;
     const prev = player.preUpdate;
     player.preUpdate = (dt) => { prev?.(dt); this.update(dt); };
     // desktop (§2.1 / L9): Z or the middle mouse button toggles; while locked a mouse flick or the wheel switches

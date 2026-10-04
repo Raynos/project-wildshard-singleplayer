@@ -110,7 +110,11 @@ export class FirstHints {
   private walked = 0;
   private last = { x: 0, z: 0 };
 
-  constructor(private readonly player: Player, private readonly opts: FirstHintsOptions) {
+  private readonly player: Player;
+  private readonly opts: FirstHintsOptions;
+  constructor(player: Player, opts: FirstHintsOptions) {
+    this.player = player;
+    this.opts = opts;
     const scope = (app.levelScope ?? app.engineScope).child('input.hints');
     this.ring = document.createElement('div');
     this.ring.className = 'ws-hint-ring';

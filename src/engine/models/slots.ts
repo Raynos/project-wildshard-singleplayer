@@ -25,7 +25,10 @@ interface Counted { readonly triangleCount: number }
 export class SlotRecorder {
   readonly ranges: SlotRange[] = [];
   private at: number;
-  constructor(private readonly kit: Counted) { this.at = kit.triangleCount * 3; }
+  private readonly kit: Counted;
+  constructor(kit: Counted) {
+    this.kit = kit;
+     this.at = kit.triangleCount * 3; }
   /** close the slot added since the last mark; returns its index */
   mark(): number {
     const end = this.kit.triangleCount * 3;

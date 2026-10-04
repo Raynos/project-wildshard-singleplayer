@@ -33,7 +33,9 @@ export class LockOn {
   private x = -1; private y = -1; private w = -1; private h = -1;
   private edgeText = { l: '', r: '' }; private edgeY = { l: -1, r: -1 }; private edgeShown = { l: false, r: false };
 
-  constructor(private camera: THREE.PerspectiveCamera) {
+  private camera: THREE.PerspectiveCamera;
+  constructor(camera: THREE.PerspectiveCamera) {
+    this.camera = camera;
     this.el = document.createElement('div');
     this.el.className = 'ws-game-lock';
     this.el.innerHTML = engineString('s_5b2adc2f66ea');

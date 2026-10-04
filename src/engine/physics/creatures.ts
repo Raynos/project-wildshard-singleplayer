@@ -58,7 +58,10 @@ export class CreatureBodies<C extends Creature = Creature> {
   /** how many creatures had a body (a controller) at the last sync — the bench reads it */
   bodies = 0;
 
-  constructor(private readonly physics: Physics) {}
+  private readonly physics: Physics;
+  constructor(physics: Physics) {
+    this.physics = physics;
+  }
 
   /** Every AnimalManager update: pose every hitbox from the bones, hand out / take back bodies by distance to `player`. */
   sync(creatures: readonly C[], player: THREE.Vector3): void {

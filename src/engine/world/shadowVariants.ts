@@ -28,7 +28,16 @@ export class ShadowMaps {
   /** the lights whose map this module made (a light missing here holds three's own map, or none yet) */
   private readonly made = new Set<THREE.DirectionalLight>();
 
-  constructor(private readonly renderer: Renderer, private readonly csm: CSM, private readonly ghosts: readonly THREE.DirectionalLight[], readonly size: number) {}
+  private readonly renderer: Renderer;
+  private readonly csm: CSM;
+  private readonly ghosts: readonly THREE.DirectionalLight[];
+  readonly size: number;
+  constructor(renderer: Renderer, csm: CSM, ghosts: readonly THREE.DirectionalLight[], size: number) {
+    this.renderer = renderer;
+    this.csm = csm;
+    this.ghosts = ghosts;
+    this.size = size;
+  }
 
   /** the GPU bytes of the rig's shadow maps */
   get bytes(): number { return shadowBytes(this.size, this.csm.lights.length, this.ghosts.length); }

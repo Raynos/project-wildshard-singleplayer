@@ -282,7 +282,11 @@ export class TrainingArena {
   private player: Player | null = null;
   private weapons: EquipmentService | null = null;
 
-  constructor(private readonly game: Game, registry: WorldRegistry, private readonly physics: Physics, center: { x: number; z: number }) {
+  private readonly game: Game;
+  private readonly physics: Physics;
+  constructor(game: Game, registry: WorldRegistry, physics: Physics, center: { x: number; z: number }) {
+    this.game = game;
+    this.physics = physics;
     app.encounters.register({ id: 'training-dummy', displayName: 'Training dummy', showHeadBar: false }, game.levelScope);
     this.center = center;
     const { root, colliders } = makeRoom(center.x, center.z);

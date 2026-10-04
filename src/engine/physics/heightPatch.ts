@@ -19,7 +19,12 @@ export interface HeightPatchOpts { x: number; y: number; z: number; size: number
 export class HeightPatch {
   private collider: Collider | null = null;
 
-  constructor(private readonly physics: Physics, private readonly o: HeightPatchOpts) {}
+  private readonly physics: Physics;
+  private readonly o: HeightPatchOpts;
+  constructor(physics: Physics, o: HeightPatchOpts) {
+    this.physics = physics;
+    this.o = o;
+  }
 
   set(grid: Float32Array): void {
     this.clear();

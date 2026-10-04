@@ -130,9 +130,16 @@ export class Grass {
   private lastPX = Number.NaN;
   private lastPZ = Number.NaN;
 
+  private sky: Sky;
+  private forest: Forest;
+  private readonly policy: { trample?: GrassTrampleField };
   /** `trample`: the level's trample field (its uniforms, and GLSL that defines `trampleBend(xz)`), handed in by the level
    *  that owns it (Pine Hollow passes the kit's; E405: the engine imports no kit) */
-  constructor(private sky: Sky, private forest: Forest, private readonly policy: { trample?: GrassTrampleField } = {}) {}
+  constructor(sky: Sky, forest: Forest, policy: { trample?: GrassTrampleField } = {}) {
+    this.sky = sky;
+    this.forest = forest;
+    this.policy = policy;
+  }
 
   build(): this {
     const driver = app.render?.look?.grass;

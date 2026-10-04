@@ -57,7 +57,9 @@ export class WeaponStrip {
   private pick: WeaponId | null = null;
   private press: { id: number; timer: ReturnType<typeof setTimeout> | 0; open: boolean } | null = null;
 
-  constructor(private weapons: EquipmentService) {
+  private weapons: EquipmentService;
+  constructor(weapons: EquipmentService) {
+    this.weapons = weapons;
     const hud = document.getElementById('hud') ?? document.body;
     const layer = hud.querySelector<HTMLElement>('.ws-touch');
     this.touch = layer !== null && hud.classList.contains('touch');

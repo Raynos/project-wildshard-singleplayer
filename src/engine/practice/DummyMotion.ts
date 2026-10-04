@@ -24,7 +24,14 @@ class Spring {
   x = 0; y = 0; z = 0;
   vx = 0; vy = 0; vz = 0;
   ax = 0; ay = 0; az = 0;
-  constructor(private readonly k: number, private readonly c: number, private readonly limit: number) {}
+  private readonly k: number;
+  private readonly c: number;
+  private readonly limit: number;
+  constructor(k: number, c: number, limit: number) {
+    this.k = k;
+    this.c = c;
+    this.limit = limit;
+  }
   /** ω rad/s natural frequency, ζ damping ratio */
   static of(omega: number, zeta: number, limit: number): Spring { return new Spring(omega * omega, 2 * zeta * omega, limit); }
   step(h: number, fx: number, fy: number, fz: number): void {

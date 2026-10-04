@@ -730,7 +730,9 @@ export class Weld {
   private readonly hostedSets: HostedSet[] = [];
   private culler: WeldCull | null = null;
   private done = false;
-  constructor(readonly options: WeldOptions) {
+  readonly options: WeldOptions;
+  constructor(options: WeldOptions) {
+    this.options = options;
     this.whole = options.unit === 'whole' ? new UnitParts() : null;
     if (options.unit === 'whole' && options.root === undefined) throw new Error("weld: a 'whole' unit needs its root");
   }

@@ -18,7 +18,9 @@ export class Physics {
   /** ms the last `step()` took (the perf meter / bench read it) */
   stepMs = 0;
 
-  constructor(readonly R: Rapier) {
+  readonly R: Rapier;
+  constructor(R: Rapier) {
+    this.R = R;
     this.world = new R.World({ x: 0, y: -9.81, z: 0 });
     this.world.timestep = FIXED_STEP;
     const bodies = new Map<number, () => void>(), colliders = new Map<number, () => void>();

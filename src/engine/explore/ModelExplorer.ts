@@ -153,7 +153,13 @@ export class ModelExplorer implements ExplorePane {
   private readonly tierBuilds = new Map<string, Map<Tier, THREE.Object3D>>();
   private tierShown: { tier: Tier; o: THREE.Object3D; label: HTMLElement }[] = [];
 
-  constructor(private readonly explore: Explore, private readonly world: World, private readonly entries: CatalogEntry[]) {
+  private readonly explore: Explore;
+  private readonly world: World;
+  private readonly entries: CatalogEntry[];
+  constructor(explore: Explore, world: World, entries: CatalogEntry[]) {
+    this.explore = explore;
+    this.world = world;
+    this.entries = entries;
     this.el = html('div', 'ws-x-models');
     const chips = CATEGORIES.filter((c) => c.id === 'all' || entries.some((e) => e.category === c.id)).map((c) => `<button type="button" data-f="${c.id}">${c.label}</button>`).join(''); // only the tabs this shard has
     this.grid = html('div', 'ws-x-catalog', `<div class="ws-x-filter">${chips}<button type="button" class="ws-x-lineup">Lineup</button></div><div class="ws-x-grid"></div>`);

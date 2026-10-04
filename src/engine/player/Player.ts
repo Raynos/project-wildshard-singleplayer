@@ -211,8 +211,14 @@ export class Player {
   get dodging(): boolean { return this.dodgeT > 0; }
   private dodgeT = 0;
 
+  public camera: THREE.PerspectiveCamera;
+  private readonly physics: Physics;
+  private canvas: HTMLCanvasElement;
   /** `waterLine`: the swimming water-line view (the DOM WaterLine by default; a test or a headless tool passes its own) */
-  constructor(public camera: THREE.PerspectiveCamera, private readonly physics: Physics, private canvas: HTMLCanvasElement, views: { waterLine?: WaterLineView } = {}) {
+  constructor(camera: THREE.PerspectiveCamera, physics: Physics, canvas: HTMLCanvasElement, views: { waterLine?: WaterLineView } = {}) {
+    this.camera = camera;
+    this.physics = physics;
+    this.canvas = canvas;
     this.waterLine = views.waterLine ?? new WaterLine();
     this.motor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner: this, weight: 80 });
   }

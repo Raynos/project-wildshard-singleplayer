@@ -66,7 +66,14 @@ export class SkyRig {
   /** the level this sky lights (handed to build()) */
   private level!: LevelSpec;
 
-  constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: Renderer) { this.visual = new SkyBackdropView(scene, renderer, this.scope, this); }
+  private scene: THREE.Scene;
+  private camera: THREE.PerspectiveCamera;
+  private renderer: Renderer;
+  constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: Renderer) {
+    this.scene = scene;
+    this.camera = camera;
+    this.renderer = renderer;
+     this.visual = new SkyBackdropView(scene, renderer, this.scope, this); }
 
   /** the scene the sky lights (the LightPool's home) */
   get sceneRoot(): THREE.Scene { return this.scene; }

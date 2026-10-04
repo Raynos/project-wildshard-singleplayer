@@ -26,7 +26,9 @@ export class Compare {
   private split = 0.5;
   private current: Target | null = null;
 
-  constructor(private readonly explore: Explore, world: World) {
+  private readonly explore: Explore;
+  constructor(explore: Explore, world: World) {
+    this.explore = explore;
     this.targets = world.game.level.explore?.compare?.map((t) => ({ id: t.id, name: t.label, live: t.live, target: t.image, file: t.target })) ?? [];
     this.button = html('button', 'ws-x-comparebtn', '<svg viewBox="0 0 24 24"><path d="M12 3v18 M4 5h6v14H4z M14 5h6v14h-6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Compare</span>');
     (this.button as HTMLButtonElement).type = 'button';

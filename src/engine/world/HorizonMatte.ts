@@ -73,8 +73,15 @@ export class HorizonMatte {
     uNightGain: { value: 0.72 },  // the painted moonlight sits a little bright against the night dome
   };
 
+  private sky: Sky;
+  private seaLevel: number;
+  private strips: HorizonStrips | null;
   /** `strips`: the painting to show — the active shard's by default; null builds nothing */
-  constructor(private sky: Sky, private seaLevel = 0, private strips: HorizonStrips | null = levelHorizonStrips(activeLevel())) {}
+  constructor(sky: Sky, seaLevel = 0, strips: HorizonStrips | null = levelHorizonStrips(activeLevel())) {
+    this.sky = sky;
+    this.seaLevel = seaLevel;
+    this.strips = strips;
+  }
 
   build(): this {
     const st = this.sky.backdrop?.palette;
@@ -241,7 +248,10 @@ export class PaintedHorizon {
     uVeil: this.veil,
   };
 
-  constructor(private strips: HorizonStrips) {}
+  private strips: HorizonStrips;
+  constructor(strips: HorizonStrips) {
+    this.strips = strips;
+  }
 
   build(): this {
     const st = this.strips;

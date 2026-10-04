@@ -44,7 +44,10 @@ const num = (n: number, w = 6): string => f1(n).padStart(w);
 class DomWrites {
   private obs: MutationObserver | null = null;
   private count = 0; private since = performance.now(); rate = 0;
-  constructor(private readonly own: readonly HTMLElement[]) {}
+  private readonly own: readonly HTMLElement[];
+  constructor(own: readonly HTMLElement[]) {
+    this.own = own;
+  }
   set(on: boolean): void {
     if (on === (this.obs !== null)) return;
     if (!on) { this.obs?.disconnect(); this.obs = null; return; }
@@ -118,7 +121,11 @@ export class PerfHud {
   lastRecText = '';
   onRecDone: ((text: string) => void) | null = null;
 
-  constructor(private readonly game: Game, private readonly out: HTMLElement, spark: HTMLCanvasElement, own: readonly HTMLElement[]) {
+  private readonly game: Game;
+  private readonly out: HTMLElement;
+  constructor(game: Game, out: HTMLElement, spark: HTMLCanvasElement, own: readonly HTMLElement[]) {
+    this.game = game;
+    this.out = out;
     this.spark = spark;
     this.dom = new DomWrites(own);
     this.scope.onDispose(() => { this.dom.set(false); });

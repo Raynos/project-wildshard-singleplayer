@@ -37,7 +37,10 @@ export class Horizon {
   private cloudSea!: THREE.Mesh;
   private cloudU = { uTime: { value: 0 } };
 
-  constructor(private sky: Pick<Sky, 'setupMaterial' | 'sunDir' | 'night'>) {}
+  private sky: Pick<Sky, 'setupMaterial' | 'sunDir' | 'night'>;
+  constructor(sky: Pick<Sky, 'setupMaterial' | 'sunDir' | 'night'>) {
+    this.sky = sky;
+  }
 
   build(): this {
     const level = activeLevel();
