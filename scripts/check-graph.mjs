@@ -19,6 +19,11 @@ const EDGES_FILE = 'lint/layer-edges.json';
 const GENERATED_TABLE = 'src/shards.generated.ts';
 const SOURCE = /\.[cm]?[jt]sx?$/u;
 
+/** HEAD resolves tracked modules plus ignored build outputs, never ordinary untracked source. */
+export function headModuleExists(path, tracked, diskExists) {
+  return tracked.has(path) || (/\.generated\.[cm]?[jt]sx?$/u.test(path) && diskExists(path));
+}
+
 /** the layer a src path belongs to: engine, game, kit, shards/<slug>, root */
 export function layerOf(path) {
   const m = /^src\/(engine|game|kit|sdk)\//u.exec(path);
@@ -140,7 +145,7 @@ function main(argv) {
     // and a file the commit deletes still counts in HEAD's graph (its edges leave with it)
     const deleted = execFileSync('git', ['diff', '--cached', '--no-renames', '--name-only', '--diff-filter=D', '--', 'src'], { cwd: ROOT, encoding: 'utf8' }).split('\n')
       .filter((p) => /^src\/.*\.[cm]?[jt]sx?$/u.test(p) && !p.endsWith('.d.ts') && !paths.includes(p));
-    const now = graph(present, staged, exists), before = graph([...paths, ...deleted].filter((p) => head(p) !== ''), head, (p) => headFiles.has(p));
+    const now = graph(present, staged, exists), before = graph([...paths, ...deleted].filter((p) => head(p) !== ''), head, (p) => headModuleExists(p, headFiles, exists));
     const failures = [];
     // a rise the same commit records in lint/layer-edges.json (`--update`, a reviewed crossing) passes
     const recorded = (read) => { try { return JSON.parse(read(EDGES_FILE)).edges ?? {}; } catch { return {}; } };

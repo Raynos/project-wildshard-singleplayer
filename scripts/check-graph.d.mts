@@ -1,4 +1,5 @@
 export function layerOf(path: string): string | null;
+export function headModuleExists(path: string, tracked: ReadonlySet<string>, diskExists: (path: string) => boolean): boolean;
 export function resolveSpecifier(from: string, spec: string, exists: (path: string) => boolean): string | null;
 export function importsOf(path: string, source: string, exists: (path: string) => boolean): { to: string; dynamic: boolean }[];
 export function reachViolation(from: string, to: string, dynamic: boolean): string | null;
