@@ -28,8 +28,9 @@ const player = { position: pageHost.player.position, yaw: 0, health: pageHost.pl
 const saves = new Map(), values = new Map();
 const facts = new Set(); let coins = 0;
 const quest = { fact: (id) => { facts.add(id); }, coins: (amount) => { coins += amount; } };
-let physicsSteps = 0;
+let physicsSteps = 0, regionCreations = 0;
 const registry = new LiveGridHost(assembly, {
+  maxResidents: 2,
   home: { instance: homeCell.instance, physics: pageHost.physics, bytes: 1, checkpoint: () => true }, player, allocator: new ResidencyAllocator(),
   highway: { bytes: strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, create: () => {
     const host = createSimHost({ ...level, ground: { size: 2000, height: 0 } }, { rapier, playerBody: false, ground: false });
@@ -40,6 +41,7 @@ const registry = new LiveGridHost(assembly, {
   gameplayReady: () => gameplay,
   bindFrame: ({ physics }) => { currentPhysics = physics; frameBinds++; },
   admit: async () => ({ bytes: source.budgets.sim.resident, create: async (saved) => {
+    regionCreations++;
     let sim = createShardfileSim(source, assets, { rapier, playerBody: false, quest });
     if (saved !== undefined) {
       const authored = sim.host.level; sim.dispose();
@@ -61,6 +63,8 @@ try {
   const highway = await registry.prepare(homeCell.instance, null); highway.commit(); assert.equal(registry.current(), null);
   player.position.set(-299, 0.02, 0); const enter = await registry.prepare(null, target.instance); enter.commit();
   assert.equal(registry.worldFeet().x, -299); assert.equal(registry.current(), target.instance);
+  await assert.rejects(registry.prefetch(['template-2']), /No durable frozen live region/);
+  assert.equal(regionCreations, 1); assert.equal(registry.ready('template-2'), false);
   gameplay = false; for (let i = 0; i < 60; i++) step(); assert.equal(first.host.state.tick, 0);
   gameplay = true; for (let i = 0; i < 10; i++) step(); assert.equal(first.host.state.tick, 10);
   const actor = first.host.entities.get('grey-blob:1'); assert.ok(actor); actor.applyFinalDamage(5, new Vector3(), new Vector3()); const hp = actor.hp;

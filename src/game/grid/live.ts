@@ -132,7 +132,8 @@ export class LiveGridHost {
       await previous; this.assertAlive();
       const admitted = await this.ports.admit(cell);
       this.assertAlive();
-      while (this.residents.size >= this.limit) {
+      // The borrowed home is a resident too; the permanent highway is outside the per-shard count.
+      while (this.residents.size + 1 >= this.limit) {
         const candidate = [...this.residents].filter(([id, value]) => id !== this.active && value.reservations === 0 && !value.evicting)
           .sort(([a], [b]) => this.distance(this.assembly.cell(b)) - this.distance(this.assembly.cell(a)) || a.localeCompare(b))[0];
         if (candidate === undefined || !this.unload(candidate[0])) throw new Error('No durable frozen live region can be evicted');
