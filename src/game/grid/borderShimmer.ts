@@ -79,7 +79,7 @@ function ribbons(cells: readonly ShimmerCell[]): BufferGeometry {
         const ground = Math.max(0, heights.length === 0 ? 0 : (heights[i0] ?? 0) + ((heights[i1] ?? 0) - (heights[i0] ?? 0)) * (f - i0));
         const x = cell.x + (row.fixed === 'x' ? row.at : s), z = cell.z + (row.fixed === 'z' ? row.at : s);
         const v = side * verts + i * 2;
-        position.set([x, ground - FOOT, z, x, ground + HEIGHT - FOOT], v * 3);
+        position.set([x, ground - FOOT, z, x, ground + HEIGHT - FOOT, z], v * 3); // the top vertex stands over its foot (it had no z: every ribbon leaned to z = 0 as a vast cyan sheet)
         uv.set([s + CHUNK_HALF, 0, s + CHUNK_HALF, HEIGHT], v * 2);
         if (i < SEGMENTS) index.push(v, v + 2, v + 1, v + 1, v + 2, v + 3);
       }
