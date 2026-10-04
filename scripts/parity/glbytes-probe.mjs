@@ -25,6 +25,9 @@ try {
   const errors = /** @type {string[]} */ ([]);
   page.on('pageerror', (error) => errors.push(error.message));
   const version = await (await page.request.get(new URL('/version.json', url).href)).json();
+  await context.addInitScript((build) => {
+    window.__wildshardHarness = { seed: 1, capture: null, lane: 'glbytes-census', sha: build, browser: 'chromium', errors: [], audioRequests: [], saves: { read: [], written: [] } };
+  }, String(version.build));
   await page.goto(`${url}/?chunk=${encodeURIComponent(shard)}&mute=1&skipintro=1&nolock=1&sw=0`);
   await page.waitForFunction('Boolean(window.__wildshard?.world?.game) && !document.querySelector(".ws-load")', undefined, { timeout: 120000 });
   const poses = await page.evaluate(async () => {

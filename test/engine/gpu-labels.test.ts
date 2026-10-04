@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, DataTexture, Group, InstancedMesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, DataTexture, Group, InstancedMesh, Line, MeshBasicMaterial, LineBasicMaterial, Points, PointsMaterial } from 'three';
 import { afterEach, expect, it } from 'vitest';
 import { labelAsset, labelledCreation, labelObjectTree } from '../../src/engine/render/gpuLabels';
 
@@ -20,6 +20,20 @@ it('labels actual geometry, instance and texture upload sources with their file 
   expect(sources.get(positions)).toEqual({ owner: 'file-loader', asset: '/assets/tree.glb#trunk/position' });
   expect(sources.get(pixels)).toEqual({ owner: 'texture-loader', asset: '/assets/bark.ktx2' });
   expect(sources.get(mesh.instanceMatrix.array)).toEqual({ owner: 'pine/tree-stand', asset: 'forest.ts#Tree stand/trees/instanceMatrix' });
+});
+it('includes line uploads and keeps embedded texture names within their GLB path', () => {
+  const sources = new Map<object, string>();
+  Reflect.set(globalThis, 'window', { __sc_label_gl: () => undefined,
+    __sc_label_source: (source: object, _owner: string, asset: string) => { sources.set(source, asset); } });
+  const pixels = new Uint8Array(16), positions = new Float32Array(6);
+  const texture = new DataTexture(pixels, 2, 2); texture.name = 'Image_0';
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3));
+  const line = new Line(geometry, new LineBasicMaterial()); line.name = 'line';
+  const points = new Points(new BufferGeometry(), new PointsMaterial({ map: texture })); points.name = 'points';
+  const root = new Group(); root.add(line, points);
+  labelObjectTree(root, 'file-loader', '/assets/animal.glb');
+  expect(sources.get(positions)).toBe('/assets/animal.glb/line/position');
+  expect(sources.get(pixels)).toBe('/assets/animal.glb/points/map/Image_0');
 });
 it('normal gameplay does not inspect a registered tree or wrap its creation', () => {
   Reflect.set(globalThis, 'window', {});

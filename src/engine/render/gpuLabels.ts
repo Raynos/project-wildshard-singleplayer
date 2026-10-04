@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Mesh, Object3D, Texture, WebGLRenderTarget } from 'three';
+import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, Texture, WebGLRenderTarget } from 'three';
 import type { Renderer } from './renderer';
 
 interface Label { owner: string; asset: string; priority: number }
@@ -37,8 +37,8 @@ function markTexture(texture: Texture, fallback: Label): Label {
   const current: unknown = image !== null && typeof image === 'object' ? Reflect.get(image, 'currentSrc') : undefined;
   const src: unknown = image !== null && typeof image === 'object' ? Reflect.get(image, 'src') : undefined;
   const url = typeof current === 'string' && current.length > 0 ? current : src;
-  const named = texture.name || (typeof url === 'string' && !url.startsWith('blob:') ? url.split('?')[0] : undefined);
-  const label = remember(texture, named ? { ...fallback, asset: named, priority: 2 } : fallback);
+  const named = typeof url === 'string' && url.length > 0 && !url.startsWith('blob:') ? url.split('?')[0] : texture.name ? `${fallback.asset}/${texture.name}` : undefined;
+  const label = remember(texture, named ? { ...fallback, asset: named } : fallback);
   data(image, label);
   if (image !== null && typeof image === 'object') data(Reflect.get(image, 'data'), label);
   for (const mip of texture.mipmaps) data(Reflect.get(mip, 'data'), label);
@@ -63,11 +63,9 @@ function markGeometry(geometry: BufferGeometry, fallback: Label): void {
   for (const [role, values] of Object.entries(geometry.morphAttributes)) for (const [index, value] of (values ?? []).entries()) attribute(value, `morph/${role}/${index}`);
 }
 function nodeResources(node: Object3D, label: Label): void {
-  if (node instanceof Mesh) {
-    const geo: unknown = node.geometry, mats: unknown = node.material;
-    if (isGeometry(geo)) markGeometry(geo, label);
-    for (const mat of Array.isArray(mats) ? mats : [mats]) if (isMaterial(mat)) markMaterial(mat, label);
-  }
+  const geo: unknown = Reflect.get(node, 'geometry'), mats: unknown = Reflect.get(node, 'material');
+  if (isGeometry(geo)) markGeometry(geo, label);
+  for (const mat of Array.isArray(mats) ? mats : [mats]) if (isMaterial(mat)) markMaterial(mat, label);
   for (const [role, value] of Object.entries(node)) {
     if (value instanceof BufferAttribute) data(value.array, { ...label, asset: `${label.asset}/${role}` });
     else if (isTexture(value)) markTexture(value, { ...label, asset: `${label.asset}/${role}` });
@@ -89,7 +87,7 @@ function resourceLabel(value: unknown): Label {
   if (value !== null && typeof value === 'object') {
     const known = labels.get(value);
     if (known) return known;
-    if (isTexture(value)) return markTexture(value, { owner: 'engine/texture', asset: `generated/${value.constructor.name}`, priority: 0 });
+    if (isTexture(value)) return markTexture(value, { owner: 'engine/texture', asset: 'generated/texture', priority: 0 });
     if (isTarget(value)) return { owner: 'engine/render-target', asset: value.texture.name || `generated/render-target/${value.width}x${value.height}`, priority: 1 };
   }
   return { owner: 'engine/renderer', asset: 'renderer-internal', priority: 0 };
@@ -102,16 +100,21 @@ export function installGpuLabels(renderer: Renderer): void {
   renderer.properties.get = (resource) => {
     const properties = get(resource);
     if (properties === null || typeof properties !== 'object') return properties;
-    const prior = proxies.get(properties);
-    if (prior) return prior;
     const stamp = (value: unknown, role: string): unknown => {
-      if (Array.isArray(value)) return new Proxy(value, { set(target, key, item: unknown) { return Reflect.set(target, key, stamp(item, `${role}/${String(key)}`)); } });
+      if (Array.isArray(value)) {
+        for (const [index, item] of value.entries()) stamp(item, `${role}/${index}`);
+        return new Proxy(value, { set(target, key, item: unknown) { return Reflect.set(target, key, stamp(item, `${role}/${String(key)}`)); } });
+      }
       if (value !== null && typeof value === 'object') {
         const label = resourceLabel(resource);
         emit('__sc_label_gl', value, { ...label, asset: `${label.asset}/${role}` });
       }
       return value;
     };
+    // Assets initialized before joining a scene acquire their authored identity later; update the existing GL tag.
+    for (const [key, value] of Object.entries(properties)) if (/^__webgl(?:Texture|Depthbuffer|ColorRenderbuffer|DepthRenderbuffer)$/u.test(key)) stamp(value, key.slice(7));
+    const prior = proxies.get(properties);
+    if (prior) return prior;
     const proxy = new Proxy(properties, { set(target, key, value: unknown) {
       const tagged = typeof key === 'string' && /^__webgl(?:Texture|Depthbuffer|ColorRenderbuffer|DepthRenderbuffer)$/u.test(key) ? stamp(value, key.slice(7)) : value;
       return Reflect.set(target, key, tagged);
