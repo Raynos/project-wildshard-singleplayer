@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// E362 AG7 (docs/plans/ARCH-GUARDS.md): the import graph between layers and shards, in one parse of src.
+// E362 AG7 (project/archive/2026-10-03-arch-guards.md): the import graph between layers and shards, in one parse of src.
 //   node scripts/check-graph.mjs            check: a new layer pair, a rising pair count, a two-way pair (a cycle
 //                                            across two layers or two shards), a shard file reached from outside
 //                                            the shard other than as the plan allows, fails
