@@ -1064,7 +1064,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `installDeclaredPropColliders` | function | @wildshard/engine/physics/declaredProps | Install bounded box/stair descriptors with stable owner IDs. A physics getter reconnects ports after snapshot restore. |
 | `PropColliderPort` | interface | @wildshard/engine/physics/declaredProps | Authoritative active-state ports for static declared props; scripts call them on the fixed-step host. |
 | `PropColliderState` | interface | @wildshard/engine/physics/declaredProps | Stable Rapier handles carried by the simulation adapter; activation is saved in the physics snapshot. |
-| `walkEdgeEntries` | function | @wildshard/engine/physics/edgeEntries | Real capsule walks cover every 15 m wide entry for 50 m, at overlapping lateral intervals. |
+| `walkEdgeEntries` | function | @wildshard/engine/physics/edgeEntries | Real capsule walks cover every legal 8 m entry for 50 m, at overlapping lateral intervals. |
 | `FrameMember` | interface | @wildshard/engine/physics/frame | Frame-local traveller poses are retained by their existing gameplay owner. |
 | `PreparedFrameMotors` | interface | @wildshard/engine/physics/frame | A prepared motor set can be abandoned without changing any source collider or controller. |
 | `prepareFrameMotors` | function | @wildshard/engine/physics/frame | Prepare rider and optional mount together; source bodies remain authoritative until the synchronous commit. |

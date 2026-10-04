@@ -6356,7 +6356,7 @@
       {
         "name": "walkEdgeEntries",
         "kind": "function",
-        "doc": "Real capsule walks cover every 15 m wide entry for 50 m, at overlapping lateral intervals.",
+        "doc": "Real capsule walks cover every legal 8 m entry for 50 m, at overlapping lateral intervals.",
         "from": "@wildshard/engine/physics/edgeEntries"
       },
       {
