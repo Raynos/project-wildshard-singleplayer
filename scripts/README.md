@@ -277,6 +277,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [parity/](./parity/)
 - [practice/](./practice/)
 - [skin-playback/](./skin-playback/)
+- [soak/](./soak/)
 - [steam-trailer/](./steam-trailer/)
 - [trailer/](./trailer/)
 - [types/](./types/)
