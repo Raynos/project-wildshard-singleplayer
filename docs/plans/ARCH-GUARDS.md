@@ -1,6 +1,6 @@
 # Plan: ARCH-GUARDS — static analysis that holds the engine / game / kit / shard split (E362)
 
-**State:** `in progress` 2026-10-03 — built: batch 1 (897baa67), AG2, AG8, AG23–AG28 and batch 2 (E379): AG18 (6c606797), AG7 (42f250c0), AG10 (6dfc6d67), AG4 (1296be8a), AG3 (13689ee5: 1,017 → 164 deep imports); LAYER-PURITY's E414 / E415 / E417 built. Open: AG5, AG6, AG12, AG21, AG22 and AG19's promotions (Jake: build now or drop), E416 (Clef: Jake's pick)
+**State:** `in progress` 2026-10-03 — batch 1 and 2 built (AG2–AG4, AG7–AG10, AG18, AG23–AG28); Jake (ask tool, 10-03) asked to build the later rows too: AG22 + AG21 (generated docs), AG19 (pay the ratchets to 0, promote), AG6 + AG12 (the shard API), AG5 (no deep paths) — arch-guards building them in that order. E416 (Clef) dropped: "No clef".
 
 ## Summary
 
