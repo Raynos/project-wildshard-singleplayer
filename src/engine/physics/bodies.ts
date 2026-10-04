@@ -18,10 +18,11 @@
  * (§Architecture): a body with `float` gets an upward force per step from how deep it sits under the surface its
  * owner describes (still level + the swell), and a drag while wet.
  */
-import type { Collider, Cuboid, RigidBody } from '@dimforge/rapier3d-simd';
+import type { Collider, RigidBody } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
-import { groups, queryGroups, type GroupName } from './groups';
-import { tagCollider, tagOf, untagCollider, type Material } from './surface';
+import { groups, type GroupName } from './groups';
+import { tagCollider, untagCollider, type Material } from './surface';
+import { overlapBox as queryOverlapBox } from './overlap';
 import { TIER } from '../core/tier';
 import { floorBelow } from './query';
 import { app } from '../app/runtime';
@@ -312,24 +313,7 @@ export class Bodies {
  * ITEM groups every frame. `as` is the querier's own group (a plate is a SENSOR).
  */
 export function overlapBox(physics: Physics, at: Vec3, half: Vec3, yaw: number, sees: readonly GroupName[], hit: (owner: unknown, c: Collider) => boolean, as: GroupName = 'SENSOR'): boolean {
-  const { R, world } = physics;
-  let found = false;
-  const box = boxOf(physics, half);
-  world.intersectionsWithShape(at, { x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) }, box, (c) => {
-    if (hit(tagOf(c)?.owner ?? null, c)) { found = true; return false; }
-    return true;
-  }, R.QueryFilterFlags.EXCLUDE_SENSORS, queryGroups(sees, as));
-  return found;
-}
-
-const boxes = new WeakMap<Physics, Map<string, Cuboid>>();
-function boxOf(physics: Physics, h: Vec3): Cuboid {
-  let m = boxes.get(physics);
-  if (!m) { m = new Map(); boxes.set(physics, m); }
-  const key = `${h.x},${h.y},${h.z}`;
-  let b = m.get(key);
-  if (!b) { b = new physics.R.Cuboid(h.x, h.y, h.z); m.set(key, b); }
-  return b;
+  return queryOverlapBox(physics, at, half, yaw, sees, hit, as);
 }
 
 // ── drops (PHYSICS P7-L2): a thing that falls out of something, lands, and lies there ────────────────────────────────

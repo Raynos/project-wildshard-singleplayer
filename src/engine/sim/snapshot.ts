@@ -109,6 +109,7 @@ function entityMotor(entity: AnimalSim): CharacterMotor | null {
 
 /** Capture at a fixed-step boundary; pending events are preserved without flushing them. */
 export function snapshotSimHost(host: SimHost): SimSnapshot {
+  if (host.embedded) throw new Error('Borrowed simulation snapshots belong to the client world owner');
   if (host.scope.disposed) throw new Error('Cannot snapshot a disposed host');
   const colliderTags: SimSnapshot['colliderTags'] = [];
   host.physics.world.forEachCollider((collider) => { const tag = tagOf(collider); if (tag !== undefined) colliderTags.push({ handle: collider.handle, material: tag.material, owner: encode(tag.owner, host) }); });

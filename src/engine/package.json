@@ -309,6 +309,8 @@
     "./physics/declaredProps": "./physics/declaredProps.ts",
     "./combat/items": "./combat/items.ts",
     "./combat/itemFamilies": "./combat/itemFamilies.ts",
-    "./input/commands": "./input/commands.ts"
+    "./input/commands": "./input/commands.ts",
+    "./physics/edgeEntries": "./physics/edgeEntries.ts",
+    "./physics/rapier": "./physics/rapier.ts"
   }
 }

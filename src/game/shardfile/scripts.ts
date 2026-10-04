@@ -23,7 +23,7 @@ export function scriptBindingRules(bindings: readonly ScriptBinding[], scripts: 
   return [...new Set(errors)];
 }
 /** Format-owned field ids/defaults, with optional authored lower-only bounds. */
-export interface ShardScriptField { id: number; name: string; type: 'bool' | 'i32' | 'f64' | 'string'; privacy: 'public' | 'owner' | 'host'; default: boolean | number | string; min?: number; max?: number }
+export interface ShardScriptField { id: number; name: string; type: 'bool' | 'i32' | 'f64' | 'string'; privacy: 'public' | 'owner' | 'host'; default: boolean | number | string; min?: number | undefined; max?: number | undefined }
 /** Translate only numeric fields; string values never become forged numeric ids. Stable ids determine input order. */
 export function numericScriptState(state: { shared: readonly ShardScriptField[]; player: readonly ShardScriptField[] }): ScriptStateDeclaration {
   const fields = (list: readonly ShardScriptField[]): ScriptStateField[] => list.flatMap((f) => {

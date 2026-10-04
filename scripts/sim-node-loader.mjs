@@ -1,7 +1,11 @@
 // Plain Node type stripping plus the same Rapier binding selection as the client/tests; no app identity or shard list.
 import { registerHooks } from 'node:module';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, statSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+
+// Exact reviewed schema leaves stay dependency-guarded by lint/sim-closure.mjs; SF16 owns removal.
+const schemaLeaves = new Set(Object.keys(JSON.parse(readFileSync(new URL('../lint/sim-schema-leaves.json', import.meta.url), 'utf8'))).map((path) => new URL(`../${path}`, import.meta.url).href));
+const rendererDependency = (url) => !schemaLeaves.has(url) && /\/src\/engine\/(?:app\/runtime\.ts|render\/|ui\/|fx\/|anim\/|.*\/view\/)/u.test(url);
 
 registerHooks({
   resolve(specifier, context, next) {
@@ -12,13 +16,13 @@ registerHooks({
       for (const suffix of ['', '.ts', '.js', '/index.ts', '/index.js']) {
         const url = new URL(at.href + suffix);
         if (existsSync(fileURLToPath(url)) && statSync(fileURLToPath(url)).isFile()) {
-          if (/\/src\/engine\/(?:app\/runtime\.ts|render\/|ui\/|fx\/|anim\/|.*\/view\/)/u.test(url.href)) throw new Error(`Renderer dependency in Node simulation: ${url.href}`);
+          if (rendererDependency(url.href)) throw new Error(`Renderer dependency in Node simulation: ${url.href}`);
           return { url: url.href, shortCircuit: true };
         }
       }
     }
     const result = next(specifier, context);
-    if (/\/src\/engine\/(?:app\/runtime\.ts|render\/|ui\/|fx\/|anim\/|.*\/view\/)/u.test(result.url)) throw new Error(`Renderer dependency in Node simulation: ${result.url}`);
+    if (rendererDependency(result.url)) throw new Error(`Renderer dependency in Node simulation: ${result.url}`);
     return result;
   },
 });

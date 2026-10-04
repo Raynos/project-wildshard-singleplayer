@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Prove the workspace CLI builds without an installed SDK distribution.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Disposable CLI output.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Disposable CLI output.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture output and subprocess paths.
@@ -20,5 +20,16 @@ it('builds the template through the real workspace author CLI with deterministic
     const shard = parseShardfile(JSON.parse(first)); expect(shard.identity.slug).toBe('template');
     execFileSync(execPath, args, { encoding: 'utf8' });
     expect(readFileSync(join(output, 'shard.json'), 'utf8')).toBe(first);
+    const proof = execFileSync(execPath, ['scripts/wildshard.mjs', 'validate', join(output, 'shard.json')], { encoding: 'utf8' });
+    expect(proof).toMatch(/60 sim ticks, 92 edge lanes, \d+ capsule steps/u);
+    const originalProps = shard.props;
+    shard.props = { ...(originalProps ?? { version: 1, family: 'toon', tiles: [], models: [], panels: [], textures: [], far: null }),
+      colliders: [...(originalProps?.colliders ?? []), { id: 'entry-wall', panel: null, initialActive: true, shapes: [{ kind: 'box', x: 0, y: 2, z: 240, hx: 8, hy: 2, hz: 0.5 }] }] };
+    writeFileSync(join(output, 'shard.json'), JSON.stringify(shard));
+    expect(() => execFileSync(execPath, ['scripts/wildshard.mjs', 'validate', join(output, 'shard.json')], { encoding: 'utf8', stdio: 'pipe' })).toThrow('Blocked edge entry north');
+    shard.props = originalProps;
+    shard.water = [{ id: 'entry-pool', kind: 'pool', level: 2, shape: { kind: 'circle', x: 0, z: 240, radius: 4 } }];
+    writeFileSync(join(output, 'shard.json'), JSON.stringify(shard));
+    expect(() => execFileSync(execPath, ['scripts/wildshard.mjs', 'validate', join(output, 'shard.json')], { encoding: 'utf8', stdio: 'pipe' })).toThrow('Submerged edge entry north');
   } finally { rmSync(output, { recursive: true, force: true }); }
 }, 30000);

@@ -6048,6 +6048,12 @@
         "from": "@wildshard/engine/physics/declaredProps"
       },
       {
+        "name": "walkEdgeEntries",
+        "kind": "function",
+        "doc": "Real capsule walks cover every 15 m wide entry for 50 m, at overlapping lateral intervals.",
+        "from": "@wildshard/engine/physics/edgeEntries"
+      },
+      {
         "name": "GROUP",
         "kind": "const",
         "doc": "Collision groups (project/archive/2026-09-23-physics.md §Architecture): who can touch whom. Rapier packs a collider's groups in one",
@@ -6136,6 +6142,18 @@
         "kind": "function",
         "doc": "Sweep a ball of `radius` from `a` to `b` (a bolt's flight over one step, a thrown thing): the first world surface it",
         "from": "@wildshard/engine/physics/query"
+      },
+      {
+        "name": "loadRapier",
+        "kind": "function",
+        "doc": "Instantiate the WASM once (idempotent). `bytes`: the binary itself, for node (tests, bake scripts) where there is no fetch of /assets.",
+        "from": "@wildshard/engine/physics/rapier"
+      },
+      {
+        "name": "Rapier",
+        "kind": "type",
+        "doc": "Initialized Rapier bindings supplied to a physics world or renderer-free simulation host.",
+        "from": "@wildshard/engine/physics/rapier"
       },
       {
         "name": "RopeChain",
@@ -7990,6 +8008,12 @@
         "name": "SimHost",
         "kind": "class",
         "doc": "A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimHostPorts",
+        "kind": "interface",
+        "doc": "Borrowed client state is stepped and disposed by its existing world owner.",
         "from": "@wildshard/engine/sim"
       },
       {
@@ -12862,6 +12886,36 @@
         "kind": "interface",
         "doc": "Loader-provided identities and query ports: the actor mapping comes from the session, not the shardfile.",
         "from": "@wildshard/game/shardfile/scripts"
+      },
+      {
+        "name": "bindShardfileSim",
+        "kind": "function",
+        "doc": "Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping.",
+        "from": "@wildshard/game/shardfile/simulation"
+      },
+      {
+        "name": "createShardfileSim",
+        "kind": "function",
+        "doc": "One declared simulation core, used by the normal browser loader and the headless author validator.",
+        "from": "@wildshard/game/shardfile/simulation"
+      },
+      {
+        "name": "numericScriptEntityId",
+        "kind": "function",
+        "doc": "Positive stable actor handle; reordering spawns changes nothing. Hash collisions are refused during composition.",
+        "from": "@wildshard/game/shardfile/simulation"
+      },
+      {
+        "name": "ShardfileSimPorts",
+        "kind": "interface",
+        "doc": "The existing client can lend its physics/player/fixed-step driver; Node owns them by default.",
+        "from": "@wildshard/game/shardfile/simulation"
+      },
+      {
+        "name": "ShardfileSimulation",
+        "kind": "interface",
+        "doc": "Authoritative handles for UI, quests and the existing client fixed-step driver.",
+        "from": "@wildshard/game/shardfile/simulation"
       },
       {
         "name": "ShardTerrain",

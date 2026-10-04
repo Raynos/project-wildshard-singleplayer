@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1844 members; 831 without a doc line (—).
+1848 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1013,6 +1013,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `installDeclaredPropColliders` | function | @wildshard/engine/physics/declaredProps | Install bounded box/stair descriptors with stable owner IDs. A physics getter reconnects ports after snapshot restore. |
 | `PropColliderPort` | interface | @wildshard/engine/physics/declaredProps | Authoritative active-state ports for static declared props; scripts call them on the fixed-step host. |
 | `PropColliderState` | interface | @wildshard/engine/physics/declaredProps | Stable Rapier handles carried by the simulation adapter; activation is saved in the physics snapshot. |
+| `walkEdgeEntries` | function | @wildshard/engine/physics/edgeEntries | Real capsule walks cover every 15 m wide entry for 50 m, at overlapping lateral intervals. |
 | `GROUP` | const | @wildshard/engine/physics/groups | Collision groups (project/archive/2026-09-23-physics.md §Architecture): who can touch whom. Rapier packs a collider's groups in one |
 | `GroupName` | type | @wildshard/engine/physics/groups | — |
 | `groups` | function | @wildshard/engine/physics/groups | The packed `collisionGroups` / `solverGroups` value for a collider of this kind. |
@@ -1028,6 +1029,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `lineOfSight` | function | @wildshard/engine/physics/query | Does `from` see `to`? — no world surface on the segment between them, short of `slack` metres before `to` (the target's own body). |
 | `sticksIn` | function | @wildshard/engine/physics/query | Materials a bolt / arrow sticks in; anything else it glances off (stone, rock, metal, shell). |
 | `sweepBall` | function | @wildshard/engine/physics/query | Sweep a ball of `radius` from `a` to `b` (a bolt's flight over one step, a thrown thing): the first world surface it |
+| `loadRapier` | function | @wildshard/engine/physics/rapier | Instantiate the WASM once (idempotent). `bytes`: the binary itself, for node (tests, bake scripts) where there is no fetch of /assets. |
+| `Rapier` | type | @wildshard/engine/physics/rapier | Initialized Rapier bindings supplied to a physics world or renderer-free simulation host. |
 | `RopeChain` | class | @wildshard/engine/physics/ropeChain | — |
 | `RopeChainSpec` | interface | @wildshard/engine/physics/ropeChain | — |
 | `clearTags` | function | @wildshard/engine/physics/surface | Drop every tag (a shard's world was disposed; handles are reused by the next one). |
@@ -1337,6 +1340,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SIM_API_VERSION` | const | @wildshard/engine/sim | The embedded simulation contract. Versions change when level or command semantics change. |
 | `SimCommand` | interface | @wildshard/engine/sim | Resolved world-space movement and an optional targeted attack for one fixed tick. |
 | `SimHost` | class | @wildshard/engine/sim | A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client. |
+| `SimHostPorts` | interface | @wildshard/engine/sim | Borrowed client state is stepped and disposed by its existing world owner. |
 | `SimLevel` | interface | @wildshard/engine/sim | A renderer-free level. F1 installs richer behaviours through scoped step callbacks. |
 | `SimSlots` | interface | @wildshard/engine/sim | Script instance memory, module globals, authored quest data and ledger dedupe live on the host. |
 | `SimSpawn` | interface | @wildshard/engine/sim | One authored creature spawn, with its instance identity independent of view or streaming. |

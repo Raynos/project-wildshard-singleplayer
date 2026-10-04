@@ -135,6 +135,9 @@ importers:
 
   src/sdk:
     dependencies:
+      '@dimforge/rapier3d-simd':
+        specifier: 0.21.0
+        version: 0.21.0
       '@types/three':
         specifier: ^0.186.0
         version: 0.186.0

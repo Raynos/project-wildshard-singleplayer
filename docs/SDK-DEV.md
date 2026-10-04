@@ -32,7 +32,17 @@ copies public files. Both the ordinary production build and the push gate run
 the flag assertion against their compiled output. Unit fixtures deliberately
 forge a true runtime flag under false metadata and must fail that assertion.
 
-The headless loader and collider edge walk extend `wildshard validate` at
-SF8c's remaining composition step. The normal full loader supplies the same
-colliders and simulation systems; validation must not substitute empty
-geometry for authored content.
+`wildshard validate <shard.json>` first admits assets and budgets, then runs
+60 fixed ticks through `createShardfileSim`. It installs the authored terrain,
+prop colliders, brains, script bindings, quests and encounters. Trusted item
+handles share that one script lane. It rejects failed scripts and nonfinite
+actor positions, then walks 92 overlapping capsule paths covering all four
+15-metre edge entries for 50 metres inward. An actual wall, steep ground or
+submerged route fails even if the edge metadata claims the route is clear.
+
+The browser full loader borrows its existing physics, player, event bus, clock,
+combat and fixed-step driver. Its callback runs systems once; the existing
+client owns physics stepping. Existing water and prop ports can be borrowed.
+Standalone snapshots reinstall adapters with `bindShardfileSim` and
+`restoring:true`, reconnecting collider handles after world replacement without
+allocating duplicates. Borrowed snapshots belong to the client world owner.

@@ -1,14 +1,14 @@
 {
   "about": "E362 AG7: cross-layer import counts (scripts/check-graph.mjs). A new pair or a rising count fails; lower with --update.",
   "edges": {
-    "game → engine": 363,
+    "game → engine": 374,
     "kit → engine": 196,
     "kit → game": 2,
     "root → engine": 17,
     "root → game": 15,
     "root → kit": 8,
-    "sdk → engine": 4,
-    "sdk → game": 15,
+    "sdk → engine": 6,
+    "sdk → game": 16,
     "shards/_template → engine": 41,
     "shards/_template → game": 15,
     "shards/_template → kit": 10,

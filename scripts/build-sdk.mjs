@@ -4,6 +4,7 @@ import { build } from 'vite';
 import { relative, resolve } from 'node:path';
 import { cpSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { rapierAlias } from '../vite/rapier.ts';
 
 const root = resolve(import.meta.dirname, '..');
 process.chdir(root);
@@ -13,7 +14,7 @@ const modules = Object.entries(sdk.exports).map(([specifier, target]) => {
   if (!specifier.startsWith('./') || typeof target !== 'string' || !target.endsWith('.ts')) throw new Error('SDK workspace exports must name defining TypeScript modules');
   return { name: specifier.slice(2), source: resolve(root, 'src/sdk', target), declaration: target.slice(2, -3) };
 });
-await build({ configFile: false, publicDir: false, logLevel: 'warn', build: { outDir: resolve(root, 'src/sdk/dist'), emptyOutDir: true, minify: false, lib: {
+await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'warn', build: { outDir: resolve(root, 'src/sdk/dist'), emptyOutDir: true, minify: false, lib: {
   entry: Object.fromEntries([...modules.map(({ name, source }) => [name, source]), ['cli', resolve(root, 'src/sdk/cli.ts')]]), formats: ['es'], fileName: (_format, name) => `${name}.js`,
 }, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite'] } } });
 

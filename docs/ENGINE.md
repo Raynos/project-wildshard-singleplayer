@@ -1744,7 +1744,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1827 exports, grouped by the module to import them from.
+1831 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1907,10 +1907,12 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/box`: `boxInFrame`, `BoxSpec`
 - `@wildshard/engine/physics/CharacterMotor`: `CharacterMotor`, `MotorOptions`, `MoveResult`, `rideable`
 - `@wildshard/engine/physics/declaredProps`: `installDeclaredPropColliders`, `PropColliderPort`, `PropColliderState`
+- `@wildshard/engine/physics/edgeEntries`: `walkEdgeEntries`
 - `@wildshard/engine/physics/groups`: `GROUP`, `GroupName`, `groups`, `queryGroups`
 - `@wildshard/engine/physics/heightPatch`: `HeightPatch`, `HeightPatchOpts`
 - `@wildshard/engine/physics/paths`: `pathRampDescs`, `PathRampOptions`
 - `@wildshard/engine/physics/query`: `castRay`, `castSegment`, `floorBelow`, `Hit`, `lineOfSight`, `sticksIn`, `sweepBall`
+- `@wildshard/engine/physics/rapier`: `loadRapier`, `Rapier`
 - `@wildshard/engine/physics/ropeChain`: `RopeChain`, `RopeChainSpec`
 - `@wildshard/engine/physics/surface`: `clearTags`, `ColliderTag`, `Material`, `tagCollider`, `tagOf`, `untagCollider`
 - `@wildshard/engine/physics/terrain`: `addEdgeWalls`, `addTerrain`, `cutTerrain`, `EDGE_WALL_INSET`, `TerrainCut`, `terrainGrid`, `toColumnMajor`
@@ -1964,7 +1966,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/script/lane`: `installScriptLane`, `ScriptBinding`, `ScriptLane`, `ScriptLaneOptions`, `ScriptModule`
 - `@wildshard/engine/script/queries`: `SCRIPT_QUERY`, `ScriptPhysics`, `scriptPhysicsQueries`
 - `@wildshard/engine/script/state`: `DeclaredScriptWorld`, `SCRIPT_STATE_OP`, `ScriptStateDeclaration`, `ScriptStateField`, `ScriptWorldState`
-- `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimCommand`, `SimHost`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
+- `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimCommand`, `SimHost`, `SimHostPorts`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
 - `@wildshard/engine/sim/snapshot`: `restoreSimHost`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
 - `@wildshard/engine/ui/authoredDebugRows`: `authoredRows`, `GlobalDebugActionSpec`, `registerGlobalDebugAction`
@@ -2051,7 +2053,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-318 exports, grouped by the module to import them from.
+323 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2110,6 +2112,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/rows`: `parseRows`, `rowRules`, `RowsSchema`, `scoredStrikes`, `ShardRows`, `simStrikes`, `speciesResolver`
 - `@wildshard/game/shardfile/schema`: `LOOK_LUT_BYTES`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
+- `@wildshard/game/shardfile/simulation`: `bindShardfileSim`, `createShardfileSim`, `numericScriptEntityId`, `ShardfileSimPorts`, `ShardfileSimulation`
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
 - `@wildshard/game/shardfile/validate`: `validateShardfileAssets`
@@ -2203,3 +2206,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 ### Author dev client (SF8c)
 
 `buildProject` in `@wildshard/sdk/project` accepts an optional third argument choosing the compiled client or a product-only build. `wildshard dev` rebuilds admitted static products and reloads the normal client, using a separate compiled author mode. `__DEVSERVER__` is false in production/native modes; the production artifact checker refuses an enabled flag. See [SDK-DEV.md](SDK-DEV.md) for commands, cleanup and build-mode checks.
+
+### Declared simulation composition and author validation (SF8c)
+
+`@wildshard/game/shardfile/simulation` composes admitted terrain, prop colliders, stable actor identities, trusted item handles, numeric scripts, published-state targets, quests, brains and encounters. `createShardfileSim` owns a standalone world by default; its typed ports can borrow the normal client's physics/player/fixed-step driver and existing collider/water ports. `bindShardfileSim` reinstalls matching snapshot adapters without collider allocation or stepping in restore mode. Borrowed snapshots belong to the existing world owner. `@wildshard/engine/physics/edgeEntries` walks overlapping capsule paths across each real entry; `@wildshard/engine/physics/rapier` loads the distributed physics binary without browser globals. See [SDK-DEV.md](SDK-DEV.md) for native validation and the authoritative target update.

@@ -45,12 +45,20 @@ export interface SimCommand { moveX: number; moveZ: number; yaw: number; attack?
 /** Each future brain/script instance registers its own continuation state, never a process singleton. */
 export interface SimStateAdapter { snapshot: () => SimValue; restore: (value: SimValue) => void }
 
+/** Borrowed client state is stepped and disposed by its existing world owner. */
+export interface SimHostPorts {
+  rapier: Rapier; physics?: Physics; player?: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
+  events?: Events; clock?: GameClock; combat?: CombatPipeline; scope?: Scope;
+  ground?: boolean; heightAt?: (x: number, z: number) => number;
+  fixedStep?: (run: () => void) => () => void;
+}
+
 /** A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client. */
 export class SimHost {
   readonly level: SimLevel;
   readonly scope: Scope;
-  readonly events = new Events();
-  readonly clock = new GameClock();
+  readonly events: Events;
+  readonly clock: GameClock;
   readonly rng: RngService;
   readonly flags: Flags;
   readonly quests: QuestState[];
@@ -70,45 +78,66 @@ export class SimHost {
   private readonly hitOrigin = new Vector3();
   private readonly hitPoint = new Vector3();
   private disposed = false;
+  readonly embedded: boolean;
+  private readonly ownsPlayer: boolean;
+  private heightAt: (x: number, z: number) => number;
 
-  constructor(level: SimLevel, ports: { rapier: Rapier }) {
+  constructor(level: SimLevel, ports: SimHostPorts) {
     if (level.version !== SIM_API_VERSION) throw new RangeError('Unsupported simulation level version');
     if (!Number.isFinite(level.ground.height) || !Number.isFinite(level.ground.size) || level.ground.size <= 0
       || !Number.isFinite(level.player.speed) || level.player.speed < 0) throw new RangeError('Invalid simulation level');
     const ids = level.entities.map((entity) => entity.id);
-    if (new Set(ids).size !== ids.length || ids.includes('actor.player')) throw new Error('Duplicate simulation entity identity');
-    this.level = level; this.scope = new Scope(`sim:${level.id}`); this.rng = new RngService(level.seed);
-    this.physics = new Physics(ports.rapier);
-    const ground = this.physics.world.createCollider(ports.rapier.ColliderDesc.heightfield(1, 1,
+    if (new Set(ids).size !== ids.length || ids.includes(ports.player?.id ?? 'actor.player')) throw new Error('Duplicate simulation entity identity');
+    if ((ports.physics === undefined) !== (ports.player === undefined) || (ports.physics !== undefined && (ports.events === undefined || ports.clock === undefined || ports.combat === undefined))) throw new Error('Borrowed simulation needs physics, player, events, clock and combat together');
+    if (ports.fixedStep !== undefined && ports.physics === undefined) throw new Error('A fixed-step driver belongs to a borrowed world');
+    this.embedded = ports.physics !== undefined; this.ownsPlayer = ports.player === undefined;
+    this.level = level; this.scope = ports.scope?.child(`sim:${level.id}`) ?? new Scope(`sim:${level.id}`); this.rng = new RngService(level.seed);
+    this.heightAt = ports.heightAt ?? (() => level.ground.height);
+    this.events = ports.events ?? new Events(); this.clock = ports.clock ?? new GameClock();
+    this.physics = ports.physics ?? new Physics(ports.rapier);
+    if (ports.ground !== false && !this.embedded) {
+      const ground = this.physics.world.createCollider(ports.rapier.ColliderDesc.heightfield(1, 1,
       new Float32Array(4).fill(level.ground.height), { x: level.ground.size, y: 1, z: level.ground.size }).setCollisionGroups(groups('WORLD')));
-    tagCollider(ground, 'ground');
-    this.combat = new CombatPipeline(this.events, this.scope, () => this.physics);
+      tagCollider(ground, 'ground');
+    }
+    this.combat = ports.combat ?? new CombatPipeline(this.events, this.scope, () => this.physics);
     const position = new Vector3(level.player.at.x, level.player.at.y, level.player.at.z);
     const health = new PlayerHealth(this.events, { now: () => this.clock.now * 1000, position: () => position, dodging: () => false, dodgeGuard: () => false });
-    this.player = { id: health.id, position, yaw: level.player.yaw, health, motor: this.motor('PLAYER', 0.35, 1.8) };
-    this.combat.playerRules(this.scope, { target: health });
+    this.player = ports.player ?? { id: health.id, position, yaw: level.player.yaw, health, motor: this.motor('PLAYER', 0.35, 1.8, health.id) };
+    if (this.ownsPlayer) this.combat.playerRules(this.scope, { target: health });
     this.flags = new Flags(level.id, false);
     this.quests = level.quests.map((def) => new QuestState(def, this.flags, this.events, this.scope));
-    this.strikes.set(health.id, new StrikeRunner());
-    this.weapons.set(health.id, { ...level.weapon, weight: () => 1 });
+    this.strikes.set(this.player.id, new StrikeRunner());
+    this.weapons.set(this.player.id, { ...level.weapon, weight: () => 1 });
     for (const spawn of level.entities) {
       const entity = new AnimalSim(spawn.spec, spawn.seed, spawn.scale, spawn.id, {
-        heightAt: () => level.ground.height, now: () => this.clock.now * 1000,
+        heightAt: (x, z) => this.heightAt(x, z), now: () => this.clock.now * 1000,
         random: () => this.rng.stream('gameplay').next(), hit: (req) => this.combat.hit(req),
       });
       entity.place(spawn.at.x, spawn.at.z, spawn.yaw, spawn.at.y);
-      entity.motor = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2);
+      entity.motor = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
       this.entities.set(spawn.id, entity);
       if (spawn.strike !== undefined) {
         this.strikes.set(spawn.id, new StrikeRunner()); this.weapons.set(spawn.id, { ...spawn.strike, weight: () => 1 });
       }
     }
     this.events.on('actor.died', ({ actor }) => { this.flags.set(`dead:${actor.id}`); }, this.scope);
-    this.physics.step();
+    this.scope.onDispose(() => {
+      this.disposed = true;
+      if (this.ownsPlayer) this.player.motor.dispose();
+      for (const entity of this.entities.values()) entity.motor?.dispose();
+      if (!this.embedded) this.physics.dispose();
+    });
+    if (!this.embedded) this.physics.step();
+    if (ports.fixedStep !== undefined) {
+      this.scope.onDispose(ports.fixedStep(() => { this.stepEmbedded(); }));
+    }
   }
-  private motor(group: 'PLAYER' | 'CREATURE', radius: number, height: number): CharacterMotor {
-    return new CharacterMotor(this.physics, { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, group, blockedBy: ['WORLD', 'PLAYER', 'CREATURE'] });
+  private motor(group: 'PLAYER' | 'CREATURE', radius: number, height: number, owner: string): CharacterMotor {
+    return new CharacterMotor(this.physics, { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, group, blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner });
   }
+  /** Reinstall the admitted terrain height query before a fresh host's same-engine continuation resumes. */
+  setHeightQuery(heightAt: (x: number, z: number) => number): void { this.heightAt = heightAt; }
   /** Scoped fixed-step work; removing a registration also releases its future snapshot adapter. */
   onStep(id: string, run: (dt: number, host: SimHost) => void, adapter?: SimStateAdapter): () => void {
     if (this.disposed || this.callbacks.has(id)) throw new Error(`Invalid simulation registration ${id}`);
@@ -124,9 +153,9 @@ export class SimHost {
   /** One simulation tick. No wall clock, renderer, active app or device input is consulted. */
   step(command?: SimCommand): void {
     if (this.disposed) throw new Error('Simulation host is disposed');
+    if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
     if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
-    this.events.beginFrame(); this.clock.tick(FIXED_STEP); this.state.tick++;
-    for (const key of Object.keys(this.state.timers)) this.state.timers[key] = Math.max(0, (this.state.timers[key] ?? 0) - FIXED_STEP);
+    this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     this.physics.step();
     if (command !== undefined) {
       this.player.yaw = command.yaw;
@@ -134,14 +163,25 @@ export class SimHost {
       this.player.motor.move(this.player.position, this.wanted);
       if (command.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
     }
+    this.stepSystems();
+    this.player.health.update(FIXED_STEP); this.events.flush('fixed.post');
+  }
+  /** Called once by the client's fixed.post slot; it never advances physics, clock, player or event phases. */
+  stepEmbedded(): void {
+    if (this.disposed || !this.embedded) throw new Error('Invalid borrowed simulation step');
+    this.stepSystems();
+  }
+  private stepSystems(): void {
+    this.state.tick++;
+    for (const key of Object.keys(this.state.timers)) this.state.timers[key] = Math.max(0, (this.state.timers[key] ?? 0) - FIXED_STEP);
     for (const run of this.callbacks.values()) run(FIXED_STEP, this);
     for (const [id, runner] of this.strikes) this.updateStrike(id, runner);
     for (const entity of this.entities.values()) entity.step(FIXED_STEP);
-    this.player.health.update(FIXED_STEP); this.events.flush('fixed.post');
   }
   /** Accumulate elapsed simulation seconds; a caller can submit exactly the same command tape after restoration. */
   advance(seconds: number, command?: SimCommand): number {
     if (this.disposed) throw new Error('Simulation host is disposed');
+    if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
     if (!Number.isFinite(seconds) || seconds < 0) throw new RangeError('Invalid simulation delta');
     if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
     this.state.accumulator += seconds; let ticks = 0;
@@ -182,8 +222,8 @@ export class SimHost {
   restoreAttackTargets(entries: readonly (readonly [string, string])[]): void { this.targetIds.clear(); for (const [id, target] of entries) this.targetIds.set(id, target); }
   dispose(): void {
     if (this.disposed) return; this.disposed = true;
-    this.scope.dispose(); this.player.motor.dispose(); for (const entity of this.entities.values()) entity.motor?.dispose(); this.physics.dispose();
+    this.scope.dispose();
   }
 }
 /** Embed a level with an initialized Rapier module. Loading WASM belongs to the Node/client composition root. */
-export function createSimHost(level: SimLevel, ports: { rapier: Rapier }): SimHost { return new SimHost(level, ports); }
+export function createSimHost(level: SimLevel, ports: SimHostPorts): SimHost { return new SimHost(level, ports); }

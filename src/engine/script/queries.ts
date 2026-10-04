@@ -1,5 +1,5 @@
 import { castRay } from '../physics/query';
-import { overlapBox } from '../physics/bodies';
+import { overlapBox } from '../physics/overlap';
 import type { Physics } from '../physics/Physics';
 import type { Navmesh } from '../physics/navmesh';
 import type { ScriptQuery } from './host';

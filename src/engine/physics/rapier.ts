@@ -12,6 +12,7 @@ import RAPIER from '@dimforge/rapier3d-simd';
 import * as bindings from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.js';
 import { RAPIER_WASM_URL } from './wasmUrl';
 
+/** Initialized Rapier bindings supplied to a physics world or renderer-free simulation host. */
 export type Rapier = typeof RAPIER;
 
 let loading: Promise<Rapier> | null = null;

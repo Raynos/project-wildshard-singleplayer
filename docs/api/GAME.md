@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-318 members; 112 without a doc line (—).
+323 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -304,6 +304,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardScriptContent` | interface | @wildshard/game/shardfile/scripts | Content slice consumed by the full loader; assets are already hash-verified and schema-validated. |
 | `ShardScriptField` | interface | @wildshard/game/shardfile/scripts | Format-owned field ids/defaults, with optional authored lower-only bounds. |
 | `ShardScriptPorts` | interface | @wildshard/game/shardfile/scripts | Loader-provided identities and query ports: the actor mapping comes from the session, not the shardfile. |
+| `bindShardfileSim` | function | @wildshard/game/shardfile/simulation | Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping. |
+| `createShardfileSim` | function | @wildshard/game/shardfile/simulation | One declared simulation core, used by the normal browser loader and the headless author validator. |
+| `numericScriptEntityId` | function | @wildshard/game/shardfile/simulation | Positive stable actor handle; reordering spawns changes nothing. Hash collisions are refused during composition. |
+| `ShardfileSimPorts` | interface | @wildshard/game/shardfile/simulation | The existing client can lend its physics/player/fixed-step driver; Node owns them by default. |
+| `ShardfileSimulation` | interface | @wildshard/game/shardfile/simulation | Authoritative handles for UI, quests and the existing client fixed-step driver. |
 | `ShardTerrain` | type | @wildshard/game/shardfile/terrain | A validated terrain section, containing no landscape closures. |
 | `TerrainSchema` | const | @wildshard/game/shardfile/terrain | The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. |
 | `validateTerrainAssets` | function | @wildshard/game/shardfile/terrain | Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams. |
