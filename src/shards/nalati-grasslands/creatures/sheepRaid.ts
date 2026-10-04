@@ -216,7 +216,7 @@ export class SheepRaid {
       get raidT() { return raid().raidT; }, set raidT(value) { raid().raidT = value; },
       get pendingT() { return raid().pendingT; }, set pendingT(value) { raid().pendingT = value; },
       get present() { return raid().pack !== null && raid().prey !== null; },
-      get tracking() { return raid().pack !== null && raid().pack.prey === raid().prey; },
+      get tracking() { const pack = raid().pack; return pack !== null && pack.prey === raid().prey; },
       get broken() { return raid().pack?.phase === 'break'; },
       get preyAlive() { return raid().prey?.alive === true; },
       get cracked() { return raid().cracksNow > 0; },
