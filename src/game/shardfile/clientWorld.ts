@@ -3,6 +3,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Shardfile } from './schema';
 import type { ClientAssets } from './clientAssets';
 import { terrainResidency } from './residency';
+import type { RingCamera } from '../grid/rings';
 
 /** Renderer-owned tile controls; the loader owns admission and residency, without shader or scene code. */
 export interface ResidentTile { mask: (excluded: ReadonlySet<number>) => void; shadow: (enabled: boolean) => void }
@@ -12,8 +13,31 @@ export interface ClientWorldViews {
   library: (props: NonNullable<Shardfile['props']>, assets: ReadonlyMap<string, Uint8Array>, scope: Scope) => Promise<InstalledProps>;
   props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, scope: Scope) => Promise<ResidentTile | null>;
 }
+/** Injected ring scheduler owns all render-tile claims; the loader owns only admission, library installation and lifecycle. */
+export interface ClientWorldRings {
+  step: (camera: RingCamera) => void; ready: () => boolean; resident: () => readonly string[]; dispose: () => void;
+}
 /** One lifetime owns coarse proxies, bounded fine residency and the named prop library. */
-export async function clientWorld(source: Shardfile, assets: ClientAssets, ports: { scope: Scope; views: ClientWorldViews; x: number; z: number }): Promise<{ props: InstalledProps | null; refresh: (x: number, z: number) => Promise<void>; fine: ReadonlyMap<string, Scope> }> {
+export async function clientWorld(source: Shardfile, assets: ClientAssets, ports: { scope: Scope; views: ClientWorldViews; x: number; z: number; rings?: ClientWorldRings }): Promise<{ props: InstalledProps | null; refresh: (x: number, z: number) => Promise<void>; step: (camera: RingCamera) => void; fine: ReadonlySet<string> }> {
+  if (ports.rings !== undefined) {
+    const rings = ports.rings, fine = new Set<string>();
+    ports.scope.onDispose(() => { rings.dispose(); fine.clear(); });
+    const props = source.props === null ? null : await ports.views.library(source.props, assets.retained, ports.scope);
+    let wake: (() => void) | undefined;
+    ports.scope.onDispose(() => { wake?.(); });
+    const step = (camera: RingCamera): void => {
+      rings.step(camera); fine.clear(); for (const key of rings.resident()) if (key.includes(':l0/')) fine.add(key);
+    };
+    for (let attempt = 0; ; attempt++) {
+      if (ports.scope.disposed) throw new Error('Shardfile world unloaded before ring readiness');
+      step({ x: ports.x, z: ports.z, vx: 0, vz: 0 });
+      if (rings.ready()) break;
+      if (attempt >= 1200) throw new Error('Shardfile render coverage admission timed out');
+      await new Promise<void>((resolve) => { wake = resolve; ports.scope.timeout(100, resolve); }); wake = undefined;
+    }
+    assets.releaseTiles();
+    return { props, fine, step, refresh: (x, z) => { step({ x, z, vx: 0, vz: 0 }); return Promise.resolve(); } };
+  }
   const fine = new Map<string, Scope>(), fineTiles = new Map<string, ResidentTile[]>(), coarse = new Map<string, ResidentTile>(), coarseProps = new Map<string, ResidentTile>(), terrainRows = new Map(source.terrain?.tiles.map((tile) => [`${tile.lod}/${tile.x}/${tile.z}`, tile]));
   const terrain = async (key: string, scope: Scope, shadow: boolean): Promise<ResidentTile | null> => {
     const row = terrainRows.get(key); if (row === undefined) return null;
@@ -53,5 +77,5 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
     return chain;
   };
   await refresh(ports.x, ports.z);
-  return { props, refresh, fine };
+  return { props, refresh, get fine() { return new Set(fine.keys()); }, step: () => undefined };
 }

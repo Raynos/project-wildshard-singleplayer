@@ -24,7 +24,10 @@ import type { ResidencyAllocator } from '../grid/allocator';
 import { leaseClientLibrary } from './clientLibrary';
 import { clientMaterials } from './clientMaterials';
 import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
-import { clientViews } from './clientViews';
+import { clientViews, clientTileViews } from './clientViews';
+import { clientRingCatalogue, clientRingPorts } from './clientRings';
+import { RenderRings } from '../grid/rings';
+import { TileDecoder } from '../grid/tileDecoder';
 import { installClientWater } from './clientWater';
 import { clientWorld } from './clientWorld';
 import { clientSimStep } from './clientStep';
@@ -67,22 +70,22 @@ export class ShardfileClient {
     const presentation = await clientMaterials(this.source, this.assets.retained, world.game.renderer, ctx.scope);
     this.presentation = presentation;
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials });
-    this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
+    const decoder = new TileDecoder(); ctx.scope.onDispose(() => { decoder.dispose(); });
+    const tileViews = clientTileViews({ terrain: this.source.terrain?.family ?? null, ...presentation });
+    const instance = this.bindings.instance;
+    const instances = new Map([[instance, { source: this.source, assets: this.assets, root: ctx.root, views: tileViews }]]);
+    const rings = new RenderRings([{ instance, origin: { x: 0, z: 0 } }], allocator, clientRingCatalogue(instances), clientRingPorts(instances, { scope: ctx.scope, decoder }));
+    this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z, rings,
       views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, ...presentation }),
     });
-    let refreshX = this.source.spawn.x, refreshZ = this.source.spawn.z, failure: Error | undefined;
-    const refresh = async (x: number, z: number): Promise<void> => {
-      try { await this.worldTiles?.refresh(x, z); }
-      catch (error) { failure = error instanceof Error ? error : new Error(String(error)); }
-    };
-    ctx.system({ id: 'game.shardfile.residency', phase: 'update', run: (dt) => {
-      if (failure !== undefined) throw failure;
-      presentation.tick(dt);
+    const tiles = this.worldTiles; let priorX = this.source.spawn.x, priorZ = this.source.spawn.z;
+    ctx.system({ id: 'game.shardfile.residency', phase: 'fixed.post', after: ['player.step'], run: (dt) => {
       const position = runtime.viewer();
-      if (Math.hypot(position.x - refreshX, position.z - refreshZ) < 5) return;
-      refreshX = position.x; refreshZ = position.z;
-      void refresh(position.x, position.z);
+      tiles.step({ x: position.x, z: position.z, vx: dt > 0 ? (position.x - priorX) / dt : 0, vz: dt > 0 ? (position.z - priorZ) / dt : 0 });
+      priorX = position.x; priorZ = position.z;
     } });
+    ctx.system({ id: 'game.shardfile.presentation', phase: 'update', run: (dt) => { presentation.tick(dt); } });
+    ctx.debug.expose('shardfileRings', { rings, allocator, workers: decoder.threaded });
   }
 
   kit(ctx: ShardContext): void {

@@ -1,8 +1,10 @@
 import { expect, it } from 'vitest';
 import { App } from '../src/engine/app/app';
+import { Scope } from '../src/engine/app/scope';
 import { terrainTileCost } from '../src/engine/world/terrainTileData';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { clientSimStep } from '../src/game/shardfile/clientStep';
+import { clientWorld } from '../src/game/shardfile/clientWorld';
 import { terrainResidency, tileDistance } from '../src/game/shardfile/residency';
 import type { ProductOptions } from '../src/game/shardfile/product';
 import { emptyShardfile } from '../src/sdk/author';
@@ -89,4 +91,13 @@ it('caches reloaded tile bytes for the next visit and still tolerates a full cac
     cache: { ...cache, putAsset: (_base, hash, bytes) => { writes++; expect(hash).toBe(f.tileHash); expect(bytes).toEqual(f.tile); return Promise.resolve(false); } },
   });
   expect(await assets.read(f.tileHash)).toEqual(f.tile); expect(writes).toBe(1); expect(assets.retained.has(f.tileHash)).toBe(false);
+});
+it('waits for injected coarse coverage and releases the one ring owner when its world unloads', async () => {
+  const f = residentFixture(), scope = new Scope('ring-world'); let steps = 0, released = 0;
+  const rings = { step: () => { steps++; }, ready: () => steps >= 2, resident: () => ['copy:l0/3/4'], dispose: () => { released++; } };
+  const world = await clientWorld(f.source, f.assets, { scope, x: 0, z: 0, rings,
+    views: { terrain: () => { throw new Error('Rings own tiles'); }, props: () => { throw new Error('Rings own tiles'); }, library: () => { throw new Error('Fixture has no prop library'); } } });
+  expect(steps).toBe(2); expect([...world.fine]).toEqual(['copy:l0/3/4']);
+  world.step({ x: 10, z: 20, vx: 3, vz: 4 }); expect(steps).toBe(3);
+  scope.dispose(); expect(released).toBe(1); expect(world.fine.size).toBe(0);
 });
