@@ -44,18 +44,27 @@ try {
   const drive = (points) => page.evaluate((route) => {
     const probe = window.__wildshard, player = probe.world.player, game = probe.world.game;
     let index = 0;
+    const speedLimit = player.hoverSpeedLimit;
+    if (typeof speedLimit !== 'function') throw new Error('Missing real grid hover-speed rule');
+    let limit = 30; player.hoverSpeedLimit = () => Math.min(limit, speedLimit());
     window.__reloadDrive = { done: false, error: null, index: 0, started: performance.now() };
     const stop = game.watchFrames(() => {
       const task = window.__reloadDrive, grid = probe.shard.grid.state(), target = route[index];
       task.index = index;
-      if (!target) { game.app.input.clear(); stop(); task.done = true; return; }
-      if (performance.now() - task.started > 90000) { game.app.input.clear(); stop(); task.error = 'Controller route stalled'; return; }
+      if (!target) { game.app.input.clear(); player.hoverSpeedLimit = speedLimit; stop(); task.done = true; return; }
+      if (performance.now() - task.started > 90000) { game.app.input.clear(); player.hoverSpeedLimit = speedLimit; stop(); task.error = 'Controller route stalled'; return; }
       const feet = grid.live.live.worldFeet, dx = target.x - feet.x, dz = target.z - feet.z;
-      if (Math.hypot(dx, dz) < 1.2) { index++; game.app.input.clear(); return; }
+      const distance = Math.hypot(dx, dz);
+      limit = Math.min(target.speed ?? 30, Math.max(2, distance * 2)); // Brake through the real board controller.
+      if (distance < 1.2) { index++; game.app.input.clear(); return; }
       player.setHover(true); player.yaw = Math.atan2(-dx, -dz); game.app.input.setHeld('move.forward', true);
     });
   }, points);
-  const arrived = () => page.waitForFunction(() => window.__reloadDrive?.done === true || window.__reloadDrive?.error !== null && window.__reloadDrive?.error !== undefined, null, { timeout: 100000 });
+  const arrived = async () => {
+    await page.waitForFunction(() => window.__reloadDrive?.done === true || window.__reloadDrive?.error !== null && window.__reloadDrive?.error !== undefined, null, { timeout: 100000 });
+    const issue = await page.evaluate(() => window.__reloadDrive?.error);
+    if (issue) throw new Error(issue);
+  };
   const replaces = async (points) => {
     const before = await page.evaluate(() => performance.timeOrigin), start = Date.now();
     await drive(points);
@@ -80,11 +89,17 @@ try {
   result.renderScale = renderScale;
   const initial = await state(), target = initial.cells.find((cell) => cell.instance === 'template-4');
   if (!target) throw new Error('Missing independent template target');
-  const origin = { x: target.cell[0] * 555, z: target.cell[1] * 555 }, road = { x: origin.x - 277.5, z: origin.z };
-  await page.evaluate(() => window.__wildshard.pose({ name: 'sf57b.start', x: 235, z: 0, yaw: -Math.PI / 2 }));
-  result.initialExit = await replaces([road]);
+  const origin = { x: target.cell[0] * 555, z: target.cell[1] * 555 }, road = { x: origin.x + 277.5, z: origin.z };
+  if (origin.x !== -555 || origin.z !== -555) throw new Error('The developer catalogue moved; rebuild the real road approach');
+  await page.evaluate(() => window.__wildshard.pose({ name: 'sf57b.start', x: -235, z: 0, yaw: Math.PI / 2 }));
+  result.initialExit = await replaces([{ x: -277.5, z: 0 }]);
+  console.log('phase: road approach');
+  // Follow asphalt around the real roundabout island, then enter through the east midpoint socket.
+  const arc = Array.from({ length: 9 }, (_, index) => ({ x: -277.5 + 10.75 * Math.sin(index * Math.PI / 8),
+    z: -277.5 + 10.75 * Math.cos(index * Math.PI / 8), speed: 6 }));
+  await drive([{ x: -277.5, z: -256 }, ...arc, road]); await arrived();
   console.log('phase: template quest');
-  await drive([{ x: origin.x - 235, z: origin.z }, { x: origin.x, z: origin.z - 9 }]); await arrived();
+  await drive([{ x: origin.x + 235, z: origin.z }, { x: origin.x, z: origin.z - 9 }]); await arrived();
   await page.waitForFunction((id) => window.__wildshard.shard.grid.simulation(id)?.host.flags.has('template.hut'), target.instance, { timeout: 15000 });
   await page.evaluate((id) => {
     const sim = window.__wildshard.shard.grid.simulation(id), blob = sim?.host.entities.get('grey-blob:1');
@@ -94,12 +109,12 @@ try {
   }, target.instance);
   await page.waitForFunction((id) => window.__wildshard.shard.grid.simulation(id)?.host.flags.has('template.complete'), target.instance, { timeout: 15000 });
   for (let run = 0; run < count; run++) {
-    const timing = await replaces([{ x: origin.x - 235, z: origin.z }, road]);
+    const timing = await replaces([{ x: origin.x + 235, z: origin.z }, road]);
     const saved = await readSave(target.instance);
     if (saved.coins !== 5 || saved.facts.length !== 1 || saved.continuation === null) throw new Error('Reload lost or duplicated the real quest reward');
     result.runs.push({ run: run + 1, ...timing, saved: { ...saved, continuation: { mode: saved.continuation.mode, storedChars: saved.continuation.snapshot?.length ?? 0 } } });
     if (run + 1 < count) {
-      await drive([{ x: origin.x - 235, z: origin.z }]); await arrived();
+      await drive([{ x: origin.x + 235, z: origin.z }]); await arrived();
       const restored = await page.evaluate((id) => {
         const sim = window.__wildshard.shard.grid.simulation(id);
         return { complete: sim?.host.flags.has('template.complete'), alive: sim?.host.entities.get('grey-blob:1')?.alive };
