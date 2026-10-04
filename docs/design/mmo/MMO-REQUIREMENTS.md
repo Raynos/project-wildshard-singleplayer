@@ -76,7 +76,8 @@ editor is Claude Code. Unreviewed arbitrary code from strangers. A native-only c
 | W7c | **Everything in view fits the phone together**: at a crossroads, four shards' near parts plus the far ring fit in 1.0 GB (B1). A shard's budget is a share of the phone, not the whole phone | MUST | J |
 | W7d | **Speed never outruns the stream**: at driving speed (~30 m/s) on a mobile link, the next shard's near parts arrive before the player does; a stall degrades to proxies, never a hole, a fall or a freeze | MUST | J |
 | W7e | **Borders are invisible to play**: crossing hands the player from room to room with nothing lost or duplicated and no hitch; creatures and players across a border are seen | MUST | J |
-| W7f | **Several looks on one screen**: each shard keeps its own look (R5) inside it, and neighbours seen from outside read as one coherent view (sky, light, fog) | MUST | J |
+| W7f | **Several looks on one screen** (Jake, E435): one frame owned by the camera (one sun, sky and fog); inside a shard, that shard's look; on the highway, a neutral world look; the change blends across each shard's edge band. A shard's style lives in its materials and a colour grade chosen per pixel, never in a full-screen pass of its own | MUST | J |
+| W7g | **Simple borders for the first grid** (Jake, E435): creatures never leave their shard; no combat across a border; the highway is a no-combat zone; a vehicle crosses with its passengers as one unit; players and creatures across a border are visible, read-only. Lifted only once authority transfer is proven | MUST | J |
 | W8 | **The grid is seen from afar**: every shard has a far form (a proxy, then a horizon impostor) made by the platform from its package, so distant shards are visible at little cost | MUST | N, J |
 
 ### 3.2 Authoring
@@ -160,7 +161,7 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 | O1 | Every shard records its **original author** and **last editor**; it is public or private | MUST | F |
 | O2 | **Locking and grace periods** stop shards thrashing | MUST | F |
 | O3 | **Collaboration:** invite editors; an editor downloads the current revision to edit it cleanly in Claude Code | MUST | F |
-| O4 | **Renovation:** abandoned shards can be claimed by new authors | MUST | F |
+| O4 | The first behaviour language | **Decided (Jake, E435): AssemblyScript first** (plain linear-memory Wasm, not WasmGC), on a language-neutral interface that Rust can target later; QuickJS at most as a slow "any JS" fallback. Measured: about JIT speed, 5–9 KB modules, a compiler that runs inside Node, fuel metering and exact memory caps on V8 and JavaScriptCore, and bit-identical maths on the server and the phone (its own maths library; the engine's `Math.sin` and friends differ between V8 and JavaScriptCore today) |
 | O5 | **No ghost-town centre:** rank, bin-pack, archive and relocate shards by meaningful activity (edits, play, authored quests, achievements, puzzles, pickups), **excluding the author**, resistant to farming. The centre stays fixed. What happens to players, saves and archived work on a move is defined | MUST | F |
 | O6 | Moderation: report, review and take down a shard or a revision, including copyright takedowns; content checks on upload where they are cheap | MUST | N |
 
@@ -190,7 +191,7 @@ In order (Jake, E435: package-first; seamless travel designed first):
 | Milestone | Exit test |
 |---|---|
 | **The package** | The template boots from its package with no trusted code; a fresh author builds a small shard outside the repo with only the SDK (A0, A6); the template's simulation runs in Node with no renderer |
-| **The crossroads** | A phone prototype at a four-shard crossroads, driven at speed through a throttled link, meets the W7 limits on the physical iPhone |
+| **The crossroads** | A 2 × 2 rig of synthetic tiles built at the caps, four looks, a scripted 30 m/s drive through a 5 Mbit/s link with 3–10 s stalls: ≤ 0.85 GB peak, 95 % of frames ≤ 33.3 ms, no holes or falls, no shader compile at the first crossroads, no tab kill in three runs. The iOS Simulator first, then one physical-iPhone reading by Jake (E435) |
 | **Multiplayer** | Two players in one shard on an authoritative server, from the same package, with the progress ledger |
 | **Upload** | An outside author uploads a validated shard through the ritual and it appears on the grid |
 | **The grid** | 25 shards live, seamless travel over the highway, profiles that travel |
@@ -230,6 +231,9 @@ In order (Jake, E435: package-first; seamless travel designed first):
 16. **Thin Ice stays code** (E435, T4): Jake kept Q1 after both audits flagged it.
 17. **Shard modes and law are later** (E435, M7): the first grid is PvE.
 18. **Server authority, cost and seamless travel are in scope** (E435, §5, §8); the milestones are re-ordered.
+19. **AssemblyScript is the first behaviour language** (E435, O4 reversed from Rust first).
+20. **One frame, per-shard grade** for several looks on one screen (E435, W7f); **simple borders** for the first
+    grid (W7g); **the crossroads prototype is the second milestone**, after the package (§5).
 
 ## 7. Open decisions (each with a recommended answer)
 
