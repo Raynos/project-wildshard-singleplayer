@@ -6642,6 +6642,60 @@
         "from": "@wildshard/engine/quest/view/ui"
       },
       {
+        "name": "DATA_LOOK_DAY",
+        "kind": "const",
+        "doc": "The clock a data look gets when its data names none: a 12-minute day from noon, the sun 60° high at 35° azimuth.",
+        "from": "@wildshard/engine/render/dataLook"
+      },
+      {
+        "name": "dataLook",
+        "kind": "function",
+        "doc": "A level look from data: the engine's clean chain, the gradient dome, the engine fog, key light and ambient turned by",
+        "from": "@wildshard/engine/render/dataLook"
+      },
+      {
+        "name": "dataLookClock",
+        "kind": "function",
+        "doc": "The engine clock for a data look (an hour clock with one day-long segment, the sun on the day's arc).",
+        "from": "@wildshard/engine/render/dataLook"
+      },
+      {
+        "name": "DataLookSpec",
+        "kind": "interface",
+        "doc": "A data look: its clock, an optional fixed time of day, its ordered keys (at least one) and the LUT file's URL.",
+        "from": "@wildshard/engine/render/dataLook"
+      },
+      {
+        "name": "LookDay",
+        "kind": "interface",
+        "doc": "The engine clock a data look runs on: real minutes per day, the start (0–1 of a day) and the sun's arc in degrees.",
+        "from": "@wildshard/engine/render/dataLook"
+      },
+      {
+        "name": "LookKey",
+        "kind": "interface",
+        "doc": "One day key: what the sky, fog, key light and ambient look like at `time` (0–1 of a day).",
+        "from": "@wildshard/engine/render/dataLook"
+      },
+      {
+        "name": "lookSample",
+        "kind": "function",
+        "doc": "An empty sample to fill with `sampleLook`.",
+        "from": "@wildshard/engine/render/dataLook"
+      },
+      {
+        "name": "LookSample",
+        "kind": "interface",
+        "doc": "A sampled look: plain numbers, blended between the two keys around a time of day.",
+        "from": "@wildshard/engine/render/dataLook"
+      },
+      {
+        "name": "sampleLook",
+        "kind": "function",
+        "doc": "The look at `time` (0–1 of a day, wrapped) into `out`: a linear blend of the keys either side, wrapping across",
+        "from": "@wildshard/engine/render/dataLook"
+      },
+      {
         "name": "FAMILY_IDS",
         "kind": "const",
         "doc": "The families v1 knows. Part 2 of SF10a adds `painterly` and `emissive`.",
@@ -11560,6 +11614,12 @@
         "kind": "function",
         "doc": "Project an empty shardfile into the same engine spec consumed by legacy sources.",
         "from": "@wildshard/game/shardfile/loader"
+      },
+      {
+        "name": "LOOK_LUT_BYTES",
+        "kind": "const",
+        "doc": "A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format).",
+        "from": "@wildshard/game/shardfile/schema"
       },
       {
         "name": "parseShardfile",

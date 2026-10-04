@@ -10,6 +10,7 @@ import { parseShardSlug } from '../shard/slug';
 import { parseShardfile, type Shardfile } from './schema';
 import { SHARDFILE_VERSION } from './version';
 import { emptyLook } from './emptyLook';
+import { shardfileLook } from './look';
 import { EmptyEquipment } from './emptyEquipment';
 import type { ShardContext } from '../shard/context';
 
@@ -17,7 +18,10 @@ import type { ShardContext } from '../shard/context';
 export function emptyShardfileSource(input: unknown): ShardManifest {
   if (typeof input === 'object' && input !== null && 'version' in input && input.version !== SHARDFILE_VERSION) throw new Error(`Shardfile version ${String(input.version)} requires a compatible client (this client supports ${SHARDFILE_VERSION})`);
   const source = parseShardfile(input);
-  if (source.ui.length + source.files.length + source.tiles.length + source.library.length + source.requires.commons.length + source.requires.capabilities.length + source.sim.scripts.length + source.look.families.length + source.look.keys.length > 0 || source.far !== null || source.look.grade.lut !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
+  // The look (SF10b) is the one content kind bound here: day keys and a LUT, the LUT's file the only file allowed.
+  const lut = source.look.grade.lut;
+  const lutOnly = source.files.every((f) => f.hash === lut) && source.requires.commons.every((h) => `commons:${h}` === lut);
+  if (source.ui.length + source.tiles.length + source.library.length + source.requires.capabilities.length + source.sim.scripts.length + source.look.families.length > 0 || !lutOnly || source.far !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
   const card = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/%3E';
   return {
     api: 1, slug: parseShardSlug(source.identity.slug), name: source.identity.name, seed: source.identity.seed,
@@ -29,7 +33,7 @@ export function emptyShardfileSource(input: unknown): ShardManifest {
     atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },
     grade: { saturation: source.look.grade.saturation - 1, brightness: 0, contrast: source.look.grade.contrast - 1, bloomIntensity: 0, bloomThreshold: 1, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
     budgets: {}, fight: {}, loadout: { weapons: [], tools: [], start: [] }, minimap: {},
-    render: () => Promise.resolve(emptyLook(source.look.dayOverride)), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
+    render: () => Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look)), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
     audio: { ambience: 'none', score: 'none' },
     boot: { files: () => [], sources: () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] }), viewmodelSets: [], audio: () => Promise.resolve([]), precache: [] },
     // A plugin source enters the ordinary staged LevelLoader, even with no authored hooks.

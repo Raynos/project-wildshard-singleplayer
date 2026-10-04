@@ -15,7 +15,11 @@ const colour = v.tuple([channel, channel, channel]);
 const bounds = v.pipe(v.strictObject({ min: vec3, max: vec3 }), v.check((b) => b.min.every((n, i) => n <= (b.max[i] ?? -Infinity)), 'ordered bounds'), v.check((b) => b.min[0] >= -CHUNK_HALF && b.max[0] <= CHUNK_HALF && b.min[2] >= -CHUNK_HALF && b.max[2] <= CHUNK_HALF && b.min[1] >= -CELL_BELOW && b.max[1] <= CELL_ABOVE, 'cell bounds'));
 const costs = { compressed: natural, decoded: natural, gpu: natural, triangles: natural, draws: natural };
 const field = v.strictObject({ name, type: v.picklist(['bool', 'i32', 'f64', 'string']), privacy: v.picklist(['public', 'owner', 'host']), default: v.union([v.boolean(), finite, v.string()]) });
-const key = v.strictObject({ time: channel, sky: ref, fog: v.strictObject({ colour, density: v.pipe(finite, v.minValue(0)) }), sun: v.strictObject({ colour, intensity: v.pipe(finite, v.minValue(0)), direction: vec3 }) });
+const unsigned = v.pipe(finite, v.minValue(0));
+const key = v.strictObject({ time: channel, sky: v.strictObject({ zenith: colour, horizon: colour }), fog: v.strictObject({ colour, density: unsigned }), sun: v.strictObject({ colour, intensity: unsigned }), ambient: v.strictObject({ sky: colour, ground: colour, intensity: unsigned }) });
+const day = v.strictObject({ minutes: v.pipe(finite, v.minValue(1), v.maxValue(1440)), start: channel, maxElevation: v.pipe(finite, v.minValue(0), v.maxValue(90)), azimuth: v.pipe(finite, v.minValue(-180), v.maxValue(180)) });
+/** A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). */
+export const LOOK_LUT_BYTES = 33 ** 3 * 4;
 const edge = v.strictObject({ heights: v.pipe(v.array(v.pipe(finite, v.minValue(-CELL_BELOW), v.maxValue(CELL_ABOVE))), v.minLength(2), v.maxLength(129)), colours: v.pipe(v.array(colour), v.minLength(2), v.maxLength(129)), roadHeight: v.literal(0) });
 const tile = v.strictObject({ lod: v.picklist([0, 1]), x: natural, z: natural, bounds, geometricError: v.pipe(finite, v.minValue(0)), files: v.array(ref), ...costs });
 const file = v.strictObject({ hash, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'binary']), ...costs, dependencies: v.array(ref), critical: v.boolean() });
@@ -24,7 +28,7 @@ const rawSchema = v.strictObject({
   identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), revision: positive, seed: natural }),
   requires: v.strictObject({ sdk: v.literal(0), capabilities: v.array(name), commons: v.array(hash) }),
   budgets: v.strictObject({ library: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.compressed)) }), sim: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.compressed)) }), overlap: v.pipe(natural, v.maxValue(CONTENT_CAPS.overlap)) }),
-  look: v.strictObject({ families: v.array(name), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
+  look: v.strictObject({ families: v.array(name), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
   sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: v.array(ref) }),
   state: v.strictObject({ version: positive, sharedOwner: v.literal('host'), playerKey: v.literal('actorId'), shared: v.array(field), player: v.array(field) }),
   authorCaps: v.strictObject({ players: v.pipe(positive, v.maxValue(32)), speed: v.pipe(finite, v.minValue(0), v.maxValue(15)) }),
@@ -42,7 +46,7 @@ export function shardfileRules(s: Shardfile): string[] {
   const errors: string[] = [];
   const files = new Map(s.files.map((f) => [f.hash, f]));
   if (files.size !== s.files.length) errors.push('unique file hashes');
-  const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...s.look.keys.map((k) => k.sky), ...(s.far?.files ?? []), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
+  const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...(s.far?.files ?? []), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
   for (const r of refs) if (r.startsWith('commons:') ? !s.requires.commons.includes(r.slice(8)) : !files.has(r)) errors.push(`undeclared reference ${r}`);
   const visited = new Set<string>(), active = new Set<string>();
   const visit = (id: string): void => {
@@ -57,6 +61,8 @@ export function shardfileRules(s: Shardfile): string[] {
     if (new Set(list.map((f) => f.name)).size !== list.length) errors.push('unique state fields');
     for (const f of list) if (f.type === 'bool' ? typeof f.default !== 'boolean' : f.type === 'string' ? typeof f.default !== 'string' : typeof f.default !== 'number' || (f.type === 'i32' && (!Number.isInteger(f.default) || f.default < -2147483648 || f.default > 2147483647))) errors.push('typed state default');
   }
+  const lut = s.look.grade.lut === null || s.look.grade.lut.startsWith('commons:') ? null : files.get(s.look.grade.lut);
+  if (lut !== undefined && lut !== null && (lut.kind !== 'binary' || lut.compressed !== LOOK_LUT_BYTES)) errors.push('look LUT is a 33³ RGBA8 binary file');
   if (s.look.keys.some((k, i) => i > 0 && k.time <= (s.look.keys[i - 1]?.time ?? Infinity))) errors.push('ordered day keys');
   for (const e of Object.values(s.edge)) if (e.heights.length !== e.colours.length) errors.push('edge sample lengths');
   const seen = new Set<string>();

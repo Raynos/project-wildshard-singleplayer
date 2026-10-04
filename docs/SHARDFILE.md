@@ -16,7 +16,7 @@ integers. MB means 1,000,000 bytes. The platform owns caps in
 | `identity` | Kebab/dot slug, nonempty display name and author (128 characters max), positive revision, unsigned seed. No grid coordinates. |
 | `requires` | SDK revision 0; capability names; declared SHA-256 commons hashes. |
 | `budgets` | Library resident ≤25 MB and wire ≤8 MB; sim resident ≤25 MB and critical wire ≤2 MB; decode/refinement slack ≤80 MB. |
-| `look` | Fixed platform family names; grade exposure/saturation/contrast and optional LUT reference; engine clock; optional normalised day override; ordered day keys carrying sky reference, fog and sun values. |
+| `look` | Fixed platform family names; grade exposure/saturation/contrast and optional LUT reference; engine clock with an optional `day`; optional normalised day override; ordered day keys carrying sky gradient, fog, sun and ambient values (below). |
 | `sim` | 60 Hz fixed step; positive script tick divisor dividing 60; command and snapshot schema version 0; script references. |
 | `state` | Positive state-schema version, `sharedOwner: "host"`, `playerKey: "actorId"`; named shared and per-player fields with bool/i32/f64/string type and matching default. |
 | Field `privacy` | `public` replicates to everyone; `owner` only to the owning actor; `host` never leaves the host. Shared writes always belong to the host regardless of visibility. Names are unique within each state scope. |
@@ -42,6 +42,17 @@ retry card for one encounter (one panel per encounter); the encounter's phase ta
 (SF13b) drives it. `relabel {id, spot, label, icon | null}` relabels one shared touch
 disc (one per disc). The engine renderers are `@wildshard/engine/ui/declared`; the
 game's `@wildshard/game/shard/declaredUi` binds a section to a shard's HUD and Bag.
+
+Look v0 (SF10b) is data the engine renders (`@wildshard/engine/render/dataLook`; the game's loader
+binds the section through `src/game/shardfile/look.ts`); a shard ships no sky shader, fog patch or clock. Colours are
+linear working-space RGB in [0,1]. `day {minutes 1–1440, start 0–1, maxElevation 0–90°, azimuth −180–180°}` sets the
+engine clock (default 12 minutes from noon, 60°, 35°); `dayOverride` pins it. Each key is
+`{time 0–1, sky {zenith, horizon}, fog {colour, density}, sun {colour, intensity}, ambient {sky, ground, intensity}}`:
+the engine draws a gradient dome from `sky`, feeds `fog` to its distance fog (density per metre, exponential), sets the
+key light's colour and intensity (its direction is the clock's sun) and the hemisphere ambient. Keys blend linearly
+by time and wrap across midnight. `grade.lut` names a `binary` file of exactly 33³ × 4 = 143,748 bytes (RGBA8, index
+`(b·33 + g)·33 + r`, display sRGB in and out), applied last in the grade. The fixture is
+`test/fixtures/shardfile/look/` (`shard.json` beside its LUT file, the product layout).
 
 Local references are file hashes; shared references are `commons:<hash>` and must be
 declared in `requires.commons`. Every local dependency resolves. The dependency graph
@@ -91,4 +102,4 @@ radius by the sample spacing's half diagonal, so gaps cannot hide a heavier disc
 
 The normal client accepts an embedded `<script id="ws-shardfile" type="application/json">` source. The game validates it before selecting the level, then uses the existing session, Game, player, physics, HUD and staged LevelLoader. `loadShardfile(app, input)` also feeds an installed level driver; `app.unloadLevel()` owns disposal. External names cross `parseShardSlug`; built-in names keep their generated union.
 
-SF15a-min accepts an empty authored world only. It refuses content, declared state and non-empty UI before allocation; the full loader binds those in SF15a. The asset-free backdrop and inert primary satisfy the current session ports. Unsupported format versions request a compatible client.
+SF15a-min accepts an empty authored world only, plus a look (day keys and a LUT, whose file is the only file allowed). It refuses other content, declared state and non-empty UI before allocation; the full loader binds those in SF15a. The asset-free backdrop and inert primary satisfy the current session ports. Unsupported format versions request a compatible client.

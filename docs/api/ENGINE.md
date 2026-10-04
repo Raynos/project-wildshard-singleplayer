@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1723 members; 831 without a doc line (—).
+1732 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1112,6 +1112,15 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `DialogueBox` | class | @wildshard/engine/quest/view/ui | the NPC dialogue panel: the speaker's name and the typed-out lines, advanced with E or a tap |
 | `ObjectiveLine` | class | @wildshard/engine/quest/view/ui | the quest chip: one slim glass line under the minimap with the goal, its count and the nearest marker's bearing |
 | `RewardCaption` | class | @wildshard/engine/quest/view/ui | the reward caption: a kicker, a title and a sub line, shown when a quest pays out |
+| `DATA_LOOK_DAY` | const | @wildshard/engine/render/dataLook | The clock a data look gets when its data names none: a 12-minute day from noon, the sun 60° high at 35° azimuth. |
+| `dataLook` | function | @wildshard/engine/render/dataLook | A level look from data: the engine's clean chain, the gradient dome, the engine fog, key light and ambient turned by |
+| `dataLookClock` | function | @wildshard/engine/render/dataLook | The engine clock for a data look (an hour clock with one day-long segment, the sun on the day's arc). |
+| `DataLookSpec` | interface | @wildshard/engine/render/dataLook | A data look: its clock, an optional fixed time of day, its ordered keys (at least one) and the LUT file's URL. |
+| `LookDay` | interface | @wildshard/engine/render/dataLook | The engine clock a data look runs on: real minutes per day, the start (0–1 of a day) and the sun's arc in degrees. |
+| `LookKey` | interface | @wildshard/engine/render/dataLook | One day key: what the sky, fog, key light and ambient look like at `time` (0–1 of a day). |
+| `lookSample` | function | @wildshard/engine/render/dataLook | An empty sample to fill with `sampleLook`. |
+| `LookSample` | interface | @wildshard/engine/render/dataLook | A sampled look: plain numbers, blended between the two keys around a time of day. |
+| `sampleLook` | function | @wildshard/engine/render/dataLook | The look at `time` (0–1 of a day, wrapped) into `out`: a linear blend of the keys either side, wrapping across |
 | `FAMILY_IDS` | const | @wildshard/engine/render/families/params | The families v1 knows. Part 2 of SF10a adds `painterly` and `emissive`. |
 | `FamilyId` | type | @wildshard/engine/render/families/params | A family id a material entry names. |
 | `FamilyMaterialInput` | type | @wildshard/engine/render/families/params | What an author or a build writes: omitted fields take the family's defaults. |

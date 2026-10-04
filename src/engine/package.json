@@ -192,6 +192,7 @@
     "./render/families/registry": "./render/families/registry.ts",
     "./render/families/toon": "./render/families/toon.ts",
     "./render/hoverboardGeometry": "./render/hoverboardGeometry.ts",
+    "./render/dataLook": "./render/dataLook.ts",
     "./render/look": "./render/look.ts",
     "./render/lut": "./render/lut.ts",
     "./render/precompile": "./render/precompile.ts",
