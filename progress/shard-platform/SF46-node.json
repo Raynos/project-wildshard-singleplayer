@@ -80,16 +80,20 @@
   },
   "browserParity": {
     "hybridComparison": {
+      "artifact": "SF46-hybrid-on-fixed-parity.json",
       "parent": "d143452b19bc06348bc1fafeff8b528a3ba1bb86",
-      "current": "c5d2e8ca549725f7e0e389dda5c1e8e1b7a08cbb",
-      "verdict": "red",
-      "minSsim": {
-        "phone": 0.9001193325,
-        "desktop": 0.8066961105
-      },
-      "disposalErrors": true,
-      "remainingColliders": 4,
-      "followup": "cad11c1bc; browser verification pending"
+      "current": "5d4a4ee5cf4923014df905725e813fe56e206b22",
+      "verdict": "green",
+      "debugRow": "driftwoodHybrid=on (device SaveStore)",
+      "pairs": 2,
+      "visuals": 6,
+      "minimumSsim": 0.992321415291315,
+      "strictRedFields": 0,
+      "stuck": 0,
+      "unloadErrors": 0,
+      "remainingBodies": 0,
+      "remainingColliders": 0,
+      "baselineWritten": false
     },
     "extractionComparison": {
       "artifact": "SF46-extraction-parity.json",
@@ -120,6 +124,18 @@
       "remainingColliders": 0,
       "allMovementEndpointsAndAudioEventsMatch": true,
       "baselineWritten": false
+    },
+    "historicalHybridRed": {
+      "parent": "d143452b19bc06348bc1fafeff8b528a3ba1bb86",
+      "current": "c5d2e8ca549725f7e0e389dda5c1e8e1b7a08cbb",
+      "verdict": "red",
+      "minSsim": {
+        "phone": 0.9001193325,
+        "desktop": 0.8066961105
+      },
+      "disposalErrors": true,
+      "remainingColliders": 4,
+      "followup": "cad11c1bc; browser verification pending"
     }
   },
   "floor": "pending serialized window",
@@ -162,7 +178,7 @@
     "pass": true,
     "typecheck": true,
     "scopedTypedLint": true,
-    "browserVerification": "pending",
+    "browserVerification": "Both tiers hybrid ON at5d4a4ee5c:0disposalerrors,0remainingbodies/0colliders; fullcensus equals parent",
     "proves": [
       "trusted dependants release before shell motors allocated between kit and play",
       "default-off returns the legacy plugin without data admission or a runtime overlay"
