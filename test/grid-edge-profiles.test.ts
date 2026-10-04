@@ -1,3 +1,4 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the committed baked terrain fixtures.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import * as v from 'valibot';
