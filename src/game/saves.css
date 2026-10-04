@@ -7,7 +7,7 @@
 .ws-saves-name { margin: 6px 2px 4px; color: var(--ws-text); font: 500 9.5px/1.35 var(--ws-mono); letter-spacing: 0.12em; text-transform: uppercase; overflow-wrap: anywhere; }
 .ws-saves-line { margin: 0 2px; color: var(--ws-text-dim); font: 8.5px/1.6 var(--ws-mono); letter-spacing: 0.1em; overflow-wrap: anywhere; }
 .ws-saves-new { margin-top: auto; padding: 8px 0 7px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan); color: #fff; cursor: pointer; font: 500 9.5px/1 var(--ws-mono); letter-spacing: 0.2em; }
-.ws-saves-line + .ws-saves-new { margin-top: 8px; }
+.ws-saves-card > .ws-saves-line:nth-last-child(2) { margin-bottom: 8px; } /* the gap above NEW GAME; the buttons line up along the row */
 .ws-saves-new:active { background: rgba(143, 227, 255, 0.28); }
 
 .ws-saves-sheet { position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center; box-sizing: border-box; background: rgba(4, 7, 12, 0.5); opacity: 0; transition: opacity 0.16s; font-family: var(--ws-mono); color: var(--ws-text); }
