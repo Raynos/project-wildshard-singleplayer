@@ -180,12 +180,14 @@ export class LiveGridSession {
     if (pending === null) throw new Error(`${cell.slug} is not a shardfile shard (it stays a far proxy until M3)`);
     const { source, assets } = await pending;
     if (source.runtime !== null) throw new Error(`${cell.slug} declares a hybrid runtime (M3)`);
+    // a frozen region's quest facts and coins have no page owner yet (the template's quest runs only in its own save: SF20a's open row)
+    const quest = { fact: (): void => undefined, coins: (): void => undefined };
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
     return { bytes: source.budgets.sim.resident, create: (saved) => {
-      let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false });
+      let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false, quest });
       if (saved !== undefined) {
         const authored = sim.host.level; sim.dispose();
-        const host = restoreSimHost(authored, { rapier }, saved, (restored) => { sim = bindShardfileSim(restored, source, assets, { rapier, restoring: true }); });
+        const host = restoreSimHost(authored, { rapier }, saved, (restored) => { sim = bindShardfileSim(restored, source, assets, { rapier, restoring: true, quest }); });
         host.detachPlayerMotor(); // the restored world carries its strip duplicates already
       } else for (const mesh of duplicates) installStripCollider(sim.host.physics, mesh, sim.host.scope);
       const region = sim;
