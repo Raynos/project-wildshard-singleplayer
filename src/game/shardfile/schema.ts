@@ -11,6 +11,8 @@ import { EncountersSchema, encounterRules } from './encounters';
 import { QuestDataSchema } from './quests';
 import { AudioDataSchema } from './audio';
 import { LedgerRulesSchema } from './ledger';
+import { HooksSchema, hookRules } from './hooks';
+import { PlumbingSchema } from './plumbing';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const positive = v.pipe(natural, v.minValue(1));
@@ -54,6 +56,9 @@ const rawSchema = v.strictObject({
   quests: v.optional(QuestDataSchema, { flags: [], quests: [], triggers: [], dialogue: [] }),
   audio: v.optional(AudioDataSchema, { cues: [], ambience: null, score: 'silent' }),
   ledger: v.optional(LedgerRulesSchema, []),
+  hooks: v.optional(HooksSchema, { conditions: [], scenes: [] }),
+  plumbing: v.optional(v.nullable(PlumbingSchema), null),
+  spawn: v.optional(v.strictObject({ x: finite, y: finite, z: finite, yaw: finite }), { x: 0, y: 2, z: 0, yaw: 0 }),
 });
 /** A serialisable shardfile v0, independent of renderer and placement. */
 export type Shardfile = v.InferOutput<typeof rawSchema>;
@@ -109,6 +114,12 @@ export function shardfileRules(s: Shardfile): string[] {
   if (s.far !== null && (s.far.decoded + s.far.gpu > CONTENT_CAPS.far.resident || s.far.compressed > CONTENT_CAPS.far.compressed || s.far.triangles > CONTENT_CAPS.far.triangles || s.far.draws > CONTENT_CAPS.far.draws)) errors.push('far caps');
   for (const f of s.files) if (f.critical !== s.critical.includes(f.hash)) errors.push('critical flags match roots');
   errors.push(...uiRules(s.ui, s.state));
+  errors.push(...hookRules(s.hooks, s.state));
+  if (Math.abs(s.spawn.x) > CHUNK_HALF || Math.abs(s.spawn.z) > CHUNK_HALF || s.spawn.y < -CELL_BELOW || s.spawn.y > CELL_ABOVE) errors.push('player spawn in cell');
+  const conditions = new Set(s.hooks.conditions.map((row) => row.id)), scenes = new Set(s.hooks.scenes.map((row) => row.id));
+  if (s.quests.triggers.some((row) => row.kind === 'script' && !conditions.has(row.condition)) || s.quests.quests.some((row) => row.onComplete?.scene !== undefined && !scenes.has(row.onComplete.scene)) || s.quests.dialogue.some((row) => row.nodes.some((node) => node.choices.some((choice) => choice.scene !== undefined && !scenes.has(choice.scene))))) errors.push('declared quest script hooks');
+  if (s.plumbing !== null && (s.plumbing.input.some((row) => row.actions.some((action) => !scenes.has(action.scene))) || s.plumbing.debug.some((row) => row.choices.some((choice) => choice.scene !== undefined && !scenes.has(choice.scene))))) errors.push('declared plumbing scene hooks');
+  if (s.hooks.scenes.length + s.hooks.conditions.length > 0 && s.sim.bindings.length === 0) errors.push('named hooks require script bindings');
   errors.push(...scriptBindingRules(s.sim.bindings, s.sim.scripts));
   if (new Set(s.sim.scripts).size !== s.sim.scripts.length) errors.push('unique script modules');
   if (s.sim.scripts.some((module) => !module.startsWith('commons:') && files.get(module)?.kind !== 'wasm')) errors.push('script module is a Wasm file');

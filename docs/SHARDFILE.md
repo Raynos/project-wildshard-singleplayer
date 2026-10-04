@@ -22,6 +22,7 @@ integers. MB means 1,000,000 bytes. The platform owns caps in
 | `terrain`, `water` | Optional/null bounded baked terrain binding; optional/default-empty declared pools, sea and streams. |
 | `creatures`, `encounters` | Optional/default-empty reusable brains, stable spawns and phase tables; each actor has one controller and resolves declared species/variant/strike and boss panel references. |
 | `quests`, `audio`, `ledger` | Optional/default-empty quest graphs/triggers/dialogue, admitted cue/ambience/score declarations, and witnessed fact/reward mappings. |
+| `hooks`, `plumbing`, `spawn` | Optional named numeric field conditions and next-tick scene events; optional scoped input/tier/Debug declarations; cell-local player position and yaw (default 0, 2, 0, 0). |
 | `state` | Positive state-schema version, `sharedOwner: "host"`, `playerKey: "actorId"`; named shared and per-player fields with bool/i32/f64/string type and matching default. |
 | Field `privacy` | `public` replicates to everyone; `owner` only to the owning actor; `host` never leaves the host. Shared writes always belong to the host regardless of visibility. Names are unique within each state scope. |
 | `authorCaps` | 1–32 players (authors may lower the room cap); in-cell speed 0–15 m/s. Highway speed belongs to the platform. |
@@ -93,6 +94,13 @@ memories per unique module (live, last-good, in-flight), including permitted gro
 plus the critical assets. Multiple bindings share that module reservation. The
 result must fit both declared sim resident and server memory budgets and the host
 24 MB script pool. Critical commons bytes also count against the wire cap.
+
+Named hook conditions resolve a stable numeric field ID and a typed equality value.
+Shared conditions read public fields; player conditions may read the owning actor's
+fields. Host-only fields stay private. Scene hooks declare a numeric event type and
+value, delivered to the host-resolved actor on the next script tick. Quests, input
+and Debug choices may refer only to these declared hook names; hooks require a
+script binding. The platform resolves callbacks, and the product contains only data.
 
 Local references are file hashes; shared references are `commons:<hash>` and must be
 declared in `requires.commons`. Every local dependency resolves. The dependency graph
