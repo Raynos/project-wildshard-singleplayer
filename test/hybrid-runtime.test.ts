@@ -162,6 +162,30 @@ it('isolates trusted writes to borrowed shell services while following later pla
   local.viewer = first; expect(parent.viewer).toBe(next); scope.dispose(); expect(parent.viewer).toBe(next);
 });
 
+it('releases trusted creature dependants before shell resources created between kit and play', async () => {
+  const app = new App(), parent = runtime(), calls: string[] = [];
+  const scope = app.engineScope.child('data'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  let shellAlive = true;
+  class Data extends ShardPlugin {}
+  class Runtime extends ShardPlugin {
+    override kit(context: ShardContext): void {
+      context.scope.onDispose(() => {
+        if (!shellAlive) throw new Error('Creature motor was already freed');
+        calls.push('trusted');
+      });
+    }
+  }
+  const plugin = new HybridShardPlugin(new Data(), Runtime);
+  try {
+    await plugin.world(ctx); await plugin.kit(ctx);
+    scope.onDispose(() => { shellAlive = false; calls.push('shell'); });
+    await plugin.play(ctx);
+    expect(() => scope.dispose()).not.toThrow(); expect(calls).toEqual(['trusted', 'shell']);
+    expect(scope.census.disposers).toBe(0);
+  } finally { app.engineScope.dispose(); }
+});
+
 it('restores non-enumerable and symbol descriptors even when another disposer throws', () => {
   const parent = runtime(), scope = new Scope('runtime.fixture'), key = Symbol('fixture'), token = () => Promise.reject(new Error('Fixture'));
   Object.defineProperty(parent, 'buildEquipment', { configurable: true, enumerable: false, writable: false, value: token });
@@ -196,6 +220,29 @@ it('the admitted empty hybrid preserves the legacy service census and staged hoo
     await plugin.world(ctx); await plugin.kit(ctx); await plugin.play(ctx);
     expect(calls).toEqual(['world', 'kit', 'play']); expect(app.systemIds(app.engineScope)).toEqual([]);
     expect(parent.hooks.meleeSilent).toBe(true); scope.dispose(); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
+  } finally { app.engineScope.dispose(); }
+});
+
+it('the default-off Debug row returns the legacy plugin without admitting data or binding runtime slots', async () => {
+  const app = new App(), parent = runtime(), calls: string[] = [];
+  const scope = app.engineScope.child('legacy'), installation = createLevelInstallation(app, scope, {
+    debugRow: (row) => { calls.push(`row:${row.initial}`); row.change(row.initial); return noop; },
+  }, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  const before = Object.getOwnPropertyDescriptors(parent);
+  class Runtime extends ShardPlugin {
+    override world(context: ShardContext): void { expect(context).toBe(ctx); calls.push('legacy.world'); }
+  }
+  try {
+    const plugin = await prepareHybridShard({ ...emptyShardfile({ slug: 'template', name: 'Template', author: 'Fixture', seed: 357, revision: 1 }), runtime: { entry } },
+      { base: 'https://fixture.test/', firstParty: true, offline: false,
+        fetch: () => Promise.reject(new Error('Default-off cannot fetch data')), hash: () => Promise.reject(new Error('Default-off cannot hash data')) },
+      { catalogue: [], recipes: new Map(), items: new Map(), voices: () => new Map(), icon: () => { throw new Error('Default-off cannot resolve icons'); } },
+      [{ slug: 'template', entry, load: () => Promise.resolve({ default: Runtime }) }],
+      { context: ctx, row: { id: 'hybridFixture', label: 'Fixture', group: 'loading', initial: 'off', choices: [{ value: 'off', text: 'Off' }, { value: 'on', text: 'On' }],
+        ask: 'E435', reviewBy: '2026-10-11', note: 'Default-off boot fixture.' } });
+    expect(plugin).toBeInstanceOf(Runtime); await plugin.world?.(ctx);
+    expect(calls).toEqual(['row:off', 'legacy.world']); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
   } finally { app.engineScope.dispose(); }
 });
 

@@ -90,7 +90,6 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
     await step('grass', () => undefined);
     await step('cabins', () => undefined);
   }
-  const interactables = boot.runtime.interactables;
   const props = null;
   // Plugins need their audio service in kit; legacy levels retain their original allocation order.
   let preparedAudio: { audio: LevelAudio; music: LevelMusic } | undefined;
@@ -112,7 +111,8 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   };
   const disableBootGpuGuard = (): void => { bootGpuGuardActive = false; };
   if (audioProfile) prepareAudio();
-  return { ...ctx, world, game, sky, player, forest, params, chunk, registry, fragileBoot, failGpuBoot, onBootContextLost, nolock, viewer, edgeDressing, boundary, water, horizon, interactables, props, prepareAudio, disableBootGpuGuard, level };
+  return { ...ctx, world, game, sky, player, forest, params, chunk, registry, fragileBoot, failGpuBoot, onBootContextLost, nolock, viewer, edgeDressing, boundary, water, horizon,
+    get interactables() { return boot.runtime.interactables; }, props, prepareAudio, disableBootGpuGuard, level };
 }
 
 export const worldStage: typeof buildWorld = buildWorld;

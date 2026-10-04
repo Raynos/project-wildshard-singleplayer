@@ -67,7 +67,7 @@ import { GridSession } from '../grid/session';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
-  const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, interactables, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
+  const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
 
   let playground: Playground | null = null;
   const away = (): boolean => arena.entered || playground?.entered === true;
@@ -216,7 +216,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
   // (cabin local frame: door on +X, chimney end -Z — Cabin.ts); "[E] Take AR-15" through the door / harvest prompt path
   if (params.get('weapon') === 'rifle' || params.get('weapon') === 'lever') { weapons.unlock('rifle'); weapons.select('rifle', true); boot.runtime.hooks.disposeRifleDrop?.(); } // dev: start with it
-  weapons.placePickups(chunk.loadout ?? {}, { prompts: interactables, owned: {
+  weapons.placePickups(chunk.loadout ?? {}, { prompts: boot.runtime.interactables, owned: {
     has: (id) => { if (!isOwnedId(id)) throw new Error(`Unknown owned equipment: ${id}`); return owned.has(id); },
     grant: (id) => { if (!isOwnedId(id)) throw new Error(`Unknown owned equipment: ${id}`); owned.grant(id); },
   },
@@ -434,7 +434,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // a cabin door's prompt stands 0.5 m out from its leaf: seen from inside, the shut leaf is its own body, not a wall
   const carcassAt = new THREE.Vector3();
   let prompt: string | undefined;
-  let nearest: (typeof interactables)[number] | undefined;
+  let nearest: (typeof boot.runtime.interactables)[number] | undefined;
   let carcass: (typeof animals.animals)[number] | undefined;
   app.input.bind('use', () => {
     if (!hud.entered) return;
@@ -504,7 +504,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
 
     // nearest interactable
     const physics = app.physics;
-    nearest = pickInteractable(interactables, game.camera.position, physics);
+    nearest = pickInteractable(boot.runtime.interactables, game.camera.position, physics);
     carcass = undefined;
     if (!nearest) for (const a of animals.animals) {
       if (a.alive || harvested.has(a) || a.position.distanceTo(player.position) >= 2.6) continue;

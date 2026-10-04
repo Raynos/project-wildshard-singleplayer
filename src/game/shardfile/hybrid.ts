@@ -97,6 +97,9 @@ export class HybridShardPlugin extends ShardPlugin {
   override async play(ctx: ShardContext): Promise<void> {
     await this.data.play?.(ctx);
     await this.runtimePlay();
+    // The shell creates creature motors between kit and play. Release their trusted dependants before those later
+    // parent registrations unwind, rather than relying on the child's early world-stage insertion order.
+    ctx.scope.onDispose(() => { this.generation++; this.custom?.installation.context.scope.dispose(); });
     const binding = this.binding;
     if (binding !== undefined) ctx.scope.onDispose(binding.cells.onEnter((cell) => {
       if (cell.instance !== binding.instance || this.custom !== undefined) return;
