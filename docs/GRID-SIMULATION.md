@@ -1,5 +1,27 @@
 # Local simulation frames
 
+`@wildshard/game/grid/live` defines `LiveGridHost` for an already-running page. The page lends its home physics and
+logical checkpoint owner. The registry reserves that home's sim claim, its owned permanent highway, and each admitted
+neighbour through the same allocator. Neighbours are owned, bodyless `SimHost`s. The home counts toward the four-shard
+safety limit; the highway does not. Automatic prefetch selects the nearest available shard slots by distance and stable
+instance id, so a wide cold-download bound cannot cause repeated eviction and reconstruction while stationary.
+
+The live traveller port is a mutable motor bridge over the existing page player's position, health and trusted owner
+object. `bindFrame` synchronously assigns the page's physics, calls `Player.bindFrame`, and changes its render origin.
+It must be an infallible prepared assignment. `beforeFixed` requests neighbours and synchronizes the current world's
+readiness walls before movement. The page advances physics and its player once; `afterPlayerStep` advances only the
+active owned region's local clock and systems through `SimHost.stepExternal`. Its borrowed home callback is optional:
+an existing home driver can instead be gated by its own `setActive` port, without a second callback registration.
+
+`ready` means collider, sim and runtime-module admission. `gameplayReady` is a separate entered-hook fence: parsing a
+trusted hybrid module may happen near the strip, but its world/kit/play hooks start only on actual cell entry. The page
+holds gameplay input while those hooks install; regional systems remain frozen until the hook owner reports ready.
+Inactive neighbours never step. `checkpoint` temporarily lends the traveller motor for owned-region snapshot encoding
+and releases it even when saving fails. Failed durability prevents unload. Disposal returns the traveller to the borrowed
+home before freeing owned worlds. `state` supplies crossing transitions, global feet, pending requests and admission
+failures to the production grid readout. Native live/template and hybrid fixtures prove these contracts; the render
+composition and real browser crossing remain separate acceptance work.
+
 `@wildshard/game/grid/simulation` defines `GridSimulation`. A session supplies its highway host, an admitted whole-shard
 loader, stable-instance snapshot storage and the one allocator's `reserve(instance, bytes)` adapter. `residentBytes`
 reads the admitted sim budget before construction. A refused reservation defers admission through the crossing/readiness
