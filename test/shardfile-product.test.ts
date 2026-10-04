@@ -89,3 +89,20 @@ it('admits a visited product revision only with explicit migrations and preserve
   await expect(admitProduct(recycling, f.options)).rejects.toThrow('reused');
   expect(f.cache.products.get(base)).toEqual(visited);
 });
+it('upgrades legacy visited geometry online using strict state lineage, while offline legacy geometry remains illegal', async () => {
+  const f = fixture(); f.shard.state.shared.push({ id: 7, name: 'door.open', type: 'bool', privacy: 'public', default: false });
+  await admitProduct(f.shard, f.options);
+  const { entryways, ...legacy } = structuredClone(f.shard); expect(entryways).toBeDefined();
+  f.cache.products.set(base, { source: legacy, firstParty: true });
+  await expect(admitProduct(f.shard, { ...f.options, offline: true, firstParty: true })).rejects.toThrow('entryways');
+  const next = structuredClone(f.shard); next.identity.revision++;
+  next.state.shared = [];
+  await expect(admitProduct(next, f.options)).rejects.toThrow('explicit');
+  expect(f.cache.products.get(base)?.source).toEqual(legacy);
+  next.state.shared = structuredClone(f.shard.state.shared);
+  expect((await admitProduct(next, f.options)).source.identity.revision).toBe(next.identity.revision);
+  const corrupt = structuredClone(legacy), field = corrupt.state.shared[0]; if (field === undefined) throw new Error('Missing state field'); field.default = 2;
+  f.cache.products.set(base, { source: corrupt, firstParty: true });
+  await expect(admitProduct(next, f.options)).rejects.toThrow('state declaration');
+  expect(f.cache.products.get(base)?.source).toEqual(corrupt);
+});

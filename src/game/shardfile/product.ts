@@ -1,6 +1,6 @@
 import { parseShardfile, type Shardfile } from './schema';
 import { SHARDFILE_VERSION } from './version';
-import { assertStateCompatibility } from './revision';
+import { assertStateCompatibility, parseStateLineage } from './revision';
 import { validateShardfileAssets } from './validate';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
 
@@ -67,7 +67,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   if (reader === undefined || (revision !== versions.current && !(revision === versions.current - 1 && options.offline && cached?.firstParty === true && options.firstParty))) throw new Error(`Shardfile version ${revision} needs a compatible client`);
   const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
-  if (!options.offline && visited !== null && visited !== undefined && version(visited.source) === versions.current) assertStateCompatibility(reader(visited.source), source);
+  if (!options.offline && visited !== null && visited !== undefined && version(visited.source) === versions.current) assertStateCompatibility(parseStateLineage(visited.source), source);
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: MAX_FILE_BYTES }))];
   for (const { ref, cap } of refs) {
     const hash = ref.replace(/^commons:/u, ''); if (!HASH.test(hash)) throw new Error('Invalid asset address');
