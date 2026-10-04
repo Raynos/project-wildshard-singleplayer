@@ -1,6 +1,6 @@
 # Plan: finish line (E108): from a pile of pieces to a finished-feeling game
 
-**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). The row tags below are older than these facts: S1, S3, S5, S6, S7 moved into GAME-NORMALIZATION (archived); D1–D4, D7 and P3 were built as DRIFTWOOD-TOP10 rows 1–5 and 9b (archived 2026-09-30); S2, S4, P1, D5, D6 are done, P2 is moot. Open, waiting on Jake's pick: N-a (the kurgan / east edges), N-b, N-c, N-d, M1, M2, M3's controls half, and S8 (a golden-path phone run per shard; Jake: "later", E430).
+**State:** `draft` 2026-10-03 — Jake approved PK1–PK5 in the E423 grill (EF9 worker pool, EF3 pools, TP18 asset re-layout, BatchedMesh → instancing where it measures better, the desktop help chip): buildable, unowned. unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). The row tags below are older than these facts: S1, S3, S5, S6, S7 moved into GAME-NORMALIZATION (archived); D1–D4, D7 and P3 were built as DRIFTWOOD-TOP10 rows 1–5 and 9b (archived 2026-09-30); S2, S4, P1, D5, D6 are done, P2 is moot. Open, waiting on Jake's pick: N-a (the kurgan / east edges), N-b, N-c, N-d, M1, M2, M3's controls half, and S8 (a golden-path phone run per shard; Jake: "later", E430).
 
 ## Read this first
 
@@ -94,6 +94,16 @@ Four read-only audits on build `f86b4c3` gave the same answer from four directio
 | M1 | **Continue, and a shard map with progress on the title screen.** | M |
 | M2 | **Titles and trophies that carry across shards.** Finishing one shard's story lights up the next. | M |
 | M3 | **(The HUD half done: E154, `50a29525`, one shared base HUD on every shard.)** **One controls and HUD spec for every shard.** Same verbs, same buttons, the weapon strip everywhere, one phone layout. | M |
+
+## PK — rows Jake picked in the E423 grill (2026-10-03): approved, unowned
+
+| # | Row | Done when | Was |
+|---|---|---|---|
+| PK1 | **A worker pool for procedural generation** (EF9): move the generators off the main thread | Pine Hollow's measured 150 ms long task is gone at load, measured on the phone tier | E377 |
+| PK2 | **Pooled projectiles and a far crowd** (EF3): structure-of-arrays pools beside X5's one `ParticlePool` | arrows, javelins, darts and a distant crowd allocate nothing per shot or frame | E377 |
+| PK3 | **One asset folder per shard** (TP18): `public/assets/<slug>/{models,music,sfx,lut,title,baked,packs,…}` instead of grouped by type; players re-download once | every shard's assets live under its own folder; manifests, `assetGlobs`, bakes, packs and the SW follow; one release note for the re-download | E377 |
+| PK4 | **BatchedMesh → instancing, where it measures better** (E358; Jake: "if instancing is better then we can do that"): Pine's crags / props / trees / boulders, Nalati's camp people, Driftwood's two | each family built both ways behind a default-off Debug row and measured (memory, draws, frame); the winners kept, with one physical-iPhone memory reading before a default flips (AGENTS.md, Rendering) | E358 |
+| PK5 | **An on-screen "? KEYS" help chip on the desktop HUD** (E420): F1 / `/` already open the key help (E419) | placement options asked with the question tool (mockups as previews), the HUD change announced over herdr, built, SHA sent | E420 |
 
 ## Ship checklist: Jake's own steps before a public release (E423 decision 22)
 

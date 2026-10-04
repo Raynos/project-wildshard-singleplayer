@@ -24,8 +24,11 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 - **An ask is a receipt of a request for work from Jake.** `f=$(scripts/ask-new.sh "<his words>")` before you start,
   and use the id it prints. A question answered in chat gets no file.
 - **Status vocabulary:** `open` · `in flight (date, owner)` · `needs pick (date)` · `done` · `dropped` ·
-  `folded into <X>` · `superseded by <X>`. A claim lapses after **71 h** without a commit; a pick after **7 days**
-  ("Jake approved none"). `scripts/asks.mjs` checks it in pre-commit and prints it in the session brief.
+  `folded into <X>` · `superseded by <X>`. A claim lapses after **71 h** without a commit. `scripts/asks.mjs` checks
+  it in pre-commit and prints it in the session brief.
+- **Picks go to Jake with the question tool** (AskUserQuestion with context and one recommendation; boards / images
+  sent right above it), never as a decision page. A skipped pick stays `needs pick` and is asked again next session;
+  it never expires (Jake, E423 grill).
 - **Done = pushed to `origin/main` with the local gates green** (E428): no wait for the CI run or the deploy. Add the
   live build id when the deploy ships it.
 - **Plans are the one queue.** Follow-up work is a plan row, never another ask. **A leftover is built in the session

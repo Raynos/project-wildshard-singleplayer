@@ -21,7 +21,7 @@ duplicated, because the old process filed every leftover as an ask and nothing e
 |---|---|
 | `open (YYYY-MM-DD)` | received, not started |
 | `in flight (YYYY-MM-DD, <owner>)` | claimed. **The lease is 71 h**: with no commit touching the file in 71 h, the brief shows `CLAIM EXPIRED` and anyone may take the work |
-| `needs pick (YYYY-MM-DD)` | waits on a decision from Jake. **It expires after 7 days**: the brief shows `PICK EXPIRED`; drop it as "Jake approved none" |
+| `needs pick (YYYY-MM-DD)` | waits on a decision from Jake. It **never expires**: the brief shows it as `ASK JAKE`, and the next session asks it with the question tool until he answers (E423 grill) |
 | `done (YYYY-MM-DD): <commit / evidence>` | landed |
 | `dropped (YYYY-MM-DD): <why>` | won't happen |
 | `folded into <ASK or PLAN>` | another ask or plan carries it. The target must exist |
@@ -39,7 +39,7 @@ ask.** A plan can't archive while it has open rows.
 - **Phone checks: none.** Don't file "Jake checks on his iPhone" items; his playtests and FEEDBACK notes are the
   check. **One exception:** a risky rendering or memory change (batching, multi-draw, texture or memory policy) needs a
   physical-device reading. It ships default-off behind a Debug row until it has one (AGENTS.md, Rendering).
-- **Decisions for Jake** go on one decision page with a 7-day expiry, not into scattered `needs pick` asks.
+- **Decisions for Jake** are asked with the question tool (AskUserQuestion: a short orientation, then each question with its background, the trade-offs and one recommendation; boards or images sent right above). Never a decision page (Jake, E423 grill). Collect them and ask at the end of a job.
 - **Jake's real-world chores** (store accounts, licence registrations, a listen or a watch) are rows of the Ship
   checklist in FINISH-LINE.
 - **Agent-to-agent requests** go over herdr to the owning agent, who builds them and replies with the SHA. If nobody

@@ -1,6 +1,6 @@
 // asks.mjs — the ask and plan rules (E423, docs/process/ASKS.md), one parser for the brief and the git hooks.
 //
-//   node scripts/asks.mjs brief           what is open: unanswered asks, expired claims and picks, stale plan State lines
+//   node scripts/asks.mjs brief           what is open: unanswered asks, expired claims, picks to ask Jake, stale plan State lines
 //   node scripts/asks.mjs check           pre-commit: every staged docs/tasks/asks/*.md follows the rules
 //   node scripts/asks.mjs commit-msg <f>  commit-msg: a commit that names a live plan also touches that plan
 //
@@ -13,7 +13,6 @@ const ROOT = resolve(import.meta.dirname, '..');
 const ASKS = 'docs/tasks/asks';
 const PLANS = 'docs/plans';
 const LEASE_HOURS = 71; // decision 9: a claim with no commit for 71 h has expired
-const PICK_DAYS = 7; // decision 7: an unanswered pick is dropped as "Jake approved none"
 
 /** The Status vocabulary. `folded into` / `superseded by` must name the ask or plan that carries the work. */
 export const STATES = ['open', 'in flight', 'needs pick', 'done', 'dropped', 'folded into', 'superseded by'];
@@ -135,7 +134,7 @@ function brief() {
       const last = Math.max(a.date ? Date.parse(`${a.date}T23:59:59Z`) : 0, Number(git('log', '-1', '--format=%ct', '--', `${ASKS}/${f}`).trim()) * 1000);
       if ((now - last) / 3_600_000 > LEASE_HOURS) flag = ` !! CLAIM EXPIRED (no commit in ${LEASE_HOURS} h): anyone may take it`;
     }
-    if (a.state === 'needs pick' && a.date && days(a.date, now) > PICK_DAYS) flag = ` !! PICK EXPIRED (${PICK_DAYS} d): drop it as "Jake approved none"`;
+    if (a.state === 'needs pick') flag = ` !! ASK JAKE with the question tool${a.date ? ` (open ${Math.floor(days(a.date, now))} d)` : ''}: a pick never expires`;
     if (a.state === null) flag = ' !! Status outside the vocabulary (docs/process/ASKS.md)';
     rows.push(`${id} | ${a.status.slice(0, 90)}${flag} | ${a.ask.slice(0, 120)}`);
   }

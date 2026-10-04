@@ -34,10 +34,9 @@
   },
   "budgets": {},
   "debugRows": {
-    "max": 25,
+    "max": 24,
     "raisedBy": [
-      "E357",
-      "E423"
+      "E357"
     ]
   },
   "wildshard/no-raw-random-time": {

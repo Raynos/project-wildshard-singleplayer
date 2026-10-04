@@ -124,8 +124,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    deferred or didn't finish is **built now**. If it truly can't land, it becomes an **open row of the live plan it
    belongs to** (`docs/plans/*.md`, with an acceptance line, its State line naming it), and the report says so.
    **Never a new ask file for a leftover**: per-leftover asks were the graveyard (86 of 133 open asks at E423). No
-   iPhone checks for Jake (he does no phone chores); a pick for him is one recommended answer in chat, or a row on
-   the decision page. A commit body, a subagent report, a memory note or a chat message is a RECORD, not a QUEUE.
+   iPhone checks for Jake (he does no phone chores); a pick for him is asked with the question tool (context, one
+   recommendation), and a skipped one stays `needs pick` to be asked again; never a decision page. A commit body, a subagent report, a memory note or a chat message is a RECORD, not a QUEUE.
    This is the step most likely to be skipped because everything *looks* clean; it is a banner precondition below.
 8. **Subagents and sibling sessions.** Don't kill running subagents to exit — a checkpoint resumes committed state;
    live work notifies when done. List every agent still alive with what it holds and which files it owns. If a

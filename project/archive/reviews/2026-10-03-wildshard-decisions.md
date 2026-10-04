@@ -1,6 +1,6 @@
 # Wildshard Open Decisions
 
-**Status:** `unread` 2026-10-03 — 15 open picks on one page (D1–D15), one recommended answer each; Jake answers in chat ("all recommended" or by code). Unanswered picks drop as "Jake approved none" on 2026-10-10 (E423 decision 7).
+**Status:** read 2026-10-03 — Jake: "No decision page just ask user tool"; he answered every card in the E423 grill instead (D9 and D5's reload / spear jump were already built). The page is retired; picks go through the question tool from now on.
 **Link:** https://claude.ai/artifact/FxVeGPXE4mT77kUq2hMXpg
 **Plan:** none yet: a yes becomes a row in the plan its card names (FINISH-LINE, DRIFTWOOD-REMASTER-V2); feeds E423
 **Made by:** E423, the asks-audit session (herdr wildshard-12)
