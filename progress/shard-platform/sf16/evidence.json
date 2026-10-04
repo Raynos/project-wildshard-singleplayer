@@ -1,33 +1,101 @@
 {
   "named": {
-    "hud": "the quest tracker, the journal chip order and the developer label differ (shardfile UI, sp-x5); hidden at the ladder's world step",
-    "heldItem": "today holds the whip and the lantern in the viewmodel; the shardfile client draws no held item yet (item runtime view, sp-x5); hidden at the world step",
-    "fov": "today's held whip (kit SweptMelee) owns camera.fov and sets Hor+ portrait 86.8 deg; with no held item the shardfile camera stays at 72 deg, so every shardfile frame is zoomed in. The biggest term; it closes when the declared whip view drives camera.fov",
+    "hud": "journal chip order and catalogue developer label differ; the normal hidden-template descriptor keeps its Developer banner, while this standalone SDK product has no catalogue status. HUD hidden at the world step",
+    "heldItem": "both clients mount the held whip and lantern; their camera-parented viewmodels are hidden at the world step",
+    "fov": "both held whips drive Hor+ portrait FOV (86.8 deg); the measured per-camera values verify the match",
     "shadows": "intended: baked L0 props cast shadows inside the 80 m ring (plan 3.2); today's grey-box primitives never set castShadow. Darkens the ground in front of the hut at the door camera",
     "poolBasin": "intended: the baked terrain samples the generator's -3 m pool step every 1.95 m (257 over 500 m), so the basin wall shows up to one sample outside the 5 m waterline; today's 40 x 40 ground (5 m grid) dips only at the pool centre vertex",
     "scatter": "intended: the 20 grey cubes are baked from RngService(357) at desktop density; today draws 10 (phone tier) from the session cosmetic stream, so positions differ",
     "creatures": "animation phase only: the grey blob idles in a different squash at capture; same exported skins and triangle counts",
-    "rampTreads": "not a difference: the ten treads are separate faceted boxes on both sides (close camera at (4,-6) toward (8,-11)); at 72 deg the zoomed shardfile frame cut them at its edge",
+    "rampTreads": "not a difference: the ten-tread stair right of the hut shows on both sides of the real and world frames; the immutable-byte proof verifies every tread and slope vertex, test/shardfile-fine-props-drawn.test.ts proves resident fine props are drawn, and each capture awaits the full refinement disc and asserts both real frames render from one camera pose (recorded per side)",
     "horizon": "intended: baked terrain covers the whole cell, so the far ground meets the sky as a soft band where today's 200 m plane stops in a hard edge"
   },
   "cameras": {
     "spawn": {
-      "ssim": 0.9339049936947902,
+      "ssim": 0.9325691915854244,
       "ladder": {
-        "full": 0.9339049936947902,
-        "world": 0.9864944406168294,
-        "fov": 0.9865209605791211,
-        "shadows": 0.9930121602552282
+        "full": 0.9325691915854244,
+        "world": 0.9865061256749741,
+        "fov": 0.9864627953130253,
+        "shadows": 0.9931189712371672
       },
       "today": {
         "calls": 56,
         "triangles": 12041,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            0.0006,
+            1.2734,
+            4.0003
+          ],
+          "yaw": 0,
+          "pitch": -0.1,
+          "feet": [
+            0.0006,
+            -0.4065,
+            4.0003
+          ],
+          "playerYaw": 0
+        }
       },
       "shardfile": {
         "calls": 54,
         "triangles": 48045,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            0.0002,
+            1.2557,
+            4.001
+          ],
+          "yaw": 0,
+          "pitch": -0.1,
+          "feet": [
+            0.0002,
+            -0.4242,
+            4.0011
+          ],
+          "playerYaw": 0
+        }
+      },
+      "residency": {
+        "cameraTile": "0/4/4",
+        "fine": [
+          "0/1/2",
+          "0/1/3",
+          "0/1/4",
+          "0/1/5",
+          "0/2/1",
+          "0/2/2",
+          "0/2/3",
+          "0/2/4",
+          "0/2/5",
+          "0/2/6",
+          "0/3/1",
+          "0/3/2",
+          "0/3/3",
+          "0/3/4",
+          "0/3/5",
+          "0/3/6",
+          "0/4/1",
+          "0/4/2",
+          "0/4/3",
+          "0/4/4",
+          "0/4/5",
+          "0/4/6",
+          "0/5/1",
+          "0/5/2",
+          "0/5/3",
+          "0/5/4",
+          "0/5/5",
+          "0/5/6",
+          "0/6/2",
+          "0/6/3",
+          "0/6/4",
+          "0/6/5"
+        ],
+        "ready": true
       },
       "at": [
         0,
@@ -39,22 +107,84 @@
       ]
     },
     "pool": {
-      "ssim": 0.9183027728589617,
+      "ssim": 0.9189853574700388,
       "ladder": {
-        "full": 0.9183027728589617,
-        "world": 0.9826589002946561,
-        "fov": 0.9826782729180523,
-        "shadows": 0.9833584550351899
+        "full": 0.9189853574700388,
+        "world": 0.9826577050970835,
+        "fov": 0.9827291817420645,
+        "shadows": 0.9833812266361882
       },
       "today": {
         "calls": 58,
         "triangles": 14293,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            25.0001,
+            1.7973,
+            30.9999
+          ],
+          "yaw": 0,
+          "pitch": -0.3,
+          "feet": [
+            25.0001,
+            0.1174,
+            30.9999
+          ],
+          "playerYaw": 0
+        }
       },
       "shardfile": {
         "calls": 49,
         "triangles": 34909,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            25,
+            1.7965,
+            30.9999
+          ],
+          "yaw": 0,
+          "pitch": -0.3,
+          "feet": [
+            25,
+            0.1166,
+            30.9999
+          ],
+          "playerYaw": 0
+        }
+      },
+      "residency": {
+        "cameraTile": "0/4/4",
+        "fine": [
+          "0/1/4",
+          "0/2/2",
+          "0/2/3",
+          "0/2/4",
+          "0/2/5",
+          "0/2/6",
+          "0/3/2",
+          "0/3/3",
+          "0/3/4",
+          "0/3/5",
+          "0/3/6",
+          "0/4/2",
+          "0/4/3",
+          "0/4/4",
+          "0/4/5",
+          "0/4/6",
+          "0/5/2",
+          "0/5/3",
+          "0/5/4",
+          "0/5/5",
+          "0/5/6",
+          "0/6/2",
+          "0/6/3",
+          "0/6/4",
+          "0/6/5",
+          "0/6/6"
+        ],
+        "ready": true
       },
       "at": [
         25,
@@ -66,22 +196,90 @@
       ]
     },
     "hut": {
-      "ssim": 0.9263432055363622,
+      "ssim": 0.9263543286506094,
       "ladder": {
-        "full": 0.9263432055363622,
-        "world": 0.9857011750753721,
-        "fov": 0.9857708820170307,
-        "shadows": 0.9954611672085525
+        "full": 0.9263543286506094,
+        "world": 0.9857203524153298,
+        "fov": 0.9857909602323014,
+        "shadows": 0.9954472075035838
       },
       "today": {
         "calls": 50,
         "triangles": 11959,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            7.0005,
+            1.4254,
+            -0.9992
+          ],
+          "yaw": 0.5667,
+          "pitch": -0.1,
+          "feet": [
+            7.0006,
+            -0.2545,
+            -0.9992
+          ],
+          "playerYaw": 0.5667
+        }
       },
       "shardfile": {
-        "calls": 47,
-        "triangles": 36893,
-        "fov": 86.79865242363684
+        "calls": 52,
+        "triangles": 47645,
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            7.0006,
+            1.418,
+            -0.9991
+          ],
+          "yaw": 0.5667,
+          "pitch": -0.1,
+          "feet": [
+            7.0006,
+            -0.262,
+            -0.9991
+          ],
+          "playerYaw": 0.5667
+        }
+      },
+      "residency": {
+        "cameraTile": "0/4/3",
+        "fine": [
+          "0/1/2",
+          "0/1/3",
+          "0/1/4",
+          "0/1/5",
+          "0/2/1",
+          "0/2/2",
+          "0/2/3",
+          "0/2/4",
+          "0/2/5",
+          "0/2/6",
+          "0/3/1",
+          "0/3/2",
+          "0/3/3",
+          "0/3/4",
+          "0/3/5",
+          "0/3/6",
+          "0/4/1",
+          "0/4/2",
+          "0/4/3",
+          "0/4/4",
+          "0/4/5",
+          "0/4/6",
+          "0/5/1",
+          "0/5/2",
+          "0/5/3",
+          "0/5/4",
+          "0/5/5",
+          "0/5/6",
+          "0/6/2",
+          "0/6/3",
+          "0/6/4",
+          "0/6/5"
+        ],
+        "ready": true
       },
       "at": [
         7,
@@ -93,22 +291,90 @@
       ]
     },
     "door": {
-      "ssim": 0.9045786063136557,
+      "ssim": 0.9046898202350097,
       "ladder": {
-        "full": 0.9045786063136557,
-        "world": 0.9634526414888515,
-        "fov": 0.9634721423949579,
-        "shadows": 0.9968580431573433
+        "full": 0.9046898202350097,
+        "world": 0.9634664418655173,
+        "fov": 0.9634630358774955,
+        "shadows": 0.9968796062450079
       },
       "today": {
         "calls": 44,
         "triangles": 11809,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            0.0001,
+            1.4618,
+            -3.9999
+          ],
+          "yaw": 0,
+          "pitch": -0.05,
+          "feet": [
+            0.0001,
+            -0.2181,
+            -3.9999
+          ],
+          "playerYaw": 0
+        }
       },
       "shardfile": {
         "calls": 48,
         "triangles": 40889,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            0.0001,
+            1.4617,
+            -3.9999
+          ],
+          "yaw": 0,
+          "pitch": -0.05,
+          "feet": [
+            0.0001,
+            -0.2182,
+            -3.9999
+          ],
+          "playerYaw": 0
+        }
+      },
+      "residency": {
+        "cameraTile": "0/4/3",
+        "fine": [
+          "0/1/2",
+          "0/1/3",
+          "0/1/4",
+          "0/1/5",
+          "0/2/1",
+          "0/2/2",
+          "0/2/3",
+          "0/2/4",
+          "0/2/5",
+          "0/2/6",
+          "0/3/1",
+          "0/3/2",
+          "0/3/3",
+          "0/3/4",
+          "0/3/5",
+          "0/3/6",
+          "0/4/1",
+          "0/4/2",
+          "0/4/3",
+          "0/4/4",
+          "0/4/5",
+          "0/4/6",
+          "0/5/1",
+          "0/5/2",
+          "0/5/3",
+          "0/5/4",
+          "0/5/5",
+          "0/5/6",
+          "0/6/2",
+          "0/6/3",
+          "0/6/4",
+          "0/6/5"
+        ],
+        "ready": true
       },
       "at": [
         0,
@@ -120,22 +386,89 @@
       ]
     },
     "creatures": {
-      "ssim": 0.9258344573175085,
+      "ssim": 0.9374642191477329,
       "ladder": {
-        "full": 0.9258344573175085,
-        "world": 0.9748277693547549,
-        "fov": 0.9751026582147253,
-        "shadows": 0.9820505090866771
+        "full": 0.9374642191477329,
+        "world": 0.9748607920800593,
+        "fov": 0.9751121303490151,
+        "shadows": 0.9820714820063615
       },
       "today": {
         "calls": 38,
         "triangles": 13777,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            9.0001,
+            1.6053,
+            -5.9999
+          ],
+          "yaw": -0.7854,
+          "pitch": -0.2,
+          "feet": [
+            9.0001,
+            -0.0746,
+            -5.9999
+          ],
+          "playerYaw": -0.7854
+        }
       },
       "shardfile": {
         "calls": 42,
         "triangles": 42277,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            9,
+            1.5942,
+            -5.9999
+          ],
+          "yaw": -0.7854,
+          "pitch": -0.2,
+          "feet": [
+            9,
+            -0.0857,
+            -5.9999
+          ],
+          "playerYaw": -0.7854
+        }
+      },
+      "residency": {
+        "cameraTile": "0/4/3",
+        "fine": [
+          "0/1/2",
+          "0/1/3",
+          "0/1/4",
+          "0/2/1",
+          "0/2/2",
+          "0/2/3",
+          "0/2/4",
+          "0/2/5",
+          "0/2/6",
+          "0/3/1",
+          "0/3/2",
+          "0/3/3",
+          "0/3/4",
+          "0/3/5",
+          "0/3/6",
+          "0/4/1",
+          "0/4/2",
+          "0/4/3",
+          "0/4/4",
+          "0/4/5",
+          "0/4/6",
+          "0/5/1",
+          "0/5/2",
+          "0/5/3",
+          "0/5/4",
+          "0/5/5",
+          "0/5/6",
+          "0/6/2",
+          "0/6/3",
+          "0/6/4",
+          "0/6/5"
+        ],
+        "ready": true
       },
       "at": [
         9,
@@ -147,22 +480,88 @@
       ]
     },
     "boss arena": {
-      "ssim": 0.941244860725577,
+      "ssim": 0.9407181067317559,
       "ladder": {
-        "full": 0.941244860725577,
-        "world": 0.9847340499275932,
-        "fov": 0.9847224430156588,
-        "shadows": 0.9847157223534261
+        "full": 0.9407181067317559,
+        "world": 0.9847179389021002,
+        "fov": 0.9847114925211111,
+        "shadows": 0.9847270818313009
       },
       "today": {
         "calls": 36,
         "triangles": 11625,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            -9,
+            2.1474,
+            -12
+          ],
+          "yaw": 0.6435,
+          "pitch": -0.2,
+          "feet": [
+            -9,
+            0.4675,
+            -12
+          ],
+          "playerYaw": 0.6435
+        }
       },
       "shardfile": {
         "calls": 40,
         "triangles": 39781,
-        "fov": 86.79865242363684
+        "fov": 86.79865242363684,
+        "pose": {
+          "camera": [
+            -8.9999,
+            2.1339,
+            -12
+          ],
+          "yaw": 0.6435,
+          "pitch": -0.2,
+          "feet": [
+            -8.9999,
+            0.454,
+            -12
+          ],
+          "playerYaw": 0.6435
+        }
+      },
+      "residency": {
+        "cameraTile": "0/3/3",
+        "fine": [
+          "0/1/2",
+          "0/1/3",
+          "0/1/4",
+          "0/1/5",
+          "0/2/1",
+          "0/2/2",
+          "0/2/3",
+          "0/2/4",
+          "0/2/5",
+          "0/2/6",
+          "0/3/1",
+          "0/3/2",
+          "0/3/3",
+          "0/3/4",
+          "0/3/5",
+          "0/3/6",
+          "0/4/1",
+          "0/4/2",
+          "0/4/3",
+          "0/4/4",
+          "0/4/5",
+          "0/4/6",
+          "0/5/1",
+          "0/5/2",
+          "0/5/3",
+          "0/5/4",
+          "0/5/5",
+          "0/6/2",
+          "0/6/3",
+          "0/6/4"
+        ],
+        "ready": true
       },
       "at": [
         -9,
