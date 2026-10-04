@@ -71,7 +71,7 @@ editor is Claude Code. Unreviewed arbitrary code from strangers. A native-only c
 | W5 | The **centre shard** is first-party and changes only with a server release | MUST | F |
 | W6 | **The server places shards.** Authors build in isolation (a floating cube) and never pick their cell. Identity, revision, placement and host are separate fields, and the server owns all four | MUST | F |
 | W7 | **Seamless travel**: no page reload and no loading screen; walking, riding or driving across a border streams the next shard in. **Designed first** (Jake, E435): it decides the package format, the budgets and the server rooms, so the design and a phone prototype come before the format freezes | MUST | V, J |
-| W7a | **The crossroads is the worst case.** Where four shards meet, the player stands within ~10 m of four shard corners, all four in the near field. Every budget (memory, draws, CPU, bandwidth) is proven at a crossroads, not inside one shard | MUST | J |
+| W7a | **The crossroads is the worst case.** Where four shards meet, the player stands within ~40 m of four shard corners (≈ 38.9 m at the 555 m pitch), all four in the near field. Every budget (memory, draws, CPU, bandwidth) is proven at a crossroads, not inside one shard | MUST | J |
 | W7b | **A shard's edges show at full detail without its interior**: a shard can be streamed in parts, nearest first | MUST | J |
 | W7c | **Everything in view fits the phone together**: at a crossroads, four shards' near parts plus the far ring fit in 1.0 GB (B1). A shard's budget is a share of the phone, not the whole phone | MUST | J |
 | W7d | **Speed never outruns the stream**: at driving speed (~30 m/s) on a mobile link, the next shard's near parts arrive before the player does; a stall degrades to proxies, never a hole, a fall or a freeze | MUST | J |
@@ -163,8 +163,8 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 | O1 | Every shard records its **original author** and **last editor**; it is public or private | MUST | F |
 | O2 | **Locking and grace periods** stop shards thrashing | MUST | F |
 | O3 | **Collaboration:** invite editors; an editor downloads the current revision to edit it cleanly in Claude Code | MUST | F |
-| O4 | The first behaviour language | **Decided (Jake, E435): AssemblyScript first** (plain linear-memory Wasm, not WasmGC), on a language-neutral interface that Rust can target later; QuickJS at most as a slow "any JS" fallback. Measured: about JIT speed, 5–9 KB modules, a compiler that runs inside Node, fuel metering and exact memory caps on V8 and JavaScriptCore, and bit-identical maths on the server and the phone (its own maths library; the engine's `Math.sin` and friends differ between V8 and JavaScriptCore today) |
-| O5 | Live update with players inside | **Decided (Jake, E435, G17): blue/green**, not evacuate |
+| O4 | **Renovation:** abandoned shards can be claimed by new authors | MUST | F |
+| O5 | **No ghost-town centre:** rank, bin-pack, archive and relocate shards by meaningful activity (edits, play, authored quests, achievements, puzzles, pickups), **excluding the author**, resistant to farming. The centre stays fixed. What happens to players, saves and archived work on a move is defined | MUST | F |
 | O6 | Moderation, **AI first with Jake on appeal** (G28): an AI pass against a written policy checks every upload, asset, author string and reported chat; borderline cases queue for a human; players report anything; copyright takedowns | MUST | N, J |
 | O7 | **Public shards are always remixable** within Wildshard, with automatic attribution (G20); uploads carry their source (G19) | MUST | J |
 | O8 | **Player building** (placing and destroying persistent things) comes later, after three brand-new shards built around building stress-test it (G7) | LATER | J |
@@ -173,9 +173,9 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 
 | Id | Requirement | Level | Src |
 |---|---|---|---|
-| T1 | **Nothing breaks.** Driftwood Isle, Pine Hollow, Nalati Grasslands, Nine Dragon Stack, Signal Dunes and Sky Reach stay playable and live through every step; the singleplayer parity gate proves each step | MUST | J |
+| T1 | **Nothing breaks.** The shards on the singleplayer grid (Driftwood Isle, Pine Hollow, Nalati Grasslands) stay playable and live through every step; Signal Dunes and Sky Reach stay playable in dev mode and Nine Dragon Stack in DEVSERVER mode (SHARD-PLATFORM G46); the parity gate proves each step | MUST | J |
 | T2 | **The 80/20 split, measured two ways** (Jake, E435): (1) **the public-SDK share**: ≥ 80 % of each first-party shard is built the way a player builds a shard (A0), and code outside the public SDK path counts as custom; (2) **the runtime ceiling**: the lines of TypeScript in the shard's `runtime/` are ≤ 20 % of the shard folder's TypeScript lines today. Moving code into a shared non-SDK library lowers neither. **Staged: 80/20, then 90/10, then 100/0** | MUST | J |
-| T3 | The 20 % lives in each shard's `runtime/` folder, behind the shard API, under a per-shard ratchet that only falls. It shrinks later by graduation (R8) or a port to a WASM plugin (R7) | MUST | J |
+| T3 | The 20 % lives in each shard's `runtime/` folder, behind the shard API, under a per-shard ratchet that only falls. It shrinks later by graduation (R8) or a port to AssemblyScript behaviour (R1) | MUST | J |
 | T4 | **New shards are born on the format** with no `runtime/` folder. One exception, confirmed by Jake in E435 after both audits flagged it: **Thin Ice** (shard 7) starts as code with the six's 20 % allowance and converts last (SHARD-PLATFORM Q1) | MUST | J |
 | T6 | **The kit becomes the SDK** (Jake, E435): shared code that today's shards import at runtime is split over time into the public SDK (generation on the author's machine, and libraries an author's sandboxed behaviour may use) and platform built-ins behind the versioned API. The kit stays during the transition, as a stepping stone to 100/0, never as a way to lower a shard's count | MUST | J |
 | T5 | Until the first public grid, single-player stays the shipping product | MUST | N |
@@ -185,8 +185,8 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 Kept as they are: the four layers and their guards (ARCH-GUARDS: the engine names no game, shard or content); a shard
 as manifest + plugin with opt-in mechanisms (`uses`); scope-owned resources with a load → unload leak test; the seeded
 RNG and game clock; the typed event bus; versioned saves with migrations; budgets per shard measured by the gate; the
-parity harness and the GPU gate; the template shard and the clean-room "shard 5" protocol; every shard manifest already
-declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLATFORM §2.
+parity harness and the GPU gate; the template shard and the clean-room "shard 5" protocol; every shard manifest but the
+template (200³; SHARD-PLATFORM SF1d fixes it) declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLATFORM §2.
 
 ## 5. How we will know
 
@@ -245,11 +245,11 @@ In order (Jake, E435: package-first; seamless travel designed first):
 |---|---|---|
 | O1 | The vertical split of the 500 m | **Decided (Jake, 2026-10-03): 250 m below the highway level, 250 m above** (`CELL_BELOW` / `CELL_ABOVE`, SHARD-PLATFORM SP4) |
 | O2 | A hardcoded centre shard, or the one-shot's 9-cell citadel | **One hardcoded centre shard** (the fundamentals): one hub for vendors, the upload ritual and portals; the citadel can come later |
-| O3 | Who may ship a new WASM plugin | **Any author may use approved plugins; a new plugin goes public only after review.** A private shard may test an unreviewed plugin locally |
-| O4 | The first plugin toolchain | **Rust, with a language-neutral host ABI.** The best WASM toolchain, deterministic, and Claude Code writes it well; AssemblyScript or QuickJS for TypeScript authors later on the same ABI |
-| O5 | Live update with players inside | **A 60 s warning, then evacuate to the highway and return when the new revision is active** (the one-shot's drain → swap → re-admit) |
+| O3 | Who may ship new behaviour | **Superseded (E435)**: behaviour is AssemblyScript in every shard (R1, decision 10); a reviewed catalogue applies only to signature items (SHARD-PLATFORM G13) |
+| O4 | The first behaviour language | **Decided (Jake, E435): AssemblyScript first** (plain linear-memory Wasm, not WasmGC), on a language-neutral interface Rust can target later; QuickJS at most as a slow "any JS" fallback. Measured: about JIT speed, 5–9 KB modules, a compiler that runs inside Node, fuel metering and exact memory caps on V8 and JavaScriptCore, bit-identical maths |
+| O5 | Live update with players inside | **Decided (Jake, E435, SHARD-PLATFORM G17): blue/green**, not evacuate |
 | O6 | One shared look for the world, or one per shard | **One per shard**, made coherent by the shared lattice, highway and sky (Jake keeps each shard's own style today) |
-| O7 | Material graphs need a node compiler | **Decided (Jake, SHARD-PLATFORM Q2): our own compiler onto the WebGL renderer's shader patches.** three.js TSL node materials need its WebGPU renderer, which singleplayer keeps contained; revisit when the engine switches |
+| O7 | Material graphs need a node compiler | **Superseded (E435, SHARD-PLATFORM G4, G32)**: material families, then graphs, then restricted shader code, compiled per renderer; the shardfile is renderer-neutral |
 
 ## 8. Out of scope here
 
