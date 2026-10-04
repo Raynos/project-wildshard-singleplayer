@@ -77,9 +77,10 @@ describe('AG14 generated vocabulary', () => {
     expect(data.shards['emberfall']?.settings).toEqual(['emberfall.heat', 'heat', 'wind']);
     genShardWords(root); const file = join(root, 'lint/shard-words.generated.json'), source = readFileSync(file, 'utf8');
     genShardWords(root); expect(readFileSync(file, 'utf8')).toBe(source); expect(() => genShardWords(root, true)).not.toThrow();
-    for (const name of ['package.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', 'lint/engine-words.json', 'lint/url-params.json']) {
+    for (const name of ['package.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', ...['lint/sim-closure.mjs', 'lint/sim-closure.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json']) {
       mkdirSync(dirname(join(root, name)), { recursive: true }); copyFileSync(name, join(root, name));
     }
+    symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
     put(root, 'src/game/new-shard-branch.ts', "const BY = { emberfall: 1 }; BY['emberfall']; level.id === 'emberfall';");
     put(root, 'src/engine/new-shard-words.ts', "export const label = 'Emberfall Desert'; export const row = 'species.emberfall.kite';");
     const result = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', join(root, '.oxlintrc.ratchet.json'), '-f', 'json', 'src'], { cwd: root, encoding: 'utf8' });
@@ -103,6 +104,15 @@ describe('AG9 shard layout', () => {
     expect(checkShardLayout({ emberfall: names }, config, () => "export default { slug: 'wrong' };").join(',')).toContain('slug must equal');
     expect(checkShardLayout({ _template: [] }, config)).toEqual([]);
   });
+  it('allows Thin Ice and the seven transition shards, but refuses new runtime folders', () => {
+    const runtimeConfig = { ...config, folders: [...config.folders, 'runtime'] };
+    const names = config.requiredFiles.concat(['runtime/']);
+    const baseline = JSON.parse(readFileSync('lint/shard-platform.json', 'utf8')) as { baseline: Record<string, number> };
+    for (const slug of [...Object.keys(baseline.baseline), 'thin-ice']) {
+      expect(checkShardLayout({ [slug]: names }, runtimeConfig, () => `export default { slug: '${slug}' };`, { ...baseline.baseline, 'thin-ice': 100 })).toEqual([]);
+    }
+    for (const slug of ['brand-new', '_new']) expect(checkShardLayout({ [slug]: names }, runtimeConfig, undefined, baseline.baseline).join(',')).toContain('custom runtime is reserved');
+  });
   it('builds layouts from index paths and selects only the committed shard', () => {
     expect(shardEntries(['src/shards/emberfall/manifest.ts', 'src/shards/emberfall/world/terrain.ts', 'src/shards/other/broken.ts'], new Set(['emberfall']))).toEqual({ emberfall: ['manifest.ts', 'world/'] });
   });
@@ -111,7 +121,7 @@ describe('AG9 shard layout', () => {
 describe('AG20 staged content isolation', () => {
   function repo(): { root: string; git: (...args: string[]) => void; run: () => ReturnType<typeof spawnSync> } {
     const root = temp();
-    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/check-platform-ratchets.mjs', 'lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
+    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', ...['lint/sim-closure.mjs', 'lint/sim-closure.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/check-platform-ratchets.mjs', 'lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
     for (const file of files) { mkdirSync(dirname(join(root, file)), { recursive: true }); copyFileSync(file, join(root, file)); }
     put(root, 'lint/ratchet.json', '{}'); put(root, 'src/engine/example.ts', 'export const value = 1;');
     symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
@@ -138,6 +148,21 @@ describe('AG20 staged content isolation', () => {
     f.git('add', '--', file, 'src/engine/example.ts'); f.git('commit', '-qm', 'code and list grow together');
     const result = spawnSync(execPath, ['scripts/check-platform-ratchets.mjs', previous, f.root], { cwd: f.root, encoding: 'utf8' });
     expect(result.status).toBe(1); expect(result.stderr).toContain('new function allowance');
+  });
+  it('admits indexed Thin Ice runtime with its first ceiling and refuses a new runtime shard', () => {
+    function shard(f: ReturnType<typeof repo>, slug: string): void {
+      put(f.root, `src/shards/${slug}/manifest.ts`, `const manifest = { slug: '${slug}', name: '${slug}', order: 1, debugOptions: [], assetGlobs: [] };\n\n// oxlint-disable-next-line import/no-default-export -- F9 requires a manifest default export.\nexport default manifest;`);
+      for (const file of ['plugin.ts', 'roster.ts', 'budgets.ts', 'runtime/action.ts']) put(f.root, `src/shards/${slug}/${file}`, 'export const value = 1;');
+      put(f.root, `src/shards/${slug}/README.md`, '# Runtime fixture\n');
+      genShardWords(f.root); f.git('add', '--', `src/shards/${slug}`, 'lint/shard-words.generated.json');
+    }
+    const thin = repo();
+    const list = JSON.parse(readFileSync(join(thin.root, 'lint/shard-platform.json'), 'utf8')) as { baseline: Record<string, number>; enforced: Record<string, number> };
+    list.baseline['thin-ice'] = 100; list.enforced['thin-ice'] = 20;
+    put(thin.root, 'lint/shard-platform.json', JSON.stringify(list)); thin.git('add', '--', 'lint/shard-platform.json');
+    shard(thin, 'thin-ice'); const admitted = thin.run(); expect(admitted.status, String(admitted.stderr)).toBe(0);
+    const unknown = repo(); shard(unknown, 'brand-new');
+    const refused = unknown.run(); expect(refused.status).toBe(1); expect(refused.stderr).toContain('custom runtime is reserved');
   });
   it('passes staged valid contents despite invalid working contents and unrelated invalid files', () => {
     const f = repo(); put(f.root, 'src/engine/example.ts', 'export const value = 2;'); f.git('add', '--', 'src/engine/example.ts');

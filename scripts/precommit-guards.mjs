@@ -72,7 +72,7 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const compared = compareCounts(baseline, counts, hard, paths);
     failures.push(...compared.failures);
     for (const warning of compared.warnings) console.warn(warning);
-    if (slugs.size > 0) failures.push(...checkShardLayout(shardEntries(snapshot.paths, slugs), JSON.parse(readFileSync(join(scratch, 'lint/shard-layout.json'), 'utf8')), snapshot.readSource));
+    if (slugs.size > 0) failures.push(...checkShardLayout(shardEntries(snapshot.paths, slugs), JSON.parse(readFileSync(join(scratch, 'lint/shard-layout.json'), 'utf8')), snapshot.readSource, JSON.parse(readFileSync(join(scratch, 'lint/shard-platform.json'), 'utf8')).baseline));
     if (manifest) {
       // Generator checks belong to the staged tree too; export only their small scripts, never public assets.
       const scripts = run(root, 'git', ['archive', tree, '--', 'src', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'], { encoding: 'buffer' });
