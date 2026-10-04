@@ -1,7 +1,7 @@
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { PineCtx, LaneCharge } from './ctx';
-import { headingTo } from './combatMath';
-import { pineContact, PINE_STRIKES } from './strikes';
+import type { PineCtx, LaneCharge } from '../combat/ctx';
+import { headingTo } from '../combat/combatMath';
+import { pineContact, PINE_STRIKES } from '../combat/strikes';
 
 interface GoalTell { setTime: (t: number) => void; ring: (x: number, z: number, radius: number, alpha: number) => void; hide: () => void }
 const SWEEP_REACH = 7.1, SWEEP_R = SWEEP_REACH - 0.38, STALK_NEAR = 0.9 * SWEEP_REACH, STOMP_R = 4.4;

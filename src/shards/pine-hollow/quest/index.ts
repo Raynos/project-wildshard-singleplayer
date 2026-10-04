@@ -54,7 +54,7 @@ import type { PineClockEvent } from '../runtime/questClock';
 import { installPineClock } from '../runtime/questDirector';
 import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildings, type PineLandmarks } from '../world/landmarks';
 import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../layout';
-import { KING_KIND } from '../combat/antlerKing';
+import { KING_KIND } from '../runtime/antlerKing';
 import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, LANTERN_FLAGS, type LanternId } from './wardensHollow';
 import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES, SECRET_FLAGS, type Spot } from './table';
 import { makeNpcFigure, type NpcFigure, type NpcKind } from '../models/people';

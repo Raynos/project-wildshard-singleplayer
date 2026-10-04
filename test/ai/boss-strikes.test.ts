@@ -4,7 +4,7 @@ import { describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { GoldenKingFight } from '../../src/shards/nalati-grasslands/combat/goldenKing';
 import { StormTitan, StormTitanFight } from '../../src/shards/nalati-grasslands/combat/stormTitan';
-import { AntlerKingFight } from '../../src/shards/pine-hollow/combat/antlerKing';
+import { AntlerKingFight } from '../../src/shards/pine-hollow/runtime/antlerKing';
 import { DUNGEON } from '../../src/shards/nalati-grasslands/world/KurganDungeon';
 import { KINGS_CLEARING } from '../../src/shards/pine-hollow/layout';
 import { CAIRN } from '../../src/shards/nalati-grasslands/layout';

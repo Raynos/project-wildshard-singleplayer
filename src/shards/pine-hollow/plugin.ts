@@ -48,7 +48,7 @@ import { SKINS, PINE_FINISHES } from './loadout/skins';
 import { bindLoadoutDeath } from './loadout/events';
 import { mottLine } from './quest/trades';
 import { isPineItem, PINE_ITEMS } from './items';
-import { KING_KIND, registerKing } from './combat/antlerKing';
+import { KING_KIND, registerKing } from './runtime/antlerKing';
 
 function runtime(ctx: ShardContext): ShardRuntime {
   const rt = ctx.game.runtime;

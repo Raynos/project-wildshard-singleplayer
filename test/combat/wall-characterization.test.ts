@@ -6,7 +6,7 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { getActiveChunk, setActiveChunk } from '../../src/game/shard/registry';
 import type { Animal } from '../../src/engine/entities/AnimalView';
 import { LaneCharge } from '../../src/shards/pine-hollow/combat/ctx';
-import { AntlerKingFight } from '../../src/shards/pine-hollow/combat/antlerKing';
+import { AntlerKingFight } from '../../src/shards/pine-hollow/runtime/antlerKing';
 import { canReach } from '../../src/engine/ai/reach';
 import { headingTo, inArc } from '../../src/shards/pine-hollow/combat/combatMath';
 import { pineContact, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';

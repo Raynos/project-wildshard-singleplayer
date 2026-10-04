@@ -1,7 +1,7 @@
 import { pineScore } from '../runtime/audio/score';
 import { AntlerKingGoals } from './KingGoals';
 import { pineBackdrop } from '../look/skyBackdrop';
-import { PINE_LANES, PINE_STRIKES, pineContact } from './strikes';
+import { PINE_LANES, PINE_STRIKES, pineContact } from '../combat/strikes';
 import type { Spawner } from '@wildshard/engine/ai/encounters';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
@@ -15,7 +15,7 @@ import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { thrallSpawner, spawnThrallFrom } from './spawns';
+import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
 import * as THREE from 'three';
 import type { BossScript, BossState } from '@wildshard/engine/ai/BossBrain';
 import { Boss, type BossDef } from '@wildshard/game/Boss';
@@ -23,11 +23,11 @@ import { GroundTell } from '@wildshard/game/Elite';
 import { PINE_PHASES } from '../look/dayKeys';
 import { KINGS_CLEARING } from '../layout';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { FogWall, Puffs, flameCard } from './fxKit';
+import { FogWall, Puffs, flameCard } from '../combat/fxKit';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../models/antlerKing';
-import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from './kingRig';
-import { own, retire, voice, LaneCharge, type PineCtx } from './ctx';
-import { KING_PHASE_AT, burnTick, headingTo, wallPush } from './combatMath';
+import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
+import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
+import { KING_PHASE_AT, burnTick, headingTo, wallPush } from '../combat/combatMath';
 import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
 
 /**

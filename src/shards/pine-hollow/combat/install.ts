@@ -31,7 +31,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { voice, type PineCtx } from './ctx';
 import { installPinePresentation } from './chargeTells';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
-import { AntlerKing, KING_KIND } from './antlerKing';
+import { AntlerKing, KING_KIND } from '../runtime/antlerKing';
 
 import { registerPineLap } from '../dev/perfLap';
 
