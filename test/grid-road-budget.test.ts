@@ -33,7 +33,7 @@ function build(): { roots: Group[]; plans: Map<Mesh, CullPlan>; culled: Mesh[] }
   const scene = new Group(), scope = { onDispose: () => undefined }, parts: SolidPart[] = [], plans = new Map<Mesh, CullPlan>(), culled: Mesh[] = [];
   const seams = seamSolid(strips, home, undefined, assembly.pitch);
   parts.push(...seams.parts);
-  const cull = (mesh: Mesh): void => { plans.set(mesh, cullRoadMesh(mesh, assembly.pitch, undefined, mesh.name === 'grid-deck' ? ROAD_LOD : undefined).plan); culled.push(mesh); };
+  const cull = (mesh: Mesh): void => { plans.set(mesh, cullRoadMesh(mesh, assembly.pitch, undefined, mesh.name === 'grid-deck' ? ROAD_LOD : []).plan); culled.push(mesh); };
   const layout = roadLayout(assembly, (slug) => slug);
   installRoadLook({ layout, home, scene, scope, solid: (p) => { parts.push(p); }, cull });
   installVoidLook({ rail: layout.rail, home, scene, scope, solid: (p) => { parts.push(p); } });
@@ -64,7 +64,7 @@ it('draws the road system within §3.2 from every grid pose: ≤ 8 draws with sh
     expect(view.shadowDraws).toBe(0);
   }
   expect(worst.draws).toBeLessThanOrEqual(6); // solid, asphalt, junctions, signs, curtain, void floor
-  // culling plus the far-bin LOD (past 150 m the deck draws its 4 m clustered copy): every view within the 60k target
+  // culling plus the far-bin LOD (the deck's clustered copies past 150 m and 450 m): every view within the 60k target
   views.sort((a, b) => a - b);
   expect(views[Math.floor(views.length / 2)] ?? Infinity).toBeLessThan(resident.triangles / 4);
   expect(worst.triangles).toBeLessThanOrEqual(60_000);

@@ -16,14 +16,14 @@ import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { BufferAttribute, type BufferGeometry, type Camera, DoubleSide, DynamicDrawUsage, Frustum, InstancedMesh, type Material, Matrix4, Mesh, type Object3D, Sphere, Vector3 } from 'three';
 
 /** One bin: its sphere (in the mesh's local frame) and its run of the sorted source index. */
-interface CullBin { readonly sphere: Sphere; readonly start: number; readonly count: number; readonly coarseStart: number; readonly coarseCount: number }
-/** A culled mesh's bins and its full, bin-sorted index (kept on the CPU to rebuild the drawn range from); bins past `lod`
- *  metres draw their coarse run. */
-export interface CullPlan { readonly source: Uint32Array; readonly bins: readonly CullBin[]; readonly lod: number }
-/** The far-bin LOD: past `distance` metres a bin draws a copy clustered on a `cell`-metre lattice. */
+interface CullBin { readonly sphere: Sphere; readonly start: number; readonly count: number; readonly levels: readonly { readonly start: number; readonly count: number }[] }
+/** A culled mesh's bins and its full, bin-sorted index (kept on the CPU to rebuild the drawn range from); past each LOD
+ *  tier's distance a bin draws that tier's coarse run. */
+export interface CullPlan { readonly source: Uint32Array; readonly bins: readonly CullBin[]; readonly lod: readonly number[] }
+/** A far-bin LOD tier: past `distance` metres a bin draws a copy clustered on a `cell`-metre lattice. */
 export interface CullLod { readonly distance: number; readonly cell: number }
-/** The deck's far LOD (render only; the collider is the generator's full mesh). */
-export const ROAD_LOD: CullLod = { distance: 150, cell: 4 };
+/** The deck's far LOD tiers, nearest first (render only; the collider is the generator's full mesh). */
+export const ROAD_LOD: readonly CullLod[] = [{ distance: 150, cell: 4 }, { distance: 450, cell: 12 }];
 
 const BIN_DIVISOR = 2;
 /** A cell edge's distance from its cell centre (the seam's outer row meets the shard's own ground there). */
@@ -98,7 +98,7 @@ export function clipToBins(geometry: BufferGeometry, pitch: number): void {
 }
 
 /** Sort a geometry's triangles into bins by centroid; returns the sorted index and each bin's sphere and range. */
-export function cullPlan(geometry: BufferGeometry, pitch: number, lod?: CullLod): CullPlan {
+export function cullPlan(geometry: BufferGeometry, pitch: number, lod: readonly CullLod[] = []): CullPlan {
   const index = geometry.getIndex(), position = geometry.getAttribute('position');
   if (index === null) throw new Error('A culled road mesh needs an index');
   const triangles = index.count / 3, byBin = new Map<string, number[]>();
@@ -109,25 +109,29 @@ export function cullPlan(geometry: BufferGeometry, pitch: number, lod?: CullLod)
     if (list === undefined) byBin.set(key, [t]); else list.push(t);
   }
   const out: number[] = [], bins: CullBin[] = [], point = new Vector3();
-  const cluster = lod === undefined ? undefined : clusterer(geometry, pitch, lod.cell);
+  const clusters = lod.map((tier) => clusterer(geometry, pitch, tier.cell));
   for (const key of [...byBin.keys()].sort()) {
     const list = byBin.get(key) ?? [], start = out.length, points: Vector3[] = [];
     for (const t of list) for (let c = 0; c < 3; c++) {
       const n = index.getX(t * 3 + c); out.push(n);
       points.push(point.fromBufferAttribute(position, n).clone());
     }
-    const count = out.length - start, coarseStart = out.length;
-    if (cluster !== undefined) for (const t of list) {
-      const a = cluster(index.getX(t * 3)), b = cluster(index.getX(t * 3 + 1)), c = cluster(index.getX(t * 3 + 2));
-      if (a !== b && b !== c && a !== c) out.push(a, b, c);
+    const count = out.length - start, levels: { start: number; count: number }[] = [];
+    for (const cluster of clusters) {
+      const from = out.length;
+      for (const t of list) {
+        const a = cluster(index.getX(t * 3)), b = cluster(index.getX(t * 3 + 1)), c = cluster(index.getX(t * 3 + 2));
+        if (a !== b && b !== c && a !== c) out.push(a, b, c);
+      }
+      levels.push({ start: from, count: out.length - from });
     }
-    bins.push({ sphere: new Sphere().setFromPoints(points), start, count, coarseStart: cluster === undefined ? start : coarseStart, coarseCount: cluster === undefined ? count : out.length - coarseStart });
+    bins.push({ sphere: new Sphere().setFromPoints(points), start, count, levels });
   }
-  return { source: Uint32Array.from(out), bins, lod: lod?.distance ?? Infinity };
+  return { source: Uint32Array.from(out), bins, lod: lod.map((tier) => tier.distance) };
 }
 
 /**
- * Vertex clustering for the far LOD: each vertex maps to the first vertex of its `cell`-metre lattice box that wears the
+ * Vertex clustering for a far LOD tier: each vertex maps to the first vertex of its `cell`-metre lattice box that wears the
  * same material (grain layer + unlit flag). Vertices on a bin edge or a cell edge (where the seam meets the shard's own
  * ground) stay themselves, so a coarse bin meets its fine neighbour and the shard's terrain without a crack.
  */
@@ -161,8 +165,10 @@ function visibleRuns(plan: CullPlan, matrixWorld: Matrix4, frustum: Frustum, sph
   const out: { start: number; count: number; id: number }[] = [];
   plan.bins.forEach((bin, k) => {
     if (!frustum.intersectsSphere(sphere.copy(bin.sphere).applyMatrix4(matrixWorld))) return;
-    const far = sphere.distanceToPoint(eye) > plan.lod;
-    out.push(far ? { start: bin.coarseStart, count: bin.coarseCount, id: k * 2 + 1 } : { start: bin.start, count: bin.count, id: k * 2 });
+    const d = sphere.distanceToPoint(eye);
+    let level = 0; while (level < plan.lod.length && d > (plan.lod[level] ?? Infinity)) level++;
+    const run = level === 0 ? bin : bin.levels[level - 1] ?? bin;
+    out.push({ start: run.start, count: run.count, id: k * 4 + level });
   });
   return out;
 }
@@ -174,7 +180,7 @@ export interface CullState { readonly bins: number; readonly visible: number; re
  * Cull a road mesh by bins before every draw. `main` names the view camera (other cameras, a reflection or a probe, draw
  * the main camera's last set rather than thrash the index); without one every camera culls. Returns the readout.
  */
-export function cullRoadMesh(mesh: Mesh, pitch: number, main?: () => Camera | undefined, lod?: CullLod): { plan: CullPlan; state: () => CullState } {
+export function cullRoadMesh(mesh: Mesh, pitch: number, main?: () => Camera | undefined, lod: readonly CullLod[] = []): { plan: CullPlan; state: () => CullState } {
   const geometry = mesh.geometry;
   clipToBins(geometry, pitch);
   const plan = cullPlan(geometry, pitch, lod);
@@ -203,8 +209,9 @@ export function cullRoadMesh(mesh: Mesh, pitch: number, main?: () => Camera | un
 
 /** The road system's cost in one view: draws (shadow draws included) and triangles, as the renderer would issue them. */
 export interface RoadViewCost { readonly draws: number; readonly triangles: number; readonly shadowDraws: number; readonly byMesh: Readonly<Record<string, { draws: number; triangles: number }>> }
-/** The resident cost: unique triangles uploaded and the triangles instancing expands to. */
-export interface RoadResident { readonly triangles: number; readonly instanced: number; readonly meshes: number; readonly bins: number; readonly widestBin: number }
+/** The resident cost: unique triangles uploaded, the triangles instancing expands to, and the far-LOD index copies (they
+ *  reuse the full mesh's vertices: index bytes only). */
+export interface RoadResident { readonly triangles: number; readonly instanced: number; readonly meshes: number; readonly bins: number; readonly widestBin: number; readonly lodTriangles: number }
 
 const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;
 const trianglesOf = (geometry: BufferGeometry, start: number, count: number): number => {
@@ -252,13 +259,13 @@ export function roadViewCost(roots: readonly Object3D[], camera: Camera, plans: 
 
 /** Count the road system's resident triangles (unique) and what instancing expands them to. */
 export function roadResident(roots: readonly Object3D[], plans: ReadonlyMap<Mesh, CullPlan> = new Map()): RoadResident {
-  let triangles = 0, instanced = 0, meshes = 0, bins = 0, widestBin = 0;
-  for (const plan of plans.values()) for (const bin of plan.bins) { bins++; widestBin = Math.max(widestBin, Math.round(bin.sphere.radius)); }
+  let triangles = 0, instanced = 0, meshes = 0, bins = 0, widestBin = 0, lodTriangles = 0;
+  for (const plan of plans.values()) for (const bin of plan.bins) { bins++; widestBin = Math.max(widestBin, Math.round(bin.sphere.radius)); for (const l of bin.levels) lodTriangles += l.count / 3; }
   for (const root of roots) root.traverse((o) => {
     if (!isMesh(o)) return;
     const geometry: BufferGeometry = o.geometry, plan = plans.get(o);
-    const n = plan !== undefined ? plan.bins.reduce((sum, b) => sum + b.count + (b.coarseStart === b.start ? 0 : b.coarseCount), 0) / 3 : trianglesOf(geometry, 0, Infinity);
+    const n = plan !== undefined ? plan.bins.reduce((sum, b) => sum + b.count, 0) / 3 : trianglesOf(geometry, 0, Infinity);
     meshes++; triangles += n; instanced += o instanceof InstancedMesh ? n * o.count : n;
   });
-  return { triangles, instanced, meshes, bins, widestBin };
+  return { triangles, instanced, meshes, bins, widestBin, lodTriangles };
 }

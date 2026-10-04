@@ -222,7 +222,7 @@ export class GridSession {
     const solidParts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { solidParts.push(part); };
     // SF17b's per-view cull, behind its Debug row (default off; applies at the next grid start)
     host.scope.onDispose(installGridRoadCullRow());
-    const culling = gridRoadCullOn(), cull = (mesh: Mesh): void => { if (culling) this.roadPlans.set(mesh, cullRoadMesh(mesh, pitch, () => host.frame?.camera, mesh.name === 'grid-deck' ? ROAD_LOD : undefined).plan); };
+    const culling = gridRoadCullOn(), cull = (mesh: Mesh): void => { if (culling) this.roadPlans.set(mesh, cullRoadMesh(mesh, pitch, () => host.frame?.camera, mesh.name === 'grid-deck' ? ROAD_LOD : []).plan); };
     // SF19a: one frame for the grid, behind its Debug row (default off; applies at the next grid start)
     host.scope.onDispose(installGridFrameRow());
     const frameHost = host.frame;
