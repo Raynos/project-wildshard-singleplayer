@@ -851,7 +851,18 @@ council ran four rounds (G59: *"4 round council approach is better then 8 rounds
 - Anything touching a live boot path ships default-off behind a Debug row until its parity is green (SF46's lesson);
   revert only by explicit SHA; keep every shared-tree save compiling.
 
-**2. Where it stands (origin ≈ `b407faf3f`; plan pass by the plan-status agent after it).** By effort Part A ≈ 45 % (±5), whole plan ≈ 30 % (M1 ≈ 97, M2 ≈ 55, M3 ≈ 13). **Deploy:** every deploy run since `16c2de967` (14:47 UTC) failed ; the first causes (`src/sdk/dist`, the SF2 coupling count) were fixed by `da1047996` / `96196f656`, and later runs failed on CI timing (the grid tests, then `test/debug-flag-hygiene.test.ts` at its 30 s timeout; C2-R1-B6, C7, C2-R2-C16). **NEXT 0 (sp-x2): make the deploy green**; the coordinator checks `gh run list --workflow deploy` hourly; Jake's playtest needs a live build.
+**2. Where it stands (updated 2026-10-04 ~19:30 UTC by the coordinator; origin `53739badd`, local commits waiting on the push gate).** By effort Part A ≈ 45 % (±5), whole plan ≈ 30 % (M1 ≈ 97, M2 ≈ 55, M3 ≈ 13). Council 2 is **closed** (3 rounds, 98 findings, `1335cd9ab`); the plan file is back with the coordinator. **Deploy:** the last green deploy was `e01622770`; later runs failed only on coverage-runner timeouts (debug-flag hygiene → `e2cdac83c`; grid rings → `3478367c1`; profile loader CPU → `277499504`; road budget → sf17b-cull). **Push gate:** blocked on `cfd999002` (sp-x2 G144 accounting) reddening `test/live-grid.test.ts` ("continuation cache admission deferred"; sp-x2 fixing). Landed since the council opened:
+- SF8c: `c2c856364` (canonical ENTRY_WIDTH 8 / ENTRY_ASPHALT 15), `8f6d0590c` (TURN_IN_HALF 4).
+- G142 sockets: `b857d9822`, `7e0641e99`, `ff2f848c9`.
+- SF6: `f8c68a215`, `2edc4edc1`. The six runtime→kit sites are soft `wildshard/runtime-commons` debt for SF54.
+- G146: `53739badd` (a JSON-only cartridge).
+- The adaptive seam: `33e0192de` / `674629fef` (95,180 tris).
+- SF17b road: `70cffb912` (one solid material, 6 draws per view) and `fa1b8480c` (far LOD), behind the default-off row `gridRoadCull`.
+- SF27: `b4c9d55ea`, `0eaaea691`, `7330101d1`, `3008034d5`, `6a0a33a71` (Pine parity green on 557881a29: 4/4, min SSIM .9996).
+- G144: `cfd999002`.
+- SF46 G134 part 1: `3bc489923` (sea, pier, jetties and boat lowered to 0 behind the hybrid row, in every mode per G147; the boat is anchored at about (-24, -240); 16 walk legs 0 stuck).
+
+**Durability limitation (sp-x1, recorded at the coordinator's request):** new exact checkpoints carry an integrity seal, so a changed physics basis (e.g. the G142 socket floors) falls back to the logical companion only when the seal matches. Old unsealed saves whose basis changed still refuse. Recovering them needs the old basis or an approved logical migration, never a catch-all decode fallback.
 - **Frame floor:** green on `8de907da2` for Driftwood / Pine / template / grid, and with the directors + hybrid ON
   (Driftwood / Nalati / Pine), on both surfaces.
 - **M1:** the template boots from its shardfile (`ed790a281`); the audit fixes are in (`6cf45753d` the ratchet to 28,
@@ -867,18 +878,21 @@ council ran four rounds (G59: *"4 round council approach is better then 8 rounds
   Driftwood ON, `8777cf8be`); SF24 directors for three shards (default-off shared row, `ee2a46de3`); SF27 brains in
   progress; SF33 / SF33b done (`a971f080c`); G93 / G99 entryways enforced (`be7a8afeb`).
 
-**3. Lanes** (a snapshot at `e67f47274`, not dispatch authority: on restart reconcile each slice against the latest
-commits and each pane's reply, reuse an active owner, never duplicate a slice; C2-R1-A9).
-- **sp-x1:** SF20a's final unload proof (0 colliders); G126 done `d6ed8462c`; then SF46 toward grid-ready (G134: the lowered sea, via the Opus lane sf46-lower).
-- **sp-x2:** the G90 async profile loader + groundResolution port; cut the seam strips' 565k triangles in flat bands (G101); the quota codec (SF20a); then the generator follow-ups (corner B, 10 m returns).
-- **sp-x3:** SF29 audio as data (`85d0b2ad8`; Driftwood first).
-- **sp-x4:** SF27 brains (`bc9c3309e`, `f40ec9d2d`, `8081e7d6f`, `15e6861ba`; next guardian / perchHunter exports, then
-  the hybrid sailor / monkey binding); G116 done `c28a5ebfe`.
-- **sp-x5:** the format owner (SF25 / G93 / G99 / SF33 / G90 done); next the native-edge follow-ups and the format fields
-  the Opus agents ask for (grid observations, quest totals).
-- **Opus live:** sf17b-look2 (seam materials, the shore rule at Driftwood's edge (G134), the G101 rail at 2.0 m, the G103 15 m asphalt entry, road
-  respawn, rounded outer corners); grid-hud (G98 reveal, G82 / G105 entry card, G78 safe zone + G104 cyan chip + per-shard
-  accent, G107 minimap, G97 FOV + speed lines; E332 notice given).
+**3. Lanes** (a snapshot at 2026-10-04 ~19:30 UTC, not dispatch authority: on restart reconcile each slice against the
+latest commits and each pane's reply, reuse an active owner, never duplicate a slice; C2-R1-A9).
+- **sp-x1:** the G144 basis seal in `durability.ts` (a checksum on new exact envelopes + a typed-mismatch logical fallback).
+- **sp-x2:** fix the live-grid fixture red first; then the standalone Node GridSimulation packed conversion. The regional
+  socket caller is held until sp-x5's footprint admission and sp-x1's seal land.
+- **sp-x3:** SF29 audio as data (a live proof plan per shard, both tiers, then the 7-shard floor).
+- **sp-x4:** SF27 Nalati live binding under the existing director row. Next: a wrapped Nalati OFF / ON browser lane once a
+  pushed pin exists.
+- **sp-x5:** SF8c's full authored 8 × 15 m footprint admission, then group full-format integration with sp-x4.
+- **Opus live:**
+  - sf17b-cull: SF17b per-view cull / LOD behind `gridRoadCull`, the CI timeout fix, then the G149 shore revetment
+    (crest +0.6 m rip-rap, collider; it publishes the inner-face offset).
+  - sf46-lower2: G134 part 2 (boat boarding ladder, coral check, the G149 water clip, OFF / ON parity, grid walk, board).
+  - sf56-devlook: SF56 / G152 (our own procedural dev-map textures for Template 1; the old grey kept as a Debug variant;
+    an A / B board).
 
 **4. The ordered NEXT queue.**
 0. **Deploy green** (sp-x2; C2-R1-C7).
