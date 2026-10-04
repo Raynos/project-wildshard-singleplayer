@@ -26,9 +26,18 @@ it('builds the template through the real workspace author CLI with deterministic
     shard.props = { ...(originalProps ?? { version: 1, family: 'toon', tiles: [], models: [], panels: [], textures: [], far: null }),
       colliders: [...(originalProps?.colliders ?? []), { id: 'entry-wall', panel: null, initialActive: true, shapes: [{ kind: 'box', x: 0, y: 2, z: 240, hx: 8, hy: 2, hz: 0.5 }] }] };
     writeFileSync(join(output, 'shard.json'), JSON.stringify(shard));
+    expect(() => execFileSync(execPath, ['scripts/wildshard.mjs', 'validate', join(output, 'shard.json')], { encoding: 'utf8', stdio: 'pipe' })).toThrow('illegal shard: entryway footprint must be clear of props and colliders above road height');
+    // Beyond the reserved 15 m footprint, the real 50 m capsule walk must still refuse a blocked route.
+    const wall = shard.props.colliders.at(-1)?.shapes[0]; if (wall?.kind !== 'box') throw new Error('Missing wall fixture');
+    wall.z = 220;
+    writeFileSync(join(output, 'shard.json'), JSON.stringify(shard));
     expect(() => execFileSync(execPath, ['scripts/wildshard.mjs', 'validate', join(output, 'shard.json')], { encoding: 'utf8', stdio: 'pipe' })).toThrow('Blocked edge entry north');
     shard.props = originalProps;
     shard.water = [{ id: 'entry-pool', kind: 'pool', level: 2, shape: { kind: 'circle', x: 0, z: 240, radius: 4 } }];
+    writeFileSync(join(output, 'shard.json'), JSON.stringify(shard));
+    expect(() => execFileSync(execPath, ['scripts/wildshard.mjs', 'validate', join(output, 'shard.json')], { encoding: 'utf8', stdio: 'pipe' })).toThrow('illegal shard: entryway footprint must be dry');
+    const pool = shard.water[0]; if (pool?.kind !== 'pool' || pool.shape.kind !== 'circle') throw new Error('Missing pool fixture');
+    pool.shape.z = 220;
     writeFileSync(join(output, 'shard.json'), JSON.stringify(shard));
     expect(() => execFileSync(execPath, ['scripts/wildshard.mjs', 'validate', join(output, 'shard.json')], { encoding: 'utf8', stdio: 'pipe' })).toThrow('Submerged edge entry north');
   } finally { rmSync(output, { recursive: true, force: true }); }
