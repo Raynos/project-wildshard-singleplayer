@@ -52,6 +52,8 @@ export interface ShardfileClientBindings {
   trustedRuntime?: boolean;
   /** Declared audio is the default. A trusted first-party transition may let its runtime consume the same audio declaration exactly once. */
   audioOwner?: 'declared' | 'runtime';
+  /** Platform catalogue installers bind extended audio data to the existing play host. */
+  audioProfiles?: (play: ShardPlayHost) => DeclaredAudioPorts['profiles'];
   /** Production handoff after restoration; checkpoint confirms ledger, coins, encounters and continuation writes. The existing Game driver remains the home tick owner. */
   onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void }) => void;
 }
@@ -59,7 +61,7 @@ const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolea
 const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
 
 function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings['audioOwner']): boolean {
-  const audioEmpty = audioOwner === 'runtime' || (source.audio.cues.length + source.audio.routing.length === 0 && source.audio.ambience === null && source.audio.score === 'silent');
+  const audioEmpty = audioOwner === 'runtime' || (source.audio.cues.length + source.audio.routing.length === 0 && source.audio.ambience === null && source.audio.score === 'silent' && source.audio.music === undefined && source.audio.samples === undefined && source.audio.zones === undefined);
   return source.clientScripts.bindings.length + source.files.length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.water.length + source.creatures.brains.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
     && source.terrain === null && source.props === null && source.far === null && source.plumbing === null
     && audioEmpty && source.look.grade.lut === null
@@ -273,7 +275,7 @@ export class ShardfileClient {
       installQuestPresentation(ctx, quest, declaration?.track === false ? { chip: () => ({ label: '', count: '' }) } : {});
     }
     runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;
-    if (this.bindings.audioOwner !== 'runtime') installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope });
+    if (this.bindings.audioOwner !== 'runtime') installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play) });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather });
     this.bindings.onSimulation?.({ source, simulation: sim, items: items.runtimes, scope: ctx.scope,
       checkpoint: () => !ctx.scope.disposed && checkpoint(), setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },

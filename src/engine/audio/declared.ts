@@ -2,10 +2,13 @@ import type { Scope } from '../app/scope';
 import type { Audio } from './Audio';
 import type { CombatCues, CombatCueOpts } from '../combat/cues';
 import { createCueRouter, type CueRoute } from './cueRouting';
+import type { AudioMusicProfile, AudioSampleProfile, AudioZoneProfile } from './audioProfiles';
 
 /** Catalogue cue ids plus bounded wind recipes and a score mode, supplied as validated level data. */
 export interface DeclaredAudioData {
   cues: readonly { id: string; voice: string }[];
+  /** Extended profiles resolve only through trusted platform catalogue installers. */
+  music?: AudioMusicProfile | undefined; samples?: AudioSampleProfile | undefined; zones?: AudioZoneProfile | undefined;
   /** Ordered cue rules resolve the same admitted voice catalogue, with scoped delayed playback. */
   routing?: readonly CueRoute[] | undefined;
   ambience: { bed: string; winds: readonly { frequency: number; q: number; pan: number; rate: number; gain: number }[] } | null;
@@ -18,10 +21,17 @@ export interface DeclaredAudioPorts {
   voices: ReadonlyMap<string, (opts: CombatCueOpts) => void>;
   music: { readonly out: { readonly gain: Pick<AudioParam, 'value'> } };
   scope: Scope;
+  /** Trusted recipes consume bounded data; an unbound profile is refused before any sound changes. */
+  profiles?: {
+    music?: ((profile: AudioMusicProfile, scope: Scope) => void) | undefined;
+    samples?: ((profile: AudioSampleProfile, scope: Scope) => void) | undefined;
+    zones?: ((profile: AudioZoneProfile, scope: Scope) => void) | undefined;
+  } | undefined;
 }
 /** Admit every voice before installing; route real engine cues and stop all bed sources with the level scope. */
 export function installDeclaredAudio(data: DeclaredAudioData, ports: DeclaredAudioPorts): void {
   if (ports.scope.disposed) throw new Error('Audio scope is disposed');
+  if ((data.music !== undefined && ports.profiles?.music === undefined) || (data.samples !== undefined && ports.profiles?.samples === undefined) || (data.zones !== undefined && ports.profiles?.zones === undefined)) throw new Error('Audio profile requires its trusted catalogue installer');
   const voices = new Map(data.cues.map((cue) => {
     const voice = ports.voices.get(cue.voice); if (voice === undefined) throw new Error(`Unknown catalogue voice: ${cue.voice}`);
     return [cue.id, voice] as const;
@@ -36,6 +46,9 @@ export function installDeclaredAudio(data: DeclaredAudioData, ports: DeclaredAud
   ports.cues.use((id, opts) => { const voice = voices.get(id); if (voice === undefined) return false; voice(opts); return true; }, ports.scope);
   if (combatRoutes.length > 0) ports.cues.use(combatRouting, ports.scope);
   if (audioRoutes.length > 0) ports.audio.installCues(audioRouting, ports.scope);
+  if (data.music !== undefined) ports.profiles?.music?.(data.music, ports.scope);
+  if (data.samples !== undefined) ports.profiles?.samples?.(data.samples, ports.scope);
+  if (data.zones !== undefined) ports.profiles?.zones?.(data.zones, ports.scope);
   if (data.score === 'silent') {
     const gain = ports.music.out.gain, before = gain.value; gain.value = 0;
     ports.scope.onDispose(() => { gain.value = before; });
