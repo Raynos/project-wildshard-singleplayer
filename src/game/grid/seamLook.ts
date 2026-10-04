@@ -19,8 +19,6 @@ import {
   AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, LinearMipmapLinearFilter, type Material, Mesh, MeshBasicMaterial,
   MeshLambertMaterial, RepeatWrapping, SRGBColorSpace, ShaderMaterial,
 } from 'three';
-import type { GeneratedStrip } from '@wildshard/engine/sim/strips';
-import type { GridCell } from './assembly';
 
 /** The material a feature kind wears. */
 export type SeamBucket = 'ground' | 'stone' | 'rock' | 'dike' | 'curtain' | 'rail';
@@ -38,8 +36,11 @@ export type SeamSurfaces = (name: string) => readonly [number, number, number] |
 /** The readout: triangles and draws per material (the road's tight budget, G101). */
 export interface SeamLookState { readonly triangles: number; readonly draws: number; readonly buckets: Readonly<Partial<Record<SeamBucket, number>>> }
 
-/** The pieces the look needs from a generated strip (its mesh and feature ranges). */
-type SeamPiece = Pick<GeneratedStrip, 'mesh' | 'features'>;
+/** What the look reads from a generated strip (`GeneratedStrip` fits it): its mesh and its ordered feature ranges. */
+export interface SeamPiece {
+  readonly mesh: { readonly origin: { readonly x: number; readonly z: number }; readonly positions: Float32Array; readonly colours: Float32Array; readonly indices: Uint32Array };
+  readonly features: readonly { readonly kind: string; readonly firstIndex: number; readonly indexCount: number; readonly sourceSurface?: string }[];
+}
 const CYAN = new Color(0x38e6ff);
 const ROCK_GREY: readonly [number, number, number] = [0.32, 0.3, 0.28];
 
@@ -47,7 +48,7 @@ const ROCK_GREY: readonly [number, number, number] = [0.32, 0.3, 0.28];
  * Merge every strip into one home-frame geometry whose index buffer is grouped by material. Pure (no GPU): the vertices are
  * the generator's own, translated; `uv` is world-planar (top faces xz, walls along × height) so textures tile across strips.
  */
-export function seamLookGeometry(pieces: readonly SeamPiece[], home: Pick<GridCell, 'origin'>, surfaces?: SeamSurfaces): { geometry: BufferGeometry; state: SeamLookState } {
+export function seamLookGeometry(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces): { geometry: BufferGeometry; state: SeamLookState } {
   let vertices = 0;
   for (const { mesh } of pieces) vertices += mesh.positions.length / 3;
   const position = new Float32Array(vertices * 3), colour = new Float32Array(vertices * 3), bucketOf = new Int8Array(vertices).fill(-1);
@@ -206,7 +207,7 @@ void main() {
 }`;
 
 /** The materials, in `SEAM_BUCKETS` order (a geometry group's material index is its bucket's index). */
-function seamMaterials(home: Pick<GridCell, 'origin'>): Material[] {
+function seamMaterials(home: { readonly origin: { readonly x: number; readonly z: number } }): Material[] {
   const tex = (paint: (g: CanvasRenderingContext2D, s: number) => void, size = 256): CanvasTexture => canvasTexture(size, paint);
   const curtain = new ShaderMaterial({ vertexShader: curtainVertex, fragmentShader: curtainFragment, uniforms: { uLine: { value: CYAN.clone() }, uOrigin: { value: [home.origin.x, home.origin.z] } },
     transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide, fog: false, lights: false });
@@ -224,7 +225,7 @@ function seamMaterials(home: Pick<GridCell, 'origin'>): Material[] {
 }
 
 /** The deck and seams as one mesh in the home frame: one draw per material present. Dispose with the returned function. */
-export function seamMesh(pieces: readonly SeamPiece[], home: Pick<GridCell, 'origin'>, surfaces?: SeamSurfaces): { mesh: Mesh; state: SeamLookState; dispose: () => void } {
+export function seamMesh(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces): { mesh: Mesh; state: SeamLookState; dispose: () => void } {
   const { geometry, state } = seamLookGeometry(pieces, home, surfaces), materials = seamMaterials(home);
   const mesh = new Mesh(geometry, materials);
   mesh.name = 'grid-deck'; mesh.receiveShadow = true; mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
