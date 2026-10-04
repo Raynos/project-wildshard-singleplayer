@@ -1,7 +1,8 @@
 import type { Physics } from './Physics';
 import { CharacterMotor } from './CharacterMotor';
+import { ENTRY_WIDTH } from '../core/config';
 
-/** Real capsule walks cover every 15 m wide entry for 50 m, at overlapping lateral intervals. */
+/** Real capsule walks cover every legal 8 m entry for 50 m, at overlapping lateral intervals. */
 export function walkEdgeEntries(physics: Physics, waterAt: (x: number, z: number) => number | null = () => null): { lanes: number; steps: number } {
   const motor = new CharacterMotor(physics, { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] });
   const feet = { x: 0, y: 0, z: 0 }, want = { x: 0, y: -9.81 / 3600, z: 0 };
@@ -9,7 +10,8 @@ export function walkEdgeEntries(physics: Physics, waterAt: (x: number, z: number
   try {
     for (const side of ['north', 'east', 'south', 'west'] as const) {
       for (let lane = 0; lane <= 22; lane++) {
-        const offset = -7.15 + lane * 14.3 / 22;
+        const half = ENTRY_WIDTH / 2 - 0.35;
+        const offset = -half + lane * (2 * half) / 22;
         feet.x = side === 'east' ? 249.6 : side === 'west' ? -249.6 : offset;
         feet.z = side === 'north' ? 249.6 : side === 'south' ? -249.6 : offset; feet.y = 0.05;
         want.x = 0; want.z = 0;

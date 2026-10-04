@@ -12,6 +12,8 @@
  * slug, never a name written here.
  */
 import type { GridAssembly, GridCell } from './assembly';
+// oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids internal re-exports; retain this existing defining-module compatibility value.
+import { ENTRY_WIDTH, ENTRY_ASPHALT as entryAsphalt } from '@wildshard/engine/core/config';
 
 /** The road's half width (the generator's flat road band, `STRIP_OFFSETS` ±7.5). */
 export const ROAD_HALF = 7.5;
@@ -22,9 +24,9 @@ export const SEGMENT_HALF = 250;
 /** The rail's distance from the outer road's centre line: the road edge plus a 1.5 m gravel shoulder (G89). */
 export const RAIL_OFFSET = ROAD_HALF + 1.5;
 /** A turn-in's half width at a segment midpoint (G93). */
-export const TURN_IN_HALF = 6;
+export const TURN_IN_HALF = ENTRY_WIDTH / 2;
 /** How far each entry carries the platform's neutral asphalt INTO the shard past its cell edge (G103). */
-export const ENTRY_ASPHALT = 15;
+export const ENTRY_ASPHALT = entryAsphalt;
 /** The roundabout's outer kerb radius and its island radius (G81). */
 export const RING_OUTER = 15.5;
 export const RING_ISLAND = 6;

@@ -6,7 +6,7 @@
  * - **rows**: a shardfile shard's admitted `edge` rows; a legacy shard's committed terrain bake
  *   (`public/assets/baked/<slug>/terrain.bin`, the WSTR lattice), coloured by its own map palette's ground ramp, and the
  *   platform's neutral grey when it declares none.
- * - **entries**: an edge whose 12 m midpoint already meets road height (G93 / G99) opens as a turn-in; others stay closed.
+ * - **entries**: admitted shardfile midpoint declarations open their exact width; undeclared legacy edges stay closed.
  * - **water** (G91): a shard with open water (its map's `openWater` level) holds it with the dike along every edge.
  *
  * A proper format field for the observations is sp-x5's follow-up (the coordinator's interim decision).
@@ -15,7 +15,7 @@ import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { GridCell } from './assembly';
 import type { GridEdgeObservations, GridEdgeSource } from './edgeProfiles';
 import { gridShardfileProduct } from './products';
-import { TURN_IN_HALF } from './roadLayout';
+import type { ShardEntryways } from '../shardfile/entryways';
 import { findShard } from '../shard/registry';
 
 type Rgb = [number, number, number];
@@ -50,26 +50,27 @@ function latticeRows(res: number, heights: Float32Array, colour: (x: number, z: 
   return { north: row('north'), east: row('east'), south: row('south'), west: row('west') };
 }
 
-/** An edge opens as a turn-in only where its midpoint already meets road height across the full opening (G99). */
-function entryWidth(row: { readonly heights: readonly number[] }): number {
-  const n = row.heights.length, step = 500 / (n - 1);
-  for (let k = 0; k < n; k++) if (Math.abs(-250 + k * step) <= TURN_IN_HALF + step && Math.abs(row.heights[k] ?? Infinity) > 0.02) return 0;
-  return 2 * TURN_IN_HALF;
-}
-function observe(rows: Readonly<Record<'north' | 'east' | 'south' | 'west', { readonly heights: readonly number[] }>>, water: number | undefined): GridEdgeObservations {
-  const edge = (side: typeof SIDES[number]): GridEdgeObservations['north'] => ({ entryWidth: entryWidth(rows[side]), geometry: 'ground', ...(water === undefined || water <= 0 ? {} : { waterSurface: water }) });
+function observe(entries: ShardEntryways, water: number | undefined): GridEdgeObservations {
+  const edge = (side: typeof SIDES[number]): GridEdgeObservations['north'] => ({ entryWidth: entries.find(row => row.edge === side)?.width ?? 0, geometry: 'ground', ...(water === undefined || water <= 0 ? {} : { waterSurface: water }) });
   return { north: edge('north'), east: edge('east'), south: edge('south'), west: edge('west') };
 }
 
+/** Admitted products and immutable transport can be supplied by the owning composition without replacing modules. */
+export interface GridEdgeReaderPorts {
+  product: (slug: string) => Promise<{ admitted: { source: { edge: Rows; entryways: ShardEntryways } } }> | null;
+  fetch: (url: string) => Promise<Response>;
+}
+
 /** Read one cell's edge source from its shard's own data. */
-export async function readGridEdges(cell: GridCell): Promise<GridEdgeSource> {
+export async function readGridEdges(cell: GridCell, ports?: GridEdgeReaderPorts): Promise<GridEdgeSource> {
+  const reader = ports ?? { product: gridShardfileProduct, fetch: (url: string) => fetch(url) };
   const manifest = findShard(cell.slug), water = manifest?.minimap?.openWater?.level;
-  const product = gridShardfileProduct(cell.slug);
+  const product = reader.product(cell.slug);
   if (product !== null) {
-    const edge = (await product).admitted.source.edge;
-    return { kind: 'declared', profiles: edge, observations: observe(edge, water) };
+    const source = (await product).admitted.source;
+    return { kind: 'declared', profiles: source.edge, observations: observe(source.entryways, water) };
   }
-  const response = await fetch(versionedUrl(`/assets/baked/${cell.slug}/terrain.bin`));
+  const response = await reader.fetch(versionedUrl(`/assets/baked/${cell.slug}/terrain.bin`));
   if (!response.ok) throw new Error(`terrain.bin ${cell.slug}: ${String(response.status)}`);
   const { res, heights } = bakeHeights(new Uint8Array(await response.arrayBuffer()));
   const palette = manifest?.minimap?.palette?.ground;
@@ -83,5 +84,5 @@ export async function readGridEdges(cell: GridCell): Promise<GridEdgeSource> {
     return [...NEUTRAL];
   };
   const rows = latticeRows(res, heights, colour);
-  return { kind: 'declared', profiles: rows, observations: observe(rows, water) };
+  return { kind: 'declared', profiles: rows, observations: observe([], water) };
 }
