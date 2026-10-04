@@ -11,6 +11,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { RuntimeSchema, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
 import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
+import { installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
 import { bindScopedRuntime, createScopedRuntimeBinding } from '../src/game/shard/scopedRuntime';
 import { shardContext, type GameServices, type ShardContext } from '../src/game/shard/context';
 import { ShardPlugin } from '../src/game/shard/plugin';
@@ -417,7 +418,7 @@ it('reactivates an adapted borrowed home without rebuilding its world, equipment
       calls.push('world'); context.piece({ id: 'retained.pier', name: 'Pier', category: 'props', file: 'runtime/index.ts' });
       const local = context.game.runtime; if (local === undefined) throw new Error('Missing home runtime');
       local.objects['state'] = state;
-      context.whileEntered?.((entered) => { entered.onDispose(app.debug.scopedExpose('retained.active', true)); });
+      installEnteredRuntimeService(context, (entered) => { entered.onDispose(app.debug.scopedExpose('retained.active', true)); });
     }
     override kit(): void { calls.push('kit'); }
     override play(context: ShardContext): void {

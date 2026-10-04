@@ -37,6 +37,7 @@
     "./quest/reward": "./quest/reward.ts",
     "./saves": "./saves.ts",
     "./shard/context": "./shard/context.ts",
+    "./shard/retainedHooks": "./shard/retainedHooks.ts",
     "./shard/manifest": "./shard/manifest.ts",
     "./shard/plugin": "./shard/plugin.ts",
     "./shard/registry": "./shard/registry.ts",

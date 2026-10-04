@@ -5,7 +5,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { withOwner } from '../src/engine/app/ownership';
 import { shardContext } from '../src/game/shard/context';
-import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
+import { installEnteredRuntimeService, RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { emptyShardfile } from '../src/sdk/author';
 
@@ -17,7 +17,7 @@ it('retains the borrowed world across two entries, unregisters entered callbacks
   const before = app.events.census(), hooks = new RetainedRuntimeHooks(context);
   let ticks = 0, deaths = 0, lateTicks = 0;
   let activeService = 'road', installs = 0;
-  hooks.context.whileEntered?.((entered) => {
+  installEnteredRuntimeService(hooks.context, (entered) => {
     const previous = activeService; activeService = 'home'; installs++;
     entered.onDispose(() => { activeService = previous; });
   });

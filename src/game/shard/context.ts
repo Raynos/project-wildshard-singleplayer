@@ -1,4 +1,3 @@
-import type { Scope } from '@wildshard/engine/app/scope';
 import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from '@wildshard/engine/ui/tabs';
 import { registerItemRow } from '../bag/itemCatalog';
 import { registerAchievements, type AchievementDef } from '../achievements';
@@ -10,6 +9,8 @@ import type { ContentRow, EngineRows, LevelContext } from '@wildshard/engine/lev
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { ShardManifest } from './manifest';
 import type { PageResidency } from '../grid/pageResidency';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { pageMode } from '../grid/boot';
 
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }
 export interface GameRowMap { item: ItemRow; lootTable: ContentRow; skin: SkinDef; feat: AchievementDef; shop: ContentRow; compendium: ShardCompendium & { id: string }; places: ContentRow }
@@ -26,8 +27,6 @@ export interface GameServices {
   };
 }
 export interface ShardContext extends LevelContext {
-  /** Retained home runtimes install transient services here; each entered scope releases them on leave. */
-  readonly whileEntered?: (install: (scope: Scope) => void) => void;
   /** the shard's own manifest */
   readonly manifest: ShardManifest;
   /** the game's services: progress, inventory, loot, the compendium, travel */
@@ -36,7 +35,17 @@ export interface ShardContext extends LevelContext {
   readonly bag: BagVerbs;
   /** the engine's rows plus the game's (items, feats, quests …), for the shard's life */
   readonly rows: EngineRows & GameRows;
+  /**
+   * G99: the shard's cube while it runs as a grid cell (home or neighbour): every shard is a 500 × 500 × 500 cube, so
+   * nothing it draws may stand past `half` metres from its centre in x or z (the road and the neighbours are there).
+   * `null` standalone, where the shard keeps its own horizon. A shard reads it to leave out or clip its out-of-cube
+   * dressing (a skirt, backdrop props); the platform already drops the level's horizon rings and cloud sea in the grid.
+   */
+  readonly cube: ShardCube | null;
 }
+/** A grid cell's extent in shard-local metres (G99): the cube's half width, its centre at the shard's origin. */
+export interface ShardCube { readonly half: number }
+const GRID_CUBE: ShardCube = Object.freeze({ half: CHUNK_HALF });
 
 export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: GameServices): ShardContext {
   const live = (): void => { if (ctx.scope.disposed) throw new Error('The shard scope is disposed'); };
@@ -57,7 +66,7 @@ export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: G
   };
   // Retain progress as a getter: its stage changes while the same context serves all hooks.
   return {
-    ...ctx, get progress() { return ctx.progress; }, manifest, game,
+    ...ctx, get progress() { return ctx.progress; }, manifest, game, cube: pageMode() === 'grid' ? GRID_CUBE : null,
     bag: {
       tab: (spec) => { live(); ctx.scope.onDispose(game.bag.tab(spec)); },
       fragment: (tab, fragment) => { live(); ctx.scope.onDispose(game.bag.fragment(tab, fragment)); },

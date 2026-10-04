@@ -2,6 +2,18 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { currentOwner, withOwner } from '@wildshard/engine/app/ownership';
 import type { ShardContext } from './context';
 
+const enteredServices = new WeakMap<ShardContext, (install: (scope: Scope) => void) => void>();
+
+/** Whether this trusted context retains its home resources while entered services are independently scoped. */
+export function retainsRuntimeServices(context: ShardContext): boolean { return enteredServices.has(context); }
+
+/** Install a transient service for each home entry; ordinary staged contexts keep their original level scope. */
+export function installEnteredRuntimeService(context: ShardContext, install: (scope: Scope) => void): void {
+  if (context.scope.disposed) throw new Error('Trusted runtime is disposed');
+  const entered = enteredServices.get(context);
+  if (entered === undefined) install(context.scope); else entered(install);
+}
+
 /** Reinstall entered callbacks while a borrowed home's models and authored state remain resident. */
 export class RetainedRuntimeHooks {
   readonly context: ShardContext;
@@ -23,12 +35,12 @@ export class RetainedRuntimeHooks {
       this.installers.push(install);
     };
     this.context = { ...base, get progress() { return base.progress; },
-      whileEntered: register,
       system: (spec) => { register((scope) => { base.app.addSystem(spec, scope); }); },
       on: (name, fn, options) => { register((scope) => { base.app.events.on(name, fn, scope, options); }); },
       answer: (name, fn, options) => { register((scope) => { base.app.events.answer(name, fn, scope, options); }); },
     };
-    base.scope.onDispose(() => { this.deactivate(); this.installers.length = 0; });
+    enteredServices.set(this.context, register);
+    base.scope.onDispose(() => { enteredServices.delete(this.context); this.deactivate(); this.installers.length = 0; });
   }
   /** Publish each recorded callback in a fresh entered scope, once; failure rolls back every partial registration. */
   activate(): void {

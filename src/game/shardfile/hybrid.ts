@@ -71,7 +71,7 @@ export interface HybridCellBinding {
   readonly cells: Pick<GridCellEvents, 'cell' | 'onEnter' | 'onLeave'>;
   /** Hold region gameplay while entered hooks install; admission of the runtime module is a separate fence. */
   readonly readiness?: (ready: boolean) => void;
-  /** Borrowed home geometry and authored state persist; transient services must use whileEntered. */
+  /** Borrowed home geometry and authored state persist; transient services use entered runtime installers. */
   readonly retainHomeRuntime?: boolean;
 }
 
