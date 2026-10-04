@@ -471,7 +471,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     else if (event === 'dawn.sunrise') fastForward(PINE_PHASES.sunrise + 0.012, value);
     else if (event === 'dawn.lanterns') { for (const f of LANTERN_FLAGS) flags.set(f); if (lm) for (const id of ['pond', 'ridge', 'den'] as const) lm.setLit(id, true); h.music.sting('dawn'); }
     else if (event === 'dawn.caption') { reward.show(true); objective.root.classList.add('ws-quest-hide'); }
-    else if (event === 'dawn.finish') {
+    else {
       reward.show(false); objective.root.classList.remove('ws-quest-hide');
       inventory.add('amber-resin', 4); // was 2 amber heartwood, which nothing used (E314 C)
       hud.toast("Hale's thanks · 4 amber resin — and the Warden's bow is yours to keep");
