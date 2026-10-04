@@ -1,7 +1,8 @@
 import { boxDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Rng } from '@wildshard/engine/core/rng';
-import { BoxGeometry, CircleGeometry, Group, Mesh, MeshStandardMaterial, PointLight, type Object3D } from 'three';
+import { measureUv, type MeasureRole } from '@wildshard/engine/render/families/params';
+import { BoxGeometry, CircleGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, PointLight, type Object3D } from 'three';
 import { HUT } from '../layout';
 
 /**
@@ -13,7 +14,23 @@ import { HUT } from '../layout';
  */
 export const poolMask = (x: number, z: number): boolean => Math.hypot(x - 25, z - 20) < 5;
 
-const cube = (w: number, h: number, d: number, color = 0x888888): Mesh => new Mesh(new BoxGeometry(w, h, d), new MeshStandardMaterial({ color, flatShading: true }));
+/**
+ * A w × h × d box whose first UV set carries SF56's measure data (its `role` and each face's own metres and size: the
+ * dev-map look's grid and "4×3" labels, `measureUv`). The plain look never reads it. BoxGeometry's faces run +x, −x
+ * (depth × height), +y, −y (width × depth), +z, −z (width × height), four corners each, u left to right and v bottom to
+ * top as seen from outside.
+ */
+export function measureBox(w: number, h: number, d: number, role: MeasureRole): BoxGeometry {
+  const geometry = new BoxGeometry(w, h, d), uv = geometry.getAttribute('uv'), packed: number[] = [];
+  const sizes: [number, number][] = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]];
+  for (let i = 0; i < uv.count; i++) {
+    const size = sizes[Math.floor(i / 4)]; if (size === undefined) throw new Error('measureBox: one segment per face');
+    packed.push(...measureUv(role, uv.getX(i) * size[0], uv.getY(i) * size[1], size[0], size[1]));
+  }
+  return geometry.setAttribute('uv', new Float32BufferAttribute(packed, 2));
+}
+/** a grey-box shape (role 1, structure: orange in the dev-map look; role 2, trim: grey) */
+const cube = (w: number, h: number, d: number, color = 0x888888, role: MeasureRole = 1): Mesh => new Mesh(measureBox(w, h, d, role), new MeshStandardMaterial({ color, flatShading: true }));
 /** What the shapes need: a root, a scope that owns their buffers, the registry sink, the seeded RNG and the ground height. */
 export interface TemplateWorldPorts { root: Object3D; scope: Scope; piece: (piece: Piece) => void; rng: { stream: (name: 'cosmetic') => Rng }; heightAt: (x: number, z: number) => number }
 /** The hut, door, ramp, `propCount` scattered cubes and the pool disc, under `root`, each a registry piece as the runtime registered it. */
@@ -21,7 +38,7 @@ export function buildTemplateWorld(ctx: TemplateWorldPorts, propCount: number): 
   const { heightAt } = ctx, file = 'src/shards/_template/generators/world.ts';
   const y = heightAt(HUT.x, HUT.z);
   const hut = new Group(); hut.position.set(HUT.x, y, HUT.z);
-  const roof = cube(6, 0.3, 6); roof.position.y = 3; hut.add(roof);
+  const roof = cube(6, 0.3, 6, 0x888888, 2); roof.position.y = 3; hut.add(roof);
   const colliders = [];
   for (const [x, z, hw, hd] of [[-3, 0, 0.15, 3], [3, 0, 0.15, 3], [0, -3, 3, 0.15], [-2, 3, 1, 0.15], [2, 3, 1, 0.15]]) {
     if (x === undefined || z === undefined || hw === undefined || hd === undefined) continue;
@@ -29,12 +46,12 @@ export function buildTemplateWorld(ctx: TemplateWorldPorts, propCount: number): 
     colliders.push(boxDesc({ x: HUT.x + x, z: HUT.z + z, hw, hd, rot: 0, yBottom: y, yTop: y + 3 }, 'wood'));
   }
   ctx.root.add(hut); ctx.piece({ id: 'template.hut', name: 'Grey hut', category: 'buildings', file, object: hut, colliders, surface: 'wood' });
-  const panel = cube(1.8, 2.5, 0.2, 0x555555); panel.position.set(HUT.x, y + 1.2, HUT.doorZ);
+  const panel = cube(1.8, 2.5, 0.2, 0x555555, 2); panel.position.set(HUT.x, y + 1.2, HUT.doorZ);
   ctx.root.add(panel); ctx.piece({ id: 'template.door', name: 'Open hut door', category: 'buildings', file, object: panel,
     colliders: [boxDesc({ x: HUT.x, z: HUT.doorZ, hw: 0.9, hd: 0.1, rot: 0, yBottom: y, yTop: y + 2.5 }, 'wood')], active: () => true });
   const ramp = new Group(), from: [number, number, number] = [8, heightAt(8, -8), -8], to: [number, number, number] = [8, from[1] + 2, -14];
-  for (let i = 0; i < 10; i++) { const tread = cube(3, 0.2, 0.6); tread.position.set(8, from[1] + (i + 1) * 0.2 - 0.1, -8 - (i + 0.5) * 0.6); ramp.add(tread); }
-  const slope = cube(3, 0.24, Math.sqrt(40)); slope.position.set(12, from[1] + 0.9, -11); slope.rotation.x = Math.atan2(2, 6); ramp.add(slope);
+  for (let i = 0; i < 10; i++) { const tread = cube(3, 0.2, 0.6, 0x888888, 2); tread.position.set(8, from[1] + (i + 1) * 0.2 - 0.1, -8 - (i + 0.5) * 0.6); ramp.add(tread); }
+  const slope = cube(3, 0.24, Math.sqrt(40), 0x888888, 2); slope.position.set(12, from[1] + 0.9, -11); slope.rotation.x = Math.atan2(2, 6); ramp.add(slope);
   ctx.root.add(ramp); ctx.piece({ id: 'template.ramp', name: 'Ramp and stair treads', category: 'buildings', file, object: ramp,
     colliders: [{ kind: 'box', x: 12, y: from[1] + 0.9, z: -11, hx: 1.5, hy: 0.12, hz: Math.sqrt(40) / 2,
       rot: { x: Math.sin(Math.atan2(2, 6) / 2), y: 0, z: 0, w: Math.cos(Math.atan2(2, 6) / 2) }, surface: 'wood' },
@@ -55,13 +72,13 @@ export function buildTemplateWorld(ctx: TemplateWorldPorts, propCount: number): 
 /** The jump course's three practice pads, `baseHeight` up at `x`. */
 export function jumpCoursePads(baseHeight: number, x = 0): Group {
   const root = new Group();
-  for (let i = 0; i < 3; i++) { const pad = new Mesh(new BoxGeometry(3, 0.3, 3), new MeshStandardMaterial({ color: 0x888888, flatShading: true })); pad.position.set(x, baseHeight + i * 0.3, -i * 4); root.add(pad); }
+  for (let i = 0; i < 3; i++) { const pad = cube(3, 0.3, 3); pad.position.set(x, baseHeight + i * 0.3, -i * 4); root.add(pad); }
   return root;
 }
 
 /** The lantern as held (lamp and its unlit light, at the off-hand offset). */
 export function lanternModel(): Group {
-  const model = new Group(), lamp = new Mesh(new BoxGeometry(0.12, 0.18, 0.12), new MeshStandardMaterial({ color: 0x888888, flatShading: true }));
+  const model = new Group(), lamp = cube(0.12, 0.18, 0.12, 0x888888, 2);
   model.add(lamp, new PointLight(0xffe1aa, 0, 8)); model.position.set(-0.3, -0.3, -0.55);
   return model;
 }

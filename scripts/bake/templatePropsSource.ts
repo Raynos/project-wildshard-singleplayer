@@ -1,10 +1,10 @@
-import { BoxGeometry, Group, type Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
+import { Group, type Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 import { buildTerrain } from '../../src/engine/world/terrainField';
 import { TRAIL } from '../../src/shards/_template/layout';
 import { Scope } from '../../src/engine/app/scope';
 import { RngService } from '../../src/engine/core/rng';
 import { WorldRegistry } from '../../src/engine/world/registry';
-import { buildTemplateWorld, jumpCoursePads, lanternModel, poolMask } from '../../src/shards/_template/generators/world';
+import { buildTemplateWorld, jumpCoursePads, lanternModel, measureBox, poolMask } from '../../src/shards/_template/generators/world';
 import type { ShardProps } from '../../src/game/shardfile/props';
 import type { PropsBakeSource } from '../../src/sdk/bake/props';
 
@@ -17,7 +17,7 @@ export function templateProps(count = 20): { source: PropsBakeSource; original: 
   const staticRoot = new Group(); staticRoot.add(shape('template.hut').clone(), shape('template.ramp').clone());
   const scatter = shape('template.props'), transforms: Matrix4[] = []; scatter.updateMatrixWorld(true);
   for (const prop of scatter.children) transforms.push(prop.matrixWorld.clone());
-  const model = new Mesh(new BoxGeometry(0.6, 0.6, 0.6), new MeshStandardMaterial({ color: 0x888888, flatShading: true }));
+  const model = new Mesh(measureBox(0.6, 0.6, 0.6, 1), new MeshStandardMaterial({ color: 0x888888, flatShading: true }));
   const door = shape('template.door');
   // SF16 relocates the course into the cell; this fixture records its same three pads at a bounded practice location.
   const course = jumpCoursePads(30, 90);

@@ -140,6 +140,46 @@ export const GroundLayerSchema = v.strictObject({
 /** A ground layer with every default filled. */
 export type GroundLayerParams = v.InferOutput<typeof GroundLayerSchema>;
 
+const metres = (max: number) => v.pipe(v.number(), v.finite(), v.minValue(1e-3), v.maxValue(max));
+/**
+ * The PBR family's measure layer (SHARD-PLATFORM SF56, G152): a blockout "dev map" look drawn by the shader, no texture.
+ * Every surface is coloured by its role, crossed by a 1 m grid with a lighter sub-grid, and a structure or trim face of at
+ * least 1 m × 1 m carries its size in metres ("4×3") in its top-left corner. The role, the face's own metres and its size
+ * ride in the surface's first UV set (`measureUv`, written by a generator); a surface with no such UV (terrain, a plain
+ * prop) is floor, gridded in world space on the plane its normal faces. The layer draws only while the look is switched on
+ * (a Debug row): off, the surface is exactly its plain PBR self.
+ */
+export const MeasureLayerSchema = v.strictObject({
+  /** sRGB: walls, structures and props (role 1) */
+  structure: v.optional(srgb, [0.95, 0.53, 0.1]),
+  /** sRGB: structural surfaces and trim (role 2) */
+  trim: v.optional(srgb, [0.45, 0.45, 0.46]),
+  /** sRGB: the floor (no role) */
+  floor: v.optional(srgb, [0.75, 0.74, 0.71]),
+  /** the 1 m lines: sRGB colour, opacity on a role surface and on the floor, half-width (m) */
+  line: v.optional(v.strictObject({ colour: srgb, alpha: unit, floorAlpha: unit, width: metres(0.1) }), { colour: [1, 1, 1], alpha: 0.7, floorAlpha: 0.55, width: 0.011 }),
+  /** the sub-grid: step (m, divides 1) and opacity */
+  sub: v.optional(v.strictObject({ step: metres(0.5), alpha: unit }), { step: 0.25, alpha: 0.22 }),
+  /** the size label: sRGB colour and glyph height (m) */
+  label: v.optional(v.strictObject({ colour: srgb, height: metres(2) }), { colour: [1, 1, 1], height: 0.3 }),
+});
+/** A measure layer with every default filled. */
+export type MeasureLayerParams = v.InferOutput<typeof MeasureLayerSchema>;
+/** The measure layer's surface roles: 1 = structure (orange), 2 = trim (grey). */
+export type MeasureRole = 1 | 2;
+/** the UV slot a measure UV packs into: role and size sit in multiples of it, the face's own metres (+1) below it */
+export const MEASURE_SLOT = 64;
+/**
+ * The first-UV pair a measure-layer surface carries at one vertex: `role`, the vertex's metres across (`u`) and up
+ * (`up`) its face from the face's bottom-left corner as seen from outside, and the face's size `w` × `h` (m). A size is labelled
+ * in half metres up to 31.5 m (larger faces are gridded, not labelled); a face may span at most 62 m.
+ */
+export function measureUv(role: MeasureRole, u: number, up: number, w: number, h: number): [number, number] {
+  if (!(w > 0 && h > 0 && w <= 62 && h <= 62 && u >= -1e-6 && up >= -1e-6 && u <= w + 1e-6 && up <= h + 1e-6)) throw new Error('measureUv: a face within 62 m, its point on it');
+  const half = (d: number): number => (d <= 31.5 ? Math.round(d * 2) : 0);
+  return [MEASURE_SLOT * (role + 4 * half(w)) + 1 + u, MEASURE_SLOT * half(h) + 1 + up];
+}
+
 /** One PBR surface: metal / rough with colour, normal and packed ORM maps (occlusion r, roughness g, metalness b). */
 export const PbrMaterialSchema = v.strictObject({
   family: v.literal('pbr'),
@@ -163,6 +203,8 @@ export const PbrMaterialSchema = v.strictObject({
   alphaCutoff: v.optional(unit, 0),
   /** a procedural ground layer (wind ripples, grain, terrain light shaping); null = a plain surface */
   ground: v.optional(v.nullable(GroundLayerSchema), null),
+  /** a procedural measure layer (SF56: the dev-map look, drawn while its Debug row is on); null = none */
+  measure: v.optional(v.nullable(MeasureLayerSchema), null),
 });
 /** A PBR material entry with every default filled. */
 export type PbrMaterialParams = v.InferOutput<typeof PbrMaterialSchema>;

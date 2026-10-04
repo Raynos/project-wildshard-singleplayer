@@ -6,10 +6,12 @@
  * Every slot is always filled (a 1×1 white or flat-normal filler where the surface has no map), so every PBR material
  * shares one program per object variant and a missing map is a uniform, not a recompile (the same trick the sky rig
  * plays on loaded models). Program changes come only from `vertexColours`, `faceted`, `doubleSided`, `alphaCutoff > 0` and a
- * procedural `ground` layer (ground.ts: wind ripples, grain and terrain light shaping, Signal Dunes' sand).
+ * procedural `ground` layer (ground.ts: wind ripples, grain and terrain light shaping, Signal Dunes' sand) or `measure`
+ * layer (measure.ts: SF56's dev-map grid, roles and size labels).
  */
 import * as THREE from 'three';
 import { applyGround } from './ground';
+import { applyMeasure } from './measure';
 import type { PbrMaterialParams } from './params';
 
 /** How a texture is read: `colour` is sRGB, `data` is linear (normals, ORM). */
@@ -56,6 +58,8 @@ export function compilePbr(params: PbrMaterialParams, textures: TextureResolver)
     alphaTest: params.alphaCutoff,
   });
   m.name = 'family:pbr';
+  if (params.ground !== null && params.measure !== null) throw new Error('material family: a PBR surface takes a ground or a measure layer, not both');
   if (params.ground !== null) applyGround(m, params.ground, textures);
+  if (params.measure !== null) applyMeasure(m, params.measure);
   return m;
 }

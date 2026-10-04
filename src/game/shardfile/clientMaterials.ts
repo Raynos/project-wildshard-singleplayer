@@ -15,6 +15,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Shardfile } from './schema';
 import { materialTextureRefs } from './materials';
+import { declaresMeasure, installMeasureLookRow } from './measureLook';
 
 /** Compile a shardfile's admitted material data on the game's renderer; `compile` adds one more family entry; `tick` advances the family looks' clocks. */
 export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope): Promise<{ materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown) => Material; tick: (dt: number) => void }> {
@@ -43,6 +44,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   // a family's implicit surface is plain and vertex-coloured; PBR's metalness default is a map multiplier, so the plain one is dielectric
   for (const id of defaults) if (!Object.hasOwn(shard.look.materials, id)) materials.set(id, scope.own(familyMaterial({ family: id, vertexColours: true, ...(id === 'pbr' ? { metalness: 0 } : {}) }, context)));
   for (const [id, entry] of Object.entries(shard.look.materials)) materials.set(id, scope.own(familyMaterial(entry, context)));
+  // SF56: a declared measure layer draws only while its Debug row is on
+  if (declaresMeasure(shard)) installMeasureLookRow(scope);
   // a further family entry (an exported skin's binding, SF16) compiles on the same looks and admitted textures, scope-owned
   return { materials, textures, compile: (entry) => scope.own(familyMaterial(entry, context)), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); } };
 }
