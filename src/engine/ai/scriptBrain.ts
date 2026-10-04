@@ -1,0 +1,141 @@
+import * as v from 'valibot';
+import type { AnimalSim } from '../entities/AnimalSim';
+import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptQuery, type ScriptCall } from '../script/host';
+import { ScriptWorld, SCRIPT_OP, type ScriptEffect, type EffectTransaction } from '../script/effects';
+import type { ScriptModule } from '../script/lane';
+
+/** Numeric motion intentions; the guest cannot write positions, spawn actors or deal damage. */
+export const BRAIN_FIELD = Object.freeze({ yaw: 1, speed: 2, strafe: 3, turnRate: 4 });
+/** One trusted actor binding, with admitted motion bounds and a finite catalogue of strike requests. */
+export interface ScriptBrainBinding {
+  module: string; entity: number; actorId: string; maxSpeed: number; maxStrafe: number; maxTurnRate: number;
+  parameters: readonly number[]; strikes: readonly { event: number; strike: string }[];
+}
+/** Read-only observations and authoritative strike execution are supplied by the owning simulation. */
+export interface ScriptBrainPorts {
+  observe: (actor: AnimalSim) => readonly number[];
+  mayAttack: (actor: AnimalSim) => boolean;
+  strike: (actor: AnimalSim, strike: string) => void;
+}
+/** Each lane shares the engine's per-tick module, fuel, query, effect and memory allowances. */
+export interface ScriptBrainOptions {
+  modules: readonly ScriptModule[]; bindings: readonly ScriptBrainBinding[]; actors: ReadonlyMap<string, AnimalSim>;
+  divisor: number; query: ScriptQuery; ports: ScriptBrainPorts;
+}
+const finite = v.pipe(v.number(), v.finite());
+const id = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(0x7fffffff));
+const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
+const bindingSchema = v.strictObject({ module: key, entity: id, actorId: key,
+  maxSpeed: v.pipe(finite, v.minValue(0), v.maxValue(15)), maxStrafe: v.pipe(finite, v.minValue(0), v.maxValue(15)),
+  maxTurnRate: v.pipe(finite, v.minValue(0), v.maxValue(30)),
+  parameters: v.pipe(v.array(finite), v.maxLength(64)),
+  strikes: v.pipe(v.array(v.strictObject({ event: id, strike: key })), v.maxLength(32)),
+});
+const worldSchema = v.pipe(v.array(v.strictObject({ id, name: key, position: v.tuple([finite, finite, finite]),
+  fields: v.record(v.string(), finite), frozen: v.boolean(), interactive: v.boolean() })), v.maxLength(128));
+
+class BrainWorld extends ScriptWorld {
+  private readonly bindings: ReadonlyMap<number, ScriptBrainBinding>;
+  constructor(bindings: readonly ScriptBrainBinding[]) {
+    super({ fields: { 1: [-Math.PI, Math.PI], 2: [-15, 15], 3: [-15, 15], 4: [0, 30] }, archetypes: [],
+      events: [...new Set(bindings.flatMap(b => b.strikes.map(s => s.event)))], maxEntities: Math.max(1, bindings.length) },
+    bindings.map(b => ({ id: b.entity, name: b.actorId, position: [0, 0, 0], fields: { 1: 0, 2: 0, 3: 0, 4: 0 }, frozen: false, interactive: true })));
+    this.bindings = new Map(bindings.map(b => [b.entity, b]));
+  }
+  override prepare(effects: readonly ScriptEffect[], self: number, spawns: number, events: number): EffectTransaction {
+    const binding = this.bindings.get(self);
+    if (binding === undefined) throw new Error('Unknown brain actor');
+    const seen = new Set<number>(); let strike = false;
+    for (const effect of effects) {
+      if (effect.op === SCRIPT_OP.field) {
+        if (seen.has(effect.a) || (effect.a === BRAIN_FIELD.speed && Math.abs(effect.b) > binding.maxSpeed)
+          || (effect.a === BRAIN_FIELD.strafe && Math.abs(effect.b) > binding.maxStrafe)
+          || (effect.a === BRAIN_FIELD.turnRate && effect.b > binding.maxTurnRate)) throw new Error('Brain motion outside declared bounds');
+        seen.add(effect.a);
+      } else if (effect.op === SCRIPT_OP.event) {
+        if (strike || effect.b !== self || effect.c !== 0 || !binding.strikes.some(s => s.event === effect.a)) throw new Error('Undeclared brain strike');
+        strike = true;
+      } else throw new Error('Brains request motion and strikes only');
+    }
+    return super.prepare(effects, self, spawns, events);
+  }
+  override restore(entities: Parameters<ScriptWorld['restore']>[0]): void {
+    for (const entity of entities) {
+      const binding = this.bindings.get(entity.id);
+      if (binding === undefined || entity.name !== binding.actorId || entity.position.some(n => n !== 0)
+        || Object.keys(entity.fields).length !== 4 || Object.keys(entity.fields).some(k => !['1', '2', '3', '4'].includes(k))
+        || Math.abs(entity.fields[2] ?? Infinity) > binding.maxSpeed || Math.abs(entity.fields[3] ?? Infinity) > binding.maxStrafe
+        || (entity.fields[4] ?? Infinity) > binding.maxTurnRate) throw new Error('Invalid restored brain intent');
+    }
+    super.restore(entities);
+  }
+}
+
+/** Bounded author policy applied through trusted actor ports after a successful atomic script call. */
+export class ScriptBrainLane {
+  readonly host: ScriptHost;
+  private readonly bindings: readonly ScriptBrainBinding[];
+  private readonly actors: ReadonlyMap<string, AnimalSim>;
+  private readonly ports: ScriptBrainPorts;
+  private readonly contract: string;
+  readonly divisor: number;
+  constructor(options: ScriptBrainOptions) {
+    if (!Number.isInteger(options.divisor) || options.divisor < 1 || 60 % options.divisor !== 0) throw new Error('Brain divisor divides 60');
+    this.divisor = options.divisor; this.actors = new Map(options.actors); this.ports = options.ports;
+    this.bindings = v.parse(v.pipe(v.array(bindingSchema), v.maxLength(128)), options.bindings).sort((a, b) => a.entity - b.entity);
+    if (new Set(this.bindings.map(b => b.entity)).size !== this.bindings.length || new Set(this.bindings.map(b => b.actorId)).size !== this.bindings.length
+      || this.bindings.some(b => this.actors.get(b.actorId)?.entityId !== b.actorId || !options.modules.some(m => m.name === b.module)
+        || new Set(b.strikes.map(s => s.event)).size !== b.strikes.length)) throw new Error('Invalid trusted brain bindings');
+    const bindings = new Map(this.bindings.map(b => [b.entity, b]));
+    this.host = new ScriptHost({ world: new BrainWorld(this.bindings), query: (kind, input, self) => {
+      if (kind !== SCRIPT_PARAMETER_QUERY) return options.query(kind, input, self);
+      const binding = bindings.get(self);
+      if (binding === undefined || input.length !== 8 || input.some(n => n !== 0)) throw new Error('Brain parameters require trusted self');
+      return [...binding.parameters];
+    } });
+    for (const module of options.modules) this.host.install(module.name, module.bytes, module.seedLo, module.seedHi);
+    this.contract = JSON.stringify({ divisor: this.divisor, bindings: this.bindings,
+      modules: options.modules.map(m => ({ ...m, bytes: Array.from(m.bytes) })).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0) });
+  }
+  /** Input slots: tick, dt, reserved, trusted self, position xyz, yaw, last-hit time, attack phase, then up to 16 host observations. */
+  step(tick: number): readonly ScriptCall[] {
+    if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid brain tick');
+    if (tick % this.divisor !== 0) return [];
+    const inputs = this.bindings.map(binding => {
+      const actor = this.actors.get(binding.actorId); if (actor === undefined) throw new Error('Missing trusted brain actor');
+      const values = [...this.ports.observe(actor)];
+      if (values.length > 16 || !values.every(Number.isFinite)) throw new Error('Invalid brain observations');
+      return { binding, actor, input: [tick, this.divisor / 60, 0, binding.entity, actor.position.x, actor.position.y, actor.position.z,
+        actor.yaw, Number.isFinite(actor.lastHitT) ? actor.lastHitT : -1, actor.attackPhase, ...values] };
+    });
+    this.host.beginTick(tick);
+    const calls: ScriptCall[] = [];
+    for (const { binding, actor, input } of inputs) {
+      if (!actor.alive) continue;
+      const call = this.host.call(binding.module, binding.entity, input); calls.push(call);
+      const state = this.host.world.entity(binding.entity);
+      if (!call.ok || state === undefined) { actor.setMotion(actor.yaw, 0, 0); actor.setStrafe(0); continue; }
+      actor.setMotion(state.fields[1] ?? 0, state.fields[2] ?? 0, state.fields[4] ?? 0); actor.setStrafe(state.fields[3] ?? 0);
+      for (const event of call.events) {
+        const strike = binding.strikes.find(s => s.event === event.type);
+        if (strike !== undefined && actor.attackPhase < 0 && this.ports.mayAttack(actor)) this.ports.strike(actor, strike.strike);
+      }
+    }
+    return calls;
+  }
+  /** Actor/motor snapshots are owned by the sim; this captures complete author state and the matching intent contract. */
+  snapshot(): string { return JSON.stringify({ contract: this.contract, world: this.host.world.state(), host: this.host.checkpoint() }); }
+  /** Restore without executing policy or replaying motion/strike callbacks; reject mismatched actors or declarations atomically. */
+  restore(text: string): void {
+    const raw: unknown = JSON.parse(text);
+    if (typeof raw !== 'object' || raw === null || !('contract' in raw) || !('world' in raw) || !('host' in raw)
+      || raw.contract !== this.contract) throw new Error('Incompatible brain continuation');
+    const world = v.parse(worldSchema, raw.world);
+    if (world.length !== this.bindings.length || world.some(e => !this.bindings.some(b => b.entity === e.id && b.actorId === e.name))
+      || new Set(world.map(e => e.id)).size !== world.length) throw new Error('Invalid restored brain identity');
+    const beforeWorld = this.host.world.state(), beforeHost = this.host.checkpoint();
+    try {
+      this.host.world.restore(world); this.host.restoreState(raw.host as ReturnType<ScriptHost['checkpoint']>);
+    } catch (error) { this.host.world.restore(beforeWorld); this.host.restoreState(beforeHost); throw error; }
+  }
+}
