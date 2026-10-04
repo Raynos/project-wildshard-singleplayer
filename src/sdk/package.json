@@ -16,7 +16,8 @@
     "./plumbing": "./plumbing.ts",
     "./bake/props": "./bake/props.ts",
     "./bake/glb": "./bake/glb.ts",
-    "./bake/texture": "./bake/texture.ts"
+    "./bake/texture": "./bake/texture.ts",
+    "./bake/export": "./bake/export.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -36,7 +37,8 @@
     "vite": "^8.3.0",
     "three": "^0.186.0",
     "@types/three": "^0.186.0",
-    "@dimforge/rapier3d-simd": "0.21.0"
+    "@dimforge/rapier3d-simd": "0.21.0",
+    "@gltf-transform/core": "^4.5.0"
   },
   "publishConfig": {
     "exports": {
@@ -95,6 +97,10 @@
       "./bake/texture": {
         "types": "./dist/types/sdk/bake/texture.d.ts",
         "default": "./dist/bake/texture.js"
+      },
+      "./bake/export": {
+        "types": "./dist/types/sdk/bake/export.d.ts",
+        "default": "./dist/bake/export.js"
       }
     }
   }

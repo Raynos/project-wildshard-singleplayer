@@ -14428,6 +14428,24 @@
         "from": "@wildshard/sdk/author"
       },
       {
+        "name": "SampledSkinClip",
+        "kind": "interface",
+        "doc": "Uniform local TRS samples for the mesh root and each joint, in the declared skeleton order.",
+        "from": "@wildshard/sdk/bake/export"
+      },
+      {
+        "name": "sampleSkinClip",
+        "kind": "function",
+        "doc": "Sample an existing pose closure at bounded cadence, including both endpoints; restore the mesh's initial joint pose afterward.",
+        "from": "@wildshard/sdk/bake/export"
+      },
+      {
+        "name": "skinnedGlb",
+        "kind": "function",
+        "doc": "Deterministic self-contained GLB of actual geometry, joint order, weights, inverse binds and sampled clips; textures stay external KTX2 declarations.",
+        "from": "@wildshard/sdk/bake/export"
+      },
+      {
         "name": "GlbPrimitive",
         "kind": "interface",
         "doc": "A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets.",

@@ -43,7 +43,7 @@ export function parseGlb(bytes: Uint8Array): AssetCost {
     const bufferView = views[count(a['bufferView'], 10_000)]; if (bufferView === undefined) throw new Error('missing GLB accessor view');
     const size = width * dimension, stride = count(bufferView['byteStride'] ?? size, 252), offset = count(a['byteOffset'] ?? 0, MAX_BYTES);
     if (stride < size || offset + (n === 0 ? 0 : (n - 1) * stride + size) > count(bufferView['byteLength'], MAX_BYTES)) throw new Error('GLB accessor outside view');
-    gpu += n * size; return { n, type: a['type'], component: a['componentType'], offset: count(bufferView['byteOffset'] ?? 0, MAX_BYTES) + offset, stride, width, dimension };
+    gpu += n * size; return { n, type: a['type'], component: a['componentType'], offset: count(bufferView['byteOffset'] ?? 0, MAX_BYTES) + offset, stride, width, dimension, normalized: a['normalized'] === true };
   });
   if (list(doc['images'] ?? []).length > 0) throw new Error('GLB textures must be separate declared KTX2 assets');
   const meshCosts = list(doc['meshes'] ?? []).map((mesh) => {
@@ -91,10 +91,75 @@ export function parseGlb(bytes: Uint8Array): AssetCost {
     if (typeof shadow !== 'boolean') throw new Error('invalid GLB shadow flag');
     triangles += cost.triangles * instances; draws += cost.draws * (shadow ? 2 : 1);
   }
+  // Skins and clips are admitted before GLTFLoader allocates skeletons or animation tracks.
+  const read = (a: typeof accessors[number], row: number, component: number): number => {
+    const at = 28 + length + a.offset + row * a.stride + component * a.width;
+    switch (a.component) {
+      case 5121: return view.getUint8(at);
+      case 5123: return view.getUint16(at, true);
+      case 5125: return view.getUint32(at, true);
+      case 5126: return view.getFloat32(at, true);
+      default: throw new Error('unsupported GLB rig component');
+    }
+  };
+  const nodeIndex = (value: unknown): number => { const id = count(value, 10000); if (nodes[id] === undefined) throw new Error('missing GLB rig node'); return id; };
+  const parents = new Map<number, number>();
+  nodes.forEach((node, id) => {
+    for (const child of list(node['children'] ?? [])) { const key = nodeIndex(child); if (key === id || parents.has(key)) throw new Error('GLB node hierarchy'); parents.set(key, id); }
+    for (const [key, size] of [['translation', 3], ['rotation', 4], ['scale', 3], ['matrix', 16]] as const) if (node[key] !== undefined) {
+      const values = list(node[key]); if (values.length !== size || values.some((n) => typeof n !== 'number' || !Number.isFinite(n) || Math.abs(n) > 100000)) throw new Error('GLB node transform');
+      if (key === 'rotation' && Math.abs(values.reduce<number>((sum, n) => sum + Number(n) ** 2, 0) - 1) > 1e-4) throw new Error('GLB node quaternion');
+    }
+    if (node['matrix'] !== undefined && ['translation', 'rotation', 'scale'].some((key) => node[key] !== undefined)) throw new Error('GLB matrix and TRS');
+  });
+  for (let id = 0; id < nodes.length; id++) { const seen = new Set<number>(); let parent: number | undefined = id; while (parent !== undefined) { if (seen.has(parent) || seen.size > 128) throw new Error('GLB node cycle or depth'); seen.add(parent); parent = parents.get(parent); } }
+  let rigCpu = 0;
+  const skins = list(doc['skins'] ?? []).map((value) => {
+    const skin = object(value), joints = list(skin['joints']).map(nodeIndex);
+    if (joints.length === 0 || joints.length > 128 || new Set(joints).size !== joints.length) throw new Error('GLB skin joints cap');
+    if (skin['skeleton'] !== undefined) nodeIndex(skin['skeleton']);
+    if (skin['inverseBindMatrices'] !== undefined) {
+      const a = accessors[count(skin['inverseBindMatrices'], 10000)]; if (a === undefined || a.type !== 'MAT4' || a.component !== 5126 || a.n !== joints.length) throw new Error('GLB inverse bind shape');
+      for (let i = 0; i < a.n; i++) for (let c = 0; c < 16; c++) if (!Number.isFinite(read(a, i, c))) throw new Error('GLB inverse bind value');
+    }
+    const textureSize = Math.max(4, Math.ceil(Math.sqrt(joints.length * 4) / 4) * 4);
+    gpu += textureSize * textureSize * 16; rigCpu += textureSize * textureSize * 16 + joints.length * 64;
+    return joints;
+  });
+  if (skins.length > 128) throw new Error('GLB skins cap');
+  const meshes = list(doc['meshes'] ?? []).map(object);
+  for (const node of nodes) if (node['skin'] !== undefined) {
+    const joints = skins[count(node['skin'], 128)], mesh = meshes[count(node['mesh'], 10000)]; if (joints === undefined || mesh === undefined || node['extensions'] !== undefined) throw new Error('GLB skin binding');
+    for (const primitive of list(mesh['primitives'])) {
+      const attrs = object(object(primitive)['attributes']), position = accessors[count(attrs['POSITION'], 10000)], indices = accessors[count(attrs['JOINTS_0'], 10000)], weights = accessors[count(attrs['WEIGHTS_0'], 10000)];
+      if (indices === undefined || weights === undefined || position === undefined || indices.type !== 'VEC4' || weights.type !== 'VEC4' || indices.n !== position.n || weights.n !== position.n || ![5121, 5123].includes(Number(indices.component)) || !(weights.component === 5126 || ([5121, 5123].includes(Number(weights.component)) && weights.normalized))) throw new Error('GLB skin weights shape');
+      for (let i = 0; i < indices.n; i++) { let total = 0; for (let c = 0; c < 4; c++) { const joint = read(indices, i, c), raw = read(weights, i, c), weight = weights.normalized ? raw / (weights.component === 5121 ? 255 : 65535) : raw;
+        if (joint >= joints.length || !Number.isFinite(weight) || weight < 0 || weight > 1) throw new Error('GLB skin weight value'); total += weight;
+      } if (Math.abs(total - 1) > 1e-4) throw new Error('GLB skin weights must sum to one'); }
+    }
+  }
+  const animations = list(doc['animations'] ?? []); if (animations.length > 32) throw new Error('GLB clips cap');
+  for (const value of animations) {
+    const animation = object(value), samplers = list(animation['samplers']).map(object), channels = list(animation['channels']), bindings = new Set<string>();
+    if (typeof animation['name'] !== 'string' || !/^[a-z][a-z0-9.-]{0,127}$/u.test(animation['name'])) throw new Error('GLB clip name');
+    if (samplers.length === 0 || samplers.length > 512 || channels.length === 0 || channels.length > 512) throw new Error('GLB clip channels cap');
+    for (const entry of channels) {
+      const channel = object(entry), target = object(channel['target']), targetId = nodeIndex(target['node']), path = target['path'], sampler = samplers[count(channel['sampler'], 512)];
+      if (sampler === undefined || !['translation', 'rotation', 'scale'].includes(String(path)) || nodes[targetId]?.['matrix'] !== undefined || bindings.has(`${targetId}/${String(path)}`)) throw new Error('GLB clip target'); bindings.add(`${targetId}/${String(path)}`);
+      const input = accessors[count(sampler['input'], 10000)], output = accessors[count(sampler['output'], 10000)], width = path === 'rotation' ? 4 : 3;
+      if ((sampler['interpolation'] !== undefined && typeof sampler['interpolation'] !== 'string') || !['LINEAR', 'STEP'].includes(typeof sampler['interpolation'] === 'string' ? sampler['interpolation'] : 'LINEAR') || input === undefined || output === undefined || input.type !== 'SCALAR' || input.component !== 5126 || input.n < 2 || input.n > 4097 || output.component !== 5126 || output.dimension !== width || output.n !== input.n) throw new Error('GLB clip accessor shape');
+      let previous = -1;
+      for (let i = 0; i < input.n; i++) { const time = read(input, i, 0); if (!Number.isFinite(time) || time < 0 || time > 60 || time <= previous) throw new Error('GLB clip time order'); previous = time;
+        let norm = 0; for (let c = 0; c < width; c++) { const n = read(output, i, c); if (!Number.isFinite(n) || Math.abs(n) > 100000) throw new Error('GLB clip value'); norm += n * n; }
+        if (path === 'rotation' && Math.abs(norm - 1) > 1e-4) throw new Error('GLB clip quaternion');
+      }
+      rigCpu += (input.n + output.n * width) * 4;
+    }
+  }
   // Old GLB fixtures omit scene nodes; count their mesh resources conservatively too.
   if (nodes.length === 0) for (const cost of meshCosts) { triangles += cost.triangles; draws += cost.draws * 2; }
-  if (gpu > MAX_BYTES || triangles > 400_000 || draws > 512) throw new Error('GLB resource cap');
-  return { decoded: length + binaryBytes + instanceCpu, gpu, triangles, draws };
+  if (length + binaryBytes + instanceCpu + rigCpu > MAX_BYTES || gpu > MAX_BYTES || triangles > 400_000 || draws > 512) throw new Error('GLB resource cap');
+  return { decoded: length + binaryBytes + instanceCpu + rigCpu, gpu, triangles, draws };
 }
 
 /** Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. */
