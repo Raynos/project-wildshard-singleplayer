@@ -1807,7 +1807,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1967 exports, grouped by the module to import them from.
+1969 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2054,6 +2054,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimCommand`, `SimExternalPlayer`, `SimHost`, `SimHostPorts`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
 - `@wildshard/engine/sim/edgeProfiles`: `bakedEdgeProfiles`, `EdgeColour`, `EdgeProfiles`, `EdgeResolution`, `edgeSample`, `edgeSampleLocations`, `nativeEdgeProfiles`, `validateEdgeProfile`
 - `@wildshard/engine/sim/readiness`: `ReadinessBundle`, `ReadinessEstimate`, `ReadinessLink`, `readinessModel`, `ReadinessPart`, `ReadinessStatus`, `ReadinessTicket`, `TraversalReadiness`
+- `@wildshard/engine/sim/shore`: `SHORE_DEPTH`, `SHORE_REVETMENT_INNER_FACE`
 - `@wildshard/engine/sim/snapshot`: `decodeSimSnapshot`, `regionalContinuation`, `restoreSimHost`, `serializeSimSnapshot`, `SIM_REGION_SNAPSHOT_CHAR_BUDGET`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `SnapshotBasisMismatchError`, `snapshotSimHost`
 - `@wildshard/engine/sim/strips`: `generateCrossroads`, `GeneratedStrip`, `generatePlatform`, `generateStrip`, `PlatformCell`, `STRIP_OFFSETS`, `StripCell`, `StripCorner`, `StripMesh`, `StripProfile`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
@@ -2143,7 +2144,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-489 exports, grouped by the module to import them from.
+490 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2198,7 +2199,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `accentVars`, `parseAccent`, `ROAD_ACCENT`
-- `@wildshard/game/shardfile/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
+- `@wildshard/game/shardfile/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`, `visitGlbTriangles`
 - `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/game/shardfile/brainRuntime`: `DeclaredBrainPorts`, `DeclaredBrainRecipe`, `DeclaredNativeBrain`, `installDeclaredBrains`
 - `@wildshard/game/shardfile/brains`: `GuardianSchema`, `parseGuardian`, `parsePerchHunter`, `parseScriptBrain`, `parseSkirmisher`, `PerchHunterSchema`, `ScriptBrainSchema`, `ShardGuardian`, `ShardPerchHunter`, `ShardScriptBrain`, `ShardSkirmisher`, `SkirmisherSchema`

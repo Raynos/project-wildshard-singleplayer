@@ -8719,6 +8719,18 @@
         "from": "@wildshard/engine/sim/readiness"
       },
       {
+        "name": "SHORE_DEPTH",
+        "kind": "const",
+        "doc": "A boundary sample counts as seabed when it is more than this below 0 (the entry rule's 2 cm road tolerance).",
+        "from": "@wildshard/engine/sim/shore"
+      },
+      {
+        "name": "SHORE_REVETMENT_INNER_FACE",
+        "kind": "const",
+        "doc": "The revetment's inner (sea-side) face, in metres into the cell from the cell edge. The shard's sea is clipped here: no",
+        "from": "@wildshard/engine/sim/shore"
+      },
+      {
         "name": "decodeSimSnapshot",
         "kind": "function",
         "doc": "Decode compressed/legacy JSON; a basis-referencing wire requires its exact checked basis. Never drops native geometry/state.",
@@ -13659,6 +13671,12 @@
         "name": "parseKtx2",
         "kind": "function",
         "doc": "Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound.",
+        "from": "@wildshard/game/shardfile/assets"
+      },
+      {
+        "name": "visitGlbTriangles",
+        "kind": "function",
+        "doc": "Inspect exact static triangles only after the bounded GLB parser admits the complete payload.",
         "from": "@wildshard/game/shardfile/assets"
       },
       {

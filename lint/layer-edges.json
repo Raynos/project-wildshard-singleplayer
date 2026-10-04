@@ -1,7 +1,7 @@
 {
   "about": "SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.",
   "edges": {
-    "game → engine": 564,
+    "game → engine": 565,
     "kit → engine": 196,
     "kit → game": 2,
     "root → engine": 17,
@@ -12,7 +12,7 @@
     "shards/_template → engine": 6,
     "shards/_template → game": 1,
     "shards/_template → sdk": 9,
-    "shards/driftwood-isle → engine": 523,
+    "shards/driftwood-isle → engine": 524,
     "shards/driftwood-isle → game": 51,
     "shards/driftwood-isle → kit": 15,
     "shards/driftwood-isle → sdk": 6,

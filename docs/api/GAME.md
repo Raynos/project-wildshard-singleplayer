@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-489 members; 113 without a doc line (—).
+490 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -297,6 +297,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `parseAudio` | function | @wildshard/game/shardfile/assets | Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory. |
 | `parseGlb` | function | @wildshard/game/shardfile/assets | Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. |
 | `parseKtx2` | function | @wildshard/game/shardfile/assets | Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. |
+| `visitGlbTriangles` | function | @wildshard/game/shardfile/assets | Inspect exact static triangles only after the bounded GLB parser admits the complete payload. |
 | `AudioData` | type | @wildshard/game/shardfile/audio | Validated audio data; voice ids are resolved only through the platform's admitted catalogue. |
 | `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
 | `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |

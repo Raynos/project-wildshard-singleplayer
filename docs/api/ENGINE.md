@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1984 members; 830 without a doc line (—).
+1986 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1458,6 +1458,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ReadinessStatus` | interface | @wildshard/engine/sim/readiness | Frozen public status; unknown and out-of-bounds neighbours are closed by default. |
 | `ReadinessTicket` | interface | @wildshard/engine/sim/readiness | Completion belongs to this particular residency attempt, never merely a slug shared by several placements. |
 | `TraversalReadiness` | class | @wildshard/engine/sim/readiness | Node-safe readiness fence. Call request from radial distance every fixed step, so a U-turn cannot skip prefetch. |
+| `SHORE_DEPTH` | const | @wildshard/engine/sim/shore | A boundary sample counts as seabed when it is more than this below 0 (the entry rule's 2 cm road tolerance). |
+| `SHORE_REVETMENT_INNER_FACE` | const | @wildshard/engine/sim/shore | The revetment's inner (sea-side) face, in metres into the cell from the cell edge. The shard's sea is clipped here: no |
 | `decodeSimSnapshot` | function | @wildshard/engine/sim/snapshot | Decode compressed/legacy JSON; a basis-referencing wire requires its exact checked basis. Never drops native geometry/state. |
 | `regionalContinuation` | function | @wildshard/engine/sim/snapshot | Canonical logical continuation for a local authored region, without the profile-owned traveler or opaque world bytes. |
 | `restoreSimHost` | function | @wildshard/engine/sim/snapshot | Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. |
