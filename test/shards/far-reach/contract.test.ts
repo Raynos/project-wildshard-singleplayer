@@ -4,7 +4,6 @@ import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Physics } from '../../../src/engine/physics/Physics';
 import { loadRapier } from '../../../src/engine/physics/rapier';
-import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { StrikeRunner, type StrikeContext } from '../../../src/engine/ai/strikes';
 import { App } from '../../../src/engine/app/app';
 import type { Actor } from '../../../src/engine/combat/pipeline';
@@ -34,7 +33,7 @@ const loaded = new Set<App>();
 afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); vi.unstubAllGlobals(); });
 async function boot(): Promise<{ app: App; plugin: SkyReachPlugin; stages: string[]; active: Set<string>; fake: FakeGame }> {
   const fake = new FakeGame(), surface = fakeWorld();
-  const physics = new Physics(await loadRapier(await (await fetch(wasmInline)).arrayBuffer()));
+  const physics = new Physics(await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer));
   const app = new App(), plugin = new SkyReachPlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
   for (const context of INPUT_CONTEXTS) app.input.register(context, app.engineScope);
   const game: GameServices = { shard: manifest, rows: new Map(), bag, runtime: {
