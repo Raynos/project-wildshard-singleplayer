@@ -22,6 +22,7 @@ it('protects a build directory from the reaper before the preview process starts
     writeFileSync(join(scripts, 'gen.mjs'), '');
     const executable = (name: string, source: string) => { const path = join(bin, name); writeFileSync(path, source); chmodSync(path, 0o755); };
     executable('pgrep', '#!/bin/sh\nexit 1\n');
+    executable('ps', '#!/bin/sh\nexit 0\n');
     executable('curl', '#!/bin/sh\nexit 0\n');
     executable('pnpm', `#!${process.execPath}
 const fs=require('node:fs'),path=require('node:path'),dir=process.env.SF0_SERVE_FIXTURE;
