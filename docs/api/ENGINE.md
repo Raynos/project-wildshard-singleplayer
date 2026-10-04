@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1915 members; 830 without a doc line (—).
+1920 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -55,6 +55,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PlatformSpecies` | type | @wildshard/engine/ai/platform | Catalogue lookup may resolve variant-specific health/modifiers before a spawn is constructed. |
 | `canReach` | function | @wildshard/engine/ai/reach | Same chest/aim-point/slack query in every level, evaluated at the contact frame. |
 | `ReachActor` | interface | @wildshard/engine/ai/reach | — |
+| `BRAIN_FIELD` | const | @wildshard/engine/ai/scriptBrain | Numeric motion intentions; the guest cannot write positions, spawn actors or deal damage. |
+| `ScriptBrainBinding` | interface | @wildshard/engine/ai/scriptBrain | One trusted actor binding, with admitted motion bounds and a finite catalogue of strike requests. |
+| `ScriptBrainLane` | class | @wildshard/engine/ai/scriptBrain | Bounded author policy applied through trusted actor ports after a successful atomic script call. |
+| `ScriptBrainOptions` | interface | @wildshard/engine/ai/scriptBrain | Each lane shares the engine's per-tick module, fuel, query, effect and memory allowances. |
+| `ScriptBrainPorts` | interface | @wildshard/engine/ai/scriptBrain | Read-only observations and authoritative strike execution are supplied by the owning simulation. |
 | `SkirmisherBrain` | class | @wildshard/engine/ai/skirmisher | Renderer-free decisions; every timer, random continuation and remembered goal lives in the actor snapshot. |
 | `SkirmisherPorts` | interface | @wildshard/engine/ai/skirmisher | Host-owned perception, navigation and attack-token authority; no rendering or application singleton. |
 | `SkirmisherSpec` | interface | @wildshard/engine/ai/skirmisher | Parameters for a circling melee archetype with idle wandering and subordinate scattering. |

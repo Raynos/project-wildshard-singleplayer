@@ -284,6 +284,36 @@
         "from": "@wildshard/engine/ai/reach"
       },
       {
+        "name": "BRAIN_FIELD",
+        "kind": "const",
+        "doc": "Numeric motion intentions; the guest cannot write positions, spawn actors or deal damage.",
+        "from": "@wildshard/engine/ai/scriptBrain"
+      },
+      {
+        "name": "ScriptBrainBinding",
+        "kind": "interface",
+        "doc": "One trusted actor binding, with admitted motion bounds and a finite catalogue of strike requests.",
+        "from": "@wildshard/engine/ai/scriptBrain"
+      },
+      {
+        "name": "ScriptBrainLane",
+        "kind": "class",
+        "doc": "Bounded author policy applied through trusted actor ports after a successful atomic script call.",
+        "from": "@wildshard/engine/ai/scriptBrain"
+      },
+      {
+        "name": "ScriptBrainOptions",
+        "kind": "interface",
+        "doc": "Each lane shares the engine's per-tick module, fuel, query, effect and memory allowances.",
+        "from": "@wildshard/engine/ai/scriptBrain"
+      },
+      {
+        "name": "ScriptBrainPorts",
+        "kind": "interface",
+        "doc": "Read-only observations and authoritative strike execution are supplied by the owning simulation.",
+        "from": "@wildshard/engine/ai/scriptBrain"
+      },
+      {
         "name": "SkirmisherBrain",
         "kind": "class",
         "doc": "Renderer-free decisions; every timer, random continuation and remembered goal lives in the actor snapshot.",
@@ -13200,9 +13230,27 @@
         "from": "@wildshard/game/shardfile/audio"
       },
       {
+        "name": "parseScriptBrain",
+        "kind": "function",
+        "doc": "Validate a custom policy before module admission, trusted actor binding or physics allocation.",
+        "from": "@wildshard/game/shardfile/brains"
+      },
+      {
         "name": "parseSkirmisher",
         "kind": "function",
         "doc": "Reject unknown fields, nonfinite tuning and invalid radii before installing an actor policy.",
+        "from": "@wildshard/game/shardfile/brains"
+      },
+      {
+        "name": "ScriptBrainSchema",
+        "kind": "const",
+        "doc": "Custom author policy over bounded host queries; actor identity and observation provenance are injected by the loader.",
+        "from": "@wildshard/game/shardfile/brains"
+      },
+      {
+        "name": "ShardScriptBrain",
+        "kind": "type",
+        "doc": "Validated script policy; only named admitted strikes may be requested and motion stays within its declared bounds.",
         "from": "@wildshard/game/shardfile/brains"
       },
       {
@@ -15650,6 +15698,18 @@
         "kind": "function",
         "doc": "Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC.",
         "from": "@wildshard/sdk/bake/texture"
+      },
+      {
+        "name": "scriptBrain",
+        "kind": "function",
+        "doc": "Validate a bounded custom creature policy independently from a view or model recipe.",
+        "from": "@wildshard/sdk/brains"
+      },
+      {
+        "name": "ScriptBrainData",
+        "kind": "type",
+        "doc": "Admitted custom AS policy with host-bound identity, observations, motion bounds and declared strikes.",
+        "from": "@wildshard/sdk/brains"
       },
       {
         "name": "skirmisher",

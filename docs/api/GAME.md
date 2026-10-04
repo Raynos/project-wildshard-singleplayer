@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-445 members; 112 without a doc line (—).
+448 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -289,7 +289,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `AudioData` | type | @wildshard/game/shardfile/audio | Validated audio data; voice ids are resolved only through the platform's admitted catalogue. |
 | `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
 | `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |
+| `parseScriptBrain` | function | @wildshard/game/shardfile/brains | Validate a custom policy before module admission, trusted actor binding or physics allocation. |
 | `parseSkirmisher` | function | @wildshard/game/shardfile/brains | Reject unknown fields, nonfinite tuning and invalid radii before installing an actor policy. |
+| `ScriptBrainSchema` | const | @wildshard/game/shardfile/brains | Custom author policy over bounded host queries; actor identity and observation provenance are injected by the loader. |
+| `ShardScriptBrain` | type | @wildshard/game/shardfile/brains | Validated script policy; only named admitted strikes may be requested and motion stays within its declared bounds. |
 | `ShardSkirmisher` | type | @wildshard/game/shardfile/brains | Admitted archetype parameters, identified independently from a particular creature spawn. |
 | `SkirmisherSchema` | const | @wildshard/game/shardfile/brains | Circling melee policy data; the host retains navigation, attack tokens, strike clocks and random streams. |
 | `worstContentCost` | function | @wildshard/game/shardfile/budget | Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps. |
