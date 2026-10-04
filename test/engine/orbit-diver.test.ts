@@ -44,7 +44,7 @@ function replay(platform: boolean, scenario: Scenario): object {
     drive(f, tick, scenario); frames.push({ actor: f.animal.snapshot(), phase: f.policy().state }); phases.add(f.policy().state);
   }
   if (scenario === 'contact') {
-    expect([...phases].sort()).toEqual(['circle', 'dive', 'rise', 'stalk']); expect(f.starts.length).toBeGreaterThan(0);
+    expect([...phases].sort()).toEqual(['circle', 'dive', 'rise', 'stalk']); expect(f.starts.length).toBeGreaterThan(0); expect(f.hits.length).toBeGreaterThan(0);
   }
   return { frames, hits: f.hits, sounds: f.sounds, starts: f.starts, rng: f.ctx.rng.snapshot() };
 }
