@@ -17,7 +17,8 @@ it('grounds a distant firing pose at its own terrain, rather than beneath the hi
   const player = new Player(new PerspectiveCamera(), physics, legacyDouble<HTMLCanvasElement>({}), { waterLine: { update: () => undefined, setHint: () => undefined } });
   const bow = { id: 'bow' }, weapons = { list: [bow], current: { id: 'sabre' }, unlock: () => undefined };
   const target = { position: new Vector3(0, -8, 0), dims: { bodyY: 0.66 }, scale: 0.85 };
-  vi.stubGlobal('window', { performance, __wildshard: { world: { player, weapons }, combat: {
+  const game = { level: { ground: { structures: false } } };
+  vi.stubGlobal('window', { performance, __wildshard: { world: { player, weapons, game }, combat: {
     equip: (id: string) => { weapons.current = { id }; }, target: () => target,
   } } });
   try {
@@ -33,5 +34,14 @@ it('grounds a distant firing pose at its own terrain, rather than beneath the hi
     expect(player.position.y).toBeCloseTo(10, 1);
     expect(player.velocity.y).toBe(0);
     expect(weapons.current.id).toBe('bow');
+    // Built-floor levels retain their explicit elevation above the terrain datum.
+    game.level.ground.structures = true; target.position.y = 10;
+    const restoreDatum = overrideTerrain({ heightAt: () => 0 });
+    try {
+      const built = combatSetup({ step: 'swing', weapon: 'bow', target: 'dummy', near: { x: 0, z: 0 }, distance: 12, hit: 3, kill: null });
+      player.spawn(built.pose.x, built.pose.z, built.pose.yaw, built.pose.y);
+      for (let i = 0; i < 60; i++) { player.input(1 / 60); physics.step(); player.step(1 / 60); }
+      expect(built.pose.y).toBe(10); expect(player.position.y).toBeCloseTo(10, 1);
+    } finally { restoreDatum(); }
   } finally { vi.unstubAllGlobals(); restore(); player.motor.dispose(); physics.dispose(); }
 });

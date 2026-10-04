@@ -22,7 +22,9 @@ export function combatSetup(s) {
   const target=probe.combat.target(s.target,s.near),at=target.position;
   let dx=p.position.x-at.x,dz=p.position.z-at.z;const len=Math.hypot(dx,dz);if(len<0.01){dx=0;dz=1;}else{dx/=len;dz/=len;}
   const cy=at.y+target.dims.bodyY*('scale' in target?target.scale:1);
-  return {pose:{x:at.x+dx*s.distance,z:at.z+dz*s.distance,yaw:Math.atan2(dx,dz)},aim:{x:at.x,y:cy,z:at.z}};
+  // Structure-first levels have a terrain datum below their built floors; retain that target floor's explicit Y.
+  const floor=probe.world.game.level.ground.structures===true?{y:at.y}:{};
+  return {pose:{x:at.x+dx*s.distance,z:at.z+dz*s.distance,...floor,yaw:Math.atan2(dx,dz)},aim:{x:at.x,y:cy,z:at.z}};
 }
 /** @param {import('playwright').Page} page @param {{shard:string,tier:string,lane:string}} opts */
 export async function combat(page,opts) {
