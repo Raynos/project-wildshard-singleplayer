@@ -6,6 +6,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
 import { manifestContract } from '../scripts/gen-shards.mjs';
+import { checkShardLayout } from '../scripts/check-shards.mjs';
+
+it('data manifests use the SDK project layout while legacy and forged descriptors still require a plugin', () => {
+  const config = { requiredFiles: ['manifest.ts', 'plugin.ts', 'README.md'], allowedFiles: ['shard.config.ts'],
+    shardfileRequiredFiles: ['shard.config.ts', 'README.md'], folders: [], legacy: {} };
+  const files = { author: ['manifest.ts', 'shard.config.ts', 'README.md'] };
+  expect(checkShardLayout(files, config, () => "export const m={slug:'author',shardfile:'/shardfiles/author/shard.json'}; export default m;")).toEqual([]);
+  for (const extra of ["load:()=>import('./plugin')", "card:{shardfile:'/shardfiles/author/shard.json'}", "shardfile:'https://foreign.test/shard.json'", "shardfile:'/shardfiles/author/shard.json',load:()=>import('./plugin')"]) {
+    expect(checkShardLayout(files, config, () => `export default {slug:'author',${extra}};`)).toContain('author: missing required plugin.ts');
+  }
+});
 
 it('admits canonical built data descriptors and refuses forged, mixed or unbuildable sources', () => {
   const root = mkdtempSync(join(tmpdir(), 'shard-descriptors-'));

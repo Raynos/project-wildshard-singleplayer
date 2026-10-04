@@ -88,7 +88,7 @@ export type ShardSlug = BuiltinShardSlug | import('./slug').ValidatedShardSlug;
 const LOAD = /\bload:\s*\(\)\s*=>\s*import\(\s*['"]\.\/plugin(?:\.ts)?['"]\s*\)/u;
 const BUDGET_FILE = 'lint/manifest-closure-budget.json';
 /** Only the exported manifest object can opt into the data-descriptor contract. */
-function descriptorContract(root, slug, text) {
+export function shardfileDescriptor(text) {
   const source = ts.createSourceFile('manifest.ts', text, ts.ScriptTarget.Latest, true);
   const variables = new Map(); let expression;
   for (const statement of source.statements) {
@@ -103,10 +103,16 @@ function descriptorContract(root, slug, text) {
   const named = (property, name) => property.name && (ts.isIdentifier(property.name) || ts.isStringLiteral(property.name)) && property.name.text === name;
   const property = expression.properties.find((row) => named(row, 'shardfile'));
   if (property === undefined) return null;
+  return { path: ts.isPropertyAssignment(property) && ts.isStringLiteral(property.initializer) ? property.initializer.text : null,
+    load: expression.properties.some((row) => named(row, 'load')) };
+}
+function descriptorContract(root, slug, text) {
+  const descriptor = shardfileDescriptor(text);
+  if (descriptor === null) return null;
   const failures = [];
-  if (!ts.isPropertyAssignment(property) || !ts.isStringLiteral(property.initializer) || property.initializer.text !== `/shardfiles/${slug}/shard.json`) failures.push('shardfile must be the literal canonical /shardfiles/<slug>/shard.json path');
+  if (descriptor.path !== `/shardfiles/${slug}/shard.json`) failures.push('shardfile must be the literal canonical /shardfiles/<slug>/shard.json path');
   if (!existsSync(resolve(root, `src/shards/${slug}/shard.config.ts`))) failures.push('shardfile descriptor requires its buildable shard.config.ts project');
-  if (expression.properties.some((row) => named(row, 'load'))) failures.push('shardfile descriptor cannot also load a runtime plugin');
+  if (descriptor.load) failures.push('shardfile descriptor cannot also load a runtime plugin');
   return failures;
 }
 /**

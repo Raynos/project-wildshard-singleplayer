@@ -3,6 +3,7 @@ import { existsSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
+import { shardfileDescriptor } from './gen-shards.mjs';
 
 /** entries: slug -> top-level names (directories carry a trailing slash). */
 export function checkShardLayout(entries, config, readManifest, runtimeBaseline = {}) {
@@ -15,12 +16,15 @@ export function checkShardLayout(entries, config, readManifest, runtimeBaseline 
     if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
     const legacy = config.legacy[slug] ?? { entries: [], missing: [] };
     for (const name of names) if (!files.has(name) && !folders.has(name) && !legacy.entries.includes(name)) failures.push(`${slug}/${name}: outside the canonical shard layout`);
-    const required = names.includes('shard.config.ts') && !names.includes('manifest.ts') ? (config.shardfileRequiredFiles ?? ['shard.config.ts', 'README.md']) : config.requiredFiles;
+    const manifest = names.includes('manifest.ts') && readManifest ? readManifest(`src/shards/${slug}/manifest.ts`) : null;
+    const descriptor = manifest === null ? null : shardfileDescriptor(manifest);
+    const dataManifest = descriptor?.path === `/shardfiles/${slug}/shard.json` && !descriptor.load;
+    const required = names.includes('shard.config.ts') && (!names.includes('manifest.ts') || dataManifest) ? (config.shardfileRequiredFiles ?? ['shard.config.ts', 'README.md']) : config.requiredFiles;
     for (const name of required) if (!names.includes(name) && !legacy.missing.includes(name)) failures.push(`${slug}: missing required ${name}`);
     for (const folder of config.folders) if (names.includes(`${folder}.ts`) && names.includes(`${folder}/`)) failures.push(`${slug}: ${folder}.ts and ${folder}/ name the same concept`);
-    if (names.includes('manifest.ts') && readManifest) {
+    if (manifest !== null) {
       const file = `src/shards/${slug}/manifest.ts`;
-      const parsed = parseSync(file, readManifest(file));
+      const parsed = parseSync(file, manifest);
       if (parsed.errors.length > 0) { failures.push(`${slug}: manifest does not parse`); continue; }
       const found = [];
       const visit = (node) => {
