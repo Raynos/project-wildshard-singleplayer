@@ -1,20 +1,103 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed baseline list.
-import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Measures isolated source trees and reads the committed baseline.
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Own temporary fixture paths only.
+import { tmpdir } from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- Own temporary fixture paths only.
+import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { checkShares, shardLines, type ShardPlatformList } from '../scripts/shard-platform.mjs';
+import { checkShares, codeLines, milestoneFlags, shardLines, type ShardLines, type ShardPlatformList } from '../scripts/shard-platform.mjs';
 
-// SHARD-PLATFORM SP5: the 80/20 metric (docs/plans/SHARD-PLATFORM.md §1).
 const recorded = JSON.parse(readFileSync('lint/shard-platform.json', 'utf8')) as ShardPlatformList;
-
-describe('SP5 the custom share', () => {
-  it('holds every enforced ceiling and names only shards that exist', () => {
+function fixture(run: (root: string, put: (path: string, source: string) => void) => void, sdk = true): void {
+  const root = mkdtempSync(join(tmpdir(), 'sf6-'));
+  const put = (path: string, source: string): void => { const file = join(root, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, source); };
+  try {
+    mkdirSync(join(root, 'src/shards/alpha'), { recursive: true });
+    if (sdk) {
+      put('src/sdk/package.json', JSON.stringify({ name: '@wildshard/sdk', exports: { './rows': './rows.ts' } }));
+      put('src/sdk/rows.ts', "export type Row = number;\nimport '@wildshard/engine/private';\n");
+    }
+    run(root, put);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}
+function alpha(root: string): ShardLines {
+  const row = shardLines(root)['alpha'];
+  if (!row) throw new Error('Missing alpha fixture');
+  return row;
+}
+describe('SF6 platform measures', () => {
+  it('holds every enforced ceiling and names only existing shards', () => {
     expect(checkShares(recorded, shardLines())).toEqual([]);
   });
-  it('counts generators/ and data/ on the data side and everything else as runtime', () => {
-    const lines = { alpha: { generators: 70, data: 10, runtime: 20 } };
-    expect(checkShares({ baseline: { alpha: 100 }, enforced: { alpha: 20 } }, lines)).toEqual([]);
-    expect(checkShares({ baseline: { alpha: 100 }, enforced: { alpha: 19 } }, lines)[0]).toContain('ceiling 19');
-    expect(checkShares({ baseline: { gone: 1 }, enforced: {} }, lines).join(',')).toContain("doesn't exist");
-    expect(checkShares({ baseline: {}, enforced: {} }, lines).join(',')).toContain('unknown shard');
+  it('counts code lines, including strings with comment-looking text, without blank or comment padding', () => {
+    expect(codeLines('// header\n\n/* two\ncomments */\nconst url = "https://x"; // suffix\nconst n = 1;')).toBe(2);
+  });
+  it('counts author generators regardless of their imports and SDK-only AssemblyScript behaviour as public', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/generators/build.ts', "import fs from 'node:fs';\nimport '@wildshard/engine/private';\nexport const bake = 1;\n");
+      put('src/shards/alpha/behaviour/swim.ts', "import type { Row } from '@wildshard/sdk/rows';\nexport function swim(dt: f32): f32 { return dt; }\n");
+      expect(alpha(root)).toMatchObject({ publicLines: 5, customLines: 0, publicShare: 1 });
+    });
+  });
+  it('includes type imports, transitive imports, cycles, and nonliteral imports in the public closure', () => {
+    fixture((root, put) => {
+      put('src/engine/private.ts', 'export type Secret = number;\n');
+      put('src/shards/alpha/data/a.ts', "import type { B } from './b';\nexport type A = B;\n");
+      put('src/shards/alpha/data/b.ts', "import type { A } from './a';\nimport type { Secret } from '@wildshard/engine/private';\nexport type B = Secret | A;\n");
+      put('src/shards/alpha/quests/q.ts', 'export const q = import(variable);\n');
+      expect(alpha(root)).toMatchObject({ publicLines: 0, customLines: 6, publicShare: 0 });
+    });
+  });
+  it('reports zero SDK share before the SDK package exists and refuses an unpublished SDK import', () => {
+    fixture((root, put) => { put('src/shards/alpha/data/a.ts', 'export const a = 1;\n'); expect(alpha(root).publicShare).toBe(0); }, false);
+    fixture((root, put) => { put('src/shards/alpha/data/a.ts', "import '@wildshard/sdk/not-exported';\n"); expect(alpha(root).customLines).toBe(1); });
+  });
+  it('cannot increase the public share by moving gameplay into a kit module used by only this shard', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/data/a.ts', 'export const a = 1;\n');
+      put('src/shards/alpha/runtime/play.ts', 'export const a = 1;\nexport const b = 2;\n');
+      const before = alpha(root);
+      put('src/kit/play.ts', 'export const a = 1;\nexport const b = 2;\n');
+      put('src/shards/alpha/runtime/play.ts', "import '@wildshard/kit/play';\n");
+      const after = alpha(root);
+      expect(after.uniqueKitLines).toBe(2);
+      expect(after.customLines).toBe(3);
+      expect(after.publicShare).toBeLessThanOrEqual(before.publicShare);
+      put('src/shards/beta/runtime/play.ts', "import '@wildshard/kit/play';\n");
+      expect(alpha(root).uniqueKitLines).toBe(0);
+    });
+  });
+  it('generated and baked output cannot pad either measure', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/data/a.ts', 'export const a = 1;\n');
+      put('src/shards/alpha/runtime/play.ts', 'export const p = 1;\n');
+      const before = alpha(root);
+      put('src/shards/alpha/data/padded.generated.ts', 'export const x = 1;\n'.repeat(100));
+      put('src/shards/alpha/runtime/baked/terrain.ts', 'export const x = 1;\n'.repeat(100));
+      put('src/shards/alpha/data/padded.ts', `// @generated\n${'export const x = 1;\n'.repeat(100)}`);
+      expect(alpha(root)).toMatchObject({ publicLines: before.publicLines, customLines: before.customLines, publicShare: before.publicShare, runtimeLines: before.runtimeLines });
+    });
+  });
+  it('enforces both measures after conversion without changing the immutable baseline', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/data/a.ts', 'export const a = 1;\n'.repeat(8));
+      put('src/shards/alpha/runtime/play.ts', 'export const p = 1;\n'.repeat(2));
+      const lines = shardLines(root);
+      expect(checkShares({ baseline: { alpha: 10 }, enforced: { alpha: 2 } }, lines)).toEqual([]);
+      expect(checkShares({ baseline: { alpha: 10 }, enforced: { alpha: 1 } }, lines).join(',')).toContain('ceiling 1');
+      put('src/shards/alpha/runtime/play.ts', 'export const p = 1;\n'.repeat(3));
+      expect(checkShares({ baseline: { alpha: 100 }, enforced: { alpha: 20 } }, shardLines(root)).join(',')).toContain('floor 80');
+      expect(checkShares({ baseline: { gone: 1 }, enforced: {} }, lines).join(',')).toContain("doesn't exist");
+      expect(checkShares({ baseline: {}, enforced: {} }, lines).join(',')).toContain('unknown shard');
+    });
+  });
+  it('prints proof flags separately from transitional gameplay; percentages alone never imply compatible', () => {
+    fixture((root, put) => {
+      put('src/shards/alpha/runtime/play.ts', 'export const a = 1;\n');
+      const row = alpha(root);
+      expect(milestoneFlags('alpha', row, root)).toMatchObject({ compatible: false, transitional: true, boot: false, gridReady: false });
+      for (const name of ['boot', 'headless', 'replay', 'ledger', 'grid-ready']) put(`test/proof/alpha/${name}.test.ts`, '/* proof fixture: production convention is executable vitest tests */\n');
+      expect(milestoneFlags('alpha', row, root)).toEqual({ boot: true, headless: true, replay: true, ledger: true, gridReady: true, compatible: true, transitional: true });
+    });
   });
 });

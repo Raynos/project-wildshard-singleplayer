@@ -1,74 +1,158 @@
 #!/usr/bin/env node
-// SHARD-PLATFORM SP5: the 80/20 metric. Every shard's TypeScript is sorted by folder: `generators/` (bake time, never
-// shipped) and `data/` (serialisable rows) are the data side; everything else ships as runtime code. The custom share
-// is the runtime lines ÷ the shard's baseline (its lines when SP5 landed, lint/shard-platform.json). The target is
-// ≤ 20 % (docs/plans/SHARD-PLATFORM.md §1).
-// Before a shard's conversion (SF46–SF51) the share is only reported: every line is still unsorted, and a ceiling
-// would block the shard's own work. A converted shard joins `enforced` with its runtime-line ceiling, which only falls.
-//   node scripts/shard-platform.mjs           print the table
-//   node scripts/shard-platform.mjs --check   fail when an enforced shard's runtime lines pass its ceiling, or a
-//                                             baseline / ceiling names a shard folder that doesn't exist
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+// SF6: public SDK share and runtime ceiling (§1); the physical-line ratio remains labelled legacy TS.
+// Converted shards join lint/shard-platform.json's enforced list (SF46–SF51); its baseline never changes.
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { parseSync } from 'vite';
+import { resolveSpecifier } from './check-graph.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const LIST = 'lint/shard-platform.json';
-const DATA_SIDE = new Set(['generators', 'data']);
+const sourceFile = /\.tsx?$/u;
+const publicFolder = /^(?:data|behaviour|quests)\//u;
+const generated = /(?:^|\/)(?:generated|baked)(?:\/|\.)|\.(?:generated|baked)\./u;
 
-const linesOf = (path) => readFileSync(path, 'utf8').split('\n').length - 1;
-function tsFiles(dir) {
-  const out = [];
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) out.push(...tsFiles(path));
-    else if (/\.tsx?$/u.test(name) && !name.endsWith('.d.ts')) out.push(path);
+/** Parser comment spans preserve strings, regexes and template literals containing comment-looking text. */
+export function codeLines(source, path = 'measure.ts') {
+  const chunks = [];
+  let cursor = 0;
+  for (const { start, end } of parseSync(path, source).comments) {
+    chunks.push(source.slice(cursor, start), source.slice(start, end).replaceAll(/[^\n]/gu, ' '));
+    cursor = end;
   }
-  return out;
+  chunks.push(source.slice(cursor));
+  return chunks.join('').split('\n').filter((line) => line.trim()).length;
 }
-
-/** per shard folder: lines on the data side (generators, data) and the runtime side (everything else) */
+function filesIn(dir) {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = resolve(dir, entry.name);
+    return entry.isDirectory() ? filesIn(path) : sourceFile.test(path) && !path.endsWith('.d.ts') ? [path] : [];
+  });
+}
+function imports(source, path) {
+  const tree = parseSync(path, source), specs = [];
+  const add = (node) => specs.push(node?.type === 'Literal' && typeof node.value === 'string' ? node.value
+    : node?.type === 'TemplateLiteral' && node.expressions.length === 0 ? node.quasis[0].value.cooked : null);
+  const visit = (node) => {
+    if (!node || typeof node !== 'object') return;
+    if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration', 'TSImportType', 'ImportExpression'].includes(node.type)) {
+      if (node.source) add(node.source);
+    } else if (node.type === 'TSExternalModuleReference') add(node.expression);
+    else if (node.type === 'CallExpression' && node.callee.type === 'Identifier' && node.callee.name === 'require') add(node.arguments[0]);
+    for (const child of Object.values(node)) if (Array.isArray(child)) child.forEach(visit); else if (child && typeof child === 'object') visit(child);
+  };
+  visit(tree.program);
+  return specs;
+}
 export function shardLines(root = ROOT) {
-  const shards = resolve(root, 'src/shards');
-  const out = {};
-  for (const slug of readdirSync(shards).sort((a, b) => a.localeCompare(b))) {
-    const dir = join(shards, slug);
-    if (!statSync(dir).isDirectory()) continue;
-    const row = { generators: 0, data: 0, runtime: 0 };
-    for (const file of tsFiles(dir)) {
-      const top = file.slice(dir.length + 1).split('/')[0];
-      row[DATA_SIDE.has(top) ? top : 'runtime'] += linesOf(file);
+  const exists = (path) => existsSync(resolve(root, path)), texts = new Map(), graphs = new Map();
+  const text = (path) => {
+    if (!texts.has(path)) texts.set(path, readFileSync(resolve(root, path), 'utf8'));
+    return texts.get(path);
+  };
+  const ignored = (path) => generated.test(path) || /^\s*(?:\/\/|\/\*)[^\n]*(?:@generated|auto-generated|autogenerated|DO NOT EDIT)/imu.test(text(path));
+  const count = (path) => ignored(path) ? 0 : codeLines(text(path), path);
+  const sdk = exists('src/sdk/package.json') ? JSON.parse(text('src/sdk/package.json')) : null;
+  const hasSdk = sdk?.name === '@wildshard/sdk';
+  const sdkImport = (spec) => {
+    if (!hasSdk || !/^@wildshard\/sdk(?:\/|$)/u.test(spec ?? '')) return false;
+    const key = spec === '@wildshard/sdk' ? '.' : `.${spec.slice('@wildshard/sdk'.length)}`;
+    const target = sdk.exports?.[key];
+    return typeof target === 'string' && exists(`src/sdk/${target}`);
+  };
+  const graph = (path) => {
+    if (!graphs.has(path)) graphs.set(path, imports(text(path), path).map((spec) => ({
+      sdk: sdkImport(spec), to: spec === null ? null : resolveSpecifier(path, spec, exists),
+    })));
+    return graphs.get(path);
+  };
+  const shardFiles = Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))
+    .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))]));
+  const isPublic = (slug, path) => {
+    const prefix = `src/shards/${slug}/`, seen = new Set(), queue = [path];
+    while (queue.length) {
+      const current = queue.pop();
+      if (seen.has(current)) continue;
+      seen.add(current);
+      if (!current.startsWith(prefix)) return false;
+      const local = current.slice(prefix.length);
+      // Author tools are public whatever they import; runtime imports of them are independently forbidden.
+      if (local.startsWith('generators/')) continue;
+      if (!publicFolder.test(local) && local !== 'shard.config.ts') return false;
+      for (const edge of graph(current)) {
+        if (edge.sdk) continue;
+        if (edge.to === null) return false;
+        queue.push(edge.to);
+      }
     }
+    return true;
+  };
+  const kitUsers = new Map();
+  for (const [slug, files] of Object.entries(shardFiles)) {
+    const seen = new Set(), queue = files.filter((path) => !ignored(path));
+    while (queue.length) {
+      const path = queue.pop();
+      if (seen.has(path)) continue;
+      seen.add(path);
+      if (path.startsWith('src/kit/')) {
+        if (!kitUsers.has(path)) kitUsers.set(path, new Set());
+        kitUsers.get(path).add(slug);
+      }
+      for (const edge of graph(path)) if (!edge.sdk && edge.to !== null) queue.push(edge.to);
+    }
+  }
+  const out = {};
+  for (const [slug, files] of Object.entries(shardFiles)) {
+    const row = { publicLines: 0, customLines: 0, runtimeLines: 0, uniqueKitLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 } };
+    for (const path of files) {
+      const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
+      row.legacy[top === 'generators' || top === 'data' ? top : 'runtime'] += text(path).split('\n').length - 1;
+      const lines = count(path);
+      row[isPublic(slug, path) ? 'publicLines' : 'customLines'] += lines;
+      if (top === 'runtime') row.runtimeLines += lines;
+    }
+    for (const [path, users] of kitUsers) if (users.size === 1 && users.has(slug) && sourceFile.test(path) && !path.endsWith('.d.ts')) row.uniqueKitLines += count(path);
+    row.customLines += row.uniqueKitLines;
+    row.publicShare = hasSdk && row.publicLines + row.customLines > 0 ? row.publicLines / (row.publicLines + row.customLines) : 0;
     out[slug] = row;
   }
   return out;
 }
-
-/** failures: an enforced shard over its ceiling, or a recorded slug with no folder */
+/** Files are executable proofs, run by the push gate's vitest step; absence never masquerades as success. */
+export function milestoneFlags(slug, row, root = ROOT) {
+  const proof = (name) => existsSync(resolve(root, `test/proof/${slug}/${name}.test.ts`));
+  return { boot: proof('boot'), headless: proof('headless'), replay: proof('replay'), ledger: proof('ledger'),
+    gridReady: proof('grid-ready'), compatible: proof('headless') && proof('replay') && proof('ledger'), transitional: row.runtimeLines > 0 };
+}
 export function checkShares(recorded, lines) {
   const failures = [];
   for (const slug of Object.keys(lines)) if (!Object.hasOwn(recorded.baseline, slug)) failures.push(`${slug}: unknown shard (no baseline in ${LIST})`);
   for (const slug of [...Object.keys(recorded.baseline), ...Object.keys(recorded.enforced)]) if (!lines[slug]) failures.push(`${slug} is recorded in ${LIST} but src/shards/${slug} doesn't exist`);
   for (const [slug, ceiling] of Object.entries(recorded.enforced)) {
-    const runtime = lines[slug]?.runtime ?? 0;
-    if (runtime > ceiling) failures.push(`${slug}: ${runtime} runtime lines, ceiling ${ceiling}: new code goes in data/ or onto an approved system`);
+    const row = lines[slug];
+    if (!row) continue;
+    if (row.runtimeLines > ceiling) failures.push(`${slug}: ${row.runtimeLines} runtime/ lines, ceiling ${ceiling}`);
+    if (row.publicShare < 0.8) failures.push(`${slug}: public SDK share ${(row.publicShare * 100).toFixed(1)} %, floor 80 % (unique-kit lines are custom)`);
   }
   return failures;
 }
-
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  const recorded = JSON.parse(readFileSync(resolve(ROOT, LIST), 'utf8'));
-  const lines = shardLines();
-  console.log('shard                  baseline   runtime  generators    data   custom share');
-  for (const [slug, row] of Object.entries(lines)) {
-    const base = recorded.baseline[slug];
-    const share = base ? `${((row.runtime / base) * 100).toFixed(0)} %` : 'no baseline';
-    const mark = slug in recorded.enforced ? `  (ceiling ${recorded.enforced[slug]})` : '';
-    console.log(`${slug.padEnd(22)} ${String(base ?? '-').padStart(8)} ${String(row.runtime).padStart(9)} ${String(row.generators).padStart(11)} ${String(row.data).padStart(7)}   ${share}${mark}`);
+  const recorded = JSON.parse(readFileSync(resolve(ROOT, LIST), 'utf8')), lines = shardLines();
+  if (process.argv.includes('--json')) console.log(JSON.stringify(Object.fromEntries(Object.entries(lines).map(([slug, row]) => [slug, { ...row, baseline: recorded.baseline[slug], milestones: milestoneFlags(slug, row) }])), null, 2));
+  else {
+    console.log('shard                  public   custom   kit-only  public SDK    runtime/ ceiling    legacy TS');
+    for (const [slug, row] of Object.entries(lines)) {
+      const base = recorded.baseline[slug], ceiling = recorded.enforced[slug] ?? Math.floor(base * 0.2);
+      console.log(`${slug.padEnd(22)} ${String(row.publicLines).padStart(6)} ${String(row.customLines).padStart(8)} ${String(row.uniqueKitLines).padStart(10)} ${(row.publicShare * 100).toFixed(1).padStart(9)} %  ${String(row.runtimeLines).padStart(8)} / ${String(ceiling).padEnd(7)} ${(row.legacy.runtime / base * 100).toFixed(1)} %${slug in recorded.enforced ? ' enforced' : ' reported'}`);
+      console.log(`  proofs ${JSON.stringify(milestoneFlags(slug, row))}`);
+    }
   }
-  if (process.argv[2] === '--check') {
+  if (process.argv.includes('--check')) {
     const failures = checkShares(recorded, lines);
-    for (const f of failures) console.error(`shard-platform: ${f}`);
-    if (failures.length > 0) process.exit(1);
+    for (const failure of failures) console.error(`shard-platform: ${failure}`);
+    if (failures.length) process.exitCode = 1;
   }
 }
