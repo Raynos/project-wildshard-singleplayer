@@ -39,6 +39,9 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const lists = run(root, 'git', ['archive', 'HEAD', '--', ...PLATFORM_LISTS], { encoding: 'buffer' });
     run(root, 'tar', ['-xf', '-', '-C', predecessor], { input: lists });
     const snapshot = guardSnapshot(root, tree, scratch, paths);
+    // SF2 observes every shard, including inherited context/class types outside changed files.
+    const coupling = run(root, 'git', ['archive', tree, '--', 'src', 'scripts/shard-coupling.mjs'], { encoding: 'buffer' });
+    run(root, 'tar', ['-xf', '-', '-C', scratch], { input: coupling });
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
     const baseline = JSON.parse(readFileSync(join(scratch, 'lint/ratchet.json'), 'utf8'));
     const configFile = join(scratch, '.oxlintrc.json'), hard = hardRules(configFile);
@@ -53,6 +56,7 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const existing = new Set(snapshot.paths);
     const lintPaths = paths.filter((p) => existing.has(p));
     const counts = {}, failures = checkPlatformRatchets(predecessor, scratch);
+    run(scratch, process.execPath, ['scripts/shard-coupling.mjs', '--check']);
     if (lintPaths.length > 0) {
       const result = spawnSync(process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths], { cwd: scratch, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
       if (result.error) throw result.error;

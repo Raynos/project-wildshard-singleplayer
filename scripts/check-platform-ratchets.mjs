@@ -1,9 +1,10 @@
 // SF1b: immutable predecessor lists, never the candidate's own allowance, set the limit.
+import { compareCoupling } from './shard-coupling.mjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json'];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/shard-coupling.json'];
 
 /** Explicit file inputs work in an index export and in a post-commit export with no .git. */
 export function comparePlatformList(list, baselineFile, candidateFile) {
@@ -30,6 +31,8 @@ export function comparePlatformList(list, baselineFile, candidateFile) {
       if (!Object.hasOwn(after.baseline, slug)) failures.push(`${list}: unknown enforced shard ${slug}`);
       if (!Number.isSafeInteger(ceiling) || ceiling < 0 || ceiling > Math.floor(after.baseline[slug] * 0.2)) failures.push(`${list}: ${slug} ceiling exceeds 20 % of its baseline`);
     }
+  } else if (list === 'lint/shard-coupling.json') {
+    failures.push(...compareCoupling(before.shards, after.shards).map((failure) => `${list}: ${failure}`));
   } else if (list === 'lint/sim-closure.json') {
     for (const [site, item] of Object.entries(after.violations)) {
       const previous = before.violations[site];

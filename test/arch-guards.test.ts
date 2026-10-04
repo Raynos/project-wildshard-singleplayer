@@ -121,7 +121,7 @@ describe('AG9 shard layout', () => {
 describe('AG20 staged content isolation', () => {
   function repo(): { root: string; git: (...args: string[]) => void; run: () => ReturnType<typeof spawnSync> } {
     const root = temp();
-    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', ...['lint/sim-closure.mjs', 'lint/sim-closure.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/check-platform-ratchets.mjs', 'lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
+    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', ...['lint/sim-closure.mjs', 'lint/sim-closure.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/check-platform-ratchets.mjs', 'scripts/shard-coupling.mjs', 'lint/shard-coupling.json', 'lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
     for (const file of files) { mkdirSync(dirname(join(root, file)), { recursive: true }); copyFileSync(file, join(root, file)); }
     put(root, 'lint/ratchet.json', '{}'); put(root, 'src/engine/example.ts', 'export const value = 1;');
     symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
@@ -136,6 +136,19 @@ describe('AG20 staged content isolation', () => {
     const doc = JSON.parse(readFileSync(join(f.root, file), 'utf8')) as { fields: string[] };
     doc.fields.push('Injected.callback'); put(f.root, file, JSON.stringify(doc)); f.git('add', '--', file);
     const result = f.run(); expect(result.status).toBe(1); expect(result.stderr).toContain('new function allowance Injected.callback');
+  });
+  it('rejects coupling allowance growth in config-only edits and new typed reaches in code', () => {
+    const f = repo(), file = 'lint/shard-coupling.json';
+    const doc = JSON.parse(readFileSync(join(f.root, file), 'utf8')) as { shards: Record<string, { counts: Record<string, number> }> };
+    const row = doc.shards['_template']; if (row === undefined) throw new Error('Missing template baseline');
+    row.counts['ctx.app'] = (row.counts['ctx.app'] ?? 0) + 1;
+    put(f.root, file, JSON.stringify(doc)); f.git('add', '--', file);
+    const config = f.run(); expect(config.status).toBe(1); expect(config.stderr).toContain('ctx.app rose');
+    const code = repo();
+    put(code.root, 'src/game/shard/context.ts', 'export interface ShardContext { app: { tick: () => void } }');
+    put(code.root, 'src/shards/brand-new/plugin.ts', "import type { ShardContext } from '../../game/shard/context'; export function use(ctx: ShardContext): void { ctx.app.tick(); }");
+    code.git('add', '--', 'src/game/shard/context.ts', 'src/shards/brand-new/plugin.ts');
+    const reach = code.run(); expect(reach.status).toBe(1); expect(reach.stderr).toContain('brand-new: ctx.app rose 0 → 1');
   });
   it('rejects matching code and allowance growth after commit using explicit predecessor files', () => {
     const f = repo(), previous = temp();
@@ -281,6 +294,12 @@ describe('SF1b historical platform allowances', () => {
       { ...before, enforced: { alpha: 21 } }, { ...before, baseline: { alpha: 101 } },
       { ...before, baseline: { alpha: 100, unknown: 10 } }, { ...before, enforced: { alpha: 19, unknown: 1 } },
     ]) expect(compare('lint/shard-platform.json', before, after).length).toBeGreaterThan(0);
+  });
+  it('holds per-shard coupling allowances against a prior committed list', () => {
+    const before = { shards: { alpha: { counts: { 'ctx.app': 2 }, sites: {} } } };
+    expect(compare('lint/shard-coupling.json', before, { shards: { alpha: { counts: { 'ctx.app': 1 }, sites: {} } } })).toEqual([]);
+    expect(compare('lint/shard-coupling.json', before, { shards: { alpha: { counts: { 'ctx.app': 3 }, sites: {} } } }).join(',')).toContain('ctx.app rose 2 → 3');
+    expect(compare('lint/shard-coupling.json', before, { shards: { beta: { counts: { 'ctx.app': 1 }, sites: {} } } }).join(',')).toContain('ctx.app rose 0 → 1');
   });
   it('holds sim site counts and owners against explicit predecessor files', () => {
     const before = { violations: { site: { count: 2, row: 'SF3c' } } };
