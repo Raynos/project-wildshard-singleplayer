@@ -2,7 +2,7 @@ import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CueMap } from '@wildshard/engine/audio/Cues';
 import type { CombatCueOpts } from '@wildshard/engine/combat/cues';
 import type { Vector3 } from 'three';
-import { DRIFTWOOD_AUDIO } from '../data/audio';
+import source from '../shard.config';
 import type { IslandSfx } from './sfx';
 
 /** Routing adds no sound taps or random draws: each admitted voice calls the original island recipe once. */
@@ -17,5 +17,5 @@ export function driftwoodCueMap(sfx: Pick<IslandSfx, 'footstep' | 'whoosh' | 'im
   voices.set('island.dive', () => { sfx.plunge(false); }); voices.set('island.surface', () => { sfx.plunge(true); });
   voices.set('island.chime', () => { sfx.interact('chime'); });
   voices.set('island.gull', (opts) => { if (opts.point === undefined) return false; sfx.gullCallAt(opts.point, listener.position, listener.yaw); return true; });
-  return createCueRouter(DRIFTWOOD_AUDIO.routing.filter((route) => route.bus === 'audio'), { voices });
+  return createCueRouter(source.audio.routing.filter((route) => route.bus === 'audio'), { voices });
 }

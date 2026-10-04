@@ -78,3 +78,17 @@ it('keeps generic and combat cue buses separate and removes both on unload', () 
     f.scope.dispose(); expect(audio.cue('cue.shared')).toBe(false); expect(f.cues.cue('cue.shared')).toBe(false);
   } finally { f.scope.dispose(); audio.dispose(); }
 });
+
+it('refuses an unbound extended recipe before changing audio and binds its lifetime when admitted', () => {
+  const f = fixture(), data = parseAudioData({ ...TEMPLATE_AUDIO, zones: { id: 'fixture.zones', smoothSeconds: 0.1, tickHz: 10,
+    silentSeconds: 8, holdSeconds: 3, levels: { wind: 0.7 }, wet: { room: 0.4 }, zones: [] } });
+  let stopped = 0;
+  try {
+    expect(() => installDeclaredAudio(data, f.ports)).toThrow('trusted catalogue installer');
+    expect(f.beds).toEqual([]); expect(f.gain.value).toBe(0.4); expect(f.cues.cue('cue.sword.swing')).toBe(false);
+    installDeclaredAudio(data, { ...f.ports, profiles: { zones: (profile, scope) => {
+      expect(profile).toEqual(data.zones); scope.onDispose(() => { stopped++; });
+    } } });
+    f.scope.dispose(); expect(stopped).toBe(1);
+  } finally { f.scope.dispose(); }
+});

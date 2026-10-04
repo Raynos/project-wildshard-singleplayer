@@ -38,7 +38,8 @@ import { IslandBed, ISLAND_BED } from './sfx';
  * idle send is at gain 0 (the browser stops processing a convolver whose input is silent past its tail).
  */
 import type { Camera } from 'three';
-import { ISLAND, SHRINE, LOOKOUT, HEADLAND } from '../manifest';
+import source from '../shard.config';
+import { requireAudioProfile, requireAudioZone, requireAudioLevel } from '@wildshard/engine/audio/audioProfiles';
 
 export type Zone = 'sea' | 'beach' | 'palms' | 'jungle' | 'cove' | 'lookout' | 'hold' | 'cave' | 'shrine';
 type Room = 'hold' | 'cave' | 'shrine';
@@ -56,10 +57,14 @@ export interface IslandAmbienceOpts {
 }
 
 const ss = (a: number, b: number, x: number): number => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const TAU = 0.1;           // setTargetAtTime constant: ~300 ms to 95 %
-const ZONE_HZ = 10;
+const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.driftwood');
+const SHORE = requireAudioZone(PROFILE, 'shore'), SHRINE = requireAudioZone(PROFILE, 'shrine'), JUNGLE = requireAudioZone(PROFILE, 'jungle');
+const COVE = requireAudioZone(PROFILE, 'cove'), LOOKOUT = requireAudioZone(PROFILE, 'lookout'), HEADLAND = requireAudioZone(PROFILE, 'headland'), CAVE = requireAudioZone(PROFILE, 'cave');
+const mixLevel = (id: string): number => requireAudioLevel(PROFILE.levels, id);
+const TAU = PROFILE.smoothSeconds;           // setTargetAtTime constant: ~300 ms to 95 %
+const ZONE_HZ = PROFILE.tickHz;
 /** wet level per room at full weight (the IR is unit-energy: 0.35 ≈ −9 dB) */
-const WET: Record<Room, number> = { hold: 0.45, cave: 0.55, shrine: 0.3 };
+const WET: Record<Room, number> = { hold: requireAudioLevel(PROFILE.wet, 'hold'), cave: requireAudioLevel(PROFILE.wet, 'cave'), shrine: requireAudioLevel(PROFILE.wet, 'shrine') };
 const SHORE_RAYS = 256;
 
 /** a Bounds-shaped `holdBounds` / `caveBounds` on a module, if it has one (duck-typed: works before and after the model lands it) */
@@ -99,7 +104,7 @@ export class IslandAmbience {
   private underwater = false;
   private px = 0; private py = 0; private pz = 0;
   private fall = { x: 127.5, y: 0, z: 18 };
-  private cave = { x: 120, z: 19 };
+  private cave = { x: CAVE.x, z: CAVE.z };
 
   constructor(private readonly audio: Audio, private readonly o: IslandAmbienceOpts) {
     this.zones = new AmbienceZones(audio, audioRandom);
@@ -119,11 +124,11 @@ export class IslandAmbience {
     const { heightAt: H, sea } = this.o;
     for (let i = 0; i < SHORE_RAYS; i++) {
       const a = (i / SHORE_RAYS) * Math.PI * 2, cx = Math.cos(a), cz = Math.sin(a);
-      let r = 330, hit = -1;
-      for (; r > 2; r -= 2) if (H(ISLAND.x + cx * r, ISLAND.z + cz * r) > sea) { hit = r; break; }
-      if (hit > 0) { let lo = hit, hi = hit + 2; for (let k = 0; k < 3; k++) { const m = (lo + hi) / 2; if (H(ISLAND.x + cx * m, ISLAND.z + cz * m) > sea) lo = m; else hi = m; } r = lo; }
-      else r = ISLAND.r;
-      this.shore[i * 2] = ISLAND.x + cx * r; this.shore[i * 2 + 1] = ISLAND.z + cz * r;
+      let r = SHORE.outer, hit = -1;
+      for (; r > 2; r -= 2) if (H(SHORE.x + cx * r, SHORE.z + cz * r) > sea) { hit = r; break; }
+      if (hit > 0) { let lo = hit, hi = hit + 2; for (let k = 0; k < 3; k++) { const m = (lo + hi) / 2; if (H(SHORE.x + cx * m, SHORE.z + cz * m) > sea) lo = m; else hi = m; } r = lo; }
+      else r = SHORE.inner;
+      this.shore[i * 2] = SHORE.x + cx * r; this.shore[i * 2 + 1] = SHORE.z + cz * r;
     }
   }
 
@@ -356,12 +361,12 @@ export class IslandAmbience {
     const hb = boundsOf(o.wreck, 'holdBounds');
     const hold = hb ? ss(hb.r + 1.5, hb.r - 1, Math.hypot(x - hb.x, z - hb.z)) * (y > hb.yMin && y < hb.yMax + 1.68 ? 1 : 0) : 0; // no enterable hold yet: no hold room
     const cb = boundsOf(o.cove, 'caveBounds');
-    const cave = cb ? ss(cb.r + 1.5, cb.r - 1, Math.hypot(x - cb.x, z - cb.z)) : ss(3.2, 1.2, Math.hypot(x - this.cave.x, z - this.cave.z)); // today's cave is a 3.4 m niche
-    const shrineD = Math.hypot(x - SHRINE.x, z - SHRINE.z), shrine = ss(16, 8, shrineD);
+    const cave = cb ? ss(cb.r + 1.5, cb.r - 1, Math.hypot(x - cb.x, z - cb.z)) : ss(CAVE.outer, CAVE.inner, Math.hypot(x - this.cave.x, z - this.cave.z)); // today's cave is a 3.4 m niche
+    const shrineD = Math.hypot(x - SHRINE.x, z - SHRINE.z), shrine = ss(SHRINE.outer, SHRINE.inner, shrineD);
     const occl = Math.max(hold, cave * 0.85);
     // outdoor zones
-    const jungle = ss(62, 26, shrineD), coveW = ss(48, 22, Math.hypot(x - 136, z - 8));
-    const lookout = ss(12, 24, y - o.sea) * ss(40, 18, Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z)) + ss(18, 30, y - o.sea) * ss(70, 40, Math.hypot(x - HEADLAND.x, z - HEADLAND.z)) * 0.5;
+    const jungle = ss(JUNGLE.outer, JUNGLE.inner, Math.hypot(x - JUNGLE.x, z - JUNGLE.z)), coveW = ss(COVE.outer, COVE.inner, Math.hypot(x - COVE.x, z - COVE.z));
+    const lookout = ss(12, 24, y - o.sea) * ss(LOOKOUT.outer, LOOKOUT.inner, Math.hypot(x - LOOKOUT.x, z - LOOKOUT.z)) + ss(18, 30, y - o.sea) * ss(HEADLAND.outer, HEADLAND.inner, Math.hypot(x - HEADLAND.x, z - HEADLAND.z)) * HEADLAND.gain;
     // palms within 22 m, weighted by nearness, and which side they are on
     let pd = 0, pdx = 0, pdz = 0;
     if (o.palms) for (const p of o.palms) { const dx = p.x - x, dz = p.z - z, dd = dx * dx + dz * dz; if (dd < 484) { const w = 1 - Math.sqrt(dd) / 22; pd += w; pdx += dx * w; pdz += dz * w; } }
@@ -372,14 +377,14 @@ export class IslandAmbience {
     // over the water: a pier deck or the shallows
     const lap = ground < o.sea + 0.1 ? 1 - ss(6, 14, y - o.sea) : 0;
     // surf: louder near the water, softer at night; the panner does the distance (1 / d past 12 m)
-    const surf = (0.85 - 0.3 * night) * (1 - 0.6 * occl);
-    const breeze = (0.07 + 0.1 * ss(4, 25, above + ground - o.sea)) * wind * (1 - 0.8 * occl);
+    const surf = (mixLevel('surf') - mixLevel('surf-night') * night) * (1 - 0.6 * occl);
+    const breeze = (mixLevel('breeze') + mixLevel('breeze-height') * ss(4, 25, above + ground - o.sea)) * wind * (1 - 0.8 * occl);
     const set = (name: string, v: number): void => { const b = this.zones.beds.get(name); if (!b) return; b.level = v; b.gain.gain.setTargetAtTime(v, t, TAU); };
-    set('surf', surf * dry); set('lap', 0.22 * lap * dry); set('breeze', breeze * dry);
-    set('palms', 0.2 * palms * wind * (1 - 0.5 * night) * dry);
-    set('lookout', 0.22 * Math.min(1, lookout) * wind * dry);
-    set('jungle', 0.14 * jungle * dry); set('jungleDay', 1 - night); set('jungleNight', 0.25 + 0.75 * night);
-    set('waterfall', 0.45 * dry); set('cove', 0.1 * coveW * dry); set('underwater', 0.5 * uw);
+    set('surf', surf * dry); set('lap', mixLevel('lap') * lap * dry); set('breeze', breeze * dry);
+    set('palms', mixLevel('palms') * palms * wind * (1 - 0.5 * night) * dry);
+    set('lookout', mixLevel('lookout') * Math.min(1, lookout) * wind * dry);
+    set('jungle', mixLevel('jungle') * jungle * dry); set('jungleDay', 1 - night); set('jungleNight', 0.25 + 0.75 * night);
+    set('waterfall', mixLevel('waterfall') * dry); set('cove', mixLevel('cove') * coveW * dry); set('underwater', mixLevel('underwater') * uw);
     if (this.flutterPan && pd > 0) { const rx = this.rightX(), rz = this.rightZ(); this.flutterPan.pan.setTargetAtTime(Math.max(-0.7, Math.min(0.7, (pdx * rx + pdz * rz) / (Math.hypot(pdx, pdz) + 1e-3) * 0.7)), t, 0.2); }
     this.occl?.frequency.setTargetAtTime(20000 * (1 - occl) + 700 * occl, t, TAU);
     // reverb sends

@@ -1,7 +1,11 @@
 import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 
-const SET = 'driftwood-isle', BED = 'island';
-const SAMPLES = { loopGains: { island: 0.5 } };
+import source from '../shard.config';
+
+const samplesProfile = source.audio.samples, musicProfile = source.audio.music;
+if (samplesProfile === undefined || musicProfile === undefined) throw new Error('Driftwood requires its declared audio profiles');
+const SET = samplesProfile.set, BED = samplesProfile.bed, SAMPLES = { loopGains: samplesProfile.loopGains };
+const BOOT_SLOTS = musicProfile.bootSlots;
 /** the engine's audio functions this file uses, loaded when the island's audio is (they stay out of the manifest closure) */
 async function audioPorts() {
   const [{ decodeSfxSet, cachedBytes, decodeBytes, sfxFiles }, { getSfxSet }, { audioFiles }, { styleFiles, decodeStyle }] = await Promise.all([
@@ -40,10 +44,10 @@ export async function createDriftwoodAudio(): Promise<LevelAudioProfile> {
     ...(ports.getSfxSet() === 'synth' ? [] : ports.sfxFiles(SET, BED, SAMPLES))];
   return {
     files: () => ports.audioFiles({ sfxSets: [SET] }),
-    bootFiles: (style) => [...ports.styleFiles(style, ['title', 'island']), ...selectedSfx()],
+    bootFiles: (style) => [...ports.styleFiles(style, BOOT_SLOTS), ...selectedSfx()],
     decode: async (style, read, decode, onFile) => {
       const [title, bank] = await Promise.all([
-        ports.decodeStyle(style, ['title', 'island'], read, decode, onFile).catch(() => undefined),
+        ports.decodeStyle(style, BOOT_SLOTS, read, decode, onFile).catch(() => undefined),
         samples(ports, ports.getSfxSet(), read, decode, onFile),
       ]);
       return { title, samples: bank, score: { slots: new Map(), stings: new Map() }, cues: { loops: new Map(), shots: new Map() } };

@@ -15,3 +15,17 @@ export interface AudioZoneProfile {
   id: string; smoothSeconds: number; tickHz: number; silentSeconds: number; holdSeconds: number;
   levels: Readonly<Record<string, number>>; wet: Readonly<Record<string, number>>; zones: readonly AudioZone[];
 }
+
+/** Refuse a missing required recipe before its runtime graph can start. */
+export function requireAudioProfile<T>(value: T | undefined, name: string): T {
+  if (value === undefined) throw new Error(`Missing declared audio profile: ${name}`);
+  return value;
+}
+/** Resolve an admitted named zone, refusing a stale or incomplete trusted recipe binding. */
+export function requireAudioZone(profile: AudioZoneProfile, id: string): AudioZone {
+  return requireAudioProfile(profile.zones.find((zone) => zone.id === id), id);
+}
+/** Resolve a declared mixer level or room send without silently changing the previous recipe. */
+export function requireAudioLevel(levels: Readonly<Record<string, number>>, id: string): number {
+  return requireAudioProfile(levels[id], id);
+}
