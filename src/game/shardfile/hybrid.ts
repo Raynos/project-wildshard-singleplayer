@@ -31,8 +31,34 @@ export interface HybridResident {
 export interface HybridRuntimeState { readonly instance: string | null; readonly ready: boolean }
 interface ActiveRuntime { resident: HybridResident; scope: Scope; ready: boolean }
 
+const residentScopes = new WeakMap<Scope, Scope>();
+
+/** A transitional world's static resources persist for the resident; entered gameplay hooks retain their own scope. */
+export class HybridResidentWorld<T> {
+  private readonly builds = new WeakMap<Scope, Promise<T>>();
+  /** Reuse one asynchronous build across entries; the supplied owner outlives each entered play scope. */
+  load(context: ShardContext, build: (owner: Scope) => Promise<T>): Promise<T> {
+    const owner = residentScopes.get(context.scope);
+    if (owner === undefined || owner.disposed || context.scope.disposed) return Promise.reject(new Error('Missing live hybrid resident world'));
+    const existing = this.builds.get(owner); if (existing !== undefined) return existing;
+    const pending = Promise.resolve().then(() => {
+      if (owner.disposed) throw new Error('Hybrid resident left before world construction');
+      return withOwner(owner, () => build(owner));
+    }).then((value) => {
+      if (owner.disposed) throw new Error('Hybrid resident left during world construction');
+      return value;
+    });
+    this.builds.set(owner, pending);
+    owner.onDispose(() => { this.builds.delete(owner); });
+    void pending.catch(() => { if (this.builds.get(owner) === pending) this.builds.delete(owner); });
+    return pending;
+  }
+}
+
 /** Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations. */
 export function hybridInstallation(base: ShardContext, scope: Scope, runtime: ShardRuntime): LevelInstallation & { context: ShardContext } {
+  residentScopes.set(scope, base.scope);
+  scope.onDispose(() => { residentScopes.delete(scope); });
   const installation = createLevelInstallation(base.app, scope, base.app.levelAdapters, () => base.progress);
   base.root.add(installation.context.root);
   return { ...installation, context: shardContext(installation.context, base.manifest, { ...base.game, runtime }) };
@@ -210,6 +236,8 @@ export class HybridRuntimeSession {
       this.active = active;
       scope.onDispose(() => { if (this.active === active) this.active = undefined; });
       const runtime = bindScopedRuntime(resident.runtime, scope), installation = resident.context(scope, runtime);
+      residentScopes.set(scope, resident.scope);
+      scope.onDispose(() => { residentScopes.delete(scope); });
       const context = installation.context, plugin = withOwner(scope, () => new Plugin());
       const live = (): boolean => !scope.disposed && this.active === active && generation === this.generation;
       await withOwner(scope, () => plugin.world?.(context)); if (!live()) return false;

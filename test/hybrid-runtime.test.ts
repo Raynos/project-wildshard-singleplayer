@@ -4,11 +4,12 @@ import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { Scope, scopeRegistrations } from '../src/engine/app/scope';
+import { withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import type { LevelDriver } from '../src/engine/level/load';
 import { emptyShardfile } from '../src/sdk/author';
 import { RuntimeSchema, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
-import { HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident } from '../src/game/shardfile/hybrid';
+import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { bindScopedRuntime } from '../src/game/shard/scopedRuntime';
 import { shardContext, type GameServices, type ShardContext } from '../src/game/shard/context';
@@ -338,4 +339,45 @@ it('keeps declared audio as the data-first hybrid default and refuses runtime ow
   const ctx = shardContext(installation.context, template, { shard: template, runtime: runtime(), rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
   try { await expect(new Data().world?.(ctx)).rejects.toThrow('normal world stage'); }
   finally { app.engineScope.dispose(); }
+});
+
+
+it('retains one asynchronous resident world across two entries while disposing every entered gameplay scope', async () => {
+  const app = new App(); app.registryValue = new WorldRegistry();
+  const parent = runtime(), before = Object.getOwnPropertyDescriptors(parent), cells = new GridCellEvents();
+  const scope = app.engineScope.child('data'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  const worlds = new HybridResidentWorld<object>(); let builds = 0, installations = 0, releasedWorlds = 0;
+  class Data extends ShardPlugin {}
+  class Runtime extends ShardPlugin {
+    override async world(context: ShardContext): Promise<void> {
+      const built = await worlds.load(context, async (owner) => {
+        builds++; await Promise.resolve(); await Promise.resolve();
+        // Like a yielded legacy builder, registration happens after the synchronous hook owner has gone.
+        withOwner(owner, () => app.registry.add({ id: 'pier', name: 'Pier', file: 'runtime/index.ts', category: 'buildings' }));
+        owner.onDispose(() => { releasedWorlds++; });
+        return {};
+      });
+      const local = context.game.runtime; if (local === undefined) throw new Error('Missing runtime');
+      local.objects['world'] = built;
+    }
+    override play(context: ShardContext): void {
+      installations++; context.system({ id: 'entered.movers', phase: 'fixed.pre', run: noop });
+    }
+  }
+  cells.enter({ instance: 'template-1', slug: 'template' });
+  const plugin = new HybridShardPlugin(new Data(), Runtime, { instance: 'template-1', cells });
+  try {
+    await plugin.world(ctx); await plugin.kit(ctx); await plugin.play(ctx);
+    const first = parent.objects['world']; expect(builds).toBe(1); expect(app.registry.pieceList().map((piece) => piece.id)).toEqual(['pier']);
+    cells.leave(); expect(app.systemIds(app.engineScope)).toEqual([]); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
+    expect(releasedWorlds).toBe(0); expect(app.registry.pieceList()).toHaveLength(1);
+    cells.enter({ instance: 'template-1', slug: 'template' });
+    for (let turn = 0; turn < 32; turn++) await Promise.resolve();
+    expect(parent.objects['world']).toBe(first); expect(builds).toBe(1); expect(installations).toBe(2);
+    expect(app.systemIds(app.engineScope)).toEqual(['entered.movers']); expect(app.registry.pieceList().map((piece) => piece.id)).toEqual(['pier']);
+    cells.leave(); expect(app.systemIds(app.engineScope)).toEqual([]); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
+    scope.dispose(); expect(releasedWorlds).toBe(1); expect(app.registry.pieceList()).toEqual([]);
+    await expect(worlds.load(ctx, () => Promise.resolve({}))).rejects.toThrow('live hybrid resident');
+  } finally { app.engineScope.dispose(); }
 });
