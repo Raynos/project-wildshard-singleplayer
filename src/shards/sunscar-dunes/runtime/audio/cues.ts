@@ -3,17 +3,18 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { CombatCues, CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 /** Bind the existing kit recipes to declared cue ids, preserving optional pan/gain arguments. */
-export function skyCueMap(voices: Pick<ReturnType<typeof sharedWeaponVoices>, 'swordSwing' | 'swordHeavy' | 'swordHit' | 'weaponSwap'>): CombatCueMap {
+export function sunscarCueMap(voices: Pick<ReturnType<typeof sharedWeaponVoices>, 'swordSwing' | 'swordHeavy' | 'swordHit' | 'weaponSwap' | 'reload'>): CombatCueMap {
   const recipes = new Map<string, (opts: CombatCueOpts) => undefined>();
   recipes.set('kit.swordSwing', () => { voices.swordSwing(); });
   recipes.set('kit.swordHeavy', () => { voices.swordHeavy(); });
-  recipes.set('kit.swordHit', (opts) => { voices.swordHit(opts.surface === 'wood' ? 'wood' : 'flesh', opts.pan, opts.gain); });
+  recipes.set('kit.swordHit', (opts) => { voices.swordHit('flesh', opts.pan, opts.gain); });
   recipes.set('kit.weaponSwap', () => { voices.weaponSwap(); });
+  recipes.set('kit.reload', () => { voices.reload(); });
   return createCueRouter(source.audio.routing, { voices: recipes });
 }
-export function installSkyCues(audio: Audio, cues: CombatCues, scope: Scope): void {
-  cues.use(skyCueMap(sharedWeaponVoices(audio)), scope);
+export function installSunscarCues(audio: Audio, cues: CombatCues, scope: Scope): void {
+  cues.use(sunscarCueMap(sharedWeaponVoices(audio)), scope);
 }

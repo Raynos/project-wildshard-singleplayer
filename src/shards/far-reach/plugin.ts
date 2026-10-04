@@ -36,7 +36,7 @@ import { SUN_DIR } from './look/sun';
 import { ROC_ID, StormRocBoss } from './combat/stormRoc';
 import { BOSS_REWARD, installQuest } from './quest/install';
 import { FLAGS, vaneFlag } from './quest/flags';
-import { installSkyCues } from './audio/cues';
+import { installSkyCues } from './runtime/audio/cues';
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }

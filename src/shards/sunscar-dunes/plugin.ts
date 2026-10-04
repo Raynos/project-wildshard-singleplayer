@@ -18,7 +18,7 @@ import { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
 import { installQuest, MATRIARCH_FLAG } from './quest/install';
 import { SCOUT_FLAG } from './quest/scout';
-import { installSunscarCues } from './audio/cues';
+import { installSunscarCues } from './runtime/audio/cues';
 import { installCreatures } from './combat/creatures';
 import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from './species/skitterer';
 import { DUNE_STRIDER, DUNE_STRIDER_LOOK } from './species/strider';

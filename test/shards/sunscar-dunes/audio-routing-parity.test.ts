@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
-import { sunscarCueMap } from '../../../src/shards/sunscar-dunes/audio/cues';
+import { sunscarCueMap } from '../../../src/shards/sunscar-dunes/runtime/audio/cues';
 import { CUES } from '../../../src/shards/sunscar-dunes/data/cues';
 
 // Captured from the original switch at 12310ead5.

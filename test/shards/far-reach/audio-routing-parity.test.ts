@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
-import { skyCueMap } from '../../../src/shards/far-reach/audio/cues';
+import { skyCueMap } from '../../../src/shards/far-reach/runtime/audio/cues';
 import { CUES } from '../../../src/shards/far-reach/data/cues';
 
 // Captured from the original switch at 12310ead5.
