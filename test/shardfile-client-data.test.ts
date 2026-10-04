@@ -12,15 +12,18 @@ import { contentHash } from '../src/sdk/project';
 
 it('the normal Game driver calls the embedded simulation exactly once per fixed step, after the player', () => {
   const app = new App(), scope = app.engineScope.child('client'), calls: string[] = [];
-  let free = false;
-  const driver = clientSimStep({ app, scope, freeCamera: () => free, system: (system) => { app.addSystem(system, scope); } });
+  let free = false, active = true;
+  const driver = clientSimStep({ app, scope, active: () => active, freeCamera: () => free, system: (system) => { app.addSystem(system, scope); } });
   const remove = driver(() => { calls.push('sim'); });
   app.addSystem({ id: 'player.step', phase: 'fixed.post', run: () => { calls.push('player'); } }, scope);
   const fixed = () => { for (const phase of ['fixed.pre', 'fixed.step', 'fixed.post'] as const) for (const system of app.systemsByPhase()[phase]) if (system.when?.(app) !== false) system.run(1 / 60, 0); };
   app.setState('play'); fixed(); fixed(); expect(calls).toEqual(['player', 'sim', 'player', 'sim']);
   app.setState('paused'); fixed(); free = true; app.setState('play'); fixed();
   expect(calls.filter((call) => call === 'sim')).toHaveLength(2);
-  free = false; remove(); fixed(); expect(calls.filter((call) => call === 'sim')).toHaveLength(2);
+  free = false; active = false; fixed(); expect(calls.filter((call) => call === 'sim')).toHaveLength(2);
+  active = true; fixed(); expect(calls.filter((call) => call === 'sim')).toHaveLength(3);
+  expect(app.systemIds(scope).filter((id) => id === 'game.shardfile.sim')).toHaveLength(1);
+  remove(); fixed(); expect(calls.filter((call) => call === 'sim')).toHaveLength(3);
   expect(() => driver(() => undefined)).toThrow('already installed');
   scope.dispose(); expect(app.systemIds(scope)).toEqual([]); app.engineScope.dispose();
 });

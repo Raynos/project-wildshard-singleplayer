@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { Object3D, Vector3 } from 'three';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
-import { scriptItemHook, type ItemTarget } from '@wildshard/engine/combat/items';
+import { scriptItemHook, type ItemTarget, type ItemRuntime } from '@wildshard/engine/combat/items';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import { installDeclaredAudio, type DeclaredAudioPorts } from '@wildshard/engine/audio/declared';
@@ -48,6 +48,8 @@ export interface ShardfileClientBindings {
   allocator?: ResidencyAllocator;
   /** Explicit first-party transition policy: a completely empty data declaration adds no gameplay services. */
   trustedRuntime?: boolean;
+  /** Production handoff after logical continuation restoration. The existing Game driver remains the home tick owner. */
+  onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void }) => void;
 }
 const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
 const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
@@ -186,10 +188,11 @@ export class ShardfileClient {
       read: (name) => { const scope = source.state.shared.some((row) => row.name === name) ? 'shared' : 'player', field = source.state[scope].find((row) => row.name === name); if (field === undefined) throw new Error('Missing declared counter field'); return read(scope, field.id); },
     });
     const saved = instanceSave(ctx.app.saves, encounterSave, { id: identity.instance, shard: identity.shard }), encounters = saved.read();
+    let simulationActive = true;
     const sim = createShardfileSim(source, this.assets.retained, { rapier: world.physics.R, physics: world.physics,
-      player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, motor: world.player.motor },
+      player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
       events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,
-      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
+      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
       quest: { fact: (name, entity) => { fact(name, entity, 'quest.complete'); }, coins: (amount, entity) => {
         if (loot?.purse !== null && loot?.purse !== undefined) { loot.purse.add(amount); return; }
         const host = this.sim?.host; if (host === undefined) throw new Error('Missing local coin host');
@@ -219,10 +222,10 @@ export class ShardfileClient {
     const prior = continuation.read();
     if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) continuation.write(null);
     syncTargetColliders(source.targets, sim.colliders, read);
-    const checkpoint = (): void => { continuation.write(captureClientState(source, sim, items.runtimes)); };
+    const checkpoint = (): boolean => continuation.write(captureClientState(source, sim, items.runtimes));
     sim.host.onStep('client.save', () => { if (sim.host.state.tick % 300 === 0) checkpoint(); });
-    ctx.scope.onDispose(checkpoint);
-    ctx.scope.listen(window, 'pagehide', checkpoint);
+    ctx.scope.onDispose(() => { checkpoint(); });
+    ctx.scope.listen(window, 'pagehide', () => { checkpoint(); });
     ctx.scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') checkpoint(); });
     const hooks = sim.lane === undefined ? null : createQuestScriptPorts(sim.lane, source.hooks, sim.actors);
     const scene = clientScene(source, items.runtimes, (id) => { if (hooks === null) throw new Error('Missing admitted scene lane'); hooks.scene(id, health.id); });
@@ -238,5 +241,8 @@ export class ShardfileClient {
     runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;
     installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather });
+    this.bindings.onSimulation?.({ source, simulation: sim, items: items.runtimes, scope: ctx.scope,
+      checkpoint: () => !ctx.scope.disposed && checkpoint(), setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
+    });
   }
 }
