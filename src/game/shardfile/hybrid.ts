@@ -42,6 +42,8 @@ export function hybridInstallation(base: ShardContext, scope: Scope, runtime: Sh
 export interface HybridCellBinding {
   readonly instance: string;
   readonly cells: Pick<GridCellEvents, 'cell' | 'onEnter' | 'onLeave'>;
+  /** Hold region gameplay while entered hooks install; admission of the runtime module is a separate fence. */
+  readonly readiness?: (ready: boolean) => void;
 }
 
 /** Standalone staged composition keeps the resident data plugin and trusted hooks on the existing Game boot path. */
@@ -74,7 +76,10 @@ export class HybridShardPlugin extends ShardPlugin {
       const runtime = bindScopedRuntime(parent, scope), installation = hybridInstallation(ctx, scope, runtime);
       const plugin = withOwner(scope, () => new this.Runtime());
       const custom = { plugin, installation }; this.custom = custom;
-      scope.onDispose(() => { if (this.custom === custom) this.custom = undefined; });
+      scope.onDispose(() => {
+        if (this.custom === custom) { this.custom = undefined; this.binding?.readiness?.(false); }
+      });
+      this.binding?.readiness?.(false);
       await withOwner(scope, () => plugin.world?.(installation.context));
       if (scope.disposed) throw new Error('Hybrid runtime left during world installation');
     } catch (error) {
@@ -121,6 +126,7 @@ export class HybridShardPlugin extends ShardPlugin {
     const custom = this.custom; if (custom === undefined) throw new Error('Hybrid runtime kit is not installed');
     await withOwner(custom.installation.context.scope, () => custom.plugin.play?.(custom.installation.context));
     if (custom.installation.context.scope.disposed) throw new Error('Hybrid runtime left during play installation');
+    this.binding?.readiness?.(true);
   }
 }
 

@@ -273,6 +273,7 @@ it('staged home-cell runtime leaves on the strip, ignores neighbours and re-ente
 
 it('a cancelled staged re-entry cannot dispose the next scope when its world hook completes late', async () => {
   const app = new App(), parent = runtime(), cells = new GridCellEvents(), faults: unknown[] = [];
+  const readiness: boolean[] = [];
   const scope = app.engineScope.child('data'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
   const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
   let calls = 0, release = noop;
@@ -286,16 +287,36 @@ it('a cancelled staged re-entry cannot dispose the next scope when its world hoo
   }
   cells.enter({ instance: 'template-1', slug: 'template' });
   class Data extends ShardPlugin {}
-  const plugin = new HybridShardPlugin(new Data(), Runtime, { instance: 'template-1', cells });
+  const plugin = new HybridShardPlugin(new Data(), Runtime, { instance: 'template-1', cells, readiness: (ready) => { readiness.push(ready); } });
   app.events.on('fault', (fault) => { faults.push(fault); }, scope);
   try {
     await plugin.world(ctx); await plugin.kit(ctx); await plugin.play(ctx);
     cells.leave(); cells.enter({ instance: 'template-1', slug: 'template' });
     cells.leave(); cells.enter({ instance: 'template-1', slug: 'template' });
     for (let turn = 0; turn < 20; turn++) await Promise.resolve();
-    expect(parent.objects['call']).toBe(3); release();
+    expect(parent.objects['call']).toBe(3); expect(readiness.at(-1)).toBe(true);
+    const beforeLateCompletion = [...readiness]; release();
     for (let turn = 0; turn < 20; turn++) await Promise.resolve();
     expect(parent.objects['call']).toBe(3); expect(app.systemIds(app.engineScope)).toEqual(['home.runtime']); expect(faults).toEqual([]);
-    cells.leave(); expect(app.systemIds(app.engineScope)).toEqual([]);
+    expect(readiness).toEqual(beforeLateCompletion);
+    cells.leave(); expect(app.systemIds(app.engineScope)).toEqual([]); expect(readiness.at(-1)).toBe(false);
+  } finally { release(); app.engineScope.dispose(); }
+});
+
+it('keeps gameplay unready until the entered runtime play hook finishes, independently of module admission', async () => {
+  const app = new App(), parent = runtime(), cells = new GridCellEvents(), readiness: boolean[] = [];
+  const scope = app.engineScope.child('data'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  let release = noop;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  class Data extends ShardPlugin {}
+  class Runtime extends ShardPlugin { override async play(): Promise<void> { await gate; } }
+  cells.enter({ instance: 'template-1', slug: 'template' });
+  const plugin = new HybridShardPlugin(new Data(), Runtime, { instance: 'template-1', cells, readiness: (ready) => { readiness.push(ready); } });
+  try {
+    await plugin.world(ctx); await plugin.kit(ctx); const playing = plugin.play(ctx);
+    for (let turn = 0; turn < 8; turn++) await Promise.resolve();
+    expect(readiness).toEqual([false]); release(); await playing; expect(readiness).toEqual([false, true]);
+    cells.leave(); expect(readiness).toEqual([false, true, false]);
   } finally { release(); app.engineScope.dispose(); }
 });
