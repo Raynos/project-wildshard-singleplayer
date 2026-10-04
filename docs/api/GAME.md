@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-449 members; 112 without a doc line (—).
+458 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -97,6 +97,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GridCrossingState` | interface | @wildshard/game/grid/crossing | Observed logical frame and admission state; a blocked transition keeps the original active frame. |
 | `installGridCrossing` | function | @wildshard/game/grid/crossing | Connect local save/stow rules to assembly and residency. Call step before the residency owner's normal simulation step. |
 | `PreparedGridCrossing` | interface | @wildshard/game/grid/crossing | A prepared, rollback-safe frame/view change. Commit must either finish completely or leave the source intact. |
+| `GridEdgeObservations` | type | @wildshard/game/grid/edgeProfiles | Physical boundary observations are admitted beside the rows; they cannot invent height at an entry. |
+| `GridEdgeSource` | type | @wildshard/game/grid/edgeProfiles | A declared full row or the complete first-party WSTR bake, never an all-zero substitute for missing data. |
+| `loadGridEdgeProfiles` | function | @wildshard/game/grid/edgeProfiles | Admission/hash/transport belong to the reader. This pure ready-data seam precedes one platform mesh generation. |
 | `firstPartyInstance` | function | @wildshard/game/grid/instances | Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix. |
 | `templateInstance` | function | @wildshard/game/grid/instances | Six copies of one template package have independent facts and local state, wherever they are placed. |
 | `LiveGridAdmission` | interface | @wildshard/game/grid/live | Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only. |
@@ -289,9 +292,15 @@ The game layer's public modules (src/game/package.json `exports`).
 | `AudioData` | type | @wildshard/game/shardfile/audio | Validated audio data; voice ids are resolved only through the platform's admitted catalogue. |
 | `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
 | `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |
+| `GuardianSchema` | const | @wildshard/game/shardfile/brains | Interior guardian policy; native floor and rise/sink recipes publish completion through trusted ports. |
+| `parseGuardian` | function | @wildshard/game/shardfile/brains | Validate guardian decisions before selecting the existing native motion and strike recipes. |
+| `parsePerchHunter` | function | @wildshard/game/shardfile/brains | Validate policy data while retaining the loader's authority over perches, projectiles and tokens. |
 | `parseScriptBrain` | function | @wildshard/game/shardfile/brains | Validate a custom policy before module admission, trusted actor binding or physics allocation. |
 | `parseSkirmisher` | function | @wildshard/game/shardfile/brains | Reject unknown fields, nonfinite tuning and invalid radii before installing an actor policy. |
+| `PerchHunterSchema` | const | @wildshard/game/shardfile/brains | Perch hunting decisions; native perch selection, vertical completion and shared attack RNG remain trusted host ports. |
 | `ScriptBrainSchema` | const | @wildshard/game/shardfile/brains | Custom author policy over bounded host queries; actor identity and observation provenance are injected by the loader. |
+| `ShardGuardian` | type | @wildshard/game/shardfile/brains | Admitted interior guardian tuning, independent from a native rig or floor recipe. |
+| `ShardPerchHunter` | type | @wildshard/game/shardfile/brains | Admitted ranged-perch and ground-attack policy parameters. |
 | `ShardScriptBrain` | type | @wildshard/game/shardfile/brains | Validated script policy; only named admitted strikes may be requested and motion stays within its declared bounds. |
 | `ShardSkirmisher` | type | @wildshard/game/shardfile/brains | Admitted archetype parameters, identified independently from a particular creature spawn. |
 | `SkirmisherSchema` | const | @wildshard/game/shardfile/brains | Circling melee policy data; the host retains navigation, attack tokens, strike clocks and random streams. |

@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-72 members; 0 without a doc line (—).
+76 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -32,6 +32,10 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `TerrainBakeSource` | interface | @wildshard/sdk/bake/terrain | Trusted generator inputs. These closures run only while baking and never enter shard.json or the client. |
 | `TerrainOverride` | interface | @wildshard/sdk/bake/terrain | An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together. |
 | `bakeColourTexture` | function | @wildshard/sdk/bake/texture | Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC. |
+| `guardian` | function | @wildshard/sdk/brains | Validate an interior guardian policy independently of its native view recipe. |
+| `GuardianData` | type | @wildshard/sdk/brains | Data-selected interior guardian, with native floor and rise/sink completion ports. |
+| `perchHunter` | function | @wildshard/sdk/brains | Validate a bounded perch hunter's decision parameters. |
+| `PerchHunterData` | type | @wildshard/sdk/brains | Perch/ground policy retaining trusted perch selection and vertical motion recipes. |
 | `scriptBrain` | function | @wildshard/sdk/brains | Validate a bounded custom creature policy independently from a view or model recipe. |
 | `ScriptBrainData` | type | @wildshard/sdk/brains | Admitted custom AS policy with host-bound identity, observations, motion bounds and declared strikes. |
 | `skirmisher` | function | @wildshard/sdk/brains | Validate archetype data before admitting it into a shard's creature catalogue. |

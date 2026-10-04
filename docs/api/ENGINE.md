@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1928 members; 830 without a doc line (—).
+1934 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -33,12 +33,18 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SpawnTableRow` | interface | @wildshard/engine/ai/encounters | — |
 | `GroupBrain` | class | @wildshard/engine/ai/GroupBrain | Shared roster, blackboard and decision clock. Authored goals remain in the owning content. |
 | `GroupMember` | interface | @wildshard/engine/ai/GroupBrain | — |
+| `GuardianBrain` | class | @wildshard/engine/ai/guardian | Renderer-free guardian decisions; vertical recipes, line of sight and attack authority remain host ports. |
+| `GuardianPorts` | interface | @wildshard/engine/ai/guardian | Trusted interior floor and vertical-motion recipes publish completion through the actor's numeric memory. |
+| `GuardianSpec` | interface | @wildshard/engine/ai/guardian | A hidden interior guardian's perception, holding ring, retreat and strike timing. |
 | `brainInspection` | function | @wildshard/engine/ai/inspect | — |
 | `BrainInspection` | interface | @wildshard/engine/ai/inspect | — |
 | `brainPinned` | function | @wildshard/engine/ai/inspect | — |
 | `inspectBrain` | function | @wildshard/engine/ai/inspect | — |
 | `inspectTick` | function | @wildshard/engine/ai/inspect | — |
 | `pinBrain` | function | @wildshard/engine/ai/inspect | — |
+| `PerchHunterBrain` | class | @wildshard/engine/ai/perchHunter | Renderer-free decisions with no application singleton; all mutable policy state lives in the actor continuation. |
+| `PerchHunterPorts` | interface | @wildshard/engine/ai/perchHunter | Native perch/drop/climb recipes and shared cooldown RNG retain authority outside the decision policy. |
+| `PerchHunterSpec` | interface | @wildshard/engine/ai/perchHunter | Ranged perch hunting followed by a bounded ground attack and return to a native perch recipe. |
 | `EncounterPhase` | interface | @wildshard/engine/ai/phases | One ordered phase: health threshold, steering and a presentation caption, authored without callbacks. |
 | `PhaseEncounter` | class | @wildshard/engine/ai/phases | Data-driven encounter over today's phase/checkpoint/retry machinery and the real damage pipeline. |
 | `PhaseEncounterPorts` | interface | @wildshard/engine/ai/phases | Profile/instance persistence and rewards arrive through explicit platform ports. No shard save is imported. |

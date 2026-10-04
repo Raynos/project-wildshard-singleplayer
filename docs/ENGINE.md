@@ -1807,7 +1807,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1911 exports, grouped by the module to import them from.
+1917 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1815,7 +1815,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ai/EliteBrain`: `EliteActor`, `EliteBrain`, `EliteDefinition`, `ElitePorts`
 - `@wildshard/engine/ai/encounters`: `EncounterDefinition`, `EncounterRegistry`, `EncounterService`, `SpawnContext`, `SpawnEntry`, `Spawner`, `SpawnPoint`, `SpawnTableRow`
 - `@wildshard/engine/ai/GroupBrain`: `GroupBrain`, `GroupMember`
+- `@wildshard/engine/ai/guardian`: `GuardianBrain`, `GuardianPorts`, `GuardianSpec`
 - `@wildshard/engine/ai/inspect`: `brainInspection`, `BrainInspection`, `brainPinned`, `inspectBrain`, `inspectTick`, `pinBrain`
+- `@wildshard/engine/ai/perchHunter`: `PerchHunterBrain`, `PerchHunterPorts`, `PerchHunterSpec`
 - `@wildshard/engine/ai/phases`: `EncounterPhase`, `PhaseEncounter`, `PhaseEncounterPorts`, `PhaseEncounterSpec`, `silentBossPresentation`
 - `@wildshard/engine/ai/platform`: `BrainNavigation`, `BrainTarget`, `buildPlatformSpawns`, `installPlatformBrains`, `PlatformBrain`, `PlatformBrainPorts`, `PlatformBrainSpec`, `PlatformSpawn`, `PlatformSpecies`
 - `@wildshard/engine/ai/reach`: `canReach`, `ReachActor`
@@ -2134,7 +2136,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-449 exports, grouped by the module to import them from.
+458 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2153,6 +2155,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/assembly`: `EmptyNeighbour`, `GridAssembly`, `GridCell`, `GridPoint`, `GridSide`
 - `@wildshard/game/grid/catalogue`: `GridCatalogue`, `GridCatalogueSchema`, `GridMode`, `GridPlacement`, `parseGridCatalogue`
 - `@wildshard/game/grid/crossing`: `GridCrossing`, `GridCrossingDriver`, `GridCrossingPorts`, `GridCrossingSession`, `GridCrossingState`, `installGridCrossing`, `PreparedGridCrossing`
+- `@wildshard/game/grid/edgeProfiles`: `GridEdgeObservations`, `GridEdgeSource`, `loadGridEdgeProfiles`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
 - `@wildshard/game/grid/live`: `LiveGridAdmission`, `LiveGridFrame`, `LiveGridHome`, `LiveGridHost`, `LiveGridPorts`, `LiveGridRegion`, `LiveGridState`
 - `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `reframeGridUnit`
@@ -2189,7 +2192,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
-- `@wildshard/game/shardfile/brains`: `parseScriptBrain`, `parseSkirmisher`, `ScriptBrainSchema`, `ShardScriptBrain`, `ShardSkirmisher`, `SkirmisherSchema`
+- `@wildshard/game/shardfile/brains`: `GuardianSchema`, `parseGuardian`, `parsePerchHunter`, `parseScriptBrain`, `parseSkirmisher`, `PerchHunterSchema`, `ScriptBrainSchema`, `ShardGuardian`, `ShardPerchHunter`, `ShardScriptBrain`, `ShardSkirmisher`, `SkirmisherSchema`
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
 - `@wildshard/game/shardfile/clientScripts`: `ClientScriptContent`, `clientScriptRules`, `ClientScriptsSchema`, `ClientScriptTarget`, `clientScriptViewCost`, `createShardfileClientScripts`, `parseClientScripts`, `ShardClientScripts`, `ShardfileClientScriptPorts`
 - `@wildshard/game/shardfile/creatures`: `creatureRules`, `CreaturesSchema`, `ShardCreatures`
@@ -2277,7 +2280,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-72 exports, grouped by the module to import them from.
+76 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
@@ -2287,7 +2290,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/bake/props`: `BakedProps`, `bakeProps`, `PropsBakeSource`, `PropScatter`
 - `@wildshard/sdk/bake/terrain`: `BakedTerrain`, `bakeTerrain`, `TerrainBakeSource`, `TerrainOverride`
 - `@wildshard/sdk/bake/texture`: `bakeColourTexture`
-- `@wildshard/sdk/brains`: `scriptBrain`, `ScriptBrainData`, `skirmisher`, `SkirmisherData`
+- `@wildshard/sdk/brains`: `guardian`, `GuardianData`, `perchHunter`, `PerchHunterData`, `scriptBrain`, `ScriptBrainData`, `skirmisher`, `SkirmisherData`
 - `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `clientScriptViewCost`, `parseClientScripts`, `ShardClientScripts`
 - `@wildshard/sdk/director`: `director`, `DirectorData`
 - `@wildshard/sdk/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
