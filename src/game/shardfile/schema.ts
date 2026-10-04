@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { isJsonData } from './json';
 import { SHARDFILE_VERSION } from './version';
 import { UiSchema, uiRules } from './ui';
 import { ScriptBindingsSchema, scriptBindingRules } from './scripts';
@@ -153,7 +154,7 @@ export function shardfileRules(s: Shardfile): string[] {
   return [...new Set(errors)];
 }
 /** Strict schema for the public SDK format; rejects unknown fields and invalid references. */
-export const ShardfileSchema = v.pipe(v.unknown(), v.check((input) => typeof input === 'object' && input !== null && 'entryways' in input && input.entryways !== undefined, 'illegal shard: four midpoint entryways are required'), rawSchema,
+export const ShardfileSchema = v.pipe(v.unknown(), v.check(isJsonData, 'shardfile carries JSON data only; executable behaviour must be admitted WASM'), v.check((input) => !isJsonData(input) || (typeof input === 'object' && input !== null && 'entryways' in input && input.entryways !== undefined), 'illegal shard: four midpoint entryways are required'), rawSchema,
   v.check((s) => entrywayRules(s).length === 0, 'illegal shard: entryway openings must meet road height y=0'), v.check((s) => shardfileRules(s).length === 0, 'shardfile semantic rules'));
 /** Parse untrusted JSON as a validated shardfile, or throw a Valibot error. */
 export function parseShardfile(input: unknown): Shardfile { return v.parse(ShardfileSchema, input); }

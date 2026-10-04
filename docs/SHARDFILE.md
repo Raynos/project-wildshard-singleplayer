@@ -6,6 +6,20 @@ author contract, published by `@wildshard/sdk/shardfile` (`ShardfileSchema`,
 The build product is `shard.json` plus immutable files named by SHA-256. No placement,
 three.js object, function, closure, custom shader or source generator appears in it.
 
+G146: the cartridge carries data, admitted AssemblyScript/WASM and baked assets.
+The complete author export is checked as JSON data before any field is read: functions,
+accessors, class instances, symbols and cycles are refused rather than silently erased
+by JSON encoding. Named hooks are bounded field tests or next-tick event declarations;
+migrations are declarative field transforms. Their reserved `asHook` remains null until
+an admitted migration WASM ABI exists. JavaScript/TypeScript assets and executable
+callback fields have no format arm. Build-time TypeScript config/generators compile to
+this data product and are not copied into it.
+
+`runtime` is the explicitly temporary first-party transition exception: it carries
+only a registry selector, never TypeScript bytes, a fetch URL or an executable callback.
+External products cannot select it. Trusted platform code and transition chunks belong
+to the application build; they are not admitted author code in the cartridge.
+
 The committed empty example is `test/fixtures/shardfile/empty.json`. Every object is
 strict: unknown keys fail. Numbers are finite; counts and byte sizes are safe unsigned
 integers. MB means 1,000,000 bytes. The platform owns caps in
