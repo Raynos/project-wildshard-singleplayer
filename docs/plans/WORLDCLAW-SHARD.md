@@ -201,7 +201,7 @@ The council's round-1 finding IDs are in brackets; [the register](worldclaw/revi
 5. The pilot is **Thin Ice** (D74): it is the shard Done-when 1 describes.
 
 **Non-goals:**
-- return loops (daily seed, currency, medals; CONTENT-GAP §7, a later plan);
+- return loops (daily seed, currency, medals; [GW2-ZONES](../design/gw2-zones/GW2-ZONES.md) §7, a later plan);
 - neighbouring shards (D55);
 - multiplayer;
 - the sketch flow beyond its outline (the sketch look and kit, E8a, and the grey builder, T17, are in scope because the gates need them);
@@ -280,7 +280,7 @@ A checkpoint grows one place of a new shard's build (P12) while the rest stays p
    captures within noise.
 4. **Every tool has a test** (vitest for pure code, a fixture run for scripts).
 5. **Every row ends with evidence:** a commit, a number, an image path.
-6. **Hard gates are hard** (R16). **Frame rate** (phone tier) is reported at every gate (CONTENT-GAP §4.3).
+6. **Hard gates are hard** (R16). **Frame rate** (phone tier) is reported at every gate ([GW2-ZONES](../design/gw2-zones/GW2-ZONES.md) §4.3).
 7. **The status line**: `set-label.sh` once per stage, from the main session only, with a tag ≤ 24 chars.
 
 ## 4. Rows
