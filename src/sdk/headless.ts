@@ -1,25 +1,49 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Native validation reads the SDK's distributed physics binary.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Locate distributed or workspace physics bytes.
 import { resolve } from 'node:path';
-import { loadRapier } from '@wildshard/engine/physics/rapier';
-import { walkEdgeEntries } from '@wildshard/engine/physics/edgeEntries';
-import { createShardfileSim } from '@wildshard/game/shardfile/simulation';
+// oxlint-disable-next-line import/no-nodejs-modules -- Recheck immutable admitted bytes before copying them into a worker.
+import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- Select the SDK's fixed bundled worker entry without Vite asset rewriting.
+import { pathToFileURL } from 'node:url';
+import { validateShardfileAssets } from '@wildshard/game/shardfile/validate';
 import type { Shardfile } from './shardfile';
+import { TickWorkerHost } from './tickWorkerHost';
+import type { HeadlessCommandSource, HeadlessTickCommit } from './tickProtocol';
 
-/** Execute admitted content on the real simulation core and walk every entry through its installed colliders. */
-export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number }> {
+/** A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. */
+export class HeadlessSimulation {
+  private constructor(private readonly runner: TickWorkerHost) {}
+  /** Admit content, start the fixed platform worker, and optionally resume an exact committed same-engine checkpoint. */
+  static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string): Promise<HeadlessSimulation> {
+    validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'));
   const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, 'dist/client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, '../../public/assets/physics/rapier.wasm')].find(existsSync);
   if (binary === undefined) throw new Error('SDK physics binary missing; build/pack the SDK before headless validation');
-  const rapier = await loadRapier(readFileSync(binary));
-  const facts: string[] = [], coins = new Map<string, number>();
-  const sim = createShardfileSim(shard, assets, { rapier, quest: { fact: (name, entity) => { facts.push(`${name}:${entity}`); }, coins: (amount, entity) => { coins.set(entity, (coins.get(entity) ?? 0) + amount); } } });
-  try {
-    for (let tick = 0; tick < 60; tick++) {
-      sim.host.step();
-      if (![sim.host.player.position, ...[...sim.host.entities.values()].map((entity) => entity.position)].every((point) => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite headless simulation state');
-      if (sim.lane?.host.checkpoint().modules.some((module) => module.failures > 0 || module.disabled)) throw new Error('Headless script call failed');
+    const admitted = new Map<string, Uint8Array>();
+    for (const ref of [...shard.files.map(file => file.hash), ...shard.requires.commons.map(hash => `commons:${hash}`)]) {
+      const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted worker bytes'); admitted.set(ref, bytes);
     }
-    return { ticks: sim.host.state.tick, ...walkEdgeEntries(sim.host.physics, (x, z) => sim.water.restAt(x, z)) };
-  } finally { sim.dispose(); }
+    const runner = new TickWorkerHost(pathToFileURL(resolve(import.meta.dirname, 'headlessWorker.js')), { shard, assets: admitted, binary, ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget);
+    try { await runner.initialized(); return new HeadlessSimulation(runner); } catch (error) { await runner.dispose(); throw error; }
+  }
+  /** Last committed state is detached; callers cannot change the checkpoint used after a refused or unfinished tick. */
+  get checkpoint(): HeadlessTickCommit | undefined { return this.runner.checkpoint; }
+  /** Quarantined sessions cannot execute again; a trusted caller may start a new worker from the retained checkpoint. */
+  get quarantined(): boolean { return this.runner.quarantined; }
+  /** Actual timed work, excluding detached checkpoint encoding and IPC. The first touch has a bounded 16.666 ms JIT allowance. */
+  get lastTickMicros(): number { return this.runner.lastTickMicros; }
+  /** Admit the aggregate command count across all sources, then atomically return state and effects from one bounded tick. */
+  step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> { return this.runner.step(sources); }
+  /** Walk every declared entry against installed colliders inside the worker, under a separate validation request deadline. */
+  finish(): Promise<{ ticks: number; lanes: number; steps: number }> { return this.runner.finish(); }
+  /** Terminate the owned worker and release its complete native world. */
+  dispose(): Promise<void> { return this.runner.dispose(); }
+}
+/** CLI validation uses the same preemptible, plain-Node session as an embedding host. */
+export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number }> {
+  const sim = await HeadlessSimulation.create(shard, assets);
+  try {
+    for (let tick = 0; tick < 60; tick++) await sim.step();
+    return await sim.finish();
+  } finally { await sim.dispose(); }
 }
