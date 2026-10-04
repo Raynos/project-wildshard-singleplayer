@@ -104,7 +104,8 @@ export function installGridCrossing(driver: GridCrossingDriver, assembly: GridAs
   scope.onDispose(() => { crossing.dispose(); });
   return { crossing, step: (feet) => {
     if (scope.disposed) return false;
-    crossing.request(driver.target(feet));
+    const target = driver.target(feet), state = crossing.state();
+    if (target !== state.target) crossing.request(target);
     return crossing.step(assembly.at(feet.x, feet.z)?.instance === crossing.state().current);
   } };
 }

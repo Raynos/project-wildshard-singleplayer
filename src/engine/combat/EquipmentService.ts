@@ -264,5 +264,7 @@ export class EquipmentService implements WeaponHooks {
     if (this.swapping === null) this.current.holster = this.stowT;
     for (const w of this.list) w.update(dt, t);
     for (const tool of this.tools) if (this.has(tool.id)) tool.update(dt, t);
+    // Item presentation may animate visibility; the session's explicit hidden gate still wins at the border or menu.
+    if (!this._visible) this.current.model.visible = false;
   }
 }

@@ -58,6 +58,8 @@ it('stows the real kit weapon and cancels held/queued attacks while retaining fu
     source.equipment.adsHeld = true; source.declared.step(2, 1 / 60); weapon.queue(1, source.aim);
     const fuel = lantern.remainingFuel; stowGridEquipment(source.equipment, source.declared.runtimes);
     expect(source.equipment.stowed).toBe(true); expect(source.equipment.current.enabled).toBe(false);
+    source.equipment.update(1 / 60, 0);
+    expect(source.equipment.current.model.visible).toBe(false);
     expect(source.equipment.adsHeld).toBe(false); expect(weapon.snapshot()).toMatchObject({ held: false, chargeTime: 0, pending: [] });
     expect(source.equipment.tools.every((tool) => !tool.enabled)).toBe(true);
     expect(wallet.checkpoint(source.equipment.current.row.id, source.declared.runtimes)).toBe(true);

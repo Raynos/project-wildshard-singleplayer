@@ -1,5 +1,7 @@
 import { expect, it, vi } from 'vitest';
-import { GridCrossing, type PreparedGridCrossing } from '../src/game/grid/crossing';
+import { GridCrossing, installGridCrossing, type PreparedGridCrossing } from '../src/game/grid/crossing';
+import { GridAssembly } from '../src/game/grid/assembly';
+import { Scope } from '../src/engine/app/scope';
 
 function deferred() {
   let finish: ((value: PreparedGridCrossing) => void) | undefined;
@@ -52,4 +54,16 @@ it('retains the source on failed admission or rollback-safe commit and can expli
   await Promise.resolve(); f.ready(); expect(f.crossing.step(false)).toBe(false); expect(f.frame()).toBe('driftwood-isle'); expect(bad.cancel).toHaveBeenCalledOnce();
   f.crossing.request('pine-hollow'); const good = f.prepare('pine-hollow'); await Promise.resolve();
   expect(f.crossing.step(false)).toBe(true); expect(good.commit).toHaveBeenCalledOnce(); expect(f.changed).toHaveBeenCalledOnce();
+});
+it('does not retry a failed admission on every fixed tick; an explicit retry remains available', async () => {
+  const scope = new Scope('crossing.failed.admission');
+  const prepare = vi.fn<() => Promise<PreparedGridCrossing>>(() => Promise.reject(new Error('Unavailable critical bundle')));
+  const session = installGridCrossing({ current: () => null, target: () => 'driftwood-isle', prepare, ready: () => false, checkpoint: () => true },
+    new GridAssembly({ developer: false, devserver: false }), () => undefined, scope);
+  try {
+    for (let tick = 0; tick < 100; tick++) { session.step({ x: 256, y: 0, z: 0 }); await Promise.resolve(); }
+    expect(prepare).toHaveBeenCalledOnce(); expect(session.crossing.state().phase).toBe('blocked');
+    session.crossing.request('driftwood-isle'); await Promise.resolve();
+    expect(prepare).toHaveBeenCalledTimes(2);
+  } finally { scope.dispose(); }
 });
