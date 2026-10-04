@@ -1710,7 +1710,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1741 exports, grouped by the module to import them from.
+1773 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1896,7 +1896,10 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/quest/view`: `ChipSource`, `LiveMarker`, `NpcTalk`, `NpcTalkOpts`, `PlacePoint`, `Places`, `placesWithDiscovery`, `QuestChip`
 - `@wildshard/engine/quest/view/ui`: `DialogueBox`, `ObjectiveLine`, `RewardCaption`
 - `@wildshard/engine/render/dataLook`: `DATA_LOOK_DAY`, `dataLook`, `dataLookClock`, `DataLookSpec`, `LookDay`, `LookKey`, `lookSample`, `LookSample`, `sampleLook`
-- `@wildshard/engine/render/families/params`: `FAMILY_IDS`, `FamilyId`, `FamilyMaterialInput`, `FamilyMaterialParams`, `FamilyMaterialSchema`, `parseFamilyMaterial`, `parseToonLook`, `PbrMaterialParams`, `PbrMaterialSchema`, `Rgb`, `ToonLookParams`, `ToonLookSchema`, `ToonMaterialParams`, `ToonMaterialSchema`
+- `@wildshard/engine/render/families/emissive`: `compileEmissive`, `EMISSIVE_PROGRAM_KEY`, `EmissiveLook`, `EmissiveLookUniforms`, `injectEmissive`
+- `@wildshard/engine/render/families/ground`: `applyGround`, `GROUND_PROGRAM_KEY`, `injectGround`, `updateGround`
+- `@wildshard/engine/render/families/painterly`: `compilePainterly`, `gradeRgb`, `injectPainterly`, `PAINTERLY_PROGRAM_KEY`, `PainterlyLook`, `PainterlyLookUniforms`, `PainterlyMaterialUniforms`
+- `@wildshard/engine/render/families/params`: `EmissiveLookParams`, `EmissiveLookSchema`, `EmissiveMaterialParams`, `EmissiveMaterialSchema`, `FAMILY_IDS`, `FamilyId`, `FamilyMaterialInput`, `FamilyMaterialParams`, `FamilyMaterialSchema`, `GradeParams`, `GradeSchema`, `GroundLayerParams`, `GroundLayerSchema`, `NeonTubeSchema`, `PainterlyLookParams`, `PainterlyLookSchema`, `PainterlyMaterialParams`, `PainterlyMaterialSchema`, `parseEmissiveLook`, `parseFamilyMaterial`, `parseGroundLayer`, `parsePainterlyLook`, `parseToonLook`, `PbrMaterialParams`, `PbrMaterialSchema`, `Rgb`, `SkyDomeSchema`, `ToonLookParams`, `ToonLookSchema`, `ToonMaterialParams`, `ToonMaterialSchema`
 - `@wildshard/engine/render/families/pbr`: `compilePbr`, `pbrFillers`, `TextureResolver`, `TextureUse`
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`

@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1757 members; 831 without a doc line (—).
+1790 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1121,16 +1121,49 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `lookSample` | function | @wildshard/engine/render/dataLook | An empty sample to fill with `sampleLook`. |
 | `LookSample` | interface | @wildshard/engine/render/dataLook | A sampled look: plain numbers, blended between the two keys around a time of day. |
 | `sampleLook` | function | @wildshard/engine/render/dataLook | The look at `time` (0–1 of a day, wrapped) into `out`: a linear blend of the keys either side, wrapping across |
-| `FAMILY_IDS` | const | @wildshard/engine/render/families/params | The families v1 knows. Part 2 of SF10a adds `painterly` and `emissive`. |
+| `compileEmissive` | function | @wildshard/engine/render/families/emissive | Compile an emissive surface under `look` to a three.js material (WebGL v1 renderer). |
+| `EMISSIVE_PROGRAM_KEY` | const | @wildshard/engine/render/families/emissive | the program-cache key prefix every emissive material shares (the shape follows it) |
+| `EmissiveLook` | class | @wildshard/engine/render/families/emissive | One emissive look: the gain, the sky blend and the flicker clock of every emissive material made under it. |
+| `EmissiveLookUniforms` | interface | @wildshard/engine/render/families/emissive | The uniforms one emissive look shares with every material made under it. |
+| `injectEmissive` | function | @wildshard/engine/render/families/emissive | The emissive shading for one shape injected into a MeshBasic source (throws if three moved an include it edits). |
+| `applyGround` | function | @wildshard/engine/render/families/ground | Add a ground layer to a PBR family material (the PBR compiler calls it; the program becomes the ground program). |
+| `GROUND_PROGRAM_KEY` | const | @wildshard/engine/render/families/ground | the program-cache key of every PBR material with a ground layer |
+| `injectGround` | function | @wildshard/engine/render/families/ground | The ground layer injected into a MeshStandard / MeshPhysical source (throws if three moved an include it edits). |
+| `updateGround` | function | @wildshard/engine/render/families/ground | Move some of a ground layer's parameters on a live material (a runtime adapter: Signal Dunes' dusk). Validated; |
+| `compilePainterly` | function | @wildshard/engine/render/families/painterly | Compile a painterly surface under `look` to a three.js material (WebGL v1 renderer). |
+| `gradeRgb` | function | @wildshard/engine/render/families/painterly | The grade on the CPU, scene-linear → display-linear (the same maths as the shader): to check a colour a look will |
+| `injectPainterly` | function | @wildshard/engine/render/families/painterly | The painterly light model (and, with `graded`, the per-pixel grade) injected into a MeshLambert source. |
+| `PAINTERLY_PROGRAM_KEY` | const | @wildshard/engine/render/families/painterly | the program-cache key every painterly material shares (`\|g` when its look grades) |
+| `PainterlyLook` | class | @wildshard/engine/render/families/painterly | One painterly look: the shared uniforms of every painterly material made under it (one per shard). A runtime adapter |
+| `PainterlyLookUniforms` | interface | @wildshard/engine/render/families/painterly | The uniforms one painterly look shares with every material made under it. |
+| `PainterlyMaterialUniforms` | interface | @wildshard/engine/render/families/painterly | a painterly material's own uniforms (what differs per surface without a program change) |
+| `EmissiveLookParams` | type | @wildshard/engine/render/families/params | An emissive look with every default filled. |
+| `EmissiveLookSchema` | const | @wildshard/engine/render/families/params | The emissive family's look: one gain over every emitter (exposure by the hour) and the stage blend a sky reads. |
+| `EmissiveMaterialParams` | type | @wildshard/engine/render/families/params | An emissive material entry with every default filled. |
+| `EmissiveMaterialSchema` | const | @wildshard/engine/render/families/params | One emissive surface: unlit light. `colour` × `intensity` (HDR) × the vertex colours × an optional map, flickering by a |
+| `FAMILY_IDS` | const | @wildshard/engine/render/families/params | The families v1 knows. |
 | `FamilyId` | type | @wildshard/engine/render/families/params | A family id a material entry names. |
 | `FamilyMaterialInput` | type | @wildshard/engine/render/families/params | What an author or a build writes: omitted fields take the family's defaults. |
 | `FamilyMaterialParams` | type | @wildshard/engine/render/families/params | Any family's validated material entry (what a compiler receives). |
-| `FamilyMaterialSchema` | const | @wildshard/engine/render/families/params | Any family's material entry, discriminated by `family`. |
+| `FamilyMaterialSchema` | const | @wildshard/engine/render/families/params | Any family's material entry, discriminated by `family` (an emissive surface is a tube or a sky, never both). |
+| `GradeParams` | type | @wildshard/engine/render/families/params | A grade with every default filled. |
+| `GradeSchema` | const | @wildshard/engine/render/families/params | The display grade a painterly look applies per pixel, in the material (no full-screen pass): a gentle filmic shoulder |
+| `GroundLayerParams` | type | @wildshard/engine/render/families/params | A ground layer with every default filled. |
+| `GroundLayerSchema` | const | @wildshard/engine/render/families/params | The PBR family's ground layer (SF10a part 2, Signal Dunes' sand): wind ripples in two octaves, grain, broad albedo |
+| `NeonTubeSchema` | const | @wildshard/engine/render/families/params | A neon tube drawn from a distance field (R: the glyph's fill, 0.5 on its edge; G: the distance to its skeleton): a |
+| `PainterlyLookParams` | type | @wildshard/engine/render/families/params | A painterly look with every default filled. |
+| `PainterlyLookSchema` | const | @wildshard/engine/render/families/params | The painterly family's look (Nalati Grasslands, style B): soft cel bands, shade painted with a sky tint, a warm |
+| `PainterlyMaterialParams` | type | @wildshard/engine/render/families/params | A painterly material entry with every default filled. |
+| `PainterlyMaterialSchema` | const | @wildshard/engine/render/families/params | One painterly surface: vertex-coloured, no specular, a per-surface rim, cel strength, shade share and sway. |
+| `parseEmissiveLook` | function | @wildshard/engine/render/families/params | Validate the emissive look and fill its defaults. |
 | `parseFamilyMaterial` | function | @wildshard/engine/render/families/params | Validate a material entry and fill the family's defaults; throws a readable error on bad data. |
+| `parseGroundLayer` | function | @wildshard/engine/render/families/params | Validate a ground layer and fill its defaults. |
+| `parsePainterlyLook` | function | @wildshard/engine/render/families/params | Validate the painterly look and fill its defaults. |
 | `parseToonLook` | function | @wildshard/engine/render/families/params | Validate the toon look and fill its defaults. |
 | `PbrMaterialParams` | type | @wildshard/engine/render/families/params | A PBR material entry with every default filled. |
 | `PbrMaterialSchema` | const | @wildshard/engine/render/families/params | One PBR surface: metal / rough with colour, normal and packed ORM maps (occlusion r, roughness g, metalness b). |
 | `Rgb` | type | @wildshard/engine/render/families/params | An sRGB or linear colour as three numbers. |
+| `SkyDomeSchema` | const | @wildshard/engine/render/families/params | A sky dome at infinity from one or two seamless 360° panorama strips (x = heading clockwise from -z, the strip spanning |
 | `ToonLookParams` | type | @wildshard/engine/render/families/params | A toon look with every default filled. |
 | `ToonLookSchema` | const | @wildshard/engine/render/families/params | The toon family's look: a two-band ramp with coloured shade, a terminator band and a banded rim, plus the environment |
 | `ToonMaterialParams` | type | @wildshard/engine/render/families/params | A toon material entry with every default filled. |

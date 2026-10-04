@@ -12,6 +12,8 @@ import type { Scope } from '../../app/scope';
 import type { CompileJob } from '../precompile';
 import { engineString } from '../../strings';
 import { parseFamilyMaterial, type FamilyMaterialParams } from './params';
+import { compileEmissive, type EmissiveLook } from './emissive';
+import { compilePainterly, type PainterlyLook } from './painterly';
 import { compilePbr, type TextureResolver } from './pbr';
 import { compileToon, type ToonLook } from './toon';
 
@@ -19,6 +21,10 @@ import { compileToon, type ToonLook } from './toon';
 export interface FamilyContext {
   /** the toon look its toon materials share (one per shard) */
   readonly toon: ToonLook;
+  /** the painterly look its painterly materials share (one per shard; needed only for painterly entries) */
+  readonly painterly?: PainterlyLook;
+  /** the emissive look its emissive materials share (one per shard; needed only for emissive entries) */
+  readonly emissive?: EmissiveLook;
   /** texture references → textures */
   readonly textures: TextureResolver;
   /** owns the materials: they stop being tracked for the shader step when it is disposed */
@@ -27,8 +33,16 @@ export interface FamilyContext {
 
 const live = new Map<THREE.Material, FamilyMaterialParams>();
 
-const compile = (params: FamilyMaterialParams, ctx: FamilyContext): THREE.Material =>
-  params.family === 'toon' ? compileToon(params, ctx.toon) : compilePbr(params, ctx.textures);
+function compile(params: FamilyMaterialParams, ctx: FamilyContext): THREE.Material {
+  if (params.family === 'toon') return compileToon(params, ctx.toon);
+  if (params.family === 'pbr') return compilePbr(params, ctx.textures);
+  if (params.family === 'painterly') {
+    if (ctx.painterly === undefined) throw new Error('material family: a painterly entry needs a painterly look in its family context');
+    return compilePainterly(params, ctx.painterly, ctx.textures);
+  }
+  if (ctx.emissive === undefined) throw new Error('material family: an emissive entry needs an emissive look in its family context');
+  return compileEmissive(params, ctx.emissive, ctx.textures);
+}
 
 /**
  * A family material from a material entry (validated here, defaults filled), tracked for the shader step until
@@ -58,7 +72,7 @@ function standIn(): THREE.BufferGeometry {
 /** the parts of a family material that change its program, beyond the family's shared key */
 function variantKey(m: THREE.Material): string {
   const s = m as THREE.MeshStandardMaterial;
-  return `${m.customProgramCacheKey()}|${m.type}|${s.vertexColors ? 'v' : ''}${s.flatShading ? 'f' : ''}|${m.side}|${m.alphaTest > 0 ? 't' : ''}|${m.transparent ? 'a' : ''}`;
+  return `${m.customProgramCacheKey()}|${m.type}|${s.vertexColors ? 'v' : ''}${s.flatShading ? 'f' : ''}${s.map ? 'm' : ''}|${m.side}|${m.alphaTest > 0 ? 't' : ''}|${m.transparent ? 'a' : ''}|${m.toneMapped ? 'k' : ''}`;
 }
 
 /**

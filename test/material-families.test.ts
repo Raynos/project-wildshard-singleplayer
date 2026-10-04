@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from './fake/FakeGame';
-import { parseFamilyMaterial, parseToonLook } from '../src/engine/render/families/params';
+import { parseFamilyMaterial, parseGroundLayer, parsePainterlyLook, parseToonLook } from '../src/engine/render/families/params';
+import { compileEmissive, EMISSIVE_PROGRAM_KEY, EmissiveLook, injectEmissive } from '../src/engine/render/families/emissive';
+import { GROUND_PROGRAM_KEY, updateGround } from '../src/engine/render/families/ground';
+import { compilePainterly, gradeRgb, PAINTERLY_PROGRAM_KEY, PainterlyLook } from '../src/engine/render/families/painterly';
+import { ungrade } from '../src/shards/nalati-grasslands/look/grade';
 import { compilePbr, pbrFillers, type TextureUse } from '../src/engine/render/families/pbr';
 import { familyCompileJobs, familyMaterial, liveFamilyMaterials } from '../src/engine/render/families/registry';
 import { compileToon, injectToon, TOON_PROGRAM_KEY, ToonLook } from '../src/engine/render/families/toon';
@@ -113,4 +117,167 @@ function parsePbr(entry: object): Extract<ReturnType<typeof parseFamilyMaterial>
   const p = parseFamilyMaterial({ ...entry, family: 'pbr' });
   if (p.family !== 'pbr') throw new Error('not pbr');
   return p;
+}
+
+/** run a material's onBeforeCompile on one of three's ShaderLib sources */
+function compiledFrom(m: THREE.Material, lib: { uniforms: Record<string, THREE.IUniform>; vertexShader: string; fragmentShader: string }): THREE.WebGLProgramParametersWithUniforms {
+  const shader = legacyDouble<THREE.WebGLProgramParametersWithUniforms>({ uniforms: THREE.UniformsUtils.clone(lib.uniforms), vertexShader: lib.vertexShader, fragmentShader: lib.fragmentShader });
+  m.onBeforeCompile(shader, legacyDouble<THREE.WebGLRenderer>({}));
+  return shader;
+}
+const noTextures = (): THREE.Texture => { throw new Error('no textures expected'); };
+
+describe('the painterly family', () => {
+  it('fills its defaults and keeps Nalati\'s grade as the look default', () => {
+    expect(parseFamilyMaterial({ family: 'painterly' })).toEqual({ family: 'painterly', colour: [1, 1, 1], rim: 0.35, bands: 0.8, shade: 1, floor: 1, sway: 0, emissive: [0, 0, 0], emissiveIntensity: 1, map: null, vertexColours: true, doubleSided: false, alphaCutoff: 0 });
+    const look = parsePainterlyLook({});
+    expect(look.grade).toEqual({ exposure: 1, gain: 1.12, shoulder: 9, saturation: 1.05, shadowTint: [0.92, 0.96, 1.05], lightTint: [1.07, 0.99, 0.84], split: [0.05, 0.6], contrast: 0.35, lookSaturation: 1 });
+    expect(parsePainterlyLook({ grade: null }).grade).toBeNull();
+    expect(() => parsePainterlyLook({ grade: { split: [0.6, 0.05] } })).toThrow(/edge low < high/);
+    expect(() => parseFamilyMaterial({ family: 'painterly', rim: 2 })).toThrow();
+  });
+
+  it('injects the painted light model, the rim and the per-pixel grade; one program per graded look', () => {
+    const look = new PainterlyLook();
+    const a = compilePainterly(parsePainterly({}), look, noTextures), b = compilePainterly(parsePainterly({ rim: 0.8, colour: [0.2, 0.3, 0.4] }), look, noTextures);
+    expect(a.customProgramCacheKey()).toBe(`${PAINTERLY_PROGRAM_KEY}|g`);
+    expect(b.customProgramCacheKey()).toBe(a.customProgramCacheKey());
+    expect(a.toneMapped).toBe(false);
+    const sh = compiledFrom(a, THREE.ShaderLib.lambert);
+    expect(sh.fragmentShader).toContain('#define RE_Direct RE_Direct_Lambert');
+    expect(sh.fragmentShader).not.toContain('#include <envmap_fragment>');
+    const graded = sh.fragmentShader.indexOf('gl_FragColor.rgb = famPaintGrade( gl_FragColor.rgb );');
+    expect(graded).toBeGreaterThan(sh.fragmentShader.indexOf('#include <opaque_fragment>'));
+    expect(graded).toBeLessThan(sh.fragmentShader.indexOf('#include <tonemapping_fragment>'));
+    expect(sh.vertexShader).toContain('famPaintSway');
+    expect(sh.uniforms['famPaintShade']).toBe(look.uniforms.famPaintShade);
+    expect(sh.uniforms['famPaintRim']?.value).toBe(0.35);
+    const plain = new PainterlyLook({ grade: null });
+    const c = compilePainterly(parsePainterly({}), plain, noTextures);
+    expect([c.customProgramCacheKey(), c.toneMapped]).toEqual([PAINTERLY_PROGRAM_KEY, true]);
+    expect(compiledFrom(c, THREE.ShaderLib.lambert).fragmentShader).not.toContain('famPaintGrade(');
+  });
+
+  it('moves the look by uniforms, refuses to toggle the grade, and resolves a map as colour', () => {
+    const look = new PainterlyLook();
+    look.set({ shade: [0.2, 0.1, 0.05], wind: { direction: [3, 4], strength: 2 }, grade: { ...parsePainterlyLook({}).grade ?? (() => { throw new Error('graded'); })(), exposure: 2 } });
+    expect(look.uniforms.famPaintShade.value.toArray()).toEqual([0.2, 0.1, 0.05]);
+    expect(look.uniforms.famPaintWind.value.toArray()).toEqual([0.6, 0.8, 2]);
+    expect(look.uniforms.famPaintGradeA.value.x).toBeCloseTo(2.24);
+    expect(() => { look.set({ grade: null }); }).toThrow(/fixed/);
+    const asked: [string, TextureUse][] = [];
+    const m = compilePainterly(parsePainterly({ map: 'atlas', doubleSided: true }), look, (ref, use) => { asked.push([ref, use]); return new THREE.Texture(); });
+    expect(asked).toEqual([['atlas', 'colour']]);
+    expect(m.side).toBe(THREE.DoubleSide);
+  });
+
+  it('grades on the CPU exactly as Nalati\'s grade, which its own inverse undoes', () => {
+    const g = parsePainterlyLook({}).grade;
+    if (g === null) throw new Error('graded');
+    for (const rgb of [[0.05, 0.08, 0.12], [0.4, 0.35, 0.2], [0.9, 0.7, 0.5]] as const) {
+      const shown = gradeRgb(g, rgb);
+      const back = ungrade([...shown]);
+      back.forEach((v, k) => { expect(v).toBeCloseTo(rgb[k] ?? Number.NaN, 2); });
+    }
+  });
+});
+
+describe('the emissive family', () => {
+  it('fills its defaults and refuses a tube that is also a sky', () => {
+    expect(parseFamilyMaterial({ family: 'emissive' })).toEqual({ family: 'emissive', colour: [1, 1, 1], intensity: 1, vertexColours: false, map: null, blend: 'opaque', doubleSided: false, fog: 1, flicker: 0, tube: null, sky: null });
+    const tube = { field: 'sdf', fillSpread: 0.25, skeletonSpread: 0.3 };
+    expect(parseFamilyMaterial({ family: 'emissive', tube })).toMatchObject({ tube: { mono: 0, radius: 0.05, haloGain: 0.22, core: 0.5, rimShade: 0.62 } });
+    expect(() => parseFamilyMaterial({ family: 'emissive', tube, sky: { maps: ['a', null] } })).toThrow(/tube or a sky/);
+    expect(() => parseFamilyMaterial({ family: 'emissive', blend: 'multiply' })).toThrow();
+    expect(() => parseFamilyMaterial({ family: 'emissive', sky: { maps: ['a', 'b'], elevation: [45, -8] } })).toThrow(/elevation/);
+  });
+
+  it('compiles each shape to its own program with the right blending, and shares the look', () => {
+    const look = new EmissiveLook({ gain: 2 });
+    const tex = new THREE.Texture();
+    const asked: [string, TextureUse][] = [];
+    const textures = (ref: string, use: TextureUse): THREE.Texture => { asked.push([ref, use]); return tex; };
+    const surface = compileEmissive(parseEmissive({ intensity: 3 }), look, textures);
+    const tube = compileEmissive(parseEmissive({ blend: 'additive', vertexColours: true, flicker: 4, fog: 0.5, tube: { field: 'sdf', fillSpread: 0.25, skeletonSpread: 0.3 } }), look, textures);
+    const sky = compileEmissive(parseEmissive({ sky: { maps: ['early', 'late'], firstGain: [0.64, 1] } }), look, textures);
+    expect([surface, tube, sky].map((m) => m.customProgramCacheKey())).toEqual([`${EMISSIVE_PROGRAM_KEY}|surface`, `${EMISSIVE_PROGRAM_KEY}|tube|add`, `${EMISSIVE_PROGRAM_KEY}|sky`]);
+    expect([tube.blending, tube.transparent, tube.depthWrite]).toEqual([THREE.AdditiveBlending, true, false]);
+    expect([sky.side, sky.depthTest, sky.depthWrite, sky.fog]).toEqual([THREE.BackSide, false, false, false]);
+    expect(asked).toEqual([['sdf', 'data'], ['early', 'colour'], ['late', 'colour']]);
+    const st = compiledFrom(tube, THREE.ShaderLib.basic);
+    expect(st.vertexShader).toContain('vFamEmitUv = uv;');
+    expect(st.fragmentShader).toContain('outgoingLight = famEmitTube( outgoingLight ) * famEmitIntensity * famEmitGain * famEmitFlick( famEmitFlicker );');
+    // additive: the fog only dims (no inscatter term); opaque surfaces take the fog's colour share too
+    expect(st.fragmentShader).toContain('gl_FragColor.rgb = famEmitC * famEmitTk;');
+    expect(compiledFrom(surface, THREE.ShaderLib.basic).fragmentShader).toContain('famEmitZero * ( 1.0 - famEmitTk )');
+    expect(st.uniforms['famEmitGain']).toBe(look.uniforms.famEmitGain);
+    expect(st.uniforms['famEmitFlicker']?.value).toBe(4);
+    const ss = compiledFrom(sky, THREE.ShaderLib.basic);
+    expect(ss.vertexShader).toContain('vFamEmitDir = position;');
+    expect(ss.uniforms['famEmitSkyB4']?.value).toEqual(new THREE.Vector4(0, 1, 0.64, 1));
+    look.set({ blend: 0.7 });
+    expect(look.uniforms.famEmitBlend.value).toBe(0.7);
+    expect(() => injectEmissive('void main(){}', 'void main(){}', 'surface', false)).toThrow(/emissive family/);
+  });
+});
+
+describe('the PBR family\'s ground layer', () => {
+  it('compiles to the ground program, resolves its maps as data, and moves by uniforms', () => {
+    const asked: [string, TextureUse][] = [];
+    const tex = new THREE.Texture();
+    const ground = { wind: [3, 4], grain: { map: 'grain', mean: 0.48, glintMean: 0.01, strength: 1 }, keyShadow: { map: 'shadow', rect: [-520, -520, 520, 520], edge: [0.25, 0.75], floor: 0.28 } };
+    const m = compilePbr(parsePbr({ vertexColours: true, roughness: 0.88, metalness: 0, ground }), (ref, use) => { asked.push([ref, use]); return tex; });
+    expect(m.customProgramCacheKey()).toBe(GROUND_PROGRAM_KEY);
+    expect(asked).toEqual([['grain', 'data'], ['shadow', 'data']]);
+    const sh = compiled(m);
+    expect(sh.vertexShader).toContain('vFamGPos = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;');
+    expect(sh.fragmentShader.indexOf('famGRip1')).toBeGreaterThan(sh.fragmentShader.indexOf('#include <color_fragment>'));
+    expect(sh.uniforms['famGWind']?.value).toEqual(new THREE.Vector2(0.6, 0.8));
+    expect(vec3(sh.uniforms['famGK']).x).toBeCloseTo(7);
+    expect(sh.uniforms['famGShadowK']?.value).toEqual(new THREE.Vector4(0.25, 0.75, 0.28, 1));
+    expect(sh.uniforms['famGTrailK']?.value).toEqual(new THREE.Vector4(1, 0, 0, 0));
+    const contrast = sh.uniforms['famGContrastK'];
+    updateGround(m, { contrast: { near: 0.52, far: 0.26, window: [4, 26], strength: 0.45 }, away: { from: [0.2, -0.98], amount: 0.3 } });
+    expect(contrast?.value).toBe(0.45);
+    expect(vec3(sh.uniforms['famGAway']).z).toBe(0.3);
+    expect(() => { updateGround(m, { sheen: -1 }); }).toThrow();
+    expect(() => { updateGround(new THREE.MeshStandardMaterial(), {}); }).toThrow(/ground layer/);
+    expect(compilePbr(parsePbr({}), () => tex).customProgramCacheKey()).not.toBe(GROUND_PROGRAM_KEY);
+    expect(() => parseGroundLayer({ trail: { map: 't', rect: [1, 0, 0, 1], ripples: 0.5, tint: [1, 1, 1], amount: 0.6 } })).toThrow(/rect/);
+  });
+});
+
+describe('the registry with all four families', () => {
+  it('needs each look only for its own family and compiles one stand-in per program', () => {
+    const scope = new Scope('families-test-4');
+    const base = { toon: new ToonLook(), textures: () => new THREE.Texture(), scope };
+    expect(() => familyMaterial({ family: 'painterly' }, base)).toThrow(/painterly look/);
+    expect(() => familyMaterial({ family: 'emissive' }, base)).toThrow(/emissive look/);
+    const ctx = { ...base, painterly: new PainterlyLook(), emissive: new EmissiveLook() };
+    familyMaterial({ family: 'painterly' }, ctx);
+    familyMaterial({ family: 'painterly', rim: 0.9 }, ctx);                  // same program
+    familyMaterial({ family: 'emissive', blend: 'additive' }, ctx);
+    familyMaterial({ family: 'emissive', sky: { maps: ['a', null] } }, ctx);
+    familyMaterial({ family: 'pbr', ground: {} }, ctx);
+    const meshes = familyCompileJobs(null, null).flatMap((j) => j.root.children);
+    expect(meshes).toHaveLength(4);
+    scope.dispose();
+    expect(liveFamilyMaterials().size).toBe(0);
+  });
+});
+
+function parsePainterly(entry: object): Extract<ReturnType<typeof parseFamilyMaterial>, { family: 'painterly' }> {
+  const p = parseFamilyMaterial({ ...entry, family: 'painterly' });
+  if (p.family !== 'painterly') throw new Error('not painterly');
+  return p;
+}
+function parseEmissive(entry: object): Extract<ReturnType<typeof parseFamilyMaterial>, { family: 'emissive' }> {
+  const p = parseFamilyMaterial({ ...entry, family: 'emissive' });
+  if (p.family !== 'emissive') throw new Error('not emissive');
+  return p;
+}
+function vec3(u: THREE.IUniform | undefined): THREE.Vector3 {
+  const v: unknown = u?.value;
+  if (!(v instanceof THREE.Vector3)) throw new Error('not a vec3 uniform');
+  return v;
 }

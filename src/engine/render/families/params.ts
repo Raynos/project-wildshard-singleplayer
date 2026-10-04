@@ -1,13 +1,15 @@
 /**
  * Material families v1 (SHARD-PLATFORM SF10a, G4 / G32): the renderer-neutral parameters. Plain data, no three.js, so the
  * shardfile's look and material entries can reference them and validate them in Node. A family is an engine-owned shader
- * (the mechanism, `toon.ts` / `pbr.ts`); its parameters are all a shard says about a surface.
+ * (the mechanism, `toon.ts` / `pbr.ts` / `painterly.ts` / `emissive.ts`); its parameters are all a shard says about a surface.
  *
  * Two levels:
  * - **look** parameters are shared by every material of one family under one look (one shard's toon lighting); a runtime
- *   adapter (the day clock) may move them every frame, and they are uniforms, never program changes.
- * - **material** parameters belong to one surface. Only `vertexColours`, `faceted`, `doubleSided` and `alphaCutoff`
- *   change a program; everything else is a uniform, so a family compiles to a handful of programs.
+ *   adapter (the day clock) may move them every frame, and they are uniforms, never program changes (the one exception:
+ *   whether a painterly look grades at all is fixed for its life).
+ * - **material** parameters belong to one surface. Only `vertexColours`, `faceted`, `doubleSided`, `alphaCutoff`, a map's
+ *   presence, an emissive surface's `blend` / `tube` / `sky` and a PBR surface's `ground` layer change a program;
+ *   everything else is a uniform, so a family compiles to a handful of programs.
  *
  * Colour conventions: `colour` is sRGB in [0, 1] (what an artist picks); light terms (`lift`, `rim`, `terminator`) are
  * linear and may exceed 1. Texture references are opaque strings (a shardfile file hash, `commons:<hash>`, or an asset
@@ -23,8 +25,8 @@ const linear = v.tuple([nonNegative, nonNegative, nonNegative]);
 const edge = v.pipe(v.tuple([unit, unit]), v.check((e) => e[0] < e[1], 'edge low < high'));
 const textureRef = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 
-/** The families v1 knows. Part 2 of SF10a adds `painterly` and `emissive`. */
-export const FAMILY_IDS = ['toon', 'pbr'] as const;
+/** The families v1 knows. */
+export const FAMILY_IDS = ['toon', 'pbr', 'painterly', 'emissive'] as const;
 /** A family id a material entry names. */
 export type FamilyId = (typeof FAMILY_IDS)[number];
 
@@ -75,6 +77,69 @@ export const ToonMaterialSchema = v.strictObject({
 /** A toon material entry with every default filled. */
 export type ToonMaterialParams = v.InferOutput<typeof ToonMaterialSchema>;
 
+const finite = v.pipe(v.number(), v.finite());
+const positive = v.pipe(v.number(), v.finite(), v.minValue(1e-3));
+/** a world-space rectangle on the ground: [x0, z0, x1, z1] (metres, x0 < x1, z0 < z1) */
+const rect = v.pipe(v.tuple([finite, finite, finite, finite]), v.check((r) => r[0] < r[2] && r[1] < r[3], 'rect x0 < x1 and z0 < z1'));
+/** an ordered pair of non-negative numbers (a distance or angle window: from, to) */
+const span = v.pipe(v.tuple([nonNegative, nonNegative]), v.check((e) => e[0] < e[1], 'span low < high'));
+
+/**
+ * The PBR family's ground layer (SF10a part 2, Signal Dunes' sand): wind ripples in two octaves, grain, broad albedo
+ * drifts and streaks, an optional trail mask, and the terrain light shaping a stylised ground wants (a baked key shadow,
+ * a crisp terminator, a grazing crest band, a sheen, a coloured shade fill and a light-saturation split). Every number is
+ * a uniform; a runtime adapter (Signal Dunes' dusk) may move them with `updateGround`. The key is the scene's first
+ * directional light. The defaults are Signal Dunes' sand at the first dusk step.
+ */
+export const GroundLayerSchema = v.strictObject({
+  /** the wind's direction over the ground (x, z; normalised when compiled): ripples run across it */
+  wind: v.optional(v.tuple([finite, finite]), [1, 0]),
+  /** the ripples' and the megaripples' wavelengths (m) */
+  wavelength: v.optional(v.tuple([positive, positive]), [(2 * Math.PI) / 7, (2 * Math.PI) / 3.93]),
+  /** how much the coarse mottle bends the ripple crests (radians of phase) */
+  lump: v.optional(nonNegative, 4.5),
+  /** albedo modulation of the ripples and the megaripples */
+  depth: v.optional(v.tuple([nonNegative, nonNegative]), [0.62, 0.05]),
+  /** normal tilt of the ripples near and at middle distance, and of the megaripples */
+  relief: v.optional(v.tuple([nonNegative, nonNegative, nonNegative]), [0.14, 0.2, 0.05]),
+  /** ripple contrast near the camera and past the near window (m), and an overall strength (an adapter dims it) */
+  contrast: v.optional(v.strictObject({ near: nonNegative, far: nonNegative, window: span, strength: nonNegative }), { near: 0.52, far: 0.26, window: [4, 26], strength: 1 }),
+  /** distance (m) over which the ripples fade out (the far ground is smooth) */
+  fade: v.optional(span, [35, 110]),
+  /** slope window (normal y) where ripples stop (slip faces avalanche smooth) */
+  slip: v.optional(edge, [0.8, 0.9]),
+  /** slope window (normal y) counted as flat (the megaripples live there) */
+  flat: v.optional(edge, [0.78, 0.96]),
+  /** the ripple patches' floor (0 = bare swales between fields, 1 = rippled everywhere), the always-rippled share near the camera and its window (m) */
+  patches: v.optional(v.strictObject({ floor: unit, near: unit, window: span }), { floor: 0.12, near: 0.8, window: [6, 30] }),
+  /** the grain tile (R albedo, G / B bump slope), its means (subtracted: grain never shifts brightness) and a strength */
+  grain: v.optional(v.strictObject({ map: v.nullable(textureRef), mean: unit, glintMean: v.pipe(v.number(), v.finite(), v.minValue(-1), v.maxValue(1)), strength: nonNegative }), { map: null, mean: 0.5, glintMean: 0, strength: 1 }),
+  /** broad albedo at the dunes' scale: × low … × high by a slow noise (linear multipliers) */
+  macro: v.optional(v.tuple([linear, linear]), [[0.9, 0.92, 0.96], [1.1, 1.04, 0.98]]),
+  /** the albedo's overall gain (an adapter may move it) */
+  albedo: v.optional(nonNegative, 0.8),
+  /** pale wind streaks: tint (linear multiplier) and amount */
+  streaks: v.optional(v.strictObject({ tint: linear, amount: unit }), { tint: [1.18, 1.12, 1.02], amount: 0.55 }),
+  /** a trail mask (R: 1 on the trodden bed) over a ground rect: the share of ripples kept, the bed's tint and amount */
+  trail: v.optional(v.nullable(v.strictObject({ map: textureRef, rect, ripples: unit, tint: linear, amount: unit })), null),
+  /** a baked key-light visibility map (R) over a ground rect, its soft edge and the share of key kept in cast shade */
+  keyShadow: v.optional(v.nullable(v.strictObject({ map: textureRef, rect, edge, floor: unit })), null),
+  /** the key's terminator ramp on the ground's own normal (N·L): short = a crisp light / shade line */
+  terminator: v.optional(v.pipe(nonNegative, v.maxValue(1)), 0.045),
+  /** a brighter band where the key grazes the ground (N·L window) and its gain */
+  crest: v.optional(v.strictObject({ band: edge, gain: nonNegative }), { band: [0.08, 0.22], gain: 0.9 }),
+  /** a grazing-view sheen on lit faces with the key behind or beside the viewer */
+  sheen: v.optional(nonNegative, 0.35),
+  /** the shade fill where the key does not reach: the sky light × tint × gain + lift (linear), by amount; edge = the N·L of full key; floor = a lift everywhere */
+  shade: v.optional(v.strictObject({ tint: linear, gain: nonNegative, lift: linear, amount: unit, edge: unit, floor: linear }), { tint: [0.95, 0.9, 1.3], gain: 1.05, lift: [0.016, 0.013, 0.02], amount: 0.9, edge: 0.14, floor: [0, 0, 0] }),
+  /** the light-saturation split: the key's light saturated (flat ground … a face turned into the key), the sky's cooled toward a tint and kept by `keep` */
+  saturation: v.optional(v.strictObject({ flat: nonNegative, facing: nonNegative, coolTint: linear, keep: unit }), { flat: 1.2, facing: 2.2, coolTint: [0.9, 0.9, 1.28], keep: 0.4 }),
+  /** faces turned from a glow direction (x, z) fall dark by amount (an adapter raises it as the light goes) */
+  away: v.optional(v.strictObject({ from: v.tuple([finite, finite]), amount: unit }), { from: [0, -1], amount: 0 }),
+});
+/** A ground layer with every default filled. */
+export type GroundLayerParams = v.InferOutput<typeof GroundLayerSchema>;
+
 /** One PBR surface: metal / rough with colour, normal and packed ORM maps (occlusion r, roughness g, metalness b). */
 export const PbrMaterialSchema = v.strictObject({
   family: v.literal('pbr'),
@@ -94,12 +159,176 @@ export const PbrMaterialSchema = v.strictObject({
   doubleSided: v.optional(v.boolean(), false),
   /** alpha test threshold (0 = opaque) */
   alphaCutoff: v.optional(unit, 0),
+  /** a procedural ground layer (wind ripples, grain, terrain light shaping); null = a plain surface */
+  ground: v.optional(v.nullable(GroundLayerSchema), null),
 });
 /** A PBR material entry with every default filled. */
 export type PbrMaterialParams = v.InferOutput<typeof PbrMaterialSchema>;
 
-/** Any family's material entry, discriminated by `family`. */
-export const FamilyMaterialSchema = v.variant('family', [ToonMaterialSchema, PbrMaterialSchema]);
+/**
+ * The display grade a painterly look applies per pixel, in the material (no full-screen pass): a gentle filmic shoulder
+ * `x(1 + x/shoulder)/(1 + x)` on gain × exposure, saturation, a cool-shadow / warm-light split by luminance and a mild
+ * S-curve, then the hour's saturation on top. The defaults are Nalati Grasslands' grade.
+ */
+export const GradeSchema = v.strictObject({
+  exposure: v.optional(v.pipe(nonNegative, v.maxValue(16)), 1),
+  /** the fixed pre-gain on exposure */
+  gain: v.optional(v.pipe(nonNegative, v.maxValue(16)), 1.12),
+  /** the shoulder's knee (larger = a longer straight stretch before the roll-off) */
+  shoulder: v.optional(v.pipe(v.number(), v.finite(), v.minValue(0.5), v.maxValue(100)), 9),
+  saturation: v.optional(v.pipe(nonNegative, v.maxValue(4)), 1.05),
+  /** multipliers on the shadows and on the lights (linear), blended by luminance over `split` */
+  shadowTint: v.optional(linear, [0.92, 0.96, 1.05]),
+  lightTint: v.optional(linear, [1.07, 0.99, 0.84]),
+  split: v.optional(edge, [0.05, 0.6]),
+  /** the S-curve's share (0 = none) */
+  contrast: v.optional(unit, 0.35),
+  /** the hour's saturation, applied last (night greys out) */
+  lookSaturation: v.optional(v.pipe(nonNegative, v.maxValue(4)), 1),
+});
+/** A grade with every default filled. */
+export type GradeParams = v.InferOutput<typeof GradeSchema>;
+
+const DEFAULT_GRADE: GradeParams = { exposure: 1, gain: 1.12, shoulder: 9, saturation: 1.05, shadowTint: [0.92, 0.96, 1.05], lightTint: [1.07, 0.99, 0.84], split: [0.05, 0.6], contrast: 0.35, lookSaturation: 1 };
+
+/**
+ * The painterly family's look (Nalati Grasslands, style B): soft cel bands, shade painted with a sky tint, a warm
+ * terminator, a painted floor that keeps dark paint off black, wetness, wind for swaying foliage, and the per-pixel grade.
+ */
+export const PainterlyLookSchema = v.strictObject({
+  /** the colour painted into the shadow side (linear, added × albedo where the sun does not reach) */
+  shade: v.optional(linear, [0.1, 0.14, 0.3]),
+  /** rim light colour (linear, HDR allowed) */
+  rim: v.optional(linear, [1.4, 1.2, 0.9]),
+  /** the warm band just past the terminator (0 = off) */
+  warm: v.optional(v.pipe(nonNegative, v.maxValue(4)), 0.8),
+  /** the painted floor: dark albedo lifted toward 0.22 by the shade tint × this (0 = off) */
+  floor: v.optional(v.pipe(nonNegative, v.maxValue(16)), 3),
+  /** wetness 0 (dry) … 1 (soaked): darker, glossier paint on what faces the sky */
+  wet: v.optional(unit, 0),
+  /** world wind direction (x, z; normalised) and strength, for a material's `sway` */
+  wind: v.optional(v.strictObject({ direction: v.tuple([finite, finite]), strength: nonNegative }), { direction: [0.8, 0.6], strength: 1 }),
+  /** the per-pixel display grade (null = the renderer's tone mapping instead); present or null for the look's whole life */
+  grade: v.optional(v.nullable(GradeSchema), DEFAULT_GRADE),
+});
+/** A painterly look with every default filled. */
+export type PainterlyLookParams = v.InferOutput<typeof PainterlyLookSchema>;
+
+/** One painterly surface: vertex-coloured, no specular, a per-surface rim, cel strength, shade share and sway. */
+export const PainterlyMaterialSchema = v.strictObject({
+  family: v.literal('painterly'),
+  /** sRGB, multiplies the vertex colours (and the map) */
+  colour: v.optional(srgb, [1, 1, 1]),
+  /** rim-light strength (0 = none … 1 = strong) */
+  rim: v.optional(unit, 0.35),
+  /** cel strength (0 = plain Lambert … 1 = the full three-band ramp) */
+  bands: v.optional(unit, 0.8),
+  /** how much of the painted shade tint this surface takes */
+  shade: v.optional(unit, 1),
+  /** this surface's share of the painted floor */
+  floor: v.optional(unit, 1),
+  /** wind sway in metres per (local metre above the origin)² (foliage, flags; 0 = rigid) */
+  sway: v.optional(v.pipe(nonNegative, v.maxValue(1)), 0),
+  /** self-light colour (sRGB) and its strength: a lantern, embers, eyes */
+  emissive: v.optional(srgb, [0, 0, 0]),
+  emissiveIntensity: v.optional(v.pipe(nonNegative, v.maxValue(64)), 1),
+  /** a base-colour texture (sRGB) × colour × vertex colours */
+  map: v.optional(v.nullable(textureRef), null),
+  vertexColours: v.optional(v.boolean(), true),
+  doubleSided: v.optional(v.boolean(), false),
+  /** alpha test threshold (0 = opaque) */
+  alphaCutoff: v.optional(unit, 0),
+});
+/** A painterly material entry with every default filled. */
+export type PainterlyMaterialParams = v.InferOutput<typeof PainterlyMaterialSchema>;
+
+/** The emissive family's look: one gain over every emitter (exposure by the hour) and the stage blend a sky reads. */
+export const EmissiveLookSchema = v.strictObject({
+  /** multiplies every emitter under this look */
+  gain: v.optional(v.pipe(nonNegative, v.maxValue(64)), 1),
+  /** 0 … 1: a sky's blend from its first map to its second (a runtime adapter feeds it: Signal Dunes' dusk) */
+  blend: v.optional(unit, 0),
+});
+/** An emissive look with every default filled. */
+export type EmissiveLookParams = v.InferOutput<typeof EmissiveLookSchema>;
+
+/**
+ * A neon tube drawn from a distance field (R: the glyph's fill, 0.5 on its edge; G: the distance to its skeleton): a
+ * whitened core, a darker glass rim, an optional seam and a short halo, all in em (the field's cell height = 1).
+ */
+export const NeonTubeSchema = v.strictObject({
+  field: textureRef,
+  /** em of fill distance one unit of R spans either side of 0.5, and em per unit of G */
+  fillSpread: positive,
+  skeletonSpread: positive,
+  /** 0 = brush fill … 1 = monoline tube round the skeleton */
+  mono: v.optional(unit, 0),
+  radius: v.optional(nonNegative, 0.05),
+  rim: v.optional(nonNegative, 0.024),
+  thicken: v.optional(v.pipe(v.number(), v.finite(), v.minValue(-1), v.maxValue(1)), 0.022),
+  seam: v.optional(unit, 0),
+  seamWidth: v.optional(nonNegative, 0.008),
+  haloReach: v.optional(nonNegative, 0.12),
+  haloGain: v.optional(nonNegative, 0.22),
+  /** how far the core whitens (0 = the tint) and how dark the rim's glass is (× tint) */
+  core: v.optional(unit, 0.5),
+  rimShade: v.optional(unit, 0.62),
+  /** the uv size of one field cell (an atlas laid out on a grid from 0): the halo fades out at each cell's border, so a glyph quad never cuts it hard; null = no fade */
+  cell: v.optional(v.nullable(v.tuple([v.pipe(positive, v.maxValue(1)), v.pipe(positive, v.maxValue(1))])), null),
+});
+
+/**
+ * A sky dome at infinity from one or two seamless 360° panorama strips (x = heading clockwise from -z, the strip spanning
+ * `elevation` degrees), blended by the look's `blend`; under `hold` degrees the colour is averaged round the heading (the
+ * 3-D horizon owns the silhouette); over the top it eases into the strip's top row; crisp stars where the sky is dark.
+ */
+export const SkyDomeSchema = v.strictObject({
+  maps: v.tuple([textureRef, v.nullable(textureRef)]),
+  /** the strip's bottom and top elevation (degrees) */
+  elevation: v.optional(v.pipe(v.tuple([v.pipe(finite, v.minValue(-90)), v.pipe(finite, v.maxValue(90))]), v.check((e) => e[0] < e[1], 'elevation low < high')), [-8, 45]),
+  /** the blend window over the look's `blend` (the first map up to low, the second from high) */
+  window: v.optional(edge, [0, 1]),
+  /** gain on the first map low in the sky and from 30° up (a re-coloured early stage) */
+  firstGain: v.optional(v.tuple([nonNegative, nonNegative]), [1, 1]),
+  /** degrees under which the sky holds and averages round the heading */
+  hold: v.optional(v.pipe(nonNegative, v.maxValue(30)), 2.5),
+  /** stars: density (share of cells lit), gain, the elevation window (degrees) they fade in over, the blend window they appear over */
+  stars: v.optional(v.strictObject({ density: unit, gain: nonNegative, elevation: span, appear: edge }), { density: 0.0045, gain: 0.5, elevation: [8, 20], appear: [0.45, 0.7] }),
+  /** ± dither added (linear), so a dark gradient never bands */
+  dither: v.optional(v.pipe(nonNegative, v.maxValue(0.1)), 0.004),
+});
+
+/**
+ * One emissive surface: unlit light. `colour` × `intensity` (HDR) × the vertex colours × an optional map, flickering by a
+ * seed, fogged at a share of the fog. With `tube` it draws a neon glyph from a distance field; with `sky`, a sky dome.
+ */
+export const EmissiveMaterialSchema = v.strictObject({
+  family: v.literal('emissive'),
+  /** sRGB tint */
+  colour: v.optional(srgb, [1, 1, 1]),
+  /** linear gain (neon runs at ~4) */
+  intensity: v.optional(v.pipe(nonNegative, v.maxValue(64)), 1),
+  vertexColours: v.optional(v.boolean(), false),
+  /** an sRGB colour map × tint */
+  map: v.optional(v.nullable(textureRef), null),
+  /** 'additive' adds light over what is behind it (no depth write); 'opaque' is a surface lit from within */
+  blend: v.optional(v.picklist(['opaque', 'additive']), 'opaque'),
+  doubleSided: v.optional(v.boolean(), false),
+  /** how much of the fog it takes: transmittance ^ fog (0 = cuts through, 1 = fogged like any surface) */
+  fog: v.optional(unit, 1),
+  /** 0 = steady; else the seed of a stuttering tube (dark for a few beats now and then) */
+  flicker: v.optional(v.pipe(nonNegative, v.maxValue(1000)), 0),
+  tube: v.optional(v.nullable(NeonTubeSchema), null),
+  sky: v.optional(v.nullable(SkyDomeSchema), null),
+});
+/** An emissive material entry with every default filled. */
+export type EmissiveMaterialParams = v.InferOutput<typeof EmissiveMaterialSchema>;
+
+/** Any family's material entry, discriminated by `family` (an emissive surface is a tube or a sky, never both). */
+export const FamilyMaterialSchema = v.pipe(
+  v.variant('family', [ToonMaterialSchema, PbrMaterialSchema, PainterlyMaterialSchema, EmissiveMaterialSchema]),
+  v.check((m) => m.family !== 'emissive' || m.tube === null || m.sky === null, 'an emissive surface is a tube or a sky, not both'),
+);
 /** Any family's validated material entry (what a compiler receives). */
 export type FamilyMaterialParams = v.InferOutput<typeof FamilyMaterialSchema>;
 /** What an author or a build writes: omitted fields take the family's defaults. */
@@ -116,5 +345,26 @@ export function parseFamilyMaterial(input: unknown): FamilyMaterialParams {
 export function parseToonLook(input: unknown): ToonLookParams {
   const r = v.safeParse(ToonLookSchema, input);
   if (!r.success) throw new Error(`toon look: ${r.issues.map((i) => `${v.getDotPath(i) ?? '(root)'}: ${i.message}`).join('; ')}`);
+  return r.output;
+}
+
+/** Validate the painterly look and fill its defaults. */
+export function parsePainterlyLook(input: unknown): PainterlyLookParams {
+  const r = v.safeParse(PainterlyLookSchema, input);
+  if (!r.success) throw new Error(`painterly look: ${r.issues.map((i) => `${v.getDotPath(i) ?? '(root)'}: ${i.message}`).join('; ')}`);
+  return r.output;
+}
+
+/** Validate the emissive look and fill its defaults. */
+export function parseEmissiveLook(input: unknown): EmissiveLookParams {
+  const r = v.safeParse(EmissiveLookSchema, input);
+  if (!r.success) throw new Error(`emissive look: ${r.issues.map((i) => `${v.getDotPath(i) ?? '(root)'}: ${i.message}`).join('; ')}`);
+  return r.output;
+}
+
+/** Validate a ground layer and fill its defaults. */
+export function parseGroundLayer(input: unknown): GroundLayerParams {
+  const r = v.safeParse(GroundLayerSchema, input);
+  if (!r.success) throw new Error(`ground layer: ${r.issues.map((i) => `${v.getDotPath(i) ?? '(root)'}: ${i.message}`).join('; ')}`);
   return r.output;
 }

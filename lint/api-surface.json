@@ -6696,9 +6696,129 @@
         "from": "@wildshard/engine/render/dataLook"
       },
       {
+        "name": "compileEmissive",
+        "kind": "function",
+        "doc": "Compile an emissive surface under `look` to a three.js material (WebGL v1 renderer).",
+        "from": "@wildshard/engine/render/families/emissive"
+      },
+      {
+        "name": "EMISSIVE_PROGRAM_KEY",
+        "kind": "const",
+        "doc": "the program-cache key prefix every emissive material shares (the shape follows it)",
+        "from": "@wildshard/engine/render/families/emissive"
+      },
+      {
+        "name": "EmissiveLook",
+        "kind": "class",
+        "doc": "One emissive look: the gain, the sky blend and the flicker clock of every emissive material made under it.",
+        "from": "@wildshard/engine/render/families/emissive"
+      },
+      {
+        "name": "EmissiveLookUniforms",
+        "kind": "interface",
+        "doc": "The uniforms one emissive look shares with every material made under it.",
+        "from": "@wildshard/engine/render/families/emissive"
+      },
+      {
+        "name": "injectEmissive",
+        "kind": "function",
+        "doc": "The emissive shading for one shape injected into a MeshBasic source (throws if three moved an include it edits).",
+        "from": "@wildshard/engine/render/families/emissive"
+      },
+      {
+        "name": "applyGround",
+        "kind": "function",
+        "doc": "Add a ground layer to a PBR family material (the PBR compiler calls it; the program becomes the ground program).",
+        "from": "@wildshard/engine/render/families/ground"
+      },
+      {
+        "name": "GROUND_PROGRAM_KEY",
+        "kind": "const",
+        "doc": "the program-cache key of every PBR material with a ground layer",
+        "from": "@wildshard/engine/render/families/ground"
+      },
+      {
+        "name": "injectGround",
+        "kind": "function",
+        "doc": "The ground layer injected into a MeshStandard / MeshPhysical source (throws if three moved an include it edits).",
+        "from": "@wildshard/engine/render/families/ground"
+      },
+      {
+        "name": "updateGround",
+        "kind": "function",
+        "doc": "Move some of a ground layer's parameters on a live material (a runtime adapter: Signal Dunes' dusk). Validated;",
+        "from": "@wildshard/engine/render/families/ground"
+      },
+      {
+        "name": "compilePainterly",
+        "kind": "function",
+        "doc": "Compile a painterly surface under `look` to a three.js material (WebGL v1 renderer).",
+        "from": "@wildshard/engine/render/families/painterly"
+      },
+      {
+        "name": "gradeRgb",
+        "kind": "function",
+        "doc": "The grade on the CPU, scene-linear → display-linear (the same maths as the shader): to check a colour a look will",
+        "from": "@wildshard/engine/render/families/painterly"
+      },
+      {
+        "name": "injectPainterly",
+        "kind": "function",
+        "doc": "The painterly light model (and, with `graded`, the per-pixel grade) injected into a MeshLambert source.",
+        "from": "@wildshard/engine/render/families/painterly"
+      },
+      {
+        "name": "PAINTERLY_PROGRAM_KEY",
+        "kind": "const",
+        "doc": "the program-cache key every painterly material shares (`|g` when its look grades)",
+        "from": "@wildshard/engine/render/families/painterly"
+      },
+      {
+        "name": "PainterlyLook",
+        "kind": "class",
+        "doc": "One painterly look: the shared uniforms of every painterly material made under it (one per shard). A runtime adapter",
+        "from": "@wildshard/engine/render/families/painterly"
+      },
+      {
+        "name": "PainterlyLookUniforms",
+        "kind": "interface",
+        "doc": "The uniforms one painterly look shares with every material made under it.",
+        "from": "@wildshard/engine/render/families/painterly"
+      },
+      {
+        "name": "PainterlyMaterialUniforms",
+        "kind": "interface",
+        "doc": "a painterly material's own uniforms (what differs per surface without a program change)",
+        "from": "@wildshard/engine/render/families/painterly"
+      },
+      {
+        "name": "EmissiveLookParams",
+        "kind": "type",
+        "doc": "An emissive look with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "EmissiveLookSchema",
+        "kind": "const",
+        "doc": "The emissive family's look: one gain over every emitter (exposure by the hour) and the stage blend a sky reads.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "EmissiveMaterialParams",
+        "kind": "type",
+        "doc": "An emissive material entry with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "EmissiveMaterialSchema",
+        "kind": "const",
+        "doc": "One emissive surface: unlit light. `colour` × `intensity` (HDR) × the vertex colours × an optional map, flickering by a",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
         "name": "FAMILY_IDS",
         "kind": "const",
-        "doc": "The families v1 knows. Part 2 of SF10a adds `painterly` and `emissive`.",
+        "doc": "The families v1 knows.",
         "from": "@wildshard/engine/render/families/params"
       },
       {
@@ -6722,13 +6842,85 @@
       {
         "name": "FamilyMaterialSchema",
         "kind": "const",
-        "doc": "Any family's material entry, discriminated by `family`.",
+        "doc": "Any family's material entry, discriminated by `family` (an emissive surface is a tube or a sky, never both).",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "GradeParams",
+        "kind": "type",
+        "doc": "A grade with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "GradeSchema",
+        "kind": "const",
+        "doc": "The display grade a painterly look applies per pixel, in the material (no full-screen pass): a gentle filmic shoulder",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "GroundLayerParams",
+        "kind": "type",
+        "doc": "A ground layer with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "GroundLayerSchema",
+        "kind": "const",
+        "doc": "The PBR family's ground layer (SF10a part 2, Signal Dunes' sand): wind ripples in two octaves, grain, broad albedo",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "NeonTubeSchema",
+        "kind": "const",
+        "doc": "A neon tube drawn from a distance field (R: the glyph's fill, 0.5 on its edge; G: the distance to its skeleton): a",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PainterlyLookParams",
+        "kind": "type",
+        "doc": "A painterly look with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PainterlyLookSchema",
+        "kind": "const",
+        "doc": "The painterly family's look (Nalati Grasslands, style B): soft cel bands, shade painted with a sky tint, a warm",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PainterlyMaterialParams",
+        "kind": "type",
+        "doc": "A painterly material entry with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PainterlyMaterialSchema",
+        "kind": "const",
+        "doc": "One painterly surface: vertex-coloured, no specular, a per-surface rim, cel strength, shade share and sway.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "parseEmissiveLook",
+        "kind": "function",
+        "doc": "Validate the emissive look and fill its defaults.",
         "from": "@wildshard/engine/render/families/params"
       },
       {
         "name": "parseFamilyMaterial",
         "kind": "function",
         "doc": "Validate a material entry and fill the family's defaults; throws a readable error on bad data.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "parseGroundLayer",
+        "kind": "function",
+        "doc": "Validate a ground layer and fill its defaults.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "parsePainterlyLook",
+        "kind": "function",
+        "doc": "Validate the painterly look and fill its defaults.",
         "from": "@wildshard/engine/render/families/params"
       },
       {
@@ -6753,6 +6945,12 @@
         "name": "Rgb",
         "kind": "type",
         "doc": "An sRGB or linear colour as three numbers.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "SkyDomeSchema",
+        "kind": "const",
+        "doc": "A sky dome at infinity from one or two seamless 360° panorama strips (x = heading clockwise from -z, the strip spanning",
         "from": "@wildshard/engine/render/families/params"
       },
       {

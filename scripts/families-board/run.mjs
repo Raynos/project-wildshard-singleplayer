@@ -3,7 +3,10 @@
 // dir, serves it with the repo's public/ on one local port, opens one muted headless Chromium on Metal (iPhone 16 Pro
 // descriptor), draws each reference prop TODAY vs FAMILY (board.js) and composes the portrait board (PIL, JPEG ≤ 500 KB).
 //
-//   scripts/browser-lane.sh node scripts/families-board/run.mjs [--out=progress/families/sf10a-toon-pbr.jpg] [--scratch=<dir>]
+//   scripts/browser-lane.sh node scripts/families-board/run.mjs [--set=part1|part2] [--out=<jpg>] [--scratch=<dir>]
+//   part1 (default): toon + PBR → progress/families/sf10a-toon-pbr.jpg
+//   part2: painterly (Nalati), emissive (Nine Dragon's neon, Signal Dunes' sky), PBR ground (Signal Dunes' sand)
+//          → progress/families/sf10a-painterly-emissive.jpg
 //
 // Prints one JSON line per panel: the pixel difference (mean / max per channel on 0–255, % of pixels off by > 8, PSNR)
 // and the precompile reading (family jobs, programs they built, programs the first family draw still built: 0 = none).
@@ -17,7 +20,9 @@ const { chromium, devices } = await import('playwright');
 const ROOT = resolvePath(new URL('../..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
-const OUT = resolvePath(ROOT, flag('out', 'progress/families/sf10a-toon-pbr.jpg'));
+const SET = flag('set', 'part1');
+const OUT = resolvePath(ROOT, flag('out', SET === 'part2' ? 'progress/families/sf10a-painterly-emissive.jpg' : 'progress/families/sf10a-toon-pbr.jpg'));
+const KINDS = flag('kinds', '') !== '' ? flag('kinds', '').split(',') : SET === 'part2' ? ['painterly', 'neon', 'sky-early', 'sky-late', 'sand'] : ['toon-midday', 'toon-golden', 'pbr'];
 const SCRATCH = resolvePath(flag('scratch', join(tmpdir(), `families-board-${process.pid}`)));
 const DIST = join(SCRATCH, 'dist');
 mkdirSync(SCRATCH, { recursive: true });
@@ -44,7 +49,7 @@ const base = `http://127.0.0.1:${typeof address === 'object' && address ? addres
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const panels = [];
 try {
-  for (const kind of ['toon-midday', 'toon-golden', 'pbr']) {
+  for (const kind of KINDS) {
     // a fresh page per panel: the toon side installs the shard's page-wide chunk patch, which must not reach the PBR panel
     const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });
     const page = await ctx.newPage();
@@ -54,6 +59,7 @@ try {
     await page.goto(`${base}/index.html`);
     await page.waitForFunction(() => typeof window.familiesBoard === 'function', undefined, { timeout: 60000 });
     const r = await page.evaluate((k) => window.familiesBoard(k), kind);
+    if (errors.length > 0) console.error(kind, errors.slice(0, 5));
     for (const side of ['today', 'family']) writeFileSync(join(SCRATCH, `${kind}-${side}.png`), Buffer.from(r[side].split(',')[1], 'base64'));
     panels.push({ kind, diff: r.diff, precompile: r.precompile, notes: r.notes, errors });
     console.log(JSON.stringify({ kind, diff: r.diff, precompile: r.precompile, notes: r.notes, errors }));
@@ -67,7 +73,7 @@ try {
 const PY = String.raw`
 import json, sys
 from PIL import Image, ImageDraw, ImageFont, ImageChops
-scratch, out, panels = sys.argv[1], sys.argv[2], json.loads(sys.argv[3])
+scratch, out, panels, part = sys.argv[1], sys.argv[2], json.loads(sys.argv[3]), sys.argv[4]
 W, P, G = 1206, 573, 20
 def font(n, bold=False):
     for f in (['/System/Library/Fonts/Supplemental/Arial Bold.ttf'] if bold else []) + ['/System/Library/Fonts/Supplemental/Arial.ttf', '/System/Library/Fonts/Helvetica.ttc']:
@@ -75,11 +81,16 @@ def font(n, bold=False):
         except OSError: pass
     return ImageFont.load_default()
 rows = [('toon-midday', 'Driftwood Isle - sailboat - midday', 'toon family'), ('toon-golden', 'Driftwood Isle - sailboat - golden hour (look set by the adapter)', 'toon family'), ('pbr', 'Pine Hollow - wine barrel (Poly Haven scan)', 'PBR family')]
+title, sub = 'Material families v1: today vs family', 'SF10a part 1 - same light, camera and ground; only the prop material changes'
+if part == 'part2':
+    P = 440
+    rows = [('painterly', 'Nalati Grasslands - camp still life (today: material + grade pass)', 'painterly + grade'), ('neon', 'Nine Dragon Stack - neon calligraphy sign (tubes)', 'emissive tube'), ('sky-early', 'Signal Dunes - painted dusk sky, sunset step (dusk 0)', 'emissive sky'), ('sky-late', 'Signal Dunes - painted dusk sky, blue hour (dusk 0.8)', 'emissive sky'), ('sand', 'Signal Dunes - sand at the spawn, dusk 0', 'PBR + ground layer')]
+    title, sub = 'Material families v1 part 2: today vs family', 'SF10a part 2 - painterly, emissive and the PBR ground layer; same light, camera and display per row'
 H = 150 + len(rows) * (P + 140) + 30
 board = Image.new('RGB', (W, H), (24, 26, 30))
 d = ImageDraw.Draw(board)
-d.text((G, 30), 'Material families v1: today vs family', font=font(44, True), fill=(240, 240, 240))
-d.text((G, 90), 'SF10a part 1 - same light, camera and ground; only the prop material changes', font=font(24), fill=(170, 175, 185))
+d.text((G, 30), title, font=font(44, True), fill=(240, 240, 240))
+d.text((G, 90), sub, font=font(24), fill=(170, 175, 185))
 y = 150
 for kind, title, fam in rows:
     p = next(x for x in panels if x['kind'] == kind)
@@ -88,7 +99,7 @@ for kind, title, fam in rows:
         im = Image.open(f'{scratch}/{kind}-{side}.png').convert('RGB').resize((P, P), Image.LANCZOS)
         x = G + i * (P + G)
         board.paste(im, (x, y + 42))
-        d.rectangle([x, y + 42, x + 330, y + 76], fill=(0, 0, 0))
+        d.rectangle([x, y + 42, x + 16 + int(d.textlength(label, font=font(22, True))), y + 76], fill=(0, 0, 0))
         d.text((x + 8, y + 46), label, font=font(22, True), fill=(255, 255, 255))
     df, pc = p['diff'], p['precompile']
     same = 'IDENTICAL (max 0 / 255)' if df['max'] == 0 else f"mean {df['mean']} / 255, max {df['max']}, {df['over8']}% px > 8, PSNR {df['psnr']} dB"
@@ -106,5 +117,5 @@ while True:
 print(out, os.path.getsize(out), 'bytes, q', q)
 `;
 mkdirSync(resolvePath(OUT, '..'), { recursive: true });
-execFileSync('python3', ['-c', PY, SCRATCH, OUT, JSON.stringify(panels)], { stdio: 'inherit' });
+execFileSync('python3', ['-c', PY, SCRATCH, OUT, JSON.stringify(panels), SET], { stdio: 'inherit' });
 if (flag('scratch', '') === '') rmSync(SCRATCH, { recursive: true, force: true });
