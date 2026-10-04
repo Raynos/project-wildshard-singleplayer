@@ -1,4 +1,6 @@
 import * as v from 'valibot';
+import { deflateSync, inflateSync } from 'fflate';
+import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, encodePhysicsReferences, decodePhysicsReferences } from './snapshotPhysics';
 import type { SimValue } from '../sim';
 import type { SimSnapshot } from './snapshot';
 
@@ -8,6 +10,10 @@ const integer = v.pipe(nonnegative, v.safeInteger());
 const uint32 = v.pipe(integer, v.maxValue(0xffffffff));
 const id = v.pipe(v.string(), v.minLength(1));
 const version = v.literal(1);
+// A regional continuation is bounded independently of compressed input size. Each block
+// decodes into a fixed buffer plus one overflow byte; no inflater can grow the allocation.
+const maxPhysicsBytes = MAX_PHYSICS_BYTES, physicsBlockBytes = 65_536;
+const maxBase64Length = Math.ceil(maxPhysicsBytes / 3) * 4;
 const vector = v.tuple([finite, finite, finite]);
 const point = v.strictObject({ x: finite, y: finite, z: finite });
 const nullableNumber = v.nullable(finite);
@@ -74,9 +80,15 @@ const entries = {
   adapters: v.array(v.strictObject({ id, state: simValue })),
 };
 const snapshot: v.GenericSchema<SimSnapshot> = v.strictObject({ ...entries,
-  physics: v.pipe(v.array(v.pipe(integer, v.maxValue(255))), v.minLength(1)) });
+  physics: v.pipe(v.array(v.pipe(integer, v.maxValue(255))), v.minLength(1), v.maxLength(maxPhysicsBytes)) });
 const packedSnapshot = v.strictObject({ ...entries,
-  physics: v.strictObject({ encoding: v.literal('base64'), data: v.pipe(v.string(), v.minLength(4)), checksum: uint32 }) });
+  physics: v.variant('encoding', [
+    v.strictObject({ encoding: v.literal('base64'), data: v.pipe(v.string(), v.minLength(4), v.maxLength(maxBase64Length)), checksum: uint32 }),
+    v.strictObject({ encoding: v.literal('deflate-lz-base64-v1'), length: v.pipe(integer, v.minValue(1), v.maxValue(maxPhysicsBytes)),
+      packedLength: v.pipe(integer, v.minValue(1), v.maxValue(MAX_REFERENCE_BYTES)),
+      basis: v.optional(v.strictObject({ length: v.pipe(integer, v.minValue(1), v.maxValue(maxPhysicsBytes)), checksum: uint32 })),
+      chunks: v.pipe(v.array(v.pipe(v.string(), v.minLength(4), v.maxLength(Math.ceil((physicsBlockBytes + 64) / 3) * 4))), v.minLength(1), v.maxLength(Math.ceil(MAX_REFERENCE_BYTES / physicsBlockBytes))), checksum: uint32 }),
+  ]) });
 const wire = v.strictObject({ format: v.literal('sim.snapshot'), version, snapshot: packedSnapshot });
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
@@ -95,12 +107,12 @@ function jsonTree(input: unknown, parents = new Set<object>(), depth = 0): void 
   }
   parents.delete(input);
 }
-function checksum(bytes: readonly number[]): number {
+function checksum(bytes: Iterable<number>): number {
   let value = 2166136261;
   for (const byte of bytes) value = Math.imul(value ^ byte, 16777619);
   return value >>> 0;
 }
-function pack(bytes: readonly number[]): string {
+function pack(bytes: ArrayLike<number>): string {
   const chunks: string[] = [];
   let chunk = '';
   for (let index = 0; index < bytes.length; index += 3) {
@@ -126,6 +138,36 @@ function unpack(data: string): number[] {
   }
   if (pack(bytes) !== data) throw new RangeError('Noncanonical snapshot base64');
   return bytes;
+}
+function packedPhysics(bytes: readonly number[], basis?: Uint8Array): v.InferOutput<typeof packedSnapshot>['physics'] {
+  const raw = Uint8Array.from(bytes), references = encodePhysicsReferences(raw, basis), chunks: string[] = [];
+  for (let offset = 0; offset < references.length; offset += physicsBlockBytes) chunks.push(pack(deflateSync(references.subarray(offset, offset + physicsBlockBytes), { level: 6 })));
+  const hash = checksum(raw);
+  // Tiny or incompressible continuations retain the original canonical encoding.
+  if (chunks.reduce((size, chunk) => size + chunk.length + 3, 64) >= Math.ceil(bytes.length / 3) * 4) return { encoding: 'base64', data: pack(raw), checksum: hash };
+  return { encoding: 'deflate-lz-base64-v1', length: raw.length, packedLength: references.length, chunks, checksum: hash,
+    ...(basis === undefined ? {} : { basis: { length: basis.length, checksum: checksum(basis) } }) };
+}
+function physicsBytes(packed: v.InferOutput<typeof packedSnapshot>['physics'], basis?: Uint8Array): number[] {
+  if (packed.encoding === 'base64') {
+    const bytes = unpack(packed.data);
+    if (bytes.length > maxPhysicsBytes || checksum(bytes) !== packed.checksum) throw new RangeError('Snapshot physics checksum or length mismatch');
+    return bytes;
+  }
+  if (packed.basis !== undefined && (basis === undefined || basis.length !== packed.basis.length || checksum(basis) !== packed.basis.checksum)) throw new RangeError('Snapshot physics basis mismatch');
+  if (packed.chunks.length !== Math.ceil(packed.packedLength / physicsBlockBytes)) throw new RangeError('Invalid snapshot physics block count');
+  const references = new Uint8Array(packed.packedLength);
+  for (const [index, chunk] of packed.chunks.entries()) {
+    const offset = index * physicsBlockBytes, length = Math.min(physicsBlockBytes, references.length - offset);
+    const compressed = Uint8Array.from(unpack(chunk));
+    if (compressed.length > length + 64) throw new RangeError('Invalid snapshot physics block size');
+    const decoded = inflateSync(compressed, { out: new Uint8Array(length + 1) });
+    if (decoded.length !== length) throw new RangeError('Snapshot physics block length mismatch');
+    references.set(decoded, offset);
+  }
+  const bytes = decodePhysicsReferences(references, packed.length, packed.basis === undefined ? undefined : basis);
+  if (checksum(bytes) !== packed.checksum) throw new RangeError('Snapshot physics checksum mismatch');
+  return Array.from(bytes);
 }
 const health = v.strictObject({ version, attributes: v.pipe(v.record(v.string(), v.union([v.number(), v.undefined()])),
   v.check((attributes) => Number.isFinite(attributes['health']) && Number.isFinite(attributes['maxHealth']))),
@@ -166,18 +208,18 @@ function stringify(value: unknown): string {
 }
 
 /** Internal packed wire writer; the defining public entry supplies its current engine version. */
-export function serializeSnapshotData(input: SimSnapshot, apiVersion: number): string {
+export function serializeSnapshotData(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array): string {
+  if (!Array.isArray(input.physics) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
   jsonTree(input);
   const saved = identities(v.parse(snapshot, input), apiVersion);
   return stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved,
-    physics: { encoding: 'base64', data: pack(saved.physics), checksum: checksum(saved.physics) } } });
+    physics: packedPhysics(saved.physics, physicsBasis) } });
 }
 /** Internal strict wire parser; unknown static fields are refused at every nesting level. */
-export function decodeSnapshotData(input: unknown, apiVersion: number): SimSnapshot {
+export function decodeSnapshotData(input: unknown, apiVersion: number, physicsBasis?: Uint8Array): SimSnapshot {
   const parsed: unknown = typeof input === 'string' ? JSON.parse(input) : input;
   jsonTree(parsed);
   const saved = v.parse(wire, parsed).snapshot;
-  const physics = unpack(saved.physics.data);
-  if (checksum(physics) !== saved.physics.checksum) throw new RangeError('Snapshot physics checksum mismatch');
+  const physics = physicsBytes(saved.physics, physicsBasis);
   return identities(v.parse(snapshot, { ...saved, physics }), apiVersion);
 }

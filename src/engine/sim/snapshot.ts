@@ -15,6 +15,8 @@ import { tagCollider, tagOf, type Material } from '../physics/surface';
 
 /** Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. */
 export const SIM_SNAPSHOT_VERSION = 1;
+/** Durable per-region ceiling in stored characters; the grid caller uses a logical checkpoint if exact encoding exceeds it. */
+export const SIM_REGION_SNAPSHOT_CHAR_BUDGET = 512 * 1024;
 type EventValue =
   | { kind: 'value'; value: null | boolean | number | string }
   | { kind: 'undefined' }
@@ -42,13 +44,13 @@ export interface SimSnapshot {
   slots: SimSlots; adapters: { id: string; state: SimValue }[];
 }
 
-/** Serialize a strict, versioned JSON continuation with canonical base64 physics bytes and an integrity checksum. */
-export function serializeSimSnapshot(saved: SimSnapshot): string {
-  return serializeSnapshotData(saved, SIM_API_VERSION);
+/** Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. */
+export function serializeSimSnapshot(saved: SimSnapshot, physicsBasis?: Uint8Array): string {
+  return serializeSnapshotData(saved, SIM_API_VERSION, physicsBasis);
 }
-/** Decode untrusted packed JSON (text or parsed data); refuse unknown fields, corrupt bytes and other engine versions. */
-export function decodeSimSnapshot(input: unknown): SimSnapshot {
-  return decodeSnapshotData(input, SIM_API_VERSION);
+/** Decode compressed/legacy JSON; a basis-referencing wire requires its exact checked basis. Never drops native geometry/state. */
+export function decodeSimSnapshot(input: unknown, physicsBasis?: Uint8Array): SimSnapshot {
+  return decodeSnapshotData(input, SIM_API_VERSION, physicsBasis);
 }
 
 function encode(value: unknown, host: SimHost, parents = new Set<object>()): EventValue {

@@ -53,6 +53,9 @@ importers:
       '@wildshard/sdk':
         specifier: workspace:*
         version: link:src/sdk
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       n8ao:
         specifier: ^2.0.1
         version: 2.0.1(postprocessing@6.39.5(three@0.186.0))(three@0.186.0)
@@ -135,6 +138,9 @@ importers:
 
   src/sdk:
     dependencies:
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       '@gltf-transform/core':
         specifier: ^4.5.0
         version: 4.5.0
