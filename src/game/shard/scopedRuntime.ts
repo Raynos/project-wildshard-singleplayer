@@ -10,6 +10,10 @@ export function bindScopedRuntime(parent: ShardRuntime, scope: Scope): ShardRunt
   if (bound.has(parent)) throw new Error('Leave the previous runtime scope before binding another');
   const local: ShardRuntime = { ...parent, hooks: { ...parent.hooks }, objects: { ...parent.objects },
     interactables: [...parent.interactables], overhead: [...parent.overhead] };
+  for (const key of Reflect.ownKeys(parent)) if (!Object.hasOwn(local, key)) Object.defineProperty(local, key, {
+    configurable: true, enumerable: Reflect.getOwnPropertyDescriptor(parent, key)?.enumerable ?? false,
+    writable: true, value: read(parent, key),
+  });
   // The staged shell fills these borrowed services after world/kit. Its writes must remain visible on entry and exit;
   // a trusted hook's writes stay private to its local handoff instead of replacing the shell's current services.
   const borrowed = new Set<PropertyKey>(['world', 'step', 'play', 'viewer', 'horizonVeil']);

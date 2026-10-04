@@ -162,6 +162,20 @@ it('isolates trusted writes to borrowed shell services while following later pla
   local.viewer = first; expect(parent.viewer).toBe(next); scope.dispose(); expect(parent.viewer).toBe(next);
 });
 
+it('restores non-enumerable and symbol descriptors even when another disposer throws', () => {
+  const parent = runtime(), scope = new Scope('runtime.fixture'), key = Symbol('fixture'), token = () => Promise.reject(new Error('Fixture'));
+  Object.defineProperty(parent, 'buildEquipment', { configurable: true, enumerable: false, writable: false, value: token });
+  Object.defineProperty(parent, key, { configurable: true, enumerable: false, get: () => 'original' });
+  const before = Object.getOwnPropertyDescriptors(parent), local = bindScopedRuntime(parent, scope);
+  expect(local.buildEquipment).toBe(token); expect(Reflect.get(local, key)).toBe('original');
+  local.buildEquipment = () => Promise.reject(new Error('Scoped'));
+  Reflect.set(local, key, 'scoped'); expect(Reflect.get(parent, key)).toBe('scoped');
+  scope.onDispose(() => { throw new Error('Fixture cleanup failure'); });
+  expect(() => scope.dispose()).toThrow('Fixture cleanup failure'); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
+  const next = new Scope('runtime.next'); bindScopedRuntime(parent, next); next.dispose();
+  expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
+});
+
 it('the admitted empty hybrid preserves the legacy service census and staged hooks', async () => {
   const app = new App(), parent = runtime(), calls: string[] = [];
   const source = { ...emptyShardfile({ slug: 'template', name: 'Template', author: 'Fixture', seed: 357, revision: 1 }), runtime: { entry } };
