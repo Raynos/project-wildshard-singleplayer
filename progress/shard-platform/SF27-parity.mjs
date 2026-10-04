@@ -75,8 +75,9 @@ try {
               const ordinary = await page.evaluate(() => {
                 const shard = window.__wildshard?.shard;
                 if (!shard || !['far-reach', 'sunscar-dunes'].includes(shard.slug)) return null;
-                return { slug: shard.slug, available: typeof shard.brainWitness === 'function',
-                  actors: typeof shard.brainWitness === 'function' ? shard.brainWitness() : [],
+                const plugin = shard[shard.slug === 'far-reach' ? 'farReach' : 'sunscar'];
+                return { slug: shard.slug, available: typeof plugin?.brainWitness === 'function',
+                  actors: typeof plugin?.brainWitness === 'function' ? plugin.brainWitness() : [],
                   saved: JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.[`debug.plugin.${shard.slug}.shardDirectors`]?.data };
               });
               if (ordinary !== null) {
