@@ -41,11 +41,13 @@ describe('SF2 measured shard coupling', () => {
     });
     expect(rows['alpha']?.sites['ctx.app']).toHaveLength(3);
   });
+  // This real type-aware scan resolves all seven shard roots and their imported type closure
+  // in one shared program. The coverage-instrumented GitHub runner needs more than 20 s.
   it('holds the seven real shards below their recorded counts', () => {
     const recorded = JSON.parse(readFileSync('lint/shard-coupling.json', 'utf8')) as { shards: Record<string, ShardCoupling> };
     expect(compareCoupling(recorded.shards, shardCoupling())).toEqual([]);
     expect(Object.keys(recorded.shards)).toHaveLength(7);
-  });
+  }, 60_000);
   it('keeps repeated shared data pure and rejects recursive context types after caching', () => {
     const root = fixture();
     writeFileSync(join(root, 'src/game/shard/context.ts'), `interface Shared { value: string }
