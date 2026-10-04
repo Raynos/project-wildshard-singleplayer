@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-521 members; 113 without a doc line (—).
+525 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -227,6 +227,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GameServices` | interface | @wildshard/game/shard/context | — |
 | `shardContext` | function | @wildshard/game/shard/context | — |
 | `ShardContext` | interface | @wildshard/game/shard/context | — |
+| `ShardCube` | interface | @wildshard/game/shard/context | A grid cell's extent in shard-local metres (G99): the cube's half width, its centre at the shard's origin. |
 | `installDeclaredEncounters` | function | @wildshard/game/shard/declaredEncounters | Bind the existing declared boss panel; headless hosts omit HUD handles without importing DOM/rendering. |
 | `installDeclaredPlumbing` | function | @wildshard/game/shard/declaredPlumbing | Install declared input through the normal command path and Debug choices through admitted script scene hooks. |
 | `PlumbingHandles` | interface | @wildshard/game/shard/declaredPlumbing | Resolve scoped context identities and selected tier values for the loader's declared content builders. |
@@ -287,6 +288,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `playable` | const | @wildshard/game/shard/registry | — |
 | `setActiveChunk` | function | @wildshard/game/shard/registry | Select a chunk by slug. Unknown slugs fall back to the default (and warn). |
 | `shardSlugFromUrl` | function | @wildshard/game/shard/registry | — |
+| `installEnteredRuntimeService` | function | @wildshard/game/shard/retainedHooks | Install a transient service for each home entry; ordinary staged contexts keep their original level scope. |
+| `RetainedRuntimeHooks` | class | @wildshard/game/shard/retainedHooks | Reinstall entered callbacks while a borrowed home's models and authored state remain resident. |
+| `retainsRuntimeServices` | function | @wildshard/game/shard/retainedHooks | Whether this trusted context retains its home resources while entered services are independently scoped. |
 | `resolveLevelBounds` | function | @wildshard/game/shard/runtime | Select the staged bounds override once before installing normal fall recovery; absent hooks retain authored policy. |
 | `ShardPlayHooks` | interface | @wildshard/game/shard/runtime | — |
 | `ShardPlayHost` | interface | @wildshard/game/shard/runtime | Services supplied by the gameplay shell after it has built the player kit and UI. |

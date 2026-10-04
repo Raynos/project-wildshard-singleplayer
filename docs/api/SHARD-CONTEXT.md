@@ -11,6 +11,7 @@ What a shard's plugin receives (src/game/shard/context.ts, over the engine's Lev
 | `answer` | property | LevelContext | answer an engine ask (`player.crouch`, …) for the level's life; the last answer registered wins |
 | `app` | property | LevelContext | the running app: its services (input, saves, species, events, clock, rng) |
 | `bag` | property | ShardContext | the Bag's verbs: tabs, fragments and finds a shard adds |
+| `cube` | property | ShardContext | G99: the shard's cube while it runs as a grid cell (home or neighbour): every shard is a 500 × 500 × 500 cube, so |
 | `debug` | property | LevelContext | handles for tests and captures (`window.__wildshard.shard[name]`) |
 | `debugRow` | property | LevelContext | a Debug row of the level's own, shown only on it (pause ▸ Settings ▸ Debug) |
 | `game` | property | ShardContext | the game's services: progress, inventory, loot, the compendium, travel |
@@ -27,4 +28,3 @@ What a shard's plugin receives (src/game/shard/context.ts, over the engine's Lev
 | `strings` | property | LevelContext | the level's player-facing strings (`ctx.strings` keys the engine asks for, e.g. death verbs) |
 | `system` | property | LevelContext | run a system each frame or in the fixed step (`phase`: 'update', 'fixed.pre' / 'fixed.step' / 'fixed.post') |
 | `tiers` | property | LevelContext | the level's per-tier tuning knobs (scatter counts, detail levels) |
-| `whileEntered` | property | ShardContext | Retained home runtimes install transient services here; each entered scope releases them on leave. |

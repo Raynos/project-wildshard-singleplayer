@@ -13410,6 +13410,12 @@
         "from": "@wildshard/game/shard/context"
       },
       {
+        "name": "ShardCube",
+        "kind": "interface",
+        "doc": "A grid cell's extent in shard-local metres (G99): the cube's half width, its centre at the shard's origin.",
+        "from": "@wildshard/game/shard/context"
+      },
+      {
         "name": "installDeclaredEncounters",
         "kind": "function",
         "doc": "Bind the existing declared boss panel; headless hosts omit HUD handles without importing DOM/rendering.",
@@ -13768,6 +13774,24 @@
         "kind": "function",
         "doc": "",
         "from": "@wildshard/game/shard/registry"
+      },
+      {
+        "name": "installEnteredRuntimeService",
+        "kind": "function",
+        "doc": "Install a transient service for each home entry; ordinary staged contexts keep their original level scope.",
+        "from": "@wildshard/game/shard/retainedHooks"
+      },
+      {
+        "name": "RetainedRuntimeHooks",
+        "kind": "class",
+        "doc": "Reinstall entered callbacks while a borrowed home's models and authored state remain resident.",
+        "from": "@wildshard/game/shard/retainedHooks"
+      },
+      {
+        "name": "retainsRuntimeServices",
+        "kind": "function",
+        "doc": "Whether this trusted context retains its home resources while entered services are independently scoped.",
+        "from": "@wildshard/game/shard/retainedHooks"
       },
       {
         "name": "resolveLevelBounds",
@@ -16902,7 +16926,7 @@
       {
         "name": "validateSimulation",
         "kind": "function",
-        "doc": "CLI validation uses the same preemptible, plain-Node session as an embedding host.",
+        "doc": "Offline admission enforces fuel, bounded platform queries and aggregate commands deterministically; wall timing is advisory. The independent request watchdog still bounds a broken worker.",
         "from": "@wildshard/sdk/headless"
       },
       {
@@ -17254,6 +17278,12 @@
         "from": "ShardContext"
       },
       {
+        "name": "cube",
+        "kind": "property",
+        "doc": "G99: the shard's cube while it runs as a grid cell (home or neighbour): every shard is a 500 × 500 × 500 cube, so",
+        "from": "ShardContext"
+      },
+      {
         "name": "debug",
         "kind": "property",
         "doc": "handles for tests and captures (`window.__wildshard.shard[name]`)",
@@ -17348,12 +17378,6 @@
         "kind": "property",
         "doc": "the level's per-tier tuning knobs (scatter counts, detail levels)",
         "from": "LevelContext"
-      },
-      {
-        "name": "whileEntered",
-        "kind": "property",
-        "doc": "Retained home runtimes install transient services here; each entered scope releases them on leave.",
-        "from": "ShardContext"
       }
     ]
   }
