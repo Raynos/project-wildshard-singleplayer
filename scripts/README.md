@@ -177,6 +177,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [gen-shards.d.mts](./gen-shards.d.mts)
 - [gen-shards.mjs](./gen-shards.mjs)
 - [gen.mjs](./gen.mjs)
+- [generated-policy.d.mts](./generated-policy.d.mts)
+- [generated-policy.mjs](./generated-policy.mjs)
 - [guard-counts.d.mts](./guard-counts.d.mts)
 - [guard-counts.mjs](./guard-counts.mjs)
 - [guard-snapshot.mjs](./guard-snapshot.mjs)
