@@ -11,7 +11,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { RuntimeSchema, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
 import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
-import { bindScopedRuntime } from '../src/game/shard/scopedRuntime';
+import { bindScopedRuntime, createScopedRuntimeBinding } from '../src/game/shard/scopedRuntime';
 import { shardContext, type GameServices, type ShardContext } from '../src/game/shard/context';
 import { ShardPlugin } from '../src/game/shard/plugin';
 import { loadShardPlugin } from '../src/game/shard/pluginLoad';
@@ -380,4 +380,27 @@ it('retains one asynchronous resident world across two entries while disposing e
     scope.dispose(); expect(releasedWorlds).toBe(1); expect(app.registry.pieceList()).toEqual([]);
     await expect(worlds.load(ctx, () => Promise.resolve({}))).rejects.toThrow('live hybrid resident');
   } finally { app.engineScope.dispose(); }
+});
+
+it('reactivates a retained home handoff without publishing its road-time or late writes into another scope', () => {
+  const parent = runtime(), scope = new Scope('home'), other = new Scope('other');
+  const key = Symbol('home.fixture');
+  Object.defineProperty(parent, key, { configurable: true, enumerable: false, get: () => 'platform' });
+  const before = Object.getOwnPropertyDescriptors(parent), home = createScopedRuntimeBinding(parent, scope);
+  const equipment = () => Promise.reject(new Error('Fixture equipment'));
+  home.runtime.buildEquipment = equipment; home.runtime.objects['home'] = { saved: 7 };
+  home.activate(); expect(parent.buildEquipment).toBe(equipment);
+  const saved = parent.objects['home']; home.deactivate();
+  expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before); expect(home.active()).toBe(false);
+  const neighbour = bindScopedRuntime(parent, other); neighbour.objects['active'] = 'neighbour';
+  home.runtime.objects['late'] = 'home'; Reflect.set(home.runtime, key, 'retained');
+  expect(parent.objects['late']).toBeUndefined(); expect(Reflect.get(parent, key)).toBe('platform');
+  expect(() => home.activate()).toThrow('previous runtime'); other.dispose();
+  for (let visit = 0; visit < 2; visit++) {
+    home.activate(); expect(parent.objects['home']).toBe(saved); expect(parent.buildEquipment).toBe(equipment);
+    expect(Reflect.get(parent, key)).toBe('retained'); home.deactivate();
+    expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
+  }
+  home.activate(); scope.dispose(); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
+  expect(scope.census.disposers).toBe(0); expect(() => home.activate()).toThrow('disposed');
 });
