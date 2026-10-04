@@ -20,6 +20,9 @@ it('protects a build directory from the reaper before the preview process starts
     for (const path of [bin, scripts, registry, builds, join(dir, 'public')]) mkdirSync(path);
     for (const name of ['serve-build.sh', 'browser-lane.sh']) copyFileSync(`scripts/${name}`, join(scripts, name));
     writeFileSync(join(scripts, 'gen.mjs'), '');
+    writeFileSync(join(scripts, 'build-shardfiles.mjs'), `import {mkdirSync,writeFileSync} from 'node:fs';
+mkdirSync('public/shardfiles/_template',{recursive:true});
+writeFileSync('public/shardfiles/_template/shard.json',JSON.stringify({version:0}));`);
     const executable = (name: string, source: string) => { const path = join(bin, name); writeFileSync(path, source); chmodSync(path, 0o755); };
     executable('pgrep', '#!/bin/sh\nexit 1\n');
     executable('ps', '#!/bin/sh\nexit 0\n');
@@ -28,6 +31,7 @@ it('protects a build directory from the reaper before the preview process starts
 const fs=require('node:fs'),path=require('node:path'),dir=process.env.SF0_SERVE_FIXTURE;
 if(process.argv.includes('preview')) { setInterval(()=>{},1000); }
 else {
+ if(!fs.existsSync(path.join(dir,'public/shardfiles/_template/shard.json'))) throw new Error('Vite started before shardfile products were built');
  const config=fs.readFileSync(process.argv[process.argv.indexOf('--config')+1],'utf8');
  const out=/outDir: '([^']+)'/.exec(config)[1];
  fs.writeFileSync(path.join(dir,'building'),out);
@@ -55,6 +59,8 @@ else {
     expect(await build.done).toBe(0);
     expect(build.output()).toContain('http://127.0.0.1:4999/');
     expect(existsSync(readFileSync(join(dir, 'building'), 'utf8'))).toBe(true);
+    const product = join(readFileSync(join(dir, 'building'), 'utf8'), 'shardfiles/_template/shard.json');
+    expect(JSON.parse(readFileSync(product, 'utf8'))).toEqual({ version: 0 });
     expect(await launch('serve-build.sh', ['stop', '4999']).done).toBe(0);
   } finally {
     for (const child of children) if (child.exitCode === null && child.pid !== undefined) {
