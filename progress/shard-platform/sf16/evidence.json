@@ -1,0 +1,176 @@
+{
+  "cameras": {
+    "spawn": {
+      "ssim": 0.852943369230044,
+      "today": {
+        "calls": 56,
+        "triangles": 12041
+      },
+      "shardfile": {
+        "calls": 45,
+        "triangles": 42264
+      },
+      "at": [
+        0,
+        4
+      ],
+      "look": [
+        0,
+        -12
+      ]
+    },
+    "pool": {
+      "ssim": 0.8629941640691359,
+      "today": {
+        "calls": 58,
+        "triangles": 14293
+      },
+      "shardfile": {
+        "calls": 44,
+        "triangles": 42728
+      },
+      "at": [
+        25,
+        31
+      ],
+      "look": [
+        25,
+        20
+      ]
+    },
+    "hut": {
+      "ssim": 0.8333614413358735,
+      "today": {
+        "calls": 50,
+        "triangles": 11959
+      },
+      "shardfile": {
+        "calls": 46,
+        "triangles": 42988
+      },
+      "at": [
+        7,
+        -1
+      ],
+      "look": [
+        0,
+        -12
+      ]
+    },
+    "door": {
+      "ssim": 0.7776347895870547,
+      "today": {
+        "calls": 44,
+        "triangles": 11809
+      },
+      "shardfile": {
+        "calls": 42,
+        "triangles": 39816
+      },
+      "at": [
+        0,
+        -4
+      ],
+      "look": [
+        0,
+        -9
+      ]
+    },
+    "creatures": {
+      "ssim": 0.8501177889203961,
+      "today": {
+        "calls": 38,
+        "triangles": 13777
+      },
+      "shardfile": {
+        "calls": 37,
+        "triangles": 39924
+      },
+      "at": [
+        9,
+        -6
+      ],
+      "look": [
+        15,
+        -12
+      ]
+    },
+    "boss arena": {
+      "ssim": 0.9000431441318514,
+      "today": {
+        "calls": 36,
+        "triangles": 11625
+      },
+      "shardfile": {
+        "calls": 35,
+        "triangles": 37428
+      },
+      "at": [
+        -9,
+        -12
+      ],
+      "look": [
+        -15,
+        -20
+      ]
+    }
+  },
+  "creatures": {
+    "today": [
+      {
+        "kind": "boar",
+        "x": 15,
+        "z": -12,
+        "alive": true,
+        "custom": null,
+        "triangles": 3492
+      },
+      {
+        "kind": "greyBlob",
+        "x": -15,
+        "z": -20,
+        "alive": true,
+        "custom": "custom",
+        "triangles": 300
+      },
+      {
+        "kind": "greyBlob",
+        "x": 0,
+        "z": -19,
+        "alive": true,
+        "custom": "custom",
+        "triangles": 300
+      }
+    ],
+    "shardfile": [
+      {
+        "kind": "greyBlob",
+        "x": 0.4,
+        "z": -18.7,
+        "alive": true,
+        "custom": "custom",
+        "triangles": 300
+      },
+      {
+        "kind": "boar",
+        "x": 15,
+        "z": -12,
+        "alive": true,
+        "custom": "custom",
+        "triangles": 3492
+      },
+      {
+        "kind": "greyBlob",
+        "x": -15,
+        "z": -20,
+        "alive": true,
+        "custom": "custom",
+        "triangles": 300
+      }
+    ]
+  },
+  "errors": {
+    "today": [],
+    "shardfile": []
+  }
+}
