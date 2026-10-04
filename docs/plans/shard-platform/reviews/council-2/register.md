@@ -55,3 +55,35 @@ what makes an unattended agent guess).
 | C2-R1-C22 | 1 | C | nit | §3.2 | Loading cap also hard | fixed (round-1 commit) | 1.8 GB stated |
 
 Round 1 (2026-10-04): 46 findings (must-fix 17, should-fix 21, should-add 3, nit 5; many duplicates across seats); 40 fixed, 2 parked, 1 settled, 2 rejected, 1 decided by Jake (G134). New decisions from Jake during the round: G134 (Driftwood's sea lowered), G135–G137 (dissolve the kit; the 80/20 definition; the commons package, form open).
+
+| ID | Round | Seat | Severity | Location | Finding | Status | Resolution |
+|---|---|---|---|---|---|---|---|
+| C2-R2-A1 | 2 | A | must-fix | §6 M2-ready | Approval-pending -g rows block dependents | fixed (round-2 commit) | "prepared" status unblocks dependents |
+| C2-R2-A2 | 2 | A | should-fix | §1, §3.5, SF54 | Generator boundary vs SDK-only rule | fixed (round-2 commit) | build-time folders may import the commons (G139) |
+| C2-R2-A3 | 2 | A | should-fix | SF6, SF54, NEXT | No ordered metric slice | fixed (round-2 commit) | SF6 reopened + NEXT 4b |
+| C2-R2-A4 | 2 | A | should-fix | SF21a G133 | Calm card has no data source | fixed (round-2 commit) | save summary + quests-total field; owns FINISH-LINE M1 |
+| C2-R2-B1 | 2 | B | must-fix | §3.3, SF46 | 0 m sandbars wet in the swell | fixed (round-2 commit) | water clipped out of each entry footprint |
+| C2-R2-B2 | 2 | B | must-fix | SF46, Handoff | Superseded dike / causeway text still live | fixed (round-2 commit) | removed; lanes re-briefed (sf46-lower) |
+| C2-R2-B3 | 2 | B | must-fix | SF20a G129 | Tests miss the live fall path | fixed (round-2 commit) | tests through the live fall path, fence-hop case |
+| C2-R2-B4 | 2 | B | should-fix | §1 vs §3.5 | = A2 | fixed (round-2 commit) | with A2 |
+| C2-R2-B5 | 2 | B | should-fix | Handoff | SF54 + pick missing from the queue | fixed (round-2 commit) | NEXT 4b; G138 made the pick |
+| C2-R2-B6 | 2 | B | nit | SF19b | Grade claim false | fixed (round-2 commit) | reworded |
+| C2-R2-C1 | 2 | C | must-fix | SF46, Handoff | = B2 (a builder was building it) | fixed (round-2 commit) | with B2; Causeways.ts dropped by the coordinator |
+| C2-R2-C2 | 2 | C | must-fix | §3.3, G134 | Pier / jetties in the footprints | fixed (round-2 commit) | starts move inward past 15 m |
+| C2-R2-C3 | 2 | C | must-fix | SF17b, §3.3 | No dike → sea meets a vertical cut | fixed (round-2 commit) | shore rule: low revetment at the cell edge |
+| C2-R2-C4 | 2 | C | must-fix | §3.5, SF54 | SDK-only rule overreaches G135 | decided by Jake (G143) | 80 % SDK public surface; runtime/ no kit |
+| C2-R2-C5 | 2 | C | must-fix | §1, SF6 | "SDK surface in any folder" loophole | fixed (round-2 commit) | public vs sdk/runtime surfaces; SF6 reopened |
+| C2-R2-C6 | 2 | C | should-fix | SF46 | Lowering water moves scatter | fixed (round-2 commit) | scatter keeps the pre-G134 mask |
+| C2-R2-C7 | 2 | C | should-fix | §3.2 | ≤ 8 draws impossible with per-segment split | fixed (round-2 commit) | ≤ 16 draws per view, 16 chunks |
+| C2-R2-C8 | 2 | C | should-fix | §6, Handoff | Target redundant, no priority order | fixed (round-2 commit) | ordered M2-ready path |
+| C2-R2-C9 | 2 | C | should-fix | §9.3 | Which window; no restart | fixed (round-2 commit) | weekly 99 % (G145); restart after reset |
+| C2-R2-C10 | 2 | C | should-fix | SF22 | Measured config may not ship | fixed (round-2 commit) | one frame ON and OFF |
+| C2-R2-C11 | 2 | C | should-fix | SF8a | Refusal unspecified | fixed (round-2 commit) | far proxy + soft wall + telemetry; validate warns |
+| C2-R2-C12 | 2 | C | should-fix | SF8c | Socket modes and collision | fixed (round-2 commit) | every mode; platform collider |
+| C2-R2-C13 | 2 | C | should-fix | SF54 | Waits on Jake vs no-questions | resolved (G138) | Jake picked the hybrid |
+| C2-R2-C14 | 2 | C | should-fix | SF21a, FINISH-LINE | Two owners, no data | fixed (round-2 commit) | with A4 |
+| C2-R2-C15 | 2 | C | nit | State vs §6 | 165/197 vs 167/195 | fixed (round-2 commit) | aligned |
+| C2-R2-C16 | 2 | C | nit | Handoff | Deploy cause stale | fixed (round-2 commit) | updated |
+| C2-R2-C17 | 2 | C | nit | §3.2 | Collider wording vs G90 | fixed (round-2 commit) | collider = generator mesh |
+
+Round 2 (2026-10-04): 27 findings (must-fix 9, should-fix 14, nit 4); accepted must-fix + should-fix fell from 38 (round 1) to 23; 25 fixed, 1 decided by Jake (G143), 1 resolved by his pick (G138). Jake decided during the round: G138–G146 (the hybrid commons, build-time commons imports, weapons on SDK families, quest generators Part B, the platform asphalt socket, runtime/ imports, real-total memory checks, the 99 % wind-down, data / AS only in the shardfile).
