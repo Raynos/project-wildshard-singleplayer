@@ -14,18 +14,6 @@ export interface SeamTurnIn { readonly at: 0; readonly widths: readonly [number,
 export interface SeamGeometry { readonly mesh: StripMesh; readonly features: readonly SeamFeature[]; readonly turnIn: SeamTurnIn }
 /** Every gradient has a vertex at most 2 m apart; the 6/10 m re-frame lines remain explicit vertices. */
 export const SEAM_OFFSETS: readonly number[] = Object.freeze([...Array.from({ length: 11 }, (_, i) => -27.5 + i * 2), ...Array.from({ length: 11 }, (_, i) => 7.5 + i * 2)]);
-/**
- * The §3.2 shore rule (G134 / G149): an edge whose observed sea is at exactly 0 over seabed below 0 keeps the strip at 0 to
- * the cell edge and gets a low rip-rap revetment there. A sample counts as seabed when it is more than this below 0
- * (the entry rule's 2 cm road tolerance).
- */
-export const SHORE_DEPTH = 0.02;
-/**
- * The revetment's inner (sea-side) face, in metres into the cell from the cell edge. The shard's sea is clipped here: no
- * water nearer the cell edge than this, so its edge hides under the revetment's crest (+0.6 m, above the +0.4 m swell).
- * The platform builds the revetment from it and the shard's water reads it (G149, one shared constant).
- */
-export const SHORE_REVETMENT_INNER_FACE = 0.8;
 const neutral = [0.25, 0.25, 0.25] as const;
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 const bounded = (h: number): number => Math.max(-1.5, Math.min(6, h));

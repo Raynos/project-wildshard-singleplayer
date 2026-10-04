@@ -1,5 +1,6 @@
 import { validateEdgeProfile } from './edgeProfiles';
-import { seamGeometry, cornerSeamGeometry, SEAM_OFFSETS, SHORE_DEPTH, type SeamEdge, type SeamFeature, type SeamTurnIn } from './seamGeometry';
+import { SHORE_DEPTH } from './shore';
+import { seamGeometry, cornerSeamGeometry, SEAM_OFFSETS, type SeamEdge, type SeamFeature, type SeamTurnIn } from './seamGeometry';
 
 /** Deterministic platform seam data, independent of rendering, devices and physics wrappers. */
 export interface StripProfile { readonly heights: readonly number[]; readonly colours: readonly (readonly number[])[]; readonly roadHeight: number }

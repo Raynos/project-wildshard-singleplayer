@@ -319,6 +319,7 @@
     "./physics/rapier": "./physics/rapier.ts",
     "./boot/contentCache": "./boot/contentCache.ts",
     "./sim/readiness": "./sim/readiness.ts",
+    "./sim/shore": "./sim/shore.ts",
     "./physics/readinessWalls": "./physics/readinessWalls.ts",
     "./physics/gridBorders": "./physics/gridBorders.ts",
     "./player/hoverSpeed": "./player/hoverSpeed.ts",
