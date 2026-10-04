@@ -27,13 +27,11 @@ const isAccentId = (value: string): value is AccentId => Object.hasOwn(ACCENTS, 
 
 /** The shardfile field: a palette id; the road's cyan is refused by name or hex. */
 export const AccentSchema = v.pipe(v.string(), v.check((value) => !RESERVED.has(value.toLowerCase()), 'The HUD cyan is reserved for the road and the safe zone; pick one of the 20 accents'),
-  v.check(isAccentId, 'Not one of the 20 HUD accents (art/hud/round-20-accent-palette/README.md)'));
+  v.custom<AccentId>((value) => typeof value === 'string' && isAccentId(value), 'Not one of the 20 HUD accents (art/hud/round-20-accent-palette/README.md)'));
 
 /** Validate a declared accent (throws with the schema's message), returning its id. */
 export function parseAccent(value: unknown): AccentId {
-  const parsed = v.parse(AccentSchema, value);
-  if (!isAccentId(parsed)) throw new Error('Not one of the 20 HUD accents');
-  return parsed;
+  return v.parse(AccentSchema, value);
 }
 
 /** The HUD's accent variables for an accent hex (the `--ws-cyan` family in src/engine/ui/styles/base.css). */
