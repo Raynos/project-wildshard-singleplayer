@@ -1,0 +1,827 @@
+{
+  "sha": "974f1c73eb8c9d82337f61e9b643ec1846f92223",
+  "version": {
+    "build": "974f1c7-mutm0wu3",
+    "time": "2026-10-04T09:19:59.580Z"
+  },
+  "evidence": "Simulator Safari -> real HTTP -> pinned production POST/GET -> local fixture private Blob backend; not physical-iPhone or OS footprint evidence",
+  "worker": {
+    "device": "416296DC-7797-4617-8A8F-A4C2CC9B8E79",
+    "openedBy": "pause Settings Debug Memory check (one click)",
+    "results": [
+      {
+        "iteration": 1,
+        "stage": "complete",
+        "overCap": false,
+        "posted": true,
+        "receipt": {
+          "stage": "complete",
+          "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/1",
+          "id": "2026-10-04T09-21-01.646Z-67d5094b"
+        }
+      },
+      {
+        "iteration": 2,
+        "stage": "complete",
+        "overCap": false,
+        "posted": true,
+        "receipt": {
+          "stage": "complete",
+          "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/2",
+          "id": "2026-10-04T09-21-37.113Z-1104cbc6"
+        }
+      },
+      {
+        "iteration": 3,
+        "stage": "complete",
+        "overCap": false,
+        "posted": true,
+        "receipt": {
+          "stage": "complete",
+          "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/3",
+          "id": "2026-10-04T09-22-12.658Z-32e0c8c0"
+        }
+      }
+    ],
+    "receipt": {
+      "stage": "summary",
+      "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/summary",
+      "id": "2026-10-04T09-22-12.666Z-12ad299f"
+    },
+    "error": null,
+    "status": "Memory check complete. Results saved.",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+    "viewport": [
+      402,
+      714
+    ]
+  },
+  "records": [
+    {
+      "build": "974f1c7-mutm0wu3",
+      "install": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+      "receivedAt": "2026-10-04T09:22:12.666Z",
+      "kind": "crossroads",
+      "rig": {
+        "rigVersion": 1,
+        "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/summary",
+        "series": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+        "iteration": 0,
+        "stage": "summary",
+        "config": {
+          "n0": 29,
+          "n1": 32,
+          "nf": 9,
+          "libs": 4,
+          "sims": 4,
+          "churn": 2,
+          "cpu": "drop",
+          "empty": 8,
+          "secs": 20,
+          "shadow": 1,
+          "shadowRadius": 80,
+          "dpr": 2,
+          "l0SplatSize": 256,
+          "l1AtlasSize": 512,
+          "farSegments": 62,
+          "capsMB": {
+            "l0": 4,
+            "l1": 2,
+            "far": 1.6,
+            "lib": 25,
+            "sim": 25
+          },
+          "trisCap": {
+            "l0": 40000,
+            "l1": 10000,
+            "far": 8000
+          }
+        },
+        "context": {
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+          "viewport": [
+            402,
+            714
+          ],
+          "dpr": 3,
+          "standalone": false,
+          "origin": "local"
+        },
+        "stats": null,
+        "summary": {
+          "runs": 3,
+          "completed": 3,
+          "contextLosses": 0,
+          "errors": 0,
+          "posted": 3,
+          "overCapRuns": 0
+        }
+      }
+    },
+    {
+      "build": "974f1c7-mutm0wu3",
+      "install": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+      "receivedAt": "2026-10-04T09:22:12.658Z",
+      "kind": "crossroads",
+      "rig": {
+        "rigVersion": 1,
+        "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/3",
+        "series": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+        "iteration": 3,
+        "stage": "complete",
+        "config": {
+          "n0": 29,
+          "n1": 32,
+          "nf": 9,
+          "libs": 4,
+          "sims": 4,
+          "churn": 2,
+          "cpu": "drop",
+          "empty": 8,
+          "secs": 20,
+          "shadow": 1,
+          "shadowRadius": 80,
+          "dpr": 2,
+          "l0SplatSize": 256,
+          "l1AtlasSize": 512,
+          "farSegments": 62,
+          "capsMB": {
+            "l0": 4,
+            "l1": 2,
+            "far": 1.6,
+            "lib": 25,
+            "sim": 25
+          },
+          "trisCap": {
+            "l0": 40000,
+            "l1": 10000,
+            "far": 8000
+          }
+        },
+        "context": {
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+          "viewport": [
+            402,
+            714
+          ],
+          "dpr": 3,
+          "standalone": false,
+          "origin": "local"
+        },
+        "stats": {
+          "phase": "done",
+          "memoryKind": "accounted-content-excludes-engine-base",
+          "format": "astc4x4",
+          "contextLost": false,
+          "error": "",
+          "withinCaps": true,
+          "accounted": {
+            "l0": {
+              "count": 29,
+              "gpuGeomB": 27679456,
+              "gpuTexB": 50681937,
+              "cpuB": 37638520,
+              "padB": 28796420,
+              "jsCopyB": 0,
+              "tris": 1105828,
+              "draws": 232,
+              "overCap": 0
+            },
+            "l1": {
+              "count": 32,
+              "gpuGeomB": 9931264,
+              "gpuTexB": 16779776,
+              "cpuB": 37288960,
+              "padB": 37288960,
+              "jsCopyB": 0,
+              "tris": 319744,
+              "draws": 64,
+              "overCap": 0
+            },
+            "far": {
+              "count": 9,
+              "gpuGeomB": 1558224,
+              "gpuTexB": 12583152,
+              "cpuB": 258624,
+              "padB": 258624,
+              "jsCopyB": 0,
+              "tris": 69192,
+              "draws": 9,
+              "overCap": 0
+            },
+            "lib": {
+              "count": 4,
+              "gpuGeomB": 2081280,
+              "gpuTexB": 95072704,
+              "cpuB": 2846016,
+              "padB": 2846016,
+              "jsCopyB": 0,
+              "tris": 0,
+              "draws": 0,
+              "overCap": 0
+            },
+            "sim": {
+              "count": 4,
+              "gpuGeomB": 0,
+              "gpuTexB": 0,
+              "cpuB": 100000000,
+              "padB": 100000000,
+              "jsCopyB": 0,
+              "tris": 0,
+              "draws": 0,
+              "overCap": 0
+            },
+            "total": {
+              "gpuGeomB": 41250224,
+              "gpuTexB": 175117569,
+              "cpuB": 178032120,
+              "jsCopyB": 0,
+              "residentMB": 394.4
+            }
+          },
+          "frames": {
+            "empty": {
+              "frames": 481,
+              "fps": 60.1,
+              "p50ms": 17,
+              "p95ms": 17,
+              "p99ms": 17,
+              "under33pct": 100,
+              "under17pct": 33.7,
+              "renderCpuP50ms": 0,
+              "renderCpuP95ms": 1,
+              "calls": 0,
+              "triangles": 0
+            },
+            "settle": {
+              "frames": 358,
+              "fps": 57,
+              "p50ms": 17,
+              "p95ms": 17,
+              "p99ms": 17,
+              "under33pct": 99.4,
+              "under17pct": 33.2,
+              "renderCpuP50ms": 1,
+              "renderCpuP95ms": 1,
+              "calls": 90,
+              "triangles": 416420
+            },
+            "measure": {
+              "frames": 1209,
+              "fps": 60,
+              "p50ms": 17,
+              "p95ms": 17,
+              "p99ms": 17,
+              "under33pct": 99.9,
+              "under17pct": 34.2,
+              "renderCpuP50ms": 1,
+              "renderCpuP95ms": 1,
+              "calls": 88,
+              "triangles": 402196
+            }
+          },
+          "churn": {
+            "swaps": 10,
+            "liveMax": 2,
+            "buildMsP50": 15,
+            "buildMsMax": 15
+          },
+          "info": {
+            "memory": {
+              "geometries": 157,
+              "textures": 235
+            },
+            "drawingBuffer": [
+              804,
+              1428
+            ],
+            "jsHeapMB": null
+          }
+        }
+      }
+    },
+    {
+      "build": "974f1c7-mutm0wu3",
+      "install": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+      "receivedAt": "2026-10-04T09:21:37.120Z",
+      "kind": "crossroads",
+      "rig": {
+        "rigVersion": 1,
+        "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/3",
+        "series": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+        "iteration": 3,
+        "stage": "started",
+        "config": {
+          "n0": 29,
+          "n1": 32,
+          "nf": 9,
+          "libs": 4,
+          "sims": 4,
+          "churn": 2,
+          "cpu": "drop",
+          "empty": 8,
+          "secs": 20,
+          "shadow": 1,
+          "shadowRadius": 80,
+          "dpr": 2,
+          "l0SplatSize": 256,
+          "l1AtlasSize": 512,
+          "farSegments": 62,
+          "capsMB": {
+            "l0": 4,
+            "l1": 2,
+            "far": 1.6,
+            "lib": 25,
+            "sim": 25
+          },
+          "trisCap": {
+            "l0": 40000,
+            "l1": 10000,
+            "far": 8000
+          }
+        },
+        "context": {
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+          "viewport": [
+            402,
+            714
+          ],
+          "dpr": 3,
+          "standalone": false,
+          "origin": "local"
+        },
+        "stats": null
+      }
+    },
+    {
+      "build": "974f1c7-mutm0wu3",
+      "install": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+      "receivedAt": "2026-10-04T09:21:37.113Z",
+      "kind": "crossroads",
+      "rig": {
+        "rigVersion": 1,
+        "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/2",
+        "series": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+        "iteration": 2,
+        "stage": "complete",
+        "config": {
+          "n0": 29,
+          "n1": 32,
+          "nf": 9,
+          "libs": 4,
+          "sims": 4,
+          "churn": 2,
+          "cpu": "drop",
+          "empty": 8,
+          "secs": 20,
+          "shadow": 1,
+          "shadowRadius": 80,
+          "dpr": 2,
+          "l0SplatSize": 256,
+          "l1AtlasSize": 512,
+          "farSegments": 62,
+          "capsMB": {
+            "l0": 4,
+            "l1": 2,
+            "far": 1.6,
+            "lib": 25,
+            "sim": 25
+          },
+          "trisCap": {
+            "l0": 40000,
+            "l1": 10000,
+            "far": 8000
+          }
+        },
+        "context": {
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+          "viewport": [
+            402,
+            714
+          ],
+          "dpr": 3,
+          "standalone": false,
+          "origin": "local"
+        },
+        "stats": {
+          "phase": "done",
+          "memoryKind": "accounted-content-excludes-engine-base",
+          "format": "astc4x4",
+          "contextLost": false,
+          "error": "",
+          "withinCaps": true,
+          "accounted": {
+            "l0": {
+              "count": 29,
+              "gpuGeomB": 27679456,
+              "gpuTexB": 50681937,
+              "cpuB": 37638520,
+              "padB": 28796420,
+              "jsCopyB": 0,
+              "tris": 1105828,
+              "draws": 232,
+              "overCap": 0
+            },
+            "l1": {
+              "count": 32,
+              "gpuGeomB": 9931264,
+              "gpuTexB": 16779776,
+              "cpuB": 37288960,
+              "padB": 37288960,
+              "jsCopyB": 0,
+              "tris": 319744,
+              "draws": 64,
+              "overCap": 0
+            },
+            "far": {
+              "count": 9,
+              "gpuGeomB": 1558224,
+              "gpuTexB": 12583152,
+              "cpuB": 258624,
+              "padB": 258624,
+              "jsCopyB": 0,
+              "tris": 69192,
+              "draws": 9,
+              "overCap": 0
+            },
+            "lib": {
+              "count": 4,
+              "gpuGeomB": 2081280,
+              "gpuTexB": 95072704,
+              "cpuB": 2846016,
+              "padB": 2846016,
+              "jsCopyB": 0,
+              "tris": 0,
+              "draws": 0,
+              "overCap": 0
+            },
+            "sim": {
+              "count": 4,
+              "gpuGeomB": 0,
+              "gpuTexB": 0,
+              "cpuB": 100000000,
+              "padB": 100000000,
+              "jsCopyB": 0,
+              "tris": 0,
+              "draws": 0,
+              "overCap": 0
+            },
+            "total": {
+              "gpuGeomB": 41250224,
+              "gpuTexB": 175117569,
+              "cpuB": 178032120,
+              "jsCopyB": 0,
+              "residentMB": 394.4
+            }
+          },
+          "frames": {
+            "empty": {
+              "frames": 481,
+              "fps": 60.1,
+              "p50ms": 17,
+              "p95ms": 17,
+              "p99ms": 17,
+              "under33pct": 100,
+              "under17pct": 33.7,
+              "renderCpuP50ms": 0,
+              "renderCpuP95ms": 1,
+              "calls": 0,
+              "triangles": 0
+            },
+            "settle": {
+              "frames": 358,
+              "fps": 57,
+              "p50ms": 17,
+              "p95ms": 17,
+              "p99ms": 17,
+              "under33pct": 99.4,
+              "under17pct": 33.5,
+              "renderCpuP50ms": 1,
+              "renderCpuP95ms": 2,
+              "calls": 90,
+              "triangles": 416342
+            },
+            "measure": {
+              "frames": 1210,
+              "fps": 60,
+              "p50ms": 17,
+              "p95ms": 17,
+              "p99ms": 17,
+              "under33pct": 99.9,
+              "under17pct": 33.6,
+              "renderCpuP50ms": 1,
+              "renderCpuP95ms": 2,
+              "calls": 88,
+              "triangles": 402057
+            }
+          },
+          "churn": {
+            "swaps": 10,
+            "liveMax": 2,
+            "buildMsP50": 12,
+            "buildMsMax": 15
+          },
+          "info": {
+            "memory": {
+              "geometries": 157,
+              "textures": 235
+            },
+            "drawingBuffer": [
+              804,
+              1428
+            ],
+            "jsHeapMB": null
+          }
+        }
+      }
+    },
+    {
+      "build": "974f1c7-mutm0wu3",
+      "install": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+      "receivedAt": "2026-10-04T09:21:01.655Z",
+      "kind": "crossroads",
+      "rig": {
+        "rigVersion": 1,
+        "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/2",
+        "series": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+        "iteration": 2,
+        "stage": "started",
+        "config": {
+          "n0": 29,
+          "n1": 32,
+          "nf": 9,
+          "libs": 4,
+          "sims": 4,
+          "churn": 2,
+          "cpu": "drop",
+          "empty": 8,
+          "secs": 20,
+          "shadow": 1,
+          "shadowRadius": 80,
+          "dpr": 2,
+          "l0SplatSize": 256,
+          "l1AtlasSize": 512,
+          "farSegments": 62,
+          "capsMB": {
+            "l0": 4,
+            "l1": 2,
+            "far": 1.6,
+            "lib": 25,
+            "sim": 25
+          },
+          "trisCap": {
+            "l0": 40000,
+            "l1": 10000,
+            "far": 8000
+          }
+        },
+        "context": {
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+          "viewport": [
+            402,
+            714
+          ],
+          "dpr": 3,
+          "standalone": false,
+          "origin": "local"
+        },
+        "stats": null
+      }
+    },
+    {
+      "build": "974f1c7-mutm0wu3",
+      "install": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+      "receivedAt": "2026-10-04T09:21:01.646Z",
+      "kind": "crossroads",
+      "rig": {
+        "rigVersion": 1,
+        "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/1",
+        "series": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+        "iteration": 1,
+        "stage": "complete",
+        "config": {
+          "n0": 29,
+          "n1": 32,
+          "nf": 9,
+          "libs": 4,
+          "sims": 4,
+          "churn": 2,
+          "cpu": "drop",
+          "empty": 8,
+          "secs": 20,
+          "shadow": 1,
+          "shadowRadius": 80,
+          "dpr": 2,
+          "l0SplatSize": 256,
+          "l1AtlasSize": 512,
+          "farSegments": 62,
+          "capsMB": {
+            "l0": 4,
+            "l1": 2,
+            "far": 1.6,
+            "lib": 25,
+            "sim": 25
+          },
+          "trisCap": {
+            "l0": 40000,
+            "l1": 10000,
+            "far": 8000
+          }
+        },
+        "context": {
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+          "viewport": [
+            402,
+            714
+          ],
+          "dpr": 3,
+          "standalone": false,
+          "origin": "local"
+        },
+        "stats": {
+          "phase": "done",
+          "memoryKind": "accounted-content-excludes-engine-base",
+          "format": "astc4x4",
+          "contextLost": false,
+          "error": "",
+          "withinCaps": true,
+          "accounted": {
+            "l0": {
+              "count": 29,
+              "gpuGeomB": 27679456,
+              "gpuTexB": 50681937,
+              "cpuB": 37638520,
+              "padB": 28796420,
+              "jsCopyB": 0,
+              "tris": 1105828,
+              "draws": 232,
+              "overCap": 0
+            },
+            "l1": {
+              "count": 32,
+              "gpuGeomB": 9931264,
+              "gpuTexB": 16779776,
+              "cpuB": 37288960,
+              "padB": 37288960,
+              "jsCopyB": 0,
+              "tris": 319744,
+              "draws": 64,
+              "overCap": 0
+            },
+            "far": {
+              "count": 9,
+              "gpuGeomB": 1558224,
+              "gpuTexB": 12583152,
+              "cpuB": 258624,
+              "padB": 258624,
+              "jsCopyB": 0,
+              "tris": 69192,
+              "draws": 9,
+              "overCap": 0
+            },
+            "lib": {
+              "count": 4,
+              "gpuGeomB": 2081280,
+              "gpuTexB": 95072704,
+              "cpuB": 2846016,
+              "padB": 2846016,
+              "jsCopyB": 0,
+              "tris": 0,
+              "draws": 0,
+              "overCap": 0
+            },
+            "sim": {
+              "count": 4,
+              "gpuGeomB": 0,
+              "gpuTexB": 0,
+              "cpuB": 100000000,
+              "padB": 100000000,
+              "jsCopyB": 0,
+              "tris": 0,
+              "draws": 0,
+              "overCap": 0
+            },
+            "total": {
+              "gpuGeomB": 41250224,
+              "gpuTexB": 175117569,
+              "cpuB": 178032120,
+              "jsCopyB": 0,
+              "residentMB": 394.4
+            }
+          },
+          "frames": {
+            "empty": {
+              "frames": 480,
+              "fps": 60.1,
+              "p50ms": 17,
+              "p95ms": 17,
+              "p99ms": 18,
+              "under33pct": 100,
+              "under17pct": 35,
+              "renderCpuP50ms": 0,
+              "renderCpuP95ms": 1,
+              "calls": 0,
+              "triangles": 0
+            },
+            "settle": {
+              "frames": 357,
+              "fps": 57,
+              "p50ms": 17,
+              "p95ms": 17,
+              "p99ms": 17,
+              "under33pct": 99.4,
+              "under17pct": 33.6,
+              "renderCpuP50ms": 1,
+              "renderCpuP95ms": 2,
+              "calls": 90,
+              "triangles": 415188
+            },
+            "measure": {
+              "frames": 1210,
+              "fps": 60,
+              "p50ms": 17,
+              "p95ms": 17,
+              "p99ms": 17,
+              "under33pct": 100,
+              "under17pct": 34,
+              "renderCpuP50ms": 1,
+              "renderCpuP95ms": 2,
+              "calls": 88,
+              "triangles": 402035
+            }
+          },
+          "churn": {
+            "swaps": 10,
+            "liveMax": 2,
+            "buildMsP50": 14,
+            "buildMsMax": 15
+          },
+          "info": {
+            "memory": {
+              "geometries": 157,
+              "textures": 235
+            },
+            "drawingBuffer": [
+              804,
+              1428
+            ],
+            "jsHeapMB": null
+          }
+        }
+      }
+    },
+    {
+      "build": "974f1c7-mutm0wu3",
+      "install": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+      "receivedAt": "2026-10-04T09:20:26.060Z",
+      "kind": "crossroads",
+      "rig": {
+        "rigVersion": 1,
+        "run": "04c0e500-dd86-47f9-8064-d3df336cd2e0/1",
+        "series": "04c0e500-dd86-47f9-8064-d3df336cd2e0",
+        "iteration": 1,
+        "stage": "started",
+        "config": {
+          "n0": 29,
+          "n1": 32,
+          "nf": 9,
+          "libs": 4,
+          "sims": 4,
+          "churn": 2,
+          "cpu": "drop",
+          "empty": 8,
+          "secs": 20,
+          "shadow": 1,
+          "shadowRadius": 80,
+          "dpr": 2,
+          "l0SplatSize": 256,
+          "l1AtlasSize": 512,
+          "farSegments": 62,
+          "capsMB": {
+            "l0": 4,
+            "l1": 2,
+            "far": 1.6,
+            "lib": 25,
+            "sim": 25
+          },
+          "trisCap": {
+            "l0": 40000,
+            "l1": 10000,
+            "far": 8000
+          }
+        },
+        "context": {
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+          "viewport": [
+            402,
+            714
+          ],
+          "dpr": 3,
+          "standalone": false,
+          "origin": "local"
+        },
+        "stats": null
+      }
+    }
+  ]
+}
