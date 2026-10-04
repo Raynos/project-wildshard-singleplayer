@@ -75,6 +75,13 @@ describe('bounded atomic script host', () => {
     expect(host.call('policy', 1, [0]).ok).toBe(true); expect(host.call('policy', 2, [0]).reason).toContain('Effect allowance');
     expect(() => host.beginTick(0)).toThrow('Non-monotonic'); expect(host.world.entity(2)?.fields[1]).toBe(0);
   });
+  it('bounds aggregate fuel across entities and defers calls once the tick budget is exhausted', async () => {
+    const host = make({ limits: { fuelPerTick: 1 } }); await install(host, '');
+    expect(host.call('policy', 1, [0]).reason).toContain('tick fuel');
+    expect(host.call('policy', 2, [0])).toMatchObject({ ok: false, fuel: 0, reason: 'Script tick fuel allowance' });
+    expect(host.world.entity(2)?.frozen).toBe(false);
+    host.beginTick(1); expect(host.call('policy', 2, [1]).reason).toContain('tick fuel exhausted');
+  });
   it('enforces call depth independently of native stack limits', async () => {
     const host = make(); await install(host, 'store<i32>(8192, recurse(0));', 'function recurse(x:i32):i32 { if(x < 1000) return recurse(x+1)+1; return x; }');
     expect(host.call('policy', 1, [0]).reason).toContain('call-depth');

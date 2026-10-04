@@ -4,7 +4,7 @@ import { compileScript, instrumentScript } from '../../scripts/compile-script.mj
 import { admitScript } from '../../src/engine/script/admission';
 import { scriptSource } from './fixture';
 
-function wasm(wat: string): Uint8Array { const m = binaryen.parseText(wat); try { return m.emitBinary(); } finally { m.dispose(); } }
+function wasm(wat: string, features?: binaryen.Features): Uint8Array { const m = binaryen.parseText(wat); try { if (features !== undefined) m.setFeatures(features); return m.emitBinary(); } finally { m.dispose(); } }
 function tamper(bytes: Uint8Array, edit: (text: string) => string): Uint8Array {
   const m = binaryen.readBinary(bytes);
   try { return wasm(edit(m.emitText())); } finally { m.dispose(); }
@@ -48,5 +48,9 @@ describe('script admission without execution', () => {
     const bytes = await compileScript(scriptSource('store<f64>(8192, load<f64>(16384) + 1);'));
     expect(() => admitScript(tamper(bytes, (t) => t.replace(/\(call \$fimport\$4\s+(\(f64.const [^)]+\))\s*\)/, '$1')))).toThrow('finite');
     expect(() => admitScript(wasm('(module (global (mut f64) (f64.const nan)))'))).toThrow('Non-finite global');
+  });
+  it('refuses bulk memory operations whose dynamic work is not metered', () => {
+    const module = wasm('(module (import "env" "memory" (memory 1 64)) (func (export "copy") (memory.fill (i32.const 0) (i32.const 0) (i32.const 4194304))))', binaryen.Features.BulkMemory | binaryen.Features.BulkMemoryOpt);
+    expect(() => admitScript(module)).toThrow('Unsupported bulk instruction');
   });
 });

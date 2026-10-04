@@ -39,7 +39,10 @@ must have its instrumented `__state_<index>` snapshot export.
 V0 caps modules at 256 KiB, functions/types at 512, globals at 128 and locals at
 1,024 per function. Tables are capped at zero: indirect calls and function
 references are rejected. Allowed features are core numeric instructions,
-mutable globals, sign extension, saturating conversions, and memory copy/fill.
+mutable globals, sign extension and saturating conversions. Bulk memory
+operations are refused: charging their opcode alone would let a forged module
+copy megabytes for tiny fuel costs. The compiler disables bulk-memory lowering
+and uses metered ordinary instructions; libm lookup data is active and bounded.
 SIMD, threads/shared memory, GC/reference types, exceptions, tail calls,
 memory64, multiple memories and passive segments are rejected. Every float
 constant, load, arithmetic/conversion result and integer-to-float reinterpretation
@@ -71,7 +74,8 @@ systems extend this provisional ABI; these numeric effects do not install those
 systems or resolve movement/collision themselves.
 
 Default per-host limits are eight instances, 128 effects, eight spawns, 32
-incoming/outgoing events and 64 queries per tick, 2,000,000 fuel per call and
+incoming/outgoing events and 64 queries per tick, 2,000,000 fuel per call,
+8,000,000 fuel shared by all calls in a tick and
 three failures before module disablement. Hosts may lower every limit. The
 aggregate script-memory allowance is 24,000,000 bytes, reserving three capped
 copies per module (live memory, good snapshot, in-flight copy). Each module's

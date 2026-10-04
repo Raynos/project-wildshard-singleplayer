@@ -4,9 +4,9 @@ import type { ScriptEffect, ScriptEvent, ScriptWorld } from './effects';
 import { scriptFailure } from './strings';
 
 /** Per-level tick allowances shared by every module and entity, not reset by individual calls. */
-export interface ScriptLimits { instances: number; memoryBytes: number; effects: number; spawns: number; events: number; queries: number; fuelPerCall: number; failures: number }
+export interface ScriptLimits { instances: number; memoryBytes: number; effects: number; spawns: number; events: number; queries: number; fuelPerCall: number; fuelPerTick: number; failures: number }
 /** Conservative defaults; all are hard platform ceilings and may only be lowered by a host. */
-export const SCRIPT_LIMITS: Readonly<ScriptLimits> = Object.freeze({ instances: 8, memoryBytes: 24000000, effects: 128, spawns: 8, events: 32, queries: 64, fuelPerCall: 2000000, failures: 3 });
+export const SCRIPT_LIMITS: Readonly<ScriptLimits> = Object.freeze({ instances: 8, memoryBytes: 24000000, effects: 128, spawns: 8, events: 32, queries: 64, fuelPerCall: 2000000, fuelPerTick: 8000000, failures: 3 });
 /** Deterministic, read-only query input/output; replies may be recorded for replay/conformance. */
 export type ScriptQuery = (kind: number, input: readonly number[], entity: number) => readonly number[];
 /** A complete linear-memory + mutable-global snapshot, never a live view of Wasm state. */
@@ -41,7 +41,7 @@ export class ScriptHost {
   private readonly options: ScriptHostOptions;
   private readonly modules = new Map<string, ModuleState>();
   private tick = -1;
-  private used = { effects: 0, spawns: 0, events: 0, queries: 0 };
+  private used = { effects: 0, spawns: 0, events: 0, queries: 0, fuel: 0 };
   private pending: ScriptEvent[] = [];
   private active = false;
   private reservedMemory = 0;
@@ -54,6 +54,7 @@ export class ScriptHost {
   private charge(state: ModuleState, cost: number): void {
     if (!integer(cost, 1, 0x7fffffff)) throw new Error('Invalid fuel cost');
     state.remaining -= cost; if (state.remaining < 0) throw new Error('Script fuel exhausted');
+    if (state.busy) { this.used.fuel += cost; if (this.used.fuel > this.limits.fuelPerTick) throw new Error('Script tick fuel exhausted'); }
   }
   private instantiate(state: ModuleState, saved?: ScriptSnapshot): Running {
     const memory = new WebAssembly.Memory({ initial: saved ? saved.memory.length / 65536 : state.admission.initialPages, maximum: state.maximumPages });
@@ -104,7 +105,7 @@ export class ScriptHost {
   /** Reset shared allowances only for a strictly later fixed tick; return prior queued events in insertion order. */
   beginTick(tick: number): readonly ScriptEvent[] {
     if (this.active || !integer(tick, 0, Number.MAX_SAFE_INTEGER) || tick <= this.tick) throw new Error('Non-monotonic script tick');
-    this.tick = tick; this.used = { effects: 0, spawns: 0, events: 0, queries: 0 }; const events = this.pending.map((e) => ({ ...e })); this.pending = []; return events;
+    this.tick = tick; this.used = { effects: 0, spawns: 0, events: 0, queries: 0, fuel: 0 }; const events = this.pending.map((e) => ({ ...e })); this.pending = []; return events;
   }
   /** Snapshot copies are safe to retain for deterministic replay. */
   snapshot(name: string): ScriptSnapshot { const state = this.modules.get(name); if (!state) throw new Error('Unknown module'); return clone(state.good); }
@@ -120,6 +121,7 @@ export class ScriptHost {
   call(name: string, entity: number, input: readonly number[], events: readonly number[] = []): ScriptCall {
     const state = this.modules.get(name), current = this.world.entity(entity);
     if (!state || !current || state.disabled || current.frozen) return { ok: false, effects: [], events: [], fuel: 0, reason: 'Unavailable script/entity', disabled: state?.disabled ?? false };
+    if (this.used.fuel >= this.limits.fuelPerTick) return { ok: false, effects: [], events: [], fuel: 0, reason: 'Script tick fuel allowance', disabled: false };
     if (this.active || this.tick < 0) throw new Error('Reentrant call or missing fixed tick');
     state.remaining = this.limits.fuelPerCall; state.depth = 0; state.entity = entity; state.busy = true; this.active = true;
     const currentRunning = currentInstance(state);

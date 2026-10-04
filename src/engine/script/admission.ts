@@ -43,8 +43,6 @@ function instructions(r: Reader): Instruction[] {
     else if (op === 0xfc) {
       const sub = r.uint();
       if (sub <= 7) { /* Saturating numeric conversions. */ }
-      else if (sub === 10) { if (r.byte() !== 0 || r.byte() !== 0) throw new Error('Multiple memories'); }
-      else if (sub === 11) { if (r.byte() !== 0) throw new Error('Multiple memories'); }
       else throw new Error('Unsupported bulk instruction');
     } else if (![0x00, 0x01, 0x05, 0x0b, 0x0f, 0x1a, 0x1b].includes(op) && !(op >= 0x45 && op <= 0xc4)) throw new Error('Banned instruction or feature');
     out.push({ op, arg });
