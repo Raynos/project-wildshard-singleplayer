@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import type { Wildlife } from './wildlife';
 import type { SheepPrey, Flock } from './flock';
 import { Pack } from './pack';
+import { legacyRaidTick, type RaidClockPorts } from './raidClock';
 import { HORSE_SPEED, horseBones } from '../species/horse';
 import { PaintKit, v3 } from '../world/paint';
 import { pole, lathe } from '@wildshard/engine/world/geometryKit';
@@ -136,6 +137,8 @@ export class SheepRaid {
   raiding = false;
   raids = 0; taken = 0; drivenOff = 0; cracks = 0;
   private raidT = rand(FIRST_RAID);
+  private raidPlayer: THREE.Vector3 | null = null;
+  private readonly raidClock: RaidClockPorts = this.clockPorts();
   private pack: Pack | null = null;
   /** the valley pack (spawned with the first raid) and how many have been spawned */
   private raiders: Pack | null = null;
@@ -202,18 +205,25 @@ export class SheepRaid {
   }
 
   private director(dt: number, playerPos: THREE.Vector3): void {
-    if (this.raiding) {
-      const pk = this.pack, prey = this.prey;
-      if (pk === null || prey === null) { this.raiding = false; return; }
-      if (this.pendingT > 0) { this.pendingT -= dt; if (pk.prey === prey) this.pendingT = 0; else if (this.pendingT > 0) return; }
-      if (pk.prey === prey && pk.phase !== 'break') return;   // the hunt is on
-      this.raiding = false; this.raidT = rand(NEXT_RAID);
-      if (!prey.alive) { this.taken++; this.ctx.toast('The wolves took a sheep'); }
-      else if (pk.phase === 'break' || this.cracksNow > 0) { this.drivenOff++; this.ctx.toast('The shepherd drove the wolves off'); }
-      return;
-    }
-    this.raidT -= dt;
-    if (this.raidT <= 0 && !this.start(false, playerPos)) this.raidT = 30;
+    this.raidPlayer = playerPos;
+    legacyRaidTick(this.raidClock, dt);
+  }
+
+  private clockPorts(): RaidClockPorts {
+    const raid = () => this;
+    return {
+      get raiding() { return raid().raiding; }, set raiding(value) { raid().raiding = value; },
+      get raidT() { return raid().raidT; }, set raidT(value) { raid().raidT = value; },
+      get pendingT() { return raid().pendingT; }, set pendingT(value) { raid().pendingT = value; },
+      get present() { return raid().pack !== null && raid().prey !== null; },
+      get tracking() { return raid().pack !== null && raid().pack.prey === raid().prey; },
+      get broken() { return raid().pack?.phase === 'break'; },
+      get preyAlive() { return raid().prey?.alive === true; },
+      get cracked() { return raid().cracksNow > 0; },
+      start: () => raid().start(false, raid().raidPlayer ?? undefined), next: () => rand(NEXT_RAID),
+      taken: () => { raid().taken++; raid().ctx.toast('The wolves took a sheep'); },
+      drivenOff: () => { raid().drivenOff++; raid().ctx.toast('The shepherd drove the wolves off'); },
+    };
   }
 
   /** the shepherd: a slow ring round the flock; at any wolf near it, a gallop and the whip */
