@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1790 members; 831 without a doc line (—).
+1798 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -38,6 +38,14 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `inspectBrain` | function | @wildshard/engine/ai/inspect | — |
 | `inspectTick` | function | @wildshard/engine/ai/inspect | — |
 | `pinBrain` | function | @wildshard/engine/ai/inspect | — |
+| `BrainNavigation` | type | @wildshard/engine/ai/platform | A bounded path port can be backed by the engine navmesh; direct pursuit still resolves collisions in the motor. |
+| `BrainTarget` | interface | @wildshard/engine/ai/platform | A perceived live target, identified independently of its renderer or collision handle. |
+| `buildPlatformSpawns` | function | @wildshard/engine/ai/platform | Expand declarative spawns before boot: no hidden allocations or random entity ids appear mid-tick. |
+| `installPlatformBrains` | function | @wildshard/engine/ai/platform | Scoped brain registrations use the real sim's damage/strike clocks, physics queries and per-host RNG streams. |
+| `PlatformBrain` | class | @wildshard/engine/ai/platform | Per-entity fixed-tick pursuit, perception, leashing and idle wandering with a complete continuation. |
+| `PlatformBrainPorts` | interface | @wildshard/engine/ai/platform | Read-only perception/navigation and an explicit attack request; the motor and damage pipeline stay authoritative. |
+| `PlatformBrainSpec` | interface | @wildshard/engine/ai/platform | One reusable pursuit archetype; all tuning is authored data, never a shard callback. |
+| `PlatformSpawn` | interface | @wildshard/engine/ai/platform | Stable spawn identities produce the exact same entity set when a fresh sim restores a snapshot. |
 | `canReach` | function | @wildshard/engine/ai/reach | Same chest/aim-point/slack query in every level, evaluated at the contact frame. |
 | `ReachActor` | interface | @wildshard/engine/ai/reach | — |
 | `deriveSpecies` | function | @wildshard/engine/ai/species | Child rows retain all unspecified parent fields and merge tuning without losing the hunter policy. |

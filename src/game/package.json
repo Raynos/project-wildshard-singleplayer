@@ -43,6 +43,7 @@
     "./shard/declaredUi": "./shard/declaredUi.ts",
     "./shardfile/loader": "./shardfile/loader.ts",
     "./shard/slug": "./shard/slug.ts",
-    "./shardfile/scripts": "./shardfile/scripts.ts"
+    "./shardfile/scripts": "./shardfile/scripts.ts",
+    "./shardfile/creatures": "./shardfile/creatures.ts"
   }
 }

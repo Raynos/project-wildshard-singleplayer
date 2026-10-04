@@ -1710,7 +1710,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1773 exports, grouped by the module to import them from.
+1781 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1719,6 +1719,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/ai/encounters`: `EncounterDefinition`, `EncounterRegistry`, `EncounterService`, `SpawnContext`, `SpawnEntry`, `Spawner`, `SpawnPoint`, `SpawnTableRow`
 - `@wildshard/engine/ai/GroupBrain`: `GroupBrain`, `GroupMember`
 - `@wildshard/engine/ai/inspect`: `brainInspection`, `BrainInspection`, `brainPinned`, `inspectBrain`, `inspectTick`, `pinBrain`
+- `@wildshard/engine/ai/platform`: `BrainNavigation`, `BrainTarget`, `buildPlatformSpawns`, `installPlatformBrains`, `PlatformBrain`, `PlatformBrainPorts`, `PlatformBrainSpec`, `PlatformSpawn`
 - `@wildshard/engine/ai/reach`: `canReach`, `ReachActor`
 - `@wildshard/engine/ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
 - `@wildshard/engine/ai/strikes`: `BrainPoint`, `StrikeActor`, `StrikeContext`, `StrikePhase`, `StrikeRunner`, `StrikeShape`, `StrikeSpec`, `UtilityScore`
@@ -2006,7 +2007,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-228 exports, grouped by the module to import them from.
+231 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2042,6 +2043,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/game/shard/runtime`: `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
+- `@wildshard/game/shardfile/creatures`: `creatureRules`, `CreaturesSchema`, `ShardCreatures`
 - `@wildshard/game/shardfile/loader`: `configuredShardfile`, `emptyShardfileSource`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`
 - `@wildshard/game/shardfile/schema`: `LOOK_LUT_BYTES`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
@@ -2113,3 +2115,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 ### Declared script state and the local lane (SF11c)
 
 `@wildshard/engine/script/state` validates atomic shared/player effects over explicit stable field ids, with actor identity supplied by the host. `@wildshard/engine/script/lane` installs local authoritative server/entity work through the scoped sim step and captures complete continuations, including pending events and quarantine history. `@wildshard/game/shardfile/scripts` validates binding references and translates typed numeric state into the engine lane. See [SCRIPT-ABI.md](SCRIPT-ABI.md) for inputs, restore and the Node/WebKit conformance gate.
+
+### Declared creature brain and spawns (SF13)
+
+`@wildshard/engine/ai/platform` expands stable spawn data and installs a scoped pursuit brain over physics perception, navigation, creature motors and the existing strike pipeline. `@wildshard/game/shardfile/creatures` validates the archetypes and references. See [PLATFORM-AI.md](PLATFORM-AI.md) for parameters and the complete same-engine continuation.

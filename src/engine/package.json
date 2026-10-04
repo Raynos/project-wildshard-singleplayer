@@ -298,6 +298,7 @@
     "./sim": "./sim.ts",
     "./sim/snapshot": "./sim/snapshot.ts",
     "./script/state": "./script/state.ts",
-    "./script/lane": "./script/lane.ts"
+    "./script/lane": "./script/lane.ts",
+    "./ai/platform": "./ai/platform.ts"
   }
 }

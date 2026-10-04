@@ -182,6 +182,54 @@
         "from": "@wildshard/engine/ai/inspect"
       },
       {
+        "name": "BrainNavigation",
+        "kind": "type",
+        "doc": "A bounded path port can be backed by the engine navmesh; direct pursuit still resolves collisions in the motor.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
+        "name": "BrainTarget",
+        "kind": "interface",
+        "doc": "A perceived live target, identified independently of its renderer or collision handle.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
+        "name": "buildPlatformSpawns",
+        "kind": "function",
+        "doc": "Expand declarative spawns before boot: no hidden allocations or random entity ids appear mid-tick.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
+        "name": "installPlatformBrains",
+        "kind": "function",
+        "doc": "Scoped brain registrations use the real sim's damage/strike clocks, physics queries and per-host RNG streams.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
+        "name": "PlatformBrain",
+        "kind": "class",
+        "doc": "Per-entity fixed-tick pursuit, perception, leashing and idle wandering with a complete continuation.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
+        "name": "PlatformBrainPorts",
+        "kind": "interface",
+        "doc": "Read-only perception/navigation and an explicit attack request; the motor and damage pipeline stay authoritative.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
+        "name": "PlatformBrainSpec",
+        "kind": "interface",
+        "doc": "One reusable pursuit archetype; all tuning is authored data, never a shard callback.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
+        "name": "PlatformSpawn",
+        "kind": "interface",
+        "doc": "Stable spawn identities produce the exact same entity set when a fresh sim restores a snapshot.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
         "name": "canReach",
         "kind": "function",
         "doc": "Same chest/aim-point/slack query in every level, evaluated at the contact frame.",
@@ -11932,6 +11980,24 @@
         "kind": "function",
         "doc": "Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps.",
         "from": "@wildshard/game/shardfile/budget"
+      },
+      {
+        "name": "creatureRules",
+        "kind": "function",
+        "doc": "Unique ids and brain references; species and strikes are resolved against the loader's declared catalogues.",
+        "from": "@wildshard/game/shardfile/creatures"
+      },
+      {
+        "name": "CreaturesSchema",
+        "kind": "const",
+        "doc": "Pure-data creature archetypes and stable spawn layouts, expanded before the local sim boots.",
+        "from": "@wildshard/game/shardfile/creatures"
+      },
+      {
+        "name": "ShardCreatures",
+        "kind": "type",
+        "doc": "Validated brain parameters and spawn layout, with no rig or runtime closure.",
+        "from": "@wildshard/game/shardfile/creatures"
       },
       {
         "name": "configuredShardfile",
