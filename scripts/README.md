@@ -233,6 +233,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 ## Folders
 
 - [blender/](./blender/)
+- [crossroads-rig/](./crossroads-rig/)
 - [decide/](./decide/)
 - [deploy-backstop/](./deploy-backstop/)
 - [docs/](./docs/)
