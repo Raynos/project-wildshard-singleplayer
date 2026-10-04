@@ -226,6 +226,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [shards.d.mts](./shards.d.mts)
 - [shards.mjs](./shards.mjs)
 - [sim-mem-phases.py](./sim-mem-phases.py)
+- [sim-node-loader.mjs](./sim-node-loader.mjs)
 - [stutter-run.mjs](./stutter-run.mjs)
 - [telemetry-brief.mjs](./telemetry-brief.mjs)
 - [texmem-probe.mjs](./texmem-probe.mjs)

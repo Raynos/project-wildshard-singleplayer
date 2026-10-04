@@ -291,6 +291,7 @@
     "./script/effects": "./script/effects.ts",
     "./script/queries": "./script/queries.ts",
     "./ui/declared": "./ui/declared.ts",
-    "./app/view/scopeEnvironment": "./app/view/scopeEnvironment.ts"
+    "./app/view/scopeEnvironment": "./app/view/scopeEnvironment.ts",
+    "./sim": "./sim.ts"
   }
 }

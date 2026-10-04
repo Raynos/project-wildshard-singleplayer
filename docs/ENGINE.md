@@ -1610,6 +1610,20 @@ in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that alrea
 The kit composition root installs the gold coin geometry recipe with `installCoinModel()` from
 `@wildshard/game/loot/coinModel`; loot simulation imports only the recipe port, without geometry construction.
 
+### Embedded simulation
+
+`@wildshard/engine/sim` exports `SIM_API_VERSION`, `SimLevel`, `SimCommand`, `SimHost` and `createSimHost`.
+The embedding root loads Rapier WASM and supplies it to `createSimHost(level, { rapier })`; plain level data
+defines the heightfield, player, creature identities, strike timings and quests. `step(command)` advances one
+60 Hz tick; `advance(seconds, command)` retains its fixed-step accumulator. Each host owns its physics,
+clock, RNG, events, entities, damage pipeline, flags, quest progress and timers. `onStep(id, run, adapter?)`
+registers scoped per-instance behaviour with optional continuation state; `SimSlots` provides typed script
+memory, module globals, quest data and ledger dedupe slots for the F1 adapters. `dispose()` frees the host.
+
+The native Node witness is `node --import ./scripts/sim-node-loader.mjs test/fixtures/sim-level/run.mjs`.
+It boots JSON-round-tripped kit species and iron-sword data, runs 10,000 fixed ticks with real Rapier
+collision, and proves damage and quest completion without a renderer, DOM or active app.
+
 ## 24. Lint rules and the ratchet
 
 | Rule | What it refuses | Status |
@@ -1686,7 +1700,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1707 exports, grouped by the module to import them from.
+1726 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1871,6 +1885,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/quest/core`: `CHIP_MAX`, `DialogueEntry`, `lineFor`, `NpcDef`, `QuestDef`, `QuestLine`, `QuestMarker`, `QuestState`, `QuestStep`, `validateQuest`
 - `@wildshard/engine/quest/view`: `ChipSource`, `LiveMarker`, `NpcTalk`, `NpcTalkOpts`, `PlacePoint`, `Places`, `placesWithDiscovery`, `QuestChip`
 - `@wildshard/engine/quest/view/ui`: `DialogueBox`, `ObjectiveLine`, `RewardCaption`
+- `@wildshard/engine/render/dataLook`: `DATA_LOOK_DAY`, `dataLook`, `dataLookClock`, `DataLookSpec`, `LookDay`, `LookKey`, `lookSample`, `LookSample`, `sampleLook`
 - `@wildshard/engine/render/families/params`: `FAMILY_IDS`, `FamilyId`, `FamilyMaterialInput`, `FamilyMaterialParams`, `FamilyMaterialSchema`, `parseFamilyMaterial`, `parseToonLook`, `PbrMaterialParams`, `PbrMaterialSchema`, `Rgb`, `ToonLookParams`, `ToonLookSchema`, `ToonMaterialParams`, `ToonMaterialSchema`
 - `@wildshard/engine/render/families/pbr`: `compilePbr`, `pbrFillers`, `TextureResolver`, `TextureUse`
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `liveFamilyMaterials`
@@ -1892,6 +1907,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/script/effects`: `EffectRules`, `EffectTransaction`, `SCRIPT_OP`, `ScriptEffect`, `ScriptEntity`, `ScriptEvent`, `ScriptWorld`
 - `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `ScriptCall`, `ScriptHost`, `ScriptHostOptions`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
 - `@wildshard/engine/script/queries`: `SCRIPT_QUERY`, `ScriptPhysics`, `scriptPhysicsQueries`
+- `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimCommand`, `SimHost`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
 - `@wildshard/engine/ui/authoredDebugRows`: `authoredRows`, `GlobalDebugActionSpec`, `registerGlobalDebugAction`
 - `@wildshard/engine/ui/BossBar`: `BossBar`
@@ -1974,7 +1990,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-219 exports, grouped by the module to import them from.
+220 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2011,7 +2027,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
 - `@wildshard/game/shardfile/loader`: `configuredShardfile`, `emptyShardfileSource`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`
-- `@wildshard/game/shardfile/schema`: `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
+- `@wildshard/game/shardfile/schema`: `LOOK_LUT_BYTES`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
 - `@wildshard/game/shardfile/version`: `SHARDFILE_VERSION`
 - `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`

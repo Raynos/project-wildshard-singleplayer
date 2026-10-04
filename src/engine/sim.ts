@@ -1,0 +1,189 @@
+import { Vector3 } from 'three';
+import { Scope } from './app/scope';
+import { Events } from './events/events';
+import { GameClock } from './core/clock';
+import { RngService } from './core/rng';
+import { FIXED_STEP } from './core/fixedStep';
+import { AnimalSim, type AnimalSimSpec } from './entities/AnimalSim';
+import { StrikeRunner, type StrikeSpec } from './ai/strikes';
+import { canReach } from './ai/reach';
+import { CombatPipeline } from './combat/pipeline';
+import { PlayerHealth } from './combat/health';
+import { Physics } from './physics/Physics';
+import { CharacterMotor } from './physics/CharacterMotor';
+import type { Rapier } from './physics/rapier';
+import { groups } from './physics/groups';
+import { tagCollider } from './physics/surface';
+import { Flags } from './world/interact/flags';
+import { QuestState, type QuestDef } from './quest/core';
+
+/** The embedded simulation contract. Versions change when level or command semantics change. */
+export const SIM_API_VERSION = 1;
+/** Serializable F1 extension values, without callbacks or renderer objects. */
+export type SimValue = null | boolean | number | string | SimValue[] | { [key: string]: SimValue };
+/** Script instance memory, module globals, authored quest data and ledger dedupe live on the host. */
+export interface SimSlots {
+  scriptMemory: Record<string, SimValue>; scriptGlobals: Record<string, SimValue>;
+  questState: Record<string, SimValue>; ledgerDedupe: string[];
+}
+/** Pure strike data. The host supplies the constant selection weight. */
+export type SimStrike = Omit<StrikeSpec, 'weight'>;
+/** One authored creature spawn, with its instance identity independent of view or streaming. */
+export interface SimSpawn {
+  id: string; spec: AnimalSimSpec; seed: number; scale: number;
+  at: { x: number; y: number; z: number }; yaw: number; strike?: SimStrike;
+}
+/** A renderer-free level. F1 installs richer behaviours through scoped step callbacks. */
+export interface SimLevel {
+  version: number; id: string; seed: number;
+  ground: { size: number; height: number };
+  player: { at: { x: number; y: number; z: number }; yaw: number; speed: number };
+  entities: readonly SimSpawn[]; weapon: SimStrike; quests: readonly QuestDef[];
+}
+/** Resolved world-space movement and an optional targeted attack for one fixed tick. */
+export interface SimCommand { moveX: number; moveZ: number; yaw: number; attack?: { targetId: string } }
+/** Each future brain/script instance registers its own continuation state, never a process singleton. */
+export interface SimStateAdapter { snapshot: () => SimValue; restore: (value: SimValue) => void }
+
+/** A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client. */
+export class SimHost {
+  readonly level: SimLevel;
+  readonly scope: Scope;
+  readonly events = new Events();
+  readonly clock = new GameClock();
+  readonly rng: RngService;
+  readonly flags: Flags;
+  readonly quests: QuestState[];
+  readonly entities = new Map<string, AnimalSim>();
+  readonly strikes = new Map<string, StrikeRunner>();
+  readonly adapters = new Map<string, SimStateAdapter>();
+  readonly state = { tick: 0, accumulator: 0, timers: {} as Record<string, number> };
+  readonly slots: SimSlots = { scriptMemory: {}, scriptGlobals: {}, questState: {}, ledgerDedupe: [] };
+  readonly combat: CombatPipeline;
+  physics: Physics;
+  readonly player: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
+  private readonly callbacks = new Map<string, (dt: number, host: SimHost) => void>();
+  private readonly weapons = new Map<string, StrikeSpec>();
+  private readonly targetIds = new Map<string, string>();
+  private readonly wanted = new Vector3();
+  private readonly direction = new Vector3();
+  private readonly hitOrigin = new Vector3();
+  private readonly hitPoint = new Vector3();
+  private disposed = false;
+
+  constructor(level: SimLevel, ports: { rapier: Rapier }) {
+    if (level.version !== SIM_API_VERSION) throw new RangeError('Unsupported simulation level version');
+    if (!Number.isFinite(level.ground.height) || !Number.isFinite(level.ground.size) || level.ground.size <= 0
+      || !Number.isFinite(level.player.speed) || level.player.speed < 0) throw new RangeError('Invalid simulation level');
+    const ids = level.entities.map((entity) => entity.id);
+    if (new Set(ids).size !== ids.length || ids.includes('actor.player')) throw new Error('Duplicate simulation entity identity');
+    this.level = level; this.scope = new Scope(`sim:${level.id}`); this.rng = new RngService(level.seed);
+    this.physics = new Physics(ports.rapier);
+    const ground = this.physics.world.createCollider(ports.rapier.ColliderDesc.heightfield(1, 1,
+      new Float32Array(4).fill(level.ground.height), { x: level.ground.size, y: 1, z: level.ground.size }).setCollisionGroups(groups('WORLD')));
+    tagCollider(ground, 'ground');
+    this.combat = new CombatPipeline(this.events, this.scope, () => this.physics);
+    const position = new Vector3(level.player.at.x, level.player.at.y, level.player.at.z);
+    const health = new PlayerHealth(this.events, { now: () => this.clock.now * 1000, position: () => position, dodging: () => false, dodgeGuard: () => false });
+    this.player = { id: health.id, position, yaw: level.player.yaw, health, motor: this.motor('PLAYER', 0.35, 1.8) };
+    this.combat.playerRules(this.scope, { target: health });
+    this.flags = new Flags(level.id, false);
+    this.quests = level.quests.map((def) => new QuestState(def, this.flags, this.events, this.scope));
+    this.strikes.set(health.id, new StrikeRunner());
+    this.weapons.set(health.id, { ...level.weapon, weight: () => 1 });
+    for (const spawn of level.entities) {
+      const entity = new AnimalSim(spawn.spec, spawn.seed, spawn.scale, spawn.id, {
+        heightAt: () => level.ground.height, now: () => this.clock.now * 1000,
+        random: () => this.rng.stream('gameplay').next(), hit: (req) => this.combat.hit(req),
+      });
+      entity.place(spawn.at.x, spawn.at.z, spawn.yaw, spawn.at.y);
+      entity.motor = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2);
+      this.entities.set(spawn.id, entity);
+      if (spawn.strike !== undefined) {
+        this.strikes.set(spawn.id, new StrikeRunner()); this.weapons.set(spawn.id, { ...spawn.strike, weight: () => 1 });
+      }
+    }
+    this.events.on('actor.died', ({ actor }) => { this.flags.set(`dead:${actor.id}`); }, this.scope);
+    this.physics.step();
+  }
+  private motor(group: 'PLAYER' | 'CREATURE', radius: number, height: number): CharacterMotor {
+    return new CharacterMotor(this.physics, { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, group, blockedBy: ['WORLD', 'PLAYER', 'CREATURE'] });
+  }
+  /** Scoped fixed-step work; removing a registration also releases its future snapshot adapter. */
+  onStep(id: string, run: (dt: number, host: SimHost) => void, adapter?: SimStateAdapter): () => void {
+    if (this.disposed || this.callbacks.has(id)) throw new Error(`Invalid simulation registration ${id}`);
+    this.callbacks.set(id, run); if (adapter !== undefined) this.adapters.set(id, adapter);
+    let registered = true;
+    const remove = (): void => {
+      if (!registered) return;
+      registered = false;
+      this.callbacks.delete(id); this.adapters.delete(id);
+    };
+    this.scope.onDispose(remove); return remove;
+  }
+  /** One simulation tick. No wall clock, renderer, active app or device input is consulted. */
+  step(command?: SimCommand): void {
+    if (this.disposed) throw new Error('Simulation host is disposed');
+    if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
+    this.events.beginFrame(); this.clock.tick(FIXED_STEP); this.state.tick++;
+    for (const key of Object.keys(this.state.timers)) this.state.timers[key] = Math.max(0, (this.state.timers[key] ?? 0) - FIXED_STEP);
+    this.physics.step();
+    if (command !== undefined) {
+      this.player.yaw = command.yaw;
+      this.wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(this.level.player.speed * FIXED_STEP);
+      this.player.motor.move(this.player.position, this.wanted);
+      if (command.attack !== undefined) this.startStrike(this.player.id, command.attack.targetId);
+    }
+    for (const run of this.callbacks.values()) run(FIXED_STEP, this);
+    for (const [id, runner] of this.strikes) this.updateStrike(id, runner);
+    for (const entity of this.entities.values()) entity.step(FIXED_STEP);
+    this.player.health.update(FIXED_STEP); this.events.flush('fixed.post');
+  }
+  /** Accumulate elapsed simulation seconds; a caller can submit exactly the same command tape after restoration. */
+  advance(seconds: number, command?: SimCommand): number {
+    if (this.disposed) throw new Error('Simulation host is disposed');
+    if (!Number.isFinite(seconds) || seconds < 0) throw new RangeError('Invalid simulation delta');
+    if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
+    this.state.accumulator += seconds; let ticks = 0;
+    while (this.state.accumulator + Number.EPSILON >= FIXED_STEP) { this.state.accumulator -= FIXED_STEP; this.step(command); ticks++; }
+    return ticks;
+  }
+  /** Start an authored strike; active/recovery/cooldown timing remains in StrikeRunner. */
+  startStrike(sourceId: string, targetId: string): boolean {
+    const runner = this.strikes.get(sourceId), spec = this.weapons.get(sourceId), source = this.entities.get(sourceId), target = this.entities.get(targetId);
+    const position = sourceId === this.player.id ? this.player.position : source?.position;
+    const targetPosition = targetId === this.player.id ? this.player.position : target?.position;
+    if (runner === undefined || spec === undefined || runner.busy || position === undefined || targetPosition === undefined) return false;
+    const actor = source ?? this.playerActor();
+    if (!actor.alive) return false;
+    runner.start(spec, actor, targetPosition); this.targetIds.set(sourceId, targetId); return true;
+  }
+  private playerActor() {
+    return { position: this.player.position, yaw: this.player.yaw, scale: 1, alive: this.player.health.alive,
+      startAttack: (_seconds: number) => { /* Weapon runner owns the clock. */ }, cancelAttack: () => { /* Weapon runner owns the clock. */ },
+      setMotion: (_yaw: number, _speed: number, _turn: number) => { /* Commands own player movement. */ } };
+  }
+  private updateStrike(id: string, runner: StrikeRunner): void {
+    const targetId = this.targetIds.get(id), source = this.entities.get(id), target = targetId === undefined ? undefined : this.entities.get(targetId);
+    const health = targetId === this.player.id ? this.player.health : target?.combatActor();
+    const position = targetId === this.player.id ? this.player.position : target?.position;
+    if (health === undefined || position === undefined) return;
+    const actor = source ?? this.playerActor();
+    runner.update(FIXED_STEP, { actor, target: position, canReach: () => source === undefined ? true : canReach(source, position, this.physics), hit: (spec) => {
+      this.direction.subVectors(position, actor.position).normalize();
+      this.hitOrigin.copy(actor.position); this.hitOrigin.y += source === undefined ? 1.2 : source.dims.bodyY * source.scale;
+      this.hitPoint.copy(position); this.hitPoint.y += target === undefined ? 1.2 : target.dims.bodyY * target.scale;
+      this.combat.hit({ source: source?.combatActor() ?? this.player.health, sourceTags: spec.tags, target: health,
+        amount: spec.damage, point: this.hitPoint, dir: this.direction, from: this.hitOrigin, moveId: spec.id });
+    } });
+  }
+  /** Timed attack targets are host state; snapshot restoration must reconnect them before replay. */
+  attackTargets(): readonly [string, string][] { return [...this.targetIds]; }
+  restoreAttackTargets(entries: readonly (readonly [string, string])[]): void { this.targetIds.clear(); for (const [id, target] of entries) this.targetIds.set(id, target); }
+  dispose(): void {
+    if (this.disposed) return; this.disposed = true;
+    this.scope.dispose(); this.player.motor.dispose(); for (const entity of this.entities.values()) entity.motor?.dispose(); this.physics.dispose();
+  }
+}
+/** Embed a level with an initialized Rapier module. Loading WASM belongs to the Node/client composition root. */
+export function createSimHost(level: SimLevel, ports: { rapier: Rapier }): SimHost { return new SimHost(level, ports); }

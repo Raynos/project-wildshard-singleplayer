@@ -7447,6 +7447,66 @@
         "from": "@wildshard/engine/script/queries"
       },
       {
+        "name": "createSimHost",
+        "kind": "function",
+        "doc": "Embed a level with an initialized Rapier module. Loading WASM belongs to the Node/client composition root.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SIM_API_VERSION",
+        "kind": "const",
+        "doc": "The embedded simulation contract. Versions change when level or command semantics change.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimCommand",
+        "kind": "interface",
+        "doc": "Resolved world-space movement and an optional targeted attack for one fixed tick.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimHost",
+        "kind": "class",
+        "doc": "A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimLevel",
+        "kind": "interface",
+        "doc": "A renderer-free level. F1 installs richer behaviours through scoped step callbacks.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimSlots",
+        "kind": "interface",
+        "doc": "Script instance memory, module globals, authored quest data and ledger dedupe live on the host.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimSpawn",
+        "kind": "interface",
+        "doc": "One authored creature spawn, with its instance identity independent of view or streaming.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimStateAdapter",
+        "kind": "interface",
+        "doc": "Each future brain/script instance registers its own continuation state, never a process singleton.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimStrike",
+        "kind": "type",
+        "doc": "Pure strike data. The host supplies the constant selection weight.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "SimValue",
+        "kind": "type",
+        "doc": "Serializable F1 extension values, without callbacks or renderer objects.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
         "name": "ENGINE_STRINGS",
         "kind": "const",
         "doc": "English engine UI strings. Content-owned overrides are installed by the composition root.",

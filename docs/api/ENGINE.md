@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1732 members; 831 without a doc line (—).
+1742 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1246,6 +1246,16 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SCRIPT_QUERY` | const | @wildshard/engine/script/queries | Query opcodes: ray, axis-aligned overlap, nearest walkable point, bounded path. |
 | `ScriptPhysics` | interface | @wildshard/engine/script/queries | Read-only physics and navigation inputs; collider owners map to stable numeric entity handles. |
 | `scriptPhysicsQueries` | function | @wildshard/engine/script/queries | Deterministic ordering/truncation over the engine's collision/navigation queries, with no direct Rapier import. |
+| `createSimHost` | function | @wildshard/engine/sim | Embed a level with an initialized Rapier module. Loading WASM belongs to the Node/client composition root. |
+| `SIM_API_VERSION` | const | @wildshard/engine/sim | The embedded simulation contract. Versions change when level or command semantics change. |
+| `SimCommand` | interface | @wildshard/engine/sim | Resolved world-space movement and an optional targeted attack for one fixed tick. |
+| `SimHost` | class | @wildshard/engine/sim | A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client. |
+| `SimLevel` | interface | @wildshard/engine/sim | A renderer-free level. F1 installs richer behaviours through scoped step callbacks. |
+| `SimSlots` | interface | @wildshard/engine/sim | Script instance memory, module globals, authored quest data and ledger dedupe live on the host. |
+| `SimSpawn` | interface | @wildshard/engine/sim | One authored creature spawn, with its instance identity independent of view or streaming. |
+| `SimStateAdapter` | interface | @wildshard/engine/sim | Each future brain/script instance registers its own continuation state, never a process singleton. |
+| `SimStrike` | type | @wildshard/engine/sim | Pure strike data. The host supplies the constant selection weight. |
+| `SimValue` | type | @wildshard/engine/sim | Serializable F1 extension values, without callbacks or renderer objects. |
 | `ENGINE_STRINGS` | const | @wildshard/engine/strings | English engine UI strings. Content-owned overrides are installed by the composition root. |
 | `engineString` | function | @wildshard/engine/strings | — |
 | `EngineStringKey` | type | @wildshard/engine/strings | — |
