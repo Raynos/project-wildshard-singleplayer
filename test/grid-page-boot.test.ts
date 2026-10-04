@@ -2,10 +2,13 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as boot from '../src/game/grid/boot';
 import * as debug from '../src/game/grid/debug';
-import { preparePageResidency } from '../src/game/grid/pageBoot';
+import { preparePageResidency, validatePlannedGridReload } from '../src/game/grid/pageBoot';
+import { installPlannedGridReload } from '../src/game/grid/reloadBoot';
+import { GridAssembly } from '../src/game/grid/assembly';
+import * as revisions from '../src/game/grid/reloadRevision';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 
-afterEach(() => { vi.restoreAllMocks(); });
+afterEach(() => { vi.restoreAllMocks(); installPlannedGridReload({ kind: 'none' }); });
 const manifest = { slug: 'driftwood-isle' as const, runtimeCost: DRIFTWOOD_RUNTIME_COST };
 
 it('preserves the existing row-OFF boot without consuming its grid intent early', () => {
@@ -53,4 +56,17 @@ it('lets admitted data reserve its sim before bootstrap and refuses any late com
   expect(owner.home().instance).toBe('template-1');
   owner.dispose(); expect(owner.allocator.entries()).toEqual([]);
   expect(() => owner.admitHome('template-1', 25_000_000)).toThrow('disposed');
+});
+
+it('refuses a consumed source revision before creating a page owner or hydrating any assets', async () => {
+  const assembly = new GridAssembly({ developer: false, devserver: false, nineDragon: false });
+  const cell = assembly.cell('template-4'), home = assembly.cell('driftwood-isle');
+  installPlannedGridReload({ kind: 'resume', home, value: { v: 1, mode: 'grid', instance: cell.instance, revision: 1,
+    layout: { developer: false, devserver: false, nineDragon: false }, cell: [...cell.cell],
+    roadPose: { x: 277.5, y: 0, z: 0 }, heading: 0, mount: null, loadout: { selected: null, tools: [] },
+    clock: { version: 1, elapsed: 10, wall: 10, frames: 600, paused: false, scale: 1, captureFps: null },
+    recovery: { lastSafeRoadPoint: { x: 277.5, z: 0, yaw: 0 }, state: 'on-road' }, at: Date.now() } });
+  const read = vi.spyOn(revisions, 'gridReloadRevision').mockResolvedValue(2);
+  await expect(validatePlannedGridReload()).rejects.toThrow('revision or geometry changed');
+  expect(read).toHaveBeenCalledExactlyOnceWith(expect.any(GridAssembly), cell.instance);
 });
