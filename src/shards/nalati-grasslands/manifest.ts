@@ -1,6 +1,7 @@
 import { COMPARE } from './explore/compare';
 import exploreHorse from './explore/playground-horse.webp';
 import { NALATI_BUDGET_INPUTS } from './budgets';
+import { NALATI_RUNTIME_COST } from './data/runtimeCost';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { basinBody } from '@wildshard/engine/world/water/body';
 import { nalatiWetAt } from './wet';
@@ -34,6 +35,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   load: () => import('./plugin'),
   loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: ['tool.hoverboard'], start: ['bow', 'sabre', 'spear', 'tool.hoverboard'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
   budgets: NALATI_BUDGET_INPUTS,
+  runtimeCost: NALATI_RUNTIME_COST,
   audio: { bed: 'steppe', ambience: 'ambience.nalati', score: 'score.nalati', alertOnlyHostile: true, preload: () => import('./runtime/audio/files').then((m) => m.createNalatiAudio()) },
   boot: { audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE), exploreHorse, ...COMPARE.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, steps: BOOT_STEPS, bytes: { trees: 'spruce bark' }, lateReads },
   bag: { tabs: ['map', 'gear', 'finds', 'feats'], pack: { slots: 0 }, skinsTitle: 'Skins' },
