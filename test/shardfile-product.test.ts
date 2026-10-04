@@ -84,6 +84,8 @@ it('admits a visited product revision only with explicit migrations and preserve
   expect(admitted.source.state.shared[0]?.name).toBe('gate.open');
   expect(f.fetches()).toBe(1);
   const visited = structuredClone(f.cache.products.get(base));
+  await expect(admitProduct(f.shard, f.options)).rejects.toThrow('backwards');
+  expect(f.cache.products.get(base)).toEqual(visited);
   const recycling = structuredClone(next); recycling.identity.revision++; recycling.state.version++;
   Object.assign(recycling, { migrations: [{ from: 2, to: 3, fields: [{ op: 'drop', scope: 'shared', id: 7 }] }] });
   await expect(admitProduct(recycling, f.options)).rejects.toThrow('reused');
