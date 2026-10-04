@@ -1,0 +1,70 @@
+{
+  "row": "G144 mem-trim driftwoodGpuOnlyCopies off vs on",
+  "parent": "8009ed833aa88a92c21734986f5e01c9cb309bec",
+  "current": "8009ed833aa88a92c21734986f5e01c9cb309bec",
+  "hybridDebugFixture": "off",
+  "when": "2026-10-04T22:21:48.950Z",
+  "elapsedSeconds": 219.323,
+  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+  "ambientInfo": [
+    "forest.thrall"
+  ],
+  "reports": [
+    {
+      "setting": "off",
+      "shard": "driftwood-isle",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "pier",
+          "ssim": 0.9987503382852324,
+          "note": null
+        },
+        {
+          "name": "beach",
+          "ssim": 0.9947000232429934,
+          "note": null
+        },
+        {
+          "name": "wreck",
+          "ssim": 0.9999476225846167,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "heapMB": {
+        "off": 147.01987838745117,
+        "on": 157.41824340820312
+      }
+    },
+    {
+      "setting": "off",
+      "shard": "driftwood-isle",
+      "tier": "desktop",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "pier",
+          "ssim": 1,
+          "note": null
+        },
+        {
+          "name": "beach",
+          "ssim": 1,
+          "note": null
+        },
+        {
+          "name": "wreck",
+          "ssim": 1,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "heapMB": {
+        "off": 139.25064086914062,
+        "on": 75.31424713134766
+      }
+    }
+  ]
+}

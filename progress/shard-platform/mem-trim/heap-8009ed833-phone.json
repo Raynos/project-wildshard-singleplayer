@@ -1,0 +1,65 @@
+{
+  "rev": "8009ed833",
+  "tier": "phone",
+  "hybrid": "off",
+  "when": "2026-10-04T22:18:03.695Z",
+  "method": "Desktop Chromium (Metal), iPhone 16 Pro portrait, muted; playable + a full turn + 6 s, forced GC, CDP Runtime.getHeapUsage (usedSize, backingStorageSize = ArrayBuffers); scene geometry arrays still on the CPU; renderer.info.memory. Row off / on alternated twice.",
+  "means": {
+    "off": {
+      "heapMB": 42.703317642211914,
+      "arrayBuffersMB": 213.8976993560791,
+      "sceneArraysMB": 1223.4274244308472
+    },
+    "on": {
+      "heapMB": 42.69526481628418,
+      "arrayBuffersMB": 141.4618101119995,
+      "sceneArraysMB": 766.0203552246094
+    }
+  },
+  "runs": {
+    "off": [
+      {
+        "row": "off",
+        "heapMB": 41.833778381347656,
+        "arrayBuffersMB": 213.8976993560791,
+        "sceneArraysMB": 1223.4274244308472,
+        "releasedApproxMB": 0,
+        "geometries": 484,
+        "textures": 85,
+        "version": null
+      },
+      {
+        "row": "off",
+        "heapMB": 43.57285690307617,
+        "arrayBuffersMB": 213.8976993560791,
+        "sceneArraysMB": 1223.4274244308472,
+        "releasedApproxMB": 0,
+        "geometries": 484,
+        "textures": 85,
+        "version": null
+      }
+    ],
+    "on": [
+      {
+        "row": "on",
+        "heapMB": 42.668155670166016,
+        "arrayBuffersMB": 141.4618101119995,
+        "sceneArraysMB": 766.0203552246094,
+        "releasedApproxMB": 490.46289825439453,
+        "geometries": 484,
+        "textures": 85,
+        "version": null
+      },
+      {
+        "row": "on",
+        "heapMB": 42.722373962402344,
+        "arrayBuffersMB": 141.4618101119995,
+        "sceneArraysMB": 766.0203552246094,
+        "releasedApproxMB": 490.46289825439453,
+        "geometries": 484,
+        "textures": 85,
+        "version": null
+      }
+    ]
+  }
+}
