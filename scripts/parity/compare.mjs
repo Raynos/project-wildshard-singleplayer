@@ -43,27 +43,20 @@ export function renameBaseline(baseline, current, maps) {
   }
   return b;
 }
-/** @param {string} field @param {number} baseline */
-export function floorFor(field, baseline) {
-  if (field.startsWith('boot.gpuBytes.')) return 2 ** 20;
-  if (/^poses\.[^.]+\.pos(?:\.|$)/.test(field)) return 0.05;
-  if (/^poses\.[^.]+\.calls$/.test(field)) return 2;
-  if (/^poses\.[^.]+\.tris$/.test(field)) return baseline * 0.01;
-  if (/^walk\.legs\.[^.]+\.end(?:\.|$)/.test(field)) return 1;
-  if (/^walk\.legs\.[^.]+\.maxY$/.test(field)) return 0.3;
-  if (/^combat\.hitsToKill(?:\.|$)/.test(field)) return 1;
-  return 0;
-}
 /** @param {string} p */
 function measured(p) { return /^(boot\.(render\.(programs|memory\.)|gpuBytes\.)|poses\.[^.]+\.(pos|calls$|tris$)|walk\.legs\.[^.]+\.(end|maxY$)|combat\.hitsToKill)/.test(p); }
-/** @param {Value|undefined} expected @param {Value|undefined} actual @param {Value|undefined} noise @param {string} field */
-function numericBand(expected,actual,noise,field) {
-  const width=/** @param {number} v @param {number} spread */(v,spread)=>spread===0?0:2*spread+floorFor(field,v);
+/** A measured field's band is 2 × its recorded run-to-run spread (max − min of the baseline's recording runs, 03 §8):
+ * exact when the runs agreed. E388 deleted the per-field floors that sat on top (tris 1 %, maxY 0.3 m, pos 0.05 m,
+ * calls 2, end 1 m, GPU bytes 1 MiB, hitsToKill 1): no measurement backed them, and every recorded spread of these
+ * fields in both lanes' baselines is 0, so they never widened a band.
+ * @param {Value|undefined} expected @param {Value|undefined} actual @param {Value|undefined} noise */
+function numericBand(expected,actual,noise) {
+  const width=/** @param {number} spread */(spread)=>2*spread;
   if(Array.isArray(expected)) {
-    const widths=expected.map((v,i)=>width(number(v),number(Array.isArray(noise)?noise[i]:noise??0)));
+    const widths=expected.map((_,i)=>width(number(Array.isArray(noise)?noise[i]:noise??0)));
     return {pass:Array.isArray(actual)&&expected.length===actual.length&&expected.every((v,i)=>Number.isFinite(number(actual[i]))&&Math.abs(number(actual[i])-number(v))<=widths[i]),band:`± ${JSON.stringify(widths)}`};
   }
-  const band=width(number(expected),number(noise??0));
+  const band=width(number(noise??0));
   return {pass:typeof actual==='number'&&Number.isFinite(actual)&&Math.abs(actual-number(expected))<=band,band:`± ${band}`};
 }
 /** @param {string} p */
@@ -77,13 +70,14 @@ export function normalize(value) {
   }
   return result;
 }
-/** @param {RecordValue[]} entries @param {string} today */
+/** Every entry names an owner, an ask, a reason and its own expiry; an expired entry turns the gate red.
+ * E388 deleted the invented caps on top (at most 5 entries, at most 3 days): the owner's ask sets the date.
+ * @param {RecordValue[]} entries @param {string} today */
 export function validateQuarantine(entries, today) {
   /** @type {string[]} */ const errors = [];
-  if (entries.length > 5) errors.push('more than 5 quarantine entries');
   for (const e of entries) {
     const start = Date.parse(string(e.since)), end = Date.parse(string(e.until));
-    if (!string(e.owner) || !/^E\d+$/.test(string(e.ask)) || !string(e.why) || !Number.isFinite(start) || !Number.isFinite(end) || end < start || end - start > 3 * 86400000) errors.push(`invalid quarantine: ${string(e.id)}`);
+    if (!string(e.owner) || !/^E\d+$/.test(string(e.ask)) || !string(e.why) || !Number.isFinite(start) || !Number.isFinite(end) || end < start) errors.push(`invalid quarantine: ${string(e.id)}`);
     if (string(e.until) < today) errors.push(`quarantine expired: ${string(e.id)}`);
     if (/\/(boot\.(errors|renderer|facade)|boot.scene.totals.batched|walk\.(stuck|touch)|.*\.stuck|.*\.out|combat\.(swing|shot)|pauseResume|leak|budgets)/.test(string(e.id))) errors.push(`class D cannot be quarantined: ${string(e.id)}`);
   }
@@ -106,14 +100,14 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
       if (pending) {
         const expect = object(pending.expect)[`${tier}/${field}`];
         if (lane !== 'm5' || pending.expect === null || expect === undefined) verdict = 'pending';
-        else { const imageBand=/^poses\.[^.]+\.ssim$/.test(field)?1-Math.min(0.99,number(selfMin[field.split('.')[1]??'']??1)-0.01):null;const inside=imageBand!==null?typeof now==='number'&&Math.abs(now-number(expect))<=imageBand:measured(field)?numericBand(expect,now,spreads[field],field).pass:equal(now,expect);verdict=inside?'pending':'red'; }
+        else { const imageBand=/^poses\.[^.]+\.ssim$/.test(field)?1-Math.min(0.99,number(selfMin[field.split('.')[1]??'']??1)-0.01):null;const inside=imageBand!==null?typeof now==='number'&&Math.abs(now-number(expect))<=imageBand:measured(field)?numericBand(expect,now,spreads[field]).pass:equal(now,expect);verdict=inside?'pending':'red'; }
       } else if (before === undefined) verdict = 'new';
       if (options.lanePending) verdict = 'lane-pending';
       if ((options.quarantine ?? []).some((e) => string(e.id) === `${shard}/${tier}/${field}`)) verdict = 'quarantined';
     }
     rows.push({field, baseline:before, now, class:cls, band, verdict});
   }
-  for (const error of validateQuarantine(options.quarantine ?? [], options.now ?? new Date().toISOString().slice(0, 10))) emit('quarantine', undefined, error, 'D', false, 'valid, unexpired; at most 5');
+  for (const error of validateQuarantine(options.quarantine ?? [], options.now ?? new Date().toISOString().slice(0, 10))) emit('quarantine', undefined, error, 'D', false, 'valid, unexpired');
   // D checks run even with no baseline, pending board or quarantine.
   const d = /** @type {Array<[string, boolean, string]>} */ ([
     ['boot.errors', array(get(current, 'boot.errors')).length === 0, '[]'],
@@ -160,7 +154,7 @@ export function compare(rawBaseline, rawCurrent, options = {}) {
       emit(path, a, b, 'B', number(b) >= limit, `≥ ${limit}`); continue;
     }
     if (measured(path) && (typeof a === 'number' || Array.isArray(a))) {
-      const band=numericBand(a,b,spreads[path],path);
+      const band=numericBand(a,b,spreads[path]);
       emit(path, a, b, 'B', band.pass, band.band);
     } else emit(path, a, b, 'A', equal(a, b), 'exact');
   }

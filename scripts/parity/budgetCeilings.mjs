@@ -1,4 +1,4 @@
-import { floorFor, normalize } from './compare.mjs';
+import { normalize } from './compare.mjs';
 import { get, number, object, string } from './value.mjs';
 
 /** Baseline ceilings use the greater value plus its existing noise band from either lane.
@@ -20,7 +20,7 @@ export function baselineCeilings(baselines) {
         const observed = get(b, `budgets.${pose}.observed.${metric}`), v = observed === undefined ? number(get(b, path)) : number(observed) * (metric === 'gpuMB' ? 2 ** 20 : 1);
         const spread = number(object(b.spread)[observed === undefined ? path : `budgets.${pose}.observed.${metric}`] ?? 0) * (observed !== undefined && metric === 'gpuMB' ? 2 ** 20 : 1);
         if (!Number.isFinite(v) || v < 0 || !Number.isFinite(spread) || spread < 0) throw new Error(`Missing/invalid ${slug}.${tier}.${path}`);
-        const band = spread === 0 ? 0 : 2 * spread + floorFor(path, v);
+        const band = 2 * spread; // the compare's band (E388: no invented floor on top)
         const ceiling = (v + band) / (metric === 'gpuMB' ? 2 ** 20 : 1), key = `${slug}.${tier}.${pose}.${metric}`;
         result[key] = Math.max(result[key] ?? 0, metric === 'gpuMB' ? ceiling : Math.ceil(ceiling));
       }
