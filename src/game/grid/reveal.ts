@@ -19,7 +19,7 @@ import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import { GAME_STRINGS } from '../strings';
 import './gridHud.css';
 
-/** the reveal's timings, in ms from its first frame (null: not reached yet) */
+/** the reveal's timings, in ms of the page clock from its first frame (null: not reached yet) */
 export interface RevealTimings {
   readonly startedAt: number; readonly pathEndMs: number | null; readonly ringsReadyMs: number | null; readonly homeSimMs: number | null;
   readonly endedMs: number | null; readonly skipped: boolean; readonly ceiling: boolean;
@@ -100,7 +100,7 @@ export function installGridReveal(host: GridRevealHost): () => boolean {
 
   host.onLate(() => {
     if (!live || !host.entered()) return;
-    const now = performance.now();
+    const now = app.clock.real * 1000; // the page clock (deterministic in capture mode)
     if (started < 0) begin(now);
     const ms = now - started;
     if (ringsAt === null && host.ringsReady()) ringsAt = ms;
