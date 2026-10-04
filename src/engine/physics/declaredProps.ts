@@ -15,7 +15,8 @@ export function installDeclaredPropColliders(rows: readonly { id: string; initia
   for (const row of rows) {
     const saved = restoring?.get(row.id);
     if (restoring !== undefined && saved === undefined) throw new Error(`Missing declared collider state ${row.id}`);
-    const added = restoring === undefined ? withOwner(scope, () => addPiece(current(), { id: row.id, name: row.id, category: 'props', file: 'declared-props', colliders: [...row.shapes] })) : null;
+    // The cleanup follows the current world after native restore; ambient capture would retain wrappers from the retired world.
+    const added = restoring === undefined ? withOwner(null, () => addPiece(current(), { id: row.id, name: row.id, category: 'props', file: 'declared-props', colliders: [...row.shapes] })) : null;
     let handles = saved === undefined ? (added?.colliders ?? []).map((collider) => { const material = tagOf(collider)?.material ?? 'wood'; tagCollider(collider, material, row.id); collider.setEnabled(row.initialActive); return collider.handle; }) : [...saved.handles];
     const colliders = () => handles.map((handle) => { const world = current().world; if (!world.colliders.contains(handle)) throw new Error(`Missing declared collider ${row.id}`); return world.getCollider(handle); });
     ports.set(row.id, { active: () => colliders().every((collider) => collider.isEnabled()), setActive: (value) => { for (const collider of colliders()) collider.setEnabled(value); }, snapshot: () => ({ handles: [...handles] }), restore: (value) => { handles = [...value.handles]; } });
