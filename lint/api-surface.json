@@ -8205,7 +8205,7 @@
       {
         "name": "createSimHost",
         "kind": "function",
-        "doc": "Embed a level with an initialized Rapier module. Loading WASM belongs to the Node/client composition root.",
+        "doc": "Embed a level with an initialized Rapier module. Its own scope owns teardown, independently of the caller's ambient page callback.",
         "from": "@wildshard/engine/sim"
       },
       {

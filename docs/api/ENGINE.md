@@ -1372,7 +1372,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ScriptStateDeclaration` | interface | @wildshard/engine/script/state | Shared fields belong to the host; player fields have one independent record per stable actor id. |
 | `ScriptStateField` | interface | @wildshard/engine/script/state | Numeric declared fields; bool uses 0/1. Strings are outside the numeric v0 script ABI. |
 | `ScriptWorldState` | interface | @wildshard/engine/script/state | A complete JSON-compatible state checkpoint, including quarantined entities and actor-scoped records. |
-| `createSimHost` | function | @wildshard/engine/sim | Embed a level with an initialized Rapier module. Loading WASM belongs to the Node/client composition root. |
+| `createSimHost` | function | @wildshard/engine/sim | Embed a level with an initialized Rapier module. Its own scope owns teardown, independently of the caller's ambient page callback. |
 | `SIM_API_VERSION` | const | @wildshard/engine/sim | The embedded simulation contract. Versions change when level or command semantics change. |
 | `SimCommand` | interface | @wildshard/engine/sim | Resolved world-space movement and an optional targeted attack for one fixed tick. |
 | `SimExternalPlayer` | interface | @wildshard/engine/sim | The existing page owns this traveller, its health update and its one physics/movement step. |
