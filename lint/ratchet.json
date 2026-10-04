@@ -39,7 +39,7 @@
       "E357",
       "E435"
     ],
-    "review": "SF16 removes template.oil from declared plumbing: 29 to 28. Full inventory and retirement conditions: progress/shard-platform/sf16-debug-rows.md. New independent variants need explicit reviewed capacity."
+    "review": "SF16 removes template.oil from declared plumbing: 29 to 28. Full inventory and retirement conditions: progress/shard-platform/sf16-debug-rows.md. New independent variants need explicit reviewed capacity.; SF24: default-off Driftwood director, retires with the SF46 decision"
   },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,

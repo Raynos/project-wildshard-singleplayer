@@ -222,7 +222,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   w.fullMap?.setPois(places.mapPois, { tally: true });   // E309 A: "PLACES n / N" in the map's corner
   if (w.gulls) installGullGuide({ game: w.game, player: w.player, hud: w.hud, gulls: w.gulls }, places, flags);
   adventure.complete = installComplete(adventure, w, w.progress);   // before the finale: its reward hands over to the card
-  adventure.finale = installFinale(adventure, w);
+  adventure.finale = await installFinale(adventure, w, ctx);
   adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);
 
   // ── A7: the rope bridge sways under you — a slow roll + a little dip on the camera while your feet are on its planks ──
