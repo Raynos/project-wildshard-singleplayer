@@ -37,7 +37,7 @@ it('drives both directions through InputService across changing local frames wit
     setHover: (value: boolean) => { player.hover = value; },
   };
   const state = () => ({ current, worldFeet: { x: position.x + origin, y: position.y, z: position.z },
-    crossings: transitions.length, transitions: transitions.map((row) => ({ ...row })), residents: ['peer'], issues: {}, gameplayReady: true });
+    crossings: transitions.length, transitions: transitions.map((row) => ({ ...row })), residents: now > 0 ? ['peer'] : [], issues: { 'proxy.only': 'Expected far proxy; no descriptor' }, gameplayReady: true });
   const watchFrames = (tick: (dt: number) => void) => {
     queueMicrotask(() => {
       for (let frame = 0; frame < 2000; frame++) {
@@ -59,10 +59,12 @@ it('drives both directions through InputService across changing local frames wit
   };
   const raw: unknown = await runInNewContext(`(${driveGridSeam.toString()})(route)`, {
     route, window: { __wildshard: { shard: { grid: { state: () => ({ live: { live: state() } }) } }, world: { player, game: { app: { input }, watchFrames } } } },
-    performance: { now: () => now }, setTimeout: (fn: () => void) => { fn(); },
+    performance: { now: () => now }, setTimeout: (fn: () => void) => { now += 100; fn(); },
   });
   if (raw === null || typeof raw !== 'object' || !('trace' in raw) || !('transitions' in raw)) throw new Error('Missing serialized drive result');
   const result = raw as GridDriveResult;
+  expect(result.backgroundIssues).toEqual({ 'proxy.only': 'Expected far proxy; no descriptor' });
+  expect(gridDriveFailures({ ...result, issues: { peer: 'Collider admission failed' } })).toContain('Grid admission/disposal issues: {"peer":"Collider admission failed"}');
   expect(gridDriveFailures(result)).toEqual([]); expect(spawns).toBe(1); expect(stopped).toBe(true);
   expect(input.held('move.forward')).toBe(false); expect(player.hoverSpeedLimit).toBe(limit); expect(player.hover).toBe(false);
 });

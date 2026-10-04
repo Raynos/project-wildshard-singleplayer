@@ -17,6 +17,7 @@ export function gridSeamRoute(state, speed) {
 export async function driveGridSeam(route) {
   const api = window.__wildshard, world = api.world, player = world.player, input = world.game.app.input;
   const read = () => { const state = api.shard.grid.state().live?.live; if (!state) throw new Error('Live grid simulation telemetry is unavailable'); return state; };
+  const routeIssues = (state) => Object.fromEntries(Object.entries(state.issues).filter(([instance]) => instance === route.home || instance === route.peer));
   const initial = read(); if (initial.current !== route.home) throw new Error('Grid route must begin in the home frame');
   const origin = { x: initial.worldFeet.x - player.position.x, z: initial.worldFeet.z - player.position.z };
   const oldLimit = player.hoverSpeedLimit, oldHover = player.hover;
@@ -30,7 +31,8 @@ export async function driveGridSeam(route) {
     const deadline = performance.now() + 120_000;
     while (!read().residents.includes(route.peer)) {
       if (performance.now() > deadline) throw new Error('Grid neighbour admission timed out');
-      if (Object.keys(read().issues).length > 0) throw new Error(`Grid admission failed: ${JSON.stringify(read().issues)}`);
+      const issues = routeIssues(read());
+      if (Object.keys(issues).length > 0) throw new Error(`Grid admission failed: ${JSON.stringify(issues)}`);
       await new Promise((resolve) => { setTimeout(resolve, 100); });
     }
     await new Promise((resolve) => { setTimeout(resolve, 600); });
@@ -56,7 +58,7 @@ export async function driveGridSeam(route) {
     const after = read();
     const crossingDelta = after.crossings - before.crossings;
     return { ...route, trace, stuck, complete: wi === route.waypoints.length, timedOut,
-      crossingDelta, transitions: crossingDelta > 0 ? after.transitions.slice(-crossingDelta) : [], issues: after.issues };
+      crossingDelta, transitions: crossingDelta > 0 ? after.transitions.slice(-crossingDelta) : [], issues: routeIssues(after), backgroundIssues: Object.fromEntries(Object.entries(after.issues).filter(([instance]) => instance !== route.home && instance !== route.peer)) };
   } finally { input.clear(); player.hoverSpeedLimit = oldLimit; player.setHover(oldHover); }
 }
 
