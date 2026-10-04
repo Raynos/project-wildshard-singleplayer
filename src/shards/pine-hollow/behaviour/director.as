@@ -18,8 +18,15 @@ function event(type: i32, value: f64 = 0): void {
 export function on_tick(): void {
   count = 0;
   if (query(410,4096,8192) !== 6) unreachable();
-  if (input(6) === 1) { event(9161); if (input(10) < 0.5 && input(9) === 1) event(9162, parameter(4)); }
-  if (input(7) === 1 && dawn < 0 && input(8) === 0) { dawn = 0; event(9163); }
+  let nightRequest = input(6) === 1, dawnRequest = input(7) === 1;
+  const incoming = i32(input(32));
+  for (let i = 0; i < incoming; i++) {
+    const kind = input(33+i*6);
+    if (kind === 9181) nightRequest = true;
+    else if (kind === 9182) dawnRequest = true;
+  }
+  if (nightRequest) { event(9161); if (input(10) < 0.5 && input(9) === 1) event(9162, parameter(4)); }
+  if (dawnRequest && dawn < 0 && input(8) === 0) { dawn = 0; event(9163); }
   if (input(0) === 0 || dawn < 0) return;
   const was = dawn; dawn += input(1);
   if (was < parameter(0) && dawn >= parameter(0) && input(9) === 1) event(9164, parameter(5));

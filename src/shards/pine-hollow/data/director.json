@@ -1,7 +1,7 @@
 {
   "id": "pine.watch",
   "entity": 9160,
-  "module": "554e2e698aff80d42215a1d89a275778730c1058710f92f89f2e9c474c781f04",
+  "module": "4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251",
   "inputs": [
     {
       "key": "night-request",
@@ -93,7 +93,32 @@
       "type": "none",
       "min": 0,
       "max": 0
+    },
+    {
+      "id": 9181,
+      "key": "night.request",
+      "direction": "input",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9182,
+      "key": "dawn.request",
+      "direction": "input",
+      "type": "none",
+      "min": 0,
+      "max": 0
     }
   ],
-  "subscriptions": []
+  "subscriptions": [
+    {
+      "event": "night.request",
+      "scope": "shard"
+    },
+    {
+      "event": "dawn.request",
+      "scope": "shard"
+    }
+  ]
 }
