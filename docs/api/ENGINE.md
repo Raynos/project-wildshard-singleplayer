@@ -1474,7 +1474,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PlatformCell` | interface | @wildshard/engine/sim/strips | Declared edge data placed on an integer platform grid; placement never enters a regional simulation. |
 | `STRIP_OFFSETS` | const | @wildshard/engine/sim/strips | Full G90 gradient lattice, including the explicit 6/10m re-frame lines. |
 | `StripCell` | interface | @wildshard/engine/sim/strips | A regional placement is used only to translate the platform's duplicate collider. |
-| `StripCorner` | interface | @wildshard/engine/sim/strips | Southwest, southeast, northwest and northeast outer corner values, in that order. |
+| `StripCorner` | interface | @wildshard/engine/sim/strips | `shore` (G149, the §3.2 shore rule): the corner is seabed below 0 under a sea at exactly 0, so its field never descends. |
 | `StripMesh` | interface | @wildshard/engine/sim/strips | A triangle mesh is local to its origin. Colour triples use the same vertex ordering. |
 | `StripProfile` | interface | @wildshard/engine/sim/strips | Deterministic platform seam data, independent of rendering, devices and physics wrappers. |
 | `ENGINE_STRINGS` | const | @wildshard/engine/strings | English engine UI strings. Content-owned overrides are installed by the composition root. |

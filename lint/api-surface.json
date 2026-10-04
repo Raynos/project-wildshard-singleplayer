@@ -8817,7 +8817,7 @@
       {
         "name": "StripCorner",
         "kind": "interface",
-        "doc": "Southwest, southeast, northwest and northeast outer corner values, in that order.",
+        "doc": "`shore` (G149, the §3.2 shore rule): the corner is seabed below 0 under a sea at exactly 0, so its field never descends.",
         "from": "@wildshard/engine/sim/strips"
       },
       {
