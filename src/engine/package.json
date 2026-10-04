@@ -284,6 +284,7 @@
     "./entities/AnimalSim": "./entities/AnimalSim.ts",
     "./script/host": "./script/host.ts",
     "./script/effects": "./script/effects.ts",
-    "./script/queries": "./script/queries.ts"
+    "./script/queries": "./script/queries.ts",
+    "./ui/declared": "./ui/declared.ts"
   }
 }

@@ -7401,6 +7401,72 @@
         "from": "@wildshard/engine/ui/debugOptions"
       },
       {
+        "name": "DeclaredBoss",
+        "kind": "interface",
+        "doc": "what a declared boss panel hands the encounter that drives it",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "DeclaredBossPanel",
+        "kind": "interface",
+        "doc": "the engraved boss bar, name card and retry card for one encounter",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "DeclaredCounter",
+        "kind": "interface",
+        "doc": "a meter row in the status column, its value read from a declared numeric field",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "DeclaredHud",
+        "kind": "type",
+        "doc": "every declared HUD kind the engine draws",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "DeclaredHudHandles",
+        "kind": "interface",
+        "doc": "the mounted pieces by declaration id, for tests and bindings",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "DeclaredHudPorts",
+        "kind": "interface",
+        "doc": "the shared HUD verbs, frame systems, scope and field reads a declaration set draws with",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "DeclaredMarker",
+        "kind": "interface",
+        "doc": "a label pinned over a world point (the shared `hud.pin` projection)",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "DeclaredRelabel",
+        "kind": "interface",
+        "doc": "a label (and optional engine icon) on one of the shared touch discs",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "DeclaredTextPanel",
+        "kind": "interface",
+        "doc": "a text section inside a menu tab",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "mountDeclaredHud",
+        "kind": "function",
+        "doc": "Draw each declaration on the shared HUD for the scope's life; counters refresh in the late phase.",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
+        "name": "textPanelFragment",
+        "kind": "function",
+        "doc": "a menu tab section of plain paragraphs",
+        "from": "@wildshard/engine/ui/declared"
+      },
+      {
         "name": "EliteBar",
         "kind": "class",
         "doc": "",
@@ -10950,6 +11016,18 @@
         "from": "@wildshard/game/shard/context"
       },
       {
+        "name": "DeclaredUiPorts",
+        "kind": "interface",
+        "doc": "the engine's HUD ports plus the shard's Bag",
+        "from": "@wildshard/game/shard/declaredUi"
+      },
+      {
+        "name": "mountDeclaredUi",
+        "kind": "function",
+        "doc": "SF7f: draw a shardfile's `ui` declarations. Markers, counters, boss panels and relabels go to the engine's shared HUD;",
+        "from": "@wildshard/game/shard/declaredUi"
+      },
+      {
         "name": "CabinSite",
         "kind": "interface",
         "doc": "",
@@ -11290,6 +11368,36 @@
         "kind": "const",
         "doc": "Strict schema for the public SDK format; rejects unknown fields and invalid references.",
         "from": "@wildshard/game/shardfile/schema"
+      },
+      {
+        "name": "ShardUi",
+        "kind": "type",
+        "doc": "a validated `ui` section",
+        "from": "@wildshard/game/shardfile/ui"
+      },
+      {
+        "name": "ShardUiDeclaration",
+        "kind": "type",
+        "doc": "one validated UI declaration",
+        "from": "@wildshard/game/shardfile/ui"
+      },
+      {
+        "name": "UI_DECLARATIONS_MAX",
+        "kind": "const",
+        "doc": "The most declarations one shardfile's `ui` section may hold.",
+        "from": "@wildshard/game/shardfile/ui"
+      },
+      {
+        "name": "uiRules",
+        "kind": "function",
+        "doc": "Reference rules: unique ids, counters read a declared numeric field, one boss panel per encounter, one relabel per disc, one spec per bag tab.",
+        "from": "@wildshard/game/shardfile/ui"
+      },
+      {
+        "name": "UiSchema",
+        "kind": "const",
+        "doc": "The declared UI kinds of shardfile v0: plain data the platform draws in its own HUD style and slots.",
+        "from": "@wildshard/game/shardfile/ui"
       },
       {
         "name": "SHARDFILE_VERSION",

@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1684 members; 831 without a doc line (—).
+1695 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1238,6 +1238,17 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `opt` | function | @wildshard/engine/ui/debugOptions | a row over a saved option (Settings.ts OPTION_VALUES): `choices` pairs each value with its button text |
 | `registerLevelDebugRow` | function | @wildshard/engine/ui/debugOptions | A level owns its debug choices and their inverse; menus resolve the live catalog when opened. |
 | `TITLE_SKIPPERS` | const | @wildshard/engine/ui/debugOptions | params that skip the title (dev / deep links): a reload meant to land on the title drops them (the title's Apply & |
+| `DeclaredBoss` | interface | @wildshard/engine/ui/declared | what a declared boss panel hands the encounter that drives it |
+| `DeclaredBossPanel` | interface | @wildshard/engine/ui/declared | the engraved boss bar, name card and retry card for one encounter |
+| `DeclaredCounter` | interface | @wildshard/engine/ui/declared | a meter row in the status column, its value read from a declared numeric field |
+| `DeclaredHud` | type | @wildshard/engine/ui/declared | every declared HUD kind the engine draws |
+| `DeclaredHudHandles` | interface | @wildshard/engine/ui/declared | the mounted pieces by declaration id, for tests and bindings |
+| `DeclaredHudPorts` | interface | @wildshard/engine/ui/declared | the shared HUD verbs, frame systems, scope and field reads a declaration set draws with |
+| `DeclaredMarker` | interface | @wildshard/engine/ui/declared | a label pinned over a world point (the shared `hud.pin` projection) |
+| `DeclaredRelabel` | interface | @wildshard/engine/ui/declared | a label (and optional engine icon) on one of the shared touch discs |
+| `DeclaredTextPanel` | interface | @wildshard/engine/ui/declared | a text section inside a menu tab |
+| `mountDeclaredHud` | function | @wildshard/engine/ui/declared | Draw each declaration on the shared HUD for the scope's life; counters refresh in the late phase. |
+| `textPanelFragment` | function | @wildshard/engine/ui/declared | a menu tab section of plain paragraphs |
 | `EliteBar` | class | @wildshard/engine/ui/EliteBar | — |
 | `SkullMark` | interface | @wildshard/engine/ui/EliteBar | EliteBar — the named-elite screen pieces (src/game/Elite.ts drives them), styled by `src/engine/ui/styles/elite.css` (prefix |
 | `installErrorModal` | function | @wildshard/engine/ui/ErrorModal | Hook `error` + `unhandledrejection` and the frame loop's faults; start the reporter. Idempotent. |

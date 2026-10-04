@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { SHARDFILE_VERSION } from './version';
+import { UiSchema, uiRules } from './ui';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const positive = v.pipe(natural, v.minValue(1));
@@ -31,6 +32,7 @@ const rawSchema = v.strictObject({
   edge: v.strictObject({ north: edge, east: edge, south: edge, west: edge }),
   files: v.array(file), tiles: v.array(tile), library: v.array(ref), critical: v.array(ref),
   far: v.nullable(v.strictObject({ files: v.array(ref), bounds, ...costs })),
+  ui: v.optional(UiSchema, []),
 });
 /** A serialisable shardfile v0, independent of renderer and placement. */
 export type Shardfile = v.InferOutput<typeof rawSchema>;
@@ -68,6 +70,7 @@ export function shardfileRules(s: Shardfile): string[] {
   }
   if (s.far !== null && (s.far.decoded + s.far.gpu > CONTENT_CAPS.far.resident || s.far.compressed > CONTENT_CAPS.far.compressed || s.far.triangles > CONTENT_CAPS.far.triangles || s.far.draws > CONTENT_CAPS.far.draws)) errors.push('far caps');
   for (const f of s.files) if (f.critical !== s.critical.includes(f.hash)) errors.push('critical flags match roots');
+  errors.push(...uiRules(s.ui, s.state));
   return [...new Set(errors)];
 }
 /** Strict schema for the public SDK format; rejects unknown fields and invalid references. */

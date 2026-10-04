@@ -1676,7 +1676,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1668 exports, grouped by the module to import them from.
+1679 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1883,6 +1883,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/ui/Combat`: `aimReadout`, `Combat`
 - `@wildshard/engine/ui/DeathFade`: `DARK_UNTIL`, `DeathFade`, `DeathHooks`, `FADE_IN`, `FADE_OUT`
 - `@wildshard/engine/ui/debugOptions`: `action`, `DEBUG_GROUPS`, `DEBUG_READOUTS`, `DEBUG_ROWS`, `DebugActionSpec`, `DebugChoice`, `DebugCtx`, `DebugGroup`, `DebugGroupId`, `DebugRow`, `levelDebugRows`, `opt`, `registerLevelDebugRow`, `TITLE_SKIPPERS`
+- `@wildshard/engine/ui/declared`: `DeclaredBoss`, `DeclaredBossPanel`, `DeclaredCounter`, `DeclaredHud`, `DeclaredHudHandles`, `DeclaredHudPorts`, `DeclaredMarker`, `DeclaredRelabel`, `DeclaredTextPanel`, `mountDeclaredHud`, `textPanelFragment`
 - `@wildshard/engine/ui/EliteBar`: `EliteBar`, `SkullMark`
 - `@wildshard/engine/ui/ErrorModal`: `installErrorModal`, `showError`
 - `@wildshard/engine/ui/errorScreen`: `showLoadFailure`
@@ -1958,7 +1959,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-204 exports, grouped by the module to import them from.
+211 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -1987,12 +1988,14 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/game/quest/reward`: `QuestRewardBeat`, `QuestRewardHost`, `QuestRewardPlayer`, `QuestRewardSpec`
 - `@wildshard/game/saves`: `bossesSave`, `bountySave`, `compendiumSave`, `elitesSave`, `inventorySave`, `ownedSave`, `progressSave`, `purseSave`, `saveSlug`, `shardSave`
 - `@wildshard/game/shard/context`: `BagVerbs`, `GameRowMap`, `GameRows`, `GameServices`, `shardContext`, `ShardContext`
+- `@wildshard/game/shard/declaredUi`: `DeclaredUiPorts`, `mountDeclaredUi`
 - `@wildshard/game/shard/manifest`: `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `MapLook`, `OceanDef`, `PondDef`, `RGB`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/runtime`: `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
 - `@wildshard/game/shardfile/schema`: `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
+- `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
 - `@wildshard/game/shardfile/version`: `SHARDFILE_VERSION`
 - `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
 

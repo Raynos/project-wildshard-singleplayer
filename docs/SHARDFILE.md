@@ -26,6 +26,22 @@ integers. MB means 1,000,000 bytes. The platform owns caps in
 | `files` | Unique lowercase 64-character SHA-256 hash, kind (`glb`, `ktx2`, `audio`, `json`, `wasm`, `binary`), compressed/decoded/GPU byte sizes, triangles, draws including shadows, dependency references, critical flag. |
 | `tiles` | L0 62.5 m or L1 125 m; integer x/z address; exact horizontal grid bounds and vertical bounds inside the 500 m cube; nonnegative geometric error; file roots and declared costs. |
 | `library`, `critical`, `far` | Library roots, critical roots, optional whole-shard proxy with bounds and costs. Critical flags match critical roots. |
+| `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |
+
+Declared UI (`@wildshard/game/shardfile/ui`, SF7f) is plain data the platform draws in
+the shared HUD's own style and slots; a shard ships no DOM. Labels are 1–128 characters
+and render as text only; icons are engine icon ids (`lock`, `check`, `poi`, `you`,
+`map`, `pack`, `star`, `book`, `heart`, `pin`, `laurel`), never markup.
+`marker {id, label, at: [x, y, z]}` pins a label over a cell-local point inside the cell.
+`counter {id, label, band: band.2–band.5, order 0–999, min < max, field}` is a meter row
+in the status column; `field` names a declared `i32`/`f64` state field, read every frame.
+`bagPanel {id, tab: {id, title, icon, order}, order, paragraphs}` adds 1–16 paragraphs
+(≤1,024 characters each) to a Bag tab; every panel naming a tab declares it identically.
+`bossPanel {id, encounter, name, title, retry}` is the engraved boss bar, name card and
+retry card for one encounter (one panel per encounter); the encounter's phase table
+(SF13b) drives it. `relabel {id, spot, label, icon | null}` relabels one shared touch
+disc (one per disc). The engine renderers are `@wildshard/engine/ui/declared`; the
+game's `@wildshard/game/shard/declaredUi` binds a section to a shard's HUD and Bag.
 
 Local references are file hashes; shared references are `commons:<hash>` and must be
 declared in `requires.commons`. Every local dependency resolves. The dependency graph

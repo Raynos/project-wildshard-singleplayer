@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-204 members; 112 without a doc line (—).
+211 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -145,6 +145,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GameServices` | interface | @wildshard/game/shard/context | — |
 | `shardContext` | function | @wildshard/game/shard/context | — |
 | `ShardContext` | interface | @wildshard/game/shard/context | — |
+| `DeclaredUiPorts` | interface | @wildshard/game/shard/declaredUi | the engine's HUD ports plus the shard's Bag |
+| `mountDeclaredUi` | function | @wildshard/game/shard/declaredUi | SF7f: draw a shardfile's `ui` declarations. Markers, counters, boss panels and relabels go to the engine's shared HUD; |
 | `CabinSite` | interface | @wildshard/game/shard/manifest | — |
 | `ChunkAssets` | interface | @wildshard/game/shard/manifest | Texture / model ids under `public/assets/` (see `scripts/fetch-assets.mjs`). |
 | `ChunkAtmosphere` | interface | @wildshard/game/shard/manifest | Height + distance fog (`src/engine/world/Atmosphere.ts`) and the volumetric sun shafts. |
@@ -202,6 +204,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `Shardfile` | type | @wildshard/game/shardfile/schema | A serialisable shardfile v0, independent of renderer and placement. |
 | `shardfileRules` | function | @wildshard/game/shardfile/schema | Semantic format violations, including reference integrity and the acyclic dependency graph. |
 | `ShardfileSchema` | const | @wildshard/game/shardfile/schema | Strict schema for the public SDK format; rejects unknown fields and invalid references. |
+| `ShardUi` | type | @wildshard/game/shardfile/ui | a validated `ui` section |
+| `ShardUiDeclaration` | type | @wildshard/game/shardfile/ui | one validated UI declaration |
+| `UI_DECLARATIONS_MAX` | const | @wildshard/game/shardfile/ui | The most declarations one shardfile's `ui` section may hold. |
+| `uiRules` | function | @wildshard/game/shardfile/ui | Reference rules: unique ids, counters read a declared numeric field, one boss panel per encounter, one relabel per disc, one spec per bag tab. |
+| `UiSchema` | const | @wildshard/game/shardfile/ui | The declared UI kinds of shardfile v0: plain data the platform draws in its own HUD style and slots. |
 | `SHARDFILE_VERSION` | const | @wildshard/game/shardfile/version | The shardfile format and script ABI revision; v0 is provisional until the phone gate. |
 | `applyTravelCarry` | function | @wildshard/game/travel/travel | Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly. |
 | `bindTravelInventory` | function | @wildshard/game/travel/travel | The composition root binds the live Bag and rows; the cold title has no running shard. |
