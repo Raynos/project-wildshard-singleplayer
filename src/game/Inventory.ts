@@ -82,6 +82,8 @@ export class Inventory {
   had(id: ItemId): boolean { return this.legacy.has(id); }
 
   private save() { inventorySave.write({ counts: this.counts, order: this.order }, saveSlug(this.chunkId)); }
+  /** Confirm the current pack is durable before leaving its live cell; failed storage remains retryable. */
+  checkpoint(): boolean { return inventorySave.write({ counts: this.counts, order: this.order }, saveSlug(this.chunkId)); }
 
   /** false, and nothing added, for a kind this shard does not keep or a new kind with every slot taken */
   add(id: ItemId, n = 1): boolean {
