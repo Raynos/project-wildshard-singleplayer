@@ -7123,6 +7123,108 @@
         "from": "@wildshard/engine/script/admission"
       },
       {
+        "name": "EffectRules",
+        "kind": "interface",
+        "doc": "Content supplies legal field ranges, archetypes and event ids as data.",
+        "from": "@wildshard/engine/script/effects"
+      },
+      {
+        "name": "EffectTransaction",
+        "kind": "interface",
+        "doc": "Complete transaction result; publication is a single host-owned state replacement.",
+        "from": "@wildshard/engine/script/effects"
+      },
+      {
+        "name": "SCRIPT_OP",
+        "kind": "const",
+        "doc": "V0 numeric effect operations; all records contain [op,a,b,c,d] f64 values.",
+        "from": "@wildshard/engine/script/effects"
+      },
+      {
+        "name": "ScriptEffect",
+        "kind": "interface",
+        "doc": "An effect request, decoded completely before the world changes.",
+        "from": "@wildshard/engine/script/effects"
+      },
+      {
+        "name": "ScriptEntity",
+        "kind": "interface",
+        "doc": "A host-owned entity; callers receive copies of its numeric state.",
+        "from": "@wildshard/engine/script/effects"
+      },
+      {
+        "name": "ScriptEvent",
+        "kind": "interface",
+        "doc": "A queued event delivered on a subsequent tick, never recursively during effect application.",
+        "from": "@wildshard/engine/script/effects"
+      },
+      {
+        "name": "ScriptWorld",
+        "kind": "class",
+        "doc": "Owns numeric state so batches either replace all affected entities or change none.",
+        "from": "@wildshard/engine/script/effects"
+      },
+      {
+        "name": "SCRIPT_LIMITS",
+        "kind": "const",
+        "doc": "Conservative defaults; all are hard platform ceilings and may only be lowered by a host.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
+        "name": "ScriptCall",
+        "kind": "interface",
+        "doc": "Results expose validated requests only after the atomic world-state transaction succeeds.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
+        "name": "ScriptHost",
+        "kind": "class",
+        "doc": "One module instance per host; every call carries its current entity handle in IN[3].",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
+        "name": "ScriptHostOptions",
+        "kind": "interface",
+        "doc": "Host dependencies are explicitly installed; no import creates an instance or changes a service.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
+        "name": "ScriptLimits",
+        "kind": "interface",
+        "doc": "Per-level tick allowances shared by every module and entity, not reset by individual calls.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
+        "name": "ScriptQuery",
+        "kind": "type",
+        "doc": "Deterministic, read-only query input/output; replies may be recorded for replay/conformance.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
+        "name": "ScriptSnapshot",
+        "kind": "interface",
+        "doc": "A complete linear-memory + mutable-global snapshot, never a live view of Wasm state.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
+        "name": "SCRIPT_QUERY",
+        "kind": "const",
+        "doc": "Query opcodes: ray, axis-aligned overlap, nearest walkable point, bounded path.",
+        "from": "@wildshard/engine/script/queries"
+      },
+      {
+        "name": "ScriptPhysics",
+        "kind": "interface",
+        "doc": "Read-only physics and navigation inputs; collider owners map to stable numeric entity handles.",
+        "from": "@wildshard/engine/script/queries"
+      },
+      {
+        "name": "scriptPhysicsQueries",
+        "kind": "function",
+        "doc": "Deterministic ordering/truncation over the engine's collision/navigation queries, with no direct Rapier import.",
+        "from": "@wildshard/engine/script/queries"
+      },
+      {
         "name": "ENGINE_STRINGS",
         "kind": "const",
         "doc": "English engine UI strings. Content-owned overrides are installed by the composition root.",

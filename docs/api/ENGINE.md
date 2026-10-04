@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1667 members; 831 without a doc line (—).
+1684 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1192,6 +1192,23 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SCRIPT_IMPORTS` | const | @wildshard/engine/script/abi | Import signatures: parameter types followed by a single result, or zero for void. |
 | `admitScript` | function | @wildshard/engine/script/admission | Validate bytes and metering without instantiating or executing any module code. Tables are capped at zero in v0. |
 | `ScriptAdmission` | interface | @wildshard/engine/script/admission | Limits and complete mutable-global snapshot names established without executing module code. |
+| `EffectRules` | interface | @wildshard/engine/script/effects | Content supplies legal field ranges, archetypes and event ids as data. |
+| `EffectTransaction` | interface | @wildshard/engine/script/effects | Complete transaction result; publication is a single host-owned state replacement. |
+| `SCRIPT_OP` | const | @wildshard/engine/script/effects | V0 numeric effect operations; all records contain [op,a,b,c,d] f64 values. |
+| `ScriptEffect` | interface | @wildshard/engine/script/effects | An effect request, decoded completely before the world changes. |
+| `ScriptEntity` | interface | @wildshard/engine/script/effects | A host-owned entity; callers receive copies of its numeric state. |
+| `ScriptEvent` | interface | @wildshard/engine/script/effects | A queued event delivered on a subsequent tick, never recursively during effect application. |
+| `ScriptWorld` | class | @wildshard/engine/script/effects | Owns numeric state so batches either replace all affected entities or change none. |
+| `SCRIPT_LIMITS` | const | @wildshard/engine/script/host | Conservative defaults; all are hard platform ceilings and may only be lowered by a host. |
+| `ScriptCall` | interface | @wildshard/engine/script/host | Results expose validated requests only after the atomic world-state transaction succeeds. |
+| `ScriptHost` | class | @wildshard/engine/script/host | One module instance per host; every call carries its current entity handle in IN[3]. |
+| `ScriptHostOptions` | interface | @wildshard/engine/script/host | Host dependencies are explicitly installed; no import creates an instance or changes a service. |
+| `ScriptLimits` | interface | @wildshard/engine/script/host | Per-level tick allowances shared by every module and entity, not reset by individual calls. |
+| `ScriptQuery` | type | @wildshard/engine/script/host | Deterministic, read-only query input/output; replies may be recorded for replay/conformance. |
+| `ScriptSnapshot` | interface | @wildshard/engine/script/host | A complete linear-memory + mutable-global snapshot, never a live view of Wasm state. |
+| `SCRIPT_QUERY` | const | @wildshard/engine/script/queries | Query opcodes: ray, axis-aligned overlap, nearest walkable point, bounded path. |
+| `ScriptPhysics` | interface | @wildshard/engine/script/queries | Read-only physics and navigation inputs; collider owners map to stable numeric entity handles. |
+| `scriptPhysicsQueries` | function | @wildshard/engine/script/queries | Deterministic ordering/truncation over the engine's collision/navigation queries, with no direct Rapier import. |
 | `ENGINE_STRINGS` | const | @wildshard/engine/strings | English engine UI strings. Content-owned overrides are installed by the composition root. |
 | `engineString` | function | @wildshard/engine/strings | — |
 | `EngineStringKey` | type | @wildshard/engine/strings | — |
