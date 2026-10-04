@@ -462,8 +462,9 @@ Jake: *"At all moments the game must be at 60-120 fps on desktop/laptop and at 3
 
 **Four council rounds** (Jake, 2026-10-04: "I've also been told that 4 round council approach is better then 8 rounds";
 COUNCIL.md's normal cap). Round 1 reviewed everything; rounds 2–4 review the diff since the last round plus the battery,
-with two Codex seats and one Claude seat. SF22a, SF0 and the F0 rows the council has stopped changing may start while
-rounds 2–4 run; a row a round changes is re-briefed. After round 4, whatever is still open is decided by the coordinator
+with two Codex seats and one Claude seat. **Code rows wait until round 4 ends** (Jake, 2026-10-04: "why are you building before the 4 rouns of council are
+done"); only the measurements SF0 and SF22a run during the council. SF5a landed before the pause (`3760af612`) and is
+re-checked against the final rows. After round 4, whatever is still open is decided by the coordinator
 with a recorded reason (Jake set no questions for the night, G56) and listed for his review.
 
 ### 9.6 Every merge
