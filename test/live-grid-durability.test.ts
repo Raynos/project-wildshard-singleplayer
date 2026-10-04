@@ -28,7 +28,10 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
   const assets = new Map(source.files.map((file) => [file.hash, readFileSync(`src/shards/_template/assets/${file.hash}`)]));
   vi.spyOn(products, 'gridShardfileProduct').mockReturnValue(Promise.resolve({ admitted: { source, assets, cached: false },
     options: { base: 'https://fixture.invalid/', offline: false, firstParty: true, fetch: () => Promise.reject(new Error('No fixture network')), hash: () => Promise.reject(new Error('Already admitted')) } }));
-  const created = vi.spyOn(simulation, 'createShardfileSim');
+  const regions: simulation.ShardfileSimulation[] = [], create = simulation.createShardfileSim;
+  vi.spyOn(simulation, 'createShardfileSim').mockImplementation((...args) => {
+    const sim = create(...args); regions.push(sim); return sim;
+  });
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
   const pageHost = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
@@ -58,7 +61,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     homeDurable = true; first.tick(); expect(first.session.frame()).toBeNull();
     pageHost.player.position.set(target.origin.x, 1, target.origin.z); await settle(first.tick);
     expect(first.session.frame()).toBe(target.instance);
-    const region = created.mock.results.find((result) => result.type === 'return' && result.value.host.state.tick > 0)?.value;
+    const region = regions.find((value) => value.host.state.tick > 0);
     if (region === undefined) throw new Error('Missing running native region');
     pageHost.player.position.set(0, 1, -9); first.tick();
     const blob = region.host.entities.get('grey-blob:1'); if (blob === undefined) throw new Error('Missing quest blob');
