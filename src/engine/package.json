@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./ai/challengeGrazer": "./ai/challengeGrazer.ts",
     "./ai/ramGrazer": "./ai/ramGrazer.ts",
     "./ai/BossBrain": "./ai/BossBrain.ts",
     "./ai/CreatureBrain": "./ai/CreatureBrain.ts",
