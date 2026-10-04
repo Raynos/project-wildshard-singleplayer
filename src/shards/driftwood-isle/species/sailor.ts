@@ -283,7 +283,7 @@ const SWING_R = 1.8, HIT_R = 1.9, SWING_DAMAGE = 14 /* E294: 18 → 14 */, WINDU
  *  (no line of sight, E296) it side-steps round it at STEP_AROUND m/s, flipping side every SIDE_FLIP s */
 const HOLD_R = 3.0, STEP_AROUND = 1.0, SIDE_FLIP = 1.6;
 
-function decideSailor(a: Animal, c: ThinkCtx): void {
+export function legacySailorDecision(a: Animal, c: ThinkCtx): void {
   const m = a.mem as SailorMem, H = c.world.hold;
   if (!m.init) {
     m.init = 1; m.hx = a.position.x; m.hz = a.position.z; m.cd = 0; m.hitT = 0; m.away = 0;
@@ -393,7 +393,7 @@ const STATES = ['hide', 'rise', 'attack', 'guard', 'sink'] as const;
 export class SailorBrain extends CreatureBrain<typeof STATES[number], Animal> {
   constructor(actor: Animal) { super(actor, STATES); }
   override think(ctx: ThinkCtx): void {
-    decideSailor(this.actor, ctx);
+    legacySailorDecision(this.actor, ctx);
     const state = STATES[this.actor.mem['st'] ?? 0];
     if (state !== undefined) this.transition(state);
   }
