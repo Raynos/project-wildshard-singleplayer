@@ -14,6 +14,7 @@ import { installStripCollider } from '../../../src/engine/physics/stripColliders
 import { CONTENT_CAPS } from '../../../src/engine/core/config.ts';
 import { GridAssembly } from '../../../src/game/grid/assembly.ts';
 import { LiveGridHost } from '../../../src/game/grid/live.ts';
+import { GRID_CONTINUATION_CACHE_BYTES } from '../../../src/game/grid/continuations.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
@@ -24,7 +25,8 @@ const level = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height
 const pageHost = createSimHost(level, { rapier }), empty = assembly.emptyNeighbour.edge;
 const strip = generateStrip({ id: 'west', axis: 'x', origin: { x: -277.5, z: 0 }, profiles: [empty, empty], adjacent: [target, homeCell] });
 const highwayBytes = strip.mesh.positions.byteLength + strip.mesh.indices.byteLength;
-const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil((1 + highwayBytes + source.budgets.sim.resident) * CONTENT_CAPS.residentFactor) });
+// Keep the original one-region admission envelope, plus its newly charged fixed packed continuation pool.
+const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil((GRID_CONTINUATION_CACHE_BYTES + 1 + highwayBytes + source.budgets.sim.resident) * CONTENT_CAPS.residentFactor) });
 const blocker = allocator.reserve({ id: 'library:held', category: 'library', bytes: source.budgets.sim.resident, owner: 'platform', distance: 0, needed: true }); assert.ok(blocker);
 installStripCollider(pageHost.physics, strip.mesh, pageHost.scope);
 let currentPhysics = pageHost.physics, gameplay = true, frameBinds = 0;
@@ -60,6 +62,7 @@ const registry = new LiveGridHost(assembly, {
 });
 const step = () => { currentPhysics.step(); physicsSteps++; registry.afterPlayerStep(); };
 try {
+  assert.equal(allocator.entries().find((entry) => entry.id === `sim-continuations:live:${homeCell.instance}`).bytes, GRID_CONTINUATION_CACHE_BYTES);
   const homeMotor = player.motor;
   await assert.rejects(registry.prefetch([target.instance]), /deferred by the shared budget/);
   assert.equal(regionCreations, 0); assert.equal(player.motor, homeMotor); assert.equal(registry.ready(target.instance), false);
