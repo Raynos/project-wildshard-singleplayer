@@ -80,7 +80,7 @@ onLevelChange((level) => { const T = terrainOf(level); if (T !== bound.base) bin
  */
 export function _installBakedTerrain(baked: Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'>): void {
   // the field's `datum` (a level shifted vertically at runtime): the bake holds the unshifted heights; normals are the same
-  const datum = field().datum?.() ?? 0, bakedHeight = baked.heightAt;
+  const datum = field().datum ?? 0, bakedHeight = baked.heightAt;
   heightAt = datum === 0 ? bakedHeight : (x, z) => bakedHeight(x, z) + datum;
   setTerrainHeight(heightAt); normalAt = baked.normalAt; splatAt = baked.splatAt;
 }

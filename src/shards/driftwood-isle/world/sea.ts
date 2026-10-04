@@ -51,7 +51,7 @@ export function droppedTerrain(field: ChunkTerrain, drop: () => number = worldDr
     ...field,
     heightAt: (x, z) => field.heightAt(x, z) - drop(),
     waterLevel: () => field.waterLevel() - drop(),
-    datum: () => -drop(),
+    get datum(): number { return -drop(); },
   };
 }
 

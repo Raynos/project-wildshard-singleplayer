@@ -30,7 +30,7 @@ export interface TerrainField {
    * grid (public/assets/baked/<slug>/terrain.bin) is installed shifted by the same amount. Read once, when the bake is
    * installed; absent or 0, the bake installs exactly as baked.
    */
-  datum?: () => number;
+  readonly datum?: number;
 }
 export interface TerrainSpec {
   landscape: (x: number, z: number, noise: TerrainNoise) => number;

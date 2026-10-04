@@ -471,8 +471,8 @@ returns the authored field when present, otherwise this fallback for structures;
 
 **A world shifted vertically at runtime:** a level whose field moves every height by a constant (a Debug variant that
 lowers the whole world, Driftwood's G164) applies the shift in its own `heightAt` / `waterLevel` and declares it as the
-field's `datum?: () => number`. The offline bake (`public/assets/baked/<slug>/terrain.bin`) holds the unshifted heights,
-so `_installBakedTerrain` installs it shifted by `datum()`; absent or 0, the bake installs exactly as baked.
+field's `datum?: number` (read once; a getter may compute it). The offline bake (`public/assets/baked/<slug>/terrain.bin`) holds the unshifted heights,
+so `_installBakedTerrain` installs it shifted by `datum`; absent or 0, the bake installs exactly as baked.
 The fallback has no trails, cabins, pond or stream, an upward normal and a dry water sentinel at **y = −1,001 m**.
 Set `spawn.y` to an authored structure's floor, register its colliders with `ctx.piece`, and set `bounds.floor` /
 `world.killY` above the analytic floor when falls should respawn / kill. Supplying both terrain and structures

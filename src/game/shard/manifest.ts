@@ -99,7 +99,7 @@ export interface ChunkTerrain {
   pond: PondDef | null;
   /** metres `heightAt` sits from the heights the offline bake was made from (a world shifted vertically at runtime, e.g.
    *  Driftwood's G164 drop): the bake installs shifted by it (the engine's `TerrainField.datum`) */
-  datum?: () => number;
+  readonly datum?: number;
 }
 
 /** What a def supplies to `buildTerrain()`; the shared parts (roads, pads, trail beds, pond dish) are added for you. */

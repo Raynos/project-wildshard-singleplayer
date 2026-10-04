@@ -24,7 +24,7 @@ const SAMPLES: readonly (readonly [number, number])[] = [[0, -194], [-4.2, -203]
 it('row OFF: no drop, and the field, the waterline and the wreck read the authored numbers', () => {
   expect(hybridRowOn()).toBe(false); expect(worldDrop()).toBe(0);
   expect(OCEAN.level).toBe(0.8); expect(waterline()).toBe(SHORE_LEVEL); expect(WRECK.floorY).toBe(1.45);
-  expect(authored.waterLevel()).toBe(0.8); expect(authored.datum?.()).toBeCloseTo(0, 12);
+  expect(authored.waterLevel()).toBe(0.8); expect(authored.datum).toBeCloseTo(0, 12);
   expect(manifest.minimap?.openWater?.level).toBe(0.8);
 });
 
@@ -33,7 +33,7 @@ it('row ON: the field drops WORLD_DROP as one (heights, waterline, the bake datu
   expect(WORLD_DROP).toBe(0.8);
   for (const [x, z] of SAMPLES) expect(on.heightAt(x, z)).toBeCloseTo(authored.heightAt(x, z) - WORLD_DROP, 9);
   for (const [x, z] of SAMPLES) expect(on.normalAt(x, z)).toEqual(authored.normalAt(x, z));
-  expect(on.waterLevel()).toBeCloseTo(LOWERED_SEA, 12); expect(on.datum?.()).toBe(-WORLD_DROP);
+  expect(on.waterLevel()).toBeCloseTo(LOWERED_SEA, 12); expect(on.datum).toBe(-WORLD_DROP);
   // the boat by the pier floats in the water it always had: the depth under its mooring is the legacy one
   expect(on.waterLevel() - on.heightAt(BOAT_MOOR.x, BOAT_MOOR.z)).toBeCloseTo(authored.waterLevel() - authored.heightAt(BOAT_MOOR.x, BOAT_MOOR.z), 9);
 });
