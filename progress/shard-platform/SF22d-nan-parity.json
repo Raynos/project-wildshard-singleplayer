@@ -1,0 +1,78 @@
+{
+  "row": "SF22d follow-up (NaN box, census import, SSIM residual)",
+  "parent": "866f98a8b (fresh captures, Memory saver on)",
+  "method": "progress/shard-platform/SF22d-parity.mjs reduced to the three cases, parent captures shared; each current build is the named files on 31dc7e17e (the base sp-x3 measured), so other rows do not confound it. Phone = emulated Chromium.",
+  "fixed": {
+    "rev": "7153eb532 = 31dc7e17e + f77855b79/451e67935 saver files (the code on origin)",
+    "cases": {
+      "pine-hollow/desktop": {
+        "images": {
+          "gate": 0.99883,
+          "cabin": 0.99908,
+          "pond": 0.99781
+        },
+        "differences": [
+          "walk.stuck",
+          "boot.render.memory.textures",
+          "boot.gpuBytes.textures",
+          "boot.gpuBytes.total"
+        ]
+      },
+      "driftwood-isle/desktop": {
+        "images": {
+          "pier": 0.99808,
+          "beach": 0.99841,
+          "wreck": 0.99824
+        },
+        "differences": [
+          "boot.render.memory.textures",
+          "boot.gpuBytes.textures",
+          "boot.gpuBytes.total"
+        ]
+      },
+      "driftwood-isle/phone": {
+        "images": {
+          "pier": 0.99157,
+          "beach": 0.98891,
+          "wreck": 0.99938
+        },
+        "differences": [
+          "boot.gpuBytes.textures",
+          "boot.gpuBytes.renderbuffers",
+          "boot.gpuBytes.total",
+          "poses.beach.ssim"
+        ]
+      }
+    }
+  },
+  "fullResLuminance": {
+    "rev": "6153a1eab = 7153eb532 with halfLuminance a no-op (experiment, not shipped)",
+    "cases": {
+      "driftwood-isle/phone": {
+        "images": {
+          "pier": 0.99055,
+          "beach": 0.99143,
+          "wreck": 0.99996
+        },
+        "differences": [
+          "boot.gpuBytes.renderbuffers",
+          "boot.gpuBytes.total"
+        ]
+      },
+      "driftwood-isle/desktop": {
+        "images": {
+          "pier": 1,
+          "beach": 1,
+          "wreck": 1
+        },
+        "differences": [
+          "boot.render.memory.textures",
+          "boot.gpuBytes.textures",
+          "boot.gpuBytes.total"
+        ]
+      }
+    }
+  },
+  "noiseFloor": "sp-x3 row OFF, 31dc7e17e vs 866f98a8b: Driftwood phone pier 0.99213, beach 0.99155; desktop 1.0",
+  "verdict": "0 new errors (boot, weather unload). Every ON image residual is the half-resolution bloom luminance pass: with it at full resolution desktop is 1.0 on all poses and the phone beach 0.99143 (the noise floor). Remaining reds: the expected GPU savings and the pre-existing Pine pond stuck."
+}
