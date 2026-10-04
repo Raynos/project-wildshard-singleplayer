@@ -8,6 +8,7 @@
   },
   "rules": {
     "wildshard/layer": "error",
+    "wildshard/runtime-commons": "error",
     "wildshard/public-index": "error",
     "wildshard/engine-words": "error",
     "wildshard/no-shard-branch": "error",

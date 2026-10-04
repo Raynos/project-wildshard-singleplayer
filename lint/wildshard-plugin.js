@@ -362,8 +362,7 @@ const layerWalk = (kind) => (context) => {
     if (kind === 'layer' && shardLocal !== undefined) {
       const runtime = shardLocal.startsWith('runtime/');
       if (!runtime && (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sdk/runtime/'))) report(context, node, `Trusted SDK imports belong in runtime/: ${source}`);
-      if (runtime && (target?.name === 'kit' || /^@wildshard\/commons(?:\/|$)/u.test(source) || targetPath.startsWith('src/commons/'))) report(context, node, `Runtime imports cannot use kit or commons code: ${source}`);
-      if (/^@wildshard\/commons(?:\/|$)/u.test(source) && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts' && !runtime) report(context, node, `Commons packs are build-time imports: ${source}`);
+            if (/^@wildshard\/commons(?:\/|$)/u.test(source) && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts' && !runtime) report(context, node, `Commons packs are build-time imports: ${source}`);
     }
     if (!target) {
       if (kind === 'layer' && targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
@@ -390,6 +389,16 @@ const layerWalk = (kind) => (context) => {
     },
   };
 };
+// G143 transition debt is distinct from the hard layer-direction rule; SF54 must retire every site.
+const runtimeCommons = rule('Runtime cannot import kit or commons code (G143 / SF54 transition ratchet)', (context) => {
+  if (!/^src\/shards\/[^/]+\/runtime\//u.test(pathOf(context))) return {};
+  return importsVisitor((node) => {
+    const source = importPrefix(node.source);
+    if (typeof source !== 'string') return;
+    const target = modulePath(context.filename, source);
+    if (/^@wildshard\/(?:kit|commons)(?:\/|$)/u.test(source) || target.startsWith('src/kit/') || target.startsWith('src/commons/')) report(context, node, `Runtime imports cannot use kit or commons code: ${source}`);
+  });
+});
 const layer = rule('Layer direction: imports point down, shards never import shards, every src file has a layer (E357, E405)', layerWalk('layer'));
 const publicIndex = rule('Cross-layer imports use the public index (E357, E405 AG2)', layerWalk('public'));
 const engineWordsRule = rule('Engine code carries no Wildshard vocabulary (E357, E405 AG2)', layerWalk('words'));
@@ -831,6 +840,7 @@ const plugin = {
   meta: { name: 'wildshard' },
   rules: {
     'no-reexport': noReexport,
+    'runtime-commons': runtimeCommons,
     'no-url-switch': noUrlSwitch, layer, 'public-index': publicIndex, 'engine-words': engineWordsRule, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
     'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,
     'no-renderer-type': noRendererType, 'no-raw-shader-patch': noRawShaderPatch, 'sim-no-render': simNoRender,
