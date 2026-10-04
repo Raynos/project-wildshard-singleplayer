@@ -1,5 +1,5 @@
 {
- "$doc": "SHARD-PLATFORM SF46 (G134): Driftwood's four midpoint entries walked edge -> shard and back with the hybrid row ON (sea at 0). Each inward leg starts 1 m inside the edge midpoint on the 8 x 15 m socket footprint (y 0), walks the sandbar to the pier / jetty's sea-end ramp (18 m in), along the deck and onto dry ground; each outward leg walks back to the edge (south / north / east over the sandbar beside the deck: the decks' island ends are steps down, never walk-ups, as before G134). Run: scripts/browser-lane.sh node scripts/physics-baseline.mjs --no-build --mode=walk --shard=driftwood-isle --route=progress/shard-platform/sf46/entries-route.json --device-save=debug.plugin.driftwood-isle.driftwoodHybrid=on --url=<served build> The last leg walks from the pier deck to the anchored boat and boards it up its starboard ladder (the ON world's replacement for the deck-to-boat step leg).",
+ "$doc": "SHARD-PLATFORM SF46 (G164): Driftwood's four midpoint entries walked edge -> shard and back with the hybrid row ON (the whole world lowered 0.8 m, the sea at road height). Each inward leg starts 1 m inside the edge midpoint on the platform's 8 x 15 m socket floor (y 0, socketOverWater), crosses the declared plank landing 15 m in, climbs the pier / jetty's sea-end ramp and walks the deck onto dry ground; each outward leg walks the deck back down the ramp onto the landing and the socket to the edge (the jetties' island ends are steps down, never walk-ups, so the north / east legs start on their decks). The last leg steps off the pier deck between the pilings onto the moored boat (E308, z -203). Run: scripts/browser-lane.sh node scripts/physics-baseline.mjs --no-build --mode=walk --shard=driftwood-isle --route=progress/shard-platform/sf46/entries-route.json --device-save=debug.plugin.driftwood-isle.driftwoodHybrid=on --url=<served build>",
  "driftwood-isle": [
   {
    "name": "south in",
@@ -13,6 +13,10 @@
     {
      "x": 0,
      "z": -235
+    },
+    {
+     "x": 0,
+     "z": -232
     },
     {
      "x": 0,
@@ -43,32 +47,28 @@
      "z": -150
     }
    ],
-   "notes": "socket -> sandbar -> pier ramp -> deck -> landing -> dry sand"
+   "notes": "socket -> landing -> pier ramp -> deck -> beach landing -> dry sand"
   },
   {
    "name": "south out",
    "start": {
-    "x": -20,
-    "z": -150,
-    "yaw": 0,
+    "x": 0,
+    "z": -192,
+    "yaw": 3.1416,
     "y": 1.6
    },
    "waypoints": [
     {
-     "x": -8,
-     "z": -172
+     "x": 0,
+     "z": -200
     },
     {
-     "x": -8,
-     "z": -190
-    },
-    {
-     "x": -9,
-     "z": -205
-    },
-    {
-     "x": -8,
+     "x": 0,
      "z": -225
+    },
+    {
+     "x": 0,
+     "z": -233
     },
     {
      "x": 0,
@@ -79,10 +79,7 @@
      "z": -249
     }
    ],
-   "expect": {
-    "y": 0
-   },
-   "notes": "back over the sandbar beside the pier (west side, outside the moored boat): with the sea at 0 it is dry"
+   "notes": "along the pier deck, down its sea-end ramp onto the landing and the socket (its island end drops 2.1 m to the shallows, never a walk-up, as ever)"
   },
   {
    "name": "north in",
@@ -96,6 +93,10 @@
     {
      "x": 0,
      "z": 235
+    },
+    {
+     "x": 0,
+     "z": 232
     },
     {
      "x": 0,
@@ -120,22 +121,22 @@
    "name": "north out",
    "start": {
     "x": 0,
-    "z": 175,
-    "yaw": 3.1416,
-    "y": 3.2
+    "z": 200,
+    "yaw": 0,
+    "y": 1.6
    },
    "waypoints": [
     {
-     "x": 5,
-     "z": 186
+     "x": 0,
+     "z": 215
     },
     {
-     "x": 5,
-     "z": 205
-    },
-    {
-     "x": 5,
+     "x": 0,
      "z": 228
+    },
+    {
+     "x": 0,
+     "z": 233
     },
     {
      "x": 0,
@@ -146,10 +147,7 @@
      "z": 249
     }
    ],
-   "expect": {
-    "y": 0
-   },
-   "notes": "beside the jetty on the sandbar (its island end is a 0.7 m step up, never a walk-up)"
+   "notes": "along the jetty deck, down its sea-end ramp onto the landing and the socket (its island end is a 0.7 m step up, never a walk-up)"
   },
   {
    "name": "west in",
@@ -162,6 +160,10 @@
    "waypoints": [
     {
      "x": -235,
+     "z": 0
+    },
+    {
+     "x": -232,
      "z": 0
     },
     {
@@ -205,17 +207,18 @@
      "z": 0
     },
     {
-     "x": -235,
+     "x": -233,
+     "z": 0
+    },
+    {
+     "x": -240,
      "z": 0
     },
     {
      "x": -249,
      "z": 0
     }
-   ],
-   "expect": {
-    "y": 0
-   }
+   ]
   },
   {
    "name": "east in",
@@ -228,6 +231,10 @@
    "waypoints": [
     {
      "x": 235,
+     "z": 0
+    },
+    {
+     "x": 232,
      "z": 0
     },
     {
@@ -252,23 +259,23 @@
   {
    "name": "east out",
    "start": {
-    "x": 170,
+    "x": 195,
     "z": 0,
     "yaw": -1.5708,
-    "y": 0.8
+    "y": 1.6
    },
    "waypoints": [
     {
-     "x": 180,
-     "z": 5
-    },
-    {
      "x": 205,
-     "z": 5
+     "z": 0
     },
     {
      "x": 228,
-     "z": 5
+     "z": 0
+    },
+    {
+     "x": 233,
+     "z": 0
     },
     {
      "x": 240,
@@ -279,49 +286,35 @@
      "z": 0
     }
    ],
-   "expect": {
-    "y": 0
-   },
-   "notes": "beside the jetty on the sandbar (its island end is a 1.1 m step up)"
+   "notes": "along the jetty deck, down its sea-end ramp onto the landing and the socket (its island end is a 1.1 m step up)"
   },
   {
    "name": "pier to boat",
    "start": {
-    "x": 0,
-    "z": -215,
-    "yaw": 3.1416,
-    "y": 1.4
+    "x": 0.3,
+    "z": -196.5,
+    "yaw": 0.187,
+    "y": 1.6
    },
    "waypoints": [
     {
+     "x": -0.8,
+     "z": -202.3
+    },
+    {
+     "x": -1.9,
+     "z": -202.3
+    },
+    {
      "x": -3.4,
-     "z": -218.5
+     "z": -202.3
     },
     {
-     "x": -8,
-     "z": -224
-    },
-    {
-     "x": -16,
-     "z": -234
-    },
-    {
-     "x": -19.5,
-     "z": -240.45
-    },
-    {
-     "x": -21.2,
-     "z": -240.45
-    },
-    {
-     "x": -25.1,
-     "z": -240.45
+     "x": -5,
+     "z": -202.3
     }
    ],
-   "expect": {
-    "y": 0.32
-   },
-   "notes": "G134 pick A: off the deck between the pilings onto the sandbar, wade out to the boat at anchor off the sandbar edge (~0.9 m deep: wading, not swimming), walk up the boarding ladder hung over its starboard gunwale (steps 0.35 m apart: no jump) and drop onto its floor (0.32 m over the water)"
+   "notes": "G164: the boat moored by the pier again (E308, z -203), lowered with the world: off the deck between the pilings, 0.88 m down over the gunwale onto the boat floor"
   }
  ]
 }
