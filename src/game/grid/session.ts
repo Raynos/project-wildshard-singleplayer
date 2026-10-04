@@ -13,7 +13,7 @@
  *   soft wall at the 6 m re-frame line (SF18d `ReadinessWalls`, closed while its sim is not ready). Step 2
  *   (`attach`, `liveSession.ts`) admits shardfile neighbours (the template copies) into regional hosts, opens their walls
  *   when ready and crosses the one page traveller at the fixed boundary; the rest stay closed until M3.
- *   The grid's outer rim is a closed edge past the outer strips (the empty neighbour: open sea at road level).
+ *   The grid's outer rim is the outer road's shoulder: a glowing rail and closed walls, the VR void past it (G77 / G89).
  * - **cell events**: `gridCells.enter` while the player's feet are in the home cell's interior, `leave` on the deck
  *   (SF46's hybrid runtime runs only inside its cell).
  * - **legacy bounds yield** (SF17a): the session asks the level to leave out its chunk-edge walls and hide the edge
@@ -46,6 +46,10 @@ import type { FarLookRuntime } from './farProxy';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
 import { gridShardfileProduct } from './products';
+import { RAIL_OFFSET, roadLayout } from './roadLayout';
+import { installRoadLook, type RoadLookState } from './roadLook';
+import { installVoidLook } from './voidLook';
+import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
 import { clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/clientRings';
 import { ClientAssets } from '../shardfile/clientAssets';
@@ -78,6 +82,8 @@ export interface GridSessionState {
   readonly home: string; readonly inside: string | null; readonly feet: { x: number; z: number };
   readonly cells: readonly { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly shows: GridCellShows }[];
   readonly strips: number; readonly ringsReady: boolean;
+  /** SF17b's boulevard look: segments, junctions, roundabouts, signs, lights and draws */
+  readonly road: RoadLookState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   readonly rings: { readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number };
@@ -144,10 +150,10 @@ function neighbourEdges(cell: GridCell, home: Readonly<{ origin: Readonly<{ x: n
   const edge = (ex: number, ez: number, axis: 'x' | 'z'): ReadinessEdge => ({ instance: cell.instance, x: ex, z: ez, axis, halfLength, floor: 0 });
   return [edge(x + r, z, 'x'), edge(x - r, z, 'x'), edge(x, z + r, 'z'), edge(x, z - r, 'z')];
 }
-/** The closed outer rim, just past the outer strips (the empty neighbour has no sim to wait for). */
+/** The closed outer rim on the outer road's shoulder: the void's rail (G89; the empty neighbour has no sim to wait for). */
 function rimEdges(assembly: GridAssembly, home: Readonly<{ origin: Readonly<{ x: number; z: number }> }>): ReadinessEdge[] {
   const xs = assembly.cells.map((c) => c.cell[0]), zs = assembly.cells.map((c) => c.cell[1]), p = assembly.pitch;
-  const minX = Math.min(...xs) * p - p / 2, maxX = Math.max(...xs) * p + p / 2, minZ = Math.min(...zs) * p - p / 2, maxZ = Math.max(...zs) * p + p / 2;
+  const minX = Math.min(...xs) * p - p / 2 - RAIL_OFFSET, maxX = Math.max(...xs) * p + p / 2 + RAIL_OFFSET, minZ = Math.min(...zs) * p - p / 2 - RAIL_OFFSET, maxZ = Math.max(...zs) * p + p / 2 + RAIL_OFFSET;
   const cx = (minX + maxX) / 2 - home.origin.x, cz = (minZ + maxZ) / 2 - home.origin.z, hx = (maxX - minX) / 2, hz = (maxZ - minZ) / 2;
   return [
     { instance: null, x: minX - home.origin.x, z: cz, axis: 'x', halfLength: hz, floor: 0 }, { instance: null, x: maxX - home.origin.x, z: cz, axis: 'x', halfLength: hz, floor: 0 },
@@ -170,6 +176,7 @@ export class GridSession {
   private readonly frame: GridFrame | null;
   private readonly walls: ReadinessWalls;
   private live: LiveGridSession | null = null;
+  private readonly road: RoadLookState;
 
   constructor(host: GridSessionHost) {
     this.host = host;
@@ -192,6 +199,10 @@ export class GridSession {
     const frame = this.frame;
     if (frame !== null && frameHost !== undefined) { frame.deck(deck); frameHost.onLate(() => { frame.frame(); }); }
     host.scene.add(deck);
+    // SF17b look: the boulevard over the deck's road band (G80 / G81 / G93) and the VR void past the outer road (G89)
+    const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
+    this.road = installRoadLook({ layout, home, scene: host.scene, scope: host.scope, ...(frame === null ? {} : { tag: (mesh: Mesh) => { frame.deck(mesh); } }) });
+    installVoidLook({ rail: layout.rail, home, scene: host.scene, scope: host.scope });
     for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // synced open by the live host once a neighbour is ready
     installGridBorders(host.physics, host.scope); // the home cell's creatures stay home (SF20d)
@@ -300,7 +311,7 @@ export class GridSession {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
         shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
-      strips: this.strips.length, ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused },
       frame: this.frame?.state() ?? null,

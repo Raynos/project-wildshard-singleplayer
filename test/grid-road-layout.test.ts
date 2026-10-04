@@ -1,0 +1,43 @@
+import { expect, it } from 'vitest';
+import { GridAssembly } from '../src/game/grid/assembly';
+import { RAIL_OFFSET, ROAD_HALF, rightSide, roadLayout, segmentPoint } from '../src/game/grid/roadLayout';
+
+const grid = new GridAssembly({ developer: false, devserver: false });
+const layout = roadLayout(grid, (slug) => slug.toUpperCase());
+
+it('lays the boulevard on the generator gaps: 24 segments, 16 junctions, roundabouts only where four arms meet (G80, G81)', () => {
+  expect(layout.segments).toHaveLength(24);
+  expect(layout.junctions).toHaveLength(16);
+  expect(layout.junctions.filter((j) => j.roundabout).map((j) => j.id).sort()).toEqual(['cross.-1.-1', 'cross.-1.0', 'cross.0.-1', 'cross.0.0']);
+  const corner = layout.junctions.find((j) => j.id === 'cross.-2.-2');
+  expect(corner?.arms).toEqual({ east: true, west: false, north: true, south: false });
+  // segment ids and centres match the generator's (gap.x runs along z between columns)
+  const between = layout.segments.find((s) => s.id === 'gap.x.-1.0');
+  expect(between?.centre).toEqual({ x: -277.5, z: 0 });
+  expect(between?.low?.instance).toBe('template-3'); expect(between?.high?.instance).toBe('driftwood-isle');
+});
+
+it('puts the rail on the outer road shoulder, where the rim walls stand (G89)', () => {
+  expect(layout.rail).toEqual({ minX: -832.5 - RAIL_OFFSET, maxX: 832.5 + RAIL_OFFSET, minZ: -832.5 - RAIL_OFFSET, maxZ: 832.5 + RAIL_OFFSET });
+  expect(RAIL_OFFSET).toBeGreaterThan(ROAD_HALF);
+  // no streetlight stands on the void side of the outer road
+  for (const light of layout.lights) {
+    expect(light.at.x).toBeGreaterThan(-832.5 - ROAD_HALF); expect(light.at.x).toBeLessThan(832.5 + ROAD_HALF);
+    expect(light.at.z).toBeGreaterThan(-832.5 - ROAD_HALF); expect(light.at.z).toBeLessThan(832.5 + ROAD_HALF);
+  }
+});
+
+it('names the shards ahead on green signs from the catalogue, on the traveller\'s right (G80, G81, G93)', () => {
+  const segment = layout.segments.find((s) => s.id === 'gap.x.-1.0');
+  if (segment === undefined) throw new Error('missing segment');
+  // heading north along the road between template-3 (west) and Driftwood (east): Driftwood's turn-in is on the right
+  const north = layout.signs.find((s) => s.facing.z === -1 && Math.abs(s.at.x - segmentPoint(segment, 0, rightSide(segment, 1) * 9.7).x) < 0.01 && s.at.z < -200 && s.at.z > -230);
+  expect(north?.lines).toEqual([{ arrow: 'left', names: ['_TEMPLATE'], metres: 220 }, { arrow: 'right', names: ['DRIFTWOOD-ISLE'], metres: 220 }]);
+  // a roundabout approach lists left, ahead and right
+  const approach = layout.signs.filter((s) => s.lines.some((l) => l.arrow === 'ahead'));
+  expect(approach.length).toBe(4 * 4 + 8 * 2); // a T has no ahead from its stem
+  for (const sign of approach) expect(sign.lines.map((l) => l.arrow)).toEqual([...sign.lines.map((l) => l.arrow)].sort((a, b) => ['left', 'ahead', 'right'].indexOf(a) - ['left', 'ahead', 'right'].indexOf(b)));
+  // nothing is hard-coded: every name on a sign is a catalogue slug through the given namer
+  const slugs = new Set(grid.cells.map((c) => c.slug.toUpperCase()));
+  for (const sign of layout.signs) for (const line of sign.lines) for (const name of line.names) expect(slugs.has(name)).toBe(true);
+});
