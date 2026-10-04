@@ -208,7 +208,9 @@ export class Player {
   private readonly renderFeet = new THREE.Vector3();
   private readonly want = { x: 0, y: 0, z: 0 };
   /** the capsule + Rapier character controller that collides the move (src/engine/physics/CharacterMotor.ts) */
-  readonly motor: CharacterMotor;
+  private currentMotor: CharacterMotor;
+  /** The current frame's one capsule/controller; replacement is committed by bindFrame. */
+  get motor(): CharacterMotor { return this.currentMotor; }
   /** true while a dodge / lunge burst is carrying the player */
   get dashing(): boolean { return this.dashT > 0; }
   /** the dodge cooldown still to run, 1 → 0 (0 = ready) — the touch DODGE disc's clock sweep (E59) */
@@ -220,7 +222,7 @@ export class Player {
   private dodgeT = 0;
 
   public camera: THREE.PerspectiveCamera;
-  private readonly physics: Physics;
+  private physics: Physics;
   private canvas: HTMLCanvasElement;
   /** `waterLine`: the swimming water-line view (the DOM WaterLine by default; a test or a headless tool passes its own) */
   constructor(camera: THREE.PerspectiveCamera, physics: Physics, canvas: HTMLCanvasElement, views: { waterLine?: WaterLineView } = {}) {
@@ -228,7 +230,14 @@ export class Player {
     this.physics = physics;
     this.canvas = canvas;
     this.waterLine = views.waterLine ?? new WaterLine();
-    this.motor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner: this, weight: 80 });
+    this.currentMotor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner: this, weight: 80 });
+  }
+
+  /** Bind an already committed local frame without respawning, advancing physics or clearing travel state. */
+  bindFrame(physics: Physics, motor: CharacterMotor): void {
+    if (physics.world.getCollider(motor.collider.handle) !== motor.collider) throw new Error('Player motor belongs to another frame');
+    this.physics = physics; this.currentMotor = motor;
+    this.prevFeet.copy(this.position); this.renderFeet.copy(this.position);
   }
 
   /** The input service owns mouse events; the player owns look sensitivity and lock offsets. */
