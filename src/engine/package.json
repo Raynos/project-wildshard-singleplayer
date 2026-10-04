@@ -335,6 +335,8 @@
     "./sim/edgeProfiles": "./sim/edgeProfiles.ts",
     "./ai/guardian": "./ai/guardian.ts",
     "./ai/perchHunter": "./ai/perchHunter.ts",
-    "./script/composition": "./script/composition.ts"
+    "./script/composition": "./script/composition.ts",
+    "./ai/pack": "./ai/pack.ts",
+    "./ai/herd": "./ai/herd.ts"
   }
 }

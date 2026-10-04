@@ -24,7 +24,8 @@
     "./clientScripts": "./clientScripts.ts",
     "./migrations": "./migrations.ts",
     "./brains": "./brains.ts",
-    "./accent": "./accent.ts"
+    "./accent": "./accent.ts",
+    "./groupBrains": "./groupBrains.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -137,6 +138,10 @@
       "./accent": {
         "types": "./dist/types/sdk/accent.d.ts",
         "default": "./dist/accent.js"
+      },
+      "./groupBrains": {
+        "types": "./dist/types/sdk/groupBrains.d.ts",
+        "default": "./dist/groupBrains.js"
       }
     }
   }
