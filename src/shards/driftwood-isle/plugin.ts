@@ -1,42 +1,31 @@
-import type { World } from '@wildshard/engine/core/bootstrap';
-import type { Vector3 } from 'three';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
-import { prepareHybridShard } from '@wildshard/game/shardfile/hybrid';
-import type { DriftwoodWorld } from './world/build';
-import type { DriftwoodPlugin as RuntimePlugin } from './runtime/index';
-import source from './shard.config';
+import { runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
+import RuntimePlugin from './runtime/index';
 
-type WorldBuilder = (world: World, viewer: () => Vector3) => Promise<DriftwoodWorld>;
 const DEBUG_ROWS = [{ id: 'driftwoodHybrid', group: 'loading', label: 'Driftwood hybrid boot',
   choices: [{ value: 'off', text: 'Off' }, { value: 'on', text: 'On' }], initial: 'off', reload: true,
   ask: 'E435', reviewBy: '2026-10-11', note: 'E435 SF46: scoped runtime boot under parity verification.' }] as const;
 
 /** Compatibility fixture adapter delegates unchanged hooks to the declared trusted entry. */
-export class DriftwoodPlugin extends ShardPlugin {
-  private readonly build: WorldBuilder | undefined;
-  private runtime: Promise<RuntimePlugin> | undefined;
-  constructor(build?: WorldBuilder) { super(); this.build = build; }
-  private instance(): Promise<RuntimePlugin> {
-    this.runtime ??= import('./runtime/index').then(({ default: Runtime }) => new Runtime(this.build));
-    return this.runtime;
-  }
-  override async world(ctx: ShardContext): Promise<void> { await (await this.instance()).world(ctx); }
-  override async kit(ctx: ShardContext): Promise<void> { (await this.instance()).kit(ctx); }
-  override async play(ctx: ShardContext): Promise<void> { await (await this.instance()).play(ctx); }
-}
+export class DriftwoodPlugin extends RuntimePlugin {}
 
 /** The opt-in path admits data, then runs the trusted world, loadout and adventure. */
 class DriftwoodHybrid extends ShardPlugin {
   private composite: ShardPlugin | undefined;
   override async world(ctx: ShardContext): Promise<void> {
+    if (!runtimeVariantEnabled(ctx, DEBUG_ROWS[0])) {
+      this.composite = new RuntimePlugin();
+      await this.composite.world?.(ctx);
+      return;
+    }
+    const [{ prepareHybridShard }, { default: source }] = await Promise.all([
+      import('@wildshard/game/shardfile/hybrid'), import('./shard.config'),
+    ]);
     this.composite = await prepareHybridShard(source, { firstParty: true }, {
       catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
       icon: () => { throw new Error('Transitional Driftwood has no declared item icon'); },
-    }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => import('./runtime/index') }], {
-      context: ctx,
-      row: DEBUG_ROWS[0],
-    });
+    }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => Promise.resolve({ default: RuntimePlugin }) }]);
     await this.composite.world?.(ctx);
   }
   override async kit(ctx: ShardContext): Promise<void> {

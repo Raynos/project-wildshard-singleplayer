@@ -11952,6 +11952,48 @@
         "from": "@wildshard/game/grid/instances"
       },
       {
+        "name": "LiveGridAdmission",
+        "kind": "interface",
+        "doc": "Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only.",
+        "from": "@wildshard/game/grid/live"
+      },
+      {
+        "name": "LiveGridFrame",
+        "kind": "interface",
+        "doc": "An infallible prepared assignment rebinds the existing page world/player and the renderer's local origin.",
+        "from": "@wildshard/game/grid/live"
+      },
+      {
+        "name": "LiveGridHome",
+        "kind": "interface",
+        "doc": "The page owns its initial world and continuation. The registry never replaces or disposes that borrowed world.",
+        "from": "@wildshard/game/grid/live"
+      },
+      {
+        "name": "LiveGridHost",
+        "kind": "class",
+        "doc": "Live counterpart of GridSimulation: borrowed home, independent frozen regions, and exactly one page traveller.",
+        "from": "@wildshard/game/grid/live"
+      },
+      {
+        "name": "LiveGridPorts",
+        "kind": "interface",
+        "doc": "One live fixed-step owner supplies movement; region clocks/systems run only after that move.",
+        "from": "@wildshard/game/grid/live"
+      },
+      {
+        "name": "LiveGridRegion",
+        "kind": "interface",
+        "doc": "An owned region has authored colliders and logical player state, but no second traveller capsule.",
+        "from": "@wildshard/game/grid/live"
+      },
+      {
+        "name": "LiveGridState",
+        "kind": "interface",
+        "doc": "Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe.",
+        "from": "@wildshard/game/grid/live"
+      },
+      {
         "name": "gridCanAct",
         "kind": "function",
         "doc": "Only the active writable shard interior accepts authoritative actions; visible neighbours are projections.",
@@ -12940,6 +12982,12 @@
         "kind": "interface",
         "doc": "Typed, per-build handoff between the staged shell and an authored plugin.",
         "from": "@wildshard/game/shard/runtime"
+      },
+      {
+        "name": "runtimeVariantEnabled",
+        "kind": "function",
+        "doc": "Register a reload-only runtime choice without importing the data loader or preparing trusted hooks.",
+        "from": "@wildshard/game/shard/runtimeVariant"
       },
       {
         "name": "bindScopedRuntime",

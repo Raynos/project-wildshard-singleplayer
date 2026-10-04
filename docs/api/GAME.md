@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-410 members; 112 without a doc line (—).
+418 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -99,6 +99,13 @@ The game layer's public modules (src/game/package.json `exports`).
 | `PreparedGridCrossing` | interface | @wildshard/game/grid/crossing | A prepared, rollback-safe frame/view change. Commit must either finish completely or leave the source intact. |
 | `firstPartyInstance` | function | @wildshard/game/grid/instances | Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix. |
 | `templateInstance` | function | @wildshard/game/grid/instances | Six copies of one template package have independent facts and local state, wherever they are placed. |
+| `LiveGridAdmission` | interface | @wildshard/game/grid/live | Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only. |
+| `LiveGridFrame` | interface | @wildshard/game/grid/live | An infallible prepared assignment rebinds the existing page world/player and the renderer's local origin. |
+| `LiveGridHome` | interface | @wildshard/game/grid/live | The page owns its initial world and continuation. The registry never replaces or disposes that borrowed world. |
+| `LiveGridHost` | class | @wildshard/game/grid/live | Live counterpart of GridSimulation: borrowed home, independent frozen regions, and exactly one page traveller. |
+| `LiveGridPorts` | interface | @wildshard/game/grid/live | One live fixed-step owner supplies movement; region clocks/systems run only after that move. |
+| `LiveGridRegion` | interface | @wildshard/game/grid/live | An owned region has authored colliders and logical player state, but no second traveller capsule. |
+| `LiveGridState` | interface | @wildshard/game/grid/live | Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |
@@ -264,6 +271,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardPlayHooks` | interface | @wildshard/game/shard/runtime | — |
 | `ShardPlayHost` | interface | @wildshard/game/shard/runtime | Services supplied by the gameplay shell after it has built the player kit and UI. |
 | `ShardRuntime` | interface | @wildshard/game/shard/runtime | Typed, per-build handoff between the staged shell and an authored plugin. |
+| `runtimeVariantEnabled` | function | @wildshard/game/shard/runtimeVariant | Register a reload-only runtime choice without importing the data loader or preparing trusted hooks. |
 | `bindScopedRuntime` | function | @wildshard/game/shard/scopedRuntime | Bind every staged runtime slot to this play scope, retaining the resident world's previous handoff on exit. |
 | `parseShardSlug` | function | @wildshard/game/shard/slug | Brand only validated identities; callers cannot supply arbitrary strings as shard keys. |
 | `ValidatedShardSlug` | type | @wildshard/game/shard/slug | An external identity whose format was validated at the catalogue or shardfile boundary. |
