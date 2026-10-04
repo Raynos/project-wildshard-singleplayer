@@ -384,9 +384,10 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     people.push(person);
     return person;
   };
-  // Hale out front of the ranger's cabin (the kit's frame: the door on local +X), facing the path in
+  // Hale out front of the ranger's cabin (the kit's frame: the door on local +X), facing the path in; at local z 0.2,
+  // clear of the porch's stone exit (at z 1.7 his collider stalled the walk route there, SHARD-PLATFORM SF22d finding)
   const rc = CABIN_SITES[0] ?? { x: -14, z: -34, rot: 0.35 };
-  const rl = { x: 6.0, z: 1.7 }, rcos = Math.cos(rc.rot), rsin = Math.sin(rc.rot);
+  const rl = { x: 6.0, z: 0.2 }, rcos = Math.cos(rc.rot), rsin = Math.sin(rc.rot);
   const rangerAt = { x: rc.x + rl.x * rcos + rl.z * rsin, z: rc.z - rl.x * rsin + rl.z * rcos };
   addPerson('ranger', RANGER, rangerAt, Math.atan2(rcos, -rsin), 'Talk to Hale');
   const front = (site: { x: number; z: number; rot: number }, d: number): { x: number; z: number } => ({ x: site.x - Math.sin(site.rot) * d, z: site.z - Math.cos(site.rot) * d });
