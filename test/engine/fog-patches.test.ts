@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
+import { FOG_SLOT, FogPatchRegistry, type FogPatchEntry } from '#engine/render/fogPatches';
+
+// each test builds its own registry, not a fresh module (E422)
 
 describe('fog-patch registry (10 §X5)', () => {
-  it('rejects new out-of-order ids before either registry or shader installation changes', async () => {
-    vi.resetModules();
-    const { FOG_SLOT, fogPatches, installFogPatch } = await import('#engine/render/fogPatches');
+  it('rejects new out-of-order ids before either registry or shader installation changes', () => {
+    const registry = new FogPatchRegistry(), installFogPatch = registry.install.bind(registry), fogPatches = (): readonly FogPatchEntry[] => registry.patches();
     const calls: string[] = [];
     expect(installFogPatch('t.engine', FOG_SLOT.engine, () => { calls.push('engine'); })).toBe(true);
     expect(installFogPatch('t.engine', FOG_SLOT.engine, () => { calls.push('again'); })).toBe(false);
@@ -21,9 +23,8 @@ describe('fog-patch registry (10 §X5)', () => {
     expect(fogPatches()).toEqual(before);
     expect(installFogPatch('t.failed', 400, () => { calls.push('retry'); })).toBe(true);
   });
-  it('keeps Nalati and Driftwood slot ordering independent when switching levels', async () => {
-    vi.resetModules();
-    const { FOG_SLOT, fogPatches, installFogPatch } = await import('#engine/render/fogPatches');
+  it('keeps Nalati and Driftwood slot ordering independent when switching levels', () => {
+    const registry = new FogPatchRegistry(), installFogPatch = registry.install.bind(registry), fogPatches = (): readonly FogPatchEntry[] => registry.patches();
     const engine = vi.fn<() => void>(), nalati = vi.fn<() => void>(), driftwood = vi.fn<() => void>();
     expect(installFogPatch('engine.fog', FOG_SLOT.engine, engine)).toBe(true);
     expect(installFogPatch('level.fog.nalati', FOG_SLOT.level, nalati, 'nalati')).toBe(true);

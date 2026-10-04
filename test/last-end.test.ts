@@ -5,18 +5,14 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryStorage } from './setup';
-import type * as LastEnd from '#engine/boot/lastEnd';
-
-type LastEndModule = typeof LastEnd;
+import { PageLife } from '#engine/boot/lastEnd';
+import { Scope } from '#engine/app/scope';
 
 let session: MemoryStorage;
 const listeners = new Map<string, (e: unknown) => void>();
 
-/** a fresh page: the module evaluates again (its classification runs at import) */
-function boot(): Promise<LastEndModule> {
-  vi.resetModules();
-  return import('#engine/boot/lastEnd');
-}
+/** a fresh page: a new life record reads how the last one ended (no module reload, E422) */
+function boot(): Promise<PageLife> { return Promise.resolve(new PageLife(new Scope('page'))); }
 
 beforeEach(() => {
   vi.useFakeTimers();

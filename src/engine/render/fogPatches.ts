@@ -8,20 +8,29 @@
 export const FOG_SLOT = { engine: 100, stylize: 200, level: 300 } as const;
 
 export interface FogPatchEntry { id: string; order: number }
-const installed: FogPatchEntry[] = [];
-const lastByStage = new Map<string | undefined, FogPatchEntry>();
+
+/** one page's fog patches: the page has one (installFogPatch); a test builds its own (E422) */
+export class FogPatchRegistry {
+  private readonly installed: FogPatchEntry[] = [];
+  private readonly lastByStage = new Map<string | undefined, FogPatchEntry>();
+  /** Run once per id; enforce slot order in the engine stage (omitted) or the supplied level stage. */
+  install(id: string, order: number, install: () => void, stage?: string): boolean {
+    if (this.installed.some((p) => p.id === id)) return false;
+    const last = this.lastByStage.get(stage);
+    if (last !== undefined && order <= last.order) throw new Error(`[fog] patch ${id} (slot ${order}) installs after ${last.id} (slot ${last.order})`);
+    install();
+    const entry = { id, order };
+    this.installed.push(entry);
+    this.lastByStage.set(stage, entry);
+    return true;
+  }
+  /** the installed fog patches, in install order (the WebGPU port inventory, tests) */
+  patches(): readonly FogPatchEntry[] { return this.installed; }
+}
+const page = new FogPatchRegistry();
 
 /** Run once per id; enforce slot order in the engine stage (omitted) or the supplied level stage. */
-export function installFogPatch(id: string, order: number, install: () => void, stage?: string): boolean {
-  if (installed.some((p) => p.id === id)) return false;
-  const last = lastByStage.get(stage);
-  if (last !== undefined && order <= last.order) throw new Error(`[fog] patch ${id} (slot ${order}) installs after ${last.id} (slot ${last.order})`);
-  install();
-  const entry = { id, order };
-  installed.push(entry);
-  lastByStage.set(stage, entry);
-  return true;
-}
+export function installFogPatch(id: string, order: number, install: () => void, stage?: string): boolean { return page.install(id, order, install, stage); }
 
-/** the installed fog patches, in install order (the WebGPU port inventory, tests) */
-export function fogPatches(): readonly FogPatchEntry[] { return installed; }
+/** the page's installed fog patches, in install order (the WebGPU port inventory, tests) */
+export function fogPatches(): readonly FogPatchEntry[] { return page.patches(); }

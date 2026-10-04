@@ -12,9 +12,18 @@ export const saves = new SaveStore({
 });
 export function installSaveReporter(fn: (failure: SchemaFailure) => void): void { report = fn; for (const failure of pending.splice(0)) fn(failure); }
 export function installLegacyMirror(fn: (keys: readonly string[]) => void): void { forget = fn; }
-let requested = false;
-export function persistHomeScreen(store: Pick<SaveStore, 'persist'> = saves): void {
-  if (requested || typeof navigator === 'undefined') return;
-  const standalone = (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches) || Reflect.get(navigator, 'standalone') === true;
-  if (standalone) { requested = true; void store.persist(); }
+/** a home-screen app (standalone display): the PWA whose storage the browser may keep */
+export function standaloneDisplay(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches) || Reflect.get(navigator, 'standalone') === true;
 }
+/** asks for persistent storage once, on a home-screen page; each call to this factory has its own "once" (E422) */
+export function homeScreenPersistence(standalone: () => boolean = standaloneDisplay): (store?: Pick<SaveStore, 'persist'>) => void {
+  let requested = false;
+  return (store = saves) => {
+    if (requested || !standalone()) return;
+    requested = true; void store.persist();
+  };
+}
+/** the page's: the entry calls it at boot */
+export const persistHomeScreen = homeScreenPersistence();

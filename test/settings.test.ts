@@ -1,15 +1,14 @@
 import { saveStorageFixture } from './fake/saveFixture';
-// src/engine/ui/Settings.ts — reads storage once at module init, so each test imports a fresh copy of the module.
+// src/engine/ui/Settings.ts — a page's settings read storage once when built, so each test builds its own (createSettings).
 import { describe, expect, it, vi } from 'vitest';
-import type * as SettingsModule from '#engine/ui/Settings';
+import { createSettings, settingParams, settingsReloadUrl, type Settings } from '#engine/ui/Settings';
+import { saveStorage } from '#engine/saves/slots';
 
 const fixtures = saveStorageFixture('global');
 
 const STORE = 'settings';
-function fresh(): Promise<typeof SettingsModule> {
-  vi.resetModules();
-  return import('#engine/ui/Settings');
-}
+/** a fresh page's settings over the same saved storage (not a module reload, E422) */
+function fresh(): Promise<Settings> { return Promise.resolve(createSettings(saveStorage('global'))); }
 
 describe('Settings', () => {
   it('defaults: aim assist + tracers on, volume 0.8, music 0.7', async () => {
@@ -81,6 +80,8 @@ describe('Settings', () => {
     vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
     s.setNumber('volume', 0.3);
     expect(s.getNumber('volume')).toBe(0.3);
+    // storage works again: the default written back, so the page's save store holds no failed write for the next test
+    vi.restoreAllMocks(); s.setNumber('volume', 0.8);
   });
 
   it('musicStyle: piano by default, persisted, validated, notifies once per change', async () => {
@@ -126,7 +127,7 @@ describe('Settings', () => {
 
 // E55: the OPTIONS — the player-facing toggles that were query params. setting(k) = URL param › saved pick › default.
 describe('Settings OPTIONS (setting / saveSetting)', () => {
-  const at = (search: string): Promise<typeof SettingsModule> => {
+  const at = (search: string): Promise<Settings> => {
     vi.stubGlobal('location', new URL(`http://localhost:5173/${search}`));
     return fresh();
   };
@@ -214,11 +215,10 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
     } finally { reset(); }
   });
 
-  it('settingsReloadUrl drops every option override and the extras, keeps the chunk and the dev params', async () => {
-    const s = await fresh();
-    const out = new URL(s.settingsReloadUrl('http://localhost:5173/?chunk=driftwood-isle&tier=phone&touch&tod=0.5&clock=60&skipintro&nolock&x=3', ['skipintro']));
+  it('settingsReloadUrl drops every option override and the extras, keeps the chunk and the dev params', () => {
+    const out = new URL(settingsReloadUrl('http://localhost:5173/?chunk=driftwood-isle&tier=phone&touch&tod=0.5&clock=60&skipintro&nolock&x=3', ['skipintro']));
     expect([...out.searchParams.keys()]).toEqual(['chunk', 'nolock', 'x']);
-    expect(s.settingParams('time')).toEqual(['tod', 'clock']);
+    expect(settingParams('time')).toEqual(['tod', 'clock']);
   });
 });
 

@@ -1,21 +1,21 @@
 import { saveStorageFixture } from './fake/saveFixture';
 // src/engine/ui/review.ts (unlock, Quick note switch, send + offline queue) and the pure helpers of src/ui/Feedback.ts.
-// review.ts reads storage once at module init, so each test imports a fresh copy; fetch is stubbed per test.
+// a ReviewDesk reads storage once when built, so each test builds its own (a fresh page); fetch is stubbed per test.
 import { describe, expect, it, vi } from 'vitest';
-import type * as ReviewModule from '#engine/ui/review';
+import { QUEUE_MAX, ReviewDesk, readQueue, writeQueue, type NotePayload } from '#engine/ui/review';
 import { headingDeg, reproUrl } from '#engine/ui/Feedback';
 
 const fixtures = saveStorageFixture('global');
 
 const KEY = 'review';
 const QUEUE_KEY = 'review.queue';
-function fresh(): Promise<typeof ReviewModule> {
-  vi.resetModules();
-  return import('#engine/ui/review');
+/** a fresh page's review desk over the same storage (not a module reload, E422), with the queue helpers beside it */
+function fresh(): Promise<ReviewDesk & { readQueue: typeof readQueue; writeQueue: typeof writeQueue; QUEUE_MAX: number }> {
+  return Promise.resolve(Object.assign(new ReviewDesk(), { readQueue, writeQueue, QUEUE_MAX }));
 }
 const reply = (status: number, body: unknown = {}): Response => Response.json(body, { status });
 const bodyOf = (init: RequestInit | undefined): unknown => JSON.parse(typeof init?.body === 'string' ? init.body : 'null');
-const note = (text: string): ReviewModule.NotePayload => ({ note: text, category: 'bug', context: { shard: 'driftwood-isle' }, screenshot: null });
+const note = (text: string): NotePayload => ({ note: text, category: 'bug', context: { shard: 'driftwood-isle' }, screenshot: null });
 
 describe('review unlock', () => {
   it('starts locked; a checked password unlocks, Quick note on by default, remembered across reloads', async () => {

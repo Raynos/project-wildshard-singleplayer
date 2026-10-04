@@ -31,8 +31,6 @@ import { saveStorage } from '#engine/saves/slots';
 // A listener a resident shard adds while it builds or runs is removed when that shard is evicted (src/engine/app/ownership.ts).
 import { onOwnerDispose } from '../app/ownership';
 
-const savedStorage = saveStorage('global');
-
 export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'huntersEye';
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook' | 'lockCam';
 export const MUSIC_STYLES = ['piano', 'orchestral', 'folk', 'synth'] as const;
@@ -47,7 +45,7 @@ const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8, music: 0.7, look:
 export const NUM_RANGE: Record<NumberKey, readonly [number, number]> = { volume: [0, 1], music: [0, 1], look: [0.5, 2], swingLook: [0.5, 2], lockCam: [0, 1] };
 const clampNum = (k: NumberKey, v: number) => Math.min(NUM_RANGE[k][1], Math.max(NUM_RANGE[k][0], v));
 
-function load(): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, number>; parsed: Partial<Record<string, unknown>> } {
+function load(savedStorage: Pick<Storage, 'getItem'>): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, number>; parsed: Partial<Record<string, unknown>> } {
   const bools = { ...DEFAULTS }, nums = { ...NUM_DEFAULTS };
   let parsed: Partial<Record<string, unknown>> = {};
   try {
@@ -60,8 +58,6 @@ function load(): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, n
   } catch { /* private mode / disabled storage: defaults */ }
   return { bools, nums, parsed };
 }
-
-const { bools: state, nums, parsed: saved } = load();
 
 /** a pick among fixed strings (the music style, the sfx set, the OPTIONS): saved under `key`, overridable by the URL for the
  *  page's life — the URL value wins until the player picks in the menu, and is never persisted on its own. A `boot` pick
@@ -76,11 +72,12 @@ class Choice<T extends string> {
   readonly key: string;
   readonly values: readonly T[];
   readonly boot: boolean;
-  constructor(key: string, values: readonly T[], fallback: T, url: (q: URLSearchParams) => string | null, boot = false) {
-    this.key = key; this.values = values; this.boot = boot;
-    this.stored = this.valid(saved[key]) ?? fallback;
+  private readonly persist: () => void;
+  constructor(key: string, values: readonly T[], fallback: T, url: (q: URLSearchParams) => string | null, boot: boolean, ctx: { saved: Partial<Record<string, unknown>>; persist: () => void; search: () => string }) {
+    this.key = key; this.values = values; this.boot = boot; this.persist = ctx.persist;
+    this.stored = this.valid(ctx.saved[key]) ?? fallback;
     let u: T | undefined;
-    try { u = this.valid(url(new URLSearchParams(location.search))); } catch { u = undefined; }
+    try { u = this.valid(url(new URLSearchParams(ctx.search()))); } catch { u = undefined; }
     this.fromUrl = u !== undefined;
     this.value = u ?? this.stored;
   }
@@ -90,21 +87,18 @@ class Choice<T extends string> {
     if (this.boot) {
       if (this.stored === v) return;
       this.stored = v;
-      persist();
+      this.persist();
       this.listeners.forEach((fn) => fn(v));
       return;
     }
     if (this.value === v && this.stored === v) return;
     const changed = this.value !== v;
     this.value = v; this.stored = v;
-    persist();
+    this.persist();
     if (changed) this.listeners.forEach((fn) => fn(v));
   }
   on(fn: (v: T) => void): () => void { this.listeners.add(fn); const off = (): void => { this.listeners.delete(fn); }; onOwnerDispose(off); return off; }
 }
-// no URL override (E162): the Debug ▸ Audio rows pick them; a script saves musicStyle / sfxSet in settings
-const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', () => null);
-const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', () => null);
 
 // ── the OPTIONS (E55): the player-facing toggles that were query params — see the header ──
 export const OPTION_VALUES = {
@@ -152,50 +146,10 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   creatures: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
 };
-const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
-  const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
-  const def = OPTION_SPECS[k].def ?? values[0];
-  if (def === undefined) throw new Error(`Settings: option ${k} has no values`);
-  return new Choice<OptionValue<K>>(k, values, def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
-};
-const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
-  tier: option('tier'), touch: option('touch'), time: option('time'),
-  weather: option('weather'), fps: option('fps'),
-  prefetch: option('prefetch'),
-  tex: option('tex'),
-  calibrate: option('calibrate'),
-  loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'),
-  creatures: option('creatures'),
-  aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
-};
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
-/** the value this page runs with: the URL's param if present, else the saved pick, else the default */
-export function setting<K extends OptionKey>(k: K): OptionValue<K> { return options[k].value; }
-/** the player's saved pick (what the next load builds when the URL does not override it) */
-export function savedSetting<K extends OptionKey>(k: K): OptionValue<K> { return options[k].stored; }
-/** save a pick: a live option applies at once (subscribers fire), a boot option only on the next load */
-export function saveSetting<K extends OptionKey>(k: K, v: OptionValue<K>): void { options[k].set(v); }
-/**
- * A live option's value for this page only, never saved (src/engine/ui/perfProbe.ts uncaps the frame for its rows); `null`
- * returns it to the saved pick. Subscribers fire on a change.
- */
-export function overrideSetting<K extends OptionKey>(k: K, v: OptionValue<K> | null): void {
-  const o = options[k];
-  if (o.boot) return;
-  const next = v ?? o.stored;
-  if (o.value === next) return;
-  o.value = next;
-  o.listeners.forEach((fn) => fn(next));
-}
-/** fires on a live option's change, and with the new saved pick for a boot option; not called immediately */
-export function onSettingChange<K extends OptionKey>(k: K, fn: (v: OptionValue<K>) => void): () => void { return options[k].on(fn); }
-/** the URL overrides this option for this load (the menus say so) */
-export function settingFromUrl(k: OptionKey): boolean { return options[k].fromUrl; }
 /** the URL params that override option `k` */
 export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
-/** boot options whose saved pick differs from what this page was built with */
-export function pendingReload(): OptionKey[] { return BOOT_OPTIONS.filter((k) => options[k].stored !== options[k].value); }
 /** `href` without any param that overrides an option (and the music / sfx picks) nor the `extra` ones: APPLY & RELOAD
  *  loads this, so the saved picks win (the chunk and every other dev param stay) */
 export function settingsReloadUrl(href: string, extra: readonly string[] = []): string {
@@ -203,54 +157,148 @@ export function settingsReloadUrl(href: string, extra: readonly string[] = []): 
   for (const p of [...OPTION_KEYS.flatMap((k) => OPTION_SPECS[k].params), ...extra]) u.searchParams.delete(p);
   return u.toString();
 }
-const listeners = new Map<SettingKey, Set<(v: boolean) => void>>();
-const numListeners = new Map<NumberKey, Set<(v: number) => void>>();
-function persist() {
-  const picks: Partial<Record<string, string>> = {};
-  for (const k of OPTION_KEYS) picks[k] = options[k].stored;
-  try { savedStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, sfxSet: sfxSet.stored, ...picks })); } catch { /* not persisted this session */ }
+
+/** a page's settings (createSettings): the options, the toggles, the numbers and the music / sfx picks */
+export interface Settings {
+  setting: <K extends OptionKey>(k: K) => OptionValue<K>;
+  savedSetting: <K extends OptionKey>(k: K) => OptionValue<K>;
+  saveSetting: <K extends OptionKey>(k: K, v: OptionValue<K>) => void;
+  overrideSetting: <K extends OptionKey>(k: K, v: OptionValue<K> | null) => void;
+  onSettingChange: <K extends OptionKey>(k: K, fn: (v: OptionValue<K>) => void) => () => void;
+  settingFromUrl: (k: OptionKey) => boolean;
+  pendingReload: () => OptionKey[];
+  getSetting: (k: SettingKey) => boolean;
+  setSetting: (k: SettingKey, v: boolean) => void;
+  getNumber: (k: NumberKey) => number;
+  setNumber: (k: NumberKey, raw: number) => void;
+  onNumber: (k: NumberKey, fn: (v: number) => void) => () => void;
+  onSetting: (k: SettingKey, fn: (v: boolean) => void) => () => void;
+  getMusicStyle: () => MusicStyle;
+  setMusicStyle: (v: MusicStyle) => void;
+  onMusicStyle: (fn: (v: MusicStyle) => void) => () => void;
+  getSfxSet: () => SfxSet;
+  setSfxSet: (v: SfxSet) => void;
+  onSfxSet: (fn: (v: SfxSet) => void) => () => void;
 }
 
-export function getSetting(k: SettingKey): boolean { return state[k]; }
-
-export function setSetting(k: SettingKey, v: boolean): void {
-  if (state[k] === v) return;
-  state[k] = v;
-  persist();
-  listeners.get(k)?.forEach((fn) => fn(v));
+/**
+ * One set of settings over a storage: what the page reads (the page's, below, over the global save storage and the URL);
+ * a test builds its own over a fixture storage instead of reloading the module (E422).
+ */
+export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'>, search: () => string = () => (typeof location === 'undefined' ? '' : location.search)): Settings {
+  const { bools: state, nums, parsed: saved } = load(savedStorage);
+  // the choices persist through this, bound once they exist (they and the save record need each other)
+  const writer = { persist: (): void => undefined };
+  const ctx = { saved, persist: (): void => { writer.persist(); }, search };
+  // no URL override (E162): the Debug ▸ Audio rows pick them; a script saves musicStyle / sfxSet in settings
+  const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', () => null, false, ctx);
+  const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', () => null, false, ctx);
+  const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
+    const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
+    const def = OPTION_SPECS[k].def ?? values[0];
+    if (def === undefined) throw new Error(`Settings: option ${k} has no values`);
+    return new Choice<OptionValue<K>>(k, values, def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k), ctx);
+  };
+  const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
+    tier: option('tier'), touch: option('touch'), time: option('time'),
+    weather: option('weather'), fps: option('fps'),
+    prefetch: option('prefetch'),
+    tex: option('tex'),
+    calibrate: option('calibrate'),
+    loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'),
+    creatures: option('creatures'),
+    aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
+  };
+  const persist = (): void => {
+    const picks: Partial<Record<string, string>> = {};
+    for (const k of OPTION_KEYS) picks[k] = options[k].stored;
+    try { savedStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, sfxSet: sfxSet.stored, ...picks })); } catch { /* not persisted this session */ }
+  };
+  writer.persist = persist;
+  const listeners = new Map<SettingKey, Set<(v: boolean) => void>>();
+  const numListeners = new Map<NumberKey, Set<(v: number) => void>>();
+  const subscribe = <K, V>(map: Map<K, Set<(v: V) => void>>, k: K, fn: (v: V) => void): (() => void) => {
+    let set = map.get(k);
+    if (!set) { set = new Set(); map.set(k, set); }
+    set.add(fn);
+    const s = set;
+    const off = (): void => { s.delete(fn); };
+    onOwnerDispose(off);
+    return off;
+  };
+  return {
+    /** the value this page runs with: the URL's param if present, else the saved pick, else the default */
+    setting: <K extends OptionKey>(k: K): OptionValue<K> => options[k].value,
+    /** the player's saved pick (what the next load builds when the URL does not override it) */
+    savedSetting: <K extends OptionKey>(k: K): OptionValue<K> => options[k].stored,
+    /** save a pick: a live option applies at once (subscribers fire), a boot option only on the next load */
+    saveSetting: <K extends OptionKey>(k: K, v: OptionValue<K>): void => { options[k].set(v); },
+    /** a live option's value for this page only, never saved; `null` returns it to the saved pick */
+    overrideSetting: <K extends OptionKey>(k: K, v: OptionValue<K> | null): void => {
+      const o = options[k];
+      if (o.boot) return;
+      const next = v ?? o.stored;
+      if (o.value === next) return;
+      o.value = next;
+      o.listeners.forEach((fn) => fn(next));
+    },
+    onSettingChange: <K extends OptionKey>(k: K, fn: (v: OptionValue<K>) => void): (() => void) => options[k].on(fn),
+    settingFromUrl: (k: OptionKey): boolean => options[k].fromUrl,
+    pendingReload: (): OptionKey[] => BOOT_OPTIONS.filter((k) => options[k].stored !== options[k].value),
+    getSetting: (k: SettingKey): boolean => state[k],
+    setSetting: (k: SettingKey, v: boolean): void => {
+      if (state[k] === v) return;
+      state[k] = v;
+      persist();
+      listeners.get(k)?.forEach((fn) => fn(v));
+    },
+    getNumber: (k: NumberKey): number => nums[k],
+    setNumber: (k: NumberKey, raw: number): void => {
+      const v = clampNum(k, raw);
+      if (nums[k] === v) return;
+      nums[k] = v;
+      persist();
+      numListeners.get(k)?.forEach((fn) => fn(v));
+    },
+    onNumber: (k: NumberKey, fn: (v: number) => void): (() => void) => subscribe(numListeners, k, fn),
+    onSetting: (k: SettingKey, fn: (v: boolean) => void): (() => void) => subscribe(listeners, k, fn),
+    getMusicStyle: (): MusicStyle => musicStyle.value,
+    setMusicStyle: (v: MusicStyle): void => { musicStyle.set(v); },
+    onMusicStyle: (fn: (v: MusicStyle) => void): (() => void) => musicStyle.on(fn),
+    getSfxSet: (): SfxSet => sfxSet.value,
+    setSfxSet: (v: SfxSet): void => { sfxSet.set(v); },
+    onSfxSet: (fn: (v: SfxSet) => void): (() => void) => sfxSet.on(fn),
+  };
 }
 
-export function getNumber(k: NumberKey): number { return nums[k]; }
-export function setNumber(k: NumberKey, raw: number): void {
-  const v = clampNum(k, raw);
-  if (nums[k] === v) return;
-  nums[k] = v;
-  persist();
-  numListeners.get(k)?.forEach((fn) => fn(v));
-}
-export function onNumber(k: NumberKey, fn: (v: number) => void): () => void {
-  let set = numListeners.get(k);
-  if (!set) { set = new Set(); numListeners.set(k, set); }
-  set.add(fn);
-  const s = set;
-  const off = (): void => { s.delete(fn); };
-  onOwnerDispose(off);
-  return off;
-}
-
-export function onSetting(k: SettingKey, fn: (v: boolean) => void): () => void {
-  let set = listeners.get(k);
-  if (!set) { set = new Set(); listeners.set(k, set); }
-  set.add(fn);
-  const s = set;
-  const off = (): void => { s.delete(fn); };
-  onOwnerDispose(off);
-  return off;
-}
-
-export function getMusicStyle(): MusicStyle { return musicStyle.value; }
-export function setMusicStyle(v: MusicStyle): void { musicStyle.set(v); }
-export function onMusicStyle(fn: (v: MusicStyle) => void): () => void { return musicStyle.on(fn); }
-export function getSfxSet(): SfxSet { return sfxSet.value; }
-export function setSfxSet(v: SfxSet): void { sfxSet.set(v); }
-export function onSfxSet(fn: (v: SfxSet) => void): () => void { return sfxSet.on(fn); }
+/** the page's settings: the global save storage, the page's URL */
+const page = createSettings(saveStorage('global'));
+/** the value this page runs with: the URL's param if present, else the saved pick, else the default */
+export function setting<K extends OptionKey>(k: K): OptionValue<K> { return page.setting(k); }
+/** the player's saved pick (what the next load builds when the URL does not override it) */
+export function savedSetting<K extends OptionKey>(k: K): OptionValue<K> { return page.savedSetting(k); }
+/** save a pick: a live option applies at once (subscribers fire), a boot option only on the next load */
+export function saveSetting<K extends OptionKey>(k: K, v: OptionValue<K>): void { page.saveSetting(k, v); }
+/**
+ * A live option's value for this page only, never saved (src/engine/ui/perfProbe.ts uncaps the frame for its rows); `null`
+ * returns it to the saved pick. Subscribers fire on a change.
+ */
+export function overrideSetting<K extends OptionKey>(k: K, v: OptionValue<K> | null): void { page.overrideSetting(k, v); }
+/** fires on a live option's change, and with the new saved pick for a boot option; not called immediately */
+export function onSettingChange<K extends OptionKey>(k: K, fn: (v: OptionValue<K>) => void): () => void { return page.onSettingChange(k, fn); }
+/** the URL overrides this option for this load (the menus say so) */
+export function settingFromUrl(k: OptionKey): boolean { return page.settingFromUrl(k); }
+/** boot options whose saved pick differs from what this page was built with */
+export function pendingReload(): OptionKey[] { return page.pendingReload(); }
+export function getSetting(k: SettingKey): boolean { return page.getSetting(k); }
+export function setSetting(k: SettingKey, v: boolean): void { page.setSetting(k, v); }
+export function getNumber(k: NumberKey): number { return page.getNumber(k); }
+export function setNumber(k: NumberKey, raw: number): void { page.setNumber(k, raw); }
+export function onNumber(k: NumberKey, fn: (v: number) => void): () => void { return page.onNumber(k, fn); }
+export function onSetting(k: SettingKey, fn: (v: boolean) => void): () => void { return page.onSetting(k, fn); }
+export function getMusicStyle(): MusicStyle { return page.getMusicStyle(); }
+export function setMusicStyle(v: MusicStyle): void { page.setMusicStyle(v); }
+export function onMusicStyle(fn: (v: MusicStyle) => void): () => void { return page.onMusicStyle(fn); }
+export function getSfxSet(): SfxSet { return page.getSfxSet(); }
+export function setSfxSet(v: SfxSet): void { page.setSfxSet(v); }
+export function onSfxSet(fn: (v: SfxSet) => void): () => void { return page.onSfxSet(fn); }

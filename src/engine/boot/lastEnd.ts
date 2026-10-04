@@ -1,4 +1,5 @@
 import { pageScope } from '../app/resources';
+import type { Scope } from '../app/scope';
 import { saveStorage } from '#engine/saves/slots';
 /**
  * Why the last page ended (E179). Jake's iPhone lost Pine Hollow on an ENTER WORLD: the Debug readout went from two
@@ -64,91 +65,108 @@ const str = (o: unknown, k: string): string => { const v: unknown = typeof o ===
 const num = (o: unknown, k: string): number => { const v: unknown = typeof o === 'object' && o !== null ? Reflect.get(o, k) : undefined; return typeof v === 'number' && Number.isFinite(v) ? v : 0; };
 
 /** a page (not a unit test's node, which imports the modules that import this one) */
-const inPage = typeof document !== 'undefined' && typeof window !== 'undefined';
+const inPage = (): boolean => typeof document !== 'undefined' && typeof window !== 'undefined';
 
-let source: (() => AliveInfo) | null = null;
-/** what the alive beat and markUnload record: the running shard and the resident list (main.ts, once the host exists) */
-export function setAliveSource(fn: () => AliveInfo): void { source = fn; beat(); }
+/**
+ * One page's life record: built at boot, it reads how the previous page ended, then beats while this one lives. The page
+ * has one (below, on the page scope); a test builds one per simulated page load instead of reloading the module (E422).
+ */
+export class PageLife {
+  private source: (() => AliveInfo) | null = null;
+  private alive = true;
+  private readonly thisEnd: LastEnd;
 
-function stamp(): Stamp {
-  let info: AliveInfo = { slug: '', resident: '' };
-  try { if (source) info = source(); } catch { /* recorded without it */ }
-  return { t: Date.now(), build: build(), slug: info.slug, resident: info.resident };
-}
-
-/** the game is about to navigate / reload on purpose: say why, first (the next boot reads it) */
-export function markUnload(reason: string): void {
-  markBootPlanned();
-  const u: Unload = { reason, ...stamp() };
-  writeJson(store('local'), UNLOAD_KEY, u);
-  console.info(`[lastEnd] unloading: ${reason}`);
-}
-
-let alive = true;
-function beat(): void {
-  if (!alive) return;
-  if (!inPage) return;
-  const a: Alive = { ...stamp(), vis: document.visibilityState };
-  writeJson(store('session'), ALIVE_KEY, a);
-}
-
-function classify(): LastEnd {
-  const now = Date.now();
-  const local = store('local'), session = store('session');
-  const u = readJson(local, UNLOAD_KEY), a = readJson(session, ALIVE_KEY);
-  try { local?.removeItem(UNLOAD_KEY); } catch { /* read once either way */ }
-  const discarded = inPage && Reflect.get(document, 'wasDiscarded') === true;
-  let nav = '';
-  try { const e: unknown = performance.getEntriesByType('navigation')[0]; nav = str(e, 'type'); } catch { /* old WebKit */ }
-  const base = { bootedAt: now, discarded, nav };
-  const ut = num(u, 't');
-  if (u !== null && now - ut < INTENT_MS) return { kind: 'intentional', reason: str(u, 'reason'), at: ut, resident: str(u, 'resident'), build: str(u, 'build'), ...base };
-  if (a !== null) {
-    const where = str(a, 'vis') === 'hidden' ? 'in the background' : 'on screen';
-    return { kind: 'unexpected', reason: `page ended unexpectedly ${where} (browser or system cause unknown)`, at: num(a, 't'), resident: str(a, 'resident'), build: str(a, 'build'), ...base };
+  constructor(scope: Scope) {
+    this.thisEnd = this.classify();
+    inspectPreviousBoot();
+    if (this.thisEnd.kind !== 'fresh' || this.thisEnd.discarded) writeJson(store('local'), END_KEY, this.thisEnd);
+    if (this.thisEnd.kind !== 'fresh') console.info(`[lastEnd] the previous page: ${this.thisEnd.reason}${this.thisEnd.resident === '' ? '' : ` · resident ${this.thisEnd.resident}`}`);
+    // the beat: the page's own timer (this module loads before any shard scope exists)
+    if (inPage()) {
+      this.beat();
+      scope.interval(BEAT_MS, () => { this.beat(); });
+      // back on screen after a pagehide that did not end the page (iOS can send one on an app switch): beating again
+      scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'visible') this.alive = true; this.beat(); });
+      // a page that ends normally takes its marker with it; a bfcache return (pageshow persisted) puts it back
+      scope.listen(window, 'pagehide', () => { this.alive = false; try { store('session')?.removeItem(ALIVE_KEY); } catch { /* nothing to clear */ } });
+      scope.listen(window, 'pageshow', (e) => { if (e.persisted) { this.alive = true; this.beat(); } });
+    }
   }
-  if (u !== null) return { kind: 'intentional', reason: `${str(u, 'reason')} (${Math.round((now - ut) / 1000)} s before this load)`, at: ut, resident: str(u, 'resident'), build: str(u, 'build'), ...base };
-  return { kind: 'fresh', reason: 'fresh launch', at: 0, resident: '', build: '', ...base };
+
+  /** what the alive beat and markUnload record: the running shard and the resident list (main.ts, once the host exists) */
+  setAliveSource(fn: () => AliveInfo): void { this.source = fn; this.beat(); }
+
+  private stamp(): Stamp {
+    let info: AliveInfo = { slug: '', resident: '' };
+    try { if (this.source) info = this.source(); } catch { /* recorded without it */ }
+    return { t: Date.now(), build: build(), slug: info.slug, resident: info.resident };
+  }
+
+  /** the game is about to navigate / reload on purpose: say why, first (the next boot reads it) */
+  markUnload(reason: string): void {
+    markBootPlanned();
+    const u: Unload = { reason, ...this.stamp() };
+    writeJson(store('local'), UNLOAD_KEY, u);
+    console.info(`[lastEnd] unloading: ${reason}`);
+  }
+
+  private beat(): void {
+    if (!this.alive) return;
+    if (!inPage()) return;
+    const a: Alive = { ...this.stamp(), vis: document.visibilityState };
+    writeJson(store('session'), ALIVE_KEY, a);
+  }
+
+  private classify(): LastEnd {
+    const now = Date.now();
+    const local = store('local'), session = store('session');
+    const u = readJson(local, UNLOAD_KEY), a = readJson(session, ALIVE_KEY);
+    try { local?.removeItem(UNLOAD_KEY); } catch { /* read once either way */ }
+    const discarded = inPage() && Reflect.get(document, 'wasDiscarded') === true;
+    let nav = '';
+    try { const e: unknown = performance.getEntriesByType('navigation')[0]; nav = str(e, 'type'); } catch { /* old WebKit */ }
+    const base = { bootedAt: now, discarded, nav };
+    const ut = num(u, 't');
+    if (u !== null && now - ut < INTENT_MS) return { kind: 'intentional', reason: str(u, 'reason'), at: ut, resident: str(u, 'resident'), build: str(u, 'build'), ...base };
+    if (a !== null) {
+      const where = str(a, 'vis') === 'hidden' ? 'in the background' : 'on screen';
+      return { kind: 'unexpected', reason: `page ended unexpectedly ${where} (browser or system cause unknown)`, at: num(a, 't'), resident: str(a, 'resident'), build: str(a, 'build'), ...base };
+    }
+    if (u !== null) return { kind: 'intentional', reason: `${str(u, 'reason')} (${Math.round((now - ut) / 1000)} s before this load)`, at: ut, resident: str(u, 'resident'), build: str(u, 'build'), ...base };
+    return { kind: 'fresh', reason: 'fresh launch', at: 0, resident: '', build: '', ...base };
+  }
+
+  /** how the previous page in this tab ended (this boot's reading) */
+  lastEnd(): LastEnd { return this.thisEnd; }
+
+  /** the latest non-fresh end on this device (this boot's, or an earlier one's), null if none was ever recorded */
+  lastRecordedEnd(): LastEnd | null {
+    if (this.thisEnd.kind !== 'fresh') return this.thisEnd;
+    const e = readJson(store('local'), END_KEY);
+    if (e === null) return null;
+    const kind = str(e, 'kind');
+    return {
+      kind: kind === 'intentional' || kind === 'unexpected' ? kind : 'fresh', reason: str(e, 'reason'), at: num(e, 'at'), resident: str(e, 'resident'),
+      build: str(e, 'build'), bootedAt: num(e, 'bootedAt'), discarded: Reflect.get(e as object, 'discarded') === true, nav: str(e, 'nav'),
+    };
+  }
+
+  /** the Debug readout's line: "Last reload: <reason> · 2 min ago · resident <list>" */
+  lastEndLine(now = Date.now()): string {
+    const e = this.lastRecordedEnd();
+    if (e === null) return previousBootLine() || 'Last reload: none recorded';
+    const ago = (ms: number): string => (ms < 90_000 ? `${Math.max(0, Math.round(ms / 1000))} s ago` : ms < 90 * 60_000 ? `${Math.round(ms / 60_000)} min ago` : `${Math.round(ms / 3_600_000)} h ago`);
+    const when = e.at > 0 ? ago(now - e.at) : ago(now - e.bootedAt);
+    const was = e === this.thisEnd ? '' : ' (before an earlier launch)';
+    const abrupt = previousBootLine();
+    return `Last reload: ${e.reason}${was} · ${when}${e.resident === '' ? '' : ` · resident ${e.resident}`}${e.build === '' ? '' : ` · build ${e.build}`}${e.discarded ? ' · wasDiscarded' : ''}${e.nav === '' ? '' : ` · nav ${e.nav}`}${abrupt ? `\n${abrupt}` : ''}`;
+  }
 }
 
-const thisEnd: LastEnd = classify();
-inspectPreviousBoot();
-if (thisEnd.kind !== 'fresh' || thisEnd.discarded) writeJson(store('local'), END_KEY, thisEnd);
-if (thisEnd.kind !== 'fresh') console.info(`[lastEnd] the previous page: ${thisEnd.reason}${thisEnd.resident === '' ? '' : ` · resident ${thisEnd.resident}`}`);
-
-/** how the previous page in this tab ended (this boot's reading) */
-export function lastEnd(): LastEnd { return thisEnd; }
-
-/** the latest non-fresh end on this device (this boot's, or an earlier one's), null if none was ever recorded */
-export function lastRecordedEnd(): LastEnd | null {
-  if (thisEnd.kind !== 'fresh') return thisEnd;
-  const e = readJson(store('local'), END_KEY);
-  if (e === null) return null;
-  const kind = str(e, 'kind');
-  return {
-    kind: kind === 'intentional' || kind === 'unexpected' ? kind : 'fresh', reason: str(e, 'reason'), at: num(e, 'at'), resident: str(e, 'resident'),
-    build: str(e, 'build'), bootedAt: num(e, 'bootedAt'), discarded: Reflect.get(e as object, 'discarded') === true, nav: str(e, 'nav'),
-  };
-}
-
-/** the Debug readout's line: "Last reload: <reason> · 2 min ago · resident <list>" */
-export function lastEndLine(now = Date.now()): string {
-  const e = lastRecordedEnd();
-  if (e === null) return previousBootLine() || 'Last reload: none recorded';
-  const ago = (ms: number): string => (ms < 90_000 ? `${Math.max(0, Math.round(ms / 1000))} s ago` : ms < 90 * 60_000 ? `${Math.round(ms / 60_000)} min ago` : `${Math.round(ms / 3_600_000)} h ago`);
-  const when = e.at > 0 ? ago(now - e.at) : ago(now - e.bootedAt);
-  const was = e === thisEnd ? '' : ' (before an earlier launch)';
-  const abrupt = previousBootLine();
-  return `Last reload: ${e.reason}${was} · ${when}${e.resident === '' ? '' : ` · resident ${e.resident}`}${e.build === '' ? '' : ` · build ${e.build}`}${e.discarded ? ' · wasDiscarded' : ''}${e.nav === '' ? '' : ` · nav ${e.nav}`}${abrupt ? `\n${abrupt}` : ''}`;
-}
-
-// the beat: the page's own timer (this module loads before any shard scope exists)
-if (inPage) {
-  beat();
-  pageScope.interval(BEAT_MS, beat);
-  // back on screen after a pagehide that did not end the page (iOS can send one on an app switch): beating again
-  pageScope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'visible') alive = true; beat(); });
-  // a page that ends normally takes its marker with it; a bfcache return (pageshow persisted) puts it back
-  pageScope.listen(window, 'pagehide', () => { alive = false; try { store('session')?.removeItem(ALIVE_KEY); } catch { /* nothing to clear */ } });
-  pageScope.listen(window, 'pageshow', (e) => { if (e.persisted) { alive = true; beat(); } });
-}
+/** this page's life record (the page scope) */
+const page = new PageLife(pageScope);
+export function setAliveSource(fn: () => AliveInfo): void { page.setAliveSource(fn); }
+export function markUnload(reason: string): void { page.markUnload(reason); }
+export function lastEnd(): LastEnd { return page.lastEnd(); }
+export function lastRecordedEnd(): LastEnd | null { return page.lastRecordedEnd(); }
+export function lastEndLine(now = Date.now()): string { return page.lastEndLine(now); }
