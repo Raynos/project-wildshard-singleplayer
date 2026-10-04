@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import { compileScript } from '../compile-script.mjs';
 
 const root = resolve(import.meta.dirname, '../..');
-for (const slug of ['driftwood-isle', 'nalati-grasslands']) {
+for (const slug of ['driftwood-isle', 'nalati-grasslands', 'pine-hollow']) {
   const directory = resolve(root, 'src/shards', slug);
   const bytes = await compileScript(readFileSync(resolve(directory, 'behaviour/director.as'), 'utf8'), { maximumPages: 1 });
   const module = createHash('sha256').update(bytes).digest('hex');

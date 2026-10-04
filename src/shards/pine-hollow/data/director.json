@@ -1,0 +1,99 @@
+{
+  "id": "pine.watch",
+  "entity": 9160,
+  "module": "554e2e698aff80d42215a1d89a275778730c1058710f92f89f2e9c474c781f04",
+  "inputs": [
+    {
+      "key": "night-request",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "dawn-request",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "seen",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "has-clock",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "night",
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "parameters": [
+    2.5,
+    4,
+    5,
+    12,
+    6,
+    7
+  ],
+  "events": [
+    {
+      "id": 9161,
+      "key": "night.consume",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9162,
+      "key": "night.start",
+      "direction": "output",
+      "type": "number",
+      "min": 6,
+      "max": 6
+    },
+    {
+      "id": 9163,
+      "key": "dawn.start",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9164,
+      "key": "dawn.sunrise",
+      "direction": "output",
+      "type": "number",
+      "min": 7,
+      "max": 7
+    },
+    {
+      "id": 9165,
+      "key": "dawn.lanterns",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9166,
+      "key": "dawn.caption",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    },
+    {
+      "id": 9167,
+      "key": "dawn.finish",
+      "direction": "output",
+      "type": "none",
+      "min": 0,
+      "max": 0
+    }
+  ],
+  "subscriptions": []
+}
