@@ -73,7 +73,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   it('B4 Pine elite lane rejects cover and retains30 after it opens', () => {
     setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
     const p = new THREE.Vector3(0, 0, -1.2), hits: number[] = [];
-    const lane = new LaneCharge(f.game.scene, 0xff4400, { width: 2.4, speed: 12.5, overshoot: 7, dmg: 30, skid: 1.1, reach: 1.7 }, (actor, target) => canReach(actor, target, activePhysics()));
+    const lane = new LaneCharge(f.game.scene, 0xff4400, { width: 2.4, speed: 12.5, overshoot: 7, dmg: 30, skid: 1.1, reach: 1.7 }, (actor, point) => canReach(actor, point, activePhysics()));
     lane.start(a, p.x, p.z, 0.9); lane.update(a, 0.9, 0.9, p, (amount) => { hits.push(amount); });
     lane.update(a, 1 / 60, 1, p, (amount) => { hits.push(amount); }); lane.update(a, 1 / 60, 1.1, p, (amount) => { hits.push(amount); });
     expect(hits).toEqual([]);
@@ -84,7 +84,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
     setActiveChunk('pine-hollow'); wall(); const f = manager(), a = f.manager.spawn('boar', 0, -2.5, 0, 'boar');
     const hurt = vi.fn(noop), fight = legacyActor(AntlerKingFight.prototype, {
       mode: 'sweep', modeT: 0.9, open: 0, sweepCd: 0, stompCd: 10, callCd: 10,
-      ctx: { reach: (actor: Animal, target: THREE.Vector3) => canReach(actor, target, activePhysics()), player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop },
+      ctx: { reach: (actor: Animal, point: THREE.Vector3) => canReach(actor, point, activePhysics()), player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop },
       tellRing: { setTime: noop, ring: noop, hide: noop }, tickWaves: noop,
     });
     invokeLegacy(fight, 'fight', a, 1 / 60, 0); expect(hurt).not.toHaveBeenCalled();
@@ -97,7 +97,7 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
     const proto = legacyMethods(path, 'Blackpaw', globals), base = legacyMethods(path, 'PineElite', globals);
     Object.setPrototypeOf(base, EliteBrain.prototype); Object.setPrototypeOf(proto, base);
     const hurt = vi.fn(noop), fight = legacyActor(proto, { ports: { player: { position: new THREE.Vector3(0, 0, -1.2) } }, mode: 'swipe', modeT: 0, swipeT: 0.01, roarCd: 0, p2: false,
-      env: { reach: (actor: Animal, target: THREE.Vector3) => canReach(actor, target, activePhysics()), player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop }, ring: { setTime: noop, hide: noop } });
+      env: { reach: (actor: Animal, point: THREE.Vector3) => canReach(actor, point, activePhysics()), player: { position: new THREE.Vector3(0, 0, -1.2) }, hurt, trauma: noop }, ring: { setTime: noop, hide: noop } });
     invokeLegacy(fight, 'fight', a, 0.02, 0); expect(hurt).not.toHaveBeenCalled();
     setActivePhysics(null); Reflect.set(fight, 'swipeT', 0.01);
     invokeLegacy(fight, 'fight', a, 0.02, 1); expect(hurt).toHaveBeenCalledExactlyOnceWith(a, 22, false);
