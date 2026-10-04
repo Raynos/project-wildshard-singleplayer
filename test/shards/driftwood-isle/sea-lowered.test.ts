@@ -13,7 +13,7 @@ import { boatColliders } from '../../../src/shards/driftwood-isle/models/boat';
 import { MOVERS } from '../../../src/shards/driftwood-isle/data/movers';
 import { WATER_UNBOUNDED, seaDamp, waterExtent } from '../../../src/engine/world/waves';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '../../../src/engine/core/config';
-import { DRIFTWOOD_SEA, DRY_ENTRIES, ENTRY_LANDINGS, LANDING_RUN, dryEntryRect, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, SHORE_LEVEL, WORLD_DROP, droppedTerrain, hybridRowOn, lowerSea, seaLevel, waterline, worldDrop } from '../../../src/shards/driftwood-isle/world/sea';
+import { DRIFTWOOD_SEA, DRY_ENTRIES, ENTRY_LANDINGS, LANDING_RUN, dryEntryRect, inEntryFootprint, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, SHORE_LEVEL, WORLD_DROP, droppedTerrain, hybridRowOn, lowerSea, seaLevel, waterline, worldDrop } from '../../../src/shards/driftwood-isle/world/sea';
 import { DRIFTWOOD_EDGE_HEIGHTS } from '../../../src/shards/driftwood-isle/data/edges';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 
@@ -76,6 +76,7 @@ it('declares every entry a socket over water: the sea row clips all four sockets
     const r = dryEntryRect(edge);
     for (const [x, z] of [[r.minX, r.minZ], [r.maxX, r.maxZ], [(r.minX + r.maxX) / 2, (r.minZ + r.maxZ) / 2], [r.minX - 0.01, r.minZ], [r.maxX + 0.01, r.maxZ], [r.minX, r.minZ - 0.01]] as const) {
       expect(dryEntryContains(edge, x, z)).toBe(x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ);
+      expect(inEntryFootprint(x, z)).toBe(DRY_ENTRIES.some((dry) => dryEntryContains(dry, x, z)));
     }
   }
   expect(G164_LOWERED.dry).toEqual(DRY_ENTRIES.map(dryEntryRect)); expect(G164_LOWERED.landings).toBe(ENTRY_LANDINGS);

@@ -16,7 +16,6 @@ import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/c
 import { swellBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterExtent } from '@wildshard/engine/world/waves';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
-import { dryEntryContains, type DryEntryEdge } from '@wildshard/engine/world/water/declared';
 import { jsonSlot } from '@wildshard/engine/saves/slots';
 import type { ChunkTerrain } from '@wildshard/game/shard/manifest';
 
@@ -74,6 +73,9 @@ function loweredReaches(x: number, z: number): boolean {
 /** a level-space rectangle (metres) */
 export interface DryRect { readonly minX: number; readonly minZ: number; readonly maxX: number; readonly maxZ: number }
 
+/** a shardfile `dryEntries` edge (the engine's `DryEntryEdge`, water/declared.ts; spelled here so the manifest's static closure
+ *  stays inside its budget) */
+export type DryEntryEdge = 'north' | 'east' | 'south' | 'west';
 /** G164 (SHARDFILE.md `socketOverWater`): each of Driftwood's four entries meets the road over the lowered sea, so the
  *  shardfile's `sea` row declares all four `dryEntries` and the platform's 8 × 15 m socket floor is the approach */
 export const DRY_ENTRIES: readonly DryEntryEdge[] = ['north', 'east', 'south', 'west'];
@@ -113,9 +115,10 @@ export function dryEntryRect(edge: DryEntryEdge): DryRect {
 }
 /** the ocean's dry rectangles: the declared sea row's `dryEntries` (G134 (a), kept by G164; SHARDFILE.md's clip) */
 export const ENTRY_FOOTPRINTS: readonly DryRect[] = DECLARED_SEA.dryEntries.map(dryEntryRect);
-/** whether (x, z) is in one of the declared sea row's dry sockets (the engine's own test, as the platform clips) */
+/** whether (x, z) is in one of the declared sea row's dry sockets (inclusive, the region the platform's `dryEntryContains`
+ *  clips: test/shards/driftwood-isle/sea-lowered.test.ts holds them equal) */
 export function inEntryFootprint(x: number, z: number): boolean {
-  return DECLARED_SEA.dryEntries.some((edge) => dryEntryContains(edge, x, z));
+  return ENTRY_FOOTPRINTS.some((r) => x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ);
 }
 
 const shore = swellBody('sea', SHORE_LEVEL), swell = swellBody('sea', LOWERED_SEA);
