@@ -29,6 +29,7 @@ if (args.includes('--help')) {
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
 
 const ERROR_SCRIPT = `window.__frameFloorErrors=[];window.addEventListener('error',e=>window.__frameFloorErrors.push(String(e.message).slice(0,240)));window.addEventListener('unhandledrejection',e=>window.__frameFloorErrors.push(String(e.reason).slice(0,240)));`;
+const CONSOLE_SCRIPT = `window.__frameFloorConsole=[];for(const level of ['log','info','warn','error']){const original=console[level].bind(console);console[level]=(...args)=>{window.__frameFloorConsole.push({level,text:args.map(value=>String(value)).join(' ').slice(0,1000)});if(window.__frameFloorConsole.length>100)window.__frameFloorConsole.shift();original(...args);};}`;
 const settingArgs = args.filter((arg) => arg.startsWith('--setting='));
 const picks = Object.fromEntries(settingArgs.map((arg) => {
   const match = /^--setting=([a-zA-Z][a-zA-Z0-9.]*)=([^=]+)$/u.exec(arg);
@@ -102,6 +103,7 @@ function metadata() {
   return { renderer: ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER)),
     viewport: [innerWidth, innerHeight], devicePixelRatio, renderScale: g.renderer.getPixelRatio(), canvas: [g.canvas.width, g.canvas.height],
     settings: saved.keys?.settings?.data, gfx: saved.keys?.gfx?.data, deviceSaves: Object.fromEntries(Object.entries(deviceSaved.keys ?? {}).map(([key, value]) => [key, value.data])), clock: g.app.clock.mode,
+    bootTrace: deviceSaved.keys?.['boot.trace']?.data, console: window.__frameFloorConsole ?? [],
     systems: Object.values(g.app.systemsByPhase()).flat().map((system) => system.id),
     spawn: { name: 'spawn', x: w.player.position.x, y: w.player.position.y, z: w.player.position.z, yaw: w.player.yaw, pitch: w.player.pitch }, userAgent: navigator.userAgent };
 }
@@ -228,7 +230,7 @@ async function measureShard(driver, shard, deadline) {
       floorMs, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, errors };
   } catch (error) {
     console.error(`${surface} ${shard}: ${errorText(error)}`);
-    const diagnostic = await driver.evaluate('({state: window.__wildshard?.world?.game?.app?.state, modal: document.querySelector("#wserr .msg")?.textContent, stack: document.querySelector("#wserr pre")?.textContent})').catch(() => null);
+    const diagnostic = await driver.evaluate(`(() => { const app = window.__wildshard?.world?.game?.app; const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}'); return { url: location.href, readyState: document.readyState, state: app?.state, modal: document.querySelector('#wserr .msg')?.textContent, stack: document.querySelector('#wserr pre')?.textContent, loading: document.querySelector('.ws-load')?.textContent?.slice(-3000), bootTrace: saved.keys?.['boot.trace']?.data, systems: app ? Object.values(app.systemsByPhase()).flat().map(system => system.id) : [], console: window.__frameFloorConsole ?? [], resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) }; })()`).catch(() => null);
     return { shard, complete: false, pass: false, seconds: (Date.now() - start) / 1000, error: errorText(error), errors: await driver.errors(), diagnostic };
   } finally { await driver.unload(); }
 }
@@ -284,7 +286,7 @@ async function worker() {
       const { chromium } = await import('playwright');
       browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
       context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
-      await context.addInitScript({ content: `${fixture('desktop')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}` });
+      await context.addInitScript({ content: `${fixture('desktop')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}` });
       let errors = [];
       driver = {
         load: async (shard) => { errors = []; page = await context.newPage(); page.on('pageerror', (e) => errors.push(e.message.slice(0, 240))); page.on('console', (message) => { if (message.type() === 'error' && message.text().includes('[faults]')) errors.push(message.text().slice(0, 1000)); }); await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' }); },
@@ -379,7 +381,7 @@ async function main() {
     const registry = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
     const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
     const helper = join(dist, 'frame-floor-safari.html');
-    writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}</script>`));
+    writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
