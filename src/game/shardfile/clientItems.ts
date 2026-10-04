@@ -3,6 +3,16 @@ import { SCRIPT_STATE_OP } from '@wildshard/engine/script/state';
 import type { ScriptLane } from '@wildshard/engine/script/lane';
 import type { Shardfile } from './schema';
 
+/** A tool's direct input callback already queues its toggle; plumbing supplies its keys/touch and only the other scenes. */
+export function handledItemInputs(source: Shardfile): ReadonlySet<string> {
+  const handled = new Set<string>();
+  for (const context of source.plumbing?.input ?? []) for (const action of context.actions) {
+    const item = source.items.rows.find((row) => row.kind === 'tool' && row.action === action.id);
+    if (item !== undefined && source.targets.itemActions?.some((row) => row.scene === action.scene && row.item === item.id && row.action === 3)) handled.add(action.id);
+  }
+  return handled;
+}
+
 /** Project read-only tool values through the same finite, actor-scoped state transaction used by admitted effects. */
 export function projectItemFields(source: Shardfile, runtimes: ReadonlyMap<string, ItemRuntime>, lane: Pick<ScriptLane, 'world'>, player: number): void {
   const effects = (source.targets.itemFields ?? []).map((row) => {

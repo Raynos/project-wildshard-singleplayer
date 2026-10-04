@@ -4,11 +4,16 @@ import { beforeAll, expect, it } from 'vitest';
 import { ItemRuntime, scriptItemHook } from '../src/engine/combat/items';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { SaveStore } from '../src/engine/saves/store';
+import { InputService } from '../src/engine/input/InputService';
+import type { DebugRowSpec } from '../src/engine/level/context';
 import { instanceSave } from '../src/game/instanceSaves';
+import { installDeclaredPlumbing } from '../src/game/shard/declaredPlumbing';
+import { installDeclaredItems } from '../src/game/shardfile/items';
+import { declaredKitItemFamilies } from '../src/kit/items/declared';
 import { createShardfileSim } from '../src/game/shardfile/simulation';
 import { syncTargetColliders } from '../src/game/shardfile/targets';
 import { captureClientState, restoreClientState, installClientItemState, clientStateSave } from '../src/game/shardfile/clientState';
-import { projectItemFields } from '../src/game/shardfile/clientItems';
+import { projectItemFields, handledItemInputs, clientScene } from '../src/game/shardfile/clientItems';
 import source from '../src/shards/_template/shard.config';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
@@ -63,4 +68,33 @@ it('rejects a late incompatible item state atomically after script fields have b
     expect(captureClientState(source, next.sim, next.items)).toEqual(before);
     expect(restoreClientState(source, next.sim, next.items, { ...before, revision: before.revision + 1 })).toBe(false);
   } finally { next.sim.dispose(); first.sim.dispose(); }
+});
+it('the real item and plumbing installers queue one lantern toggle per input and retain the Debug refill scene', () => {
+  const sim = createShardfileSim(source, assets, { rapier, quest: { fact: () => undefined, coins: () => undefined } });
+  try {
+    const input = new InputService(() => sim.host.state.tick * 1000 / 60), lane = sim.lane;
+    if (lane === undefined || source.plumbing === null) throw new Error('Missing template lane/plumbing');
+    input.register({ id: 'weapon.melee', actions: ['attack', 'heavy', 'lock'], keys: {} }, sim.host.scope);
+    const items = installDeclaredItems(source.items, { input, scope: sim.host.scope, actorId: sim.host.player.id, families: declaredKitItemFamilies(),
+      icon: (name) => { if (name === 'sword' || name === 'glyph') return name; throw new Error('Unknown fixture icon'); },
+      aim: () => ({ origin: { x: 0, y: 1, z: 0 }, direction: { x: 0, y: 0, z: -1 } }),
+      runtime: (row) => ({ actor: sim.host.player.health, combat: sim.host.combat, targets: () => [], effect: () => undefined,
+        hook: row.hook === null ? null : scriptItemHook(lane.host, row.hook.module, row.hook.entity, row.hook.event, sim.host.player.id) }),
+    });
+    const rows = new Map<string, DebugRowSpec>();
+    installDeclaredPlumbing(source.plumbing, { input, scope: sim.host.scope, instance: 'template', tier: 'phone', active: () => true,
+      handledInput: handledItemInputs(source), scene: clientScene(source, items.runtimes, () => { throw new Error('Unexpected scene'); }), knobs: () => undefined,
+      debugRow: (row) => { rows.set(row.id, row); },
+    });
+    installClientItemState(sim, items.runtimes, () => { items.step(sim.host.state.tick, 1 / 60); });
+    const lamp = items.runtimes.get('tool.template-lantern'); if (lamp === undefined) throw new Error('Missing installed lantern');
+    input.executeCommand({ kind: 'physical', code: 'KeyL', on: true, at: 0 });
+    input.executeCommand({ kind: 'physical', code: 'KeyL', on: false, at: 1 });
+    expect(lamp.snapshot().pending).toHaveLength(1); sim.host.step(); expect(lamp.lightOn).toBe(true);
+    for (let i = 0; i < 60; i++) sim.host.step(); expect(lamp.remainingFuel).toBeLessThan(1);
+    rows.get('template.oil')?.change('refill'); sim.host.step(); expect(lamp.remainingFuel).toBe(1);
+    input.press('template.lantern.toggle'); sim.host.step(); expect(lamp.lightOn).toBe(false);
+    expect(input.touchLayout().verbs['verb.1']).toMatchObject({ action: 'template.lantern.toggle', label: 'LANTERN' });
+    const before = lamp.snapshot(); sim.dispose(); input.press('template.lantern.toggle'); expect(lamp.snapshot()).toEqual(before);
+  } finally { sim.dispose(); }
 });

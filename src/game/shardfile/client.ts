@@ -31,7 +31,7 @@ import { TileDecoder } from '../grid/tileDecoder';
 import { installClientWater } from './clientWater';
 import { clientWorld } from './clientWorld';
 import { clientSimStep } from './clientStep';
-import { clientScene, projectItemFields } from './clientItems';
+import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
 import { captureClientState, restoreClientState, installClientItemState, clientStateSave } from './clientState';
 import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
@@ -191,7 +191,8 @@ export class ShardfileClient {
     ctx.scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') checkpoint(); });
     const hooks = sim.lane === undefined ? null : createQuestScriptPorts(sim.lane, source.hooks, sim.actors);
     const scene = clientScene(source, items.runtimes, (id) => { if (hooks === null) throw new Error('Missing admitted scene lane'); hooks.scene(id, health.id); });
-    if (source.plumbing !== null) installDeclaredPlumbing(source.plumbing, { instance: source.identity.slug, tier: TIER, scope: ctx.scope, input: ctx.app.input,
+
+    if (source.plumbing !== null) installDeclaredPlumbing(source.plumbing, { handledInput: handledItemInputs(source), instance: source.identity.slug, tier: TIER, scope: ctx.scope, input: ctx.app.input,
       active: () => ctx.app.state === 'play' && !world.freeCamera, scene, knobs: ctx.tiers.knobs, debugRow: ctx.debugRow,
     });
     installDeclaredTargets(source.targets, { panels: tiles.props?.panels ?? new Map(), colliders: sim.colliders, read, scene, interactables: runtime.interactables, scope: ctx.scope, system: ctx.system });

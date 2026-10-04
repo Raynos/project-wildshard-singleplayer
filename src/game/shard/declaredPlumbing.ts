@@ -8,6 +8,8 @@ export interface PlumbingPorts {
   instance: string; tier: 'phone' | 'desktop'; scope: Scope; input: InputService;
   active: () => boolean; scene: (id: string) => void;
   knobs: (schema: TierKnobSchema) => void; debugRow: (row: DebugRowSpec) => void;
+  /** Trusted item inputs already have a scoped callback; register their keys/touch without a second scene callback. */
+  handledInput?: ReadonlySet<string>;
 }
 /** Resolve scoped context identities and selected tier values for the loader's declared content builders. */
 export interface PlumbingHandles { contexts: ReadonlyMap<string, string>; knobs: Readonly<Record<string, number>> }
@@ -22,7 +24,7 @@ export function installDeclaredPlumbing(input: PlumbingData, ports: PlumbingPort
     const id = `${ports.instance}.${row.id}`; contexts.set(row.id, id);
     ports.input.register({ id, priority: row.priority, enabled: ports.active, actions: row.actions.map((action) => action.id), keys: Object.fromEntries(row.actions.map((action) => [action.id, action.keys])),
       ...(row.touch === undefined ? {} : { touch: { relabel: {}, verbs: { [row.touch.slot]: { action: row.touch.action, label: row.touch.label, icon: row.touch.icon, show: ports.active } } } }) }, ports.scope);
-    for (const action of row.actions) ports.input.bind(action.id, () => { ports.scene(action.scene); }, ports.scope, ports.active);
+    for (const action of row.actions) if (!ports.handledInput?.has(action.id)) ports.input.bind(action.id, () => { ports.scene(action.scene); }, ports.scope, ports.active);
     ports.input.push(id, ports.scope);
   }
   for (const row of data.debug) adapters.debugRow({ ...row, change: (value) => {
