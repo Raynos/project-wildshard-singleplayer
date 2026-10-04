@@ -1,0 +1,24 @@
+{
+  "holes": 0,
+  "overlaps": 0,
+  "frames": 3603,
+  "steps": 4533,
+  "bootSeconds": 15.333333333333675,
+  "peakMB": 777.824001,
+  "peakTiles": {
+    "far": 9,
+    "l1": 32,
+    "l0": 13
+  },
+  "uploads": 117,
+  "uploadMsMean": 0.13333333251822707,
+  "workers": true,
+  "fps": {
+    "median": 60,
+    "p95ms": 16.7
+  },
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "source": "test/fixtures/sim-level/rings via scripts/bake/rings-drive.mjs; Chromium (Metal), iPhone 16 Pro viewport, render scale 2, muted; 5 Mbit/s serial link model with a 10 s stall; frame ms are rAF-paced (display-capped)"
+}
