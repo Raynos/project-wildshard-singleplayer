@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SF0: live drawn-frame baseline, never a deterministic/capture-clock or CPU-throttled run.
 // node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value]
-// --shards=grid: EXPERIMENTAL Wildshard, entered the way a player does (the title's grid entry tapped, Developer on; no URL
+// --shards=grid: INFINITE WILDSHARD, entered the way a player does (the title's grid entry tapped, Developer on; no URL
 // switch), measured at the home cell's spawn and the heaviest of its parity cameras plus three highway-deck views.
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
 // exit 3 = incomplete measurement. --regrade=<baseline> reapplies current floor policy without rerendering.
@@ -174,15 +174,15 @@ async function waitReady(evaluate) {
   }
   throw new Error('Game loading did not finish within 90 seconds');
 }
-/** The title's EXPERIMENTAL Wildshard tap (shown with Developer on), then the grid page: its session readout and the world entered. */
+/** The title's INFINITE WILDSHARD tap (shown with Developer on), then the grid page: its session readout and the world entered. */
 async function enterGrid(driver) {
   const start = Date.now();
-  while (!(await driver.evaluate("Boolean(document.querySelector('.ws-menu-entry-grid'))").catch(() => false))) {
-    if (Date.now() - start > 90000) throw new Error('The title never showed EXPERIMENTAL Wildshard');
+  while (!(await driver.evaluate("Boolean(document.querySelector('.ws-main-grid'))").catch(() => false))) {
+    if (Date.now() - start > 90000) throw new Error('The title never showed INFINITE WILDSHARD');
     await sleep(300);
   }
   await sleep(800);
-  await driver.evaluate("(setTimeout(() => { document.querySelector('.ws-menu-entry-grid').click(); }, 100), true)"); // the tap navigates: return first
+  await driver.evaluate("(setTimeout(() => { document.querySelector('.ws-main-grid').click(); }, 100), true)"); // the tap navigates: return first
   await driver.followed();
   while (Date.now() - start < 240000) {
     const state = await driver.evaluate(`(() => { const s = (${status.toString()})(); return { ...s, grid: window.__wildshard?.shard?.grid !== undefined }; })()`).catch(() => null); // mid-navigation
