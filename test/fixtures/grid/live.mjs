@@ -25,7 +25,7 @@ const strip = generateStrip({ id: 'west', axis: 'x', origin: { x: -277.5, z: 0 }
 installStripCollider(pageHost.physics, strip.mesh, pageHost.scope);
 let currentPhysics = pageHost.physics, gameplay = true, frameBinds = 0;
 const player = { position: pageHost.player.position, yaw: 0, health: pageHost.player.health, owner: pageHost.player, motor: pageHost.releasePlayerMotor() };
-const saves = new Map(), values = new Map();
+const saves = new Map(), values = new Map(); let durable = true;
 const facts = new Set(); let coins = 0;
 const quest = { fact: (id) => { facts.add(id); }, coins: (amount) => { coins += amount; } };
 let physicsSteps = 0, regionCreations = 0;
@@ -37,7 +37,7 @@ const registry = new LiveGridHost(assembly, {
     installStripCollider(host.physics, strip.mesh, host.scope); return { host, dispose: () => host.dispose() };
   } },
   readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 10 }, bundle: () => ({ criticalWireBytes: 2_000_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 }) },
-  save: (id, snapshot) => { saves.set(id, structuredClone(snapshot)); return true; },
+  save: (id, snapshot) => { if (!durable) return false; saves.set(id, structuredClone(snapshot)); return true; },
   gameplayReady: () => gameplay,
   bindFrame: ({ physics }) => { currentPhysics = physics; frameBinds++; },
   admit: async () => ({ bytes: source.budgets.sim.resident, create: async (saved) => {
@@ -69,8 +69,13 @@ try {
   gameplay = true; for (let i = 0; i < 10; i++) step(); assert.equal(first.host.state.tick, 10);
   const actor = first.host.entities.get('grey-blob:1'); assert.ok(actor); actor.applyFinalDamage(5, new Vector3(), new Vector3()); const hp = actor.hp;
   first.colliders.get('template.door').setActive(false); first.host.flags.set('live.visited');
+  durable = false; const beforeCheckpoint = player.motor;
+  assert.equal(registry.checkpoint(target.instance), false); assert.equal(player.motor, beforeCheckpoint);
+  assert.equal(first.host.hasPlayerMotor, false); assert.equal(saves.size, 0); durable = true;
   assert.equal(registry.checkpoint(target.instance), true); const leave = await registry.prepare(target.instance, null); leave.commit();
   const frozen = first.host.state.tick; for (let i = 0; i < 600; i++) step(); assert.equal(first.host.state.tick, frozen);
+  durable = false; assert.equal(registry.unload(target.instance), false); assert.equal(registry.ready(target.instance), true);
+  assert.equal(first.host.state.tick, frozen); durable = true;
   assert.equal(registry.unload(target.instance), true); const again = await registry.prepare(null, target.instance); again.commit();
   const restored = values.get(target.instance); assert.ok(restored);
   assert.equal(restored.host.entities.get('grey-blob:1').hp, hp); assert.equal(restored.colliders.get('template.door').active(), false); assert.equal(restored.host.flags.has('live.visited'), true);
