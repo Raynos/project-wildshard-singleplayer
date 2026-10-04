@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-504 members; 113 without a doc line (—).
+508 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -147,11 +147,12 @@ The game layer's public modules (src/game/package.json `exports`).
 | `PACK_SLOTS` | const | @wildshard/game/Inventory | — |
 | `installLedgerEmitter` | function | @wildshard/game/ledger | Register the fact cursor with the same-engine snapshot host and retry failed durable writes in fixed steps. |
 | `Ledger` | class | @wildshard/game/ledger | Local ledger implementation: profile grants and their fact dedupe record share one atomic SaveStore write. |
-| `LedgerCatalogueItem` | interface | @wildshard/game/ledger | The platform admits catalogue items at capped power tiers, independently of author data. |
+| `LedgerCatalogueItem` | interface | @wildshard/game/ledger | Catalogue grants default to one item, once per stable instance and shard, independent of author facts or revisions. |
 | `LedgerEmitter` | class | @wildshard/game/ledger | Per-host fact cursor. The host supplies identity, tick and provenance; callers submit only an outcome and entity. |
 | `ledgerFactId` | function | @wildshard/game/ledger | Collision-free instance + package + revision + entity + tick + ordinal; relocation changes no key. |
 | `LedgerInstance` | interface | @wildshard/game/ledger | A placement identity remains stable when its cell changes; several instances may use one package. |
 | `LedgerReceipt` | interface | @wildshard/game/ledger | A grant is confirmed only by a durable save write; a pending receipt may be retried. |
+| `LedgerRewardPolicy` | interface | @wildshard/game/ledger | Only the trusted platform defines reward identity, quantity and an optional durable repeat allowance. |
 | `CoinBurst` | class | @wildshard/game/loot/CoinBurst | — |
 | `nearScale` | function | @wildshard/game/loot/CoinBurst | a coin's size factor at `near` metres from the eye: 1 past SHRINK_R, easing in to MIN_SCALE at NEAR_EYE |
 | `coinModel` | function | @wildshard/game/loot/coinModel | A gold coin rendered by the installed content recipe. |
@@ -351,8 +352,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `encounterRules` | function | @wildshard/game/shardfile/encounters | Full-loader references: declared actor spawn and the existing SF7f boss panel (if any). |
 | `EncountersSchema` | const | @wildshard/game/shardfile/encounters | Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references. |
 | `ShardEncounters` | type | @wildshard/game/shardfile/encounters | Validated data-only encounter tables. |
+| `ChallengeGrazerSchema` | const | @wildshard/game/shardfile/grazers | Timed challenge policy with an ordered charge/close pair, declared utility weights and pose memory fields. |
+| `parseChallengeGrazer` | function | @wildshard/game/shardfile/grazers | Reject nonfinite tuning, unknown fields and conflicting identities before installation. |
 | `parseRamGrazer` | function | @wildshard/game/shardfile/grazers | Validate a ram policy without touching an actor, its random stream or the native world. |
 | `RamGrazerSchema` | const | @wildshard/game/shardfile/grazers | Finite ram-grazer tuning and a named strike; the host binds terrain, home, RNG and contact authority. |
+| `ShardChallengeGrazer` | type | @wildshard/game/shardfile/grazers | Admitted timed challenge policy; stable actor phase and contact recipes arrive from trusted loader ports. |
 | `ShardRamGrazer` | type | @wildshard/game/shardfile/grazers | An admitted rim-aware grazer policy; spawn identity, current home and strike recipes remain loader-owned. |
 | `groupBrainRules` | function | @wildshard/game/shardfile/groupBrains | Controller references must match the exact ordered roster, with no overlap with individual or encounter controllers. |
 | `GroupBrainSchema` | const | @wildshard/game/shardfile/groupBrains | Group controller declaration; the full creature loader checks identity and controller conflicts. |

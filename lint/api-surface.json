@@ -62,6 +62,24 @@
         "from": "@wildshard/engine/ai/bossDefinition"
       },
       {
+        "name": "ChallengeGrazerBrain",
+        "kind": "class",
+        "doc": "Renderer-free challenge and strike policy; motion, strike clocks and mutable home survive exact replay.",
+        "from": "@wildshard/engine/ai/challengeGrazer"
+      },
+      {
+        "name": "ChallengeGrazerPorts",
+        "kind": "interface",
+        "doc": "Trusted perception, stable phase offset and navigation/contact authority, supplied for one actor.",
+        "from": "@wildshard/engine/ai/challengeGrazer"
+      },
+      {
+        "name": "ChallengeGrazerSpec",
+        "kind": "interface",
+        "doc": "Home-circle grazing, timed threat and utility-selected charge/close-strike tuning.",
+        "from": "@wildshard/engine/ai/challengeGrazer"
+      },
+      {
         "name": "CreatureBrain",
         "kind": "class",
         "doc": "Authored creature goals share an inspectable HFSM; movement and strike clocks remain separate.",
@@ -12854,7 +12872,7 @@
       {
         "name": "LedgerCatalogueItem",
         "kind": "interface",
-        "doc": "The platform admits catalogue items at capped power tiers, independently of author data.",
+        "doc": "Catalogue grants default to one item, once per stable instance and shard, independent of author facts or revisions.",
         "from": "@wildshard/game/ledger"
       },
       {
@@ -12879,6 +12897,12 @@
         "name": "LedgerReceipt",
         "kind": "interface",
         "doc": "A grant is confirmed only by a durable save write; a pending receipt may be retried.",
+        "from": "@wildshard/game/ledger"
+      },
+      {
+        "name": "LedgerRewardPolicy",
+        "kind": "interface",
+        "doc": "Only the trusted platform defines reward identity, quantity and an optional durable repeat allowance.",
         "from": "@wildshard/game/ledger"
       },
       {
@@ -14076,6 +14100,18 @@
         "from": "@wildshard/game/shardfile/encounters"
       },
       {
+        "name": "ChallengeGrazerSchema",
+        "kind": "const",
+        "doc": "Timed challenge policy with an ordered charge/close pair, declared utility weights and pose memory fields.",
+        "from": "@wildshard/game/shardfile/grazers"
+      },
+      {
+        "name": "parseChallengeGrazer",
+        "kind": "function",
+        "doc": "Reject nonfinite tuning, unknown fields and conflicting identities before installation.",
+        "from": "@wildshard/game/shardfile/grazers"
+      },
+      {
         "name": "parseRamGrazer",
         "kind": "function",
         "doc": "Validate a ram policy without touching an actor, its random stream or the native world.",
@@ -14085,6 +14121,12 @@
         "name": "RamGrazerSchema",
         "kind": "const",
         "doc": "Finite ram-grazer tuning and a named strike; the host binds terrain, home, RNG and contact authority.",
+        "from": "@wildshard/game/shardfile/grazers"
+      },
+      {
+        "name": "ShardChallengeGrazer",
+        "kind": "type",
+        "doc": "Admitted timed challenge policy; stable actor phase and contact recipes arrive from trusted loader ports.",
         "from": "@wildshard/game/shardfile/grazers"
       },
       {
@@ -16396,6 +16438,18 @@
         "from": "@wildshard/sdk/accent"
       },
       {
+        "name": "preflightShardfile",
+        "kind": "function",
+        "doc": "Check bounded plain JSON and declared wire totals before opening any immutable asset. Full validation follows separately.",
+        "from": "@wildshard/sdk/admission"
+      },
+      {
+        "name": "SHARDFILE_ADMISSION_LIMITS",
+        "kind": "const",
+        "doc": "Shared source, collection, identifier, text and distinct wire ceilings for author output and client intake.",
+        "from": "@wildshard/sdk/admission"
+      },
+      {
         "name": "assetCost",
         "kind": "function",
         "doc": "Select the game's shared asset parser for CLI and browser admission.",
@@ -16628,6 +16682,18 @@
         "kind": "type",
         "doc": "Typed director data with bounded observations, payloads and reserved grid subscriptions.",
         "from": "@wildshard/sdk/director"
+      },
+      {
+        "name": "challengeGrazer",
+        "kind": "function",
+        "doc": "Validate a timed challenge grazer while retaining trusted navigation, actor phase and contact ownership.",
+        "from": "@wildshard/sdk/grazers"
+      },
+      {
+        "name": "ChallengeGrazerData",
+        "kind": "type",
+        "doc": "Admitted challenge policy with declared charge/close utility and renderer pose field bindings.",
+        "from": "@wildshard/sdk/grazers"
       },
       {
         "name": "ramGrazer",

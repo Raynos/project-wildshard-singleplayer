@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1999 members; 830 without a doc line (—).
+2002 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -18,6 +18,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `BossScript` | interface | @wildshard/engine/ai/BossBrain | what one boss fight does in each state; BossBrain runs it |
 | `BossState` | type | @wildshard/engine/ai/BossBrain | a boss fight's state: dormant, armed, the intro, the fight, a beat between phases, victory |
 | `BossDef` | interface | @wildshard/engine/ai/bossDefinition | An authored encounter can opt out of introductions, seals, checkpoints and runtime rewards. |
+| `ChallengeGrazerBrain` | class | @wildshard/engine/ai/challengeGrazer | Renderer-free challenge and strike policy; motion, strike clocks and mutable home survive exact replay. |
+| `ChallengeGrazerPorts` | interface | @wildshard/engine/ai/challengeGrazer | Trusted perception, stable phase offset and navigation/contact authority, supplied for one actor. |
+| `ChallengeGrazerSpec` | interface | @wildshard/engine/ai/challengeGrazer | Home-circle grazing, timed threat and utility-selected charge/close-strike tuning. |
 | `CreatureBrain` | class | @wildshard/engine/ai/CreatureBrain | Authored creature goals share an inspectable HFSM; movement and strike clocks remain separate. |
 | `EliteActor` | interface | @wildshard/engine/ai/EliteBrain | — |
 | `EliteBrain` | class | @wildshard/engine/ai/EliteBrain | Shared encounter actor lifecycle. Views provide spawn, retirement and tells through overrides. |

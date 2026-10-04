@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-86 members; 0 without a doc line (—).
+90 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -13,6 +13,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ACCENTS` | const | @wildshard/sdk/accent | The platform's 20 shard accents, keyed by the required shardfile palette ID. |
 | `AccentSchema` | const | @wildshard/sdk/accent | Strict required accent grammar; reserved road cyan and raw colours are refused. |
 | `parseAccent` | function | @wildshard/sdk/accent | Validate author metadata and return a typed palette ID. |
+| `preflightShardfile` | function | @wildshard/sdk/admission | Check bounded plain JSON and declared wire totals before opening any immutable asset. Full validation follows separately. |
+| `SHARDFILE_ADMISSION_LIMITS` | const | @wildshard/sdk/admission | Shared source, collection, identifier, text and distinct wire ceilings for author output and client intake. |
 | `assetCost` | function | @wildshard/sdk/assets | Select the game's shared asset parser for CLI and browser admission. |
 | `AssetCost` | type | @wildshard/sdk/assets | Actual parsed residency and draw costs, independent of author declarations. |
 | `parseAudio` | function | @wildshard/sdk/assets | Admit bounded PCM audio and derive decoded sample residency. |
@@ -52,6 +54,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ShardClientScripts` | type | @wildshard/sdk/clientScripts | Data-only author contract for isolated client scripts. |
 | `director` | function | @wildshard/sdk/director | Validate before admitting a bounded module or installing a fixed-step director. |
 | `DirectorData` | type | @wildshard/sdk/director | Typed director data with bounded observations, payloads and reserved grid subscriptions. |
+| `challengeGrazer` | function | @wildshard/sdk/grazers | Validate a timed challenge grazer while retaining trusted navigation, actor phase and contact ownership. |
+| `ChallengeGrazerData` | type | @wildshard/sdk/grazers | Admitted challenge policy with declared charge/close utility and renderer pose field bindings. |
 | `ramGrazer` | function | @wildshard/sdk/grazers | Validate ram-grazer data independently of a creature's native rig and collision recipes. |
 | `RamGrazerData` | type | @wildshard/sdk/grazers | Admitted rim-aware ram policy with named strikes and host-owned home, terrain and random stream. |
 | `groupBrain` | function | @wildshard/sdk/groupBrains | Validate a pack or guarded-herd controller before loading its native world recipes. |
