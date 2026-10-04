@@ -21,6 +21,11 @@ export const ClientScriptsSchema = v.strictObject({ divisor: v.pipe(positive, v.
     emitters: v.pipe(v.array(emitter), v.maxLength(CLIENT_SCRIPT_LIMITS.emitters)) })), v.maxLength(CLIENT_SCRIPT_LIMITS.bindings)) });
 /** Renderer-neutral declaration consumed by the client and the frozen-neighbour presentation adapter. */
 export type ShardClientScripts = v.InferOutput<typeof ClientScriptsSchema>;
+/** Charge the bounded particle pool: 56 CPU bytes and 32 GPU bytes per live slot. */
+export function clientScriptViewCost(data: ShardClientScripts): { capacity: number; decoded: number; gpu: number; triangles: number; draws: number } {
+  const capacity = Math.min(CLIENT_SCRIPT_LIMITS.particlesLive, data.bindings.reduce((sum, binding) => sum + binding.emitters.reduce((n, row) => n + row.live, 0), 0));
+  return { capacity, decoded: capacity * 56, gpu: capacity * 32, triangles: 0, draws: capacity > 0 ? 1 : 0 };
+}
 /** A declared visual anchor resolved by trusted composition, never by a bytecode physics query. */
 export type ClientScriptTarget = ShardClientScripts['bindings'][number]['target'];
 /** Minimal format view for admission and projection, independent of rendering and author callbacks. */

@@ -3,6 +3,7 @@ import type { ResidencyAllocator, ResidencyClaim } from '../grid/allocator';
 import { assetCost } from './assets';
 import { admitScript } from '@wildshard/engine/script/admission';
 import type { Shardfile } from './schema';
+import { clientScriptViewCost } from './clientScripts';
 
 /** Reserve only library and commons bytes in the session's one allocator; render rings and the sim registry own their claims. */
 export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: { allocator: ResidencyAllocator; scope: Pick<ShardContext['scope'], 'onDispose'>; owner: string }): void {
@@ -25,6 +26,8 @@ export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string
     // Guest memory is per instance, unlike shared immutable library bytes.
     claims.push({ id: `library:${ports.owner}:client-memory:${module}`, category: 'library', bytes: admitScript(bytes).maximumPages * 65536 * 3, owner: ports.owner, distance: 0, needed: true });
   }
+  const views = clientScriptViewCost(source.clientScripts);
+  if (views.capacity > 0) claims.push({ id: `library:${ports.owner}:client-views`, category: 'library', bytes: views.decoded + views.gpu, owner: ports.owner, distance: 0, needed: true });
   const leases: ReturnType<ResidencyAllocator['reserve']>[] = [];
   try {
     for (const claim of claims) {

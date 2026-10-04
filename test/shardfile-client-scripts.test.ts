@@ -1,7 +1,7 @@
 import { beforeAll, expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '../src/game/shardfile/schema';
-import { createShardfileClientScripts } from '../src/game/shardfile/clientScripts';
+import { createShardfileClientScripts, clientScriptViewCost } from '../src/game/shardfile/clientScripts';
 import { validateShardfileAssets } from '../src/game/shardfile/validate';
 import { contentHash } from '@wildshard/sdk/project';
 import { compileScript } from '../scripts/compile-script.mjs';
@@ -19,7 +19,7 @@ beforeAll(async () => { bytes = await compileScript(scriptSource('store<f64>(245
 function source() {
   const s = emptyShardfile({ slug: 'client-test', name: 'Client test', author: 'Test', revision: 1, seed: 1 }), hash = contentHash(bytes);
   s.files.push({ hash, kind: 'wasm', compressed: bytes.length, decoded: bytes.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }); s.library.push(hash);
-  s.budgets.library = { resident: bytes.length + 3 * 2 * 65536, compressed: bytes.length };
+  s.budgets.library = { resident: bytes.length + 3 * 2 * 65536 + 4 * 88, compressed: bytes.length };
   s.state.shared.push({ id: 101, name: 'public', type: 'bool', privacy: 'public', default: false });
   s.state.player.push({ id: 202, name: 'owned', type: 'bool', privacy: 'owner', default: false });
   s.clientScripts = { divisor: 1, bindings: [{ module: hash, entity: 1001, name: 'dust', target: { kind: 'particles', id: 'dust', at: [0, 0, 0] }, reads: [{ scope: 'shared', id: 101 }], parameters: [], pose: false, maxOffset: 0, minScale: 1, maxScale: 1,
@@ -59,8 +59,17 @@ it('admits real Wasm once per module and reserves all three maximum guest copies
   const allocator = new ResidencyAllocator(), releases: (() => void)[] = [], ports = { allocator, owner: 'one', scope: { onDispose: (release: () => void) => { releases.push(release); return release; } } };
   leaseClientLibrary(s, assets, ports); leaseClientLibrary(s, assets, { ...ports, owner: 'two' });
   expect(allocator.entries().filter((claim) => claim.id.includes('client-memory'))).toHaveLength(2);
-  expect(allocator.entries().reduce((n, claim) => n + claim.bytes, 0)).toBe(bytes.length + 2 * 3 * 2 * 65536);
+  expect(allocator.entries().filter((claim) => claim.id.includes('client-views'))).toHaveLength(2);
+  expect(allocator.entries().reduce((n, claim) => n + claim.bytes, 0)).toBe(bytes.length + 2 * (3 * 2 * 65536 + 4 * 88));
   for (const release of releases) release(); expect(allocator.entries()).toEqual([]);
+});
+it('charges the actual pool capacity once and caps aggregate emitter declarations', () => {
+  const s = source();
+  expect(clientScriptViewCost(s.clientScripts)).toEqual({ capacity: 4, decoded: 224, gpu: 128, triangles: 0, draws: 1 });
+  const b = s.clientScripts.bindings[0], e = b?.emitters[0]; if (!b || !e) throw new Error('Missing emitter');
+  b.emitters = [{ ...e, live: 4096 }, { ...e, id: 2, live: 4096 }];
+  expect(clientScriptViewCost(s.clientScripts)).toEqual({ capacity: 4096, decoded: 229376, gpu: 131072, triangles: 0, draws: 1 });
+  expect(clientScriptViewCost({ divisor: 2, bindings: [] })).toEqual({ capacity: 0, decoded: 0, gpu: 0, triangles: 0, draws: 0 });
 });
 it('runs the actual template frozen idle declarations without a region and restores live identity poses', () => {
   const assets = new Map([[CLIENT_IDLE_HASH, readFileSync(`src/shards/_template/assets/${CLIENT_IDLE_HASH}`)]]);

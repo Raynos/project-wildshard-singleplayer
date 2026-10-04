@@ -7,6 +7,7 @@ import { assetCost } from './assets';
 import { validateTerrainAssets } from './terrain';
 import { validateSkinAssets } from './skins';
 import { validateEntrywayTerrain } from './entryways';
+import { clientScriptViewCost } from './clientScripts';
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
 export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string): Shardfile {
@@ -86,7 +87,8 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     }
     clientMemory += admission.maximumPages * 65536 * 3;
   }
-  if (clientModules.size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || sum(s.library).resident + clientMemory > s.budgets.library.resident) throw new Error('client script memory budget understated or above host cap');
+  const clientViews = clientScriptViewCost(s.clientScripts);
+  if (clientModules.size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || sum(s.library).resident + clientMemory + clientViews.decoded + clientViews.gpu > s.budgets.library.resident) throw new Error('client script memory or view budget understated or above host cap');
   const cost = worstContentCost(s, commons);
   if (cost.playing > C.playing || cost.loading > C.loading) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
   validateEntrywayTerrain(s, assets);
