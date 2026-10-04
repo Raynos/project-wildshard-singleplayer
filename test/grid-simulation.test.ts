@@ -166,6 +166,8 @@ describe('world-local grid residency', () => {
     expect(retired.sort()).toEqual([...ids, 'highway'].sort()); expect(allocator.entries()).toEqual([]); expect(sim.disposalIssues()).toContain('Owned cleanup failed');
     sim.dispose();
   });
+  // Eight native Rapier round trips exercise both boundary resolutions and axes;
+  // coverage-instrumented CI runners need longer than the default 20 seconds.
   it('walks the shared field across both frame changes at 15 and 30 m/s with no falls or snags', async () => {
     for (const resolution of [256, 257] as const) for (const axis of ['x', 'z'] as const) for (const speed of [15, 30]) {
       const assembly = new GridAssembly({ developer: false, devserver: false }), cell = assembly.cells.find((c) => c.cell[0] === 0 && c.cell[1] === 0);
@@ -191,7 +193,7 @@ describe('world-local grid residency', () => {
         expect(crossings).toBe(2); expect(sim.current()).toBeNull(); expect(sim.worldFeet()[axis]).toBeCloseTo(277.5, 2);
       } finally { sim.dispose(); }
     }
-  });
+  }, 120_000);
   it('prepares rider and lying mount together, preserving filters, yaw and their relative offset', () => {
     const a = new Physics(rapier), b = new Physics(rapier);
     const rider = { position: { x: 10, y: 0, z: 2 }, motor: new CharacterMotor(a, { radius: 0.35, height: 1.8, step: 0.3, snap: 0.2, maxClimbDeg: 45, group: 'PLAYER', blockedBy: ['WORLD'] }) };
