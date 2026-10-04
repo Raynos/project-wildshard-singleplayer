@@ -6,7 +6,7 @@
     "deck": {
       "screen": "select",
       "enter": "Enter world",
-      "back": "Main menu"
+      "back": "BACK"
     }
   },
   "dev-on": {
@@ -17,7 +17,7 @@
     "deck": {
       "screen": "select",
       "enter": "Enter world",
-      "back": "Main menu"
+      "back": "BACK"
     }
   }
 }

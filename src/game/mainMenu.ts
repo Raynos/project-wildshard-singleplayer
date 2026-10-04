@@ -91,12 +91,21 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     line.textContent = notice;
     required(main, '.ws-main-head', HTMLElement).append(line);
   }
-  // the deck's way back: MAIN MENU beside its SETTINGS, in SETTINGS' own chrome (the deck itself is unchanged)
+  // G106 (Jake: "A Carousel restyled"): SHARD SELECT is today's deck, same path and behaviour (G64), restyled to the menu:
+  // BACK and the SHARD SELECT title on top, the crossroads hero dimmed behind, one big card, a thumbnail strip for the dots
+  // (DEVELOPER tags, a COMING SOON lock) and a wide ENTER WORLD (src/game/mainMenu.css `.ws-menu-carousel`)
+  deck.root.classList.add('ws-menu-carousel');
+  const bar = document.createElement('div');
+  bar.className = 'ws-menu-bar';
   const back = document.createElement('button');
   back.type = 'button';
-  back.className = 'ws-menu-settings ws-menu-back';
+  back.className = 'ws-menu-back';
   back.textContent = s.back;
-  deck.root.querySelector('.ws-menu-row')?.prepend(back);
+  const title = document.createElement('div');
+  title.className = 'ws-menu-title';
+  title.textContent = s.shardSelect;
+  bar.append(back, title);
+  deck.root.querySelector('.ws-menu-head')?.prepend(bar);
   root.append(deck.root, main);
 
   const selectCard = required(main, '.ws-main-select', HTMLButtonElement);

@@ -153,6 +153,13 @@ function ribbonFor(card: DeckEntry, mode: MenuMode = menuMode()): string {
   return card.badge === 'Developer only' ? GAME_STRINGS.developer.ribbon : card.badge ?? '';
 }
 
+/** a dot's tag: the restyled SHARD SELECT (G106, src/game/mainMenu.css) draws each dot as a thumbnail with a DEVELOPER tag or a
+ *  COMING SOON lock; today's plain dots ignore it */
+function dotTag(card: DeckEntry, mode: MenuMode): 'soon' | 'developer' | '' {
+  if (!canEnter(card, mode)) return 'soon';
+  return restricted(card) ? 'developer' : '';
+}
+
 function hintFor(card: DeckEntry, active: boolean, mode: MenuMode = menuMode()): string {
   if (card.draft) return isDev() ? card.draft.stageName : GAME_STRINGS.drafts.notPlayable;
   if (card.upgrade !== undefined) return GAME_STRINGS.upgrade.saveKept;
@@ -182,7 +189,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
           <b>${c.name}</b><small>${c.upgrade !== undefined ? GAME_STRINGS.upgrade.built(c.upgrade.built) : c.label}</small>
         </button>`;
       }).join('')}</div></div>
-      <div class="ws-menu-dots">${entries.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
+      <div class="ws-menu-dots">${entries.map((c, i) => `<i data-i="${i}" data-tag="${dotTag(c, mode())}" style="--thumb:url('${c.thumbnail}')"></i>`).join('')}</div>
       <div class="ws-menu-modes"><button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${SWORD}</span><b>Enter world</b><small></small></button></div>
       <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button></div>
     </div>`;

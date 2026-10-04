@@ -44,3 +44,34 @@
   .ws-main .ws-main-card, .ws-main .ws-main-cards.one .ws-main-card { aspect-ratio: auto; height: 34vh; gap: 8px; }
   .ws-main .ws-main-icon svg { width: 60px; height: 45px; }
 }
+
+/* ─── SHARD SELECT restyled (G106, Jake: "A Carousel restyled"; art/menu/round-8-shard-select/A-carousel.jpg) ───
+   today's deck, its path and behaviour unchanged (G64), dressed like the main menu: BACK and the title on top, the
+   crossroads hero dimmed and blurred behind, one big card with its neighbour peeking in, the dots drawn as a thumbnail
+   strip (an amber DEVELOPER tag, a COMING SOON lock) and a wide ENTER WORLD. */
+.ws-menu.ws-menu-carousel .ws-menu-hero { background-image: url('/assets/title/main-crossroads-portrait.jpg') !important; filter: blur(6px) brightness(0.62) saturate(0.9); transform: scale(1.06); }
+.ws-menu.ws-menu-carousel .ws-wordmark { display: none; }
+.ws-menu.ws-menu-carousel .ws-menu-bar { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; padding-right: 150px; }
+.ws-menu.ws-menu-carousel .ws-menu-back { flex: none; padding: 9px 14px 9px 12px; appearance: none; -webkit-appearance: none; background: rgba(9, 22, 36, 0.86); border: 1px solid var(--ws-cyan-line); font-family: var(--ws-mono); font-size: 12px; letter-spacing: 0.2em; color: var(--ws-cyan); cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.ws-menu.ws-menu-carousel .ws-menu-back::before { content: '‹'; margin-right: 8px; font-size: 15px; }
+.ws-menu.ws-menu-carousel .ws-menu-title { font-family: var(--ws-display); font-weight: 700; font-size: 26px; letter-spacing: 0.2em; color: #bdeeff; text-shadow: 0 0 14px rgba(143, 227, 255, 0.4); white-space: nowrap; }
+.ws-menu.ws-menu-carousel .ws-menu-card { background: rgba(9, 22, 36, 0.88); border-color: rgba(143, 227, 255, 0.4); }
+.ws-menu.ws-menu-carousel .ws-menu-card.selected { border-color: var(--ws-cyan); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.25); }
+/* the hazard tape becomes a small amber tag in the picture's corner */
+.ws-menu.ws-menu-carousel .ws-menu-card .ws-menu-card-exp { left: 8px; right: auto; top: 8px; transform: none; padding: 3px 8px; font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.16em; text-indent: 0; color: var(--ws-amber); background: rgba(20, 13, 2, 0.85); border: 1px solid var(--ws-amber); box-shadow: none; }
+.ws-menu.ws-menu-carousel .ws-menu-card .ws-menu-card-exp::before, .ws-menu.ws-menu-carousel .ws-menu-card .ws-menu-card-exp::after { display: none; }
+.ws-menu.ws-menu-carousel .ws-menu-card .ws-menu-card-exp.ws-menu-card-ea { color: var(--ws-cyan); border-color: var(--ws-cyan); background: rgba(4, 18, 26, 0.85); }
+/* the dots: a strip of thumbnails, the selected one bracketed in cyan */
+.ws-menu.ws-menu-carousel .ws-menu-dots { gap: 6px; margin-top: 10px; width: min(560px, calc(100% - 24px)); justify-content: center; }
+.ws-menu.ws-menu-carousel .ws-menu-dots i { position: relative; flex: 0 1 64px; width: auto; height: auto; aspect-ratio: 1; border-radius: 0; background: var(--thumb) center / cover, #0b1622; border: 1px solid rgba(143, 227, 255, 0.3); box-shadow: none; opacity: 0.85; }
+.ws-menu.ws-menu-carousel .ws-menu-dots i.on { border: 2px solid var(--ws-cyan); box-shadow: 0 0 12px rgba(143, 227, 255, 0.45); opacity: 1; }
+.ws-menu.ws-menu-carousel .ws-menu-dots i[data-tag='developer']::after { content: 'DEVELOPER'; position: absolute; right: 2px; top: 2px; padding: 1px 2px; font: 6px/1 var(--ws-mono); letter-spacing: 0; font-style: normal; color: var(--ws-amber); background: rgba(20, 13, 2, 0.85); border: 1px solid var(--ws-amber); }
+.ws-menu.ws-menu-carousel .ws-menu-dots i[data-tag='soon'] { background: repeating-linear-gradient(-45deg, rgba(143, 227, 255, 0.06) 0 6px, rgba(6, 10, 18, 0.9) 6px 12px), var(--thumb) center / cover; }
+.ws-menu.ws-menu-carousel .ws-menu-dots i[data-tag='soon']::after { content: ''; position: absolute; inset: 0; background: center / 40% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 11V8a5 5 0 0 1 10 0v3' fill='none' stroke='%238fe3ff' stroke-width='2'/%3E%3Crect x='5' y='11' width='14' height='10' rx='1.5' fill='%238fe3ff'/%3E%3C/svg%3E"); }
+.ws-menu.ws-menu-carousel .ws-menu-modes { width: min(var(--card-w), calc(100% - 32px)); }
+.ws-menu.ws-menu-carousel .ws-menu-play { background: rgba(9, 22, 36, 0.88); }
+@media (max-width: 700px) {
+  .ws-menu.ws-menu-carousel .ws-menu-bar { padding-right: 140px; gap: 10px; }
+  .ws-menu.ws-menu-carousel .ws-menu-title { font-size: 19px; letter-spacing: 0.14em; }
+  .ws-menu.ws-menu-carousel .ws-menu-back { font-size: 10px; padding: 7px 10px 7px 9px; }
+}

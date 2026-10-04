@@ -19,7 +19,7 @@ export const GAME_STRINGS = {
     shardSelect: 'SHARD SELECT',
     infinite: 'INFINITE WILDSHARD',
     settings: 'SETTINGS',
-    back: 'Main menu',
+    back: 'BACK',
   },
   /** a shard card whose shardfile needs a newer client (G86, temporary): dimmed, a badge and the save promise */
   upgrade: {
