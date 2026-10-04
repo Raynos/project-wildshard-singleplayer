@@ -59,8 +59,9 @@ class FarBatch {
   private readonly slotOf = new Map<FarMember, number>();
   private pending: FarMember[] = [];
   private readonly seen = new Set<FarMember>();
-  /** per slot: the tint its colours were written with (r, g, b) */
-  private tints = new Float32Array(0);
+  /** per slot: the tint its colours were written with (r, g, b), in doubles: a float32 copy of the Color's doubles never
+   *  compares equal, and every member repainted its slot every frame (a third of Pine Hollow's gate frame, SF22d) */
+  private tints = new Float64Array(0);
   /** the members' bounds this frame (the shadow herd's culling sphere) */
   private readonly bounds = new THREE.Box3();
   private readonly sphere = new THREE.Sphere();
@@ -190,7 +191,7 @@ class FarBatch {
         for (let s = 0; s < cap; s++) for (let i = 0; i < verts * n; i++) arr[s * verts * n + i] = (a.array[i] ?? 0) + s * B;
         g.setAttribute(name, new THREE.BufferAttribute(arr, n));
       } else if (name === 'color') {
-        g.setAttribute(name, new THREE.BufferAttribute(new Float32Array(cap * verts * n), n)); // filled per slot (assign)
+        g.setAttribute(name, new THREE.BufferAttribute(new Float32Array(cap * verts * n), n).setUsage(THREE.DynamicDrawUsage)); // filled per slot (assign), repainted on a re-tint
       } else {
         const Ctor = a.array.constructor as new (length: number) => THREE.TypedArray;
         const arr = new Ctor(cap * verts * n);
@@ -218,7 +219,7 @@ class FarBatch {
     oldSkeleton?.dispose();
     const owners = this.owners;
     this.cap = cap;
-    this.tints = new Float32Array(cap * 3);
+    this.tints = new Float64Array(cap * 3);
     this.owners = Array.from({ length: cap }, (): FarMember | null => null);
     this.slotOf.clear();
     for (const [s, o] of owners.entries()) if (o !== null) this.assign(s, o);
