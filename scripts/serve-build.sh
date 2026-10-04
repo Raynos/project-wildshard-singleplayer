@@ -17,7 +17,7 @@
 
 set -uo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-REG="$HOME/.dev-servers"; mkdir -p "$REG"
+REG="${SERVE_REG_DIR:-$HOME/.dev-servers}"; mkdir -p "$REG"
 # "mine" is the calling session, not its folder (E338): every agent runs from the repo root or a shared scratchpad, so a
 # cwd key let one agent's all-mine / eviction stop another's preview mid-run. Claude Code sets CLAUDE_CODE_SESSION_ID;
 # anything else falls back to the folder.
@@ -108,7 +108,8 @@ while :; do
       done
     fi
     # reserve it: this shell holds the entry until the preview's pid replaces it (an exit before that drops it)
-    [ -n "$PORT" ] && { echo "$$ $(( $(date +%s) + 3600 )) - $CALLER $NAME(building)" > "$REG/$PORT"; trap '[ -f "$REG/$PORT" ] && grep -q "^$$ " "$REG/$PORT" && rm -f "$REG/$PORT"' EXIT; }
+    stamp="$(date +%Y%m%d-%H%M%S)-$PORT"
+    [ -n "$PORT" ] && { echo "$$ $(( $(date +%s) + 3600 )) $BASE/$stamp $CALLER $NAME(building)" > "$REG/$PORT"; trap '[ -f "$REG/$PORT" ] && grep -q "^$$ " "$REG/$PORT" && rm -f "$REG/$PORT"' EXIT; }
     unlock; break
   fi
   unlock
@@ -123,7 +124,6 @@ while :; do
 done
 [ -n "$PORT" ] || { echo "serve-build.sh: no free port in 4400–4999" >&2; exit 1; }
 
-stamp="$(date +%Y%m%d-%H%M%S)-$PORT"
 OUT="$BASE/$stamp/dist"
 SRC="$REPO"
 if [ $HEAD_ONLY -eq 1 ]; then

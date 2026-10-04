@@ -102,7 +102,7 @@ reap() {
   # (~/.dev-servers/<port>: "pid expiry dir cwd name") live until their expiry, and never past PREVIEW_MAX_AGE_H; an
   # unregistered preview for PREVIEW_MAX_AGE_H; a dev server (`vite` with neither build nor preview) for DEV_MAX_AGE_H.
   # `vite build` is left alone. A served dir is only ever deleted under /private/tmp/.
-  local reg="$HOME/.dev-servers" f rpid exp dir rcwd name why
+  local reg="${SERVE_REG_DIR:-$HOME/.dev-servers}" f rpid exp dir rcwd name why
   rm_dir() { [[ "$1" == /private/tmp/?*/?* ]] && [ -d "$1" ] && rm -rf "$1"; return 0; }
   for f in "$reg"/*; do
     [ -f "$f" ] || continue
