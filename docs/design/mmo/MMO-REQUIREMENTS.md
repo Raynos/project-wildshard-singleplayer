@@ -76,7 +76,7 @@ editor is Claude Code. Unreviewed arbitrary code from strangers. A native-only c
 | W7c | **Everything in view fits the phone together**: at a crossroads, four shards' near parts plus the far ring fit in 1.0 GB (B1). A shard's budget is a share of the phone, not the whole phone | MUST | J |
 | W7d | **Speed never outruns the stream**: at driving speed (~30 m/s) on a mobile link, the next shard's near parts arrive before the player does; a stall degrades to proxies, never a hole, a fall or a freeze | MUST | J |
 | W7e | **Borders are invisible to play**: crossing hands the player from room to room with nothing lost or duplicated and no hitch; creatures and players across a border are seen | MUST | J |
-| W7f | **Several looks on one screen** (Jake, E435): one frame owned by the camera (one sun, sky and fog); inside a shard, that shard's look; on the highway, a neutral world look; the change blends across each shard's edge band. A shard's style lives in its materials and a colour grade chosen per pixel, never in a full-screen pass of its own | MUST | J |
+| W7f | **Several looks on one screen** (Jake, E435): one frame owned by the camera (one sun, sky and fog) under **one world clock** (G27; a shard may override time inside its cell, blended at its edge band); inside a shard, that shard's look; on the highway, a neutral world look; the change blends across each shard's edge band. A shard's style lives in its materials and a colour grade chosen per pixel, never in a full-screen pass of its own | MUST | J |
 | W7g | **Simple borders for the first grid** (Jake, E435): creatures never leave their shard; no combat across a border; the highway is a no-combat zone; a vehicle crosses with its passengers as one unit; players and creatures across a border are visible, read-only. Lifted only once authority transfer is proven | MUST | J |
 | W8 | **The grid is seen from afar**: every shard has a far form (a proxy, then a horizon impostor) made by the platform from its package, so distant shards are visible at little cost | MUST | N, J |
 
@@ -141,8 +141,9 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 | M3 | World state is serialisable with **stable entity ids**; gameplay changes arrive as input commands, so snapshot → restore → replay is exact | MUST | N |
 | M4 | Identity: log in or play anonymously. A **Name** with a **Title** beneath it | MUST | V |
 | M5 | Chat: global, shard and proximity ; everything players and authors write is shown as plain text, and chat is moderated | MUST | V |
-| M6 | A **player profile** above the shards travels between shards. **Two wallets** (Jake, E435): the profile holds only what the platform controls (identity, cosmetics, titles, achievements, a platform currency at server-set rates, and gear from the shared item catalogue at server-capped power tiers). Anything a shard invents (its own items, keys, coins, progress) stays in that shard's save and never leaves it | MUST | V (R10), J |
+| M6 | A **player profile** above the shards travels between shards. **Two wallets** (Jake, E435): the profile holds only what the platform controls (identity, cosmetics, titles, achievements, and gear from the shared item catalogue at server-capped power tiers). **No global coin** (SHARD-PLATFORM G25). Anything a shard invents (its own items, keys, coins, progress) stays in that shard's save and never leaves it, except a signature item that passed catalogue review (G13) | MUST | V (R10), J |
 | M8 | **One progress ledger**: only events the server witnessed can grant profile things (loot, XP, titles, achievements, activity credit), and every grant is idempotent: a disconnect, a retry or a lag switch never duplicates or repeats one | MUST | N, J |
+| M9 | **Rooms have a measured cap and copies** (G26): start at 32 players; a full shard opens a copy with parties kept together; an author may set a lower cap | MUST | J |
 | M7 | Shard modes and law (persistent, instanced, scheduled, competitive; PvP, gravity, permadeath) declared as data the server enforces. Later (Jake, E435): the first grid is PvE in persistent shards | LATER | N, J |
 
 ### 3.8 Upload and lifecycle
@@ -151,7 +152,7 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 |---|---|---|---|
 | U1 | **The upload ritual:** in localhost mode the author plants a beacon at the 8 corners and a 9th at the centre, then completes a ~30 s upload sequence. No CLI or API upload replaces it; the SDK never uploads | MUST | F |
 | U2 | The server validates (A3) and quarantines a revision, then activates it all-or-nothing. Every revision is kept | MUST | N |
-| U3 | **Live update with players inside** is designed and tested: revision swap while occupied, relocation mid-session, capacity, crash recovery (open decision O5) | MUST | V |
+| U3 | **Live update with players inside, blue/green** (G17): players inside finish on the old revision (time-capped), new arrivals get the new one; only a shared-state schema change needs a coordinated cut-over. Schema changes are additive, or carry an author migration tested against real saves (G18) | MUST | V, J |
 | U4 | **Private shards never leak**, including through public asset URLs | MUST | V |
 
 ### 3.9 Ownership and the living grid
@@ -162,8 +163,10 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 | O2 | **Locking and grace periods** stop shards thrashing | MUST | F |
 | O3 | **Collaboration:** invite editors; an editor downloads the current revision to edit it cleanly in Claude Code | MUST | F |
 | O4 | The first behaviour language | **Decided (Jake, E435): AssemblyScript first** (plain linear-memory Wasm, not WasmGC), on a language-neutral interface that Rust can target later; QuickJS at most as a slow "any JS" fallback. Measured: about JIT speed, 5–9 KB modules, a compiler that runs inside Node, fuel metering and exact memory caps on V8 and JavaScriptCore, and bit-identical maths on the server and the phone (its own maths library; the engine's `Math.sin` and friends differ between V8 and JavaScriptCore today) |
-| O5 | **No ghost-town centre:** rank, bin-pack, archive and relocate shards by meaningful activity (edits, play, authored quests, achievements, puzzles, pickups), **excluding the author**, resistant to farming. The centre stays fixed. What happens to players, saves and archived work on a move is defined | MUST | F |
-| O6 | Moderation: report, review and take down a shard or a revision, including copyright takedowns; content checks on upload where they are cheap | MUST | N |
+| O5 | Live update with players inside | **Decided (Jake, E435, G17): blue/green**, not evacuate |
+| O6 | Moderation, **AI first with Jake on appeal** (G28): an AI pass against a written policy checks every upload, asset, author string and reported chat; borderline cases queue for a human; players report anything; copyright takedowns | MUST | N, J |
+| O7 | **Public shards are always remixable** within Wildshard, with automatic attribution (G20); uploads carry their source (G19) | MUST | J |
+| O8 | **Player building** (placing and destroying persistent things) comes later, after three brand-new shards built around building stress-test it (G7) | LATER | J |
 
 ### 3.10 The transition: the six shards keep working
 
