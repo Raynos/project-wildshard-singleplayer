@@ -1,9 +1,12 @@
 import { expect, it } from 'vitest';
-import { type BufferGeometry, DataArrayTexture, Group, Mesh, type Material, type Object3D } from 'three';
+import { BufferAttribute, type BufferGeometry, DataArrayTexture, Group, Mesh, type Material, type Object3D, Texture } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { generatePlatform, type GeneratedStrip, type PlatformCell } from '../src/engine/sim/strips';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { PageResidency } from '../src/game/grid/pageResidency';
+import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
+import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 import { loadGridEdgeProfiles } from '../src/game/grid/edgeProfiles';
 import { readGridEdges } from '../src/game/grid/edgeSources';
 import { PlatformRenderAdmissionError, PlatformRenderResidency, type PlatformRenderAdmission, type PlatformRenderBytePlan } from '../src/game/grid/renderResidency';
@@ -13,7 +16,7 @@ import { installRoadLook } from '../src/game/grid/roadLook';
 import { installVoidLook } from '../src/game/grid/voidLook';
 import { gravel, riprap, seamSolid, stone, strata } from '../src/game/grid/seamLook';
 import { grainArray, solidGeometry, type SolidPart } from '../src/game/grid/roadSolid';
-import { cullRoadMesh, ROAD_LOD, type CullPlan } from '../src/game/grid/roadCull';
+import { cullRoadMesh, gpuOnlyRoad, ROAD_LOD, type CullPlan } from '../src/game/grid/roadCull';
 import templateBake from '../public/assets/baked/_template/terrain.bin?inline';
 import driftwoodBake from '../public/assets/baked/driftwood-isle/terrain.bin?inline';
 import pineBake from '../public/assets/baked/pine-hollow/terrain.bin?inline';
@@ -21,7 +24,9 @@ import nalatiBake from '../public/assets/baked/nalati-grasslands/terrain.bin?inl
 
 // The road look paints canvases; Node has none, so a do-nothing 2D context stands in (sizes and geometry are what is measured).
 const noop = (): unknown => new Proxy(() => undefined, { get: (_t, key) => (key === 'width' ? 0 : key === 'data' ? new Uint8ClampedArray(4 * 256 * 256) : noop()), apply: () => noop() });
-Object.assign(globalThis, { document: { createElement: () => ({ width: 0, height: 0, getContext: () => noop() }) } });
+// It is an HTMLCanvasElement as far as `gpuOnlyTexture` asks, so an admitted canvas really shrinks to a pixel on upload.
+class StubCanvas { width = 0; height = 0; getContext(): unknown { return noop(); } }
+Object.assign(globalThis, { HTMLCanvasElement: StubCanvas, document: { createElement: () => new StubCanvas() } });
 
 /** The real 3 × 3 platform: the shipped catalogue, every cell's edge rows read from its own baked terrain (as the session's
  *  legacy reader does), the session's fallbacks. */
@@ -50,15 +55,29 @@ const mapOf = (material: Material | Material[]): { image: { width: number; heigh
   const m = Array.isArray(material) ? material[0] : material;
   return m !== undefined && 'map' in m && m.map !== null && typeof m.map === 'object' && 'image' in m.map ? m.map as { image: { width: number; height: number } } : null;
 };
-/** What a built mesh really holds: every attribute and index array (CPU, and uploaded to the GPU), the cull's sorted source
- *  (CPU only), and its canvas (backing store on the CPU, every mip level on the GPU). */
+/** What a built mesh really holds once drawn: every attribute and index array as uploaded to the GPU, and what stays on the
+ *  CPU after three's upload hooks ran (an admitted mesh lets its vertex arrays and canvas go, `gpuOnlyRoad`), the cull's
+ *  sorted source (CPU only), and its canvas (backing store on the CPU, every mip level on the GPU). */
 function measured(mesh: Mesh, plan: CullPlan | undefined): { jsBytes: number; gpuBytes: number } {
+  const geometry: BufferGeometry = mesh.geometry, arrays = (): number => {
+    let n = 0;
+    for (const name of Object.keys(geometry.attributes)) n += geometry.getAttribute(name).array.byteLength;
+    return n + (geometry.getIndex()?.array.byteLength ?? 0);
+  };
+  const map = mapOf(mesh.material), w = map?.image.width ?? 0, h = map?.image.height ?? 0, gpu = arrays();
+  uploaded(mesh);
+  const left = mapOf(mesh.material), lw = left?.image.width ?? 0, lh = left?.image.height ?? 0;
+  return { jsBytes: arrays() + (plan?.source.byteLength ?? 0) + lw * lh * 4, gpuBytes: gpu + (map === null ? 0 : chain(w, h) * 4) };
+}
+const isTexture = (v: unknown): v is Texture => v instanceof Texture;
+/** three's first upload of a mesh: each attribute's (and the index's) onUpload hook, each map's onUpdate */
+function uploaded(mesh: Mesh): void {
   const geometry: BufferGeometry = mesh.geometry;
-  let buffers = 0;
-  for (const name of Object.keys(geometry.attributes)) buffers += geometry.getAttribute(name).array.byteLength;
-  buffers += geometry.getIndex()?.array.byteLength ?? 0;
-  const map = mapOf(mesh.material), w = map?.image.width ?? 0, h = map?.image.height ?? 0;
-  return { jsBytes: buffers + (plan?.source.byteLength ?? 0) + w * h * 4, gpuBytes: buffers + (map === null ? 0 : chain(w, h) * 4) };
+  for (const a of [...Object.values(geometry.attributes), geometry.getIndex()]) if (a instanceof BufferAttribute) a.onUploadCallback();
+  for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+    const map: unknown = 'map' in m ? m.map : null;
+    if (isTexture(map)) map.onUpdate?.(map);
+  }
 }
 const ID_OF: Readonly<Record<string, string>> = { 'grid-asphalt': 'road.asphalt', 'grid-junctions': 'road.junctions', 'grid-signs': 'road.signs', 'grid-void-floor': 'road.void', 'grid-deck': 'road.deck', 'grid-seam-curtain': 'road.curtain' };
 const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;
@@ -89,7 +108,11 @@ it('plans exactly the bytes every platform render builder allocates on the real 
     const grain = grainArray({ gravel, stone, strata, riprap });
     if (!(grain instanceof DataArrayTexture)) throw new Error('grain');
     const { width: gw, height: gh, depth: layers } = grain.image;
+    // admitted, the deck hands its grain to `gpuOnlyRoad`: the array goes on upload (this probe copy shows it emptying)
+    expect(grain.image.data?.byteLength ?? 0).toBeGreaterThan(0);
+    gpuOnlyRoad(new Mesh(), [grain]); grain.onUpdate?.(grain);
     const grainBytes = { jsBytes: grain.image.data?.byteLength ?? 0, gpuBytes: chain(gw, gh) * 4 * layers };
+    expect(grainBytes.jsBytes).toBe(0);
     const meshes = meshesOf(road.roots);
     expect(meshes.map((m) => m.name).sort()).toEqual(Object.keys(ID_OF).sort());
     for (const mesh of meshes) {
@@ -160,4 +183,26 @@ it('a refused plan never builds, and a refusal part-way disposes what was built 
   expect(meshesOf([scene]).map((m) => m.name).sort()).toEqual(['grid-asphalt', 'grid-junctions', 'grid-signs', 'grid-void-floor']);
   partScope.dispose();
   expect(partial.entries()).toEqual([]); expect(meshesOf([scene])).toEqual([]);
+}, SLOW);
+
+it('refuses the real platform before its deck allocation when the measured Driftwood home already occupies the shared envelope', async () => {
+  const { assembly, strips } = await real(), scope = new Scope('measured-home-road'), page = new PageResidency();
+  const claim = page.admitHome('driftwood-isle', runtimeAccountedBytes(DRIFTWOOD_RUNTIME_COST));
+  const baseline = page.allocator.entries(), residency = new PlatformRenderResidency(page.allocator, scope), allocated: string[] = [];
+  const admission: PlatformRenderAdmission = { allocate: (plan, build) => residency.allocate(plan, (owner) => {
+    allocated.push(plan.id); return build(owner);
+  }) };
+  let failure: unknown;
+  try {
+    expect(page.allocator.cost().playing).toBe(966_000_001);
+    try { install(assembly, strips, admission, scope); } catch (error) { failure = error; }
+    if (!(failure instanceof PlatformRenderAdmissionError)) throw new Error('Expected real platform refusal under measured home cost');
+    expect(failure.plan.id).toBe('road.deck');
+    expect(allocated).toEqual(['road.asphalt', 'road.junctions', 'road.signs', 'road.void']);
+    expect(page.allocator.has('platform:render:road.deck')).toBe(false);
+    expect(page.allocator.cost().playing).toBeLessThanOrEqual(1_000_000_000);
+    expect(page.home()).toBe(claim);
+    scope.dispose(); expect(page.allocator.entries()).toEqual(baseline);
+  } finally { scope.dispose(); page.dispose(); }
+  expect(page.allocator.entries()).toEqual([]);
 }, SLOW);
