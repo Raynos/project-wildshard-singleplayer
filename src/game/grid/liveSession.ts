@@ -254,7 +254,7 @@ export class LiveGridSession {
     const groundResolution = source.edge.north.heights.length === 256 ? 256 : 257;
     const generatedGroundBytes = source.terrain === null ? 2 * groundResolution ** 2 * Float32Array.BYTES_PER_ELEMENT : 0;
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
-    return { bytes: source.budgets.sim.resident + generatedGroundBytes, create: (saved) => {
+    return { bytes: source.budgets.sim.resident + generatedGroundBytes, reloadsCheckpoint: true, create: (saved) => {
       let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false, quest, groundResolution });
       let releaseBasis: () => void = () => undefined;
       try {

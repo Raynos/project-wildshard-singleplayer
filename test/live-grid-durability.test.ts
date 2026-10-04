@@ -17,6 +17,7 @@ import { LiveGridSession } from '../src/game/grid/liveSession';
 import { GridRegionDurability } from '../src/game/grid/durability';
 import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { GRID_CONTINUATION_CACHE_BYTES } from '../src/game/grid/continuations';
 import { parseMigrations } from '../src/game/shardfile/migrations';
 import source from '../src/shards/_template/shard.config';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -85,6 +86,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     return { session, scope, traveller, allocator, dismount, tick: () => withOwner(scope, () => { for (const fn of pre) fn(); currentPhysics.step(); for (const fn of post) fn(); }) };
   };
   const first = open();
+  expect(first.allocator.entries().find((entry) => entry.id === `sim-continuations:live:${home.instance}`)?.bytes).toBe(GRID_CONTINUATION_CACHE_BYTES);
   expect(first.scope.census.colliders).toBe(0); // highway walls belong to their independent world, never the page
   const settle = async (tick: () => void): Promise<void> => { for (let turn = 0; turn < 20; turn++) { await Promise.resolve(); tick(); } };
   try {
@@ -118,20 +120,26 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     expect(first.session.frame()).toBe(target.instance);
     expect(first.session.state().crossing.issue).toBe('Local checkpoint is not durable');
     local.fail = false; first.tick(); expect(first.session.frame()).toBeNull();
+    expect(first.session.live.state().continuations.storedChars).toBeGreaterThan(0);
     const reload = new GridRegionDurability(new SaveStore({ local, session: null }), { id: target.instance, shard: target.slug }, source, []);
     const freshBasis = create(source, assets, { rapier, playerBody: false, groundResolution: 257, quest: reload.quest });
     try { reload.setPhysicsBasis(freshBasis.host.physics.snapshot()); } finally { freshBasis.dispose(); }
     expect(reload.read()?.flags).toContain('template.complete'); expect(reload.wallet.coins()).toBe(5);
     expect(Object.values(reload.ledger.state().facts)).toHaveLength(1);
     expect(new GridRegionDurability(new SaveStore({ local, session: null }), { id: 'template-2', shard: '_template' }, source, []).wallet.coins()).toBe(0);
+    expect(first.session.live.unload(target.instance)).toBe(true);
+    expect(first.session.live.state().continuations.entries).toBe(0);
+    expect(first.allocator.has(`sim-continuations:live:${home.instance}`)).toBe(true);
     pageHost.player.position.set(target.origin.x, 1, target.origin.z); await settle(first.tick);
     expect(first.session.frame()).toBe(target.instance);
+    expect(first.session.simulation(target.instance)?.host.flags.has('template.complete')).toBe(true);
   } finally {
     try {
       withOwner(first.scope, () => { first.scope.dispose(); });
       expect(regions.every((region) => region.host.scope.disposed)).toBe(true);
       expect(first.session.live.state().residents).toEqual([]);
       expect(first.allocator.entries()).toEqual([]);
+      expect(first.session.live.state().continuations).toMatchObject({ entries: 0, storedChars: 0, claimedBytes: 0 });
       expect({ bodies: pageHost.physics.world.bodies.len(), colliders: pageHost.physics.world.colliders.len() }).toEqual(homeBaseline);
     } finally {
       pageHost.attachPlayerMotor(first.traveller.motor); pageHost.dispose(); restoreGlobals();
