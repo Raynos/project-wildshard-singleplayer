@@ -13422,6 +13422,30 @@
         "from": "@wildshard/game/shardfile/simulation"
       },
       {
+        "name": "skinLayerDecoded",
+        "kind": "function",
+        "doc": "Charge serialized tables, numeric arrays and per-state cached transforms before compiling layers.",
+        "from": "@wildshard/game/shardfile/skinLayers"
+      },
+      {
+        "name": "SkinPoseLayer",
+        "kind": "type",
+        "doc": "Callback-free pose samples, bounded and owned by the skin binding.",
+        "from": "@wildshard/game/shardfile/skinLayers"
+      },
+      {
+        "name": "SkinPoseLayerSchema",
+        "kind": "const",
+        "doc": "Independent sampled clocks supplement a base clip; optional phase tables preserve coupled gait and breath.",
+        "from": "@wildshard/game/shardfile/skinLayers"
+      },
+      {
+        "name": "validateSkinLayers",
+        "kind": "function",
+        "doc": "Validate table sizes, periodic endpoints and joint references before compiling float buffers.",
+        "from": "@wildshard/game/shardfile/skinLayers"
+      },
+      {
         "name": "ShardTerrain",
         "kind": "type",
         "doc": "A validated terrain section, containing no landscape closures.",
@@ -14964,7 +14988,7 @@
       {
         "name": "skinnedGlb",
         "kind": "function",
-        "doc": "Deterministic self-contained GLB of actual geometry, joint order, weights, inverse binds and sampled clips; textures stay external KTX2 declarations.",
+        "doc": "Deterministic self-contained GLB of actual geometry, joint order, weights, inverse binds and sampled clips (constant channels keep only their endpoints); textures stay external KTX2 declarations.",
         "from": "@wildshard/sdk/bake/export"
       },
       {

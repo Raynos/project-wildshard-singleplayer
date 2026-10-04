@@ -6,6 +6,15 @@ highway, strip and crossroads meshes with local duplicates; `@wildshard/engine/p
 motor transfers. `@wildshard/game/grid/state` fingerprints authored continuation without global placement or
 platform colliders. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
 
+`@wildshard/game/shardfile/skinLayers` declares independent numeric pose clocks in skin bindings.
+Each clock has a period, monotonic sample times and joint-local translation, Euler rotation, scale
+or quaternion deltas. Coupled clocks use bounded quaternion phase tables with their own phase period.
+Admission proves both wrap endpoints, joint references and table sizes; decoded cost includes tables,
+compiled floats and cached base transforms. The skin player restores its sampled base before summing
+layers, so breathing, sway and gestures continue across gait loops without accumulating deltas.
+The trusted skin baker compacts constant GLB channels and samples the walk at 120 Hz; runtime content
+contains numeric data, with no procedural pose callback.
+
 This is the public API a shard is written against. It covers the three public layers and what each one gives a
 shard. One section per § of [01-architecture](../project/archive/game-normalization/01-architecture.md), in the same order.
 
@@ -2088,7 +2097,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-369 exports, grouped by the module to import them from.
+373 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2156,6 +2165,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/schema`: `LOOK_LUT_BYTES`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
 - `@wildshard/game/shardfile/simulation`: `bindShardfileSim`, `createShardfileSim`, `numericScriptEntityId`, `ShardfileSimPorts`, `ShardfileSimulation`
+- `@wildshard/game/shardfile/skinLayers`: `skinLayerDecoded`, `SkinPoseLayer`, `SkinPoseLayerSchema`, `validateSkinLayers`
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`
 - `@wildshard/game/shardfile/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`

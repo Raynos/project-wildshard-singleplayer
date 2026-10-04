@@ -1,0 +1,47 @@
+{
+  "kind": "grey-blob",
+  "cadence": "loops120Hz, one-shots60Hz",
+  "toleranceMetres": 0.001,
+  "compared": 145300,
+  "maximumVertexError": 0.000028090271232850128,
+  "wrapFrames": 16,
+  "cost": {
+    "decoded": 69318,
+    "gpu": 30224,
+    "triangles": 100,
+    "draws": 2
+  },
+  "clips": [
+    {
+      "clip": "idle",
+      "maximumVertexError": 0.000028090271232850128,
+      "compared": 72100,
+      "wrapFrames": 8
+    },
+    {
+      "clip": "walk",
+      "maximumVertexError": 0.00002803756969949056,
+      "compared": 36900,
+      "wrapFrames": 8
+    },
+    {
+      "clip": "attack",
+      "maximumVertexError": 3.784880320267803e-8,
+      "compared": 12100,
+      "wrapFrames": 0
+    },
+    {
+      "clip": "hit",
+      "maximumVertexError": 8.844107649300563e-8,
+      "compared": 12100,
+      "wrapFrames": 0
+    },
+    {
+      "clip": "die",
+      "maximumVertexError": 1.7660358619941974e-8,
+      "compared": 12100,
+      "wrapFrames": 0
+    }
+  ],
+  "attackHit": "no motion today beyond idle pulse (separate vertex test)"
+}

@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-369 members; 112 without a doc line (—).
+373 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -352,6 +352,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `numericScriptEntityId` | function | @wildshard/game/shardfile/simulation | Positive stable actor handle; reordering spawns changes nothing. Hash collisions are refused during composition. |
 | `ShardfileSimPorts` | interface | @wildshard/game/shardfile/simulation | The existing client can lend its physics/player/fixed-step driver; Node owns them by default. |
 | `ShardfileSimulation` | interface | @wildshard/game/shardfile/simulation | Authoritative handles for UI, quests and the existing client fixed-step driver. |
+| `skinLayerDecoded` | function | @wildshard/game/shardfile/skinLayers | Charge serialized tables, numeric arrays and per-state cached transforms before compiling layers. |
+| `SkinPoseLayer` | type | @wildshard/game/shardfile/skinLayers | Callback-free pose samples, bounded and owned by the skin binding. |
+| `SkinPoseLayerSchema` | const | @wildshard/game/shardfile/skinLayers | Independent sampled clocks supplement a base clip; optional phase tables preserve coupled gait and breath. |
+| `validateSkinLayers` | function | @wildshard/game/shardfile/skinLayers | Validate table sizes, periodic endpoints and joint references before compiling float buffers. |
 | `ShardTerrain` | type | @wildshard/game/shardfile/terrain | A validated terrain section, containing no landscape closures. |
 | `TerrainSchema` | const | @wildshard/game/shardfile/terrain | The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. |
 | `validateTerrainAssets` | function | @wildshard/game/shardfile/terrain | Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams. |

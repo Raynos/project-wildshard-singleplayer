@@ -16,6 +16,8 @@ import { bindRig, type ClipName, type RigInstance } from '@wildshard/engine/anim
 import { AnimMachine } from '@wildshard/engine/anim/machine';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parseGlb, type AssetCost } from './assets';
+import { SkinPoseLayerSchema, validateSkinLayers, skinLayerDecoded } from './skinLayers';
+import { skinPoseLayers } from './skinLayerPlayback';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 const hash = v.pipe(v.string(), v.regex(/^[0-9a-f]{64}$/u));
@@ -31,8 +33,8 @@ export const SkinRowSchema = v.object({
 });
 /** A validated exported skin row. */
 export type SkinRow = v.InferOutput<typeof SkinRowSchema>;
-/** How a skin plays and draws: the family material entry (SF10a, validated by the family registry) and the clips that loop. */
-export const SkinBindingSchema = v.strictObject({ skin: id, material: v.record(v.string(), v.unknown()), loops: v.pipe(v.array(clip), v.maxLength(32)) });
+/** How a skin plays and draws: the family material entry (SF10a, validated by the family registry) the clips that loop and independent numeric pose clocks. */
+export const SkinBindingSchema = v.strictObject({ skin: id, material: v.record(v.string(), v.unknown()), loops: v.pipe(v.array(clip), v.maxLength(32)), poseLayers: v.exactOptional(v.record(clip, v.pipe(v.array(SkinPoseLayerSchema), v.maxLength(32)))) });
 /** A validated skin binding. */
 export type SkinBinding = v.InferOutput<typeof SkinBindingSchema>;
 
@@ -43,7 +45,7 @@ export function parseSkinRows(input: unknown): SkinRow[] {
   if (new Set(r.output.map((row) => row.id)).size !== r.output.length) throw new Error('skins: unique ids');
   return r.output;
 }
-/** Validate skin bindings against their rows: one per skin, loops only over the row's clips. */
+/** Validate skin bindings against their rows: one per skin, loops only over the row's clips, with bounded periodic layer tables. */
 export function parseSkinBindings(input: unknown, rows: readonly SkinRow[]): SkinBinding[] {
   const r = v.safeParse(v.pipe(v.array(SkinBindingSchema), v.maxLength(256)), input);
   if (!r.success) throw new Error(`skin bindings: ${r.issues.map((i) => `${v.getDotPath(i) ?? '(root)'}: ${i.message}`).join('; ')}`);
@@ -51,6 +53,7 @@ export function parseSkinBindings(input: unknown, rows: readonly SkinRow[]): Ski
     const row = rows.find((candidate) => candidate.id === binding.skin);
     if (row === undefined) throw new Error(`skin bindings: no skin ${binding.skin}`);
     if (binding.loops.some((name) => !row.rig.clips.includes(name))) throw new Error(`skin bindings: ${binding.skin} loops an unknown clip`);
+    for (const [name, layers] of Object.entries(binding.poseLayers ?? {})) { if (layers === undefined) continue; if (!binding.loops.includes(name as ClipName)) throw new Error('skin layers require a looping base'); validateSkinLayers(layers, row.rig.joints[0] ?? []); }
   }
   if (new Set(r.output.map((binding) => binding.skin)).size !== r.output.length) throw new Error('skin bindings: one per skin');
   return r.output;
@@ -82,7 +85,9 @@ const isSkin = (node: Object3D): node is SkinnedMesh => (node as Partial<Skinned
  */
 export async function loadSkin(glb: Uint8Array, row: SkinRow, binding: SkinBinding, material: Material, scope?: Scope): Promise<SkinPlayer> {
   if (binding.skin !== row.id) throw new Error(`skin ${row.id}: binding for ${binding.skin}`);
+  parseSkinBindings([binding], [row]);
   const cost = parseGlb(glb);
+  cost.decoded += skinLayerDecoded(binding.poseLayers ?? {}, row.rig.joints[0]?.length ?? 0);
   if (cost.gpu > row.cost.gpu || cost.decoded > row.cost.decoded || cost.triangles > row.cost.triangles || cost.draws > row.cost.draws) throw new Error(`skin ${row.id}: cost above its declaration`);
   const file = await new GLTFLoader().parseAsync(glb.slice().buffer, '');
   const meshes: SkinnedMesh[] = []; file.scene.traverse((node) => { if (isSkin(node)) meshes.push(node); });
@@ -96,17 +101,21 @@ export async function loadSkin(glb: Uint8Array, row: SkinRow, binding: SkinBindi
   const states: Record<string, { clip: ClipName; fade: number }> = {};
   for (const name of row.rig.clips) states[name] = { clip: name, fade: 0 };
   const machine = new AnimMachine({ states, loops: binding.loops }, rig);
-  let current: ClipName | null = null, live = true;
+  let current: ClipName | null = null, live = true, time = 0;
+  const layers = new Map(Object.entries(binding.poseLayers ?? {}).filter((entry): entry is [string, NonNullable<typeof entry[1]>] => entry[1] !== undefined).map(([name, data]) => [name, skinPoseLayers(mesh, data)]));
+  let activeLayers: ReturnType<typeof skinPoseLayers> | undefined;
   const player: SkinPlayer = {
     root: file.scene, mesh, rig, machine, cost,
     get clip() { return current; },
     play: (name) => {
+      activeLayers?.restore();
       const action = machine.action(name);
       for (const other of row.rig.clips) if (other !== name) machine.action(other).stop();
       action.reset(); action.setEffectiveWeight(1); action.play();
-      current = name; machine.update(0);
+      current = name; time = 0; machine.update(0);
+      activeLayers = layers.get(name); activeLayers?.apply(time);
     },
-    update: (dt) => { machine.update(dt); },
+    update: (dt) => { if (!Number.isFinite(dt) || dt < 0) throw new Error('Invalid skin step'); activeLayers?.restore(); machine.update(dt); time += dt; activeLayers?.apply(time); },
     dispose: () => {
       if (!live) return;
       live = false; machine.dispose(); mesh.geometry.dispose(); mesh.skeleton.dispose(); mesh.removeFromParent();

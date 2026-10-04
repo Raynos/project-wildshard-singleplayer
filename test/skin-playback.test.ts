@@ -2,13 +2,13 @@
 // player (admission, GLTFLoader, bindRig, AnimMachine) with their SF10a family material bindings, and every clip played
 // frame by frame (the engine's real-time update, not a seek) matches today's procedural pose closure.
 // oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed exported skins, bindings and textures.
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Platform independent fixture paths.
 import { join } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Content-addressed files are checked against their sha256 names.
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The repository root is Vitest's working directory.
-import { cwd } from 'node:process';
+import { cwd, env } from 'node:process';
 import { describe, expect, it } from 'vitest';
 import { DataTexture, MeshStandardMaterial, Vector3, type Texture } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -34,42 +34,74 @@ describe('exported skins play in the client', () => {
     expect(skin.mesh.material).toBe(material); expect(material).toBeInstanceOf(MeshStandardMaterial);
     expect(skin.mesh.castShadow).toBe(true); expect([...skin.rig.sockets.keys()]).toEqual(row.rig.sockets);
     expect(refs.length).toBe(kind === 'pine-ranger' ? 2 : 0);
-    let worst = 0, compared = 0, seam = 0;
+    let worst = 0, compared = 0, wraps = 0; const measurements: { clip: string; maximumVertexError: number; compared: number; wrapFrames: number }[] = [];
     for (const name of row.rig.clips) {
       const original = await skinFixtureSource(kind);
       try {
         skin.play(name);
         const clip = skin.rig.clips.get(name); if (clip === undefined) throw new Error('missing clip');
-        const frames = Math.round(clip.duration * 60), position = original.mesh.geometry.getAttribute('position');
+        const loops = binding.loops.includes(name), position = original.mesh.geometry.getAttribute('position');
+        const layerWraps = (binding.poseLayers?.[name] ?? []).flatMap((layer) => [2 * layer.period, 3 * layer.period]);
+        const duration = loops ? Math.max(clip.duration * 3, ...layerWraps) + 1 / 60 : clip.duration;
+        const hz = loops ? 120 : 60, frames = Math.ceil(duration * hz);
+        let clipWorst = 0, clipCompared = 0, clipWraps = 0;
         for (let frame = 0; frame <= frames; frame++) {
-          if (frame > 0) skin.update(1 / 60);
-          original.pose(name, frame / 60, frame === 0 ? 0 : 1 / 60); original.mesh.updateMatrixWorld(true); skin.root.updateMatrixWorld(true);
-          // a looping clip wraps to its first frame at its end: today's closure runs on (its breath and sway are not periodic
-          // in the sampled window), so that one frame is the loop seam, measured separately
-          const wrapped = frame === frames && binding.loops.includes(name);
+          if (frame > 0) skin.update(1 / hz);
+          const time = frame / hz;
+          original.pose(name, time, frame === 0 ? 0 : 1 / hz); original.mesh.updateMatrixWorld(true); skin.root.updateMatrixWorld(true);
+          // Include both sides of every layer's second/third wrap, and every base frame through its third loop.
+          const nearWrap = layerWraps.some((wrap) => Math.abs(time - wrap) <= 1 / 60);
+          if (time > clip.duration * 3 && !nearWrap) continue;
+          if (nearWrap) { wraps++; clipWraps++; }
           for (let i = 0; i < position.count; i += 3) {
             const expected = original.mesh.getVertexPosition(i, new Vector3()).applyMatrix4(original.mesh.matrixWorld);
             const error = skin.mesh.getVertexPosition(i, new Vector3()).applyMatrix4(skin.mesh.matrixWorld).distanceTo(expected);
-            if (wrapped) seam = Math.max(seam, error); else { worst = Math.max(worst, error); compared++; }
+            worst = Math.max(worst, error); clipWorst = Math.max(clipWorst, error); compared++; clipCompared++;
           }
         }
+        measurements.push({ clip: name, maximumVertexError: clipWorst, compared: clipCompared, wrapFrames: clipWraps });
         // past the end: a looping clip wraps, a one-shot holds its last frame
-        skin.update(clip.duration * 0.5);
+        skin.play(name); skin.update(clip.duration * 1.5);
         const time = skin.machine.action(name).time;
-        if (binding.loops.includes(name)) expect(time).toBeLessThan(clip.duration * 0.75); else expect(time).toBeCloseTo(clip.duration, 5);
+        if (binding.loops.includes(name)) expect(time).toBeCloseTo(clip.duration * 0.5, 5); else expect(time).toBeCloseTo(clip.duration, 5);
       } finally { original.dispose(); }
     }
-    expect(compared).toBeGreaterThan(30000); expect(worst).toBeLessThan(1e-4);
-    // the loop seams measured at SF9c: grey blob 3.9 cm, boar 8.2 mm, ranger 4.2 cm (breath and slow sway)
-    expect(seam).toBeLessThan({ 'grey-blob': 0.045, boar: 0.01, 'pine-ranger': 0.05 }[kind]);
+    expect(compared).toBeGreaterThan(30000); expect(worst, JSON.stringify(measurements)).toBeLessThan(0.001); expect(wraps).toBeGreaterThan(0);
+    if (env['SF9C_WRITE_RECEIPTS'] === '1') writeFileSync(join(cwd(), 'progress/shard-platform/sf9c', `${kind}-loops.json`), JSON.stringify({ kind, cadence: 'loops120Hz, one-shots60Hz', toleranceMetres: 0.001, compared, maximumVertexError: worst, wrapFrames: wraps, cost: skin.cost, clips: measurements, attackHit: kind === 'grey-blob' ? 'no motion today beyond idle pulse (separate vertex test)' : 'current source sampled' }, null, 2));
     scope.dispose(); material.dispose();
   }, 120000);
+
+  it('grey blob attack and hit have no motion today beyond the same idle pulse', async () => {
+    const idle = await skinFixtureSource('grey-blob');
+    try { for (const name of ['attack', 'hit'] as const) {
+      const original = await skinFixtureSource('grey-blob');
+      try { for (let frame = 0; frame <= 120; frame++) {
+        const t = frame / 60; idle.pose('idle', t, 1 / 60); original.pose(name, t, 1 / 60);
+        idle.mesh.updateMatrixWorld(true); original.mesh.updateMatrixWorld(true);
+        for (let i = 0; i < original.mesh.geometry.getAttribute('position').count; i++) expect(original.mesh.getVertexPosition(i, new Vector3()).distanceTo(idle.mesh.getVertexPosition(i, new Vector3()))).toBeLessThan(1e-8);
+      } } finally { original.dispose(); }
+    } } finally { idle.dispose(); }
+  });
+
+  it('refuses malformed, nonperiodic or oversized layer data before allocating playback buffers', () => {
+    const row = rows[0], binding = bindings[0], original = binding?.poseLayers?.['idle']?.[0];
+    if (row === undefined || binding === undefined || original === undefined) throw new Error('Missing layer fixture');
+    const track = original.tracks[0]; if (track === undefined) throw new Error('Missing layer track');
+    const check = (layer: typeof original) => parseSkinBindings([{ ...binding, poseLayers: { idle: [layer] } }], [row]);
+    expect(() => check({ ...original, tracks: [{ ...track, bone: 'absent' }] })).toThrow(/shape/u);
+    expect(() => check({ ...original, times: [0, 0, original.period] })).toThrow(/times/u);
+    expect(() => check({ ...original, tracks: [{ ...track, values: [Number.NaN] }] })).toThrow(/Invalid/u);
+    const values = [...track.values]; values[values.length - 1] = 1;
+    expect(() => check({ ...original, tracks: [{ ...track, values }] })).toThrow(/seam/u);
+    expect(() => check({ ...original, phaseSteps: 65 })).toThrow(/Invalid/u);
+  });
 
   it('refuses a skin whose bytes cost more than its row declares, or a binding for another skin', async () => {
     const row = rows[0], binding = bindings[0], other = bindings[1];
     if (row === undefined || binding === undefined || other === undefined) throw new Error('fixture rows');
     const material = new MeshStandardMaterial();
     await expect(loadSkin(file(row.file), { ...row, cost: { ...row.cost, gpu: row.cost.gpu - 1 } }, binding, material)).rejects.toThrow(/cost/u);
+    await expect(loadSkin(file(row.file), { ...row, cost: { ...row.cost, decoded: row.cost.decoded - 1 } }, binding, material)).rejects.toThrow(/cost/u);
     await expect(loadSkin(file(row.file), row, other, material)).rejects.toThrow(/binding/u);
     await expect(loadSkin(file(row.file), { ...row, rig: { ...row.rig, joints: [[...(row.rig.joints[0] ?? [])].reverse()] } }, binding, material)).rejects.toThrow(/joint order/u);
     expect(() => parseSkinBindings([{ ...binding, loops: ['run'] }], rows)).toThrow(/unknown clip/u);

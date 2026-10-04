@@ -76,6 +76,7 @@
     "./grid/crossing": "./grid/crossing.ts",
     "./grid/wallet": "./grid/wallet.ts",
     "./grid/simulation": "./grid/simulation.ts",
-    "./grid/state": "./grid/state.ts"
+    "./grid/state": "./grid/state.ts",
+    "./shardfile/skinLayers": "./shardfile/skinLayers.ts"
   }
 }

@@ -1,0 +1,41 @@
+{
+  "kind": "pine-ranger",
+  "cadence": "loops120Hz, one-shots60Hz",
+  "toleranceMetres": 0.001,
+  "compared": 8211456,
+  "maximumVertexError": 0.00016796270328671181,
+  "wrapFrames": 76,
+  "cost": {
+    "decoded": 10841048,
+    "gpu": 708488,
+    "triangles": 10661,
+    "draws": 2
+  },
+  "clips": [
+    {
+      "clip": "idle",
+      "maximumVertexError": 0.00003572087677403116,
+      "compared": 2334816,
+      "wrapFrames": 16
+    },
+    {
+      "clip": "walk",
+      "maximumVertexError": 0.00016796270328671181,
+      "compared": 1168992,
+      "wrapFrames": 8
+    },
+    {
+      "clip": "idle.talk",
+      "maximumVertexError": 0.00008568995354382349,
+      "compared": 2372832,
+      "wrapFrames": 36
+    },
+    {
+      "clip": "idle.point",
+      "maximumVertexError": 0.00003572087677403116,
+      "compared": 2334816,
+      "wrapFrames": 16
+    }
+  ],
+  "attackHit": "current source sampled"
+}

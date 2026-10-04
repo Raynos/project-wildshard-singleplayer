@@ -19,7 +19,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `emptyShardfile` | function | @wildshard/sdk/author | Start an author project with a valid empty world; add baked content before shipping a playable shard. |
 | `SampledSkinClip` | interface | @wildshard/sdk/bake/export | Uniform local TRS samples for the mesh root and each joint, in the declared skeleton order. |
 | `sampleSkinClip` | function | @wildshard/sdk/bake/export | Sample an existing pose closure at bounded cadence, including both endpoints; restore the mesh's initial joint pose afterward. |
-| `skinnedGlb` | function | @wildshard/sdk/bake/export | Deterministic self-contained GLB of actual geometry, joint order, weights, inverse binds and sampled clips; textures stay external KTX2 declarations. |
+| `skinnedGlb` | function | @wildshard/sdk/bake/export | Deterministic self-contained GLB of actual geometry, joint order, weights, inverse binds and sampled clips (constant channels keep only their endpoints); textures stay external KTX2 declarations. |
 | `GlbPrimitive` | interface | @wildshard/sdk/bake/glb | A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets. |
 | `propBounds` | function | @wildshard/sdk/bake/glb | Collect world-space bounds without changing or flattening the generator's hierarchy. |
 | `staticGlb` | function | @wildshard/sdk/bake/glb | A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader. |

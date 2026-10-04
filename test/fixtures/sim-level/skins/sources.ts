@@ -20,7 +20,7 @@ import { MeshStandardMaterial as StandardMaterial } from 'three';
 import type { ClipName } from '../../../../src/engine/anim/rig';
 
 /** Trusted originals used by export fixtures; the runtime loads only the resulting bytes and rig metadata. */
-export interface SkinSource { mesh: SkinnedMesh; skeleton: string; clips: readonly ClipName[]; sockets: string[]; pose: (clip: ClipName, time: number, dt: number) => void; dispose: () => void }
+export interface SkinSource { mesh: SkinnedMesh; skeleton: string; clips: readonly ClipName[]; sockets: string[]; pose: (clip: ClipName, time: number, dt: number, phase?: number) => void; dispose: () => void }
 /** Construct the template's actual faceted grey blob or boar, including the same factory merge, facet, palette and bone offsets. */
 export function creatureSkinSource(kind: 'grey-blob' | 'boar'): SkinSource {
   const species = kind === 'boar' ? speciesWithLook(BOAR, BOAR_LOOK) : speciesWithLook(GREY_BLOB, GREY_BLOB_LOOK), variant = species.variants[0]; if (variant === undefined) throw new Error('Missing creature variant');
@@ -33,9 +33,9 @@ export function creatureSkinSource(kind: 'grey-blob' | 'boar'): SkinSource {
     bone.position.set(def.pos[0] - (parent?.pos[0] ?? 0), def.pos[1] - (parent?.pos[1] ?? 0), def.pos[2] - (parent?.pos[2] ?? 0)); const owner = parent === null ? mesh : bones[parent.name]; if (owner === undefined) throw new Error('Unordered creature joint'); owner.add(bone); bones[def.name] = bone; ordered.push(bone);
   }
   mesh.updateMatrixWorld(true); mesh.bind(new Skeleton(ordered)); mesh.castShadow = true; const animal = new Animal({ mesh, bones, materials: [materials.fur] }, model, 435), simulation = new AnimalSim({ kind: species.kind, label: variant.label, variant: variant.id, rarity: variant.rarity, hp: animal.maxHp, aggressive: species.aggressive ?? false, dims: built.dims, mods: variantMods(species, variant) }, 435, 1, animal.entityId, { heightAt: () => 0, random: () => 0.5, now: () => 0 }); animal.bindSimulation(simulation);
-  const clips: readonly ClipName[] = ['idle', 'walk', 'attack', 'hit', 'die'];
-  return { mesh, skeleton: species.rigContract.skeleton, clips, sockets: [...species.rigContract.sockets], pose: (clip, t, dt) => {
-    animal.debugGait = { gait: clip === 'walk' ? 'walk' : 'idle', phase: t % 1 }; if (t === 0) { if (clip === 'attack') animal.startAttack(1); if (clip === 'hit') animal.stagger(new Vector3(0, 0, 1), 1); if (clip === 'die') animal.applyFinalDamage(10000, new Vector3(0, 1, 0), new Vector3(1, 0, 0)); }
+  const clips: readonly ClipName[] = ['idle', 'walk', 'attack', 'hit', 'die', ...(kind === 'boar' ? ['idle.graze' as const] : [])];
+  return { mesh, skeleton: species.rigContract.skeleton, clips, sockets: [...species.rigContract.sockets], pose: (clip, t, dt, phase) => {
+    animal.debugGait = { gait: clip === 'walk' ? 'walk' : clip === 'idle.graze' ? 'graze' : 'idle', phase: phase ?? t % 1 }; if (t === 0) { if (clip === 'attack') animal.startAttack(1); if (clip === 'hit') animal.stagger(new Vector3(0, 0, 1), 1); if (clip === 'die') animal.applyFinalDamage(10000, new Vector3(0, 1, 0), new Vector3(1, 0, 0)); }
     simulation.step(dt); animal.update(dt, t, true);
   }, dispose: () => { geometry.dispose(); mesh.skeleton.dispose(); for (const material of [materials.fur, materials.hard, materials.eye]) material.dispose(); } };
 }
@@ -48,5 +48,5 @@ export async function rangerSkinSource(): Promise<SkinSource> {
   const indices = primitive.getIndices()?.getArray(); if (indices !== null && indices !== undefined) geometry.setIndex(Array.from(indices)); geometry.applyMatrix4(new Matrix4().fromArray(node.getWorldMatrix())); geometry.computeBoundingBox(); const box = geometry.boundingBox; if (box === null || box.max.y - box.min.y < 1 || box.max.y - box.min.y > 3) throw new Error('Ranger hull must retain its metre scale');
   const built = rigLegs('ranger', geometry), bones = legBones(built), material: MeshStandardMaterial = new StandardMaterial({ roughness: 0.85, metalness: 0 }), mesh = new SkinnedMesh(built.geometry, material), root = bones[0]; if (root === undefined) throw new Error('Missing ranger root'); mesh.add(root); mesh.updateMatrixWorld(true); mesh.bind(new Skeleton(bones)); mesh.castShadow = true;
   const pose = legPose(bones, built), clips: readonly ClipName[] = ['idle', 'walk', 'idle.talk', 'idle.point'];
-  return { mesh, skeleton: 'npc.pine.ranger.v1', clips, sockets: ['head', 'handR'], pose: (clip, t) => pose({ t, talk: clip === 'idle.talk' ? 1 : 0, point: clip === 'idle.point' ? 1 : 0, pointYaw: 0.4, look: 0.2, walk: clip === 'walk' ? 1 : 0, phase: t % 1 }), dispose: () => { geometry.dispose(); built.geometry.dispose(); material.dispose(); mesh.skeleton.dispose(); } };
+  return { mesh, skeleton: 'npc.pine.ranger.v1', clips, sockets: ['head', 'handR'], pose: (clip, t, _dt, phase) => pose({ t, talk: clip === 'idle.talk' ? 1 : 0, point: clip === 'idle.point' ? 1 : 0, pointYaw: 0.4, look: 0.2, walk: clip === 'walk' ? 1 : 0, phase: phase ?? t % 1 }), dispose: () => { geometry.dispose(); built.geometry.dispose(); material.dispose(); mesh.skeleton.dispose(); } };
 }

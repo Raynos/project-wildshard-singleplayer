@@ -1,0 +1,53 @@
+{
+  "kind": "boar",
+  "cadence": "loops120Hz, one-shots60Hz",
+  "toleranceMetres": 0.001,
+  "compared": 2744712,
+  "maximumVertexError": 0.0001922593403669628,
+  "wrapFrames": 252,
+  "cost": {
+    "decoded": 1668238,
+    "gpu": 381444,
+    "triangles": 1164,
+    "draws": 2
+  },
+  "clips": [
+    {
+      "clip": "idle",
+      "maximumVertexError": 0.0001922593403669628,
+      "compared": 939348,
+      "wrapFrames": 110
+    },
+    {
+      "clip": "walk",
+      "maximumVertexError": 0.000003401964918874874,
+      "compared": 438828,
+      "wrapFrames": 16
+    },
+    {
+      "clip": "attack",
+      "maximumVertexError": 1.7510425836492616e-7,
+      "compared": 140844,
+      "wrapFrames": 0
+    },
+    {
+      "clip": "hit",
+      "maximumVertexError": 1.140545384201551e-7,
+      "compared": 140844,
+      "wrapFrames": 0
+    },
+    {
+      "clip": "die",
+      "maximumVertexError": 9.548586350057493e-8,
+      "compared": 140844,
+      "wrapFrames": 0
+    },
+    {
+      "clip": "idle.graze",
+      "maximumVertexError": 0.00016465266219448132,
+      "compared": 944004,
+      "wrapFrames": 126
+    }
+  ],
+  "attackHit": "current source sampled"
+}

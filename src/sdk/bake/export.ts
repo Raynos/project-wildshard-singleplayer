@@ -22,7 +22,7 @@ export function sampleSkinClip(mesh: SkinnedMesh, name: string, duration: number
   const root = joints[0]; if (root === undefined) throw new Error('Missing sampled root');
   return { name, times, root, joints: joints.slice(1) };
 }
-/** Deterministic self-contained GLB of actual geometry, joint order, weights, inverse binds and sampled clips; textures stay external KTX2 declarations. */
+/** Deterministic self-contained GLB of actual geometry, joint order, weights, inverse binds and sampled clips (constant channels keep only their endpoints); textures stay external KTX2 declarations. */
 export async function skinnedGlb(mesh: SkinnedMesh, clips: readonly SampledSkinClip[], name = 'baked-skin'): Promise<Uint8Array> {
   const bones = mesh.skeleton.bones;
   if (bones.length === 0 || bones.length > 128 || new Set(bones.map((bone) => bone.name)).size !== bones.length || bones.some((bone) => !/^[A-Za-z][A-Za-z0-9_.-]*$/u.test(bone.name)) || clips.length > 32 || new Set(clips.map((clip) => clip.name)).size !== clips.length) throw new Error('Skin joints or clips cap');
@@ -56,7 +56,10 @@ export async function skinnedGlb(mesh: SkinnedMesh, clips: readonly SampledSkinC
     const animation = doc.createAnimation(clip.name), times = accessor(clip.times, 'SCALAR');
     [clip.root, ...clip.joints].forEach((joint, i) => { const node = i === 0 ? root : nodes[i - 1]; if (node === undefined) throw new Error('Missing animation joint');
       for (const path of ['translation', 'rotation', 'scale'] as const) { const values = joint[path], width = path === 'rotation' ? 4 : 3; if (values.length !== clip.times.length * width) throw new Error('Skin clip channel shape');
-        const sampler = doc.createAnimationSampler().setInput(times).setOutput(accessor(values, width === 4 ? 'VEC4' : 'VEC3')).setInterpolation('LINEAR'); animation.addSampler(sampler).addChannel(doc.createAnimationChannel().setSampler(sampler).setTargetNode(node).setTargetPath(path));
+        const constant = values.every((value, componentIndex) => value === values[componentIndex % width]);
+        const input = constant ? accessor(Float32Array.of(clip.times[0] ?? 0, clip.times.at(-1) ?? 0), 'SCALAR') : times;
+        const channelValues = constant ? Float32Array.from([...values.slice(0, width), ...values.slice(0, width)]) : values;
+        const sampler = doc.createAnimationSampler().setInput(input).setOutput(accessor(channelValues, width === 4 ? 'VEC4' : 'VEC3')).setInterpolation('LINEAR'); animation.addSampler(sampler).addChannel(doc.createAnimationChannel().setSampler(sampler).setTargetNode(node).setTargetPath(path));
       }
     });
   }

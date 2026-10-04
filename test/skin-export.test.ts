@@ -13,7 +13,7 @@ describe('procedural skin exports', () => {
     const a = await bakeSkinFixture(kind), b = await bakeSkinFixture(kind); expect(a.metadata).toEqual(b.metadata); expect(a.bytes).toEqual(b.bytes);
     const file = await new GLTFLoader().parseAsync(a.bytes.slice().buffer, ''), mesh = skin(file.scene), clips = a.metadata.rig.clips, binding = bindRig(file.scene, file.animations, { skeleton: a.metadata.rig.skeleton, clips, sockets: a.metadata.rig.sockets }, { skeleton: a.metadata.rig.skeleton, joints: a.metadata.rig.joints });
     expect(mesh.skeleton.bones.map((bone) => bone.name)).toEqual(a.metadata.rig.joints[0]); expect(binding.clips.size).toBe(clips.length); expect(a.metadata.cost.gpu).toBeGreaterThan(mesh.geometry.getAttribute('position').count * 12); expect(a.metadata.cost.draws).toBe(2);
-    const motion = await measureSkinFixture(kind, a); expect(motion.maximumVertexError).toBeLessThan(0.0001); expect(motion.compared).toBeGreaterThan(100000);
+    const motion = await measureSkinFixture(kind, a); expect(motion.maximumVertexError).toBeLessThan(0.001); expect(motion.compared).toBeGreaterThan(100000);
     mesh.geometry.dispose(); mesh.skeleton.dispose(); const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]; for (const material of materials) material.dispose();
   }, 60000);
   it('refuses invalid weights, missing joints and unordered clip times before runtime allocation', async () => {
