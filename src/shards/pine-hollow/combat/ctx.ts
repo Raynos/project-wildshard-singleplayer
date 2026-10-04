@@ -2,7 +2,7 @@ import type * as THREE from 'three';
 import { GroundTell } from '@wildshard/game/Elite';
 import type { ItemId } from '@wildshard/game/Inventory';
 import type { SkinId } from '../loadout/skins';
-import type { PhShot } from '../audio/sfx';
+import type { PhShot } from '../runtime/audio/sfx';
 import { inspectBrain } from '@wildshard/engine/ai/inspect';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { Game } from '@wildshard/engine/core/Game';

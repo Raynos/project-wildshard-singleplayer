@@ -26,7 +26,7 @@ import * as THREE from 'three';
 import { Crossbow, MAX_BOLTS } from '@wildshard/kit/weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '@wildshard/kit/weapons/crossbow/display';
 import { SKINS, type SkinId } from '../loadout/skins';
-import type { PineHollowSfx } from '../audio/sfx';
+import type { PineHollowSfx } from '../runtime/audio/sfx';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { voice, type PineCtx } from './ctx';
 import { installPinePresentation } from './chargeTells';
@@ -68,7 +68,7 @@ export interface PineCombat {
   isElite: (a: Animal) => boolean;
   /** Pine Hollow's one-shots (ForestAmbience.sfx), once the ambience exists */
   useSfx: (sfx: PineHollowSfx) => void;
-  /** a named elite's fight is on (its bar pinned): the music holds combat (src/shards/pine-hollow/audio/wiring.ts) */
+  /** a named elite's fight is on (its bar pinned): the music holds combat (src/shards/pine-hollow/runtime/audio/wiring.ts) */
   eliteEngaged: () => boolean;
 }
 

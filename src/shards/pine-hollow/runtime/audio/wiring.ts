@@ -8,7 +8,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ForestAmbience, ZoneSpot } from './ambience';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 /**
  * Pine Hollow's sound, hooked to its gameplay (PINE-HOLLOW-REMASTER A-rows, the audio-wiring lane). The sound lane made

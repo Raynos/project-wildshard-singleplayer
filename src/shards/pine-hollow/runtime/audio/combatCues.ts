@@ -1,7 +1,7 @@
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
 import type { Vector3 } from 'three';
-import source from '../shard.config';
+import source from '../../shard.config';
 import type { PhShot } from './sfx';
 
 export function pineCombatCues(ports: {

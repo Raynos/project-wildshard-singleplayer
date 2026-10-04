@@ -4,7 +4,7 @@ import { CombatCues } from '../../../src/engine/combat/cues';
 import { Events } from '../../../src/engine/events/events';
 import { LONGBOW } from '../../../src/shards/pine-hollow/weapons/equipment';
 import { bindLongbowCharge } from '../../../src/shards/pine-hollow/loadout/events';
-import { pineCombatCues } from '../../../src/shards/pine-hollow/audio/combatCues';
+import { pineCombatCues } from '../../../src/shards/pine-hollow/runtime/audio/combatCues';
 
 describe('longbow charge audio', () => {
   it('plays one creak per draw, keeps recover feedback and stops on scope disposal', () => {

@@ -4,7 +4,7 @@ import { Scope } from '../../../src/engine/app/scope';
 import { audioRandom, bindAudioRandom } from '../../../src/engine/audio/util';
 import { tap } from '../../../src/engine/core/harnessTap';
 import { Rng } from '../../../src/engine/core/rng';
-import { installForestVoices } from '../../../src/shards/pine-hollow/audio/synth';
+import { installForestVoices } from '../../../src/shards/pine-hollow/runtime/audio/synth';
 
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); tap.sound = null; const rng = new Rng(0); bindAudioRandom(() => rng.next()); });
 describe('Pine fallback bed', () => {

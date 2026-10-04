@@ -1,4 +1,4 @@
-import { pineScore } from '../audio/score';
+import { pineScore } from '../runtime/audio/score';
 import { AntlerKingGoals } from './KingGoals';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PINE_LANES, PINE_STRIKES, pineContact } from './strikes';

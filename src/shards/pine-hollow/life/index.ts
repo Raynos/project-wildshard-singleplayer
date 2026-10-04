@@ -54,7 +54,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
  * knife drops away and the view comes back up.
  */
 import * as THREE from 'three';
-import type { PhShot, PineHollowSfx } from '../audio/sfx';
+import type { PhShot, PineHollowSfx } from '../runtime/audio/sfx';
 import { TrunkProbe } from './trunks';
 import { SkinKnife } from '../models/skinningKnife';
 import { loadBirdModels } from './birdModels';

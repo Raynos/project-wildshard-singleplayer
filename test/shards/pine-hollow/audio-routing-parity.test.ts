@@ -3,9 +3,9 @@ import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
-import { pineCombatCues } from '../../../src/shards/pine-hollow/audio/combatCues';
+import { pineCombatCues } from '../../../src/shards/pine-hollow/runtime/audio/combatCues';
 import source from '../../../src/shards/pine-hollow/shard.config';
-import { pineZoneSpots } from '../../../src/shards/pine-hollow/audio/wiring';
+import { pineZoneSpots } from '../../../src/shards/pine-hollow/runtime/audio/wiring';
 
 // Captured from the pre-conversion router at 093bb2f47; no rebaseline when the implementation changes.
 it('preserves recipe options, false primary fallback, silent reload and echo scheduling across 1,728 dispatches', () => {
@@ -27,7 +27,7 @@ it('preserves recipe options, false primary fallback, silent reload and echo sch
 // Captured from the same pre-conversion layout bake; this covers positions and exact fade widths.
 it('preserves every baked ambience zone and the moving wheel gain', () => {
   const rows = pineZoneSpots(() => 1).map((spot) => {
-    const row: { zone: string; x: number; z: number; r: number; fade: number; open?: boolean; gain?: number } = { zone: spot.zone, x: spot.x, z: spot.z, r: spot.r, fade: spot.fade };
+    const row: { zone: string; x: number; z: number; r: number; fade: number | undefined; open?: boolean; gain?: number } = { zone: spot.zone, x: spot.x, z: spot.z, r: spot.r, fade: spot.fade };
     if (spot.open !== undefined) row.open = spot.open;
     if (spot.gain !== undefined) row.gain = spot.gain();
     return row;

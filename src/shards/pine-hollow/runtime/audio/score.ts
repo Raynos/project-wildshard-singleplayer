@@ -8,7 +8,7 @@ import { jsonSlot } from '@wildshard/engine/saves/slots';
 import type { MusicStyle } from '@wildshard/engine/ui/Settings';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { selectScoreSlots } from '@wildshard/engine/audio/scoreSelection';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 const PROFILE = requireAudioProfile(source.audio.music, 'score.pine');
 

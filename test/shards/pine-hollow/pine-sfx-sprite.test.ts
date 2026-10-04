@@ -1,10 +1,10 @@
-import { createPineAudio } from '../../../src/shards/pine-hollow/audio/files';
+import { createPineAudio } from '../../../src/shards/pine-hollow/runtime/audio/files';
 // Pine Hollow's one-shots + barks ship as ONE audio sprite (scripts/music/gen/sfx_sprite.py): the loading bar fetches one
 // file, not 63 (228 requests on a phone cold launch against the 180 row). sfx.json `sprite: {file, gap, duration, clips}`.
 import { describe, expect, it } from 'vitest';
 import { SFX_MANIFESTS } from '../../../src/game/boot/audio.generated';
 import { PUBLIC_BYTES } from '../../../src/game/boot/bytes.generated';
-import { pineShotFiles } from '../../../src/shards/pine-hollow/audio/sfx';
+import { pineShotFiles } from '../../../src/shards/pine-hollow/runtime/audio/sfx';
 
 const DIR = '/assets/sfx/pine-hollow/';
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);

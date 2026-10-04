@@ -8,7 +8,7 @@ import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
- * pattern with generated beds (src/shards/pine-hollow/audio/sfx.ts: public/assets/sfx/pine-hollow/, MOSS-SoundEffect v2 vs Stable
+ * pattern with generated beds (src/shards/pine-hollow/runtime/audio/sfx.ts: public/assets/sfx/pine-hollow/, MOSS-SoundEffect v2 vs Stable
  * Audio 3 Medium, the better take per bed).
  *
  *   const amb = new ForestAmbience(audio, { heightAt, cabins });
@@ -26,7 +26,7 @@ import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield'
  * Zones live today: **the Hollow** (everywhere outdoors that is not another zone: wind in the pines, a woodpecker), **the
  * pond** (frogs, a loon, dragonflies; panned toward the water, louder near it) and **the cabin interiors** (the fire's
  * crackle; the outdoor beds — Audio's forest bed through `audio.shadeAmbient`, and these — muffled through the walls). The
- * layout's zones are placed by src/shards/pine-hollow/audio/wiring.ts (`addSpot`): the creek along its bed, the waterfall, the mill
+ * layout's zones are placed by src/shards/pine-hollow/runtime/audio/wiring.ts (`addSpot`): the creek along its bed, the waterfall, the mill
  * wheel (while it turns), ridge wind on the crest + the lookout, the old-growth hush, the bear cave's mouth; the clock and the
  * weather drive night (owls + crickets, the thralls' far calls in the fog), rain on the canopy vs in the open, the dawn chorus.
  * Every file was downloaded at Pine Hollow's loading bar (E44); a bed is decoded from that offline cache the first time its
@@ -42,7 +42,7 @@ import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield'
 import type { Camera } from 'three';
 import { PineHollowSfx, type PhBed } from './sfx';
 import { requireAudioProfile, requireAudioLevel } from '@wildshard/engine/audio/audioProfiles';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 export type ForestZone = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill' | 'ridge' | 'oldgrowth' | 'cave';
 type Room = 'cabin' | 'den' | 'oldgrowth' | 'bowl';
@@ -54,7 +54,7 @@ export interface ForestAmbienceOpts {
   heightAt: (x: number, z: number) => number;
   /** the cabins (src/engine/world/Cabin.ts): their floors say when you are inside */
   cabins?: { floorHeightAt: (x: number, z: number) => number | undefined; firePits?: readonly { x: number; y: number; z: number }[] } | null;
-  /** zones placed by the layout (src/shards/pine-hollow/audio/wiring.ts adds Pine Hollow's with `addSpot`) */
+  /** zones placed by the layout (src/shards/pine-hollow/runtime/audio/wiring.ts adds Pine Hollow's with `addSpot`) */
   spots?: readonly ZoneSpot[];
 }
 

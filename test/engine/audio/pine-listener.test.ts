@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { VoicePool } from '../../../src/engine/audio/Voices';
 import type { AudioMixer } from '../../../src/engine/audio/levelAudio';
 import type { Audio } from '../../../src/engine/audio/Audio';
-import { PineHollowSfx } from '../../../src/shards/pine-hollow/audio/sfx';
+import { PineHollowSfx } from '../../../src/shards/pine-hollow/runtime/audio/sfx';
 import { legacyDouble } from '../../fake/FakeGame';
 
 const buffer = (duration = 100): AudioBuffer => ({ duration } as AudioBuffer);

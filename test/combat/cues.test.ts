@@ -3,7 +3,7 @@ import { Vector3, Group } from 'three';
 import { CombatCues, resolveHitStop } from '../../src/engine/combat/cues';
 import { sharedCombatCues } from '../../src/kit/audio/combatCues';
 import { driftwoodCombatCues } from '../../src/shards/driftwood-isle/runtime/audio/combatCues';
-import { pineCombatCues } from '../../src/shards/pine-hollow/audio/combatCues';
+import { pineCombatCues } from '../../src/shards/pine-hollow/runtime/audio/combatCues';
 import { ndCueMap } from '../../src/shards/nine-dragon-stack/audio/cues';
 import { tap } from '../../src/engine/core/harnessTap';
 import { PINE_BOLT_HIT_STOP, CROSSBOW, LEVER, LONGBOW } from '../../src/shards/pine-hollow/weapons/equipment';

@@ -3,7 +3,7 @@ import { FOREST_AUDIO } from './profile';
 import { pineShotFiles, decodePineShots } from './sfx';
 
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 const OWN = requireAudioProfile(source.audio.samples, 'pine.samples').set;
 const BOOT_SLOTS = requireAudioProfile(source.audio.music, 'score.pine').bootSlots;

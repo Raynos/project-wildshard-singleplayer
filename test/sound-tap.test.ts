@@ -6,10 +6,10 @@ const sources = import.meta.glob<string>('../src/**/*.ts', { eager: true, query:
 const schedulers: Readonly<Record<string, readonly string[]>> = {
   'src/shards/driftwood-isle/runtime/audio/sfx.ts': ['scheduleSurf', 'scheduleGust'],
   'src/engine/audio/Audio.ts': ['scheduleBubble'],
-  'src/shards/pine-hollow/audio/synth.ts': ['scheduleGust', 'scheduleBird'],
+  'src/shards/pine-hollow/runtime/audio/synth.ts': ['scheduleGust', 'scheduleBird'],
   'src/shards/nalati-grasslands/audio/synth.ts': ['scheduleLark', 'scheduleCricket', 'scheduleCrackle'],
   'src/shards/driftwood-isle/runtime/audio/ambience.ts': ['scheduleBird', 'scheduleDrip', 'scheduleSwell'],
-  'src/shards/pine-hollow/audio/ambience.ts': ['scheduleThrall'],
+  'src/shards/pine-hollow/runtime/audio/ambience.ts': ['scheduleThrall'],
 };
 
 describe('every sound source is observed', () => {

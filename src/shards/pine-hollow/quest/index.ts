@@ -47,7 +47,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
  */
 import * as THREE from 'three';
 import type { Cabins } from '../world/homestead';
-import type { PineHollowSfx } from '../audio/sfx';
+import type { PineHollowSfx } from '../runtime/audio/sfx';
 import { SKINS } from '../loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
 import type { PineClockEvent } from '../runtime/questClock';

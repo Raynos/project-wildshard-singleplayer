@@ -1,11 +1,11 @@
-import { createPineAudio } from '../../../src/shards/pine-hollow/audio/files';
+import { createPineAudio } from '../../../src/shards/pine-hollow/runtime/audio/files';
 import { createDriftwoodAudio } from '../../../src/shards/driftwood-isle/runtime/audio/files';
 // The audio-wiring lane (PINE-HOLLOW-REMASTER A-rows): Pine Hollow's own music + SFX ride on its loading bar only (E44 —
 // Driftwood's list is unchanged), and the layout's zones become ambience spots.
 import { describe, expect, it } from 'vitest';
 import { audioFiles, manifestFiles } from '../../../src/engine/boot/audioFiles';
 import { MUSIC_MANIFESTS, SFX_MANIFESTS } from '../../../src/game/boot/audio.generated';
-import { pineZoneSpots } from '../../../src/shards/pine-hollow/audio/wiring';
+import { pineZoneSpots } from '../../../src/shards/pine-hollow/runtime/audio/wiring';
 
 describe('the loading bar\'s audio per shard', () => {
   it('Driftwood lists its own SFX, no Pine Hollow file, and every base slot', async () => {

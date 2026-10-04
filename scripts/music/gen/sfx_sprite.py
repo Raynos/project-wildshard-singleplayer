@@ -72,7 +72,7 @@ RAW_DIR = {"moss": "moss", "sa3-medium": "medium"}  # sfx-raw-dir/<model>/<famil
 # ffmpeg's `-ac 2` (stems.encode) put a mono take in each channel at -3.01 dB (swresample's centre mix level); WebAudio
 # up-mixes a mono buffer to L = R = m ("speakers"), so the mono file carries that same per-channel level
 UPMIX = 1 / np.sqrt(2)
-AMBIENCE = REPO / "src/shards/pine-hollow/audio/ambience.ts"
+AMBIENCE = REPO / "src/shards/pine-hollow/runtime/audio/ambience.ts"
 
 
 def panned_beds() -> set[str]:
