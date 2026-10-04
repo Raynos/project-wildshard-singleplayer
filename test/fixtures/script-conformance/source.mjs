@@ -14,7 +14,7 @@ export function on_tick():void {
   let tick = load<f64>(16384), actor = load<f64>(16384+32);
   if (tick == 2 && actor == 1) memory.grow(1);
   for(let i:i32=0;i<8;i++) store<f64>(32768+i*8,tick+f64(i));
-  let kind = i32(tick)%4+1;
+  let kind = i32(tick)%5 == 0 ? 410 : i32(tick)%4+1;
   let n = query(kind,32768,33792);
   let result = n>0?load<f64>(33792):0;
   let angle = tick*0.03125+f64(counter)*0.001;

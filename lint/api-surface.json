@@ -6168,6 +6168,24 @@
         "from": "@wildshard/engine/physics/heightPatch"
       },
       {
+        "name": "KinematicMover",
+        "kind": "class",
+        "doc": "A kinematic deck moves before the world step and carries the existing CharacterMotor without another collision path.",
+        "from": "@wildshard/engine/physics/mover"
+      },
+      {
+        "name": "MoverBox",
+        "kind": "interface",
+        "doc": "Local boxes for a script-owned platform; the physics layer alone constructs Rapier descriptors.",
+        "from": "@wildshard/engine/physics/mover"
+      },
+      {
+        "name": "MoverPose",
+        "kind": "interface",
+        "doc": "Published mover pose, in the world's local frame; Euler order is always YXZ.",
+        "from": "@wildshard/engine/physics/mover"
+      },
+      {
         "name": "pathRampDescs",
         "kind": "function",
         "doc": "",
@@ -6178,6 +6196,12 @@
         "kind": "interface",
         "doc": "",
         "from": "@wildshard/engine/physics/paths"
+      },
+      {
+        "name": "Physics",
+        "kind": "class",
+        "doc": "Owns one fixed-step collision world and its complete same-version continuation.",
+        "from": "@wildshard/engine/physics/Physics"
       },
       {
         "name": "castRay",
@@ -7990,6 +8014,12 @@
         "name": "SCRIPT_LIMITS",
         "kind": "const",
         "doc": "Conservative defaults; all are hard platform ceilings and may only be lowered by a host.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
+        "name": "SCRIPT_PARAMETER_QUERY",
+        "kind": "const",
+        "doc": "Read-only declared numeric parameters; the host supplies the trusted calling entity to the query adapter.",
         "from": "@wildshard/engine/script/host"
       },
       {
@@ -13206,6 +13236,84 @@
         "from": "@wildshard/game/shardfile/loader"
       },
       {
+        "name": "createMoverHost",
+        "kind": "function",
+        "doc": "Transitional standalone composition; a full session injects its existing host and merges entities/rules/queries instead.",
+        "from": "@wildshard/game/shardfile/moverRuntime"
+      },
+      {
+        "name": "installDeclaredMovers",
+        "kind": "function",
+        "doc": "A single platform installer reads declared rows and owns their lifecycle; the shard only supplies presentation recipes.",
+        "from": "@wildshard/game/shardfile/moverRuntime"
+      },
+      {
+        "name": "MoverInstallation",
+        "kind": "interface",
+        "doc": "Declared rows plus trusted legacy view callbacks; the platform owns context, world, scripts, scope and fixed systems.",
+        "from": "@wildshard/game/shardfile/moverRuntime"
+      },
+      {
+        "name": "MoverPorts",
+        "kind": "interface",
+        "doc": "The shared script host already owns modules, entity handles and one beginTick per fixed step.",
+        "from": "@wildshard/game/shardfile/moverRuntime"
+      },
+      {
+        "name": "moverQueries",
+        "kind": "function",
+        "doc": "Declared constants are read only and selected by the trusted calling entity; physics queries keep their adapter.",
+        "from": "@wildshard/game/shardfile/moverRuntime"
+      },
+      {
+        "name": "MoverRuntime",
+        "kind": "class",
+        "doc": "Data/script bridge to engine physics; imported code installs nothing, and presentation only reads published state.",
+        "from": "@wildshard/game/shardfile/moverRuntime"
+      },
+      {
+        "name": "MoverView",
+        "kind": "interface",
+        "doc": "Transitional view recipe only; a shard may project published poses but cannot author physics or tick ownership.",
+        "from": "@wildshard/game/shardfile/moverRuntime"
+      },
+      {
+        "name": "MOVER_FIELD_RANGES",
+        "kind": "const",
+        "doc": "Lower-only entity field ranges supplied to the session's one script effect world.",
+        "from": "@wildshard/game/shardfile/movers"
+      },
+      {
+        "name": "MOVER_FIELDS",
+        "kind": "const",
+        "doc": "Six entity-local fields: YXZ Euler pose, collision enabled, raised and raising. They never expose a player record.",
+        "from": "@wildshard/game/shardfile/movers"
+      },
+      {
+        "name": "MoverData",
+        "kind": "type",
+        "doc": "Validated mover declarations; no render object, collision callback or authored TypeScript occurs in the format.",
+        "from": "@wildshard/game/shardfile/movers"
+      },
+      {
+        "name": "moverScriptEntities",
+        "kind": "function",
+        "doc": "Merge these handles into the host's entity catalogue before its one script lane is constructed.",
+        "from": "@wildshard/game/shardfile/movers"
+      },
+      {
+        "name": "MoversSchema",
+        "kind": "const",
+        "doc": "Physics owns the primitive; an admitted script owns its pose/activation. All colliders are numeric, local boxes.",
+        "from": "@wildshard/game/shardfile/movers"
+      },
+      {
+        "name": "parseMovers",
+        "kind": "function",
+        "doc": "Admission proves identity, primitive shape and aggregate solver/body limits before allocating anything.",
+        "from": "@wildshard/game/shardfile/movers"
+      },
+      {
         "name": "parsePlumbing",
         "kind": "function",
         "doc": "Compile TypeScript author plumbing into validated data with no callback closures.",
@@ -15194,6 +15302,18 @@
         "kind": "function",
         "doc": "Validate ledger declarations in an author project before writing its shardfile.",
         "from": "@wildshard/sdk/ledger"
+      },
+      {
+        "name": "MoverData",
+        "kind": "type",
+        "doc": "Typed numeric mover declarations: local collider primitives and admitted fixed-step scripts.",
+        "from": "@wildshard/sdk/movers"
+      },
+      {
+        "name": "movers",
+        "kind": "function",
+        "doc": "Validate identity, primitive limits and numeric data before an author product constructs physics.",
+        "from": "@wildshard/sdk/movers"
       },
       {
         "name": "parsePlumbing",

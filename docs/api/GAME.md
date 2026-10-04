@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-388 members; 112 without a doc line (—).
+401 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -314,6 +314,19 @@ The game layer's public modules (src/game/package.json `exports`).
 | `loadShardfile` | function | @wildshard/game/shardfile/loader | Load through an installed engine driver; the ordinary unloadLevel owns every resource. |
 | `shardfileLevelSpec` | function | @wildshard/game/shardfile/loader | Project an empty shardfile into the same engine spec consumed by legacy sources. |
 | `shardfileSource` | function | @wildshard/game/shardfile/loader | Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. |
+| `createMoverHost` | function | @wildshard/game/shardfile/moverRuntime | Transitional standalone composition; a full session injects its existing host and merges entities/rules/queries instead. |
+| `installDeclaredMovers` | function | @wildshard/game/shardfile/moverRuntime | A single platform installer reads declared rows and owns their lifecycle; the shard only supplies presentation recipes. |
+| `MoverInstallation` | interface | @wildshard/game/shardfile/moverRuntime | Declared rows plus trusted legacy view callbacks; the platform owns context, world, scripts, scope and fixed systems. |
+| `MoverPorts` | interface | @wildshard/game/shardfile/moverRuntime | The shared script host already owns modules, entity handles and one beginTick per fixed step. |
+| `moverQueries` | function | @wildshard/game/shardfile/moverRuntime | Declared constants are read only and selected by the trusted calling entity; physics queries keep their adapter. |
+| `MoverRuntime` | class | @wildshard/game/shardfile/moverRuntime | Data/script bridge to engine physics; imported code installs nothing, and presentation only reads published state. |
+| `MoverView` | interface | @wildshard/game/shardfile/moverRuntime | Transitional view recipe only; a shard may project published poses but cannot author physics or tick ownership. |
+| `MOVER_FIELD_RANGES` | const | @wildshard/game/shardfile/movers | Lower-only entity field ranges supplied to the session's one script effect world. |
+| `MOVER_FIELDS` | const | @wildshard/game/shardfile/movers | Six entity-local fields: YXZ Euler pose, collision enabled, raised and raising. They never expose a player record. |
+| `MoverData` | type | @wildshard/game/shardfile/movers | Validated mover declarations; no render object, collision callback or authored TypeScript occurs in the format. |
+| `moverScriptEntities` | function | @wildshard/game/shardfile/movers | Merge these handles into the host's entity catalogue before its one script lane is constructed. |
+| `MoversSchema` | const | @wildshard/game/shardfile/movers | Physics owns the primitive; an admitted script owns its pose/activation. All colliders are numeric, local boxes. |
+| `parseMovers` | function | @wildshard/game/shardfile/movers | Admission proves identity, primitive shape and aggregate solver/body limits before allocating anything. |
 | `parsePlumbing` | function | @wildshard/game/shardfile/plumbing | Compile TypeScript author plumbing into validated data with no callback closures. |
 | `PlumbingData` | type | @wildshard/game/shardfile/plumbing | Serialisable scoped input actions, tier values and Debug choices with named admitted script hooks. |
 | `plumbingRules` | function | @wildshard/game/shardfile/plumbing | Semantic identities stay in the owning namespace; Debug defaults and touch actions must exist. |

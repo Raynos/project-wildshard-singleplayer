@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1891 members; 830 without a doc line (—).
+1896 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1033,8 +1033,12 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `queryGroups` | function | @wildshard/engine/physics/groups | A query filter's packed groups: the querier is `as`, and it sees only the kinds in `sees`. |
 | `HeightPatch` | class | @wildshard/engine/physics/heightPatch | a small heightfield collider re-shaped at run time (a floor that grows and drains) |
 | `HeightPatchOpts` | interface | @wildshard/engine/physics/heightPatch | — |
+| `KinematicMover` | class | @wildshard/engine/physics/mover | A kinematic deck moves before the world step and carries the existing CharacterMotor without another collision path. |
+| `MoverBox` | interface | @wildshard/engine/physics/mover | Local boxes for a script-owned platform; the physics layer alone constructs Rapier descriptors. |
+| `MoverPose` | interface | @wildshard/engine/physics/mover | Published mover pose, in the world's local frame; Euler order is always YXZ. |
 | `pathRampDescs` | function | @wildshard/engine/physics/paths | — |
 | `PathRampOptions` | interface | @wildshard/engine/physics/paths | — |
+| `Physics` | class | @wildshard/engine/physics/Physics | Owns one fixed-step collision world and its complete same-version continuation. |
 | `castRay` | function | @wildshard/engine/physics/query | The first thing along the ray from `origin` in direction `dir` (unit length) within `maxDist`, among the kinds in |
 | `castSegment` | function | @wildshard/engine/physics/query | The first world hit on the segment a → b (null: the segment is clear). |
 | `floorBelow` | function | @wildshard/engine/physics/query | The top of the first world surface (terrain, deck, floor, rock) straight below (x, fromY, z), within `maxDrop`; |
@@ -1337,6 +1341,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ScriptEvent` | interface | @wildshard/engine/script/effects | A queued event delivered on a subsequent tick, never recursively during effect application. |
 | `ScriptWorld` | class | @wildshard/engine/script/effects | Owns numeric state so batches either replace all affected entities or change none. |
 | `SCRIPT_LIMITS` | const | @wildshard/engine/script/host | Conservative defaults; all are hard platform ceilings and may only be lowered by a host. |
+| `SCRIPT_PARAMETER_QUERY` | const | @wildshard/engine/script/host | Read-only declared numeric parameters; the host supplies the trusted calling entity to the query adapter. |
 | `ScriptCall` | interface | @wildshard/engine/script/host | Results expose validated requests only after the atomic world-state transaction succeeds. |
 | `ScriptHost` | class | @wildshard/engine/script/host | One module instance per host; every call carries its current entity handle in IN[3]. |
 | `ScriptHostOptions` | interface | @wildshard/engine/script/host | Host dependencies are explicitly installed; no import creates an instance or changes a service. |

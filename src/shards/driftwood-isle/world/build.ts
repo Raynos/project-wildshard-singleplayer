@@ -11,6 +11,7 @@ import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
+import { MOVERS } from '../data/movers';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import manifest, { OCEAN, HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR, PIER_PENNANT_AT } from '../manifest';
 import { Ocean } from './Ocean';
@@ -145,7 +146,9 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
   await macrotask();
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
-  const bridgeDeck = new RopeChain(world.physics, bridge.chainSpec());
+  const declaredBridge = MOVERS.find((row) => row.kind === 'chain');
+  if (declaredBridge?.chain === undefined) throw new Error('Missing declared bridge chain');
+  const bridgeDeck = new RopeChain(world.physics, { ...declaredBridge.chain, owners: bridge.chainSpec().owners });
   game.onFixed('post', () => { bridgeDeck.capture(); }, 'shard.driftwood.bridge.capture');
   // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — after the decks register,
   // so none where a deck carries the path (a board there pokes up through the bridge's planks); `ground.paths: 'plugin'`

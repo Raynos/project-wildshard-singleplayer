@@ -323,6 +323,8 @@
     "./physics/frame": "./physics/frame.ts",
     "./physics/stripColliders": "./physics/stripColliders.ts",
     "./physics/regionalState": "./physics/regionalState.ts",
-    "./level/installation": "./level/installation.ts"
+    "./level/installation": "./level/installation.ts",
+    "./physics/mover": "./physics/mover.ts",
+    "./physics/Physics": "./physics/Physics.ts"
   }
 }

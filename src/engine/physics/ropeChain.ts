@@ -116,6 +116,9 @@ export class RopeChain {
   /** true while any segment moves (the drawn deck needs no update while the chain sleeps) */
   get awake(): boolean { return this.bodies.some((b) => !b.isSleeping()); }
 
+  /** Apply an admitted deck activation without exposing body construction to content. */
+  setEnabled(enabled: boolean): void { for (const body of this.bodies) body.setEnabled(enabled); }
+
   dispose(): void {
     for (const b of [...this.bodies, ...this.anchors]) this.physics.world.removeRigidBody(b);
     this.bodies.length = 0; this.anchors.length = 0;

@@ -26,6 +26,15 @@ descriptor on exit; late hooks retain a private overlay and cannot register into
 adapter consumes the same cell events and reinstalls only trusted hooks on re-entry. Driftwood's first transition
 keeps its legacy presentation and gameplay in the declared entry; it does not claim a baked or grid-ready conversion.
 
+`@wildshard/game/shardfile/movers` admits numeric local box decks and bounded rope-chain rest poses.
+`MoverRuntime` projects admitted script output in fixed.pre before collision; Rapier bodies and joints stay in
+`@wildshard/engine/physics/mover` and `physics/ropeChain`. A session injects its one script host and calls
+beginTick once for the entire tick. Parameter opcode 410 reads immutable declared constants selected by the
+host's trusted calling entity; `moverQueries` delegates physics opcodes 1–4 to the existing query adapter.
+The 32-number input limit, query count/fuel and bounded memory buffers stay unchanged. Full Wasm state and
+entity fields belong to that shared host; pending mover interactions have a separate continuation adapter.
+`@wildshard/sdk/movers` validates source data. Trusted legacy view recipes only project published poses.
+
 This is the public API a shard is written against. It covers the three public layers and what each one gives a
 shard. One section per § of [01-architecture](../project/archive/game-normalization/01-architecture.md), in the same order.
 
@@ -1788,7 +1797,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1874 exports, grouped by the module to import them from.
+1879 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1958,7 +1967,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/gridBorders`: `gridCreatureConstraint`, `GridMountBody`, `installGridBorders`, `installGridMountPassage`
 - `@wildshard/engine/physics/groups`: `GROUP`, `GroupName`, `groups`, `queryGroups`
 - `@wildshard/engine/physics/heightPatch`: `HeightPatch`, `HeightPatchOpts`
+- `@wildshard/engine/physics/mover`: `KinematicMover`, `MoverBox`, `MoverPose`
 - `@wildshard/engine/physics/paths`: `pathRampDescs`, `PathRampOptions`
+- `@wildshard/engine/physics/Physics`: `Physics`
 - `@wildshard/engine/physics/query`: `castRay`, `castSegment`, `floorBelow`, `Hit`, `lineOfSight`, `sticksIn`, `sweepBall`
 - `@wildshard/engine/physics/rapier`: `loadRapier`, `Rapier`
 - `@wildshard/engine/physics/readinessWalls`: `ReadinessEdge`, `ReadinessWalls`
@@ -2014,7 +2025,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/script/abi`: `SCRIPT_ABI`, `SCRIPT_EXPORTS`, `SCRIPT_IMPORTS`
 - `@wildshard/engine/script/admission`: `admitScript`, `ScriptAdmission`
 - `@wildshard/engine/script/effects`: `EffectRules`, `EffectTransaction`, `SCRIPT_OP`, `ScriptEffect`, `ScriptEntity`, `ScriptEvent`, `ScriptWorld`
-- `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `ScriptCall`, `ScriptHost`, `ScriptHostOptions`, `ScriptHostState`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
+- `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `SCRIPT_PARAMETER_QUERY`, `ScriptCall`, `ScriptHost`, `ScriptHostOptions`, `ScriptHostState`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
 - `@wildshard/engine/script/lane`: `installScriptLane`, `ScriptBinding`, `ScriptLane`, `ScriptLaneOptions`, `ScriptModule`
 - `@wildshard/engine/script/queries`: `SCRIPT_QUERY`, `ScriptPhysics`, `scriptPhysicsQueries`
 - `@wildshard/engine/script/state`: `DeclaredScriptWorld`, `SCRIPT_STATE_OP`, `ScriptStateDeclaration`, `ScriptStateField`, `ScriptWorldState`
@@ -2109,7 +2120,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-388 exports, grouped by the module to import them from.
+401 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2169,6 +2180,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
 - `@wildshard/game/shardfile/loader`: `browserShardfileOptions`, `configuredShardfile`, `emptyShardfileSource`, `installManifestShardfile`, `installShardfileProduct`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`, `shardfileSource`
+- `@wildshard/game/shardfile/moverRuntime`: `createMoverHost`, `installDeclaredMovers`, `MoverInstallation`, `MoverPorts`, `moverQueries`, `MoverRuntime`, `MoverView`
+- `@wildshard/game/shardfile/movers`: `MOVER_FIELD_RANGES`, `MOVER_FIELDS`, `MoverData`, `moverScriptEntities`, `MoversSchema`, `parseMovers`
 - `@wildshard/game/shardfile/plumbing`: `parsePlumbing`, `PlumbingData`, `plumbingRules`, `PlumbingSchema`
 - `@wildshard/game/shardfile/product`: `admitProduct`, `AdmittedProduct`, `boundedResponse`, `browserContentHash`, `browserProductCache`, `CachedProduct`, `ProductCache`, `ProductOptions`, `ProductVersions`
 - `@wildshard/game/shardfile/props`: `propColliderDescriptors`, `PropsSchema`, `ShardProps`, `validatePropsReferences`
@@ -2241,7 +2254,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-57 exports, grouped by the module to import them from.
+59 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
@@ -2252,6 +2265,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/bake/terrain`: `BakedTerrain`, `bakeTerrain`, `TerrainBakeSource`, `TerrainOverride`
 - `@wildshard/sdk/bake/texture`: `bakeColourTexture`
 - `@wildshard/sdk/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
+- `@wildshard/sdk/movers`: `MoverData`, `movers`
 - `@wildshard/sdk/plumbing`: `parsePlumbing`, `PlumbingData`, `PlumbingSchema`
 - `@wildshard/sdk/project`: `buildProject`, `canonicalJson`, `contentHash`, `newProject`, `projectAssets`, `readProject`, `validateProject`
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`

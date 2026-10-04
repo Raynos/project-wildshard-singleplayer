@@ -10,7 +10,7 @@ import { CONFORMANCE_SOURCE } from '../test/fixtures/script-conformance/source.m
 
 const root = resolve(import.meta.dirname, '..');
 const bytes = await compileScript(CONFORMANCE_SOURCE), ticks = 120;
-const queries = Array.from({ length: ticks }, (_v, i) => [1, 2].map((entity) => ({ kind: (i + 1) % 4 + 1, input: Array.from({ length: 8 }, (_n, at) => i + 1 + at), entity, reply: [entity * 0.25, i + 1, 0] }))).flat();
+const queries = Array.from({ length: ticks }, (_v, i) => [1, 2].map((entity) => ({ kind: (i + 1) % 5 === 0 ? 410 : (i + 1) % 4 + 1, input: Array.from({ length: 8 }, (_n, at) => i + 1 + at), entity, reply: [entity * 0.25, i + 1, 0] }))).flat();
 const input = { bytes: Array.from(bytes), queries, ticks, checkpoint: 37 };
 const bundled = await build({ root, configFile: false, publicDir: false, logLevel: 'warn', build: { write: false, minify: false, lib: { entry: resolve(root, 'test/fixtures/script-conformance/run.ts'), formats: ['es'] } } });
 const outputs = Array.isArray(bundled) ? bundled : [bundled];

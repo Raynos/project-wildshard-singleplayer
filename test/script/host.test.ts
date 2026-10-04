@@ -12,6 +12,15 @@ const emit = (op: number, a: string, b: string, c = '0', d = '0', index = 0): st
 async function install(host: ScriptHost, body: string, extra = '', count = '0', name = 'policy'): Promise<void> { host.install(name, await compileScript(scriptSource(body, extra, count))); host.beginTick(0); }
 
 describe('bounded atomic script host', () => {
+  it('admits exactly declared-parameter opcode 410 with trusted self and unchanged query quotas', async () => {
+    const seen: number[] = [], host = make({ query: (kind, _input, entity) => { expect(kind).toBe(410); seen.push(entity); return [entity]; }, limits: { queries: 1 } });
+    const extra = '@external("env", "query") declare function query(kind:i32,request:i32,response:i32):i32;';
+    await install(host, `query(410,32768,33792); ${emit(1, '1', 'load<f64>(33792)')}`, extra, '1');
+    expect(host.call('policy', 2, [0, 0, 0, 1]).ok).toBe(true); expect(seen).toEqual([2]); expect(host.world.entity(2)?.fields[1]).toBe(2);
+    expect(host.call('policy', 1, [0]).reason).toContain('Query allowance'); expect(seen).toEqual([2]);
+    const invalid = make(); await install(invalid, 'query(409,32768,33792);', extra); expect(invalid.call('policy', 1, [0]).reason).toContain('Query outside');
+    const oversized = make({ query: () => Array.from({ length: 97 }, () => 0) }); await install(oversized, 'query(410,32768,33792);', extra); expect(oversized.call('policy', 1, [0]).reason).toContain('Invalid query response');
+  });
   it('shares one module instance across entity handles, preserving numeric state', async () => {
     const host = make(); await install(host, `counter++; ${emit(1, '1', 'counter')}`, 'let counter:i32 = 0;', '1');
     expect(host.call('policy', 1, [0]).ok).toBe(true); expect(host.call('policy', 2, [0]).ok).toBe(true);

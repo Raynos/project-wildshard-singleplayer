@@ -7,7 +7,7 @@ const BEFORE = ['main.world'];
 interface Ticks { update: (dt: number) => void }
 /** what the systems tick: the world build's parts (./build.ts DriftwoodWorld), or none of one */
 export interface IslandParts<Deck extends { readonly awake: boolean }> {
-  ocean: Ticks | null; boat: Ticks | null; palms: Ticks | null; seabed: Ticks | null; cove: Ticks | null; shrine: Ticks | null;
+  ocean: Ticks | null; boat: (Ticks & { readonly moverDriven?: boolean }) | null; palms: Ticks | null; seabed: Ticks | null; cove: Ticks | null; shrine: Ticks | null;
   gulls: { update: (dt: number, player: Vector3) => void } | null;
   bridge: { setPoses: (deck: Deck, alpha: number) => void } | null; bridgeDeck: Deck | null;
 }
@@ -23,7 +23,7 @@ export interface IslandView { readonly player: { readonly position: Vector3 }; r
 export function islandSystems<Deck extends { readonly awake: boolean }>(ctx: ShardContext, view: IslandView, parts: IslandParts<Deck>): void {
   const { ocean, boat, palms, gulls, bridge, bridgeDeck, seabed, cove, shrine } = parts;
   if (ocean) ctx.system({ id: 'shard.driftwood.ocean', phase: 'update', before: BEFORE, run: (dt) => { ocean.update(dt); } });
-  if (boat) ctx.system({ id: 'shard.driftwood.boat', phase: 'update', before: BEFORE, run: (dt) => { boat.update(dt); } });
+  if (boat && !boat.moverDriven) ctx.system({ id: 'shard.driftwood.boat', phase: 'update', before: BEFORE, run: (dt) => { boat.update(dt); } });
   if (palms) ctx.system({ id: 'shard.driftwood.palms', phase: 'update', before: BEFORE, run: (dt) => { palms.update(dt); } });
   if (gulls) ctx.system({ id: 'shard.driftwood.gulls', phase: 'update', before: BEFORE, run: (dt) => { gulls.update(dt, view.player.position); } });
   if (bridge && bridgeDeck) ctx.system({ id: 'shard.driftwood.bridge.pose', phase: 'update', before: BEFORE, run: () => { if (bridgeDeck.awake) bridge.setPoses(bridgeDeck, view.game.alpha); } });

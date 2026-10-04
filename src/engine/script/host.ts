@@ -9,6 +9,8 @@ export interface ScriptLimits { instances: number; memoryBytes: number; effects:
 export const SCRIPT_LIMITS: Readonly<ScriptLimits> = Object.freeze({ instances: 8, memoryBytes: 24000000, effects: 128, spawns: 8, events: 32, queries: 64, fuelPerCall: 2000000, fuelPerTick: 8000000, failures: 3 });
 /** Deterministic, read-only query input/output; replies may be recorded for replay/conformance. */
 export type ScriptQuery = (kind: number, input: readonly number[], entity: number) => readonly number[];
+/** Read-only declared numeric parameters; the host supplies the trusted calling entity to the query adapter. */
+export const SCRIPT_PARAMETER_QUERY = 410;
 /** A complete linear-memory + mutable-global snapshot, never a live view of Wasm state. */
 export interface ScriptSnapshot { memory: Uint8Array; globals: ReadonlyMap<string, number | bigint> }
 /** JSON-compatible complete continuation; counters, pending events and quarantine history affect replay. */
@@ -72,7 +74,7 @@ export class ScriptHost {
       finite64: (value: number) => { this.charge(state, 1); if (!Number.isFinite(value)) throw new Error('Non-finite script number'); return value; },
       abort: () => { throw new Error('Script abort'); },
       query: (kind: number, request: number, response: number) => {
-        if (!state.busy || !integer(kind, 1, 4)) throw new Error('Query outside a tick');
+        if (!state.busy || (!integer(kind, 1, 4) && kind !== SCRIPT_PARAMETER_QUERY)) throw new Error('Query outside a tick');
         this.charge(state, 256); if (++this.used.queries > this.limits.queries) throw new Error('Query allowance');
         bounds(request, 64, memory); bounds(response, 768, memory);
         const input = Array.from(new Float64Array(memory.buffer, request, 8));

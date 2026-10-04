@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-57 members; 0 without a doc line (—).
+59 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -37,6 +37,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |
 | `LedgerRulesSchema` | const | @wildshard/sdk/ledger | Compile profile reward mappings; coins and unreviewed local items stay outside the travelling profile. |
 | `parseLedgerRules` | function | @wildshard/sdk/ledger | Validate ledger declarations in an author project before writing its shardfile. |
+| `MoverData` | type | @wildshard/sdk/movers | Typed numeric mover declarations: local collider primitives and admitted fixed-step scripts. |
+| `movers` | function | @wildshard/sdk/movers | Validate identity, primitive limits and numeric data before an author product constructs physics. |
 | `parsePlumbing` | function | @wildshard/sdk/plumbing | Compile author plumbing after checking owned identities and hook references. |
 | `PlumbingData` | type | @wildshard/sdk/plumbing | The compiled, callback-free scoped plumbing contract. |
 | `PlumbingSchema` | const | @wildshard/sdk/plumbing | Validate declared input contexts, tier knobs and Debug choices for an author project. |

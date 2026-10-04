@@ -10,6 +10,8 @@ import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrappin
 import { STRINGS } from './strings';
 import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, WISP_HOMES, apothem, type Home } from './layout';
 import { buildWorld, type BuiltWorld } from './world/build';
+import { skyMoverViews } from './runtime/movers';
+import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/shardfile/moverRuntime';
 import { gustFx } from './world/windFx';
 import { FALL_TIME } from './world/distant';
 import { WarFan, inCone, GUST, type FanTarget } from './weapons/WarFan';
@@ -68,6 +70,7 @@ export class SkyReachPlugin extends ShardPlugin {
   flags: Flags | null = null;
   /** Sets the quest as a player has it at the crown (capture staging, `stage`). */
   private questFinished: (() => void) | null = null;
+  private movers: MoverRuntime | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
   /** The near meadow that travels with the camera (loop 4). */
@@ -116,7 +119,7 @@ export class SkyReachPlugin extends ShardPlugin {
       return Promise.resolve({ primary: fan, secondary: null, rifle: null, install: () => undefined });
     };
   }
-  override play(ctx: ShardContext): void {
+  override async play(ctx: ShardContext): Promise<void> {
     const rt = ctx.game.runtime, built = this.built, fan = this.fan, position = rt?.world?.player.position ?? this.player;
     if (built === null || fan === null) throw new Error('Sky Reach: world and kit must run before play');
     const host = ctx.app.equipmentHost, toast = (text: string): void => { rt?.play?.hud.toast(text); };
@@ -142,15 +145,14 @@ export class SkyReachPlugin extends ShardPlugin {
     built.notes.onInteract = () => { flags.set(FLAGS.notes); toast(STRINGS.notesToast); };
     // Step 4: the winch answers only once the roost is quiet and the vanes turn (the notes say so).
     const unlocked = (): boolean => flags.has(FLAGS.roost) && flags.has(FLAGS.vanes);
-    built.winch.onInteract = () => { if (built.state.raised) return; if (unlocked()) built.state.raising = true; else toast(STRINGS.winchLocked); };
+    built.winch.onInteract = () => { if (built.state.raised) return; if (unlocked()) this.movers?.command('far.winch.bridge', 1); else toast(STRINGS.winchLocked); };
     // the world pins, chip, map and minimap marks are the quest presentation's (quest/install.ts)
-    if (flags.has(FLAGS.raised)) this.finishRaise(built);
-    ctx.system({ id: 'far.winch', phase: 'update', run: (dt) => {
-      if (built.state.raising && !built.state.raised) {
-        built.fallen.rotation.x = Math.min(0, built.fallen.rotation.x + dt * RAISE_RATE);
-        if (built.fallen.rotation.x >= 0) { this.finishRaise(built); flags.set(FLAGS.raised); toast(STRINGS.raised); }
-      }
-    } });
+    if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
+    this.movers = await installDeclaredMovers(ctx, rt.world, skyMoverViews(built, () => Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2, () => {
+      built.winch.label = STRINGS.raised;
+      if (!flags.has(FLAGS.raised)) { flags.set(FLAGS.raised); toast(STRINGS.raised); }
+    }, () => { this.movers = null; }));
+    if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
 
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
     // like an animal's, so a constant feed holds about UPDRAFT_LIFT / 3.5 m/s) floats you off the ramp to the high step.
@@ -168,7 +170,7 @@ export class SkyReachPlugin extends ShardPlugin {
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
-      const cam = rt?.world?.game.camera; if (cam && this.meadow) this.meadow.update(cam.position, t);
+      const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(cam.position, t);
       built.millHub.rotation.z += dt * 0.35; FALL_TIME.value = t; built.storm.update(dt, t); built.wind.update(t);
       for (const v of built.vanes) v.rotor.rotation.y += dt * (flags.has(vaneFlag(v.id)) ? 6 : 0.25);
     } });
@@ -178,13 +180,13 @@ export class SkyReachPlugin extends ShardPlugin {
     for (const o of gustView.objects) ctx.root.add(o);
     ctx.scope.onDispose(() => { gustView.dispose(); });
     fan.onGust = (from, dir) => {
-      gustView.fire(from.clone().addScaledVector(dir, 0.2).setY(from.y - 0.25), dir); rt?.play?.cues.charge(FAN_ROW, 'heavy');
+      gustView.fire(from.clone().addScaledVector(dir, 0.2).setY(from.y - 0.25), dir); rt.play?.cues.charge(FAN_ROW, 'heavy');
       this.gustVanes(from, dir, toast);
     };
     ctx.system({ id: 'far.gust', phase: 'update', run: (dt) => { gustView.update(dt); } });
 
     // Creatures: each one knows its home (an island or a flying circle).
-    const animals = rt?.play?.animals;
+    const animals = rt.play?.animals;
     const spawn = (kind: string, variant: string, home: Home, x: number, z: number, placement?: { fromY: number }): Animal | null => {
       if (!animals) return null; const a = animals.spawn(kind, x, z, 0, variant, placement); setHome(a, home); return a;
     };
@@ -192,7 +194,7 @@ export class SkyReachPlugin extends ShardPlugin {
     // each free ray trails its luminous wake (world/rayWake.ts; proposal B's ray beside the mill)
     const wakes = this.rays.map((ray) => { const w = rayWake(); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
     ctx.system({ id: 'far.rayWake', phase: 'late', run: (dt) => {
-      const cam = rt?.world?.game.camera; if (!cam) return;
+      const cam = rt.world?.game.camera; if (!cam) return;
       for (const { ray, w } of wakes) w.update(ray.position, ray.alive, cam.position, dt);
     } });
     for (const home of ROOST_RAYS) { const a = spawn('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.roostRays.push(a); }
@@ -287,9 +289,9 @@ export class SkyReachPlugin extends ShardPlugin {
     return turned;
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
-  private finishRaise(built: BuiltWorld): void { built.fallen.rotation.x = 0; built.state.raised = true; built.state.raising = false; built.winch.label = STRINGS.raised; }
+  private finishRaise(_built: BuiltWorld): void { this.movers?.command('far.winch.bridge', 3); }
   /** Turn the winch, ignoring the lock (captures and tests use this through `__wildshard.shard.farReach`). */
-  raise(): void { if (this.built && !this.built.state.raised) this.built.state.raising = true; }
+  raise(): void { if (this.built && !this.built.state.raised) this.movers?.command('far.winch.bridge', 2); }
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
 export default SkyReachPlugin;

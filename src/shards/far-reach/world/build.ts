@@ -58,7 +58,7 @@ export function deckCollider(span: Span): ColliderDesc {
  * A rope span's deck and rails along its sag (layout ropeSag), as ~2 m chords, each its own short sloped span, overlapping
  * a little so the joins have no seam (a chord sits at most a few mm above the curve).
  */
-function saggedColliders(span: Span): ColliderDesc[] {
+export function saggedColliders(span: Span): ColliderDesc[] {
   const len = spanLength(span), n = Math.max(1, Math.ceil(len / 2)), out: ColliderDesc[] = [];
   const at = (s: number): { x: number; y: number; z: number } => {
     const f = s / len; return { x: span.x0 + (span.x1 - span.x0) * f, y: span.y + (span.y1 - span.y) * f - ropeSag(len, s), z: span.z0 + (span.z1 - span.z0) * f };
@@ -71,7 +71,7 @@ function saggedColliders(span: Span): ColliderDesc[] {
   return out;
 }
 /** Rope rails along both long sides of a span. */
-function railColliders(span: Span): ColliderDesc[] {
+export function railColliders(span: Span): ColliderDesc[] {
   const len = spanLength(span);
   return [-1, 1].map((side) => spanBox(span, [side * span.width / 2, 0.55, -len / 2], [0.06, 0.55, len / 2], 'wood'));
 }

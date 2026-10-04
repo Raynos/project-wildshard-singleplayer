@@ -13,6 +13,7 @@ import { FIXED_STEP } from '../core/fixedStep';
 import { currentOwner } from '../app/ownership';
 import { untagCollider } from './surface';
 
+/** Owns one fixed-step collision world and its complete same-version continuation. */
 export class Physics {
   readonly world: World;
   /** ms the last `step()` took (the perf meter / bench read it) */
