@@ -5,7 +5,8 @@
  *
  * - **the highway deck and strips**: `generatePlatform` (the pure SF17b generator) over the assembly, drawn as one mesh
  *   and installed as platform-owned trimesh colliders in the home world (the same vertices; `installStripCollider`).
- *   No shard declares an edge profile yet, so every cell edge is the catalogue's empty-neighbour profile (road level).
+ *   Every cell's edge rows come from its shard's own data (`edgeSources.ts` through `loadGridEdgeProfiles`, loaded once in
+ *   `create`); the seams wear their materials by feature range (`seamLook.ts`).
  * - **render origin per cell** (C39): the home cell is the render origin; every other cell's root sits at its origin
  *   minus the home origin, and the rings get world positions (local + home origin).
  * - **neighbours as their declared fallback** (§3.3): no neighbour is a resident shardfile sim in the page yet, so each
@@ -51,6 +52,8 @@ import { installRoadLook, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import { seamMesh, type SeamLookState } from './seamLook';
+import { loadGridEdgeProfiles } from './edgeProfiles';
+import { readGridEdges } from './edgeSources';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
 import { clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/clientRings';
@@ -169,7 +172,20 @@ export class GridSession {
   private readonly life: NeighbourLife;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
 
-  constructor(host: GridSessionHost) {
+  /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
+  static async create(host: GridSessionHost): Promise<GridSession> {
+    const assembly = new GridAssembly(gridMode(devserverCellOn())), empty = assembly.emptyNeighbour.edge;
+    const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
+      try { return await readGridEdges(cell); } catch (error) {
+        console.warn(`[grid] ${cell.instance} edges stay at road level:`, error);
+        const closed = { entryWidth: 0 };
+        return { kind: 'declared', profiles: { north: empty, east: empty, south: empty, west: empty }, observations: { north: closed, east: closed, south: closed, west: closed } };
+      }
+    });
+    return new GridSession(host, edges);
+  }
+
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[]) {
     this.host = host;
     const instance = pageGridInstance();
     this.assembly = new GridAssembly(gridMode(devserverCellOn()));
@@ -178,9 +194,13 @@ export class GridSession {
     const home = this.home, empty = this.assembly.emptyNeighbour.edge;
     this.neighbours = this.assembly.cells.filter((cell) => cell.instance !== home.instance);
     // the deck: one generator run, one draw, the same vertices as the platform colliders
-    const cells = this.assembly.cells.map((cell): PlatformCell => ({ instance: cell.instance, cell: cell.cell, origin: { x: cell.origin.x, z: cell.origin.z },
+    // the shards' real edge rows and observations (loaded once by `create`, before this one generation); a platform the
+    // generator refuses (an edge past the cliff envelope, an entry off road height) falls back to road-level edges
+    const flat = this.assembly.cells.map((cell): PlatformCell => ({ instance: cell.instance, cell: cell.cell, origin: { x: cell.origin.x, z: cell.origin.z },
       edges: { north: empty, east: empty, south: empty, west: empty } }));
-    this.strips = generatePlatform(cells, empty);
+    let strips: readonly GeneratedStrip[];
+    try { strips = generatePlatform(edges ?? flat, empty); } catch (error) { console.warn('[grid] the platform keeps road-level edges:', error); strips = generatePlatform(flat, empty); }
+    this.strips = strips;
     // the seams' materials keyed by the generator's feature ranges (phase 2): the same triangles the world collides with
     const seams = seamMesh(this.strips, home);
     const deck = seams.mesh; this.seams = seams.state;
