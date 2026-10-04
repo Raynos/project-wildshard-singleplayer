@@ -31,6 +31,19 @@ export type SeabedKind = 'coral' | 'weed' | 'star';
 export interface SeabedSpec { kind: SeabedKind; x: number; z: number; s: number; rot: number; v: number }
 export interface SeabedLayout { items: SeabedSpec[]; school?: { x: number; z: number; y: number; r: number; n: number } | undefined }
 
+/** SF46: how deep the water must be under the fish school's patch (its fish swim ±0.9 m about level − 0.55 × depth) */
+const SCHOOL_ROOM = 2.5;
+/** the fish school: over the densest reef patch placed (only where the water is ≥ `room` m deep), at mid-depth */
+function schoolOver(items: readonly SeabedSpec[], level: number, room = 0): SeabedLayout['school'] {
+  let best: SeabedSpec | undefined, bestN = -1;
+  for (const p of items) {
+    if (p.kind !== 'coral' || (room > 0 && level - heightAt(p.x, p.z) < room)) continue;
+    let n = 0; for (const q of items) if (q.kind === 'coral' && Math.hypot(q.x - p.x, q.z - p.z) < 12) n++;
+    if (n > bestN) { bestN = n; best = p; }
+  }
+  return best ? { x: best.x, z: best.z, y: level - Math.min(3, (level - heightAt(best.x, best.z)) * 0.55), r: 7, n: 28 } : undefined;
+}
+
 const isParts = (b: readonly ModelPart[] | THREE.Object3D): b is readonly ModelPart[] => Array.isArray(b);
 const isInstanced = (o: THREE.Object3D): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh;
 
@@ -40,6 +53,8 @@ export class Seabed {
   mesh!: THREE.Mesh;
   fish?: THREE.InstancedMesh;
   count = 0; tris = 0;
+  /** corals `build`'s `below` left out (SF46's lowered sea) */
+  hidden = 0;
   /** the reef's sway clock (its material's) */
   private uniforms: { uTime: THREE.IUniform<number> } | null = null;
   private school?: { x: number; z: number; y: number; r: number; n: number; seeds: Float32Array };
@@ -83,18 +98,18 @@ export class Seabed {
         items.push({ kind: 'star', x, z, s: rng.range(0.5, 0.9), rot: rng.range(0, Math.PI * 2), v: rng.next() });
       }
     }
-    // the fish school: over the densest reef patch we placed, at mid-depth
-    let best: SeabedSpec | undefined, bestN = -1;
-    for (const p of items) {
-      if (p.kind !== 'coral') continue;
-      let n = 0; for (const q of items) if (q.kind === 'coral' && Math.hypot(q.x - p.x, q.z - p.z) < 12) n++;
-      if (n > bestN) { bestN = n; best = p; }
-    }
-    const school = best ? { x: best.x, z: best.z, y: level - Math.min(3, (level - heightAt(best.x, best.z)) * 0.55), r: 7, n: 28 } : undefined;
-    return { items, school };
+    return { items, school: schoolOver(items, level) };
   }
 
-  build(layout: SeabedLayout | SeabedSpec[]): this {
+  /** SHARD-PLATFORM SF46 (G134): the lagoon's layout under a lowered sea. The scatter (its +0.8 m mask) stays; the fish
+   *  school moves over the densest reef patch with room for it (≥ SCHOOL_ROOM m under `level`), so no fish leaves the water */
+  static lowered(layout: SeabedLayout, level: number): SeabedLayout {
+    return { items: layout.items, school: schoolOver(layout.items, level, SCHOOL_ROOM) };
+  }
+
+  /** `below` (SF46's lowered sea): a coral whose top would stand above it is left out (its rng draws still taken, so every
+   *  other copy keeps its shape); the seaweed reaches the surface as it always did */
+  build(layout: SeabedLayout | SeabedSpec[], opts: { below?: number } = {}): this {
     const specs = Array.isArray(layout) ? layout : layout.items;
     const ctx = modelContext(this.sky);
     // one stream through every copy, in scatter order, across the kinds (the old loop's)
@@ -107,9 +122,10 @@ export class Seabed {
       const built = REEF[p.kind].build(ctx, params, rng), part = isParts(built) ? built[0] : undefined;
       if (!part) continue;
       const g = part.geometry.translate(p.x, y, p.z);
-      parts.push(g);
       g.computeBoundingBox();
       box.copy(g.boundingBox ?? box);
+      if (opts.below !== undefined && p.kind === 'coral' && box.max.y > opts.below) { this.hidden++; continue; }
+      parts.push(g);
       let k = kinds.get(p.kind);
       if (!k) { k = { pls: [], boxes: [] }; kinds.set(p.kind, k); }
       k.pls.push({ x: p.x, y, z: p.z, params });

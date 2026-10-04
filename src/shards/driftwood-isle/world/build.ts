@@ -31,7 +31,7 @@ import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
 import { tintTerrain } from './coverTint';
 import type { BlenderIsland } from './BlenderIsland';
-import { ANCHORED_BOAT, ENTRY_FOOTPRINTS, LOWERED_SEA, PIER_START, type DryRect } from './sea';
+import { ANCHORED_BOAT, CORAL_CLEARANCE, ENTRY_FOOTPRINTS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRect } from './sea';
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
@@ -46,11 +46,13 @@ export interface DriftwoodWorld {
  *  past its entry's asphalt socket with a ramp up from the sandbar. Absent, the world is the legacy build exactly. */
 export interface DriftwoodLowered {
   readonly level: number; readonly pierStart: number; readonly seaRamp: number; readonly dry: readonly DryRect[];
+  /** how far inside a confining grid cell's edge the sea stops (G149: the shore revetment's inner face) */
+  readonly edgeInset: number;
   /** the boat at anchor here (xz), its anchor line `anchorAhead` m ahead of the bow on the seabed */
   readonly boat: { readonly x: number; readonly z: number; readonly anchorAhead: number };
 }
 /** G134's lowering: the sea at road level, the decks from 18 m in, a 6 m ramp (1.2 m up: ≈ 11°) */
-export const G134_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: 6, dry: ENTRY_FOOTPRINTS, boat: ANCHORED_BOAT };
+export const G134_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: 6, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE, boat: ANCHORED_BOAT };
 
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
@@ -69,7 +71,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
   const statics: Collider[] = [];
   const slice = slicer(); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
-  const ocean = new Ocean(sky).build(sea.level, lowered?.dry);
+  const ocean = new Ocean(sky).build(sea.level, lowered?.dry, lowered?.edgeInset);
   game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
@@ -84,7 +86,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const anchor = lowered?.boat, anchorZ = anchor === undefined ? 0 : anchor.z - anchor.anchorAhead;
   const boat = anchor === undefined
     ? new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(BOAT_MOOR.x, BOAT_MOOR.z) }).place(registry)
-    : new Boat(sky, { x: anchor.x, z: anchor.z, heading: 0, waterY: sea.level, moorTo: [{ x: anchor.x, z: anchorZ, y: heightAt(anchor.x, anchorZ) }] }).place(registry);
+    : new Boat(sky, { x: anchor.x, z: anchor.z, heading: 0, waterY: sea.level, moorTo: [{ x: anchor.x, z: anchorZ, y: heightAt(anchor.x, anchorZ) }], ladder: true }).place(registry);
   statics.push(...boat.colliders);
   if (boat.ropes) game.scene.add(boat.ropes);
   await slice();
@@ -146,7 +148,9 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...bridge.colliders);
   await slice();
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
-  const seabed = new Seabed(sky).build(Seabed.scatterLagoon(manifest.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }]));
+  // SF46 (lowered): the same scatter, no coral standing out of the lowered sea, the school where it has room
+  const lagoon = Seabed.scatterLagoon(manifest.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }]);
+  const seabed = lowered === undefined ? new Seabed(sky).build(lagoon) : new Seabed(sky).build(Seabed.lowered(lagoon, sea.level), { below: sea.level - CORAL_CLEARANCE });
   game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish);
   await slice();
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)

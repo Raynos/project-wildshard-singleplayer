@@ -1,5 +1,5 @@
 {
- "$doc": "SHARD-PLATFORM SF46 (G134): Driftwood's four midpoint entries walked edge -> shard and back with the hybrid row ON (sea at 0). Each inward leg starts 1 m inside the edge midpoint on the 8 x 15 m socket footprint (y 0), walks the sandbar to the pier / jetty's sea-end ramp (18 m in), along the deck and onto dry ground; each outward leg walks back to the edge (south / north / east over the sandbar beside the deck: the decks' island ends are steps down, never walk-ups, as before G134). Run: scripts/browser-lane.sh node scripts/physics-baseline.mjs --no-build --mode=walk --shard=driftwood-isle --route=progress/shard-platform/sf46/entries-route.json --device-save=debug.plugin.driftwood-isle.driftwoodHybrid=on --url=<served build> The last leg walks from the pier deck to the anchored boat and boards it (the ON world's replacement for the deck-to-boat step leg).",
+ "$doc": "SHARD-PLATFORM SF46 (G134): Driftwood's four midpoint entries walked edge -> shard and back with the hybrid row ON (sea at 0). Each inward leg starts 1 m inside the edge midpoint on the 8 x 15 m socket footprint (y 0), walks the sandbar to the pier / jetty's sea-end ramp (18 m in), along the deck and onto dry ground; each outward leg walks back to the edge (south / north / east over the sandbar beside the deck: the decks' island ends are steps down, never walk-ups, as before G134). Run: scripts/browser-lane.sh node scripts/physics-baseline.mjs --no-build --mode=walk --shard=driftwood-isle --route=progress/shard-platform/sf46/entries-route.json --device-save=debug.plugin.driftwood-isle.driftwoodHybrid=on --url=<served build> The last leg walks from the pier deck to the anchored boat and boards it up its starboard ladder (the ON world's replacement for the deck-to-boat step leg).",
  "driftwood-isle": [
   {
    "name": "south in",
@@ -306,24 +306,22 @@
      "z": -234
     },
     {
-     "x": -20,
-     "z": -239
+     "x": -19.5,
+     "z": -240.45
     },
     {
-     "x": -24,
-     "z": -239.6,
-     "jump": 2,
-     "jumpAt": 1.9
+     "x": -21.2,
+     "z": -240.45
     },
     {
-     "x": -24,
-     "z": -240.6
+     "x": -25.1,
+     "z": -240.45
     }
    ],
    "expect": {
     "y": 0.32
    },
-   "notes": "G134 pick A: off the deck between the pilings onto the sandbar, wade out to the boat at anchor off the sandbar edge (~0.9 m deep: wading, not swimming) and double-jump in over the gunwale (1.66 m above the wading feet; a single jump reaches 1.53) onto its floor (0.32 m over the water)"
+   "notes": "G134 pick A: off the deck between the pilings onto the sandbar, wade out to the boat at anchor off the sandbar edge (~0.9 m deep: wading, not swimming), walk up the boarding ladder hung over its starboard gunwale (steps 0.35 m apart: no jump) and drop onto its floor (0.32 m over the water)"
   }
  ]
 }

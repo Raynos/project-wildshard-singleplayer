@@ -54,9 +54,12 @@ export class Ocean {
   constructor(private sky: Sky) {}
 
   /** `level`: the still level (SF46's lowered world passes road height; default the manifest's OCEAN.level). `dry`: up to
-   *  four level-space rectangles the sea is clipped out of (SF46: the entries' 8 × 15 m sockets); none by default */
-  build(level = OCEAN.level, dry: readonly DryRect[] = []): this {
+   *  four level-space rectangles the sea is clipped out of (SF46: the entries' 8 × 15 m sockets); none by default.
+   *  `edgeInset`: metres inside its confining square (`uWaterHalf`: a grid cell; unbounded standalone) the sea stops (SF46,
+   *  G149: the shore revetment's inner face); 0 by default */
+  build(level = OCEAN.level, dry: readonly DryRect[] = [], edgeInset = 0): this {
     if (dry.length > 4) throw new RangeError('The ocean clips at most four dry rectangles');
+    if (!(edgeInset >= 0)) throw new RangeError('The ocean edge inset is a distance');
     const holes = dry.map((r) => new THREE.Vector4(r.minX, r.minZ, r.maxX, r.maxZ));
     const def = { ...OCEAN, level };
     this.level = def.level;
@@ -239,7 +242,7 @@ export class Ocean {
           normal = normalize((viewMatrix * vec4(seaN * faceDirection, 0.0)).xyz);   // E151: the toon lighting reads the smooth wave too
           nonPerturbedNormal = normal;`)
         .replace('#include <opaque_fragment>', /* glsl */`
-          if (max(abs(vRest.x), abs(vRest.y)) > uWaterHalf) discard;   // the sea stays inside its level's square${holes.length === 0 ? '' : `
+          if (max(abs(vRest.x), abs(vRest.y)) > uWaterHalf${edgeInset === 0 ? '' : ` - ${edgeInset.toFixed(3)}`}) discard;   // the sea stays inside its level's square${edgeInset === 0 ? '' : ' (SF46: to the shore revetment inner face)'}${holes.length === 0 ? '' : `
           for (int i = 0; i < ${holes.length}; i++) if (all(greaterThanEqual(vRest, uDry[i].xy)) && all(lessThanEqual(vRest, uDry[i].zw))) discard; // SF46: dry entry sockets`}
           {
             // fade out over the last 300 m before the painted horizon, so the islands' feet stand on the sea's own far edge

@@ -26,7 +26,7 @@ import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { ShardManifest, OceanDef } from '@wildshard/game/shard/manifest';
 import { lateReads } from './boot/lateReads';
 import { bootSources } from './boot/sources';
-import { DRIFTWOOD_SEA, SHORE_LEVEL } from './world/sea';
+import { DRIFTWOOD_SEA, SHORE_LEVEL, declaredSeaLevel } from './world/sea';
 import thumbnail from './thumbs/driftwood-isle.jpg';
 import heroPortrait from './thumbs/driftwood-isle-portrait.jpg';
 import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
@@ -174,7 +174,8 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   // registers them under these ids) — palms as crowns, the decks as planks, the hut / tower / wreck / zipline as timber, the
   // shrine as stone, the sea cave's vault as rock
   minimap: {
-    openWater: { level: OCEAN.level, deepDepth: OCEAN.deepDepth },
+    // SF46 (G134): the level reads the hybrid row (road height ON, OCEAN.level OFF), so the grid's edge reader sees the lowered sea
+    openWater: { get level() { return declaredSeaLevel(); }, deepDepth: OCEAN.deepDepth },
     outside: 'rgb(22,74,128)',
     paths: PATHS,
     pieces: [
