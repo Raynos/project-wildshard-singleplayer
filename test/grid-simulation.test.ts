@@ -12,6 +12,7 @@ import { createSimHost, type SimLevel } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost, type SimSnapshot } from '../src/engine/sim/snapshot';
 import { installDeclaredPropColliders, type PropColliderPort } from '../src/engine/physics/declaredProps';
 import { installStripCollider } from '../src/engine/physics/stripColliders';
+import { installEntrySockets } from '../src/engine/physics/entrySockets';
 import { generateStrip } from '../src/engine/sim/strips';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { GridSimulation, type GridResident } from '../src/game/grid/simulation';
@@ -175,7 +176,9 @@ describe('world-local grid residency', () => {
       installStripCollider(highwayHost.physics, strip.mesh, highwayHost.scope); highwayHost.player.position.set(axis === 'x' ? 277.5 : 0, 0, axis === 'z' ? 277.5 : 0);
       const sim = new GridSimulation(assembly, { highway: { host: highwayHost, dispose: () => { highwayHost.dispose(); } }, load: () => {
         const host = createSimHost({ ...level, entities: [], quests: [] }, { rapier, groundResolution: resolution }), mesh = strip.duplicates[0]?.mesh; if (mesh === undefined) throw new Error('Missing duplicate');
-        installStripCollider(host.physics, mesh, host.scope); return Promise.resolve({ host, dispose: () => host.dispose() });
+        installStripCollider(host.physics, mesh, host.scope);
+        installEntrySockets(host.physics, host.scope, [{ x: 0, z: 0 }], 'backstop');
+        return Promise.resolve({ host, dispose: () => host.dispose() });
       }, save: () => true });
       let crossings = 0;
       try {

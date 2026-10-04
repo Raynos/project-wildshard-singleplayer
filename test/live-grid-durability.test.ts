@@ -9,6 +9,9 @@ import { SaveStore } from '../src/engine/saves/store';
 import { fnv1a32 } from '../src/engine/core/rng';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { ReadinessWalls, type ReadinessEdge } from '../src/engine/physics/readinessWalls';
+import { installEntrySockets } from '../src/engine/physics/entrySockets';
+import { tagOf } from '../src/engine/physics/surface';
+import { PLATFORM_COLLIDER_OWNER } from '../src/engine/physics/stripColliders';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, serializeSimSnapshot } from '../src/engine/sim/snapshot';
 import { EquipmentService } from '../src/engine/combat/EquipmentService';
@@ -51,6 +54,18 @@ function rimEdges(): ReadinessEdge[] {
     { instance: null, x: -2000, z: 0, axis: 'x', halfLength: 2000, floor: 0 },
     { instance: null, x: 0, z: 2000, axis: 'z', halfLength: 2000, floor: 0 },
     { instance: null, x: 0, z: -2000, axis: 'z', halfLength: 2000, floor: 0 }];
+}
+
+function socketHandles(sim: simulation.ShardfileSimulation): number[] {
+  const handles: number[] = [];
+  sim.host.physics.world.forEachCollider((collider) => {
+    if (tagOf(collider)?.owner === PLATFORM_COLLIDER_OWNER) {
+      expect(tagOf(collider)?.material).toBe('stone');
+      expect(collider.translation().y).toBeCloseTo(-0.13, 6); // Rapier translation is float32
+      handles.push(collider.handle);
+    }
+  });
+  return handles.sort((a, b) => a - b);
 }
 
 it('holds a real live crossing on home or region save refusal and reloads the earned quest and coins', async () => {
@@ -99,6 +114,9 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     expect(first.allocator.has(`sim:${target.instance}`)).toBe(false);
     denyBasis.mockRestore(); first.session.live.retry(target.instance);
     await first.session.live.prefetch([target.instance]);
+    const admitted = first.session.simulation(target.instance);
+    if (admitted === undefined) throw new Error('Missing admitted socket world');
+    const sockets = socketHandles(admitted); expect(sockets).toHaveLength(4);
     expect(first.allocator.entries().find((entry) => entry.id === `sim-basis:${target.instance}`)?.bytes).toBeGreaterThan(300_000);
     expect(first.scope.census.colliders).toBe(0); // admitted terrain and props also stay in their regional scope
     pageHost.player.position.set(270, 1, 270); await settle(first.tick);
@@ -125,6 +143,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     expect(first.session.live.state().continuations.storedChars).toBeGreaterThan(0);
     const reload = new GridRegionDurability(new SaveStore({ local, session: null }), { id: target.instance, shard: target.slug }, source, []);
     const freshBasis = create(source, assets, { rapier, playerBody: false, groundResolution: 257, quest: reload.quest });
+    installEntrySockets(freshBasis.host.physics, freshBasis.host.scope, [{ x: 0, z: 0 }], 'backstop');
     try { reload.setPhysicsBasis(freshBasis.host.physics.snapshot()); } finally { freshBasis.dispose(); }
     expect(reload.read()?.flags).toContain('template.complete'); expect(reload.wallet.coins()).toBe(5);
     expect(Object.values(reload.ledger.state().facts)).toHaveLength(1);
@@ -135,6 +154,9 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     pageHost.player.position.set(target.origin.x, 1, target.origin.z); await settle(first.tick);
     expect(first.session.frame()).toBe(target.instance);
     expect(first.session.simulation(target.instance)?.host.flags.has('template.complete')).toBe(true);
+    const restored = first.session.simulation(target.instance);
+    if (restored === undefined) throw new Error('Missing restored socket world');
+    expect(socketHandles(restored)).toEqual(sockets); // restored tags/handles, four floors, zero duplicate allocation
   } finally {
     try {
       withOwner(first.scope, () => { first.scope.dispose(); });
