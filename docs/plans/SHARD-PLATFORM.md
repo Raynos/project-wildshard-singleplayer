@@ -24,7 +24,7 @@ SF4a). All seven shards are ported to 80/20 (G49): the template, Driftwood Isle,
 Dunes (slug `sunscar-dunes`), Sky Reach (slug `far-reach`) and Nine Dragon Stack. They meet on a **3 × 3 singleplayer
 grid** joined by the highway and generated no-man's land (§3.3).
 
-**Compatible** means (G45, bounded-lite determinism G48): the shard's sim runs headless in Node; a snapshot taken
+**Compatible** means (G45, bounded determinism G48): the shard's sim runs headless in Node; a snapshot taken
 mid-encounter restores and replays to the same state hash on the same engine; behaviour is AssemblyScript (bit-identical
 everywhere by construction) or, during the transition, TypeScript in `runtime/`; shared state is host-owned declared
 fields; rewards go only through the ledger interface. Cross-engine bit identity of the whole sim is **not** required
@@ -95,17 +95,17 @@ Generated and baked output never counts.
 
 ## 3. The contracts
 
-### 3.1 Determinism: bounded-lite, timeboxed (G48)
+### 3.1 Determinism: bounded (G48)
 
 Jake: *"Bounded, or even Bounded lite. This benefits from a timebox too."*
 - **Required:** (a) behaviour in AssemblyScript (its own libm: bit-identical across engines, measured); (b) the whole sim
   steps headless in Node; (c) record → replay and snapshot → restore → replay give the same state hash **on the same
   engine**; (d) each shard simulates in its **own local frame** (no cell offsets inside the sim), so the client's sim
   matches what a server would run (C5).
-- **Timeboxed, 2 agent-days (SF4d):** the player motor (movement + its collision queries) hash-identical in Node and
-  WebKit with a deterministic maths module. If it isn't green inside the box, the row records why and stops; server
-  corrections absorb the drift.
-- **Out (G48):** the deterministic Rapier build, whole-sim cross-engine identity, fixed collider order across engines,
+- **No cross-engine check beyond scripts** (Jake, 2026-10-04, after G48: *"identical results everywhere only for
+  scripts (AssemblyScript gives that for free), and same-engine replay in Node for everything else."*). The player motor
+  isn't hash-tested across engines; server corrections absorb any drift.
+- **Out (G48):** a cross-engine motor test, the deterministic Rapier build, whole-sim cross-engine identity, fixed collider order across engines,
   three.js trig in the sim. (Closes B8, B9 and C3 as settled.)
 
 ### 3.2 Caps v0 (phone; provisional, tuned by SF22a and SF22)
@@ -216,7 +216,7 @@ further when it starts if it can.
 | SF5b | X | **Aim and hits from commands**: aim from the input command, not the viewmodel camera (`combat/Weapon.ts:56`); hit-stop visual only (`core/Game.ts`); stable entity ids independent of tile and LOD | A recorded fight replays to the same hash; parity identical | M |
 | SF5c | X | **The rest of the commands**: interact, mount, UI-triggered actions; RNG streams and the clock export and restore their state | A recorded session with interactions replays exactly | M |
 | SF4c | X | **Snapshot → restore → replay** (same engine): the snapshot holds entity state, timers and pending events, RNG streams, physics state, script memory and globals, quest state and the ledger's dedupe record; restore into a fresh host mid-encounter and replay the suffix (A6) | The template, snapshotted during its boss fight, replays the suffix to the same hash in Node | M |
-| SF4d | X | **Motor cross-engine hash, timeboxed to 2 agent-days** (G48): a deterministic maths module for the motor; the motor's replay hashes the same in Node and WebKit (Playwright through `scripts/browser-lane.sh`) | Green, or the box ends with a written reason in this row and the row closes | M (box) |
+| SF4d | — | ~~Motor cross-engine hash~~ **dropped** (Jake, 2026-10-04: identical results everywhere only for scripts; same-engine Node replay for everything else) | — | — |
 | SF6 | X | **The two measures** (§1) and the booleans in `scripts/shard-platform.mjs` and the push gate; today's metric renamed "legacy TS" (A4, B5, B15, B16, C20) | Fixtures: moving code to the kit doesn't raise the share; padding generated output doesn't; AS files count public | M |
 | SF22a | O | **Measure before designing the format** (C31): the empty template's engine base on the iOS Simulator, and a synthetic 2 × 2 rig of tiles at §3.2's caps, no shardfile needed | §3.2's engine base and caps are confirmed or revised in this plan before SF7a freezes them | M |
 
@@ -339,7 +339,7 @@ This plan **archives at 80/20** for all seven; 90/10 and 100/0 are its successor
 ## 5. Order and why
 
 1. **F0**: SF1a → SF1b → (SF1c, SF1d, SF1e, SF2) in parallel; SF3a → SF3b → SF3c; SF4a after SF3b; SF5a → SF5b → SF5c
-   → SF4c; SF4d any time after SF5a (timeboxed); SF6 after SF1a; **SF22a** alongside, on the Opus lane.
+   → SF4c; SF6 after SF1a; **SF22a** alongside, on the Opus lane.
 2. **F1**: SF7a (after SF22a's numbers) → SF7b → (SF7c, SF7d, SF7e, SF7f, SF8a, SF8b, SF9a, SF10a, SF11a, SF12, SF13,
    SF14) in parallel → (SF9b, SF10b, SF11b → SF11c, SF15a, SF15b, SF8c) → SF16. **M1** = SF16 passing.
 3. After M1, lanes in parallel: **F2** (SF17a → SF17b, SF17c; SF18a → SF18b, SF18c, SF18d; SF19a → SF19b; SF20a–d;
@@ -510,7 +510,7 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G45 | How compatibility is proven without multiplayer code | **Compatibility checks only**: a test steps each shardfile's simulation in plain Node with no renderer; a determinism test runs one input log in Node and in WebKit and requires identical state hashes; server scripts and client scripts are separate and singleplayer runs both locally; rewards go through a ledger interface that singleplayer implements locally with the same rules. No network, rooms or server process |
 | G46 | The singleplayer world | **A singleplayer grid**, starting with **three shards: Driftwood Isle, Pine Hollow and Nalati Grasslands**. Signal Dunes and Sky Reach join the grid (five shards) **only when dev mode is on**. **Nine Dragon Stack is a partial shard**, so it runs only in **DEVSERVER mode**. The DEVSERVER has the usual controls (explore mode, enter world …). The grid has an explore mode that explores one shard at a time: the level selector comes back only for explore mode, behind the dev toggle (Jake) |
 | G47 | The builder pipeline in this plan | **Everything local or static**: the SDK, CLI, dev server + phone QR, the auto-baker, validate (the checks a future server runs), bot playtests and the AI playtester, the points budget overlay, starter shards, `wildshard upgrade`, the Vercel preview (a static deploy). **A `/wildshard-quickstart` skill** may be built here. **WorldClaw is out of scope for this plan**: it has its own sequence of plans (Jake). Out: upload's server side, moderation, source storage, remix, the signature-item catalogue service |
-| G48 | Bounding determinism | **Bounded-lite, timeboxed** (Jake: *"Bounded, or even Bounded lite. This benefits from a timebox too."*): §3.1 |
+| G48 | Bounding determinism | **Bounded** (Jake: *"Bounded, or even Bounded lite. This benefits from a timebox too."* Then: *"Answer "Bounded". I'd go further: identical results everywhere only for scripts (AssemblyScript gives that for free), and same-engine replay in Node for everything else."*): §3.1 |
 | G49 | Which shards are ported | **All seven**: *"3 grid + template + signal dunes + sky reach + nine dragon. All the code has to be ported right. you can actually for fun render the template in the empty gaps. the first game can be Driftwood in the center, then nalati / pine wood, then to finish a 3x3 grid render the template in the empty slots. In dev mode we have 5 shards, so you render 4 templates in the empty slots."* (§3.3) |
 | G50 | Repo weight | **Its own plan**: *"You can get a subagent to make a second plan called "repo-weight.md" and it can figure out what do with all the media committed lol. we want to keep some of the progress & art work."* (E436, REPO-WEIGHT) |
 | G51 | The fence | *"No frence, build the whole thing, all 4 shards ported over, the fence is the 80/20 split, the fact you can leave the 20% of the hard code to port in a ./runtime/ directory in typescript."* |
