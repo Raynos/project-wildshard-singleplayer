@@ -1,7 +1,7 @@
 import { parseAudioData } from '@wildshard/sdk/audio';
 
 const enemies = ['boar', 'crab', 'monkey', 'sailor'] as const;
-const death = enemies.map((kind) => ({ voice: `island.kill.${kind}`, when: [{ op: 'equals', field: 'killed', value: true }, { op: 'equals', field: 'kind', value: kind }] }));
+const death = enemies.map((kind) => ({ voice: `island.kill.${kind}`, overrides: { gain: 1.3 }, when: [{ op: 'equals', field: 'killed', value: true }, { op: 'equals', field: 'kind', value: kind }] }));
 /** Today's island bank calls, in their original mixer/combat order; the trusted recipes keep their taps and random draws. */
 export const DRIFTWOOD_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default',
   music: { id: 'score.driftwood', base: 'island', slots: ['island'], bootSlots: ['title', 'island'], synthLead: 'marimba', minFade: 0,

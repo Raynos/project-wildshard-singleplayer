@@ -15,6 +15,7 @@ const defaults = v.strictObject({ pan: v.optional(v.pipe(finite, v.minValue(-1),
   speed: v.optional(v.pipe(finite, v.minValue(0), v.maxValue(60))), heavy: v.optional(v.boolean()), killed: v.optional(v.boolean()),
   sprinting: v.optional(v.boolean()), surface: v.optional(id), kind: v.optional(id), phase: v.optional(id), clang: v.optional(v.picklist(['wood', 'stone'])) });
 const action = v.strictObject({ voice: id, when: v.optional(conditions, []), defaults: v.optional(defaults, {}),
+  overrides: v.optional(defaults),
   delay: v.optional(v.nullable(v.pipe(finite, v.minValue(0), v.maxValue(60))), null) });
 /** Ordered bounded cue rules dispatch admitted catalogue voices, with optional conditions, defaults and scope-owned delayed actions. No author callbacks. */
 export const AudioRoutingSchema = v.pipe(v.array(v.strictObject({ id, bus: v.optional(v.picklist(['audio', 'combat'])), when: v.optional(conditions, []),

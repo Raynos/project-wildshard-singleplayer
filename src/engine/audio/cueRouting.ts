@@ -6,7 +6,11 @@ type Scalar = number | boolean | string;
 export type CueCondition = { op: 'present'; field: Field } | { op: 'number'; field: Field } | { op: 'equals'; field: Field; value: Scalar } | { op: 'in'; field: Field; values: readonly Scalar[] };
 type Defaults = { readonly [Key in 'pan' | 'gain' | 'strength' | 'speed' | 'heavy' | 'killed' | 'sprinting' | 'surface' | 'kind' | 'phase' | 'clang']?: CombatCueOpts[Key] | undefined };
 /** A voice action keeps the caller's point/direction references; defaults apply only to absent options. Null delay means synchronous. */
-export interface CueAction { voice: string; when: readonly CueCondition[]; defaults: Defaults; delay: number | null }
+export interface CueAction {
+  voice: string; when: readonly CueCondition[]; defaults: Defaults; delay: number | null;
+  /** Fixed recipe parameters take precedence over caller options, preserving the previous bank call. */
+  overrides?: Defaults | undefined;
+}
 /** First matching route owns a cue; an empty action list consumes intentionally silent cues. */
 export interface CueRoute {
   id: string;
@@ -28,12 +32,13 @@ function matches(conditions: readonly CueCondition[], opts: CombatCueOpts): bool
     return condition.values.some((entry) => entry === value);
   });
 }
-function withDefaults(opts: CombatCueOpts, defaults: Defaults): CombatCueOpts {
+function withDefaults(opts: CombatCueOpts, defaults: Defaults, overrides: Defaults | undefined): CombatCueOpts {
   const merged = { ...opts };
   for (const [key, value] of Object.entries(defaults)) {
     const current: unknown = Reflect.get(merged, key);
     if (current === undefined && value !== undefined) Reflect.set(merged, key, value);
   }
+  for (const [key, value] of Object.entries(overrides ?? {})) if (value !== undefined) Reflect.set(merged, key, value);
   return merged;
 }
 /** Resolve every voice and scheduling dependency up front, then dispatch synchronously in declaration order. Routing never creates a sound tap or random draw. */
@@ -49,7 +54,7 @@ export function createCueRouter(routes: readonly CueRoute[], ports: CueRoutingPo
     if (route === undefined) return false;
     for (const action of route.actions) {
       if (!matches(action.when, opts)) continue;
-      const input = withDefaults(opts, action.defaults);
+      const input = withDefaults(opts, action.defaults, action.overrides);
       if (action.delay === null) { if (action.voice(input) === false) return false; }
       else ports.later?.(() => { action.voice(input); }, action.delay);
     }
