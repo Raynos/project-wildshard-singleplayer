@@ -1,13 +1,18 @@
-# SF27 — Driftwood native family slice
+# SF27 — Driftwood families, composed custom scripts and Antler King phase data
 
-SF27 remains open. This receipt covers Driftwood's three ordinary custom decisions and the native-family loader boundary, not every shard's creatures or Pine Hollow's Antler King.
+SF27 remains open. This receipt covers Driftwood's three ordinary custom decisions, the full native/custom loader boundary and Pine Hollow's Antler King phase table. Other shards' ordinary creatures and browser parity remain open.
 
 ## Landed source
 
 - `ae256f8ab`: the existing default-off Driftwood hybrid selects skirmisher (crab), guardian (sailor), and perch-hunter (monkey) from `data/brains.ts`. The ordinary runtime uses the shipping policies. No additional Debug row.
 - `15e6861ba`: the shipping monkey's no-palm fallback now initializes `perch = -1`. Previously, finishing a ground bite could steer toward an uninitialized perch and publish NaN motion. Both native and declared policies use the finite ground fallback.
 - `8c57eb51e`: the GAME installer preflights identities, declaration contracts and native ports, constructs every policy before registering callbacks, and rolls back registrations on a collision. Native decision cadence defaults to six fixed ticks; one body callback runs per live actor per fixed step. Restore installs fences without thinking or executing body recipes.
-- `550120703` (sp-x5): the full format/factory admits and dispatches the three native families plus pursuit. Missing native ports and custom script kinds remain refused before installation.
+- `550120703` (sp-x5): the full format/factory admits and dispatches the three native families plus pursuit. Missing native ports refuse installation.
+- `28a3aeb7d` + `b6b97d53e`: one engine host owns the admitted module union, global 60Hz resets and aggregate fuel/effect/event/query/spawn/memory allowances. Trusted disjoint actor roles separate brain fields 1–4 from numeric declared fields; sleeping event reservations persist. sp-x2 reviewed candidate `52ff55279e1befdef102abf9d95b5a8c8bc5bf6a` before landing.
+- `aec002e65`: logical migrations still read old contract/world saves and also exactly one explicit `numeric` role. Ambiguous roles refuse; executable memory and brain intentions never become logical fields.
+- `1594dcdff` + `ce663a97a`: the GAME helper returns the existing numeric lane facade while scheduling custom brain decisions at each binding's cadence through the same host.
+- `7a3a8b777` + `2352f05b4` (sp-x5): full format/factory/client custom brain wiring, host-owned alias handles, module/strike reference validation and trusted recipe injection. No independent brain host multiplies allowances.
+- `b6b30d3a1` + `1bc7757c8`: shipping Antler King phase names/thresholds and 4.2/1.4-second intro data feed the existing boss machine. Unique native boss implementation moved from `combat/` to `runtime/`, with unchanged implementation bodies apart from defining-module imports.
 
 ## Same-engine evidence
 
@@ -19,8 +24,17 @@ SF27 remains open. This receipt covers Driftwood's three ordinary custom decisio
 
 Decisions and their tuning moved to platform policies. Driftwood's native rigs and hit recipes, authoritative attack-token claims, sailor rise/sink completion and wreck floor, monkey palm selection/drop/climb/projectile recipe, and shared attack RNG remain injected native ports. The captain remains a unique native boss. These are explicit transition boundaries, not author-selected runtime imports.
 
+Pine's unique Antler King fight and move policy live in `runtime/antlerKing.ts` and `runtime/KingGoals.ts`. Arena hazards, native contact/tell/rig recipes, camera and reward ports remain native; phase metadata and intro lengths are plain data. The move changed imports only; the normalized implementation bodies match the pre-move files byte for byte.
+
+## Custom and phase evidence
+
+`pnpm exec vitest run test/script/composition.test.ts test/script/host.test.ts test/script/lane.test.ts test/script/conformance.test.ts test/engine/script-brain.test.ts`: **46/46**, including one host across 4/6/10-tick schedules, aggregate admission/execution ceilings, retained sleepers, native enqueue after tick start, trusted parameter self, cross-role refusal, atomic restore and an exact 10,000-tick real-motor suffix. This is Node conformance; WebKit remains the serialized gate's check.
+
+`pnpm exec vitest run test/shardfile-script-composition.test.ts test/shardfile-logical-state.test.ts test/script/lane.test.ts`: **12/12**, including the GAME facade's exact 10,000-tick actor/physics/script continuation and legacy/composed logical-field migration. sp-x5 reports **104/104** full format/factory fixtures plus **14/14** client/factory checks.
+
+`pnpm exec vitest run test/shards/pine-hollow/antler-phase-data.test.ts test/shards/pine-hollow/pine-combat.test.ts test/ai/boss-phases.test.ts test/ai/boss-strikes.test.ts test/combat/wall-characterization.test.ts test/combat/vulnerability-rules.test.ts`: **121/121** after the native move. The phase fixture records the actual pre-change production table with its source SHA; two 10,000-tick real `BossBrain` runs prove phase clamping, deaths/checkpoints, victory, reward-once and restoration without replaying native actions. Root TypeScript passed at the phase extraction; scoped typed lint passed for the complete move and callers.
+
 ## Remaining row work
 
-- The standalone custom AS helper is admitted and tested, but a live level must not combine its independent host with the numeric script lane. The approved one-host role composition is under sp-x2 review; custom brains remain refused by the full format until that composition and loader admission land.
-- Driftwood parent/current parity with the hybrid OFF and ON on both surfaces awaits the coordinator's pushed pin. Earlier SF24/SF30 floors do not prove the new SF27 policies.
-- Nalati's herd/pack/flock, balbal and ghost decisions; Far Reach's ordinary creatures; Signal Dunes' ordinary creatures; remaining shared archetype bindings; and Pine Hollow's Antler King phase data still need conversion/proof. A native `CreatureBrain` subclass alone is not an admitted data/AS policy.
+- Driftwood parent/current parity with the hybrid OFF and ON on both tiers, and Pine phase/move parity, await the coordinator's pushed pin. `SF27-parity.mjs` uses fresh pinned captures, device fixtures and an activation witness. Earlier SF24/SF30 floors do not prove the new SF27 policies.
+- Nalati's herd/pack/flock, balbal and ghost decisions; Far Reach's ordinary creatures; Signal Dunes' ordinary creatures; remaining shared archetype bindings still need conversion/proof. A native `CreatureBrain` subclass alone is not an admitted data/AS policy.
