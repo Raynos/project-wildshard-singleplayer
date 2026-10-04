@@ -169,6 +169,7 @@
         "wildshard/no-hook-chain": "error",
         "wildshard/no-renderer-type": "error",
         "wildshard/no-active-singleton": "error",
+        "wildshard/engine-internal": "error",
         "wildshard/no-level-identity": "error",
         // E405 AG28: imports point down; the engine knows no game, kit, shard or app module
         "wildshard/layer": "error",

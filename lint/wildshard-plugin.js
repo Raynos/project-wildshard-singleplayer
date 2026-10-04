@@ -746,6 +746,20 @@ const SHARD_STEMS = [...new Set(shardWords.slugs.map((s) => s.split('-')[0] ?? '
 const SHARD_IDS = shardWords.words.filter((w) => w.includes('.') && !w.startsWith('weapon.'));
 const SHARD_NAME_TERMS = [...shardWords.slugs, ...shardWords.slugs.map((s) => s.replaceAll('-', ' ')), ...SHARD_DISPLAY, ...shardWords.slugs.map(camelOf), ...SHARD_DISPLAY.map(camelOf), ...SHARD_STEMS, ...SHARD_IDS];
 const SHARD_NAMES = new RegExp(`(?<![A-Za-z0-9])(?:${SHARD_NAME_TERMS.map(escapeRegex).join('|')})(?![A-Za-z0-9])`, 'iu');
+// E362 AG6: the #engine exports for the game and the composition root only (lint/engine-internal.json): the kit and the
+// shards reach the engine's session, boot and installers through ShardContext, never by importing them.
+const engineInternalFile = new URL('engine-internal.json', import.meta.url);
+const engineInternal = new Set(existsSync(engineInternalFile) ? Object.keys(JSON.parse(readFileSync(engineInternalFile, 'utf8')).names) : []);
+const engineInternalRule = rule('Game-only engine exports stay out of the kit and the shards (E362 AG6)', (context) => {
+  if (!/^src\/(?:kit|shards)\//u.test(pathOf(context))) return {};
+  return { ImportDeclaration(node) {
+    if (stringOf(node.source) !== '#engine') return;
+    for (const s of node.specifiers ?? []) {
+      const name = s.type === 'ImportSpecifier' ? nameOf(s.imported) : null;
+      if (name !== null && engineInternal.has(name)) report(context, s, `${name} is the game's (lint/engine-internal.json): ask for a ShardContext verb instead`);
+    }
+  } };
+});
 const shardNames = rule('The game and the kit name no particular shard (E405 LAYER-PURITY)', (context) => {
   const own = layerOf(pathOf(context));
   if (own?.name !== 'game' && own?.name !== 'kit') return {};
@@ -777,6 +791,7 @@ const plugin = {
     'no-level-identity': noLevelIdentity,
     'shard-sandbox': shardSandbox,
     'shard-names': shardNames,
+    'engine-internal': engineInternalRule,
   },
 };
 export default plugin; // oxlint loads a JS plugin from its default export

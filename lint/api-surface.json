@@ -4,7 +4,8 @@
       {
         "name": "_applyChunkConstants",
         "kind": "function",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "Action",
@@ -394,7 +395,8 @@
       {
         "name": "BootRuntime",
         "kind": "type",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "BootSpec",
@@ -659,7 +661,8 @@
       {
         "name": "configureLevel",
         "kind": "function",
-        "doc": "The composition root supplies engine data before constructing the renderer or world."
+        "doc": "The composition root supplies engine data before constructing the renderer or world.",
+        "gameOnly": true
       },
       {
         "name": "ContentRow",
@@ -1059,17 +1062,20 @@
       {
         "name": "Explore",
         "kind": "class",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "ExploreMode",
         "kind": "type",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "ExploreSpec",
         "kind": "type",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "exportCardTextures",
@@ -1104,7 +1110,8 @@
       {
         "name": "Feedback",
         "kind": "class",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "fern",
@@ -1529,12 +1536,14 @@
       {
         "name": "installAppIdentity",
         "kind": "function",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "installAssetTables",
         "kind": "function",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "installBounds",
@@ -1544,12 +1553,14 @@
       {
         "name": "installEngineStrings",
         "kind": "function",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "installGameplayInput",
         "kind": "function",
-        "doc": "The level installs one device listener set; mode contexts compose with plugin verbs."
+        "doc": "The level installs one device listener set; mode contexts compose with plugin verbs.",
+        "gameOnly": true
       },
       {
         "name": "installRangedFeel",
@@ -1559,7 +1570,8 @@
       {
         "name": "installScore",
         "kind": "function",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "InstancedCuller",
@@ -1699,7 +1711,8 @@
       {
         "name": "LevelDriver",
         "kind": "interface",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "LevelHooks",
@@ -1709,7 +1722,8 @@
       {
         "name": "LevelLoadError",
         "kind": "class",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "LevelRegistrations",
@@ -1719,7 +1733,8 @@
       {
         "name": "LevelSequence",
         "kind": "type",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "levelSequenceDriver",
@@ -2654,7 +2669,8 @@
       {
         "name": "registerGlobalDebugAction",
         "kind": "function",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "registerIcons",
@@ -2724,7 +2740,8 @@
       {
         "name": "retried",
         "kind": "function",
-        "doc": "Retry an async module download after 800 ms and 2500 ms; preserve the final rejection."
+        "doc": "Retry an async module download after 800 ms and 2500 ms; preserve the final rejection.",
+        "gameOnly": true
       },
       {
         "name": "revolve",
@@ -2909,7 +2926,8 @@
       {
         "name": "SaveStore",
         "kind": "class",
-        "doc": "Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys."
+        "doc": "Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys.",
+        "gameOnly": true
       },
       {
         "name": "ScheduleSeg",
@@ -2964,7 +2982,8 @@
       {
         "name": "setDev",
         "kind": "function",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "setEliteAct",
@@ -3024,7 +3043,8 @@
       {
         "name": "setTitleArrival",
         "kind": "function",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "sfxManifests",
@@ -3634,7 +3654,8 @@
       {
         "name": "TitleArrival",
         "kind": "interface",
-        "doc": ""
+        "doc": "",
+        "gameOnly": true
       },
       {
         "name": "Tool",

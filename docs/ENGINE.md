@@ -1569,6 +1569,7 @@ in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that alrea
 | `wildshard/no-level-identity` | outside `src/shards/`: comparing, switching on, or keying a table by a level's `id`, `slug`, `kitLook`, `style`, `biome` … Pass a capability or a data strategy instead | ratchet (4 at HEAD) |
 | `wildshard/shard-sandbox` | in `src/shards/`: `window` / `globalThis` / `self` reads or writes, window or document input listeners, `setting(key)` for a key you don't own, an `/assets/…` path outside your `assetGlobs` and the shared folders | ratchet (new files at 0) |
 | `wildshard/no-raw-save` | `localStorage` / `sessionStorage` outside the save store | hard error |
+| `wildshard/engine-internal` | a kit or shard import of a game-only `#engine` export (`lint/engine-internal.json`: the session, boot, title and installers; marked "game only" in docs/api/ENGINE.md) — a shard asks for a ShardContext verb instead (AG6) | hard error |
 | `wildshard/no-module-mock` | `vi.mock` / `doMock` / `resetModules` / `hoisted` / `importActual` in test/, api-tests/, drafts/test/: a test drives the real module through its seams (a class, a factory, an injected loader or port; E422) | hard error |
 | `wildshard/no-raw-input` | DOM input listeners outside `src/engine/input`, including a helper call given `window` / `document` and an input event (AG18) | hard error |
 | `wildshard/no-raw-shader-patch` | `onBeforeCompile` / `customProgramCacheKey` outside `src/engine/render` | hard error |

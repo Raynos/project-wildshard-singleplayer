@@ -523,5 +523,19 @@
     "rule": "shard-names",
     "code": "export const me = 'nalati-grasslands';",
     "count": 0
+  },
+  {
+    "id": "engine-internal-shard",
+    "file": "src/shards/demo/plugin.ts",
+    "rule": "engine-internal",
+    "code": "import { configureLevel, app } from '#engine';\nexport const used = [configureLevel, app];\n",
+    "count": 1
+  },
+  {
+    "id": "engine-internal-game-ok",
+    "file": "src/game/session/demo.ts",
+    "rule": "engine-internal",
+    "code": "import { configureLevel } from '#engine';\nexport const used = configureLevel;\n",
+    "count": 0
   }
 ]

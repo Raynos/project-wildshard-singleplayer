@@ -8,7 +8,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 
 | Export | Kind | What it is |
 |---|---|---|
-| `_applyChunkConstants` | function | — |
+| `_applyChunkConstants` | function · game only | — |
 | `Action` | type | — |
 | `ActionMap` | interface | — |
 | `activeBodies` | function | — |
@@ -86,7 +86,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `BoneDef` | interface | Model faces +Z; pos is absolute bind-space, not parent-local (the factory subtracts the parent position). |
 | `boneIndex` | function | name → index lookup for a BoneDef list (throws on a typo) |
 | `bootPacks` | const | — |
-| `BootRuntime` | type | — |
+| `BootRuntime` | type · game only | — |
 | `BootSpec` | interface | — |
 | `BossBar` | class | — |
 | `BossBrain` | class | — |
@@ -139,7 +139,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `CombatTag` | type | — |
 | `CombatTarget` | interface | A simulation target shared by creature and practice weapon selection. |
 | `compassDir` | function | — |
-| `configureLevel` | function | The composition root supplies engine data before constructing the renderer or world. |
+| `configureLevel` | function · game only | The composition root supplies engine data before constructing the renderer or world. |
 | `ContentRow` | interface | — |
 | `ContentRowMap` | interface | Subsystems refine their registration contracts here as their row implementations land. |
 | `CorruptSave` | interface | — |
@@ -219,16 +219,16 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `EVENT_FLUSH_LIMIT` | const | — |
 | `EventMap` | interface | — |
 | `Events` | class | — |
-| `Explore` | class | — |
-| `ExploreMode` | type | — |
-| `ExploreSpec` | type | — |
+| `Explore` | class · game only | — |
+| `ExploreMode` | type · game only | — |
+| `ExploreSpec` | type · game only | — |
 | `exportCardTextures` | function | `?bakecards=1`: read the runtime bake's render targets back and publish them on `window.__cardBake` |
 | `ExtendLook` | interface | 'extend' (the default): the level's passes go in slots around the engine's chain |
 | `EyeSpot` | interface | — |
 | `FadeBand` | interface | — |
 | `FallCause` | interface | — |
 | `FaultEvent` | interface | — |
-| `Feedback` | class | — |
+| `Feedback` | class · game only | — |
 | `fern` | function | a fern: 7–9 long narrow fronds fanning out and up from the crown |
 | `fetchImage` | function | Decode an image off the main thread through the counted fetch, downscaled to `maxSize` when the |
 | `fetchLut` | function | the LUT file's bytes; null (and a warning) when it is missing, unreadable or the wrong size |
@@ -313,13 +313,13 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `inspectBrain` | function | — |
 | `inspectPreviousBoot` | const | — |
 | `installAiDebug` | function | Off creates no visual objects and registers no per-frame system. |
-| `installAppIdentity` | function | — |
-| `installAssetTables` | function | — |
+| `installAppIdentity` | function · game only | — |
+| `installAssetTables` | function · game only | — |
 | `installBounds` | function | An authored play area keeps the last grounded registry floor as its soft respawn. |
-| `installEngineStrings` | function | — |
-| `installGameplayInput` | function | The level installs one device listener set; mode contexts compose with plugin verbs. |
+| `installEngineStrings` | function · game only | — |
+| `installGameplayInput` | function · game only | The level installs one device listener set; mode contexts compose with plugin verbs. |
 | `installRangedFeel` | function | — |
-| `installScore` | function | — |
+| `installScore` | function · game only | — |
 | `InstancedCuller` | interface | A shard's own per-copy culler for instanced copies (E306 M4: Nine Dragon's E283 batch culler, its crowd's figure LODs |
 | `inState` | function | — |
 | `Interactable` | interface | Weak actions yield to another reachable prompt. |
@@ -347,11 +347,11 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `LevelAudioProfile` | interface | Boot downloads and decodes this content profile through the same counted/deferred queue. |
 | `LevelBoundary` | type | — |
 | `LevelContext` | interface | — |
-| `LevelDriver` | interface | — |
+| `LevelDriver` | interface · game only | — |
 | `LevelHooks` | interface | — |
-| `LevelLoadError` | class | — |
+| `LevelLoadError` | class · game only | — |
 | `LevelRegistrations` | class | Scoped row catalogs are consumed by their services between kit and play. |
-| `LevelSequence` | type | — |
+| `LevelSequence` | type · game only | — |
 | `levelSequenceDriver` | function | The staged mechanisms are generic; the composition root supplies content and hook adapters. |
 | `LevelSpec` | interface | The engine consumes opaque level data; game presentation and discovery stay above this boundary. |
 | `LevelStage` | type | — |
@@ -538,7 +538,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `RayTargets` | interface | — |
 | `ReachActor` | interface | — |
 | `readTexturePixels` | function | Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h |
-| `registerGlobalDebugAction` | function | — |
+| `registerGlobalDebugAction` | function · game only | — |
 | `registerIcons` | function | a content library's icons, full SVGs by id (the kit's installKitIcons) |
 | `registerInteractProps` | function | — |
 | `registerPickupLook` | function | — |
@@ -552,7 +552,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `resolveTierKnobs` | function | — |
 | `resourceScope` | function | Explicit fallback for reusable services constructed before the app installs a level. |
 | `retainCachedResources` | function | A module cache keeps source meshes alive across loads; consumers acquire their shared GPU resources. |
-| `retried` | function | Retry an async module download after 800 ms and 2500 ms; preserve the final rejection. |
+| `retried` | function · game only | Retry an async module download after 800 ms and 2500 ms; preserve the final rejection. |
 | `revolve` | function | A surface of revolution with an arbitrary radius / height per (angle, t): `fn(theta, t) → [r, y]`, `segU` round, |
 | `revolveUV` | function | `revolve` with texture coordinates: u = angle / 2π × `uReps` (the seam column is doubled so u runs 0 → uReps without |
 | `RGB` | type | — |
@@ -589,7 +589,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `SaveScope` | type | — |
 | `SaveSlot` | interface | — |
 | `saveStorage` | function | String codec for injected diagnostics APIs. Values still validate and persist through defined SaveSlots. |
-| `SaveStore` | class | Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys. |
+| `SaveStore` | class · game only | Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys. |
 | `ScheduleSeg` | interface | — |
 | `Scope` | class | — |
 | `ScopeCensus` | interface | — |
@@ -600,7 +600,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `Segment` | interface | — |
 | `selectedLevel` | function | Early error reporting and the renderer-free page can inspect selection without requiring a world. |
 | `setCreatureSoundDefaults` | function | — |
-| `setDev` | function | — |
+| `setDev` | function · game only | — |
 | `setEliteAct` | function | — |
 | `setEliteBrain` | function | — |
 | `setEliteDamage` | function | — |
@@ -612,7 +612,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `setShapeFn` | function | — |
 | `setTerrainHeight` | function | — |
 | `setting` | function | the value this page runs with: the URL's param if present, else the saved pick, else the default |
-| `setTitleArrival` | function | — |
+| `setTitleArrival` | function · game only | — |
 | `sfxManifests` | const | — |
 | `ShaderPatchFn` | type | — |
 | `ShaderPatchKey` | type | a fixed key, or one built on the key the material had before this patch (`(k) => \`${k}\|csm\``) |
@@ -734,7 +734,7 @@ The engine's public index (src/engine/index.ts). docs/ENGINE.md explains it by a
 | `TierKnobSchema` | interface | — |
 | `TierOverrides` | type | — |
 | `TimePick` | type | — |
-| `TitleArrival` | interface | — |
+| `TitleArrival` | interface · game only | — |
 | `Tool` | class | — |
 | `ToolId` | type | — |
 | `toonPaint` | function | — |
