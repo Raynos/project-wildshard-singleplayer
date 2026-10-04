@@ -14,6 +14,7 @@ import { checkShardLayout, checkShards, shardEntries, type ShardLayout } from '.
 import { genShardWords, shardWordData } from '../scripts/gen-shard-words.mjs';
 import { CAPTURE_SHELL_FILES, TIME_ALLOW } from '../lint/wildshard-plugin.js';
 import { compareEdges, graph, layerOf, reachViolation } from '../scripts/check-graph.mjs';
+import { layoutBlock, withLayout } from '../scripts/gen-shard-layout-doc.mjs';
 
 interface Case { id: string; file: string; rule: string; code: string; count: number }
 interface Diagnostic { code: string; filename: string; message: string }
@@ -198,5 +199,18 @@ describe('E422 no module mocks in tests', () => {
     const r = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', join(root, '.oxlintrc.json'), '-f', 'json', 'test'], { cwd: root, encoding: 'utf8' });
     const found = (JSON.parse(r.stdout) as { diagnostics: Diagnostic[] }).diagnostics.filter((d) => d.code === 'wildshard(no-module-mock)');
     expect(found).toHaveLength(3);
+  });
+});
+
+describe('AG22 SHARDS.md layout tables from lint/shard-layout.json', () => {
+  const layout = JSON.parse(readFileSync('lint/shard-layout.json', 'utf8')) as ShardLayout & { describe?: Record<string, string> };
+  it('generates every required / allowed file and folder, and refuses one with no description', () => {
+    const block = layoutBlock(layout);
+    for (const name of [...layout.requiredFiles, ...layout.allowedFiles, ...layout.folders.map((f) => `${f}/`)]) expect(block).toContain(`| \`${name}\` |`);
+    expect(() => layoutBlock({ ...layout, folders: [...layout.folders, 'newthing'] })).toThrow('newthing/ has no description');
+  });
+  it.runIf(existsSync('docs/SHARDS.md'))('docs/SHARDS.md holds the current tables (node scripts/gen-shard-layout-doc.mjs)', () => {
+    const doc = readFileSync('docs/SHARDS.md', 'utf8');
+    expect(withLayout(doc, layout)).toBe(doc);
   });
 });

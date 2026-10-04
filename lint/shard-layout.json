@@ -88,5 +88,33 @@
         "life/"
       ]
     }
+  },
+  "describe": {
+    "manifest.ts": "the `ShardManifest`, default-exported. Node-safe: data and lazy thunks only",
+    "plugin.ts": "the `ShardPlugin` subclass, default-exported",
+    "README.md": "what the shard declares, its custom code and why, budgets, look, open work (its plan rows)",
+    "roster.ts": "the Model Explorer roster (`live(model)` entries)",
+    "budgets.ts": "the budget inputs (§9)",
+    "ktx2.generated.ts": "your KTX2 table, written by `bake-ktx2` once you bake KTX2 art. The one generated file you commit",
+    "budgetCeilings.ts": "recorded F2 ceilings (the four existing shards only)",
+    "strings.ts": "every player-facing string (§11)",
+    "layout.ts": "every coordinate: sites, trails, spawn points",
+    "debug.ts": "your Debug rows",
+    "audio/": "the cue map, ambience, score wiring",
+    "boot/": "the boot file plan",
+    "explore/": "Explore art",
+    "look/": "the `LookStrategy` and its shaders",
+    "models/": "model definitions (`defineModel`) only",
+    "thumbs/": "the title card images",
+    "weapons/": "equipment rows and classes",
+    "world/": "world building: pieces, terrain dressing, water, climate",
+    "combat/": "encounters: bosses, elites, spawns (optional)",
+    "creatures/": "creature wiring (optional)",
+    "quest/": "quests; `quest/Places.ts` lists named places (optional)",
+    "species/": "species rows, looks and brains (optional)",
+    "npc/": "NPCs (optional)",
+    "loadout/": "loadout wiring, finishes, ammo (optional)",
+    "playground/": "playgrounds (optional)",
+    "design/": "the shard's design pack: `design.md` and `spec.json` (optional; E406)"
   }
 }

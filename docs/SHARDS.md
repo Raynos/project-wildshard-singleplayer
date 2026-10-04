@@ -111,6 +111,7 @@ snapshot for deployment or parity. Runtime checks use a committed candidate SHA:
 The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) runs at every commit that touches
 `src/shards/**`. A file or folder outside this list fails it.
 
+<!-- generated:shard-layout (node scripts/gen-shard-layout-doc.mjs, from lint/shard-layout.json) -->
 **Required files**
 
 | File | What it holds |
@@ -125,11 +126,11 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 
 | File | What it holds |
 |---|---|
+| `ktx2.generated.ts` | your KTX2 table, written by `bake-ktx2` once you bake KTX2 art. The one generated file you commit |
+| `budgetCeilings.ts` | recorded F2 ceilings (the four existing shards only) |
 | `strings.ts` | every player-facing string (§11) |
 | `layout.ts` | every coordinate: sites, trails, spawn points |
 | `debug.ts` | your Debug rows |
-| `budgetCeilings.ts` | recorded F2 ceilings (the four existing shards only) |
-| `ktx2.generated.ts` | your KTX2 table, written by `bake-ktx2` once you bake KTX2 art. The one generated file you commit |
 
 **Folders**
 
@@ -151,6 +152,7 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 | `loadout/` | loadout wiring, finishes, ammo (optional) |
 | `playground/` | playgrounds (optional) |
 | `design/` | the shard's design pack: `design.md` and `spec.json` (optional; E406) |
+<!-- /generated:shard-layout -->
 
 One name per concept: `quest/` or `quest.ts`, never both.
 
