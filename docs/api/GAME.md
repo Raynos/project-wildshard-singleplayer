@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-509 members; 113 without a doc line (—).
+518 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -353,6 +353,15 @@ The game layer's public modules (src/game/package.json `exports`).
 | `encounterRules` | function | @wildshard/game/shardfile/encounters | Full-loader references: declared actor spawn and the existing SF7f boss panel (if any). |
 | `EncountersSchema` | const | @wildshard/game/shardfile/encounters | Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references. |
 | `ShardEncounters` | type | @wildshard/game/shardfile/encounters | Validated data-only encounter tables. |
+| `BurstFlyerSchema` | const | @wildshard/game/shardfile/flyers | Small-circle drift and telegraphed chest dart; contact shove is declared data and applied only by a trusted port. |
+| `OrbitDiverSchema` | const | @wildshard/game/shardfile/flyers | Circle, overhead stalk and chest dive declarations with a stable authored orbit and named sphere strike. |
+| `parseBurstFlyer` | function | @wildshard/game/shardfile/flyers | Validate burst-flight tuning and its stable orbit without publishing contacts or impulses. |
+| `parseOrbitDiver` | function | @wildshard/game/shardfile/flyers | Validate overhead dive data without instantiating a creature or executing its native flight recipe. |
+| `parsePatrolDiver` | function | @wildshard/game/shardfile/flyers | Refuse invalid patrol timing, memory fields and speed before any callbacks register. |
+| `PatrolDiverSchema` | const | @wildshard/game/shardfile/flyers | Near-player circling, distant home patrol, low swoop and timed climb with a declared held-memory field. |
+| `ShardBurstFlyer` | type | @wildshard/game/shardfile/flyers | Admitted drift/dart policy whose authorized contact impulse remains native to the player host. |
+| `ShardOrbitDiver` | type | @wildshard/game/shardfile/flyers | Admitted orbit/dive policy; native flight, token and contact execution remain trusted host ports. |
+| `ShardPatrolDiver` | type | @wildshard/game/shardfile/flyers | Admitted patrol/swoop policy with stable home, strike and held-field bindings. |
 | `ChallengeGrazerSchema` | const | @wildshard/game/shardfile/grazers | Timed challenge policy with an ordered charge/close pair, declared utility weights and pose memory fields. |
 | `parseChallengeGrazer` | function | @wildshard/game/shardfile/grazers | Reject nonfinite tuning, unknown fields and conflicting identities before installation. |
 | `parseRamGrazer` | function | @wildshard/game/shardfile/grazers | Validate a ram policy without touching an actor, its random stream or the native world. |

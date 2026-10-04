@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-90 members; 0 without a doc line (—).
+96 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -54,6 +54,12 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ShardClientScripts` | type | @wildshard/sdk/clientScripts | Data-only author contract for isolated client scripts. |
 | `director` | function | @wildshard/sdk/director | Validate before admitting a bounded module or installing a fixed-step director. |
 | `DirectorData` | type | @wildshard/sdk/director | Typed director data with bounded observations, payloads and reserved grid subscriptions. |
+| `burstFlyer` | function | @wildshard/sdk/flyers | Validate a burst flyer without publishing a contact, random draw or player impulse. |
+| `BurstFlyerData` | type | @wildshard/sdk/flyers | Admitted drift/dart/contact burst tuning with host-authorized player impulse data. |
+| `orbitDiver` | function | @wildshard/sdk/flyers | Validate an overhead diver while retaining native flight and collision authority. |
+| `OrbitDiverData` | type | @wildshard/sdk/flyers | Admitted orbit/stalk/dive tuning with a stable home and named sphere strike. |
+| `patrolDiver` | function | @wildshard/sdk/flyers | Validate a patrol diver independently of its creature rig and native flight recipe. |
+| `PatrolDiverData` | type | @wildshard/sdk/flyers | Admitted player-circle/home-patrol swoop with a held-memory binding. |
 | `challengeGrazer` | function | @wildshard/sdk/grazers | Validate a timed challenge grazer while retaining trusted navigation, actor phase and contact ownership. |
 | `ChallengeGrazerData` | type | @wildshard/sdk/grazers | Admitted challenge policy with declared charge/close utility and renderer pose field bindings. |
 | `ramGrazer` | function | @wildshard/sdk/grazers | Validate ram-grazer data independently of a creature's native rig and collision recipes. |

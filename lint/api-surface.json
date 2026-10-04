@@ -62,6 +62,24 @@
         "from": "@wildshard/engine/ai/bossDefinition"
       },
       {
+        "name": "BurstFlyerBrain",
+        "kind": "class",
+        "doc": "Renderer-free drift/dart/contact policy; the native host owns the impulse and flight body recipe.",
+        "from": "@wildshard/engine/ai/burstFlyer"
+      },
+      {
+        "name": "BurstFlyerPorts",
+        "kind": "interface",
+        "doc": "Trusted flight, reach, token and player impulse authority; guest policy never moves the player directly.",
+        "from": "@wildshard/engine/ai/burstFlyer"
+      },
+      {
+        "name": "BurstFlyerSpec",
+        "kind": "interface",
+        "doc": "Small-circle flight, telegraphed chest dart and contact shove tuning, in metres, seconds and m/s.",
+        "from": "@wildshard/engine/ai/burstFlyer"
+      },
+      {
         "name": "ChallengeGrazerBrain",
         "kind": "class",
         "doc": "Renderer-free challenge and strike policy; motion, strike clocks and mutable home survive exact replay.",
@@ -260,6 +278,30 @@
         "from": "@wildshard/engine/ai/inspect"
       },
       {
+        "name": "OrbitDiverBrain",
+        "kind": "class",
+        "doc": "Renderer-free overhead dive policy; all flight and collision execution belongs to the host.",
+        "from": "@wildshard/engine/ai/orbitDiver"
+      },
+      {
+        "name": "OrbitDiverHome",
+        "kind": "interface",
+        "doc": "One admitted orbit, bound by the loader; a restored actor must receive the same orbit.",
+        "from": "@wildshard/engine/ai/orbitDiver"
+      },
+      {
+        "name": "OrbitDiverPorts",
+        "kind": "interface",
+        "doc": "Trusted target observation, flight motion and contact authority for one fixed-step actor.",
+        "from": "@wildshard/engine/ai/orbitDiver"
+      },
+      {
+        "name": "OrbitDiverSpec",
+        "kind": "interface",
+        "doc": "Circle, overhead stalk, telegraphed chest dive and rising rest tuning, in metres, seconds and m/s.",
+        "from": "@wildshard/engine/ai/orbitDiver"
+      },
+      {
         "name": "PackBrain",
         "kind": "class",
         "doc": "Renderer-free pack decisions and body timing; native strikes, perception and shared RNG are injected.",
@@ -294,6 +336,24 @@
         "kind": "interface",
         "doc": "Declared circling-pack tuning, independent of a shard, species rig or combat recipe.",
         "from": "@wildshard/engine/ai/pack"
+      },
+      {
+        "name": "PatrolDiverBrain",
+        "kind": "class",
+        "doc": "Renderer-free patrol/swoop policy; no terrain, player movement or render recipe is guessed here.",
+        "from": "@wildshard/engine/ai/patrolDiver"
+      },
+      {
+        "name": "PatrolDiverPorts",
+        "kind": "interface",
+        "doc": "Trusted flight/contact authority; the actor's declared held field suppresses new dives.",
+        "from": "@wildshard/engine/ai/patrolDiver"
+      },
+      {
+        "name": "PatrolDiverSpec",
+        "kind": "interface",
+        "doc": "Player-circle and home-patrol tuning, including the chest swoop and timed climb, in world units.",
+        "from": "@wildshard/engine/ai/patrolDiver"
       },
       {
         "name": "PerchHunterBrain",
@@ -14106,6 +14166,60 @@
         "from": "@wildshard/game/shardfile/encounters"
       },
       {
+        "name": "BurstFlyerSchema",
+        "kind": "const",
+        "doc": "Small-circle drift and telegraphed chest dart; contact shove is declared data and applied only by a trusted port.",
+        "from": "@wildshard/game/shardfile/flyers"
+      },
+      {
+        "name": "OrbitDiverSchema",
+        "kind": "const",
+        "doc": "Circle, overhead stalk and chest dive declarations with a stable authored orbit and named sphere strike.",
+        "from": "@wildshard/game/shardfile/flyers"
+      },
+      {
+        "name": "parseBurstFlyer",
+        "kind": "function",
+        "doc": "Validate burst-flight tuning and its stable orbit without publishing contacts or impulses.",
+        "from": "@wildshard/game/shardfile/flyers"
+      },
+      {
+        "name": "parseOrbitDiver",
+        "kind": "function",
+        "doc": "Validate overhead dive data without instantiating a creature or executing its native flight recipe.",
+        "from": "@wildshard/game/shardfile/flyers"
+      },
+      {
+        "name": "parsePatrolDiver",
+        "kind": "function",
+        "doc": "Refuse invalid patrol timing, memory fields and speed before any callbacks register.",
+        "from": "@wildshard/game/shardfile/flyers"
+      },
+      {
+        "name": "PatrolDiverSchema",
+        "kind": "const",
+        "doc": "Near-player circling, distant home patrol, low swoop and timed climb with a declared held-memory field.",
+        "from": "@wildshard/game/shardfile/flyers"
+      },
+      {
+        "name": "ShardBurstFlyer",
+        "kind": "type",
+        "doc": "Admitted drift/dart policy whose authorized contact impulse remains native to the player host.",
+        "from": "@wildshard/game/shardfile/flyers"
+      },
+      {
+        "name": "ShardOrbitDiver",
+        "kind": "type",
+        "doc": "Admitted orbit/dive policy; native flight, token and contact execution remain trusted host ports.",
+        "from": "@wildshard/game/shardfile/flyers"
+      },
+      {
+        "name": "ShardPatrolDiver",
+        "kind": "type",
+        "doc": "Admitted patrol/swoop policy with stable home, strike and held-field bindings.",
+        "from": "@wildshard/game/shardfile/flyers"
+      },
+      {
         "name": "ChallengeGrazerSchema",
         "kind": "const",
         "doc": "Timed challenge policy with an ordered charge/close pair, declared utility weights and pose memory fields.",
@@ -16688,6 +16802,42 @@
         "kind": "type",
         "doc": "Typed director data with bounded observations, payloads and reserved grid subscriptions.",
         "from": "@wildshard/sdk/director"
+      },
+      {
+        "name": "burstFlyer",
+        "kind": "function",
+        "doc": "Validate a burst flyer without publishing a contact, random draw or player impulse.",
+        "from": "@wildshard/sdk/flyers"
+      },
+      {
+        "name": "BurstFlyerData",
+        "kind": "type",
+        "doc": "Admitted drift/dart/contact burst tuning with host-authorized player impulse data.",
+        "from": "@wildshard/sdk/flyers"
+      },
+      {
+        "name": "orbitDiver",
+        "kind": "function",
+        "doc": "Validate an overhead diver while retaining native flight and collision authority.",
+        "from": "@wildshard/sdk/flyers"
+      },
+      {
+        "name": "OrbitDiverData",
+        "kind": "type",
+        "doc": "Admitted orbit/stalk/dive tuning with a stable home and named sphere strike.",
+        "from": "@wildshard/sdk/flyers"
+      },
+      {
+        "name": "patrolDiver",
+        "kind": "function",
+        "doc": "Validate a patrol diver independently of its creature rig and native flight recipe.",
+        "from": "@wildshard/sdk/flyers"
+      },
+      {
+        "name": "PatrolDiverData",
+        "kind": "type",
+        "doc": "Admitted player-circle/home-patrol swoop with a held-memory binding.",
+        "from": "@wildshard/sdk/flyers"
       },
       {
         "name": "challengeGrazer",

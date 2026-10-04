@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2002 members; 830 without a doc line (—).
+2012 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -18,6 +18,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `BossScript` | interface | @wildshard/engine/ai/BossBrain | what one boss fight does in each state; BossBrain runs it |
 | `BossState` | type | @wildshard/engine/ai/BossBrain | a boss fight's state: dormant, armed, the intro, the fight, a beat between phases, victory |
 | `BossDef` | interface | @wildshard/engine/ai/bossDefinition | An authored encounter can opt out of introductions, seals, checkpoints and runtime rewards. |
+| `BurstFlyerBrain` | class | @wildshard/engine/ai/burstFlyer | Renderer-free drift/dart/contact policy; the native host owns the impulse and flight body recipe. |
+| `BurstFlyerPorts` | interface | @wildshard/engine/ai/burstFlyer | Trusted flight, reach, token and player impulse authority; guest policy never moves the player directly. |
+| `BurstFlyerSpec` | interface | @wildshard/engine/ai/burstFlyer | Small-circle flight, telegraphed chest dart and contact shove tuning, in metres, seconds and m/s. |
 | `ChallengeGrazerBrain` | class | @wildshard/engine/ai/challengeGrazer | Renderer-free challenge and strike policy; motion, strike clocks and mutable home survive exact replay. |
 | `ChallengeGrazerPorts` | interface | @wildshard/engine/ai/challengeGrazer | Trusted perception, stable phase offset and navigation/contact authority, supplied for one actor. |
 | `ChallengeGrazerSpec` | interface | @wildshard/engine/ai/challengeGrazer | Home-circle grazing, timed threat and utility-selected charge/close-strike tuning. |
@@ -51,12 +54,19 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `inspectBrain` | function | @wildshard/engine/ai/inspect | — |
 | `inspectTick` | function | @wildshard/engine/ai/inspect | — |
 | `pinBrain` | function | @wildshard/engine/ai/inspect | — |
+| `OrbitDiverBrain` | class | @wildshard/engine/ai/orbitDiver | Renderer-free overhead dive policy; all flight and collision execution belongs to the host. |
+| `OrbitDiverHome` | interface | @wildshard/engine/ai/orbitDiver | One admitted orbit, bound by the loader; a restored actor must receive the same orbit. |
+| `OrbitDiverPorts` | interface | @wildshard/engine/ai/orbitDiver | Trusted target observation, flight motion and contact authority for one fixed-step actor. |
+| `OrbitDiverSpec` | interface | @wildshard/engine/ai/orbitDiver | Circle, overhead stalk, telegraphed chest dive and rising rest tuning, in metres, seconds and m/s. |
 | `PackBrain` | class | @wildshard/engine/ai/pack | Renderer-free pack decisions and body timing; native strikes, perception and shared RNG are injected. |
 | `PackContext` | interface | @wildshard/engine/ai/pack | Caller-owned AI or body tick; motion, pathfinding and attack-token authority stay with the host. |
 | `PackPhase` | type | @wildshard/engine/ai/pack | Shared predator hunt phases; one decision clock serves every member. |
 | `PackPorts` | interface | @wildshard/engine/ai/pack | Trusted shared observations, terrain, token registration and strike recipe. |
 | `PackPrey` | interface | @wildshard/engine/ai/pack | Host-owned prey identity, pose and damage recipe; no guest code chooses its target binding. |
 | `PackSpec` | interface | @wildshard/engine/ai/pack | Declared circling-pack tuning, independent of a shard, species rig or combat recipe. |
+| `PatrolDiverBrain` | class | @wildshard/engine/ai/patrolDiver | Renderer-free patrol/swoop policy; no terrain, player movement or render recipe is guessed here. |
+| `PatrolDiverPorts` | interface | @wildshard/engine/ai/patrolDiver | Trusted flight/contact authority; the actor's declared held field suppresses new dives. |
+| `PatrolDiverSpec` | interface | @wildshard/engine/ai/patrolDiver | Player-circle and home-patrol tuning, including the chest swoop and timed climb, in world units. |
 | `PerchHunterBrain` | class | @wildshard/engine/ai/perchHunter | Renderer-free decisions with no application singleton; all mutable policy state lives in the actor continuation. |
 | `PerchHunterPorts` | interface | @wildshard/engine/ai/perchHunter | Native perch/drop/climb recipes and shared cooldown RNG retain authority outside the decision policy. |
 | `PerchHunterSpec` | interface | @wildshard/engine/ai/perchHunter | Ranged perch hunting followed by a bounded ground attack and return to a native perch recipe. |
