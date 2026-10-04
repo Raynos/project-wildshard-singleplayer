@@ -1,21 +1,13 @@
-import type { CombatCueMap } from '@wildshard/engine/combat/cues';
+import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
+import type { CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
+import { DRIFTWOOD_AUDIO } from '../data/audio';
 import type { IslandSfx } from './sfx';
 
-/** The rich sword-event layer keeps its bank calls (and sound-log ids) at their original boundaries. */
+/** The rich sword-event layer keeps its bank calls and sound-log ids at their original boundaries. */
 export function driftwoodCombatCues(sfx: Pick<IslandSfx, 'whoosh' | 'impact' | 'vocal'>): CombatCueMap {
-  return (id, opts) => {
-    if (id === 'cue.sword.swing' && typeof opts.dir === 'number') {
-      sfx.whoosh(opts.speed ?? 1, { heavy: opts.heavy ?? false, dir: opts.dir }); return true;
-    }
-    const point = opts.point;
-    if (point === undefined) return false;
-    if (id === 'cue.sword.hit') {
-      const kind = opts.kind;
-      sfx.impact(kind === 'crab' ? 'shell' : kind === 'sailor' ? 'wood' : 'flesh', opts.strength ?? 1, point);
-      if (opts.killed && (kind === 'boar' || kind === 'crab' || kind === 'monkey' || kind === 'sailor')) sfx.vocal(kind, point, 1.3);
-      return true;
-    }
-    if (id === 'cue.sword.clang' && opts.clang !== undefined) { sfx.impact(opts.clang, opts.strength ?? 1, point); return true; }
-    return false;
-  };
+  const voices = new Map<string, (opts: CombatCueOpts) => boolean | undefined>();
+  voices.set('island.whoosh', (opts) => { if (typeof opts.dir !== 'number') return false; sfx.whoosh(opts.speed ?? 1, { heavy: opts.heavy ?? false, dir: opts.dir }); return true; });
+  for (const material of ['flesh', 'shell', 'wood', 'stone'] as const) voices.set(`island.impact.${material}`, (opts) => { sfx.impact(material, opts.strength ?? 1, opts.point); });
+  for (const kind of ['boar', 'crab', 'monkey', 'sailor'] as const) voices.set(`island.kill.${kind}`, (opts) => { sfx.vocal(kind, opts.point, 1.3); });
+  return createCueRouter(DRIFTWOOD_AUDIO.routing.filter((route) => route.bus === 'combat'), { voices });
 }

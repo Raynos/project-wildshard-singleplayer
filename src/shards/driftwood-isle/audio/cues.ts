@@ -1,37 +1,21 @@
+import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CueMap } from '@wildshard/engine/audio/Cues';
+import type { CombatCueOpts } from '@wildshard/engine/combat/cues';
 import type { Vector3 } from 'three';
-import type { IslandSfx, Material, Enemy, WindupEnemy } from './sfx';
-import type { Surface } from './surface';
+import { DRIFTWOOD_AUDIO } from '../data/audio';
+import type { IslandSfx } from './sfx';
 
-const SURFACES: readonly Surface[] = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water'];
-const MATERIALS: readonly Material[] = ['flesh', 'shell', 'wood', 'stone'];
-const ENEMIES: readonly Enemy[] = ['boar', 'crab', 'monkey', 'sailor'];
-const WINDUPS: readonly WindupEnemy[] = ['boar', 'crab', 'sailor'];
-
-/** Routing adds no sound taps or random draws: every recipe keeps its original bank call. */
+/** Routing adds no sound taps or random draws: each admitted voice calls the original island recipe once. */
 export function driftwoodCueMap(sfx: Pick<IslandSfx, 'footstep' | 'whoosh' | 'impact' | 'vocal' | 'windup' | 'plunge' | 'interact' | 'gullCallAt'>,
   listener: { readonly position: Vector3; readonly yaw: number }): CueMap {
-  return (id, opts) => {
-    if (id === 'cue.weapon.fire' && typeof opts.dir === 'number') {
-      sfx.whoosh(opts.speed ?? 1, { heavy: opts.heavy ?? false, dir: opts.dir }); return true;
-    }
-    const material = MATERIALS.find((value) => id === `cue.hit.${value}` || id === `cue.weapon.clang.${value}`);
-    if (material !== undefined) { sfx.impact(material, opts.strength ?? 1, opts.point); return true; }
-    if (id === 'cue.creature.death') {
-      const enemy = ENEMIES.find((value) => value === opts.kind);
-      if (enemy === undefined) return false;
-      sfx.vocal(enemy, opts.point, opts.gain ?? 1.3); return true;
-    }
-    if (id === 'cue.ai.windup') {
-      const enemy = WINDUPS.find((value) => value === (opts.kind === 'bear' ? 'boar' : opts.kind));
-      if (enemy === undefined) return false;
-      sfx.windup(enemy, opts.point); return true;
-    }
-    const surface = SURFACES.find((value) => id === `cue.step.${value}`);
-    if (surface !== undefined) { sfx.footstep(surface, opts.speed ?? 0); return true; }
-    if (id === 'cue.player.dive' || id === 'cue.player.surface') { sfx.plunge(id === 'cue.player.surface'); return true; }
-    if (id === 'cue.feat.earned') { sfx.interact('chime'); return true; }
-    if (id === 'cue.ambient.gull' && opts.point !== undefined) { sfx.gullCallAt(opts.point, listener.position, listener.yaw); return true; }
-    return false;
-  };
+  const voices = new Map<string, (opts: CombatCueOpts) => boolean | undefined>();
+  voices.set('island.whoosh', (opts) => { if (typeof opts.dir !== 'number') return false; sfx.whoosh(opts.speed ?? 1, { heavy: opts.heavy ?? false, dir: opts.dir }); return true; });
+  for (const material of ['flesh', 'shell', 'wood', 'stone'] as const) voices.set(`island.impact.${material}`, (opts) => { sfx.impact(material, opts.strength ?? 1, opts.point); });
+  for (const kind of ['boar', 'crab', 'monkey', 'sailor'] as const) voices.set(`island.vocal.${kind}`, (opts) => { sfx.vocal(kind, opts.point, opts.gain ?? 1.3); });
+  for (const kind of ['boar', 'crab', 'sailor'] as const) voices.set(`island.windup.${kind}`, (opts) => { sfx.windup(kind, opts.point); });
+  for (const surface of ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water'] as const) voices.set(`island.step.${surface}`, (opts) => { sfx.footstep(surface, opts.speed ?? 0); });
+  voices.set('island.dive', () => { sfx.plunge(false); }); voices.set('island.surface', () => { sfx.plunge(true); });
+  voices.set('island.chime', () => { sfx.interact('chime'); });
+  voices.set('island.gull', (opts) => { if (opts.point === undefined) return false; sfx.gullCallAt(opts.point, listener.position, listener.yaw); return true; });
+  return createCueRouter(DRIFTWOOD_AUDIO.routing.filter((route) => route.bus === 'audio'), { voices });
 }
