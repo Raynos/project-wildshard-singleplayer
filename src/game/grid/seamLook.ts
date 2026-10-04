@@ -43,6 +43,8 @@ export interface SeamPiece {
 }
 const CYAN = new Color(0x38e6ff);
 const ROCK_GREY: readonly [number, number, number] = [0.32, 0.3, 0.28];
+/** The generator's neutral platform grey (linear) and how much darker the look draws it. */
+const NEUTRAL = 0.25, VERGE = 0.45;
 
 /**
  * Merge every strip into one home-frame geometry whose index buffer is grouped by material. Pure (no GPU): the vertices are
@@ -58,7 +60,10 @@ export function seamLookGeometry(pieces: readonly SeamPiece[], home: { readonly 
     const dx = mesh.origin.x - home.origin.x, dz = mesh.origin.z - home.origin.z, count = mesh.positions.length / 3;
     for (let k = 0; k < count; k++) {
       position[(base + k) * 3] = (mesh.positions[k * 3] ?? 0) + dx; position[(base + k) * 3 + 1] = mesh.positions[k * 3 + 1] ?? 0; position[(base + k) * 3 + 2] = (mesh.positions[k * 3 + 2] ?? 0) + dz;
-      for (let c = 0; c < 3; c++) colour[(base + k) * 3 + c] = mesh.colours[k * 3 + c] ?? 0;
+      // the platform's neutral grey reads as a dark gravel verge; the shard's own colour at the gradient's far edge is kept
+      const r = mesh.colours[k * 3] ?? 0, g = mesh.colours[k * 3 + 1] ?? 0, b = mesh.colours[k * 3 + 2] ?? 0;
+      const shade = 1 - VERGE * Math.max(0, 1 - (Math.abs(r - NEUTRAL) + Math.abs(g - NEUTRAL) + Math.abs(b - NEUTRAL)) / 0.15);
+      colour[(base + k) * 3] = r * shade; colour[(base + k) * 3 + 1] = g * shade; colour[(base + k) * 3 + 2] = b * shade;
     }
     // every index in a feature range goes to its material's list; triangles no range names draw as ground
     const named = new Uint8Array(mesh.indices.length);
