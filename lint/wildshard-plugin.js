@@ -489,7 +489,7 @@ const noRawShaderPatch = rule('Shader patches go through the one registry (E357 
 export const SIM_DIRS = ['ai', 'combat', 'events', 'quest', 'saves'];
 export const VIEW_PATHS = ['ai/view/', 'combat/view/', 'quest/view/', 'quest/view.ts'];
 const SIM = new RegExp(`^src/engine/(?:${SIM_DIRS.join('|')})/`, 'u');
-const VIEW = new RegExp(`^src/engine/(?:${VIEW_PATHS.map((p) => p.replaceAll('.', '\\.')).join('|')})`, 'u');
+const VIEW = new RegExp(`^src/engine/(?:${VIEW_PATHS.map((p) => p.replaceAll('.', String.raw`\.`)).join('|')})`, 'u');
 const VISUAL = /^src\/engine\/(?:render|ui|fx|anim)\//u;
 const MATH_TYPES = new Set(['Vector3', 'Quaternion', 'Matrix4', 'Box3', 'Ray']);
 const DOM_GLOBALS = new Set(['document', 'HTMLElement', 'HTMLCanvasElement', 'requestAnimationFrame']);
