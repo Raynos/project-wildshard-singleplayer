@@ -5,7 +5,8 @@ import { shardContext, type ShardContext } from '../shard/context';
 import type { ShardRuntime } from '../shard/runtime';
 import { ShardPlugin } from '../shard/plugin';
 import type { ShardManifest } from '../shard/manifest';
-import { bindScopedRuntime } from '../shard/scopedRuntime';
+import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
+import { RetainedRuntimeHooks } from '../shard/retainedHooks';
 import { gridCells, gridHomeSim, pageGridInstance, type GridCellEvents, type GridCellRef } from '../grid/boot';
 import { browserShardfileOptions, shardfileSource } from './loader';
 import type { ProductOptions } from './product';
@@ -70,13 +71,23 @@ export interface HybridCellBinding {
   readonly cells: Pick<GridCellEvents, 'cell' | 'onEnter' | 'onLeave'>;
   /** Hold region gameplay while entered hooks install; admission of the runtime module is a separate fence. */
   readonly readiness?: (ready: boolean) => void;
+  /** Borrowed home geometry and authored state persist; transient services must use whileEntered. */
+  readonly retainHomeRuntime?: boolean;
+}
+
+interface CustomRuntime {
+  plugin: ShardPlugin;
+  installation: LevelInstallation & { context: ShardContext };
+  active: boolean;
+  ready: boolean;
+  retained?: { slots: ScopedRuntimeBinding; hooks: RetainedRuntimeHooks };
 }
 
 /** Standalone staged composition keeps the resident data plugin and trusted hooks on the existing Game boot path. */
 export class HybridShardPlugin extends ShardPlugin {
   private readonly data: ShardPlugin;
   private readonly Runtime: new () => ShardPlugin;
-  private custom: { plugin: ShardPlugin; installation: LevelInstallation & { context: ShardContext } } | undefined;
+  private custom: CustomRuntime | undefined;
   private readonly binding: HybridCellBinding | undefined;
   private generation = 0;
   constructor(data: ShardPlugin, Runtime: new () => ShardPlugin, binding?: HybridCellBinding) {
@@ -88,20 +99,41 @@ export class HybridShardPlugin extends ShardPlugin {
     if (this.binding !== undefined) {
       const binding = this.binding;
       ctx.scope.onDispose(binding.cells.onLeave((cell) => {
-        if (cell.instance === binding.instance) { this.generation++; this.custom?.installation.context.scope.dispose(); }
+        if (cell.instance === binding.instance) this.leaveRuntime();
       }));
     }
     await this.runtimeWorld(ctx);
   }
+  private leaveRuntime(): void {
+    this.generation++;
+    const custom = this.custom; if (custom === undefined) return;
+    if (custom.retained === undefined || !custom.ready) { custom.installation.context.scope.dispose(); return; }
+    custom.active = false; this.binding?.readiness?.(false);
+    try { custom.retained.hooks.deactivate(); } finally { custom.retained.slots.deactivate(); }
+  }
   private async runtimeWorld(ctx: ShardContext): Promise<void> {
     if (this.binding !== undefined && this.binding.cells.cell?.instance !== this.binding.instance) throw new Error('Trusted hooks require the entered cell interior');
     this.generation++;
+    const existing = this.custom;
+    if (existing?.retained !== undefined && existing.ready) {
+      const retained = existing.retained;
+      retained.slots.activate();
+      try { retained.hooks.activate(); existing.active = true; }
+      catch (error) { retained.slots.deactivate(); throw error; }
+      return;
+    }
     const parent = ctx.game.runtime; if (parent === undefined) throw new Error('Hybrid requires the normal runtime host');
     const scope = ctx.scope.child('runtime.play');
     try {
-      const runtime = bindScopedRuntime(parent, scope), installation = hybridInstallation(ctx, scope, runtime);
+      const slots = this.binding?.retainHomeRuntime === true ? createScopedRuntimeBinding(parent, scope) : undefined;
+      slots?.activate();
+      const runtime = slots?.runtime ?? bindScopedRuntime(parent, scope), base = hybridInstallation(ctx, scope, runtime);
+      const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(base.context);
+      const installation = hooks === undefined ? base : { ...base, context: hooks.context };
       const plugin = withOwner(scope, () => new this.Runtime());
-      const custom = { plugin, installation }; this.custom = custom;
+      const custom: CustomRuntime = { plugin, installation, active: true, ready: false,
+        ...(slots === undefined || hooks === undefined ? {} : { retained: { slots, hooks } }),
+      }; this.custom = custom;
       scope.onDispose(() => {
         if (this.custom === custom) { this.custom = undefined; this.binding?.readiness?.(false); }
       });
@@ -119,7 +151,8 @@ export class HybridShardPlugin extends ShardPlugin {
     await this.runtimeKit();
   }
   private async runtimeKit(): Promise<void> {
-    const custom = this.custom; if (custom === undefined) throw new Error('Hybrid runtime world is not installed');
+    const custom = this.custom; if (custom === undefined || !custom.active) throw new Error('Hybrid runtime world is not installed');
+    if (custom.retained !== undefined && custom.ready) return;
     custom.installation.openKit();
     try { await withOwner(custom.installation.context.scope, () => custom.plugin.kit?.(custom.installation.context)); }
     finally { custom.installation.closeKit(); }
@@ -133,7 +166,7 @@ export class HybridShardPlugin extends ShardPlugin {
     ctx.scope.onDispose(() => { this.generation++; this.custom?.installation.context.scope.dispose(); });
     const binding = this.binding;
     if (binding !== undefined) ctx.scope.onDispose(binding.cells.onEnter((cell) => {
-      if (cell.instance !== binding.instance || this.custom !== undefined) return;
+      if (cell.instance !== binding.instance || this.custom?.active === true) return;
       void this.reenter(ctx);
     }));
   }
@@ -149,10 +182,11 @@ export class HybridShardPlugin extends ShardPlugin {
     }
   }
   private async runtimePlay(): Promise<void> {
-    const custom = this.custom; if (custom === undefined) throw new Error('Hybrid runtime kit is not installed');
+    const custom = this.custom; if (custom === undefined || !custom.active) throw new Error('Hybrid runtime kit is not installed');
+    if (custom.retained !== undefined && custom.ready) { this.binding?.readiness?.(true); return; }
     await withOwner(custom.installation.context.scope, () => custom.plugin.play?.(custom.installation.context));
     if (custom.installation.context.scope.disposed) throw new Error('Hybrid runtime left during play installation');
-    this.binding?.readiness?.(true);
+    custom.ready = true; this.binding?.readiness?.(true);
   }
 }
 
@@ -161,6 +195,8 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
   bindings: Omit<ShardfileClientBindings, 'instance' | 'trustedRuntime'> & {
     /** The game adapter forwards the page owner; the shard need not read or own another service. */
     readonly residencyContext?: Pick<ShardContext, 'game'>;
+    /** Retain an adapted borrowed home runtime across road visits; neighbours remain fenced. */
+    readonly retainHomeRuntime?: boolean;
   },
   entries: readonly TrustedRuntimeEntry[],
   debug?: { context: ShardContext; row: Omit<Parameters<ShardContext['debugRow']>[0], 'change'> }): Promise<ShardPlugin> {
@@ -174,7 +210,7 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
       return new Runtime();
     }
   }
-  const { residencyContext, ...providedBindings } = bindings;
+  const { residencyContext, retainHomeRuntime, ...providedBindings } = bindings;
   const residency = residencyContext?.game.residency;
   if (residency !== undefined && providedBindings.residency !== undefined && residency !== providedBindings.residency) {
     throw new Error('Hybrid installation and bindings must share one page residency owner');
@@ -196,7 +232,7 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
   const data = await shardfileSource(source, productOptions, { ...clientBindings, instance, trustedRuntime: true, audioOwner: clientBindings.audioOwner ?? 'runtime', worldOwner: clientBindings.worldOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) });
   const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
   const [{ default: Data }, Runtime] = await Promise.all([load(), prepareTrustedRuntime(source.runtime, source.identity.slug, productOptions.firstParty, entries)]);
-  return new HybridShardPlugin(new Data(), Runtime, gridInstance === null ? undefined : { instance, cells: gridCells });
+  return new HybridShardPlugin(new Data(), Runtime, gridInstance === null ? undefined : { instance, cells: gridCells, ...(retainHomeRuntime === undefined ? {} : { retainHomeRuntime }) });
 }
 
 /** Keep a transitional shard's existing standalone presentation while admitting data and resolving its declared code separately. */

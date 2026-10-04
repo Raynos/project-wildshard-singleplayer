@@ -404,3 +404,48 @@ it('reactivates a retained home handoff without publishing its road-time or late
   home.activate(); scope.dispose(); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
   expect(scope.census.disposers).toBe(0); expect(() => home.activate()).toThrow('disposed');
 });
+
+it('reactivates an adapted borrowed home without rebuilding its world, equipment or authored state', async () => {
+  const app = new App(); app.registryValue = new WorldRegistry();
+  const parent = runtime(), cells = new GridCellEvents(), calls: string[] = [], readiness: boolean[] = [];
+  const scope = app.engineScope.child('retained.home'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  const before = Object.getOwnPropertyDescriptors(parent), state = { ticks: 0 };
+  class Data extends ShardPlugin {}
+  class Runtime extends ShardPlugin {
+    override world(context: ShardContext): void {
+      calls.push('world'); context.piece({ id: 'retained.pier', name: 'Pier', category: 'props', file: 'runtime/index.ts' });
+      const local = context.game.runtime; if (local === undefined) throw new Error('Missing home runtime');
+      local.objects['state'] = state;
+      context.whileEntered?.((entered) => { entered.onDispose(app.debug.scopedExpose('retained.active', true)); });
+    }
+    override kit(): void { calls.push('kit'); }
+    override play(context: ShardContext): void {
+      calls.push('play'); context.system({ id: 'retained.logic', phase: 'update', run: () => { state.ticks++; } });
+    }
+  }
+  cells.enter({ instance: 'template-1', slug: 'template' });
+  const plugin = new HybridShardPlugin(new Data(), Runtime, { instance: 'template-1', cells, retainHomeRuntime: true,
+    readiness: (ready) => { readiness.push(ready); } });
+  try {
+    await plugin.world(ctx); await plugin.kit(ctx); await plugin.play(ctx);
+    for (let visit = 0; visit < 2; visit++) {
+      if (visit > 0) {
+        cells.enter({ instance: 'template-1', slug: 'template' });
+        for (let turn = 0; turn < 20; turn++) await Promise.resolve();
+      }
+      expect(parent.objects['state']).toBe(state); expect(readiness.at(-1)).toBe(true);
+      for (const system of app.systemsByPhase().update) system.run(1 / 60, visit);
+      expect(app.debug.snapshot()).toEqual({ 'retained.active': true });
+      cells.leave(); expect(readiness.at(-1)).toBe(false);
+      expect(app.systemIds(app.engineScope)).toEqual([]); expect(app.debug.snapshot()).toEqual({});
+      expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
+      expect(app.registry.pieceList().map((piece) => piece.id)).toEqual(['retained.pier']);
+      cells.enter({ instance: 'neighbour', slug: 'hybrid-b' });
+      for (let turn = 0; turn < 20; turn++) await Promise.resolve();
+      expect(app.systemIds(app.engineScope)).toEqual([]);
+    }
+    expect(calls).toEqual(['world', 'kit', 'play']); expect(state.ticks).toBe(2);
+  } finally { app.engineScope.dispose(); }
+  expect(app.registry.pieceList()).toEqual([]); expect(app.engineScope.census.disposers).toBe(0);
+});
