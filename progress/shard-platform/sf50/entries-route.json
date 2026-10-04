@@ -1,0 +1,189 @@
+{
+ "$doc": "SHARD-PLATFORM SF50-g: Signal Dunes' four midpoint entries (G93 / G99 / G103 / G131) walked edge <-> shard on the live standalone world (the trusted runtime: terrain, rocks, dressing and colliders). The bake holds each midpoint at exactly y = 0 across 17.6 m for 47 m in. Signal Dunes' authored play bounds (+-200 m) are lifted for the walk, as the grid lifts them. Run: scripts/browser-lane.sh node progress/shard-platform/sf50/entries.mjs --slug=sunscar-dunes --route=progress/shard-platform/sf50/entries-route.json --url=<served build> --out=<dir>",
+ "sunscar-dunes": [
+  {
+   "name": "south in",
+   "start": {
+    "x": 0,
+    "z": -249,
+    "yaw": 3.1416
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -235
+    },
+    {
+     "x": 0,
+     "z": -203
+    },
+    {
+     "x": 0,
+     "z": -185
+    }
+   ],
+   "notes": "from 1 m inside the south edge midpoint across the 8 x 15 m socket footprint (y 0), along the flat entry road 47 m in, onto the dunes"
+  },
+  {
+   "name": "south out",
+   "start": {
+    "x": 0,
+    "z": -185,
+    "yaw": 0
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -203
+    },
+    {
+     "x": 0,
+     "z": -235
+    },
+    {
+     "x": 0,
+     "z": -249
+    }
+   ],
+   "notes": "back out to 1 m inside the south edge"
+  },
+  {
+   "name": "north in",
+   "start": {
+    "x": 0,
+    "z": 249,
+    "yaw": 0
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 235
+    },
+    {
+     "x": 0,
+     "z": 203
+    },
+    {
+     "x": 0,
+     "z": 185
+    }
+   ],
+   "notes": "from 1 m inside the north edge midpoint across the 8 x 15 m socket footprint (y 0), along the flat entry road 47 m in, onto the dunes"
+  },
+  {
+   "name": "north out",
+   "start": {
+    "x": 0,
+    "z": 185,
+    "yaw": -3.1416
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 203
+    },
+    {
+     "x": 0,
+     "z": 235
+    },
+    {
+     "x": 0,
+     "z": 249
+    }
+   ],
+   "notes": "back out to 1 m inside the north edge"
+  },
+  {
+   "name": "east in",
+   "start": {
+    "x": 249,
+    "z": 0,
+    "yaw": 1.5708
+   },
+   "waypoints": [
+    {
+     "x": 235,
+     "z": 0
+    },
+    {
+     "x": 203,
+     "z": 0
+    },
+    {
+     "x": 185,
+     "z": 0
+    }
+   ],
+   "notes": "from 1 m inside the east edge midpoint across the 8 x 15 m socket footprint (y 0), along the flat entry road 47 m in, onto the dunes"
+  },
+  {
+   "name": "east out",
+   "start": {
+    "x": 185,
+    "z": 0,
+    "yaw": -1.5708
+   },
+   "waypoints": [
+    {
+     "x": 203,
+     "z": 0
+    },
+    {
+     "x": 235,
+     "z": 0
+    },
+    {
+     "x": 249,
+     "z": 0
+    }
+   ],
+   "notes": "back out to 1 m inside the east edge"
+  },
+  {
+   "name": "west in",
+   "start": {
+    "x": -249,
+    "z": 0,
+    "yaw": -1.5708
+   },
+   "waypoints": [
+    {
+     "x": -235,
+     "z": 0
+    },
+    {
+     "x": -203,
+     "z": 0
+    },
+    {
+     "x": -185,
+     "z": 0
+    }
+   ],
+   "notes": "from 1 m inside the west edge midpoint across the 8 x 15 m socket footprint (y 0), along the flat entry road 47 m in, onto the dunes"
+  },
+  {
+   "name": "west out",
+   "start": {
+    "x": -185,
+    "z": 0,
+    "yaw": 1.5708
+   },
+   "waypoints": [
+    {
+     "x": -203,
+     "z": 0
+    },
+    {
+     "x": -235,
+     "z": 0
+    },
+    {
+     "x": -249,
+     "z": 0
+    }
+   ],
+   "notes": "back out to 1 m inside the west edge"
+  }
+ ]
+}

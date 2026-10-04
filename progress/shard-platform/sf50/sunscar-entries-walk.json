@@ -1,0 +1,164 @@
+{
+ "base": "http://127.0.0.1:4402",
+ "slug": "sunscar-dunes",
+ "settings": {},
+ "footprints": [
+  {
+   "edge": "north",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "below": 0,
+   "wet": 0,
+   "blockers": []
+  },
+  {
+   "edge": "south",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "below": 0,
+   "wet": 0,
+   "blockers": []
+  },
+  {
+   "edge": "east",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "below": 0,
+   "wet": 0,
+   "blockers": []
+  },
+  {
+   "edge": "west",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "below": 0,
+   "wet": 0,
+   "blockers": []
+  }
+ ],
+ "legs": [
+  {
+   "name": "south in",
+   "seconds": 14.8,
+   "end": {
+    "x": -0.001,
+    "y": 0.544,
+    "z": -185.669
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.004,
+   "maxY": 0.544
+  },
+  {
+   "name": "south out",
+   "seconds": 14.8,
+   "end": {
+    "x": 0,
+    "y": 0.02,
+    "z": -248.212
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 0.558
+  },
+  {
+   "name": "north in",
+   "seconds": 14.9,
+   "end": {
+    "x": 0.012,
+    "y": 2.066,
+    "z": 185.638
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.004,
+   "maxY": 2.066
+  },
+  {
+   "name": "north out",
+   "seconds": 14.8,
+   "end": {
+    "x": 0,
+    "y": 0.02,
+    "z": 248.271
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 2.155
+  },
+  {
+   "name": "east in",
+   "seconds": 15.1,
+   "end": {
+    "x": 185.792,
+    "y": 3.421,
+    "z": -0.027
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.004,
+   "maxY": 3.421
+  },
+  {
+   "name": "east out",
+   "seconds": 14.8,
+   "end": {
+    "x": 248.267,
+    "y": 0.02,
+    "z": 0
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 3.663
+  },
+  {
+   "name": "west in",
+   "seconds": 14.9,
+   "end": {
+    "x": -185.665,
+    "y": 1.224,
+    "z": -0.003
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.004,
+   "maxY": 1.224
+  },
+  {
+   "name": "west out",
+   "seconds": 14.8,
+   "end": {
+    "x": -248.274,
+    "y": 0.02,
+    "z": 0
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 1.277
+  }
+ ],
+ "errors": [],
+ "build": "a7b93ea-muuetuc5",
+ "boundsLifted": true
+}
