@@ -5,6 +5,7 @@ import type { Shardfile } from './schema';
 import { LogicalStateSchema, migrateLogicalState, type DeclaredMigrations } from './migrations';
 import { logicalStateFromLane, restoreLogicalLane } from './logicalState';
 import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
+import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
@@ -25,11 +26,13 @@ const fields = { revision: natural, tick: natural,
 };
 const legacyCheckpoint = v.strictObject({ version: v.literal(1), ...fields });
 const logicalCheckpoint = v.strictObject({ version: v.literal(2), shard: name, state: LogicalStateSchema, ...fields });
-const checkpoint = v.union([legacyCheckpoint, logicalCheckpoint]);
-type ClientCheckpoint = v.InferOutput<typeof checkpoint>;
+/** Versioned local progress accepted independently of a regional engine snapshot. */
+export const ClientCheckpointSchema = v.union([legacyCheckpoint, logicalCheckpoint]);
+/** Portable declared progress plus the exact-revision fast path; old payloads stay readable. */
+export type ClientCheckpoint = v.InferOutput<typeof ClientCheckpointSchema>;
 /** Logical level progress, independent of the Game's borrowed physics world and player motor. */
 export const clientStateSave = { key: 'platform.continuation', scope: 'shard' as const, version: 1,
-  schema: v.nullable(checkpoint), initial: (): ClientCheckpoint | null => null };
+  schema: v.nullable(ClientCheckpointSchema), initial: (): ClientCheckpoint | null => null };
 type Runtimes = DeclaredItems['runtimes'];
 
 /** Retry every home save owner; a logical continuation alone cannot confirm durable rewards or coins. */
@@ -63,6 +66,18 @@ export function captureClientState(source: Shardfile, sim: ShardfileSimulation, 
   return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state: migrateLogicalState(logicalStateFromLane(source.state.version, lane), source.state), revision: source.identity.revision, tick: sim.host.state.tick,
     lane, items: itemStates(items), flags: sim.host.flags.all,
     quests: sim.quest.quests.map((quest) => quest.snapshot()), dialogue: sim.quest.snapshot() });
+}
+/** Persist a portable companion to a same-engine region snapshot, so later revisions never need its old Rapier bytes. Legacy regions supply their known state-version-1 origin. */
+export function clientStateFromRegion(source: Shardfile, snapshot: SimSnapshot, revision = source.identity.revision, stateVersion = source.state.version): ClientCheckpoint {
+  v.parse(v.literal(source.identity.slug), snapshot.levelId);
+  const lane = snapshot.adapters.find((adapter) => adapter.id === 'script.declared')?.state ?? null;
+  if (lane !== null && typeof lane !== 'string') throw new Error('Invalid regional script state');
+  const itemState = snapshot.adapters.find((adapter) => adapter.id === 'items.declared')?.state;
+  if (itemState !== undefined && typeof itemState !== 'string') throw new Error('Invalid regional item state');
+  const items: unknown = itemState === undefined ? {} : JSON.parse(itemState);
+  const state = logicalStateFromLane(stateVersion, lane);
+  return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state, revision, tick: snapshot.state.tick, lane, items,
+    flags: snapshot.flags, quests: snapshot.quests, dialogue: snapshot.adapters.find((adapter) => adapter.id === 'quest.declared')?.state ?? {} });
 }
 function apply(sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
   if ((sim.lane === undefined) !== (state.lane === null) || state.quests.length !== sim.quest.quests.length) throw new Error('Local continuation contract changed');
@@ -101,7 +116,8 @@ function applyMigrated(source: Shardfile & { migrations?: DeclaredMigrations }, 
 }
 /** Refuse incompatible/corrupt progress atomically. Silent quest restore never repeats profile rewards or scene events. */
 export function restoreClientState(source: Shardfile & { migrations?: DeclaredMigrations }, sim: ShardfileSimulation, items: Runtimes, input: unknown): boolean {
-  const result = v.safeParse(checkpoint, input); if (!result.success || result.output.revision > source.identity.revision
+  const result = v.safeParse(ClientCheckpointSchema, input); if (!result.success || result.output.revision > source.identity.revision
+    || !v.safeParse(v.literal(source.identity.slug), sim.host.level.id).success
     || (result.output.version === 2 && !v.safeParse(v.literal(source.identity.slug), result.output.shard).success)) return false;
   const previous = captureClientState(source, sim, items);
   try {

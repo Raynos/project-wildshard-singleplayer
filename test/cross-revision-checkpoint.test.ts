@@ -10,6 +10,8 @@ import { captureClientState, restoreClientState, installClientItemState, clientS
 import { projectItemFields } from '../src/game/shardfile/clientItems';
 import { syncTargetColliders } from '../src/game/shardfile/targets';
 import { parseMigrations } from '../src/game/shardfile/migrations';
+import { GridRegionDurability } from '../src/game/grid/durability';
+import { snapshotSimHost, serializeSimSnapshot } from '../src/engine/sim/snapshot';
 import type { Shardfile } from '../src/game/shardfile/schema';
 import source from '../src/shards/_template/shard.config';
 import { MemoryStorage } from './setup';
@@ -81,5 +83,27 @@ it('refuses an unadmitted revision change atomically and never interprets anothe
     expect(captureClientState(nextSource, next.sim, next.items)).toEqual(before);
     expect(restoreClientState(nextSource, next.sim, next.items, { ...state, shard: 'another-shard' })).toBe(false);
     expect(restoreClientState(nextSource, next.sim, next.items, { ...state, revision: nextSource.identity.revision + 1 })).toBe(false);
+  } finally { next.sim.dispose(); first.sim.dispose(); }
+});
+it('migrates a durable regional companion without decoding old physics, retaining local coins and independent copy saves', () => {
+  const first = boot(), nextSource = revision(), next = boot(nextSource), local = new MemoryStorage(), store = new SaveStore({ local, session: null });
+  const identity = { id: 'template-1', shard: source.identity.slug };
+  try {
+    const old = new GridRegionDurability(store, identity, source, []);
+    first.lane.enqueue({ type: 201, target: first.player, value: 1 }); first.lamp.queue(3); first.step(30);
+    for (const flag of source.quests.flags) first.sim.host.flags.set(flag);
+    old.wallet.addCoins(9); old.wallet.savePack({ counts: { rope: 3 }, order: ['rope'] });
+    const snapshot = snapshotSimHost(first.sim.host); expect(old.checkpoint(snapshot)).toBe(true);
+    const key = 'wildshard.save.v2.template-1', bytes = local.getItem(key); if (bytes === null) throw new Error('Missing regional save');
+    expect(bytes).toContain(JSON.stringify(serializeSimSnapshot(snapshot)));
+    local.setItem(key, bytes.replace(JSON.stringify(serializeSimSnapshot(snapshot)), JSON.stringify('old engine unavailable')));
+    const nextStore = new SaveStore({ local, session: null }), saved = new GridRegionDurability(nextStore, identity, nextSource, []);
+    expect(() => saved.read()).toThrow('requires logical'); expect(saved.read(true)).toBeUndefined(); saved.bind(next.sim.host);
+    expect(saved.restoreLogical(next.sim, next.items)).toBe(true);
+    expect(next.lane.world.view(next.sim.host.player.id).shared['template.gate.open']).toBe(1);
+    expect(next.lamp.remainingFuel).toBe(first.lamp.remainingFuel); expect(next.sim.quest.quests[0]?.isComplete).toBe(true); expect(next.grants()).toBe(0);
+    expect(saved.wallet.coins()).toBe(9); expect(saved.wallet.pack()).toEqual({ counts: { rope: 3 }, order: ['rope'] });
+    expect(new GridRegionDurability(nextStore, { ...identity, id: 'template-2' }, nextSource, []).read(true)).toBeUndefined();
+    const preserved = local.getItem(key); expect(preserved).toContain('old engine unavailable');
   } finally { next.sim.dispose(); first.sim.dispose(); }
 });

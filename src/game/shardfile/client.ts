@@ -220,7 +220,7 @@ export class ShardfileClient {
     });
     const continuation = instanceSave(ctx.app.saves, clientStateSave, { id: identity.instance, shard: identity.shard });
     const prior = continuation.read();
-    if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) continuation.write(null);
+    if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) throw new Error('Saved progress requires an admitted checkpoint migration');
     syncTargetColliders(source.targets, sim.colliders, read);
     const checkpoint = (): boolean => checkpointClientState({ ledger, purse: loot?.purse ?? null,
       encounters: () => saved.write(encounters), continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),

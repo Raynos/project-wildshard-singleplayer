@@ -7,9 +7,11 @@ import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmit
 import type { QuestDataPorts } from '../quest/declared';
 import type { Shardfile } from '../shardfile/schema';
 import { GridWallet } from './wallet';
+import { ClientCheckpointSchema, clientStateFromRegion, restoreClientState, type ClientCheckpoint } from '../shardfile/clientState';
+import type { ShardfileSimulation } from '../shardfile/simulation';
 
 const schema = v.nullable(v.strictObject({ revision: v.pipe(v.number(), v.integer(), v.minValue(1)),
-  snapshot: v.pipe(v.string(), v.minLength(1), v.maxLength(128 * 1024 * 1024)) }));
+  snapshot: v.pipe(v.string(), v.minLength(1), v.maxLength(128 * 1024 * 1024)), logical: v.optional(v.nullable(ClientCheckpointSchema), null) }));
 type SavedRegion = v.InferOutput<typeof schema>;
 const continuation = { key: 'platform.region', scope: 'shard' as const, version: 1, schema, initial: (): SavedRegion => null };
 
@@ -22,6 +24,7 @@ export class GridRegionDurability {
   private readonly identity: { instance: string; shard: string; revision: number };
   private readonly source: Shardfile;
   private readonly emitters = new Map<string, LedgerEmitter>();
+  private pendingLogical: ClientCheckpoint | null = null;
 
   constructor(store: SaveStore, placement: LocalSaveInstance, source: Shardfile, catalogue: readonly LedgerCatalogueItem[]) {
     this.source = source;
@@ -48,14 +51,26 @@ export class GridRegionDurability {
     }
   }
 
-  /** Refuse another revision or engine format instead of interpreting it as an empty region. */
-  read(): SimSnapshot | undefined {
+  /** Keep exact-revision engine state; an older revision reserves portable progress for a freshly admitted simulation. Future revisions remain untouched. */
+  read(allowLogical = false): SimSnapshot | undefined {
+    this.pendingLogical = null;
     const value = this.saved.read();
     if (value === null) return undefined;
-    if (value.revision !== this.identity.revision) throw new Error('Regional continuation revision changed');
+    if (value.revision > this.identity.revision) throw new Error('Regional continuation is from a future revision');
+    if (value.revision < this.identity.revision) {
+      if (!allowLogical) throw new Error('Regional continuation requires logical migration');
+      this.pendingLogical = value.logical ?? clientStateFromRegion(this.source, decodeSimSnapshot(value.snapshot), value.revision, 1);
+      return undefined;
+    }
     const snapshot = decodeSimSnapshot(value.snapshot);
     if (snapshot.levelId !== this.identity.shard) throw new Error('Regional continuation belongs to another shard');
     return snapshot;
+  }
+  /** Apply reserved logical progress after the new region's adapters and ledger are installed; false must abort admission without rewriting the old save. */
+  restoreLogical(sim: ShardfileSimulation, items: Parameters<typeof restoreClientState>[2] = new Map()): boolean {
+    if (this.pendingLogical === null) return true;
+    if (!restoreClientState(this.source, sim, items, this.pendingLogical)) return false;
+    this.pendingLogical = null; return true;
   }
 
   /** Retry both local and profile rewards; false holds the crossing in its current frame. */
@@ -68,6 +83,6 @@ export class GridRegionDurability {
   checkpoint(snapshot: SimSnapshot): boolean {
     if (snapshot.levelId !== this.identity.shard) throw new Error('Regional checkpoint belongs to another shard');
     if (!this.flush()) return false;
-    return this.saved.write({ revision: this.identity.revision, snapshot: serializeSimSnapshot(snapshot) });
+    return this.saved.write({ revision: this.identity.revision, snapshot: serializeSimSnapshot(snapshot), logical: clientStateFromRegion(this.source, snapshot) });
   }
 }
