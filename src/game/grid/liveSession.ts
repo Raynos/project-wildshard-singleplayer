@@ -155,7 +155,6 @@ export class LiveGridSession {
       } },
       admit: (cell) => this.admit(cell),
       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
-      read: (instance) => this.regionSave(instance).read(true),
       bindFrame: (frame) => { this.bind(frame); },
       gameplayReady: () => true, // a template copy has no entered hooks; Driftwood's hybrid stays default-off (its fence is SF46's)
       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },
@@ -240,25 +239,39 @@ export class LiveGridSession {
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
     return { bytes: source.budgets.sim.resident + generatedGroundBytes, create: (saved) => {
       let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false, quest, groundResolution });
-      if (saved !== undefined) {
-        const authored = sim.host.level; sim.dispose();
-        const host = restoreSimHost(authored, { rapier }, saved, (restored) => {
-          sim = bindShardfileSim(restored, source, assets, { rapier, restoring: true, quest }); savedRegion.bind(restored);
-        });
-        host.detachPlayerMotor(); // the restored world carries its strip duplicates already
-      } else {
-        savedRegion.bind(sim.host);
-        if (!savedRegion.restoreLogical(sim)) {
-          sim.dispose();
-          throw new Error('Regional logical migration was refused');
-        }
+      let releaseBasis: () => void = () => undefined;
+      try {
         for (const mesh of duplicates) installStripCollider(sim.host.physics, mesh, sim.host.scope);
+        const basis = sim.host.physics.snapshot();
+        const basisLease = this.ports.allocator.reserve({ id: `sim-basis:${cell.instance}`, category: 'sim', owner: cell.instance,
+          bytes: basis.byteLength, distance: 0, needed: true });
+        if (basisLease === null) throw new Error('Regional checkpoint basis exceeds residency budget');
+        releaseBasis = () => { basisLease.release(); };
+        savedRegion.setPhysicsBasis(basis);
+        const prior = saved ?? savedRegion.read(true);
+        if (prior !== undefined) {
+          const authored = sim.host.level; sim.dispose();
+          const host = restoreSimHost(authored, { rapier }, prior, (restored) => {
+            sim = bindShardfileSim(restored, source, assets, { rapier, restoring: true, quest }); savedRegion.bind(restored, sim.colliders);
+          });
+          host.detachPlayerMotor(); // the restored world carries its strip duplicates already
+        } else {
+          savedRegion.bind(sim.host, sim.colliders);
+          if (!savedRegion.restoreLogical(sim)) throw new Error('Regional logical migration was refused');
+        }
+        const region = sim, start = region.host.level.player, host = region.host, water = region.water;
+        this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
+          // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
+          queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region });
+        return Promise.resolve({ host: region.host, dispose: () => {
+          this.regions.delete(cell.instance); savedRegion.unbind();
+          try { region.dispose(); } finally { releaseBasis(); }
+        } });
+      } catch (error) {
+        savedRegion.unbind();
+        try { sim.dispose(); } finally { releaseBasis(); }
+        throw error;
       }
-      const region = sim, start = region.host.level.player, host = region.host, water = region.water;
-      this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
-        // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
-        queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region });
-      return Promise.resolve({ host: region.host, dispose: () => { this.regions.delete(cell.instance); region.dispose(); } });
     } };
   }
 

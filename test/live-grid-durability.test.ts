@@ -68,23 +68,31 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
   let homeDurable = false;
   const open = () => {
     const scope = new Scope('live.durability'), pre: (() => void)[] = [], post: (() => void)[] = [];
+    const allocator = new ResidencyAllocator();
     pageScope = scope;
     let currentPhysics = pageHost.physics;
     const traveller = { position: pageHost.player.position, yaw: 0, motor: pageHost.releasePlayerMotor(), camera: new PerspectiveCamera(), hoverSpeedLimit: null,
       bindFrame: (physics: typeof pageHost.physics, motor: typeof pageHost.player.motor) => { currentPhysics = physics; traveller.motor = motor; } };
     const session = withOwner(scope, () => new LiveGridSession({ assembly, home, physics: pageHost.physics, scope, walls: new ReadinessWalls(pageHost.physics, [], scope),
-      strips: [], allocator: new ResidencyAllocator(), neighbourEdges, rimEdges }, {
+      strips: [], allocator, neighbourEdges, rimEdges }, {
       traveller, health: pageHost.player.health, equipment: new EquipmentService(new EmptyEquipment(), { scope }), events: pageHost.events,
       saves: store, checkpoint: () => homeDurable, catalogue: [], setPhysics: (physics) => { currentPhysics = physics; },
       onFixedPre: (fn) => { pre.push(fn); }, onFixedPost: (fn) => { post.push(fn); }, onInput: () => undefined, onUpdate: () => undefined,
     }));
-    return { session, scope, traveller, tick: () => withOwner(scope, () => { for (const fn of pre) fn(); currentPhysics.step(); for (const fn of post) fn(); }) };
+    return { session, scope, traveller, allocator, tick: () => withOwner(scope, () => { for (const fn of pre) fn(); currentPhysics.step(); for (const fn of post) fn(); }) };
   };
   const first = open();
   expect(first.scope.census.colliders).toBe(0); // highway walls belong to their independent world, never the page
   const settle = async (tick: () => void): Promise<void> => { for (let turn = 0; turn < 20; turn++) { await Promise.resolve(); tick(); } };
   try {
+    const reserve = first.allocator.reserve.bind(first.allocator);
+    const denyBasis = vi.spyOn(first.allocator, 'reserve').mockImplementation((claim) => claim.id === `sim-basis:${target.instance}` ? null : reserve(claim));
+    await expect(first.session.live.prefetch([target.instance])).rejects.toThrow('checkpoint basis exceeds residency budget');
+    expect(regions.every((region) => region.host.scope.disposed)).toBe(true);
+    expect(first.allocator.has(`sim:${target.instance}`)).toBe(false);
+    denyBasis.mockRestore(); first.session.live.retry(target.instance);
     await first.session.live.prefetch([target.instance]);
+    expect(first.allocator.entries().find((entry) => entry.id === `sim-basis:${target.instance}`)?.bytes).toBeGreaterThan(300_000);
     expect(first.scope.census.colliders).toBe(0); // admitted terrain and props also stay in their regional scope
     pageHost.player.position.set(270, 1, 270); await settle(first.tick);
     expect(first.session.frame()).toBe(home.instance);
@@ -106,6 +114,8 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     expect(first.session.state().crossing.issue).toBe('Local checkpoint is not durable');
     local.fail = false; first.tick(); expect(first.session.frame()).toBeNull();
     const reload = new GridRegionDurability(new SaveStore({ local, session: null }), { id: target.instance, shard: target.slug }, source, []);
+    const freshBasis = create(source, assets, { rapier, playerBody: false, groundResolution: 257, quest: reload.quest });
+    try { reload.setPhysicsBasis(freshBasis.host.physics.snapshot()); } finally { freshBasis.dispose(); }
     expect(reload.read()?.flags).toContain('template.complete'); expect(reload.wallet.coins()).toBe(5);
     expect(Object.values(reload.ledger.state().facts)).toHaveLength(1);
     expect(new GridRegionDurability(new SaveStore({ local, session: null }), { id: 'template-2', shard: '_template' }, source, []).wallet.coins()).toBe(0);
@@ -116,6 +126,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
       withOwner(first.scope, () => { first.scope.dispose(); });
       expect(regions.every((region) => region.host.scope.disposed)).toBe(true);
       expect(first.session.live.state().residents).toEqual([]);
+      expect(first.allocator.entries()).toEqual([]);
       expect({ bodies: pageHost.physics.world.bodies.len(), colliders: pageHost.physics.world.colliders.len() }).toEqual(homeBaseline);
     } finally {
       pageHost.attachPlayerMotor(first.traveller.motor); pageHost.dispose(); restoreGlobals();
@@ -136,13 +147,14 @@ it('admits an old-revision region through its logical companion before exposing 
   const local = new MemoryStorage(), store = new SaveStore({ local, session: null });
   const old = new GridRegionDurability(store, { id: target.instance, shard: target.slug }, source, []);
   const previous = simulation.createShardfileSim(source, assets, { rapier, quest: old.quest }); old.bind(previous.host);
+  const basis = previous.host.physics.snapshot(); old.setPhysicsBasis(basis);
   try {
     for (const flag of source.quests.flags) previous.host.flags.set(flag);
     previous.host.step(); old.wallet.addCoins(9);
     const snapshot = snapshotSimHost(previous.host); expect(old.checkpoint(snapshot)).toBe(true);
     const key = `wildshard.save.v2.${target.instance}`, bytes = local.getItem(key);
     if (bytes === null) throw new Error('Missing old regional save');
-    local.setItem(key, bytes.replace(JSON.stringify(serializeSimSnapshot(snapshot)), JSON.stringify('old engine unavailable')));
+    local.setItem(key, bytes.replace(JSON.stringify(serializeSimSnapshot(snapshot, basis)), JSON.stringify('old engine unavailable')));
   } finally { previous.dispose(); }
   const pageHost = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   const restoreGlobals = browserEvents();
