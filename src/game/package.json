@@ -97,6 +97,7 @@
     "./shardfile/accent": "./shardfile/accent.ts",
     "./shardfile/scriptComposition": "./shardfile/scriptComposition.ts",
     "./shardfile/groupBrains": "./shardfile/groupBrains.ts",
-    "./shardfile/groupRuntime": "./shardfile/groupRuntime.ts"
+    "./shardfile/groupRuntime": "./shardfile/groupRuntime.ts",
+    "./grid/pageBoot": "./grid/pageBoot.ts"
   }
 }
