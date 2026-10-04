@@ -118,8 +118,19 @@ export function shardWordData(root, shard) {
     const data = [...mod.exports.values()].map((n) => value(n, mod)).find((v) => v && typeof v === 'object' && typeof v.slug === 'string');
     const settings = new Set(data?.debugOptions);
     const ids = new Set();
-    const plugin = find(resolve(dirname(file), 'plugin'));
-    if (plugin) {
+    const plugins = new Set([find(resolve(dirname(file), 'plugin'))]);
+    // A mechanical plugin extraction must preserve the shard's ownership vocabulary. Read only its declared entry,
+    // without importing trusted code or treating every helper in runtime/ as a plugin.
+    const config = find(resolve(dirname(file), 'shard.config'));
+    if (config) {
+      const authored = module(config);
+      walk(authored.program, (node) => {
+        if (node.type !== 'Property' || keyOf(node.key) !== 'runtime') return;
+        const declaration = value(node.value, authored);
+        if (declaration?.entry === 'runtime/index.ts') plugins.add(find(resolve(dirname(file), 'runtime/index')));
+      });
+    }
+    for (const plugin of plugins) if (plugin) {
       const pm = module(plugin);
       walk(pm.program, (n) => {
         if (n.type === 'CallExpression' && keyOf(n.callee.property) === 'debugRow') {

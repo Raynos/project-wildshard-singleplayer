@@ -40,6 +40,24 @@ describe('shard generation', () => {
       expect(manifestClosure(root)['new-shard']).toEqual(['src/shards/new-shard/data.ts', 'src/shards/new-shard/manifest.ts', 'src/shards/new-shard/more.ts']);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
+  it('keeps the exact ownership vocabulary when a plugin moves into its declared trusted runtime entry', () => {
+    const root = mkdtempSync(join(tmpdir(), 'gen-shards-runtime-'));
+    try {
+      const dir = join(root, 'src/shards/mine'); mkdirSync(join(dir, 'runtime'), { recursive: true });
+      writeFileSync(join(dir, 'manifest.ts'), "export default { slug: 'mine', name: 'Mine' };");
+      writeFileSync(join(dir, 'shard.config.ts'), "export default { runtime: { entry: 'runtime/index.ts' } };");
+      const hooks = "export function kit(ctx) { ctx.rows.species([{ id: 'mine.creature' }]); ctx.rows.weapon({ id: 'mine.weapon' }); }";
+      writeFileSync(join(dir, 'plugin.ts'), hooks); genShards(root);
+      const file = join(root, 'lint/shard-words.generated.json'), before = readFileSync(file, 'utf8');
+      writeFileSync(join(dir, 'runtime/index.ts'), hooks);
+      writeFileSync(join(dir, 'plugin.ts'), "import Runtime from './runtime/index'; export default class Plugin extends Runtime {}");
+      genShards(root); expect(readFileSync(file, 'utf8')).toBe(before);
+      // Duplicate adapter registrations and unrelated helpers neither duplicate ids nor widen the vocabulary.
+      writeFileSync(join(dir, 'plugin.ts'), hooks);
+      writeFileSync(join(dir, 'runtime/helper.ts'), "export function kit(ctx) { ctx.rows.weapon({ id: 'not.admitted' }); }");
+      genShards(root); expect(readFileSync(file, 'utf8')).toBe(before);
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
   // it parses every real shard's closure: under 2 s alone, over 5 s under coverage (CI), like pine-crags
   it('AG10: holds the manifest contract on every real shard (lazy plugin, closure budget, every field read)', () => {
     expect(manifestContract(resolve('.'), manifestClosure(resolve('.')), true)).toEqual([]);
