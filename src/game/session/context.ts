@@ -13,6 +13,7 @@ import type { TravelHandoff } from '../travel/travel';
 import type { BagIcons } from '../bag/tabs';
 import type { Scene, PerspectiveCamera } from 'three';
 import type { LoadStage } from '../shard/load';
+import type { PageResidency } from '../grid/pageResidency';
 
 export interface KitPorts {
   items: readonly ItemRow[];
@@ -22,6 +23,8 @@ export interface KitPorts {
   bagIcons: BagIcons;
 }
 export interface SessionState {
+  /** Created before manifest hydration; the level disposes it after its allocated consumers. */
+  readonly residency?: PageResidency;
   music: Music | null;
   arrival: TitleArrival | null;
   fatalShown: boolean;

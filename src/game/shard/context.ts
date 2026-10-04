@@ -8,11 +8,14 @@ import { normalizeItemRow, type ItemRow } from '../bag/items';
 import type { ContentRow, EngineRows, LevelContext } from '@wildshard/engine/level/context';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { ShardManifest } from './manifest';
+import type { PageResidency } from '../grid/pageResidency';
 
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }
 export interface GameRowMap { item: ItemRow; lootTable: ContentRow; skin: SkinDef; feat: AchievementDef; shop: ContentRow; compendium: ShardCompendium & { id: string }; places: ContentRow }
 export type GameRows = { [K in keyof GameRowMap]: (value: GameRowMap[K] | readonly GameRowMap[K][]) => void };
 export interface GameServices {
+  /** The composition root's pre-bootstrap residency owner, shared with trusted hybrid data and the grid. */
+  readonly residency?: PageResidency;
   readonly runtime?: ShardRuntime;
   readonly shard: ShardManifest;
   readonly rows: Map<keyof GameRowMap, Map<string, ContentRow>>;

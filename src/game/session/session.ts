@@ -37,22 +37,26 @@ import { installWorldRegistry } from '@wildshard/engine/world/registry';
 import { bootPageMode, type PageMode } from '../grid/boot';
 import { installGridDebug } from '../grid/debug';
 import { gridLevel } from '../grid/session';
+import type { PageResidency } from '../grid/pageResidency';
 
 declare const __BUILD_ID__: string;
 
+/** Early root selection avoids consuming the grid intent a second time after descriptor hydration. */
+export interface SessionOptions { readonly mode?: PageMode; readonly residency?: PageResidency }
+
 /** Game presentation and plugin discovery belong to the game adapter, after the root selects content. */
-export async function startSession(manifest: ShardManifest, kit: KitPorts): Promise<void> {
+export async function startSession(manifest: ShardManifest, kit: KitPorts, options: SessionOptions = {}): Promise<void> {
   installWorldRegistry(); // the level's pieces and colliders register here (before the boot builds anything)
   // the boot and the background download read the registry through the engine's catalog (E405: no engine → game import)
   setBootCatalog({ levels: shards(), playable: shards().filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   installErrorModal();
-  const session: SessionState = { music: null, arrival: null, fatalShown: false };
+  const session: SessionState = { music: null, arrival: null, fatalShown: false, ...(options.residency === undefined ? {} : { residency: options.residency }) };
   try {
     app.rng.seed(pageSeed(manifest.seed, window.__wildshardHarness?.seed));
     const selected = manifest.slug;
     session.arrival = consumeTitleArrival(selected);
     // SF21a: the one-shot EXPERIMENTAL Wildshard intent, consumed by every boot; grid mode drops the URL to the title's
-    const mode = bootPageMode(selected);
+    const mode = options.mode ?? bootPageMode(selected);
     setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: '', mode }));
     installGridDebug();
     if (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true) {
@@ -63,6 +67,8 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts): Prom
       }
     }
     const scope = new Scope('level');
+    // Register first: the scope's later consumer cleanup runs before the final early boot reference is released.
+    if (options.residency !== undefined) scope.onDispose(() => { options.residency?.dispose(); });
     enterOwner(scope);
     const world = await runShardLoad(manifest, (stage) => withShardHooks(manifest, stage,
       () => buildSession(manifest, stage, kit, session)), {
@@ -81,6 +87,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts): Prom
     app.levelAdapters.residentMemory = memory;
     setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: `${selected} (playing) ~${Math.round(memory(60_000).levels[0]?.textureMB ?? 0)} MB`, mode }));
   } catch (error) {
+    options.residency?.dispose(); // Pre-bootstrap failures have no consumers; runShardLoad disposes allocated ones first.
     markBootHandledError();
     if (!session.fatalShown) showError(error instanceof Error ? `${error.name}: ${error.message}` : String(error), error instanceof Error ? error.stack ?? '' : '');
   }
@@ -101,7 +108,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
   if (scope === null) throw new Error('Plugin boot needs a level scope');
   const { default: Plugin } = await stage('manifest.load', () => retried(loadPlugin));
   const plugin = new Plugin();
-  const game: GameServices = { runtime: boot.runtime, shard: manifest, rows: new Map(), bag: {
+  const game: GameServices = { runtime: boot.runtime, shard: manifest, rows: new Map(), ...(session.residency === undefined ? {} : { residency: session.residency }), bag: {
     tab: (spec) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin tabs require the play host'); return menu.addTab(spec); },
     fragment: (tab, fragment) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin fragments require the play host'); return bagMenu(menu).fragment(tab, fragment); },
   } };

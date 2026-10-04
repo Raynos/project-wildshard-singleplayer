@@ -22,7 +22,6 @@ import { LiveGridSession } from '../src/game/grid/liveSession';
 import { GridRegionDurability } from '../src/game/grid/durability';
 import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { GRID_CONTINUATION_CACHE_BYTES } from '../src/game/grid/continuations';
 import { parseMigrations } from '../src/game/shardfile/migrations';
 import source from '../src/shards/_template/shard.config';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -103,7 +102,8 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     return { session, scope, traveller, allocator, dismount, tick: () => withOwner(scope, () => { for (const fn of pre) fn(); currentPhysics.step(); for (const fn of post) fn(); }) };
   };
   const first = open();
-  expect(first.allocator.entries().find((entry) => entry.id === `sim-continuations:live:${home.instance}`)?.bytes).toBe(GRID_CONTINUATION_CACHE_BYTES);
+  expect(first.allocator.has(`sim-continuations:live:${home.instance}`)).toBe(false);
+  expect(first.session.live.state().continuations).toEqual({ entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 });
   expect(first.scope.census.colliders).toBe(0); // highway walls belong to their independent world, never the page
   const settle = async (tick: () => void): Promise<void> => { for (let turn = 0; turn < 20; turn++) { await Promise.resolve(); tick(); } };
   try {
@@ -140,7 +140,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     expect(first.session.frame()).toBe(target.instance);
     expect(first.session.state().crossing.issue).toBe('Local checkpoint is not durable');
     local.fail = false; first.tick(); expect(first.session.frame()).toBeNull();
-    expect(first.session.live.state().continuations.storedChars).toBeGreaterThan(0);
+    expect(first.session.live.state().continuations.storedChars).toBe(0); // The durable record below carries this continuation.
     const reload = new GridRegionDurability(new SaveStore({ local, session: null }), { id: target.instance, shard: target.slug }, source, []);
     const freshBasis = create(source, assets, { rapier, playerBody: false, groundResolution: 257, quest: reload.quest });
     installEntrySockets(freshBasis.host.physics, freshBasis.host.scope, [{ x: 0, z: 0 }], 'backstop');
@@ -150,7 +150,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     expect(new GridRegionDurability(new SaveStore({ local, session: null }), { id: 'template-2', shard: '_template' }, source, []).wallet.coins()).toBe(0);
     expect(first.session.live.unload(target.instance)).toBe(true);
     expect(first.session.live.state().continuations.entries).toBe(0);
-    expect(first.allocator.has(`sim-continuations:live:${home.instance}`)).toBe(true);
+    expect(first.allocator.has(`sim-continuations:live:${home.instance}`)).toBe(false);
     pageHost.player.position.set(target.origin.x, 1, target.origin.z); await settle(first.tick);
     expect(first.session.frame()).toBe(target.instance);
     expect(first.session.simulation(target.instance)?.host.flags.has('template.complete')).toBe(true);

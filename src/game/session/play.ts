@@ -91,6 +91,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   await macrotask();
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
   const grid = pageMode() === 'grid' ? await GridSession.create({ scene: game.scene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
+    ...(ctx.session.residency === undefined ? {} : { residency: ctx.session.residency }),
     onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); },
     frame: { scene: game.scene, camera: game.camera, composer: () => game.composer, post: () => game.post, onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }) : null;
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)

@@ -42,6 +42,7 @@ import { gridMode } from './menu';
 import { devserverCellOn, gridOneFrameOn, installGridFrameRow } from './debug';
 import { gridCells, pageGridInstance, pageMode } from './boot';
 import { ResidencyAllocator } from './allocator';
+import type { PageResidency } from './pageResidency';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
 import { farRingPorts, type FarPrepared } from './farView';
 import type { FarLookRuntime } from './farProxy';
@@ -78,6 +79,8 @@ export function gridLevel(spec: LevelSpec): LevelSpec {
 
 /** What the session reads from the page: the player's feet in the home frame, the scene, the world, the fixed step. */
 export interface GridSessionHost {
+  /** The owner's allocator already includes the home before this late play-stage session constructs the platform. */
+  readonly residency?: PageResidency;
   readonly scene: Object3D;
   readonly physics: Physics;
   readonly scope: Scope;
@@ -166,7 +169,7 @@ function rimEdges(assembly: GridAssembly, home: Readonly<{ origin: Readonly<{ x:
 export class GridSession {
   readonly assembly: GridAssembly;
   readonly home: GridCell;
-  readonly allocator = new ResidencyAllocator();
+  readonly allocator: ResidencyAllocator;
   private readonly rings: RenderRings<LevelPrepared<FarPrepared, PreparedRingTile>>;
   private readonly neighbours: readonly GridCell[];
   private readonly costs = new Map<string, number>();
@@ -202,6 +205,7 @@ export class GridSession {
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[]) {
     this.host = host;
+    this.allocator = host.residency?.allocator ?? new ResidencyAllocator();
     const instance = pageGridInstance();
     this.assembly = new GridAssembly(gridMode(devserverCellOn()));
     if (instance === null) throw new Error('A grid session needs a grid page');
@@ -338,6 +342,7 @@ export class GridSession {
   attach(page: LiveGridPage): LiveGridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
+      ...(this.host.residency === undefined ? {} : { residency: this.host.residency.home() }),
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
   }

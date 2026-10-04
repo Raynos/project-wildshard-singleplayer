@@ -37,6 +37,7 @@ import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readi
 import type { GeneratedStrip } from '@wildshard/engine/sim/strips';
 import type { GridAssembly, GridCell } from './assembly';
 import type { ResidencyAllocator } from './allocator';
+import type { HomeResidencyClaim } from './pageResidency';
 import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from './live';
 import { installGridCrossing, type GridCrossingSession, type GridCrossingState } from './crossing';
 import { stowGridMount, type GridLoadout } from './wallet';
@@ -83,6 +84,7 @@ export interface LiveGridPage {
 }
 /** What the session lends: the assembly, the home world and its walls, the strips and the one allocator. */
 export interface LiveGridSessionPorts {
+  readonly residency?: HomeResidencyClaim;
   readonly assembly: GridAssembly; readonly home: GridCell; readonly physics: Physics; readonly scope: Scope;
   readonly walls: ReadinessWalls; readonly strips: readonly GeneratedStrip[]; readonly allocator: ResidencyAllocator;
   readonly neighbourEdges: (cell: GridCell, origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
@@ -161,7 +163,8 @@ export class LiveGridSession {
     const player = { get position() { return traveller.position; }, get yaw() { return traveller.yaw; }, health: page.health, owner: traveller, motor: traveller.motor };
     const highwayBytes = ports.strips.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0);
     this.live = new LiveGridHost(assembly, {
-      home: { instance: home.instance, physics: ports.physics, bytes: 1, checkpoint: () => this.checkpointHome(), walls: ports.walls },
+      continuations: 'durable', // Every owned production region below reconstructs its basis and reloads its durable save.
+      home: { instance: home.instance, physics: ports.physics, bytes: ports.residency?.bytes ?? 1, ...(ports.residency === undefined ? {} : { residency: ports.residency }), checkpoint: () => this.checkpointHome(), walls: ports.walls },
       player, allocator: ports.allocator,
       highway: { bytes: highwayBytes, create: () => {
         const host = createSimHost(PLATFORM_LEVEL, { rapier, playerBody: false, ground: false });
@@ -196,7 +199,10 @@ export class LiveGridSession {
       return { local, shardCap: 14, onHighwayDeck: feet.y < 4 };
     });
     // the freeze fence: the home client's existing driver runs only while the traveller is in the home frame (sp-x5's handoff)
-    scope.onDispose(gridHomeSim.take((sim) => { this.homeSim = sim; sim.setActive(this.live.current() === home.instance); }));
+    scope.onDispose(gridHomeSim.take((sim) => {
+      if (ports.residency !== undefined && sim.residency !== ports.residency) throw new Error('Home simulation handoff must retain its admitted page claim');
+      this.homeSim = sim; sim.setActive(this.live.current() === home.instance);
+    }));
     scope.onDispose(() => { this.homeSim?.setActive(true); this.homeSim = null; });
     page.onFixedPre(() => { if (scope.disposed) return; this.live.beforeFixed(); this.crossing.step(this.live.worldFeet()); });
     let saveTicks = 0;
