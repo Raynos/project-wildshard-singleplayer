@@ -38,7 +38,7 @@ import type { GridAssembly, GridCell } from './assembly';
 import type { ResidencyAllocator } from './allocator';
 import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from './live';
 import { installGridCrossing, type GridCrossingSession, type GridCrossingState } from './crossing';
-import type { GridLoadout } from './wallet';
+import { stowGridMount, type GridLoadout } from './wallet';
 import { GridRegionDurability } from './durability';
 import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed } from './rules';
@@ -53,6 +53,8 @@ export interface LiveTraveller {
   readonly position: Vector3; readonly yaw: number; readonly motor: CharacterMotor; readonly camera: PerspectiveCamera;
   /** feet on the ground this step (the road respawn remembers only where the traveller stood, G101; absent: never) */
   readonly onGround?: boolean;
+  /** Shard-owned riding ends at its cell border through the ride's own dismount; the hoverboard stays with the traveller. */
+  readonly ride?: { dismount: () => void } | null;
   /** `queries`: the frame's own ground, water and surfaces (null: the home level's, sp-x2's frame-query primitive) */
   bindFrame: (physics: Physics, motor: CharacterMotor, queries: PlayerFrameQueries | null) => void;
   /** the board's live speed cap (SF20d `installGridHoverSpeed` owns it while the grid runs) */
@@ -102,12 +104,14 @@ const PLATFORM_LEVEL: SimLevel = { version: SIM_API_VERSION, id: 'platform.highw
   weapon: { id: 'platform.hands', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
 /** The home cell's G68 loadout: stow silently to hands at the border, restore the shard's weapon on re-entry. */
-function homeLoadout(equipment: EquipmentService, scope: Scope, checkpoint: () => boolean): GridLoadout {
+function homeLoadout(equipment: EquipmentService, scope: Scope, checkpoint: () => boolean, stowMount: () => void): GridLoadout {
   let before: { stowed: boolean; tools: readonly { tool: EquipmentService['tools'][number]; enabled: boolean }[] } | undefined;
   return {
     checkpoint,
     stow: () => {
-      if (scope.disposed || before !== undefined) return;
+      if (scope.disposed) return;
+      stowMount();
+      if (before !== undefined) return;
       before = { stowed: equipment.stowed, tools: equipment.tools.map((tool) => ({ tool, enabled: tool.enabled })) };
       equipment.stowed = true; equipment.adsHeld = false; equipment.altHeld = false;
       for (const tool of equipment.tools) tool.enabled = false;
@@ -160,12 +164,12 @@ export class LiveGridSession {
       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },
     });
     scope.onDispose(() => { this.live.dispose(); });
-    this.loadout = homeLoadout(page.equipment, scope, page.checkpoint);
+    this.loadout = homeLoadout(page.equipment, scope, page.checkpoint, () => { stowGridMount(traveller); });
     this.crossing = installGridCrossing({
       current: () => this.live.current(), prepare: (from, to) => this.live.prepare(from, to), ready: (instance) => this.live.ready(instance),
       checkpoint: (instance) => this.live.checkpoint(instance), target: (feet) => this.live.target(feet),
     }, assembly, (instance) => (instance === home.instance ? this.loadout : {
-      checkpoint: () => this.regionSave(instance).flush(), stow: () => undefined, interior: () => undefined,
+      checkpoint: () => this.regionSave(instance).flush(), stow: () => { stowGridMount(traveller); }, interior: () => undefined,
     }), scope);
     // G68: off the home frame (the deck, the strips, another cell) the page pipeline admits no damage to or from the traveller
     page.events.answer('damage.admit', (request) => {

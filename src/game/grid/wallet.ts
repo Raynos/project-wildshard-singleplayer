@@ -93,6 +93,11 @@ export function stowGridEquipment(equipment: EquipmentService, runtimes: Readonl
   for (const tool of equipment.tools) if (runtimes.has(tool.row.id)) tool.enabled = false;
 }
 
+/** Retire a shard-owned ride through its original owner; the platform hoverboard is a separate traveller mode. */
+export function stowGridMount(traveller: { readonly ride?: { dismount: () => void } | null }): void {
+  traveller.ride?.dismount();
+}
+
 /** Source-local ports consumed by crossing; the normal equipment service retains catalogue gear and owns presentation. */
 export interface GridLoadout {
   checkpoint: () => boolean;

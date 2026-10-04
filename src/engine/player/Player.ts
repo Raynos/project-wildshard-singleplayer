@@ -173,7 +173,7 @@ export class Player {
   /** riding (Nalati B7, src/shards/nalati-grasslands/ride/Mount.ts): while set, the frame is handed to it — `drive` reads the input (input
    *  phase), `step` moves the horse on its own motor (each fixed step), `pose` places the rider and the camera from the
    *  interpolated saddle (update, `alpha`) — and walking / swimming / the board are skipped */
-  ride: { drive: (dt: number) => void; step: (dt: number) => void; pose: (dt: number, alpha: number) => void } | null = null;
+  ride: { drive: (dt: number) => void; step: (dt: number) => void; pose: (dt: number, alpha: number) => void; dismount: () => void } | null = null;
   private lastBobPhase = 0;
   // ── dash: dodge + lunge (see `dodge()` / `dash()`) ──
   /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */

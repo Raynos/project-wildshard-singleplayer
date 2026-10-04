@@ -71,7 +71,10 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     const allocator = new ResidencyAllocator();
     pageScope = scope;
     let currentPhysics = pageHost.physics;
+    let mounted = true;
+    const dismount = vi.fn(() => { mounted = false; });
     const traveller = { position: pageHost.player.position, yaw: 0, motor: pageHost.releasePlayerMotor(), camera: new PerspectiveCamera(), hoverSpeedLimit: null,
+      hover: true, get ride() { return mounted ? { dismount } : null; },
       bindFrame: (physics: typeof pageHost.physics, motor: typeof pageHost.player.motor) => { currentPhysics = physics; traveller.motor = motor; } };
     const session = withOwner(scope, () => new LiveGridSession({ assembly, home, physics: pageHost.physics, scope, walls: new ReadinessWalls(pageHost.physics, [], scope),
       strips: [], allocator, neighbourEdges, rimEdges }, {
@@ -79,7 +82,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
       saves: store, checkpoint: () => homeDurable, catalogue: [], setPhysics: (physics) => { currentPhysics = physics; },
       onFixedPre: (fn) => { pre.push(fn); }, onFixedPost: (fn) => { post.push(fn); }, onInput: () => undefined, onUpdate: () => undefined,
     }));
-    return { session, scope, traveller, allocator, tick: () => withOwner(scope, () => { for (const fn of pre) fn(); currentPhysics.step(); for (const fn of post) fn(); }) };
+    return { session, scope, traveller, allocator, dismount, tick: () => withOwner(scope, () => { for (const fn of pre) fn(); currentPhysics.step(); for (const fn of post) fn(); }) };
   };
   const first = open();
   expect(first.scope.census.colliders).toBe(0); // highway walls belong to their independent world, never the page
@@ -97,9 +100,11 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     pageHost.player.position.set(270, 1, 270); await settle(first.tick);
     expect(first.session.frame()).toBe(home.instance);
     expect(first.session.state().crossing.issue).toBe('Local checkpoint is not durable');
+    expect(first.dismount).toHaveBeenCalledOnce(); expect(first.traveller.ride).toBeNull(); expect(first.traveller.hover).toBe(true);
     homeDurable = true; first.tick(); expect(first.session.frame()).toBeNull();
     pageHost.player.position.set(target.origin.x, 1, target.origin.z); await settle(first.tick);
     expect(first.session.frame()).toBe(target.instance);
+    expect(first.dismount).toHaveBeenCalledOnce(); expect(first.traveller.ride).toBeNull(); expect(first.traveller.hover).toBe(true);
     const region = regions.find((value) => value.host.state.tick > 0);
     if (region === undefined) throw new Error('Missing running native region');
     expect(first.session.simulation(target.instance)).toBe(region);
