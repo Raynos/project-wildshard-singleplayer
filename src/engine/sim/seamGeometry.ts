@@ -18,6 +18,8 @@ const smooth = (t: number): number => t * t * (3 - 2 * t);
 const bounded = (h: number): number => Math.max(-1.5, Math.min(6, h));
 const blend = (u: number): number => smooth(Math.max(0, Math.min(1, (Math.abs(u) - 11.5) / 16)));
 const tan85 = Math.tan(85 * Math.PI / 180);
+// G101: single jump + autostep stays below this obstacle; double jump clears it.
+const roadWallTop = 1.85, guardRailTop = 2;
 type Point = readonly [number, number, number];
 
 class MeshWriter {
@@ -120,8 +122,8 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
       }
       const blocked = max > 14 || min < -1.5 || edge.geometry === 'void';
       if (blocked) {
-        writer.box(side * 7.5, from, to, 0, 0.9, 0.25, feature('road-wall', 0, 0.9));
-        writer.box(side * 7.5, from, to, 0.9, 1.3, 0.15, feature('guard-rail', 0.9, 1.3));
+        writer.box(side * 7.5, from, to, 0, roadWallTop, 0.25, feature('road-wall', 0, roadWallTop));
+        writer.box(side * 7.5, from, to, roadWallTop, guardRailTop, 0.15, feature('guard-rail', roadWallTop, guardRailTop));
       }
       const outflow = edge.outflows?.some((flow) => middle >= flow.from && middle <= flow.to) ?? false;
       if (edge.waterSurface !== undefined && edge.waterSurface > 0 && !outflow) writer.box(side * 27.4, from, to, Math.min(bounded(a), bounded(b)), Math.max(1.3, edge.waterSurface + 0.5), 0.2, feature('dike', min, Math.max(1.3, edge.waterSurface + 0.5)));
@@ -160,8 +162,8 @@ export function cornerSeamGeometry(input: { readonly id: string; readonly origin
         writer.quad([[across * (fa.u - 4), bounded(h) * blend(fa.u - 4), from], [across * (fb.u - 4), bounded(h) * blend(fb.u - 4) * blend(to), to], [across * fa.u, fa.bottom, from], [across * fb.u, fb.bottom, to]], feature('talus', Math.min(a, b), Math.max(fa.bottom, fb.bottom)));
       } else if (h > 6 || h < -1.5) writer.quad([[across * 27.5, a, from], [across * 27.5, b, to], [across * 27.5, h, from], [across * 27.5, h, to]], feature(h > 6 ? 'retaining-wall' : 'parapet', Math.min(h, a, b), Math.max(h, a, b)));
       if (h > 14 || h < -1.5) {
-        writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), 0, 0.9, 0.25, feature('road-wall', 0, 0.9));
-        writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), 0.9, 1.3, 0.15, feature('guard-rail', 0.9, 1.3));
+        writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), 0, roadWallTop, 0.25, feature('road-wall', 0, roadWallTop));
+        writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), roadWallTop, guardRailTop, 0.15, feature('guard-rail', roadWallTop, guardRailTop));
       }
       if (axis === 'z') {
         for (let vertex = start; vertex < writer.positions.length / 3; vertex++) {

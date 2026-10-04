@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { seamGeometry, SEAM_OFFSETS, type SeamEdge } from '../src/engine/sim/seamGeometry';
+import { seamGeometry, cornerSeamGeometry, SEAM_OFFSETS, type SeamEdge } from '../src/engine/sim/seamGeometry';
 import { edgeSampleLocations, edgeSample } from '../src/engine/sim/edgeProfiles';
 
 const edge = (height: number, count = 257): SeamEdge => ({ profile: { heights: Array.from({ length: count }, () => height), colours: Array.from({ length: count }, () => [0.2, 0.4, 0.6]), roadHeight: 0 }, entryWidth: 0 });
@@ -54,4 +54,18 @@ it('describes drops, voids, coastal dikes and river culverts as physical triangl
   const result = seamGeometry(input({ ...edge(-10), geometry: 'void', waterSurface: 0.8, outflows: [{ from: 20, to: 30 }] }));
   for (const kind of ['parapet', 'road-wall', 'guard-rail', 'dike', 'culvert']) expect(result.features.some((f) => f.kind === kind && f.indexCount > 0)).toBe(true);
   expect(result.features.filter((f) => f.kind === 'dike').every((f) => f.top >= 1.3)).toBe(true);
+});
+it('keeps the corridor and corner guard collision ranges at the G101 single/double-jump boundary', () => {
+  const corner = { height: -40, colour: [0.2, 0.4, 0.6] as const };
+  for (const result of [seamGeometry(input(edge(-40))), cornerSeamGeometry({ id: 'guard.corner', origin: { x: 0, z: 0 }, corners: [corner, corner, corner, corner] })]) {
+    for (const [kind, bottom, top] of [['road-wall', 0, 1.85], ['guard-rail', 1.85, 2]] as const) {
+      const ranges = result.features.filter((f) => f.kind === kind); expect(ranges.length).toBeGreaterThan(0);
+      for (const range of ranges) {
+        expect(range.bottom).toBe(bottom); expect(range.top).toBe(top);
+        const vertices = result.mesh.indices.subarray(range.firstIndex, range.firstIndex + range.indexCount);
+        const heights = Array.from(vertices, (index) => result.mesh.positions[index * 3 + 1] ?? Infinity);
+        expect(Math.min(...heights)).toBeCloseTo(bottom, 6); expect(Math.max(...heights)).toBeCloseTo(top, 6);
+      }
+    }
+  }
 });
