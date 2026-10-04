@@ -6,10 +6,21 @@ const finite = v.pipe(v.number(), v.finite());
 const fieldSchema = v.object({ id: v.number(), name: v.string(), type: v.picklist(['bool', 'i32', 'f64']) });
 const declaration = v.object({ state: v.object({ shared: v.array(fieldSchema), player: v.array(fieldSchema) }) });
 const laneState = v.object({ contract: v.string(), world: v.object({ shared: v.array(finite), players: v.array(v.object({ actorId: v.string(), values: v.array(finite) })) }) });
+const composedState = v.object({ contract: v.string(), roles: v.pipe(v.array(v.object({ id: v.string(), state: v.string() })), v.maxLength(128)) });
+const roleContract = v.object({ roles: v.pipe(v.array(v.object({ id: v.string(), events: v.picklist(['deliver', 'consume']) })), v.maxLength(128)) });
+function numericLaneState(input: unknown): v.InferOutput<typeof laneState> {
+  if (input === null || typeof input !== 'object' || !('roles' in input)) return v.parse(laneState, input);
+  const saved = v.parse(composedState, input), contract = v.parse(roleContract, JSON.parse(saved.contract));
+  if (new Set(saved.roles.map(role => role.id)).size !== saved.roles.length || new Set(contract.roles.map(role => role.id)).size !== contract.roles.length
+    || saved.roles.length !== contract.roles.length || saved.roles.some(role => !contract.roles.some(entry => entry.id === role.id))) throw new Error('Invalid logical script roles');
+  const numeric = saved.roles.find(role => role.id === 'numeric');
+  if (numeric === undefined || contract.roles.find(role => role.id === 'numeric')?.events !== 'deliver') throw new Error('Missing logical numeric role');
+  return v.parse(laneState, JSON.parse(numeric.state));
+}
 /** Extract only stable declared fields from a historical lane; WASM memory, pending effects, entity positions and budgets never migrate. */
 export function logicalStateFromLane(version: number, text: string | null): LogicalState {
   if (text === null) return v.parse(LogicalStateSchema, { version, shared: [], players: [] });
-  const input: unknown = JSON.parse(text), saved = v.parse(laneState, input);
+  const input: unknown = JSON.parse(text), saved = numericLaneState(input);
   const contract: unknown = JSON.parse(saved.contract), fields = v.parse(declaration, contract).state;
   const values = (list: typeof fields.shared, data: number[]): LogicalState['shared'] => {
     if (list.length !== data.length) throw new Error('Logical field count mismatch');
@@ -22,7 +33,7 @@ export function logicalStateFromLane(version: number, text: string | null): Logi
     players: saved.world.players.map((player) => ({ actorId: player.actorId, fields: values(fields.player, player.values) })) });
 }
 /** Overlay migrated fields onto a freshly installed lane; new actors and all executable state remain freshly initialized. */
-export function restoreLogicalLane(lane: ScriptLane | undefined, state: LogicalState): void {
+export function restoreLogicalLane(lane: Pick<ScriptLane, 'world'> | undefined, state: LogicalState): void {
   if (lane === undefined) {
     if (state.shared.length > 0 || state.players.some((player) => player.fields.length > 0)) throw new Error('Missing logical state lane');
     return;
