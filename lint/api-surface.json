@@ -6180,6 +6180,18 @@
         "from": "@wildshard/engine/physics/rapier"
       },
       {
+        "name": "ReadinessEdge",
+        "kind": "interface",
+        "doc": "A platform edge in this physics world's frame; null instance means an out-of-bounds proxy.",
+        "from": "@wildshard/engine/physics/readinessWalls"
+      },
+      {
+        "name": "ReadinessWalls",
+        "kind": "class",
+        "doc": "Real Rapier walls hold a capsule on the solid strip until all readiness fences open. Own the deck separately.",
+        "from": "@wildshard/engine/physics/readinessWalls"
+      },
+      {
         "name": "RopeChain",
         "kind": "class",
         "doc": "",
@@ -8075,6 +8087,54 @@
         "kind": "type",
         "doc": "Serializable F1 extension values, without callbacks or renderer objects.",
         "from": "@wildshard/engine/sim"
+      },
+      {
+        "name": "ReadinessBundle",
+        "kind": "interface",
+        "doc": "Wire and CPU work needed before a neighbour can own a traveler. Hybrid bytes describe its runtime chunk.",
+        "from": "@wildshard/engine/sim/readiness"
+      },
+      {
+        "name": "ReadinessEstimate",
+        "kind": "interface",
+        "doc": "Separate critical and hybrid lines, conservatively sharing the link in sequence.",
+        "from": "@wildshard/engine/sim/readiness"
+      },
+      {
+        "name": "ReadinessLink",
+        "kind": "interface",
+        "doc": "Platform travel envelope; link rate is bits per second, all time inputs are seconds.",
+        "from": "@wildshard/engine/sim/readiness"
+      },
+      {
+        "name": "readinessModel",
+        "kind": "function",
+        "doc": "Compute the cold-cache bound. A hybrid runtime's second request and parse cannot disappear into the sim budget.",
+        "from": "@wildshard/engine/sim/readiness"
+      },
+      {
+        "name": "ReadinessPart",
+        "kind": "type",
+        "doc": "Collision installation, sim initialization and runtime parsing each have their own completion fence.",
+        "from": "@wildshard/engine/sim/readiness"
+      },
+      {
+        "name": "ReadinessStatus",
+        "kind": "interface",
+        "doc": "Frozen public status; unknown and out-of-bounds neighbours are closed by default.",
+        "from": "@wildshard/engine/sim/readiness"
+      },
+      {
+        "name": "ReadinessTicket",
+        "kind": "interface",
+        "doc": "Completion belongs to this particular residency attempt, never merely a slug shared by several placements.",
+        "from": "@wildshard/engine/sim/readiness"
+      },
+      {
+        "name": "TraversalReadiness",
+        "kind": "class",
+        "doc": "Node-safe readiness fence. Call request from radial distance every fixed step, so a U-turn cannot skip prefetch.",
+        "from": "@wildshard/engine/sim/readiness"
       },
       {
         "name": "restoreSimHost",
@@ -12862,6 +12922,18 @@
         "kind": "const",
         "doc": "Serialisable quest/dialogue section with semantic validation in the same admission pass.",
         "from": "@wildshard/game/shardfile/quests"
+      },
+      {
+        "name": "criticalWireBytes",
+        "kind": "function",
+        "doc": "Count actual admitted critical bytes, deduplicating dependencies and including cold-cache commons.",
+        "from": "@wildshard/game/shardfile/readiness"
+      },
+      {
+        "name": "CriticalWireSource",
+        "kind": "interface",
+        "doc": "Minimal admitted file graph used by the traversal scheduler; render tiles never enter this closure.",
+        "from": "@wildshard/game/shardfile/readiness"
       },
       {
         "name": "assertStateCompatibility",

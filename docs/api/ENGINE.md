@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1855 members; 831 without a doc line (—).
+1865 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1035,6 +1035,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `sweepBall` | function | @wildshard/engine/physics/query | Sweep a ball of `radius` from `a` to `b` (a bolt's flight over one step, a thrown thing): the first world surface it |
 | `loadRapier` | function | @wildshard/engine/physics/rapier | Instantiate the WASM once (idempotent). `bytes`: the binary itself, for node (tests, bake scripts) where there is no fetch of /assets. |
 | `Rapier` | type | @wildshard/engine/physics/rapier | Initialized Rapier bindings supplied to a physics world or renderer-free simulation host. |
+| `ReadinessEdge` | interface | @wildshard/engine/physics/readinessWalls | A platform edge in this physics world's frame; null instance means an out-of-bounds proxy. |
+| `ReadinessWalls` | class | @wildshard/engine/physics/readinessWalls | Real Rapier walls hold a capsule on the solid strip until all readiness fences open. Own the deck separately. |
 | `RopeChain` | class | @wildshard/engine/physics/ropeChain | — |
 | `RopeChainSpec` | interface | @wildshard/engine/physics/ropeChain | — |
 | `clearTags` | function | @wildshard/engine/physics/surface | Drop every tag (a shard's world was disposed; handles are reused by the next one). |
@@ -1351,6 +1353,14 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SimStateAdapter` | interface | @wildshard/engine/sim | Each future brain/script instance registers its own continuation state, never a process singleton. |
 | `SimStrike` | type | @wildshard/engine/sim | Pure strike data. The host supplies the constant selection weight. |
 | `SimValue` | type | @wildshard/engine/sim | Serializable F1 extension values, without callbacks or renderer objects. |
+| `ReadinessBundle` | interface | @wildshard/engine/sim/readiness | Wire and CPU work needed before a neighbour can own a traveler. Hybrid bytes describe its runtime chunk. |
+| `ReadinessEstimate` | interface | @wildshard/engine/sim/readiness | Separate critical and hybrid lines, conservatively sharing the link in sequence. |
+| `ReadinessLink` | interface | @wildshard/engine/sim/readiness | Platform travel envelope; link rate is bits per second, all time inputs are seconds. |
+| `readinessModel` | function | @wildshard/engine/sim/readiness | Compute the cold-cache bound. A hybrid runtime's second request and parse cannot disappear into the sim budget. |
+| `ReadinessPart` | type | @wildshard/engine/sim/readiness | Collision installation, sim initialization and runtime parsing each have their own completion fence. |
+| `ReadinessStatus` | interface | @wildshard/engine/sim/readiness | Frozen public status; unknown and out-of-bounds neighbours are closed by default. |
+| `ReadinessTicket` | interface | @wildshard/engine/sim/readiness | Completion belongs to this particular residency attempt, never merely a slug shared by several placements. |
+| `TraversalReadiness` | class | @wildshard/engine/sim/readiness | Node-safe readiness fence. Call request from radial distance every fixed step, so a U-turn cannot skip prefetch. |
 | `restoreSimHost` | function | @wildshard/engine/sim/snapshot | Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. |
 | `SIM_SNAPSHOT_VERSION` | const | @wildshard/engine/sim/snapshot | Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. |
 | `SimSnapshot` | interface | @wildshard/engine/sim/snapshot | Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. |

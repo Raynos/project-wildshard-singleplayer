@@ -55,6 +55,12 @@ describe('SF3a headless import closure', () => {
     expect(simRoot('src/engine/combat/view/melee.ts')).toBe(false);
     expect(simRoot('src/engine/quest/view.ts')).toBe(false);
   });
+  it('guards every native sim module, including readiness and the pure highway strip generator', () => {
+    expect(simRoot('src/engine/sim/readiness.ts')).toBe(true);
+    expect(simRoot('src/engine/sim/strips.ts')).toBe(true);
+    const root = fixture({ 'src/engine/sim/strips.ts': "import '../entities/helper';", 'src/engine/entities/helper.ts': "import { Mesh } from 'three';" });
+    expect(simClosure(root).map((v) => v.id)).toEqual(['src/engine/entities/helper.ts:import:three']);
+  });
   it('keeps creature simulation and the remaining engine/kit closure free of rendering', () => {
     expect(simClosure(cwd(), ['src/engine/entities/AnimalSim.ts'])).toEqual([]);
     expect(simClosure(cwd()).filter((site) => /^src\/(?:engine|kit)\//u.test(site.id))).toEqual([]);

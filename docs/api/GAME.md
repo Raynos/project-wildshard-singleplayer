@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-333 members; 112 without a doc line (—).
+335 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -293,6 +293,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `QuestData` | type | @wildshard/game/shardfile/quests | Plain quest graphs, declared flags/triggers and finite dialogue trees; hooks name platform-resolved script ports. |
 | `questDataRules` | function | @wildshard/game/shardfile/quests | Reject dangling flags, repeated identities, unreachable dialogue nodes and cycles before installing authored data. |
 | `QuestDataSchema` | const | @wildshard/game/shardfile/quests | Serialisable quest/dialogue section with semantic validation in the same admission pass. |
+| `criticalWireBytes` | function | @wildshard/game/shardfile/readiness | Count actual admitted critical bytes, deduplicating dependencies and including cold-cache commons. |
+| `CriticalWireSource` | interface | @wildshard/game/shardfile/readiness | Minimal admitted file graph used by the traversal scheduler; render tiles never enter this closure. |
 | `assertStateCompatibility` | function | @wildshard/game/shardfile/revision | Preserve saved field identities across validated author revisions; declaration ordering is immaterial. |
 | `parseRows` | function | @wildshard/game/shardfile/rows | Validate rows at the author boundary, before JSON serialization can erase closures. |
 | `rowRules` | function | @wildshard/game/shardfile/rows | Reference, uniqueness and complete clock/weather transition rules for data rows. |

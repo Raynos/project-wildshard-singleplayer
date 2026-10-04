@@ -69,6 +69,7 @@
     "./shardfile/items": "./shardfile/items.ts",
     "./shardfile/simulation": "./shardfile/simulation.ts",
     "./grid/catalogue": "./grid/catalogue.ts",
-    "./grid/assembly": "./grid/assembly.ts"
+    "./grid/assembly": "./grid/assembly.ts",
+    "./shardfile/readiness": "./shardfile/readiness.ts"
   }
 }

@@ -10,7 +10,7 @@ const FORBIDDEN = /^src\/engine\/(?:app\/runtime(?:\.ts)?$|core\/(?:tier|frameCo
 const SCHEMA_LEAF = 'src/engine/render/families/params.ts';
 const MATH = new Set(['Vector2', 'Vector3', 'Vector4', 'Euler', 'Quaternion', 'Matrix3', 'Matrix4', 'Box2', 'Box3', 'Ray', 'Sphere', 'Plane', 'Frustum', 'MathUtils', 'Color']);
 const DOM = new Set(['window', 'document', 'navigator', 'localStorage', 'sessionStorage', 'HTMLElement', 'HTMLCanvasElement', 'Element', 'requestAnimationFrame', 'cancelAnimationFrame', 'matchMedia', 'ResizeObserver', 'Image', 'Audio']);
-export const simRoot = (path) => /^src\/(?:engine\/(?:ai|combat|events|quest|saves)\/|shards\/[^/]+\/(?:data|behaviour)\/|shards\/_template\/(?:combat\/|species\/|quest\/|world\/climate\.ts$)|engine\/entities\/AnimalSim\.ts$|engine\/sim\.ts$)/u.test(path) && !VIEW.test(path);
+export const simRoot = (path) => /^src\/(?:engine\/(?:ai|combat|events|quest|saves)\/|shards\/[^/]+\/(?:data|behaviour)\/|shards\/_template\/(?:combat\/|species\/|quest\/|world\/climate\.ts$)|engine\/entities\/AnimalSim\.ts$|engine\/sim(?:\.ts$|\/))/u.test(path) && !VIEW.test(path);
 const astCache = new Map();
 function parsed(file) {
   const text = readFileSync(file, 'utf8');
