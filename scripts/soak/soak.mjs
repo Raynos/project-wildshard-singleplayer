@@ -76,7 +76,7 @@ async function worker() {
   try {
     try { xcrun(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* First cold launch. */ }
     proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${xcrun(['getenv', udid, 'RWI_LISTEN_SOCKET'])}`, '-c', 'null:9221,:9232-9240', '-F'], { stdio: 'ignore' });
-    proxy.on('error', (error) => result.errors.push(String(error)));
+    proxy.on('error', (error) => { result.errors.push(String(error)); });
     xcrun(['openurl', udid, `${base}version.json`]); driver = await connect(`${base}version.json`);
     await driver.evaluate(`localStorage.clear();sessionStorage.clear();true`);
     driver.close(); driver = null;
