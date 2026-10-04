@@ -1,0 +1,120 @@
+import * as v from 'valibot';
+import type { SaveStore, InstanceSaveSlot } from '@wildshard/engine/saves/store';
+import type { ItemRuntime } from '@wildshard/engine/combat/items';
+import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
+
+const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
+const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
+const finite = v.pipe(v.number(), v.finite(), v.minValue(0));
+const packSchema = v.strictObject({ counts: v.record(name, natural), order: v.array(name) });
+const itemSchema = v.strictObject({ id: name, tick: v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(Number.MAX_SAFE_INTEGER)), cooldown: finite,
+  fuel: v.pipe(finite, v.maxValue(1)), lit: v.boolean() });
+const loadoutSchema = v.pipe(v.strictObject({ selected: v.nullable(name), items: v.pipe(v.array(itemSchema), v.maxLength(64)) }),
+  v.check((data) => new Set(data.items.map((item) => item.id)).size === data.items.length
+    && (data.selected === null || data.items.some((item) => item.id === data.selected)), 'Unique local items and admitted selection'));
+type LocalPack = v.InferOutput<typeof packSchema>;
+type LocalLoadout = v.InferOutput<typeof loadoutSchema>;
+const packKey = { key: 'inventory', scope: 'shard' as const, version: 1, schema: packSchema, initial: (): LocalPack => ({ counts: {}, order: [] }) };
+const coinKey = { key: 'purse', scope: 'shard' as const, version: 1, schema: natural, initial: () => 0 };
+const loadoutKey = { key: 'platform.loadout', scope: 'shard' as const, version: 1, schema: loadoutSchema,
+  initial: (): LocalLoadout => ({ selected: null, items: [] }) };
+
+/** A shard's money, bag and item continuation stay bound to its stable instance in either entry mode. */
+export class GridWallet {
+  readonly instance: string;
+  private readonly bag: InstanceSaveSlot<LocalPack>;
+  private readonly purse: InstanceSaveSlot<number>;
+  private readonly loadout: InstanceSaveSlot<LocalLoadout>;
+  constructor(store: SaveStore, identity: LocalSaveInstance) {
+    this.instance = identity.id;
+    this.bag = instanceSave(store, packKey, identity);
+    this.purse = instanceSave(store, coinKey, identity);
+    this.loadout = instanceSave(store, loadoutKey, identity);
+  }
+  /** Local coins are never part of a crossing payload or a profile balance. */
+  coins(): number { return this.purse.read(); }
+  /** Existing bag order and counts, detached from live save data. */
+  pack(): LocalPack { return this.bag.read(); }
+  /** Credit whole local coins; false means SaveStore retained a retryable memory fallback. */
+  addCoins(amount: number): boolean {
+    if (!Number.isSafeInteger(amount) || amount < 0 || !Number.isSafeInteger(this.coins() + amount)) throw new RangeError('Invalid local coin credit');
+    return this.purse.write(this.coins() + amount);
+  }
+  /** Spend only from this instance; insufficient funds change nothing. */
+  spendCoins(amount: number): boolean {
+    if (!Number.isSafeInteger(amount) || amount < 0) throw new RangeError('Invalid local coin debit');
+    const balance = this.coins(); return balance >= amount && this.purse.write(balance - amount);
+  }
+  /** Save an admitted local bag; crossing does not drain it into the destination. */
+  savePack(pack: LocalPack): boolean {
+    const parsed = v.parse(packSchema, pack);
+    if (new Set(parsed.order).size !== parsed.order.length || Object.keys(parsed.counts).some((id) => !parsed.order.includes(id))) throw new Error('Invalid local bag order');
+    return this.bag.write(parsed);
+  }
+  /** Persist continuation after stowing: charge/input edges do not fire when the shard is revisited. */
+  checkpoint(selected: string | null, runtimes: ReadonlyMap<string, ItemRuntime>): boolean {
+    if (selected !== null && !runtimes.has(selected)) throw new Error('Selected item is not local');
+    const items = [...runtimes.values()].map((runtime) => {
+      const state = runtime.snapshot();
+      return { id: state.id, tick: state.tick, cooldown: state.cooldown, fuel: state.fuel, lit: state.lit };
+    });
+    const bag = this.bag.write(this.bag.read()), purse = this.purse.write(this.purse.read());
+    return this.loadout.write({ selected, items }) && bag && purse;
+  }
+  /** Restore into the current host clock (or a fresh document); input edges remain cancelled and new items keep defaults. */
+  restore(runtimes: ReadonlyMap<string, ItemRuntime>, tick = -1): string | null {
+    if (!Number.isSafeInteger(tick) || tick < -1) throw new RangeError('Invalid restored item clock');
+    const saved = this.loadout.read();
+    for (const state of saved.items) {
+      const runtime = runtimes.get(state.id);
+      if (runtime === undefined) throw new Error(`Missing saved local item ${state.id}`);
+      if ((runtime.spec.kind === 'weapon' && state.lit) || (state.fuel === 0 && state.lit)) throw new Error('Invalid saved item continuation');
+    }
+    if (saved.selected !== null && !runtimes.has(saved.selected)) throw new Error('Missing saved selection');
+    for (const state of saved.items) runtimes.get(state.id)?.restore({ ...state, tick, version: 1, held: false, chargeTime: 0, pending: [] });
+    return saved.selected;
+  }
+}
+
+/** At the cell edge cancel local input immediately; ownership, ammo, fuel and selection stay in the source shard. */
+export function stowGridEquipment(equipment: EquipmentService, runtimes: ReadonlyMap<string, ItemRuntime>): void {
+  if (runtimes.has(equipment.current.row.id)) {
+    equipment.stowed = true; equipment.adsHeld = false; equipment.altHeld = false; equipment.visible = false;
+  }
+  for (const runtime of runtimes.values()) {
+    const saved = runtime.snapshot(); runtime.restore({ ...saved, held: false, chargeTime: 0, pending: [] });
+  }
+  for (const tool of equipment.tools) if (runtimes.has(tool.row.id)) tool.enabled = false;
+}
+
+/** Source-local ports consumed by crossing; the normal equipment service retains catalogue gear and owns presentation. */
+export interface GridLoadout {
+  checkpoint: () => boolean;
+  stow: () => void;
+  interior: () => void;
+}
+/** Restore one instance's held selection and bind reversible border stow to the existing equipment and scope. */
+export function installGridLoadout(wallet: GridWallet, equipment: EquipmentService, runtimes: ReadonlyMap<string, ItemRuntime>, scope: Scope, tick = -1): GridLoadout {
+  const selected = wallet.restore(runtimes, tick);
+  const weapon = equipment.list.find((item) => item.row.id === selected);
+  if (weapon !== undefined && runtimes.has(equipment.current.row.id)) equipment.select(weapon.id, true);
+  let before: { stowed: boolean; visible: boolean; tools: readonly { tool: EquipmentService['tools'][number]; enabled: boolean }[] } | undefined;
+  const interior = (): void => {
+    if (before === undefined) return;
+    const prior = before; before = undefined;
+    equipment.stowed = prior.stowed; equipment.visible = prior.visible;
+    for (const { tool, enabled } of prior.tools) tool.enabled = enabled;
+  };
+  scope.onDispose(() => { before = undefined; });
+  return {
+    checkpoint: () => wallet.checkpoint(runtimes.has(equipment.current.row.id) ? equipment.current.row.id : null, runtimes),
+    stow: () => {
+      if (scope.disposed || before !== undefined) return;
+      before = { stowed: equipment.stowed, visible: equipment.visible, tools: equipment.tools.filter((tool) => runtimes.has(tool.row.id)).map((tool) => ({ tool, enabled: tool.enabled })) };
+      stowGridEquipment(equipment, runtimes);
+    },
+    interior: () => { if (!scope.disposed) interior(); },
+  };
+}

@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-348 members; 112 without a doc line (—).
+359 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -90,6 +90,13 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GridMode` | interface | @wildshard/game/grid/catalogue | Runtime switches originate from Settings and build-time DEVSERVER; Nine Dragon defaults on only in DEVSERVER. |
 | `GridPlacement` | type | @wildshard/game/grid/catalogue | Catalogue placement before its render origin is derived. |
 | `parseGridCatalogue` | function | @wildshard/game/grid/catalogue | Reject malformed or duplicate placement data before allocating an assembly. |
+| `GridCrossing` | class | @wildshard/game/grid/crossing | Session-local crossing coordinator. No navigation, save copying, respawn or asynchronous work occurs during commit. |
+| `GridCrossingDriver` | interface | @wildshard/game/grid/crossing | Residency owns frame selection, admission, whole-world checkpoints and prepared physics transfers. |
+| `GridCrossingPorts` | interface | @wildshard/game/grid/crossing | Destination admission runs ahead of the fixed step; local checkpoints and stow never transfer shard possessions. |
+| `GridCrossingSession` | interface | @wildshard/game/grid/crossing | Fixed-step bridge installed alongside the existing residency driver, without owning another simulation or player. |
+| `GridCrossingState` | interface | @wildshard/game/grid/crossing | Observed logical frame and admission state; a blocked transition keeps the original active frame. |
+| `installGridCrossing` | function | @wildshard/game/grid/crossing | Connect local save/stow rules to assembly and residency. Call step before the residency owner's normal simulation step. |
+| `PreparedGridCrossing` | interface | @wildshard/game/grid/crossing | A prepared, rollback-safe frame/view change. Commit must either finish completely or leave the source intact. |
 | `firstPartyInstance` | function | @wildshard/game/grid/instances | Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix. |
 | `templateInstance` | function | @wildshard/game/grid/instances | Six copies of one template package have independent facts and local state, wherever they are placed. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
@@ -102,6 +109,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `gridZone` | function | @wildshard/game/grid/rules | Distance from a cell's centre classifies its interior, easing strip and shared highway deck. |
 | `installGridHoverSpeed` | function | @wildshard/game/grid/rules | Install the live deck/strip cap and restore the previous port when this residency scope leaves. |
 | `reframeGridUnit` | function | @wildshard/game/grid/rules | Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection. |
+| `GridLoadout` | interface | @wildshard/game/grid/wallet | Source-local ports consumed by crossing; the normal equipment service retains catalogue gear and owns presentation. |
+| `GridWallet` | class | @wildshard/game/grid/wallet | A shard's money, bag and item continuation stay bound to its stable instance in either entry mode. |
+| `installGridLoadout` | function | @wildshard/game/grid/wallet | Restore one instance's held selection and bind reversible border stow to the existing equipment and scope. |
+| `stowGridEquipment` | function | @wildshard/game/grid/wallet | At the cell edge cancel local input immediately; ownership, ammo, fuel and selection stay in the source shard. |
 | `instanceSave` | function | @wildshard/game/instanceSaves | Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent. |
 | `LocalSaveInstance` | interface | @wildshard/game/instanceSaves | Stable placement identity passed by the session, independent of cell or launch mode. |
 | `harvestOf` | function | @wildshard/game/Inventory | what a carcass of (kind, variant) yields when harvested |

@@ -1756,7 +1756,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1848 exports, grouped by the module to import them from.
+1853 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1921,6 +1921,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/CharacterMotor`: `CharacterMotor`, `MotorOptions`, `MoveResult`, `rideable`
 - `@wildshard/engine/physics/declaredProps`: `installDeclaredPropColliders`, `PropColliderPort`, `PropColliderState`
 - `@wildshard/engine/physics/edgeEntries`: `walkEdgeEntries`
+- `@wildshard/engine/physics/gridBorders`: `gridCreatureConstraint`, `GridMountBody`, `installGridBorders`, `installGridMountPassage`
 - `@wildshard/engine/physics/groups`: `GROUP`, `GroupName`, `groups`, `queryGroups`
 - `@wildshard/engine/physics/heightPatch`: `HeightPatch`, `HeightPatchOpts`
 - `@wildshard/engine/physics/paths`: `pathRampDescs`, `PathRampOptions`
@@ -1936,6 +1937,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/player/CameraFX`: `CameraFX`
 - `@wildshard/engine/player/dodge`: `dodgeEnv`, `dodgeFx`
 - `@wildshard/engine/player/Hands`: `buildSwimGloves`, `ELBOW`, `Hands`, `IDLE`, `SwimArms`, `SwimStyle`
+- `@wildshard/engine/player/hoverSpeed`: `hoverSpeed`
 - `@wildshard/engine/player/LockOnTarget`: `addLockOffset`, `aimPoint`, `FlickDir`, `FlickTracker`, `LOCK`, `LockOnSystem`, `lockScore`, `pickSwitch`, `wrapAngle`
 - `@wildshard/engine/player/MeleeSweep`: `BLADE_SLACK`, `bladeBlocked`, `bladeContact`, `BladeContact`, `Clang`, `clangOf`
 - `@wildshard/engine/player/nalatiArms`: `ARM_PAL`, `Fist`, `FistOpts`, `forearm`, `gloveFist`, `placeArm`, `riderArm`
@@ -2070,7 +2072,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-335 exports, grouped by the module to import them from.
+359 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2088,7 +2090,10 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
 - `@wildshard/game/grid/assembly`: `EmptyNeighbour`, `GridAssembly`, `GridCell`, `GridPoint`, `GridSide`
 - `@wildshard/game/grid/catalogue`: `GridCatalogue`, `GridCatalogueSchema`, `GridMode`, `GridPlacement`, `parseGridCatalogue`
+- `@wildshard/game/grid/crossing`: `GridCrossing`, `GridCrossingDriver`, `GridCrossingPorts`, `GridCrossingSession`, `GridCrossingState`, `installGridCrossing`, `PreparedGridCrossing`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
+- `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `reframeGridUnit`
+- `@wildshard/game/grid/wallet`: `GridLoadout`, `GridWallet`, `installGridLoadout`, `stowGridEquipment`
 - `@wildshard/game/instanceSaves`: `instanceSave`, `LocalSaveInstance`
 - `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`
 - `@wildshard/game/ledger`: `installLedgerEmitter`, `Ledger`, `LedgerCatalogueItem`, `LedgerEmitter`, `ledgerFactId`, `LedgerInstance`, `LedgerReceipt`
@@ -2134,6 +2139,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
 - `@wildshard/game/shardfile/simulation`: `bindShardfileSim`, `createShardfileSim`, `numericScriptEntityId`, `ShardfileSimPorts`, `ShardfileSimulation`
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`
+- `@wildshard/game/shardfile/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
 - `@wildshard/game/shardfile/validate`: `validateShardfileAssets`
 - `@wildshard/game/shardfile/version`: `SHARDFILE_VERSION`
@@ -2192,7 +2198,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-54 exports, grouped by the module to import them from.
+57 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
@@ -2208,6 +2214,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`
 - `@wildshard/sdk/shardfile`: `assertStateCompatibility`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
+- `@wildshard/sdk/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/sdk/version`: `SHARDFILE_VERSION`
 
 <!-- exports:end -->
@@ -2235,3 +2242,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 ### Content-addressed disk cache (SF18c)
 
 `@wildshard/engine/boot/contentCache` exposes `ContentCache` with injected storage, SHA-256 and quota ports. Immutable addresses are shared across content sources; reads verify hashes and offline misses never fetch. A durable LRU index, active-content leases, bounded entry/byte counts and quota eviction/retry keep disk growth bounded. Service-worker activation preserves this independently versioned cache and visited product manifests. See [CONTENT-CACHE.md](CONTENT-CACHE.md) for limits, ownership and recovery.
+
+### Seamless grid crossing (SF20a)
+
+`@wildshard/game/grid/crossing` stages destination admission ahead of the fixed step, then commits a rollback-safe frame change only after local and residency checkpoints succeed. `installGridCrossing` connects the signed assembly and residency driver without another simulation, player or navigation service. Local equipment is stowed at the cell edge before the strip re-frame; superseded and failed admissions retain the current frame.
+
+`@wildshard/game/grid/wallet` binds the existing inventory and purse keys and item continuation to a stable instance. Coins and shard items stay local, while catalogue equipment, titles and achievements remain in the profile ledger. Border stow cancels charged and queued attacks, retains selection and fuel, and restores prior pause/dialogue visibility on return. Fresh-document item restoration rebases the continuation clock. Select a shard and explore continue through `travel/travel`; first-party grid and standalone saves use the same instance identity.

@@ -72,6 +72,8 @@
     "./grid/assembly": "./grid/assembly.ts",
     "./shardfile/readiness": "./shardfile/readiness.ts",
     "./grid/rules": "./grid/rules.ts",
-    "./shardfile/traversal": "./shardfile/traversal.ts"
+    "./shardfile/traversal": "./shardfile/traversal.ts",
+    "./grid/crossing": "./grid/crossing.ts",
+    "./grid/wallet": "./grid/wallet.ts"
   }
 }

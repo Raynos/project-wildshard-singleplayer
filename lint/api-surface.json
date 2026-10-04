@@ -11736,6 +11736,48 @@
         "from": "@wildshard/game/grid/catalogue"
       },
       {
+        "name": "GridCrossing",
+        "kind": "class",
+        "doc": "Session-local crossing coordinator. No navigation, save copying, respawn or asynchronous work occurs during commit.",
+        "from": "@wildshard/game/grid/crossing"
+      },
+      {
+        "name": "GridCrossingDriver",
+        "kind": "interface",
+        "doc": "Residency owns frame selection, admission, whole-world checkpoints and prepared physics transfers.",
+        "from": "@wildshard/game/grid/crossing"
+      },
+      {
+        "name": "GridCrossingPorts",
+        "kind": "interface",
+        "doc": "Destination admission runs ahead of the fixed step; local checkpoints and stow never transfer shard possessions.",
+        "from": "@wildshard/game/grid/crossing"
+      },
+      {
+        "name": "GridCrossingSession",
+        "kind": "interface",
+        "doc": "Fixed-step bridge installed alongside the existing residency driver, without owning another simulation or player.",
+        "from": "@wildshard/game/grid/crossing"
+      },
+      {
+        "name": "GridCrossingState",
+        "kind": "interface",
+        "doc": "Observed logical frame and admission state; a blocked transition keeps the original active frame.",
+        "from": "@wildshard/game/grid/crossing"
+      },
+      {
+        "name": "installGridCrossing",
+        "kind": "function",
+        "doc": "Connect local save/stow rules to assembly and residency. Call step before the residency owner's normal simulation step.",
+        "from": "@wildshard/game/grid/crossing"
+      },
+      {
+        "name": "PreparedGridCrossing",
+        "kind": "interface",
+        "doc": "A prepared, rollback-safe frame/view change. Commit must either finish completely or leave the source intact.",
+        "from": "@wildshard/game/grid/crossing"
+      },
+      {
         "name": "firstPartyInstance",
         "kind": "function",
         "doc": "Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix.",
@@ -11806,6 +11848,30 @@
         "kind": "function",
         "doc": "Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection.",
         "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "GridLoadout",
+        "kind": "interface",
+        "doc": "Source-local ports consumed by crossing; the normal equipment service retains catalogue gear and owns presentation.",
+        "from": "@wildshard/game/grid/wallet"
+      },
+      {
+        "name": "GridWallet",
+        "kind": "class",
+        "doc": "A shard's money, bag and item continuation stay bound to its stable instance in either entry mode.",
+        "from": "@wildshard/game/grid/wallet"
+      },
+      {
+        "name": "installGridLoadout",
+        "kind": "function",
+        "doc": "Restore one instance's held selection and bind reversible border stow to the existing equipment and scope.",
+        "from": "@wildshard/game/grid/wallet"
+      },
+      {
+        "name": "stowGridEquipment",
+        "kind": "function",
+        "doc": "At the cell edge cancel local input immediately; ownership, ammo, fuel and selection stay in the source shard.",
+        "from": "@wildshard/game/grid/wallet"
       },
       {
         "name": "instanceSave",
