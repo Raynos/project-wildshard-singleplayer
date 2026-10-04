@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ScriptLane, type ScriptBinding } from '@wildshard/engine/script/lane';
+import { ScriptLane, type ScriptBinding, type ScriptLaneOptions } from '@wildshard/engine/script/lane';
 import { DeclaredScriptWorld, type ScriptStateDeclaration, type ScriptStateField } from '@wildshard/engine/script/state';
 import type { EffectRules, ScriptEntity } from '@wildshard/engine/script/effects';
 import type { ScriptHostOptions } from '@wildshard/engine/script/host';
@@ -44,13 +44,17 @@ export interface ShardScriptContent {
 }
 /** Loader-provided identities and query ports: the actor mapping comes from the session, not the shardfile. */
 export interface ShardScriptPorts extends Omit<ScriptHostOptions, 'world'> { rules: EffectRules; entities: readonly ScriptEntity[]; actors: ReadonlyMap<number, string> }
-/** Create the local authoritative lane explicitly; its constructor admits every module before execution. */
-export function createShardfileScriptLane(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts): ScriptLane {
+/** Prepare declared state and admitted modules without allocating a host or executing author initialization. */
+export function prepareShardfileScriptOptions(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts): ScriptLaneOptions {
   const errors = scriptBindingRules(content.sim.bindings, content.sim.scripts); if (errors.length > 0) throw new Error(errors.join('; '));
   const modules = content.sim.scripts.map((name) => {
     const bytes = assets.get(name); if (!bytes) throw new Error(`Missing script bytes ${name}`);
     return { name, bytes, seedLo: content.identity.seed | 0, seedHi: Math.floor(content.identity.seed / 4294967296) | 0 };
   });
   const world = new DeclaredScriptWorld(ports.rules, ports.entities, numericScriptState(content.state), ports.actors);
-  return new ScriptLane({ ...ports, world, modules, bindings: content.sim.bindings, divisor: content.sim.scriptTickDivisor });
+  return { ...ports, world, modules, bindings: content.sim.bindings, divisor: content.sim.scriptTickDivisor };
+}
+/** Create the local authoritative lane explicitly; its constructor admits every module before execution. */
+export function createShardfileScriptLane(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts): ScriptLane {
+  return new ScriptLane(prepareShardfileScriptOptions(content, assets, ports));
 }
