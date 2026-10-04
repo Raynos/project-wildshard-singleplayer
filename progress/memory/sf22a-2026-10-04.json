@@ -1,0 +1,497 @@
+{
+ "row": "SHARD-PLATFORM SF22a",
+ "date": "2026-10-04",
+ "build": "91f97bdfc (HEAD export, scripts/serve-build.sh --head)",
+ "units": "decimal MB (1e6 bytes); settled medians unless named peak",
+ "surfaces": {
+  "sim": "iOS Simulator iPhone 17 Pro, Safari, cold tab; scripts/sim-memory.mjs --play=30 --fly=30 (shards, play phase) and scripts/crossroads-rig/sim-probe.mjs (rig); webContent = kernel physical footprint of the game tab; tab = webContent + WebKit GPU process",
+  "desktop": "headless Chromium on Metal, iPhone 16 Pro 390x844@3; scripts/crossroads-rig/desktop-probe.mjs (settled after one forced GC); GL bytes = scripts/parity/glbytes.mjs"
+ },
+ "blankTab": {
+  "sim": {
+   "webContentMB": 46,
+   "gpuProcessMB": 14
+  },
+  "desktop": {
+   "rendererMB": 17,
+   "gpuProcessMB": 26
+  }
+ },
+ "engineBase": {
+  "shard": "_template",
+  "sim": {
+   "webContentMB": 218,
+   "inspectorMB": 232,
+   "gpuProcessMB": 64,
+   "loadPeakWebContentMB": 275,
+   "jsHeldGeometryMB": 7,
+   "tabMB": 282
+  },
+  "desktop": {
+   "rendererMB": 208,
+   "gpuProcessMB": 610,
+   "jsMB": 25,
+   "glTextureMB": 79.7,
+   "glBufferMB": 0.8,
+   "glRenderbufferMB": 0,
+   "calls": 47,
+   "triangles": 12997,
+   "programs": 43
+  }
+ },
+ "shards": {
+  "driftwood-isle": {
+   "sim": {
+    "webContentMB": 613,
+    "inspectorMB": 851,
+    "gpuProcessMB": 255,
+    "loadPeakWebContentMB": 757,
+    "jsHeldGeometryMB": 201,
+    "tabMB": 868
+   },
+   "desktop": {
+    "rendererMB": 740,
+    "gpuProcessMB": 1204,
+    "jsMB": 268,
+    "glTextureMB": 113.9,
+    "glBufferMB": 157.6,
+    "glRenderbufferMB": 10.9,
+    "calls": 120,
+    "triangles": 810008,
+    "programs": 95
+   }
+  },
+  "nalati-grasslands": {
+   "sim": {
+    "webContentMB": 606,
+    "inspectorMB": 906,
+    "gpuProcessMB": 209,
+    "loadPeakWebContentMB": 665,
+    "jsHeldGeometryMB": 100,
+    "tabMB": 815
+   },
+   "desktop": {
+    "rendererMB": 803,
+    "gpuProcessMB": 998,
+    "jsMB": 183,
+    "glTextureMB": 122.5,
+    "glBufferMB": 73.2,
+    "glRenderbufferMB": 41.1,
+    "calls": 93,
+    "triangles": 1241497,
+    "programs": 99
+   }
+  },
+  "pine-hollow": {
+   "sim": {
+    "webContentMB": 700,
+    "inspectorMB": 1611,
+    "gpuProcessMB": 397,
+    "loadPeakWebContentMB": 820,
+    "jsHeldGeometryMB": 61,
+    "tabMB": 1097
+   },
+   "desktop": {
+    "rendererMB": 1191,
+    "gpuProcessMB": 1392,
+    "jsMB": 224,
+    "glTextureMB": 576.9,
+    "glBufferMB": 43.1,
+    "glRenderbufferMB": 0,
+    "calls": 108,
+    "triangles": 1053978,
+    "programs": 105
+   }
+  },
+  "sunscar-dunes": {
+   "sim": {
+    "webContentMB": 240,
+    "inspectorMB": 466,
+    "gpuProcessMB": 158,
+    "loadPeakWebContentMB": 480,
+    "jsHeldGeometryMB": 19,
+    "tabMB": 398
+   },
+   "desktop": {
+    "rendererMB": 357,
+    "gpuProcessMB": 761,
+    "jsMB": 50,
+    "glTextureMB": 148.8,
+    "glBufferMB": 11.6,
+    "glRenderbufferMB": 0,
+    "calls": 191,
+    "triangles": 260475,
+    "programs": 55
+   }
+  },
+  "far-reach": {
+   "sim": {
+    "webContentMB": 251,
+    "inspectorMB": 586,
+    "gpuProcessMB": 238,
+    "loadPeakWebContentMB": 431,
+    "jsHeldGeometryMB": 29,
+    "tabMB": 489
+   },
+   "desktop": {
+    "rendererMB": 498,
+    "gpuProcessMB": 1053,
+    "jsMB": 66,
+    "glTextureMB": 258.1,
+    "glBufferMB": 21.3,
+    "glRenderbufferMB": 0,
+    "calls": 146,
+    "triangles": 2093188,
+    "programs": 104
+   }
+  },
+  "nine-dragon-stack": {
+   "sim": {
+    "webContentMB": 338,
+    "inspectorMB": 630,
+    "gpuProcessMB": 249,
+    "loadPeakWebContentMB": 758,
+    "jsHeldGeometryMB": 57,
+    "tabMB": 587
+   },
+   "desktop": {
+    "rendererMB": 523,
+    "gpuProcessMB": 1250,
+    "jsMB": 146,
+    "glTextureMB": 130.8,
+    "glBufferMB": 133.7,
+    "glRenderbufferMB": 1.6,
+    "calls": 144,
+    "triangles": 1431791,
+    "programs": 66
+   }
+  }
+ },
+ "rig": {
+  "config": "n0=40 (32 ring + 8 lookahead) L0 at 5 MB, 4 libraries at 25 MB, 32 L1 at 2.5 MB, 9 far proxies at 1.6 MB, 4 sims at 40 MB, one L0 streamed every 2 s (2 live), sun shadow 2048, dpr 2, ASTC 4x4",
+  "accounted": {
+   "lib": {
+    "count": 4,
+    "gpuGeomMB": 2.1,
+    "gpuTexMB": 95.1,
+    "cpuMB": 2.8
+   },
+   "l0": {
+    "count": 40,
+    "gpuGeomMB": 38.2,
+    "gpuTexMB": 111.8,
+    "cpuMB": 50.0,
+    "tris": 1525280,
+    "draws": 320
+   },
+   "l1": {
+    "count": 32,
+    "gpuGeomMB": 9.9,
+    "gpuTexMB": 67.1,
+    "cpuMB": 3.0,
+    "tris": 319744,
+    "draws": 64
+   },
+   "far": {
+    "count": 9,
+    "gpuGeomMB": 1.7,
+    "gpuTexMB": 12.6,
+    "cpuMB": 0.2,
+    "tris": 73728,
+    "draws": 9
+   },
+   "sim": {
+    "count": 4,
+    "gpuGeomMB": 0.0,
+    "gpuTexMB": 0.0,
+    "cpuMB": 160.0
+   },
+   "total": {
+    "residentMB": 554.4,
+    "gpuMB": 338.5,
+    "cpuMB": 215.9
+   }
+  },
+  "sim": {
+   "drop": {
+    "webContentMB": {
+     "empty": 61.1,
+     "settle": 310.6,
+     "measure": 305.6
+    },
+    "webContentLoadPeakMB": 638.3,
+    "gpuProcessMB": {
+     "empty": 14.7,
+     "settle": 168.2,
+     "measure": 217.2
+    },
+    "inspectorMB": {
+     "empty": 73,
+     "settle": 352.3,
+     "measure": 365.9
+    },
+    "frames": {
+     "settle": {
+      "frames": 362,
+      "fps": 53.1,
+      "p50ms": 17,
+      "p95ms": 17,
+      "p99ms": 17,
+      "under33pct": 99.7,
+      "under17pct": 33.7,
+      "renderCpuP50ms": 1,
+      "renderCpuP95ms": 3,
+      "calls": 272,
+      "triangles": 1189865
+     },
+     "measure": {
+      "frames": 1211,
+      "fps": 59.9,
+      "p50ms": 17,
+      "p95ms": 17,
+      "p99ms": 17,
+      "under33pct": 99.8,
+      "under17pct": 33.9,
+      "renderCpuP50ms": 1,
+      "renderCpuP95ms": 3,
+      "calls": 280,
+      "triangles": 1217661
+     }
+    },
+    "churn": {
+     "swaps": 10,
+     "liveMax": 2,
+     "buildMsP50": 20,
+     "buildMsMax": 23
+    },
+    "format": "astc4x4"
+   },
+   "keepJsCopies": {
+    "webContentMB": {
+     "empty": 61.5,
+     "settle": 659.5,
+     "measure": 662.7
+    },
+    "webContentLoadPeakMB": 707.7,
+    "gpuProcessMB": {
+     "empty": 14.8,
+     "settle": 169.4,
+     "measure": 214.3
+    },
+    "inspectorMB": {
+     "empty": 75.3,
+     "settle": 730.6,
+     "measure": 707.8
+    },
+    "frames": {
+     "settle": {
+      "frames": 357,
+      "fps": 57.3,
+      "p50ms": 17,
+      "p95ms": 17,
+      "p99ms": 18,
+      "under33pct": 99.4,
+      "under17pct": 33.3,
+      "renderCpuP50ms": 2,
+      "renderCpuP95ms": 3,
+      "calls": 273,
+      "triangles": 1194693
+     },
+     "measure": {
+      "frames": 1209,
+      "fps": 59.9,
+      "p50ms": 17,
+      "p95ms": 17,
+      "p99ms": 19,
+      "under33pct": 99.9,
+      "under17pct": 33.9,
+      "renderCpuP50ms": 2,
+      "renderCpuP95ms": 3,
+      "calls": 280,
+      "triangles": 1216144
+     }
+    },
+    "churn": {
+     "swaps": 10,
+     "liveMax": 2,
+     "buildMsP50": 15,
+     "buildMsMax": 25
+    },
+    "format": "astc4x4"
+   },
+   "empty": {
+    "webContentMB": {
+     "empty": 61.6,
+     "settle": 64.7,
+     "measure": 63.1
+    },
+    "webContentLoadPeakMB": null,
+    "gpuProcessMB": {
+     "empty": 14.7,
+     "settle": 15.7,
+     "measure": 15.7
+    },
+    "inspectorMB": {
+     "empty": 75.3,
+     "settle": 79.7,
+     "measure": 78.7
+    },
+    "frames": {
+     "settle": {
+      "frames": 361,
+      "fps": 60,
+      "p50ms": 17,
+      "p95ms": 17,
+      "p99ms": 17,
+      "under33pct": 100,
+      "under17pct": 33.5,
+      "renderCpuP50ms": 0,
+      "renderCpuP95ms": 1,
+      "calls": 2,
+      "triangles": 4
+     },
+     "measure": {
+      "frames": 1204,
+      "fps": 60,
+      "p50ms": 17,
+      "p95ms": 17,
+      "p99ms": 17,
+      "under33pct": 100,
+      "under17pct": 33.3,
+      "renderCpuP50ms": 0,
+      "renderCpuP95ms": 1,
+      "calls": 2,
+      "triangles": 4
+     }
+    },
+    "churn": {
+     "swaps": 0,
+     "liveMax": 2,
+     "buildMsP50": null,
+     "buildMsMax": null
+    },
+    "format": "astc4x4"
+   }
+  },
+  "desktop": {
+   "drop": {
+    "rendererMB": {
+     "empty": 32.5,
+     "settle": 287.7,
+     "measure": 314.7
+    },
+    "rendererLoadPeakMB": 656.3,
+    "gpuProcessMB": {
+     "empty": 285.5,
+     "settle": 784,
+     "measure": 936.6
+    },
+    "gl": {
+     "canvas": [
+      780,
+      1688
+     ],
+     "textureMB": 320.2,
+     "renderbufferMB": 0,
+     "bufferMB": 51.9,
+     "textures": 261,
+     "buffers": 892
+    },
+    "frames": {
+     "settle": {
+      "frames": 362,
+      "fps": 56.7,
+      "p50ms": 16.7,
+      "p95ms": 16.8,
+      "p99ms": 16.8,
+      "under33pct": 99.7,
+      "under17pct": 97.2,
+      "renderCpuP50ms": 1.6,
+      "renderCpuP95ms": 1.8,
+      "calls": 265,
+      "triangles": 1153138
+     },
+     "measure": {
+      "frames": 1208,
+      "fps": 60,
+      "p50ms": 16.7,
+      "p95ms": 16.7,
+      "p99ms": 16.8,
+      "under33pct": 100,
+      "under17pct": 98,
+      "renderCpuP50ms": 1.1,
+      "renderCpuP95ms": 1.8,
+      "calls": 271,
+      "triangles": 1177220
+     }
+    },
+    "churn": {
+     "swaps": 10,
+     "liveMax": 2,
+     "buildMsP50": 13,
+     "buildMsMax": 18
+    },
+    "format": "astc4x4"
+   },
+   "keepJsCopies": {
+    "rendererMB": {
+     "empty": 32.7,
+     "settle": 616.5,
+     "measure": 652.1
+    },
+    "rendererLoadPeakMB": 530.3,
+    "gpuProcessMB": {
+     "empty": 285.5,
+     "settle": 740.8,
+     "measure": 937.1
+    },
+    "gl": {
+     "canvas": [
+      780,
+      1688
+     ],
+     "textureMB": 320.2,
+     "renderbufferMB": 0,
+     "bufferMB": 51.9,
+     "textures": 261,
+     "buffers": 892
+    },
+    "frames": {
+     "settle": {
+      "frames": 362,
+      "fps": 59.2,
+      "p50ms": 16.7,
+      "p95ms": 16.8,
+      "p99ms": 16.8,
+      "under33pct": 99.7,
+      "under17pct": 97,
+      "renderCpuP50ms": 1.6,
+      "renderCpuP95ms": 2.2,
+      "calls": 267,
+      "triangles": 1163156
+     },
+     "measure": {
+      "frames": 1209,
+      "fps": 60,
+      "p50ms": 16.7,
+      "p95ms": 16.7,
+      "p99ms": 16.8,
+      "under33pct": 100,
+      "under17pct": 98.7,
+      "renderCpuP50ms": 1.5,
+      "renderCpuP95ms": 2.4,
+      "calls": 271,
+      "triangles": 1175390
+     }
+    },
+    "churn": {
+     "swaps": 10,
+     "liveMax": 2,
+     "buildMsP50": 13.4,
+     "buildMsMax": 18
+    },
+    "format": "astc4x4"
+   }
+  }
+ }
+}
