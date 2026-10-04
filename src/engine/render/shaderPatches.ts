@@ -151,9 +151,18 @@ export function patchShader(mat: THREE.Material, id: string, order: number, fn: 
 /**
  * The hook every material inherits until a `replace` patch drops it (Atmosphere's fog uniforms). It stays on the
  * prototype, as before, so three's default key (its source text) is the one every unpatched material shares.
+ * An optional scoped chain restores the previous inherited hook when disposed.
  */
-export function setInheritedPatch(fn: (shader: ShaderSource) => void): void {
-  THREE.Material.prototype.onBeforeCompile = fn;
+export function setInheritedPatch(fn: (shader: ShaderSource) => void, options: { scope?: Scope; chain?: boolean } = {}): void {
+  const before = Object.getOwnPropertyDescriptor(THREE.Material.prototype, 'onBeforeCompile');
+  const inherited = THREE.Material.prototype.onBeforeCompile.bind(THREE.Material.prototype);
+  const hook: ShaderPatchFn = options.chain === true ? (shader, renderer) => { inherited(shader, renderer); fn(shader); } : fn;
+  THREE.Material.prototype.onBeforeCompile = hook;
+  options.scope?.onDispose(() => {
+    if (THREE.Material.prototype.onBeforeCompile !== hook) return;
+    if (before !== undefined) Object.defineProperty(THREE.Material.prototype, 'onBeforeCompile', before);
+    else Reflect.deleteProperty(THREE.Material.prototype, 'onBeforeCompile');
+  });
 }
 
 /** Set a material's program-cache key with no source patch (a ShaderMaterial whose source is its own). */

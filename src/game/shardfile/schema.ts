@@ -17,7 +17,7 @@ const bounds = v.pipe(v.strictObject({ min: vec3, max: vec3 }), v.check((b) => b
 const costs = { compressed: natural, decoded: natural, gpu: natural, triangles: natural, draws: natural };
 const field = v.strictObject({ id: v.pipe(positive, v.maxValue(0x7fffffff)), name, type: v.picklist(['bool', 'i32', 'f64', 'string']), privacy: v.picklist(['public', 'owner', 'host']), default: v.union([v.boolean(), finite, v.string()]), min: v.optional(finite), max: v.optional(finite) });
 const unsigned = v.pipe(finite, v.minValue(0));
-const key = v.strictObject({ time: channel, sky: v.strictObject({ zenith: colour, horizon: colour }), fog: v.strictObject({ colour, density: unsigned }), sun: v.strictObject({ colour, intensity: unsigned }), ambient: v.strictObject({ sky: colour, ground: colour, intensity: unsigned }) });
+const key = v.strictObject({ time: channel, sky: v.strictObject({ zenith: colour, horizon: colour }), fog: v.strictObject({ colour, density: unsigned, near: v.optional(unsigned), far: v.optional(unsigned) }), sun: v.strictObject({ colour, intensity: unsigned }), ambient: v.strictObject({ sky: colour, ground: colour, intensity: unsigned }) });
 const day = v.strictObject({ minutes: v.pipe(finite, v.minValue(1), v.maxValue(1440)), start: channel, maxElevation: v.pipe(finite, v.minValue(0), v.maxValue(90)), azimuth: v.pipe(finite, v.minValue(-180), v.maxValue(180)) });
 /** A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). */
 export const LOOK_LUT_BYTES = 33 ** 3 * 4;
@@ -78,6 +78,8 @@ export function shardfileRules(s: Shardfile): string[] {
   const lut = s.look.grade.lut === null || s.look.grade.lut.startsWith('commons:') ? null : files.get(s.look.grade.lut);
   if (lut !== undefined && lut !== null && (lut.kind !== 'binary' || lut.compressed !== LOOK_LUT_BYTES)) errors.push('look LUT is a 33³ RGBA8 binary file');
   if (s.look.keys.some((k, i) => i > 0 && k.time <= (s.look.keys[i - 1]?.time ?? Infinity))) errors.push('ordered day keys');
+  const linearFog = s.look.keys[0]?.fog.near !== undefined;
+  for (const { fog } of s.look.keys) if ((fog.near === undefined) !== (fog.far === undefined) || (fog.near !== undefined && fog.far !== undefined && (fog.near >= fog.far || fog.density !== 0)) || (fog.near !== undefined) !== linearFog) errors.push('consistent ordered linear fog bounds with zero density');
   for (const e of Object.values(s.edge)) if (e.heights.length !== e.colours.length) errors.push('edge sample lengths');
   const seen = new Set<string>();
   for (const t of s.tiles) {

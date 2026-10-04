@@ -47,12 +47,17 @@ Look v0 (SF10b) is data the engine renders (`@wildshard/engine/render/dataLook`;
 binds the section through `src/game/shardfile/look.ts`); a shard ships no sky shader, fog patch or clock. Colours are
 linear working-space RGB in [0,1]. `day {minutes 1–1440, start 0–1, maxElevation 0–90°, azimuth −180–180°}` sets the
 engine clock (default 12 minutes from noon, 60°, 35°); `dayOverride` pins it. Each key is
-`{time 0–1, sky {zenith, horizon}, fog {colour, density}, sun {colour, intensity}, ambient {sky, ground, intensity}}`:
+`{time 0–1, sky {zenith, horizon}, fog {colour, density, near?, far?}, sun {colour, intensity}, ambient {sky, ground, intensity}}`:
 the engine draws a gradient dome from `sky`, feeds `fog` to its distance fog (density per metre, exponential), sets the
 key light's colour and intensity (its direction is the clock's sun) and the hemisphere ambient. Keys blend linearly
 by time and wrap across midnight. `grade.lut` names a `binary` file of exactly 33³ × 4 = 143,748 bytes (RGBA8, index
 `(b·33 + g)·33 + r`, display sRGB in and out), applied last in the grade. The fixture is
 `test/fixtures/shardfile/look/` (`shard.json` beside its LUT file, the product layout).
+
+Linear fog supplies both ordered `near`/`far` distances in metres, with density zero
+in every key. It blends by world-space camera distance, matching the template's
+60–180 m fog. Modes cannot mix across keys. Shader patches belong to the level scope.
+`grade.exposure` is parsed but awaits SF19a's single-frame lighting composite.
 
 State fields carry explicit stable positive `id` values (1–2³¹−1), unique across
 shared and player fields. IDs never come from declaration positions. The numeric

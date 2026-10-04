@@ -13,16 +13,18 @@ import { LookupTexture } from 'postprocessing';
 import { DayCycle } from '../world/dayCycle';
 import type { LookStrategy, SkyBackdropTargets } from './look';
 import { LUT_SIZE, fetchLut } from './lut';
+import { PATCH_ORDER, patchShader, setInheritedPatch, type ShaderSource } from './shaderPatches';
 
 type Rgb = readonly [number, number, number];
+const mesh = (object: THREE.Object3D): object is THREE.Mesh => object instanceof THREE.Mesh;
 
 /** One day key: what the sky, fog, key light and ambient look like at `time` (0–1 of a day). */
 export interface LookKey {
   readonly time: number;
   /** the dome's colour straight up and at the horizon (the fog's colour should meet `horizon`) */
   readonly sky: { readonly zenith: Rgb; readonly horizon: Rgb };
-  /** the engine's distance fog: colour and exponential density per metre */
-  readonly fog: { readonly colour: Rgb; readonly density: number };
+  /** Exponential density per metre, or zero density plus linear near/far distances in metres. */
+  readonly fog: { readonly colour: Rgb; readonly density: number; readonly near?: number | undefined; readonly far?: number | undefined };
   /** the key light's colour and intensity; its direction is the clock's sun */
   readonly sun: { readonly colour: Rgb; readonly intensity: number };
   /** the hemisphere ambient's sky and ground colours and intensity */
@@ -47,13 +49,13 @@ export interface DataLookSpec {
 
 /** A sampled look: plain numbers, blended between the two keys around a time of day. */
 export interface LookSample {
-  zenith: THREE.Color; horizon: THREE.Color; fog: THREE.Color; fogDensity: number;
+  zenith: THREE.Color; horizon: THREE.Color; fog: THREE.Color; fogDensity: number; fogNear: number | null; fogFar: number | null;
   sun: THREE.Color; sunIntensity: number; ambientSky: THREE.Color; ambientGround: THREE.Color; ambientIntensity: number;
 }
 
 /** An empty sample to fill with `sampleLook`. */
 export function lookSample(): LookSample {
-  return { zenith: new THREE.Color(), horizon: new THREE.Color(), fog: new THREE.Color(), fogDensity: 0, sun: new THREE.Color(), sunIntensity: 0,
+  return { zenith: new THREE.Color(), horizon: new THREE.Color(), fog: new THREE.Color(), fogDensity: 0, fogNear: null, fogFar: null, sun: new THREE.Color(), sunIntensity: 0,
     ambientSky: new THREE.Color(), ambientGround: new THREE.Color(), ambientIntensity: 0 };
 }
 
@@ -76,6 +78,8 @@ export function sampleLook(keys: readonly LookKey[], time: number, out: LookSamp
   const f = span > 1e-9 ? Math.min(1, Math.max(0, along / span)) : 0;
   mixRgb(out.zenith, a.sky.zenith, b.sky.zenith, f); mixRgb(out.horizon, a.sky.horizon, b.sky.horizon, f);
   mixRgb(out.fog, a.fog.colour, b.fog.colour, f); out.fogDensity = a.fog.density + (b.fog.density - a.fog.density) * f;
+  out.fogNear = a.fog.near === undefined || b.fog.near === undefined ? null : a.fog.near + (b.fog.near - a.fog.near) * f;
+  out.fogFar = a.fog.far === undefined || b.fog.far === undefined ? null : a.fog.far + (b.fog.far - a.fog.far) * f;
   mixRgb(out.sun, a.sun.colour, b.sun.colour, f); out.sunIntensity = a.sun.intensity + (b.sun.intensity - a.sun.intensity) * f;
   mixRgb(out.ambientSky, a.ambient.sky, b.ambient.sky, f); mixRgb(out.ambientGround, a.ambient.ground, b.ambient.ground, f);
   out.ambientIntensity = a.ambient.intensity + (b.ambient.intensity - a.ambient.intensity) * f;
@@ -119,10 +123,37 @@ async function lutTexture(url: string | null): Promise<LookupTexture | null> {
  */
 export function dataLook(spec: DataLookSpec): LookStrategy {
   if (spec.keys.length === 0) throw new Error('[look] a data look needs at least one key');
+  const linear = spec.keys[0]?.fog.near !== undefined;
+  const fog = { wsLookFogNear: new THREE.Uniform(0), wsLookFogFar: new THREE.Uniform(1), wsLookFogEnabled: new THREE.Uniform(0) };
+  const patchFog = (shader: ShaderSource): void => {
+    if (shader.uniforms['wsLookFogNear'] !== undefined) return;
+    Object.assign(shader.uniforms, fog);
+    const patched = shader.fragmentShader.replace('#include <fog_fragment>', `
+      #ifdef USE_FOG
+      if (wsLookFogEnabled > 0.5) {
+        float amount = clamp((length(vFogWorldPos - cameraPosition) - wsLookFogNear) / (wsLookFogFar - wsLookFogNear), 0.0, 1.0);
+        gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, amount);
+      } else {
+        #include <fog_fragment>
+      }
+      #endif`);
+    shader.fragmentShader = `#ifdef USE_FOG\nuniform float wsLookFogNear; uniform float wsLookFogFar; uniform float wsLookFogEnabled;\n#endif\n${patched}`;
+  };
   const owned: { dome: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial> | null; lut: LookupTexture | null } = { dome: null, lut: null };
   return {
     // the sky builds before the composer: the level scope takes the dome and the LUT here
-    mode: 'extend', compose: ({ engineChain, scope }) => {
+    mode: 'extend', compose: ({ engineChain, scene, scope }) => {
+      if (linear) {
+        setInheritedPatch(patchFog, { scope, chain: true });
+        const seen = new Set<THREE.Material>();
+        scene.traverse((object) => {
+          if (!mesh(object)) return;
+          for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+            if (seen.has(material)) continue;
+            seen.add(material); patchShader(material, 'engine.look.linear-fog', PATCH_ORDER.decorate, patchFog, { scope });
+          }
+        });
+      }
       const { dome, lut } = owned;
       if (dome !== null) { scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); }); }
       if (lut !== null) scope.own(lut);
@@ -140,8 +171,13 @@ export function dataLook(spec: DataLookSpec): LookStrategy {
         sky.setKeyLight(clock.sunDir, now.sun, now.sunIntensity);
         if (targets === null) return;
         targets.hemi.color.copy(now.ambientSky); targets.hemi.groundColor.copy(now.ambientGround); targets.hemi.intensity = now.ambientIntensity;
+        fog.wsLookFogEnabled.value = targets.underwater() ? 0 : Number(linear);
         if (targets.underwater()) return; // Atmosphere.ts owns the fog under water
         targets.fog.color.copy(now.fog);
+        if (now.fogNear !== null && now.fogFar !== null) {
+          targets.fog.near = now.fogNear; targets.fog.far = now.fogFar;
+          fog.wsLookFogNear.value = now.fogNear; fog.wsLookFogFar.value = now.fogFar;
+        }
         targets.fogU.fogDistDensity.value = now.fogDensity; targets.fogU.fogHeightDensity.value = 0;
         targets.fogU.fogSunColor.value.copy(now.sun);
       };
