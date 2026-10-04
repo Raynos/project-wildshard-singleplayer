@@ -51,7 +51,10 @@ it('recovers a sealed pre-socket checkpoint into fresh socket physics and refuse
     const blob = before.host.entities.get('grey-blob:1'); if (blob === undefined) throw new Error('Missing real template blob');
     before.host.combat.hit({ source: before.host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: blob.combatActor(),
       amount: 1000, point: blob.position, dir: new Vector3(0, 0, 1) }); before.host.step();
-    const door = before.colliders.get('template.door'); if (door === undefined) throw new Error('Missing template door'); door.setActive(false);
+    const lane = before.lane, actor = before.actors.get(before.host.player.id);
+    if (lane === undefined || actor === undefined) throw new Error('Missing admitted door script owner');
+    lane.enqueue({ type: 201, target: actor, value: 1 }); before.host.step();
+    expect(before.colliders.get('template.door')?.active()).toBe(false);
     const snapshot = snapshotSimHost(before.host);
     expect(owner.checkpoint(snapshot)).toBe(true); expect(owner.state()?.mode).toBe('exact');
     const key = `wildshard.save.v2.${placement.id}`, original = local.getItem(key); if (original === null) throw new Error('Missing regional save');
