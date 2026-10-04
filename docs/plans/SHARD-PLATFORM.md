@@ -899,7 +899,7 @@ council ran four rounds (G59: *"4 round council approach is better then 8 rounds
 
 **3. Lanes** (a snapshot at 2026-10-04 ~19:30 UTC, not dispatch authority: on restart reconcile each slice against the
 latest commits and each pane's reply, reuse an active owner, never duplicate a slice; C2-R1-A9).
-- **sp-x1:** the G144 basis seal in `durability.ts` (a checksum on new exact envelopes + a typed-mismatch logical fallback).
+- **sp-x1:** the G144 basis seal landed (`7164087b7`, `42365290b`); next SF57 the memory soak test (G154).
 - **sp-x2:** fix the live-grid fixture red first; then the standalone Node GridSimulation packed conversion. The regional
   socket caller is held until sp-x5's footprint admission and sp-x1's seal land.
 - **sp-x3:** SF29 audio as data (a live proof plan per shard, both tiers, then the 7-shard floor).
@@ -934,7 +934,7 @@ latest commits and each pane's reply, reuse an active owner, never duplicate a s
 4b. **SF6 reopened, then SF54** (dissolve the kit into the SDK + the hybrid commons, G135–G143).
 5. The used-today systems still open: SF27, SF29 (in progress), SF34 player modes, SF36 items, SF26 commons, SF38 points
    overlay, SF45 docs.
-6. **SF19b** each shard's look under one frame (boards for Jake); **SF22** the crossroads gates at ≤ 1.0 GB (G65);
+6. **SF57 the memory soak test** (G154; sp-x1): a 30-minute scripted Simulator drive over every cell and crossroads, a HARD GATE before SF22 and before public (fallback on failure: fade-reload at border crossings). Then **SF19b** each shard's look under one frame (boards for Jake); **SF22** the crossroads gates at ≤ 1.0 GB (G65);
    **SF22c** = Jake's normal grid playtest (G71).
 7. The E437 audit leftovers: §2 "Where it stands" is stale; SP3 shipped only the ratchet; SF14 was marked done early.
 
