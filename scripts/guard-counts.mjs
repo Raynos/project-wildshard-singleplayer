@@ -29,7 +29,7 @@ export function hardRules(file) {
 }
 
 /** Only the supplied paths participate in a staged check; omitted paths mean the whole tree. */
-export function compareCounts(baseline, current, hard, paths, update = false) {
+export function compareCounts(baseline, current, hard, paths, update = false, defer = false) {
   const failures = [], warnings = [];
   const selected = paths ? new Set(paths) : null;
   for (const key of new Set([...Object.keys(baseline), ...Object.keys(current)])) {
@@ -38,8 +38,8 @@ export function compareCounts(baseline, current, hard, paths, update = false) {
     for (const file of new Set([...Object.keys(previous), ...Object.keys(now)])) {
       if (selected && !selected.has(file)) continue;
       const was = previous[file] ?? 0, count = now[file] ?? 0;
-      if (count > was) failures.push(`${file}: ${key} was ${was}, now ${count}`);
-      else if (was > 0 && count === 0 && !update) failures.push(`${file}: ${key} is clean; run pnpm lint:ratchet --update in this commit`);
+      if (count > was) (defer && !hard.has(key) ? warnings : failures).push(`${file}: ${key} was ${was}, now ${count}${defer && !hard.has(key) ? ' (requires coordinator approval in the pusher regeneration commit)' : ''}`);
+      else if (was > 0 && count === 0 && !update && !defer) failures.push(`${file}: ${key} is clean; run pnpm lint:ratchet --update in this commit`);
       else if (count < was) warnings.push(`${file}: ${key} was ${was}, now ${count} (partial slack; lower the ratchet)`);
     }
     if (!selected && Object.hasOwn(baseline, key) && Object.values(now).every((n) => n === 0) && !hard.has(key)) {

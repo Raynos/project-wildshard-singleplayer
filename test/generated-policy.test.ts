@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { APPENDIX_END, APPENDIX_START, builderGeneratedChanges, engineAppendix, generatedIncreases, increaseTrailers, replaceDebt, verifyIncreaseTrailers } from '../scripts/generated-policy.mjs';
+import { compareCounts } from '../scripts/guard-counts.mjs';
 
 describe('SF6b generated counts and their approvals', () => {
+  it('defers legacy measurements without relaxing hard rules or zero-debt promotion', () => {
+    const key = 'wildshard/example', file = 'src/example.ts';
+    expect(compareCounts({}, { [key]: { [file]: 1 } }, new Set(), [file], false, true)).toMatchObject({ failures: [], warnings: [expect.stringContaining('coordinator approval')] });
+    expect(compareCounts({}, { [key]: { [file]: 1 } }, new Set([key]), [file], false, true).failures).toHaveLength(1);
+    expect(compareCounts({ [key]: { [file]: 1 } }, {}, new Set(), undefined, true, true).failures.join(',')).toContain('move it to .oxlintrc.json');
+  });
   it('replaces debt without modifying or lowering any policy input', () => {
     const policy = { allow: { raw: { file: 'approved stopwatch' } }, budgets: { gpu: 12 }, debugRows: { max: 29, raisedBy: ['E435'] } };
     const before = { ...policy, 'wildshard/example': { old: 4 } };

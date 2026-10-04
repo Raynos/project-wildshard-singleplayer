@@ -100,7 +100,7 @@ function main() {
       if (arg === '--root') root = resolve(value);
       else if (arg === '--baseline') baselineFile = resolve(value);
       else { if (mode !== 'check') throw new Error('Only one write mode is allowed'); mode = arg === '--add-rule' ? 'add' : 'rebaseline'; addRule = value; }
-    } else if (arg === '--init' || arg === '--update') {
+    } else if (arg === '--init' || arg === '--update' || arg === '--measure') {
       if (mode !== 'check') throw new Error('Only one write mode is allowed');
       mode = arg.slice(2);
     } else throw new Error(`Unknown option: ${arg}`);
@@ -123,15 +123,17 @@ function main() {
     save(baselineFile, { ...baseline, [addRule]: recorded });
     console.log(`Ratchet recorded ${addRule}`); return;
   }
-  const { failures, warnings } = compareCounts(baseline, current, hardRules(resolve(REPO, '.oxlintrc.json')), undefined, mode === 'update');
-  for (const warning of warnings) console.warn(warning);
+  const hard = hardRules(resolve(REPO, '.oxlintrc.json'));
+  const { failures, warnings } = compareCounts(baseline, current, hard, undefined, mode === 'update', mode === 'measure');
+  if (mode === 'measure') for (const [rule, files] of Object.entries(current)) if (hard.has(rule) && Object.keys(files).length > 0) failures.push(`${rule}: hard rule cannot be measured as legacy debt`);
+  if (mode !== 'measure') for (const warning of warnings) console.warn(warning);
   const rows = baseline.debugRows ? debugCount(root) : null;
   if (rows !== null && rows > baseline.debugRows.max) failures.push(`debugRows: was ${baseline.debugRows.max}, now ${rows}`);
   if (failures.length > 0) throw new Error(`Ratchet rose:\n${failures.join('\n')}`);
+  if (mode === 'measure') { console.log(JSON.stringify(current)); return; }
   if (mode === 'update') {
     const next = Object.fromEntries(Object.entries(baseline).filter(([key]) => NON_FILE.has(key)));
     for (const [key, files] of Object.entries(current)) next[key] = files;
-    if (next.debugRows) next.debugRows = { ...next.debugRows, max: rows };
     save(baselineFile, next);
     console.log(`Ratchet lowered: ${baselineFile}`);
   } else console.log('Ratchet passed: no file count or Debug row count rose');

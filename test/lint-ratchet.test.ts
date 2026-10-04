@@ -84,9 +84,22 @@ describe('ratchet CLI', () => {
     expect(f.run('--update').status).toBe(0);
     expect(f.read()['wildshard/no-raw-save']).toEqual({ 'src/engine/ui/example.ts': 1 });
     expect(f.read().allow).toEqual(baseline.allow); expect(f.read().budgets).toEqual(baseline.budgets);
-    expect(f.read().debugRows).toEqual({ ...baseline.debugRows, max: 0 });
+    expect(f.read().debugRows).toEqual(baseline.debugRows);
     put(f.root, 'src/engine/ui/example.ts', 'export const x = 1;'); expect(f.run('--update').status).toBe(0);
     expect(f.read()['wildshard/no-raw-save']).toBeUndefined();
+  });
+  it('measures candidate increases without writing or relaxing policy inputs', () => {
+    const f = fixture('Math.random();'); f.write({ budgets: { gpu: 12 }, debugRows: { max: 5, raisedBy: ['E435'] } });
+    const before = readFileSync(f.file, 'utf8');
+    const result = f.run('--measure');
+    expect(result.status).toBe(0);
+    expect(JSON.parse(String(result.stdout))).toEqual({ 'wildshard/no-raw-random-time': { 'src/engine/ui/example.ts': 1 } });
+    expect(readFileSync(f.file, 'utf8')).toBe(before);
+    put(f.root, 'src/engine/ui/example.ts', "localStorage.getItem('x');");
+    expect(f.run('--measure').status).toBe(1);
+    put(f.root, 'src/engine/ui/example.ts', 'ctx.debugRow({});\n'.repeat(6));
+    expect(f.run('--measure').stderr).toContain('debugRows: was 5, now 6');
+    expect(readFileSync(f.file, 'utf8')).toBe(before);
   });
   it('adds one configured rule exactly once and leaves non-file sections untouched', () => {
     const f = fixture(); f.write({ budgets: { 'sample.desktop.spawn.draws': 3 }, debugRows: { max: 2, raisedBy: ['E357'] } });
@@ -116,7 +129,8 @@ describe('ratchet CLI', () => {
     const f = fixture('export const DEBUG_ROWS = [opt(), { id: "x" }]; ctx.debugRow({});');
     expect(f.run('--init').status).toBe(0);
     f.write({ ...f.read(), debugRows: { max: 10, raisedBy: [] } });
-    expect(f.run('--update').status).toBe(0); expect(f.read().debugRows?.max).toBe(3);
+    expect(f.run('--update').status).toBe(0); expect(f.read().debugRows?.max).toBe(10);
+    f.write({ ...f.read(), debugRows: { max: 3, raisedBy: [] } });
     put(f.root, 'src/engine/ui/example.ts', 'export const DEBUG_ROWS = [opt(), opt(), { id: "x" }]; ctx.debugRow({});');
     const before = readFileSync(f.file, 'utf8');
     expect(f.run('--update').stderr).toContain('debugRows: was 3, now 4'); expect(readFileSync(f.file, 'utf8')).toBe(before);
