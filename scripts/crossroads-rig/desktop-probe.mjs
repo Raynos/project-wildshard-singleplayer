@@ -105,8 +105,7 @@ async function probe(target) {
     }
     // labelled GL bytes at the WebGL API (scripts/parity/glbytes.mjs): textures, renderbuffers, buffers, per context
     const tex = await page.evaluate(() => {
-      const read = /** @type {Window & { __sc_gl?: () => { texBytes: number, rbBytes: number, bufBytes: number, textures: number, buffers: number, canvas: number[] | null }[] }} */ (window).__sc_gl;
-      if (!read) return null;
+      const read = /** @type {Window & { __sc_gl: () => { texBytes: number, rbBytes: number, bufBytes: number, textures: number, buffers: number, canvas: number[] | null }[] }} */ (window).__sc_gl;
       return read().map((r) => ({ canvas: r.canvas, textureMB: Math.round(r.texBytes / 1e5) / 10, renderbufferMB: Math.round(r.rbBytes / 1e5) / 10, bufferMB: Math.round(r.bufBytes / 1e5) / 10, textures: r.textures, buffers: r.buffers }));
     });
     state.polling = false; await poll;
