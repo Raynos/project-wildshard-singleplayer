@@ -50,7 +50,7 @@ try {
   }, sorted.map((s) => s.shot.toString('base64')));
   const file = join(out, 'board.jpg'); writeFileSync(file, Buffer.from(board, 'base64'));
   const evidence = { views: sorted.map((s) => s.key), ...stats, boardKB: Math.round(statSync(file).size / 1000), errors,
-    source: 'test/fixtures/sim-level/far via scripts/bake/far-board.mjs; Chromium (Metal), iPhone 16 Pro portrait, render scale 2, muted; camera 120 m over the centre cell, 100 m back from it, far plane FAR_RING.drawDistance' };
+    source: 'scripts/bake/far-board.mjs', method: 'the sim-level far fixture (test/fixtures/sim-level/far); Chromium (Metal), iPhone 16 Pro portrait, render scale 2, muted; camera 120 m over the centre cell, 100 m back from it, far plane FAR_RING.drawDistance' };
   writeFileSync(join(out, 'board.json'), `${JSON.stringify(evidence, null, 2)}\n`);
   console.log(JSON.stringify(evidence));
 } finally {

@@ -47,7 +47,7 @@ try {
   writeFileSync(join(out, 'drive.jpg'), Buffer.from(board, 'base64'));
   const { frameMs: _frameMs, ...rest } = result;
   const evidence = { ...rest, fps: { median: Math.round(1000 / pick(0.5)), p95ms: Number(pick(0.95).toFixed(2)) }, errors,
-    source: 'test/fixtures/sim-level/rings via scripts/bake/rings-drive.mjs; Chromium (Metal), iPhone 16 Pro viewport, render scale 2, muted; 5 Mbit/s serial link model with a 10 s stall; frame ms are rAF-paced (display-capped)' };
+    source: 'scripts/bake/rings-drive.mjs', method: 'the sim-level rings fixture (test/fixtures/sim-level/rings); Chromium (Metal), iPhone 16 Pro viewport, render scale 2, muted; 5 Mbit/s serial link model with a 10 s stall; frame ms are rAF-paced (display-capped)' };
   writeFileSync(join(out, 'browser-drive.json'), `${JSON.stringify(evidence, null, 2)}\n`);
   console.log(JSON.stringify(evidence));
 } finally {
