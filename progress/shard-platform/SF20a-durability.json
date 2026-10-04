@@ -1,0 +1,411 @@
+{
+  "sha": "026e11aaf",
+  "surface": "Chromium emulating iPhone 16 Pro portrait",
+  "started": "2026-10-04T17:48:54.400Z",
+  "seconds": 128.144,
+  "pass": true,
+  "home": "driftwood-isle",
+  "instance": "template-1",
+  "phases": [
+    {
+      "name": "enter-copy",
+      "drive": {
+        "seconds": 23.828099999904634,
+        "waypoints": 3,
+        "transitions": [
+          "driftwood-isle",
+          null,
+          "template-1"
+        ],
+        "end": {
+          "live": {
+            "current": "template-1",
+            "worldFeet": {
+              "x": -319.320955449135,
+              "y": 0.45000001658243083,
+              "z": 555.122236772017
+            },
+            "crossings": 2,
+            "transitions": [
+              {
+                "from": "driftwood-isle",
+                "to": null
+              },
+              {
+                "from": null,
+                "to": "template-1"
+              }
+            ],
+            "residents": [
+              "template-1"
+            ],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)",
+              "pine-hollow": "pine-hollow is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true
+          },
+          "crossing": {
+            "current": "template-1",
+            "target": "template-1",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": true,
+          "renderOrigin": {
+            "x": -555,
+            "z": 555
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        }
+      }
+    },
+    {
+      "name": "visit-hut",
+      "drive": {
+        "seconds": 28.429400000095367,
+        "waypoints": 1,
+        "transitions": [
+          "template-1"
+        ],
+        "end": {
+          "live": {
+            "current": "template-1",
+            "worldFeet": {
+              "x": -554.4848660224834,
+              "y": 0.17101550904010757,
+              "z": 546.5000997077427
+            },
+            "crossings": 2,
+            "transitions": [
+              {
+                "from": "driftwood-isle",
+                "to": null
+              },
+              {
+                "from": null,
+                "to": "template-1"
+              }
+            ],
+            "residents": [
+              "template-1"
+            ],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)",
+              "pine-hollow": "pine-hollow is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true
+          },
+          "crossing": {
+            "current": "template-1",
+            "target": "template-1",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": true,
+          "renderOrigin": {
+            "x": -555,
+            "z": 555
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        }
+      }
+    },
+    {
+      "name": "leave-copy",
+      "drive": {
+        "seconds": 32.929,
+        "waypoints": 1,
+        "transitions": [
+          "template-1",
+          null
+        ],
+        "end": {
+          "live": {
+            "current": null,
+            "worldFeet": {
+              "x": -276.858330454359,
+              "y": 0.44999999203310476,
+              "z": 555.017993572254
+            },
+            "crossings": 3,
+            "transitions": [
+              {
+                "from": "driftwood-isle",
+                "to": null
+              },
+              {
+                "from": null,
+                "to": "template-1"
+              },
+              {
+                "from": "template-1",
+                "to": null
+              }
+            ],
+            "residents": [
+              "template-1"
+            ],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)",
+              "pine-hollow": "pine-hollow is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true
+          },
+          "crossing": {
+            "current": null,
+            "target": null,
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": true,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 30,
+          "homeActive": null
+        }
+      }
+    },
+    {
+      "name": "return-copy",
+      "drive": {
+        "seconds": 23.677400000095368,
+        "waypoints": 3,
+        "transitions": [
+          "driftwood-isle",
+          null,
+          "template-1"
+        ],
+        "end": {
+          "live": {
+            "current": "template-1",
+            "worldFeet": {
+              "x": -319.320955449135,
+              "y": 0.45000001658243083,
+              "z": 555.122236772017
+            },
+            "crossings": 2,
+            "transitions": [
+              {
+                "from": "driftwood-isle",
+                "to": null
+              },
+              {
+                "from": null,
+                "to": "template-1"
+              }
+            ],
+            "residents": [
+              "template-1"
+            ],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)",
+              "pine-hollow": "pine-hollow is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true
+          },
+          "crossing": {
+            "current": "template-1",
+            "target": "template-1",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": true,
+          "renderOrigin": {
+            "x": -555,
+            "z": 555
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        }
+      }
+    }
+  ],
+  "contact": {
+    "actor": "grey-blob:1",
+    "hp": 0,
+    "dead": true
+  },
+  "beforeReload": {
+    "coins": 5,
+    "saved": true,
+    "mode": "exact",
+    "characters": 288176,
+    "facts": 1
+  },
+  "afterReload": {
+    "coins": 5,
+    "saved": true,
+    "mode": "exact",
+    "characters": 288176,
+    "facts": 1
+  },
+  "restored": {
+    "complete": true,
+    "blobAlive": false,
+    "tick": 2397,
+    "questComplete": true
+  },
+  "afterReturn": {
+    "coins": 5,
+    "saved": true,
+    "mode": "exact",
+    "characters": 288212,
+    "facts": 1
+  },
+  "sibling": {
+    "coins": 0,
+    "saved": false,
+    "mode": null,
+    "characters": 11,
+    "facts": 0
+  },
+  "storage": {
+    "failures": [],
+    "documents": [
+      {
+        "key": "wildshard.save.v2.global",
+        "characters": 179
+      },
+      {
+        "key": "wildshard.save.v2.driftwood-isle",
+        "characters": 215
+      },
+      {
+        "key": "wildshard.save.v2.profile",
+        "characters": 479
+      },
+      {
+        "key": "wildshard.save.v2.device",
+        "characters": 2225
+      },
+      {
+        "key": "wildshard.save.v2.template-1",
+        "characters": 288212
+      }
+    ]
+  },
+  "errors": [],
+  "unload": {
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "disposalErrors": []
+  },
+  "nativePageCensus": {
+    "bodies": 0,
+    "colliders": 1,
+    "scopeBodies": 0,
+    "scopeColliders": 0,
+    "remaining": [
+      {
+        "handle": 1.867356306874e-312,
+        "at": {
+          "x": -321.1723327636719,
+          "y": 0.9250999689102173,
+          "z": 554.7890014648438
+        },
+        "groups": 131237
+      }
+    ]
+  },
+  "nativeFixtures": {
+    "command": "pnpm exec vitest run test/grid-durability.test.ts test/live-grid-durability.test.ts test/shardfile-client-state.test.ts test/grid-crossing.test.ts test/grid-wallet.test.ts test/grid-road-recovery.test.ts test/grid-snapshot-compression.test.ts test/physics-pieces.test.ts",
+    "files": 8,
+    "tests": 33,
+    "pass": true,
+    "productionEightStrips": {
+      "nativeBytes": 7509529,
+      "basisBytes": 7508478,
+      "exactDocumentChars": 286820,
+      "logicalDocumentChars": 1464
+    },
+    "charBudget": 524288,
+    "basisAccountedBy": "ONE ResidencyAllocator sim-basis lease",
+    "refusalReleasesWorldAndClaim": true,
+    "logicalKeeps": [
+      "quest",
+      "flags",
+      "health",
+      "propActivation",
+      "fuel",
+      "coins"
+    ],
+    "mountDismountBeforeCheckpoint": true,
+    "hoverSurvives": true,
+    "respawnThreshold": "grounded declared opening OR 300 continuous fixed ticks grounded >=20m inside"
+  }
+}
