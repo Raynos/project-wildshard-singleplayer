@@ -12,7 +12,8 @@ import { installDeclaredItems } from '../src/game/shardfile/items';
 import { declaredKitItemFamilies } from '../src/kit/items/declared';
 import { createShardfileSim } from '../src/game/shardfile/simulation';
 import { syncTargetColliders } from '../src/game/shardfile/targets';
-import { captureClientState, restoreClientState, installClientItemState, clientStateSave } from '../src/game/shardfile/clientState';
+import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientStateFromRegion } from '../src/game/shardfile/clientState';
+import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { projectItemFields, handledItemInputs, clientScene } from '../src/game/shardfile/clientItems';
 import source from '../src/shards/_template/shard.config';
 
@@ -67,6 +68,29 @@ it('rejects a late incompatible item state atomically after script fields have b
     expect(restoreClientState(source, next.sim, next.items, corrupt)).toBe(false);
     expect(captureClientState(source, next.sim, next.items)).toEqual(before);
     expect(restoreClientState(source, next.sim, next.items, { ...before, revision: before.revision + 1 })).toBe(false);
+  } finally { next.sim.dispose(); first.sim.dispose(); }
+});
+it('restores portable health, inactive door, fuel and completed quest in a fresh executable lane without held inputs or repeated grants', () => {
+  const first = boot(), next = boot();
+  try {
+    first.lane.enqueue({ type: 201, target: first.player, value: 1 }); first.lamp.queue(3); first.step(90);
+    const blob = first.sim.host.entities.get('grey-blob:1'); if (blob === undefined) throw new Error('Missing blob');
+    blob.hp = 55; first.sim.colliders.get('template.door')?.setActive(false);
+    for (const flag of source.quests.flags) first.sim.host.flags.set(flag);
+    first.lamp.queue(4);
+    const portable = clientStateFromRegion(source, snapshotSimHost(first.sim.host), source.identity.revision, source.state.version,
+      Object.fromEntries([...first.sim.colliders].map(([id, port]) => [id, port.active()])));
+    expect(portable.lane).toBeNull(); expect(restoreClientState(source, next.sim, next.items, portable)).toBe(true);
+    expect(next.sim.host.entities.get('grey-blob:1')?.hp).toBe(55);
+    expect(next.sim.colliders.get('template.door')?.active()).toBe(false);
+    expect(next.lamp.remainingFuel).toBe(first.lamp.remainingFuel);
+    expect(next.lamp.snapshot()).toMatchObject({ pending: [], held: false, chargeTime: 0 });
+    expect(next.sim.quest.quests[0]?.isComplete).toBe(true); expect(next.grants()).toBe(0);
+    blob.hp = 0; blob.alive = false; blob.state = 'dead';
+    const dead = clientStateFromRegion(source, snapshotSimHost(first.sim.host));
+    expect(restoreClientState(source, next.sim, next.items, dead)).toBe(true);
+    next.step(120); expect(next.sim.host.entities.get('grey-blob:1')).toMatchObject({ hp: 0, alive: false, state: 'dead' });
+    expect(next.grants()).toBe(0);
   } finally { next.sim.dispose(); first.sim.dispose(); }
 });
 it('the real item and plumbing installers queue one lantern toggle per input and retain the trusted refill action without a Debug row', () => {
