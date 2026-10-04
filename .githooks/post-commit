@@ -25,7 +25,7 @@ fi
 # E357: the ratchet on the commit just made (its own tree, not the shared working tree): a rise here blocks every push,
 # so say so loudly now. Advisory (a post-commit hook cannot refuse); ~3 s.
 if [ -f "$repo/lint/ratchet.mjs" ]; then
-  tmp="$(mktemp -d /tmp/ratchet-commit.XXXXXX)"
+  tmp="$(cd "$(mktemp -d /tmp/ratchet-commit.XXXXXX)" && pwd -P)" # canonical: /tmp is a symlink on macOS (E432)
   # the ratchet reads both oxlint configs and (since E362 AG16/17) scripts/guard-counts.mjs; archive only what HEAD has
   paths="src lint .oxlintrc.ratchet.json package.json"
   for extra in .oxlintrc.json scripts/guard-counts.mjs; do git -C "$repo" cat-file -e "HEAD:$extra" 2>/dev/null && paths="$paths $extra"; done

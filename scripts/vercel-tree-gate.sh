@@ -20,7 +20,7 @@ short="$(git rev-parse --short "$sha")"
 stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate-node-bakes-v1"
 if [ -f "$stamp_dir/$sha" ]; then echo "vercel-gate: $short already passed"; exit 0; fi
 
-work="$(mktemp -d -t vercel-gate)" || exit 1
+work="$(cd "$(mktemp -d -t vercel-gate)" && pwd -P)" || exit 1 # canonical: /var is a symlink on macOS (E432)
 trap 'rm -rf "$work"' EXIT
 fail() { echo "vercel-gate: FAILED at $short — $1" >&2; echo "            (Vercel would have built this tree and gone red; fix it and commit, then push again)" >&2; exit 1; }
 

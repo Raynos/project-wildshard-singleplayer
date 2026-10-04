@@ -14,6 +14,7 @@ SHA="$(git -C "$REPO" rev-parse --verify "$TAG^{commit}")"
 NAME="wildshard-$(echo "$TAG" | tr '.' '-')"          # v0.3.0 → wildshard-v0-3-0
 WORK="/tmp/wildshard-release/$NAME-$(date +%s)"
 mkdir -p "$WORK/src"
+WORK="$(cd "$WORK" && pwd -P)" # canonical: /tmp is a symlink on macOS (E432)
 git -C "$REPO" archive "$SHA" | tar -x -C "$WORK/src"
 node "$REPO/scripts/link-node-modules.mjs" "$REPO" "$WORK/src" # E432: @wildshard/* → this export
 cd "$WORK/src"

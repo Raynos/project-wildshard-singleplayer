@@ -6,7 +6,7 @@
 //
 //   node scripts/link-node-modules.mjs <repo> <tree>          (the shell scripts)
 //   import { linkNodeModules } from './link-node-modules.mjs'  (the node ones)
-import { existsSync, lstatSync, mkdirSync, readdirSync, readlinkSync, symlinkSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readdirSync, readlinkSync, realpathSync, symlinkSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -19,6 +19,11 @@ const WORKSPACE_SCOPES = new Set(['@wildshard']);
  * @param {string} tree the export (a git archive of some commit)
  */
 export function linkNodeModules(repo, tree) {
+  if (realpathSync(tree) !== resolve(tree)) {
+    // macOS /tmp and /var are symlinks: a package resolved through node_modules (realpath) and a relative import (as
+    // spelled) would load the same engine file twice. Export to the canonical path (`pwd -P`, realpathSync).
+    throw new Error(`link-node-modules: ${tree} is not its canonical path (${realpathSync(tree)})`);
+  }
   const from = resolve(repo, 'node_modules'), to = resolve(tree, 'node_modules');
   if (!existsSync(from)) return; // nothing installed (a test's throwaway repo): the tree resolves no packages, as before
   if (existsSync(to)) {

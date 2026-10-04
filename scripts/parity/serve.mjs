@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, renameSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync, renameSync, statSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { linkNodeModules } from '../link-node-modules.mjs';
@@ -8,7 +8,7 @@ import { createServer } from 'node:net';
 
 /** @param {string} root @param {string} sha */
 export function exportTree(root, sha) {
-  const dir=mkdtempSync(join(tmpdir(),'wildshard-parity-')), ign=join(dir,'ign'); mkdirSync(ign);
+  const dir=realpathSync(mkdtempSync(join(tmpdir(),'wildshard-parity-'))), ign=join(dir,'ign'); mkdirSync(ign); // canonical (E432)
   execFileSync('git',['init','-q',ign]);
   const patterns=execFileSync('git',['show',`${sha}:.vercelignore`],{cwd:root,encoding:'utf8'}); writeFileSync(join(dir,'ignore'),patterns);
   const paths=execFileSync('git',['ls-tree','-r','--name-only',sha],{cwd:root,encoding:'utf8'}).trim().split('\n');

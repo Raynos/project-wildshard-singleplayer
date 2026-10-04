@@ -37,7 +37,7 @@ import { saveFixtureCode, debugSettings } from './debug-settings.mjs';
 // progress/scorecard/<tag>/ (the goldens when --goldens: progress/scorecard/baseline/).
 import { readShards } from './shards.mjs';
 import { spawn, execSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync, copyFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync, existsSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve as resolvePath, join, dirname } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
@@ -1054,7 +1054,7 @@ function renderMarkdown(res) {
 
 function exportTree(ref) {
   const sha = execSync(`git rev-parse --short=8 ${ref}`, { cwd: ROOT, encoding: 'utf8' }).trim();
-  const dir = join(tmpdir(), `scorecard-${sha}`);
+  const dir = join(realpathSync(tmpdir()), `scorecard-${sha}`); // canonical: macOS /var is a symlink (E432)
   if (!existsSync(join(dir, 'dist', 'index.html'))) {
     mkdirSync(dir, { recursive: true });
     console.error(`> git archive ${ref} (${sha}) → ${dir}`);
