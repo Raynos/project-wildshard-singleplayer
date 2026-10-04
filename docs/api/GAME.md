@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-323 members; 112 without a doc line (—).
+333 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -80,6 +80,16 @@ The game layer's public modules (src/game/package.json `exports`).
 | `EliteScript` | interface | @wildshard/game/Elite | — |
 | `GroundTell` | class | @wildshard/game/Elite | — |
 | `GroundTellWedgeStyle` | interface | @wildshard/game/Elite | Wedge-specific shader parameters are authored by the caller; geometry/draping is shared. |
+| `EmptyNeighbour` | interface | @wildshard/game/grid/assembly | Outside the finite grid, seams ease into road-level open water and fog instead of another sim. |
+| `GridAssembly` | class | @wildshard/game/grid/assembly | Assemble the one platform catalogue without changing any shard's local simulation or standalone placement. |
+| `GridCell` | interface | @wildshard/game/grid/assembly | Stable instance identity with its independent cell placement and derived rendering translation. |
+| `GridPoint` | interface | @wildshard/game/grid/assembly | A world-space or cell-local point; authoritative simulations only receive the latter. |
+| `GridSide` | type | @wildshard/game/grid/assembly | Neighbour queries use the same signed convention as the grid: north is positive z. |
+| `GridCatalogue` | type | @wildshard/game/grid/catalogue | Admitted assembly input; a cell remains a mutable placement attribute, never a save namespace. |
+| `GridCatalogueSchema` | const | @wildshard/game/grid/catalogue | Platform placement data, independent of package content and standalone shard coordinates. |
+| `GridMode` | interface | @wildshard/game/grid/catalogue | Runtime switches originate from Settings and build-time DEVSERVER; Nine Dragon defaults on only in DEVSERVER. |
+| `GridPlacement` | type | @wildshard/game/grid/catalogue | Catalogue placement before its render origin is derived. |
+| `parseGridCatalogue` | function | @wildshard/game/grid/catalogue | Reject malformed or duplicate placement data before allocating an assembly. |
 | `firstPartyInstance` | function | @wildshard/game/grid/instances | Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix. |
 | `templateInstance` | function | @wildshard/game/grid/instances | Six copies of one template package have independent facts and local state, wherever they are placed. |
 | `instanceSave` | function | @wildshard/game/instanceSaves | Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent. |

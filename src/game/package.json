@@ -67,6 +67,8 @@
     "./shardfile/product": "./shardfile/product.ts",
     "./shardfile/props": "./shardfile/props.ts",
     "./shardfile/items": "./shardfile/items.ts",
-    "./shardfile/simulation": "./shardfile/simulation.ts"
+    "./shardfile/simulation": "./shardfile/simulation.ts",
+    "./grid/catalogue": "./grid/catalogue.ts",
+    "./grid/assembly": "./grid/assembly.ts"
   }
 }

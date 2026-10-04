@@ -763,3 +763,12 @@ shrine knoll), so moving a POI is a one-line change; the entry roads stay forced
 the jetties' submerged sandbars. `scripts/bake-chunk.mjs` fingerprints the landscape into the bake
 header and `BakedTerrain.ts` refuses a bake that does not match the live def, so a stale
 `terrain.bin` (from before a def edit, or a service-worker copy) falls back to the analytic field.
+
+The platform grid is assembled by `GridAssembly` from `game/grid/singleplayer.json`'s
+separate `grid` section. Its stable instance ids own saves and facts; signed cells derive
+render translations at 555 m pitch without entering local simulation state. Developer
+and DEVSERVER replacements keep their existing slug identities. Missing outer neighbours
+supply an open-sea, road-level edge and fog profile. Grid bounds pass a `grid` predicate
+to `installBounds`: the grid driver owns horizontal traversal, while authored fall recovery
+and standalone play bounds retain their existing behavior. Physics world changes and
+fixed-step crossing notifications are supplied by the residency driver (SF18a).

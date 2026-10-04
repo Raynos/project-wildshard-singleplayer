@@ -11544,6 +11544,66 @@
         "from": "@wildshard/game/Elite"
       },
       {
+        "name": "EmptyNeighbour",
+        "kind": "interface",
+        "doc": "Outside the finite grid, seams ease into road-level open water and fog instead of another sim.",
+        "from": "@wildshard/game/grid/assembly"
+      },
+      {
+        "name": "GridAssembly",
+        "kind": "class",
+        "doc": "Assemble the one platform catalogue without changing any shard's local simulation or standalone placement.",
+        "from": "@wildshard/game/grid/assembly"
+      },
+      {
+        "name": "GridCell",
+        "kind": "interface",
+        "doc": "Stable instance identity with its independent cell placement and derived rendering translation.",
+        "from": "@wildshard/game/grid/assembly"
+      },
+      {
+        "name": "GridPoint",
+        "kind": "interface",
+        "doc": "A world-space or cell-local point; authoritative simulations only receive the latter.",
+        "from": "@wildshard/game/grid/assembly"
+      },
+      {
+        "name": "GridSide",
+        "kind": "type",
+        "doc": "Neighbour queries use the same signed convention as the grid: north is positive z.",
+        "from": "@wildshard/game/grid/assembly"
+      },
+      {
+        "name": "GridCatalogue",
+        "kind": "type",
+        "doc": "Admitted assembly input; a cell remains a mutable placement attribute, never a save namespace.",
+        "from": "@wildshard/game/grid/catalogue"
+      },
+      {
+        "name": "GridCatalogueSchema",
+        "kind": "const",
+        "doc": "Platform placement data, independent of package content and standalone shard coordinates.",
+        "from": "@wildshard/game/grid/catalogue"
+      },
+      {
+        "name": "GridMode",
+        "kind": "interface",
+        "doc": "Runtime switches originate from Settings and build-time DEVSERVER; Nine Dragon defaults on only in DEVSERVER.",
+        "from": "@wildshard/game/grid/catalogue"
+      },
+      {
+        "name": "GridPlacement",
+        "kind": "type",
+        "doc": "Catalogue placement before its render origin is derived.",
+        "from": "@wildshard/game/grid/catalogue"
+      },
+      {
+        "name": "parseGridCatalogue",
+        "kind": "function",
+        "doc": "Reject malformed or duplicate placement data before allocating an assembly.",
+        "from": "@wildshard/game/grid/catalogue"
+      },
+      {
         "name": "firstPartyInstance",
         "kind": "function",
         "doc": "Select a shard, explore and the grid resolve one durable first-party identity, without a cell suffix.",

@@ -92,5 +92,129 @@
         500
       ]
     }
-  ]
+  ],
+  "grid": {
+    "version": 0,
+    "pitch": 555,
+    "cells": [
+      {
+        "instance": "template-1",
+        "slug": "_template",
+        "cell": [
+          -1,
+          1
+        ]
+      },
+      {
+        "instance": "pine-hollow",
+        "slug": "pine-hollow",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "instance": "template-2",
+        "slug": "_template",
+        "cell": [
+          1,
+          1
+        ]
+      },
+      {
+        "instance": "template-3",
+        "slug": "_template",
+        "cell": [
+          -1,
+          0
+        ]
+      },
+      {
+        "instance": "driftwood-isle",
+        "slug": "driftwood-isle",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands",
+        "cell": [
+          1,
+          0
+        ]
+      },
+      {
+        "instance": "template-4",
+        "slug": "_template",
+        "cell": [
+          -1,
+          -1
+        ]
+      },
+      {
+        "instance": "template-5",
+        "slug": "_template",
+        "cell": [
+          0,
+          -1
+        ]
+      },
+      {
+        "instance": "template-6",
+        "slug": "_template",
+        "cell": [
+          1,
+          -1
+        ]
+      }
+    ],
+    "developer": [
+      {
+        "instance": "sunscar-dunes",
+        "slug": "sunscar-dunes",
+        "cell": [
+          -1,
+          0
+        ]
+      },
+      {
+        "instance": "far-reach",
+        "slug": "far-reach",
+        "cell": [
+          0,
+          -1
+        ]
+      }
+    ],
+    "devserver": [
+      {
+        "instance": "nine-dragon-stack",
+        "slug": "nine-dragon-stack",
+        "cell": [
+          1,
+          -1
+        ]
+      }
+    ],
+    "emptyNeighbour": {
+      "kind": "sea",
+      "level": 0,
+      "fog": {
+        "colour": [
+          0.6,
+          0.65,
+          0.7
+        ],
+        "near": 60,
+        "far": 180
+      },
+      "edgeColour": [
+        0.25,
+        0.25,
+        0.25
+      ]
+    }
+  }
 }

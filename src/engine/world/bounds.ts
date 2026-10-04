@@ -12,6 +12,8 @@ export interface BoundsHost {
   suspended: () => boolean;
   floorAt: (x: number, z: number) => number | undefined;
   toSpawn: () => void;
+  /** Grid traversal owns horizontal cell/strip limits; authored vertical fall recovery remains active. */
+  grid?: () => boolean;
 }
 
 /** An authored play area keeps the last grounded registry floor as its soft respawn. */
@@ -22,7 +24,8 @@ export function installBounds(app: App, scope: Scope, bounds: Bounds | undefined
   app.addSystem({ id: 'engine.world.bounds', phase: 'update', when: inState('play'), run: (dt) => {
     if (host.suspended()) return;
     const { player } = host, p = player.position;
-    if (p.y < bounds.floor || p.x < bounds.x0 || p.x > bounds.x1 || p.z < bounds.z0 || p.z > bounds.z1) {
+    const horizontal = host.grid?.() !== true && (p.x < bounds.x0 || p.x > bounds.x1 || p.z < bounds.z0 || p.z > bounds.z1);
+    if (p.y < bounds.floor || horizontal) {
       if (safe.set) player.spawn(safe.x, safe.z, player.yaw, safe.y); else host.toSpawn();
       since = 0;
       return;
