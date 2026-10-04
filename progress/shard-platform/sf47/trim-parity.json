@@ -1,0 +1,78 @@
+{
+ "$doc": "SHARD-PLATFORM SF47: pineMemoryTrim OFF vs ON on one build (8bad9747a, served clean), scripts/parity.mjs capture() + compare() + masked imageScore() (SF46-parity.mjs adapted to a Debug fixture, Memory saver off, accelerated seeded clock). GL census (glbytes-probe, phone, cold img mode): 656.55 -> 639.78 MB, the two sky keys 16.78 -> 8.39 MB each. The only red rows are those bytes. SSIM 0.9977-0.9979 on every pose, under the 0.999 target; the same-build OFF vs OFF noise floor for Pine is not measured yet, so the row stays default-off.",
+ "when": "2026-10-04T22:37:33.075Z",
+ "reports": [
+  {
+   "tier": "phone",
+   "verdict": "red",
+   "images": [
+    {
+     "name": "gate",
+     "ssim": 0.9978584107930417
+    },
+    {
+     "name": "cabin",
+     "ssim": 0.9979215041877214
+    },
+    {
+     "name": "pond",
+     "ssim": 0.9977565531381599
+    }
+   ],
+   "differences": [
+    {
+     "field": "boot.gpuBytes.textures",
+     "baseline": 573326888,
+     "now": 556549672,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.gpuBytes.total",
+     "baseline": 615652966,
+     "now": 598875750,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    }
+   ]
+  },
+  {
+   "tier": "desktop",
+   "verdict": "red",
+   "images": [
+    {
+     "name": "gate",
+     "ssim": 0.9977239275468643
+    },
+    {
+     "name": "cabin",
+     "ssim": 0.9977113384613435
+    },
+    {
+     "name": "pond",
+     "ssim": 0.9979290507339706
+    }
+   ],
+   "differences": [
+    {
+     "field": "boot.gpuBytes.textures",
+     "baseline": 1201244592,
+     "now": 1184467376,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.gpuBytes.total",
+     "baseline": 1382591022,
+     "now": 1365813806,
+     "class": "B",
+     "band": "± 0",
+     "verdict": "red"
+    }
+   ]
+  }
+ ]
+}
