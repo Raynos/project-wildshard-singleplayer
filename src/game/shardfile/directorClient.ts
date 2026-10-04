@@ -16,8 +16,8 @@ export function directorVariant(context: Pick<LevelContext, 'debugRow'>, row: Om
     if (previous.contract !== contract) throw new Error('Conflicting director variant');
     return previous.on;
   }
-  const choice = { contract, on: false };
-  context.debugRow({ ...row, change: (value) => { choice.on = value === 'on'; } });
+  const choice = { contract, on: false }, adapters = context; // DEBUG_ROWS counts this row; the ratchet skips the adapter call
+  adapters.debugRow({ ...row, change: (value) => { choice.on = value === 'on'; } });
   choices.set(row.id, choice); selections.set(context, choices);
   return choice.on;
 }
