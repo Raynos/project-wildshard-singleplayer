@@ -3,7 +3,7 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { DRIFTWOOD_AUDIO } from './data/audio';
 import { DRIFTWOOD_EDGE_HEIGHTS } from './data/edges';
 import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
-import { WORLD_DROP } from './world/sea';
+import { DECLARED_SEA, ENTRY_LANDINGS, WORLD_DROP } from './world/sea';
 
 // SF46 step 1: content and the existing look stay in the declared trusted entry until the grid-ready bake lands.
 // SF46 edges (G93 / G99 / G164): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand on
@@ -27,5 +27,12 @@ export default parseShardfile({
   runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST },
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: DRIFTWOOD_AUDIO,
+  // G164 (SHARDFILE.md socketOverWater): every entry meets the road over the lowered sea. The sea row clips the four 8 × 15 m
+  // sockets dry (dryEntries) and the four declared plank landings (top y = 0, the full 8 m across each socket's shard-side
+  // edge) prove the walk off the socket. The trusted runtime consumes both rows itself (world/sea.ts, world/build.ts).
+  entryways: base.entryways.map(({ edge, at, width }) => ({ edge, at, width, kind: 'socketOverWater' as const })),
+  water: [{ ...DECLARED_SEA, dryEntries: [...DECLARED_SEA.dryEntries] }],
+  props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [],
+    colliders: ENTRY_LANDINGS.map((landing) => ({ id: `landing.${landing.edge}`, panel: null, initialActive: true, shapes: [{ ...landing.box }] })) },
   spawn: { x: 0, y: 1.2, z: -194, yaw: Math.PI },
 });

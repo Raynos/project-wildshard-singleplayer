@@ -60,6 +60,9 @@ export interface ShardfileClientBindings {
   trustedRuntime?: boolean;
   /** Declared audio is the default. A trusted first-party transition may let its runtime consume the same audio declaration exactly once. */
   audioOwner?: 'declared' | 'runtime';
+  /** Declared water rows and collider-only props are installed by the data client by default. A trusted first-party transition may
+   *  let its runtime consume them exactly once (G164: Driftwood's sea row with its dry sockets and its socket landings). */
+  worldOwner?: 'declared' | 'runtime';
   /** Platform catalogue installers bind extended audio data to the existing play host. */
   audioProfiles?: (play: ShardPlayHost) => DeclaredAudioPorts['profiles'];
   /** Announced during construction only when this data client will create a simulation; empty trusted transitions never announce a handoff. */
@@ -70,10 +73,13 @@ export interface ShardfileClientBindings {
 const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
 const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
 
-function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings['audioOwner']): boolean {
+function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings['audioOwner'], worldOwner: ShardfileClientBindings['worldOwner']): boolean {
+  // a runtime-owned world declaration: water rows and props that only declare colliders (no tiles, panels, models, far or textures)
+  const runtimeWorld = worldOwner === 'runtime', props = source.props;
+  const propsEmpty = props === null || (runtimeWorld && props.tiles.length + props.panels.length + props.models.length + props.textures.length === 0 && props.far === null);
   const audioEmpty = audioOwner === 'runtime' || (source.audio.cues.length + source.audio.routing.length === 0 && source.audio.ambience === null && source.audio.score === 'silent' && source.audio.music === undefined && source.audio.samples === undefined && source.audio.zones === undefined);
-  return source.clientScripts.bindings.length + source.files.length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.water.length + source.creatures.brains.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
-    && source.terrain === null && source.props === null && source.far === null && source.plumbing === null
+  return source.clientScripts.bindings.length + source.files.length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + (runtimeWorld ? 0 : source.water.length) + source.creatures.brains.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
+    && source.terrain === null && propsEmpty && source.far === null && source.plumbing === null
     && audioEmpty && source.look.grade.lut === null
     && source.look.day === undefined && source.look.dayOverride === null;
 }
@@ -95,7 +101,7 @@ export class ShardfileClient {
       const home = bindings.residency.home();
       if (home.instance !== bindings.instance || home.allocator !== bindings.allocator) throw new Error('Shardfile client requires its early page home residency');
     }
-    this.source = source; this.assets = assets; this.bindings = bindings; this.emptyTrustedData = bindings.trustedRuntime === true && emptyHybridData(source, bindings.audioOwner);
+    this.source = source; this.assets = assets; this.bindings = bindings; this.emptyTrustedData = bindings.trustedRuntime === true && emptyHybridData(source, bindings.audioOwner, bindings.worldOwner);
     if (!this.emptyTrustedData) bindings.onSimulationExpected?.();
   }
 

@@ -16,6 +16,7 @@ import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/c
 import { swellBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterExtent } from '@wildshard/engine/world/waves';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
+import { dryEntryContains, type DryEntryEdge } from '@wildshard/engine/world/water/declared';
 import { jsonSlot } from '@wildshard/engine/saves/slots';
 import type { ChunkTerrain } from '@wildshard/game/shard/manifest';
 
@@ -72,17 +73,49 @@ function loweredReaches(x: number, z: number): boolean {
 
 /** a level-space rectangle (metres) */
 export interface DryRect { readonly minX: number; readonly minZ: number; readonly maxX: number; readonly maxZ: number }
-/** the four 8 × 15 m entry sockets (ENTRY_WIDTH across, ENTRY_ASPHALT in from each edge midpoint): the lowered sea is
- *  clipped out of them, so the platform's asphalt is dry (G134 (a), kept by G164) */
-export const ENTRY_FOOTPRINTS: readonly DryRect[] = [
-  { minX: -ENTRY_WIDTH / 2, minZ: CHUNK_HALF - ENTRY_ASPHALT, maxX: ENTRY_WIDTH / 2, maxZ: CHUNK_HALF },
-  { minX: CHUNK_HALF - ENTRY_ASPHALT, minZ: -ENTRY_WIDTH / 2, maxX: CHUNK_HALF, maxZ: ENTRY_WIDTH / 2 },
-  { minX: -ENTRY_WIDTH / 2, minZ: -CHUNK_HALF, maxX: ENTRY_WIDTH / 2, maxZ: -CHUNK_HALF + ENTRY_ASPHALT },
-  { minX: -CHUNK_HALF, minZ: -ENTRY_WIDTH / 2, maxX: -CHUNK_HALF + ENTRY_ASPHALT, maxZ: ENTRY_WIDTH / 2 },
-];
-/** whether (x, z) is in one of the dry entry sockets */
+
+/** G164 (SHARDFILE.md `socketOverWater`): each of Driftwood's four entries meets the road over the lowered sea, so the
+ *  shardfile's `sea` row declares all four `dryEntries` and the platform's 8 × 15 m socket floor is the approach */
+export const DRY_ENTRIES: readonly DryEntryEdge[] = ['north', 'east', 'south', 'west'];
+/** the declared `sea` water row (shard.config.ts): road height, the swell, the four dry sockets. The runtime consumes the
+ *  same row: the lowered swim / wade body and the ocean's clip both read its `dryEntries` */
+export const DECLARED_SEA = { id: 'sea', kind: 'sea', level: LOWERED_SEA, waves: true, dryEntries: DRY_ENTRIES } as const;
+
+/** how far in from its socket's shard-side edge an entry landing runs (metres) */
+export const LANDING_RUN = 1.5;
+const LANDING_HALF = 0.1;
+/** one declared entry landing: an axis-aligned plank stage at road height (top y = 0 exactly), the full 8 m across the
+ *  socket's shard-side edge, `LANDING_RUN` deep; the pier / jetty's sea-end ramp rises from it */
+export interface EntryLanding {
+  readonly edge: DryEntryEdge;
+  readonly box: { readonly kind: 'box'; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number; readonly surface: 'wood' };
+}
+function landing(edge: DryEntryEdge): EntryLanding {
+  const centre = CHUNK_HALF - ENTRY_ASPHALT - LANDING_RUN / 2, across = ENTRY_WIDTH / 2, along = LANDING_RUN / 2;
+  const at = { north: [0, centre, across, along], south: [0, -centre, across, along], east: [centre, 0, along, across], west: [-centre, 0, along, across] } as const;
+  const [x, z, hx, hz] = at[edge];
+  return { edge, box: { kind: 'box', x, y: -LANDING_HALF, z, hx, hy: LANDING_HALF, hz, surface: 'wood' } };
+}
+/** G164: the four landings, declared by the shardfile as active static colliders (its socket-landing proof) and installed
+ *  exactly as declared by the lowered world build (world/build.ts); the pier / jetty model draws their planks */
+export const ENTRY_LANDINGS: readonly EntryLanding[] = DRY_ENTRIES.map(landing);
+
+/** the canonical 8 × 15 m socket of a dry entry as a rectangle for the ocean shader's clip (inclusive, the same region as
+ *  the engine's `dryEntryContains`) */
+export function dryEntryRect(edge: DryEntryEdge): DryRect {
+  switch (edge) {
+    case 'north': return { minX: -ENTRY_WIDTH / 2, minZ: CHUNK_HALF - ENTRY_ASPHALT, maxX: ENTRY_WIDTH / 2, maxZ: CHUNK_HALF };
+    case 'east': return { minX: CHUNK_HALF - ENTRY_ASPHALT, minZ: -ENTRY_WIDTH / 2, maxX: CHUNK_HALF, maxZ: ENTRY_WIDTH / 2 };
+    case 'south': return { minX: -ENTRY_WIDTH / 2, minZ: -CHUNK_HALF, maxX: ENTRY_WIDTH / 2, maxZ: -CHUNK_HALF + ENTRY_ASPHALT };
+    case 'west': return { minX: -CHUNK_HALF, minZ: -ENTRY_WIDTH / 2, maxX: -CHUNK_HALF + ENTRY_ASPHALT, maxZ: ENTRY_WIDTH / 2 };
+    default: throw new Error('Invalid dry entryway');
+  }
+}
+/** the ocean's dry rectangles: the declared sea row's `dryEntries` (G134 (a), kept by G164; SHARDFILE.md's clip) */
+export const ENTRY_FOOTPRINTS: readonly DryRect[] = DECLARED_SEA.dryEntries.map(dryEntryRect);
+/** whether (x, z) is in one of the declared sea row's dry sockets (the engine's own test, as the platform clips) */
 export function inEntryFootprint(x: number, z: number): boolean {
-  return ENTRY_FOOTPRINTS.some((r) => x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ);
+  return DECLARED_SEA.dryEntries.some((edge) => dryEntryContains(edge, x, z));
 }
 
 const shore = swellBody('sea', SHORE_LEVEL), swell = swellBody('sea', LOWERED_SEA);

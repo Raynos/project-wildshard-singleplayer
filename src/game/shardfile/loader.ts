@@ -69,6 +69,7 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
   const source = admitted.source;
   if (bindings.trustedRuntime === true && (!options.firstParty || source.runtime === null)) throw new Error('Empty hybrid policy requires a trusted first-party runtime declaration');
   if (bindings.audioOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime audio ownership requires a trusted first-party runtime declaration');
+  if (bindings.worldOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime world ownership requires a trusted first-party runtime declaration');
   const residency = clientResidency(source, bindings);
   const assets = new ClientAssets(source, admitted.assets, options);
   const manifest = sourceManifest(source);

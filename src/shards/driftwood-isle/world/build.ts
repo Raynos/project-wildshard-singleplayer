@@ -31,7 +31,7 @@ import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
 import { tintTerrain } from './coverTint';
 import type { BlenderIsland } from './BlenderIsland';
-import { ENTRY_FOOTPRINTS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRect } from './sea';
+import { ENTRY_FOOTPRINTS, ENTRY_LANDINGS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRect, type EntryLanding } from './sea';
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
@@ -49,10 +49,22 @@ export interface DriftwoodLowered {
   readonly level: number; readonly pierStart: number; readonly seaRamp: number; readonly dry: readonly DryRect[];
   /** how far inside a confining grid cell's edge the sea stops (G149: the shore revetment's inner face) */
   readonly edgeInset: number;
+  /** G164: the shardfile's declared entry landings (world/sea.ts), installed exactly as declared, each pier / jetty drawing the
+   *  planks of the one at its sea end */
+  readonly landings: readonly EntryLanding[];
 }
 /** G164's lowered world: the sea at road level, the decks (1.2 m above it, as they always stood) from 18 m in, a 6 m ramp
  *  up from road height (1.2 m: ≈ 11°) */
-export const G164_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: 6, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE };
+export const G164_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: 6, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE, landings: ENTRY_LANDINGS };
+
+/** the plank stage a pier / jetty starting at (x, z) (its sea end, on its socket's shard-side edge) draws: the declared landing
+ *  there, `width` across the entry and `run` in */
+function apronAt(landings: readonly EntryLanding[], x: number, z: number): { width: number; run: number } | undefined {
+  const hit = landings.find(({ box }) => Math.abs(x - box.x) <= box.hx + 1e-6 && Math.abs(z - box.z) <= box.hz + 1e-6);
+  if (hit === undefined) return undefined;
+  const ns = hit.edge === 'north' || hit.edge === 'south';
+  return { width: 2 * (ns ? hit.box.hx : hit.box.hz), run: 2 * (ns ? hit.box.hz : hit.box.hx) };
+}
 
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
@@ -76,7 +88,14 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: lowered, it starts `cut` in (past the entry socket) and ramps up from road height
-  const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF + cut, length: ROAD_LENGTH - cut, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT - cut, ...seaRamp }).place(registry, 'pier');
+  const apron = (x: number, z: number): { apron?: { width: number; run: number } } => {
+    const a = lowered === undefined ? undefined : apronAt(lowered.landings, x, z); return a === undefined ? {} : { apron: a };
+  };
+  const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF + cut, length: ROAD_LENGTH - cut, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT - cut, ...seaRamp, ...apron(0, -CHUNK_HALF + cut) }).place(registry, 'pier');
+  // G164: the declared entry landings (the shardfile's socket-landing proof), installed as declared; the piers draw them
+  if (lowered !== undefined) registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/sea.ts', surface: 'wood',
+    colliders: lowered.landings.map(({ box }) => ({ ...box })), solidFloor: true,
+    floor: (x, z) => (lowered.landings.some(({ box }) => Math.abs(x - box.x) <= box.hx && Math.abs(z - box.z) <= box.hz) ? 0 : undefined) });
   statics.push(...pier.colliders);
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
@@ -114,7 +133,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const jetties: Pier[] = [];
   for (const [i, j] of JETTIES.entries()) {
     const x = cut === 0 ? j.x : j.x + Math.sin(j.rot) * cut, z = cut === 0 ? j.z : j.z + Math.cos(j.rot) * cut; // `rot` 0 runs +z
-    const jetty = new Pier(sky, { x, z, rot: j.rot, length: j.length - cut, width: 3, deckY: sea.level + 1.2, ...seaRamp }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice();
+    const jetty = new Pier(sky, { x, z, rot: j.rot, length: j.length - cut, width: 3, deckY: sea.level + 1.2, ...seaRamp, ...apron(x, z) }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice();
   }
   await slice();
   const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];

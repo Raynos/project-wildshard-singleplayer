@@ -1,7 +1,10 @@
 import { expect, it } from 'vitest';
 import { Scope } from '../../../src/engine/app/scope';
 import { entrywayRules } from '../../../src/game/shardfile/entryways';
-import { validateProject } from '../../../src/sdk/project';
+import { contentHash, validateProject } from '../../../src/sdk/project';
+import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
+import { validateSocketLandings } from '../../../src/game/shardfile/entryLanding';
+import { dryEntryContains } from '../../../src/engine/world/water/declared';
 import manifest, { BOAT_MOOR, BRIDGE, JETTIES, OCEAN, PIER_PENNANT_AT, WRECK } from '../../../src/shards/driftwood-isle/manifest';
 import { pierColliders, pierDeckAt, pierPosts, type PierParams } from '../../../src/shards/driftwood-isle/models/pier';
 import { ropeBridgeSegments } from '../../../src/shards/driftwood-isle/models/ropeBridge';
@@ -10,7 +13,7 @@ import { boatColliders } from '../../../src/shards/driftwood-isle/models/boat';
 import { MOVERS } from '../../../src/shards/driftwood-isle/data/movers';
 import { WATER_UNBOUNDED, seaDamp, waterExtent } from '../../../src/engine/world/waves';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '../../../src/engine/core/config';
-import { DRIFTWOOD_SEA, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, SHORE_LEVEL, WORLD_DROP, droppedTerrain, hybridRowOn, lowerSea, seaLevel, waterline, worldDrop } from '../../../src/shards/driftwood-isle/world/sea';
+import { DRIFTWOOD_SEA, DRY_ENTRIES, ENTRY_LANDINGS, LANDING_RUN, dryEntryRect, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, SHORE_LEVEL, WORLD_DROP, droppedTerrain, hybridRowOn, lowerSea, seaLevel, waterline, worldDrop } from '../../../src/shards/driftwood-isle/world/sea';
 import { DRIFTWOOD_EDGE_HEIGHTS } from '../../../src/shards/driftwood-isle/data/edges';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 
@@ -53,6 +56,35 @@ it('declares four 8 m midpoint entries on the lowered boundary rows, the socket 
       expect(height).toBe((bake[i] ?? Number.NaN) - WORLD_DROP);
       expect(Math.abs(authored.heightAt(x, z) - WORLD_DROP - height)).toBeLessThan(1e-3);
     });
+  }
+});
+
+it('declares every entry a socket over water: the sea row clips all four sockets, four 8 m landings at y = 0 prove the walk off', () => {
+  expect(source.entryways.map((row) => row.kind)).toEqual(['socketOverWater', 'socketOverWater', 'socketOverWater', 'socketOverWater']);
+  expect(source.water).toEqual([{ id: 'sea', kind: 'sea', level: 0, waves: true, dryEntries: ['north', 'east', 'south', 'west'] }]);
+  expect(source.props?.colliders.map((row) => row.shapes)).toEqual(ENTRY_LANDINGS.map(({ box }) => [box]));
+  expect(() => validateShardfileAssets(source, new Map(), contentHash)).not.toThrow();
+  // no landing, or one 0.5 m short of the full 8 m, or 1 cm proud of the road: refused
+  expect(() => validateShardfileAssets({ ...source, props: null }, new Map(), contentHash)).toThrow('full-width collision landing');
+  const narrow = ENTRY_LANDINGS.map(({ edge, box }) => ({ id: `landing.${edge}`, panel: null, initialActive: true, shapes: [edge === 'north' ? { ...box, x: box.x + 0.5 } : { ...box }] }));
+  const props = source.props; if (props === null) throw new Error('Driftwood declares its landings');
+  expect(() => validateSocketLandings({ ...source, props: { ...props, colliders: narrow } }, new Map())).toThrow('full-width collision landing');
+  const proud = ENTRY_LANDINGS.map(({ edge, box }) => ({ id: `landing.${edge}`, panel: null, initialActive: true, shapes: [{ ...box, y: box.y + 0.01 }] }));
+  expect(() => validateShardfileAssets({ ...source, props: { ...props, colliders: proud } }, new Map(), contentHash)).toThrow();
+  // the ocean's rectangles and the swim / wade clip are the engine's dry sockets exactly (inclusive edges)
+  for (const edge of DRY_ENTRIES) {
+    const r = dryEntryRect(edge);
+    for (const [x, z] of [[r.minX, r.minZ], [r.maxX, r.maxZ], [(r.minX + r.maxX) / 2, (r.minZ + r.maxZ) / 2], [r.minX - 0.01, r.minZ], [r.maxX + 0.01, r.maxZ], [r.minX, r.minZ - 0.01]] as const) {
+      expect(dryEntryContains(edge, x, z)).toBe(x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ);
+    }
+  }
+  expect(G164_LOWERED.dry).toEqual(DRY_ENTRIES.map(dryEntryRect)); expect(G164_LOWERED.landings).toBe(ENTRY_LANDINGS);
+  // each landing: top at exactly y = 0, the whole 8 m across, LANDING_RUN in from its socket's shard-side edge
+  for (const { edge, box } of ENTRY_LANDINGS) {
+    expect(box.y + box.hy).toBe(0);
+    const ns = edge === 'north' || edge === 'south';
+    expect(2 * (ns ? box.hx : box.hz)).toBe(ENTRY_WIDTH); expect(2 * (ns ? box.hz : box.hx)).toBe(LANDING_RUN);
+    expect(Math.abs(ns ? box.z : box.x) + LANDING_RUN / 2).toBe(CHUNK_HALF - ENTRY_ASPHALT);
   }
 });
 

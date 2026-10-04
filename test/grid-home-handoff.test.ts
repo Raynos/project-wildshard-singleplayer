@@ -16,7 +16,7 @@ import driftwood from '../src/shards/driftwood-isle/shard.config';
 async function announce(source: Shardfile, trustedRuntime: boolean, handoff: GridHomeHandoff): Promise<void> {
   const manifest = await shardfileSource(source, { base: 'https://fixture.test/', firstParty: true, offline: false,
     fetch: () => Promise.reject(new Error('Empty fixture never fetches')), hash: () => Promise.reject(new Error('Empty fixture never hashes')) }, {
-    instance: source.identity.slug, trustedRuntime, audioOwner: 'runtime', catalogue: [], recipes: new Map(), items: new Map(),
+    instance: source.identity.slug, trustedRuntime, audioOwner: 'runtime', worldOwner: 'runtime', catalogue: [], recipes: new Map(), items: new Map(),
     voices: () => new Map(), icon: () => { throw new Error('Fixture never creates equipment'); },
     onSimulationExpected: () => { handoff.expect(); },
   });
