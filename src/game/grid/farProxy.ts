@@ -42,6 +42,11 @@ export const FAR_REGIONS = 4, FAR_QUADS = 12;
 /** Skirt depth (m) under every region edge: hides the cracks against L1 tiles and neighbouring regions. */
 export const FAR_SKIRT = 8;
 /**
+ * The cell's outer edge drops to this height (m) instead: a shard whose border stands high (Pine Hollow's north ridge,
+ * Nalati's snow-ring berm) reads as a solid cliff down past road level from a neighbour, never as ground over a void.
+ */
+export const FAR_EDGE_FLOOR = -20;
+/**
  * The far ring (SF23 owns its parameters; SF18b's `RenderRings` owns the scheduler). The ring keeps at most `count`
  * proxies, nearest first, for cells within `viewDistance + farPrefetch` of the camera (the rings' defaults: 1.5 pitches,
  * plus SF18d's 435 m readiness distance), so boot residency is the same for any grid larger than 3 × 3. `drawDistance`
@@ -98,10 +103,13 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource): FarProxyMesh 
       const a = base + j * n + i, b = a + 1, c = a + n, d = c + 1;
       index.push(a, c, b, b, c, d);
     }
-    // skirts: each edge vertex drops FAR_SKIRT, darkened; wound outward (south edge faces −z, east +x, north +z, west −x)
+    // skirts: each edge vertex drops FAR_SKIRT (on the cell's border, to FAR_EDGE_FLOOR), darkened; wound outward (south
+    // edge faces −z, east +x, north +z, west −x)
+    const border = [rz === 0, rx === FAR_REGIONS - 1, rz === FAR_REGIONS - 1, rx === 0];
     const outward = [[0, 0, -1], [1, 0, 0], [0, 0, 1], [-1, 0, 0]] as const;
     edge.forEach((ids, side) => {
-      const bottom = ids.map((id) => vertex(positions[id * 3] ?? 0, (positions[id * 3 + 1] ?? 0) - FAR_SKIRT, positions[id * 3 + 2] ?? 0, outward[side] ?? [0, 1, 0], [(colours[id * 3] ?? 0) * 0.7, (colours[id * 3 + 1] ?? 0) * 0.7, (colours[id * 3 + 2] ?? 0) * 0.7], r));
+      const drop = (y: number): number => border[side] === true ? Math.min(y - FAR_SKIRT, FAR_EDGE_FLOOR) : y - FAR_SKIRT;
+      const bottom = ids.map((id) => vertex(positions[id * 3] ?? 0, drop(positions[id * 3 + 1] ?? 0), positions[id * 3 + 2] ?? 0, outward[side] ?? [0, 1, 0], [(colours[id * 3] ?? 0) * 0.7, (colours[id * 3 + 1] ?? 0) * 0.7, (colours[id * 3 + 2] ?? 0) * 0.7], r));
       for (let k = 0; k + 1 < ids.length; k++) {
         const a = ids[k] ?? 0, b = ids[k + 1] ?? 0, c = bottom[k] ?? 0, d = bottom[k + 1] ?? 0;
         // south / east run with +x / +z along the edge, north / west too: flip the winding for the sides facing −

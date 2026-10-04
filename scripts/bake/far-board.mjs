@@ -29,6 +29,7 @@ try {
   await page.goto(`${url}/sf23-far/`);
   await page.waitForFunction(() => window.farView?.ready(), undefined, { timeout: 120000, polling: 250 });
   const keys = await page.evaluate(() => window.farView.views());
+  const pose = JSON.parse(process.env.SF23_POSE ?? 'null'); if (pose !== null) await page.evaluate((p) => { window.farView.pose(p[0], p[1], p[2]); }, pose);
   /** @type {{ key: string; shot: Buffer }[]} */ const shots = [];
   for (const key of keys) {
     await page.evaluate((k) => { window.farView.show(k); }, key);
@@ -49,7 +50,7 @@ try {
   }, sorted.map((s) => s.shot.toString('base64')));
   const file = join(out, 'board.jpg'); writeFileSync(file, Buffer.from(board, 'base64'));
   const evidence = { views: sorted.map((s) => s.key), ...stats, boardKB: Math.round(statSync(file).size / 1000), errors,
-    source: 'test/fixtures/sim-level/far via scripts/bake/far-board.mjs; Chromium (Metal), iPhone 16 Pro portrait, render scale 2, muted; camera 32 m over the centre cell, far plane FAR_RING.drawDistance' };
+    source: 'test/fixtures/sim-level/far via scripts/bake/far-board.mjs; Chromium (Metal), iPhone 16 Pro portrait, render scale 2, muted; camera 120 m over the centre cell, 100 m back from it, far plane FAR_RING.drawDistance' };
   writeFileSync(join(out, 'board.json'), `${JSON.stringify(evidence, null, 2)}\n`);
   console.log(JSON.stringify(evidence));
 } finally {
