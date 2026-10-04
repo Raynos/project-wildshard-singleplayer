@@ -159,6 +159,7 @@ async function openGame(shard, q, { cpu, video }) {
 if (MODE.includes('grid')) {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage(), errors = [];
   page.on('pageerror', (error) => { errors.push(error.message); });
+  page.on('console', (message) => { if (message.type() === 'error' && message.text().startsWith('[faults]')) errors.push(message.text()); });
   await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
   if (Object.keys(SETTINGS).length > 0) await debugSettings(ctx, SETTINGS);
   try {

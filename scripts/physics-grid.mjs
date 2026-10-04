@@ -39,7 +39,8 @@ export async function driveGridSeam(route) {
     const before = read();
     await new Promise((resolve, reject) => {
       let stop = () => undefined;
-      const finish = () => { input.clear(); stop(); resolve(undefined); };
+      const wallTimer = setTimeout(() => { timedOut = true; finish(); }, route.timeout * 1000);
+      function finish() { input.clear(); stop(); clearTimeout(wallTimer); resolve(undefined); }
       stop = world.game.watchFrames((dt) => {
         try {
           elapsed += dt;
@@ -52,7 +53,7 @@ export async function driveGridSeam(route) {
           if (distance < lastProgress.distance - 0.3) lastProgress = { time: elapsed, distance };
           else if (elapsed - lastProgress.time > 2) { stuck.push({ waypoint: wi, ...feet, current: state.current }); finish(); return; }
           player.yaw = Math.atan2(-dx, -dz); input.setHeld('move.forward', true);
-        } catch (error) { input.clear(); stop(); reject(error instanceof Error ? error : new Error(String(error))); }
+        } catch (error) { input.clear(); stop(); clearTimeout(wallTimer); reject(error instanceof Error ? error : new Error(String(error))); }
       });
     });
     const after = read();

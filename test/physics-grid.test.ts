@@ -27,7 +27,7 @@ it('derives a stable adjacent-template seam and refuses an unassembled readout',
   expect(gridSeamRoute({ home: 'home', cells: [...cells, { instance: 'corner', slug: '_template', cell: [-1, -1] }] }, 30).waypoints[0]).toEqual({ x: -325, z: -325 });
 });
 
-it('drives both directions through InputService across changing local frames with exactly one initial positioning', async () => {
+it.each([false, true])('drives both directions or reports a stopped frame loop (halted=%s)', async (halted) => {
   let now = 0, spawns = 0, stopped = false, current: string | null = 'home', origin = 0;
   const position = { x: -230, y: 1, z: 0 }, input = new InputService(() => now), transitions: { from: string | null; to: string | null }[] = [];
   const limit = () => 30;
@@ -40,6 +40,7 @@ it('drives both directions through InputService across changing local frames wit
     crossings: transitions.length, transitions: transitions.map((row) => ({ ...row })), residents: now > 0 ? ['peer'] : [], issues: { 'proxy.only': 'Expected far proxy; no descriptor' }, gameplayReady: true });
   const watchFrames = (tick: (dt: number) => void) => {
     queueMicrotask(() => {
+      if (halted) return;
       for (let frame = 0; frame < 2000; frame++) {
         if (stopped) break;
         now += 1000 / 60; const move = input.axis2('move');
@@ -59,12 +60,17 @@ it('drives both directions through InputService across changing local frames wit
   };
   const raw: unknown = await runInNewContext(`(${driveGridSeam.toString()})(route)`, {
     route, window: { __wildshard: { shard: { grid: { state: () => ({ live: { live: state() } }) } }, world: { player, game: { app: { input }, watchFrames } } } },
-    performance: { now: () => now }, setTimeout: (fn: () => void) => { now += 100; fn(); },
+    performance: { now: () => now }, setTimeout: (fn: () => void, delay: number) => {
+      if (delay > 600) { if (halted) queueMicrotask(fn); return 1; }
+      now += 100; fn(); return 0;
+    }, clearTimeout: () => undefined,
   });
   if (raw === null || typeof raw !== 'object' || !('trace' in raw) || !('transitions' in raw)) throw new Error('Missing serialized drive result');
   const result = raw as GridDriveResult;
   expect(result.backgroundIssues).toEqual({ 'proxy.only': 'Expected far proxy; no descriptor' });
   expect(gridDriveFailures({ ...result, issues: { peer: 'Collider admission failed' } })).toContain('Grid admission/disposal issues: {"peer":"Collider admission failed"}');
-  expect(gridDriveFailures(result)).toEqual([]); expect(spawns).toBe(1); expect(stopped).toBe(true);
+  if (halted) { expect(result.timedOut).toBe(true); expect(gridDriveFailures(result)).toContain('Grid route has no motion samples'); }
+  else expect(gridDriveFailures(result)).toEqual([]);
+  expect(spawns).toBe(1); expect(stopped).toBe(true);
   expect(input.held('move.forward')).toBe(false); expect(player.hoverSpeedLimit).toBe(limit); expect(player.hover).toBe(false);
 });
