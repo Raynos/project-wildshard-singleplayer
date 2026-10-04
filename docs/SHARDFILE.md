@@ -242,8 +242,8 @@ Its simulation borrows the Game's physics, player, events and fixed-step driver.
 health and position; a rendered frame never steps that core. Library and critical cache leases last for the level,
 while tile leases end with residency. A quota refusal permits online play without publishing an incomplete offline
 visit. `emptyShardfileSource` and `loadShardfile` retain the minimal empty-world adapter for installed-driver callers.
-Unsupported format versions request a compatible client. Optional `traversal.hoverCap` defaults to 15 m/s and may
-lower the platform's interior travel ceiling; placement and highway speed remain platform-owned.
+Unsupported format versions request a compatible client. Optional `traversal.hoverCap` accepts 0.1–14 m/s,
+defaults to 14 m/s, and may lower the platform's interior travel ceiling; placement and highway speed remain platform-owned.
 
 The browser and CLI share game-layer asset admission: exact wire hashes and sizes, bounded parsers, terrain semantics,
 transitive bundle costs and the script memory growth ceiling are checked before allocating a level. Cached Wasm passes
@@ -301,3 +301,24 @@ missing recipes refuse boot rather than inventing gameplay. Policy contracts,
 actor memory and RNG restore without executing a decision or body callback.
 `pursue` retains its existing platform behavior. `kind: "script"` remains refused
 by the full format until one composed host enforces the shared script quotas.
+
+`audio` retains `cues`, nullable wind `ambience` and `score: "silent" | "default"`.
+Its optional `routing` defaults to an empty ordered array. At most 512 cue rules
+select catalogue voices on the audio or combat bus; each has at most 16 actions
+and 16 conditions. Actions may apply bounded numeric defaults and a scope-owned
+delay of 0–60 seconds. Routing contains no author callback or random draw.
+
+Optional `samples` selects a catalogue set, bed and at most 32 loop gains in
+0–8. Optional `music` declares the score ID/base, up to 32 slots and boot slots,
+slot-to-set mappings, `pluck` or `marimba` lead, a 0–60-second minimum fade, and
+up to 64 ordered selection rows (`first` or `all`). Its nullable source names
+an `/assets/music/<slug>/` directory and manifest key, without a free-form URL.
+Optional `zones` declares mixer timing, up to 64 named levels, 16 room wetness
+values and 512 uniquely named radial ambience zones. These are validated data;
+catalogue resolution, existing sample decoders, bar-grid scheduling, geometry
+queries and bespoke synthesis remain trusted platform/runtime installers.
+
+The full client owns declared audio by default. An explicit `audioOwner: "runtime"`
+binding is allowed only for a trusted first-party runtime declaration, whose
+installer consumes the same audio data once. This transition avoids duplicate
+cues, beds and scores; ordinary authored products use the declared installer.
