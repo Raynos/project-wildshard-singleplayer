@@ -254,6 +254,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [deploy-backstop/](./deploy-backstop/)
 - [docs/](./docs/)
 - [families-board/](./families-board/)
+- [family-props-board/](./family-props-board/)
 - [gpu-gate/](./gpu-gate/)
 - [gpu-perf/](./gpu-perf/)
 - [horizon-matte/](./horizon-matte/)
