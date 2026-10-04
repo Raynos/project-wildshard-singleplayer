@@ -1,0 +1,872 @@
+{
+ "$doc": "SHARD-PLATFORM SF46 part 2: Driftwood's interior with the hybrid row OFF (baseline) vs ON (now), same build 8c669dbfb, sp-x1's SF46-parity runner (09ead640a) with one build and the row fixture per pass (scratch variant). Red is expected: what moved is the lowered sea and its water-tied props. Phone tier is emulated Chromium.",
+ "current": "8c669dbfb8db04ac6f82fd9b8ee67a814ae3db1d",
+ "when": "2026-10-04T19:18:28.784Z",
+ "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+ "reports": [
+  {
+   "tier": "phone",
+   "verdict": "red",
+   "images": [
+    {
+     "name": "pier",
+     "ssim": 0.8322436604643556
+    },
+    {
+     "name": "beach",
+     "ssim": 0.9891494893927144
+    },
+    {
+     "name": "wreck",
+     "ssim": 0.9987409189612265
+    }
+   ],
+   "differences": [
+    {
+     "field": "walk.sounds.event",
+     "baseline": {
+      "gullCallAt": 15,
+      "gullCall": 15,
+      "voices:step-planks": 85,
+      "splash": 1,
+      "land": 2,
+      "wadeStep": 22,
+      "voices:step-water": 4,
+      "waterExit": 1,
+      "voices:step-wetSand": 15,
+      "voices:step-sand": 52,
+      "voices:ui-chime": 3,
+      "pickupHum": 2,
+      "shrine.bed": 1,
+      "voices:step-stone": 10,
+      "dodge": 1,
+      "audio.startSampleBed": 1
+     },
+     "now": {
+      "land": 5,
+      "voices:step-water": 8,
+      "voices:step-planks": 83,
+      "gullCallAt": 18,
+      "gullCall": 18,
+      "splash": 1,
+      "waterExit": 1,
+      "voices:step-wetSand": 12,
+      "voices:step-sand": 71,
+      "voices:ui-chime": 3,
+      "pickupHum": 2,
+      "shrine.bed": 1,
+      "voices:step-stone": 8,
+      "voices:step-grass": 1,
+      "dodge": 1,
+      "audio.startSampleBed": 1
+     },
+     "class": "A",
+     "band": "exact multiset",
+     "verdict": "red"
+    },
+    {
+     "field": "combat.sounds.event",
+     "baseline": {
+      "lunge": 1,
+      "voices:whoosh": 3,
+      "voices:step-sand": 1,
+      "animal:crab_click": 3,
+      "voices:impact-shell": 3,
+      "hitMarker": 3,
+      "voices:vocal-crab": 1,
+      "kill": 1,
+      "voices:ui-chime": 1
+     },
+     "now": {
+      "lunge": 1,
+      "voices:whoosh": 3,
+      "animal:crab_click": 3,
+      "voices:impact-shell": 3,
+      "hitMarker": 3,
+      "voices:vocal-crab": 1,
+      "kill": 1,
+      "voices:ui-chime": 1
+     },
+     "class": "A",
+     "band": "exact multiset",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.systems.fixed.pre",
+     "baseline": [
+      "physics.bodies.pre",
+      "physics.movers"
+     ],
+     "now": [
+      "physics.bodies.pre",
+      "shard.driftwood.movers",
+      "physics.movers"
+     ],
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.systems.update",
+     "baseline": "(long; see the run)",
+     "now": "(long; see the run)",
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.registry",
+     "baseline": "(long; see the run)",
+     "now": "(long; see the run)",
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.physics.colliders",
+     "baseline": 2200,
+     "now": 2166,
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.scene.totals.mesh",
+     "baseline": 604,
+     "now": 596,
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.scene.named",
+     "baseline": "(long; see the run)",
+     "now": "(long; see the run)",
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.render.programKeys",
+     "baseline": "6f22f223550ba85a3bb79bcbacd44f0eaaad9436f0f8dec0fe3e84440d9beda0",
+     "now": "0d864ce3e18b7572c4d36c861050b43a42dc492016afc570bb8a15ce80e6384d",
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.render.memory.geometries",
+     "baseline": 436,
+     "now": 434,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.gpuBytes.buffers",
+     "baseline": 127709473,
+     "now": 126485377,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.gpuBytes.total",
+     "baseline": 230096265,
+     "now": 228872169,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.pier.pos",
+     "baseline": [
+      1.1088525659508353e-05,
+      2.0050033503763554,
+      -193.99999452402338
+     ],
+     "now": [
+      -2.3204458610426304e-05,
+      1.2139823901749334,
+      -194.00001676429565
+     ],
+     "class": "B",
+     "band": "\u00b1 [0,0,0]",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.pier.calls",
+     "baseline": 223,
+     "now": 226,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.pier.tris",
+     "baseline": 1125728,
+     "now": 1116504,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.pier.ssim",
+     "baseline": 1,
+     "now": 0.8322436604643556,
+     "class": "B",
+     "band": "\u2265 0.99",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.beach.tris",
+     "baseline": 1065774,
+     "now": 1053694,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.beach.ssim",
+     "baseline": 1,
+     "now": 0.9891494893927144,
+     "class": "B",
+     "band": "\u2265 0.99",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.wreck.tris",
+     "baseline": 936154,
+     "now": 926718,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.pier.end.x",
+     "baseline": -19.773,
+     "now": -19.746,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.pier.end.y",
+     "baseline": 1.339,
+     "now": 1.336,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.pier.end.z",
+     "baseline": -150.548,
+     "now": -150.604,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.pier.maxY",
+     "baseline": 2.033,
+     "now": 2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.boat.end.x",
+     "baseline": -4.418,
+     "now": -4.486,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.boat.end.y",
+     "baseline": 1.301,
+     "now": 0.013,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.boat.end.z",
+     "baseline": -202.297,
+     "now": -202.304,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.boat.maxY",
+     "baseline": 2.01,
+     "now": 2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-0-forward.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-0-forward.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-0-back.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-0-back.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-1-forward.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-1-forward.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-1-back.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-1-back.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-2-forward.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-2-forward.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-2-back.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-2-back.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-3-forward.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-3-forward.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-3-back.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-3-back.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "combat.sounds.ambient",
+     "baseline": [
+      "island.bird",
+      "island.drip",
+      "island.swell"
+     ],
+     "now": [
+      "island.drip",
+      "island.swell"
+     ],
+     "class": "A",
+     "band": "no baseline scheduler missing",
+     "verdict": "red"
+    }
+   ]
+  },
+  {
+   "tier": "desktop",
+   "verdict": "red",
+   "images": [
+    {
+     "name": "pier",
+     "ssim": 0.7749568512523243
+    },
+    {
+     "name": "beach",
+     "ssim": 0.9485894627920882
+    },
+    {
+     "name": "wreck",
+     "ssim": 0.9844242573231713
+    }
+   ],
+   "differences": [
+    {
+     "field": "walk.sounds.event",
+     "baseline": {
+      "gullCallAt": 12,
+      "gullCall": 12,
+      "voices:step-planks": 77,
+      "splash": 1,
+      "land": 2,
+      "wadeStep": 22,
+      "voices:step-water": 4,
+      "waterExit": 1,
+      "voices:step-wetSand": 15,
+      "voices:step-sand": 52,
+      "voices:ui-chime": 1,
+      "pickupHum": 2,
+      "shrine.bed": 1,
+      "voices:step-stone": 10
+     },
+     "now": {
+      "land": 5,
+      "voices:step-water": 8,
+      "voices:step-planks": 74,
+      "gullCallAt": 15,
+      "gullCall": 15,
+      "splash": 1,
+      "waterExit": 1,
+      "voices:step-wetSand": 12,
+      "voices:step-sand": 72,
+      "voices:ui-chime": 1,
+      "pickupHum": 2,
+      "shrine.bed": 1,
+      "voices:step-stone": 8,
+      "voices:step-grass": 1
+     },
+     "class": "A",
+     "band": "exact multiset",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.systems.fixed.pre",
+     "baseline": [
+      "physics.bodies.pre",
+      "physics.movers"
+     ],
+     "now": [
+      "physics.bodies.pre",
+      "shard.driftwood.movers",
+      "physics.movers"
+     ],
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.systems.update",
+     "baseline": "(long; see the run)",
+     "now": "(long; see the run)",
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.registry",
+     "baseline": "(long; see the run)",
+     "now": "(long; see the run)",
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.physics.colliders",
+     "baseline": 2353,
+     "now": 2319,
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.scene.totals.mesh",
+     "baseline": 991,
+     "now": 983,
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.scene.named",
+     "baseline": "(long; see the run)",
+     "now": "(long; see the run)",
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.render.programKeys",
+     "baseline": "6fffd3a282715e71f7143eccb51a98894c83be2d12889c0689961458a4904a32",
+     "now": "1047d3251504717654a8d0c3664b932b9be4f437859eb98c69831e5e2d523285",
+     "class": "A",
+     "band": "exact",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.render.memory.geometries",
+     "baseline": 757,
+     "now": 749,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.gpuBytes.buffers",
+     "baseline": 248151906,
+     "now": 246927810,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "boot.gpuBytes.total",
+     "baseline": 611883178,
+     "now": 610659082,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.pier.pos",
+     "baseline": [
+      1.1088525659508353e-05,
+      2.0050033503763554,
+      -193.99999452402338
+     ],
+     "now": [
+      -2.3204458610426304e-05,
+      1.2139823901749334,
+      -194.00001676429565
+     ],
+     "class": "B",
+     "band": "\u00b1 [0,0,0]",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.pier.calls",
+     "baseline": 945,
+     "now": 938,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.pier.tris",
+     "baseline": 3295289,
+     "now": 3273044,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.pier.ssim",
+     "baseline": 1,
+     "now": 0.7749568512523243,
+     "class": "B",
+     "band": "\u2265 0.99",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.beach.calls",
+     "baseline": 566,
+     "now": 565,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.beach.tris",
+     "baseline": 2320154,
+     "now": 2304974,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.beach.ssim",
+     "baseline": 1,
+     "now": 0.9485894627920882,
+     "class": "B",
+     "band": "\u2265 0.99",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.wreck.tris",
+     "baseline": 1456449,
+     "now": 1444589,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "poses.wreck.ssim",
+     "baseline": 1,
+     "now": 0.9844242573231713,
+     "class": "B",
+     "band": "\u2265 0.99",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.pier.end.x",
+     "baseline": -19.773,
+     "now": -19.746,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.pier.end.y",
+     "baseline": 1.339,
+     "now": 1.336,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.pier.end.z",
+     "baseline": -150.548,
+     "now": -150.604,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.pier.maxY",
+     "baseline": 2.033,
+     "now": 2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.boat.end.x",
+     "baseline": -4.416,
+     "now": -4.486,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.boat.end.y",
+     "baseline": 1.302,
+     "now": 0.013,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.boat.end.z",
+     "baseline": -202.297,
+     "now": -202.304,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.boat.maxY",
+     "baseline": 2.01,
+     "now": 2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-0-forward.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-0-forward.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-0-back.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-0-back.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-1-forward.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-1-forward.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-1-back.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-1-back.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-2-forward.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-2-forward.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-2-back.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-2-back.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-3-forward.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-3-forward.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-3-back.end.y",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    },
+    {
+     "field": "walk.legs.trail-3-back.maxY",
+     "baseline": 2,
+     "now": 1.2,
+     "class": "B",
+     "band": "\u00b1 0",
+     "verdict": "red"
+    }
+   ]
+  }
+ ]
+}
