@@ -23,7 +23,10 @@ function remember(resource: object, label: Label): Label {
 }
 /** Only a census-enabled page retains metadata; normal gameplay does no label walks or renderer wrapping. */
 export function labelAsset<T extends object>(resource: T, owner: string, asset: string): T {
-  if (enabled()) remember(resource, { owner, asset: asset.split('?')[0] ?? asset, priority: 3 });
+  if (enabled()) {
+    const label = remember(resource, { owner, asset: asset.split('?')[0] ?? asset, priority: 3 });
+    if (isTexture(resource)) markTexture(resource, label);
+  }
   return resource;
 }
 /** Texture clones retain the resolved file identity, including a KTX2 stand-in's actual URL. */
@@ -40,11 +43,15 @@ function data(source: unknown, label: Label): void {
 }
 function markTexture(texture: Texture, fallback: Label): Label {
   const image: unknown = texture.image;
+  // Three's ordinary clone shares its Source; the CPU image can also outlive the original loaded texture.
+  const sourceLabel = labels.get(texture.source) ?? (image !== null && typeof image === 'object' ? labels.get(image) : undefined);
+  const inherited = sourceLabel && sourceLabel.priority > fallback.priority ? sourceLabel : fallback;
   const current: unknown = image !== null && typeof image === 'object' ? Reflect.get(image, 'currentSrc') : undefined;
   const src: unknown = image !== null && typeof image === 'object' ? Reflect.get(image, 'src') : undefined;
   const url = typeof current === 'string' && current.length > 0 ? current : src;
-  const named = typeof url === 'string' && url.length > 0 && !url.startsWith('blob:') ? url.split('?')[0] : texture.name ? `${fallback.asset}/${texture.name}` : undefined;
-  const label = remember(texture, named ? { ...fallback, asset: named } : fallback);
+  const named = typeof url === 'string' && url.length > 0 && !url.startsWith('blob:') ? url.split('?')[0] : texture.name ? `${inherited.asset}/${texture.name}` : undefined;
+  const label = remember(texture, named ? { ...inherited, asset: named } : inherited);
+  data(texture.source, label);
   data(image, label);
   if (image !== null && typeof image === 'object') data(Reflect.get(image, 'data'), label);
   for (const mip of texture.mipmaps) data(Reflect.get(mip, 'data'), label);

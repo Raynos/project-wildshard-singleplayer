@@ -51,10 +51,13 @@ it('preserves a resolved texture URL through cloning and attributes bone uploads
   const pixels = new Uint8Array(16), bones = new Float32Array(16);
   const source = labelAsset(new DataTexture(pixels, 2, 2), 'texture-loader', '/assets/sky.astc.ktx2');
   const clone = labelClone(source.clone(), source, 'baked-loader', '/assets/sky.jpg');
+  const ordinaryClone = source.clone();
   const geo = labelAsset(new BufferGeometry(), 'file-loader', '/assets/horse.glb#body');
   const root = new Group();
   Object.assign(root, { geometry: geo, material: new MeshBasicMaterial({ map: clone }), skeleton: { boneTexture: new DataTexture(bones, 2, 2) } });
   labelObjectTree(root, 'piece', 'horse.ts');
+  const ordinaryRoot = new Group(); Object.assign(ordinaryRoot, { material: new MeshBasicMaterial({ map: ordinaryClone }) });
+  labelObjectTree(ordinaryRoot, 'piece', 'ordinary-clone.ts');
   expect(sources.get(pixels)).toBe('/assets/sky.astc.ktx2');
   expect(sources.get(bones)).toBe('/assets/horse.glb#body/skeleton/bones');
 });
