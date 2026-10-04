@@ -47,3 +47,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-09-24 20:20 · w5:p1 · `SKIP_SWEEPGUARD=1 git commit -q --no-verify -m "Merge main (a0e4230, E104: art + asks only) into nalati-grasslands before the landing  Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.c`
 - 2026-10-01 11:33 · wK:p1 · `(a bypass in another checkout, outside this repo; command redacted, E433)`
 - 2026-10-04 07:07 · wT:p1 · `cd /Users/raynos/projects/games/wildshard-singleplayer; export GIT_INDEX_FILE=/private/tmp/claude-501/sp-builders/sf21a/index; cat > /private/tmp/claude-501/sp-builders/sf21a/msg.txt <<'EOF' SHARD-PLA`
+- 2026-10-04 12:13 · wT:p1 · `cd /Users/raynos/projects/games/wildshard-singleplayer; export GIT_INDEX_FILE=/private/tmp/claude-501/sp-builders/grid-hud2/index; SKIP_SWEEPGUARD=1 git commit -q -m "SHARD-PLATFORM SF28: declare each`
