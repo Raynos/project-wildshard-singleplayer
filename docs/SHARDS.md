@@ -792,3 +792,9 @@ constraint cover ground, far and flying bodies. A scoped mounted passage suspend
 that home boundary; real WORLD colliders keep stopping the mount. `reframeGridUnit`
 prepares rider and mount together without changing their velocity, yaw or separation;
 the physics/residency driver commits their motors together.
+
+A reload Debug row that changes the playable footprint or fall floor selects
+`runtime.hooks.levelBounds(authored)` during world or kit setup. The game samples
+it once before installing normal bounds recovery. Keep the manifest's shipping
+bounds unchanged; the hook belongs to that session and never mutates a global
+floor shared by another level.

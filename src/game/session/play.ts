@@ -1,3 +1,4 @@
+import { resolveLevelBounds } from '../shard/runtime';
 import { SkinLocker } from '../cosmetics/locker';
 import { BagMenu } from '../bag/tabs';
 import { equipmentEntry, toolEntries } from '../bag/equipment';
@@ -127,7 +128,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const respawn = () => { toSpawn(); music.sting('death'); };
   // in the grid every frame has fall recovery (a level without authored bounds, Driftwood, gets the grid's fall floor; the horizontal check is the grid's)
   const GRID_FALL_FLOOR = -60;
-  const bounds = game.level.bounds ?? (grid === null ? undefined : { x0: -Infinity, x1: Infinity, z0: -Infinity, z1: Infinity, floor: GRID_FALL_FLOOR });
+  const bounds = resolveLevelBounds(game.level.bounds, boot.runtime.hooks) ?? (grid === null ? undefined : { x0: -Infinity, x1: Infinity, z0: -Infinity, z1: Infinity, floor: GRID_FALL_FLOOR });
   installBounds(app, game.levelScope, bounds, { player, toSpawn,
     floorAt: (x, z) => ((gridLive?.spawn() ?? null) === null ? registry.floorAt(x, z) : floorBelow(world.physics, x, z, player.position.y + 0.6, 1.2)),
     suspended: () => world.freeCamera || world.tour.active || away(), grid: () => grid !== null, frame: () => gridLive?.frame() });

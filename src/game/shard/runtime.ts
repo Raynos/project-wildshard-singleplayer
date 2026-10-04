@@ -25,6 +25,7 @@ import type { Inventory } from '../Inventory';
 import type { Progress } from '../Progress';
 import type { Owned } from '../loot/Owned';
 import type { ShardSword } from './manifest';
+import type { Bounds } from '@wildshard/engine/level/spec';
 
 /** Services supplied by the gameplay shell after it has built the player kit and UI. */
 export interface ShardPlayHost {
@@ -38,6 +39,8 @@ export interface ShardPlayHost {
 }
 export interface ShardPlayHooks {
   meleeSilent?: boolean;
+  /** A boot-selected, session-local play area; reload Debug rows can override the manifest without mutating it. */
+  levelBounds?: (authored: Bounds | undefined) => Bounds | undefined;
   spawnFloor?: (x: number, z: number) => number | undefined;
   wearFinish?: (id: string) => void;
   updatePickups?: (dt: number, t: number) => void;
@@ -75,4 +78,9 @@ declare module '@wildshard/engine/events/maps' {
   interface AskMap {
     'feat.toast': [{ id: string; event?: string; allowed: boolean }, { id: string; event?: string; allowed: boolean }];
   }
+}
+
+/** Select the staged bounds override once before installing normal fall recovery; absent hooks retain authored policy. */
+export function resolveLevelBounds(authored: Bounds | undefined, hooks: ShardPlayHooks): Bounds | undefined {
+  return hooks.levelBounds?.(authored) ?? authored;
 }
