@@ -1,0 +1,2476 @@
+{
+  "row": "SF29",
+  "control": "G142 entry-socket install",
+  "parent": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+  "current": "ff2f848c9221a98a4308f557369be1af73dd49f3",
+  "when": "2026-10-04T22:18:33.449Z",
+  "elapsedSeconds": 426.86,
+  "method": "Fresh explicit parent and current pinned builds; shared capture/weatherLeak/aggregate/imageScore/compare. Selected tiers, full poses/walk/combat/pause/unload, Metal, seeded accelerated clock, Memory saver OFF, default boot variants. Emulated phone Chromium; Safari is measured separately by frame-floor. No stored baseline writes or new quarantine.",
+  "strictVerdict": "red",
+  "causalResult": "Driftwood/Pine phone sound and endpoint differences from the broad SF29 comparison reproduce exactly across the adjacent socket-install commit; audio data and adapters are identical between these control builds.",
+  "rawCaptureSha256": "8f39e3fefad440a1fc785574948796e37e86517bf7225a2c57fc82d6a92e4924",
+  "reports": [
+    {
+      "shard": "driftwood-isle",
+      "tier": "phone",
+      "parent": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "pier",
+          "ssim": 0.9906244424384505,
+          "full": 0.99087698859543,
+          "masked": 0.027,
+          "note": null
+        },
+        {
+          "name": "beach",
+          "ssim": 0.9905825560390532,
+          "full": 0.9910717894901204,
+          "masked": 0.052,
+          "note": null
+        },
+        {
+          "name": "wreck",
+          "ssim": 0.9999616390527806,
+          "full": 0.9999665928402109,
+          "masked": 0.129,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "field": "walk.sounds.event",
+          "baseline": {
+            "gullCallAt": 15,
+            "gullCall": 15,
+            "voices:step-planks": 85,
+            "splash": 1,
+            "land": 2,
+            "wadeStep": 22,
+            "voices:step-water": 5,
+            "waterExit": 1,
+            "voices:step-wetSand": 15,
+            "voices:step-sand": 51,
+            "voices:ui-chime": 3,
+            "pickupHum": 2,
+            "shrine.bed": 1,
+            "voices:step-stone": 10,
+            "dodge": 1,
+            "audio.startSampleBed": 1
+          },
+          "now": {
+            "gullCallAt": 15,
+            "gullCall": 15,
+            "voices:step-planks": 85,
+            "splash": 1,
+            "land": 2,
+            "wadeStep": 22,
+            "voices:step-water": 4,
+            "waterExit": 1,
+            "voices:step-wetSand": 15,
+            "voices:step-sand": 52,
+            "voices:ui-chime": 3,
+            "pickupHum": 2,
+            "shrine.bed": 1,
+            "voices:step-stone": 10,
+            "dodge": 1,
+            "audio.startSampleBed": 1
+          },
+          "class": "A",
+          "band": "exact multiset",
+          "verdict": "red"
+        },
+        {
+          "field": "combat.sounds.event",
+          "baseline": {
+            "lunge": 1,
+            "voices:whoosh": 3,
+            "animal:crab_click": 3,
+            "voices:impact-shell": 3,
+            "hitMarker": 3,
+            "voices:vocal-crab": 1,
+            "kill": 1,
+            "voices:ui-chime": 1
+          },
+          "now": {
+            "lunge": 1,
+            "voices:whoosh": 3,
+            "voices:step-sand": 1,
+            "animal:crab_click": 3,
+            "voices:impact-shell": 3,
+            "hitMarker": 3,
+            "voices:vocal-crab": 1,
+            "kill": 1,
+            "voices:ui-chime": 1
+          },
+          "class": "A",
+          "band": "exact multiset",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.physics.colliders",
+          "baseline": 2196,
+          "now": 2200,
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.bridge.end.x",
+          "baseline": 35.334,
+          "now": 35.359,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.bridge.end.y",
+          "baseline": 13.104,
+          "now": 13.122,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.bridge.end.z",
+          "baseline": 33.303,
+          "now": 33.328,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.bridge.maxY",
+          "baseline": 13.049,
+          "now": 13.067,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.boat.end.y",
+          "baseline": 1.298,
+          "now": 1.301,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        }
+      ],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "class": "D",
+          "verdict": "green",
+          "band": "no disposal failures"
+        },
+        {
+          "field": "boot.errors",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "boot.renderer",
+          "class": "D",
+          "verdict": "green",
+          "band": "ANGLE Metal"
+        },
+        {
+          "field": "boot.scene.totals.batched",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 2 (B15 ratchet)"
+        },
+        {
+          "field": "walk.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.pier.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.pier.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.hut.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.hut.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.bridge.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.bridge.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.lookout.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.lookout.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.wreck.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.wreck.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.cave.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.cave.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.shrine.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.shrine.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.boat.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.boat.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-0-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-0-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-0-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-0-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-1-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-1-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-1-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-1-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-2-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-2-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-2-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-2-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-3-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-3-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-3-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-3-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.touch",
+          "class": "D",
+          "verdict": "green",
+          "band": "moved ≥2; yaw changed; dodge; use"
+        },
+        {
+          "field": "combat.swing",
+          "class": "D",
+          "verdict": "green",
+          "band": "hit and kill within limits"
+        },
+        {
+          "field": "pauseResume",
+          "class": "D",
+          "verdict": "green",
+          "band": "no state drift; resumed prior state"
+        },
+        {
+          "field": "leak.geometries",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.textures",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.bodies",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.colliders",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.window",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.document",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.other",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.raf",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.beds",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.buses",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.input",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.update",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.late",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.render",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.events.listeners",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.events.answerers",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.dom.hud",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.dom.body",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "budgets.pier.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.pier.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.pier.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.pier.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 500"
+        },
+        {
+          "field": "budgets.beach.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.beach.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.beach.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.beach.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 500"
+        },
+        {
+          "field": "budgets.wreck.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.wreck.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.wreck.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.wreck.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 500"
+        }
+      ],
+      "before": {
+        "boot": {
+          "sha": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+          "errors": [],
+          "physics": {
+            "fixed": 2,
+            "kinematic": 2,
+            "dynamic": 26,
+            "colliders": 2196
+          }
+        },
+        "walk": {
+          "stuck": 0,
+          "sounds": {
+            "event": {
+              "gullCallAt": 15,
+              "gullCall": 15,
+              "voices:step-planks": 85,
+              "splash": 1,
+              "land": 2,
+              "wadeStep": 22,
+              "voices:step-water": 5,
+              "waterExit": 1,
+              "voices:step-wetSand": 15,
+              "voices:step-sand": 51,
+              "voices:ui-chime": 3,
+              "pickupHum": 2,
+              "shrine.bed": 1,
+              "voices:step-stone": 10,
+              "dodge": 1,
+              "audio.startSampleBed": 1
+            },
+            "ambient": [
+              "gulls.call",
+              "island.bird",
+              "island.drip",
+              "island.swell"
+            ]
+          }
+        },
+        "combat": {
+          "swing": {
+            "weapon": "sword",
+            "target": "crab",
+            "hits": 3,
+            "hitWithinS": 0.6333333333332973,
+            "killed": true,
+            "killWithinS": 1.899999999999892,
+            "hitLimit": 3,
+            "killLimit": 15
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 3
+          },
+          "kills": [
+            "crab"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.driftwood-isle",
+              "local:wildshard.save.v2.global"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "lunge": 1,
+              "voices:whoosh": 3,
+              "animal:crab_click": 3,
+              "voices:impact-shell": 3,
+              "hitMarker": 3,
+              "voices:vocal-crab": 1,
+              "kill": 1,
+              "voices:ui-chime": 1
+            },
+            "ambient": [
+              "island.bird",
+              "island.drip",
+              "island.swell"
+            ]
+          }
+        },
+        "pauseResume": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        },
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "gpu": {
+            "total": {
+              "geometries": 10,
+              "textures": 12,
+              "programs": 65
+            },
+            "retained": {
+              "geometries": 10,
+              "textures": 12,
+              "programs": 65
+            }
+          }
+        }
+      },
+      "current": {
+        "boot": {
+          "sha": "ff2f848c9221a98a4308f557369be1af73dd49f3",
+          "errors": [],
+          "physics": {
+            "fixed": 2,
+            "kinematic": 2,
+            "dynamic": 26,
+            "colliders": 2200
+          }
+        },
+        "walk": {
+          "stuck": 0,
+          "sounds": {
+            "event": {
+              "gullCallAt": 15,
+              "gullCall": 15,
+              "voices:step-planks": 85,
+              "splash": 1,
+              "land": 2,
+              "wadeStep": 22,
+              "voices:step-water": 4,
+              "waterExit": 1,
+              "voices:step-wetSand": 15,
+              "voices:step-sand": 52,
+              "voices:ui-chime": 3,
+              "pickupHum": 2,
+              "shrine.bed": 1,
+              "voices:step-stone": 10,
+              "dodge": 1,
+              "audio.startSampleBed": 1
+            },
+            "ambient": [
+              "gulls.call",
+              "island.bird",
+              "island.drip",
+              "island.swell"
+            ]
+          }
+        },
+        "combat": {
+          "swing": {
+            "weapon": "sword",
+            "target": "crab",
+            "hits": 3,
+            "hitWithinS": 0.6333333333332973,
+            "killed": true,
+            "killWithinS": 1.899999999999892,
+            "hitLimit": 3,
+            "killLimit": 15
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 3
+          },
+          "kills": [
+            "crab"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.driftwood-isle",
+              "local:wildshard.save.v2.global"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "lunge": 1,
+              "voices:whoosh": 3,
+              "voices:step-sand": 1,
+              "animal:crab_click": 3,
+              "voices:impact-shell": 3,
+              "hitMarker": 3,
+              "voices:vocal-crab": 1,
+              "kill": 1,
+              "voices:ui-chime": 1
+            },
+            "ambient": [
+              "island.bird",
+              "island.drip",
+              "island.swell"
+            ]
+          }
+        },
+        "pauseResume": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        },
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "gpu": {
+            "total": {
+              "geometries": 10,
+              "textures": 12,
+              "programs": 65
+            },
+            "retained": {
+              "geometries": 10,
+              "textures": 12,
+              "programs": 65
+            }
+          }
+        }
+      }
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "parent": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 0.9999969377259407,
+          "full": 0.9999972010423787,
+          "masked": 0.086,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.063,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9997887463403118,
+          "full": 0.9997942602110349,
+          "masked": 0.026,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "field": "walk.sounds.event",
+          "baseline": {
+            "footstep:litter": 331,
+            "animal:boar_grunt": 1,
+            "animal:boar_squeal": 2,
+            "forest.bed:cabin": 1,
+            "pineSfx:bark-ranger-1": 1,
+            "footstep:planks": 2,
+            "animal:deer_call": 2,
+            "forest.bed:pond": 1,
+            "forest.bed:waterfall": 1,
+            "forest.bed:ridge": 1,
+            "forest.bed:creek": 1,
+            "animal:bear_growl": 1,
+            "animal:bear_roar": 1,
+            "forest.bed:cave": 1,
+            "hurt": 1,
+            "voices:hurt": 1,
+            "land": 1,
+            "footstep:rock": 11,
+            "dodge": 1,
+            "audio.startSampleBed": 1,
+            "voices:ui-glyph": 1
+          },
+          "now": {
+            "footstep:litter": 330,
+            "animal:boar_grunt": 1,
+            "animal:boar_squeal": 2,
+            "forest.bed:cabin": 1,
+            "pineSfx:bark-ranger-1": 1,
+            "footstep:planks": 2,
+            "animal:deer_call": 2,
+            "forest.bed:pond": 1,
+            "forest.bed:waterfall": 1,
+            "forest.bed:ridge": 1,
+            "forest.bed:creek": 1,
+            "animal:bear_growl": 1,
+            "animal:bear_roar": 1,
+            "forest.bed:cave": 1,
+            "hurt": 1,
+            "voices:hurt": 1,
+            "land": 1,
+            "footstep:rock": 11,
+            "dodge": 1,
+            "audio.startSampleBed": 1,
+            "voices:ui-glyph": 1
+          },
+          "class": "A",
+          "band": "exact multiset",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.physics.colliders",
+          "baseline": 2417,
+          "now": 2421,
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.lookout-climb.end.x",
+          "baseline": 34.916,
+          "now": 34.926,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.lookout-climb.end.z",
+          "baseline": 211.286,
+          "now": 211.28,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.lookout-climb.maxY",
+          "baseline": 57.478,
+          "now": 57.48,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        }
+      ],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "class": "D",
+          "verdict": "green",
+          "band": "no disposal failures"
+        },
+        {
+          "field": "leak.weather.disposalErrors",
+          "class": "D",
+          "verdict": "green",
+          "band": "no disposal failures"
+        },
+        {
+          "field": "boot.errors",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "boot.renderer",
+          "class": "D",
+          "verdict": "green",
+          "band": "ANGLE Metal"
+        },
+        {
+          "field": "boot.scene.totals.batched",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 8 (B15 ratchet)"
+        },
+        {
+          "field": "walk.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.cabin-porch.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.cabin-porch.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.pond.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.pond.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.lookout-climb.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.lookout-climb.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.zip-landing.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.zip-landing.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.creek-bridge.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.creek-bridge.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.lodge-porch.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.lodge-porch.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.den-cave.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.den-cave.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-0-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-0-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-0-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-0-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-1-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-1-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-1-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-1-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-2-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-2-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-2-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-2-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-3-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-3-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-3-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-3-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-4-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-4-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-4-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-4-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-5-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-5-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-5-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-5-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-6-forward.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-6-forward.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.trail-6-back.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.trail-6-back.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.touch",
+          "class": "D",
+          "verdict": "green",
+          "band": "moved ≥2; yaw changed; dodge; use"
+        },
+        {
+          "field": "combat.shot",
+          "class": "D",
+          "verdict": "green",
+          "band": "hit and kill within limits"
+        },
+        {
+          "field": "combat.shot2",
+          "class": "D",
+          "verdict": "green",
+          "band": "hit and kill within limits"
+        },
+        {
+          "field": "pauseResume",
+          "class": "D",
+          "verdict": "green",
+          "band": "no state drift; resumed prior state"
+        },
+        {
+          "field": "leak.geometries",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.textures",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.bodies",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.colliders",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.window",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.document",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.other",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.raf",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.beds",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.buses",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.input",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.update",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.late",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.render",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.events.listeners",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.events.answerers",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.dom.hud",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.dom.body",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.weather.geometries",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.textures",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.bodies",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.colliders",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.listeners.window",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.listeners.document",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.listeners.canvas",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.listeners.other",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.timers.timeouts",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.timers.intervals",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.timers.raf",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.audio.activeVoices",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.audio.beds",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.audio.buses",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.systems.input",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.systems.fixed.pre",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.systems.fixed.step",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.systems.fixed.post",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.systems.update",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.systems.late",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.systems.render",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.events.listeners",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.events.answerers",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.dom.hud",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.dom.body",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.sceneObjects",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "leak.weather.errors",
+          "class": "D",
+          "verdict": "green",
+          "band": "weather B1 = B0"
+        },
+        {
+          "field": "budgets.gate.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.gate.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.gate.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.gate.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 587.1324214935303"
+        },
+        {
+          "field": "budgets.cabin.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.cabin.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.cabin.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.cabin.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 587.1324214935303"
+        },
+        {
+          "field": "budgets.pond.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.pond.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.pond.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.pond.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 587.1324214935303"
+        }
+      ],
+      "before": {
+        "boot": {
+          "sha": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+          "errors": [],
+          "physics": {
+            "fixed": 0,
+            "kinematic": 10,
+            "dynamic": 0,
+            "colliders": 2417
+          }
+        },
+        "walk": {
+          "stuck": 0,
+          "sounds": {
+            "event": {
+              "footstep:litter": 331,
+              "animal:boar_grunt": 1,
+              "animal:boar_squeal": 2,
+              "forest.bed:cabin": 1,
+              "pineSfx:bark-ranger-1": 1,
+              "footstep:planks": 2,
+              "animal:deer_call": 2,
+              "forest.bed:pond": 1,
+              "forest.bed:waterfall": 1,
+              "forest.bed:ridge": 1,
+              "forest.bed:creek": 1,
+              "animal:bear_growl": 1,
+              "animal:bear_roar": 1,
+              "forest.bed:cave": 1,
+              "hurt": 1,
+              "voices:hurt": 1,
+              "land": 1,
+              "footstep:rock": 11,
+              "dodge": 1,
+              "audio.startSampleBed": 1,
+              "voices:ui-glyph": 1
+            },
+            "ambient": [
+              "forest.thrall",
+              "pineLife.drum",
+              "pineLife.woodpecker"
+            ]
+          }
+        },
+        "combat": {
+          "swing": "n/a",
+          "shot": {
+            "weapon": "crossbow",
+            "target": "boar",
+            "hits": 3,
+            "hitWithinS": 0.6333333333332973,
+            "killed": true,
+            "killWithinS": 4.63333333333307,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "shot2": {
+            "weapon": "bow",
+            "target": "boar",
+            "hits": 3,
+            "hitWithinS": 1.5333333333332462,
+            "killed": true,
+            "killWithinS": 4.5999999999997385,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "hitsToKill": {
+            "shot": 3,
+            "shot2": 3
+          },
+          "kills": [
+            "boar",
+            "boar"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.global",
+              "local:wildshard.save.v2.pine-hollow"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "land": 1,
+              "crossbowFire": 3,
+              "animal:boar_squeal": 6,
+              "animal:boar_grunt": 2,
+              "hitMarker": 6,
+              "boltImpact:flesh": 6,
+              "dryFire": 2,
+              "reload": 3,
+              "kill": 2,
+              "pineSfx:longbowDraw": 3,
+              "pineSfx:longbowLoose": 3
+            },
+            "ambient": []
+          }
+        },
+        "pauseResume": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        },
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "gpu": {
+            "total": {
+              "geometries": 36,
+              "textures": 191,
+              "programs": 72
+            },
+            "retained": {
+              "geometries": 36,
+              "textures": 191,
+              "programs": 72
+            }
+          },
+          "weather": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "disposalErrors": [],
+            "gpu": {
+              "total": {
+                "geometries": 31,
+                "textures": 188,
+                "programs": 70
+              },
+              "retained": {
+                "geometries": 31,
+                "textures": 188,
+                "programs": 70
+              }
+            }
+          }
+        }
+      },
+      "current": {
+        "boot": {
+          "sha": "ff2f848c9221a98a4308f557369be1af73dd49f3",
+          "errors": [],
+          "physics": {
+            "fixed": 0,
+            "kinematic": 10,
+            "dynamic": 0,
+            "colliders": 2421
+          }
+        },
+        "walk": {
+          "stuck": 0,
+          "sounds": {
+            "event": {
+              "footstep:litter": 330,
+              "animal:boar_grunt": 1,
+              "animal:boar_squeal": 2,
+              "forest.bed:cabin": 1,
+              "pineSfx:bark-ranger-1": 1,
+              "footstep:planks": 2,
+              "animal:deer_call": 2,
+              "forest.bed:pond": 1,
+              "forest.bed:waterfall": 1,
+              "forest.bed:ridge": 1,
+              "forest.bed:creek": 1,
+              "animal:bear_growl": 1,
+              "animal:bear_roar": 1,
+              "forest.bed:cave": 1,
+              "hurt": 1,
+              "voices:hurt": 1,
+              "land": 1,
+              "footstep:rock": 11,
+              "dodge": 1,
+              "audio.startSampleBed": 1,
+              "voices:ui-glyph": 1
+            },
+            "ambient": [
+              "forest.thrall",
+              "pineLife.drum",
+              "pineLife.woodpecker"
+            ]
+          }
+        },
+        "combat": {
+          "swing": "n/a",
+          "shot": {
+            "weapon": "crossbow",
+            "target": "boar",
+            "hits": 3,
+            "hitWithinS": 0.6333333333332973,
+            "killed": true,
+            "killWithinS": 4.63333333333307,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "shot2": {
+            "weapon": "bow",
+            "target": "boar",
+            "hits": 3,
+            "hitWithinS": 1.5333333333332462,
+            "killed": true,
+            "killWithinS": 4.5999999999997385,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "hitsToKill": {
+            "shot": 3,
+            "shot2": 3
+          },
+          "kills": [
+            "boar",
+            "boar"
+          ],
+          "loot": {
+            "written": [
+              "local:wildshard.save.v2.global",
+              "local:wildshard.save.v2.pine-hollow"
+            ]
+          },
+          "sounds": {
+            "event": {
+              "land": 1,
+              "crossbowFire": 3,
+              "animal:boar_squeal": 6,
+              "animal:boar_grunt": 2,
+              "hitMarker": 6,
+              "boltImpact:flesh": 6,
+              "dryFire": 2,
+              "reload": 3,
+              "kill": 2,
+              "pineSfx:longbowDraw": 3,
+              "pineSfx:longbowLoose": 3
+            },
+            "ambient": []
+          }
+        },
+        "pauseResume": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "play"
+          ],
+          "returnState": "play"
+        },
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "gpu": {
+            "total": {
+              "geometries": 36,
+              "textures": 191,
+              "programs": 72
+            },
+            "retained": {
+              "geometries": 36,
+              "textures": 191,
+              "programs": 72
+            }
+          },
+          "weather": {
+            "before": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "after": {
+              "geometries": 0,
+              "textures": 0,
+              "programs": 0,
+              "bodies": 0,
+              "colliders": 0,
+              "listeners": {
+                "window": 0,
+                "document": 0,
+                "canvas": 0,
+                "other": 0
+              },
+              "timers": {
+                "timeouts": 0,
+                "intervals": 0,
+                "raf": 0
+              },
+              "audio": {
+                "activeVoices": 0,
+                "beds": 0,
+                "buses": 0
+              },
+              "systems": {
+                "input": 0,
+                "fixed": {
+                  "pre": 0,
+                  "step": 0,
+                  "post": 0
+                },
+                "update": 0,
+                "late": 0,
+                "render": 0
+              },
+              "events": {
+                "listeners": 7,
+                "answerers": 5
+              },
+              "dom": {
+                "hud": 0,
+                "body": 0
+              },
+              "sceneObjects": 0,
+              "errors": []
+            },
+            "disposalErrors": [],
+            "gpu": {
+              "total": {
+                "geometries": 31,
+                "textures": 188,
+                "programs": 70
+              },
+              "retained": {
+                "geometries": 31,
+                "textures": 188,
+                "programs": 70
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
