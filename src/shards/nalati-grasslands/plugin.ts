@@ -99,6 +99,7 @@ export class NalatiPlugin extends ShardPlugin {
     };
     rt.bindPlay({ kit, health01: () => { const attributes = ctx.app.player?.attributes; return attributes === undefined ? 1 : attributes.health / attributes.maxHealth; }, toast: (text) => { hud.toast(text); }, flash: () => { hud.damageFlash(); }, hurt: (amount) => { hurt('env.ride', amount, { kind: 'env.ride', label: 'Thrown from the saddle', text: 'Thrown from the saddle' }); } });
     const ride = rt.ride;
+    if (ride !== null) await ride.raid.installDirector(ctx, () => player.position);
     if (ride !== null) shell.interactables.push(ride.interactable);
     Object.assign(shell.objects, { wildlife, ride });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
