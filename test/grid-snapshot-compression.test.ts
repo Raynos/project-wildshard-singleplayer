@@ -17,19 +17,20 @@ it('fits the production eight-duplicate regional continuation without dropping g
   let restored: ReturnType<typeof restoreSimHost> | undefined;
   try {
     const assembly = new GridAssembly({ developer: false, devserver: false });
+    const standaloneBytes = sim.host.physics.snapshot().length;
     const cells = assembly.cells.map((cell) => ({ ...cell, edges: source.edge }));
     const strips = generatePlatform(cells, assembly.emptyNeighbour.edge);
     let count = 0;
     for (const strip of strips) for (const duplicate of strip.duplicates) if (duplicate.instance === 'template-1') { installStripCollider(sim.host.physics, duplicate.mesh, sim.host.scope); count++; }
     expect(count).toBe(8);
     const basis = sim.host.physics.snapshot();
+    expect(basis.length).toBeGreaterThan(standaloneBytes);
     for (let tick = 0; tick < 12; tick++) sim.host.step();
     const saved = snapshotSimHost(sim.host), text = serializeSimSnapshot(saved, basis);
-    expect(saved.physics.length).toBeGreaterThan(7_000_000);
     expect(text.length).toBeLessThan(SIM_REGION_SNAPSHOT_CHAR_BUDGET);
     const decoded = decodeSimSnapshot(text, basis); expect(decoded).toEqual(saved);
     restored = restoreSimHost(sim.host.level, { rapier }, decoded, (host) => { bindShardfileSim(host, source, assets, { rapier, quest, restoring: true }); });
     for (let tick = 0; tick < 30; tick++) { sim.host.step(); restored.step(); }
     expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
   } finally { restored?.dispose(); sim.dispose(); }
-}, 60_000); // Real 7.5 MB Rapier BVHs plus exact restore/suffix verification, including on the CI runner.
+}, 60_000); // Complete production Rapier BVHs plus exact restore/suffix verification on the CI runner.

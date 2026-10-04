@@ -68,6 +68,33 @@ function cliffFoot(id: string, side: number, height: number, along: number, corn
   const w = (low + high) / 2; return { u: 7.5 + w, bottom: base(w) };
 }
 
+// Preserve every changing height/colour sample. Only constant along-edge runs can
+// collapse; the two native boundary columns retain every original sample.
+function floorRows(writer: MeshWriter, along: readonly number[], columns: number): readonly number[][] {
+  const rows = along.length;
+  const same = (column: number, a: number, b: number): boolean => {
+    const i = (a * columns + column) * 3, j = (b * columns + column) * 3;
+    return writer.positions[i + 1] === writer.positions[j + 1]
+      && writer.colours[i] === writer.colours[j] && writer.colours[i + 1] === writer.colours[j + 1] && writer.colours[i + 2] === writer.colours[j + 2];
+  };
+  let last = -Infinity;
+  const common = Array.from({ length: rows }, (_unused, row) => row).filter(row => {
+    const at = along[row] ?? 0;
+    // Keep short contact triangles and the dense midpoint approach. A changing
+    // interval keeps both original endpoints and diagonals in every floor band.
+    const keep = row === 0 || row === rows - 1 || Math.abs(at) <= 10 || at - last >= 32;
+    if (keep) last = at;
+    return keep;
+  });
+  const native = Array.from({ length: rows }, (_unused, row) => row);
+  const retained = Array.from({ length: columns }, (_, column) => new Set(column === 0 || column === columns - 1 ? native : common));
+  for (let column = 1; column < columns; column++) for (let row = 0; row < rows - 1; row++) {
+    if (same(column - 1, row, row + 1) && same(column, row, row + 1)) continue;
+    for (const side of [column - 1, column]) { retained[side]?.add(row); retained[side]?.add(row + 1); }
+  }
+  return retained.map(points => [...points].sort((a, b) => a - b));
+}
+
 /** Build the G90 corridor, preserving all native sample locations and using the same triangles for every world and the renderer. */
 export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 'z'; readonly origin: { readonly x: number; readonly z: number }; readonly edges: readonly [SeamEdge, SeamEdge] }): SeamGeometry {
   input.edges.forEach(validateEdge);
@@ -79,13 +106,29 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
     const edge = input.edges[u < 0 ? 0 : 1], sample = edgeSample(edge.profile, v), weight = blend(u);
     writer.vertex(u, weight === 0 ? 0 : bounded(sample.height) * weight, v, neutral.map((c, channel) => c + ((sample.colour[channel] ?? c) - c) * weight));
   }
-  for (let row = 1; row < along.length; row++) for (let col = 1; col < count; col++) {
-    const u0 = SEAM_OFFSETS[col - 1] ?? 0, u1 = SEAM_OFFSETS[col] ?? 0;
+  const retained = floorRows(writer, along, count);
+  const columns = Array.from({ length: count }, (_, col) => col);
+  for (let band = 1; band < columns.length; band++) {
+    const col = columns[band], previous = columns[band - 1];
+    if (col === undefined || previous === undefined) throw new Error('Missing seam band');
+    const u0 = SEAM_OFFSETS[previous] ?? 0, u1 = SEAM_OFFSETS[col] ?? 0;
     const side = u1 <= -7.5 ? -1 : u0 >= 7.5 ? 1 : 0;
     const kind = side === 0 ? 'deck' : Math.max(Math.abs(u0), Math.abs(u1)) <= 11.5 ? 'neutral-buffer' : 'gradient';
     const key = `${kind}/${side}`, group = floorGroups.get(key) ?? { kind, side, indices: [] };
-    const d = row * count + col, c = d - 1, b = d - count, a = b - 1;
-    group.indices.push(...(input.axis === 'x' ? [a, c, d, a, d, b] : [a, d, c, a, b, d])); floorGroups.set(key, group);
+    const left = retained[previous], right = retained[col];
+    if (left === undefined || right === undefined) throw new Error('Missing seam column');
+    let l = 0, r = 0;
+    const triangle = (a: number, b: number, c: number): void => { group.indices.push(...(input.axis === 'x' ? [a, b, c] : [a, c, b])); };
+    while (l < left.length - 1 || r < right.length - 1) {
+      const a = (left[l] ?? 0) * count + previous, b = (right[r] ?? 0) * count + col;
+      const nextLeft = left[l + 1] ?? Infinity, nextRight = right[r + 1] ?? Infinity;
+      if (nextLeft === nextRight) {
+        const c = nextLeft * count + previous, d = nextRight * count + col;
+        triangle(a, c, d); triangle(a, d, b); l++; r++;
+      } else if (nextLeft < nextRight) { triangle(a, nextLeft * count + previous, b); l++; }
+      else { triangle(a, nextRight * count + col, b); r++; }
+    }
+    floorGroups.set(key, group);
   }
   for (const group of floorGroups.values()) {
     const firstIndex = writer.indices.length; writer.indices.push(...group.indices);
@@ -102,16 +145,54 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
         for (let i = start; i < end; i++) runs.set(i, length); start = -1;
       }
     }
+    // Keep the full native apron lattice, even when the adjacent bands are flat.
     for (let row = 0; row < along.length - 1; row++) {
-      const from = along[row] ?? 0, to = along[row + 1] ?? 0, middle = (from + to) / 2;
+      const from = along[row] ?? 0, to = along[row + 1] ?? 0;
       const a = edgeSample(edge.profile, from).height, b = edgeSample(edge.profile, to).height, min = Math.min(a, b), max = Math.max(a, b);
-      const feature = (kind: SeamFeatureKind, bottom: number, top: number): Omit<SeamFeature, 'firstIndex' | 'indexCount'> => ({ kind, side, from, to, bottom, top, ...(edge.sourceSurface === undefined ? {} : { sourceSurface: edge.sourceSurface }) });
       // The shared native row stays at the cell boundary. A quarter-metre same-mesh apron
       // continues its upper surface under regional terrain so KCC never meets an open seam edge.
       const ia: Point = [side * 27.5, a, from], ib: Point = [side * 27.5, b, to], oa: Point = [side * 27.75, a, from], ob: Point = [side * 27.75, b, to];
-      writer.quad(side < 0 ? [ia, oa, ib, ob] : [ia, ib, oa, ob], feature('overlap', min, max));
-      if (Math.abs(middle) < edge.entryWidth / 2) continue;
+      writer.quad(side < 0 ? [ia, oa, ib, ob] : [ia, ib, oa, ob], { kind: 'overlap', side, from, to, bottom: min, top: max,
+        ...(edge.sourceSurface === undefined ? {} : { sourceSurface: edge.sourceSurface }) });
+    }
+    const guarded = (row: number): boolean => {
+      const from = along[row] ?? 0, to = along[row + 1] ?? 0;
+      if (Math.abs((from + to) / 2) < edge.entryWidth / 2) return false;
+      const a = edgeSample(edge.profile, from).height, b = edgeSample(edge.profile, to).height;
+      return Math.max(a, b) > 14 || Math.min(a, b) < -1.5 || edge.geometry === 'void';
+    };
+    // Guard heights do not follow H: one continuous solid replaces the old
+    // coplanar boxes even when the protected cliff changes at every native sample.
+    for (let row = 0; row < along.length - 1;) {
+      if (!guarded(row)) { row++; continue; }
+      let end = row + 1;
+      while (end < along.length - 1 && guarded(end)) end++;
+      const from = along[row] ?? 0, to = along[end] ?? 0;
+      const feature = (kind: SeamFeatureKind, bottom: number, top: number): Omit<SeamFeature, 'firstIndex' | 'indexCount'> => ({ kind, side, from, to, bottom, top,
+        ...(edge.sourceSurface === undefined ? {} : { sourceSurface: edge.sourceSurface }) });
+      writer.box(side * 7.5, from, to, 0, roadWallTop, 0.25, feature('road-wall', 0, roadWallTop));
+      writer.box(side * 7.5, from, to, roadWallTop, guardRailTop, 0.15, feature('guard-rail', roadWallTop, guardRailTop));
+      row = end;
+    }
+    const classification = (row: number): string => {
+      const middle = ((along[row] ?? 0) + (along[row + 1] ?? 0)) / 2;
+      return `${Math.abs(middle) < edge.entryWidth / 2}/${(runs.get(row) ?? 0) >= 30}/${edge.outflows?.some(flow => middle >= flow.from && middle <= flow.to) ?? false}`;
+    };
+    for (let row = 0; row < along.length - 1;) {
+      let end = row + 1;
+      const from = along[row] ?? 0, a = edgeSample(edge.profile, from).height;
+      // Merge only identical-height physical faces, never across an opening,
+      // outflow, changing profile or cliff/retaining-treatment boundary.
+      if (edgeSample(edge.profile, along[end] ?? 0).height === a) {
+        while (end < along.length - 1 && classification(end) === classification(row)
+          && edgeSample(edge.profile, along[end + 1] ?? 0).height === a) end++;
+      }
+      const to = along[end] ?? 0, middle = (from + to) / 2;
+      const b = edgeSample(edge.profile, to).height, min = Math.min(a, b), max = Math.max(a, b);
       const cliff = max > 14 && (runs.get(row) ?? 0) >= 30;
+      row = end;
+      const feature = (kind: SeamFeatureKind, bottom: number, top: number): Omit<SeamFeature, 'firstIndex' | 'indexCount'> => ({ kind, side, from, to, bottom, top, ...(edge.sourceSurface === undefined ? {} : { sourceSurface: edge.sourceSurface }) });
+      if (Math.abs(middle) < edge.entryWidth / 2) continue;
       if (cliff) {
         const fa = cliffFoot(input.id, side, a, from), fb = cliffFoot(input.id, side, b, to);
         writer.quad([[side * fa.u, fa.bottom, from], [side * fb.u, fb.bottom, to], [side * 27.5, a, from], [side * 27.5, b, to]], feature('cliff', Math.min(fa.bottom, fb.bottom), max));
@@ -119,11 +200,6 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
       } else if (max > 6 || min < -1.5) {
         // Coordinator G90 gap decision: isolated >14 m runs shorter than30 m retain a face; never widen them over a legal entry.
         writer.quad([[side * 27.5, bounded(a), from], [side * 27.5, bounded(b), to], [side * 27.5, a, from], [side * 27.5, b, to]], feature(max > 6 ? 'retaining-wall' : 'parapet', min, max));
-      }
-      const blocked = max > 14 || min < -1.5 || edge.geometry === 'void';
-      if (blocked) {
-        writer.box(side * 7.5, from, to, 0, roadWallTop, 0.25, feature('road-wall', 0, roadWallTop));
-        writer.box(side * 7.5, from, to, roadWallTop, guardRailTop, 0.15, feature('guard-rail', roadWallTop, guardRailTop));
       }
       const outflow = edge.outflows?.some((flow) => middle >= flow.from && middle <= flow.to) ?? false;
       if (edge.waterSurface !== undefined && edge.waterSurface > 0 && !outflow) writer.box(side * 27.4, from, to, Math.min(bounded(a), bounded(b)), Math.max(1.3, edge.waterSurface + 0.5), 0.2, feature('dike', min, Math.max(1.3, edge.waterSurface + 0.5)));

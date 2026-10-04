@@ -45,4 +45,17 @@ describe('deterministic shared platform seams', () => {
     expect(platform.filter((s) => s.id.startsWith('cross.'))).toHaveLength(16);
     for (const cell of cells) expect(platform.flatMap((s) => s.duplicates).filter((d) => d.instance === cell.instance)).toHaveLength(8);
   }, 60_000); // Two full 40-piece native-profile meshes and exact shared-byte checks exceed 20 s in CI coverage.
+  it('keeps complete flat and constant-cliff grids below85k triangles, including native aprons and guards', () => {
+    for (const height of [0, 100]) {
+      const constant = { heights: Array.from({ length: 257 }, () => height), colours: Array.from({ length: 257 }, () => [0.25, 0.25, 0.25]), roadHeight: 0 };
+      const cells = [-1, 0, 1].flatMap(x => [-1, 0, 1].map(z => ({ instance: `${x}/${z}`, origin: { x: x * 555, z: z * 555 }, cell: [x, z] as const,
+        edges: { north: constant, south: constant, east: constant, west: constant } })));
+      const platform = generatePlatform(cells, constant);
+      expect(platform).toHaveLength(40);
+      expect(platform.reduce((triangles, strip) => triangles + strip.mesh.indices.length / 3, 0)).toBeLessThan(85_000);
+      for (const strip of platform) for (const duplicate of strip.duplicates) {
+        expect(duplicate.mesh.positions).toBe(strip.mesh.positions); expect(duplicate.mesh.indices).toBe(strip.mesh.indices);
+      }
+    }
+  });
 });

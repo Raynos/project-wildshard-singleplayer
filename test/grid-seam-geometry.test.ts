@@ -29,6 +29,34 @@ it('preserves every mixed256/257 native seam vertex and its boundary height with
     expect(Math.abs((result.mesh.positions[at + 1] ?? Infinity) - edgeSample(profile, along[row] ?? 0).height)).toBeLessThanOrEqual(0.02);
   }
 });
+it('keeps every native boundary segment indexed and joins constant fans without interior T-junctions', () => {
+  for (const axis of ['x', 'z'] as const) {
+    const a = edge(0, 256), b = edge(0, 257);
+    const result = seamGeometry({ ...input(a, b), axis }), rows = edgeSampleLocations([a.profile, b.profile]).length, columns = SEAM_OFFSETS.length;
+    const edges = new Map<string, number>();
+    const key = (x: number, y: number): string => x < y ? `${x}/${y}` : `${y}/${x}`;
+    for (const range of result.features.filter(feature => ['deck', 'neutral-buffer', 'gradient'].includes(feature.kind))) {
+      for (let i = range.firstIndex; i < range.firstIndex + range.indexCount; i += 3) {
+        const aIndex = result.mesh.indices[i], bIndex = result.mesh.indices[i + 1], cIndex = result.mesh.indices[i + 2];
+        if (aIndex === undefined || bIndex === undefined || cIndex === undefined) throw new Error('Missing floor triangle');
+        for (const [x, y] of [[aIndex, bIndex], [bIndex, cIndex], [cIndex, aIndex]]) {
+          if (x === undefined || y === undefined) throw new Error('Missing floor edge');
+          const id = key(x, y); edges.set(id, (edges.get(id) ?? 0) + 1);
+        }
+      }
+    }
+    for (const [id, uses] of edges) {
+      const [aIndex = 0, bIndex = 0] = id.split('/').map(Number), aRow = Math.floor(aIndex / columns), bRow = Math.floor(bIndex / columns);
+      const aColumn = aIndex % columns, bColumn = bIndex % columns;
+      const boundary = aRow === bRow && (aRow === 0 || aRow === rows - 1)
+        || aColumn === bColumn && (aColumn === 0 || aColumn === columns - 1);
+      expect(uses).toBe(boundary ? 1 : 2);
+    }
+    for (const column of [0, columns - 1]) for (let row = 1; row < rows; row++) {
+      expect(edges.get(key((row - 1) * columns + column, row * columns + column))).toBe(1);
+    }
+  }
+});
 it('builds same-mesh retaining faces,85degree cliffs with4m talus, and mandatory road walls/rails', () => {
   const low = seamGeometry(input(edge(10))), high = seamGeometry(input({ ...edge(100), sourceSurface: 'ridge' }));
   expect(low.features.some((f) => f.kind === 'retaining-wall')).toBe(true);
