@@ -1,12 +1,10 @@
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from '@wildshard/engine/core/config';
-import type { DiscSpot } from '@wildshard/engine/ui/hudSlots';
-import type { IconId } from '@wildshard/engine/ui/icons';
 
 /** The most declarations one shardfile's `ui` section may hold. */
 export const UI_DECLARATIONS_MAX = 64;
-const ICONS = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel'] as const satisfies readonly IconId[];
-const SPOTS = ['r0', 'r1', 'r2', 'r3', 'aim', 'up0', 'lean-l', 'lean-r', 'edge-r', 'edge-l', 'lock', 'jump'] as const satisfies readonly DiscSpot[];
+const ICONS = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel'] as const; // the engine's IconId (test/declared-ui.test.ts holds the shapes equal)
+const SPOTS = ['r0', 'r1', 'r2', 'r3', 'aim', 'up0', 'lean-l', 'lean-r', 'edge-r', 'edge-l', 'lock', 'jump'] as const; // the engine's DiscSpot
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const finite = v.pipe(v.number(), v.finite());
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(64));
