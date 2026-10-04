@@ -9,6 +9,7 @@ import type { Renderer } from './renderer';
 import type { Game } from '../core/Game';
 import { chunkShadowCasters } from '../world/shadowChunks';
 import { recordGpuCheckpoint } from '../boot/gpuTrace';
+import { familyCompileJobs } from './families/registry';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -363,6 +364,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const rt = game.composer.inputBuffer;
     const policy = game.level.boot.shaders;
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(game.scene, rt);
+    // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
+    if (policy?.scene !== false) jobs.push(...familyCompileJobs(game.scene, rt));
     if (policy?.shadows !== false) jobs.push(...shadowJobs(game.scene, rt));
     const bg = backgroundJob(game.scene, rt);
     if (bg && policy?.background !== false) jobs.push(bg);
