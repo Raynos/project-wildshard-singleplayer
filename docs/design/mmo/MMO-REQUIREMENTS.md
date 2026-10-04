@@ -30,12 +30,15 @@ people's phones and on our servers, next to strangers' shards:
 | P5 | **One world from many hands** | Fixed size, walkable edges, a shared scale and a shared sense of place, while each shard keeps its own look |
 | P6 | **A living grid** | Ownership, collaboration, renovation, live updates with players inside, and a centre that doesn't become a ghost town |
 | P7 | **Moderation and cost** | Offensive content, griefing, farming; hosting and bandwidth per shard |
+| P8 | **An economy across strangers' shards** | The profile travels (M6). A stranger's shard that grants a god-sword or a chest of coins would inflate every other shard. Decided (Jake, E435): **two wallets** (M6) |
+| P9 | **Netcode on a phone** | First-person combat with physics over mobile networks: latency, loss and jitter decide how authoritative play can feel (Fork C, E435) |
+| P10 | **Quality and discovery** | Twenty-five shards by strangers: what brings a good one forward and lets a bad one leave (O5 is half of it) |
 
-**The answer, in one line: build with code, ship data and approved systems.** Authors keep unlimited code where it
-runs on their own machine: generators that bake models, terrain and scatter. What ships is data (rows, layouts, graphs)
-and baked assets, run by **approved systems** the engine owns: a logic system, devices, look stacks, material
-graphs and sandboxed **WASM plugins**. Custom TypeScript at runtime survives only as a transition allowance for the
-six first-party shards (§3.10).
+**The constraint, not the mechanism** (Jake, E435: the requirements state what must be true; the plan picks how):
+whatever a shard ships is **safe by construction** (it cannot reach storage, network, the DOM or other shards),
+**metered** (CPU, memory, draw cost; a runaway is stopped, not waited on), **deterministic** (the server and the
+client get the same result) and written against a **versioned API**. How that is achieved is the plan's call, not
+this doc's.
 
 **Why single-player first.** Six shards on one engine (Driftwood Isle, Pine Hollow, Nalati Grasslands, Nine Dragon
 Stack, Signal Dunes, Sky Reach) proved the feel, the looks and the engine shape, and GAME-NORMALIZATION gave them one
@@ -67,54 +70,56 @@ editor is Claude Code. Unreviewed arbitrary code from strangers. A native-only c
 | W4 | **Edge entries:** at each of the four edge midpoints a 15 m road runs at least 50 m in, level with the highway. No wall or cliff may close an edge. The validator proves each entry is **walkable** (ingress, clearance, terrain continuity), not just present. During the transition Driftwood Isle (open sea) and Sky Reach (floating islands) are exempt; their conversion adds the entries (Jake, 2026-10-03) | MUST | F, V |
 | W5 | The **centre shard** is first-party and changes only with a server release | MUST | F |
 | W6 | **The server places shards.** Authors build in isolation (a floating cube) and never pick their cell. Identity, revision, placement and host are separate fields, and the server owns all four | MUST | F |
-| W7 | Travel between shards over the highway is **seamless**: no page reload, the next shard streams in | SHOULD | V |
-| W8 | Shards are seen from afar: neighbours render as low-detail horizon impostors | SHOULD | N |
-| W9 | **Pocket spaces:** interiors and dungeons behind a door may be larger than the cell, off the grid, reachable only through declared doors | SHOULD | N (SHARD-IDEAS §5.1) |
+| W7 | **Seamless travel**: no page reload and no loading screen; walking, riding or driving across a border streams the next shard in. **Designed first** (Jake, E435): it decides the package format, the budgets and the server rooms, so the design and a phone prototype come before the format freezes | MUST | V, J |
+| W7a | **The crossroads is the worst case.** Where four shards meet, the player stands within ~10 m of four shard corners, all four in the near field. Every budget (memory, draws, CPU, bandwidth) is proven at a crossroads, not inside one shard | MUST | J |
+| W7b | **A shard's edges show at full detail without its interior**: a shard can be streamed in parts, nearest first | MUST | J |
+| W7c | **Everything in view fits the phone together**: at a crossroads, four shards' near parts plus the far ring fit in 1.0 GB (B1). A shard's budget is a share of the phone, not the whole phone | MUST | J |
+| W7d | **Speed never outruns the stream**: at driving speed (~30 m/s) on a mobile link, the next shard's near parts arrive before the player does; a stall degrades to proxies, never a hole, a fall or a freeze | MUST | J |
+| W7e | **Borders are invisible to play**: crossing hands the player from room to room with nothing lost or duplicated and no hitch; creatures and players across a border are seen | MUST | J |
+| W7f | **Several looks on one screen**: each shard keeps its own look (R5) inside it, and neighbours seen from outside read as one coherent view (sky, light, fog) | MUST | J |
+| W8 | **The grid is seen from afar**: every shard has a far form (a proxy, then a horizon impostor) made by the platform from its package, so distant shards are visible at little cost | MUST | N, J |
 
 ### 3.2 Authoring
 
-| Id | Requirement | Level | Src |
-|---|---|---|---|
-| A1 | **Claude Code is the editor.** The SDK is a skill, docs and a `wildshard` CLI: `new`, `bake`, `validate`, `pack`, `preview` | MUST | V |
-| A2 | **Generators run on the author's machine.** Procedural models, terrain, scatter and Blender scripts run under `bake`; only their output ships (GLB, KTX2, heightmaps, instance lists, audio) | MUST | N (platform plan §5) |
-| A3 | `validate` runs **the same pipeline the server runs**, so a shard that passes locally passes on upload | MUST | N |
-| A4 | `preview` runs the shard in the real client, in localhost mode, with the budget overlay | MUST | V |
-| A5 | **The CLI never uploads.** Uploading is the in-game ritual (U1) | MUST | V |
-| A6 | A fresh author with only the SDK can build a small, real, playable shard **outside the repo** | MUST | N (extends singleplayer Z3) |
-| A7 | Authors share generators as ordinary code packages and can remix public shards, with attribution | SHOULD | N |
-
-### 3.3 The shard package
+Needs only (Jake, E435): the tools, commands and file layout that meet them are SHARD-PLATFORM's.
 
 | Id | Requirement | Level | Src |
 |---|---|---|---|
-| S1 | A shard is **one archive**: `shard.json` (identity, look, `requires`, budgets), `layout.json` (places, anchors, spawns, paths, edge entries), `content/` (rows and graphs), `assets/` (baked), and optionally `plugins/*.wasm` | MUST | F, N |
-| S2 | **Strictly validated:** every file has a schema; unknown keys are refused; ids and references resolve; entries carry a hash and size | MUST | F |
-| S3 | **Hard limits in one budgets file** (bytes, triangles, draws, entities, rows, lights, material cost, plugin fuel and memory), referenced by the schemas | MUST | F, N |
-| S4 | Server-owned fields (id, revision, placement, host, author) are **never** in the author's files | MUST | N |
-| S5 | A shard declares the systems it needs with versions (`requires: ["logic@1", "mount@2", "look.painterly@1"]`); the server refuses a shard that needs one it lacks | MUST | N |
-| S6 | Content the brief makes mandatory is expressible as data: geometry; parameterised items (weapons, equipment); enemy NPCs; quest-giver NPCs; declarative quests; collectibles, exploration and puzzles; doors and windows, locked or not; achievements and virtues; cosmetics including hats and capes; earned titles | MUST | V |
+| A1 | **Claude Code is the editor.** An author needs nothing but Claude Code and the Wildshard SDK | MUST | V |
+| A2 | Authors may make content with **any tool on their own machine**; only the output ships | MUST | N |
+| A3 | The author's local check runs **the same validation the server runs**, so a shard that passes locally passes on upload | MUST | N |
+| A4 | An author can **play the shard locally in the real client** and see what it costs against the limits | MUST | V |
+| A6 | **The first proof of the platform** (Jake, E435, package-first): a fresh author with only the SDK builds a small, real, playable shard **outside the repo**, and it runs with no trusted code | MUST | N, J |
+| A7 | Authors can share their tools and remix public shards, with attribution | SHOULD | N |
 
-### 3.4 What runs: data and approved systems
+### 3.3 The shard
 
 | Id | Requirement | Level | Src |
 |---|---|---|---|
-| R1 | **No uploaded JavaScript or TypeScript runs**, on the client or the server. Content is loaded as config | MUST | F |
-| R2 | Behaviour is a **logic system**: devices fire events into a data graph of conditions, actions, variables, timers and state machines. The interpreter is pure (it returns effects), metered by fuel and cascade limits, and runs headless on the server and on the client for prediction | MUST | J, N |
-| R3 | **Devices** are engine components with parameters that shards place and wire: movers, triggers, spawners, doors, pressure plates, mounts, grapple points, ropes, water bodies, flocks, scatter, wind zones, scoreboards, displays with stages… | MUST | N |
-| R4 | Creatures are **archetype brains** with parameters; bosses are **phase tables** (trigger, HP thresholds, move sets from the strike library); quests are **quest graphs** | MUST | N |
-| R5 | Looks are **look stacks**: engine post passes with parameters plus a colour LUT, sky, fog and day keyframes as data. Each shard keeps its own look (toon, PBR, painterly, Jiehua Neon and the newer ones) | MUST | J |
-| R6 | Special surfaces are **material graphs**: validated node graphs with an allowlist of nodes and a cost cap, compiled by the engine. Shards ship no shader source | MUST | J |
-| R7 | **WASM plugins** are an approved system: a module that talks to the engine only through a small, data-only host API (ids, numbers, typed arrays), with fuel and memory caps, deterministic, runnable on the server and in the browser | MUST | J (amends VISION's ban, §6) |
-| R8 | A new mechanic **graduates**: a shard's need becomes a reviewed engine device or node that every shard can then use | SHOULD | N |
+| S1 | A shard is **one self-contained, immutable package**: everything it needs is inside it or provided by the platform | MUST | F |
+| S2 | **Strictly validated**: unknown content is refused; every reference resolves; every part is checked for size and integrity | MUST | F |
+| S3 | **Hard limits** (bytes, geometry, draw cost, entities, CPU, memory) are declared and **checked before anyone plays it** | MUST | F |
+| S4 | Server-owned facts (id, revision, placement, host, author) are **never** in the author's files | MUST | N |
+| S5 | A shard **names the API version it targets**; the platform keeps that version working or refuses the shard. Authors' shards keep working for years | MUST | N |
+| S6 | The content the brief makes mandatory can be expressed: geometry; parameterised items (weapons, equipment); enemy NPCs; quest-giver NPCs; scripted quests; collectibles, exploration and puzzles; doors and windows, locked or not; achievements and virtues; cosmetics including hats and capes; earned titles | MUST | V |
 
-### 3.5 Trust tiers
+### 3.4 Behaviour and safety
 
-| Tier | Who | Ships |
-|---|---|---|
-| 0 · first-party transition | The six in-repo shards, during the transition | Up to **20 % custom runtime TypeScript**, in a marked `runtime/` folder, under a ratchet that only falls (§3.10) |
-| 1 · everyone | Any author | Data, baked assets, devices, the logic system, look stacks, material graphs, **approved** WASM plugins |
-| 2 · plugin authors | Authors whose plugin passed review | Their own WASM plugin, public after review (open decision O3) |
-| 3 · self-hosted | Anyone, outside our trust boundary | Any code on their own server, reached through a portal; identity crosses as a signed token |
+| Id | Requirement | Level | Src |
+|---|---|---|---|
+| R1 | **Authors invent mechanics** (Jake, E435): a shard can carry genuinely new behaviour (a puzzle, a boss's mind, a gadget, a minigame), not only configure mechanics the platform made | MUST | J |
+| R2 | **Nothing a shard ships can reach** storage, cookies, the network, the DOM, other shards or other players' data, whatever it contains | MUST | F |
+| R3 | **A shard cannot hang the CPU or the GPU or crash the page**: its work is metered and a runaway is stopped, not waited on | MUST | F, N |
+| R4 | Behaviour gives **the same result on the server and on the client** (M2, M3) | MUST | N |
+| R5 | **Each shard keeps its own look** (toon, PBR, painterly, Jiehua Neon and the newer ones) | MUST | J |
+| R8 | A mechanic many shards need can **graduate** into the platform | SHOULD | N |
+
+### 3.5 Trust
+
+| Id | Requirement | Level | Src |
+|---|---|---|---|
+| X1 | The six first-party shards keep a **custom runtime allowance** during the transition (§3.10) | MUST | J |
+| X2 | **Self-hosted shards**: a shard on its author's own server, reached through a portal, outside the platform's trust boundary (identity crosses as a signed token). Later, after the grid (Jake, E435) | LATER | N, J |
 
 ### 3.6 Performance and budgets
 
@@ -133,14 +138,14 @@ editor is Claude Code. Unreviewed arbitrary code from strangers. A native-only c
 | M3 | World state is serialisable with **stable entity ids**; gameplay changes arrive as input commands, so snapshot → restore → replay is exact | MUST | N |
 | M4 | Identity: log in or play anonymously. A **Name** with a **Title** beneath it | MUST | V |
 | M5 | Chat: global, shard and proximity | MUST | V |
-| M6 | A **player profile** above the shards (identity, inventory, coins, gear, cosmetics, titles, progression) travels between shards; each shard keeps only its own world state | MUST | V (R10) |
+| M6 | A **player profile** above the shards travels between shards. **Two wallets** (Jake, E435): the profile holds only what the platform controls (identity, cosmetics, titles, achievements, a platform currency at server-set rates, and gear from the shared item catalogue at server-capped power tiers). Anything a shard invents (its own items, keys, coins, progress) stays in that shard's save and never leaves it | MUST | V (R10), J |
 | M7 | Shard modes and law (persistent, instanced, scheduled, competitive; PvP, gravity, permadeath) are declared data the server enforces | SHOULD | N (SHARD-IDEAS §5.3) |
 
 ### 3.8 Upload and lifecycle
 
 | Id | Requirement | Level | Src |
 |---|---|---|---|
-| U1 | **The upload ritual:** in localhost mode the author plants a beacon at the 8 corners and a 9th at the centre, then completes a ~30 s upload sequence. No CLI or API upload replaces it | MUST | F |
+| U1 | **The upload ritual:** in localhost mode the author plants a beacon at the 8 corners and a 9th at the centre, then completes a ~30 s upload sequence. No CLI or API upload replaces it; the SDK never uploads | MUST | F |
 | U2 | The server validates (A3), quarantines, then activates a revision by an atomic head flip. Every revision is kept | MUST | N |
 | U3 | **Live update with players inside** is designed and tested: revision swap while occupied, relocation mid-session, capacity, crash recovery (open decision O5) | MUST | V |
 | U4 | **Private shards never leak**, including through public asset URLs | MUST | V |
@@ -194,6 +199,22 @@ declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLAT
 5. **WASM plugins are approved systems.** This amends the one-shot brief's ban on uploaded WASM (VISION's tension
    table) for sandboxed plugins behind the data-only host API.
 
+6. **Requirements state constraints, not mechanisms** (E435): §1's "ship data and approved systems" became the
+   constraint (safe by construction, metered, deterministic, versioned); decision 3's list of mechanisms is the
+   plan's to pick (Fork B).
+7. **Two wallets** (E435, P8 / M6): the profile carries only platform-controlled things; shard-invented items stay
+   in the shard's save.
+8. **No pocket spaces for now** (E435): W9 is cut; a shard is exactly its cell. It may return after the grid as a
+   pocket with its own fixed budget.
+9. **Needs, not mechanisms** (E435): §3.2–3.5 were rewritten as needs. The file layout, the CLI commands and the
+   catalogue (logic system, devices, brains, phase tables, look stacks, material graphs, WASM plugins) moved out to
+   SHARD-PLATFORM, which decides them after the E435 audits and Fork B. A5 merged into U1.
+10. **Authors invent mechanics** (E435, R1), not only compose the platform's.
+11. **Self-hosted shards are later** (E435, X2), not cut.
+12. **Seamless travel and the far view are designed first** (E435, W7–W8): both were SHOULDs; they decide the
+    format, the budgets and the rooms, so the crossroads (four shards in the near field) is the design case and a
+    phone prototype precedes the format freeze.
+
 ## 7. Open decisions (each with a recommended answer)
 
 | # | Decision | Recommended |
@@ -208,5 +229,5 @@ declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLAT
 
 ## 8. Out of scope here
 
-Server technology, hosting and cost model, accounts and payments, and the multiplayer protocol: they are the
+Pocket spaces (W9, cut by E435). Server technology, hosting and cost model, accounts and payments, and the multiplayer protocol: they are the
 milestones after 80/20 and get their own plans. Crafting. Accessibility features.
