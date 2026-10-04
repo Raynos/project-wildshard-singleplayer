@@ -66,6 +66,8 @@ import { installBounds } from '@wildshard/engine/world/bounds';
 import { gridCells, gridHomeSim, pageMode } from '../grid/boot';
 import { installGridReveal } from '../grid/reveal';
 import { installGridHud } from '../grid/gridHud';
+import { ACCENTS } from '../shardfile/accent';
+import { installMinimapBlend } from '../grid/minimapBlend';
 import { findShard } from '../shard/registry';
 import { firstPartyInstance } from '../grid/instances';
 import { installSavesSettings } from '../savesSettings';
@@ -452,9 +454,13 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       home: chunk.name, ringsReady: () => grid.ringsReady(), homeSimReady: () => !gridHomeSim.pending, weapons, viewmodel: game.viewmodel, entered: () => hud.entered });
     const gridHud = installGridHud({ scope: game.levelScope, hudRoot: hud.root, camera: game.camera, cells: gridCells,
       title: (cell) => { const shard = findShard(cell.slug); return { name: shard?.name ?? cell.slug, subtitle: shard?.biome ?? '' }; },
+      accent: (cell) => { const id = findShard(cell.slug)?.accent; return id === undefined ? null : ACCENTS[id]; },
       velocity: () => player.velocity, live: () => hud.entered && !hud.paused && !revealing(),
       onInput: (fn) => { game.onInput(fn, 'game.grid.hud.fov'); }, onLate: (fn) => { game.onLate(fn, 'game.grid.hud'); } });
-    game.levelScope.onDispose(app.debug.scopedExpose('gridHud', { state: gridHud }));
+    // G107: the minimap blends at the road boundary (the shard + the road + the neighbours' names inside; faded terrain on the road)
+    const blend = installMinimapBlend(minimap, { assembly: grid.assembly, home: grid.home, cells: gridCells, worldFeet: () => grid.worldFeet(), image: (id) => grid.mapImage(id),
+      name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope);
+    game.levelScope.onDispose(app.debug.scopedExpose('gridHud', { state: gridHud, minimap: () => { const o = blend(); return { baseAlpha: o.baseAlpha ?? 1, images: o.images.map((m) => ({ x: m.x, z: m.z, alpha: m.alpha })), labels: o.labels.map((l) => l.text) }; } }));
   }
   // ?explore=hub|world|model|sets[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ShardManifest.explore — D4, E66; a note's "go there")
   if (exploreParam !== null && chunk.explore !== undefined) {
@@ -490,6 +496,11 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     }
   }, game.levelScope);
 
+  // G107: in the grid the minimap reads the home frame's metres (the traveller's own position is its current frame's)
+  const mapAt = (): { x: number; z: number } => {
+    if (grid === null) return player.position;
+    const feet = grid.worldFeet(); return { x: feet.x - grid.home.origin.x, z: feet.z - grid.home.origin.z };
+  };
   let musicPoll = 0;
   const alertOnlyHostile = manifest.audio?.alertOnlyHostile === true;
   // the dev fps panel's split of this updater (src/engine/core/frameCost.ts; free while the panel is closed): `mark(b)` books the
@@ -574,7 +585,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     hud.setAimInfo(aimReadout(weapons.aimInfo)); // a boss by its name (PH-C1)
     lockOn.update();
     speedLines.update(dt, player.dashing, meleeLock.lunging);
-    if (hud.entered) { hud.setAnimals(away() ? [] : animalPositions(animals.animals)); minimap.update(player.position, player.yaw, away() ? [] : animals.animals); fullMap.update(player.position, player.yaw); } // a practice room's map is its own (Minimap.setRoom, E321), not the shard's terrain
+    if (hud.entered) { hud.setAnimals(away() ? [] : animalPositions(animals.animals)); minimap.update(mapAt(), player.yaw, away() ? [] : animals.animals); fullMap.update(player.position, player.yaw); } // a practice room's map is its own (Minimap.setRoom, E321), not the shard's terrain
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       weaponUi: weapons.current.row.ui,

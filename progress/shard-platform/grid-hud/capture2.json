@@ -1,0 +1,455 @@
+{
+  "url": "http://127.0.0.1:4400",
+  "started": "2026-10-04T17:20:50.305Z",
+  "errors": [],
+  "pier": {
+    "hud": {
+      "safe": false,
+      "card": null,
+      "speed": 0,
+      "fov": 93.94,
+      "accent": "#fbbb2d"
+    },
+    "inside": "driftwood-isle",
+    "stowed": false,
+    "frame": "driftwood-isle"
+  },
+  "minimap-inside": {
+    "inside": "driftwood-isle",
+    "accent": "#fbbb2d",
+    "minimap": {
+      "baseAlpha": 1,
+      "images": [],
+      "labels": [
+        "Nalati Grasslands"
+      ]
+    },
+    "shimmer": {
+      "borders": 36,
+      "status": null
+    },
+    "crossing": {
+      "current": "driftwood-isle",
+      "target": "driftwood-isle",
+      "phase": "settled",
+      "issue": null
+    },
+    "cyan": "#fbbb2d"
+  },
+  "minimap-road": {
+    "inside": null,
+    "accent": "#8fe3ff",
+    "minimap": {
+      "baseAlpha": 0.5,
+      "images": [
+        {
+          "x": -555,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": 0,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": -555,
+          "z": 0,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": 0,
+          "alpha": 0.5
+        },
+        {
+          "x": -555,
+          "z": -555,
+          "alpha": 0.5
+        },
+        {
+          "x": 0,
+          "z": -555,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": -555,
+          "alpha": 0.5
+        }
+      ],
+      "labels": []
+    },
+    "shimmer": {
+      "borders": 36,
+      "status": null
+    },
+    "crossing": {
+      "current": null,
+      "target": null,
+      "phase": "settled",
+      "issue": null
+    },
+    "cyan": "#8fe3ff"
+  },
+  "minimap-roundabout": {
+    "inside": null,
+    "accent": "#8fe3ff",
+    "minimap": {
+      "baseAlpha": 0.5,
+      "images": [
+        {
+          "x": -555,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": 0,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": -555,
+          "z": 0,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": 0,
+          "alpha": 0.5
+        },
+        {
+          "x": -555,
+          "z": -555,
+          "alpha": 0.5
+        },
+        {
+          "x": 0,
+          "z": -555,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": -555,
+          "alpha": 0.5
+        }
+      ],
+      "labels": []
+    },
+    "shimmer": {
+      "borders": 36,
+      "status": null
+    },
+    "crossing": {
+      "current": null,
+      "target": null,
+      "phase": "settled",
+      "issue": null
+    },
+    "cyan": "#8fe3ff"
+  },
+  "shimmer": {
+    "inside": "driftwood-isle",
+    "accent": "#fbbb2d",
+    "minimap": {
+      "baseAlpha": 1,
+      "images": [],
+      "labels": [
+        "Nalati Grasslands"
+      ]
+    },
+    "shimmer": {
+      "borders": 36,
+      "status": null
+    },
+    "crossing": {
+      "current": "driftwood-isle",
+      "target": "driftwood-isle",
+      "phase": "settled",
+      "issue": null
+    },
+    "cyan": "#fbbb2d"
+  },
+  "shimmer-road": {
+    "inside": null,
+    "accent": "#8fe3ff",
+    "minimap": {
+      "baseAlpha": 0.5,
+      "images": [
+        {
+          "x": -555,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": 0,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": -555,
+          "z": 0,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": 0,
+          "alpha": 0.5
+        },
+        {
+          "x": -555,
+          "z": -555,
+          "alpha": 0.5
+        },
+        {
+          "x": 0,
+          "z": -555,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": -555,
+          "alpha": 0.5
+        }
+      ],
+      "labels": []
+    },
+    "shimmer": {
+      "borders": 36,
+      "status": null
+    },
+    "crossing": {
+      "current": null,
+      "target": null,
+      "phase": "settled",
+      "issue": null
+    },
+    "cyan": "#8fe3ff"
+  },
+  "saving": {
+    "inside": "driftwood-isle",
+    "accent": "#fbbb2d",
+    "minimap": {
+      "baseAlpha": 1,
+      "images": [],
+      "labels": [
+        "Nalati Grasslands"
+      ]
+    },
+    "shimmer": {
+      "borders": 36,
+      "status": null
+    },
+    "crossing": {
+      "current": "driftwood-isle",
+      "target": "driftwood-isle",
+      "phase": "settled",
+      "issue": null
+    },
+    "cyan": "#fbbb2d"
+  },
+  "saveSamples": [
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    },
+    {
+      "status": "failed",
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": null,
+        "phase": "ready",
+        "issue": "Local checkpoint is not durable"
+      }
+    }
+  ],
+  "afterRestore": {
+    "inside": null,
+    "accent": "#8fe3ff",
+    "minimap": {
+      "baseAlpha": 0.5,
+      "images": [
+        {
+          "x": -555,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": 0,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": 555,
+          "alpha": 0.5
+        },
+        {
+          "x": -555,
+          "z": 0,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": 0,
+          "alpha": 0.5
+        },
+        {
+          "x": -555,
+          "z": -555,
+          "alpha": 0.5
+        },
+        {
+          "x": 0,
+          "z": -555,
+          "alpha": 0.5
+        },
+        {
+          "x": 555,
+          "z": -555,
+          "alpha": 0.5
+        }
+      ],
+      "labels": []
+    },
+    "shimmer": {
+      "borders": 36,
+      "status": null
+    },
+    "crossing": {
+      "current": null,
+      "target": null,
+      "phase": "settled",
+      "issue": null
+    },
+    "cyan": "#8fe3ff"
+  }
+}

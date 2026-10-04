@@ -45,6 +45,7 @@ import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './r
 import { farRingPorts, type FarPrepared } from './farView';
 import type { FarLookRuntime } from './farProxy';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
+import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
 import { gridShardfileProduct } from './products';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
@@ -62,6 +63,9 @@ import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
 import type { ClientSkin } from '../shardfile/clientSkins';
 import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
+import { farMapImage } from './minimapBlend';
+import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
+import { GAME_STRINGS } from '../strings';
 
 /** In grid mode the level's own chunk-edge walls and veil yield to the platform (the standalone path is unchanged). */
 export function gridLevel(spec: LevelSpec): LevelSpec {
@@ -95,6 +99,8 @@ export interface GridSessionState {
   readonly seams: SeamLookState;
   /** G85's soft walls: how many edges are closed and which shard's loading panel shows (null: none in range) */
   readonly softWalls: SoftWallState;
+  /** G78's border shimmer and G119's save panel (status null: no panel up) */
+  readonly shimmer: BorderShimmerState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   readonly rings: { readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number };
@@ -131,7 +137,8 @@ const num = v.pipe(v.number(), v.finite());
 /** The part of `far.json` the client reads: the resident cost and the look (the bake writes more). */
 const FarRow = v.object({ far: v.object({ gpu: num, decoded: num }),
   look: v.object({ family: v.picklist(['toon', 'painterly', 'pbr']), haze: v.object({ colour: v.tuple([num, num, num]), near: num, far: num, max: num }),
-    grade: v.optional(v.object({ exposure: num, saturation: num, contrast: num })) }) });
+    grade: v.optional(v.object({ exposure: num, saturation: num, contrast: num, tint: v.optional(v.tuple([num, num, num])) })),
+    band: v.optional(v.object({ colour: v.tuple([num, num, num]), height: num, opacity: num, own: num })) }) });
 function farLook(row: unknown): FarLookRuntime { return v.parse(FarRow, row).look; }
 function farBytes(row: unknown): number { const { far } = v.parse(FarRow, row); return Math.round(far.gpu + far.decoded); }
 
@@ -160,6 +167,8 @@ export class GridSession {
   private readonly rings: RenderRings<LevelPrepared<FarPrepared, PreparedRingTile>>;
   private readonly neighbours: readonly GridCell[];
   private readonly costs = new Map<string, number>();
+  /** G107: each loaded neighbour's top-down minimap raster (its far proxy, drawn once) */
+  private readonly mapImages = new Map<string, HTMLCanvasElement>();
   private readonly strips: readonly GeneratedStrip[];
   private readonly host: GridSessionHost;
   private last: { x: number; z: number } | null = null;
@@ -171,6 +180,7 @@ export class GridSession {
   private readonly seams: SeamLookState;
   private readonly life: NeighbourLife;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
+  private readonly shimmer: { readonly step: () => void; readonly state: () => BorderShimmerState };
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
   static async create(host: GridSessionHost): Promise<GridSession> {
@@ -210,7 +220,7 @@ export class GridSession {
     this.frame = frameHost !== undefined && gridOneFrameOn() ? new GridFrame({ host: frameHost, scope: host.scope, home, half: CHUNK_HALF, band: (this.assembly.pitch - 2 * CHUNK_HALF) / 2,
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, origin: { x: cell.origin.x, z: cell.origin.z } })) }) : null;
     const frame = this.frame;
-    if (frame !== null && frameHost !== undefined) { frame.deck(deck); frameHost.onLate(() => { frame.frame(); }); }
+    if (frame !== null) frame.deck(deck);
     host.scene.add(deck);
     // SF17b look: the boulevard over the deck's road band (G80 / G81 / G93) and the VR void past the outer road (G89)
     const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
@@ -221,6 +231,14 @@ export class GridSession {
       edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => ({ instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }))),
       ports: { closed: (id) => this.live === null || !this.live.live.ready(id), feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
         name: (id) => { const slug = this.assembly.cell(id).slug; return findShard(slug)?.name ?? slug; } } });
+    // G78: a shimmer line at every shard border on its real ground; G119: SAVING… / SAVE FAILED, RETRY while a crossing waits
+    const rows = new Map((edges ?? []).map((cell) => [cell.instance, cell.edges]));
+    let status: CrossingSaveStatus = null, polled = 0;
+    this.shimmer = installBorderShimmer({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
+      cells: this.assembly.cells.map((cell) => ({ x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, edges: rows.get(cell.instance) ?? null })),
+      ports: { feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
+        status: () => { if (++polled % 4 === 0) status = crossingSaveStatus(this.live?.state().crossing); return status; },
+        text: (shown) => (shown === 'saving' ? GAME_STRINGS.grid.saving : GAME_STRINGS.grid.saveFailed) } });
     for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // synced open by the live host once a neighbour is ready
     installGridBorders(host.physics, host.scope); // the home cell's creatures stay home (SF20d)
@@ -235,16 +253,23 @@ export class GridSession {
     }
     const far = farRingPorts({
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
-      load: async (id) => { const { prepared, bytes } = await loadFar(this.assembly.cell(id).slug); this.costs.set(id, bytes); frame?.declare(id, prepared.look); return prepared; },
+      load: async (id) => {
+        const { prepared, bytes } = await loadFar(this.assembly.cell(id).slug); this.costs.set(id, bytes); frame?.declare(id, prepared.look);
+        if (!this.mapImages.has(id)) { const image = farMapImage(prepared.geometry); if (image !== null) this.mapImages.set(id, image); }
+        return prepared;
+      },
     });
     const farPorts = frame === null ? far : { ...far, upload: (tile: { instance: string }, data: FarPrepared) => {
-      const view = far.upload(tile, data), untag = frame.tag(tile.instance, view, data.look.haze), dispose = view.dispose;
-      view.dispose = () => { untag(); dispose(); };
+      const band = data.look.band, view = far.upload(tile, data), untag = frame.tag(tile.instance, view, data.look.haze, band?.own), dispose = view.dispose;
+      // SF19b (G94 / G95): a shard that declares a band keeps its mood at its border inside the one frame
+      const root = roots.get(tile.instance), unband = band === undefined || root === undefined ? () => undefined : installHazeBand(root, band, CHUNK_HALF);
+      view.dispose = () => { unband(); untag(); dispose(); };
       return view;
     } };
     // SF25 / G66: frozen neighbours look alive (presentation-only client scripts; their sims never step here)
     this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.simulation(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
-    host.frame?.onLate((dt) => { this.life.late(dt); });
+    // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
+    host.frame?.onLate((dt) => { this.life.late(dt); frame?.frame(); });
     const tiles = neighbourTiles(host.scope), tileCost = clientRingCatalogue(tiles.instances);
     this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
@@ -297,6 +322,11 @@ export class GridSession {
   }
 
   private rebased(mesh: StripMesh): StripMesh { return { ...mesh, origin: { x: mesh.origin.x - this.home.origin.x, z: mesh.origin.z - this.home.origin.z } }; }
+  /** G107: a neighbour's top-down minimap raster once its far proxy has loaded (null before, or for the home) */
+  mapImage(instance: string): HTMLCanvasElement | null { return this.mapImages.get(instance) ?? null; }
+  /** The traveller's feet in grid metres, whatever frame it is in. */
+  worldFeet(): { x: number; z: number } { return this.world(); }
+
   /** World feet (grid metres) from the home-frame feet. */
   private world(): { x: number; z: number } {
     if (this.live !== null) { const feet = this.live.worldFeet(); return { x: feet.x, z: feet.z }; }
@@ -311,6 +341,7 @@ export class GridSession {
     const speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     this.softWalls.step();
+    this.shimmer.step();
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
     if (inside === undefined || inside.instance !== active) gridCells.leave();
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
@@ -337,7 +368,7 @@ export class GridSession {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
         shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
-      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused },
       frame: this.frame?.state() ?? null,

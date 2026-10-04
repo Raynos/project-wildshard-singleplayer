@@ -72,6 +72,28 @@ export interface MapFeatures {
   roofs?: readonly { x: number; z: number; rot: number; w?: number; d?: number }[];
 }
 
+/**
+ * Extra map content a level supplies each frame (`Minimap.setExtras`), data only, in the same metres as `update`'s
+ * position: flat rectangles, square images and text labels around the level's own terrain layer. Its ground is never
+ * fogged (the fog of war stays the level's own chunk). Images use the terrain layer's orientation: the image's top edge
+ * is +Z (north) and its left edge is +X (west, since −X is east).
+ */
+export interface MapExtras {
+  /** the fill past everything (default the level's `minimap.outside`) */
+  readonly outside?: string;
+  /** the level's own terrain layer's opacity (default 1; 0 hides it and its fog) */
+  readonly baseAlpha?: number;
+  readonly rects: readonly MapExtraRect[];
+  readonly images: readonly MapExtraImage[];
+  readonly labels: readonly MapExtraLabel[];
+}
+/** an axis-aligned rectangle: its centre and half extents (m) */
+export interface MapExtraRect { readonly x: number; readonly z: number; readonly hx: number; readonly hz: number; readonly color: string }
+/** a square image: its centre, its side (m) and its opacity */
+export interface MapExtraImage { readonly image: CanvasImageSource; readonly x: number; readonly z: number; readonly size: number; readonly alpha: number }
+/** a text label at a point; one past the rim is pinned just inside it, in its direction */
+export interface MapExtraLabel { readonly x: number; readonly z: number; readonly text: string; readonly color: string }
+
 /** a named place on the maps (the minimap's labels, the full map's pins) */
 export interface MapPoi { x: number; z: number; label: string; color: string }
 /** what a palette's overlay paints with: the terrain layer's context, world → layer px, px per metre, the trails */
@@ -234,6 +256,10 @@ export class Minimap {
   }
   private markSource: (() => readonly MapMark[]) | null = null;
 
+  /** Extra content around the level's own terrain each frame (MapExtras, data only); null clears it. */
+  setExtras(source: (() => MapExtras | null) | null): void { this.extrasSource = source; }
+  private extrasSource: (() => MapExtras | null) | null = null;
+
   /** has the player been near (x, z)? — the fog-of-war coverage (a place on the full map is named once explored, else "?") */
   explored(x: number, z: number): boolean {
     const px = Math.floor((CHUNK_HALF - x) * COVER_PPM), pz = Math.floor((CHUNK_HALF - z) * COVER_PPM);
@@ -291,20 +317,30 @@ export class Minimap {
     const ctx = this.ctx;
     ctx.save();
     ctx.beginPath(); ctx.arc(c, c, c, 0, Math.PI * 2); ctx.clip();
-    ctx.fillStyle = activeLevel().minimap.outside ?? VOID; ctx.fillRect(0, 0, D, D); // the island's sea runs on past the chunk edge (the pier spawn looks off it)
+    const overlay = this.extrasSource?.() ?? null, baseAlpha = overlay?.baseAlpha ?? 1;
+    ctx.fillStyle = overlay?.outside ?? activeLevel().minimap.outside ?? VOID; ctx.fillRect(0, 0, D, D); // the island's sea runs on past the chunk edge (the pier spawn looks off it)
+    if (overlay !== null) this.paintExtraGround(overlay, pos, c, k);
 
     // 1. terrain, the player centred, north up (layer u = (HALF − x) · ppm so east (−X) is screen right)
     const lr = VIEW_RADIUS * LAYER_PPM;
-    ctx.drawImage(this.layer, (CHUNK_HALF - pos.x) * LAYER_PPM - lr, (CHUNK_HALF - pos.z) * LAYER_PPM - lr, lr * 2, lr * 2, 0, 0, D, D);
+    if (baseAlpha > 0) {
+      ctx.globalAlpha = baseAlpha;
+      ctx.drawImage(this.layer, (CHUNK_HALF - pos.x) * LAYER_PPM - lr, (CHUNK_HALF - pos.z) * LAYER_PPM - lr, lr * 2, lr * 2, 0, 0, D, D);
+      ctx.globalAlpha = 1;
 
-    // 2. fog: black at (1 − brightness), punched out where the coverage canvas is opaque
-    const fc = this.fogCtx, cr = VIEW_RADIUS * COVER_PPM;
-    fc.globalCompositeOperation = 'copy'; // replaces last frame's fog rather than stacking on it
-    fc.fillStyle = `rgba(0, 0, 0, ${1 - FOG_BRIGHTNESS})`;
-    fc.fillRect(0, 0, D, D);
-    fc.globalCompositeOperation = 'destination-out';
-    fc.drawImage(this.cover, (CHUNK_HALF - pos.x) * COVER_PPM - cr, (CHUNK_HALF - pos.z) * COVER_PPM - cr, cr * 2, cr * 2, 0, 0, D, D);
-    ctx.drawImage(this.fog, 0, 0);
+      // 2. fog: black at (1 − brightness), punched out where the coverage canvas is opaque (with an overlay: inside the chunk only)
+      const fc = this.fogCtx, cr = VIEW_RADIUS * COVER_PPM;
+      fc.globalCompositeOperation = 'copy'; // replaces last frame's fog rather than stacking on it
+      fc.fillStyle = `rgba(0, 0, 0, ${(1 - FOG_BRIGHTNESS) * baseAlpha})`;
+      fc.fillRect(0, 0, D, D);
+      fc.globalCompositeOperation = 'destination-out';
+      fc.drawImage(this.cover, (CHUNK_HALF - pos.x) * COVER_PPM - cr, (CHUNK_HALF - pos.z) * COVER_PPM - cr, cr * 2, cr * 2, 0, 0, D, D);
+      if (overlay === null) ctx.drawImage(this.fog, 0, 0);
+      else {
+        const x0 = c - (CHUNK_HALF - pos.x) * k, y0 = c - (CHUNK_HALF - pos.z) * k, side = CHUNK_SIZE * k;
+        ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, side, side); ctx.clip(); ctx.drawImage(this.fog, 0, 0); ctx.restore();
+      }
+    }
 
     // 3. animals
     const now = performance.now();
@@ -347,6 +383,8 @@ export class Minimap {
       }
     }
 
+    if (overlay !== null && overlay.labels.length > 0) this.paintExtraLabels(overlay.labels, pos, c, k);
+
     // 4. the player arrow (heading is clockwise from north; canvas rotate() is clockwise on screen)
     ctx.translate(c, c); ctx.rotate((deg * Math.PI) / 180);
     const s = this.dpr;
@@ -358,6 +396,49 @@ export class Minimap {
     // rim vignette
     if (this.vignette) { ctx.fillStyle = this.vignette; ctx.fillRect(0, 0, D, D); }
     ctx.restore();
+  }
+
+  /** an overlay's rectangles and images, under the level's own terrain (screen x = c − (x − pos.x) · k, y = c − (z − pos.z) · k) */
+  private paintExtraGround(o: MapExtras, pos: { x: number; z: number }, c: number, k: number): void {
+    const ctx = this.ctx, reach = VIEW_RADIUS;
+    for (const r of o.rects) {
+      if (Math.abs(r.x - pos.x) > r.hx + reach || Math.abs(r.z - pos.z) > r.hz + reach) continue;
+      ctx.fillStyle = r.color;
+      ctx.fillRect(c - (r.x + r.hx - pos.x) * k, c - (r.z + r.hz - pos.z) * k, 2 * r.hx * k, 2 * r.hz * k);
+    }
+    for (const m of o.images) {
+      const h = m.size / 2;
+      if (m.alpha <= 0 || Math.abs(m.x - pos.x) > h + reach || Math.abs(m.z - pos.z) > h + reach) continue;
+      ctx.globalAlpha = Math.min(1, m.alpha);
+      ctx.drawImage(m.image, c - (m.x + h - pos.x) * k, c - (m.z + h - pos.z) * k, m.size * k, m.size * k);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /** the extras' labels, dark-outlined; one past the rim is pinned just inside it, and one toward the left or right
+   *  rim turns to run along it (so a long name never crosses the arrow) */
+  private paintExtraLabels(labels: readonly MapExtraLabel[], pos: { x: number; z: number }, c: number, k: number): void {
+    const ctx = this.ctx, s = this.dpr, inner = VIEW_RADIUS - 9;
+    ctx.font = `700 ${Math.round(7.5 * s)}px Rajdhani, 'Bahnschrift', 'DIN Alternate', sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round'; ctx.lineWidth = 3 * s; ctx.strokeStyle = DOT_OUTLINE;
+    for (const l of labels) {
+      let dx = l.x - pos.x, dz = l.z - pos.z;
+      const d = Math.hypot(dx, dz);
+      if (d > inner) { dx *= inner / d; dz *= inner / d; }
+      const text = l.text.toUpperCase(), half = ctx.measureText(text).width / 2;
+      let sx = c - dx * k, sy = c - dz * k, turn = 0;
+      if (Math.abs(dx) > Math.abs(dz) && Math.abs(dx) * k > c * 0.5) {
+        turn = sx < c ? -Math.PI / 2 : Math.PI / 2; // along the left / right rim
+        const chord = Math.max(half, Math.sqrt(Math.max(0, c * c - (sx - c) ** 2)) - 6 * s);
+        sy = Math.min(c + chord - half, Math.max(c - chord + half, sy));
+      } else {
+        const chord = Math.max(half, Math.sqrt(Math.max(0, c * c - (sy - c) ** 2)) - 6 * s); // the text stays inside the disc at its row
+        sx = Math.min(c + chord - half, Math.max(c - chord + half, sx));
+      }
+      ctx.save(); ctx.translate(sx, sy); ctx.rotate(turn);
+      ctx.strokeText(text, 0, 0); ctx.fillStyle = l.color; ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
   }
 
   private paintRoom(pos: { x: number; z: number }, yaw: number, map: RoomMap): void {

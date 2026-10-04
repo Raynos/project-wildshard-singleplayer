@@ -8,12 +8,15 @@
  *   and its biome line; nothing extra on the road, and not at the page's own arrival (the reveal names the home).
  * - **G97, speed**: near the deck's 30 m/s on the road, a wider FOV and thin speed lines at the screen's edges; no blur.
  *   The FOV offset is added in the late phase and taken off at the next input phase, so the weapon's own FOV is untouched.
+ * - **G104, the accent**: inside a cell the HUD's accent variables (the `--ws-cyan` family on #hud) take that shard's
+ *   declared accent (`ShardManifest.accent`, one of the 20); on the road they fall back to the reserved HUD cyan.
  */
 import type { PerspectiveCamera, Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import type { GridCellEvents, GridCellRef } from './boot';
 import { GAME_STRINGS } from '../strings';
+import { accentVars, ROAD_ACCENT } from '../shardfile/accent';
 import './gridHud.css';
 
 export interface GridHudHost {
@@ -23,6 +26,8 @@ export interface GridHudHost {
   readonly cells: GridCellEvents;
   /** the shard's name and its one-line biome for a cell's title card */
   readonly title: (cell: GridCellRef) => { readonly name: string; readonly subtitle: string };
+  /** the shard's HUD accent hex for a cell (null: none declared, the road's cyan stays) */
+  readonly accent: (cell: GridCellRef) => string | null;
   /** the player's velocity (m/s, in whatever frame it is) */
   readonly velocity: () => Vector3;
   /** in the world and not paused / revealing: the HUD moments show only then */
@@ -36,7 +41,7 @@ const CARD_MS = 3200;
 const SPEED_FROM = 20, SPEED_FULL = 28.5, FOV_WIDEN = 9;
 const SHIELD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.4-3 8.3-7 10-4-1.7-7-5.6-7-10V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
 
-export interface GridHudState { readonly safe: boolean; readonly card: string | null; readonly speed: number; readonly fov: number }
+export interface GridHudState { readonly safe: boolean; readonly card: string | null; readonly speed: number; readonly fov: number; readonly accent: string }
 
 /** Install the grid's HUD moments; everything leaves with the level scope. Returns the readout. */
 export function installGridHud(host: GridHudHost): () => GridHudState {
@@ -78,6 +83,17 @@ export function installGridHud(host: GridHudHost): () => GridHudState {
   }));
   arrived = true;
   scope.onDispose(() => { hudRoot.classList.remove('ws-grid-safe'); });
+  // G104: the shard's accent inside its cell, the reserved cyan on the road (inline variables on #hud override base.css)
+  let accent = ROAD_ACCENT;
+  const vars = Object.keys(accentVars(ROAD_ACCENT));
+  const setAccent = (hex: string | null): void => {
+    accent = hex ?? ROAD_ACCENT;
+    if (hex === null) { for (const name of vars) hudRoot.style.removeProperty(name); return; }
+    for (const [name, value] of Object.entries(accentVars(hex))) hudRoot.style.setProperty(name, value);
+  };
+  scope.onDispose(cells.onEnter((cell) => { setAccent(host.accent(cell)); }));
+  scope.onDispose(cells.onLeave(() => { setAccent(null); }));
+  scope.onDispose(() => { setAccent(null); });
 
   host.onInput(() => { if (fovApplied === 0) return; camera.fov -= fovApplied; fovApplied = 0; camera.updateProjectionMatrix(); });
   scope.onDispose(() => { if (fovApplied !== 0) { camera.fov -= fovApplied; fovApplied = 0; camera.updateProjectionMatrix(); } });
@@ -92,7 +108,7 @@ export function installGridHud(host: GridHudHost): () => GridHudState {
     if (q !== speedShown) { speedShown = q; lines.style.setProperty('--grid-speed', String(q)); }
     if (q > 0) { fovApplied = FOV_WIDEN * smoothstep(q); camera.fov += fovApplied; camera.updateProjectionMatrix(); }
   });
-  return () => ({ safe, card: shownCard, speed: Math.max(0, speedShown), fov: Math.round(camera.fov * 100) / 100 });
+  return () => ({ safe, card: shownCard, speed: Math.max(0, speedShown), fov: Math.round(camera.fov * 100) / 100, accent });
 }
 
 function smoothstep(t: number): number { return t * t * (3 - 2 * t); }

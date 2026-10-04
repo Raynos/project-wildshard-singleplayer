@@ -37,6 +37,9 @@ export const GAME_STRINGS = {
     revealSkip: 'Tap to skip',
     /** G78: the chip above ATTACK on the road and in no-man's land (the weapon is stowed there, G68) */
     safeZone: 'SAFE ZONE',
+    /** G119: on the border shimmer while a crossing waits for its durable save, and when that save fails (the crossing retries) */
+    saving: 'SAVING…',
+    saveFailed: 'SAVE FAILED, RETRY',
     oneFrame: 'Grid one frame',
     oneFrameNote: 'SF19a: one sky, sun, exposure and air for the whole grid, each pixel graded by its own region. Applies at the next grid start.',
     off: 'Off',
