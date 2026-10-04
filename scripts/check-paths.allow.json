@@ -425,16 +425,6 @@
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
   {
-    "path": "src/engine/effects/namespace.ts",
-    "file": "test/fixtures/lint/cases.json",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
-    "path": "src/engine/quests/visual.ts",
-    "file": "test/fixtures/lint/cases.json",
-    "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
-  },
-  {
     "path": "src/engine/ai/runtime.ts",
     "file": "test/fixtures/lint/cases.json",
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
@@ -773,11 +763,6 @@
     "path": "src/shards/${shard}",
     "file": "scripts/parity.mjs",
     "why": "E357 F6m: git diff pathspec template for destination shards."
-  },
-  {
-    "path": "src/node_modules",
-    "file": "scripts/release-url.sh",
-    "why": "E357 F6m: source-export scratch directory under WORK, not the game source tree."
   },
   {
     "path": "shared (src/world, src/player, src/entities, …)",

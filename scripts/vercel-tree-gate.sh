@@ -62,6 +62,7 @@ run bake-check node scripts/bake-check.mjs --node-only
 run vitest pnpm exec vitest run
 run vite-build pnpm exec vite build --outDir "$work/dist" --emptyOutDir
 run check-chunks node scripts/check-chunks.mjs "$work/dist"
+run shard-platform node scripts/shard-platform.mjs --check && sed 's/^/    /' "$work/shard-platform.log" # SHARD-PLATFORM SP5: each shard's custom share
 
 mkdir -p "$stamp_dir" && touch "$stamp_dir/$sha"
 echo "vercel-gate: $short passed"

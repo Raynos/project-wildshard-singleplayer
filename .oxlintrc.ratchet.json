@@ -17,6 +17,7 @@
     "wildshard/no-renderer-type": "error",
     "wildshard/no-raw-shader-patch": "error",
     "wildshard/sim-no-render": "error",
+    "wildshard/no-runtime-generator": "error",
     "wildshard/no-hook-chain": "error",
     "wildshard/no-active-singleton": "error",
     "wildshard/no-active-chunk": "error",

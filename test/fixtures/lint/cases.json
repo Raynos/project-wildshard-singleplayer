@@ -586,5 +586,47 @@
     "rule": "no-raw-hud",
     "count": 0,
     "code": "document.body.append(el); const hud=document.getElementById('hud'); hud.append(el);"
+  },
+  {
+    "id": "generator from runtime",
+    "file": "src/shards/sample/runtime/boot.ts",
+    "rule": "no-runtime-generator",
+    "code": "import { bakeDunes } from '../generators/dunes'; export { rows } from '../generators/rows'; void import(`../generators/${name}`);",
+    "count": 3
+  },
+  {
+    "id": "generator from a shard folder",
+    "file": "src/shards/sample/world/terrain.ts",
+    "rule": "no-runtime-generator",
+    "code": "import { bakeDunes } from '../generators/dunes';",
+    "count": 1
+  },
+  {
+    "id": "generator to generator",
+    "file": "src/shards/sample/generators/scatter.ts",
+    "rule": "no-runtime-generator",
+    "code": "import { bakeDunes } from './dunes'; import { noise } from '../generators/noise';",
+    "count": 0
+  },
+  {
+    "id": "runtime from data",
+    "file": "src/shards/sample/runtime/rows.ts",
+    "rule": "no-runtime-generator",
+    "code": "import { rows } from '../data/rows'; import { value } from '@wildshard/engine';",
+    "count": 0
+  },
+  {
+    "id": "sim-shard-data",
+    "file": "src/shards/sample/data/rows.ts",
+    "rule": "sim-no-render",
+    "code": "import * as THREE from 'three'; void document;",
+    "count": 2
+  },
+  {
+    "id": "sim-shard-runtime",
+    "file": "src/shards/sample/runtime/view.ts",
+    "rule": "sim-no-render",
+    "code": "import * as THREE from 'three'; void document;",
+    "count": 0
   }
 ]

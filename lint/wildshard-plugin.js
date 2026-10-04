@@ -486,7 +486,9 @@ const noRawShaderPatch = rule('Shader patches go through the one registry (E357 
 // `quests` and `effects`, which never existed, so the quest code went unchecked; a test keeps every entry real).
 export const SIM_DIRS = ['ai', 'combat', 'events', 'quest', 'saves'];
 export const VIEW_PATHS = ['ai/view/', 'combat/view/', 'quest/view/', 'quest/view.ts'];
-const SIM = new RegExp(`^src/engine/(?:${SIM_DIRS.join('|')})/`, 'u');
+// SP5: a shard's `data/` holds serialisable rows, so it is simulation too (no shard has one yet).
+export const SHARD_SIM_DIRS = ['data'];
+const SIM = new RegExp(`^src/(?:engine/(?:${SIM_DIRS.join('|')})|shards/[^/]+/(?:${SHARD_SIM_DIRS.join('|')}))/`, 'u');
 const VIEW = new RegExp(`^src/engine/(?:${VIEW_PATHS.map((p) => p.replaceAll('.', String.raw`\.`)).join('|')})`, 'u');
 const VISUAL = /^src\/engine\/(?:render|ui|fx|anim)\//u;
 const MATH_TYPES = new Set(['Vector3', 'Quaternion', 'Matrix4', 'Box3', 'Ray']);
@@ -510,6 +512,17 @@ const simNoRender = rule('Simulation stays independent of visuals (E357)', (cont
       if (object?.type === 'Identifier' && ['window', 'globalThis'].includes(object.name) && DOM_GLOBALS.has(propName(node) ?? stringOf(node.property))) report(context, node, 'Simulation cannot read a DOM global');
     },
   };
+});
+
+// SHARD-PLATFORM SP5: generator code runs on the author's machine and never ships, so only the bake and other generators
+// import it; check-chunks refuses a generator module in any built chunk, this catches the import that would put it there.
+const GENERATOR = /^src\/shards\/[^/]+\/generators(?:\/|$)/u;
+const noRuntimeGenerator = rule('Generators are imported only by the bake and other generators (SHARD-PLATFORM SP5)', (context) => {
+  if (GENERATOR.test(pathOf(context))) return {};
+  return importsVisitor((node) => {
+    const source = importPrefix(node.source); // a template's leading quasi resolves too (`./generators/${name}`)
+    if (source !== null && GENERATOR.test(modulePath(context.filename, source))) report(context, node, 'Runtime code cannot import a generator: bake its output into data/ or public/assets/ instead');
+  });
 });
 
 // A chain saves a prior `onFoo` hook and installs its own over it (`const prev = x.onFoo; x.onFoo = (…) => { prev?.(…); … }`):
@@ -804,6 +817,7 @@ const plugin = {
     'no-url-switch': noUrlSwitch, layer, 'public-index': publicIndex, 'engine-words': engineWordsRule, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
     'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,
     'no-renderer-type': noRendererType, 'no-raw-shader-patch': noRawShaderPatch, 'sim-no-render': simNoRender,
+    'no-runtime-generator': noRuntimeGenerator,
     'no-hook-chain': noHookChain,
     'no-active-singleton': noActiveSingleton, 'no-active-chunk': noActiveChunk,
     'no-global-listener-patch': noGlobalListenerPatch,

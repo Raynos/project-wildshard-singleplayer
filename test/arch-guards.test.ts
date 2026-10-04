@@ -49,7 +49,7 @@ describe('AG16 and AG17', () => {
   const key = 'wildshard/no-raw-input', file = 'src/engine/example.ts';
   it('promotes every selected zero rule in the ordinary src lint override', () => {
     const hard = hardRules('.oxlintrc.json');
-    for (const rule of ['no-shard-branch', 'no-raw-save', 'no-raw-shader-patch', 'sim-no-render', 'no-active-chunk', 'no-raw-hud', 'no-raw-animation-mixer']) expect(hard.has(`wildshard/${rule}`)).toBe(true);
+    for (const rule of ['no-shard-branch', 'no-raw-save', 'no-raw-shader-patch', 'sim-no-render', 'no-runtime-generator', 'no-active-chunk', 'no-raw-hud', 'no-raw-animation-mixer']) expect(hard.has(`wildshard/${rule}`)).toBe(true);
   });
   it('refuses a clean file, warns on partial slack and ignores untouched WIP', () => {
     const baseline = { [key]: { [file]: 2, 'src/other.ts': 4 } };
