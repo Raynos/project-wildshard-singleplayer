@@ -1,6 +1,3 @@
-import { app } from '@wildshard/engine/app/runtime';
-import { listenDom } from '@wildshard/engine/input/dom';
-import { versionedUrl } from '@wildshard/engine/boot/bytes';
 /**
  * The Wildshard main menu (SHARD-PLATFORM SF21a; Jake's picks G79 / G88, board `art/menu/round-7-new-main-menu/B-*`):
  * a first-person crossroads hero, the WILDSHARD logo, two big side-by-side cards SHARD SELECT and INFINITE WILDSHARD,
@@ -64,7 +61,6 @@ function required<T extends HTMLElement>(root: ParentNode, selector: string, typ
 
 export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   const mode = opts.mode ?? menuMode;
-  const scope = app.engineScope.child('main-menu');
   const { notice, onGrid, screen: first, cards = titleCards(), ...deckOpts } = opts;
   // leaving the title for a world resets it: pause ▸ EXIT TO MAIN opens on the main menu again
   const deck = buildTitleDeck({ ...deckOpts, cards,
@@ -87,7 +83,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
       </div>
       <button class="ws-main-settings" type="button">${s.settings}</button>
     </div>`;
-  required(main, '.ws-main-hero', HTMLElement).style.backgroundImage = `url('${versionedUrl(MAIN_MENU_HERO)}')`;
+  required(main, '.ws-main-hero', HTMLElement).style.backgroundImage = `url('${MAIN_MENU_HERO}')`;
   if (notice !== undefined && notice !== '') {
     const line = document.createElement('div');
     line.className = 'ws-main-notice';
@@ -113,11 +109,11 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     deck.root.inert = next !== 'select';
     if (next === 'main') selectCard.focus({ preventScroll: true });
   };
-  listenDom(scope, selectCard, 'click', (ev) => { ev.stopPropagation(); show('select'); deck.start(); });
+  deck.onTap(selectCard, () => { show('select'); deck.start(); });
   const gridCard = main.querySelector('.ws-main-grid');
-  if (gridCard instanceof HTMLButtonElement) listenDom(scope, gridCard, 'click', (ev) => { ev.stopPropagation(); if (gridEntryShown(mode())) onGrid(); });
-  listenDom(scope, required(main, '.ws-main-settings', HTMLButtonElement), 'click', (ev) => { ev.stopPropagation(); opts.onSettings(); });
-  listenDom(scope, back, 'click', (ev) => { ev.stopPropagation(); show('main'); });
+  if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) onGrid(); });
+  deck.onTap(required(main, '.ws-main-settings', HTMLButtonElement), () => { opts.onSettings(); });
+  deck.onTap(back, () => { show('main'); });
   show(first ?? screen);
 
   return {
@@ -130,7 +126,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     // the HUD's confirm / any key: the main menu's first card opens the deck, the deck enters its card
     activate: () => { if (screen === 'main') { show('select'); deck.start(); } else deck.activate(); },
     start: () => { deck.start(); if (screen === 'main') selectCard.focus({ preventScroll: true }); },
-    dispose: () => { scope.dispose(); deck.dispose(); },
+    dispose: () => { deck.dispose(); },
   };
 }
 

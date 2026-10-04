@@ -117,6 +117,8 @@ export interface TitleDeck {
   /** centre the selected card: call once the deck is in the DOM (offsets need layout) */
   readonly start: () => void;
   readonly dispose: () => void;
+  /** a tap on `el` runs `fn` (propagation stopped), owned by the deck's scope: the main menu over it wires its buttons here */
+  readonly onTap: (el: HTMLElement, fn: () => void) => void;
 }
 
 const SWORD = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 3.5L9 14l1 1L20.5 4.5z M6.5 12.5l5 5 M8 14l-4.5 4.5 1 1L9 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
@@ -309,5 +311,6 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     select, activate,
     start: () => { place(index, 0, false); scope.raf(() => { place(index, 0, false); }); },
     dispose: () => { scope.dispose(); },
+    onTap: (el, fn) => { listenDom(scope, el, 'click', (ev) => { ev.stopPropagation(); fn(); }); },
   };
 }
