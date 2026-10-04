@@ -116,6 +116,31 @@ const URL_BASE = flag('url', '');
 const EXTRA_Q = flag('query', '');
 // --settings=<k=v,…>: pause ▸ Settings ▸ Debug picks set before every load (scripts/debug-settings.mjs; e.g. weather=clear)
 const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boolean).map((kv) => kv.split('=')));
+// Authored Debug rows are device saves, separate from core global Settings.
+const DEVICE_SAVES = Object.fromEntries(argv.filter((arg) => arg.startsWith('--device-save=')).map((arg) => {
+  const match = /^--device-save=([a-zA-Z][a-zA-Z0-9._-]*)=(.+)$/u.exec(arg);
+  if (!match) throw new Error('Invalid device save; expected key=value');
+  return [match[1], match[2]];
+}));
+const EXPECTED_SYSTEMS = argv.filter((arg) => arg.startsWith('--expect-system=')).map((arg) => {
+  const match = /^--expect-system=([a-zA-Z0-9_-]+):([a-zA-Z0-9._-]+)=(on|off)$/u.exec(arg);
+  if (!match) throw new Error('Expected system must name shard:system=on|off');
+  return { shard: match[1], id: match[2], present: match[3] === 'on' };
+});
+async function seedVariantFixtures(target) {
+  if (Object.keys(SETTINGS).length > 0) await debugSettings(target, SETTINGS);
+  for (const [key, data] of Object.entries(DEVICE_SAVES)) await saveFixture(target, { scope: 'device', key, data });
+}
+async function activationWitness(page, shard) {
+  const witness = await page.evaluate(() => ({
+    systems: Object.values(window.__wildshard.world.game.app.systemsByPhase()).flat().map((system) => system.id),
+    deviceSaves: Object.fromEntries(Object.entries(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys ?? {}).map(([key, value]) => [key, value.data])),
+  }));
+  for (const [key, value] of Object.entries(DEVICE_SAVES)) if (witness.deviceSaves[key] !== value) throw new Error(`Device fixture missing: ${key}`);
+  for (const expected of EXPECTED_SYSTEMS.filter((row) => row.shard === shard)) if (witness.systems.includes(expected.id) !== expected.present) throw new Error(`Activation witness failed: ${expected.id} expected ${expected.present ? 'on' : 'off'}`);
+  return witness;
+}
+
 
 const waitFor = async (fn, ms, what) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return; await new Promise((resolve) => { setTimeout(resolve, 250); }); } throw new Error(what); };
 
@@ -139,12 +164,12 @@ try { build = (await (await fetch(`${BASE}/version.json`, { cache: 'no-store' })
 console.error(`> physics-baseline ${LABEL} build=${build} modes=${MODE.join(',')} cpu=${CPU}× (walk ${WALK_CPU}×)`);
 
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
-const result = { label: LABEL, build, tier: TIER, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], grid: [], gridFailures: [], physics: {} };
+const result = { label: LABEL, build, tier: TIER, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], grid: [], gridFailures: [], physics: {}, activation: {}, deviceSaves: DEVICE_SAVES, expectedSystems: EXPECTED_SYSTEMS };
 
 async function openGame(shard, q, { cpu, video }) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, ...(video ? { recordVideo: { dir: join(OUT_DIR, '.video-tmp'), size: { width: 390, height: 844 } } } : {}) });
   const page = await ctx.newPage();
-  if (Object.keys(SETTINGS).length > 0) await debugSettings(page, SETTINGS);
+  await seedVariantFixtures(page);
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const cdp = await ctx.newCDPSession(page);
@@ -152,6 +177,7 @@ async function openGame(shard, q, { cpu, video }) {
   await page.goto(`${BASE}/?chunk=${shard}&tier=${TIER}&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}${EXTRA_Q ? `&${EXTRA_Q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
   await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.world !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
   await page.waitForTimeout(SETTLE_MS);
+  try { result.activation[shard] = await activationWitness(page, shard); } catch (error) { await ctx.close(); throw error; }
   return { ctx, page, errors };
 }
 
@@ -161,7 +187,7 @@ if (MODE.includes('grid')) {
   page.on('pageerror', (error) => { errors.push(error.message); });
   page.on('console', (message) => { if (message.type() === 'error' && message.text().startsWith('[faults]')) errors.push(message.text()); });
   await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
-  if (Object.keys(SETTINGS).length > 0) await debugSettings(ctx, SETTINGS);
+  await seedVariantFixtures(ctx);
   try {
     if (WALK_CPU > 1) await (await ctx.newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: WALK_CPU });
     await page.goto(`${BASE}/?tier=${TIER}&mute=1&nolock=1&sw=0`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
@@ -169,6 +195,7 @@ if (MODE.includes('grid')) {
     await page.locator('.ws-menu-entry-grid').click();
     await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
     await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
+    result.activation.grid = await activationWitness(page, 'grid');
     await page.waitForTimeout(SETTLE_MS);
     for (const speed of [15, 30]) {
       const state = await page.evaluate(() => window.__wildshard.shard.grid.state()), route = gridSeamRoute(state, speed);
