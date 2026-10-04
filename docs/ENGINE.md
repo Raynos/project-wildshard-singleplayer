@@ -1807,7 +1807,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1923 exports, grouped by the module to import them from.
+1933 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1844,6 +1844,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/audio/AmbienceBeds`: `AmbienceBeds`, `BedDef`, `PositionalLoops`, `ZoneWeights`
 - `@wildshard/engine/audio/Audio`: `AmbientBed`, `AnimalSound`, `Audio`, `CallVoice`, `GameAudio`, `HoofSurface`, `ImpactKind`, `LoopName`, `OneShot`, `SampleLoop`, `SynthBed`
 - `@wildshard/engine/audio/audioLog`: `audioLog`, `AudioLogEntry`
+- `@wildshard/engine/audio/audioProfiles`: `AudioMusicProfile`, `AudioSampleProfile`, `AudioZone`, `AudioZoneProfile`, `requireAudioLevel`, `requireAudioProfile`, `requireAudioZone`
 - `@wildshard/engine/audio/cueRouting`: `createCueRouter`, `CueAction`, `CueCondition`, `CueRoute`, `CueRoutingPorts`
 - `@wildshard/engine/audio/Cues`: `CueBank`, `cueFiles`, `CueMap`, `CueOpts`, `CuePlayer`, `decodeCueSet`, `SampleClip`
 - `@wildshard/engine/audio/declared`: `DeclaredAudioData`, `DeclaredAudioPorts`, `installDeclaredAudio`
@@ -1854,6 +1855,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/audio/ownership`: `ownAudioSource`
 - `@wildshard/engine/audio/preload`: `AudioKind`, `cachedBytes`, `DECODE_RATE`, `decodeBytes`, `decodeSfxSet`, `onAudioBusy`, `SfxBank`, `SfxDecodePolicy`, `sfxFiles`, `trackBusy`
 - `@wildshard/engine/audio/score/score`: `Arrangement`, `ChordEv`, `ChordName`, `installScore`, `LayerId`, `MixEv`, `MixKey`, `Mode`, `NoteEv`, `score`, `Score`, `Segment`
+- `@wildshard/engine/audio/scoreSelection`: `ScoreCondition`, `ScoreSelection`, `selectScoreSlots`
 - `@wildshard/engine/audio/SetScore`: `AudioDecode`, `AudioRead`, `decodeScore`, `ScoreBank`, `scoreFiles`, `scoreManifest`, `ScoreSet`, `ScoreSource`, `SetScore`, `SetScoreOptions`
 - `@wildshard/engine/audio/Stems`: `BossPhase`, `Deck`, `decodeStyle`, `GenreBank`, `musicManifest`, `MusicManifest`, `MusicSet`, `musicSetDir`, `parseManifest`, `setFiles`, `shipped`, `SlotAudio`, `SlotName`, `SlotSpec`, `StemSting`, `StyleBank`, `styleFiles`
 - `@wildshard/engine/audio/surface`: `GroundSurface`, `StepSurface`, `StepSurfaceRequest`
@@ -2137,7 +2139,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-458 exports, grouped by the module to import them from.
+462 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2193,6 +2195,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
+- `@wildshard/game/shardfile/brainRuntime`: `DeclaredBrainPorts`, `DeclaredBrainRecipe`, `DeclaredNativeBrain`, `installDeclaredBrains`
 - `@wildshard/game/shardfile/brains`: `GuardianSchema`, `parseGuardian`, `parsePerchHunter`, `parseScriptBrain`, `parseSkirmisher`, `PerchHunterSchema`, `ScriptBrainSchema`, `ShardGuardian`, `ShardPerchHunter`, `ShardScriptBrain`, `ShardSkirmisher`, `SkirmisherSchema`
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
 - `@wildshard/game/shardfile/clientScripts`: `ClientScriptContent`, `clientScriptRules`, `ClientScriptsSchema`, `ClientScriptTarget`, `clientScriptViewCost`, `createShardfileClientScripts`, `parseClientScripts`, `ShardClientScripts`, `ShardfileClientScriptPorts`

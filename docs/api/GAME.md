@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-458 members; 112 without a doc line (—).
+462 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -112,7 +112,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |
-| `gridHoverSpeed` | function | @wildshard/game/grid/rules | Smoothly ease a lowered author cap (at most 15 m/s) to 30 m/s over the 20 m strip. |
+| `gridHoverSpeed` | function | @wildshard/game/grid/rules | Smoothly ease a lowered author cap (at most 14 m/s) to 30 m/s over the 20 m strip. |
 | `GridPresence` | interface | @wildshard/game/grid/rules | Trusted residency provenance; an unbound, strip or highway actor cannot participate in grid combat. |
 | `GridTravelMember` | interface | @wildshard/game/grid/rules | One rider and its optional mount form an indivisible cell-local crossing payload. |
 | `GridTravelUnit` | interface | @wildshard/game/grid/rules | Prepared crossing keeps the stable destination id and all member poses; the physics owner commits motors together. |
@@ -292,6 +292,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `AudioData` | type | @wildshard/game/shardfile/audio | Validated audio data; voice ids are resolved only through the platform's admitted catalogue. |
 | `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
 | `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |
+| `DeclaredBrainPorts` | interface | @wildshard/game/shardfile/brainRuntime | Loader-injected native recipes retain navigation, vertical movement, attack tokens and strike ownership. |
+| `DeclaredBrainRecipe` | interface | @wildshard/game/shardfile/brainRuntime | One trusted actor's observations and body recipe; construction must not execute gameplay or consume RNG. |
+| `DeclaredNativeBrain` | type | @wildshard/game/shardfile/brainRuntime | Native decision families and the existing pursuit family; custom scripts require a composed host. |
+| `installDeclaredBrains` | function | @wildshard/game/shardfile/brainRuntime | Preflight every actor, declaration and native port before registering any callback; restore installs without running recipes. |
 | `GuardianSchema` | const | @wildshard/game/shardfile/brains | Interior guardian policy; native floor and rise/sink recipes publish completion through trusted ports. |
 | `parseGuardian` | function | @wildshard/game/shardfile/brains | Validate guardian decisions before selecting the existing native motion and strike recipes. |
 | `parsePerchHunter` | function | @wildshard/game/shardfile/brains | Validate policy data while retaining the loader's authority over perches, projectiles and tokens. |
@@ -446,7 +450,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `validateTerrainAssets` | function | @wildshard/game/shardfile/terrain | Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams. |
 | `parseTraversal` | function | @wildshard/game/shardfile/traversal | Validate optional author tuning without permitting faster-than-platform interior travel. |
 | `ShardTraversal` | type | @wildshard/game/shardfile/traversal | Admitted interior tuning, separate from platform placements and border safety policy. |
-| `TraversalSchema` | const | @wildshard/game/shardfile/traversal | Authors may lower the grid's 15 m/s interior board cap; the highway remains platform-owned at 30 m/s. |
+| `TraversalSchema` | const | @wildshard/game/shardfile/traversal | Authors may lower the grid's 14 m/s interior board cap; the highway remains platform-owned at 30 m/s. |
 | `ShardUi` | type | @wildshard/game/shardfile/ui | a validated `ui` section |
 | `ShardUiDeclaration` | type | @wildshard/game/shardfile/ui | one validated UI declaration |
 | `UI_DECLARATIONS_MAX` | const | @wildshard/game/shardfile/ui | The most declarations one shardfile's `ui` section may hold. |

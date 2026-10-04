@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1940 members; 830 without a doc line (—).
+1950 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -168,6 +168,13 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SynthBed` | interface | @wildshard/engine/audio/Audio | a level's synth bed (`installSynthBed`): started when its id is the bed and no sampled bed of that id decoded |
 | `audioLog` | function | @wildshard/engine/audio/audioLog | record one audio trigger (music, sfx, bark, bed …) in the `window.__audioLog` ring a headless check reads |
 | `AudioLogEntry` | interface | @wildshard/engine/audio/audioLog | The audio trigger log (PINE-HOLLOW-REMASTER A-rows, the audio-wiring lane): every music scene / phase / sting / deck, every |
+| `AudioMusicProfile` | interface | @wildshard/engine/audio/audioProfiles | Existing music catalogue and bounded scene selection; stem decoding and bar-grid playback remain engine-owned. |
+| `AudioSampleProfile` | interface | @wildshard/engine/audio/audioProfiles | Same-byte platform sample catalogue; gains apply to admitted named loops. |
+| `AudioZone` | interface | @wildshard/engine/audio/audioProfiles | Named circular ambience zones; a source id resolves a trusted moving-emitter or geometry port. |
+| `AudioZoneProfile` | interface | @wildshard/engine/audio/audioProfiles | Mixer timing, bed levels, room sends and named zones consumed by a trusted catalogue recipe. |
+| `requireAudioLevel` | function | @wildshard/engine/audio/audioProfiles | Resolve a declared mixer level or room send without silently changing the previous recipe. |
+| `requireAudioProfile` | function | @wildshard/engine/audio/audioProfiles | Refuse a missing required recipe before its runtime graph can start. |
+| `requireAudioZone` | function | @wildshard/engine/audio/audioProfiles | Resolve an admitted named zone, refusing a stale or incomplete trusted recipe binding. |
 | `createCueRouter` | function | @wildshard/engine/audio/cueRouting | Resolve every voice and scheduling dependency up front, then dispatch synchronously in declaration order. Routing never creates a sound tap or random draw. |
 | `CueAction` | interface | @wildshard/engine/audio/cueRouting | A voice action keeps the caller's point/direction references; defaults apply only to absent options. Null delay means synchronous. |
 | `CueCondition` | type | @wildshard/engine/audio/cueRouting | Conditions inspect existing cue options without adding random draws or audio taps. |
@@ -235,6 +242,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `score` | function | @wildshard/engine/audio/score/score | — |
 | `Score` | interface | @wildshard/engine/audio/score/score | everything Music needs of a score |
 | `Segment` | interface | @wildshard/engine/audio/score/score | — |
+| `ScoreCondition` | interface | @wildshard/engine/audio/scoreSelection | Scene conditions are pure declared comparisons over platform-supplied scalar fields. |
+| `ScoreSelection` | interface | @wildshard/engine/audio/scoreSelection | A score row yields an ordered slot/fallback chain; repeated slots preserve the old policy. |
+| `selectScoreSlots` | function | @wildshard/engine/audio/scoreSelection | Select the same existing calm/tension/boss decks without advancing clocks, scheduling or drawing randomness. |
 | `AudioDecode` | type | @wildshard/engine/audio/SetScore | decodes a stem's bytes into an AudioBuffer (the audio context by default; a test hands its own) |
 | `AudioRead` | type | @wildshard/engine/audio/SetScore | reads a stem file's bytes (fetch by default; a test hands its own) |
 | `decodeScore` | function | @wildshard/engine/audio/SetScore | Decode the requested stems only; absent or invalid files keep the next fallback or synth. |

@@ -963,6 +963,48 @@
         "from": "@wildshard/engine/audio/audioLog"
       },
       {
+        "name": "AudioMusicProfile",
+        "kind": "interface",
+        "doc": "Existing music catalogue and bounded scene selection; stem decoding and bar-grid playback remain engine-owned.",
+        "from": "@wildshard/engine/audio/audioProfiles"
+      },
+      {
+        "name": "AudioSampleProfile",
+        "kind": "interface",
+        "doc": "Same-byte platform sample catalogue; gains apply to admitted named loops.",
+        "from": "@wildshard/engine/audio/audioProfiles"
+      },
+      {
+        "name": "AudioZone",
+        "kind": "interface",
+        "doc": "Named circular ambience zones; a source id resolves a trusted moving-emitter or geometry port.",
+        "from": "@wildshard/engine/audio/audioProfiles"
+      },
+      {
+        "name": "AudioZoneProfile",
+        "kind": "interface",
+        "doc": "Mixer timing, bed levels, room sends and named zones consumed by a trusted catalogue recipe.",
+        "from": "@wildshard/engine/audio/audioProfiles"
+      },
+      {
+        "name": "requireAudioLevel",
+        "kind": "function",
+        "doc": "Resolve a declared mixer level or room send without silently changing the previous recipe.",
+        "from": "@wildshard/engine/audio/audioProfiles"
+      },
+      {
+        "name": "requireAudioProfile",
+        "kind": "function",
+        "doc": "Refuse a missing required recipe before its runtime graph can start.",
+        "from": "@wildshard/engine/audio/audioProfiles"
+      },
+      {
+        "name": "requireAudioZone",
+        "kind": "function",
+        "doc": "Resolve an admitted named zone, refusing a stale or incomplete trusted recipe binding.",
+        "from": "@wildshard/engine/audio/audioProfiles"
+      },
+      {
         "name": "createCueRouter",
         "kind": "function",
         "doc": "Resolve every voice and scheduling dependency up front, then dispatch synchronously in declaration order. Routing never creates a sound tap or random draw.",
@@ -1364,6 +1406,24 @@
         "kind": "interface",
         "doc": "",
         "from": "@wildshard/engine/audio/score/score"
+      },
+      {
+        "name": "ScoreCondition",
+        "kind": "interface",
+        "doc": "Scene conditions are pure declared comparisons over platform-supplied scalar fields.",
+        "from": "@wildshard/engine/audio/scoreSelection"
+      },
+      {
+        "name": "ScoreSelection",
+        "kind": "interface",
+        "doc": "A score row yields an ordered slot/fallback chain; repeated slots preserve the old policy.",
+        "from": "@wildshard/engine/audio/scoreSelection"
+      },
+      {
+        "name": "selectScoreSlots",
+        "kind": "function",
+        "doc": "Select the same existing calm/tension/boss decks without advancing clocks, scheduling or drawing randomness.",
+        "from": "@wildshard/engine/audio/scoreSelection"
       },
       {
         "name": "AudioDecode",
@@ -12290,7 +12350,7 @@
       {
         "name": "gridHoverSpeed",
         "kind": "function",
-        "doc": "Smoothly ease a lowered author cap (at most 15 m/s) to 30 m/s over the 20 m strip.",
+        "doc": "Smoothly ease a lowered author cap (at most 14 m/s) to 30 m/s over the 20 m strip.",
         "from": "@wildshard/game/grid/rules"
       },
       {
@@ -13368,6 +13428,30 @@
         "from": "@wildshard/game/shardfile/audio"
       },
       {
+        "name": "DeclaredBrainPorts",
+        "kind": "interface",
+        "doc": "Loader-injected native recipes retain navigation, vertical movement, attack tokens and strike ownership.",
+        "from": "@wildshard/game/shardfile/brainRuntime"
+      },
+      {
+        "name": "DeclaredBrainRecipe",
+        "kind": "interface",
+        "doc": "One trusted actor's observations and body recipe; construction must not execute gameplay or consume RNG.",
+        "from": "@wildshard/game/shardfile/brainRuntime"
+      },
+      {
+        "name": "DeclaredNativeBrain",
+        "kind": "type",
+        "doc": "Native decision families and the existing pursuit family; custom scripts require a composed host.",
+        "from": "@wildshard/game/shardfile/brainRuntime"
+      },
+      {
+        "name": "installDeclaredBrains",
+        "kind": "function",
+        "doc": "Preflight every actor, declaration and native port before registering any callback; restore installs without running recipes.",
+        "from": "@wildshard/game/shardfile/brainRuntime"
+      },
+      {
         "name": "GuardianSchema",
         "kind": "const",
         "doc": "Interior guardian policy; native floor and rise/sink recipes publish completion through trusted ports.",
@@ -14294,7 +14378,7 @@
       {
         "name": "TraversalSchema",
         "kind": "const",
-        "doc": "Authors may lower the grid's 15 m/s interior board cap; the highway remains platform-owned at 30 m/s.",
+        "doc": "Authors may lower the grid's 14 m/s interior board cap; the highway remains platform-owned at 30 m/s.",
         "from": "@wildshard/game/shardfile/traversal"
       },
       {
