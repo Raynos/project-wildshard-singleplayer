@@ -5,6 +5,7 @@
  */
 import type { Collider, ColliderDesc as RapierDesc, RigidBody } from '@dimforge/rapier3d-simd';
 import * as THREE from 'three';
+import { currentOwner, withOwner } from '../app/ownership';
 import type { ColliderDesc, Piece } from '../world/registry';
 import type { Physics } from './Physics';
 import { groups } from './groups';
@@ -48,6 +49,8 @@ const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vect
  * object — attached to a kinematic body in that object's frame. Returns them, so a caller can remove the piece later.
  */
 export function addPiece(physics: Physics, piece: Piece): AddedPiece {
+  const owner = currentOwner();
+  if (owner?.disposed === true) throw new Error('Cannot add a piece to a disposed scope');
   const out: Collider[] = [];
   const { R, world } = physics;
   let body: RigidBody | null = null;
@@ -59,7 +62,7 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
     body = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(_p.x, _p.y, _p.z).setRotation({ x: _q.x, y: _q.y, z: _q.z, w: _q.w }));
   }
   let colliderData = piece.colliders;
-  const create = (): void => {
+  const create = (): void => withOwner(owner, () => {
     for (const raw of piece.colliders ?? []) {
       for (const d of raw.kind === 'treads' ? treadBoxes(raw) : [raw]) {
         const desc = rapierDesc(physics, d);
@@ -73,11 +76,12 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
         out.push(c);
       }
     }
-  };
+  });
   create();
   const b = body, active = piece.active;
   let on = true;
   const sync = () => {
+    if (owner?.disposed === true) return;
     // A puzzle may resize its box when its state changes. Replacing the descriptors
     // rebuilds that piece without a second collision list or per-frame serialization.
     if (piece.colliders !== colliderData) {

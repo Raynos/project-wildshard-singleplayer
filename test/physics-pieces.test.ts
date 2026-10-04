@@ -3,6 +3,8 @@
 // no taller than their rise, so the character motor climbs them.
 import { describe, expect, it } from 'vitest';
 import { Object3D } from 'three';
+import { Scope } from '../src/engine/app/scope';
+import { withOwner } from '../src/engine/app/ownership';
 import { boxInFrame } from '../src/engine/physics/box';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { Physics } from '../src/engine/physics/Physics';
@@ -28,6 +30,26 @@ describe('world registry', () => {
 });
 
 describe('pieces → Rapier', () => {
+  it('keeps rebuilt puzzle colliders in their construction scope across fixed callbacks and refuses late rebuilds', async () => {
+    const ph = new Physics(await rapier()), owner = new Scope('puzzle'), next = new Scope('next');
+    const piece: Piece = { id: 'lever', name: 'Lever', category: 'props', file: 'x.ts', active: () => true,
+      colliders: [boxDesc({ x: 4, z: 1, hw: 0.22, hd: 0.18, rot: 0, yTop: 0.4, yBottom: -0.5 })] };
+    try {
+      const added = withOwner(owner, () => addPiece(ph, piece));
+      for (const ambient of [null, next]) {
+        piece.colliders = [boxDesc({ x: 4, z: 1, hw: 0.22, hd: 0.18, rot: 0, yTop: 1.2, yBottom: -0.5 })];
+        withOwner(ambient, added.sync);
+        expect(ph.world.colliders.len()).toBe(1);
+        expect(owner.census.colliders).toBe(1); expect(next.census.colliders).toBe(0);
+      }
+      owner.dispose();
+      expect(ph.world.colliders.len()).toBe(0);
+      piece.colliders = [boxDesc({ x: 4, z: 1, hw: 0.22, hd: 0.18, rot: 0, yTop: 0.4, yBottom: -0.5 })];
+      withOwner(next, added.sync);
+      expect(ph.world.colliders.len()).toBe(0); expect(next.census.colliders).toBe(0);
+      expect(() => withOwner(owner, () => addPiece(ph, piece))).toThrow('disposed scope');
+    } finally { owner.dispose(); next.dispose(); ph.dispose(); }
+  });
   it('keeps NPC collision boxes axis aligned while the figure turns and follows its translation', async () => {
     const ph = new Physics(await rapier()), figure = new Object3D();
     figure.position.set(4, 2, 1); figure.rotation.y = 1;
