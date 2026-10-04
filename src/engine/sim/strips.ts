@@ -44,13 +44,36 @@ export function generatePlatform(cells: readonly PlatformCell[], empty: StripPro
   const get = (x: number, z: number): PlatformCell | undefined => byCell.get(`${x},${z}`);
   const present = (rows: readonly (PlatformCell | undefined)[]): PlatformCell[] => rows.filter((c): c is PlatformCell => c !== undefined);
   const result: GeneratedStrip[] = [];
+  // Equal immutable content has equal local mesh bytes. Reuse the certification
+  // within this generation, while each segment keeps its own placement and
+  // regional duplicates. Never keep a cache across calls or input revisions.
+  // Preserve signed zero: a JSON numeric key alone would conflate distinct bytes.
+  const exactKey = (value: unknown): string => JSON.stringify(value, (_key: string, item: unknown) => typeof item === 'number' && Object.is(item, -0) ? '-0' : item);
+  const profiles = new WeakMap<StripProfile, string>(), shapes = new Map<string, GeneratedStrip>();
+  const profileKey = (profile: StripProfile): string => {
+    let key = profiles.get(profile);
+    if (key === undefined) { key = exactKey(profile); profiles.set(profile, key); }
+    return key;
+  };
+  const strip = (input: Parameters<typeof generateStrip>[0]): GeneratedStrip => {
+    const key = exactKey([input.axis, input.profiles.map(profileKey), input.observations]);
+    let shape = shapes.get(key);
+    if (shape === undefined) { shape = generateStrip(input); shapes.set(key, shape); }
+    return place(input.id, { ...shape.mesh, origin: { ...input.origin } }, input.adjacent, shape.features, shape.turnIn);
+  };
+  const cross = (input: Parameters<typeof generateCrossroads>[0]): GeneratedStrip => {
+    const key = exactKey(['cross', input.corners]);
+    let shape = shapes.get(key);
+    if (shape === undefined) { shape = generateCrossroads(input); shapes.set(key, shape); }
+    return place(input.id, { ...shape.mesh, origin: { ...input.origin } }, input.adjacent, shape.features);
+  };
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) {
     const low = get(x, z), high = get(x + 1, z);
-    result.push(generateStrip({ id: `gap.x.${x}.${z}`, axis: 'x', origin: { x: x * 555 + 277.5, z: z * 555 }, profiles: [low?.edges.east ?? empty, high?.edges.west ?? empty], adjacent: present([low, high]), observations: [low?.observations?.east ?? { entryWidth: 0 }, high?.observations?.west ?? { entryWidth: 0 }] }));
+    result.push(strip({ id: `gap.x.${x}.${z}`, axis: 'x', origin: { x: x * 555 + 277.5, z: z * 555 }, profiles: [low?.edges.east ?? empty, high?.edges.west ?? empty], adjacent: present([low, high]), observations: [low?.observations?.east ?? { entryWidth: 0 }, high?.observations?.west ?? { entryWidth: 0 }] }));
   }
   for (let z = minZ - 1; z <= maxZ; z++) for (let x = minX; x <= maxX; x++) {
     const low = get(x, z), high = get(x, z + 1);
-    result.push(generateStrip({ id: `gap.z.${x}.${z}`, axis: 'z', origin: { x: x * 555, z: z * 555 + 277.5 }, profiles: [low?.edges.north ?? empty, high?.edges.south ?? empty], adjacent: present([low, high]), observations: [low?.observations?.north ?? { entryWidth: 0 }, high?.observations?.south ?? { entryWidth: 0 }] }));
+    result.push(strip({ id: `gap.z.${x}.${z}`, axis: 'z', origin: { x: x * 555, z: z * 555 + 277.5 }, profiles: [low?.edges.north ?? empty, high?.edges.south ?? empty], adjacent: present([low, high]), observations: [low?.observations?.north ?? { entryWidth: 0 }, high?.observations?.south ?? { entryWidth: 0 }] }));
   }
   const corner = (cell: PlatformCell | undefined, horizontal: 'north' | 'south', vertical: 'east' | 'west'): StripCorner => {
     const a = cell?.edges[horizontal] ?? empty, b = cell?.edges[vertical] ?? empty, i = vertical === 'east' ? a.heights.length - 1 : 0, j = horizontal === 'north' ? b.heights.length - 1 : 0;
@@ -60,7 +83,7 @@ export function generatePlatform(cells: readonly PlatformCell[], empty: StripPro
   };
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ - 1; z <= maxZ; z++) {
     const sw = get(x, z), se = get(x + 1, z), nw = get(x, z + 1), ne = get(x + 1, z + 1);
-    result.push(generateCrossroads({ id: `cross.${x}.${z}`, origin: { x: x * 555 + 277.5, z: z * 555 + 277.5 }, corners: [corner(sw, 'north', 'east'), corner(se, 'north', 'west'), corner(nw, 'south', 'east'), corner(ne, 'south', 'west')], adjacent: present([sw, se, nw, ne]) }));
+    result.push(cross({ id: `cross.${x}.${z}`, origin: { x: x * 555 + 277.5, z: z * 555 + 277.5 }, corners: [corner(sw, 'north', 'east'), corner(se, 'north', 'west'), corner(nw, 'south', 'east'), corner(ne, 'south', 'west')], adjacent: present([sw, se, nw, ne]) }));
   }
   return result;
 }
