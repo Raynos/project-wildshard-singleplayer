@@ -1,14 +1,33 @@
 {
+  "named": {
+    "hud": "the quest tracker, the journal chip order and the developer label differ (shardfile UI, sp-x5); hidden at the ladder's world step",
+    "heldItem": "today holds the whip and the lantern in the viewmodel; the shardfile client draws no held item yet (item runtime view, sp-x5); hidden at the world step",
+    "fov": "today's held whip (kit SweptMelee) owns camera.fov and sets Hor+ portrait 86.8 deg; with no held item the shardfile camera stays at 72 deg, so every shardfile frame is zoomed in. The biggest term; it closes when the declared whip view drives camera.fov",
+    "shadows": "intended: baked L0 props cast shadows inside the 80 m ring (plan 3.2); today's grey-box primitives never set castShadow. Darkens the ground in front of the hut at the door camera",
+    "poolBasin": "intended: the baked terrain samples the generator's -3 m pool step every 1.95 m (257 over 500 m), so the basin wall shows up to one sample outside the 5 m waterline; today's 40 x 40 ground (5 m grid) dips only at the pool centre vertex",
+    "scatter": "intended: the 20 grey cubes are baked from RngService(357) at desktop density; today draws 10 (phone tier) from the session cosmetic stream, so positions differ",
+    "creatures": "animation phase only: the grey blob idles in a different squash at capture; same exported skins and triangle counts",
+    "rampTreads": "not a difference: the ten treads are separate faceted boxes on both sides (close camera at (4,-6) toward (8,-11)); at 72 deg the zoomed shardfile frame cut them at its edge",
+    "horizon": "intended: baked terrain covers the whole cell, so the far ground meets the sky as a soft band where today's 200 m plane stops in a hard edge"
+  },
   "cameras": {
     "spawn": {
-      "ssim": 0.852943369230044,
+      "ssim": 0.8483323030909066,
+      "ladder": {
+        "full": 0.8483323030909066,
+        "world": 0.941961635011558,
+        "fov": 0.9867611073504546,
+        "shadows": 0.9930117608226281
+      },
       "today": {
         "calls": 56,
-        "triangles": 12041
+        "triangles": 12041,
+        "fov": 86.79865242363684
       },
       "shardfile": {
         "calls": 45,
-        "triangles": 42264
+        "triangles": 42264,
+        "fov": 72
       },
       "at": [
         0,
@@ -20,14 +39,22 @@
       ]
     },
     "pool": {
-      "ssim": 0.8629941640691359,
+      "ssim": 0.865146439726877,
+      "ladder": {
+        "full": 0.865146439726877,
+        "world": 0.9583337346288592,
+        "fov": 0.9826960377998534,
+        "shadows": 0.9833486649279416
+      },
       "today": {
         "calls": 58,
-        "triangles": 14293
+        "triangles": 14293,
+        "fov": 86.79865242363684
       },
       "shardfile": {
         "calls": 44,
-        "triangles": 42728
+        "triangles": 42728,
+        "fov": 72
       },
       "at": [
         25,
@@ -39,14 +66,22 @@
       ]
     },
     "hut": {
-      "ssim": 0.8333614413358735,
+      "ssim": 0.833365465735521,
+      "ladder": {
+        "full": 0.833365465735521,
+        "world": 0.9249775851787738,
+        "fov": 0.9856133295515878,
+        "shadows": 0.9954617975463684
+      },
       "today": {
         "calls": 50,
-        "triangles": 11959
+        "triangles": 11959,
+        "fov": 86.79865242363684
       },
       "shardfile": {
         "calls": 46,
-        "triangles": 42988
+        "triangles": 42988,
+        "fov": 72
       },
       "at": [
         7,
@@ -58,14 +93,22 @@
       ]
     },
     "door": {
-      "ssim": 0.7776347895870547,
+      "ssim": 0.7774603877373482,
+      "ladder": {
+        "full": 0.7774603877373482,
+        "world": 0.8485438481419942,
+        "fov": 0.962644281334572,
+        "shadows": 0.9968566946880193
+      },
       "today": {
         "calls": 44,
-        "triangles": 11809
+        "triangles": 11809,
+        "fov": 86.79865242363684
       },
       "shardfile": {
         "calls": 42,
-        "triangles": 39816
+        "triangles": 39816,
+        "fov": 72
       },
       "at": [
         0,
@@ -77,14 +120,22 @@
       ]
     },
     "creatures": {
-      "ssim": 0.8501177889203961,
+      "ssim": 0.8641792297146546,
+      "ladder": {
+        "full": 0.8641792297146546,
+        "world": 0.9425977801327021,
+        "fov": 0.9749209806540594,
+        "shadows": 0.982057189820204
+      },
       "today": {
         "calls": 38,
-        "triangles": 13777
+        "triangles": 13777,
+        "fov": 86.79865242363684
       },
       "shardfile": {
         "calls": 37,
-        "triangles": 39924
+        "triangles": 39924,
+        "fov": 72
       },
       "at": [
         9,
@@ -96,14 +147,22 @@
       ]
     },
     "boss arena": {
-      "ssim": 0.9000431441318514,
+      "ssim": 0.9007850979362695,
+      "ladder": {
+        "full": 0.9007850979362695,
+        "world": 0.9771278085024454,
+        "fov": 0.9846169645224977,
+        "shadows": 0.9846146078867811
+      },
       "today": {
         "calls": 36,
-        "triangles": 11625
+        "triangles": 11625,
+        "fov": 86.79865242363684
       },
       "shardfile": {
         "calls": 35,
-        "triangles": 37428
+        "triangles": 37428,
+        "fov": 72
       },
       "at": [
         -9,

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""SF16 M1 board: rows of (today | from its shardfile) per camera, labelled with SSIM; JPEG <= 500 KB."""
+"""SF16 M1 board: rows of (today | from its shardfile) per camera, labelled with SSIM; JPEG <= 500 KB.
+usage: compose.py <shots.json> <out.jpg> [title]"""
 import io
 import json
 import sys
@@ -25,11 +26,14 @@ try:
     small = ImageFont.truetype('/System/Library/Fonts/Helvetica.ttc', 13)
 except OSError:
     font = small = ImageFont.load_default()
-draw.text((12, 8), 'SF16 M1: template today (left of each pair) vs booted from its shardfile (right), iPhone 16 Pro', fill=(230, 230, 230), font=font)
+title = sys.argv[3] if len(sys.argv) > 3 else 'SF16 M1: template today (left of each pair) vs booted from its shardfile (right), iPhone 16 Pro.  Ladder: HUD + held item hidden, + matched FOV, + shardfile shadows off'
+draw.text((12, 8), title, fill=(230, 230, 230), font=font)
 for i, (pair, shot) in enumerate(cells):
     x = 12 + (i % cols) * (pair_w + 12)
     y = header + (i // cols) * (cell_h + 12)
-    draw.text((x, y + 3), f"{shot['name']}  SSIM {shot['ssim']:.3f}", fill=(240, 200, 120), font=small)
+    ladder = shot.get('ladder')
+    steps = f"  | world {ladder['world']:.3f}  +fov {ladder['fov']:.3f}  -shadows {ladder['shadows']:.3f}" if ladder else ''
+    draw.text((x, y + 3), f"{shot['name']}  SSIM {shot['ssim']:.3f}{steps}", fill=(240, 200, 120), font=small)
     board.paste(pair[0], (x, y + label))
     board.paste(pair[1], (x + W + 8, y + label))
 quality = 88
