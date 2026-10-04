@@ -110,7 +110,7 @@ describe('Sky Reach contract', () => {
     at.set(0, DECK + 2, 0.5); for (let t = 0; t < 0.4; t += 0.05) runner.update(0.05, ctx);
     expect(hits).toBe(1);
   });
-  it('walks the goats on the decks (G26), warms their coat, and fits the vane plinth', () => {
+  it('walks the goats on the decks (G26), warms their coat, and stands the vane on a plinth collider', () => {
     expect(SKY_GOAT.flight).toBeUndefined();
     // mauve shading (linear 0.22, 0.12, 0.16) loses its blue and lifts toward cream; a dark horn stays dark
     const g = new BufferGeometry(); g.setAttribute('color', new Float32BufferAttribute([0.22, 0.12, 0.16, 0.012, 0, 0.05], 3)); warmCoat(g);
@@ -118,7 +118,8 @@ describe('Sky Reach contract', () => {
     expect(c.getZ(0)).toBeLessThan(c.getY(0)); expect(c.getX(0)).toBeGreaterThan(0.22);
     expect(c.getX(1)).toBeLessThan(0.02);
     const [plinth] = vaneColliders(0, 0, DECK);
+    // E388: no size bar here. The ≥ 0.45 / 0.4 m restated build.ts's own constants; build.ts measured them off the generated
+    // shrine (wind-vane.glb fitted 3.6 m tall: below 0.8 m it spans ±0.458 m in x and −0.424…0.412 m in z).
     expect(plinth?.kind).toBe('box');
-    if (plinth?.kind === 'box') { expect(plinth.hx).toBeGreaterThanOrEqual(0.45); expect(plinth.hz).toBeGreaterThanOrEqual(0.4); }
   });
 });
