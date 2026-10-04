@@ -1,6 +1,6 @@
-# SF29 audio declarations — Node proof
+# SF29 audio declarations — acceptance evidence
 
-State: in flight. All six legacy shards declare their audio; live parity, frame floors and the final pushed pin remain to be recorded.
+State: in flight. All six legacy shards declare their audio. Node proofs and coordinator frame floors are green; fresh parity is recorded red, with footstep/endpoint attribution still pending the direct socket control after SF57.
 
 Each shard's `shard.config.ts` takes its audio from `data/audio.ts`. The existing trusted runtime reads that same declaration. Transitional hybrid clients explicitly select runtime audio ownership, so they install it once; authored clients default to declared ownership. Runtime ownership is refused for outside authors.
 
