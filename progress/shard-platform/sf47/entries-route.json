@@ -1,0 +1,193 @@
+{
+ "$doc": "SHARD-PLATFORM SF47-g: Pine Hollow's four midpoint entries (G93 / G99 / G103 / G131) walked edge -> shard and back on the live world (Pine's runtime terrain, trees, props and colliders, the engine's entry sockets). The bake holds each canyon gap flat at y = 0 across +-10.8 m for 45 m in, then the entry road ramps onto the trail. Pine cannot be walked in the grid yet (liveSession refuses a cell with a runtime source until its hybrid admission, M3), so this standalone walk is the proof. layout.ts's road names are swapped on x (W_ROAD runs at x = +250): the legs name the compass edge. Run: scripts/browser-lane.sh node scripts/physics-baseline.mjs --no-build --mode=walk --shard=pine-hollow --route=progress/shard-platform/sf47/entries-route.json --url=<served build>",
+ "pine-hollow": [
+  {
+   "name": "south in",
+   "start": {
+    "x": 0,
+    "z": -249,
+    "yaw": -3.1416,
+    "y": 0.3
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -235
+    },
+    {
+     "x": 0,
+     "z": -190
+    },
+    {
+     "x": -8,
+     "z": -150
+    }
+   ],
+   "notes": "from 1 m inside the south edge midpoint across the platform socket footprint (15 m, y 0), up the canyon gap's entry road ramp onto the trail"
+  },
+  {
+   "name": "south out",
+   "start": {
+    "x": -8,
+    "z": -150,
+    "yaw": -0.1974
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -190
+    },
+    {
+     "x": 0,
+     "z": -235
+    },
+    {
+     "x": 0,
+     "z": -249
+    }
+   ],
+   "notes": "down the south entry road through the canyon gap onto the socket footprint to the edge"
+  },
+  {
+   "name": "north in",
+   "start": {
+    "x": 0,
+    "z": 249,
+    "yaw": 0,
+    "y": 0.3
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 235
+    },
+    {
+     "x": 0,
+     "z": 190
+    },
+    {
+     "x": -2,
+     "z": 160
+    }
+   ],
+   "notes": "from 1 m inside the north edge midpoint across the platform socket footprint (15 m, y 0), up the canyon gap's entry road ramp onto the trail"
+  },
+  {
+   "name": "north out",
+   "start": {
+    "x": -2,
+    "z": 160,
+    "yaw": -3.075
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 190
+    },
+    {
+     "x": 0,
+     "z": 235
+    },
+    {
+     "x": 0,
+     "z": 249
+    }
+   ],
+   "notes": "down the north entry road through the canyon gap onto the socket footprint to the edge"
+  },
+  {
+   "name": "east in",
+   "start": {
+    "x": 249,
+    "z": 0,
+    "yaw": 1.5708,
+    "y": 0.3
+   },
+   "waypoints": [
+    {
+     "x": 235,
+     "z": 0
+    },
+    {
+     "x": 190,
+     "z": 0
+    },
+    {
+     "x": 162,
+     "z": 6
+    }
+   ],
+   "notes": "from 1 m inside the east edge midpoint across the platform socket footprint (15 m, y 0), up the canyon gap's entry road ramp onto the trail"
+  },
+  {
+   "name": "east out",
+   "start": {
+    "x": 162,
+    "z": 6,
+    "yaw": -1.3597
+   },
+   "waypoints": [
+    {
+     "x": 190,
+     "z": 0
+    },
+    {
+     "x": 235,
+     "z": 0
+    },
+    {
+     "x": 249,
+     "z": 0
+    }
+   ],
+   "notes": "down the east entry road through the canyon gap onto the socket footprint to the edge"
+  },
+  {
+   "name": "west in",
+   "start": {
+    "x": -249,
+    "z": 0,
+    "yaw": -1.5708,
+    "y": 0.3
+   },
+   "waypoints": [
+    {
+     "x": -235,
+     "z": 0
+    },
+    {
+     "x": -190,
+     "z": 0
+    },
+    {
+     "x": -172,
+     "z": 0
+    }
+   ],
+   "notes": "from 1 m inside the west edge midpoint across the platform socket footprint (15 m, y 0), up the canyon gap's entry road ramp onto the trail (it stops 22 m short of the creek bridge: the gully beside the bridge is not an entry question)"
+  },
+  {
+   "name": "west out",
+   "start": {
+    "x": -172,
+    "z": 0,
+    "yaw": 1.5708
+   },
+   "waypoints": [
+    {
+     "x": -190,
+     "z": 0
+    },
+    {
+     "x": -235,
+     "z": 0
+    },
+    {
+     "x": -249,
+     "z": 0
+    }
+   ],
+   "notes": "down the west entry road through the canyon gap onto the socket footprint to the edge"
+  }
+ ]
+}

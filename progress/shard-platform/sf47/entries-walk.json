@@ -1,0 +1,150 @@
+{
+ "$doc": "SHARD-PLATFORM SF47-g: progress/shard-platform/sf47/entries-route.json walked on the clean HEAD build e7daeff70 (phone tier, iPhone 16 Pro, muted, browser lane; the entries are a declaration only, so the live world is HEAD's). 8 legs, 0 stuck. The first west-in leg aimed at the creek bridge and dropped into the gully beside it (6 air frames, still 0 stuck); the leg now stops 22 m short and was re-walked alone.",
+ "build": "e7daeff-muudyy7a",
+ "legs": [
+  {
+   "shard": "pine-hollow",
+   "name": "south in",
+   "frames": 702,
+   "seconds": 23.4,
+   "end": {
+    "x": -7.95,
+    "y": 4.184,
+    "z": -150.681
+   },
+   "expectY": null,
+   "maxY": 4.18,
+   "groundSpeedP50": 4.24,
+   "airFrames": 0,
+   "swimFrames": 0,
+   "slideFrames": 0,
+   "stuck": []
+  },
+  {
+   "shard": "pine-hollow",
+   "name": "south out",
+   "frames": 694,
+   "seconds": 23.1,
+   "end": {
+    "x": 0,
+    "y": 0.02,
+    "z": -248.285
+   },
+   "expectY": null,
+   "maxY": 4.22,
+   "groundSpeedP50": 4.33,
+   "airFrames": 0,
+   "swimFrames": 0,
+   "slideFrames": 0,
+   "stuck": []
+  },
+  {
+   "shard": "pine-hollow",
+   "name": "north in",
+   "frames": 628,
+   "seconds": 20.9,
+   "end": {
+    "x": -1.998,
+    "y": 4.886,
+    "z": 160.791
+   },
+   "expectY": null,
+   "maxY": 5.05,
+   "groundSpeedP50": 4.24,
+   "airFrames": 0,
+   "swimFrames": 0,
+   "slideFrames": 0,
+   "stuck": []
+  },
+  {
+   "shard": "pine-hollow",
+   "name": "north out",
+   "frames": 619,
+   "seconds": 20.6,
+   "end": {
+    "x": 0,
+    "y": 0.02,
+    "z": 248.262
+   },
+   "expectY": null,
+   "maxY": 5.05,
+   "groundSpeedP50": 4.33,
+   "airFrames": 0,
+   "swimFrames": 0,
+   "slideFrames": 0,
+   "stuck": []
+  },
+  {
+   "shard": "pine-hollow",
+   "name": "east in",
+   "frames": 616,
+   "seconds": 20.5,
+   "end": {
+    "x": 162.726,
+    "y": 3.328,
+    "z": 5.878
+   },
+   "expectY": null,
+   "maxY": 3.69,
+   "groundSpeedP50": 4.27,
+   "airFrames": 0,
+   "swimFrames": 0,
+   "slideFrames": 0,
+   "stuck": []
+  },
+  {
+   "shard": "pine-hollow",
+   "name": "east out",
+   "frames": 609,
+   "seconds": 20.3,
+   "end": {
+    "x": 248.222,
+    "y": 0.02,
+    "z": 0
+   },
+   "expectY": null,
+   "maxY": 3.72,
+   "groundSpeedP50": 4.33,
+   "airFrames": 0,
+   "swimFrames": 0,
+   "slideFrames": 0,
+   "stuck": []
+  },
+  {
+   "shard": "pine-hollow",
+   "name": "west out",
+   "frames": 741,
+   "seconds": 24.7,
+   "end": {
+    "x": -248.29,
+    "y": 0.02,
+    "z": 0
+   },
+   "expectY": null,
+   "maxY": 0.06,
+   "groundSpeedP50": 4.24,
+   "airFrames": 0,
+   "swimFrames": 0,
+   "slideFrames": 1,
+   "stuck": []
+  },
+  {
+   "shard": "pine-hollow",
+   "name": "west in",
+   "frames": 535,
+   "seconds": 17.8,
+   "end": {
+    "x": -172.741,
+    "y": -0.857,
+    "z": 0.004
+   },
+   "expectY": null,
+   "maxY": 0.05,
+   "groundSpeedP50": 4.33,
+   "airFrames": 0,
+   "swimFrames": 0,
+   "slideFrames": 0,
+   "stuck": []
+  }
+ ]
+}
