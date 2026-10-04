@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // SF0: live drawn-frame baseline, never a deterministic/capture-clock or CPU-throttled run.
-// node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--device=<name>]
+// node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--device=<name>] [--rev=<sha>] [--setting=key=value]
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
 // exit 3 = incomplete measurement. --regrade=<baseline> reapplies current floor policy without rerendering.
 // Results: progress/frame-floor/<measured-short-sha>.json.
@@ -21,13 +21,19 @@ const frames = Number(flag('frames', '120'));
 const settleMs = Number(flag('settle', '2')) * 1000;
 const device = flag('device', 'frame-floor-iphone-17-pro');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--settle=2] [--device=<name>]\nRuns an isolated clean HEAD export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
 
 const ERROR_SCRIPT = `window.__frameFloorErrors=[];window.addEventListener('error',e=>window.__frameFloorErrors.push(String(e.message).slice(0,240)));window.addEventListener('unhandledrejection',e=>window.__frameFloorErrors.push(String(e.reason).slice(0,240)));`;
-const settings = { tier: surface === 'sim' ? 'phone' : 'desktop', fps: 'auto' };
+const settingArgs = args.filter((arg) => arg.startsWith('--setting='));
+const picks = Object.fromEntries(settingArgs.map((arg) => {
+  const match = /^--setting=([a-zA-Z][a-zA-Z0-9.]*)=([^=]+)$/u.exec(arg);
+  if (!match || ['tier', 'fps'].includes(match[1])) throw new Error('Invalid Debug setting; tier and fps belong to the floor protocol');
+  return [match[1], match[2]];
+}));
+const settings = { ...picks, tier: surface === 'sim' ? 'phone' : 'desktop', fps: 'auto' };
 const fixture = (tier) => [
   saveFixtureCode({ scope: 'global', key: 'settings', data: { ...settings, tier }, merge: true }),
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
@@ -154,7 +160,7 @@ async function measureShard(driver, shard, deadline) {
     await waitReady(driver.evaluate);
     await sleep(settleMs);
     const meta = await driver.evaluate(`(${metadata.toString()})()`);
-    if (meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== (surface === 'sim' ? 'phone' : 'desktop') || meta.settings.fps !== 'auto') throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
+    if (meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== (surface === 'sim' ? 'phone' : 'desktop') || meta.settings.fps !== 'auto' || Object.entries(picks).some(([key, value]) => meta.settings[key] !== value)) throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
     if (surface === 'sim' && (meta.viewport[0] >= meta.viewport[1] || !meta.userAgent.includes('iPhone'))) throw new Error('Simulator must be portrait iPhone Safari');
     if (surface === 'desktop' && !meta.renderer.includes('ANGLE Metal Renderer')) throw new Error(`Metal required, got ${meta.renderer}`);
     const declared = await driver.evaluate(`(${cameras.toString()})()`);
@@ -316,7 +322,7 @@ async function main() {
     process.exitCode = record.complete ? record.pass ? 0 : 2 : 3;
     return;
   }
-  const start = Date.now(), sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  const start = Date.now(), sha = execFileSync('git', ['rev-parse', flag('rev', 'HEAD')], { cwd: ROOT, encoding: 'utf8' }).trim();
   const runId = `${process.pid}-${Date.now()}`;
   const scratch = `/private/tmp/claude-501/sp-builders/sp-x1/frame-floor-${runId}`;
   mkdirSync(scratch, { recursive: true });
@@ -334,7 +340,7 @@ async function main() {
     writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
-      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`];
+      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs];
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
@@ -343,7 +349,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, shards, surface, complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, shards, surface, settings, complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds only live harness pose pins before the byte-identical clean HEAD modules.'], results });

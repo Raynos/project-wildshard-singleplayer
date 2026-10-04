@@ -61,7 +61,7 @@ function report(reports,sha,out,ms) {
   for (const r of reports) lines.push(`## Budget derivation ${string(get(r, 'boot.shard'))} × ${string(get(r, 'boot.tier'))}`, '', ...budgetLines(r));
   writeFileSync(join(out,'report.md'),`${lines.join('\n')}\n`);
 }
-/** @param {import('playwright').Browser} browser @param {string} url @param {{shard:string,tier:string,lane:string,sha:string,root:string,out:string,timeout:number,full:boolean,only:string|undefined,offline:boolean,fast?:boolean,accelerated?:boolean,telemetryFixture?:boolean}} opts */
+/** @param {import('playwright').Browser} browser @param {string} url @param {{shard:string,tier:string,lane:string,sha:string,root:string,out:string,timeout:number,full:boolean,only:string|undefined,offline:boolean,fast?:boolean,accelerated?:boolean,telemetryFixture?:boolean,settings?:Record<string,string>}} opts */
 export async function capture(browser,url,opts) {
   let offlineStep='install';
   const phaseStart=performance.now(),phases=/** @type {Record<string,number>} */({});let phase=phaseStart;
@@ -75,7 +75,7 @@ export async function capture(browser,url,opts) {
       if(telemetryFixtureAccepts(request.method(),payload)){phases.telemetryFixturePosts++;await route.fulfill({status:200,json:{id:'parity-clock-proof'}});}
       else await route.continue();
     });}
-    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated,tier:opts.tier});await debugSettings(context,{time:'midday',weather:'clear'});
+    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated,tier:opts.tier});await debugSettings(context,{time:'midday',weather:'clear',...opts.settings});
     const page=await context.newPage();page.setDefaultTimeout(opts.timeout*1000);
     page.on('response',(response)=>{if(response.status()>=400)console.error(`parity: ${opts.shard}.${opts.tier} HTTP ${response.status()} ${response.url()}`);});
     /** @type {string[]} */const errors=[];page.on('pageerror',(e)=>{if(relevantError(e.message))errors.push(e.message);});page.on('console',(m)=>{if(m.type()==='error'&&relevantError(m.text()))errors.push(m.text());});
@@ -93,6 +93,12 @@ export async function capture(browser,url,opts) {
     /** @type {RecordValue} */const result={boot:object(boot)};
     if(errors.length > 0)return result;
     await page.waitForFunction(()=>!document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
+    if(opts.settings){
+      const saved=object(await page.evaluate(()=>JSON.parse(localStorage.getItem('wildshard.save.v2.global')??'{}')));
+      const observed=object(get(saved,'keys.settings.data'));
+      if(Object.entries(opts.settings).some(([key,value])=>observed[key]!==value))throw new Error('Debug setting fixture did not survive boot');
+      result.debugSettings=Object.fromEntries(Object.keys(opts.settings).map((key)=>[key,observed[key]]));
+    }
     mark('bootMs');
     if(opts.offline){offlineStep='explore';await page.evaluate(()=>window.__wildshard.world.hud.startExplore());await page.locator('.ws-x').waitFor({state:'visible'});result.offline={title:true,play:true,explore:true};object(result.boot).errors=[...new Set([...boot.errors,...errors])];return result;}
     if(opts.only!=='walk+combat+leak'){console.error(`parity: ${opts.shard}.${opts.tier} poses`);result.poses=await within(poses(page,opts),opts.timeout*1000,'poses');mark('posesMs');}
@@ -119,12 +125,12 @@ export async function capture(browser,url,opts) {
 
 /** Fresh weather context for the F8 unload proof (03 §5.5).
  * @param {import('playwright').Browser} browser @param {string} url
- * @param {{shard:string,tier:string,lane:string,sha:string,timeout:number,accelerated?:boolean}} opts */
+ * @param {{shard:string,tier:string,lane:string,sha:string,timeout:number,accelerated?:boolean,settings?:Record<string,string>}} opts */
 export async function weatherLeak(browser,url,opts) {
   const context=await browser.newContext(opts.tier==='phone'?{viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,serviceWorkers:'block'}:{viewport:{width:1600,height:900},serviceWorkers:'block'});
   try {
     await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated,tier:opts.tier});
-    await debugSettings(context,{time:'midday',weather:opts.shard==='pine-hollow'?'rain':'clear'});
+    await debugSettings(context,{time:'midday',weather:opts.shard==='pine-hollow'?'rain':'clear',...opts.settings});
     const page=await context.newPage();
     /** @type {string[]} */ const errors=[];
     page.on('pageerror',(error)=>{if(relevantError(error.message))errors.push(error.message);});
