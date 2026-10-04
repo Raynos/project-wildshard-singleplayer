@@ -40,6 +40,9 @@ it('restores the real highway controller and road recovery without arming anothe
     onFixedPost: () => undefined, onInput: () => undefined, onUpdate: () => undefined,
   });
   try {
+    const statusScope = scope.child('reload.status');
+    session.bindReloadStatus(() => 'failed', statusScope); expect(session.state().reloadStatus).toBe('failed');
+    statusScope.dispose(); expect(session.state().reloadStatus).toBeNull();
     await session.resumeRoad({ x: 277.5, y: 0.45, z: 0 }, { x: 281.1, z: 0, yaw: 1.2 });
     expect(session.frame()).toBeNull(); expect(session.worldFeet()).toEqual({ x: 277.5, y: 0.45, z: 0 });
     expect(equipment.stowed).toBe(true); expect(session.roadPoint()).toEqual({ x: 281.1, z: 0, yaw: 1.2 });

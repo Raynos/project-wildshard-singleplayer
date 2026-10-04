@@ -96,6 +96,8 @@ export interface LiveGridSessionState {
   readonly live: LiveGridState; readonly crossing: GridCrossingState; readonly stowed: boolean; readonly renderOrigin: { x: number; z: number };
   /** the board's cap now (m/s; null off the board's grid rule) and whether the home client's simulation runs (null: no handoff) */
   readonly hoverCap: number | null; readonly homeActive: boolean | null;
+  /** The planned exit shares the existing G119 saving panel. */
+  readonly reloadStatus: 'saving' | 'failed' | null;
 }
 /** The highway's own surfaces: the deck and strips at road level, no water (G72: the outer ring is land). */
 const HIGHWAY_QUERIES: PlayerFrameQueries = { heightAt: () => 0, waterSurfaceAt: () => null, platforms: [] };
@@ -137,6 +139,7 @@ export class LiveGridSession {
   private readonly durability = new Map<string, GridRegionDurability>();
   private readonly offset = new Vector3();
   private framePhysics: Physics;
+  private reloadStatus: (() => 'saving' | 'failed' | null) | null = null;
   private readonly applied = new Vector3();
   private readonly loadout: GridLoadout;
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
@@ -373,9 +376,16 @@ export class LiveGridSession {
   /** The admitted native simulation for a browser witness; the page exposes this only when harness pins exist. */
   simulation(instance: string): ShardfileSimulation | undefined { return this.regions.get(instance)?.simulation; }
 
+  /** A scope-owned exit transaction supplies status without installing another HUD or frame loop. */
+  bindReloadStatus(read: () => 'saving' | 'failed' | null, scope: Scope): void {
+    if (this.reloadStatus !== null) throw new Error('Grid reload status already bound');
+    this.reloadStatus = read;
+    scope.onDispose(() => { if (this.reloadStatus === read) this.reloadStatus = null; });
+  }
+
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
     return { live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z },
-      hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
+      reloadStatus: this.reloadStatus?.() ?? null, hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
   }
 }
