@@ -85,6 +85,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
   const settle = async (tick: () => void): Promise<void> => { for (let turn = 0; turn < 20; turn++) { await Promise.resolve(); tick(); } };
   try {
     await first.session.live.prefetch([target.instance]);
+    expect(first.scope.census.colliders).toBe(0); // admitted terrain and props also stay in their regional scope
     pageHost.player.position.set(270, 1, 270); await settle(first.tick);
     expect(first.session.frame()).toBe(home.instance);
     expect(first.session.state().crossing.issue).toBe('Local checkpoint is not durable');

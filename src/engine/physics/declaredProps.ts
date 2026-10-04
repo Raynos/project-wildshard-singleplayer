@@ -1,5 +1,6 @@
 import type { ColliderDesc } from '../world/registry';
 import type { Scope } from '../app/scope';
+import { withOwner } from '../app/ownership';
 import type { Physics } from './Physics';
 import { addPiece } from './pieces';
 import { tagCollider, tagOf, untagCollider } from './surface';
@@ -14,7 +15,7 @@ export function installDeclaredPropColliders(rows: readonly { id: string; initia
   for (const row of rows) {
     const saved = restoring?.get(row.id);
     if (restoring !== undefined && saved === undefined) throw new Error(`Missing declared collider state ${row.id}`);
-    const added = restoring === undefined ? addPiece(current(), { id: row.id, name: row.id, category: 'props', file: 'declared-props', colliders: [...row.shapes] }) : null;
+    const added = restoring === undefined ? withOwner(scope, () => addPiece(current(), { id: row.id, name: row.id, category: 'props', file: 'declared-props', colliders: [...row.shapes] })) : null;
     let handles = saved === undefined ? (added?.colliders ?? []).map((collider) => { const material = tagOf(collider)?.material ?? 'wood'; tagCollider(collider, material, row.id); collider.setEnabled(row.initialActive); return collider.handle; }) : [...saved.handles];
     const colliders = () => handles.map((handle) => { const world = current().world; if (!world.colliders.contains(handle)) throw new Error(`Missing declared collider ${row.id}`); return world.getCollider(handle); });
     ports.set(row.id, { active: () => colliders().every((collider) => collider.isEnabled()), setActive: (value) => { for (const collider of colliders()) collider.setEnabled(value); }, snapshot: () => ({ handles: [...handles] }), restore: (value) => { handles = [...value.handles]; } });
