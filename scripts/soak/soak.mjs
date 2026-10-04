@@ -79,12 +79,14 @@ async function worker() {
     proxy.on('error', (error) => { result.errors.push(String(error)); });
     xcrun(['openurl', udid, `${base}version.json`]); driver = await connect(`${base}version.json`);
     await driver.evaluate(`localStorage.clear();sessionStorage.clear();true`);
-    driver.close(); driver = null;
     phase('loading');
     sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--max', '2500'], { stdio: ['ignore', 'inherit', 'inherit'] });
     /** @type {{ error: string | null }} */ const samplerResult = { error: null };
     const samplerClosed = new Promise((resolve) => { sampler.on('error', (error) => { samplerResult.error = String(error); resolve(); }); sampler.on('close', (code) => { if (code !== 0) samplerResult.error = `Native sampler exited ${code}`; resolve(); }); });
-    xcrun(['openurl', udid, `${base}sf57-safari.html?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0`]);
+    const gameUrl = `${base}sf57-safari.html?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0`;
+    // Replace the cold inspection tab before measurement; do not leave an extra version tab resident.
+    await driver.evaluate(`setTimeout(()=>location.replace(${JSON.stringify(gameUrl)}),100);true`);
+    driver.close(); driver = null;
     driver = await connect(`${base}sf57-safari.html`);
     await until(driver, `Boolean(window.__wildshard?.shard?.grid?.simulation && !document.querySelector('.ws-load'))`);
     result.metadata = await driver.evaluate(`(() => {const p=window.__wildshard,w=p.world;w.hud.enterNow();return {href:location.href,clock:w.game.app.clock.mode,renderScale:w.game.renderer.getPixelRatio(),viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,boot:p.boot,state:p.shard.grid.state()};})()`);

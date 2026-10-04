@@ -20,7 +20,7 @@ export function installSoakDrive(route, duration) {
     const point = route.steps[index];
     if (!point) { cycle++; index = 0; stepAt = now; holdAt = null; entered = false; report('circuit'); return; }
     const feet = live.worldFeet, dx = point.x - feet.x, dz = point.z - feet.z, distance = Math.hypot(dx, dz);
-    if (point.kind === 'enter' && live.current === point.instance && !entered) {
+    if (point.kind === 'enter' && live.current === point.instance && grid.inside === point.instance && !entered) {
       entered = true; report('entry', { instance: point.instance, slug: point.slug, admitted: true, feet });
     }
     const arrive = distance < 1.5;
