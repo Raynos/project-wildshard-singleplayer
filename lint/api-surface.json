@@ -8161,6 +8161,12 @@
         "from": "@wildshard/engine/sim"
       },
       {
+        "name": "SimExternalPlayer",
+        "kind": "interface",
+        "doc": "The existing page owns this traveller, its health update and its one physics/movement step.",
+        "from": "@wildshard/engine/sim"
+      },
+      {
         "name": "SimHost",
         "kind": "class",
         "doc": "A session-local 60 Hz host using the same creature motion, damage, strikes, events and physics as the client.",
@@ -13026,6 +13032,60 @@
         "from": "@wildshard/game/shardfile/creatures"
       },
       {
+        "name": "DirectorData",
+        "kind": "type",
+        "doc": "Validated director data, with stable ids and immutable script parameters.",
+        "from": "@wildshard/game/shardfile/director"
+      },
+      {
+        "name": "DirectorEvent",
+        "kind": "interface",
+        "doc": "Typed output delivered only after a successful, atomically committed script call.",
+        "from": "@wildshard/game/shardfile/director"
+      },
+      {
+        "name": "DirectorSchema",
+        "kind": "const",
+        "doc": "Shard director declarations bound numeric events and observations; grid subscriptions are reserved, with no v1 delivery.",
+        "from": "@wildshard/game/shardfile/director"
+      },
+      {
+        "name": "parseDirector",
+        "kind": "function",
+        "doc": "Validate before admission, allocation or registration.",
+        "from": "@wildshard/game/shardfile/director"
+      },
+      {
+        "name": "DirectorInstallation",
+        "kind": "interface",
+        "doc": "Trusted observations and presentation recipes only; scripts decide event timing and payloads.",
+        "from": "@wildshard/game/shardfile/directorClient"
+      },
+      {
+        "name": "directorVariant",
+        "kind": "function",
+        "doc": "Data-selected debug variant, default off; the generic adapter adds no shard service coupling.",
+        "from": "@wildshard/game/shardfile/directorClient"
+      },
+      {
+        "name": "installDeclaredDirector",
+        "kind": "function",
+        "doc": "Game-owned fixed-step and scope installation; async admission never publishes into an unloaded level.",
+        "from": "@wildshard/game/shardfile/directorClient"
+      },
+      {
+        "name": "createDirectorLane",
+        "kind": "function",
+        "doc": "Verify immutable module bytes before allocating an admitted director; each installation receives its own copied author memory.",
+        "from": "@wildshard/game/shardfile/directorRuntime"
+      },
+      {
+        "name": "DirectorLane",
+        "kind": "class",
+        "doc": "Bounded authoritative director lane; full Wasm state, quotas, failure history and pending typed input survive replay.",
+        "from": "@wildshard/game/shardfile/directorRuntime"
+      },
+      {
         "name": "encounterRules",
         "kind": "function",
         "doc": "Full-loader references: declared actor spawn and the existing SF7f boss panel (if any).",
@@ -15272,6 +15332,18 @@
         "kind": "function",
         "doc": "Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC.",
         "from": "@wildshard/sdk/bake/texture"
+      },
+      {
+        "name": "director",
+        "kind": "function",
+        "doc": "Validate before admitting a bounded module or installing a fixed-step director.",
+        "from": "@wildshard/sdk/director"
+      },
+      {
+        "name": "DirectorData",
+        "kind": "type",
+        "doc": "Typed director data with bounded observations, payloads and reserved grid subscriptions.",
+        "from": "@wildshard/sdk/director"
       },
       {
         "name": "LedgerFact",

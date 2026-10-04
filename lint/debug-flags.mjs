@@ -16,12 +16,15 @@ function walk(node, visit) {
 }
 /** Literal rows in admitted plumbing data are inventoried instead of the generic adapter's callback argument. */
 export function declaredDebugRows(program) {
-  const names = new Set(['parsePlumbing']), rows = [];
+  const names = new Set(['parsePlumbing']), directors = new Set(['directorVariant']), rows = [];
   walk(program, (node) => {
     if (node.type === 'ImportSpecifier' && node.imported?.name === 'parsePlumbing') names.add(node.local.name);
+    if (node.type === 'ImportSpecifier' && node.imported?.name === 'directorVariant') directors.add(node.local.name);
   });
   walk(program, (node) => {
-    if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier' || !names.has(node.callee.name)) return;
+    if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier') return;
+    if (directors.has(node.callee.name)) { rows.push(node.arguments[1]); return; }
+    if (!names.has(node.callee.name)) return;
     const declared = unwrap(field(node.arguments[0], 'debug'));
     if (declared === undefined) return;
     if (declared.type !== 'ArrayExpression' || declared.elements.some((value) => value === null || value.type === 'SpreadElement')) throw new Error('Declared Debug rows must be a literal array');

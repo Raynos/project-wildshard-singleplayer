@@ -28,6 +28,7 @@ const worldSchema = v.pipe(v.array(v.strictObject({ id: v.number(), name: v.stri
 export class DirectorLane {
   readonly data: DirectorData;
   readonly host: ScriptHost;
+  private currentTick = -1;
   private pending: { type: number; value: number }[] = [];
   constructor(data: DirectorData, bytes: Uint8Array, seed: number, query: ScriptQuery = () => []) {
     this.data = parseDirector(data);
@@ -39,6 +40,8 @@ export class DirectorLane {
     } });
     this.host.install(this.data.module, bytes, seed | 0, Math.floor(seed / 4294967296) | 0);
   }
+  /** Last admitted fixed tick; restored installations resume without maintaining a second clock. */
+  get tick(): number { return this.currentTick; }
   /** Queue a subscribed shard event for the next fixed tick; callers cannot choose an entity or invoke an export. */
   enqueue(key: string, value = 0, scope: 'shard' | 'grid' = 'shard'): void {
     if (scope === 'grid') throw new Error('Grid director delivery is reserved');
@@ -53,6 +56,7 @@ export class DirectorLane {
       const value = observation[row.key]; if (value === undefined || !Number.isFinite(value) || value < row.min || value > row.max) throw new Error('Invalid director observation'); return value;
     });
     this.host.beginTick(tick);
+    this.currentTick = tick;
     const events = this.pending.flatMap((row) => [row.type, this.data.entity, row.value, 0, 0, 0]); this.pending = [];
     const call = this.host.call(this.data.module, this.data.entity, [tick, 1 / 60, 0, this.data.entity, 0, 0, ...input], events);
     if (!call.ok) return [];
@@ -79,7 +83,7 @@ export class DirectorLane {
     const before = this.host.checkpoint(), world = this.host.world.state();
     try {
       const savedHost = raw.host as ReturnType<ScriptHost['checkpoint']>;
-      this.host.world.restore(savedWorld); this.host.restoreState(savedHost); this.pending = pending;
+      this.host.world.restore(savedWorld); this.host.restoreState(savedHost); this.pending = pending; this.currentTick = savedHost.tick;
     } catch (error) { this.host.world.restore(world); this.host.restoreState(before); throw error; }
   }
 }

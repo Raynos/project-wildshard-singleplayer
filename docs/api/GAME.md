@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-401 members; 112 without a doc line (—).
+410 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -279,6 +279,15 @@ The game layer's public modules (src/game/package.json `exports`).
 | `creatureRules` | function | @wildshard/game/shardfile/creatures | Unique ids and brain references; species and strikes are resolved against the loader's declared catalogues. |
 | `CreaturesSchema` | const | @wildshard/game/shardfile/creatures | Pure-data creature archetypes and stable spawn layouts, expanded before the local sim boots. |
 | `ShardCreatures` | type | @wildshard/game/shardfile/creatures | Validated brain parameters and spawn layout, with no rig or runtime closure. |
+| `DirectorData` | type | @wildshard/game/shardfile/director | Validated director data, with stable ids and immutable script parameters. |
+| `DirectorEvent` | interface | @wildshard/game/shardfile/director | Typed output delivered only after a successful, atomically committed script call. |
+| `DirectorSchema` | const | @wildshard/game/shardfile/director | Shard director declarations bound numeric events and observations; grid subscriptions are reserved, with no v1 delivery. |
+| `parseDirector` | function | @wildshard/game/shardfile/director | Validate before admission, allocation or registration. |
+| `DirectorInstallation` | interface | @wildshard/game/shardfile/directorClient | Trusted observations and presentation recipes only; scripts decide event timing and payloads. |
+| `directorVariant` | function | @wildshard/game/shardfile/directorClient | Data-selected debug variant, default off; the generic adapter adds no shard service coupling. |
+| `installDeclaredDirector` | function | @wildshard/game/shardfile/directorClient | Game-owned fixed-step and scope installation; async admission never publishes into an unloaded level. |
+| `createDirectorLane` | function | @wildshard/game/shardfile/directorRuntime | Verify immutable module bytes before allocating an admitted director; each installation receives its own copied author memory. |
+| `DirectorLane` | class | @wildshard/game/shardfile/directorRuntime | Bounded authoritative director lane; full Wasm state, quotas, failure history and pending typed input survive replay. |
 | `encounterRules` | function | @wildshard/game/shardfile/encounters | Full-loader references: declared actor spawn and the existing SF7f boss panel (if any). |
 | `EncountersSchema` | const | @wildshard/game/shardfile/encounters | Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references. |
 | `ShardEncounters` | type | @wildshard/game/shardfile/encounters | Validated data-only encounter tables. |

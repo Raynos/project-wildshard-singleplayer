@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-59 members; 0 without a doc line (—).
+61 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -32,6 +32,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `TerrainBakeSource` | interface | @wildshard/sdk/bake/terrain | Trusted generator inputs. These closures run only while baking and never enter shard.json or the client. |
 | `TerrainOverride` | interface | @wildshard/sdk/bake/terrain | An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together. |
 | `bakeColourTexture` | function | @wildshard/sdk/bake/texture | Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC. |
+| `director` | function | @wildshard/sdk/director | Validate before admitting a bounded module or installing a fixed-step director. |
+| `DirectorData` | type | @wildshard/sdk/director | Typed director data with bounded observations, payloads and reserved grid subscriptions. |
 | `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |
 | `LedgerFactSchema` | const | @wildshard/sdk/ledger | Compile a host-witnessed fact with placement identity and provenance. |
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |

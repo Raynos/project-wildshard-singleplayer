@@ -19,7 +19,8 @@
     "./bake/texture": "./bake/texture.ts",
     "./bake/export": "./bake/export.ts",
     "./traversal": "./traversal.ts",
-    "./movers": "./movers.ts"
+    "./movers": "./movers.ts",
+    "./director": "./director.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -111,6 +112,10 @@
       "./movers": {
         "types": "./dist/types/sdk/movers.d.ts",
         "default": "./dist/movers.js"
+      },
+      "./director": {
+        "types": "./dist/types/sdk/director.d.ts",
+        "default": "./dist/director.js"
       }
     }
   }
