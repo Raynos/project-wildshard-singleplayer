@@ -17,6 +17,13 @@ describe('SF24 director installation lifecycle', () => {
     expect(directorVariant({ debugRow: (value) => { value.change('on'); } }, row)).toBe(true);
     expect(() => directorVariant({ debugRow: () => { /* Validation runs before registration. */ } }, { ...row, initial: 'on' })).toThrow('default off');
   });
+  it('shares one saved selection across creature and director consumers in the same context', () => {
+    const registered: DebugRowSpec[] = [], context = { debugRow: (spec: DebugRowSpec) => { registered.push(spec); spec.change('on'); } };
+    expect(directorVariant(context)).toBe(true); expect(directorVariant(context)).toBe(true); expect(registered).toHaveLength(1);
+    registered[0]?.change('off'); expect(directorVariant(context)).toBe(false);
+    expect(() => directorVariant(context, { ...row, id: 'shardDirectors' })).toThrow('Conflicting');
+    expect(directorVariant({ debugRow: () => undefined })).toBe(false);
+  });
   it('owns the fixed step and leaves no callback active after unload', async () => {
     const scope = new Scope('director.client'), systems: SystemSpec[] = [], events: DirectorEvent[] = [];
     let altar = 1;

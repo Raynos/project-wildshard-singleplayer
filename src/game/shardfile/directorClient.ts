@@ -5,12 +5,20 @@ import { createDirectorLane, type DirectorLane } from './directorRuntime';
 const DEBUG_ROWS = [{ id: 'shardDirectors', group: 'tools', label: 'Shard directors (data)',
   choices: [{ value: 'off', text: 'Legacy' }, { value: 'on', text: 'Script' }], initial: 'off', reload: true,
   ask: 'E435', reviewBy: '2026-10-18', note: 'SF24: default off; retired with the SF46–SF48 conversions.' }] as const;
+const selections = new WeakMap<Pick<LevelContext, 'debugRow'>, Map<string, { contract: string; on: boolean }>>();
 
 /** Data-selected debug variant, default off; the generic adapter adds no shard service coupling. */
 export function directorVariant(context: Pick<LevelContext, 'debugRow'>, row: Omit<DebugRowSpec, 'change'> = DEBUG_ROWS[0]): boolean {
   if (row.initial !== 'off' || row.reload !== true || row.choices.length !== 2 || row.choices[0]?.value !== 'off' || row.choices[1]?.value !== 'on') throw new Error('Director variant must be default off and reload on change');
-  const choice = { on: false }, adapters = context;
-  adapters.debugRow({ ...row, change: (value) => { choice.on = value === 'on'; } });
+  const contract = JSON.stringify(row), choices = selections.get(context) ?? new Map<string, { contract: string; on: boolean }>();
+  const previous = choices.get(row.id);
+  if (previous !== undefined) {
+    if (previous.contract !== contract) throw new Error('Conflicting director variant');
+    return previous.on;
+  }
+  const choice = { contract, on: false };
+  context.debugRow({ ...row, change: (value) => { choice.on = value === 'on'; } });
+  choices.set(row.id, choice); selections.set(context, choices);
   return choice.on;
 }
 /** Trusted observations and presentation recipes only; scripts decide event timing and payloads. */
