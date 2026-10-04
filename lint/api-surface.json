@@ -13518,6 +13518,60 @@
         "from": "@wildshard/game/shardfile/loader"
       },
       {
+        "name": "assertMigrationCompatibility",
+        "kind": "function",
+        "doc": "Admission checks field lineage without guessing saved enum values; rejected values are checked atomically during restore. Dropped ids remain reserved.",
+        "from": "@wildshard/game/shardfile/migrations"
+      },
+      {
+        "name": "DeclaredMigrations",
+        "kind": "type",
+        "doc": "Author migration rows accepted by both build-time admission and browser loading.",
+        "from": "@wildshard/game/shardfile/migrations"
+      },
+      {
+        "name": "LogicalState",
+        "kind": "type",
+        "doc": "Detached declared state for additive or explicitly authored revision migration.",
+        "from": "@wildshard/game/shardfile/migrations"
+      },
+      {
+        "name": "LogicalStateSchema",
+        "kind": "const",
+        "doc": "Stable ids and typed values are the portable part of a checkpoint; executable script memory is deliberately excluded.",
+        "from": "@wildshard/game/shardfile/migrations"
+      },
+      {
+        "name": "migrateLogicalState",
+        "kind": "function",
+        "doc": "Migrate a detached copy by stable ids; additions take target defaults, while rename/drop/type/value changes require author rows. Never execute author code.",
+        "from": "@wildshard/game/shardfile/migrations"
+      },
+      {
+        "name": "MigrationFieldDeclaration",
+        "kind": "interface",
+        "doc": "Target declarations supply additive defaults and constrain every migrated value.",
+        "from": "@wildshard/game/shardfile/migrations"
+      },
+      {
+        "name": "migrationRules",
+        "kind": "function",
+        "doc": "Full-format admission must reject future migration steps before executing a simulation.",
+        "from": "@wildshard/game/shardfile/migrations"
+      },
+      {
+        "name": "MigrationsSchema",
+        "kind": "const",
+        "doc": "Sequential state-version rows are pure data. asHook is reserved and must remain null until an admitted AS migration ABI exists.",
+        "from": "@wildshard/game/shardfile/migrations"
+      },
+      {
+        "name": "parseMigrations",
+        "kind": "function",
+        "doc": "Parse author data; rename and map may compose, while repeated or conflicting edits and duplicate value sources are refused.",
+        "from": "@wildshard/game/shardfile/migrations"
+      },
+      {
         "name": "createMoverHost",
         "kind": "function",
         "doc": "Transitional standalone composition; a full session injects its existing host and merges entities/rules/queries instead.",
@@ -15614,6 +15668,24 @@
         "kind": "function",
         "doc": "Validate ledger declarations in an author project before writing its shardfile.",
         "from": "@wildshard/sdk/ledger"
+      },
+      {
+        "name": "DeclaredMigrations",
+        "kind": "type",
+        "doc": "Portable author migration declarations addressed by stable field IDs.",
+        "from": "@wildshard/sdk/migrations"
+      },
+      {
+        "name": "MigrationsSchema",
+        "kind": "const",
+        "doc": "Sequential declarative state-version edits; custom migration hooks remain reserved and null.",
+        "from": "@wildshard/sdk/migrations"
+      },
+      {
+        "name": "parseMigrations",
+        "kind": "function",
+        "doc": "Validate bounded default, rename, drop and value-map operations without executing author code.",
+        "from": "@wildshard/sdk/migrations"
       },
       {
         "name": "MoverData",

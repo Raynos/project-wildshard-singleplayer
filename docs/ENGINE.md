@@ -2131,7 +2131,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-432 exports, grouped by the module to import them from.
+441 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2198,6 +2198,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
 - `@wildshard/game/shardfile/loader`: `browserShardfileOptions`, `configuredShardfile`, `emptyShardfileSource`, `installManifestShardfile`, `installShardfileProduct`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`, `shardfileSource`
+- `@wildshard/game/shardfile/migrations`: `assertMigrationCompatibility`, `DeclaredMigrations`, `LogicalState`, `LogicalStateSchema`, `migrateLogicalState`, `MigrationFieldDeclaration`, `migrationRules`, `MigrationsSchema`, `parseMigrations`
 - `@wildshard/game/shardfile/moverRuntime`: `createMoverHost`, `installDeclaredMovers`, `MoverInstallation`, `MoverPorts`, `moverQueries`, `MoverRuntime`, `MoverView`
 - `@wildshard/game/shardfile/movers`: `MOVER_FIELD_RANGES`, `MOVER_FIELDS`, `MoverData`, `moverScriptEntities`, `MoversSchema`, `parseMovers`
 - `@wildshard/game/shardfile/plumbing`: `parsePlumbing`, `PlumbingData`, `plumbingRules`, `PlumbingSchema`
@@ -2272,7 +2273,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-64 exports, grouped by the module to import them from.
+67 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
@@ -2285,6 +2286,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `parseClientScripts`, `ShardClientScripts`
 - `@wildshard/sdk/director`: `director`, `DirectorData`
 - `@wildshard/sdk/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
+- `@wildshard/sdk/migrations`: `DeclaredMigrations`, `MigrationsSchema`, `parseMigrations`
 - `@wildshard/sdk/movers`: `MoverData`, `movers`
 - `@wildshard/sdk/plumbing`: `parsePlumbing`, `PlumbingData`, `PlumbingSchema`
 - `@wildshard/sdk/project`: `buildProject`, `canonicalJson`, `contentHash`, `newProject`, `projectAssets`, `readProject`, `validateProject`

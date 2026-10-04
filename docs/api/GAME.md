@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-432 members; 112 without a doc line (—).
+441 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -345,6 +345,15 @@ The game layer's public modules (src/game/package.json `exports`).
 | `loadShardfile` | function | @wildshard/game/shardfile/loader | Load through an installed engine driver; the ordinary unloadLevel owns every resource. |
 | `shardfileLevelSpec` | function | @wildshard/game/shardfile/loader | Project an empty shardfile into the same engine spec consumed by legacy sources. |
 | `shardfileSource` | function | @wildshard/game/shardfile/loader | Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. |
+| `assertMigrationCompatibility` | function | @wildshard/game/shardfile/migrations | Admission checks field lineage without guessing saved enum values; rejected values are checked atomically during restore. Dropped ids remain reserved. |
+| `DeclaredMigrations` | type | @wildshard/game/shardfile/migrations | Author migration rows accepted by both build-time admission and browser loading. |
+| `LogicalState` | type | @wildshard/game/shardfile/migrations | Detached declared state for additive or explicitly authored revision migration. |
+| `LogicalStateSchema` | const | @wildshard/game/shardfile/migrations | Stable ids and typed values are the portable part of a checkpoint; executable script memory is deliberately excluded. |
+| `migrateLogicalState` | function | @wildshard/game/shardfile/migrations | Migrate a detached copy by stable ids; additions take target defaults, while rename/drop/type/value changes require author rows. Never execute author code. |
+| `MigrationFieldDeclaration` | interface | @wildshard/game/shardfile/migrations | Target declarations supply additive defaults and constrain every migrated value. |
+| `migrationRules` | function | @wildshard/game/shardfile/migrations | Full-format admission must reject future migration steps before executing a simulation. |
+| `MigrationsSchema` | const | @wildshard/game/shardfile/migrations | Sequential state-version rows are pure data. asHook is reserved and must remain null until an admitted AS migration ABI exists. |
+| `parseMigrations` | function | @wildshard/game/shardfile/migrations | Parse author data; rename and map may compose, while repeated or conflicting edits and duplicate value sources are refused. |
 | `createMoverHost` | function | @wildshard/game/shardfile/moverRuntime | Transitional standalone composition; a full session injects its existing host and merges entities/rules/queries instead. |
 | `installDeclaredMovers` | function | @wildshard/game/shardfile/moverRuntime | A single platform installer reads declared rows and owns their lifecycle; the shard only supplies presentation recipes. |
 | `MoverInstallation` | interface | @wildshard/game/shardfile/moverRuntime | Declared rows plus trusted legacy view callbacks; the platform owns context, world, scripts, scope and fixed systems. |
