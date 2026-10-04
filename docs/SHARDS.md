@@ -31,6 +31,13 @@ installing anything; the kit's `declaredWeaponVoices` retains the existing weapo
 and impact surface routing. Level scopes remove cue routes, stop bed sources and restore
 the score output gain. The template's data keeps its two forest wind bands and silent score.
 
+Scoped plumbing uses `@wildshard/sdk/plumbing`: declare namespaced input actions and
+keyboard/touch bindings, phone/desktop tier values, and Debug choices with named scene
+hooks. `installDeclaredPlumbing` qualifies context ids by stable instance, uses the normal
+recordable command path, gates bindings by active instance, and registers knobs/Debug
+rows through session-owned scoped ports. The template keeps its lantern label, prop count
+and oil Debug choices; the legacy installer switches at SF16.
+
 A shard is one Wildshard level: a folder `src/shards/<slug>/` with a manifest (data) and a plugin (code). The engine,
 the game layer and the kit do the rest. This guide takes you from a copy of the template to a shard that is `live` on
 the title deck.

@@ -8,7 +8,9 @@ import type { DiscSpot, TouchRelabel } from '../ui/hudSlots';
 
 // oxlint-disable-next-line typescript/no-empty-object-type, typescript/no-empty-interface -- The host contributes actions through declaration merging.
 export interface ActionMap {}
-export type Action = Extract<keyof ActionMap, string> | EquipmentAction | 'crouch' | 'crouch.hold' | 'sprint' | 'use'
+/** Namespaced authored actions are admitted by the declaration loader and scoped context registrations. */
+export type DeclaredAction = `${string}.${string}`;
+export type Action = DeclaredAction | Extract<keyof ActionMap, string> | EquipmentAction | 'crouch' | 'crouch.hold' | 'sprint' | 'use'
   | 'move.forward' | 'move.back' | 'move.left' | 'move.right'
   | 'move' | 'look' | 'dodge' | 'pause' | 'map' | 'journal' | 'note' | 'confirm' | 'back' | 'nav.left' | 'nav.right' | 'tab'
   | 'dive' | 'surface' | 'fly.up' | 'fly.down' | 'fly.boost' | 'pane.1' | 'pane.2' | 'pane.3'

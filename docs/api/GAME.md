@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-282 members; 112 without a doc line (—).
+289 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -162,6 +162,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `shardContext` | function | @wildshard/game/shard/context | — |
 | `ShardContext` | interface | @wildshard/game/shard/context | — |
 | `installDeclaredEncounters` | function | @wildshard/game/shard/declaredEncounters | Bind the existing declared boss panel; headless hosts omit HUD handles without importing DOM/rendering. |
+| `installDeclaredPlumbing` | function | @wildshard/game/shard/declaredPlumbing | Install declared input through the normal command path and Debug choices through admitted script scene hooks. |
+| `PlumbingHandles` | interface | @wildshard/game/shard/declaredPlumbing | Resolve scoped context identities and selected tier values for the loader's declared content builders. |
+| `PlumbingPorts` | interface | @wildshard/game/shard/declaredPlumbing | Session-owned instance/activity and admitted scene dispatcher; data never calls arbitrary module exports. |
 | `declaredCompendium` | function | @wildshard/game/shard/declaredRows | Constant stamp/stat data supplies the existing compendium without authored closures. |
 | `declaredDay` | function | @wildshard/game/shard/declaredRows | A complete authored hour schedule runs the existing engine day clock. |
 | `declaredLootPresentation` | function | @wildshard/game/shard/declaredRows | Presentation uses the existing purse and a registered cue; data cannot install callbacks. |
@@ -244,6 +247,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `installShardfileSource` | function | @wildshard/game/shardfile/loader | Select a validated external source before the normal session starts. |
 | `loadShardfile` | function | @wildshard/game/shardfile/loader | Load through an installed engine driver; the ordinary unloadLevel owns every resource. |
 | `shardfileLevelSpec` | function | @wildshard/game/shardfile/loader | Project an empty shardfile into the same engine spec consumed by legacy sources. |
+| `parsePlumbing` | function | @wildshard/game/shardfile/plumbing | Compile TypeScript author plumbing into validated data with no callback closures. |
+| `PlumbingData` | type | @wildshard/game/shardfile/plumbing | Serialisable scoped input actions, tier values and Debug choices with named admitted script hooks. |
+| `plumbingRules` | function | @wildshard/game/shardfile/plumbing | Semantic identities stay in the owning namespace; Debug defaults and touch actions must exist. |
+| `PlumbingSchema` | const | @wildshard/game/shardfile/plumbing | Bound the declarations and reject non-owned, duplicate or dangling settings at admission. |
 | `parseQuestData` | function | @wildshard/game/shardfile/quests | Compile TypeScript-authored rows to validated serialisable quest/dialogue data. |
 | `QuestData` | type | @wildshard/game/shardfile/quests | Plain quest graphs, declared flags/triggers and finite dialogue trees; hooks name platform-resolved script ports. |
 | `questDataRules` | function | @wildshard/game/shardfile/quests | Reject dangling flags, repeated identities, unreachable dialogue nodes and cycles before installing authored data. |

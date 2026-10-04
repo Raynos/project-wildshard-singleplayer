@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1818 members; 831 without a doc line (—).
+1819 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -804,6 +804,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Action` | type | @wildshard/engine/input/InputService | — |
 | `ActionCommand` | type | @wildshard/engine/input/InputService | Semantic input accepted by the host. UI gestures, interact and traversal all use this boundary. |
 | `ActionMap` | interface | @wildshard/engine/input/InputService | — |
+| `DeclaredAction` | type | @wildshard/engine/input/InputService | Namespaced authored actions are admitted by the declaration loader and scoped context registrations. |
 | `InputService` | class | @wildshard/engine/input/InputService | Additive contexts and a shared press buffer. Consuming a press removes it for every later system. |
 | `InputState` | interface | @wildshard/engine/input/InputService | Serializable held actions, press buffer and context order; callbacks remain host-owned. |
 | `TouchStack` | interface | @wildshard/engine/input/InputService | — |

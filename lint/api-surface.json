@@ -4790,6 +4790,12 @@
         "from": "@wildshard/engine/input/InputService"
       },
       {
+        "name": "DeclaredAction",
+        "kind": "type",
+        "doc": "Namespaced authored actions are admitted by the declaration loader and scoped context registrations.",
+        "from": "@wildshard/engine/input/InputService"
+      },
+      {
         "name": "InputService",
         "kind": "class",
         "doc": "Additive contexts and a shared press buffer. Consuming a press removes it for every later system.",
@@ -11856,6 +11862,24 @@
         "from": "@wildshard/game/shard/declaredEncounters"
       },
       {
+        "name": "installDeclaredPlumbing",
+        "kind": "function",
+        "doc": "Install declared input through the normal command path and Debug choices through admitted script scene hooks.",
+        "from": "@wildshard/game/shard/declaredPlumbing"
+      },
+      {
+        "name": "PlumbingHandles",
+        "kind": "interface",
+        "doc": "Resolve scoped context identities and selected tier values for the loader's declared content builders.",
+        "from": "@wildshard/game/shard/declaredPlumbing"
+      },
+      {
+        "name": "PlumbingPorts",
+        "kind": "interface",
+        "doc": "Session-owned instance/activity and admitted scene dispatcher; data never calls arbitrary module exports.",
+        "from": "@wildshard/game/shard/declaredPlumbing"
+      },
+      {
         "name": "declaredCompendium",
         "kind": "function",
         "doc": "Constant stamp/stat data supplies the existing compendium without authored closures.",
@@ -12346,6 +12370,30 @@
         "kind": "function",
         "doc": "Project an empty shardfile into the same engine spec consumed by legacy sources.",
         "from": "@wildshard/game/shardfile/loader"
+      },
+      {
+        "name": "parsePlumbing",
+        "kind": "function",
+        "doc": "Compile TypeScript author plumbing into validated data with no callback closures.",
+        "from": "@wildshard/game/shardfile/plumbing"
+      },
+      {
+        "name": "PlumbingData",
+        "kind": "type",
+        "doc": "Serialisable scoped input actions, tier values and Debug choices with named admitted script hooks.",
+        "from": "@wildshard/game/shardfile/plumbing"
+      },
+      {
+        "name": "plumbingRules",
+        "kind": "function",
+        "doc": "Semantic identities stay in the owning namespace; Debug defaults and touch actions must exist.",
+        "from": "@wildshard/game/shardfile/plumbing"
+      },
+      {
+        "name": "PlumbingSchema",
+        "kind": "const",
+        "doc": "Bound the declarations and reject non-owned, duplicate or dangling settings at admission.",
+        "from": "@wildshard/game/shardfile/plumbing"
       },
       {
         "name": "parseQuestData",
@@ -14048,6 +14096,24 @@
         "kind": "function",
         "doc": "Validate ledger declarations in an author project before writing its shardfile.",
         "from": "@wildshard/sdk/ledger"
+      },
+      {
+        "name": "parsePlumbing",
+        "kind": "function",
+        "doc": "Compile author plumbing after checking owned identities and hook references.",
+        "from": "@wildshard/sdk/plumbing"
+      },
+      {
+        "name": "PlumbingData",
+        "kind": "type",
+        "doc": "The compiled, callback-free scoped plumbing contract.",
+        "from": "@wildshard/sdk/plumbing"
+      },
+      {
+        "name": "PlumbingSchema",
+        "kind": "const",
+        "doc": "Validate declared input contexts, tier knobs and Debug choices for an author project.",
+        "from": "@wildshard/sdk/plumbing"
       },
       {
         "name": "buildProject",

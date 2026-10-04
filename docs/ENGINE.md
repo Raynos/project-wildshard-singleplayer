@@ -1725,7 +1725,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1801 exports, grouped by the module to import them from.
+1802 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1858,7 +1858,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/fx/ParticlePool`: `ParticleAttr`, `ParticlePool`, `ParticlePoolSpec`, `pointScale`
 - `@wildshard/engine/input/dom`: `listenDom`, `listenPage`, `mountDom`, `PageInputEvent`
 - `@wildshard/engine/input/gameplay`: `installGameplayInput`, `weaponInputContext`
-- `@wildshard/engine/input/InputService`: `Action`, `ActionCommand`, `ActionMap`, `InputService`, `InputState`, `TouchStack`, `TouchVerb`, `TouchVerbSpec`
+- `@wildshard/engine/input/InputService`: `Action`, `ActionCommand`, `ActionMap`, `DeclaredAction`, `InputService`, `InputState`, `TouchStack`, `TouchVerb`, `TouchVerbSpec`
 - `@wildshard/engine/input/weaponActions`: `weaponActionGate`
 - `@wildshard/engine/level/context`: `ContentRow`, `ContentRowMap`, `CreatureMaterialFactory`, `DebugRowSpec`, `EngineRows`, `HudVerbs`, `InputContextDef`, `LevelAdapters`, `LevelContext`, `LevelHooks`, `PlaygroundSpec`, `ResidentMemory`, `RowVerb`, `StringTable`, `TierKnobSchema`, `VerbSlotOpts`
 - `@wildshard/engine/level/data`: `AtmosphereSpec`, `CabinSite`, `CompareTarget`, `exploreArt`, `ExploreArt`, `ExploreSpec`, `FaunaKind`, `ForestSpec`, `GradeLook`, `GradeSpec`, `HerdPlan`, `HorizonBand`, `HorizonRing`, `HorizonSpec`, `HudSpec`, `LevelAssets`, `MapLook`, `MinimapSpec`, `PoiSpec`, `PondDef`, `RGB`, `SkySpec`, `SpawnPose`, `TerrainField`, `TerrainNoise`, `TerrainSpec`, `TreeSpec`, `Vec2`
@@ -2027,7 +2027,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-282 exports, grouped by the module to import them from.
+289 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2060,6 +2060,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/saves`: `bossesSave`, `bountySave`, `compendiumSave`, `elitesSave`, `inventorySave`, `ownedSave`, `progressSave`, `purseSave`, `saveSlug`, `shardSave`
 - `@wildshard/game/shard/context`: `BagVerbs`, `GameRowMap`, `GameRows`, `GameServices`, `shardContext`, `ShardContext`
 - `@wildshard/game/shard/declaredEncounters`: `installDeclaredEncounters`
+- `@wildshard/game/shard/declaredPlumbing`: `installDeclaredPlumbing`, `PlumbingHandles`, `PlumbingPorts`
 - `@wildshard/game/shard/declaredRows`: `declaredCompendium`, `declaredDay`, `declaredLootPresentation`, `declaredSpeciesLook`, `declaredWeather`
 - `@wildshard/game/shard/declaredUi`: `DeclaredUiPorts`, `mountDeclaredUi`
 - `@wildshard/game/shard/manifest`: `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `MapLook`, `OceanDef`, `PondDef`, `RGB`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
@@ -2074,6 +2075,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
 - `@wildshard/game/shardfile/loader`: `configuredShardfile`, `emptyShardfileSource`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`
+- `@wildshard/game/shardfile/plumbing`: `parsePlumbing`, `PlumbingData`, `plumbingRules`, `PlumbingSchema`
 - `@wildshard/game/shardfile/quests`: `parseQuestData`, `QuestData`, `questDataRules`, `QuestDataSchema`
 - `@wildshard/game/shardfile/revision`: `assertStateCompatibility`
 - `@wildshard/game/shardfile/rows`: `parseRows`, `rowRules`, `RowsSchema`, `scoredStrikes`, `ShardRows`, `simStrikes`, `speciesResolver`
@@ -2136,13 +2138,14 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-40 exports, grouped by the module to import them from.
+43 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/sdk/author`: `emptyShardfile`
 - `@wildshard/sdk/bake/terrain`: `BakedTerrain`, `bakeTerrain`, `TerrainBakeSource`, `TerrainOverride`
 - `@wildshard/sdk/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
+- `@wildshard/sdk/plumbing`: `parsePlumbing`, `PlumbingData`, `PlumbingSchema`
 - `@wildshard/sdk/project`: `buildProject`, `canonicalJson`, `contentHash`, `newProject`, `projectAssets`, `readProject`, `validateProject`
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`

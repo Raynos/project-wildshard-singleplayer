@@ -12,7 +12,8 @@
     "./bake/terrain": "./bake/terrain.ts",
     "./quests": "./quests.ts",
     "./audio": "./audio.ts",
-    "./rows": "./rows.ts"
+    "./rows": "./rows.ts",
+    "./plumbing": "./plumbing.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -72,6 +73,10 @@
       "./rows": {
         "types": "./dist/types/sdk/rows.d.ts",
         "default": "./dist/rows.js"
+      },
+      "./plumbing": {
+        "types": "./dist/types/sdk/plumbing.d.ts",
+        "default": "./dist/plumbing.js"
       }
     }
   }
