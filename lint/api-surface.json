@@ -3093,6 +3093,24 @@
         "from": "@wildshard/engine/core/bootstrap"
       },
       {
+        "name": "diagnosticNow",
+        "kind": "function",
+        "doc": "Wall-clock measurement for boot diagnostics; never simulation or gameplay state.",
+        "from": "@wildshard/engine/core/clock"
+      },
+      {
+        "name": "GameClock",
+        "kind": "class",
+        "doc": "Explicit deltas keep simulation independent of wall-time reads and render speed.",
+        "from": "@wildshard/engine/core/clock"
+      },
+      {
+        "name": "GameClockState",
+        "kind": "interface",
+        "doc": "Explicit simulation/wall clocks plus capture, pause and time-scale settings.",
+        "from": "@wildshard/engine/core/clock"
+      },
+      {
         "name": "_applyChunkConstants",
         "kind": "function",
         "doc": "",

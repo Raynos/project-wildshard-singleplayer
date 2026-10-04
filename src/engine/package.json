@@ -97,6 +97,7 @@
     "./core/KeepAlive": "./core/KeepAlive.ts",
     "./core/assets": "./core/assets.ts",
     "./core/bootstrap": "./core/bootstrap.ts",
+    "./core/clock": "./core/clock.ts",
     "./core/config": "./core/config.ts",
     "./core/devMode": "./core/devMode.ts",
     "./core/errorReport": "./core/errorReport.ts",

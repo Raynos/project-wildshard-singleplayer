@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1652 members; 832 without a doc line (—).
+1655 members; 832 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -522,6 +522,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `texUrl` | function | @wildshard/engine/core/assets | URL of one map of a Poly Haven set. The phone tier gets the `_1k.jpg` sibling |
 | `bootstrap` | function | @wildshard/engine/core/bootstrap | Builds the base chunk (renderer, sky, terrain, forest, player) and returns the handles. |
 | `World` | interface | @wildshard/engine/core/bootstrap | — |
+| `diagnosticNow` | function | @wildshard/engine/core/clock | Wall-clock measurement for boot diagnostics; never simulation or gameplay state. |
+| `GameClock` | class | @wildshard/engine/core/clock | Explicit deltas keep simulation independent of wall-time reads and render speed. |
+| `GameClockState` | interface | @wildshard/engine/core/clock | Explicit simulation/wall clocks plus capture, pause and time-scale settings. |
 | `_applyChunkConstants` | function · game only | @wildshard/engine/core/config | — |
 | `CELL_ABOVE` | const | @wildshard/engine/core/config | — |
 | `CELL_BELOW` | const | @wildshard/engine/core/config | — |

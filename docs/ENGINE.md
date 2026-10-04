@@ -1665,7 +1665,7 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1637 exports, grouped by the module to import them from.
+1640 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1755,6 +1755,7 @@ sections above describe what to use; this list is the complete inventory.
 - `@wildshard/engine/combat/Weapon`: `AimInfo`, `EquipmentView`, `ImpactSurface`, `quiverState`, `ViewFrame`, `Weapon`, `WeaponHooks`, `WeaponState`
 - `@wildshard/engine/core/assets`: `loadGLTF`, `loadHDR`, `loadImage`, `loadPBR`, `loadPBRArray`, `loadTexture`, `pbrMaterial`, `PBRSet`, `pbrUrls`, `setAnisotropy`, `texUrl`
 - `@wildshard/engine/core/bootstrap`: `bootstrap`, `World`
+- `@wildshard/engine/core/clock`: `diagnosticNow`, `GameClock`, `GameClockState`
 - `@wildshard/engine/core/config`: `_applyChunkConstants`, `CELL_ABOVE`, `CELL_BELOW`, `CELL_HEIGHT`, `CHUNK_COORDS`, `CHUNK_DEPTH`, `CHUNK_HALF`, `CHUNK_SIZE`, `CONTENT_CAPS`, `CONTENT_MB`, `PAGE_LEVEL`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `TERRAIN_RES`, `TREE_COUNT`
 - `@wildshard/engine/core/devMode`: `isDev`, `onDev`, `setDev`
 - `@wildshard/engine/core/errorReport`: `ContextValue`, `ErrorPayload`, `ErrorReporter`, `keyOf`, `LoadFailure`, `QUEUE_KEY`, `QUEUE_MAX`, `REPORT_DELAY_MS`, `ReporterDeps`, `reportError`, `ReportOutcome`, `REPORTS_MAX`, `safeUrl`, `sendReport`, `SendResult`, `SESSION_KEY`, `StorageLike`
