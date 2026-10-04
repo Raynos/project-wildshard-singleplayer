@@ -46,7 +46,8 @@ describe('declared prop baker', () => {
     expect(hutY).not.toBe(0);
     const baked = bakeProps(fixture.source), R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()), physics = new Physics(R), scope = new Scope('props.physics');
     const wall = baked.props.colliders.find((row) => row.id === 'template.hut')?.shapes[0];
-    expect(wall?.kind === 'box' ? wall.y - wall.hy : null).toBe(hutY);
+    if (hutY === undefined || wall?.kind !== 'box') throw new Error('Missing seeded hut');
+    expect(wall.y - wall.hy).toBeCloseTo(hutY, 12);
     try {
       const ports = installDeclaredPropColliders(propColliderDescriptors(baked.props), physics, scope); physics.world.step();
       expect(physics.world.colliders.len()).toBe(20);
