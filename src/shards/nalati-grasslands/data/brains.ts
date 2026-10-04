@@ -7,3 +7,12 @@ export const NALATI_PACK_BRAIN = {
   telegraphSeconds: 0.4, dashSeconds: 1.8, breakoffSeconds: 1.1, attackSeconds: 0.42,
   leaderVariant: 'alpha', yipCue: 'wolf_yip', howlCue: 'wolf_howl', snarlCue: 'wolf_snarl', biteCue: 'wolf_bite',
 } as const;
+
+/** The shipping guarded-herd tuning; mount, prey contacts and taming are native recipes. */
+export const NALATI_HERD_BRAIN = {
+  id: 'nalati.horse-herd', kind: 'herd', thinkDivisor: 6,
+  walkSpeed: 1.8, trotSpeed: 4.5, gallopSpeed: 12.5, chargeSpeed: 12,
+  sightRadius: 45, grazingSightRadius: 20, coneAngle: 70 * (Math.PI / 180), hearing: [4, 8, 15, 30],
+  alertThreshold: 0.45, flightMinDistance: 80, flightMaxDistance: 120,
+  stallionVariant: 'stallion', foalPrefix: 'foal', snortCue: 'horse_snort', neighCue: 'horse_neigh', squealCue: 'horse_squeal',
+} as const;
