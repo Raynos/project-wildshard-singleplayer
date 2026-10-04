@@ -54,18 +54,37 @@ export type StringTable = Readonly<Record<string, string>>;
 export interface TierKnobSchema { id: string; defaults: TierKnobs }
 
 export interface LevelContext {
-  readonly app: App; readonly scope: Scope; readonly root: Group; readonly progress: StepProgress;
+  /** the running app: its services (input, saves, species, events, clock, rng) */
+  readonly app: App;
+  /** the level's scope: everything registered through this context leaves with it */
+  readonly scope: Scope;
+  /** the level's scene root: what the level adds to the world hangs here */
+  readonly root: Group;
+  /** the boot step's progress, for a hook that does long work (it moves the loading bar) */
+  readonly progress: StepProgress;
+  /** run a system each frame or in the fixed step (`phase`: 'update', 'fixed.pre' / 'fixed.step' / 'fixed.post') */
   system: (spec: SystemSpec) => void;
+  /** listen to an engine event for the level's life */
   on: <K extends keyof EventMap>(name: K, fn: (payload: EventMap[K]) => void, opts?: ListenerOptions) => void;
+  /** answer an engine ask (`player.crouch`, …) for the level's life; the last answer registered wins */
   answer: <K extends keyof AskMap>(name: K, fn: (value: AskInput<K>) => AskOutput<K>, opts?: ListenerOptions) => void;
+  /** register content rows the engine reads (species, looks, models, equipment …) for the level's life */
   readonly rows: EngineRows;
+  /** declare an input context (its actions and bindings), pushed while the level runs */
   inputContext: (def: InputContextDef) => void;
+  /** the level's verbs on the one shared HUD (slots, chips, prompts) */
   readonly hud: HudVerbs;
+  /** register a static or moving thing with its colliders, surface and Explore model (the one world registry) */
   piece: (piece: Piece) => void;
+  /** a Debug row of the level's own, shown only on it (pause ▸ Settings ▸ Debug) */
   debugRow: (row: DebugRowSpec) => void;
+  /** a practice room for the level's verbs (Explore ▸ Practice) */
   playground: (spec: PlaygroundSpec) => void;
+  /** the level's player-facing strings (`ctx.strings` keys the engine asks for, e.g. death verbs) */
   strings: (table: StringTable) => void;
+  /** the level's per-tier tuning knobs (scatter counts, detail levels) */
   readonly tiers: { knobs: (schema: TierKnobSchema) => void };
+  /** handles for tests and captures (`window.__wildshard.shard[name]`) */
   readonly debug: { expose: (name: string, value: unknown) => void };
 }
 export interface LevelHooks {

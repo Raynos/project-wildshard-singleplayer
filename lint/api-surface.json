@@ -1,0 +1,5701 @@
+{
+  "indexes": {
+    "engine": [
+      {
+        "name": "_applyChunkConstants",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "Action",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ActionMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "activeBodies",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "ActiveEffect",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "activeLevel",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "activePhysics",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "activeRegistry",
+        "kind": "function",
+        "doc": "The running game's registry (bootstrap takes it); one is made on first use (a test, a tool)."
+      },
+      {
+        "name": "Actor",
+        "kind": "interface",
+        "doc": "Simulation port. The legacy creature adapter owns flinch/ragdoll presentation until the AI migration."
+      },
+      {
+        "name": "addFogUniforms",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "AggressionDirector",
+        "kind": "class",
+        "doc": "Omitted caps are unlimited and allocate no token slots."
+      },
+      {
+        "name": "AggressionService",
+        "kind": "class",
+        "doc": "One engine answerer per request; resident levels register policies rather than competing answerers."
+      },
+      {
+        "name": "AiDebugHost",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AiDebugView",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AimInfo",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "aimRay",
+        "kind": "function",
+        "doc": "Aim block shared by custom and family weapons; no camera or scene dependency."
+      },
+      {
+        "name": "AimTarget",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AmbienceZones",
+        "kind": "class",
+        "doc": "Shared loop lifecycle; profiles keep their zone weights, fade constants and literal taps."
+      },
+      {
+        "name": "ambientTick",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "AmmoId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "AmmoRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AnalyticsBatch",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AnalyticsEvent",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "AnalyticsMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AnalyticsSink",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "Animal",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "AnimalDims",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AnimalFactory",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "AnimalManager",
+        "kind": "class",
+        "doc": "E322 F-L4: the grass a body parts (m, the trample's radius)"
+      },
+      {
+        "name": "AnimalSound",
+        "kind": "type",
+        "doc": "the mixer's own creature calls; a level adds its own ids with `registerCalls` (any string reaches `animal`)"
+      },
+      {
+        "name": "AnimalSoundId",
+        "kind": "type",
+        "doc": "a species' own sound id (SpeciesDef.sounds); the engine names none (E405)"
+      },
+      {
+        "name": "AnimalSpecies",
+        "kind": "interface",
+        "doc": "What `SpeciesDef.build()` returns: the un-merged parts of one (kind, variant) model."
+      },
+      {
+        "name": "AnimMachine",
+        "kind": "class",
+        "doc": "Visual only: HFSMs/viewmodel blocks supply states; animation never dispatches a gameplay hit."
+      },
+      {
+        "name": "AnimMachineDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AnimService",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AnimState",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "annulus",
+        "kind": "function",
+        "doc": "a flat annulus on the floor (y up), uv.x = around (0..1), uv.y = across the band (0 inner → 1 outer) — the ring fx reads it"
+      },
+      {
+        "name": "aoTint",
+        "kind": "function",
+        "doc": "pull each sampled vertex's colour toward `tint × scale` by its darkening `k` (`c (1 - k) + c tint scale k`)"
+      },
+      {
+        "name": "app",
+        "kind": "const",
+        "doc": "The page app; legacy active-service entry points delegate here during the migration."
+      },
+      {
+        "name": "App",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "appIdentity",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "AppIdentity",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AppState",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ARM_PAL",
+        "kind": "const",
+        "doc": "nalatiArms — the Nalati rider's first-person arms, shared by every Nalati viewmodel (Bow.ts, Sabre.ts, Spear.ts) so"
+      },
+      {
+        "name": "Arrangement",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AskInput",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "AskMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AskOutput",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "AssetCensus",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "AssetRecord",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "AssetService",
+        "kind": "class",
+        "doc": "Shared resources are released by consumers; only this service disposes them."
+      },
+      {
+        "name": "AssetTables",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "assetVersions",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "asShell",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "attachFogUniforms",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "AttributeSet",
+        "kind": "type",
+        "doc": "Numeric attributes stay live at the simulation ports; modifiers retain a separate base."
+      },
+      {
+        "name": "Audio",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "audioCueMap",
+        "kind": "function",
+        "doc": "Adapter for the S1.5 generic Audio cue map without renaming its existing samples/taps."
+      },
+      {
+        "name": "audioRandom",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "authoredTargets",
+        "kind": "function",
+        "doc": "An authored target source may refine the nearer creature hit. Practice uses its own isolated targets."
+      },
+      {
+        "name": "BakedLight",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "bakeLight",
+        "kind": "function",
+        "doc": "Bake warm lantern / ember light into the vertex colours (after `finish`, so the AO is under it): every face that"
+      },
+      {
+        "name": "BARK_LAYERS",
+        "kind": "const",
+        "doc": "the bark array's layers, in the order treegen.py's BARK_* constants index them"
+      },
+      {
+        "name": "beam",
+        "kind": "function",
+        "doc": "a squared timber (w × h cross-section) between two points; `roll` spins it about its own axis"
+      },
+      {
+        "name": "bindRig",
+        "kind": "function",
+        "doc": "Check authored metadata against the actual loaded scene, without posing or rebinding it."
+      },
+      {
+        "name": "bladeBlocked",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "bladeContact",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "BladeGlow",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "blendAds",
+        "kind": "function",
+        "doc": "Linear aim-in/out blend, shared by sights with their own authored blend duration."
+      },
+      {
+        "name": "BlenderArea",
+        "kind": "interface",
+        "doc": "a level's Blender area: world bounds in metres"
+      },
+      {
+        "name": "blob",
+        "kind": "function",
+        "doc": "a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed"
+      },
+      {
+        "name": "blocks",
+        "kind": "const",
+        "doc": "Existing engine blocks grouped for authored weapon composition."
+      },
+      {
+        "name": "BlockSet",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "Body",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "BodySpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BoneDef",
+        "kind": "interface",
+        "doc": "Model faces +Z; pos is absolute bind-space, not parent-local (the factory subtracts the parent position)."
+      },
+      {
+        "name": "boneIndex",
+        "kind": "function",
+        "doc": "name → index lookup for a BoneDef list (throws on a typo)"
+      },
+      {
+        "name": "bootPacks",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "BootRuntime",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "BootSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BossBar",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "BossBrain",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "BossDef",
+        "kind": "interface",
+        "doc": "An authored encounter can opt out of introductions, seals, checkpoints and runtime rewards."
+      },
+      {
+        "name": "BossDefinition",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BossPhase",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "BossPorts",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BossPresentation",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BossSaved",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BossScript",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BossState",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "box",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "boxDesc",
+        "kind": "function",
+        "doc": "A hand-made `Collider` box (Y-rotated by −rot, with yTop / yBottom, the P2-era format) as a `ColliderDesc`."
+      },
+      {
+        "name": "boxInFrame",
+        "kind": "function",
+        "doc": "Keep a world box aligned in its following frame; translate-only following uses the world's axes."
+      },
+      {
+        "name": "BoxSpec",
+        "kind": "interface",
+        "doc": "A box specified in world space, rotated by −rot about +Y."
+      },
+      {
+        "name": "brainInspection",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "BrainInspection",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BrassCase",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "brassFloor",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "broadClump",
+        "kind": "function",
+        "doc": "a broad-leaf clump (taro / monstera): 5–7 wide leaves on short stems"
+      },
+      {
+        "name": "Bucket",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "buildHoverboard",
+        "kind": "function",
+        "doc": "The board, built into `g` (the viewmodel's model, or the Model Explorer's specimen: src/engine/models/hoverboard.ts, E348): the"
+      },
+      {
+        "name": "buildTerrain",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "buildTier",
+        "kind": "function",
+        "doc": "the tier a model builds at: TIER, or the one Explore's DETAIL TIERS builds it as (explore/tiers.ts `withTier`). A level's"
+      },
+      {
+        "name": "bump",
+        "kind": "const",
+        "doc": "a unit bump: 0 → 1 → 0 over [a, b]"
+      },
+      {
+        "name": "CameraFX",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "canReach",
+        "kind": "function",
+        "doc": "Same chest/aim-point/slack query in every level, evaluated at the contact frame."
+      },
+      {
+        "name": "castRay",
+        "kind": "function",
+        "doc": "The first thing along the ray from `origin` in direction `dir` (unit length) within `maxDist`, among the kinds in"
+      },
+      {
+        "name": "castSegment",
+        "kind": "function",
+        "doc": "The first world hit on the segment a → b (null: the segment is clear)."
+      },
+      {
+        "name": "CharacterMotor",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "ChestDims",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ChestLook",
+        "kind": "type",
+        "doc": "the chest looks and door looks the runtime knows (InteractDef's `look`s)"
+      },
+      {
+        "name": "CHIP_MAX",
+        "kind": "const",
+        "doc": "the longest chip label / marker short name that fits the HUD chip on a 390 px phone without an ellipsis"
+      },
+      {
+        "name": "ChordEv",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ChordName",
+        "kind": "type",
+        "doc": "a chord's name in the score's own vocabulary"
+      },
+      {
+        "name": "CHUNK_DEPTH",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "CHUNK_HALF",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "CHUNK_SIZE",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "clamp",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "clamp01",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "Clang",
+        "kind": "type",
+        "doc": "What the blade makes of a surface: `stone` — a ringing clang and sparks (stone, rock, metal, shell); `wood` — a dull"
+      },
+      {
+        "name": "ClipChannel",
+        "kind": "class",
+        "doc": "one arm's clip channel: a base (idle ↔ walk) under crossfading one-shot moves"
+      },
+      {
+        "name": "ClipName",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ColliderDesc",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ColliderSpec",
+        "kind": "type",
+        "doc": "A collider in the model's own space, or the convex hull of the vertices this copy draws."
+      },
+      {
+        "name": "CombatCueMap",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "CombatCueOpts",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "CombatCues",
+        "kind": "class",
+        "doc": "Content maps own literal sound taps; routing never creates a second sound-log source."
+      },
+      {
+        "name": "CombatPipeline",
+        "kind": "class",
+        "doc": "One ordered damage pipeline; every source keeps its own base formula and rounding."
+      },
+      {
+        "name": "CombatTag",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "CombatTarget",
+        "kind": "interface",
+        "doc": "A simulation target shared by creature and practice weapon selection."
+      },
+      {
+        "name": "compassDir",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "configureLevel",
+        "kind": "function",
+        "doc": "The composition root supplies engine data before constructing the renderer or world."
+      },
+      {
+        "name": "ContentRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ContentRowMap",
+        "kind": "interface",
+        "doc": "Subsystems refine their registration contracts here as their row implementations land."
+      },
+      {
+        "name": "CorruptSave",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "CreatureBrain",
+        "kind": "class",
+        "doc": "Authored creature goals share an inspectable HFSM; movement and strike clocks remain separate."
+      },
+      {
+        "name": "CreatureHull",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "CreatureSoundDefaults",
+        "kind": "interface",
+        "doc": "The calls a species with no `sounds` falls back on, by temperament: the composition root installs them (the kit's,"
+      },
+      {
+        "name": "crestSpikes",
+        "kind": "function",
+        "doc": "The boar's dorsal crest as a serrated row of faceted spikes. `pts` are the crest points of species/boar.ts"
+      },
+      {
+        "name": "CrossbowOptions",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "CrossbowWorld",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "CueBank",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "CueId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "CueMap",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "CueOpts",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "CuePlayer",
+        "kind": "class",
+        "doc": "Content calls tap.sound with its literal id, then asks this shared positional shot player."
+      },
+      {
+        "name": "currentOwner",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "cyl",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "DamageDealt",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "DamageRequest",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "DamageRuleDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "dataTexture",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "DayCycle",
+        "kind": "class",
+        "doc": "One clock mechanism. Its schedule, paths, curves and look keys belong to content."
+      },
+      {
+        "name": "DayCycleClock",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "DayCycleSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "DayKeys",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "DayPhase",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "DeathCause",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "DebugRowSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "defineModel",
+        "kind": "function",
+        "doc": "Define a model. Its id must be unique; the definition is returned as given."
+      },
+      {
+        "name": "deriveSpecies",
+        "kind": "function",
+        "doc": "Child rows retain all unspecified parent fields and merge tuning without losing the hunter policy."
+      },
+      {
+        "name": "DialogueEntry",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "DiscOpts",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "DiscSpot",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "Disposable3",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "dodgeEnv",
+        "kind": "function",
+        "doc": "the shared envelope (DODGE-FEEL \"Shared timeline\"): load 0–40 ms, burst to 120, hold to 250, then an underdamped spring"
+      },
+      {
+        "name": "dodgeFx",
+        "kind": "const",
+        "doc": "the running dodge, for the viewmodel (Sword.ts) and the screen FX (SpeedLines.ts): `t` ms since it started (-1 = none),"
+      },
+      {
+        "name": "DoorLook",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "DrawingBuffer",
+        "kind": "type",
+        "doc": "Drawing-buffer port used by viewmodel effects without exposing a renderer backend."
+      },
+      {
+        "name": "DropArc",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "edgeWear",
+        "kind": "function",
+        "doc": "Lighten vertex colour on bevel/edge vertices (normals off-axis) → worn, handled edges."
+      },
+      {
+        "name": "EffectDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EffectId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "EffectService",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "EffectTarget",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "eliteAct",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "EliteActor",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EliteBar",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "EliteBrain",
+        "kind": "class",
+        "doc": "Shared encounter actor lifecycle. Views provide spawn, retirement and tells through overrides."
+      },
+      {
+        "name": "eliteDamageMul",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "EliteDefinition",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ElitePorts",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "eliteThink",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "EncounterDefinition",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EncounterRegistry",
+        "kind": "class",
+        "doc": "Resident content names are read from the active level and released with their scope."
+      },
+      {
+        "name": "EncounterService",
+        "kind": "class",
+        "doc": "Resident content names are read from the active level and released with their scope."
+      },
+      {
+        "name": "EnemyWorld",
+        "kind": "interface",
+        "doc": "What the shard hands the enemy species' AI (`AnimalManager.enemyWorld`, filled by main.ts / src/shards/driftwood-isle/creatures/Enemies.ts):"
+      },
+      {
+        "name": "ENGINE_API",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "ENGINE_STRINGS",
+        "kind": "const",
+        "doc": "English engine UI strings. Content-owned overrides are installed by the composition root."
+      },
+      {
+        "name": "EngineEffects",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EngineMechanism",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "EngineProbe",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EngineRows",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "engineString",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "EngineStringKey",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "enterOwner",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "EquipContext",
+        "kind": "interface",
+        "doc": "The scope is sufficient for the legacy families; block/input/combat ports expand as their migration rows land."
+      },
+      {
+        "name": "Equipment",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "EquipmentAction",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "EquipmentHost",
+        "kind": "interface",
+        "doc": "Live scene ports available after the loadout, before a plugin's play hook."
+      },
+      {
+        "name": "EquipmentIconMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EquipmentId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "EquipmentInput",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EquipmentMeta",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EquipmentRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EquipmentService",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "EquipmentSlotMap",
+        "kind": "interface",
+        "doc": "Hosts declare their slot, icon and touch-layout vocabularies without importing content into simulation."
+      },
+      {
+        "name": "EquipmentTouchMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EVENT_FLUSH_LIMIT",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "EventMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Events",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "Explore",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "ExploreMode",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ExploreSpec",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "exportCardTextures",
+        "kind": "function",
+        "doc": "`?bakecards=1`: read the runtime bake's render targets back and publish them on `window.__cardBake`"
+      },
+      {
+        "name": "ExtendLook",
+        "kind": "interface",
+        "doc": "'extend' (the default): the level's passes go in slots around the engine's chain"
+      },
+      {
+        "name": "EyeSpot",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "FadeBand",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "FallCause",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "FaultEvent",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Feedback",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "fern",
+        "kind": "function",
+        "doc": "a fern: 7–9 long narrow fronds fanning out and up from the crown"
+      },
+      {
+        "name": "fetchImage",
+        "kind": "function",
+        "doc": "Decode an image off the main thread through the counted fetch, downscaled to `maxSize` when the"
+      },
+      {
+        "name": "fetchLut",
+        "kind": "function",
+        "doc": "the LUT file's bytes; null (and a warning) when it is missing, unreadable or the wrong size"
+      },
+      {
+        "name": "FirstHints",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "fixIBL",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "Flags",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "flatPositions",
+        "kind": "function",
+        "doc": "`geo`'s positions only (non-indexed, sharing the attribute when it already is): a caster for a front-sided proxy"
+      },
+      {
+        "name": "floorBelow",
+        "kind": "function",
+        "doc": "The top of the first world surface (terrain, deck, floor, rock) straight below (x, fromY, z), within `maxDrop`;"
+      },
+      {
+        "name": "fnv1a32",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "FogModel",
+        "kind": "interface",
+        "doc": "A level's fog patch (01 §13.2's ordered `fog_fragment` slots: engine fog 100, stylize 200, a level's fog 300). The"
+      },
+      {
+        "name": "fogUniforms",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "forearm",
+        "kind": "function",
+        "doc": "Drop-in for `meleeGeo.forearm` (Sabre.ts / Spear.ts): the fist in grip space (grip along +Y through the origin),"
+      },
+      {
+        "name": "Forest",
+        "kind": "class",
+        "doc": "Per-frame bucketing: every tree has one precomputed matrix; on move (> 1.5 m) or turn (> 3°) the"
+      },
+      {
+        "name": "FOV_ADS",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "FOV_HIP",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "fovForAspect",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "FullMap",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "FullMapPoi",
+        "kind": "interface",
+        "doc": "a point on the full map: a discovered place (named), an undiscovered one (\"?\"), or a live quest marker (pulsing diamond);"
+      },
+      {
+        "name": "FurStyle",
+        "kind": "interface",
+        "doc": "Fur texture + material look of a species (per-variant overrides via VariantDef.fur)."
+      },
+      {
+        "name": "FX",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "fxMaterial",
+        "kind": "function",
+        "doc": "the ONE fx program (see the header): `mode` picks the look, `additive` the blending"
+      },
+      {
+        "name": "FxMaterial",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "FxMode",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "Game",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "GameClock",
+        "kind": "class",
+        "doc": "Explicit deltas keep simulation independent of wall-time reads and render speed."
+      },
+      {
+        "name": "GameMenu",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "GameMenuOptions",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "gameplayRandom",
+        "kind": "function",
+        "doc": "One gameplay draw from the seeded `gameplay` stream (01 §2): aim spread and other rolls that change a hit."
+      },
+      {
+        "name": "getAimTargets",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "getNumber",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "getSetting",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "getSfxSet",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "GlobalDebugActionSpec",
+        "kind": "type",
+        "doc": "Global developer buttons run only when pressed; they never persist or replay a choice."
+      },
+      {
+        "name": "gloveFist",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "gpuOnlyAttributes",
+        "kind": "function",
+        "doc": "E264: a static mesh's vertex data, on the GPU only once drawn. Every static attribute but `keep` gives up its CPU copy"
+      },
+      {
+        "name": "gpuOnlyTexture",
+        "kind": "function",
+        "doc": "E264: a texture whose CPU source (decoded image, canvas or pixel array) nothing reads after its upload: it is released"
+      },
+      {
+        "name": "GrassDriver",
+        "kind": "interface",
+        "doc": "a level's own grass in place of the engine's carpet (Grass.build)"
+      },
+      {
+        "name": "GrassLayer",
+        "kind": "interface",
+        "doc": "what a `GrassDriver` builds: its group goes in the scene, `update` runs every frame from the engine's Grass"
+      },
+      {
+        "name": "grassTuft",
+        "kind": "function",
+        "doc": "a grass tuft: 5–8 bent blades (one triangle each)"
+      },
+      {
+        "name": "GroundPlacement",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "GroupBrain",
+        "kind": "class",
+        "doc": "Shared roster, blackboard and decision clock. Authored goals remain in the owning content."
+      },
+      {
+        "name": "GroupMember",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "GroupName",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "groups",
+        "kind": "function",
+        "doc": "The packed `collisionGroups` / `solverGroups` value for a collider of this kind."
+      },
+      {
+        "name": "HandedBatch",
+        "kind": "interface",
+        "doc": "one part of one variant of a `place` call, handed to an `InstancedCuller`"
+      },
+      {
+        "name": "HarnessPins",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "hasProgramKey",
+        "kind": "function",
+        "doc": "Whether a site gave the material a program key of its own (Sky.fillSlots skips those)."
+      },
+      {
+        "name": "hasSpecies",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "hasTag",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "HealthAttributes",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "heightAt",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "HemiDir",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "HemiRing",
+        "kind": "type",
+        "doc": "a ring of hemisphere directions: [cos of the angle from the normal, how many round it]"
+      },
+      {
+        "name": "hemisphere",
+        "kind": "function",
+        "doc": "fixed hemisphere directions in a +Z-up tangent frame, ring by ring, each ring turned by `cz × twist` (deterministic bakes)"
+      },
+      {
+        "name": "Herd",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Hfsm",
+        "kind": "class",
+        "doc": "Explicit parent paths; transitions exit leaf-first and enter root-first."
+      },
+      {
+        "name": "hibiscus",
+        "kind": "function",
+        "doc": "a hibiscus flower facing +y at the origin: five red petals and a yellow stamen"
+      },
+      {
+        "name": "hibiscusBush",
+        "kind": "function",
+        "doc": "a hibiscus bush: a broad-leaf clump with 3–5 flowers on top"
+      },
+      {
+        "name": "HitLine",
+        "kind": "class",
+        "doc": "one straight red line, muzzle → impact, alive TRACER_TIME s"
+      },
+      {
+        "name": "hitscan",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "HitscanProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "HitscanResult",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "HitStopProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "HoofSurface",
+        "kind": "type",
+        "doc": "the ground under a hoof (the level's `hoofSurfaceAt`): turf, gravel, a wooden deck"
+      },
+      {
+        "name": "HUD",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "HudBand",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "hudSlots",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "HudVerbs",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "HuntTuning",
+        "kind": "interface",
+        "doc": "One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s."
+      },
+      {
+        "name": "icon",
+        "kind": "function",
+        "doc": "the icon's SVG; an id nothing registered draws an empty box"
+      },
+      {
+        "name": "IconId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "IconMap",
+        "kind": "interface",
+        "doc": "The icon ids: the engine's UI glyphs; a content library merges its own in (the kit's, src/kit/icons.ts: creatures, items,"
+      },
+      {
+        "name": "iconParts",
+        "kind": "const",
+        "doc": "the pieces a content icon is drawn from: the 64×64 SVG frame, the stroke attributes, legs and circles"
+      },
+      {
+        "name": "impact",
+        "kind": "function",
+        "doc": "a hit: the contact transient + the material's body"
+      },
+      {
+        "name": "ImpactKind",
+        "kind": "type",
+        "doc": "Audio — every sound is synthesised with WebAudio (no files)."
+      },
+      {
+        "name": "Impacts",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "ImpactSurface",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "impactSurfaceOf",
+        "kind": "function",
+        "doc": "The impact sound / puff family of what was hit (three sample sets): bark and planks are wood, everything else ground."
+      },
+      {
+        "name": "ImportReport",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "InputContextDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "InputService",
+        "kind": "class",
+        "doc": "Additive contexts and a shared press buffer. Consuming a press removes it for every later system."
+      },
+      {
+        "name": "inspectBrain",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "inspectPreviousBoot",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "installAiDebug",
+        "kind": "function",
+        "doc": "Off creates no visual objects and registers no per-frame system."
+      },
+      {
+        "name": "installAppIdentity",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "installAssetTables",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "installBounds",
+        "kind": "function",
+        "doc": "An authored play area keeps the last grounded registry floor as its soft respawn."
+      },
+      {
+        "name": "installEngineStrings",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "installGameplayInput",
+        "kind": "function",
+        "doc": "The level installs one device listener set; mode contexts compose with plugin verbs."
+      },
+      {
+        "name": "installRangedFeel",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "installScore",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "InstancedCuller",
+        "kind": "interface",
+        "doc": "A shard's own per-copy culler for instanced copies (E306 M4: Nine Dragon's E283 batch culler, its crowd's figure LODs"
+      },
+      {
+        "name": "inState",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "Interactable",
+        "kind": "interface",
+        "doc": "Weak actions yield to another reachable prompt."
+      },
+      {
+        "name": "Interactables",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "InteractEvent",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "interactParts",
+        "kind": "const",
+        "doc": "a lit part (the shared low-poly material) and a glowing one (unlit, the glow batch's), for a pickup look's model"
+      },
+      {
+        "name": "InteractProps",
+        "kind": "interface",
+        "doc": "The props the interaction runtime draws (E405 E417: the props are content, the kit's — src/kit/props/interact.ts —"
+      },
+      {
+        "name": "InteractTable",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "InterruptReason",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "isDev",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "isLowPoly",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "isMesh",
+        "kind": "function",
+        "doc": "`Mesh` type guard for `Object3D.traverse` callbacks (three sets `isMesh` on every Mesh)"
+      },
+      {
+        "name": "isRenderer",
+        "kind": "function",
+        "doc": "a value is the renderer (the scene-ownership walk skips it)"
+      },
+      {
+        "name": "jsonRecord",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "jsonSchema",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "jsonSlot",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "Key",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "KitEntry",
+        "kind": "interface",
+        "doc": "the weapons as the GEAR tab shows them — read live from Weapons (src/engine/player/Weapons.ts)"
+      },
+      {
+        "name": "Ktx2Table",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ktx2Texture",
+        "kind": "function",
+        "doc": "The KTX2 texture standing in for `served` (a clone sharing one source per file), or null: load the image instead."
+      },
+      {
+        "name": "lathe",
+        "kind": "function",
+        "doc": "a lathe from a (radius, height) profile, `seg` around; smooth normals"
+      },
+      {
+        "name": "LayerId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "lerp",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "LevelAdapters",
+        "kind": "interface",
+        "doc": "A UI/input service returns the inverse of each mutation, owned by the caller's scope."
+      },
+      {
+        "name": "LevelAudioProfile",
+        "kind": "interface",
+        "doc": "Boot downloads and decodes this content profile through the same counted/deferred queue."
+      },
+      {
+        "name": "LevelBoundary",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "LevelContext",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LevelDriver",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LevelHooks",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LevelLoadError",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "LevelRegistrations",
+        "kind": "class",
+        "doc": "Scoped row catalogs are consumed by their services between kit and play."
+      },
+      {
+        "name": "LevelSequence",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "levelSequenceDriver",
+        "kind": "function",
+        "doc": "The staged mechanisms are generic; the composition root supplies content and hook adapters."
+      },
+      {
+        "name": "LevelSpec",
+        "kind": "interface",
+        "doc": "The engine consumes opaque level data; game presentation and discovery stay above this boundary."
+      },
+      {
+        "name": "LevelStage",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "LightPool",
+        "kind": "class",
+        "doc": "LightPool — a fixed set of scene PointLights driven by intensity only (B7). three.js bakes the NUMBER of lights into"
+      },
+      {
+        "name": "LightPreset",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "lilyPad",
+        "kind": "function",
+        "doc": "a lily pad lying flat at y = 0: an 8-segment disc with a notch"
+      },
+      {
+        "name": "lin",
+        "kind": "function",
+        "doc": "an sRGB hex colour as a linear colour, times `k` (10 §X5: the one `lin`; ×1 leaves every channel exact)"
+      },
+      {
+        "name": "lineFor",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "lineOfSight",
+        "kind": "function",
+        "doc": "Does `from` see `to`? — no world surface on the segment between them, short of `slack` metres before `to` (the target's own body)."
+      },
+      {
+        "name": "listenDom",
+        "kind": "function",
+        "doc": "Scoped widget gestures keep DOM event typing and dispose with their owner. Gameplay uses actions."
+      },
+      {
+        "name": "ListenerOptions",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "listenPage",
+        "kind": "function",
+        "doc": "A page-wide input listener (E362 AG18): a drag that leaves its widget, \"a touch anywhere\" that dismisses or skips,"
+      },
+      {
+        "name": "listModel",
+        "kind": "function",
+        "doc": "List a live model in this shard's Model Explorer (see the header). Listing the same model again is a no-op."
+      },
+      {
+        "name": "live",
+        "kind": "function",
+        "doc": "A roster entry: `pipeline` how this shard makes it (a shared model), `planned` the copies it stands up when none is"
+      },
+      {
+        "name": "loadAudio",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "loadBakedCards",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "loadBakedSky",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "loadBootRuntime",
+        "kind": "function",
+        "doc": "Load browser mechanisms after the root selects its authored level."
+      },
+      {
+        "name": "LoadFailure",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "loadGLTF",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "loadLUT",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "loadMeadow",
+        "kind": "function",
+        "doc": "Runtime meadow services load after pure manifest discovery."
+      },
+      {
+        "name": "LoadoutSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "loadPBR",
+        "kind": "function",
+        "doc": "Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per call."
+      },
+      {
+        "name": "loadPBRArray",
+        "kind": "function",
+        "doc": "Load several Poly Haven sets into three DataArrayTextures (diffuse / normal / ARM), one layer"
+      },
+      {
+        "name": "loadQuest",
+        "kind": "function",
+        "doc": "Quest views are loaded after the Node-safe manifest pass."
+      },
+      {
+        "name": "loadRig",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "loadRigFile",
+        "kind": "function",
+        "doc": "Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser."
+      },
+      {
+        "name": "loadTexture",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "loadTreeSetGeometry",
+        "kind": "function",
+        "doc": "The set's GLB, as `name → part → geometry` for the given variants (a missing mesh is an error: the set is stale)."
+      },
+      {
+        "name": "loadWorldContent",
+        "kind": "function",
+        "doc": "Authored world builders are loaded after manifest discovery."
+      },
+      {
+        "name": "lockOn",
+        "kind": "const",
+        "doc": "The Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md — src/engine/player/LockOnTarget.ts runs it): `state` 'off' (nothing to lock),"
+      },
+      {
+        "name": "loft",
+        "kind": "function",
+        "doc": "Loft a closed tube through `st` stations with `seg` sides; returns an indexed geometry with position/normal/uv/color/skinIndex/skinWeight."
+      },
+      {
+        "name": "log",
+        "kind": "function",
+        "doc": "A faceted log / beam / post between two points: an n-sided prism (default 6) tapering r0 → r1, the"
+      },
+      {
+        "name": "lookAngles",
+        "kind": "function",
+        "doc": "the look target in the animal's frame: yaw (+ = to the animal's left) and pitch (+ = up), scaled by lookWeight, clamped"
+      },
+      {
+        "name": "LookChain",
+        "kind": "interface",
+        "doc": "a `mode: 'replace'` composition: the whole chain, in order (01 §13.1: a level's own composer)"
+      },
+      {
+        "name": "LookComposeContext",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LookComposition",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LookLag",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LookReplaceContext",
+        "kind": "interface",
+        "doc": "what a `mode: 'replace'` compose gets: the engine built no chain, so there are no engine effects to hand over"
+      },
+      {
+        "name": "LookSpring",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LookStrategy",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "loopAt",
+        "kind": "function",
+        "doc": "Start a loop at a cosmetic offset inside its authored loop region."
+      },
+      {
+        "name": "lotus",
+        "kind": "function",
+        "doc": "a lotus: six raised white petals round a yellow heart"
+      },
+      {
+        "name": "LowPolyKit",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "lowPolyMaterial",
+        "kind": "function",
+        "doc": "The one flat-shaded vertex-colour material every Driftwood model shares (so they batch into one"
+      },
+      {
+        "name": "LUT_SIZE",
+        "kind": "const",
+        "doc": "The one colour-LUT loader (10 §X5): a fitted 33³ RGB lookup, `scripts/fit-lut.py`'s format — 33³ × RGBA8, index"
+      },
+      {
+        "name": "macrotask",
+        "kind": "const",
+        "doc": "End the current task: the next step starts in a fresh one (a MessageChannel hop — no 4 ms timer clamp)."
+      },
+      {
+        "name": "makeBoltAtlas",
+        "kind": "function",
+        "doc": "Bolt atlas: bottom half iron shaft, top-left steel head, top-right feather vane (alpha)."
+      },
+      {
+        "name": "makeCord",
+        "kind": "function",
+        "doc": "Twisted hemp cord: diagonal stripes for both colour and bump."
+      },
+      {
+        "name": "makeFlashTexture",
+        "kind": "function",
+        "doc": "muzzle flash sprite: a hot white core, orange petals, alpha in the luminance (additive)"
+      },
+      {
+        "name": "MapMark",
+        "kind": "interface",
+        "doc": "a point the map marks with a small diamond (Minimap.setMarks)"
+      },
+      {
+        "name": "MapOverlay",
+        "kind": "interface",
+        "doc": "what a palette's overlay paints with: the terrain layer's context, world → layer px, px per metre, the trails"
+      },
+      {
+        "name": "MapPoi",
+        "kind": "interface",
+        "doc": "a named place on the maps (the minimap's labels, the full map's pins)"
+      },
+      {
+        "name": "MapQuest",
+        "kind": "interface",
+        "doc": "the quest in full for the MAP tab's quest card (the HUD only shows its short chip, E51): chapter title, objective, sub-steps"
+      },
+      {
+        "name": "markGpuOnly",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "markUnload",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "matchesTag",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "Material",
+        "kind": "type",
+        "doc": "`felt` (a yurt's walls) and `earth` (a kurgan's turf, a kokpar goal mound): Nalati's soft surfaces — arrows stick, blades thud"
+      },
+      {
+        "name": "melee",
+        "kind": "function",
+        "doc": "Public contact block: callers choose the move and target; combat owns cover and damage rules."
+      },
+      {
+        "name": "meleeLock",
+        "kind": "const",
+        "doc": "The sword's melee lock (Sword.ts writes it every frame it is held): `target` = the animal a swing would lunge onto right"
+      },
+      {
+        "name": "MenuTab",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "mergeOrNull",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "mergeVerticesByPos",
+        "kind": "function",
+        "doc": "weld an unindexed / seam-split geometry by position (so displacement keeps it watertight and normals smooth)"
+      },
+      {
+        "name": "MinimapPalette",
+        "kind": "interface",
+        "doc": "a level's own map look (ChunkMapDef.palette, 07 §6.2 step 7): its ground colour at a sample (0..255 sRGB into `out`),"
+      },
+      {
+        "name": "mix",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "MixEv",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "MixKey",
+        "kind": "type",
+        "doc": "the mixer's keys: every layer, the pulse's three sub-buses, and the two bus effects"
+      },
+      {
+        "name": "Mode",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ModelBuild",
+        "kind": "type",
+        "doc": "What `build` returns: the parts of one copy (every draw technique), or a whole object (`draw: 'single'` only)."
+      },
+      {
+        "name": "modelContext",
+        "kind": "function",
+        "doc": "A context for one shard (its sky, and the renderer when there is one). A structure shard has no engine Sky (Nine"
+      },
+      {
+        "name": "ModelContext",
+        "kind": "interface",
+        "doc": "What a model's builder gets from the shard it's placed on. Make one per shard with `modelContext`."
+      },
+      {
+        "name": "ModelDef",
+        "kind": "interface",
+        "doc": "A model: one builder, its variants, its LODs, its own-space colliders. Made with `defineModel`."
+      },
+      {
+        "name": "ModelLod",
+        "kind": "interface",
+        "doc": "A coarser copy from `from` metres out; `build` returning `[]` draws nothing past `from` (a cull distance)."
+      },
+      {
+        "name": "ModelPart",
+        "kind": "interface",
+        "doc": "One draw of one copy: a geometry in the model's own space and its material."
+      },
+      {
+        "name": "ModelVariant",
+        "kind": "interface",
+        "doc": "A named set of params the Explorer's variant row offers and `Placement.variant` picks."
+      },
+      {
+        "name": "mountUi",
+        "kind": "function",
+        "doc": "DOM lifetime belongs to the widget, including widgets in parked resident HUDs."
+      },
+      {
+        "name": "Move",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Music",
+        "kind": "class",
+        "doc": "the live game wrapper: timer, state, volume, stings, the stem player, the offline render"
+      },
+      {
+        "name": "MusicManifest",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "musicManifests",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "MusicState",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "MusicStyle",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "nearProxy",
+        "kind": "function",
+        "doc": "a unit's near proxy: every part's depth it draws (`front`) and its copy's double-sided casters; null when neither"
+      },
+      {
+        "name": "needsTerrainCollider",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "NO_FUR",
+        "kind": "const",
+        "doc": "the faceted species never draw fur; the registry contract wants a FurStyle regardless"
+      },
+      {
+        "name": "Noise2D",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "NoteEv",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "NpcDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "NpcTalk",
+        "kind": "class",
+        "doc": "one NPC's talk prompt + dialogue over a (shared) DialogueBox"
+      },
+      {
+        "name": "onDev",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "onGpuRestored",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "onLevelChange",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "onNumber",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "onOwnerDispose",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "onSettingChange",
+        "kind": "function",
+        "doc": "fires on a live option's change, and with the new saved pick for a boot option; not called immediately"
+      },
+      {
+        "name": "OptionValue",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ownAudioSource",
+        "kind": "function",
+        "doc": "Legacy sound makers keep their graph; the level owns only scheduled source handles."
+      },
+      {
+        "name": "PackDef",
+        "kind": "interface",
+        "doc": "a level's boot pack for one tier, in content-addressed parts (src/engine/boot/pack.ts)"
+      },
+      {
+        "name": "PackFile",
+        "kind": "type",
+        "doc": "one packed file: its path, its offset in the part, its size and its content-type"
+      },
+      {
+        "name": "PackPart",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "PageInputEvent",
+        "kind": "type",
+        "doc": "the input events a page-wide listener may take (the set `wildshard/no-raw-input` guards)"
+      },
+      {
+        "name": "pageScope",
+        "kind": "const",
+        "doc": "Page services outlive level disposal and never borrow a level's construction owner."
+      },
+      {
+        "name": "pageSeed",
+        "kind": "function",
+        "doc": "Harness pins every stream; a live page gets one crypto salt without consuming gameplay draws."
+      },
+      {
+        "name": "Paint",
+        "kind": "type",
+        "doc": "vertex colour callback: (out, x, y, z, nx, ny, nz, part, t = 0..1 along the part, a = ring angle)"
+      },
+      {
+        "name": "PainterField",
+        "kind": "interface",
+        "doc": "the heightfield a painter samples (live: the baked terrain replaces the procedural one once `ready()` resolves)"
+      },
+      {
+        "name": "painterlyKnobs",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "painterlyMaterial",
+        "kind": "function",
+        "doc": "The shared painterly lit material (see the file header)."
+      },
+      {
+        "name": "painterlyUniforms",
+        "kind": "const",
+        "doc": "Shared by every painterly material (one object per uniform — assigning into `.value` updates them all)."
+      },
+      {
+        "name": "paintNoise",
+        "kind": "const",
+        "doc": "shared low-frequency noise for coat mottling / patches (fbm ≈ -1..1)"
+      },
+      {
+        "name": "paletteColors",
+        "kind": "function",
+        "doc": "the species palette as THREE.Colors, each entry overridden by the variant's tint of the same name (VariantDef.tint)"
+      },
+      {
+        "name": "panFromYaw",
+        "kind": "function",
+        "doc": "Player yaw's right vector, with the caller's original spread, distance metric and near cut (centred within `near` m)."
+      },
+      {
+        "name": "paramsOf",
+        "kind": "function",
+        "doc": "A copy's params: the defaults, then its variant's, then its own."
+      },
+      {
+        "name": "Part",
+        "kind": "type",
+        "doc": "a geometry + the colour to paint it: plants are a few of these"
+      },
+      {
+        "name": "ParticleAttr",
+        "kind": "interface",
+        "doc": "one per-particle attribute after `position`: its width and whether it is rewritten every frame"
+      },
+      {
+        "name": "ParticlePool",
+        "kind": "class",
+        "doc": "One particle pool (E357 X5, 10 §X5): a ring of `capacity` points in one `THREE.Points` draw, never culled, with the"
+      },
+      {
+        "name": "ParticlePoolSpec",
+        "kind": "interface",
+        "doc": "A pool's data (E357 X5): its size, its extra attributes in geometry order, its material and draw order."
+      },
+      {
+        "name": "PATCH_ORDER",
+        "kind": "const",
+        "doc": "the order bands (lower runs first; ties run in the order they were added)"
+      },
+      {
+        "name": "patchBarkArrays",
+        "kind": "function",
+        "doc": "The bark material's array lookups: three's map / normalMap / aoMap / roughnessMap reads (all four bound to 1 × 1"
+      },
+      {
+        "name": "patchCardCrownTop",
+        "kind": "function",
+        "doc": "E322 F-L3 B, the branch cards (the near and far bands): seen from above, a crown's sky-facing cards (their crown-bent"
+      },
+      {
+        "name": "patchFade",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "patchImpostorCrownTop",
+        "kind": "function",
+        "doc": "E322 F-L3 B, the impostor (the far band). (1) Its back face gets the bake's frame: the material keeps the quad's own"
+      },
+      {
+        "name": "patchShader",
+        "kind": "function",
+        "doc": "Patch a material's shader source before it compiles. Returns the undo (Explore's diorama cut is temporary);"
+      },
+      {
+        "name": "patchSway",
+        "kind": "function",
+        "doc": "add the sway to a material's vertex shader (inside onBeforeCompile)"
+      },
+      {
+        "name": "patchWind",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "patchWindField",
+        "kind": "function",
+        "doc": "add the wind field (uniforms + GLSL helpers) to a vertex shader, inside onBeforeCompile — the same uniform objects as"
+      },
+      {
+        "name": "pathRampDescs",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "pbrMaterial",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "PBRSet",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "persistHomeScreen",
+        "kind": "const",
+        "doc": "the page's: the entry calls it at boot"
+      },
+      {
+        "name": "Phase",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "PHASES",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "phoneUrl",
+        "kind": "function",
+        "doc": "the tier's copy of a file (`.phone.webp` / `.phone.glb`), whatever the textures ride as"
+      },
+      {
+        "name": "PhysicsHandle",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "PickupDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "PickupLook",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "pickupModel",
+        "kind": "function",
+        "doc": "a pickup: its part floating at its bob's rest height (the kit spins and bobs it round there)"
+      },
+      {
+        "name": "PickupPart",
+        "kind": "interface",
+        "doc": "A pickup's look (E405: content registers its own — the kit's, src/kit/models/pickups.ts): its batched model, and the"
+      },
+      {
+        "name": "pinBrain",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "Pipeline",
+        "kind": "type",
+        "doc": "How a model is made (E306): the Model Explorer card's badge. `code` is procedural three.js; `blender` a Blender"
+      },
+      {
+        "name": "Place",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "placeArm",
+        "kind": "function",
+        "doc": "pose an arm mesh (built along +Y from the wrist) at `wrist`, heading along `dir` (same space as the mesh's parent)"
+      },
+      {
+        "name": "Placed",
+        "kind": "interface",
+        "doc": "what a `place` call built"
+      },
+      {
+        "name": "Placement",
+        "kind": "interface",
+        "doc": "Where one copy stands. The pose applies in this order: `scale`, then `yaw` (about +Y), then `leanX` (about world X),"
+      },
+      {
+        "name": "plank",
+        "kind": "function",
+        "doc": "a flat-bottomed plank/board: a box with its corners nudged (± wob) so rows of them look hand-sawn"
+      },
+      {
+        "name": "PLANT",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "Player",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "PlayerHealth",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "PlayerHealthPorts",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "PlayerMode",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "Playground",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "PlaygroundHost",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "PlaygroundId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "PlaygroundSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "PoiId",
+        "kind": "type",
+        "doc": "Interactables kit — the DATA schema (A2, project/archive/2026-09-23-driftwood-remaster.md). Every chest, key, door, lever, pressure"
+      },
+      {
+        "name": "pointScale",
+        "kind": "function",
+        "doc": "pixels per metre at 1 m for a screen-sized point (`gl_PointSize = size * uScale / depth`): the drawing buffer's height"
+      },
+      {
+        "name": "pole",
+        "kind": "function",
+        "doc": "a smooth round pole / log from a to b, radius r0 at a → r1 at b; `segs` rings along it (for a painter that varies along the length)"
+      },
+      {
+        "name": "pondGrid",
+        "kind": "function",
+        "doc": "The shared pond tessellation; pure so public manifest imports cannot load the world."
+      },
+      {
+        "name": "practiceFps",
+        "kind": "const",
+        "doc": "the practice arena is open: the one place mobile targets 60 (E290, below)"
+      },
+      {
+        "name": "practiceRoom",
+        "kind": "const",
+        "doc": "A practice room is up: the Practice arena (src/engine/practice/TrainingArena.ts, 900 m over the shard) or a feature playground"
+      },
+      {
+        "name": "preloadBakedTextures",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "previousBootLevel",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "previousBootLine",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "probeRenderer",
+        "kind": "function",
+        "doc": "a throw-away renderer on its own canvas, to probe the GPU's formats before the game's exists (KTX2 support)"
+      },
+      {
+        "name": "projectileFlightStep",
+        "kind": "function",
+        "doc": "Deterministic flight substep. Only the supplied position/velocity are written; no world or clock is read."
+      },
+      {
+        "name": "ProjectileKind",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ProjectileModification",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Projectiles",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "ProjectileWorld",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "publicBytes",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "Puffs",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "QuestChip",
+        "kind": "class",
+        "doc": "the quest chip under the minimap (QuestUI's ObjectiveLine) fed from a quest: goal + nearest marker, ~10 Hz"
+      },
+      {
+        "name": "QuestDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestLine",
+        "kind": "class",
+        "doc": "chained chapters: each def's `startWhen` reads the one before's `completeFlag`; the active one is the first not done"
+      },
+      {
+        "name": "QuestMarker",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestState",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "QuestStep",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "quiverState",
+        "kind": "function",
+        "doc": "Keep the actual bolt/quiver object: legacy code mutates bolts while the service/HUD reads ammo."
+      },
+      {
+        "name": "RangedFeelProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "rangedFovForAspect",
+        "kind": "function",
+        "doc": "Vertical FOV to give the camera. Three's fov is vertical, so on a portrait phone a fixed 72° collapses the"
+      },
+      {
+        "name": "RangedOptions",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "RangedWorld",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Rarity",
+        "kind": "type",
+        "doc": "Species registry — the pluggable contract every huntable species implements."
+      },
+      {
+        "name": "RayTargets",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ReachActor",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "readTexturePixels",
+        "kind": "function",
+        "doc": "Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h"
+      },
+      {
+        "name": "registerGlobalDebugAction",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "registerIcons",
+        "kind": "function",
+        "doc": "a content library's icons, full SVGs by id (the kit's installKitIcons)"
+      },
+      {
+        "name": "registerInteractProps",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "registerPickupLook",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "registerSpecies",
+        "kind": "function",
+        "doc": "Register a species (call once at module top level of `species/<kind>.ts`). Re-registering replaces it."
+      },
+      {
+        "name": "registerToonPaint",
+        "kind": "function",
+        "doc": "A toon level registers its palette per species kind (its species look rows, B50); a species build asks `toonPaint(kind)`"
+      },
+      {
+        "name": "remapUV",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "Renderer",
+        "kind": "type",
+        "doc": "the renderer every layer is handed (today three's WebGL renderer)"
+      },
+      {
+        "name": "ReplaceLook",
+        "kind": "interface",
+        "doc": "'replace': the level's compose builds the whole chain; the engine adds exactly its passes to its one composer"
+      },
+      {
+        "name": "ResidentMemory",
+        "kind": "interface",
+        "doc": "Levels held in memory, oldest first: at most `cap` stay resident."
+      },
+      {
+        "name": "resolveHitStop",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "resolveTierKnobs",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "resourceScope",
+        "kind": "function",
+        "doc": "Explicit fallback for reusable services constructed before the app installs a level."
+      },
+      {
+        "name": "retainCachedResources",
+        "kind": "function",
+        "doc": "A module cache keeps source meshes alive across loads; consumers acquire their shared GPU resources."
+      },
+      {
+        "name": "retried",
+        "kind": "function",
+        "doc": "Retry an async module download after 800 ms and 2500 ms; preserve the final rejection."
+      },
+      {
+        "name": "revolve",
+        "kind": "function",
+        "doc": "A surface of revolution with an arbitrary radius / height per (angle, t): `fn(theta, t) → [r, y]`, `segU` round,"
+      },
+      {
+        "name": "revolveUV",
+        "kind": "function",
+        "doc": "`revolve` with texture coordinates: u = angle / 2π × `uReps` (the seam column is doubled so u runs 0 → uReps without"
+      },
+      {
+        "name": "RGB",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "riderArm",
+        "kind": "function",
+        "doc": "The arm from the wrist, along +Y: a flared leather gauntlet with a rolled, stitched edge (0 … 7 cm), a thick fleece"
+      },
+      {
+        "name": "RigAnimCtx",
+        "kind": "interface",
+        "doc": "Per-frame animation context of a CUSTOM rig (`SpeciesDef.rig === 'custom'`: crab, monkey, sailor — anything that is"
+      },
+      {
+        "name": "RigBake",
+        "kind": "interface",
+        "doc": "Canonical → authored names. Metadata renames clips; the GLB and its tracks remain untouched."
+      },
+      {
+        "name": "rigClamp",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "RigContract",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "RigInstance",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "RigRef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Rng",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "RngService",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "RngStream",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "RngStreams",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ROAD_LENGTH",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "ROAD_WIDTH",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "rock",
+        "kind": "function",
+        "doc": "A boulder: an icosahedron (detail 0 = 20 faces, 1 = 80) with every vertex pushed in/out by value"
+      },
+      {
+        "name": "RoomMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "RoomMarker",
+        "kind": "interface",
+        "doc": "something that moves, read every frame (a playground's mount); `color` defaults to amber"
+      },
+      {
+        "name": "RoomShape",
+        "kind": "type",
+        "doc": "A practice room's own map (E321, Jake: \"the minimap needs to be for this new custom map for the horse racing test, not"
+      },
+      {
+        "name": "rope",
+        "kind": "function",
+        "doc": "a rope / cable: a 4-sided tube through the points (segments share no caps; cheap and reads fine)"
+      },
+      {
+        "name": "RopeChain",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "RopeChainSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "RosterEntry",
+        "kind": "interface",
+        "doc": "one live model a shard has: its catalog listing, made by `live(model, …)` (the model's params type stays inside)"
+      },
+      {
+        "name": "RunCondition",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "S",
+        "kind": "const",
+        "doc": "station helper"
+      },
+      {
+        "name": "sagLine",
+        "kind": "function",
+        "doc": "points along a catenary-ish sag from a to b (n segments), for ropes and rigging"
+      },
+      {
+        "name": "SampleClip",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SampleLoop",
+        "kind": "interface",
+        "doc": "a decoded loop (a bed or a hum): the buffer, its loop points in the file, and a gain from sfx.json (default per kind)"
+      },
+      {
+        "name": "SamplePolicy",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SampleVoice",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SaveKeyDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "saves",
+        "kind": "const",
+        "doc": "The same service exposed as app.saves, available before the app/renderer graph evaluates."
+      },
+      {
+        "name": "SaveScope",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "SaveSlot",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "saveStorage",
+        "kind": "function",
+        "doc": "String codec for injected diagnostics APIs. Values still validate and persist through defined SaveSlots."
+      },
+      {
+        "name": "SaveStore",
+        "kind": "class",
+        "doc": "Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys."
+      },
+      {
+        "name": "ScheduleSeg",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Scope",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "ScopeCensus",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Score",
+        "kind": "interface",
+        "doc": "everything Music needs of a score"
+      },
+      {
+        "name": "ScoreSource",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "seaDamp",
+        "kind": "function",
+        "doc": "shore damping from the water depth (m): the swell flattens over the sand so the foam line stays put"
+      },
+      {
+        "name": "SEED",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "Segment",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "selectedLevel",
+        "kind": "function",
+        "doc": "Early error reporting and the renderer-free page can inspect selection without requiring a world."
+      },
+      {
+        "name": "setCreatureSoundDefaults",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "setDev",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "setEliteAct",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "setEliteBrain",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "setEliteDamage",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "setInheritedPatch",
+        "kind": "function",
+        "doc": "The hook every material inherits until a `replace` patch drops it (Atmosphere's fog uniforms). It stays on the"
+      },
+      {
+        "name": "setPainterlyLook",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "setProgramKey",
+        "kind": "function",
+        "doc": "Set a material's program-cache key with no source patch (a ShaderMaterial whose source is its own)."
+      },
+      {
+        "name": "SetScore",
+        "kind": "class",
+        "doc": "One score set; only the playing and wanted slots retain PCM across scene changes."
+      },
+      {
+        "name": "setShag",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "setShapeFn",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "setTerrainHeight",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "setting",
+        "kind": "function",
+        "doc": "the value this page runs with: the URL's param if present, else the saved pick, else the default"
+      },
+      {
+        "name": "setTitleArrival",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "sfxManifests",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "ShaderPatchFn",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ShaderPatchKey",
+        "kind": "type",
+        "doc": "a fixed key, or one built on the key the material had before this patch (`(k) => \\`${k}|csm\\``)"
+      },
+      {
+        "name": "ShaderPatchOptions",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ShaderSource",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "SHADOW_LAYER",
+        "kind": "const",
+        "doc": "The layer of shadow-only casters: meshes drawn into the sun's shadow map and nowhere else (Cabin.ts's static depth"
+      },
+      {
+        "name": "shadowProxy",
+        "kind": "function",
+        "doc": "position-only merged caster on SHADOW_LAYER (drawn into the sun's shadow maps and nowhere else); null for an empty list"
+      },
+      {
+        "name": "ShotOpts",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SkinDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "skinPlain",
+        "kind": "function",
+        "doc": "Give a plain geometry (sphere) colour + skin attributes for one bone."
+      },
+      {
+        "name": "SkinRow",
+        "kind": "interface",
+        "doc": "`locked`: not owned yet — dim, not tappable; `icon`: the card's glyph (default laurel)"
+      },
+      {
+        "name": "Sky",
+        "kind": "class",
+        "doc": "Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the"
+      },
+      {
+        "name": "SkyBackdrop",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SkyBackdropContext",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SkyBackdropFactory",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "SkyBackdropPost",
+        "kind": "interface",
+        "doc": "the post effects the clock drives (Game.buildComposer hands them over)"
+      },
+      {
+        "name": "SkyBackdropTargets",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SkyBackdropView",
+        "kind": "class",
+        "doc": "The default background and visible sky pieces, independent of the lighting/shadow rig."
+      },
+      {
+        "name": "SkyDressing",
+        "kind": "interface",
+        "doc": "A level's own sky layer on the engine's sky rig (07 §6.2 step 5). Sky.build runs `build` where it builds its cloud"
+      },
+      {
+        "name": "SkyRig",
+        "kind": "class",
+        "doc": "Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the"
+      },
+      {
+        "name": "SlashTrail",
+        "kind": "class",
+        "doc": "Shared blade-sample ring and Catmull-Rom ribbon; callers supply their material and age/alpha profile."
+      },
+      {
+        "name": "SlashTrailProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "slicer",
+        "kind": "function",
+        "doc": "A yield point that ends the task only once it has run `budgetMs` (wall): sprinkle `await slice()` between"
+      },
+      {
+        "name": "SlotAudio",
+        "kind": "interface",
+        "doc": "a decoded slot: its spec and the stems (tension absent for the title cut; layers only on the boss)"
+      },
+      {
+        "name": "smooth01",
+        "kind": "const",
+        "doc": "Helpers shared by the CUSTOM rigs (crab / monkey / sailor — `SpeciesDef.rig: 'custom'`): pose maths that every"
+      },
+      {
+        "name": "smoothstep",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "SocketName",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "SoundHandle",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SourceMulDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "sourceMultiplier",
+        "kind": "function",
+        "doc": "Sources call this inside their own rounding expression, never as a later damage rule."
+      },
+      {
+        "name": "SpawnContext",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SpawnEntry",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Spawner",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SpawnPoint",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SpawnTableRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "speciesDef",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "SpeciesDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SpeciesFlight",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SpeciesLook",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SpeciesRGB",
+        "kind": "type",
+        "doc": "sRGB colour triple, 0..1 (palette entries and VariantDef.tint values)"
+      },
+      {
+        "name": "SpeciesRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SpeciesService",
+        "kind": "class",
+        "doc": "Row/look registrations are resident-owned; resolution and cached adapters follow the active level."
+      },
+      {
+        "name": "speciesSstep",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "SpeciesVariant",
+        "kind": "interface",
+        "doc": "Gameplay data only. A procedural builder, palette or hull never belongs on this row."
+      },
+      {
+        "name": "SpeciesWeights",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "speciesWithLook",
+        "kind": "function",
+        "doc": "The legacy view/body adapter is assembled at the factory boundary, after kit registration."
+      },
+      {
+        "name": "squashBody",
+        "kind": "function",
+        "doc": "Squash & stretch on a hit (remaster M3, a hook for the feel-agent's hit reactions): a volume-preserving wobble of the"
+      },
+      {
+        "name": "srgb",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "sstep",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "standIn",
+        "kind": "function",
+        "doc": "A 1 × 1 texture: the bark material's stand-in maps (the arrays are what it samples)."
+      },
+      {
+        "name": "startTelemetry",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "startViewmodelTextures",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "StateChange",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "StateDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Station",
+        "kind": "interface",
+        "doc": "Loft helpers shared by every species file (`src/engine/entities/species/<kind>.ts`)."
+      },
+      {
+        "name": "StemSting",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "step",
+        "kind": "const",
+        "doc": "0 before a, 1 after b, smooth between"
+      },
+      {
+        "name": "stepBrass",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "StepProgress",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "StepRunner",
+        "kind": "type",
+        "doc": "Runs one step: what code outside main.ts (bootstrap) receives, so it need not know the plan type."
+      },
+      {
+        "name": "StepSurface",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "sticksIn",
+        "kind": "function",
+        "doc": "Materials a bolt / arrow sticks in; anything else it glances off (stone, rock, metal, shell)."
+      },
+      {
+        "name": "StrikeActor",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "StrikeContext",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "StrikePhase",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "StrikeRunner",
+        "kind": "class",
+        "doc": "One simulation clock, with presentation supplied by the owning creature's view."
+      },
+      {
+        "name": "StrikeSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "StringKey",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "StringTable",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "stripExtra",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "StyleBank",
+        "kind": "type",
+        "doc": "one genre, decoded: the slots this shard can play and the stings, plus what each file cost"
+      },
+      {
+        "name": "swayByHeight",
+        "kind": "function",
+        "doc": "an aSway attribute for a geometry: weight rises with height from 0 at `y0` to `w` at `y1` (a bush, a frond) or falls"
+      },
+      {
+        "name": "swayDepthMaterial",
+        "kind": "function",
+        "doc": "the shadow-pass material for swaying meshes (one shared program)"
+      },
+      {
+        "name": "swellBody",
+        "kind": "function",
+        "doc": "A body whose surface rides the engine's Gerstner swell (../waves.ts) over a flat rest level: an open sea."
+      },
+      {
+        "name": "SwimArms",
+        "kind": "interface",
+        "doc": "a skinned arm rig's swimming (ShardSword.swim): drawn under `root` in the camera's viewmodel queue"
+      },
+      {
+        "name": "SwordArms",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SwordFraming",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SwordMoveSet",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SwordRig",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SwordWorld",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "syncPainterlySun",
+        "kind": "function",
+        "doc": "Read the sun off the sky rig into the shared uniforms (CSM lights all share the sun's colour and intensity)."
+      },
+      {
+        "name": "Synth",
+        "kind": "class",
+        "doc": "Shared WebAudio oscillator/noise/envelope blocks; content owns sound ids."
+      },
+      {
+        "name": "synthKit",
+        "kind": "const",
+        "doc": "The primitives the generators here build on, for content voices outside the engine (E405: the creature voices"
+      },
+      {
+        "name": "SystemsByPhase",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "SystemSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TabFragment",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TabId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "TableDrop",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TableSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TabRegistry",
+        "kind": "class",
+        "doc": "Stable registration order breaks ties; two owners cannot silently replace one another."
+      },
+      {
+        "name": "TabSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Tag",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "TagMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "tagOf",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "takeForeignHook",
+        "kind": "function",
+        "doc": "Run `install` (a foreign addon that assigns `onBeforeCompile` itself: three's CSM) and hand back the hook it"
+      },
+      {
+        "name": "tap",
+        "kind": "const",
+        "doc": "E357 F2: dormant unless the parity harness installs its observers."
+      },
+      {
+        "name": "TargetAnimal",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TargetHit",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "targetRadius",
+        "kind": "function",
+        "doc": "the animal's horizontal half-size (m) from its dims — where a lunge stops short of it"
+      },
+      {
+        "name": "Targets",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Terrain",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "TERRAIN_RES",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "TerrainCut",
+        "kind": "interface",
+        "doc": "A rectangle (centre, half-extents, turned by `yaw` about +Y) where the physics ground must sit at or below `below`."
+      },
+      {
+        "name": "terrainNormal",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "TerrainPainter",
+        "kind": "interface",
+        "doc": "a level's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build)"
+      },
+      {
+        "name": "terrainWaterLevel",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "test",
+        "kind": "function",
+        "doc": "a condition over the flags: every `all`, at least one `any` (when given), no `none`. An absent condition holds."
+      },
+      {
+        "name": "TexSet",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ThinkCtx",
+        "kind": "interface",
+        "doc": "The AI tick (10 Hz) context for a species that thinks for itself (`SpeciesDef.think`): the manager's senses/flee loop is skipped."
+      },
+      {
+        "name": "TickActor",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TickBand",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TickRate",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TickRateId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "TickScheduler",
+        "kind": "class",
+        "doc": "Clocks belong to subjects, not rate classes. Paused time is discarded, never replayed on return."
+      },
+      {
+        "name": "TIER",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "TIER_CONFIG",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "TierKnobMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TierKnobs",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TierKnobSchema",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TierOverrides",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "TimePick",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "TitleArrival",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Tool",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "ToolId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "toonPaint",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "ToonPaint",
+        "kind": "type",
+        "doc": "a toon level's palette for one species kind: flat vertex colours from the variant's tints"
+      },
+      {
+        "name": "TouchRelabel",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TouchVerb",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TouchVerbSpec",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "TRACER_ORDER",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "TRACER_RED",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "Trail",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TrainingArena",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "TRANSIENT_PREFIXES",
+        "kind": "const",
+        "doc": "flags that describe a moment, not progress — never persisted"
+      },
+      {
+        "name": "TREE_SPECS",
+        "kind": "const",
+        "doc": "Pure tree geometry specifications and file fallback selection."
+      },
+      {
+        "name": "TreeFactory",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "TreeInstance",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "treeSetOf",
+        "kind": "function",
+        "doc": "Select a supplied set when its files exist; bakecards forces the runtime bake."
+      },
+      {
+        "name": "treeSetUrls",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "TreeSetVariant",
+        "kind": "interface",
+        "doc": "one variant of a tree set: its mesh name in the set's GLB, its species, height and trunk (m), the trunk collider's scale"
+      },
+      {
+        "name": "TreeSpeciesTraits",
+        "kind": "interface",
+        "doc": "how a species is planted: its scale range; whether it follows the zone's growth (ForestSpec.scale); the trunk's extra"
+      },
+      {
+        "name": "TreeVariant",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "tris",
+        "kind": "function",
+        "doc": "a flat list of triangles ([x,y,z]×3 per face) as a geometry for `kit.add`"
+      },
+      {
+        "name": "tube",
+        "kind": "function",
+        "doc": "Sweep a tapered tube along a polyline (antler beams, tusks)."
+      },
+      {
+        "name": "twoSidedPositions",
+        "kind": "function",
+        "doc": "`geo`'s positions only, moved by `m`, indexed with every triangle twice — as it is and with its winding reversed — for"
+      },
+      {
+        "name": "UiHandle",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "UiLayer",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "UiLayers",
+        "kind": "class",
+        "doc": "A single back/input owner; resident scopes retain their own overlay entries."
+      },
+      {
+        "name": "uiScope",
+        "kind": "function",
+        "doc": "Construction may run before the level becomes active; use its explicit boot owner."
+      },
+      {
+        "name": "UiView",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "UnderPlacements",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "UnitParts",
+        "kind": "class",
+        "doc": "Parts gathered for one unit, merged once: one slot per (material, band), in the order they first came."
+      },
+      {
+        "name": "updatePainterly",
+        "kind": "function",
+        "doc": "Advance the shared clock that drives `sway`."
+      },
+      {
+        "name": "updateWind",
+        "kind": "function",
+        "doc": "advance the wind clock and the gust (a few incommensurate sines: long lulls, a stronger puff every half-minute or so)"
+      },
+      {
+        "name": "UtilityScore",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "validateQuest",
+        "kind": "function",
+        "doc": "checks a quest def is sound: unique step ids, every step reachable (a done condition that is not trivially true)"
+      },
+      {
+        "name": "variantDef",
+        "kind": "function",
+        "doc": "The variant table entry, or the species' first (fallback) variant for an unknown id."
+      },
+      {
+        "name": "VariantDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "VariantMods",
+        "kind": "interface",
+        "doc": "Per-variant gameplay multipliers, applied by AnimalManager at spawn on top of the species' HuntTuning."
+      },
+      {
+        "name": "VerbSlotOpts",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "versionedUrl",
+        "kind": "function",
+        "doc": "The URL the network sees for a file under public/assets whose name is not content-addressed (vite.config.ts"
+      },
+      {
+        "name": "viewmodel",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "VIEWMODEL_GROUP",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "viewmodelMaterial",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "viewmodelTexSet",
+        "kind": "function",
+        "doc": "A viewmodel texture set as DataTextures (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8)."
+      },
+      {
+        "name": "viewmodelTexturesReady",
+        "kind": "function",
+        "doc": "Resolves when the worker has delivered every set it was asked for (or gave up); awaited by the weapon step."
+      },
+      {
+        "name": "vineStrand",
+        "kind": "function",
+        "doc": "a hanging vine strand from `top` down `len` m, a leaf pair every 0.3 m (in the plane across `across`)"
+      },
+      {
+        "name": "VoicePool",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "VoiceTable",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "volumetricFog",
+        "kind": "const",
+        "doc": "The volumetric shafts' own height fog (core/Volumetrics.ts reads it before `fogUniforms`): null = follow the geometry"
+      },
+      {
+        "name": "voxelAO",
+        "kind": "function",
+        "doc": "each vertex's darkening (0..1; NaN where a sample was skipped: a degenerate normal)"
+      },
+      {
+        "name": "VoxelAOParams",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "WaterBodies",
+        "kind": "class",
+        "doc": "`app.world.water`: the level's registered bodies; each leaves with the scope that added it."
+      },
+      {
+        "name": "WaterBody",
+        "kind": "interface",
+        "doc": "A body of water a level registers with the engine (01 §6, §17; 08 §6.1 step 4): the sea (S4.1), a still basin (a"
+      },
+      {
+        "name": "waveClock",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "waveHeight",
+        "kind": "function",
+        "doc": "surface height above the still level at world (x, z) — what a floating thing should ride"
+      },
+      {
+        "name": "WAVES_GLSL",
+        "kind": "const",
+        "doc": "the same waves in GLSL: `vec3 gerstner(vec2 p, float t, float damp)` → displacement"
+      },
+      {
+        "name": "WAVES_NORMAL_GLSL",
+        "kind": "const",
+        "doc": "E151: the surface normal of the same waves at rest point `p` — the analytic Gerstner tangents (∂S/∂x, ∂S/∂z) crossed,"
+      },
+      {
+        "name": "Weapon",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "weaponActionGate",
+        "kind": "function",
+        "doc": "Additive contexts decide mode availability; equipment still owns holster/selection readiness."
+      },
+      {
+        "name": "WeaponHooks",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "WeaponId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "weaponInputContext",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "WeaponState",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "WeaponUi",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Weather",
+        "kind": "class",
+        "doc": "Shared seeded transition loop; content supplies the continuous numbers and hold policy."
+      },
+      {
+        "name": "weatherFog",
+        "kind": "function",
+        "doc": "A level's weather fog: `set(strength)` (0 = clear … 1 = the spec) every time it changes; the level eases it. The fog"
+      },
+      {
+        "name": "WeatherFog",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "WeatherFogSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "WeatherNumbers",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "WeatherProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "weatherUniforms",
+        "kind": "const",
+        "doc": "Pine Hollow's weather (PH-L10, src/shards/pine-hollow/world/weather.ts drives them), compiled into Pine Hollow's shaders only — every"
+      },
+      {
+        "name": "WeightedRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "WeightedTable",
+        "kind": "class",
+        "doc": "Authoring order and the supplied random stream determine both selection and counts."
+      },
+      {
+        "name": "WeldBuild",
+        "kind": "interface",
+        "doc": "One copy of a site-fitted model as it hands itself to a weld (`ModelDef.weld`, `place(…, { draw: 'merged', weld })`):"
+      },
+      {
+        "name": "WeldPart",
+        "kind": "interface",
+        "doc": "Geometries of one welded copy that merge into one mesh with their unit's of the same material and band."
+      },
+      {
+        "name": "whiteColors",
+        "kind": "function",
+        "doc": "An all-white (×1) vertex-colour attribute where a geometry has none, so it can share a vertex-coloured program."
+      },
+      {
+        "name": "wind",
+        "kind": "const",
+        "doc": "the world's wind (a singleton — every system reads the same one)"
+      },
+      {
+        "name": "WIND_DIR",
+        "kind": "const",
+        "doc": "the prevailing wind, unit xz, blowing toward (x, z) — the same as Driftwood's sway"
+      },
+      {
+        "name": "WIND_GLSL",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "windBoost",
+        "kind": "const",
+        "doc": "0 … 1 wind the weather adds (Pine Hollow's rain, PH-L10: src/shards/pine-hollow/world/weather.ts); 0 = the wind exactly as before"
+      },
+      {
+        "name": "WindField",
+        "kind": "interface",
+        "doc": "the wind the projectiles drift in: metres / second in XZ at a world point (y is ignored). `src/world/Wind.ts`'s"
+      },
+      {
+        "name": "windFieldUniforms",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "windGustAt",
+        "kind": "function",
+        "doc": "CPU mirror of the GLSL `windGustAt` (sound, tests): the gust strength at world (x, z) now, or at clock `t` / gust `gust`"
+      },
+      {
+        "name": "windUniforms",
+        "kind": "const",
+        "doc": "`uTime` IS wind.ts's clock (PH-L6, one wind: Forest.update advances it with updateWind); `uWindStrength` scales the"
+      },
+      {
+        "name": "withOwner",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "wobble",
+        "kind": "function",
+        "doc": "displace every distinct vertex position by up to ±amp (shared corners move together)"
+      },
+      {
+        "name": "World",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "worldHit",
+        "kind": "function",
+        "doc": "The first world surface a bolt's step (`radius` > 0: a ball swept a → b) or a shot (`radius` 0: the ray a → b) meets,"
+      },
+      {
+        "name": "WorldRegistry",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "worldTime",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "ZoneVoice",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ZoneWeights",
+        "kind": "type",
+        "doc": ""
+      }
+    ],
+    "game": [
+      {
+        "name": "AchievementDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "applyTravelCarry",
+        "kind": "function",
+        "doc": "Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly."
+      },
+      {
+        "name": "BagIcons",
+        "kind": "interface",
+        "doc": "the glyphs the bag draws for its tabs and the loot it shows: content's, so the composition root hands them in (E362 AG4)"
+      },
+      {
+        "name": "BagVerbs",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "bindTravelInventory",
+        "kind": "function",
+        "doc": "The composition root binds the live Bag and rows; the cold title has no running shard."
+      },
+      {
+        "name": "BodyShadow",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "bossesSave",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "bountySave",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "ChunkTerrain",
+        "kind": "interface",
+        "doc": "The compiled terrain: pure functions over (x, z). Built once per def by `buildTerrain()` in"
+      },
+      {
+        "name": "CoinBurst",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "CompendiumHost",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "compendiumSave",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "CompendiumSkin",
+        "kind": "interface",
+        "doc": "a skin: how a shard's book looks and reads. The DOM is the engine's; the skin adds its class, words and art."
+      },
+      {
+        "name": "CompendiumState",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "CompendiumWallPort",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "consumeTravelHandoff",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "CosmeticDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "CosmeticProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "CosmeticsLocker",
+        "kind": "class",
+        "doc": "One ownership and wear service; shard profiles supply rows, persistence and auto-wear policy."
+      },
+      {
+        "name": "CosmeticSlot",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "CosmeticState",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "CreatureDeathSource",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "DEATH_ORDER",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "DialogueBox",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "EliteDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EliteRule",
+        "kind": "type",
+        "doc": "Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). \"Elites"
+      },
+      {
+        "name": "Elites",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "EliteScript",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "elitesSave",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "EntryDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "EntryStats",
+        "kind": "interface",
+        "doc": "what the book shows per entry"
+      },
+      {
+        "name": "EquipmentRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "FieldModelsContext",
+        "kind": "interface",
+        "doc": "What core hands a shard's field models (`ShardManifest.fieldModels`): the fields it built, the shard's sky and registry."
+      },
+      {
+        "name": "findChunk",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "findShard",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "FindsView",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "game",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "GAME_API",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "GameRowMap",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "GameRows",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "GameServices",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "GearLoot",
+        "kind": "interface",
+        "doc": "a shard's loot on GEAR (Driftwood); every part optional"
+      },
+      {
+        "name": "getActiveChunk",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "getLootTable",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "GroundTell",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "GroundTellWedgeStyle",
+        "kind": "interface",
+        "doc": "Wedge-specific shader parameters are authored by the caller; geometry/draping is shared."
+      },
+      {
+        "name": "installBodyShadow",
+        "kind": "function",
+        "doc": "the body shadow in the running game: added to the scene, posed after the player moves each frame"
+      },
+      {
+        "name": "installCompendium",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "installLoot",
+        "kind": "function",
+        "doc": "Any coin-enabled manifest gets the same scoped coin and shop mechanism."
+      },
+      {
+        "name": "installQuestPresentation",
+        "kind": "function",
+        "doc": "One call in play(ctx): Wendell's chip, MAP card, diamonds, world pins, discovery, dialogue and reward."
+      },
+      {
+        "name": "installShards",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "installTemplateDebug",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "Inventory",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "inventorySave",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "isCosmetic",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "isItemId",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "isOwnedId",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "ItemId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ItemRow",
+        "kind": "interface",
+        "doc": "Game-owned item registration contract. No shipped row enables travel yet."
+      },
+      {
+        "name": "ITEMS",
+        "kind": "const",
+        "doc": "Each shard registers its own catalogue for the level lifetime."
+      },
+      {
+        "name": "LiveMarker",
+        "kind": "interface",
+        "doc": "a quest marker resolved to world coordinates"
+      },
+      {
+        "name": "loadHandFont",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "LootContext",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LootPresentation",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LootShop",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "LootTableRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "normalizeItemRow",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "NpcDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "NpcTalk",
+        "kind": "class",
+        "doc": "one NPC's talk prompt + dialogue over a (shared) DialogueBox"
+      },
+      {
+        "name": "ObjectiveLine",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "onCreatureDeath",
+        "kind": "function",
+        "doc": "Actor ids identify a species, so resolve the exact instance rather than paying the first of its kind."
+      },
+      {
+        "name": "Owned",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "OWNED",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "OwnedId",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "ownedSave",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "PlacePoint",
+        "kind": "interface",
+        "doc": "a named place in world coordinates: discovered within `r`; `quiet` = discovered without a toast (the arrival point)"
+      },
+      {
+        "name": "Places",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "placesWithDiscovery",
+        "kind": "function",
+        "doc": "named places with saved discovery (`seen:<id>` flags) + the live quest markers, for the full map"
+      },
+      {
+        "name": "PresentedQuestDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "PresentedQuestStep",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "presentQuest",
+        "kind": "function",
+        "doc": "Shared wiring for older adventures that own their frame order. New shards use installQuestPresentation."
+      },
+      {
+        "name": "Progress",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "progressSave",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "ProgressSink",
+        "kind": "interface",
+        "doc": "what a shard's feats code records into (Driftwood's quest/Feats.ts, Nalati's adventure): the game layer's type, so two shards share it without importing each other (E357 F6)"
+      },
+      {
+        "name": "purseSave",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "QuestChip",
+        "kind": "class",
+        "doc": "the quest chip under the minimap (QuestUI's ObjectiveLine) fed from a quest: goal + nearest marker, ~10 Hz"
+      },
+      {
+        "name": "QuestDef",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestLine",
+        "kind": "class",
+        "doc": "chained chapters: each def's `startWhen` reads the one before's `completeFlag`; the active one is the first not done"
+      },
+      {
+        "name": "QuestMarker",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestPresentation",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestPresentationContext",
+        "kind": "interface",
+        "doc": "Structural play-context port; a ShardContext supplies all of it."
+      },
+      {
+        "name": "QuestPresentationHost",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestPresentationNpc",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestPresentationOptions",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestRewardBeat",
+        "kind": "class",
+        "doc": "Wendell's held reward view: the same caption, 2.5 s camera ease, 3.5 s clock ease and 7 s hold."
+      },
+      {
+        "name": "QuestRewardHost",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestRewardPlayer",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestRewardSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "QuestState",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "QuestTarget",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "RegisteredItemRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "registerItemRow",
+        "kind": "function",
+        "doc": "A catalog entry follows the row's level scope; starter registrations may be replaced by a level."
+      },
+      {
+        "name": "registerLootTable",
+        "kind": "function",
+        "doc": "Authored rewards resolve against the active resident; unscoped rows support pure content tools."
+      },
+      {
+        "name": "renderFinds",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "RewardCaption",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "RGB",
+        "kind": "type",
+        "doc": "linear-space RGB triple, 0..1 (values above 1 are allowed for HDR sun colours)"
+      },
+      {
+        "name": "rollLoot",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "saveSlug",
+        "kind": "function",
+        "doc": "Legacy actor APIs accept strings until their shard phase; normalize the old identifier at this boundary."
+      },
+      {
+        "name": "ScopedLoot",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ScopedLootHost",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "setCompleteEntry",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "ShardCompendium",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ShardComplete",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "ShardCompleteData",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "shardContext",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "ShardContext",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ShardManifest",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ShardPlugin",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "ShardRuntime",
+        "kind": "interface",
+        "doc": "Typed, per-build handoff between the staged shell and an authored plugin."
+      },
+      {
+        "name": "shardSave",
+        "kind": "function",
+        "doc": "The public game wrapper constrains saves to the generated registry's slug union."
+      },
+      {
+        "name": "ShardSword",
+        "kind": "interface",
+        "doc": "a shard's own sword (ShardManifest.sword): the engine Sword's rigid rig, moves and portrait framing — or an animated rig"
+      },
+      {
+        "name": "ShardWorld",
+        "kind": "interface",
+        "doc": "Game presentation metadata stays beside the generic engine world."
+      },
+      {
+        "name": "ShopGood",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ShopOpts",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ShopPanel",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "ShopState",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "SkinLocker",
+        "kind": "class",
+        "doc": "Weapon-material profile, with the original shard-scoped save and manual wear policy."
+      },
+      {
+        "name": "toLevelSpec",
+        "kind": "function",
+        "doc": "Pure, node-safe boundary. Only authored engine policy crosses it, never title or game metadata."
+      },
+      {
+        "name": "travel",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "TravelHandoff",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TravelRequest",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "TrophySlot",
+        "kind": "interface",
+        "doc": "one mount slot on the trophy wall: taken → the animal's head on a shield; not yet → a chalk outline + the name"
+      },
+      {
+        "name": "Vec2",
+        "kind": "type",
+        "doc": "[x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes"
+      }
+    ],
+    "kit": [
+      {
+        "name": "AIM_IN",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "AIM_SPREAD",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "AIM_SWAY",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "AIM_VM_ZOOM",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "AIM_ZOOM",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "AR15",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "ARM_CLIPS",
+        "kind": "const",
+        "doc": "Metadata-only renames shared by the two authored arm rigs. Source track names stay byte-identical."
+      },
+      {
+        "name": "armClipNames",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "ARROW_LEN",
+        "kind": "const",
+        "doc": "The arrow: birch shaft with a red cresting band, iron leaf head, three barred feathers. TIP at the origin, shaft"
+      },
+      {
+        "name": "arrowKind",
+        "kind": "function",
+        "doc": "the arrow as a `Projectiles` kind (the world pool) — combat.md §C numbers"
+      },
+      {
+        "name": "arrowMaterial",
+        "kind": "function",
+        "doc": "the arrows' one painterly material (the world pool's; E348: the Model Explorer's arrow card makes its own)"
+      },
+      {
+        "name": "BAG_ICONS",
+        "kind": "const",
+        "doc": "the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4)"
+      },
+      {
+        "name": "BEAR",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "BEAR_LOOK",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "BEAR_PALETTE",
+        "kind": "const",
+        "doc": "Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown /"
+      },
+      {
+        "name": "BEAR_TUNING",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "blendGrip",
+        "kind": "function",
+        "doc": "`a` → `b` by t (0..1), into `out` (the directions re-normalised)"
+      },
+      {
+        "name": "BOAR",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "BOAR_LOOK",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "BOAR_PALETTE",
+        "kind": "const",
+        "doc": "Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head."
+      },
+      {
+        "name": "BOAR_TUNING",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "boltFlightStep",
+        "kind": "function",
+        "doc": "Deterministic bolt substep, including the selected ammo/weather multipliers."
+      },
+      {
+        "name": "BoltMod",
+        "kind": "interface",
+        "doc": "Special bolts (optional — Pine Hollow's loadout, src/shards/pine-hollow/loadout/loadout.ts): the flight + damage of the NEXT bolt to leave"
+      },
+      {
+        "name": "Bow",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "BOW",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "BowOptions",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BowProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "bowSpecimen",
+        "kind": "function",
+        "doc": "The Model Explorer's card (src/shards/nalati-grasslands/models/gear.ts): the braced bow and the left glove on it (the"
+      },
+      {
+        "name": "BowStyle",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "BowView",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BowWorld",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "BUCKSKIN",
+        "kind": "const",
+        "doc": "the gloves' tint over the hunter palette (linear, per channel): a pale buckskin that reads against the walnut stocks"
+      },
+      {
+        "name": "buildArrowGeometry",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "buildBolt",
+        "kind": "function",
+        "doc": "The bolt (E348): its atlas (the iron shaft, the steel head, the feather vanes), its geometry along −Z (tip at −Z, 0.36 m)"
+      },
+      {
+        "name": "buildCrossbow",
+        "kind": "function",
+        "doc": "The crossbow in model space (−Z the bolt, +Y up, the rail top at y 0; the nut at z +0.14, the prod at z −0.30): the stock,"
+      },
+      {
+        "name": "buildRifleParts",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "buildSword",
+        "kind": "function",
+        "doc": "Sword model space: origin at the middle of the grip (between the two fists), +Y up the blade, +X across the"
+      },
+      {
+        "name": "carvedTokenGeometry",
+        "kind": "function",
+        "doc": "a carved wooden token — lit batch: a wooden disc on edge, a burnt antler glyph on both faces, a bark rim"
+      },
+      {
+        "name": "CHARGE",
+        "kind": "const",
+        "doc": "RMB / touch AIM held: the blade raised high over the right shoulder, tip up and a little back — the heavy's charge"
+      },
+      {
+        "name": "coatMaterialParams",
+        "kind": "function",
+        "doc": "the coat sleeve's material parameters (the viewmodels' shared program: its five map slots all filled by the canvas)"
+      },
+      {
+        "name": "COMBO",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "createForestAudio",
+        "kind": "function",
+        "doc": "Asset-free profile; installForestAmbience supplies the shared synth wind bed."
+      },
+      {
+        "name": "CREATURE_VOICES",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "CreatureVoice",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "CreatureWindup",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "Crossbow",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "CROSSBOW_PROFILE",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "crossbowDisplayModel",
+        "kind": "function",
+        "doc": "A world-space copy of the crossbow for a floor drop: the viewmodel's meshes with plain render flags, no depth"
+      },
+      {
+        "name": "CrossbowProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "faceHead",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "FaceHead",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Firearm",
+        "kind": "class",
+        "doc": "The trigger template is shared; custom actions override readiness, cycling and reload hooks."
+      },
+      {
+        "name": "FirearmProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "fitNpcFigure",
+        "kind": "function",
+        "doc": "fit a loaded figure into its procedural frame and weight it (see the header)"
+      },
+      {
+        "name": "fogGLSL",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "footPlan",
+        "kind": "function",
+        "doc": "a foot's planted-point target (hip-relative offsets, × H) and its toe-down pitch at `p` (0 … 1 of its own cycle)"
+      },
+      {
+        "name": "gripPose",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "GripPose",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "HandHold",
+        "kind": "interface",
+        "doc": "a hold as a weapon declares it (a dev knob: edit, then the weapon's `rebuildHands()`)"
+      },
+      {
+        "name": "HANDS_MATERIAL",
+        "kind": "const",
+        "doc": "the hands' material parameters (the Longbow's: the viewmodels' shared lit program, vertex colours × the 1×1 fillers)"
+      },
+      {
+        "name": "HEAVY",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "holdDef",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "Hoverboard",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "HOVERBOARD_TOOL",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "installForestAmbience",
+        "kind": "function",
+        "doc": "A reusable wind bed; mkWind registers its sources with the mixer's bed-node lifetime."
+      },
+      {
+        "name": "installKitIcons",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "installKitPickups",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "installKitProps",
+        "kind": "function",
+        "doc": "hands the kit's props to the engine's interaction runtime (the composition root calls it at boot)"
+      },
+      {
+        "name": "installKitSpecies",
+        "kind": "function",
+        "doc": "Composition root defaults for legacy shards and standalone model tools. Plugins add scoped child rows."
+      },
+      {
+        "name": "installSilentScore",
+        "kind": "function",
+        "doc": "Silence this score's output, preserving the user's volume setting and the other sound buses."
+      },
+      {
+        "name": "installStarterEffects",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "INTERACT_PROPS",
+        "kind": "const",
+        "doc": "the props and models the engine's interaction runtime draws"
+      },
+      {
+        "name": "IRON_SWORD",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "JointAngles",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "key",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "KIT_API",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "KIT_ITEMS",
+        "kind": "const",
+        "doc": "Reusable harvest materials for the starter fauna."
+      },
+      {
+        "name": "LEG_BONE_NAMES",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "legBones",
+        "kind": "function",
+        "doc": "the rig's bones at rest (LEG_BONE_NAMES order), parented, the root first"
+      },
+      {
+        "name": "LegBuilt",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "legPose",
+        "kind": "function",
+        "doc": "the pose function over `bones` (legBones' order) for `b`"
+      },
+      {
+        "name": "legRigOf",
+        "kind": "function",
+        "doc": "rigLegs, once per person per shard visit"
+      },
+      {
+        "name": "loadFaceHead",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "loadGrassField",
+        "kind": "function",
+        "doc": "Meadow placement and trampling are runtime services."
+      },
+      {
+        "name": "loadParticles",
+        "kind": "function",
+        "doc": "Defer rendered particles until the authored world hook has its terrain and backdrop."
+      },
+      {
+        "name": "MAX_BOLTS",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "Melee",
+        "kind": "class",
+        "doc": "Shared contact family. Swept blades and the spear retain distinct clocks and viewmodel strategies."
+      },
+      {
+        "name": "meleeActor",
+        "kind": "function",
+        "doc": "Native creatures expose their pipeline actor; custom practice targets keep their own damage behavior."
+      },
+      {
+        "name": "MeleeProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "mergeNpcFigures",
+        "kind": "function",
+        "doc": "Fit and merge authored figures on a shared root/head/arm skeleton."
+      },
+      {
+        "name": "Move",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "NpcFace",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "NpcFigureBones",
+        "kind": "interface",
+        "doc": "the rig of one figure: root (feet), head (neck), arm (right shoulder) — world matrices written by the runtime"
+      },
+      {
+        "name": "NpcFigureFrame",
+        "kind": "interface",
+        "doc": "a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT)"
+      },
+      {
+        "name": "NpcFigureMotionProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "npcFigurePose",
+        "kind": "function",
+        "doc": "Matrices stay reusable; the caller chooses a skinned rig or procedural pieces."
+      },
+      {
+        "name": "NpcFigureRig",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "NpcFigureState",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "NpcModel",
+        "kind": "interface",
+        "doc": "Authored pivot and skinned models share the NPC row lifecycle; their pose driver stays with the content."
+      },
+      {
+        "name": "NpcRig",
+        "kind": "class",
+        "doc": "The draw cut runs before the pose, so a hidden counter and its figure freeze together."
+      },
+      {
+        "name": "NpcRigProfile",
+        "kind": "interface",
+        "doc": "Authored hull traits; the seed rig contains no shard names or model paths."
+      },
+      {
+        "name": "NpcRow",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Particles",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "PLAIN_BOLT",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "POSE",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "QUIVER_MAX",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "rainCurtain",
+        "kind": "function",
+        "doc": "Camera-local, world-anchored streak quads. Both authored programs retain their exact source."
+      },
+      {
+        "name": "RainCurtainSpec",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "RainProgram",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "REST",
+        "kind": "const",
+        "doc": "rest = the spawn mockup, held lower (E129: it covered Wendell and the middle-right of the view): hands at the lower-right"
+      },
+      {
+        "name": "Rifle",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "RifleOptions",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "RifleParts",
+        "kind": "interface",
+        "doc": "The AR-15's parts in model space (−Z the bore, +Y up, the bore axis at y 0; the receiver z −0.10 … +0.13, the muzzle at"
+      },
+      {
+        "name": "rigLegs",
+        "kind": "function",
+        "doc": "place the bones by the A-pose's proportions and weight every vertex (see the header); pure — the test runs it in Node"
+      },
+      {
+        "name": "sharedWeaponVoices",
+        "kind": "function",
+        "doc": "The kit's default equipment voices; samples and synth blocks come from the level's mixer."
+      },
+      {
+        "name": "SPRINT",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "STARTER_CHOICES",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "STARTER_EFFECTS",
+        "kind": "const",
+        "doc": "Proposed S2.5 values from 09 §2.4; only Blackpaw's existing stun applies in normal play."
+      },
+      {
+        "name": "StarterChoice",
+        "kind": "type",
+        "doc": ""
+      },
+      {
+        "name": "starterId",
+        "kind": "function",
+        "doc": ""
+      },
+      {
+        "name": "stepNpcFigure",
+        "kind": "function",
+        "doc": "A root/head/arm figure's idle, focus, talking and authored secondary motion."
+      },
+      {
+        "name": "SWAP_GLYPHS",
+        "kind": "const",
+        "doc": "The existing swap glyphs, shared by weapon rows (no equipment-id lookup in the HUD)."
+      },
+      {
+        "name": "SWIM_CLIPS",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "Sword",
+        "kind": "class",
+        "doc": ""
+      },
+      {
+        "name": "SWORD",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "SWORD_IRON",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "SWORD_WOOD",
+        "kind": "const",
+        "doc": ""
+      },
+      {
+        "name": "SwordArms",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "swordEvents",
+        "kind": "const",
+        "doc": "The combat events of whichever sword is in hand — both rigs (wooden, iron) publish here, so main.ts wires the island's"
+      },
+      {
+        "name": "SwordFraming",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "swordMaterial",
+        "kind": "function",
+        "doc": "the low-poly swords' material (flat facets, vertex colours; the iron blade metallic), prepared for the sky — opaque: the"
+      },
+      {
+        "name": "SwordMoveSet",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SwordRig",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "SwordWorld",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "Thrown",
+        "kind": "class",
+        "doc": "A composing weapon keeps its slot/input/pose; this helper owns its thrown row and ammunition."
+      },
+      {
+        "name": "ThrownProfile",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "ViewmodelFeel",
+        "kind": "interface",
+        "doc": ""
+      },
+      {
+        "name": "VM_SHADE",
+        "kind": "const",
+        "doc": "the viewmodel's shade-side fill (painterly `shade`; 1 = the world's)"
+      },
+      {
+        "name": "vocal",
+        "kind": "function",
+        "doc": "a creature's voice: its aggro / hurt bark"
+      },
+      {
+        "name": "WALK",
+        "kind": "const",
+        "doc": "the walk: one cycle's length (s), the stance share of it, a planted foot's hip-relative travel per stance (× H)"
+      },
+      {
+        "name": "WeaponHands",
+        "kind": "class",
+        "doc": "A weapon's two gloved hands under its model (they move, scale and hide with it): the left fixed where `left.pose` puts"
+      },
+      {
+        "name": "windup",
+        "kind": "function",
+        "doc": "a creature's telegraph, 400–700 ms before its attack lands"
+      },
+      {
+        "name": "withHunterPalette",
+        "kind": "function",
+        "doc": "build with the hunter's palette, then put Nalati's back (the module's palette is shared)"
+      },
+      {
+        "name": "WOODEN_SWORD",
+        "kind": "const",
+        "doc": ""
+      }
+    ]
+  },
+  "contexts": {
+    "LevelContext": [
+      {
+        "name": "answer",
+        "kind": "property",
+        "doc": "answer an engine ask (`player.crouch`, …) for the level's life; the last answer registered wins",
+        "from": "LevelContext"
+      },
+      {
+        "name": "app",
+        "kind": "property",
+        "doc": "the running app: its services (input, saves, species, events, clock, rng)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "debug",
+        "kind": "property",
+        "doc": "handles for tests and captures (`window.__wildshard.shard[name]`)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "debugRow",
+        "kind": "property",
+        "doc": "a Debug row of the level's own, shown only on it (pause ▸ Settings ▸ Debug)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "hud",
+        "kind": "property",
+        "doc": "the level's verbs on the one shared HUD (slots, chips, prompts)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "inputContext",
+        "kind": "property",
+        "doc": "declare an input context (its actions and bindings), pushed while the level runs",
+        "from": "LevelContext"
+      },
+      {
+        "name": "on",
+        "kind": "property",
+        "doc": "listen to an engine event for the level's life",
+        "from": "LevelContext"
+      },
+      {
+        "name": "piece",
+        "kind": "property",
+        "doc": "register a static or moving thing with its colliders, surface and Explore model (the one world registry)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "playground",
+        "kind": "property",
+        "doc": "a practice room for the level's verbs (Explore ▸ Practice)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "progress",
+        "kind": "property",
+        "doc": "the boot step's progress, for a hook that does long work (it moves the loading bar)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "root",
+        "kind": "property",
+        "doc": "the level's scene root: what the level adds to the world hangs here",
+        "from": "LevelContext"
+      },
+      {
+        "name": "rows",
+        "kind": "property",
+        "doc": "register content rows the engine reads (species, looks, models, equipment …) for the level's life",
+        "from": "LevelContext"
+      },
+      {
+        "name": "scope",
+        "kind": "property",
+        "doc": "the level's scope: everything registered through this context leaves with it",
+        "from": "LevelContext"
+      },
+      {
+        "name": "strings",
+        "kind": "property",
+        "doc": "the level's player-facing strings (`ctx.strings` keys the engine asks for, e.g. death verbs)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "system",
+        "kind": "property",
+        "doc": "run a system each frame or in the fixed step (`phase`: 'update', 'fixed.pre' / 'fixed.step' / 'fixed.post')",
+        "from": "LevelContext"
+      },
+      {
+        "name": "tiers",
+        "kind": "property",
+        "doc": "the level's per-tier tuning knobs (scatter counts, detail levels)",
+        "from": "LevelContext"
+      }
+    ],
+    "ShardContext": [
+      {
+        "name": "answer",
+        "kind": "property",
+        "doc": "answer an engine ask (`player.crouch`, …) for the level's life; the last answer registered wins",
+        "from": "LevelContext"
+      },
+      {
+        "name": "app",
+        "kind": "property",
+        "doc": "the running app: its services (input, saves, species, events, clock, rng)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "bag",
+        "kind": "property",
+        "doc": "the Bag's verbs: tabs, fragments and finds a shard adds",
+        "from": "ShardContext"
+      },
+      {
+        "name": "debug",
+        "kind": "property",
+        "doc": "handles for tests and captures (`window.__wildshard.shard[name]`)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "debugRow",
+        "kind": "property",
+        "doc": "a Debug row of the level's own, shown only on it (pause ▸ Settings ▸ Debug)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "game",
+        "kind": "property",
+        "doc": "the game's services: progress, inventory, loot, the compendium, travel",
+        "from": "ShardContext"
+      },
+      {
+        "name": "hud",
+        "kind": "property",
+        "doc": "the level's verbs on the one shared HUD (slots, chips, prompts)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "inputContext",
+        "kind": "property",
+        "doc": "declare an input context (its actions and bindings), pushed while the level runs",
+        "from": "LevelContext"
+      },
+      {
+        "name": "manifest",
+        "kind": "property",
+        "doc": "the shard's own manifest",
+        "from": "ShardContext"
+      },
+      {
+        "name": "on",
+        "kind": "property",
+        "doc": "listen to an engine event for the level's life",
+        "from": "LevelContext"
+      },
+      {
+        "name": "piece",
+        "kind": "property",
+        "doc": "register a static or moving thing with its colliders, surface and Explore model (the one world registry)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "playground",
+        "kind": "property",
+        "doc": "a practice room for the level's verbs (Explore ▸ Practice)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "progress",
+        "kind": "property",
+        "doc": "the boot step's progress, for a hook that does long work (it moves the loading bar)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "root",
+        "kind": "property",
+        "doc": "the level's scene root: what the level adds to the world hangs here",
+        "from": "LevelContext"
+      },
+      {
+        "name": "rows",
+        "kind": "property",
+        "doc": "the engine's rows plus the game's (items, feats, quests …), for the shard's life",
+        "from": "ShardContext"
+      },
+      {
+        "name": "scope",
+        "kind": "property",
+        "doc": "the level's scope: everything registered through this context leaves with it",
+        "from": "LevelContext"
+      },
+      {
+        "name": "strings",
+        "kind": "property",
+        "doc": "the level's player-facing strings (`ctx.strings` keys the engine asks for, e.g. death verbs)",
+        "from": "LevelContext"
+      },
+      {
+        "name": "system",
+        "kind": "property",
+        "doc": "run a system each frame or in the fixed step (`phase`: 'update', 'fixed.pre' / 'fixed.step' / 'fixed.post')",
+        "from": "LevelContext"
+      },
+      {
+        "name": "tiers",
+        "kind": "property",
+        "doc": "the level's per-tier tuning knobs (scatter counts, detail levels)",
+        "from": "LevelContext"
+      }
+    ]
+  }
+}

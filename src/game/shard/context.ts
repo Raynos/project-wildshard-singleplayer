@@ -22,9 +22,13 @@ export interface GameServices {
   };
 }
 export interface ShardContext extends LevelContext {
+  /** the shard's own manifest */
   readonly manifest: ShardManifest;
+  /** the game's services: progress, inventory, loot, the compendium, travel */
   readonly game: GameServices;
+  /** the Bag's verbs: tabs, fragments and finds a shard adds */
   readonly bag: BagVerbs;
+  /** the engine's rows plus the game's (items, feats, quests …), for the shard's life */
   readonly rows: EngineRows & GameRows;
 }
 

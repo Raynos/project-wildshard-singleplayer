@@ -1,0 +1,4 @@
+{
+  "about": "E362 AG21: the most public exports / ShardContext members without a JSDoc line (scripts/gen-api.mjs --check). Recorded 2026-10-03; may only fall: document what you touch, then lower it.",
+  "max": 647
+}

@@ -40,7 +40,7 @@
     "lint:ratchet": "node lint/ratchet.mjs",
     "check:chunks": "node scripts/check-chunks.mjs dist",
     "audit:assets": "pnpm gen && node scripts/audit-assets.mjs",
-    "test": "pnpm gen && node scripts/audit-assets.mjs && node scripts/check-model-sources.mjs && node scripts/check-paths.mjs && node scripts/check-graph.mjs && node lint/ratchet.mjs && node scripts/normalize/liveness.mjs --readme --check && node scripts/webgpu-inventory.mjs --check && node scripts/bake-check.mjs && vitest run",
+    "test": "pnpm gen && node scripts/audit-assets.mjs && node scripts/check-model-sources.mjs && node scripts/check-paths.mjs && node scripts/check-graph.mjs && node scripts/gen-api.mjs --check && node lint/ratchet.mjs && node scripts/normalize/liveness.mjs --readme --check && node scripts/webgpu-inventory.mjs --check && node scripts/bake-check.mjs && vitest run",
     "test:coverage": "vitest run --coverage && node scripts/coverage-ratchet.mjs",
     "test:gpu-boot": "bash scripts/test-nine-gpu-boot.sh",
     "preview": "vite preview",
