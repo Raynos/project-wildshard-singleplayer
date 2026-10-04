@@ -210,3 +210,18 @@ it('far proxies are bounded by count, not only distance: a 30 m/s diagonal over 
   expect(peak).toBeLessThanOrEqual(C.farCount);
   rings.dispose();
 });
+
+it('dispose re-masks nothing: a session scope that already uninstalled the coarse meshes does not fault (SF15a offline leak)', () => {
+  const allocator = new ResidencyAllocator(), pending: { tile: RingTile; done: (r: RingTile | Error) => void }[] = [];
+  let torn = false, masksAfterTeardown = 0;
+  const rings = new RenderRings<RingTile>([{ instance: 'solo', origin: { x: 0, z: 0 } }], allocator, (_i, level) => (level === 'far' ? null : resident[level]), {
+    fetch: (tile, done) => { pending.push({ tile, done }); },
+    upload: () => ({ mask: () => { if (torn) masksAfterTeardown++; }, shadow: () => undefined, dispose: () => undefined }),
+  }, { maxInFlight: 64, uploadsPerFrame: 64, uploadBytesPerFrame: 1e9 });
+  for (let i = 0; i < 4; i++) { for (const p of pending.splice(0)) p.done(p.tile); rings.step({ x: 0, z: 0, vx: 0, vz: 0 }); }
+  expect(rings.stats().resident.l0).toBeGreaterThan(0); // fine tiles drawn, so their parents are masked
+  torn = true; // the loader's scope disposed first and uninstalled every tile mesh
+  rings.dispose();
+  expect(masksAfterTeardown).toBe(0);
+  expect(allocator.entries()).toEqual([]);
+});

@@ -307,6 +307,8 @@ export class RenderRings<D> {
     if (slot.data !== null) { this.ports.discard?.(slot.tile, slot.data); slot.data = null; }
     slot.unholdParent();
     slot.lease.release();
+    // tearing down re-masks nothing: the session's scope may already have uninstalled the parent's mesh
+    if (this.disposed) return;
     const parent = parentOf(slot.tile); if (parent !== null) this.remask(parent);
   }
 
