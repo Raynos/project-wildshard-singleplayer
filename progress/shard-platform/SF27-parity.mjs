@@ -21,6 +21,8 @@ const variants = flag('hybrid', 'off,on').split(',');
 const tiers = flag('tiers', 'phone,desktop').split(',');
 // G112 re-proofs compare the witnessed policy modes on each pin, independently of the director device row.
 const groupModes = { parent: flag('parent-groups', 'legacy'), current: flag('current-groups', 'variant') };
+const policyModes = { parent: flag('parent-policies', 'legacy'), current: flag('current-policies', 'variant') };
+if (Object.values(policyModes).some(value => !['legacy', 'variant', 'declared-default'].includes(value))) throw new Error('Invalid ordinary policy witness mode');
 if (Object.values(groupModes).some(value => !['legacy', 'variant', 'declared-default'].includes(value))) {
   throw new Error('--parent-groups/--current-groups must be legacy, variant or declared-default');
 }
@@ -47,12 +49,14 @@ try {
       const browser = await pool.browser(0);
       for (const hybrid of variants) {
       let groupActivation = null;
+      const policyActivation = new Map();
       const captureBrowser = {
         version: () => browser.version(),
         newContext: async (options) => {
           const context = await browser.newContext(options);
           await saveFixture(context, { scope: 'device', key: 'debug.plugin.driftwood-isle.driftwoodHybrid', data: hybrid });
           await saveFixture(context, { scope: 'device', key: 'debug.plugin.nalati-grasslands.shardDirectors', data: hybrid });
+          for (const slug of ['far-reach', 'sunscar-dunes']) await saveFixture(context, { scope: 'device', key: `debug.plugin.${slug}.shardDirectors`, data: hybrid });
           const newPage = context.newPage.bind(context);
           context.newPage = async () => {
             const page = await newPage(), wait = page.waitForFunction.bind(page);
@@ -68,6 +72,19 @@ try {
                   saved: JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['debug.plugin.nalati-grasslands.shardDirectors']?.data };
               });
               if (observed !== null) groupActivation = observed;
+              const ordinary = await page.evaluate(() => {
+                const shard = window.__wildshard?.shard;
+                if (!shard || !['far-reach', 'sunscar-dunes'].includes(shard.slug)) return null;
+                return { slug: shard.slug, available: typeof shard.brainWitness === 'function',
+                  actors: typeof shard.brainWitness === 'function' ? shard.brainWitness() : [],
+                  saved: JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.[`debug.plugin.${shard.slug}.shardDirectors`]?.data };
+              });
+              if (ordinary !== null) {
+                const previous = policyActivation.get(ordinary.slug);
+                const actors = new Map((previous?.actors ?? []).map(actor => [actor.id, actor]));
+                for (const actor of ordinary.actors) if (!actors.has(actor.id) || actor.family !== null) actors.set(actor.id, actor);
+                policyActivation.set(ordinary.slug, { ...ordinary, actors: [...actors.values()] });
+              }
               return result;
             };
             return page;
@@ -79,6 +96,7 @@ try {
         const folder = join(out, `${label}-${hybrid}-${setting}-${shard}-${tier}`); mkdirSync(folder, { recursive: true });
         const opts = { shard, tier, lane: 'm5', sha, root: ROOT, out: folder, timeout: 240, full: true, only: undefined, offline: false, accelerated: true, settings: { memorySaver: setting } };
         groupActivation = null;
+        policyActivation.delete(shard);
         const record = await capture(captureBrowser, base, opts);
         if (shard === 'driftwood-isle') {
           const installed = Object.values(object(get(record, 'boot.systems'))).flat();
@@ -91,6 +109,16 @@ try {
             throw new Error(`Nalati group activation witness failed: ${label}/${hybrid}/${tier}: ${JSON.stringify(groupActivation)}`);
           }
           record.activation = { deviceKey: 'debug.plugin.nalati-grasslands.shardDirectors', ...groupActivation };
+        }
+        if (['far-reach', 'sunscar-dunes'].includes(shard)) {
+          const mode = policyModes[label], expected = mode === 'declared-default' || (mode === 'variant' && hybrid === 'on');
+          const observed = policyActivation.get(shard), families = shard === 'far-reach'
+            ? { skyGoat: 'ram-grazer', driftRay: 'orbit-diver', galeWisp: 'burst-flyer' }
+            : { duneStrider: 'challenge-grazer', duneRay: 'patrol-diver' };
+          if (observed === undefined || observed.saved !== hybrid || (mode !== 'legacy' && !observed.available)
+            || (expected && Object.entries(families).some(([kind, family]) => !observed.actors.some(actor => actor.kind === kind && actor.family === family)))
+            || (!expected && observed.actors.some(actor => actor.family !== null))) throw new Error(`Ordinary policy activation failed: ${label}/${hybrid}/${shard}/${tier}: ${JSON.stringify(observed)}`);
+          record.activation = { deviceKey: `debug.plugin.${shard}.shardDirectors`, expected, ...observed };
         }
         if (['pine-hollow', 'nalati-grasslands'].includes(shard)) object(record.leak).weather = await weatherLeak(captureBrowser, base, opts);
         const key = `${hybrid}/${setting}/${shard}/${tier}`;
@@ -119,7 +147,7 @@ try {
       console.log(`SF27 ${key}: ${result.verdict}, images ${images.map((i) => `${i.name}=${i.ssim}`).join(', ')}`);
     }
   } finally { await context.close(); }
-  const record = { row: 'SF27', parent, current, tiers, groupModes, hybridDebugFixtures: variants, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
+  const record = { row: 'SF27', parent, current, tiers, groupModes, policyModes, hybridDebugFixtures: variants, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
     method: 'Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.',
     ambientInfo: ['forest.thrall'], reports };
   writeFileSync(join(out, 'SF27-parity.json'), JSON.stringify(record, null, 2) + '\n');
