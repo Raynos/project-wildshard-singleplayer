@@ -46,6 +46,7 @@
     "./weapons/melee/profiles": "./weapons/melee/profiles.ts",
     "./weapons/thrown/Thrown": "./weapons/thrown/Thrown.ts",
     "./weapons/ui": "./weapons/ui.ts",
-    "./weather/rainCurtain": "./weather/rainCurtain.ts"
+    "./weather/rainCurtain": "./weather/rainCurtain.ts",
+    "./items/declared": "./items/declared.ts"
   }
 }

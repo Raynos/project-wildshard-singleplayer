@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1828 members; 831 without a doc line (—).
+1844 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -445,6 +445,19 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PlayerHealth` | class | @wildshard/engine/combat/health | — |
 | `PlayerHealthPorts` | interface | @wildshard/engine/combat/health | — |
 | `PlayerMode` | type | @wildshard/engine/combat/health | — |
+| `ItemFamily` | type | @wildshard/engine/combat/itemFamilies | Injected kit constructors; the game never imports a kit or constructs a second combat actor. |
+| `ItemFamilyPorts` | interface | @wildshard/engine/combat/itemFamilies | A trusted session binds standard input and one authoritative runtime to each kit family. |
+| `ItemViewRecipe` | interface | @wildshard/engine/combat/itemFamilies | Renderer-neutral parameters selecting a registered kit view recipe. |
+| `ItemAction` | type | @wildshard/engine/combat/items | Numeric action requests accepted from input and an admitted item hook. |
+| `ItemAttack` | interface | @wildshard/engine/combat/items | Trusted contact values; scripts select a row but never supply damage or an effect id. |
+| `ItemContact` | interface | @wildshard/engine/combat/items | Validated contact presentation; the owning weapon forwards it through normal equipment events. |
+| `ItemHook` | type | @wildshard/engine/combat/items | Script hooks return only a bounded action selection. The host owns tick admission and aggregate allowances. |
+| `ItemPorts` | interface | @wildshard/engine/combat/items | Existing actor/contact/effect ports; no renderer or active app participates in item simulation. |
+| `ItemRuntime` | class | @wildshard/engine/combat/items | Fixed-step weapon/tool state. Input queues once; render updates only read it. |
+| `ItemSpec` | type | @wildshard/engine/combat/items | Data used by an authoritative item; kit factories add equipment UI and a view. |
+| `ItemState` | interface | @wildshard/engine/combat/items | Complete numeric continuation. Script memory belongs to the shared script host snapshot. |
+| `ItemTarget` | interface | @wildshard/engine/combat/items | Host-supplied body contact position, shared by headless targets and posed client rigs. |
+| `scriptItemHook` | function | @wildshard/engine/combat/items | Compile a hook over the already installed, shared ScriptHost. An author cannot target another item or invent an action. |
 | `Actor` | interface | @wildshard/engine/combat/pipeline | Simulation port. The legacy creature adapter owns flinch/ragdoll presentation until the AI migration. |
 | `CombatPipeline` | class | @wildshard/engine/combat/pipeline | One ordered damage pipeline; every source keeps its own base formula and rounding. |
 | `CombatTag` | type | @wildshard/engine/combat/pipeline | — |
@@ -795,6 +808,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ParticlePool` | class | @wildshard/engine/fx/ParticlePool | One particle pool (E357 X5, 10 §X5): a ring of `capacity` points in one `THREE.Points` draw, never culled, with the |
 | `ParticlePoolSpec` | interface | @wildshard/engine/fx/ParticlePool | A pool's data (E357 X5): its size, its extra attributes in geometry order, its material and draw order. |
 | `pointScale` | function | @wildshard/engine/fx/ParticlePool | pixels per metre at 1 m for a screen-sized point (`gl_PointSize = size * uScale / depth`): the drawing buffer's height |
+| `AimCommand` | interface | @wildshard/engine/input/commands | World-space aim is command data, independent of camera shake, bob and render interpolation. |
+| `FightCommand` | interface | @wildshard/engine/input/commands | Weapon action plus its detached world-space aim, shared by live input and replay. |
+| `PlayerCommand` | interface | @wildshard/engine/input/commands | Resolved device input for one fixed step. Replays supply these values directly. |
 | `listenDom` | function | @wildshard/engine/input/dom | Scoped widget gestures keep DOM event typing and dispose with their owner. Gameplay uses actions. |
 | `listenPage` | function | @wildshard/engine/input/dom | A page-wide input listener (E362 AG18): a drag that leaves its widget, "a touch anywhere" that dismisses or skips, |
 | `mountDom` | function | @wildshard/engine/input/dom | — |

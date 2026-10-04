@@ -2631,6 +2631,84 @@
         "from": "@wildshard/engine/combat/health"
       },
       {
+        "name": "ItemFamily",
+        "kind": "type",
+        "doc": "Injected kit constructors; the game never imports a kit or constructs a second combat actor.",
+        "from": "@wildshard/engine/combat/itemFamilies"
+      },
+      {
+        "name": "ItemFamilyPorts",
+        "kind": "interface",
+        "doc": "A trusted session binds standard input and one authoritative runtime to each kit family.",
+        "from": "@wildshard/engine/combat/itemFamilies"
+      },
+      {
+        "name": "ItemViewRecipe",
+        "kind": "interface",
+        "doc": "Renderer-neutral parameters selecting a registered kit view recipe.",
+        "from": "@wildshard/engine/combat/itemFamilies"
+      },
+      {
+        "name": "ItemAction",
+        "kind": "type",
+        "doc": "Numeric action requests accepted from input and an admitted item hook.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
+        "name": "ItemAttack",
+        "kind": "interface",
+        "doc": "Trusted contact values; scripts select a row but never supply damage or an effect id.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
+        "name": "ItemContact",
+        "kind": "interface",
+        "doc": "Validated contact presentation; the owning weapon forwards it through normal equipment events.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
+        "name": "ItemHook",
+        "kind": "type",
+        "doc": "Script hooks return only a bounded action selection. The host owns tick admission and aggregate allowances.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
+        "name": "ItemPorts",
+        "kind": "interface",
+        "doc": "Existing actor/contact/effect ports; no renderer or active app participates in item simulation.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
+        "name": "ItemRuntime",
+        "kind": "class",
+        "doc": "Fixed-step weapon/tool state. Input queues once; render updates only read it.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
+        "name": "ItemSpec",
+        "kind": "type",
+        "doc": "Data used by an authoritative item; kit factories add equipment UI and a view.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
+        "name": "ItemState",
+        "kind": "interface",
+        "doc": "Complete numeric continuation. Script memory belongs to the shared script host snapshot.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
+        "name": "ItemTarget",
+        "kind": "interface",
+        "doc": "Host-supplied body contact position, shared by headless targets and posed client rigs.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
+        "name": "scriptItemHook",
+        "kind": "function",
+        "doc": "Compile a hook over the already installed, shared ScriptHost. An author cannot target another item or invent an action.",
+        "from": "@wildshard/engine/combat/items"
+      },
+      {
         "name": "Actor",
         "kind": "interface",
         "doc": "Simulation port. The legacy creature adapter owns flinch/ragdoll presentation until the AI migration.",
@@ -4733,6 +4811,24 @@
         "kind": "function",
         "doc": "pixels per metre at 1 m for a screen-sized point (`gl_PointSize = size * uScale / depth`): the drawing buffer's height",
         "from": "@wildshard/engine/fx/ParticlePool"
+      },
+      {
+        "name": "AimCommand",
+        "kind": "interface",
+        "doc": "World-space aim is command data, independent of camera shake, bob and render interpolation.",
+        "from": "@wildshard/engine/input/commands"
+      },
+      {
+        "name": "FightCommand",
+        "kind": "interface",
+        "doc": "Weapon action plus its detached world-space aim, shared by live input and replay.",
+        "from": "@wildshard/engine/input/commands"
+      },
+      {
+        "name": "PlayerCommand",
+        "kind": "interface",
+        "doc": "Resolved device input for one fixed step. Replays supply these values directly.",
+        "from": "@wildshard/engine/input/commands"
       },
       {
         "name": "listenDom",
@@ -12402,6 +12498,54 @@
         "from": "@wildshard/game/shardfile/encounters"
       },
       {
+        "name": "DeclaredItemPorts",
+        "kind": "interface",
+        "doc": "Trusted loader dependencies; factories and icons are resolved below the game layer.",
+        "from": "@wildshard/game/shardfile/items"
+      },
+      {
+        "name": "DeclaredItems",
+        "kind": "interface",
+        "doc": "Normal equipment factory result plus authoritative fixed-step runtimes, scoped to the one session.",
+        "from": "@wildshard/game/shardfile/items"
+      },
+      {
+        "name": "declaredItemScriptEntities",
+        "kind": "function",
+        "doc": "Build trusted item-handle aliases for the one script lane; actor identity comes from the host session.",
+        "from": "@wildshard/game/shardfile/items"
+      },
+      {
+        "name": "installDeclaredItems",
+        "kind": "function",
+        "doc": "Resolve every family before construction, register baseline contexts, and expose the normal buildEquipment handoff.",
+        "from": "@wildshard/game/shardfile/items"
+      },
+      {
+        "name": "itemRules",
+        "kind": "function",
+        "doc": "Local references plus optional script catalogue checks; global format composition supplies admitted module ids.",
+        "from": "@wildshard/game/shardfile/items"
+      },
+      {
+        "name": "ItemsSchema",
+        "kind": "const",
+        "doc": "JSON-only admission rejects closures before serialisation and checks all item/loadout references.",
+        "from": "@wildshard/game/shardfile/items"
+      },
+      {
+        "name": "parseItems",
+        "kind": "function",
+        "doc": "Validate authored item rows at both SDK and browser boundaries.",
+        "from": "@wildshard/game/shardfile/items"
+      },
+      {
+        "name": "ShardItems",
+        "kind": "type",
+        "doc": "Declared item families, numeric contacts, input contexts, script hooks and initial loadout.",
+        "from": "@wildshard/game/shardfile/items"
+      },
+      {
         "name": "isJsonData",
         "kind": "function",
         "doc": "Refuse values JSON would silently discard or change, without invoking authored accessors.",
@@ -12960,6 +13104,12 @@
         "kind": "function",
         "doc": "",
         "from": "@wildshard/kit/icons"
+      },
+      {
+        "name": "declaredKitItemFamilies",
+        "kind": "function",
+        "doc": "Explicit built-in item family registry, injected into the full loader; importing does not install content.",
+        "from": "@wildshard/kit/items/declared"
       },
       {
         "name": "loadGrassField",

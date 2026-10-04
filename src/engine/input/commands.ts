@@ -4,6 +4,7 @@ export interface AimCommand {
   readonly direction: { readonly x: number; readonly y: number; readonly z: number };
 }
 
+/** Weapon action plus its detached world-space aim, shared by live input and replay. */
 export interface FightCommand {
   readonly aim: AimCommand;
   readonly action: 'attack' | 'reload';

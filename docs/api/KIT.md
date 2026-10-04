@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-219 members; 100 without a doc line (—).
+220 members; 100 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -26,6 +26,7 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `starterId` | function | @wildshard/kit/effects/starter | — |
 | `BAG_ICONS` | const | @wildshard/kit/icons | the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4) |
 | `installKitIcons` | function | @wildshard/kit/icons | — |
+| `declaredKitItemFamilies` | function | @wildshard/kit/items/declared | Explicit built-in item family registry, injected into the full loader; importing does not install content. |
 | `loadGrassField` | function | @wildshard/kit/lookApi | Meadow placement and trampling are runtime services. |
 | `loadParticles` | function | @wildshard/kit/lookApi | Defer rendered particles until the authored world hook has its terrain and backdrop. |
 | `fogGLSL` | const | @wildshard/kit/looks/fogProgram | — |

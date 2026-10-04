@@ -306,6 +306,9 @@
     "./audio/declared": "./audio/declared.ts",
     "./world/water/declared": "./world/water/declared.ts",
     "./world/declaredProps": "./world/declaredProps.ts",
-    "./physics/declaredProps": "./physics/declaredProps.ts"
+    "./physics/declaredProps": "./physics/declaredProps.ts",
+    "./combat/items": "./combat/items.ts",
+    "./combat/itemFamilies": "./combat/itemFamilies.ts",
+    "./input/commands": "./input/commands.ts"
   }
 }

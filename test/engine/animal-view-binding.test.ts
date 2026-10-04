@@ -1,10 +1,18 @@
-import { describe, expect, it, vi } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the clean-export physics binary in this Node fixture.
+import { readFileSync } from 'node:fs';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Animal } from '../../src/engine/entities/AnimalView';
 import { AnimalSim } from '../../src/engine/entities/AnimalSim';
 import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { fakeWorld } from '../fake/world';
 import { manager } from '../fake/manager';
+import { Physics } from '../../src/engine/physics/Physics';
+import { CreatureBodies } from '../../src/engine/physics/creatures';
+import { loadRapier } from '../../src/engine/physics/rapier';
+
+let rapier: Awaited<ReturnType<typeof loadRapier>>;
+beforeAll(async () => { rapier = await loadRapier(new Uint8Array(readFileSync('public/assets/physics/rapier.wasm')).buffer); });
 
 function fixture() {
   const world = fakeWorld(), factory = new AnimalFactory(world.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true } });
@@ -44,6 +52,17 @@ describe('creature rig over one authoritative simulation', () => {
     for (let i = 0; i < 30; i++) world.manager.update(1 / 60, i / 60, new Vector3(0, 0, 1));
     expect(sim.snapshot()).toEqual(saved); expect(view.mesh.position.toArray()).toEqual(sim.position.toArray());
     world.manager.retire(view); expect(sim.snapshot()).toEqual(saved); expect(world.manager.animals).not.toContain(view);
+  });
+  it('keeps posed query hitboxes while leaving the only movement motor with the host', () => {
+    const { sim, view } = fixture(); view.bindSimulation(sim);
+    const dispose = vi.fn<() => void>(); sim.motor = { move: () => undefined, dispose };
+    const physics = new Physics(rapier), bodies = new CreatureBodies<Animal>(physics);
+    try {
+      bodies.sync([view], new Vector3()); expect(physics.world.colliders.len()).toBe(2);
+      expect(physics.world.bodies.len()).toBe(0); expect(view.motor).toBe(null);
+      bodies.sync([view], new Vector3(100, 0, 100)); bodies.remove(view);
+      expect(dispose).not.toHaveBeenCalled(); expect(sim.motor).not.toBe(null);
+    } finally { physics.dispose(); }
   });
   it('refuses rebinding and mismatched instance identities', () => {
     const { sim, view } = fixture(); expect(() => view.bindSimulation(view)).toThrow();

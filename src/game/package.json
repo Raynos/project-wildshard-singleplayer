@@ -65,6 +65,7 @@
     "./shardfile/assets": "./shardfile/assets.ts",
     "./shardfile/validate": "./shardfile/validate.ts",
     "./shardfile/product": "./shardfile/product.ts",
-    "./shardfile/props": "./shardfile/props.ts"
+    "./shardfile/props": "./shardfile/props.ts",
+    "./shardfile/items": "./shardfile/items.ts"
   }
 }
