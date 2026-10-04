@@ -2158,7 +2158,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-519 exports, grouped by the module to import them from.
+521 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2212,7 +2212,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/runtime`: `resolveLevelBounds`, `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
 - `@wildshard/game/shard/runtimeVariant`: `runtimeVariantEnabled`
-- `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`
+- `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`, `createScopedRuntimeBinding`, `ScopedRuntimeBinding`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `accentVars`, `parseAccent`, `ROAD_ACCENT`
 - `@wildshard/game/shardfile/admissionLimits`: `SHARDFILE_ADMISSION_LIMITS`

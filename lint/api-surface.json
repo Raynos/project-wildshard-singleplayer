@@ -13806,6 +13806,18 @@
         "from": "@wildshard/game/shard/scopedRuntime"
       },
       {
+        "name": "createScopedRuntimeBinding",
+        "kind": "function",
+        "doc": "Prepare a local handoff without publishing it; each activation restores the descriptors it borrowed on leave.",
+        "from": "@wildshard/game/shard/scopedRuntime"
+      },
+      {
+        "name": "ScopedRuntimeBinding",
+        "kind": "interface",
+        "doc": "Retain a trusted home's handoff while unbinding every page slot during its road visits.",
+        "from": "@wildshard/game/shard/scopedRuntime"
+      },
+      {
         "name": "parseShardSlug",
         "kind": "function",
         "doc": "Brand only validated identities; callers cannot supply arbitrary strings as shard keys.",
@@ -17336,6 +17348,12 @@
         "kind": "property",
         "doc": "the level's per-tier tuning knobs (scatter counts, detail levels)",
         "from": "LevelContext"
+      },
+      {
+        "name": "whileEntered",
+        "kind": "property",
+        "doc": "Retained home runtimes install transient services here; each entered scope releases them on leave.",
+        "from": "ShardContext"
       }
     ]
   }

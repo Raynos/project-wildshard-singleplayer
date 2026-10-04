@@ -4,7 +4,7 @@
 
 What a shard's plugin receives (src/game/shard/context.ts, over the engine's LevelContext).
 
-19 members; 0 without a doc line (—).
+20 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -27,3 +27,4 @@ What a shard's plugin receives (src/game/shard/context.ts, over the engine's Lev
 | `strings` | property | LevelContext | the level's player-facing strings (`ctx.strings` keys the engine asks for, e.g. death verbs) |
 | `system` | property | LevelContext | run a system each frame or in the fixed step (`phase`: 'update', 'fixed.pre' / 'fixed.step' / 'fixed.post') |
 | `tiers` | property | LevelContext | the level's per-tier tuning knobs (scatter counts, detail levels) |
+| `whileEntered` | property | ShardContext | Retained home runtimes install transient services here; each entered scope releases them on leave. |

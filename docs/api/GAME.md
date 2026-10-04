@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-519 members; 113 without a doc line (—).
+521 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -293,6 +293,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardRuntime` | interface | @wildshard/game/shard/runtime | Typed, per-build handoff between the staged shell and an authored plugin. |
 | `runtimeVariantEnabled` | function | @wildshard/game/shard/runtimeVariant | Register a reload-only runtime choice without importing the data loader or preparing trusted hooks. |
 | `bindScopedRuntime` | function | @wildshard/game/shard/scopedRuntime | Bind every staged runtime slot to this play scope, retaining the resident world's previous handoff on exit. |
+| `createScopedRuntimeBinding` | function | @wildshard/game/shard/scopedRuntime | Prepare a local handoff without publishing it; each activation restores the descriptors it borrowed on leave. |
+| `ScopedRuntimeBinding` | interface | @wildshard/game/shard/scopedRuntime | Retain a trusted home's handoff while unbinding every page slot during its road visits. |
 | `parseShardSlug` | function | @wildshard/game/shard/slug | Brand only validated identities; callers cannot supply arbitrary strings as shard keys. |
 | `ValidatedShardSlug` | type | @wildshard/game/shard/slug | An external identity whose format was validated at the catalogue or shardfile boundary. |
 | `ACCENT_IDS` | const | @wildshard/game/shardfile/accent | — |

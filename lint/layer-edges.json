@@ -1,7 +1,7 @@
 {
   "about": "SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.",
   "edges": {
-    "game → engine": 583,
+    "game → engine": 586,
     "kit → engine": 196,
     "kit → game": 2,
     "root → engine": 17,
@@ -21,7 +21,7 @@
     "shards/far-reach → kit": 2,
     "shards/far-reach → sdk": 6,
     "shards/nalati-grasslands → engine": 705,
-    "shards/nalati-grasslands → game": 27,
+    "shards/nalati-grasslands → game": 31,
     "shards/nalati-grasslands → kit": 37,
     "shards/nalati-grasslands → sdk": 5,
     "shards/nine-dragon-stack → engine": 165,
