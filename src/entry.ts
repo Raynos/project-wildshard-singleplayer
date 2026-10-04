@@ -72,7 +72,7 @@ export async function start(): Promise<void> {
     retried(() => import('./kit/models/pickups')), retried(() => import('./kit/models/interact')), retried(() => import('./kit/bag/items')),
     retried(() => import('./kit/tools/hoverboard')), retried(() => import('./kit/audio/weaponVoices')), retried(() => import('./kit/audio/combatCues')),
   ]);
-  const { configuredShardfile, installShardfileSource } = await retried(() => import('./game/shardfile/loader'));
+  const { configuredShardfile, installShardfileSource } = await retried(() => import('@wildshard/game/shardfile/loader'));
   const source = configuredShardfile(document);
   const manifest = source === null ? game.shard : installShardfileSource(source);
   if (source !== null) document.documentElement.classList.remove('title-first');
