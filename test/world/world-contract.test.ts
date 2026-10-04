@@ -9,7 +9,7 @@ import { SHARDS } from '../../src/shards.generated';
 
 // SHARD-PLATFORM SP4: the world contract (MMO-REQUIREMENTS W1, W4). Every level fits the 500 × 500 × 500 m cell, and
 // its height field is level with the highway (y = 0) across the 15 m road at each edge midpoint, at least 50 m in.
-// The walk itself (colliders, water, structures) is SP10's validator; this is the ground's half.
+// The walk itself (colliders, water, structures) is SF8c's validator; this is the ground's half.
 const exemptions = (JSON.parse(readFileSync('lint/edge-exemptions.json', 'utf8')) as { levels: Record<string, string> }).levels;
 interface Field { heightAt: (x: number, z: number) => number }
 const fieldOf = (ground: unknown): Field | null => {
@@ -61,7 +61,7 @@ describe('SP4 the world contract', () => {
     expect(structureFailures(manifest)).toEqual([]);
     if (manifest.ground.structures !== undefined) return; // explicitly named, checked against structural bounds above
     const field = fieldOf(manifest.ground);
-    if (!field) return; // a structures-only level has no height field; its edges are the validator's walk (SP10)
+    if (!field) return; // a structures-only level has no height field; its edges are the validator's walk (SF8c)
     const outside: string[] = [];
     for (let x = -CHUNK_HALF; x <= CHUNK_HALF; x += 25) for (let z = -CHUNK_HALF; z <= CHUNK_HALF; z += 25) {
       const h = field.heightAt(x, z);

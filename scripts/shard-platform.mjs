@@ -3,7 +3,7 @@
 // shipped) and `data/` (serialisable rows) are the data side; everything else ships as runtime code. The custom share
 // is the runtime lines ÷ the shard's baseline (its lines when SP5 landed, lint/shard-platform.json). The target is
 // ≤ 20 % (docs/plans/SHARD-PLATFORM.md §1).
-// Before a shard's conversion (SP22–SP28) the share is only reported: every line is still unsorted, and a ceiling
+// Before a shard's conversion (SF46–SF51) the share is only reported: every line is still unsorted, and a ceiling
 // would block the shard's own work. A converted shard joins `enforced` with its runtime-line ceiling, which only falls.
 //   node scripts/shard-platform.mjs           print the table
 //   node scripts/shard-platform.mjs --check   fail when an enforced shard's runtime lines pass its ceiling, or a

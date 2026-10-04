@@ -1,5 +1,5 @@
 {
-  "about": "SHARD-PLATFORM SP5: each shard's TypeScript lines when SP5 landed (the 80/20 baseline: custom share = runtime lines ÷ baseline, target ≤ 20 %), and the runtime-line ceilings of converted shards, which only fall (scripts/shard-platform.mjs). A shard joins `enforced` at its conversion row (SP22–SP28); Thin Ice (SP31) at its first commit after SP5.",
+  "about": "SHARD-PLATFORM SP5: each shard's TypeScript lines when SP5 landed (the 80/20 baseline: custom share = runtime lines ÷ baseline, target ≤ 20 %), and the runtime-line ceilings of converted shards, which only fall (scripts/shard-platform.mjs). A shard joins `enforced` at its conversion row (SF46–SF51); Thin Ice (SF53) at its first commit after SP5.",
   "baselineAt": "b96fed1a1",
   "baseline": {
     "_template": 550,
