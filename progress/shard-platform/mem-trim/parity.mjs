@@ -1,17 +1,17 @@
 // mem-trim (G144): the same build, Driftwood's GPU-only row OFF (baseline) vs ON. Adapted from SF46-parity.mjs.
-// scripts/browser-lane.sh node scripts/mem-trim/parity.mjs [--current=<sha>] [--hybrid=on] [--out=<owned scratch>]
+// scripts/browser-lane.sh node progress/shard-platform/mem-trim/parity.mjs [--current=<sha>] [--hybrid=on] [--out=<owned scratch>]
 // Captures (PNG shots, full records) go to --out (scratch); the slim verdict + per-pose SSIM summary is committed at
 // progress/shard-platform/mem-trim/parity-<sha>[-hybrid].json.
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
-import { capture, weatherLeak } from '../parity.mjs';
-import { browserPool } from '../parity/pool.mjs';
-import { compare } from '../parity/compare.mjs';
-import { aggregate, imageScore } from '../parity/record.mjs';
-import { array, object, string, get } from '../parity/value.mjs';
-import { saveFixture } from '../debug-settings.mjs';
-const ROOT = resolve(import.meta.dirname, '../..');
+import { capture, weatherLeak } from '../../../scripts/parity.mjs';
+import { browserPool } from '../../../scripts/parity/pool.mjs';
+import { compare } from '../../../scripts/parity/compare.mjs';
+import { aggregate, imageScore } from '../../../scripts/parity/record.mjs';
+import { array, object, string, get } from '../../../scripts/parity/value.mjs';
+import { saveFixture } from '../../../scripts/debug-settings.mjs';
+const ROOT = resolve(import.meta.dirname, '../../..');
 const args = process.argv.slice(2);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const rev = (value) => execFileSync('git', ['rev-parse', `${value}^{commit}`], { cwd: ROOT, encoding: 'utf8' }).trim();
