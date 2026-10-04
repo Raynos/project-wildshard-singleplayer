@@ -1,0 +1,2067 @@
+{
+  "url": "http://127.0.0.1:4402",
+  "label": "before",
+  "started": "2026-10-04T18:33:46.399Z",
+  "poses": {
+    "crossroads": {
+      "at": {
+        "x": 277.5,
+        "y": 1.7,
+        "z": 277.5
+      },
+      "max": {
+        "draws": 15,
+        "triangles": 150842
+      },
+      "rows": [
+        {
+          "yaw": 0,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 0.79,
+          "draws": 15,
+          "triangles": 150842,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-streetlights": {
+              "draws": 1,
+              "triangles": 7280
+            },
+            "grid-streetlight-heads": {
+              "draws": 1,
+              "triangles": 3640
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 1.57,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 2.36,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.14,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.93,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 4.71,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 5.5,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        }
+      ]
+    },
+    "crossroads-air": {
+      "at": {
+        "x": 240,
+        "y": 6,
+        "z": 240
+      },
+      "max": {
+        "draws": 15,
+        "triangles": 150842
+      },
+      "rows": [
+        {
+          "yaw": 0,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 0.79,
+          "draws": 15,
+          "triangles": 150842,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-streetlights": {
+              "draws": 1,
+              "triangles": 7280
+            },
+            "grid-streetlight-heads": {
+              "draws": 1,
+              "triangles": 3640
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 1.57,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 2.36,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.14,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.93,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 4.71,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 5.5,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        }
+      ]
+    },
+    "entry": {
+      "at": {
+        "x": 277.5,
+        "y": 1.7,
+        "z": 0
+      },
+      "max": {
+        "draws": 15,
+        "triangles": 150842
+      },
+      "rows": [
+        {
+          "yaw": 0,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 0.79,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 1.57,
+          "draws": 15,
+          "triangles": 150842,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-streetlights": {
+              "draws": 1,
+              "triangles": 7280
+            },
+            "grid-streetlight-heads": {
+              "draws": 1,
+              "triangles": 3640
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 2.36,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.14,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.93,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 4.71,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 5.5,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        }
+      ]
+    },
+    "outer-ring": {
+      "at": {
+        "x": 832.5,
+        "y": 1.7,
+        "z": 0
+      },
+      "max": {
+        "draws": 15,
+        "triangles": 150842
+      },
+      "rows": [
+        {
+          "yaw": 0,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 0.79,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 1.57,
+          "draws": 15,
+          "triangles": 150842,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-streetlights": {
+              "draws": 1,
+              "triangles": 7280
+            },
+            "grid-streetlight-heads": {
+              "draws": 1,
+              "triangles": 3640
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 2.36,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.14,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.93,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 4.71,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 5.5,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        }
+      ]
+    },
+    "outer-corner": {
+      "at": {
+        "x": 832.5,
+        "y": 1.7,
+        "z": 832.5
+      },
+      "max": {
+        "draws": 15,
+        "triangles": 150842
+      },
+      "rows": [
+        {
+          "yaw": 0,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 0.79,
+          "draws": 15,
+          "triangles": 150842,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-streetlights": {
+              "draws": 1,
+              "triangles": 7280
+            },
+            "grid-streetlight-heads": {
+              "draws": 1,
+              "triangles": 3640
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 1.57,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 2.36,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.14,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.93,
+          "draws": 11,
+          "triangles": 135930,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 4.71,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 5.5,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        }
+      ]
+    },
+    "boulevard": {
+      "at": {
+        "x": 277.5,
+        "y": 1.7,
+        "z": -240
+      },
+      "max": {
+        "draws": 15,
+        "triangles": 150842
+      },
+      "rows": [
+        {
+          "yaw": 0,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 0.79,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 1.57,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 2.36,
+          "draws": 15,
+          "triangles": 150842,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-streetlights": {
+              "draws": 1,
+              "triangles": 7280
+            },
+            "grid-streetlight-heads": {
+              "draws": 1,
+              "triangles": 3640
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.14,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 3.93,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 4.71,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        },
+        {
+          "yaw": 5.5,
+          "draws": 13,
+          "triangles": 139922,
+          "shadowDraws": 0,
+          "byMesh": {
+            "grid-deck": {
+              "draws": 6,
+              "triangles": 114754
+            },
+            "grid-asphalt": {
+              "draws": 1,
+              "triangles": 360
+            },
+            "grid-junctions": {
+              "draws": 1,
+              "triangles": 472
+            },
+            "grid-kerbs": {
+              "draws": 1,
+              "triangles": 7208
+            },
+            "grid-signs": {
+              "draws": 1,
+              "triangles": 3632
+            },
+            "grid-void-floor": {
+              "draws": 1,
+              "triangles": 8
+            },
+            "grid-void-rail": {
+              "draws": 1,
+              "triangles": 48
+            },
+            "grid-void-posts": {
+              "draws": 1,
+              "triangles": 13440
+            }
+          }
+        }
+      ]
+    }
+  },
+  "resident": {
+    "triangles": 126488,
+    "instanced": 150842,
+    "meshes": 10
+  },
+  "seams": {
+    "triangles": 114754,
+    "draws": 6,
+    "buckets": {
+      "ground": 92934,
+      "stone": 4796,
+      "rock": 6428,
+      "dike": 9132,
+      "rail": 732,
+      "curtain": 732
+    }
+  },
+  "worst": {
+    "draws": 15,
+    "triangles": 150842
+  },
+  "errors": []
+}
