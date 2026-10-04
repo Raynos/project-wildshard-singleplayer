@@ -152,6 +152,9 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 | `loadout/` | loadout wiring, finishes, ammo (optional) |
 | `playground/` | playgrounds (optional) |
 | `design/` | the shard's design pack: `design.md` and `spec.json` (optional; E406) |
+| `generators/` | build-time code that makes assets (models, terrain, scatter): run by the bake, never imported by the shard's runtime and never shipped (SHARD-PLATFORM SP5; optional) |
+| `data/` | the shard's content rows and layouts as serialisable values (JSON-able, no functions, no three.js or DOM): `sim-no-render` and the row ratchet hold it (SHARD-PLATFORM SP5; optional) |
+| `runtime/` | the shard's own runtime code that no approved system covers yet: the custom share the 80/20 split counts (SHARD-PLATFORM SP5; optional) |
 <!-- /generated:shard-layout -->
 
 One name per concept: `quest/` or `quest.ts`, never both.

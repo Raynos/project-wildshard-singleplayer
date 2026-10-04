@@ -35,6 +35,8 @@ export function checkChunks(manifest, modules, closures) {
     for (const raw of row.moduleIds) {
       const id = raw.replaceAll('\\', '/').split('?')[0];
       const match = /^src\/shards\/([^/]+)\//.exec(id);
+      // SHARD-PLATFORM SP5: a shard's generators run at bake time; their code never ships in any chunk
+      if (match && /^src\/shards\/[^/]+\/generators\//.test(id)) errors.push(`${id} is a generator in chunk ${file}: generators run at bake time and never ship`);
       if (!match || allowed.has(id)) continue;
       const slug = match[1];
       if (cold.has(file)) errors.push(`${id} is in cold-boot chunk ${file}`);

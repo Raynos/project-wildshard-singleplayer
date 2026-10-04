@@ -27,6 +27,10 @@ const row = (name: string, ...moduleIds: string[]): { name: string; moduleIds: s
 const base = { 'entry.js': row('entry', 'src/entry.ts'), 'engine.js': row('engine', 'src/main.ts', 'src/shards/alpha/manifest.ts', 'src/shards/alpha/data.ts') };
 
 describe('chunk isolation gate', () => {
+  it('rejects generator code in any chunk (SHARD-PLATFORM SP5)', () => {
+    const result = check({ ...base, 'alpha.js': row('shard-alpha', 'src/shards/alpha/plugin.ts', 'src/shards/alpha/generators/palm.ts') });
+    expect(result.status).toBe(1); expect(result.output).toContain('generators run at bake time');
+  });
   it('allows manifest data at startup and a lazy plugin in its own chunk', () => {
     expect(check({ ...base, 'alpha.js': row('shard-alpha', 'src/shards/alpha/plugin.ts') }).status).toBe(0);
   });
