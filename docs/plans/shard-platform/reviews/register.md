@@ -194,3 +194,39 @@ Round 2 (2026-10-04): 43 findings (must-fix 19, should-fix 20, nit 4); all fixed
 | R3-C25 | 3 | C | nit | SF15a, §3.4 | N−1 over-specified | fixed (round-3 commit) | only the offline-cached case |
 
 Round 3 (2026-10-04): 36 findings (must-fix 8, should-fix 20, should-add 1, nit 7); all fixed. Must-fix 27 → 19 → 8; should-fix 56 → 20 → 20.
+
+| R4-M1 | 4 | C | must-fix | SF14, SF33a, §3.3 | Instance = grid cell, and the plan moves cells | fixed (round-4 commit) | stable instance ids, cell a separate attribute |
+| R4-M2 | 4 | C | must-fix | §1 | Generators importing three count custom: M3 unreachable | fixed (round-4 commit) | generators/ public whatever they import |
+| R4-S1 | 4 | C | should-fix | §5, SF7a, SF8a | SDK package created after its users | fixed (round-4 commit) | SF8b-0 skeleton first |
+| R4-S2 | 4 | C | should-fix | SF4a, SF4c | Engine test level unowned | fixed (round-4 commit) | SF4a creates test/fixtures/sim-level/ |
+| R4-S3 | 4 | C | should-fix | SF14, SF33a | Done-whens need F2 | fixed (round-4 commit) | save-store level; in-game checks in SF20a and SF46 |
+| R4-S4 | 4 | C | should-fix | SF14 | Progress writes and achievement home undefined | fixed (round-4 commit) | template only at SF14; others at -p; achievements in profile scope |
+| R4-S5 | 4 | C | should-fix | §5, SF18a | SF18a needs F2 rows; re-frame owner | fixed (round-4 commit) | §5 edges; SF18a owns the re-frame |
+| R4-S6 | 4 | C | should-fix | SF46, SF18d | Hybrid runtime chunk not in readiness | fixed (round-4 commit) | hybrid bundle line; install ≤ one frame in SF22 |
+| R4-S7 | 4 | C | should-fix | SF48 | Horses drift; static lists can't | fixed (round-4 commit) | SF9b lists + SF25 client script |
+| R4-S8 | 4 | C | should-fix | §0, SF21a | DEVSERVER plumbing unowned | fixed (round-4 commit) | SF8c / SF8d (moved to X per R4-D5) |
+| R4-S9 | 4 | C | should-fix | §5.1, SF22b | SF22b during the pause | fixed (round-4 commit) | after round 4 |
+| R4-S10 | 4 | C | should-fix | SF22a | Phone reading has no path | fixed (round-4 commit) | SF22c: rig behind a Debug row on prod, posts telemetry |
+| R4-S11 | 4 | C | should-fix | Handoff, SF3a | Paused SF3a skips template roots | fixed (round-4 commit) | sp-x3 re-brief adds them |
+| R4-E1 | 4 | C | escalate | §3.3, SF21a | EXPERIMENTAL visible before gates? | decided (G61) | entry dev-mode-only until SF22 gates pass; listed for Jake |
+| R4-E2 | 4 | C | escalate | §3.3, §6 | Select a shard adopts grid paths on a rig reading? | decided (G61) | grid paths stay in EXPERIMENTAL through Part A; listed for Jake |
+| R4-A1s | 4 | C | should-add | §4 tables | Needs column | fixed (as a dispatch rule) | §9.6 coordinator checks inputs before dispatch |
+| R4-N1 | 4 | C | nit | §4.1 | Door line numbers | fixed (round-4 commit) | 46–47 |
+| R4-N2 | 4 | C | nit | §3.4 | N−1 wording | fixed (round-4 commit) | offline-cached only |
+| R4-N3 | 4 | C | nit | SF3c | Owner rows incomplete | fixed (round-4 commit) | SF13, SF9c, SF10b added |
+| R4-N4 | 4 | C | nit | SF7d | Already done | fixed (round-4 commit) | marked done |
+| R4-N5 | 4 | C | nit | SF22a | Lane deviation | fixed (round-4 commit) | recorded in SF22a |
+| R4-N6 | 4 | C | nit | SF18a | Motor wording | fixed (round-4 commit) | one motor per world; re-frame rebuilds |
+| R4-A1 | 4 | A | should-fix | §5, F1 | Undocumented partial handoffs | fixed (round-4 commit) | §5 edges; template work at SF16 |
+| R4-A2 | 4 | A | must-fix | SF14, SF33a, SF17a | Canonical keys change after migration | fixed (round-4 commit) | see R4-M1 |
+| R4-A3 | 4 | A | should-fix | SF0, §9.4 | Two frame-floor rules | fixed (round-4 commit) | one acceptance rule in §9.4 |
+| R4-A4 | 4 | A | should-fix | §5.1, SF22b | SF22b during the pause | fixed (round-4 commit) | see R4-S9 |
+| R4-A5 | 4 | A | should-fix | SF0d | No edge to Simulator work | fixed (round-4 commit) | SF0d first; serialize until then |
+| R4-D1 | 4 | D | must-fix | SF14, SF33a | Canonical identities change | fixed (round-4 commit) | see R4-M1 |
+| R4-D2 | 4 | D | should-fix | SF14 | Needs post-M1 integration | fixed (round-4 commit) | see R4-S3 |
+| R4-D3 | 4 | D | should-fix | SF18a | Hysteresis band undefined | fixed (round-4 commit) | thresholds 6 m / 10 m inside the strip |
+| R4-D4 | 4 | D | should-fix | SF0, §9.4 | Two gates | fixed (round-4 commit) | see R4-A3 |
+| R4-D5 | 4 | D | should-fix | SF8c, SF8d | DEVSERVER plumbing unowned | fixed (round-4 commit) | SF8c define + flag + CLI; SF8d gate assertion |
+| R4-D6 | 4 | D | should-fix | §5.1, SF22b | SF22b during the pause | fixed (round-4 commit) | see R4-S9 |
+
+Round 4 (2026-10-04): 33 findings (must-fix 4, should-fix 20, escalate 2, should-add 1, nit 6); all fixed or decided. Must-fix across rounds: 27 → 19 → 8 → 4 (the round-4 four are one finding seen by three seats). **The council ended after round 4 (G59).** The two escalations were decided by the coordinator under G56 (G61) and are listed for Jake.
