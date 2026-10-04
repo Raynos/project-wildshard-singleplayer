@@ -18,6 +18,7 @@ import type { Tier } from '../core/tier';
 import type { Animal } from '../entities/AnimalView';
 import { app } from '../app/runtime';
 import { currentOwner } from '../app/ownership';
+import { labelObjectTree } from '../render/gpuLabels';
 
 interface Vec3 { x: number; y: number; z: number }
 interface Quat { x: number; y: number; z: number; w: number }
@@ -210,6 +211,7 @@ export class WorldRegistry {
 
   /** Register a built thing: every listener sees it now; later listeners see it on subscribe. */
   add<P extends Piece>(piece: P): P {
+    if (piece.object) labelObjectTree(piece.object, piece.id, `${piece.file}#${piece.name}`);
     this.pieces.push(piece);
     currentOwner()?.onDispose(() => { const i = this.pieces.indexOf(piece); if (i !== -1) this.pieces.splice(i, 1); });
     for (const l of this.listeners) l(piece);

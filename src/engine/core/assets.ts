@@ -6,6 +6,7 @@ import { fetchImage, tierUrl } from '../boot/bytes';
 import { initKtx2, ktx2Layers, ktx2Texture, releaseAfterUpload } from './ktx2';
 import { TIER_CONFIG } from './tier';
 import type { Renderer } from '../render/renderer';
+import { labelAsset, labelObjectTree } from '../render/gpuLabels';
 
 const gltfLoader = new GLTFLoader();
 const hdrLoader = new HDRLoader();
@@ -37,7 +38,7 @@ export async function loadTexture(url: string, srgb = false, repeat = 1): Promis
     k.anisotropy = maxAniso;
     k.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     k.needsUpdate = true;
-    return k;
+    return labelAsset(k, 'engine/loadTexture', url);
   }
   const image = await loadImage(url);
   const t = new THREE.Texture(image);
@@ -49,7 +50,7 @@ export async function loadTexture(url: string, srgb = false, repeat = 1): Promis
   t.minFilter = THREE.LinearMipmapLinearFilter;
   if (srgb) t.colorSpace = THREE.SRGBColorSpace;
   t.needsUpdate = true;
-  return t;
+  return labelAsset(t, 'engine/loadTexture', url);
 }
 
 /**
@@ -82,11 +83,12 @@ export function pbrMaterial(set: PBRSet, extra: THREE.MeshStandardMaterialParame
 }
 
 export function loadGLTF(id: string): Promise<GLTF> {
-  return new Promise((resolve, reject) => { gltfLoader.load(`/assets/models/${id}/${id}.gltf`, resolve, undefined, reject); });
+  const url = `/assets/models/${id}/${id}.gltf`;
+  return new Promise((resolve, reject) => { gltfLoader.load(url, (gltf) => { labelObjectTree(gltf.scene, 'engine/loadGLTF', url); resolve(gltf); }, undefined, reject); });
 }
 
 export function loadHDR(url: string): Promise<THREE.DataTexture> {
-  return new Promise((resolve, reject) => { hdrLoader.load(url, resolve, undefined, reject); });
+  return new Promise((resolve, reject) => { hdrLoader.load(url, (texture) => { resolve(labelAsset(texture, 'engine/loadHDR', url)); }, undefined, reject); });
 }
 
 /**
@@ -102,14 +104,15 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
   const kinds = ['diffuse', 'nor_gl', 'arm'] as const;
   // decoded straight to the layer size (no flip: the layer keeps the file's orientation either way)
   const load = (url: string) => fetchImage(url, size, false, true); // exact: the phone's half-res ARM planes scale up off-thread
-  const finish = (t: THREE.DataArrayTexture, srgb: boolean) => {
+  const arrayLabel = (kind: (typeof kinds)[number]) => `pbr-array/${kind}:${ids.map((id) => texUrl(id, kind)).join(',')}`;
+  const finish = (t: THREE.DataArrayTexture, srgb: boolean, kind: (typeof kinds)[number]) => {
     t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType;
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter;
     t.generateMipmaps = true; t.anisotropy = maxAniso;
     if (srgb) t.colorSpace = THREE.SRGBColorSpace;
     t.needsUpdate = true;
-    return t;
+    return labelAsset(t, 'engine/loadPBRArray', arrayLabel(kind));
   };
   const buildGPU = async (kind: (typeof kinds)[number], srgb: boolean, renderer: Renderer) => {
     // Each kind's array is as big as its files (capped at `size`), never scaled up: the phone's half-res ARM
@@ -117,7 +120,7 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     // thread, ~75 ms a layer at 4x CPU — 0.3 s of the terrain step for texels the file never had.
     const layers = await Promise.all(ids.map((id) => fetchImage(texUrl(id, kind), size, false)));
     const n = Math.min(size, Math.max(1, ...layers.map((l) => Math.max(l.width, l.height))));
-    const t = finish(new THREE.DataArrayTexture(null, n, n, ids.length), srgb);
+    const t = finish(new THREE.DataArrayTexture(null, n, n, ids.length), srgb, kind);
     t.source.dataReady = false;          // allocate the storage (texStorage3D, all mip levels), upload nothing
     renderer.initTexture(t);
     let ctx: CanvasRenderingContext2D | null = null;
@@ -147,7 +150,7 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
       ctx.drawImage(im, 0, 0, size, size);
       data.set(ctx.getImageData(0, 0, size, size).data, i * size * size * 4);
     }
-    return finish(new THREE.DataArrayTexture(data, size, size, ids.length), srgb);
+    return finish(new THREE.DataArrayTexture(data, size, size, ids.length), srgb, kind);
   };
   // E157: the layers' KTX2 stand-ins, their mips concatenated into one compressed array (no decode, no upload copies)
   const buildKtx2 = async (kind: (typeof kinds)[number], srgb: boolean): Promise<THREE.CompressedArrayTexture | null> => {
@@ -159,7 +162,7 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     t.generateMipmaps = false; t.anisotropy = maxAniso; t.flipY = false;
     t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     t.needsUpdate = true;
-    return t;
+    return labelAsset(t, 'engine/loadPBRArray', arrayLabel(kind));
   };
   const build = async (kind: (typeof kinds)[number], srgb: boolean): Promise<THREE.DataArrayTexture | THREE.CompressedArrayTexture> =>
     (await buildKtx2(kind, srgb)) ?? (gpu ? buildGPU(kind, srgb, gpu) : buildCPU(kind, srgb));

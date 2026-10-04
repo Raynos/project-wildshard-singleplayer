@@ -1,6 +1,7 @@
 import { type AnimationClip, type Object3D, SkinnedMesh } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { labelObjectTree } from '../render/gpuLabels';
 
 export type ClipName = `${'idle' | 'walk' | 'run' | 'attack' | 'hit' | 'die' | 'turn' | 'swim' | 'fly'}${'' | `.${string}`}`;
 export type SocketName = string;
@@ -25,9 +26,11 @@ export interface RigRef { url: string; contract: RigContract; bake: RigBake }
 
 let loader: GLTFLoader | undefined;
 /** Cache/clone policy stays with the owning asset scope. All rig GLBs use this parser. */
-export function loadRigFile(url: string): Promise<GLTF> {
+export async function loadRigFile(url: string): Promise<GLTF> {
   loader ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-  return loader.loadAsync(url);
+  const gltf = await loader.loadAsync(url);
+  labelObjectTree(gltf.scene, 'engine/loadRigFile', url);
+  return gltf;
 }
 
 /** Check authored metadata against the actual loaded scene, without posing or rebinding it. */

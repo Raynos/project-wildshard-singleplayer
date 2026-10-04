@@ -5,13 +5,14 @@
  * No TSL, no WebGPURenderer (X6).
  */
 import * as THREE from 'three';
+import { installGpuLabels, labelledCreation } from './gpuLabels';
 
 /** the renderer every layer is handed (today three's WebGL renderer) */
 export type Renderer = THREE.WebGLRenderer;
 
 /** a throw-away renderer on its own canvas, to probe the GPU's formats before the game's exists (KTX2 support) */
 export function probeRenderer(): Renderer {
-  return new THREE.WebGLRenderer({ canvas: document.createElement('canvas') });
+  return labelledCreation('engine/renderer', 'builtin/probe-renderer', () => new THREE.WebGLRenderer({ canvas: document.createElement('canvas') }));
 }
 
 /** a value is the renderer (the scene-ownership walk skips it) */
@@ -21,5 +22,7 @@ export function isRenderer(value: object): boolean {
 
 /** Create the game's renderer on its recovered WebGL context. */
 export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2RenderingContext): Renderer {
-  return new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true });
+  const renderer = labelledCreation('engine/renderer', 'builtin/renderer-initialization', () => new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true }));
+  installGpuLabels(renderer);
+  return renderer;
 }

@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { labelAsset, labelObjectTree } from '../render/gpuLabels';
 
 /** one mesh of a GLB in the file's own space, and its bounds */
 export interface GlbPart { geometry: THREE.BufferGeometry; material: THREE.Material; box: THREE.Box3 }
@@ -33,6 +34,7 @@ function dequantize(g: THREE.BufferGeometry): THREE.BufferGeometry {
 export async function loadGlbPart(url: string, prepare: (m: THREE.Material) => void): Promise<GlbPart | null> {
   try {
     const g = await gltf.loadAsync(url);
+    labelObjectTree(g.scene, 'engine/loadGlbPart', url);
     let found: GlbPart | null = null;
     g.scene.updateMatrixWorld(true);
     g.scene.traverse((o) => {
@@ -40,7 +42,7 @@ export async function loadGlbPart(url: string, prepare: (m: THREE.Material) => v
       const mesh = o as THREE.Mesh;
       const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
       if (!material) return;
-      const geometry = dequantize(mesh.geometry.clone()).applyMatrix4(mesh.matrixWorld);
+      const geometry = labelAsset(dequantize(mesh.geometry.clone()).applyMatrix4(mesh.matrixWorld), 'engine/loadGlbPart', `${url}#${mesh.name || 'mesh'}`);
       geometry.computeBoundingBox();
       prepare(material);
       found = { geometry, material, box: geometry.boundingBox ?? new THREE.Box3() };

@@ -23,6 +23,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { texMode, gpuFile } from '../boot/gpuFiles';
 import { markGpuOnly } from './gpuOnly';
 import { type Renderer, probeRenderer } from '../render/renderer';
+import { labelAsset } from '../render/gpuLabels';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -125,7 +126,7 @@ export async function ktx2Texture(served: string, maxSize = Infinity): Promise<T
   }
   t.flipY = false;
   t.generateMipmaps = false;
-  return releaseAfterUpload(t);
+  return labelAsset(releaseAfterUpload(t), 'engine/ktx2Texture', url);
 }
 
 /**
