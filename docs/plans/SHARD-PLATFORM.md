@@ -109,7 +109,7 @@ Jake: *"Bounded, or even Bounded lite. This benefits from a timebox too."*
 - **Out (G48):** a cross-engine motor test, the deterministic Rapier build, whole-sim cross-engine identity, fixed collider order across engines,
   three.js trig in the sim. (Closes B8, B9 and C3 as settled.)
 
-### 3.2 Caps v1.1 (phone; measured by SF22a, corrected by SF8a, not frozen)
+### 3.2 Caps v1 (phone; measured by SF22a, not frozen)
 
 SF22a (`3bff65310`, `docs/design/mmo/research/e435/sf22a-memory.md`) measured on the iOS Simulator: the engine base
 (the empty template) ≈ **300 MB** (218 MB WebContent + 81 MB GL); each shard alone today: template 282, Driftwood 868,
@@ -119,16 +119,13 @@ v0 caps cost 617 MB (×1.11 the caps' sum) → ≈ 917 MB with the base, over th
 
 | | L0 tile (62.5 m) | L1 tile (125 m) | Far proxy (per shard) | Shard library | Shard sim (counted in the envelope) |
 |---|---|---|---|---|---|
-| Resident | **3 MB** | **2 MB** | 1.6 MB | **20 MB** | **25 MB** |
+| Resident | **4 MB** | **2 MB** | 1.6 MB | 25 MB | **25 MB** |
 | Download (compressed) | 0.3 MB | 0.2 MB | 1 MB | 8 MB | critical bundle ≤ **2 MB** (colliders + sim) |
 | Triangles | 40k | 10k | 8k | — | — |
 | Draws (instanced, **shadow draws included**) | 8 | 2 | 1 | — | — |
 
-- Engine base 300 MB (Simulator-verified); envelope ≤ 850 MB playing; loading ≤ 1.8 GB; render scale 2×. **v1.1, honestly
-  summed** (SF8a's builder, sp-x5, found SF22a's ≈ 818 MB left out the four sims: at v1 the worst location is
-  29 × 4 + 4 × 25 + 32 × 2 + 9 × 1.6 + 4 × 25 = 494.4 MB of content, × 1.11 measured overhead + 300 base + 80 slack
-  = **929 MB**, over the envelope). v1.1 takes SF22a's own cheapest cuts, L0 tiles 3 MB and libraries 20 MB:
-  29 × 3 + 4 × 20 + 64 + 14.4 + 100 = 345.4 MB × 1.11 + 380 ≈ **763 MB**, 87 MB under the envelope. **The format drops three.js's JS copies after GPU upload** (keeping them cost 357 MB
+- Engine base 300 MB (Simulator-verified); envelope ≤ 850 MB playing; loading ≤ 1.8 GB; render scale 2×. v1 sums to
+  ≈ 818 MB at the worst location. **The format drops three.js's JS copies after GPU upload** (keeping them cost 357 MB
   at the rig). **Only L0 tiles within ~80 m cast shadows** (the sun pass took draws from 64 to 271).
 - **Not frozen**: the only Simulator→phone pair on record (E264) is ×1.4, which would put the base near 420 MB and the
   crossroads near 1.3 GB; if SF22c's phone reading confirms it, content drops ~30 % more, cheapest first: three sims
