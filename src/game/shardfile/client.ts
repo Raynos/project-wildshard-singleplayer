@@ -39,6 +39,7 @@ import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
 import { createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from './simulation';
+import type { DeclaredGroupPorts } from './groupRuntime';
 import type { Shardfile } from './schema';
 import type { DeclaredBrainPorts } from './brainRuntime';
 
@@ -54,6 +55,8 @@ export interface ShardfileClientBindings {
   residency?: PageResidency;
   /** Explicit trusted native actor recipes for declared brain families. */
   brains?: DeclaredBrainPorts;
+  /** Trusted recipes for declared group controllers; one shared policy owns each ordered roster. */
+  groups?: DeclaredGroupPorts;
   /** Host-owned custom-policy observation and strike recipes; the factory supplies actor identities and aliases. */
   scriptBrains?: ShardfileSimPorts['scriptBrains'];
   /** Explicit first-party transition policy: a completely empty data declaration adds no gameplay services. */
@@ -78,7 +81,7 @@ function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings[
   const runtimeWorld = worldOwner === 'runtime', props = source.props;
   const propsEmpty = props === null || (runtimeWorld && props.tiles.length + props.panels.length + props.models.length + props.textures.length === 0 && props.far === null);
   const audioEmpty = audioOwner === 'runtime' || (source.audio.cues.length + source.audio.routing.length === 0 && source.audio.ambience === null && source.audio.score === 'silent' && source.audio.music === undefined && source.audio.samples === undefined && source.audio.zones === undefined);
-  return source.clientScripts.bindings.length + source.files.length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + (runtimeWorld ? 0 : source.water.length) + source.creatures.brains.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
+  return source.clientScripts.bindings.length + source.files.length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + (runtimeWorld ? 0 : source.water.length) + source.creatures.brains.length + source.creatures.groups.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
     && source.terrain === null && propsEmpty && source.far === null && source.plumbing === null
     && audioEmpty && source.look.grade.lut === null
     && source.look.day === undefined && source.look.dayOverride === null;
@@ -224,6 +227,7 @@ export class ShardfileClient {
     let simulationActive = true;
     const sim = createShardfileSim(source, this.assets.retained, { rapier: world.physics.R, physics: world.physics,
       ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
+      ...(this.bindings.groups === undefined ? {} : { groups: this.bindings.groups }),
       ...(this.bindings.scriptBrains === undefined ? {} : { scriptBrains: this.bindings.scriptBrains }),
       player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
       events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,

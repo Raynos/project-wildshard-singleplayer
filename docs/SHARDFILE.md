@@ -75,7 +75,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `clientScripts` | Optional/default-empty presentation lane: cadence dividing 60, named creature/panel/prop/particle targets, selected public/owner numeric fields, bounded pose and emitters. |
 | `rows` | Optional/default-empty numeric strikes, weather output tables, day schedules, species/variants, registered look recipes, compendium and loot presentation data. |
 | `terrain`, `water` | Optional/null bounded baked terrain binding; optional/default-empty declared pools, sea and streams. |
-| `creatures`, `encounters` | Optional/default-empty reusable brains, stable spawns and phase tables; each actor has one controller and resolves declared species/variant/strike and boss panel references. |
+| `creatures`, `encounters` | Optional/default-empty individual brains, ordered pack/herd groups, stable spawns and phase tables; each actor has one controller and resolves declared species/variant/strike and boss panel references. |
 | `quests`, `audio`, `ledger` | Optional/default-empty quest graphs/triggers/dialogue, admitted cue/ambience/score declarations, and witnessed fact/reward mappings. |
 | `hooks`, `plumbing`, `spawn` | Optional named numeric field conditions and next-tick scene events; optional scoped input/tier/Debug declarations; cell-local player position and yaw (default 0, 2, 0, 0). |
 | `props`, `items`, `targets` | Optional admitted tile/library GLBs and static collider descriptors; optional/default-empty registered kit item families; named published-state panel/collider bindings and existing interaction prompts. |
@@ -392,6 +392,19 @@ missing recipes refuse boot. Its structural numeric-state facade preserves
 quest/item plumbing and snapshots both roles and the one host together.
 Restoration executes no observation or decision; logical migration extracts
 only the explicit numeric role, preserving historical standalone saves.
+
+`creatures.groups` defaults to `[]` and admits at most 64 pack or herd controllers.
+Each declares a unique controller ID, strict finite tuning, six-tick decisions
+and an ordered roster of at most 128 stable actor IDs. That roster must exactly
+match the spawn order whose `brain` names the group. Individual, group and
+encounter controllers cannot share an actor or controller ID. One group policy
+owns the roster; body work runs once per live actor per fixed step.
+The client injects trusted perception, shared RNG, prey/taming, contact and
+steering recipes through `groups`; absent recipes refuse boot. All group,
+individual, custom-script alias and encounter admission finishes before group
+initialization. Cold setup consumes shared RNG in declared group order once.
+Each group has one typed snapshot adapter; restoration skips initialization
+and executes no observation, decision or body work.
 
 `audio` retains `cues`, nullable wind `ambience` and `score: "silent" | "default"`.
 Its optional `routing` defaults to an empty ordered array. At most 512 cue rules

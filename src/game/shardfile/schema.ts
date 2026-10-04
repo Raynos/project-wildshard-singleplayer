@@ -8,6 +8,7 @@ import { RowsSchema } from './rows';
 import { TerrainSchema } from './terrain';
 import { WaterSchema } from './water';
 import { CreaturesSchema } from './creatures';
+import { groupBrainRules } from './groupBrains';
 import { EncountersSchema, encounterRules } from './encounters';
 import { QuestDataSchema } from './quests';
 import { AudioDataSchema } from './audio';
@@ -66,7 +67,7 @@ const rawSchema = v.strictObject({
   rows: v.optional(RowsSchema, { strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [] }),
   terrain: v.optional(v.nullable(TerrainSchema), null),
   water: v.optional(WaterSchema, []),
-  creatures: v.optional(CreaturesSchema, { brains: [], spawns: [] }),
+  creatures: v.optional(CreaturesSchema, { brains: [], groups: [], spawns: [] }),
   encounters: v.optional(EncountersSchema, []),
   quests: v.optional(QuestDataSchema, { flags: [], quests: [], triggers: [], dialogue: [] }),
   audio: v.optional(AudioDataSchema, { cues: [], ambience: null, score: 'silent' }),
@@ -153,6 +154,7 @@ export function shardfileRules(s: Shardfile): string[] {
   for (const spawn of s.creatures.spawns) if (!species.get(spawn.species)?.variants.some((row) => row.id === spawn.variant) || (spawn.strike !== null && !strikes.has(spawn.strike))) errors.push('declared spawn species/variant/strike');
   errors.push(...encounterRules(s.encounters, s.creatures.spawns.map((spawn) => spawn.id), s.ui.filter((row) => row.kind === 'bossPanel')));
   const controlled = new Set(s.encounters.map((row) => row.entity));
+  errors.push(...groupBrainRules(s.creatures.groups, s.creatures.spawns, s.creatures.brains.map((row) => row.id), [...controlled]));
   if (s.creatures.spawns.some((row) => (row.brain === null) !== controlled.has(row.id))) errors.push('exactly one declared creature controller');
   return [...new Set(errors)];
 }

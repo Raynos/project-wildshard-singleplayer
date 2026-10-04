@@ -19,6 +19,7 @@ import { speciesResolver, simStrikes } from './rows';
 import { createShardfileScriptLane, type ShardScriptPorts } from './scripts';
 import { installDeclaredBrains, type DeclaredBrainPorts } from './brainRuntime';
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from './scriptComposition';
+import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from './groupRuntime';
 
 /** Positive stable actor handle; reordering spawns changes nothing. Hash collisions are refused during composition. */
 export function numericScriptEntityId(id: string): number { return (fnv1a32(id) & 0x7fffffff) || 1; }
@@ -29,6 +30,8 @@ export interface ShardfileSimPorts extends SimHostPorts {
   water?: WaterBodies; colliders?: ReadonlyMap<string, PropColliderPort>;
   /** Trusted native actor recipes; a declaration without its required family port refuses boot. */
   brains?: DeclaredBrainPorts;
+  /** Trusted perception, prey/taming and body recipes for one controller per ordered pack/herd group. */
+  groups?: DeclaredGroupPorts;
   /** Trusted custom-policy observations and strike execution; aliases and actors belong to this factory. */
   scriptBrains?: (host: SimHost) => Pick<DeclaredScriptBrainPorts, 'ports'> & Partial<Pick<DeclaredScriptBrainPorts, 'query'>>;
   scriptEntities?: { entities: readonly ScriptEntity[]; actors: ReadonlyMap<number, string> };
@@ -39,6 +42,7 @@ export interface ShardfileSimPorts extends SimHostPorts {
 export interface ShardfileSimulation {
   host: SimHost; lane: ScriptLanePort | undefined; actors: ReadonlyMap<string, number>; quest: DeclaredQuests;
   encounters: ReturnType<typeof installDeclaredEncounters>; water: WaterBodies; colliders: ReadonlyMap<string, PropColliderPort>; dispose: () => void;
+  groups: ReadonlyMap<string, DeclaredGroupPolicy>;
 }
 /** One declared simulation core, used by the normal browser loader and the headless author validator. */
 export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
@@ -99,6 +103,9 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       return brain === undefined ? [] : [{ actorId: spawn.id, entity: numericScriptEntityId(`brain:${spawn.id}`), brain }];
     });
     if (brainBindings.length > 0 && ports.scriptBrains === undefined) throw new Error('Missing custom brain port');
+    const groupIds = new Set(shard.creatures.groups.map((group) => group.id));
+    const preparedGroups = prepareDeclaredGroupBrains(host, shard.creatures.groups, shard.creatures.spawns, ports.groups ?? {},
+      shard.creatures.brains.map((brain) => brain.id), shard.encounters.map((row) => row.entity));
     let lane: ScriptLanePort | undefined;
     if (shard.sim.scripts.length > 0) {
       const entities = new Map<number, ScriptEntity>();
@@ -153,9 +160,11 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const quest = new DeclaredQuests(host, shard.quests, { ...ports.quest,
       ...(lane === undefined ? {} : { script: createQuestScriptPorts(lane, hooks, actors) }),
     });
-    installDeclaredBrains(host, shard.creatures.spawns.filter((spawn) => spawn.brain === null || !custom.has(spawn.brain)), shard.creatures.brains.filter((brain) => brain.kind !== 'script'), ports.brains);
+    installDeclaredBrains(host, shard.creatures.spawns.filter((spawn) => spawn.brain === null || (!custom.has(spawn.brain) && !groupIds.has(spawn.brain))), shard.creatures.brains.filter((brain) => brain.kind !== 'script'), ports.brains);
     const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud);
+    // All individual/custom aliases and encounter recipes have admitted successfully before setup draws or group work.
+    const groups = preparedGroups.install(ports.restoring ?? false);
     if (!host.embedded && !ports.restoring) host.physics.step();
-    return { host, lane, actors, quest, encounters, water, colliders, dispose: () => { host.dispose(); } };
+    return { host, lane, actors, quest, encounters, water, colliders, groups, dispose: () => { host.dispose(); } };
   } catch (error) { host.dispose(); throw error; }
 }

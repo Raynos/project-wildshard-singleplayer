@@ -16,7 +16,7 @@ const fixture = () => {
 };
 it('keeps legacy empty fixtures compatible and default sections empty', () => {
   const source = empty();
-  expect(source.terrain).toBeNull(); expect(source.water).toEqual([]); expect(source.creatures).toEqual({ brains: [], spawns: [] });
+  expect(source.terrain).toBeNull(); expect(source.water).toEqual([]); expect(source.creatures).toEqual({ brains: [], groups: [], spawns: [] });
   expect(source.quests).toEqual({ flags: [], quests: [], triggers: [], dialogue: [] });
   expect(source.audio).toEqual({ cues: [], routing: [], ambience: null, score: 'silent' });
   expect(() => emptyShardfileSource(source)).not.toThrow();
