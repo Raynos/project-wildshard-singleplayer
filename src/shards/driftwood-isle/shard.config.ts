@@ -5,6 +5,6 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
   ...emptyShardfile({ slug: 'driftwood-isle', name: 'Driftwood Isle', author: 'Wildshard', revision: 1, seed: 0x5ea1 }),
-  runtime: { entry: 'runtime/index.ts' },
+  runtime: { entry: 'runtime/hybrid.ts' },
   spawn: { x: 0, y: 1.2, z: -194, yaw: Math.PI },
 });

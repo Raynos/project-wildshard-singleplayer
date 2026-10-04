@@ -25,7 +25,7 @@ class DriftwoodHybrid extends ShardPlugin {
     this.composite = await prepareHybridShard(source, { firstParty: true }, {
       catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
       icon: () => { throw new Error('Transitional Driftwood has no declared item icon'); },
-    }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => Promise.resolve({ default: RuntimePlugin }) }]);
+    }, [{ slug: source.identity.slug, entry: 'runtime/hybrid.ts', load: () => import('./runtime/hybrid') }]);
     await this.composite.world?.(ctx);
   }
   override async kit(ctx: ShardContext): Promise<void> {
