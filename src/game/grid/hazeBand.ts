@@ -1,12 +1,14 @@
 /**
  * A shard's haze band under the one frame (SHARD-PLATFORM SF19b, G94 / G95): a shard that declares a `band` in its far
- * look (Signal Dunes' warm dusk dust) keeps its mood inside the grid's one sky through a tall band of its own haze rising
- * from the strip at its border, never a second sky. Drawn only while the "Grid one frame" Debug row is on.
+ * look (Signal Dunes' warm dusk dust) shows its mood from the road through a tall band of its own haze rising from the
+ * strip at its border, never a second sky. Drawn only while the "Grid one frame" Debug row is on. Under G158 the band
+ * is the outside half of the shard's mood: on the road the neutral road look owns the frame, so the band is what reads
+ * as Signal Dunes' dusk from there; once the player crosses its cell edge Signal Dunes owns the whole frame (its
+ * declared air and grade, `frame.ts`) and the band is the dust wall it walked through.
  *
  * One draw per banded shard: a curtain quad on each of the cell's four edges, out at the kerb, unlit, dense at the
  * ground and thinning upward in soft vertical wisps, faded out near the camera so a traveller walks through it. It blends
- * colour only: the destination alpha (the pixel's one-frame region slot, `frameModel.ts`) is kept, so the pixels behind
- * it keep their own grade.
+ * colour only and keeps the destination alpha (a level may keep data there; the frame no longer reads it).
  */
 import { BufferAttribute, BufferGeometry, Color, CustomBlending, DoubleSide, Mesh, OneFactor, OneMinusSrcAlphaFactor, ShaderMaterial, SrcAlphaFactor, ZeroFactor, type Object3D } from 'three';
 import type { FarBand } from './farProxy';

@@ -29,20 +29,22 @@ export interface FarLookSource {
   readonly canopyAt?: (x: number, z: number, h: number, slope: number, splat: readonly [number, number, number, number]) => number;
   readonly water?: { readonly level: number; readonly colour: FarRgb };
   readonly haze: FarHaze;
-  /** its pixels' grade under the one frame (SF19a / SF19b) */
+  /** its grade under the one frame while it owns the frame (SF19a / SF19b, G158) */
   readonly grade?: FarGrade;
   /** a haze band at its border under the one frame (SF19b, G94) */
   readonly band?: FarBand;
 }
 /**
- * A shard's declared grade for its pixels under SF19a's one frame (after the camera's tone mapping; neutral when absent):
+ * A shard's declared grade under SF19a's one frame, applied to the whole frame while the player stands in its cell (G158;
+ * after the camera's tone mapping; neutral when absent):
  * exposure in stops, saturation and contrast as factors, an optional linear RGB tint.
  */
 export interface FarGrade { readonly exposure: number; readonly saturation: number; readonly contrast: number; readonly tint?: FarRgb | undefined }
 /**
  * SF19b (G94 / G95): a shard keeps its own mood inside the one frame without a second sky, through a band of its own
- * haze rising at its border (a dusk dust haze, a border fog) and how much of its declared haze its proxy keeps against
- * the camera's air (`own`, 0..1; the frame's default is 0.25).
+ * haze rising at its border (a dusk dust haze, a border fog). `own` (0..1) was how much of its declared haze its proxy
+ * kept against the camera's air under the per-pixel frame; G158 retired that (the owner's air hazes every proxy), so the
+ * frame no longer reads it.
  */
 export interface FarBand { readonly colour: FarRgb; readonly height: number; readonly opacity: number; readonly own: number }
 /** What the runtime needs beside the proxy's mesh (stored in `far.json`). */

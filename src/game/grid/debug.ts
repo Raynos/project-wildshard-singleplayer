@@ -26,8 +26,8 @@ export function devserverCellOn(devserver: boolean = DEVSERVER): boolean {
 }
 
 /**
- * SF19a's "Grid one frame" row: the camera owns the grid's sky, sun, exposure and air, and each pixel keeps its own
- * region's grade (`frame.ts`). Default off until a device reading (RENDERING.md); it shows inside the grid only and
+ * SF19a's "Grid one frame" row: the shard the player stands in owns the whole frame and the road look owns the road,
+ * blended at the cell edge (G158, `frame.ts`). Default off until Jake's yes from the board (G122); it shows inside the grid only and
  * applies at the next grid start, like every grid row. Select a shard never reads it.
  */
 const FRAME_ROW = 'gridOneFrame';

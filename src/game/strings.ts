@@ -41,7 +41,7 @@ export const GAME_STRINGS = {
     saving: 'SAVING…',
     saveFailed: 'SAVE FAILED, RETRY',
     oneFrame: 'Grid one frame',
-    oneFrameNote: 'SF19a: one sky, sun, exposure and air for the whole grid, each pixel graded by its own region. Applies at the next grid start.',
+    oneFrameNote: 'SF19a: the shard you stand in owns the whole frame (its air and grade on everything on screen), the road look owns the road, blended at the cell edge. Applies at the next grid start.',
     off: 'Off',
     on: 'On',
   },

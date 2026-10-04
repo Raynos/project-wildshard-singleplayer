@@ -225,19 +225,20 @@ export class GridSession {
     // SF19a: one frame for the grid, behind its Debug row (default off; applies at the next grid start)
     host.scope.onDispose(installGridFrameRow());
     const frameHost = host.frame;
-    this.frame = frameHost !== undefined && gridOneFrameOn() ? new GridFrame({ host: frameHost, scope: host.scope, home, half: CHUNK_HALF, band: (this.assembly.pitch - 2 * CHUNK_HALF) / 2,
+    // G158: the shard the player stands in owns the whole frame, the road look owns the road, blended at the cell edge
+    this.frame = frameHost !== undefined && gridOneFrameOn() ? new GridFrame({ host: frameHost, scope: host.scope, home, half: CHUNK_HALF, feet: () => this.world(),
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, origin: { x: cell.origin.x, z: cell.origin.z } })) }) : null;
     const frame = this.frame;
     // SF17b look: the boulevard over the deck's road band (G80 / G81 / G93) and the VR void past the outer road (G89)
     const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
-    this.road = installRoadLook({ layout, home, scene: host.scene, scope: host.scope, solid, cull, ...(frame === null ? {} : { tag: (mesh: Mesh) => { frame.deck(mesh); } }) });
+    this.road = installRoadLook({ layout, home, scene: host.scene, scope: host.scope, solid, cull });
     installVoidLook({ rail: layout.rail, home, scene: host.scene, scope: host.scope, solid });
     // the deck: the seams, kerbs, islands, streetlights and the void's rail + posts as ONE solid mesh, and the seams' additive
     // curtain; both culled per view like the boulevard's textured meshes (one draw per material whatever the view sees)
     const grain = grainArray({ gravel, stone, strata, riprap });
     const deck = new Mesh(solidGeometry(solidParts), solidMaterial(grain)), curtain = new Mesh(seams.curtain, curtainMaterial(home));
     deck.name = 'grid-deck'; deck.receiveShadow = true; curtain.name = 'grid-seam-curtain'; curtain.receiveShadow = false;
-    for (const mesh of [deck, curtain]) { mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); frame?.deck(mesh); host.scene.add(mesh); cull(mesh); }
+    for (const mesh of [deck, curtain]) { mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); host.scene.add(mesh); cull(mesh); }
     const disposeDeck = (): void => {
       deck.removeFromParent(); curtain.removeFromParent(); deck.geometry.dispose(); curtain.geometry.dispose(); deck.material.dispose(); curtain.material.dispose(); grain.dispose();
     };
@@ -280,8 +281,8 @@ export class GridSession {
       },
     });
     const farPorts = frame === null ? far : { ...far, upload: (tile: { instance: string }, data: FarPrepared) => {
-      const band = data.look.band, view = far.upload(tile, data), untag = frame.tag(tile.instance, view, data.look.haze, band?.own), dispose = view.dispose;
-      // SF19b (G94 / G95): a shard that declares a band keeps its mood at its border inside the one frame
+      const band = data.look.band, view = far.upload(tile, data), untag = frame.proxy(view), dispose = view.dispose;
+      // SF19b (G94 / G95): a shard that declares a band shows its mood at its border from the road; inside its cell it owns the frame (G158)
       const root = roots.get(tile.instance), unband = band === undefined || root === undefined ? () => undefined : installHazeBand(root, band, CHUNK_HALF);
       view.dispose = () => { unband(); untag(); dispose(); };
       return view;

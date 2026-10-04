@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { OneFactor, ZeroFactor } from 'three';
 import { BAND_OUTSET, bandGeometry, bandMaterial } from '../src/game/grid/hazeBand';
-import { RegionGradeEffect } from '../src/game/grid/frame';
-import { DECK_SLOT, HIGHWAY_LOOK } from '../src/game/grid/frameModel';
+import { FrameGradeEffect } from '../src/game/grid/frame';
+import { HIGHWAY_LOOK } from '../src/game/grid/frameModel';
 import { farLook as sunscar } from '../src/shards/sunscar-dunes/look/far';
 import { farLook as nineDragon, skylineAt } from '../src/shards/nine-dragon-stack/look/far';
 // oxlint-disable-next-line import/no-nodejs-modules -- reads the committed far.json.
@@ -16,7 +16,7 @@ describe('SF19b one-frame looks', () => {
     expect(Math.max(...xs)).toBe(250 + BAND_OUTSET); expect(BAND_OUTSET).toBeLessThan(20);
     expect(Math.max(...Array.from({ length: position.count }, (_, i) => position.getY(i)))).toBe(90);
   });
-  it('a band keeps the destination alpha (the pixel region slot) and blends colour only', () => {
+  it('a band keeps the destination alpha and blends colour only', () => {
     const m = bandMaterial({ colour: [1, 0.5, 0.2], height: 60, opacity: 1.4, own: 0.8 });
     expect(m.blendSrcAlpha).toBe(ZeroFactor); expect(m.blendDstAlpha).toBe(OneFactor); expect(m.depthWrite).toBe(false);
     expect(m.uniforms['uOpacity']?.value).toBe(1);
@@ -34,10 +34,9 @@ describe('SF19b one-frame looks', () => {
     for (const [x, z] of [[0, -200], [200, 0], [0, 200], [-200, 0]] as const) expect(skylineAt(x, z)).toBeLessThan(4);
     expect(skylineAt(-120, -120)).toBeGreaterThan(15); expect(skylineAt(-10, -10)).toBeLessThan(0); // the Yamen Well
   });
-  it('G75: the highway slot takes a grey-blue grade (less saturation, a cool tint)', () => {
-    const effect = new RegionGradeEffect(); effect.set(DECK_SLOT, HIGHWAY_LOOK.grade);
-    const tint = effect.tints[DECK_SLOT];
-    expect(effect.grades[DECK_SLOT]?.y).toBeLessThan(1); expect(tint?.z).toBeGreaterThan(tint?.x ?? 2);
-    effect.set(3, { exposure: 0, saturation: 1, contrast: 1 }); expect(effect.tints[3]?.toArray()).toEqual([1, 1, 1]);
+  it('G75: the road look takes a grey-blue grade (less saturation, a cool tint)', () => {
+    const effect = new FrameGradeEffect(); effect.set(HIGHWAY_LOOK.grade);
+    expect(effect.grade.y).toBeLessThan(1); expect(effect.tint.z).toBeGreaterThan(effect.tint.x);
+    effect.set({ exposure: 0, saturation: 1, contrast: 1 }); expect(effect.tint.toArray()).toEqual([1, 1, 1]);
   });
 });

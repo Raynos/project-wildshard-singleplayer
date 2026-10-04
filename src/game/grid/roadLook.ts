@@ -24,8 +24,6 @@ export interface RoadLookInput {
   readonly home: GridCell;
   readonly scene: Object3D;
   readonly scope: LookScope;
-  /** SF19a: tag a mesh as highway (its grade is the neutral road grade, G75) */
-  readonly tag?: (mesh: Mesh) => void;
   /** the road system's one solid material takes the kerbs, islands and streetlights (SF17b per-view budget) */
   readonly solid: (part: SolidPart) => void;
   /** the per-view cull for each textured mesh (`roadCull.ts`) */
@@ -382,7 +380,7 @@ export function installRoadLook(input: RoadLookInput): RoadLookState {
   const { poles, heads } = streetlights(layout, home);
   for (const part of [kerbs(layout, home), poles, heads]) input.solid(part);
   const meshes: Mesh[] = [road, junctions, signs];
-  for (const mesh of meshes) { mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); input.tag?.(mesh); group.add(mesh); input.cull?.(mesh); }
+  for (const mesh of meshes) { mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); group.add(mesh); input.cull?.(mesh); }
   scene.add(group);
   scope.onDispose(() => {
     group.removeFromParent();
