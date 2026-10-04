@@ -49,9 +49,9 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
   return encoded.subarray(0, written);
 }
 /** Reject malformed references before copying; output allocation and total reconstructed work are bounded by length. */
-export function decodePhysicsReferences(bytes: Uint8Array, length: number, basis?: Uint8Array): Uint8Array {
+function references(bytes: Uint8Array, length: number, basisLength: number | undefined, result?: Uint8Array, basis?: Uint8Array): void {
   if (!Number.isSafeInteger(length) || length < 1 || length > MAX_PHYSICS_BYTES || bytes.length > MAX_REFERENCE_BYTES) throw new RangeError('Snapshot physics exceeds byte bounds');
-  const result = new Uint8Array(length), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let at = 0, written = 0;
   while (at < bytes.length) {
     const kind = bytes[at++];
@@ -59,19 +59,31 @@ export function decodePhysicsReferences(bytes: Uint8Array, length: number, basis
       if (at + 2 > bytes.length) throw new RangeError('Truncated snapshot physics literal');
       const count = view.getUint16(at, true) + 1; at += 2;
       if (at + count > bytes.length || written + count > length) throw new RangeError('Invalid snapshot physics literal length');
-      result.set(bytes.subarray(at, at + count), written); at += count; written += count;
+      result?.set(bytes.subarray(at, at + count), written); at += count; written += count;
     } else if (kind === 1 || kind === 2) {
       if (at + 8 > bytes.length) throw new RangeError('Truncated snapshot physics reference');
       const distance = view.getUint32(at, true), count = view.getUint32(at + 4, true); at += 8;
       if (kind === 2) {
-        if (basis === undefined || count < matchMinimum || distance + count > basis.length || written + count > length) throw new RangeError('Invalid snapshot physics basis reference');
-        result.set(basis.subarray(distance, distance + count), written); written += count; continue;
+        if (basisLength === undefined || count < matchMinimum || distance + count > basisLength || written + count > length) throw new RangeError('Invalid snapshot physics basis reference');
+        if (result !== undefined && basis !== undefined) result.set(basis.subarray(distance, distance + count), written);
+        written += count; continue;
       }
       if (distance < 1 || distance > written || count < matchMinimum || written + count > length) throw new RangeError('Invalid snapshot physics reference');
       const end = written + count;
-      while (written < end) { result[written] = result[written - distance] ?? 0; written++; }
+      if (result === undefined) written = end;
+      else while (written < end) { result[written] = result[written - distance] ?? 0; written++; }
     } else throw new RangeError('Unknown snapshot physics token');
   }
   if (written !== length) throw new RangeError('Snapshot physics decoded length mismatch');
+}
+/** Validate all literal/copy bounds against the declared old basis without replaying unknown bytes. This is not an integrity proof. */
+export function validatePhysicsReferences(bytes: Uint8Array, length: number, basisLength?: number): void {
+  references(bytes, length, basisLength);
+}
+/** Reconstruct exact bytes only with the caller's checked basis. */
+export function decodePhysicsReferences(bytes: Uint8Array, length: number, basis?: Uint8Array): Uint8Array {
+  if (!Number.isSafeInteger(length) || length < 1 || length > MAX_PHYSICS_BYTES || bytes.length > MAX_REFERENCE_BYTES) throw new RangeError('Snapshot physics exceeds byte bounds');
+  const result = new Uint8Array(length);
+  references(bytes, length, basis?.length, result, basis);
   return result;
 }

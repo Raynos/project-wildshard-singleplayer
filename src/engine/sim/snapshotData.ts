@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { deflateSync, inflateSync } from 'fflate';
-import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, encodePhysicsReferences, decodePhysicsReferences } from './snapshotPhysics';
+import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, encodePhysicsReferences, decodePhysicsReferences, validatePhysicsReferences } from './snapshotPhysics';
 import type { SimValue } from '../sim';
 import type { SimSnapshot } from './snapshot';
 
@@ -148,13 +148,13 @@ function packedPhysics(bytes: readonly number[], basis?: Uint8Array): v.InferOut
   return { encoding: 'deflate-lz-base64-v1', length: raw.length, packedLength: references.length, chunks, checksum: hash,
     ...(basis === undefined ? {} : { basis: { length: basis.length, checksum: checksum(basis) } }) };
 }
-function physicsBytes(packed: v.InferOutput<typeof packedSnapshot>['physics'], basis?: Uint8Array): number[] {
+function physicsBytes(packed: v.InferOutput<typeof packedSnapshot>['physics'], basis: Uint8Array | undefined, mismatch: () => Error): number[] {
   if (packed.encoding === 'base64') {
     const bytes = unpack(packed.data);
     if (bytes.length > maxPhysicsBytes || checksum(bytes) !== packed.checksum) throw new RangeError('Snapshot physics checksum or length mismatch');
     return bytes;
   }
-  if (packed.basis !== undefined && (basis === undefined || basis.length !== packed.basis.length || checksum(basis) !== packed.basis.checksum)) throw new RangeError('Snapshot physics basis mismatch');
+  if (packed.basis !== undefined && basis === undefined) throw new RangeError('Snapshot physics basis mismatch');
   if (packed.chunks.length !== Math.ceil(packed.packedLength / physicsBlockBytes)) throw new RangeError('Invalid snapshot physics block count');
   const references = new Uint8Array(packed.packedLength);
   for (const [index, chunk] of packed.chunks.entries()) {
@@ -165,6 +165,8 @@ function physicsBytes(packed: v.InferOutput<typeof packedSnapshot>['physics'], b
     if (decoded.length !== length) throw new RangeError('Snapshot physics block length mismatch');
     references.set(decoded, offset);
   }
+  validatePhysicsReferences(references, packed.length, packed.basis?.length);
+  if (packed.basis !== undefined && basis !== undefined && (basis.length !== packed.basis.length || checksum(basis) !== packed.basis.checksum)) throw mismatch();
   const bytes = decodePhysicsReferences(references, packed.length, packed.basis === undefined ? undefined : basis);
   if (checksum(bytes) !== packed.checksum) throw new RangeError('Snapshot physics checksum mismatch');
   return Array.from(bytes);
@@ -216,10 +218,12 @@ export function serializeSnapshotData(input: SimSnapshot, apiVersion: number, ph
     physics: packedPhysics(saved.physics, physicsBasis) } });
 }
 /** Internal strict wire parser; unknown static fields are refused at every nesting level. */
-export function decodeSnapshotData(input: unknown, apiVersion: number, physicsBasis?: Uint8Array): SimSnapshot {
+export function decodeSnapshotData(input: unknown, apiVersion: number, physicsBasis?: Uint8Array, mismatch?: (levelId: string, tick: number) => Error): SimSnapshot {
   const parsed: unknown = typeof input === 'string' ? JSON.parse(input) : input;
   jsonTree(parsed);
   const saved = v.parse(wire, parsed).snapshot;
-  const physics = physicsBytes(saved.physics, physicsBasis);
+  // Validate metadata/engine/identities before reporting a recoverable basis change. The placeholder is never returned.
+  identities(v.parse(snapshot, { ...saved, physics: [0] }), apiVersion);
+  const physics = physicsBytes(saved.physics, physicsBasis, () => mismatch?.(saved.levelId, saved.state.tick) ?? new RangeError('Snapshot physics basis mismatch'));
   return identities(v.parse(snapshot, { ...saved, physics }), apiVersion);
 }

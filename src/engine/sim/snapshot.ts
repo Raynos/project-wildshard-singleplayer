@@ -17,6 +17,16 @@ import { tagCollider, tagOf, type Material } from '../physics/surface';
 export const SIM_SNAPSHOT_VERSION = 1;
 /** Durable per-region ceiling in stored characters; the grid caller uses a logical checkpoint if exact encoding exceeds it. */
 export const SIM_REGION_SNAPSHOT_CHAR_BUDGET = 512 * 1024;
+/**
+ * A supplied immutable basis differs after strict metadata and packed framing validation. This does not authenticate
+ * old native bytes: logical fallback additionally requires the durable owner's integrity seal and portable checkpoint.
+ * Missing basis, malformed chunks/references and incompatible engine versions never produce this error.
+ */
+export class SnapshotBasisMismatchError extends RangeError {
+  readonly levelId: string;
+  readonly tick: number;
+  constructor(levelId: string, tick: number) { super('Snapshot physics basis mismatch'); this.name = 'SnapshotBasisMismatchError'; this.levelId = levelId; this.tick = tick; }
+}
 type EventValue =
   | { kind: 'value'; value: null | boolean | number | string }
   | { kind: 'undefined' }
@@ -50,7 +60,7 @@ export function serializeSimSnapshot(saved: SimSnapshot, physicsBasis?: Uint8Arr
 }
 /** Decode compressed/legacy JSON; a basis-referencing wire requires its exact checked basis. Never drops native geometry/state. */
 export function decodeSimSnapshot(input: unknown, physicsBasis?: Uint8Array): SimSnapshot {
-  return decodeSnapshotData(input, SIM_API_VERSION, physicsBasis);
+  return decodeSnapshotData(input, SIM_API_VERSION, physicsBasis, (levelId, tick) => new SnapshotBasisMismatchError(levelId, tick));
 }
 
 function encode(value: unknown, host: SimHost, parents = new Set<object>()): EventValue {
