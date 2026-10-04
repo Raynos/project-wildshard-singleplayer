@@ -6,7 +6,7 @@ it('charges every category through the SF22a cost model and refuses what cannot 
   const allocator = new ResidencyAllocator();
   const sim = allocator.reserve({ id: 'sim:a', category: 'sim', bytes: C.sim.resident, owner: 'a', distance: 0, needed: true });
   expect(sim).not.toBeNull();
-  expect(allocator.cost().input).toEqual({ l0: 0, l1: 0, far: 0, libraries: 0, sims: C.sim.resident, commons: 0, overlap: C.overlap });
+  expect(allocator.cost().input).toEqual({ l0: 0, l1: 0, far: 0, libraries: 0, sims: C.sim.resident, commons: 0, products: 0, overlap: C.overlap });
   expect(allocator.cost().playing).toBe(C.engineBase + Math.ceil(C.sim.resident * C.residentFactor) + C.overlap);
   // (1000 − 300 − 80) / 1.11 ≈ 558 MB accounted (G65's 1.0 GB envelope); a needed 600 MB claim never fits and evicts nothing
   expect(allocator.reserve({ id: 'library:huge', category: 'library', bytes: 600 * MB, owner: 'b', distance: 0, needed: true })).toBeNull();
