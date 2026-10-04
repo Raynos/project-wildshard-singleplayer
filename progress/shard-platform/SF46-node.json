@@ -60,7 +60,8 @@
     "command": "node --import ./scripts/sim-node-loader.mjs test/proof/_template/run.mjs headless",
     "ticks": 10000,
     "before": "7d5ac6d6a8333863be8b212594c6ecddb253154ae51c15d74782b488bae2904f",
-    "after": "7d5ac6d6a8333863be8b212594c6ecddb253154ae51c15d74782b488bae2904f"
+    "after": "7d5ac6d6a8333863be8b212594c6ecddb253154ae51c15d74782b488bae2904f",
+    "latestRecheck": "cad11c1bc; exact 10000-tick hash unchanged"
   },
   "sdkBuild": {
     "command": "node scripts/build-shardfiles.mjs",
@@ -104,7 +105,7 @@
         "colliders": 0
       }
     },
-    "defaultOffComparison": "pending"
+    "defaultOffComparison": "TOP priority after coordinator quiet window: d143452b1 vs origin HEAD, both tiers and unload; pending"
   },
   "floor": "pending serialized window",
   "fullGateAndOriginPush": {
@@ -151,5 +152,17 @@
       "trusted dependants release before shell motors allocated between kit and play",
       "default-off returns the legacy plugin without data admission or a runtime overlay"
     ]
+  },
+  "runtimeReadiness": {
+    "commit": "669dceb36",
+    "port": "HybridCellBinding.readiness(ready)",
+    "command": "pnpm exec vitest run test/hybrid-runtime.test.ts test/shards/driftwood-isle/hybrid.test.ts",
+    "tests": 14,
+    "pass": true,
+    "strictAndScopedTypedLint": true,
+    "falseBeforeWorldAndAfterLeave": true,
+    "trueOnlyAfterPlayResolves": true,
+    "cancelledLateHooksCannotChangeNextReadiness": true,
+    "moduleAdmissionSeparateFromGameplay": true
   }
 }
