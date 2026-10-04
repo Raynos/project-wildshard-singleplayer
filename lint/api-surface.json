@@ -12648,6 +12648,12 @@
         "from": "@wildshard/game/grid/pageBoot"
       },
       {
+        "name": "preflightGridReload",
+        "kind": "function",
+        "doc": "Preflight the fresh page's already measured mandatory home/platform claims without evicting the current world.",
+        "from": "@wildshard/game/grid/pageBoot"
+      },
+      {
         "name": "preparePageResidency",
         "kind": "function",
         "doc": "G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply",

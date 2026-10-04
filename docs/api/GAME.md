@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-508 members; 113 without a doc line (—).
+509 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -110,6 +110,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `LiveGridRegion` | interface | @wildshard/game/grid/live | An owned region has authored colliders and logical player state, but no second traveller capsule. |
 | `LiveGridState` | interface | @wildshard/game/grid/live | Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. |
 | `PageResidencyBoot` | interface | @wildshard/game/grid/pageBoot | The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. |
+| `preflightGridReload` | function | @wildshard/game/grid/pageBoot | Preflight the fresh page's already measured mandatory home/platform claims without evicting the current world. |
 | `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
 | `validatePlannedGridReload` | function | @wildshard/game/grid/pageBoot | Verify the consumed transfer against today's layout and authored revision before any home hydration. |
 | `consumeGridReloadBoot` | function | @wildshard/game/grid/reloadBoot | The first boot consumes the record durably. A kill during later admission cannot retry the same transfer. |
