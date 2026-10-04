@@ -19,7 +19,11 @@ const EDGES_FILE = 'lint/layer-edges.json';
 const GENERATED_TABLE = 'src/shards.generated.ts';
 const SOURCE = /\.[cm]?[jt]sx?$/u;
 
-/** HEAD resolves tracked modules plus ignored build outputs, never ordinary untracked source. */
+/** HEAD resolves tracked modules plus ignored build outputs, never ordinary untracked source.
+ * @param {string} path
+ * @param {ReadonlySet<string>} tracked
+ * @param {(path:string)=>boolean} diskExists
+ */
 export function headModuleExists(path, tracked, diskExists) {
   return tracked.has(path) || (/\.generated\.[cm]?[jt]sx?$/u.test(path) && diskExists(path));
 }
