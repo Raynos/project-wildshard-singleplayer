@@ -311,6 +311,7 @@
     "./combat/itemFamilies": "./combat/itemFamilies.ts",
     "./input/commands": "./input/commands.ts",
     "./physics/edgeEntries": "./physics/edgeEntries.ts",
-    "./physics/rapier": "./physics/rapier.ts"
+    "./physics/rapier": "./physics/rapier.ts",
+    "./boot/contentCache": "./boot/contentCache.ts"
   }
 }

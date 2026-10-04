@@ -69,7 +69,8 @@ const FONTS = JSON.parse('__FONTS__');
 const SHELL = `ws-shell-${BUILD}`;
 const STATIC = `ws-static-${ASSETS}`;
 const IMMUTABLE_CACHE = 'ws-immutable';
-const KEEP = [SHELL, STATIC, IMMUTABLE_CACHE];
+// Content-addressed author bytes and visited manifests have their own admission/quota policy, independent of a build.
+const KEEP = [SHELL, STATIC, IMMUTABLE_CACHE, 'ws-content-v0', 'ws-shardfile-products-v0'];
 /** E160: a name that carries its content hash (a pack, `<name>-<hash8>.m4a`) — vite/assetHashes.ts contentNamed: keep in step */
 const CONTENT_NAMED_RE = /^\/assets\/packs\/|-[0-9a-f]{8}\.[a-z0-9]+$/;
 const FONT_SET = new Set(FONTS);

@@ -1749,7 +1749,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1831 exports, grouped by the module to import them from.
+1835 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1803,6 +1803,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/boot/bootTrace`: `beginExploreEntry`, `bootDiagnostic`, `bootDiagnosticJson`, `BootTrace`, `bootTraceActive`, `BootTraceTransports`, `createBootTrace`, `endExploreEntry`, `exploreEntryPending`, `flushBootReports`, `inspectPreviousBoot`, `markBootContextLost`, `markBootHandledError`, `markBootPlanned`, `previousBootLevel`, `previousBootLine`, `recordBootCheckpoint`, `recordBootProgress`, `recordExploreFrame`, `recordGpuRecovery`, `startBoot`
 - `@wildshard/engine/boot/bytes`: `addBytes`, `ChunkFiles`, `declareTotals`, `fetchImage`, `gpuLayerUrl`, `gpuUrl`, `installByteCounter`, `phoneUrl`, `releaseByteCounter`, `tierUrl`, `versionedUrl`
 - `@wildshard/engine/boot/catalog`: `bootCatalog`, `BootCatalog`, `BootLevel`, `setBootCatalog`
+- `@wildshard/engine/boot/contentCache`: `CONTENT_CACHE_NAME`, `ContentCache`, `ContentCachePorts`, `ContentCacheStats`
 - `@wildshard/engine/boot/extras`: `AudioBanks`, `bootFiles`, `extraFetches`, `Preload`, `startAudioPreload`, `startDeferredAudioPreload`, `startMenuPreload`
 - `@wildshard/engine/boot/filePolicy`: `filePolicy`
 - `@wildshard/engine/boot/gpuFiles`: `gpuFile`, `Ktx2Table`, `MAY_KTX2`, `registerGpuFiles`, `setAutoKtx2Check`, `setTexturePolicy`, `standIn`, `texMode`, `TexMode`, `texModeWhy`
@@ -2058,7 +2059,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-323 exports, grouped by the module to import them from.
+333 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2074,6 +2075,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/cosmetics/bodyShadow`: `BodyHost`, `BodyPlayer`, `BodyShadow`, `installBodyShadow`
 - `@wildshard/game/cosmetics/locker`: `CosmeticDef`, `CosmeticProfile`, `CosmeticsLocker`, `CosmeticState`, `SkinLocker`
 - `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
+- `@wildshard/game/grid/assembly`: `EmptyNeighbour`, `GridAssembly`, `GridCell`, `GridPoint`, `GridSide`
+- `@wildshard/game/grid/catalogue`: `GridCatalogue`, `GridCatalogueSchema`, `GridMode`, `GridPlacement`, `parseGridCatalogue`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
 - `@wildshard/game/instanceSaves`: `instanceSave`, `LocalSaveInstance`
 - `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`
@@ -2216,3 +2219,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 ### Declared simulation composition and author validation (SF8c)
 
 `@wildshard/game/shardfile/simulation` composes admitted terrain, prop colliders, stable actor identities, trusted item handles, numeric scripts, published-state targets, quests, brains and encounters. `createShardfileSim` owns a standalone world by default; its typed ports can borrow the normal client's physics/player/fixed-step driver and existing collider/water ports. `bindShardfileSim` reinstalls matching snapshot adapters without collider allocation or stepping in restore mode. Borrowed snapshots belong to the existing world owner. `@wildshard/engine/physics/edgeEntries` walks overlapping capsule paths across each real entry; `@wildshard/engine/physics/rapier` loads the distributed physics binary without browser globals. See [SDK-DEV.md](SDK-DEV.md) for native validation and the authoritative target update.
+
+### Content-addressed disk cache (SF18c)
+
+`@wildshard/engine/boot/contentCache` exposes `ContentCache` with injected storage, SHA-256 and quota ports. Immutable addresses are shared across content sources; reads verify hashes and offline misses never fetch. A durable LRU index, active-content leases, bounded entry/byte counts and quota eviction/retry keep disk growth bounded. Service-worker activation preserves this independently versioned cache and visited product manifests. See [CONTENT-CACHE.md](CONTENT-CACHE.md) for limits, ownership and recovery.

@@ -1817,6 +1817,30 @@
         "from": "@wildshard/engine/boot/catalog"
       },
       {
+        "name": "CONTENT_CACHE_NAME",
+        "kind": "const",
+        "doc": "Version-independent, origin-wide immutable bytes shared by every content source and visited instance.",
+        "from": "@wildshard/engine/boot/contentCache"
+      },
+      {
+        "name": "ContentCache",
+        "kind": "class",
+        "doc": "Hash-verified Cache Storage with durable LRU, quota headroom and leases for active critical content.",
+        "from": "@wildshard/engine/boot/contentCache"
+      },
+      {
+        "name": "ContentCachePorts",
+        "kind": "interface",
+        "doc": "Explicit persistent storage ports; constructing the cache installs no service or fetch interception.",
+        "from": "@wildshard/engine/boot/contentCache"
+      },
+      {
+        "name": "ContentCacheStats",
+        "kind": "interface",
+        "doc": "Aggregate wire bytes on disk; decoded CPU/GPU allocations belong to their session owners.",
+        "from": "@wildshard/engine/boot/contentCache"
+      },
+      {
         "name": "AudioBanks",
         "kind": "interface",
         "doc": "a level's decoded audio: its music bank, its SFX bank and its own audio profile's bank",

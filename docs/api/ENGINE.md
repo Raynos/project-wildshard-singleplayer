@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1848 members; 831 without a doc line (—).
+1852 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -310,6 +310,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `BootCatalog` | interface | @wildshard/engine/boot/catalog | — |
 | `BootLevel` | interface | @wildshard/engine/boot/catalog | The levels the boot and the background download know about (E405 AG28): the game installs its registry here at the |
 | `setBootCatalog` | function | @wildshard/engine/boot/catalog | — |
+| `CONTENT_CACHE_NAME` | const | @wildshard/engine/boot/contentCache | Version-independent, origin-wide immutable bytes shared by every content source and visited instance. |
+| `ContentCache` | class | @wildshard/engine/boot/contentCache | Hash-verified Cache Storage with durable LRU, quota headroom and leases for active critical content. |
+| `ContentCachePorts` | interface | @wildshard/engine/boot/contentCache | Explicit persistent storage ports; constructing the cache installs no service or fetch interception. |
+| `ContentCacheStats` | interface | @wildshard/engine/boot/contentCache | Aggregate wire bytes on disk; decoded CPU/GPU allocations belong to their session owners. |
 | `AudioBanks` | interface | @wildshard/engine/boot/extras | a level's decoded audio: its music bank, its SFX bank and its own audio profile's bank |
 | `bootFiles` | function | @wildshard/engine/boot/extras | — |
 | `extraFetches` | function | @wildshard/engine/boot/extras | the art and the audio for the prefetch queue: the selected style + set (decoded in the bar) ahead of the others (downloaded only) |
