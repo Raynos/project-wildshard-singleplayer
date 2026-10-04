@@ -8,7 +8,7 @@ preference is not evidence. Council 3 reviews the plan after council 2 closed (2
    confirmed council-2 lead calls; G154 the memory soak test with fade-reload). Later G's override earlier ones.
 2. **Councils 1 and 2:** every closed row in `../register.md` and `../council-2/register.md`; a repeat without new
    evidence is closed on sight.
-3. **The pages Jake read and approved:** [Shardfiles Explained](../../../../reviews/shardfiles-explained.md) (the three
+3. **The pages written for Jake** (still `unread`: only his words mark a page read; the plan's text is what is settled; C3-R1-C13): [Shardfiles Explained](../../../../reviews/shardfiles-explained.md) (the three
    boxes: ① the shardfile is only compiled output, ② the local project and generators, ③ the `runtime/` chunk outside the
    shardfile) and [Inside the Template Shardfile](../../../../reviews/inside-the-template-shardfile.md) (admission and
    threats; its gaps are SF58).
