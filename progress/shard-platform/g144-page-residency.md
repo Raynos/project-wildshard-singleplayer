@@ -55,6 +55,14 @@ rules. The root-to-game public `grid/pageBoot` edge is coordinator-approved for 
 
 ## Still open
 
+Platform render admission primitive `282bb652a` now defines a pure `{id, jsBytes, gpuBytes}` byte plan and reserves it
+through the same allocator before a renderer's builder runs. The builder receives a child scope; its resource disposal
+precedes lease release. `pnpm exec vitest run test/grid-render-residency.test.ts`: 6/6 in 720 ms, scoped typed lint green.
+These cover the actual measured-home envelope, preallocation refusal, normal teardown, partial-build rollback,
+independent duplicate allocation, stale scope calls, teardown during eviction and combined construction/cleanup errors.
+The paired renderer lane still needs to produce the exact retained JS/GPU byte plans and inject the adapter into
+seam/road/void/grain/cull construction. No renderer look changed in this primitive.
+
 After quiet release, run the clean carrier gate, then enter Infinite Wildshard with the new row ON and verify the
 measured home is admitted, one allocator is shared and refusal telemetry stays safe. Keep the row OFF if admission
 fails; route the measured limitation to Jake rather than increasing a budget. Review platform road/native residency

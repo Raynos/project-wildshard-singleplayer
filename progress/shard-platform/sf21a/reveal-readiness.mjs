@@ -16,6 +16,7 @@ try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
   if (args.includes('--hybrid')) await saveFixture(context, { scope: 'device', key: 'debug.plugin.driftwood-isle.driftwoodHybrid', data: 'on' });
+  if (args.includes('--memory-admission')) await saveFixture(context, { scope: 'device', key: 'debug.global.gridMemoryAdmission', data: 'on' });
   const page = await context.newPage();
   page.on('pageerror', (error) => { errors.push(error.message); });
   page.on('console', (message) => { if (message.type() === 'warning' || message.type() === 'error') warnings.push(message.text()); });
@@ -34,6 +35,6 @@ try {
   await browser.close();
   const out = resolve('progress/shard-platform/sf21a'); mkdirSync(out, { recursive: true });
   const file = resolve(out, `reveal-${label}-${version.build}.json`);
-  writeFileSync(file, `${JSON.stringify({ version, timings, errors, warnings, samples }, null, 2)}\n`);
+  writeFileSync(file, `${JSON.stringify({ version, hybrid: args.includes('--hybrid'), memoryAdmission: args.includes('--memory-admission'), timings, errors, warnings, samples }, null, 2)}\n`);
   console.log(JSON.stringify({ file, version, timings, errors, warnings }));
 }
