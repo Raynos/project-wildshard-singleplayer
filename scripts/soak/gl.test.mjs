@@ -11,7 +11,7 @@ void test('SF57 preserves labelled GL allocations, reconciliation and allocator 
     globalThis.setInterval = (callback, period) => { assert.equal(period, 1000); tick = callback; return 1; };
     globalThis.window = { __sc_gl: () => contexts, __sf57Errors: [], __sf57: { cycles: 2 },
       __wildshard: { shard: { grid: { state: () => ({ residentMB: 400 }) } } },
-      addEventListener: (name, callback) => { assert.equal(name, 'webglcontextlost'); lost = callback; } };
+      addEventListener: (name, listener) => { assert.equal(name, 'webglcontextlost'); lost = listener; } };
     installSoakGl(); tick();
     const row = window.__sf57GL[0];
     assert.equal(row.totalBytes, 100); assert.equal(row.accountedBytes, 400_000_000); assert.equal(row.cycle, 2);
