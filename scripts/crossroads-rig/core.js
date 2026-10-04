@@ -219,7 +219,7 @@ function addL0(lib, cx, cz, seed, churn = false) {
   const a = churn ? scratchAcct() : acct('l0'), own = churn ? [] : retained, ims = [];
   const g = new THREE.Group(); g.position.set(cx, 0, cz); scene.add(g);
   const { t: detail, gpu: dB, js: dJ } = colourMap(1024, lib.base, lib.accent, seed);
-  const { t: splat, gpu: sB, js: sJ } = dataMap(512, seed);
+  const { t: splat, gpu: sB, js: sJ } = dataMap(CFG.l0SplatSize ?? 512, seed);
   if (churn) { for (const t of [detail, splat]) { renderer.initTexture(t); dropTexture(t); } } else uploadTextures.push(detail, splat);
   const terr = prepGeometry(terrain(62.5, 64, cx, cz, lib.si, 0));
   const tMat = styleMaterial(lib.style, { map: detail, normal: lib.tex[6], second: splat, orm: lib.tex[12] });

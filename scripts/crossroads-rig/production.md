@@ -7,7 +7,7 @@ SF22a developer tool retains its configurable entry.
 
 `src/engine/core/crossroads.ts` supplies the fixed caps-v1 configuration to both the page and the API validator:
 29 L0 tiles (21 resident plus 8 lookahead), 32 L1 tiles, 9 far proxies, 4 libraries and 4 simulations; render scale 2,
-80 m shadow radius. Production L1 maps are 512/256/256 and far terrain has 62 segments, keeping these units within
+80 m shadow radius. Production L0 control maps are 256², L1 maps are 512/256/256 and far terrain has 62 segments, keeping these units within
 the provisional 2 MB and 8,000-triangle caps. Two temporary L0 tiles churn during the measurement.
 
 The anonymous `/api/telemetry` records contain the build, run/series/iteration, stage, fixed configuration, device

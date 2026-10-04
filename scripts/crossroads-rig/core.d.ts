@@ -1,7 +1,7 @@
 export interface RigConfig {
   n0: number; n1: number; nf: number; libs: number; sims: number; churn: number; cpu: string;
   empty: number; secs: number; shadow: number; shadowRadius?: number; dpr: number;
-  l1AtlasSize?: number; farSegments?: number;
+  l0SplatSize?: number; l1AtlasSize?: number; farSegments?: number;
   capsMB: { l0: number; l1: number; far: number; lib: number; sim: number };
   trisCap: { l0: number; l1: number; far: number };
 }

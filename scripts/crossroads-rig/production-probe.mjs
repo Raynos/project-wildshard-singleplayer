@@ -93,7 +93,7 @@ async function safari() {
       if (Date.now() > deadline) throw new Error('Three-run rig did not finish'); await sleep(1000);
     }
     const result = JSON.parse(await evaluate('JSON.stringify({results:window.__crossroadsResults, receipt:window.__crossroadsReceipt, error:window.__crossroadsPostError??null,status:document.getElementById("status").textContent,userAgent:navigator.userAgent,viewport:[innerWidth,innerHeight]})', `${base}crossroads-rig/`));
-    if (result.error || result.results?.length !== 3 || result.results.some((row) => row.stage !== 'complete' || !row.posted)) throw new Error(`Rig failed: ${JSON.stringify(result)}`);
+    if (result.error || result.results?.length !== 3 || result.results.some((row) => row.stage !== 'complete' || !row.posted || row.overCap)) throw new Error(`Rig failed: ${JSON.stringify(result)}`);
     writeFileSync(flag('worker-out', ''), JSON.stringify({ device: udid, openedBy: 'pause Settings Debug Memory check (one click)', ...result }));
   } finally { connection?.close(); proxy.kill('SIGTERM'); }
 }
@@ -146,7 +146,7 @@ async function main() {
     const read = await GET(new Request(`${base}api/telemetry?rig=crossroads`, { headers: { 'x-review-password': 'local-fixture' } }));
     const records = (await read.json()).records;
     const completed = records.filter((record) => record.rig?.stage === 'complete'), summary = records.find((record) => record.rig?.stage === 'summary');
-    if (completed.length !== 3 || summary?.rig.summary.completed !== 3 || summary.rig.summary.posted !== 3) throw new Error('Endpoint did not persist three runs plus the summary');
+    if (completed.length !== 3 || completed.some((record) => !record.rig.stats.withinCaps) || summary?.rig.summary.completed !== 3 || summary.rig.summary.posted !== 3 || summary.rig.summary.overCapRuns !== 0) throw new Error('Endpoint did not persist three runs at caps plus the summary');
     const output = resolvePath(flag('out', join(ROOT, 'progress/crossroads', `${sha.slice(0, 9)}-simulator.json`)));
     mkdirSync(dirname(output), { recursive: true });
     writeFileSync(output, `${JSON.stringify({ sha, version: await (await fetch(`${preview}version.json`)).json(), evidence: 'Simulator Safari -> real HTTP -> pinned production POST/GET -> local fixture private Blob backend; not physical-iPhone or OS footprint evidence', worker: JSON.parse(readFileSync(workerOut, 'utf8')), records }, null, 2)}\n`);
