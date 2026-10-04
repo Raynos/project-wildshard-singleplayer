@@ -34,12 +34,12 @@
   },
   "budgets": {},
   "debugRows": {
-    "max": 29,
+    "max": 30,
     "raisedBy": [
       "E357",
       "E435"
     ],
-    "review": "SF16 removes template.oil from declared plumbing: 29 to 28. Full inventory and retirement conditions: progress/shard-platform/sf16-debug-rows.md. New independent variants need explicit reviewed capacity.; SF24: default-off Driftwood director, retires with the SF46 decision; E435 approved +1 for SF24 driftwood.director, default-off variant retired by the SF46 decision"
+    "review": "SF16 removes template.oil from declared plumbing: 29 to 28. Full inventory and retirement conditions: progress/shard-platform/sf16-debug-rows.md. New independent variants need explicit reviewed capacity.; SF24: default-off Driftwood director, retires with the SF46 decision; E435 approved +1 for SF24 driftwood.director, default-off variant retired by the SF46 decision; SF17b: E435 coordinator-directed +1 for the default-off gridRoadCull row (AGENTS.md risky-render rule), retired under G112 once parity captures and a quiet frame floor flip it on"
   },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,
