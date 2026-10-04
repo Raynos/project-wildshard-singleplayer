@@ -19,6 +19,11 @@ mkdirSync(out, { recursive: true });
 const shards = flag('shards', 'driftwood-isle').split(',');
 const variants = flag('hybrid', 'off,on').split(',');
 const tiers = flag('tiers', 'phone,desktop').split(',');
+// G112 re-proofs compare the witnessed policy modes on each pin, independently of the director device row.
+const groupModes = { parent: flag('parent-groups', 'legacy'), current: flag('current-groups', 'variant') };
+if (Object.values(groupModes).some(value => !['legacy', 'variant', 'declared-default'].includes(value))) {
+  throw new Error('--parent-groups/--current-groups must be legacy, variant or declared-default');
+}
 if (variants.some(value => !['off', 'on'].includes(value))) throw new Error('--hybrid must list off/on variants');
 if (tiers.some(value => !['phone', 'desktop'].includes(value))) throw new Error('--tiers must list phone/desktop');
 const pool = browserPool(ROOT, 1, 'metal'), records = {}, reports = [];
@@ -81,7 +86,7 @@ try {
           record.activation = { hybrid, system: 'shard.driftwood.movers', present: hybrid === 'on', brainBindingProof: 'test/shards/driftwood-isle/brain-binding.test.ts' };
         }
         if (shard === 'nalati-grasslands') {
-          const expected = label === 'current' && hybrid === 'on';
+          const mode = groupModes[label], expected = mode === 'declared-default' || (mode === 'variant' && hybrid === 'on');
           if (groupActivation === null || groupActivation.saved !== hybrid || [...groupActivation.packs, ...groupActivation.herds].some(policy => policy.declared !== expected)) {
             throw new Error(`Nalati group activation witness failed: ${label}/${hybrid}/${tier}: ${JSON.stringify(groupActivation)}`);
           }
@@ -114,7 +119,7 @@ try {
       console.log(`SF27 ${key}: ${result.verdict}, images ${images.map((i) => `${i.name}=${i.ssim}`).join(', ')}`);
     }
   } finally { await context.close(); }
-  const record = { row: 'SF27', parent, current, tiers, hybridDebugFixtures: variants, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
+  const record = { row: 'SF27', parent, current, tiers, groupModes, hybridDebugFixtures: variants, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
     method: 'Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.',
     ambientInfo: ['forest.thrall'], reports };
   writeFileSync(join(out, 'SF27-parity.json'), JSON.stringify(record, null, 2) + '\n');
