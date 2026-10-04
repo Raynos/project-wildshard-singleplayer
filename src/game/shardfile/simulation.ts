@@ -109,7 +109,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         else if (reverse.has(binding.entity)) throw new Error('Actor-free script cannot reuse an actor handle');
       }
       lane = createShardfileScriptLane({ ...shard, state: { shared: shard.state.shared, player: shard.state.player } }, assets, {
-        rules: ports.scriptRules ?? { fields: {}, archetypes: [], events: [...new Set(hooks.scenes.map((scene) => scene.type))], maxEntities: shard.serverBudget.entities },
+        rules: ports.scriptRules ?? { fields: {}, archetypes: [], events: [...new Set([...hooks.scenes.map((scene) => scene.type), ...shard.items.rows.flatMap((row) => row.hook === null ? [] : [row.hook.event])])], maxEntities: shard.serverBudget.entities },
         entities: [...entities.values()], actors: reverse,
         query: ports.query ?? ((kind, input, entity) => scriptPhysicsQueries({ physics: host.physics, navigation: ports.navigation ?? { closestWalkable: () => null, findPath: () => null }, handle: (owner) => typeof owner === 'string' ? actors.get(owner) : undefined })(kind, input, entity)),
       });

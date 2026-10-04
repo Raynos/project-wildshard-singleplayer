@@ -11,6 +11,8 @@ import { groups } from '../../src/engine/physics/groups';
 import { compileScript } from '../../scripts/compile-script.mjs';
 import { scriptSource } from '../script/fixture';
 import { snapshotSimHost, restoreSimHost } from '../../src/engine/sim/snapshot';
+import { parseItems } from '../../src/game/shardfile/items';
+import { ITEMS } from '../../src/shards/_template/data/items';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -88,5 +90,18 @@ it('reconnects declared collider activation after whole-world restore without al
       rebound?.colliders.get('door')?.setActive(true); port?.setActive(true);
       sim.host.step(); restored.step(); expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
     } finally { restored.dispose(); }
+  } finally { sim.dispose(); }
+});
+
+it('admits item hook events independently of the named quest scene table', async () => {
+  const shard = emptyShardfile({ slug: 'item-events', name: 'Items', author: 'Fixture', revision: 1, seed: 1 });
+  const module = 'a'.repeat(64), bytes = await compileScript(scriptSource('store<f64>(24576,3);store<f64>(24584,101);store<f64>(24592,1001);store<f64>(24600,1);', '', '1'));
+  shard.items = parseItems({ ...ITEMS, rows: ITEMS.rows.map((row) => ({ ...row, hook: row.hook === null ? null : { ...row.hook, module } })) });
+  shard.sim.scripts = [module]; shard.sim.scriptTickDivisor = 1;
+  shard.sim.bindings = [{ module, entity: 1001, actorId: 'actor.player', kind: 'entity' }];
+  const sim = createShardfileSim(shard, new Map([[module, bytes]]), { rapier });
+  try {
+    sim.host.step(); const result = sim.lane?.host.call(module, 1001);
+    expect(result?.ok).toBe(true); expect(result?.events).toEqual([{ type: 101, target: 1001, value: 1 }]);
   } finally { sim.dispose(); }
 });
