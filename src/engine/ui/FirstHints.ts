@@ -128,11 +128,8 @@ export class FirstHints {
       for (const c of Object.keys(ANCHOR) as HintControl[]) if (c !== 'move' && t.closest(ANCHOR[c]) !== null) this.used(c);
     }, { capture: true, on: 'document' });
     for (const control of ['attack', 'lock', 'use'] as const) app.input.bind(control, () => { this.used(control); }, scope);
-    const onJump = player.onJump;
-    player.onJump = () => { onJump?.(); this.used('jump'); };
-    const onDodge = player.onDodge;
-    player.onDodge = () => { onDodge?.(); this.used('dodge'); };
-    scope.onDispose(() => { if (onJump === undefined) delete player.onJump; else player.onJump = onJump; if (onDodge === undefined) delete player.onDodge; else player.onDodge = onDodge; });
+    app.events.on('player.jump', () => { this.used('jump'); }, scope);
+    app.events.on('player.dodge', () => { this.used('dodge'); }, scope);
   }
 
   /** the shard's triggers, highest priority first (replaces any earlier feed) */

@@ -27,7 +27,7 @@
  *                                                                        // trophy in front of you
  */
 import * as THREE from 'three';
-import { app, type Audio, modelContext, practiceRoom, type Sky, type WorldRegistry } from '#engine';
+import { app, type Audio, modelContext, practiceRoom, type Sky, type WorldRegistry, type Renderer } from '#engine';
 import { islandTrophies } from './tables';
 import { InteractSfx } from '#engine/audio/interactSfx';
 import { place } from '#engine/models/place';
@@ -82,7 +82,7 @@ export interface KeepsakeHost<A extends KeepsakeAnimal> {
   owned: Owned;
   adventure: Adventure;
   sky: Sky;
-  game: { scene: THREE.Scene; camera: THREE.PerspectiveCamera; renderer: THREE.WebGLRenderer; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
+  game: { scene: THREE.Scene; camera: THREE.PerspectiveCamera; renderer: Renderer; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   player: { position: THREE.Vector3; yaw: number; dodgeCooldownScale: number };
   hud: { toast: (text: string) => void };
   audio: Audio;

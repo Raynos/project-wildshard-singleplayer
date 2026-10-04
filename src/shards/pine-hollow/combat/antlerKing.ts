@@ -228,13 +228,14 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
     pinBrain(a); inspectBrain(a, () => ({ state: this.mode, picks: [], brainHz: 60, pinned: true }));
     this.look = dressAntlerKing(a, this.kit);
     // bark, not blood: splinters and embers where a bolt lands
-    const prev = a.onDamaged;
-    a.onDamaged = (an, amount, point, dir, died) => {
-      prev?.(an, amount, point, dir, died);
+    const king = a.combatActor();
+    app.events.on('damage.dealt', ({ req }) => {
+      if (req.target !== king) return;
+      const { point, dir } = req;
       _w.copy(dir).negate();
       Impacts.for(this.ctx.game).burst('wood', point, _w, 8);
       if (this.onRibs(point)) Impacts.for(this.ctx.game).burst('sparks', point, _w, this.open > 0.5 ? 14 : 5);
-    };
+    }, this.ctx.game.levelScope);
     return a;
   }
 

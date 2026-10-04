@@ -458,7 +458,7 @@
     "id": "hook-chain-computed",
     "file": "src/fixtures/f8/computed.ts",
     "rule": "no-hook-chain",
-    "code": "const previous = target['onHit'];",
+    "code": "const previous = target['onHit']; target['onHit'] = () => previous();",
     "count": 1
   },
   {
@@ -466,6 +466,13 @@
     "file": "src/fixtures/f8/event.ts",
     "rule": "no-hook-chain",
     "code": "const unsubscribe = events.on('fault', handler, scope); const value = target.health;",
+    "count": 0
+  },
+  {
+    "id": "callback-read-not-chain",
+    "file": "src/fixtures/f8/read.ts",
+    "rule": "no-hook-chain",
+    "code": "const pick = view.onPick; if (pick) pick('id');",
     "count": 0
   },
   {

@@ -206,6 +206,8 @@ export class Animal {
   debugGait?: { gait: string; phase: number };
   /** set by the manager: fires after every applyDamage (blood, sounds, AI reaction, onKill) */
   onDamaged?: (animal: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean) => void;
+  /** a script owns this animal (a scripted fight): the manager does not turn its hits into flee / charge */
+  scripted = false;
   /** fur-shell meshes (created lazily by the manager via makeShells); shellLevel = how many are visible */
   shells: THREE.SkinnedMesh[] = [];
   makeShells?: (animal: Animal) => THREE.SkinnedMesh[];

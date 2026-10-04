@@ -583,6 +583,17 @@ export class Cabins implements BuildingOwner {
     for (const m of this.particleMats) { const u = m.uniforms['uTime']; if (u !== undefined) u.value = t; }
   }
 
+  private readonly doorBars = new Map<Interactable, () => boolean>();
+  private readonly doorListeners = new Set<(door: Interactable, opening: boolean) => void>();
+  /** bar a door: while `barred()` says true its use does nothing (the caller toasts / plays why) */
+  barDoor(door: Interactable, barred: () => boolean): void { this.doorBars.set(door, barred); }
+  /** hear every door that moves (`opening`: it swung open); returns the unsubscribe */
+  onDoor(fn: (door: Interactable, opening: boolean) => void): () => void { this.doorListeners.add(fn); return () => { this.doorListeners.delete(fn); }; }
+  /** @internal */ _doorUse(d: Door, toggle: () => void): void {
+    if (this.doorBars.get(d.interactable)?.() === true) return;
+    toggle();
+    for (const fn of this.doorListeners) fn(d.interactable, d.open);
+  }
   /** @internal */ _door(d: Door): void { this.doors.push(d); this.colliders.push(d.collider); this.interactables.push(d.interactable); }
   /** @internal */ _fire(f: Fire): void { this.fires.push(f); }
   /** @internal */ _lamp(mat: THREE.MeshStandardMaterial, full: number): void { this.lampMats.push({ mat, full }); }

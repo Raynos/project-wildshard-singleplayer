@@ -43,13 +43,12 @@ const owned = new WeakSet<Animal>();
 /** take `a` under a fight's control: out of its herd, the manager's AI off, a hit leaves our state alone */
 export function own(a: Animal): void {
   a.herd = -1; a.state = SCRIPTED;
-  const prev = a.onDamaged;
   // the manager's `damaged` pushes a hit animal into flee / charge; a scripted one keeps the state its fight gave it
-  a.onDamaged = (an, amount, point, dir, died) => { const s = an.state; prev?.(an, amount, point, dir, died); if (!died && owned.has(an)) an.state = s; };
+  a.scripted = true;
   owned.add(a);
 }
 /** hand `a` back to the manager's AI (a rival bull after the fight) */
-export function release(a: Animal): void { owned.delete(a); if (a.alive && a.state === SCRIPTED) a.state = 'alert'; }
+export function release(a: Animal): void { owned.delete(a); a.scripted = false; if (a.alive && a.state === SCRIPTED) a.state = 'alert'; }
 
 /** out of the world for good: hidden, out of the manager's list (minimap, prompts, aim assist, AI) */
 export function retire(animals: AnimalManager, a: Animal): void {

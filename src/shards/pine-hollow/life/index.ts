@@ -268,13 +268,13 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   // ── the ravens at a carcass ──
   const carcasses: Carcass[] = [];
   const now = (): number => app.clock.now; // the game clock (E357 F2): wall time made the harness's sound log flaky
-  const prevKill = animals.onKill;
-  animals.onKill = (a) => {
-    prevKill?.(a);
-    if (!RAVEN_CARCASS.has(a.kind)) return;
+  // a kill, through the combat pipeline's event (no chained onKill: E357 AG19)
+  h.ctx.on('actor.died', ({ actor }) => {
+    const a = animals.animals.find((x) => x.combatActor() === actor);
+    if (a === undefined || !RAVEN_CARCASS.has(a.kind)) return;
     const t = now();
     carcasses.push({ a, killT: t, comeT: t + ravenDelay(rng.next()), harvestT: -1, visit: 'waiting', ravens: [], feedLeft: rng.range(45, 80), leaveT: 0, dimmed: false });
-  };
+  });
   const freeRavens = (): Bird[] => ravens.filter((r) => r.mode === 'off');
   const groundSpot = (c: Carcass, i: number, n: number): [number, number] => {
     const a = c.a.position, ang = (i / n) * TAU + rng.range(-0.5, 0.5), r = (BODY[c.a.kind] ?? 0.8) + rng.range(0.25, 0.7);

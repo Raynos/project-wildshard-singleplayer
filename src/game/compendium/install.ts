@@ -88,8 +88,8 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
     if (onWall) wall?.refresh(); // taken: the mount goes up; discovered: the chalk name replaces ???
     if (to !== 'discovered') disc.classList.add('new');
   };
-  const prevKill = host.animals.onKill;
-  host.animals.onKill = (a) => { prevKill?.(a); tracker.killed(a); };
+  // a kill, through the combat pipeline's event (no chained onKill: E357 AG19)
+  app.events.on('actor.died', ({ actor }) => { const a = host.animals.animals.find((x) => x.combatActor() === actor); if (a !== undefined) tracker.killed(a); }, journal.scope);
   const eye = { position: { x: 0, y: 0, z: 0 }, forward: { x: 0, y: 0, z: -1 } };
   host.game.onUpdate((dt) => {
     disc.classList.toggle('show', hud.entered && host.touchUi() && !menu.isOpen);

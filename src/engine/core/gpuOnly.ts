@@ -66,6 +66,7 @@ function releaseSource(t: Texture): void {
  * Only for a texture nothing updates again. A lost context reloads the page (`label`).
  */
 export function gpuOnlyTexture(t: Texture, label: string): void {
+  // oxlint-disable-next-line wildshard/no-hook-chain -- three.js's Texture.onUpdate is a third-party one-slot hook; the release runs once, then hands it back
   const prev = t.onUpdate;
   t.onUpdate = (tex: Texture): void => {
     prev?.(tex);

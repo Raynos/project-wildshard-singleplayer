@@ -199,9 +199,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // E297 fight rules (Driftwood): an amber edge chevron toward an enemy winding up where you can't see it (src/engine/ui/WindupWarn.ts);
   // chained after the wind-up's sound cue
   const windupWarn = Number.isFinite(game.level.fight.attackers) ? new WindupWarn<(typeof animals.animals)[number]>() : null;
-  // one chain: the typed 'ai.windup' event first, then the wind-up's sound cue, then the edge chevron (today's order)
-  const windupCue = animals.onWindup;
-  animals.onWindup = (a, duration) => { app.events.emit('ai.windup', { actor: a.combatActor(), duration }); windupCue?.(a, duration); audio.cue('cue.ai.windup', { kind: a.kind, point: a.position }); windupWarn?.start(a, duration); };
+  // the session owns the wind-up hook: the typed 'ai.windup' event first (listeners subscribe there), then the sound cue, then the edge chevron
+  animals.onWindup = (a, duration) => { app.events.emit('ai.windup', { actor: a.combatActor(), duration }); audio.cue('cue.ai.windup', { kind: a.kind, point: a.position }); windupWarn?.start(a, duration); };
   // the dev fps panel's COUNTS (src/engine/ui/perfHud.ts; read ≤ 4× a second while it is open): who is running AI near you
   perf.addCounts(() => {
     let alive = 0, near = 0, motors = 0, chase = 0, flee = 0;

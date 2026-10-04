@@ -502,12 +502,17 @@ const simNoRender = rule('Simulation stays independent of visuals (E357)', (cont
   };
 });
 
-const noHookChain = rule('Hook chains migrate to typed events (E357)', (context) => ({
-  VariableDeclarator(node) {
-    const value = unwrap(node.init);
-    if (value?.type === 'MemberExpression' && /^on[A-Z]/u.test(propName(value) ?? stringOf(value.property) ?? '')) report(context, node, 'Use typed events instead of saving a prior onFoo hook');
-  },
-}));
+// A chain saves a prior `onFoo` hook and installs its own over it (`const prev = x.onFoo; x.onFoo = (…) => { prev?.(…); … }`):
+// a saved hook whose name the same file also assigns. Reading a callback to call it (`const pick = v.onPick`) is no chain.
+const noHookChain = rule('Hook chains migrate to typed events (E357)', (context) => {
+  const saved = [], assigned = new Set();
+  const hookName = (n) => { const v = unwrap(n); if (v?.type !== 'MemberExpression') return null; const name = propName(v) ?? stringOf(v.property) ?? ''; return /^on[A-Z]/u.test(name) ? name : null; };
+  return {
+    VariableDeclarator(node) { const name = hookName(node.init); if (name !== null) saved.push({ node, name }); },
+    AssignmentExpression(node) { const name = hookName(node.left); if (name !== null) assigned.add(name); },
+    'Program:exit'() { for (const { node, name } of saved) if (assigned.has(name)) report(context, node, `Use typed events instead of chaining the prior ${name} hook`); },
+  };
+});
 const ACTIVE_SERVICES = new Set(['activeRegistry', 'activePhysics', 'activeBodies', 'activeClock', 'activeNavmesh', 'activeGrade', 'getAimTargets']);
 const noActiveSingleton = rule('Active service reads migrate to the app (E357)', (context) => ({
   CallExpression(node) { if (ACTIVE_SERVICES.has(calleeName(node.callee))) report(context, node, 'Read the typed app service instead of an active singleton'); },

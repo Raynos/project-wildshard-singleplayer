@@ -70,8 +70,8 @@ export class GoldenBowPower {
     this.bow = bow;
     this.recolour(bow);
     bow.drawSpeedScale *= 1.2;
-    const prevLoose = bow.onLoose;
-    bow.onLoose = (p) => { prevLoose?.(p); this.loosed(p); };
+    // the power owns the bow's loose hook (no other writer; a GoldenBow built over a plain bow carries it over)
+    bow.onLoose = (p) => { this.loosed(p); };
     const prevMul = bow.damageMultiplier;
     bow.damageMultiplier = (hit) => {
       const base = prevMul?.(hit) ?? 1;

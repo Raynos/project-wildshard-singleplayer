@@ -224,6 +224,8 @@ export interface BuildingOwner {
   readonly _solid: (d: ColliderDesc, prop: boolean) => void;
   readonly _floor: (f: Floor) => void;
   readonly _door: (d: Door) => void;
+  /** a door's use: the owner moves it (`toggle`) unless it is barred, and tells its listeners */
+  readonly _doorUse: (d: Door, toggle: () => void) => void;
   readonly _fire: (f: Fire) => void;
   readonly _lamp: (mat: THREE.MeshStandardMaterial, full: number) => void;
   readonly _swing: (sw: Swing) => void;
@@ -233,7 +235,7 @@ export interface BuildingOwner {
 }
 
 const NO_OWNER: BuildingOwner = {
-  _collider: () => undefined, _solid: () => undefined, _floor: () => undefined, _door: () => undefined, _fire: () => undefined,
+  _collider: () => undefined, _solid: () => undefined, _floor: () => undefined, _door: () => undefined, _doorUse: (_d, toggle) => { toggle(); }, _fire: () => undefined,
   _lamp: () => undefined, _swing: () => undefined, _particles: () => undefined, _wheel: () => undefined, _firePit: () => undefined,
 };
 
@@ -657,9 +659,11 @@ export class CabinBuilder {
       interactable: { position: this.worldPos(x + 0.5, FLOOR + 1.0, dz), radius: 2.4, label: 'Open door', onInteract: () => { /* bound below, once `d` exists */ } },
     };
     d.interactable.onInteract = () => {
-      d.open = !d.open;
-      d.interactable.label = d.open ? 'Close door' : 'Open door';
-      col.yTop = d.open ? -1e4 : this.cy + FLOOR + H;
+      this.owner._doorUse(d, () => {
+        d.open = !d.open;
+        d.interactable.label = d.open ? 'Close door' : 'Open door';
+        col.yTop = d.open ? -1e4 : this.cy + FLOOR + H;
+      });
     };
     this.owner._door(d);
   }

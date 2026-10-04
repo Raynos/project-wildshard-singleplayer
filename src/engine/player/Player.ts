@@ -240,7 +240,7 @@ export class Player {
     if (on === this.hover) return;
     this.hover = on;
     if (on) { this.crouching = false; this.sprinting = false; this.onGround = false; this.setSwimming(false); }
-    this.onHoverChange?.(on);
+    this.onHoverChange?.(on); app.events.emit('player.hover', on);
   }
 
   /** water surface height at (x, z): the level's water bodies' rest surface (app.world.water, in registration order: the
@@ -253,7 +253,7 @@ export class Player {
     if (on === this.swimming) return;
     this.swimming = on;
     if (!on) { this.climbTo = null; this.diveHeld = false; this.touchDive = false; this.surfaceHeld = false; this.touchSurface = false; this.diving = false; }
-    this.onSwimChange?.(on);
+    this.onSwimChange?.(on); app.events.emit('player.swim', on);
   }
 
   /** `y`: the feet's height (a shard whose floor is built: ShardManifest.spawn.y); omitted = the ground's */
@@ -325,7 +325,7 @@ export class Player {
     const side = len < 0.2 ? 0 : Math.max(-1, Math.min(1, mx * cos - mz * sin)); // + = the dodge goes right (view space)
     this.dodgeClock = 0;
     dodgeFx.t = 0; dodgeFx.side = side; dodgeFx.back = len < 0.2; dodgeFx.id++;
-    this.onDodge?.();
+    app.events.emit('player.dodge', true); this.onDodge?.();
     return true;
   }
   /** Add transient world velocity in m/s independently of steering; every displacement uses the motor. */
@@ -496,7 +496,7 @@ export class Player {
       const target = g + HOVER_HEIGHT;
       const err = target - this.position.y;
       this.hoverLanded = 0; this.hoverJumpKick = Math.max(0, this.hoverJumpKick - dt * 4);
-      if (jump && this.onGround && !this.hoverAir) { this.inputService?.consume('jump'); v.y = HOVER_JUMP; this.hoverAir = true; this.hoverJumpKick = 1; this.onGround = false; this.onJump?.(); }
+      if (jump && this.onGround && !this.hoverAir) { this.inputService?.consume('jump'); v.y = HOVER_JUMP; this.hoverAir = true; this.hoverJumpKick = 1; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
       if (this.hoverAir) {
         // ── airborne: the repulsors can't reach the ground — ballistic, a little floaty, until we fall back to the ride height
         v.y -= HOVER_JUMP_GRAVITY * dt;
@@ -630,8 +630,8 @@ export class Player {
       this.groundedAgo = this.onGround ? 0 : this.groundedAgo + dt * 1000;
       if (this.onGround) this.jumpsLeft = 1; // one more jump available once you've left the ground
       const jumpV = 7.2 * (1 - 0.35 * wadeT); // wading: the water saps the push-off
-      if (jump && (this.onGround || this.groundedAgo <= this.coyoteMs) && !this.crouching && !this.sliding) { this.inputService?.consume('jump'); this.groundedAgo = Infinity; this.velocity.y = jumpV; this.onGround = false; this.onJump?.(); }
-      else if (jump && !this.onGround && this.jumpsLeft > 0) { this.inputService?.consume('jump'); this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; this.onJump?.(); } // double jump
+      if (jump && (this.onGround || this.groundedAgo <= this.coyoteMs) && !this.crouching && !this.sliding) { this.inputService?.consume('jump'); this.groundedAgo = Infinity; this.velocity.y = jumpV; this.onGround = false; app.events.emit('player.jump', true); this.onJump?.(); }
+      else if (jump && !this.onGround && this.jumpsLeft > 0) { this.inputService?.consume('jump'); this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; app.events.emit('player.jump', true); this.onJump?.(); } // double jump
       this.velocity.y -= GRAVITY * dt;
 
       // the move: walls, posts, trunks and the terrain stop it, steps ≤ 0.35 m are climbed, the feet snap down slopes

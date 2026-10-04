@@ -67,23 +67,6 @@
     "src/shards/pine-hollow/combat/install.ts": 1,
     "src/shards/pine-hollow/world/PineWeatherFX.ts": 1
   },
-  "wildshard/no-hook-chain": {
-    "src/engine/core/gpuOnly.ts": 1,
-    "src/engine/explore/Explore.ts": 1,
-    "src/engine/player/TouchControls.ts": 3,
-    "src/engine/ui/FirstHints.ts": 2,
-    "src/game/bag/bag.ts": 1,
-    "src/game/compendium/install.ts": 1,
-    "src/game/compendium/Journal.ts": 1,
-    "src/game/session/play.ts": 1,
-    "src/shards/nalati-grasslands/adventure.ts": 1,
-    "src/shards/nalati-grasslands/weapons/GoldenBow.ts": 1,
-    "src/shards/pine-hollow/audio/wiring.ts": 1,
-    "src/shards/pine-hollow/combat/antlerKing.ts": 1,
-    "src/shards/pine-hollow/combat/ctx.ts": 1,
-    "src/shards/pine-hollow/life/index.ts": 1,
-    "src/shards/pine-hollow/quest/index.ts": 1
-  },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,
     "src/engine/audio/Music.ts": 2,
@@ -142,10 +125,6 @@
     "src/shards/pine-hollow/combat/elites.ts": 4,
     "src/shards/pine-hollow/life/index.ts": 5,
     "src/shards/pine-hollow/quest/nightThralls.ts": 1
-  },
-  "wildshard/no-renderer-type": {
-    "src/game/shard/manifest.ts": 4,
-    "src/shards/driftwood-isle/loot/keepsakes.ts": 1
   },
   "wildshard/public-index": {
     "src/entry.ts": 11,

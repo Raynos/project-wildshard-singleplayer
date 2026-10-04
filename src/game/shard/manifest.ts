@@ -1,4 +1,4 @@
-import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand, Noise2D, HuntTuning, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant, WorldRegistry, Sky, Forest, SwordArms, SwordFraming, SwordMoveSet, SwordRig, SwimArms, RosterEntry } from '#engine';
+import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand, Noise2D, HuntTuning, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant, WorldRegistry, Sky, Forest, SwordArms, SwordFraming, SwordMoveSet, SwordRig, SwimArms, RosterEntry, Renderer } from '#engine';
 import type { ShardSlug } from './slugs.generated';
 import { terrainFieldFor } from '#engine/data';
 import type { ShardPlugin } from './plugin';
@@ -19,7 +19,7 @@ import type { ShardPlugin } from './plugin';
  *
  * To add a shard: see `docs/SHARDS.md`.
  */
-import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { PerspectiveCamera, Scene } from 'three';
 
 /** a shard's own sword (ShardManifest.sword): the engine Sword's rigid rig, moves and portrait framing — or an animated rig
  *  (`arms`) swung by the engine's own moves */
@@ -34,7 +34,7 @@ export interface ShardSword {
 /** What core hands a shard's field models (`ShardManifest.fieldModels`): the fields it built, the shard's sky and registry. */
 export interface FieldModelsContext<Floor = unknown> {
   sky: Sky;
-  renderer: WebGLRenderer | null;
+  renderer: Renderer | null;
   /** the forest field (its trees' placements and view) */
   forest: Forest | null;
   /** the forest floor's field (its kinds' copies and cells); null where none was built */
@@ -333,7 +333,7 @@ export interface SpawnPose { x: number; z: number; yaw: number; y?: number }
 
 /** what a structure-first shard's world builder is handed (main.ts, the props step) */
 export interface StructureContext {
-  renderer: WebGLRenderer;
+  renderer: Renderer;
   scene: Scene;
   camera: PerspectiveCamera;
   /** the world registry (src/engine/world/registry.ts): what the shard registers is drawn, collides, and lends its floor */

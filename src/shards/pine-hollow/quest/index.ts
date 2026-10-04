@@ -265,15 +265,12 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     return best;
   })();
   if (millDoor) {
-    const swing = millDoor.onInteract;
-    millDoor.onInteract = () => {
-      if (!flags.has('errand:done')) {
-        hud.toast(flags.has('errand:asked') ? 'Barred from inside. Brandt keeps the mill shut until the race is clear' : 'The mill door is barred from inside');
-        kitSfx.interact('locked', millDoor.position);
-        return;
-      }
-      swing();
-    };
+    h.cabins?.barDoor(millDoor, () => {
+      if (flags.has('errand:done')) return false;
+      hud.toast(flags.has('errand:asked') ? 'Barred from inside. Brandt keeps the mill shut until the race is clear' : 'The mill door is barred from inside');
+      kitSfx.interact('locked', millDoor.position);
+      return true;
+    });
   }
   const night = (): number => sky.dayNight?.night ?? 0;
   const thralls = new NightThralls({

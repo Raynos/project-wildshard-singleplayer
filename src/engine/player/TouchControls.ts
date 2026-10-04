@@ -365,8 +365,7 @@ export class TouchControls {
     // flashes NO TARGET and the view re-levels (LockOnTarget.toggle)
     btn('.ws-touch-disc.lock', () => { if (this.weapons.enabled) this.lock?.toggle(); });
     if (this.lock) {
-      const prevNone = this.lock.onNoTarget;
-      this.lock.onNoTarget = () => { prevNone?.(); lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = engineString('s_4b33d955f9a8'); this.scope.timeout(700, () => { if (lockOn.state !== 'locked') lockLabel.textContent = hintLock.hint?.label ?? engineString('s_db44b8db4f05'); }); };
+      app.events.on('lock.noTarget', () => { lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = engineString('s_4b33d955f9a8'); this.scope.timeout(700, () => { if (lockOn.state !== 'locked') lockLabel.textContent = hintLock.hint?.label ?? engineString('s_db44b8db4f05'); }); }, this.scope);
     }
     // DODGE (Player.dodge, project/archive/2026-09-29-dodge-feel.md — E63's T feel, V deleted in E82). A tap during the cooldown only
     // shakes the disc (.deny) — no dodge is queued (E59)
@@ -382,16 +381,14 @@ export class TouchControls {
     const hover = el(root, '.ws-touch-hover');
     listenDom(this.scope, hover, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); app.input.press('hover'); });
     listenDom(this.scope, hover, 'pointerup', (e) => e.stopPropagation());
-    const prevHover = this.player.onHoverChange;
-    this.player.onHoverChange = (on) => { hover.classList.toggle('on', on); prevHover?.(on); };
+    app.events.on('player.hover', (on) => { hover.classList.toggle('on', on); }, this.scope);
     hover.classList.toggle('on', this.player.hover);
     btn('.jump', () => { app.input.press('jump'); });
     // a throwing weapon (touch mode 'throwing'): THROW = hold to wind a javelin up, release to throw
     btn('.throw', () => { if (this.weapons.enabled) this.weapons.adsHeld = true; }, () => { this.weapons.adsHeld = false; });
     // DIVE replaces JUMP while swimming: a held control (down = held), released on up / cancel / leave
     btn('.dive', () => { this.player.touchDive = true; }, () => { this.player.touchDive = false; });
-    const prevSwim = this.player.onSwimChange;
-    this.player.onSwimChange = (on) => { root.classList.toggle('swimming', on); if (!on) { this.player.touchDive = false; this.player.touchSurface = false; root.classList.remove('submerged'); } prevSwim?.(on); };
+    app.events.on('player.swim', (on) => { root.classList.toggle('swimming', on); if (!on) { this.player.touchDive = false; this.player.touchSurface = false; root.classList.remove('submerged'); } }, this.scope);
     root.classList.toggle('swimming', this.player.swimming);
     // SURFACE appears beside DIVE (in DODGE's spot; DODGE hides while swimming) while the eye is under (held: up = release); it goes with the swim state on climb-out.
     // Polled from `player.submerged` every frame (in preUpdate above) rather than hooked on onSubmerge / onSurface, so

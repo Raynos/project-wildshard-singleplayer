@@ -1460,7 +1460,7 @@ export class AnimalManager {
     const br = this.brains.get(a);
     if (died) { tap.kill?.(a.kind); this.onKill?.(a); if (br !== undefined) br.timer = 0; return; }
     if (sp.think !== undefined) return;   // a self-thinking species reads animal.lastHitT / hp in its own tick
-    if (br !== undefined && a.state !== 'charge') {
+    if (br !== undefined && a.state !== 'charge' && !a.scripted) {
       // a wounded animal bolts at once — no freeze; a boar this close turns on you instead
       const T = this.tuningFor(a);
       br.wary = T.waryTime;

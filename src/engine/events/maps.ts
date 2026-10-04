@@ -13,6 +13,14 @@ export interface EventMap {
   'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };
   'fault': FaultEvent;
   'boss.attempt': { boss: string; outcome: 'started' | 'won' | 'died' | 'lost' | 'left'; level?: string };
+  /** the player jumped (a ground, coyote or air jump) / dodged; any number of listeners (E357 AG19: no chained hooks) */
+  'player.jump': true;
+  'player.dodge': true;
+  /** the hover board / swimming started (true) or ended (false) */
+  'player.hover': boolean;
+  'player.swim': boolean;
+  /** a lock-on press found nothing to lock */
+  'lock.noTarget': true;
 }
 export interface CrouchRequest { want: boolean; via: 'toggle' | 'hold' }
 export interface CrouchAnswer { allowed: boolean; latched: boolean }

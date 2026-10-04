@@ -1,4 +1,4 @@
-import { resourceScope, type Actor, Flags, heightAt, type WorldRegistry, type Sky, type Interactable, type FullMapPoi as MapPoi, type MapQuest } from '#engine';
+import { app, resourceScope, type Actor, Flags, heightAt, type WorldRegistry, type Sky, type Interactable, type FullMapPoi as MapPoi, type MapQuest } from '#engine';
 
 import { elitesSave, type ShardContext, DialogueBox, RewardCaption, NpcTalk, QuestChip, QuestLine, placesWithDiscovery, type LiveMarker, type Places, type QuestState, type ProgressSink } from '#game';
 /**
@@ -218,8 +218,7 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
     chained = true;
     const an = w.animals;
     if (!an) return;
-    const prev = an.onKill;
-    an.onKill = (a) => { prev?.(a); if (a.kind === BALBAL_KIND) carving(); };
+    app.events.on('actor.died', ({ actor }) => { if (an.animals.some((a) => a.kind === BALBAL_KIND && a.combatActor() === actor)) carving(); }, scope);
   };
 
   // ── achievements: the chapter + the kokpar as event rows (counts read back from the flags, like Driftwood's Feats) ──

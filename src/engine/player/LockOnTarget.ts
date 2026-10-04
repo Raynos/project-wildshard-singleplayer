@@ -177,7 +177,7 @@ export class LockOnSystem {
     if (!this.usable) return;
     this.scan();
     const best = this.best();
-    if (best === null) { this.levelT = 0.25; this.onNone?.(); this.onNoTarget?.(); return; } // OoT: Z with nothing re-levels the view
+    if (best === null) { this.levelT = 0.25; this.onNone?.(); this.onNoTarget?.(); app.events.emit('lock.noTarget', true); return; } // OoT: Z with nothing re-levels the view
     this.lock(best.t);
     this.onLock?.();
   }

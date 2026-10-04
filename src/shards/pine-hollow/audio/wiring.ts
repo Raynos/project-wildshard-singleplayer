@@ -30,7 +30,7 @@ export interface PineAudioHost {
   ambience: ForestAmbience;
   animals: AnimalManager;
   /** the cabins + the hamlet (their doors, the mill wheel's speed); null = none built */
-  cabins: { interactables: Interactable[]; wheelSpeed: number } | null;
+  cabins: { interactables: Interactable[]; wheelSpeed: number; onDoor: (fn: (door: Interactable, opening: boolean) => void) => () => void } | null;
   /** a named elite is engaged (PineCombat.eliteEngaged) */
   eliteEngaged: () => boolean;
   params: URLSearchParams;
@@ -82,15 +82,8 @@ export function installPineAudio(h: PineAudioHost): void {
   for (const s of spots) amb.addSpot(s);
 
   // ── doors: every cabin / hamlet door (their prompts flip "Open door" ↔ "Close door") ──
-  for (const it of h.cabins?.interactables ?? []) {
-    if (!/^(Open|Close) door$/.test(it.label)) continue;
-    const use = it.onInteract;
-    it.onInteract = () => {
-      const before = it.label, opening = before.startsWith('Open');
-      use();
-      if (it.label !== before) amb.sfx.shot(opening ? 'doorOpen' : 'doorClose', { at: it.position }); // a barred door (the mill's, E322) didn't move
-    };
-  }
+  // a door that moved (a barred one, the mill's (E322), does not): its creak, through the cabins' door listeners
+  h.cabins?.onDoor((door, opening) => { amb.sfx.shot(opening ? 'doorOpen' : 'doorClose', { at: door.position }); });
 
   const score = pineScore(music);
   const pinned = pineScorePick() !== 'auto'; // Debug ▸ Audio ▸ Pine Hollow score holds the scene (Music.ts reads it)
