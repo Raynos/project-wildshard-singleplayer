@@ -1815,7 +1815,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1979 exports, grouped by the module to import them from.
+1982 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1830,6 +1830,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ai/perchHunter`: `PerchHunterBrain`, `PerchHunterPorts`, `PerchHunterSpec`
 - `@wildshard/engine/ai/phases`: `EncounterPhase`, `PhaseEncounter`, `PhaseEncounterPorts`, `PhaseEncounterSpec`, `silentBossPresentation`
 - `@wildshard/engine/ai/platform`: `BrainNavigation`, `BrainTarget`, `buildPlatformSpawns`, `installPlatformBrains`, `PlatformBrain`, `PlatformBrainPorts`, `PlatformBrainSpec`, `PlatformSpawn`, `PlatformSpecies`, `preparePlatformBrains`
+- `@wildshard/engine/ai/ramGrazer`: `RamGrazerBrain`, `RamGrazerPorts`, `RamGrazerSpec`
 - `@wildshard/engine/ai/reach`: `canReach`, `ReachActor`
 - `@wildshard/engine/ai/scriptBrain`: `BRAIN_FIELD`, `ScriptBrainBinding`, `ScriptBrainDriver`, `ScriptBrainLane`, `ScriptBrainOptions`, `ScriptBrainPorts`
 - `@wildshard/engine/ai/skirmisher`: `SkirmisherBrain`, `SkirmisherPorts`, `SkirmisherSpec`
@@ -2153,7 +2154,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-498 exports, grouped by the module to import them from.
+504 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2210,6 +2211,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `accentVars`, `parseAccent`, `ROAD_ACCENT`
+- `@wildshard/game/shardfile/admissionLimits`: `SHARDFILE_ADMISSION_LIMITS`
+- `@wildshard/game/shardfile/assetGraph`: `preflightAssetGraph`
 - `@wildshard/game/shardfile/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`, `visitGlbTriangles`
 - `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/game/shardfile/brainRuntime`: `DeclaredBrainPorts`, `DeclaredBrainRecipe`, `DeclaredNativeBrain`, `installDeclaredBrains`
@@ -2221,6 +2224,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/directorClient`: `DirectorInstallation`, `directorVariant`, `installDeclaredDirector`
 - `@wildshard/game/shardfile/directorRuntime`: `createDirectorLane`, `DirectorLane`
 - `@wildshard/game/shardfile/encounters`: `encounterRules`, `EncountersSchema`, `ShardEncounters`
+- `@wildshard/game/shardfile/grazers`: `parseRamGrazer`, `RamGrazerSchema`, `ShardRamGrazer`
 - `@wildshard/game/shardfile/groupBrains`: `groupBrainRules`, `GroupBrainSchema`, `HerdGroupSchema`, `PackGroupSchema`, `parseGroupBrain`, `ShardGroupBrain`, `ShardHerdGroup`, `ShardPackGroup`
 - `@wildshard/game/shardfile/groupRuntime`: `DeclaredGroupPolicy`, `DeclaredGroupPorts`, `DeclaredHerdRecipe`, `DeclaredPackRecipe`, `prepareDeclaredGroupBrains`, `PreparedGroupBrains`
 - `@wildshard/game/shardfile/hybrid`: `HybridCellBinding`, `hybridInstallation`, `HybridResident`, `HybridResidentWorld`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`, `prepareHybridShard`
@@ -2232,6 +2236,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/moverRuntime`: `createMoverHost`, `installDeclaredMovers`, `MoverInstallation`, `MoverPorts`, `moverQueries`, `MoverRuntime`, `MoverView`
 - `@wildshard/game/shardfile/movers`: `MOVER_FIELD_RANGES`, `MOVER_FIELDS`, `MoverData`, `moverScriptEntities`, `MoversSchema`, `parseMovers`
 - `@wildshard/game/shardfile/plumbing`: `parsePlumbing`, `PlumbingData`, `plumbingRules`, `PlumbingSchema`
+- `@wildshard/game/shardfile/preflight`: `preflightShardfile`
 - `@wildshard/game/shardfile/product`: `admitProduct`, `AdmittedProduct`, `boundedResponse`, `browserContentHash`, `browserProductCache`, `CachedProduct`, `ProductCache`, `ProductOptions`, `ProductVersions`
 - `@wildshard/game/shardfile/props`: `propColliderDescriptors`, `PropsSchema`, `ShardProps`, `validatePropsReferences`
 - `@wildshard/game/shardfile/quests`: `parseQuestData`, `QuestData`, `questDataRules`, `QuestDataSchema`
@@ -2304,7 +2309,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-83 exports, grouped by the module to import them from.
+85 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
@@ -2318,6 +2323,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/brains`: `guardian`, `GuardianData`, `perchHunter`, `PerchHunterData`, `scriptBrain`, `ScriptBrainData`, `skirmisher`, `SkirmisherData`
 - `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `clientScriptViewCost`, `parseClientScripts`, `ShardClientScripts`
 - `@wildshard/sdk/director`: `director`, `DirectorData`
+- `@wildshard/sdk/grazers`: `ramGrazer`, `RamGrazerData`
 - `@wildshard/sdk/groupBrains`: `groupBrain`, `GroupBrainData`
 - `@wildshard/sdk/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
 - `@wildshard/sdk/migrations`: `DeclaredMigrations`, `MigrationsSchema`, `parseMigrations`

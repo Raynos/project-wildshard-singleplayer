@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1996 members; 830 without a doc line (—).
+1999 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -72,6 +72,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PlatformSpawn` | interface | @wildshard/engine/ai/platform | Stable spawn identities produce the exact same entity set when a fresh sim restores a snapshot. |
 | `PlatformSpecies` | type | @wildshard/engine/ai/platform | Catalogue lookup may resolve variant-specific health/modifiers before a spawn is constructed. |
 | `preparePlatformBrains` | function | @wildshard/engine/ai/platform | Validate and construct all pursuit policies without registering fixed-step work or consuming random state. |
+| `RamGrazerBrain` | class | @wildshard/engine/ai/ramGrazer | Renderer-free ram decisions and strike clock with lossless, policy-fenced continuation. |
+| `RamGrazerPorts` | interface | @wildshard/engine/ai/ramGrazer | Trusted observations, current home and contact recipe; author data cannot select a target or world. |
+| `RamGrazerSpec` | interface | @wildshard/engine/ai/ramGrazer | Rim-aware grazing, threat and committed ram policy; the host owns the floor and ballistic body. |
 | `canReach` | function | @wildshard/engine/ai/reach | Same chest/aim-point/slack query in every level, evaluated at the contact frame. |
 | `ReachActor` | interface | @wildshard/engine/ai/reach | — |
 | `BRAIN_FIELD` | const | @wildshard/engine/ai/scriptBrain | Numeric motion intentions; the guest cannot write positions, spawn actors or deal damage. |

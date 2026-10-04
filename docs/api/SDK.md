@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-83 members; 0 without a doc line (—).
+85 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -51,6 +51,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ShardClientScripts` | type | @wildshard/sdk/clientScripts | Data-only author contract for isolated client scripts. |
 | `director` | function | @wildshard/sdk/director | Validate before admitting a bounded module or installing a fixed-step director. |
 | `DirectorData` | type | @wildshard/sdk/director | Typed director data with bounded observations, payloads and reserved grid subscriptions. |
+| `ramGrazer` | function | @wildshard/sdk/grazers | Validate ram-grazer data independently of a creature's native rig and collision recipes. |
+| `RamGrazerData` | type | @wildshard/sdk/grazers | Admitted rim-aware ram policy with named strikes and host-owned home, terrain and random stream. |
 | `groupBrain` | function | @wildshard/sdk/groupBrains | Validate a pack or guarded-herd controller before loading its native world recipes. |
 | `GroupBrainData` | type | @wildshard/sdk/groupBrains | One admitted group policy and its explicit ordered stable actor roster. |
 | `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |

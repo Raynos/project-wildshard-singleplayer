@@ -386,6 +386,24 @@
         "from": "@wildshard/engine/ai/platform"
       },
       {
+        "name": "RamGrazerBrain",
+        "kind": "class",
+        "doc": "Renderer-free ram decisions and strike clock with lossless, policy-fenced continuation.",
+        "from": "@wildshard/engine/ai/ramGrazer"
+      },
+      {
+        "name": "RamGrazerPorts",
+        "kind": "interface",
+        "doc": "Trusted observations, current home and contact recipe; author data cannot select a target or world.",
+        "from": "@wildshard/engine/ai/ramGrazer"
+      },
+      {
+        "name": "RamGrazerSpec",
+        "kind": "interface",
+        "doc": "Rim-aware grazing, threat and committed ram policy; the host owns the floor and ballistic body.",
+        "from": "@wildshard/engine/ai/ramGrazer"
+      },
+      {
         "name": "canReach",
         "kind": "function",
         "doc": "Same chest/aim-point/slack query in every level, evaluated at the contact frame.",
@@ -13746,6 +13764,18 @@
         "from": "@wildshard/game/shardfile/accent"
       },
       {
+        "name": "SHARDFILE_ADMISSION_LIMITS",
+        "kind": "const",
+        "doc": "Shared manifest admission ceilings, checked before immutable assets or a simulation are opened.",
+        "from": "@wildshard/game/shardfile/admissionLimits"
+      },
+      {
+        "name": "preflightAssetGraph",
+        "kind": "function",
+        "doc": "Refuse orphan wire assets and require look LUTs in the charged library closure before any asset read.",
+        "from": "@wildshard/game/shardfile/assetGraph"
+      },
+      {
         "name": "assetCost",
         "kind": "function",
         "doc": "Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run.",
@@ -14044,6 +14074,24 @@
         "kind": "type",
         "doc": "Validated data-only encounter tables.",
         "from": "@wildshard/game/shardfile/encounters"
+      },
+      {
+        "name": "parseRamGrazer",
+        "kind": "function",
+        "doc": "Validate a ram policy without touching an actor, its random stream or the native world.",
+        "from": "@wildshard/game/shardfile/grazers"
+      },
+      {
+        "name": "RamGrazerSchema",
+        "kind": "const",
+        "doc": "Finite ram-grazer tuning and a named strike; the host binds terrain, home, RNG and contact authority.",
+        "from": "@wildshard/game/shardfile/grazers"
+      },
+      {
+        "name": "ShardRamGrazer",
+        "kind": "type",
+        "doc": "An admitted rim-aware grazer policy; spawn identity, current home and strike recipes remain loader-owned.",
+        "from": "@wildshard/game/shardfile/grazers"
       },
       {
         "name": "groupBrainRules",
@@ -14482,6 +14530,12 @@
         "kind": "const",
         "doc": "Bound the declarations and reject non-owned, duplicate or dangling settings at admission.",
         "from": "@wildshard/game/shardfile/plumbing"
+      },
+      {
+        "name": "preflightShardfile",
+        "kind": "function",
+        "doc": "Check collection, JSON source and distinct declared wire bounds without reading any immutable asset.",
+        "from": "@wildshard/game/shardfile/preflight"
       },
       {
         "name": "admitProduct",
@@ -16568,6 +16622,18 @@
         "kind": "type",
         "doc": "Typed director data with bounded observations, payloads and reserved grid subscriptions.",
         "from": "@wildshard/sdk/director"
+      },
+      {
+        "name": "ramGrazer",
+        "kind": "function",
+        "doc": "Validate ram-grazer data independently of a creature's native rig and collision recipes.",
+        "from": "@wildshard/sdk/grazers"
+      },
+      {
+        "name": "RamGrazerData",
+        "kind": "type",
+        "doc": "Admitted rim-aware ram policy with named strikes and host-owned home, terrain and random stream.",
+        "from": "@wildshard/sdk/grazers"
       },
       {
         "name": "groupBrain",

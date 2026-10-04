@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-498 members; 113 without a doc line (—).
+504 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -299,6 +299,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `accentVars` | function | @wildshard/game/shardfile/accent | The HUD's accent variables for an accent hex (the `--ws-cyan` family in src/engine/ui/styles/base.css). |
 | `parseAccent` | function | @wildshard/game/shardfile/accent | Validate a declared accent (throws with the schema's message), returning its id. |
 | `ROAD_ACCENT` | const | @wildshard/game/shardfile/accent | The reserved 21st: the road, the safe zone and every menu (no shard may declare it). |
+| `SHARDFILE_ADMISSION_LIMITS` | const | @wildshard/game/shardfile/admissionLimits | Shared manifest admission ceilings, checked before immutable assets or a simulation are opened. |
+| `preflightAssetGraph` | function | @wildshard/game/shardfile/assetGraph | Refuse orphan wire assets and require look LUTs in the charged library closure before any asset read. |
 | `assetCost` | function | @wildshard/game/shardfile/assets | Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. |
 | `AssetCost` | interface | @wildshard/game/shardfile/assets | Actual costs derived from a bounded parser, never trusted from the author declaration. |
 | `parseAudio` | function | @wildshard/game/shardfile/assets | Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory. |
@@ -349,6 +351,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `encounterRules` | function | @wildshard/game/shardfile/encounters | Full-loader references: declared actor spawn and the existing SF7f boss panel (if any). |
 | `EncountersSchema` | const | @wildshard/game/shardfile/encounters | Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references. |
 | `ShardEncounters` | type | @wildshard/game/shardfile/encounters | Validated data-only encounter tables. |
+| `parseRamGrazer` | function | @wildshard/game/shardfile/grazers | Validate a ram policy without touching an actor, its random stream or the native world. |
+| `RamGrazerSchema` | const | @wildshard/game/shardfile/grazers | Finite ram-grazer tuning and a named strike; the host binds terrain, home, RNG and contact authority. |
+| `ShardRamGrazer` | type | @wildshard/game/shardfile/grazers | An admitted rim-aware grazer policy; spawn identity, current home and strike recipes remain loader-owned. |
 | `groupBrainRules` | function | @wildshard/game/shardfile/groupBrains | Controller references must match the exact ordered roster, with no overlap with individual or encounter controllers. |
 | `GroupBrainSchema` | const | @wildshard/game/shardfile/groupBrains | Group controller declaration; the full creature loader checks identity and controller conflicts. |
 | `HerdGroupSchema` | const | @wildshard/game/shardfile/groupBrains | One guarded-herd controller with an ordered roster; native riding/taming and contact recipes are injected. |
@@ -422,6 +427,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `PlumbingData` | type | @wildshard/game/shardfile/plumbing | Serialisable scoped input actions, tier values and Debug choices with named admitted script hooks. |
 | `plumbingRules` | function | @wildshard/game/shardfile/plumbing | Semantic identities stay in the owning namespace; Debug defaults and touch actions must exist. |
 | `PlumbingSchema` | const | @wildshard/game/shardfile/plumbing | Bound the declarations and reject non-owned, duplicate or dangling settings at admission. |
+| `preflightShardfile` | function | @wildshard/game/shardfile/preflight | Check collection, JSON source and distinct declared wire bounds without reading any immutable asset. |
 | `admitProduct` | function | @wildshard/game/shardfile/product | Validate a visited cached product again, including cached Wasm; previous versions require offline first-party provenance. |
 | `AdmittedProduct` | interface | @wildshard/game/shardfile/product | Admitted owned wire bytes; callers release this map when decoded resources take over. |
 | `boundedResponse` | function | @wildshard/game/shardfile/product | Stream bounded wire bytes, including responses without a trustworthy Content-Length header. |
