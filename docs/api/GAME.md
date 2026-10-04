@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-246 members; 112 without a doc line (—).
+249 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -239,6 +239,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardScriptContent` | interface | @wildshard/game/shardfile/scripts | Content slice consumed by the full loader; assets are already hash-verified and schema-validated. |
 | `ShardScriptField` | interface | @wildshard/game/shardfile/scripts | Format-owned field ids/defaults, with optional authored lower-only bounds. |
 | `ShardScriptPorts` | interface | @wildshard/game/shardfile/scripts | Loader-provided identities and query ports: the actor mapping comes from the session, not the shardfile. |
+| `ShardTerrain` | type | @wildshard/game/shardfile/terrain | A validated terrain section, containing no landscape closures. |
+| `TerrainSchema` | const | @wildshard/game/shardfile/terrain | The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. |
+| `validateTerrainAssets` | function | @wildshard/game/shardfile/terrain | Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams. |
 | `ShardUi` | type | @wildshard/game/shardfile/ui | a validated `ui` section |
 | `ShardUiDeclaration` | type | @wildshard/game/shardfile/ui | one validated UI declaration |
 | `UI_DECLARATIONS_MAX` | const | @wildshard/game/shardfile/ui | The most declarations one shardfile's `ui` section may hold. |

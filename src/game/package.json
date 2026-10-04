@@ -48,6 +48,7 @@
     "./shardfile/creatures": "./shardfile/creatures.ts",
     "./ledger": "./ledger.ts",
     "./grid/instances": "./grid/instances.ts",
-    "./shardfile/ledger": "./shardfile/ledger.ts"
+    "./shardfile/ledger": "./shardfile/ledger.ts",
+    "./shardfile/terrain": "./shardfile/terrain.ts"
   }
 }

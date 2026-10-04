@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1798 members; 831 without a doc line (—).
+1805 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1012,6 +1012,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TerrainCut` | interface | @wildshard/engine/physics/terrain | A rectangle (centre, half-extents, turned by `yaw` about +Y) where the physics ground must sit at or below `below`. |
 | `terrainGrid` | function | @wildshard/engine/physics/terrain | The mesh's vertex heights, row-major (index iz × res + ix), x and z from −size/2 to +size/2. |
 | `toColumnMajor` | function | @wildshard/engine/physics/terrain | The row-major grid in Rapier's column-major (row = z, column = x) layout. |
+| `addBakedTerrainCollider` | function | @wildshard/engine/physics/terrainTiles | Install the baked critical heightfield in the local physics world; the owning scope removes it on unload. |
 | `AimTarget` | interface | @wildshard/engine/player/AimTargets | — |
 | `getAimTargets` | function | @wildshard/engine/player/AimTargets | — |
 | `lockOn` | const | @wildshard/engine/player/AimTargets | The Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md — src/engine/player/LockOnTarget.ts runs it): `state` 'off' (nothing to lock), |
@@ -1753,6 +1754,12 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `terrainHeight` | function | @wildshard/engine/world/terrainHeight | — |
 | `terrainNormal` | function | @wildshard/engine/world/terrainHeight | — |
 | `terrainWaterLevel` | function | @wildshard/engine/world/terrainHeight | — |
+| `decodeTerrainTile` | function | @wildshard/engine/world/terrainTileData | Validate dimensions and exact byte counts before allocating sample arrays; reject unknown versions and flags. |
+| `encodeTerrainTile` | function | @wildshard/engine/world/terrainTileData | Encode version-one terrain using explicit little-endian floats, without host paths or timestamps. |
+| `isTerrainTileData` | function | @wildshard/engine/world/terrainTileData | Recognise the terrain wire format before its full bounded decoder checks the payload. |
+| `terrainTileCost` | function | @wildshard/engine/world/terrainTileData | Conservative sample/mesh residency and draws, including an L0 shadow pass; collider-only payloads have no draws. |
+| `TerrainTileData` | interface | @wildshard/engine/world/terrainTileData | Baked row-major heights in a shard-local square; optional linear RGB values describe the rendered vertices. |
+| `terrainTileHeight` | function | @wildshard/engine/world/terrainTileData | Sample the same diagonal split as Rapier heightfields, rather than a bilinear surface that differs from collision. |
 | `FadeBand` | interface | @wildshard/engine/world/TreeFactory | — |
 | `forestFade` | const | @wildshard/engine/world/TreeFactory | The forest's LOD fades (E94): Forest writes the viewer (its LOD centre) here every frame and sets each material's band. |
 | `patchFade` | function | @wildshard/engine/world/TreeFactory | — |

@@ -299,6 +299,8 @@
     "./sim/snapshot": "./sim/snapshot.ts",
     "./script/state": "./script/state.ts",
     "./script/lane": "./script/lane.ts",
-    "./ai/platform": "./ai/platform.ts"
+    "./ai/platform": "./ai/platform.ts",
+    "./world/terrainTileData": "./world/terrainTileData.ts",
+    "./physics/terrainTiles": "./physics/terrainTiles.ts"
   }
 }

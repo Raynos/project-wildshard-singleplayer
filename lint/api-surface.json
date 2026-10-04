@@ -6042,6 +6042,12 @@
         "from": "@wildshard/engine/physics/terrain"
       },
       {
+        "name": "addBakedTerrainCollider",
+        "kind": "function",
+        "doc": "Install the baked critical heightfield in the local physics world; the owning scope removes it on unload.",
+        "from": "@wildshard/engine/physics/terrainTiles"
+      },
+      {
         "name": "AimTarget",
         "kind": "interface",
         "doc": "",
@@ -10492,6 +10498,42 @@
         "from": "@wildshard/engine/world/terrainHeight"
       },
       {
+        "name": "decodeTerrainTile",
+        "kind": "function",
+        "doc": "Validate dimensions and exact byte counts before allocating sample arrays; reject unknown versions and flags.",
+        "from": "@wildshard/engine/world/terrainTileData"
+      },
+      {
+        "name": "encodeTerrainTile",
+        "kind": "function",
+        "doc": "Encode version-one terrain using explicit little-endian floats, without host paths or timestamps.",
+        "from": "@wildshard/engine/world/terrainTileData"
+      },
+      {
+        "name": "isTerrainTileData",
+        "kind": "function",
+        "doc": "Recognise the terrain wire format before its full bounded decoder checks the payload.",
+        "from": "@wildshard/engine/world/terrainTileData"
+      },
+      {
+        "name": "terrainTileCost",
+        "kind": "function",
+        "doc": "Conservative sample/mesh residency and draws, including an L0 shadow pass; collider-only payloads have no draws.",
+        "from": "@wildshard/engine/world/terrainTileData"
+      },
+      {
+        "name": "TerrainTileData",
+        "kind": "interface",
+        "doc": "Baked row-major heights in a shard-local square; optional linear RGB values describe the rendered vertices.",
+        "from": "@wildshard/engine/world/terrainTileData"
+      },
+      {
+        "name": "terrainTileHeight",
+        "kind": "function",
+        "doc": "Sample the same diagonal split as Rapier heightfields, rather than a bilinear surface that differs from collision.",
+        "from": "@wildshard/engine/world/terrainTileData"
+      },
+      {
         "name": "FadeBand",
         "kind": "interface",
         "doc": "",
@@ -12198,6 +12240,24 @@
         "from": "@wildshard/game/shardfile/scripts"
       },
       {
+        "name": "ShardTerrain",
+        "kind": "type",
+        "doc": "A validated terrain section, containing no landscape closures.",
+        "from": "@wildshard/game/shardfile/terrain"
+      },
+      {
+        "name": "TerrainSchema",
+        "kind": "const",
+        "doc": "The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root.",
+        "from": "@wildshard/game/shardfile/terrain"
+      },
+      {
+        "name": "validateTerrainAssets",
+        "kind": "function",
+        "doc": "Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams.",
+        "from": "@wildshard/game/shardfile/terrain"
+      },
+      {
         "name": "ShardUi",
         "kind": "type",
         "doc": "a validated `ui` section",
@@ -13634,6 +13694,30 @@
         "kind": "function",
         "doc": "Start an author project with a valid empty world; add baked content before shipping a playable shard.",
         "from": "@wildshard/sdk/author"
+      },
+      {
+        "name": "BakedTerrain",
+        "kind": "interface",
+        "doc": "Immutable wire files plus the ordinary shardfile rows and a validated terrain section.",
+        "from": "@wildshard/sdk/bake/terrain"
+      },
+      {
+        "name": "bakeTerrain",
+        "kind": "function",
+        "doc": "Bake a shared 257² lattice into 64 L0 and 16 L1 tiles, with an independent whole-sim collision file.",
+        "from": "@wildshard/sdk/bake/terrain"
+      },
+      {
+        "name": "TerrainBakeSource",
+        "kind": "interface",
+        "doc": "Trusted generator inputs. These closures run only while baking and never enter shard.json or the client.",
+        "from": "@wildshard/sdk/bake/terrain"
+      },
+      {
+        "name": "TerrainOverride",
+        "kind": "interface",
+        "doc": "An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together.",
+        "from": "@wildshard/sdk/bake/terrain"
       },
       {
         "name": "LedgerFact",

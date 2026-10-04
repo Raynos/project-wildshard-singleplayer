@@ -8,7 +8,8 @@
     "./author": "./author.ts",
     "./assets": "./assets.ts",
     "./project": "./project.ts",
-    "./ledger": "./ledger.ts"
+    "./ledger": "./ledger.ts",
+    "./bake/terrain": "./bake/terrain.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -52,6 +53,10 @@
       "./ledger": {
         "types": "./dist/types/sdk/ledger.d.ts",
         "default": "./dist/ledger.js"
+      },
+      "./bake/terrain": {
+        "types": "./dist/types/sdk/bake/terrain.d.ts",
+        "default": "./dist/bake/terrain.js"
       }
     }
   }

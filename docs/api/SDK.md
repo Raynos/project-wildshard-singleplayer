@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-24 members; 0 without a doc line (—).
+28 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -14,6 +14,10 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parseGlb` | function | @wildshard/sdk/assets | Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. |
 | `parseKtx2` | function | @wildshard/sdk/assets | Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. |
 | `emptyShardfile` | function | @wildshard/sdk/author | Start an author project with a valid empty world; add baked content before shipping a playable shard. |
+| `BakedTerrain` | interface | @wildshard/sdk/bake/terrain | Immutable wire files plus the ordinary shardfile rows and a validated terrain section. |
+| `bakeTerrain` | function | @wildshard/sdk/bake/terrain | Bake a shared 257² lattice into 64 L0 and 16 L1 tiles, with an independent whole-sim collision file. |
+| `TerrainBakeSource` | interface | @wildshard/sdk/bake/terrain | Trusted generator inputs. These closures run only while baking and never enter shard.json or the client. |
+| `TerrainOverride` | interface | @wildshard/sdk/bake/terrain | An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together. |
 | `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |
 | `LedgerFactSchema` | const | @wildshard/sdk/ledger | Compile a host-witnessed fact with placement identity and provenance. |
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |
