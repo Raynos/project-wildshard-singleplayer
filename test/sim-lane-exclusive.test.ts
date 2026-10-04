@@ -39,7 +39,7 @@ event('start'); const start=Date.now();
 const timer=setInterval(()=>{if(id !== 'A' || fs.existsSync(path.join(dir,'release-A')) || Date.now()-start>5000){clearInterval(timer);event('end');process.exit(id==='fail'?7:0);}},20);
 `);
   const children: ChildProcess[] = [];
-  const env = { ...process.env, PATH: `${bin}:${process.env.PATH ?? ''}`, SIM_LANE_DIR: lane, SF0D_FIXTURE_DIR: dir };
+  const env = { ...process.env, PATH: `${bin}:${process.env['PATH'] ?? ''}`, SIM_LANE_DIR: lane, SF0D_FIXTURE_DIR: dir };
   const launch = (args: string[]) => {
     const child = spawn('bash', ['scripts/sim-lane.sh', ...args], { env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
     children.push(child); child.stdout.resume(); child.stderr.resume();
