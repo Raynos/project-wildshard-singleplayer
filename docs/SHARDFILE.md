@@ -293,7 +293,14 @@ product may select one; provisional v0 currently has no previous format reader.
 
 The client reserves library and commons claims in the session residency allocator;
 shared dependencies are charged once and leases end with the level. The grid sim
-registry owns sim claims and render rings own tile claims. Local instance checkpoints
+registry owns sim claims and render rings own tile claims. A grid page may share an
+early home claim through an explicitly injected page residency owner.
+The loader uses that owner's allocator before bootstrap, preserves a measured whole-home
+claim and checks that the declared sim resident budget fits inside it. Trusted runtime
+homes require that claim before their shell world runs; no empty budget or one-byte
+placeholder substitutes for the measurement. The live registry retains the same claim,
+while the composition root releases the boot reference after consumers dispose.
+Local instance checkpoints
 retain admitted script continuation, item fuel/cooldowns/queued commands, quest flags,
 current steps and dialogue. They restore silently before panel/collider bindings,
 without replaying rewards or replacing the Game physics world. A changed revision

@@ -18,7 +18,7 @@ import { ClientAssets } from './clientAssets';
 import { ShardfileClient, type ShardfileClientBindings } from './client';
 import { clientGround } from './clientGround';
 import { shardfileWater } from './water';
-import { ResidencyAllocator } from '../grid/allocator';
+import { clientResidency } from './clientResidency';
 import { firstPartyInstance } from '../grid/instances';
 
 /** Validate before allocating a level. Content bindings belong to the full loader. */
@@ -66,11 +66,13 @@ export async function shardfileSource(input: unknown, options: ProductOptions, b
 }
 
 function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindings: ShardfileClientBindings): ShardManifest {
-  const source = admitted.source, assets = new ClientAssets(source, admitted.assets, options);
+  const source = admitted.source;
   if (bindings.trustedRuntime === true && (!options.firstParty || source.runtime === null)) throw new Error('Empty hybrid policy requires a trusted first-party runtime declaration');
   if (bindings.audioOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime audio ownership requires a trusted first-party runtime declaration');
+  const residency = clientResidency(source, bindings);
+  const assets = new ClientAssets(source, admitted.assets, options);
   const manifest = sourceManifest(source);
-  const clientBindings = { ...bindings, allocator: bindings.allocator ?? new ResidencyAllocator() };
+  const clientBindings = { ...bindings, allocator: residency.allocator };
   return { ...manifest, biome: 'Authored world', blurb: source.identity.name,
     ground: { ...(source.terrain === null ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
     species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],

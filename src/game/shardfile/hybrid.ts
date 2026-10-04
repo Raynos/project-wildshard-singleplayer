@@ -180,7 +180,9 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
   // in a grid page the restored home simulation goes to the live grid owner (its freeze fence gates the existing driver)
   const onSimulation: ShardfileClientBindings['onSimulation'] = gridInstance === null ? bindings.onSimulation : (binding) => {
     bindings.onSimulation?.(binding);
-    gridHomeSim.offer({ setActive: binding.setActive, checkpoint: binding.checkpoint, disposed: () => binding.scope.disposed });
+    gridHomeSim.offer({ setActive: binding.setActive, checkpoint: binding.checkpoint, disposed: () => binding.scope.disposed,
+      ...(binding.residency === undefined ? {} : { residency: binding.residency }),
+    });
   };
   const data = await shardfileSource(source, productOptions, { ...bindings, instance, trustedRuntime: true, audioOwner: bindings.audioOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) });
   const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');

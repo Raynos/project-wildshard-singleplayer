@@ -22,6 +22,7 @@ import { instanceSave } from '../instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
 import { EmptyEquipment } from './emptyEquipment';
 import type { ResidencyAllocator } from '../grid/allocator';
+import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
 import { leaseClientLibrary } from './clientLibrary';
 import { clientMaterials } from './clientMaterials';
 import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
@@ -49,6 +50,8 @@ export interface ShardfileClientBindings {
   voices: (audio: ShardPlayHost['audio']) => DeclaredAudioPorts['voices']; catalogue: readonly LedgerCatalogueItem[];
   instance: string;
   allocator?: ResidencyAllocator;
+  /** Optional grid-page owner, created before hydration. Runtime homes reuse its reviewed early claim. */
+  residency?: PageResidency;
   /** Explicit trusted native actor recipes for declared brain families. */
   brains?: DeclaredBrainPorts;
   /** Host-owned custom-policy observation and strike recipes; the factory supplies actor identities and aliases. */
@@ -62,7 +65,7 @@ export interface ShardfileClientBindings {
   /** Announced during construction only when this data client will create a simulation; empty trusted transitions never announce a handoff. */
   onSimulationExpected?: () => void;
   /** Production handoff after restoration; checkpoint confirms ledger, coins, encounters and continuation writes. The existing Game driver remains the home tick owner. */
-  onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void }) => void;
+  onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void; residency?: HomeResidencyClaim }) => void;
 }
 const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
 const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
@@ -88,6 +91,10 @@ export class ShardfileClient {
   private readonly animals = new Map<string, Animal>();
   private readonly emptyTrustedData: boolean;
   constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) {
+    if (bindings.residency !== undefined) {
+      const home = bindings.residency.home();
+      if (home.instance !== bindings.instance || home.allocator !== bindings.allocator) throw new Error('Shardfile client requires its early page home residency');
+    }
     this.source = source; this.assets = assets; this.bindings = bindings; this.emptyTrustedData = bindings.trustedRuntime === true && emptyHybridData(source, bindings.audioOwner);
     if (!this.emptyTrustedData) bindings.onSimulationExpected?.();
   }
@@ -290,6 +297,7 @@ export class ShardfileClient {
     if (this.bindings.audioOwner !== 'runtime') installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play) });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather });
     this.bindings.onSimulation?.({ source, simulation: sim, items: items.runtimes, scope: ctx.scope,
+      ...(this.bindings.residency === undefined ? {} : { residency: this.bindings.residency.home() }),
       checkpoint: () => !ctx.scope.disposed && checkpoint(), setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
     });
   }

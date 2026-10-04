@@ -4,6 +4,7 @@ import { gridMode, type MenuMode } from './menu';
 import { devserverCellOn } from './debug';
 import { findShard } from '../shard/registry';
 import { travel } from '../travel/travel';
+import type { HomeResidencyClaim } from './pageResidency';
 /**
  * Infinite Wildshard's way in (SF21a). There is no assembled grid client yet (SF18a's residency, SF20a's in-page
  * crossing and SF18b's rings are not wired into a page), so the entry boots the furthest real thing: the grid catalogue's
@@ -73,7 +74,7 @@ export class GridCellEvents {
 export const gridCells = new GridCellEvents();
 
 /** The home cell's restored simulation as its client hands it over (sp-x5's `onSimulation`, SF15a): the existing driver's gate and its durable save. */
-export interface GridHomeSimulation { readonly setActive: (active: boolean) => void; readonly checkpoint: () => boolean; readonly disposed: () => boolean }
+export interface GridHomeSimulation { readonly setActive: (active: boolean) => void; readonly checkpoint: () => boolean; readonly disposed: () => boolean; readonly residency?: HomeResidencyClaim }
 /**
  * The seam between the home cell's client (its shardfile simulation, when one runs: Driftwood's hybrid boot) and the live
  * grid owner. The client offers its handoff once; the grid's live session takes it and gates the existing home driver
