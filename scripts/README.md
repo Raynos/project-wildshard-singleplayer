@@ -271,6 +271,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [gpu-perf/](./gpu-perf/)
 - [horizon-matte/](./horizon-matte/)
 - [img2mesh/](./img2mesh/)
+- [mem-trim/](./mem-trim/)
 - [music/](./music/)
 - [normalize/](./normalize/)
 - [palette-regions/](./palette-regions/)
