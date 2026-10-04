@@ -31,6 +31,7 @@ import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService
 import { createSimHost, SIM_API_VERSION, type SimLevel } from '@wildshard/engine/sim';
 import { restoreSimHost } from '@wildshard/engine/sim/snapshot';
 import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
+import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readiness';
 import type { GeneratedStrip } from '@wildshard/engine/sim/strips';
@@ -259,6 +260,9 @@ export class LiveGridSession {
       let releaseBasis: () => void = () => undefined;
       try {
         for (const mesh of duplicates) installStripCollider(sim.host.physics, mesh, sim.host.scope);
+        // Admission proves real, clear, dry ground first. A 5mm backstop avoids coplanar ghost contacts. Include it
+        // in the immutable basis; exact restore carries its tagged handles and must not install another four floors.
+        installEntrySockets(sim.host.physics, sim.host.scope, [{ x: 0, z: 0 }], 'backstop');
         const basis = sim.host.physics.snapshot();
         const basisLease = this.ports.allocator.reserve({ id: `sim-basis:${cell.instance}`, category: 'sim', owner: cell.instance,
           bytes: basis.byteLength, distance: 0, needed: true });
