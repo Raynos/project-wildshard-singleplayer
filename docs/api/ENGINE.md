@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1983 members; 830 without a doc line (—).
+1984 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1465,6 +1465,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SIM_REGION_SNAPSHOT_CHAR_BUDGET` | const | @wildshard/engine/sim/snapshot | Durable per-region ceiling in stored characters; the grid caller uses a logical checkpoint if exact encoding exceeds it. |
 | `SIM_SNAPSHOT_VERSION` | const | @wildshard/engine/sim/snapshot | Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. |
 | `SimSnapshot` | interface | @wildshard/engine/sim/snapshot | Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. |
+| `SnapshotBasisMismatchError` | class | @wildshard/engine/sim/snapshot | A supplied immutable basis differs after strict metadata and packed framing validation. This does not authenticate |
 | `snapshotSimHost` | function | @wildshard/engine/sim/snapshot | Capture at a fixed-step boundary; pending events are preserved without flushing them. |
 | `generateCrossroads` | function | @wildshard/engine/sim/strips | B-clamped corners meet every floor endpoint; retaining walls and cliffs return10m around the junction. |
 | `GeneratedStrip` | interface | @wildshard/engine/sim/strips | The highway owns the primary mesh; neighbouring worlds receive exact translated duplicates. |

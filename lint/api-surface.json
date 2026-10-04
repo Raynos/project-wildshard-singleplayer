@@ -8761,6 +8761,12 @@
         "from": "@wildshard/engine/sim/snapshot"
       },
       {
+        "name": "SnapshotBasisMismatchError",
+        "kind": "class",
+        "doc": "A supplied immutable basis differs after strict metadata and packed framing validation. This does not authenticate",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
         "name": "snapshotSimHost",
         "kind": "function",
         "doc": "Capture at a fixed-step boundary; pending events are preserved without flushing them.",

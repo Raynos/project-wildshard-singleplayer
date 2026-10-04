@@ -1807,7 +1807,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1966 exports, grouped by the module to import them from.
+1967 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2054,7 +2054,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimCommand`, `SimExternalPlayer`, `SimHost`, `SimHostPorts`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
 - `@wildshard/engine/sim/edgeProfiles`: `bakedEdgeProfiles`, `EdgeColour`, `EdgeProfiles`, `EdgeResolution`, `edgeSample`, `edgeSampleLocations`, `nativeEdgeProfiles`, `validateEdgeProfile`
 - `@wildshard/engine/sim/readiness`: `ReadinessBundle`, `ReadinessEstimate`, `ReadinessLink`, `readinessModel`, `ReadinessPart`, `ReadinessStatus`, `ReadinessTicket`, `TraversalReadiness`
-- `@wildshard/engine/sim/snapshot`: `decodeSimSnapshot`, `regionalContinuation`, `restoreSimHost`, `serializeSimSnapshot`, `SIM_REGION_SNAPSHOT_CHAR_BUDGET`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost`
+- `@wildshard/engine/sim/snapshot`: `decodeSimSnapshot`, `regionalContinuation`, `restoreSimHost`, `serializeSimSnapshot`, `SIM_REGION_SNAPSHOT_CHAR_BUDGET`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `SnapshotBasisMismatchError`, `snapshotSimHost`
 - `@wildshard/engine/sim/strips`: `generateCrossroads`, `GeneratedStrip`, `generatePlatform`, `generateStrip`, `PlatformCell`, `STRIP_OFFSETS`, `StripCell`, `StripCorner`, `StripMesh`, `StripProfile`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
 - `@wildshard/engine/ui/authoredDebugRows`: `authoredRows`, `GlobalDebugActionSpec`, `registerGlobalDebugAction`
