@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1889 members; 831 without a doc line (—).
+1891 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -332,7 +332,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `texMode` | const | @wildshard/engine/boot/gpuFiles | — |
 | `TexMode` | type | @wildshard/engine/boot/gpuFiles | — |
 | `texModeWhy` | function | @wildshard/engine/boot/gpuFiles | the mode this page loads with, and why (fixed on the first call) |
-| `AliveInfo` | interface | @wildshard/engine/boot/lastEnd | — |
+| `AliveInfo` | interface | @wildshard/engine/boot/lastEnd | what the running page is: its level, the resident list and the game's page mode (SF21a: the game's `'grid' \| 'shard'`, |
 | `lastEnd` | function | @wildshard/engine/boot/lastEnd | — |
 | `LastEnd` | interface | @wildshard/engine/boot/lastEnd | — |
 | `lastEndLine` | function | @wildshard/engine/boot/lastEnd | — |
@@ -875,6 +875,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TerrainSpec` | interface | @wildshard/engine/level/data | — |
 | `TreeSpec` | interface | @wildshard/engine/level/data | — |
 | `Vec2` | type | @wildshard/engine/level/data | — |
+| `createLevelInstallation` | function | @wildshard/engine/level/installation | Construct the ordinary level verbs bound to a supplied scope, without changing the running level or boot loop. |
+| `LevelInstallation` | interface | @wildshard/engine/level/installation | One scoped context and its registration window, shared by staged loading and resident level activation. |
 | `LevelDriver` | interface · game only | @wildshard/engine/level/load | — |
 | `LevelLoader` | class | @wildshard/engine/level/load | Await hooks at their boundaries, close kit registration, and dispose every failure before it escapes. |
 | `LevelLoadError` | class · game only | @wildshard/engine/level/load | — |

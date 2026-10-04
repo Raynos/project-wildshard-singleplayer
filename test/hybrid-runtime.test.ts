@@ -1,0 +1,163 @@
+import { expect, it } from 'vitest';
+import * as v from 'valibot';
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Vector3 } from 'three';
+import { App } from '../src/engine/app/app';
+import { WorldRegistry } from '../src/engine/world/registry';
+import { Scope, scopeRegistrations } from '../src/engine/app/scope';
+import { createLevelInstallation } from '../src/engine/level/installation';
+import type { LevelDriver } from '../src/engine/level/load';
+import { emptyShardfile } from '../src/sdk/author';
+import { RuntimeSchema, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
+import { HybridRuntimeSession, hybridShardManifest, installHybridRuntime, type HybridResident } from '../src/game/shardfile/hybrid';
+import { emptyShardfileSource } from '../src/game/shardfile/loader';
+import { bindScopedRuntime } from '../src/game/shard/scopedRuntime';
+import { shardContext, type GameServices, type ShardContext } from '../src/game/shard/context';
+import { ShardPlugin } from '../src/game/shard/plugin';
+import { loadShardPlugin } from '../src/game/shard/pluginLoad';
+import type { ShardRuntime } from '../src/game/shard/runtime';
+import { ITEMS } from '../src/game/bag/itemCatalog';
+import { achievementsFor } from '../src/game/achievements';
+import { GridCellEvents } from '../src/game/grid/boot';
+import template from '../src/shards/_template/manifest';
+
+const noop = (): void => undefined;
+const runtime = (): ShardRuntime => ({ world: null, step: null, play: null, hooks: {}, objects: {}, interactables: [], overhead: [], viewer: () => new Vector3(), horizonVeil: null });
+const entry = 'runtime/index.ts';
+function fixture() {
+  const app = new App(); app.registryValue = new WorldRegistry();
+  const parent = runtime(), cells = new GridCellEvents(), calls: string[] = [], bag = new Set<string>();
+  const residents = new Map<string, HybridResident>(), games = new Map<string, GameServices>(), roots = new Map<string, Group>();
+  const token = () => Promise.reject(new Error('Fixture equipment is not built'));
+  const plugin = (id: string) => class extends ShardPlugin {
+    override world(ctx: ShardContext): void {
+      calls.push(`${id}.world`); ctx.strings({ 'hybrid.fixture': id });
+      ctx.debug.expose('hybrid.active', id);
+      const model = new Mesh(new BoxGeometry(), new MeshBasicMaterial()); ctx.root.add(model);
+      ctx.piece({ id: 'hybrid.piece', name: 'Runtime piece', file: 'runtime/index.ts', category: 'props', object: model });
+      const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing runtime');
+      rt.hooks.worldUpdate = () => { calls.push(`${id}.update`); }; rt.objects['hybrid'] = id;
+      rt.overhead.push(new Group()); rt.buildEquipment = token;
+      ctx.scope.listen(new EventTarget(), 'hybrid-fixture', noop); ctx.scope.interval(60_000, noop);
+    }
+    override kit(ctx: ShardContext): void {
+      calls.push(`${id}.kit`); ctx.rows.ammo({ id: 'hybrid.ammo' });
+      ctx.rows.item({ id: 'hybrid-token', label: 'Hybrid token', icon: 'meat' }); ctx.rows.places({ id: 'hybrid.place' });
+      ctx.rows.feat({ id: 'hybrid.feat', name: 'Hybrid', goal: 'Cross', count: 1, title: 'Crossed', icon: 'check' });
+      ctx.tiers.knobs({ id: 'hybrid.knobs', defaults: {} });
+    }
+    override play(ctx: ShardContext): void {
+      calls.push(`${id}.play`); ctx.bag.tab({ id: 'finds', title: 'Hybrid' });
+      ctx.system({ id: 'hybrid.system', phase: 'update', run: () => { calls.push(`${id}.system`); } });
+      ctx.on('level.loaded', noop); ctx.answer('player.crouch', () => ({ allowed: true, latched: false }));
+      ctx.inputContext({ id: 'hybrid.input', actions: ['attack'] });
+    }
+  };
+  const entries: TrustedRuntimeEntry[] = [];
+  for (const [instance, slug] of [['template-1', 'template'], ['hybrid-b', 'hybrid-b']] as const) {
+    const source = emptyShardfile({ slug, name: slug, author: 'Fixture', seed: 1, revision: 1 }), manifest = emptyShardfileSource(source);
+    const scope = app.engineScope.child(`data:${instance}`), root = new Group(); root.add(new Group()); roots.set(instance, root);
+    const game: GameServices = { runtime: parent, shard: manifest, rows: new Map(), bag: {
+      tab: () => { bag.add(instance); return () => { bag.delete(instance); }; }, fragment: () => noop,
+    } }; games.set(instance, game);
+    residents.set(instance, { instance, slug, declaration: { entry }, firstParty: true, scope, runtime: parent,
+      context: (playScope, local) => {
+        const installation = createLevelInstallation(app, playScope, { inputContext: (def) => {
+          app.input.register(def, playScope); app.input.push(def.id, playScope); return () => { app.input.pop(def.id); };
+        } }, () => ({ set: noop, detail: noop }));
+        root.add(installation.context.root);
+        return { ...installation, context: shardContext(installation.context, manifest, { ...game, runtime: local }) };
+      },
+    });
+    entries.push({ slug, entry, load: () => { calls.push(`${slug}.import`); return Promise.resolve({ default: plugin(instance) }); } });
+  }
+  const session = new HybridRuntimeSession(residents, entries, app.engineScope);
+  const census = () => ({ descriptors: Object.getOwnPropertyDescriptors(parent),
+    events: app.events.census(), systems: app.systemIds(app.engineScope), debug: app.debug.snapshot(), input: app.input.contexts,
+    engineRows: app.levelRegistrations.list('ammo'), knobs: app.levelRegistrations.knobSchemas(), strings: app.levelRegistrations.findText('hybrid.fixture'),
+    gameRows: [...games].map(([id, game]) => [id, [...game.rows].map(([kind, rows]) => [kind, [...rows.keys()]])]),
+    achievements: ['template', 'hybrid-b'].map((slug) => achievementsFor(slug)), items: Object.entries(ITEMS), pieces: app.registry.pieces.map((p) => p.id),
+    bag: [...bag], roots: [...roots].map(([id, root]) => [id, root.children.length]), scope: app.engineScope.census,
+    native: scopeRegistrations((scope) => scope.belongsTo(app.engineScope)),
+  });
+  return { app, parent, cells, session, calls, census, residents, entries };
+}
+it('admits only the declared same-shard first-party runtime entry without importing data-controlled paths', async () => {
+  for (const path of ['../runtime/index.ts', 'runtime/../index.ts', 'https://example.test/runtime.ts', '/runtime/index.ts', 'runtime/index.js']) expect(v.safeParse(RuntimeSchema, { entry: path }).success).toBe(false);
+  let imports = 0;
+  const entries = [{ slug: 'template', entry, load: () => { imports++; return Promise.resolve({ default: class extends ShardPlugin {} }); } }];
+  await expect(prepareTrustedRuntime({ entry }, 'template', false, entries)).rejects.toThrow('first-party');
+  await expect(prepareTrustedRuntime({ entry }, 'another', true, entries)).rejects.toThrow('matching');
+  await expect(prepareTrustedRuntime({ entry }, 'template', true, [...entries, ...entries])).rejects.toThrow('exactly one');
+  expect(imports).toBe(0); await prepareTrustedRuntime({ entry }, 'template', true, entries); expect(imports).toBe(1);
+});
+it('keeps both fixture neighbours data-only and returns all global slots and registrations to baseline across 20 two-hybrid crossings', async () => {
+  const f = fixture();
+  try {
+    const before = f.census();
+    await Promise.all([f.session.prepare('template-1'), f.session.prepare('hybrid-b')]);
+    expect(f.calls).toEqual(['template.import', 'hybrid-b.import']); expect(f.census()).toEqual(before);
+    for (let cycle = 0; cycle < 20; cycle++) {
+      await f.session.enter({ instance: 'template-1', slug: 'template' });
+      expect(f.session.state()).toEqual({ instance: 'template-1', ready: true }); expect(f.parent.objects['hybrid']).toBe('template-1');
+      for (const system of f.app.systemsByPhase().update) system.run(1 / 60, cycle);
+      await f.session.enter({ instance: 'hybrid-b', slug: 'hybrid-b' });
+      expect(f.session.state()).toEqual({ instance: 'hybrid-b', ready: true }); expect(f.parent.objects['hybrid']).toBe('hybrid-b');
+      expect(achievementsFor('template')).toEqual([]); expect(f.app.systemIds(f.app.engineScope)).toEqual(['hybrid.system']);
+      f.session.leave(); expect(f.census()).toEqual(before);
+    }
+    expect(f.calls.filter((call) => call.endsWith('.world'))).toHaveLength(40);
+  } finally { f.app.engineScope.dispose(); }
+});
+it('late hooks retain their private slots and refuse registrations after leave instead of writing into the next hybrid scope', async () => {
+  const f = fixture(); let release = noop; let rejected = false;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  class Late extends ShardPlugin {
+    override async world(ctx: ShardContext): Promise<void> {
+      await gate; const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing runtime');
+      rt.buildEquipment = () => Promise.reject(new Error('Late')); rt.hooks.worldUpdate = noop; rt.objects['hybrid'] = 'late';
+      try { ctx.system({ id: 'hybrid.late', phase: 'update', run: noop }); } catch { rejected = true; }
+    }
+  }
+  const slow = f.residents.get('template-1'); if (slow === undefined) throw new Error('Missing template fixture');
+  const session = new HybridRuntimeSession(f.residents, [{ slug: 'template', entry, load: () => Promise.resolve({ default: Late }) }, f.entries[1] ?? { slug: '', entry, load: () => Promise.reject(new Error('Missing entry')) }], f.app.engineScope);
+  try {
+    const before = f.census(), entering = session.enter({ instance: 'template-1', slug: 'template' });
+    for (let turn = 0; turn < 8; turn++) await Promise.resolve();
+    session.leave(); await session.enter({ instance: 'hybrid-b', slug: 'hybrid-b' });
+    const next = f.parent.buildEquipment; release(); expect(await entering).toBe(false); expect(rejected).toBe(true);
+    expect(f.parent.objects['hybrid']).toBe('hybrid-b'); expect(f.parent.buildEquipment).toBe(next);
+    expect(f.app.systemIds(f.app.engineScope)).toEqual(['hybrid.system']); session.leave(); expect(f.census()).toEqual(before);
+  } finally { release(); f.app.engineScope.dispose(); }
+});
+it('consumes late grid subscribers and removes runtime scopes on the strip without removing data roots', async () => {
+  const f = fixture(), reports: unknown[] = [];
+  const report = (error: unknown): void => { reports.push(error); };
+  try {
+    f.cells.enter({ instance: 'template-1', slug: 'template' }); installHybridRuntime(f.cells, f.session, f.app.engineScope, report);
+    for (let turn = 0; turn < 12; turn++) await Promise.resolve();
+    expect(f.session.state().instance).toBe('template-1'); f.cells.leave();
+    expect(f.session.state()).toEqual({ instance: null, ready: false }); expect(f.census().roots).toEqual([['template-1', 1], ['hybrid-b', 1]]); expect(reports).toEqual([]);
+  } finally { f.app.engineScope.dispose(); }
+});
+it('retains the ordinary staged standalone boot and restores runtime descriptors on unload', async () => {
+  const app = new App(), parent = runtime(), stages: string[] = [];
+  const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: noop, world: noop, kit: noop, loadout: noop, play: noop, finish: noop }; app.levelDriver = driver;
+  class Runtime extends ShardPlugin {
+    override world(ctx: ShardContext): void { stages.push('world'); ctx.debug.expose('hybrid.template', 1); }
+    override kit(ctx: ShardContext): void { stages.push('kit'); const rt = ctx.game.runtime; if (rt !== undefined) rt.buildEquipment = () => Promise.reject(new Error('Custom')); }
+    override play(): void { stages.push('play'); }
+  }
+  const data = emptyShardfileSource(emptyShardfile({ slug: 'template', name: 'Template', author: 'Fixture', seed: 357, revision: 1 }));
+  const manifest = await hybridShardManifest(data, template, { entry }, true, [{ slug: 'template', entry, load: () => Promise.resolve({ default: Runtime }) }]);
+  const before = Object.getOwnPropertyDescriptors(parent);
+  try {
+    await loadShardPlugin(app, manifest, { shard: manifest, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } }, { build: 'hybrid', dispose: () => app.unloadLevel(), report: () => Promise.resolve(), show: noop });
+    expect(stages).toEqual(['world', 'kit', 'play']); expect(manifest.render).toBe(template.render); expect(manifest.ground).toBe(template.ground);
+    await app.unloadLevel(); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before); expect(app.debug.snapshot()).toEqual({});
+  } finally { await app.unloadLevel(); app.engineScope.dispose(); }
+});
+it('isolates trusted writes to borrowed shell services while following later platform updates', () => {
+  const parent = runtime(), scope = new Scope('runtime.fixture'), first = parent.viewer, next = () => new Vector3(1, 2, 3);
+  const local = bindScopedRuntime(parent, scope); parent.viewer = next; expect(local.viewer).toBe(next);
+  local.viewer = first; expect(parent.viewer).toBe(next); scope.dispose(); expect(parent.viewer).toBe(next);
+});

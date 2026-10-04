@@ -1951,7 +1951,7 @@
       {
         "name": "AliveInfo",
         "kind": "interface",
-        "doc": "",
+        "doc": "what the running page is: its level, the resident list and the game's page mode (SF21a: the game's `'grid' | 'shard'`,",
         "from": "@wildshard/engine/boot/lastEnd"
       },
       {
@@ -5215,6 +5215,18 @@
         "kind": "type",
         "doc": "",
         "from": "@wildshard/engine/level/data"
+      },
+      {
+        "name": "createLevelInstallation",
+        "kind": "function",
+        "doc": "Construct the ordinary level verbs bound to a supplied scope, without changing the running level or boot loop.",
+        "from": "@wildshard/engine/level/installation"
+      },
+      {
+        "name": "LevelInstallation",
+        "kind": "interface",
+        "doc": "One scoped context and its registration window, shared by staged loading and resident level activation.",
+        "from": "@wildshard/engine/level/installation"
       },
       {
         "name": "LevelDriver",
@@ -12894,6 +12906,12 @@
         "from": "@wildshard/game/shard/runtime"
       },
       {
+        "name": "bindScopedRuntime",
+        "kind": "function",
+        "doc": "Bind every staged runtime slot to this play scope, retaining the resident world's previous handoff on exit.",
+        "from": "@wildshard/game/shard/scopedRuntime"
+      },
+      {
         "name": "parseShardSlug",
         "kind": "function",
         "doc": "Brand only validated identities; callers cannot supply arbitrary strings as shard keys.",
@@ -12994,6 +13012,48 @@
         "kind": "type",
         "doc": "Validated data-only encounter tables.",
         "from": "@wildshard/game/shardfile/encounters"
+      },
+      {
+        "name": "hybridInstallation",
+        "kind": "function",
+        "doc": "Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
+        "name": "HybridResident",
+        "kind": "interface",
+        "doc": "A resident's data world stays alive when its independently scoped trusted play hooks leave.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
+        "name": "HybridRuntimeSession",
+        "kind": "class",
+        "doc": "Only the entered cell owns trusted hooks. Prefetch imports the declared chunk without constructing or running it.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
+        "name": "HybridRuntimeState",
+        "kind": "interface",
+        "doc": "Runtime activation status is separate from data residency and asynchronous module preparation.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
+        "name": "hybridShardManifest",
+        "kind": "function",
+        "doc": "Keep a transitional shard's existing standalone presentation while admitting data and resolving its declared code separately.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
+        "name": "HybridShardPlugin",
+        "kind": "class",
+        "doc": "Standalone staged composition keeps the resident data plugin and trusted hooks on the existing Game boot path.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
+        "name": "installHybridRuntime",
+        "kind": "function",
+        "doc": "Consume the grid client's interior events; a late subscriber installs the current cell, never its neighbours.",
+        "from": "@wildshard/game/shardfile/hybrid"
       },
       {
         "name": "DeclaredItemPorts",
@@ -13312,6 +13372,30 @@
         "kind": "function",
         "doc": "Resolve both species and variant, preserving authored health and gameplay multipliers.",
         "from": "@wildshard/game/shardfile/rows"
+      },
+      {
+        "name": "prepareTrustedRuntime",
+        "kind": "function",
+        "doc": "Resolve only explicitly registered first-party code. Neighbour preparation may import it without running hooks.",
+        "from": "@wildshard/game/shardfile/runtime"
+      },
+      {
+        "name": "RuntimeDeclaration",
+        "kind": "type",
+        "doc": "Serializable declaration of the trusted TypeScript that remains during an 80/20 conversion.",
+        "from": "@wildshard/game/shardfile/runtime"
+      },
+      {
+        "name": "RuntimeSchema",
+        "kind": "const",
+        "doc": "A first-party transition entry, relative to its own shard folder; never an asset URL or arbitrary import.",
+        "from": "@wildshard/game/shardfile/runtime"
+      },
+      {
+        "name": "TrustedRuntimeEntry",
+        "kind": "interface",
+        "doc": "Trusted composition-root binding; the declaration can select only the entry belonging to the same shard.",
+        "from": "@wildshard/game/shardfile/runtime"
       },
       {
         "name": "LOOK_LUT_BYTES",

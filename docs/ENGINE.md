@@ -1777,7 +1777,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1872 exports, grouped by the module to import them from.
+1874 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1918,6 +1918,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/input/weaponActions`: `weaponActionGate`
 - `@wildshard/engine/level/context`: `ContentRow`, `ContentRowMap`, `CreatureMaterialFactory`, `DebugRowSpec`, `EngineRows`, `HudVerbs`, `InputContextDef`, `LevelAdapters`, `LevelContext`, `LevelHooks`, `PlaygroundSpec`, `ResidentMemory`, `RowVerb`, `StringTable`, `TierKnobSchema`, `VerbSlotOpts`
 - `@wildshard/engine/level/data`: `AtmosphereSpec`, `CabinSite`, `CompareTarget`, `exploreArt`, `ExploreArt`, `ExploreSpec`, `FaunaKind`, `ForestSpec`, `GradeLook`, `GradeSpec`, `HerdPlan`, `HorizonBand`, `HorizonRing`, `HorizonSpec`, `HudSpec`, `LevelAssets`, `MapLook`, `MinimapSpec`, `PoiSpec`, `PondDef`, `RGB`, `SkySpec`, `SpawnPose`, `TerrainField`, `TerrainNoise`, `TerrainSpec`, `TreeSpec`, `Vec2`
+- `@wildshard/engine/level/installation`: `createLevelInstallation`, `LevelInstallation`
 - `@wildshard/engine/level/load`: `LevelDriver`, `LevelLoader`, `LevelLoadError`, `LevelStage`
 - `@wildshard/engine/level/selection`: `activeLevel`, `configureLevel`, `onLevelChange`, `selectedLevel`
 - `@wildshard/engine/level/spec`: `AudioSpec`, `BootSpec`, `Bounds`, `CreatureRenderSpec`, `EngineMechanism`, `FightRules`, `LevelSpec`, `LoadoutSpec`, `needsTerrainCollider`, `resolveTierKnobs`, `TierKnobMap`, `TierKnobs`, `TierOverrides`
@@ -2097,7 +2098,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-373 exports, grouped by the module to import them from.
+385 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2145,12 +2146,14 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/runtime`: `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
+- `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
 - `@wildshard/game/shardfile/creatures`: `creatureRules`, `CreaturesSchema`, `ShardCreatures`
 - `@wildshard/game/shardfile/encounters`: `encounterRules`, `EncountersSchema`, `ShardEncounters`
+- `@wildshard/game/shardfile/hybrid`: `hybridInstallation`, `HybridResident`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`
 - `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `ShardItems`
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
@@ -2162,6 +2165,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/readiness`: `criticalWireBytes`, `CriticalWireSource`
 - `@wildshard/game/shardfile/revision`: `assertStateCompatibility`
 - `@wildshard/game/shardfile/rows`: `parseRows`, `rowRules`, `RowsSchema`, `scoredStrikes`, `ShardRows`, `simStrikes`, `speciesResolver`
+- `@wildshard/game/shardfile/runtime`: `prepareTrustedRuntime`, `RuntimeDeclaration`, `RuntimeSchema`, `TrustedRuntimeEntry`
 - `@wildshard/game/shardfile/schema`: `LOOK_LUT_BYTES`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
 - `@wildshard/game/shardfile/simulation`: `bindShardfileSim`, `createShardfileSim`, `numericScriptEntityId`, `ShardfileSimPorts`, `ShardfileSimulation`
@@ -2276,3 +2280,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 `@wildshard/game/grid/crossing` stages destination admission ahead of the fixed step, then commits a rollback-safe frame change only after local and residency checkpoints succeed. `installGridCrossing` connects the signed assembly and residency driver without another simulation, player or navigation service. Local equipment is stowed at the cell edge before the strip re-frame; superseded and failed admissions retain the current frame.
 
 `@wildshard/game/grid/wallet` binds the existing inventory and purse keys and item continuation to a stable instance. Coins and shard items stay local, while catalogue equipment, titles and achievements remain in the profile ledger. Border stow cancels charged and queued attacks, retains selection and fuel, and restores prior pause/dialogue visibility on return. Fresh-document item restoration rebases the continuation clock. Select a shard and explore continue through `travel/travel`; first-party grid and standalone saves use the same instance identity.
+
+### Scoped level installation
+
+`@wildshard/engine/level/installation` provides `createLevelInstallation(app, scope, adapters, progress)`. It constructs the same scope-bound context used by `LevelLoader`, without starting another load or changing the active level. `openKit()` and `closeKit()` delimit the row-registration window. The caller owns the supplied scope and disposes it to remove its systems, events, content rows, scene root and adapter contributions.

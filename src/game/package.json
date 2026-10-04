@@ -77,6 +77,9 @@
     "./grid/wallet": "./grid/wallet.ts",
     "./grid/simulation": "./grid/simulation.ts",
     "./grid/state": "./grid/state.ts",
-    "./shardfile/skinLayers": "./shardfile/skinLayers.ts"
+    "./shardfile/skinLayers": "./shardfile/skinLayers.ts",
+    "./shardfile/runtime": "./shardfile/runtime.ts",
+    "./shard/scopedRuntime": "./shard/scopedRuntime.ts",
+    "./shardfile/hybrid": "./shardfile/hybrid.ts"
   }
 }
