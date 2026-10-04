@@ -4,6 +4,7 @@ import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { GridAssembly, GridCell, GridPoint } from './assembly';
 import type { ResidencyAllocator } from './allocator';
+import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
 
 /** Admission returns one owned, renderer-free regional host; its world is always in authored local coordinates. */
 export interface GridResident { readonly host: SimHost; readonly dispose: () => void }
@@ -31,13 +32,14 @@ export interface GridSimulationPorts {
 export interface PreparedGridFrame { commit: () => void; cancel: () => void }
 /** Two-phase durable eviction; abort retains the world and commit retires only the prepared frozen residency. */
 export interface PreparedGridUnload { commit: () => void; abort: () => void }
-interface Resident { value: GridResident; saved: SimSnapshot; touched: number; reservations: number; retained: boolean; evicting: boolean; lease: GridSimLease | undefined }
+interface Resident { value: GridResident; touched: number; reservations: number; retained: boolean; evicting: boolean; lease: GridSimLease | undefined }
 
 /** Independent local physics worlds; only the current one advances, while visible neighbours remain frozen. */
 export class GridSimulation {
   private active: string | null = null;
   private readonly residents = new Map<string, Resident>();
-  private readonly snapshots = new Map<string, SimSnapshot>();
+  private readonly snapshots = new GridContinuationCache();
+  private cacheLease: GridSimLease | undefined;
   private readonly requests = new Map<string, Promise<void>>();
   private readonly cancelFrames = new Set<() => void>();
   private readonly cleanupIssues: string[] = [];
@@ -84,6 +86,8 @@ export class GridSimulation {
     return request;
   }
   private async admit(instance: string): Promise<void> {
+      this.assertAlive();
+      await this.reserveCache();
       while (this.residents.size >= this.limit) {
         const candidate = [...this.residents].filter(([id, value]) => id !== this.active && value.reservations === 0 && !value.retained).sort((a, b) => a[1].touched - b[1].touched || a[0].localeCompare(b[0]))[0];
         if (candidate === undefined || !this.unload(candidate[0])) throw new Error('No durable frozen grid residency can be evicted');
@@ -96,23 +100,41 @@ export class GridSimulation {
         if (claim === null) throw new Error('Sim residency admission deferred by the shared budget');
         lease = claim;
       } else lease = await this.ports.reserve?.(instance, bytes);
-      const saved = this.snapshots.get(instance) ?? this.ports.read?.(instance);
       let value: GridResident;
-      try { value = await this.ports.load(cell, saved); } catch (error) { lease?.release(); throw error; }
+      try { value = await this.ports.load(cell, this.snapshots.read(instance) ?? this.ports.read?.(instance)); } catch (error) { lease?.release(); throw error; }
       try {
         if (this.disposed || value.host.embedded || !value.host.hasPlayerMotor) throw new Error('Grid admission requires an owned host');
-        const checkpoint = snapshotSimHost(value.host); value.host.detachPlayerMotor();
-        this.residents.set(instance, { value, saved: checkpoint, touched: ++this.used, reservations: 0, retained: false, evicting: false, lease });
+        const checkpoint = this.snapshots.pack(instance, snapshotSimHost(value.host));
+        if (checkpoint === null) throw new Error('Grid continuation cache capacity exceeded');
+        value.host.detachPlayerMotor(); this.snapshots.store(instance, checkpoint);
+        this.residents.set(instance, { value, touched: ++this.used, reservations: 0, retained: false, evicting: false, lease });
         lease?.update?.({ needed: false });
       } catch (error) { try { value.dispose(); } finally { lease?.release(); } throw error; }
       return undefined;
   }
+  private assertAlive(): void { if (this.disposed) throw new Error('Grid simulation is disposed'); }
+  /** The optional session budget owner charges a fixed packed pool before any regional world is allocated. */
+  private async reserveCache(): Promise<void> {
+    if (this.cacheLease !== undefined) return;
+    const id = 'sim-continuations:node';
+    let lease: GridSimLease | undefined;
+    if (this.ports.allocator !== undefined) {
+      if (this.ports.allocator.has(id)) throw new Error('Grid continuation cache already has an owner');
+      const claim = this.ports.allocator.reserve({ id, category: 'sim', owner: 'platform', bytes: GRID_CONTINUATION_CACHE_BYTES, distance: 0, needed: true });
+      if (claim === null) throw new Error('Grid continuation cache admission deferred by the shared budget');
+      lease = claim;
+    } else lease = await this.ports.reserve?.(id, GRID_CONTINUATION_CACHE_BYTES);
+    if (this.disposed) { lease?.release(); throw new Error('Grid simulation is disposed'); }
+    this.cacheLease = lease;
+  }
   /** Snapshot before leaving the active region. Failure keeps both its world and the traveller authoritative. */
   checkpoint(instance: string): boolean {
     const resident = this.residents.get(instance); if (resident === undefined || this.disposed) return false;
-    const snapshot = instance === this.active ? snapshotSimHost(resident.value.host) : resident.saved;
+    const snapshot = instance === this.active ? snapshotSimHost(resident.value.host) : this.snapshots.read(instance);
+    if (snapshot === undefined) throw new Error('Missing admitted grid continuation');
+    const packed = this.snapshots.pack(instance, snapshot); if (packed === null) return false;
     if (!this.ports.save(instance, snapshot)) return false;
-    resident.saved = snapshot; this.snapshots.set(instance, snapshot); return true;
+    this.snapshots.store(instance, packed); return true;
   }
   /** Readiness keeps a frozen destination resident; unneeded neighbours may be evicted by the shared allocator. */
   retain(instance: string, needed: boolean, distance: number): void {
@@ -139,6 +161,7 @@ export class GridSimulation {
         if (closed) return; closed = true;
         if (this.disposed || this.residents.get(instance) !== resident) return;
         this.residents.delete(instance);
+        if (this.ports.read !== undefined) this.snapshots.drop(instance);
         // Each cleanup runs even if another fails. The infallible allocator commit exposes failures for the session owner.
         for (const dispose of [() => { this.ports.invalidated?.(instance); }, () => { resident.value.dispose(); }, () => { resident.lease?.release(); }]) {
           try { dispose(); } catch (error) { this.cleanupIssues.push(`${instance}: ${error instanceof Error ? error.message : String(error)}`); }
@@ -188,14 +211,18 @@ export class GridSimulation {
   }
   /** Global render pose is derived from local feet and the current frame, never saved into an authored host. */
   worldFeet(): GridPoint { const position = this.host().player.position; return this.active === null ? { x: position.x, y: position.y, z: position.z } : this.assembly.world(position, this.assembly.cell(this.active)); }
+  /** Packed same-page continuations stay bounded independently of the number of unloaded native worlds. */
+  continuationState(): { entries: number; storedChars: number; capacityChars: number; claimedBytes: number } {
+    return { ...this.snapshots.state(), claimedBytes: this.cacheLease === undefined ? 0 : GRID_CONTINUATION_CACHE_BYTES };
+  }
   /** Close all worlds owned by this session; async admissions dispose their own late results. */
   dispose(): void {
     if (this.disposed) return; this.disposed = true;
-    const cleanups = [...this.cancelFrames, ...[...this.residents.values()].flatMap((resident) => [() => { resident.value.dispose(); }, () => { resident.lease?.release(); }]), () => { this.ports.highway.dispose(); }];
+    const cleanups = [...this.cancelFrames, ...[...this.residents.values()].flatMap((resident) => [() => { resident.value.dispose(); }, () => { resident.lease?.release(); }]), () => { this.ports.highway.dispose(); }, () => { this.cacheLease?.release(); this.cacheLease = undefined; }];
     for (const cleanup of cleanups) {
       try { cleanup(); } catch (error) { this.cleanupIssues.push(error instanceof Error ? error.message : String(error)); }
     }
-    this.residents.clear(); this.cancelFrames.clear();
+    this.residents.clear(); this.cancelFrames.clear(); this.snapshots.clear();
     if (this.cleanupIssues.length > 0) throw new AggregateError(this.cleanupIssues, 'Grid simulation disposal failed');
   }
 }

@@ -19,6 +19,7 @@ import { regionalState } from '../src/game/grid/state';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { prepareFrameMotors } from '../src/engine/physics/frame';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { GRID_CONTINUATION_CACHE_BYTES } from '../src/game/grid/continuations';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
@@ -112,7 +113,7 @@ describe('world-local grid residency', () => {
       reserve: (instance, bytes) => { events.push(`reserve:${instance}:${bytes}`); return Promise.resolve({ release: () => { events.push('released'); }, update: () => undefined }); },
       load: () => { events.push('allocated'); return Promise.resolve(resident()); }, save: () => true });
     try {
-      await sim.prefetch([id]); expect(events.slice(0, 2)).toEqual([`reserve:${id}:25000000`, 'allocated']);
+      await sim.prefetch([id]); expect(events.slice(0, 3)).toEqual([`reserve:sim-continuations:node:${String(GRID_CONTINUATION_CACHE_BYTES)}`, `reserve:${id}:25000000`, 'allocated']);
       const abort = sim.prepareUnload(id); if (abort === null) throw new Error('Missing eviction');
       expect(sim.ready(id)).toBe(false); abort.abort(); expect(sim.ready(id)).toBe(true); expect(events).not.toContain('released');
       sim.retain(id, true, 2); expect(sim.prepareUnload(id)).toBeNull(); sim.retain(id, false, 100);
@@ -123,15 +124,36 @@ describe('world-local grid residency', () => {
   it('holds soft admission when the shared budget refuses, then evicts a durable frozen sim through the allocator', async () => {
     const assembly = new GridAssembly({ developer: false, devserver: false }), first = assembly.cells[0]?.instance, second = assembly.cells[1]?.instance;
     if (first === undefined || second === undefined) throw new Error('Missing grid');
-    const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil(25_000_000 * CONTENT_CAPS.residentFactor) });
+    const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil((GRID_CONTINUATION_CACHE_BYTES + 25_000_000) * CONTENT_CAPS.residentFactor) });
     const sim = new GridSimulation(assembly, { highway: resident(), allocator, residentBytes: () => 25_000_000, load: () => Promise.resolve(resident()), save: () => true });
     try {
-      await sim.prefetch([first]); expect(allocator.entries().map((e) => e.id)).toEqual([`sim:${first}`]);
+      await sim.prefetch([first]); expect(allocator.entries().map((e) => e.id)).toEqual(['sim-continuations:node', `sim:${first}`]);
+      expect(sim.continuationState()).toMatchObject({ entries: 1, claimedBytes: GRID_CONTINUATION_CACHE_BYTES });
       sim.retain(first, true, 10); await expect(sim.prefetch([second])).rejects.toThrow('deferred'); expect(sim.ready(first)).toBe(true); expect(sim.current()).toBeNull();
       sim.retain(first, false, 200); await sim.prefetch([second]); expect(sim.ready(first)).toBe(false); expect(sim.ready(second)).toBe(true);
-      expect(allocator.entries().map((e) => e.id)).toEqual([`sim:${second}`]); expect(sim.disposalIssues()).toEqual([]);
+      expect(allocator.entries().map((e) => e.id)).toEqual(['sim-continuations:node', `sim:${second}`]); expect(sim.disposalIssues()).toEqual([]);
     } finally { sim.dispose(); }
     expect(allocator.entries()).toEqual([]);
+    expect(sim.continuationState()).toMatchObject({ entries: 0, storedChars: 0, claimedBytes: 0 });
+  });
+  it('defers a packed pool before allocation and drops unloaded copies when a durable reader owns reload', async () => {
+    const assembly = new GridAssembly({ developer: false, devserver: false }), id = assembly.cells[0]?.instance;
+    if (id === undefined) throw new Error('Missing grid');
+    let allocations = 0;
+    const refused = new GridSimulation(assembly, { highway: resident(), allocator: new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap }),
+      residentBytes: () => 1000, load: () => { allocations++; return Promise.resolve(resident()); }, save: () => true });
+    try { await expect(refused.prefetch([id])).rejects.toThrow('continuation cache admission deferred'); expect(allocations).toBe(0); }
+    finally { refused.dispose(); }
+    const durable = new Map<string, SimSnapshot>();
+    const sim = new GridSimulation(assembly, { highway: resident(), allocator: new ResidencyAllocator(), residentBytes: () => 1000,
+      load: (_cell, saved) => Promise.resolve(resident(saved)), save: (instance, saved) => { durable.set(instance, saved); return true; }, read: (instance) => durable.get(instance) });
+    try {
+      await sim.prefetch([id]); const enter = await sim.prepare(null, id); enter.commit();
+      sim.host().flags.set('packed.reload'); sim.step(); expect(sim.checkpoint(id)).toBe(true);
+      const leave = await sim.prepare(id, null); leave.commit(); expect(sim.unload(id)).toBe(true);
+      expect(sim.continuationState()).toMatchObject({ entries: 0, storedChars: 0, claimedBytes: GRID_CONTINUATION_CACHE_BYTES });
+      const back = await sim.prepare(null, id); back.commit(); expect(sim.host().flags.has('packed.reload')).toBe(true); expect(sim.host().state.tick).toBe(1);
+    } finally { sim.dispose(); }
   });
   it('retires every world and allocator lease even when one scoped cleanup fails', async () => {
     const assembly = new GridAssembly({ developer: false, devserver: false }), ids = assembly.cells.slice(0, 2).map((c) => c.instance), allocator = new ResidencyAllocator(), retired: string[] = [];
