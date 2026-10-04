@@ -1,0 +1,905 @@
+{
+  "poses": {
+    "hut": {
+      "ssim": 0.9999895476024697
+    },
+    "scatter": {
+      "ssim": 0.9999993152659965
+    },
+    "course": {
+      "ssim": 0.9999958683760073
+    },
+    "lantern": {
+      "ssim": 1
+    }
+  },
+  "verdict": {
+    "verdict": "green",
+    "rows": [
+      {
+        "field": "boot.errors",
+        "baseline": [],
+        "now": [],
+        "class": "D",
+        "band": "[]",
+        "verdict": "green"
+      },
+      {
+        "field": "boot.renderer",
+        "baseline": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+        "now": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+        "class": "D",
+        "band": "ANGLE Metal",
+        "verdict": "green"
+      },
+      {
+        "field": "boot.scene.totals.batched",
+        "baseline": 0,
+        "now": 0,
+        "class": "D",
+        "band": "≤ 0 (B15 ratchet)",
+        "verdict": "green"
+      },
+      {
+        "field": "poses.hut.ssim",
+        "baseline": 1,
+        "now": 0.9999895476024697,
+        "class": "B",
+        "band": "≥ 0.99",
+        "verdict": "green"
+      },
+      {
+        "field": "poses.scatter.ssim",
+        "baseline": 1,
+        "now": 0.9999993152659965,
+        "class": "B",
+        "band": "≥ 0.99",
+        "verdict": "green"
+      },
+      {
+        "field": "poses.course.ssim",
+        "baseline": 1,
+        "now": 0.9999958683760073,
+        "class": "B",
+        "band": "≥ 0.99",
+        "verdict": "green"
+      },
+      {
+        "field": "poses.lantern.ssim",
+        "baseline": 1,
+        "now": 1,
+        "class": "B",
+        "band": "≥ 0.99",
+        "verdict": "green"
+      },
+      {
+        "field": "selfMin.hut",
+        "baseline": 1,
+        "class": "C",
+        "band": "information",
+        "verdict": "info"
+      },
+      {
+        "field": "selfMin.scatter",
+        "baseline": 1,
+        "class": "C",
+        "band": "information",
+        "verdict": "info"
+      },
+      {
+        "field": "selfMin.course",
+        "baseline": 1,
+        "class": "C",
+        "band": "information",
+        "verdict": "info"
+      },
+      {
+        "field": "selfMin.lantern",
+        "baseline": 1,
+        "class": "C",
+        "band": "information",
+        "verdict": "info"
+      }
+    ]
+  },
+  "boot": {
+    "errors": [],
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+    "scene": {
+      "totals": {
+        "batched": 0
+      }
+    }
+  },
+  "errors": [],
+  "texture": {
+    "astc": true,
+    "format": 37808,
+    "mipBytes": 368,
+    "width": 16,
+    "height": 16,
+    "uploadError": 0
+  },
+  "report": {
+    "far": {
+      "bounds": {
+        "max": [
+          91.5,
+          30.75,
+          26.992582321166992
+        ],
+        "min": [
+          -13.448850631713867,
+          -0.4482748806476593,
+          -15.149999618530273
+        ]
+      },
+      "compressed": 54808,
+      "decoded": 54780,
+      "draws": 1,
+      "files": [
+        "f292efe76a2b3461b0599affdcda18de12317b0c9e85722e1464acb537f4107b"
+      ],
+      "gpu": 53568,
+      "triangles": 372
+    },
+    "library": [
+      {
+        "compressed": 2976,
+        "critical": false,
+        "decoded": 2948,
+        "dependencies": [],
+        "draws": 2,
+        "gpu": 1728,
+        "hash": "52cce2e2eddb61762ec0fc82dcd36f39a5699bb569b64c52525415ac30232136",
+        "kind": "glb",
+        "triangles": 12
+      },
+      {
+        "compressed": 6368,
+        "critical": false,
+        "decoded": 6340,
+        "dependencies": [],
+        "draws": 2,
+        "gpu": 5184,
+        "hash": "d1997f5d62cc0305dbc03d10b4f7e1664e11c239e58228145bbe176b4cb7d0a6",
+        "kind": "glb",
+        "triangles": 36
+      },
+      {
+        "compressed": 2992,
+        "critical": false,
+        "decoded": 2964,
+        "dependencies": [],
+        "draws": 2,
+        "gpu": 1728,
+        "hash": "ed8bceb946de71aa55697a8839830016f341ba635e71962f94e59678d2e42633",
+        "kind": "glb",
+        "triangles": 12
+      }
+    ],
+    "tiles": [
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 0,
+        "z": 0
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 1,
+        "z": 0
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 2,
+        "z": 0
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 3,
+        "z": 0
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 4,
+        "z": 0
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 5,
+        "z": 0
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 6,
+        "z": 0
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 7,
+        "z": 0
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 0,
+        "z": 1
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 1,
+        "z": 1
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 2,
+        "z": 1
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 3,
+        "z": 1
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 4,
+        "z": 1
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 5,
+        "z": 1
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 6,
+        "z": 1
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 7,
+        "z": 1
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 0,
+        "z": 2
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 1,
+        "z": 2
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 2,
+        "z": 2
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 3,
+        "z": 2
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 4,
+        "z": 2
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 5,
+        "z": 2
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 6,
+        "z": 2
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 7,
+        "z": 2
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 0,
+        "z": 3
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 1,
+        "z": 3
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 2,
+        "z": 3
+      },
+      {
+        "compressed": 26184,
+        "draws": 6,
+        "lod": 0,
+        "resident": 140984,
+        "triangles": 2112,
+        "x": 3,
+        "z": 3
+      },
+      {
+        "compressed": 45180,
+        "draws": 6,
+        "lod": 0,
+        "resident": 178988,
+        "triangles": 2244,
+        "x": 4,
+        "z": 3
+      },
+      {
+        "compressed": 17680,
+        "draws": 4,
+        "lod": 0,
+        "resident": 124992,
+        "triangles": 2084,
+        "x": 5,
+        "z": 3
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 6,
+        "z": 3
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 7,
+        "z": 3
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 0,
+        "z": 4
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 1,
+        "z": 4
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 2,
+        "z": 4
+      },
+      {
+        "compressed": 21152,
+        "draws": 4,
+        "lod": 0,
+        "resident": 131032,
+        "triangles": 2108,
+        "x": 3,
+        "z": 4
+      },
+      {
+        "compressed": 21152,
+        "draws": 4,
+        "lod": 0,
+        "resident": 131032,
+        "triangles": 2108,
+        "x": 4,
+        "z": 4
+      },
+      {
+        "compressed": 17680,
+        "draws": 4,
+        "lod": 0,
+        "resident": 124992,
+        "triangles": 2084,
+        "x": 5,
+        "z": 4
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 6,
+        "z": 4
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 7,
+        "z": 4
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 0,
+        "z": 5
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 1,
+        "z": 5
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 2,
+        "z": 5
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 3,
+        "z": 5
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 4,
+        "z": 5
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 5,
+        "z": 5
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 6,
+        "z": 5
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 7,
+        "z": 5
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 0,
+        "z": 6
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 1,
+        "z": 6
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 2,
+        "z": 6
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 3,
+        "z": 6
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 4,
+        "z": 6
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 5,
+        "z": 6
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 6,
+        "z": 6
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 7,
+        "z": 6
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 0,
+        "z": 7
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 1,
+        "z": 7
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 2,
+        "z": 7
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 3,
+        "z": 7
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 4,
+        "z": 7
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 5,
+        "z": 7
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 6,
+        "z": 7
+      },
+      {
+        "compressed": 17456,
+        "draws": 2,
+        "lod": 0,
+        "resident": 124796,
+        "triangles": 2048,
+        "x": 7,
+        "z": 7
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 0,
+        "z": 0
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 1,
+        "z": 0
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 2,
+        "z": 0
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 3,
+        "z": 0
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 0,
+        "z": 1
+      },
+      {
+        "compressed": 15400,
+        "draws": 2,
+        "lod": 1,
+        "resident": 52984,
+        "triangles": 578,
+        "x": 1,
+        "z": 1
+      },
+      {
+        "compressed": 39840,
+        "draws": 2,
+        "lod": 1,
+        "resident": 101904,
+        "triangles": 748,
+        "x": 2,
+        "z": 1
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 3,
+        "z": 1
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 0,
+        "z": 2
+      },
+      {
+        "compressed": 14552,
+        "draws": 2,
+        "lod": 1,
+        "resident": 51272,
+        "triangles": 572,
+        "x": 1,
+        "z": 2
+      },
+      {
+        "compressed": 16536,
+        "draws": 2,
+        "lod": 1,
+        "resident": 55272,
+        "triangles": 586,
+        "x": 2,
+        "z": 2
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 3,
+        "z": 2
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 0,
+        "z": 3
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 1,
+        "z": 3
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 2,
+        "z": 3
+      },
+      {
+        "compressed": 4656,
+        "draws": 1,
+        "lod": 1,
+        "resident": 32764,
+        "triangles": 512,
+        "x": 3,
+        "z": 3
+      }
+    ]
+  },
+  "source": "actual template generators + admitted baked GLBs, fixed cameras, iPhone 16 Pro viewport, render scale 2"
+}
