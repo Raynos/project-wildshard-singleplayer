@@ -148,6 +148,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [audit-assets.mjs](./audit-assets.mjs)
 - [budget-ceilings.mjs](./budget-ceilings.mjs)
 - [calibrate.mjs](./calibrate.mjs)
+- [coverage-merge.mjs](./coverage-merge.mjs)
 - [creature-color.mjs](./creature-color.mjs)
 - [explore-multitouch.mjs](./explore-multitouch.mjs)
 - [explore-view-taps.mjs](./explore-view-taps.mjs)
