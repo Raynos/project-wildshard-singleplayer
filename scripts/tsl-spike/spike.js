@@ -12,6 +12,8 @@
 //   tsl-raw    as tsl through the stock handler (no colour-space fix): the parity cost of the handler's output transform
 //   tsl-post   as tsl, the screen pass a TSL node graph (grade + filmic + vignette) instead of the GLSL pass
 //   tsl-sway   as tsl-post, plus a vertex-offset stage (wind sway per instance)
+//   plain      the boxes as a stock MeshStandardMaterial; tsl-plain as a stock MeshStandardNodeMaterial (+ the fog
+//              epilogue): the cost of TSL's own lighting and shadow path, apart from the ported graph
 // It reports compile stall, programs and shader sizes, frame times, memory and a frame for the parity diff, and POSTs the
 // JSON to /result (run.mjs writes it out).
 import * as THREE from 'three';
@@ -25,11 +27,18 @@ import {
 import { compilePbr } from '@wildshard/engine/render/families/pbr';
 import { parseFamilyMaterial } from '@wildshard/engine/render/families/params';
 import { installAtmosphere, fogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
 
 const VARIANT = location.hash.slice(1) || 'family';
+// the Simulator's Safari can run the module before it lays the page out (innerWidth 0, so a 0 × 0 target): wait for it
+while (window.innerWidth === 0 || window.innerHeight === 0) await new Promise((resolve) => { requestAnimationFrame(() => { resolve(undefined); }); });
 const FRAMES = 240;
 const GRID = 50; // 2,500 instances: past every device's uniform-buffer limit, so TSL takes the instanced-attribute path
-const tsl = VARIANT !== 'family';
+const tsl = VARIANT !== 'family' && VARIANT !== 'warmup' && VARIANT !== 'plain'; // warmup: a discarded family page that warms the shared programs
+// a per-page constant in the program that differs between variants (the boxes, and the TSL post graph), so the stall
+// always measures that program compiled cold: WebKit and Metal cache programs by source, across Safari launches and
+// Simulator boots, and the shared programs (ground, shadow depth, GLSL post) are warmed by run.mjs's warmup page
+const NONCE = ((1 + Math.floor(Math.random() * 999999)) * 1e-12).toExponential(6);
 
 // ── the renderer, as Game.ts sets it up ──
 const renderer = new THREE.WebGLRenderer({ antialias: false, stencil: false, depth: true, preserveDrawingBuffer: true });
@@ -160,7 +169,7 @@ function tslMat(sway) {
   const lineA = select(hasRole, float(measure.line.alpha), float(measure.line.floorAlpha));
   const out = mix(mix(base, lineC, fine.mul(measure.sub.alpha)), lineC, main.mul(lineA));
   m.colorNode = mix(vec3(lin(params.colour)), out, on);
-  m.emissiveNode = out.mul(measure.lift).mul(on);
+  m.emissiveNode = out.mul(measure.lift).mul(on).add(float(Number(NONCE)));
   if (sway) {
     const phase = hash(instanceIndex).mul(6.283);
     m.positionNode = positionLocal.add(vec3(sin(time.mul(1.7).add(phase)).mul(positionLocal.y.add(1).mul(0.12)), 0, 0));
@@ -174,7 +183,23 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120).rotateX(-Math.PI
 ground.receiveShadow = true;
 scene.add(ground);
 const boxGeo = new THREE.BoxGeometry(1.6, 1, 1.6, 1, 1, 1).translate(0, 0.5, 0);
-const boxMat = tsl ? tslMat(VARIANT === 'tsl-sway') : familyMat();
+/** the diagnostic pair plain / tsl-plain: the stock standard material, classic vs node, no measure layer (the cost of
+ * TSL's own lighting and shadow path, apart from the graph the spike ported) */
+function plainMat() {
+  const opts = { color: lin(params.colour), roughness: params.roughness, metalness: params.metalness };
+  if (!tsl) return new THREE.MeshStandardMaterial(opts);
+  const m = new MeshStandardNodeMaterial(opts);
+  m.fog = false;
+  m.emissiveNode = vec3(float(Number(NONCE)));
+  m.userData.epilogue = engineFog;
+  return m;
+}
+const boxMat = VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : familyMat();
+if (!tsl && VARIANT !== 'warmup') {
+  patchShader(boxMat, 'spike.nonce', PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(/\}\s*$/, `  gl_FragColor.rgb += vec3( ${NONCE} );\n}`);
+  });
+}
 // the handler writes instancing attributes into the geometry, so a TSL InstancedMesh needs a geometry of its own; a
 // shallow clone (the same attribute objects, so the same GPU buffers) is enough
 const ownGeo = new THREE.BufferGeometry();
@@ -231,7 +256,7 @@ function tslPost() {
   c = clamp(c.mul(c.mul(2.51).add(0.03)).div(c.mul(c.mul(2.43).add(0.59)).add(0.14)), 0, 1);
   const d = q.sub(0.5);
   c = c.mul(float(1).sub(uniform(post.vignette).mul(smoothstep(0.2, 0.8, dot(d, d).mul(2)))));
-  m.colorNode = c;
+  m.colorNode = c.add(float(Number(NONCE)));
   m.vertexNode = vec4(positionLocal.xy, 0, 1);
   return m;
 }
@@ -295,9 +320,14 @@ async function run() {
   const stat = (a) => { const s = [...a].sort((x, y) => x - y); const q = (p) => s[Math.min(s.length - 1, Math.floor(p * s.length))] ?? 0; return { median: round(q(0.5), 2), p95: round(q(0.95), 2), max: round(s[s.length - 1] ?? 0, 2) }; };
   const rafStat = stat(raf);
   // the GPU cost of a frame: rAF is vsync-capped wherever the frame fits, so it cannot tell a 5 % difference; a frame
-  // followed by a 1-pixel read waits for the GPU to finish it (the frame's wall time, CPU submit + GPU)
+  // followed by a 1-pixel read waits for the GPU to finish it (the frame's wall time, CPU submit + GPU). Timed in batches
+  // of 10 synced frames, because Safari's performance.now() has 1 ms resolution
   const synced = [];
-  for (let i = 0; i < 60; i++) { const s0 = performance.now(); frame(); sync(); synced.push(performance.now() - s0); }
+  for (let b = 0; b < 30; b++) {
+    const s0 = performance.now();
+    for (let i = 0; i < 10; i++) { frame(); sync(); }
+    synced.push((performance.now() - s0) / 10);
+  }
   // a fixed-time parity frame (the sway variant at t = 0 is still the static layout)
   frame();
   const shot = renderer.domElement.toDataURL('image/png');

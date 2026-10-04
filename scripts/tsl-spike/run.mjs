@@ -9,7 +9,7 @@
 //                                                                          the iOS Simulator's Safari (the page POSTs back)
 //   node scripts/tsl-spike/run.mjs --bundle                                tree-shaken production bytes the TSL path adds
 //
-// Variants: family · tsl · tsl-raw · tsl-post · tsl-sway (spike.js's header says what each draws).
+// Variants: family · tsl · tsl-raw · tsl-post · tsl-sway · plain · tsl-plain (spike.js's header says what each draws).
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -21,7 +21,7 @@ const ROOT = resolvePath(new URL('../..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
 const SURFACE = flag('surface', 'desktop');
-const VARIANTS = flag('variants', 'family,tsl,tsl-raw,tsl-post,tsl-sway').split(',');
+const VARIANTS = flag('variants', 'family,tsl,tsl-raw,tsl-post,tsl-sway,plain,tsl-plain').split(',');
 const SCRATCH = resolvePath(flag('scratch', `/private/tmp/claude-501/sp-builders/sf59-tsl/run-${process.pid}`));
 const OUT_DIR = join(ROOT, 'progress/shard-platform/sf59');
 mkdirSync(SCRATCH, { recursive: true });
@@ -93,7 +93,7 @@ try {
     const { chromium, devices } = await import('playwright');
     const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
     try {
-      for (const v of VARIANTS) {
+      for (const v of ['warmup', ...VARIANTS]) {
         const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });
         const page = await ctx.newPage();
         await page.goto(`${base}/index.html#${v}`);
@@ -106,7 +106,7 @@ try {
     const udid = process.env.SIM_UDID;
     if (!udid) throw new Error('--surface=sim must run inside scripts/sim-lane.sh run');
     const xcrun = (tail) => execFileSync('xcrun', ['simctl', ...tail], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-    for (const v of VARIANTS) {
+    for (const v of ['warmup', ...VARIANTS]) {
       try { xcrun(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* not running */ }
       await sleep(1000);
       xcrun(['openurl', udid, `${base}/index.html#${v}`]);
@@ -134,7 +134,7 @@ def diff(a, b):
     A = np.asarray(Image.open(have[a]).convert('RGB')).astype(np.int16); B = np.asarray(Image.open(have[b]).convert('RGB')).astype(np.int16)
     d = np.abs(A - B); px = d.max(axis=2); mse = float((d.astype(np.float64) ** 2).mean())
     return {'pair': f'{a} vs {b}', 'mean': round(float(d.mean()), 3), 'max': int(d.max()), 'over8pct': round(float((px > 8).mean() * 100), 2), 'psnr': None if mse == 0 else round(10 * np.log10(255 * 255 / mse), 1)}
-pairs = [p for p in [('family', 'tsl'), ('family', 'tsl-raw'), ('tsl', 'tsl-post'), ('family', 'tsl-post')] if p[0] in have and p[1] in have]
+pairs = [p for p in [('family', 'tsl'), ('family', 'tsl-raw'), ('tsl', 'tsl-post'), ('family', 'tsl-post'), ('plain', 'tsl-plain')] if p[0] in have and p[1] in have]
 parity = [diff(a, b) for a, b in pairs]
 json.dump({'surface': surface, 'parity': parity, 'rows': rows}, open(out_json, 'w'), indent=2)
 def font(n):

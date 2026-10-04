@@ -1,55 +1,55 @@
 {
-  "surface": "desktop",
+  "surface": "sim",
   "parity": [
     {
       "pair": "family vs tsl",
-      "mean": 0.025,
-      "max": 6,
+      "mean": 0.004,
+      "max": 1,
       "over8pct": 0.0,
-      "psnr": 63.7
+      "psnr": 72.6
     },
     {
       "pair": "family vs tsl-raw",
-      "mean": 8.401,
+      "mean": 10.733,
       "max": 30,
-      "over8pct": 48.21,
-      "psnr": 26.4
+      "over8pct": 55.07,
+      "psnr": 24.8
     },
     {
       "pair": "tsl vs tsl-post",
       "mean": 0.0,
       "max": 1,
       "over8pct": 0.0,
-      "psnr": 87.5
+      "psnr": 86.5
     },
     {
       "pair": "family vs tsl-post",
-      "mean": 0.025,
-      "max": 6,
+      "mean": 0.004,
+      "max": 1,
       "over8pct": 0.0,
-      "psnr": 63.7
+      "psnr": 72.5
     },
     {
       "pair": "plain vs tsl-plain",
-      "mean": 0.013,
-      "max": 14,
-      "over8pct": 0.01,
-      "psnr": 62.1
+      "mean": 0.0,
+      "max": 1,
+      "over8pct": 0.0,
+      "psnr": 90.9
     }
   ],
   "rows": [
     {
       "variant": "family",
-      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
       "size": [
         804,
-        1362
+        1428
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 4.4,
-      "firstDrawMs": 152.6,
-      "stallMs": 157,
+      "compileMs": 4,
+      "firstDrawMs": 362,
+      "stallMs": 366,
       "nodeBuildMs": 0,
       "nodeBuilds": 0,
       "programs": 4,
@@ -77,20 +77,20 @@
         }
       ],
       "rafMs": {
-        "median": 16.7,
-        "p95": 16.7,
-        "max": 16.8
+        "median": 17,
+        "p95": 17,
+        "max": 17
       },
-      "fps": 59.9,
+      "fps": 58.8,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.3,
-        "max": 0.3
+        "median": 0,
+        "p95": 1,
+        "max": 1
       },
       "syncedMs": {
-        "median": 0.96,
-        "p95": 1.08,
-        "max": 1.39
+        "median": 0.9,
+        "p95": 1.9,
+        "max": 2
       },
       "calls": 1,
       "triangles": 2,
@@ -98,23 +98,23 @@
         "geometries": 3,
         "textures": 6
       },
-      "heapMB": 10.5,
-      "heapAtStartMB": 6.5,
+      "heapMB": null,
+      "heapAtStartMB": null,
       "errors": []
     },
     {
       "variant": "tsl",
-      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
       "size": [
         804,
-        1362
+        1428
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 23.4,
-      "firstDrawMs": 197.9,
-      "stallMs": 221.3,
-      "nodeBuildMs": 13.6,
+      "compileMs": 35,
+      "firstDrawMs": 425,
+      "stallMs": 460,
+      "nodeBuildMs": 23,
       "nodeBuilds": 1,
       "programs": 4,
       "programsAtEnd": 4,
@@ -141,20 +141,20 @@
         }
       ],
       "rafMs": {
-        "median": 16.7,
-        "p95": 16.8,
-        "max": 16.8
+        "median": 17,
+        "p95": 17,
+        "max": 17
       },
-      "fps": 59.9,
+      "fps": 58.8,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.4,
-        "max": 0.4
+        "median": 1,
+        "p95": 1,
+        "max": 2
       },
       "syncedMs": {
-        "median": 0.61,
-        "p95": 0.89,
-        "max": 0.89
+        "median": 1.7,
+        "p95": 2.2,
+        "max": 2.2
       },
       "calls": 1,
       "triangles": 2,
@@ -162,23 +162,23 @@
         "geometries": 3,
         "textures": 7
       },
-      "heapMB": 10.9,
-      "heapAtStartMB": 5.9,
+      "heapMB": null,
+      "heapAtStartMB": null,
       "errors": []
     },
     {
       "variant": "tsl-raw",
-      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
       "size": [
         804,
-        1362
+        1428
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 23.8,
-      "firstDrawMs": 202.9,
-      "stallMs": 226.7,
-      "nodeBuildMs": 14.1,
+      "compileMs": 28,
+      "firstDrawMs": 333,
+      "stallMs": 361,
+      "nodeBuildMs": 18,
       "nodeBuilds": 1,
       "programs": 4,
       "programsAtEnd": 4,
@@ -196,7 +196,7 @@
         {
           "name": "tsl:pbr-measure",
           "vs": 3507,
-          "fs": 22203
+          "fs": 22204
         },
         {
           "name": "glsl:post",
@@ -205,20 +205,20 @@
         }
       ],
       "rafMs": {
-        "median": 16.7,
-        "p95": 16.7,
-        "max": 16.8
+        "median": 17,
+        "p95": 17,
+        "max": 17
       },
-      "fps": 59.9,
+      "fps": 58.8,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.4,
-        "max": 0.4
+        "median": 1,
+        "p95": 1,
+        "max": 3
       },
       "syncedMs": {
-        "median": 0.95,
-        "p95": 1.21,
-        "max": 1.41
+        "median": 1.7,
+        "p95": 2.2,
+        "max": 2.2
       },
       "calls": 1,
       "triangles": 2,
@@ -226,23 +226,23 @@
         "geometries": 3,
         "textures": 7
       },
-      "heapMB": 11.6,
-      "heapAtStartMB": 5.8,
+      "heapMB": null,
+      "heapAtStartMB": null,
       "errors": []
     },
     {
       "variant": "tsl-post",
-      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
       "size": [
         804,
-        1362
+        1428
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 26.1,
-      "firstDrawMs": 202,
-      "stallMs": 228.1,
-      "nodeBuildMs": 15.9,
+      "compileMs": 30,
+      "firstDrawMs": 376,
+      "stallMs": 406,
+      "nodeBuildMs": 19,
       "nodeBuilds": 2,
       "programs": 4,
       "programsAtEnd": 4,
@@ -269,20 +269,20 @@
         }
       ],
       "rafMs": {
-        "median": 16.7,
-        "p95": 16.8,
-        "max": 16.8
+        "median": 17,
+        "p95": 17,
+        "max": 22
       },
-      "fps": 59.9,
+      "fps": 58.8,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.4,
-        "max": 0.4
+        "median": 1,
+        "p95": 1,
+        "max": 3
       },
       "syncedMs": {
-        "median": 0.99,
-        "p95": 1.13,
-        "max": 1.48
+        "median": 1.8,
+        "p95": 2.2,
+        "max": 2.6
       },
       "calls": 1,
       "triangles": 2,
@@ -290,23 +290,23 @@
         "geometries": 3,
         "textures": 7
       },
-      "heapMB": 12.3,
-      "heapAtStartMB": 5.9,
+      "heapMB": null,
+      "heapAtStartMB": null,
       "errors": []
     },
     {
       "variant": "tsl-sway",
-      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
       "size": [
         804,
-        1362
+        1428
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 26.3,
-      "firstDrawMs": 231.6,
-      "stallMs": 257.9,
-      "nodeBuildMs": 16.3,
+      "compileMs": 29,
+      "firstDrawMs": 339,
+      "stallMs": 368,
+      "nodeBuildMs": 19,
       "nodeBuilds": 2,
       "programs": 4,
       "programsAtEnd": 4,
@@ -333,20 +333,20 @@
         }
       ],
       "rafMs": {
-        "median": 16.7,
-        "p95": 16.8,
-        "max": 16.8
+        "median": 17,
+        "p95": 17,
+        "max": 20
       },
-      "fps": 59.9,
+      "fps": 58.8,
       "workMs": {
-        "median": 0.3,
-        "p95": 0.4,
-        "max": 0.4
+        "median": 0,
+        "p95": 1,
+        "max": 2
       },
       "syncedMs": {
-        "median": 1,
-        "p95": 1.23,
-        "max": 1.36
+        "median": 1.9,
+        "p95": 2.2,
+        "max": 2.6
       },
       "calls": 1,
       "triangles": 2,
@@ -354,22 +354,22 @@
         "geometries": 3,
         "textures": 7
       },
-      "heapMB": 12.5,
-      "heapAtStartMB": 5.9,
+      "heapMB": null,
+      "heapAtStartMB": null,
       "errors": []
     },
     {
       "variant": "plain",
-      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
       "size": [
         804,
-        1362
+        1428
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 4.9,
-      "firstDrawMs": 156.3,
-      "stallMs": 161.2,
+      "compileMs": 4,
+      "firstDrawMs": 292,
+      "stallMs": 296,
       "nodeBuildMs": 0,
       "nodeBuilds": 0,
       "programs": 4,
@@ -397,20 +397,20 @@
         }
       ],
       "rafMs": {
-        "median": 16.7,
-        "p95": 16.7,
-        "max": 16.8
+        "median": 17,
+        "p95": 17,
+        "max": 17
       },
-      "fps": 59.9,
+      "fps": 58.8,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.3,
-        "max": 0.4
+        "median": 1,
+        "p95": 1,
+        "max": 1
       },
       "syncedMs": {
-        "median": 0.88,
-        "p95": 1.1,
-        "max": 1.35
+        "median": 1.4,
+        "p95": 1.7,
+        "max": 1.7
       },
       "calls": 1,
       "triangles": 2,
@@ -418,23 +418,23 @@
         "geometries": 3,
         "textures": 6
       },
-      "heapMB": 9.7,
-      "heapAtStartMB": 6.4,
+      "heapMB": null,
+      "heapAtStartMB": null,
       "errors": []
     },
     {
       "variant": "tsl-plain",
-      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
       "size": [
         804,
-        1362
+        1428
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 25.7,
-      "firstDrawMs": 201.5,
-      "stallMs": 227.2,
-      "nodeBuildMs": 14.9,
+      "compileMs": 26,
+      "firstDrawMs": 388,
+      "stallMs": 414,
+      "nodeBuildMs": 17,
       "nodeBuilds": 1,
       "programs": 4,
       "programsAtEnd": 4,
@@ -452,7 +452,7 @@
         {
           "name": "",
           "vs": 3080,
-          "fs": 18894
+          "fs": 18893
         },
         {
           "name": "glsl:post",
@@ -461,20 +461,20 @@
         }
       ],
       "rafMs": {
-        "median": 16.7,
-        "p95": 16.8,
-        "max": 16.8
+        "median": 17,
+        "p95": 17,
+        "max": 17
       },
-      "fps": 59.9,
+      "fps": 58.8,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.3,
-        "max": 0.5
+        "median": 1,
+        "p95": 1,
+        "max": 3
       },
       "syncedMs": {
-        "median": 0.5,
-        "p95": 1.1,
-        "max": 1.11
+        "median": 1.6,
+        "p95": 2.1,
+        "max": 2.1
       },
       "calls": 1,
       "triangles": 2,
@@ -482,8 +482,8 @@
         "geometries": 3,
         "textures": 7
       },
-      "heapMB": 13.8,
-      "heapAtStartMB": 6.4,
+      "heapMB": null,
+      "heapAtStartMB": null,
       "errors": []
     }
   ]

@@ -1,9 +1,9 @@
 # SF59 step 1: the TSL spike (G156)
 
-**State (2026-10-04):** bench built and linted; **measurements not yet run** (the coordinator's frame-floor quiet window
-forbids browsers and builds; the three commands below run after it). Everything here except §3's table comes from
-reading three r186 (`node_modules/three`, 0.186.0) against the engine's render setup. The verdict in §5 is provisional
-and turns final on the pre-registered thresholds in §5, with no further judgement needed.
+**State (2026-10-04): measured; final verdict: TSL is the compiler target** (§5: all five pre-registered thresholds
+hold on the iOS Simulator). The run found one more engine-side defect (§2.10). One signal sits outside the thresholds:
+the Simulator's GPU-synced frame time, flagged in §5. §2 comes from reading three r186 (`node_modules/three`, 0.186.0)
+against the engine's render setup; §3 is the run.
 
 **Question (SHARD-PLATFORM SF59, G156):** can three r186's TSL node materials run inside today's `WebGLRenderer`
 (`WebGLNodesHandler`) beside the engine's patched family materials, instanced, at the frame floor on the phone tier? If
@@ -25,6 +25,13 @@ height-fog ShaderChunk edits), so the hand-written side is the real family.
 | `tsl-raw` | as `tsl` through the stock handler (no output fix), to measure the colour-space defect (§2.1) |
 | `tsl-post` | as `tsl`, the screen pass a **TSL node graph** (exposure, saturation, lift/gain, filmic, vignette) on a fullscreen quad |
 | `tsl-sway` | as `tsl-post` plus a **vertex-offset stage** (per-instance wind sway from `instanceIndex`, `time`) |
+| `plain` / `tsl-plain` | diagnostic pair (added in the run): the boxes as a stock `MeshStandardMaterial` vs a stock `MeshStandardNodeMaterial` with the fog epilogue, no measure layer: TSL's own lighting and shadow path apart from the ported graph |
+
+**Stall protocol (added in the run).** WebKit and Metal cache compiled programs by source, across Safari launches and
+Simulator boots. So the first runs measured cache state, not compile cost: a program seen before cost 25–45 ms and a
+new one about 250 ms. Each page now writes a per-page constant into the one program that differs between variants (the
+boxes, and the TSL post graph), so that program always compiles cold. A discarded `warmup` page runs first and warms the
+shared programs (ground, shadow depth, GLSL post) for every variant.
 
 2,500 instances × 64 B = 160 KB is past every device's uniform-block limit (16–64 KB), so TSL takes its
 instanced-attribute path, the one the engine's large pools would take. The size-label glyphs of the measure layer are
@@ -32,12 +39,12 @@ not ported (they need integer bit ops and a constant loop; TSL has both). The be
 `BatchedMesh` and no multi-draw (E271 / E272). `scripts/test-facade-instancing.mjs` covers the game, which the spike
 does not touch; it is run with the measurements.
 
-Run, after the quiet window:
+Run (the sim and bundle forms open no headless browser, so they take `SKIP_BROWSER_LANE=1`):
 
 ```
 scripts/browser-lane.sh node scripts/tsl-spike/run.mjs
-scripts/sim-lane.sh run --max 20 frame-floor-iphone-17-pro node scripts/tsl-spike/run.mjs --surface=sim
-node scripts/tsl-spike/run.mjs --bundle
+SKIP_BROWSER_LANE=1 scripts/sim-lane.sh run --max 20 frame-floor-iphone-17-pro node scripts/tsl-spike/run.mjs --surface=sim
+SKIP_BROWSER_LANE=1 node scripts/tsl-spike/run.mjs --bundle
 ```
 
 Each writes `progress/shard-platform/sf59/tsl-spike-<surface>.json` (compile stall, node-build ms, programs and
@@ -79,25 +86,64 @@ a `RawShaderMaterial`-style GLSL 3 program and feeds three's own lights and shad
    is a GLSL fragment, so it costs a full-screen pass at 2× render scale.
 8. **Bundle.** The handler imports `three/webgpu` (`build/three.webgpu.js`, 2.28 MB unminified, one flat module)
    beside `three` (both share `three.core.js`). The tree-shaken delta is the open number; `--bundle` measures it.
+10. **Render-target samples are flipped** (found by the run). Under the GLSL builder `TextureNode` flips every
+   `isRenderTargetTexture` sample, because WebGPURenderer's WebGL backend stores targets upside down. The classic
+   `WebGLRenderer` stores them upright, so a post graph reading the engine's target draws the frame upside down. Fix:
+   the back-end cancels the flip on every target it binds to a graph (spike.js does it in the post graph's UV).
 9. **Safety is ours either way.** `NodeLoader` builds any registered node by name, and `CodeNode` / `glslFn` carry raw
    source. The IR stays our own allowlisted vocabulary, mapped to TSL calls by our code (the `MaterialXLoader` pattern).
 
-What works by construction, to be confirmed by the run: node and patched materials in one frame (the handler hooks
+What works by construction, confirmed by the run (§3): node and patched materials in one frame (the handler hooks
 per material), instancing (`instanceMatrix` → interleaved attributes past the uniform limit), three's lights and PCF
 shadow maps received in the graph, uniforms shared with engine objects (`reference('value', type, fogUniforms.x)`),
 `time` and `instanceIndex` in the vertex stage.
 
-## 3. Measurements (pending the run)
+## 3. Measurements (2026-10-04, HEAD `0af5f676a`+)
 
-| | desktop family | desktop tsl | sim family | sim tsl | sim tsl-post |
-|---|---|---|---|---|---|
-| compile + first-draw stall (ms) | – | – | – | – | – |
-| node build (JS, ms) | – | – | – | – | – |
-| programs / GLSL bytes (box program) | – | – | – | – | – |
-| rAF median / p95 (ms) | – | – | – | – | – |
-| CPU per frame (ms) | – | – | – | – | – |
-| parity vs family (PSNR, % px > 8) | – | – | – | – | – |
-| bundle added (gzip) | – | – | – | – | – |
+**Surfaces.** Desktop: headless Chromium on Metal (ANGLE), the "iPhone 16 Pro" descriptor, render scale 2× (804 × 1362).
+Simulator: `frame-floor-iphone-17-pro`, Safari (iOS 26.5 WebKit), 2× (804 × 1428), on a quiet machine (the
+coordinator's go). rAF is vsync-capped wherever a frame fits, so beside it the bench times a **synced frame**: the frame
+plus a 1-pixel read, which waits for the GPU. Each sample is a batch of 10, because Safari's `performance.now()` has
+1 ms resolution; 30 batches per variant. Raw rows: `progress/shard-platform/sf59/tsl-spike-{desktop,sim,bundle}.json`;
+contact sheets `tsl-spike-{desktop,sim}.jpg`.
+
+| | sim family | sim tsl | sim tsl-post | sim tsl-sway | sim plain | sim tsl-plain | desktop family | desktop tsl |
+|---|---|---|---|---|---|---|---|---|
+| stall, box program cold (ms) | 366 | 460 | 406 | 368 | 296 | 414 | 157 | 221 |
+| the same, earlier sim run (ms) | 382 | 395 | 376 | 368 | – | – | – | – |
+| stall, everything warm (ms; desktop, pre-protocol) | – | – | – | – | – | – | 20.9 | 30.8 |
+| node build, JS (ms; builds) | 0 | 23 (1) | 19 (2) | 19 (2) | 0 | 17 (1) | 0 | 13.6 (1) |
+| box program VS / FS source (KB) | 20.5 / 84.4 | 3.5 / 21.9 | 3.5 / 21.9 | 3.9 / 21.9 | 19.9 / 79.1 | 3.1 / 18.9 | 20.5 / 84.4 | 3.5 / 21.9 |
+| programs after the first frame | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
+| rAF median / p95 (ms) | 17 / 17 | 17 / 17 | 17 / 17 | 17 / 17 | 17 / 17 | 17 / 17 | 16.7 / 16.7 | 16.7 / 16.8 |
+| synced frame median / p95 (ms) | 0.9 / 1.9 | 1.7 / 2.2 | 1.8 / 2.2 | 1.9 / 2.2 | 1.4 / 1.7 | 1.6 / 2.1 | 0.96 / 1.08 | 0.61 / 0.89 |
+| the same, earlier sim run (ms) | 1.0 / 1.6 | 1.6 / 1.8 | 1.6 / 2.2 | 1.5 / 2.1 | – | – | – | – |
+| parity (PSNR; % px > 8) | – | 72.6 dB; 0 % | 72.5 dB; 0 % | moves | – | 90.9 dB; 0 % vs plain | – | 63.7 dB; 0 % |
+| GL / console errors | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+- **The output defect is real** (§2.1). `tsl-raw` (the stock handler) against `family` scores 24.8 dB on the
+  Simulator with 55 % of pixels off by > 8, and 26.4 dB / 48 % on desktop (max 30 levels). The engine handler brings it
+  to 72.6 dB with a max of 1 level.
+- **A post graph matches the GLSL pass.** `tsl-post` against `tsl` is 86.5 dB, max 1 level, once the render-target
+  flip is cancelled (§2.10). Before the fix the frame came out upside down.
+- **Stall.** A cold TSL box program costs 1.03–1.26× the family's on the Simulator and 1.41× on desktop: +13 to +94 ms,
+  of which the JS node build is about 20 ms. TSL's emitted source is a quarter of the family's (21.9 vs 84.4 KB FS).
+- **Synced frame.** On desktop the medians swap sign between runs (family 0.59 then 0.96 ms, tsl 0.84 then 0.61), so at
+  this scale they are readback noise. On the Simulator `tsl` sat above `family` in both runs (+0.6, +0.8 ms), while the
+  stock pair differs by only 0.2 ms (plain 1.4, tsl-plain 1.6). So most of the gap is the ported measure graph, not TSL's
+  lighting path. The likely cause is that both grid levels evaluate every `select` branch, where the GLSL branches. The
+  Simulator renders on the Mac's GPU, so this is not phone-GPU evidence (ios-simulator skill).
+- **Instancing, shadows and fog** render on every variant (contact sheets). The Simulator's taller viewport shows more
+  fogged distance, which flatters parity somewhat; `tsl-raw`'s 24.8 dB shows the metric still discriminates.
+- **Desktop JS heap:** about +1 to +4 MB with node materials (9.7–10.5 MB family / plain, 10.9–13.8 MB TSL). Safari
+  does not report it.
+
+**Bundle** (`--bundle`, vite production build, minified): three's base path is 130.1 KB gzip; **the spike's imports add
+117.1 KB gzip** (412 KB minified); all of `three/webgpu` + `three/tsl` would add 255.7 KB gzip.
+
+`scripts/test-facade-instancing.mjs` against a clean HEAD build: **PASS** on desktop, phone tier and iPhone desktop
+quality (0 batches, 24,710 instances). It first needed a fix: SF21a's main menu covers the deck's EXPLORE WORLD, so the
+test now taps SHARD SELECT first.
 
 ## 4. What a graph IR must contain (either target)
 
@@ -123,18 +169,57 @@ Both back-ends consume the same IR, so the format freezes now regardless of the 
 - **Per-program budget metadata** for the validator: node count, sampler counts per stage, loop product, and the
   emitted GLSL size and instruction count after compile.
 
-## 5. Verdict (provisional) and the rule that finalises it
+## 5. Verdict: TSL is the compiler target
 
-**Provisional: TSL is viable as the compiler target, conditional on the run.** Nothing in r186 blocks node materials
-inside `WebGLRenderer` beside patched ones, with instancing. The costs are fixable and the engine owns them: items 1–5
-in §2, roughly the 2–4 days the research estimate gave the spike, plus porting the shadow-filter, shadow-fade and
-sky-light chunk edits to nodes. The shader-patch target carries none of those costs. It would, though, need its own
-GLSL emitter and a second back-end at the WebGPU switch.
+**Final (2026-10-04): the graph format compiles to TSL node materials, run through an engine-owned `WebGLNodesHandler`
+subclass inside today's `WebGLRenderer`.** All five pre-registered thresholds hold on the Simulator, so the
+shader-patch fallback (Jake's 10-03 pick) is not triggered.
 
-**Pre-registered thresholds** (all must hold on the Simulator phone tier; otherwise the compiler targets shader patches):
+**The thresholds** were registered before the run (all must hold on the Simulator phone tier; otherwise the compiler
+targets shader patches):
 
-1. parity `family` vs `tsl` ≥ 40 dB PSNR, under 1 % of pixels off by > 8;
-2. `tsl` rAF median within 5 % of `family`, and p95 ≤ 35 ms (the floor's limit);
-3. `tsl` compile + first-draw stall ≤ 2× `family`'s, or ≤ 50 ms more;
-4. `--bundle`: the spike's imports add ≤ 150 KB gzip;
-5. no GL errors; instancing, shadows and fog render (contact sheet), and `tsl-post` holds the floor.
+| # | Threshold | Simulator result | |
+|---|---|---|---|
+| 1 | parity `family` vs `tsl` ≥ 40 dB PSNR, < 1 % of pixels off by > 8 | 72.6 dB, 0 % (max 1 level) | pass |
+| 2 | `tsl` rAF median within 5 % of `family`, p95 ≤ 35 ms | 17 vs 17 ms (0 %), p95 17 ms | pass |
+| 3 | `tsl` stall ≤ 2× `family`'s, or ≤ 50 ms more | 1.26× (460 vs 366 ms); earlier run 1.03× | pass |
+| 4 | `--bundle`: the spike's imports add ≤ 150 KB gzip | +117.1 KB gzip | pass |
+| 5 | no GL errors; instancing, shadows and fog render; `tsl-post` holds the floor | 0 errors; all render; `tsl-post` 17 ms | pass |
+
+**One flag outside the thresholds.** Threshold 2 is met, but rAF hit vsync on both sides, so it says the frame fits
+and little about cost. The GPU-synced frame on the Simulator shows the ported measure graph about 0.7 ms (≈ 80 %) over
+the hand-written family. Stock TSL lighting costs only about 0.2 ms over the stock material, so the gap is mostly how
+the spike emitted the graph. The compiler must therefore emit branch-light code: a `select` evaluates both sides, where
+the family's GLSL branches. And per RENDERING.md, the first graph-compiled look ships **default-off behind a Debug row
+until a physical-iPhone reading** (frame floor and synced cost against its family) backs it. This is the "GPU budget"
+step 4 of SF59 doing its job, not a reason to switch targets.
+
+**Why TSL over shader patches.** The patch target avoids §2's engine fixes. But it needs its own GLSL emitter now and a
+second back-end at the WebGPU switch (G32). With TSL, the WebGPU move is a renderer swap, and the node vocabulary,
+MaterialX noises, lights and shadows come with three. The fixes are bounded and all of them are engine-side.
+
+### Recommendation
+
+1. **The graph IR is §4, unchanged by the verdict:** our own typed, versioned, allowlisted node vocabulary (≈ 60
+   nodes, no code nodes, constant-count loops only) with `vertex.offset`, `surface`, optional `lighting` and `post`
+   stages, typed params bindable to day keys and declared shard state, and per-program budget metadata. The shardfile
+   carries the IR, never TSL. Our code maps each IR node to a TSL call (the `MaterialXLoader` pattern), so `NodeLoader`,
+   `CodeNode` and `glslFn` stay unreachable from content (§2.9).
+2. **The target:** TSL through `EngineNodesHandler` on `WebGLRenderer` now, and the same node graph on `WebGPURenderer`
+   at the G32 switch. The four families stay hand-written GLSL until each one's graph preset holds parity (SF59's
+   done-when), then they are re-expressed as presets.
+3. **Engine fixes, in order** (§2; each one lands before the first graph-compiled material ships):
+   1. **The output transform (§2.1) and the render-target flip (§2.10)** in `EngineNodesHandler`, with the program
+      cache keyed on the bound target. Without them every graph is visibly wrong (24.8 dB, upside-down post).
+   2. **The frame counter (§2.3):** the engine counts its own frames before any node material reaches a scene, or the
+      Memory saver and Nalati's grass run once per node draw.
+   3. **The engine epilogue (§2.2):** height fog (the spike's port), then the tent PCF filter, shadow fade, the sky
+      rig's light block and `pointLightSkip` as nodes, appended after the output transform the way the spike does fog.
+   4. **Instanced geometry ownership (§2.4)** in the pools: one shallow geometry per node `InstancedMesh`, plus a check
+      that the Memory saver's attribute release survives a program rebuild.
+   5. **Shadow depth variants for `vertex.offset` (§2.5)** before any swaying graph casts shadows, and day-key params
+      as uniforms only (§2.6).
+   6. **The validator's budget:** compile each graph, count instructions and samplers, and refuse or fall back to the
+      preset. Give it the synced-frame probe from this bench as its cost test.
+4. **The bundle:** load `three/webgpu` + `three/tsl` (+117 KB gzip for the spike's surface, up to +256 KB for all of
+   it) as a lazy chunk only when a shard with a graph material boots, so shards without one pay nothing.
