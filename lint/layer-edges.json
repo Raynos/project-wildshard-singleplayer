@@ -8,7 +8,7 @@
     "root → game": 15,
     "root → kit": 10,
     "sdk → engine": 6,
-    "sdk → game": 21,
+    "sdk → game": 22,
     "shards/_template → engine": 6,
     "shards/_template → game": 1,
     "shards/_template → sdk": 9,

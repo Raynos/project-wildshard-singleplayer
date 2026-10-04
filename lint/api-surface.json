@@ -284,6 +284,24 @@
         "from": "@wildshard/engine/ai/reach"
       },
       {
+        "name": "SkirmisherBrain",
+        "kind": "class",
+        "doc": "Renderer-free decisions; every timer, random continuation and remembered goal lives in the actor snapshot.",
+        "from": "@wildshard/engine/ai/skirmisher"
+      },
+      {
+        "name": "SkirmisherPorts",
+        "kind": "interface",
+        "doc": "Host-owned perception, navigation and attack-token authority; no rendering or application singleton.",
+        "from": "@wildshard/engine/ai/skirmisher"
+      },
+      {
+        "name": "SkirmisherSpec",
+        "kind": "interface",
+        "doc": "Parameters for a circling melee archetype with idle wandering and subordinate scattering.",
+        "from": "@wildshard/engine/ai/skirmisher"
+      },
+      {
         "name": "deriveSpecies",
         "kind": "function",
         "doc": "Child rows retain all unspecified parent fields and merge tuning without losing the hunter policy.",
@@ -13182,6 +13200,24 @@
         "from": "@wildshard/game/shardfile/audio"
       },
       {
+        "name": "parseSkirmisher",
+        "kind": "function",
+        "doc": "Reject unknown fields, nonfinite tuning and invalid radii before installing an actor policy.",
+        "from": "@wildshard/game/shardfile/brains"
+      },
+      {
+        "name": "ShardSkirmisher",
+        "kind": "type",
+        "doc": "Admitted archetype parameters, identified independently from a particular creature spawn.",
+        "from": "@wildshard/game/shardfile/brains"
+      },
+      {
+        "name": "SkirmisherSchema",
+        "kind": "const",
+        "doc": "Circling melee policy data; the host retains navigation, attack tokens, strike clocks and random streams.",
+        "from": "@wildshard/game/shardfile/brains"
+      },
+      {
         "name": "worstContentCost",
         "kind": "function",
         "doc": "Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps.",
@@ -13791,6 +13827,12 @@
         "name": "assertStateCompatibility",
         "kind": "function",
         "doc": "Preserve saved field identities across validated author revisions; declaration ordering is immaterial.",
+        "from": "@wildshard/game/shardfile/revision"
+      },
+      {
+        "name": "parseStateLineage",
+        "kind": "function",
+        "doc": "Read only strict portable state and identity from a previously visited product. Its legacy geometry and scripts remain unadmitted.",
         "from": "@wildshard/game/shardfile/revision"
       },
       {
@@ -15608,6 +15650,18 @@
         "kind": "function",
         "doc": "Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC.",
         "from": "@wildshard/sdk/bake/texture"
+      },
+      {
+        "name": "skirmisher",
+        "kind": "function",
+        "doc": "Validate archetype data before admitting it into a shard's creature catalogue.",
+        "from": "@wildshard/sdk/brains"
+      },
+      {
+        "name": "SkirmisherData",
+        "kind": "type",
+        "doc": "Data-selected circling melee policy with host-owned perception and attack authority.",
+        "from": "@wildshard/sdk/brains"
       },
       {
         "name": "ClientScriptsSchema",

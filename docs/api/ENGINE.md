@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1912 members; 830 without a doc line (—).
+1915 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -55,6 +55,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PlatformSpecies` | type | @wildshard/engine/ai/platform | Catalogue lookup may resolve variant-specific health/modifiers before a spawn is constructed. |
 | `canReach` | function | @wildshard/engine/ai/reach | Same chest/aim-point/slack query in every level, evaluated at the contact frame. |
 | `ReachActor` | interface | @wildshard/engine/ai/reach | — |
+| `SkirmisherBrain` | class | @wildshard/engine/ai/skirmisher | Renderer-free decisions; every timer, random continuation and remembered goal lives in the actor snapshot. |
+| `SkirmisherPorts` | interface | @wildshard/engine/ai/skirmisher | Host-owned perception, navigation and attack-token authority; no rendering or application singleton. |
+| `SkirmisherSpec` | interface | @wildshard/engine/ai/skirmisher | Parameters for a circling melee archetype with idle wandering and subordinate scattering. |
 | `deriveSpecies` | function | @wildshard/engine/ai/species | Child rows retain all unspecified parent fields and merge tuning without losing the hunter policy. |
 | `SpeciesRow` | interface | @wildshard/engine/ai/species | — |
 | `SpeciesVariant` | interface | @wildshard/engine/ai/species | Gameplay data only. A procedural builder, palette or hull never belongs on this row. |

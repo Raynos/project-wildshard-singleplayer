@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-67 members; 0 without a doc line (—).
+69 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -32,6 +32,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `TerrainBakeSource` | interface | @wildshard/sdk/bake/terrain | Trusted generator inputs. These closures run only while baking and never enter shard.json or the client. |
 | `TerrainOverride` | interface | @wildshard/sdk/bake/terrain | An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together. |
 | `bakeColourTexture` | function | @wildshard/sdk/bake/texture | Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC. |
+| `skirmisher` | function | @wildshard/sdk/brains | Validate archetype data before admitting it into a shard's creature catalogue. |
+| `SkirmisherData` | type | @wildshard/sdk/brains | Data-selected circling melee policy with host-owned perception and attack authority. |
 | `ClientScriptsSchema` | const | @wildshard/sdk/clientScripts | Strict presentation-only module/target declarations, with bounded pose and particle recipes. |
 | `parseClientScripts` | function | @wildshard/sdk/clientScripts | Parse bounded visual commands and copied state-read selections. |
 | `ShardClientScripts` | type | @wildshard/sdk/clientScripts | Data-only author contract for isolated client scripts. |

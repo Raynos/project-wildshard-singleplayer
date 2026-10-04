@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-441 members; 112 without a doc line (—).
+445 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -289,6 +289,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `AudioData` | type | @wildshard/game/shardfile/audio | Validated audio data; voice ids are resolved only through the platform's admitted catalogue. |
 | `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
 | `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |
+| `parseSkirmisher` | function | @wildshard/game/shardfile/brains | Reject unknown fields, nonfinite tuning and invalid radii before installing an actor policy. |
+| `ShardSkirmisher` | type | @wildshard/game/shardfile/brains | Admitted archetype parameters, identified independently from a particular creature spawn. |
+| `SkirmisherSchema` | const | @wildshard/game/shardfile/brains | Circling melee policy data; the host retains navigation, attack tokens, strike clocks and random streams. |
 | `worstContentCost` | function | @wildshard/game/shardfile/budget | Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps. |
 | `ClientScriptContent` | interface | @wildshard/game/shardfile/clientScripts | Minimal format view for admission and projection, independent of rendering and author callbacks. |
 | `clientScriptRules` | function | @wildshard/game/shardfile/clientScripts | Refuse hidden fields, undeclared targets, competing writers and modules outside the admitted render library. |
@@ -391,6 +394,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `criticalWireBytes` | function | @wildshard/game/shardfile/readiness | Count actual admitted critical bytes, deduplicating dependencies and including cold-cache commons. |
 | `CriticalWireSource` | interface | @wildshard/game/shardfile/readiness | Minimal admitted file graph used by the traversal scheduler; render tiles never enter this closure. |
 | `assertStateCompatibility` | function | @wildshard/game/shardfile/revision | Preserve saved field identities across validated author revisions; declaration ordering is immaterial. |
+| `parseStateLineage` | function | @wildshard/game/shardfile/revision | Read only strict portable state and identity from a previously visited product. Its legacy geometry and scripts remain unadmitted. |
 | `parseRows` | function | @wildshard/game/shardfile/rows | Validate rows at the author boundary, before JSON serialization can erase closures. |
 | `rowRules` | function | @wildshard/game/shardfile/rows | Reference, uniqueness and complete clock/weather transition rules for data rows. |
 | `RowsSchema` | const | @wildshard/game/shardfile/rows | The independent JSON check runs before strict row schemas; functions/accessors/cycles never become data. |
