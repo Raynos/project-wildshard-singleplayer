@@ -1,6 +1,8 @@
 import * as v from 'valibot';
 import type { ShardScriptField } from './scripts';
 
+type HookField = Pick<ShardScriptField, 'id' | 'type' | 'privacy'> & { min?: number | undefined; max?: number | undefined };
+
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
 const positive = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff));
 const finite = v.pipe(v.number(), v.finite());
@@ -12,7 +14,7 @@ export const HooksSchema = v.strictObject({
 /** JSON-only named hook declarations shared by quests, input and Debug choices. */
 export type ShardHooks = v.InferOutput<typeof HooksSchema>;
 /** Resolve field types, bounds and privacy without allowing authored hook callbacks. */
-export function hookRules(hooks: ShardHooks, state: { shared: readonly ShardScriptField[]; player: readonly ShardScriptField[] }): string[] {
+export function hookRules(hooks: ShardHooks, state: { shared: readonly HookField[]; player: readonly HookField[] }): string[] {
   const errors: string[] = [];
   for (const list of [hooks.conditions, hooks.scenes]) if (new Set(list.map((row) => row.id)).size !== list.length) errors.push('unique named hooks');
   for (const row of hooks.conditions) {

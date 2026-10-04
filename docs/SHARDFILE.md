@@ -64,6 +64,14 @@ in every key. It blends by world-space camera distance, matching the template's
 60–180 m fog. Modes cannot mix across keys. Shader patches belong to the level scope.
 `grade.exposure` is parsed but awaits SF19a's single-frame lighting composite.
 
+`look.materials` is an optional record from stable material ID to the engine's
+`FamilyMaterialSchema` parameters (`toon`, `pbr`, `painterly`, `emissive`, including
+PBR ground layers). `look.familyLooks` optionally carries `toon`, `painterly` and
+`emissive` look parameters. Engine schemas fill defaults and reject unknown family
+names or shader fields. Terrain and prop `family` bindings select a material ID;
+the four family names also select platform defaults. Creature look rows may name a
+`material` ID. Texture references resolve admitted files through the loader.
+
 State fields carry explicit stable positive `id` values (1–2³¹−1), unique across
 shared and player fields. IDs never come from declaration positions. The numeric
 script input supports at most 24 bool/i32/f64 fields; string fields stay outside

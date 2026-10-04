@@ -13,6 +13,7 @@ import { AudioDataSchema } from './audio';
 import { LedgerRulesSchema } from './ledger';
 import { HooksSchema, hookRules } from './hooks';
 import { PlumbingSchema } from './plumbing';
+import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs } from './materials';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const positive = v.pipe(natural, v.minValue(1));
@@ -39,7 +40,7 @@ const rawSchema = v.strictObject({
   identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), revision: positive, seed: natural }),
   requires: v.strictObject({ sdk: v.literal(0), capabilities: v.array(name), commons: v.array(hash) }),
   budgets: v.strictObject({ library: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.compressed)) }), sim: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.compressed)) }), overlap: v.pipe(natural, v.maxValue(CONTENT_CAPS.overlap)) }),
-  look: v.strictObject({ families: v.array(name), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
+  look: v.strictObject({ families: v.array(name), materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
   sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: v.array(ref), bindings: v.optional(ScriptBindingsSchema, []) }),
   state: v.strictObject({ version: positive, sharedOwner: v.literal('host'), playerKey: v.literal('actorId'), shared: v.array(field), player: v.array(field) }),
   authorCaps: v.strictObject({ players: v.pipe(positive, v.maxValue(32)), speed: v.pipe(finite, v.minValue(0), v.maxValue(15)) }),
@@ -96,6 +97,10 @@ export function shardfileRules(s: Shardfile): string[] {
     const min = f.min ?? low, max = f.max ?? high, value = typeof f.default === 'boolean' ? Number(f.default) : f.default;
     if (min < low || max > high || min > max || (f.type !== 'f64' && (!Number.isInteger(min) || !Number.isInteger(max))) || typeof value !== 'number' || value < min || value > max) errors.push('typed state bounds');
   }
+  const materialRefs = materialTextureRefs(s.look.materials), libraryClosure = new Set<string>();
+  const includeLibrary = (id: string): void => { if (libraryClosure.has(id)) return; libraryClosure.add(id); for (const dependency of files.get(id)?.dependencies ?? []) includeLibrary(dependency); };
+  for (const root of s.library) includeLibrary(root);
+  if (materialRefs.some((id) => !/^(?:commons:)?[a-f0-9]{64}$/u.test(id) || !libraryClosure.has(id) || (id.startsWith('commons:') ? !s.requires.commons.includes(id.slice(8)) : files.get(id)?.kind !== 'ktx2'))) errors.push('admitted material texture library references');
   const lut = s.look.grade.lut === null || s.look.grade.lut.startsWith('commons:') ? null : files.get(s.look.grade.lut);
   if (lut !== undefined && lut !== null && (lut.kind !== 'binary' || lut.compressed !== LOOK_LUT_BYTES)) errors.push('look LUT is a 33³ RGBA8 binary file');
   if (s.look.keys.some((k, i) => i > 0 && k.time <= (s.look.keys[i - 1]?.time ?? Infinity))) errors.push('ordered day keys');
@@ -124,6 +129,7 @@ export function shardfileRules(s: Shardfile): string[] {
   if (new Set(s.sim.scripts).size !== s.sim.scripts.length) errors.push('unique script modules');
   if (s.sim.scripts.some((module) => !module.startsWith('commons:') && files.get(module)?.kind !== 'wasm')) errors.push('script module is a Wasm file');
   if (s.terrain !== null && (!s.critical.includes(s.terrain.collider) || files.get(s.terrain.collider)?.kind !== 'binary' || s.terrain.tiles.some((payload) => files.get(payload.file)?.kind !== 'binary' || !s.tiles.some((row) => row.lod === payload.lod && row.x === payload.x && row.z === payload.z && row.files.includes(payload.file))))) errors.push('declared terrain payload references');
+  if (s.look.families.some((family) => !materialExists({}, family)) || (s.terrain !== null && !materialExists(s.look.materials, s.terrain.family)) || s.rows.looks.some((row) => row.material !== null && !materialExists(s.look.materials, row.material))) errors.push('declared platform material family');
   const species = new Map(s.rows.species.map((row) => [row.id, row])), strikes = new Set(s.rows.strikes.map((row) => row.id));
   if (s.creatures.spawns.length > s.serverBudget.entities) errors.push('declared entity capacity');
   for (const spawn of s.creatures.spawns) if (!species.get(spawn.species)?.variants.some((row) => row.id === spawn.variant) || (spawn.strike !== null && !strikes.has(spawn.strike))) errors.push('declared spawn species/variant/strike');

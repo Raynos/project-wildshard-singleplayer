@@ -38,7 +38,7 @@ const variant = v.strictObject({ id, label: text, rarity: v.picklist(['common', 
 const species = v.strictObject({ id, kind: id, label: text, aggressive: v.boolean(), lockable: v.boolean(), dims,
   variants: v.pipe(v.array(variant), v.minLength(1), v.maxLength(64)) });
 const parameter = v.union([finite, v.boolean(), text, v.pipe(v.array(finite), v.maxLength(16))]);
-const look = v.strictObject({ id, species: id, recipe: id, parameters: v.record(id, parameter),
+const look = v.strictObject({ id, species: id, recipe: id, material: v.optional(v.nullable(id), null), parameters: v.record(id, parameter),
   animation: v.strictObject({ recipe: id, parameters: v.record(id, parameter) }) });
 const compendium = v.strictObject({ id, className: id, title: text, tabs: v.pipe(v.array(v.strictObject({ id, label: text })), v.maxLength(16)), stamp: text,
   stats: v.pipe(v.array(v.strictObject({ label: text, value: text })), v.maxLength(8)),
