@@ -83,3 +83,13 @@ it('preserves the instance wallet across 50 fresh-document transfers without cop
     expect(new GridWallet(reopened, placement).coins()).toBe(7);
   }
 });
+it('holds while metadata admission is pending and refuses a late completion after disposal', async () => {
+  const local = new Storage(), slot = gridReloadSlot(new SaveStore({ local, session: null }));
+  let finish: ((value: GridReloadHandoff) => void) | undefined, held = false, checkpoints = 0, navigated = false;
+  const exit = new GridReloadExit({ checkpoint: () => { checkpoints++; return true; }, slot, hold: (next) => { held = next; },
+    fade: () => Promise.resolve(), navigate: () => { navigated = true; } });
+  const done = exit.start(() => new Promise<GridReloadHandoff>((resolve) => { finish = resolve; }));
+  expect(held).toBe(true); expect(exit.state()).toBe('saving'); expect(slot.read()).toBeNull();
+  expect(exit.cancel()).toBe(true); finish?.(handoff()); expect(await done).toBe(false);
+  expect(checkpoints).toBe(0); expect(slot.read()).toBeNull(); expect(navigated).toBe(false);
+});

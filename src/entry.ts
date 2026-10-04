@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
 import { startPageServices } from './pageServices';
-import { persistHomeScreen } from './engine/saves/runtime';
+import { persistHomeScreen, saves } from './engine/saves/runtime';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -34,38 +34,52 @@ const search = new URLSearchParams(location.search);
 inspectPreviousBoot();
 // Safari may reload the same document after WebContent dies. Keep that automatic retry on the
 // renderer-free title until the player chooses a shard again.
-const { rescue: rescueBoot, titleOnly } = bootRoute(search, { line: previousBootLine(), level: previousBootLevel() });
-if (rescueBoot) {
-  history.replaceState(history.state, '', new URL('/', location.origin));
-  // index.html picked the loading shell from the original URL before this module ran.
-  document.documentElement.classList.add('title-first');
-  document.querySelector<HTMLElement>('.ws-resume')?.classList.remove('show');
-}
+async function enterPage(): Promise<unknown> {
+  const { consumeGridReloadBoot, installPlannedGridReload } = await retried(() => import('@wildshard/game/grid/reloadBoot'));
+  const reload = consumeGridReloadBoot(saves, Date.now());
+  installPlannedGridReload(reload);
+  if (reload.kind === 'resume') {
+    // Existing content selection, never a variant switch: the consumed device transaction owns the road pose.
+    const url = new URL(location.href); url.searchParams.set('chunk', reload.home.slug);
+    history.replaceState(history.state, '', url);
+    document.documentElement.classList.remove('title-first');
+  }
+  const route = bootRoute(search, { line: previousBootLine(), level: previousBootLevel() });
+  const rescueBoot = reload.kind === 'resume' ? false : reload.kind === 'invalid' || route.rescue;
+  const titleOnly = reload.kind === 'resume' ? false : reload.kind === 'invalid' || route.titleOnly;
+  if (rescueBoot) {
+    history.replaceState(history.state, '', new URL('/', location.origin));
+    // index.html picked the loading shell from the original URL before this module ran.
+    document.documentElement.classList.add('title-first');
+    document.querySelector<HTMLElement>('.ws-resume')?.classList.remove('show');
+  }
 
-/** resolves once the title or the selected shard's entry has been evaluated */
-export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly && document.getElementById('ws-shardfile') === null ? (async () => {
-  await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
-  const [{ showStartTitle }, { buildTitleMenu, installGridTitle }, { travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/mainMenu'), import('./game/travel/travel')]));
-  // SF21a: Infinite Wildshard boots only from a one-shot tap; an iOS kill of the grid only adds a line to the title
-  const grid = installGridTitle();
-  // the composition root wires the game's main menu (over its shard deck) into the engine's title (E405)
-  showStartTitle(({ settings, notice }) => {
-    const lines = [notice ?? '', grid.note].filter((line) => line !== '').join('\n');
-    return buildTitleMenu({
-      active: null,
-      onEnter: (card) => { travel({ to: card.slug, mode: 'enter' }); },
-      onExplore: (card) => { travel({ to: card.slug, mode: 'explore' }); },
-      onGrid: grid.onGrid,
-      onSettings: settings, ...(lines === '' ? {} : { notice: lines }),
+  /** resolves once the title or the selected shard's entry has been evaluated */
+  return setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly && document.getElementById('ws-shardfile') === null ? (async () => {
+    await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
+    const [{ showStartTitle }, { buildTitleMenu, installGridTitle }, { travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/mainMenu'), import('./game/travel/travel')]));
+    // SF21a: Infinite Wildshard boots only from a one-shot tap; an iOS kill of the grid only adds a line to the title
+    const grid = installGridTitle();
+    // the composition root wires the game's main menu (over its shard deck) into the engine's title (E405)
+    showStartTitle(({ settings, notice }) => {
+      const lines = [notice ?? '', grid.note].filter((line) => line !== '').join('\n');
+      return buildTitleMenu({
+        active: null,
+        onEnter: (card) => { travel({ to: card.slug, mode: 'enter' }); },
+        onExplore: (card) => { travel({ to: card.slug, mode: 'explore' }); },
+        onGrid: grid.onGrid,
+        onSettings: settings, ...(lines === '' ? {} : { notice: lines }),
+      });
     });
-  });
-})() : (async () => {
-  const { initializeTier } = await retried(() => import('./engine/core/tier'));
-  await initializeTier();
-  await retried(() => import('three')); 
-  await task();
-  return retried(() => import('./main'));
-})();
+  })() : (async () => {
+    const { initializeTier } = await retried(() => import('./engine/core/tier'));
+    await initializeTier();
+    await retried(() => import('three')); 
+    await task();
+    return retried(() => import('./main'));
+  })();
+}
+export const entered: Promise<unknown> = enterPage();
 guardBoot(entered);
 
 /** Composition root: select authored content and inject reusable kit recipes. */
@@ -81,7 +95,13 @@ export async function start(): Promise<void> {
   ]);
   const { configuredShardfile, installShardfileProduct, installManifestShardfile, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
   const source = configuredShardfile(document);
-  const { preparePageResidency } = await retried(() => import('@wildshard/game/grid/pageBoot'));
+  const { preparePageResidency, validatePlannedGridReload } = await retried(() => import('@wildshard/game/grid/pageBoot'));
+  try { await validatePlannedGridReload(); }
+  catch (error) {
+    // The device transfer was cleared before admission. The renderer-free title is the only retry destination.
+    console.warn('[grid reload] refused before hydration', error);
+    location.replace(new URL('/', location.origin).href); return;
+  }
   const page = preparePageResidency(game.shard, source?.identity.slug);
   try {
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;

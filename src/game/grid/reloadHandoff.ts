@@ -67,11 +67,13 @@ export class GridReloadExit {
   state(): 'idle' | 'saving' | 'failed' | 'navigating' { return this.phase; }
   private isCancelled(): boolean { return this.cancelled; }
   /** Caller validates road contact and captures state before invoking this transaction. */
-  async start(value: GridReloadHandoff): Promise<boolean> {
+  async start(value: GridReloadHandoff | (() => Promise<GridReloadHandoff>)): Promise<boolean> {
     if (this.cancelled || this.phase === 'saving' || this.phase === 'navigating') return false;
-    const parsed = v.parse(GridReloadHandoffSchema, value);
     this.phase = 'saving'; this.ports.hold(true);
     try {
+      const admitted = typeof value === 'function' ? await value() : value;
+      if (this.isCancelled()) return false;
+      const parsed = v.parse(GridReloadHandoffSchema, admitted);
       if (!this.ports.checkpoint() || !this.ports.slot.write(parsed)) { this.phase = 'failed'; return false; }
       await this.ports.fade();
     }

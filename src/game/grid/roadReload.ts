@@ -12,7 +12,7 @@ export interface RoadReloadObservation {
 /** Capture only after the durable source has retired and the traveller has reached the asphalt. */
 export interface RoadReloadPorts {
   readonly grid: RoadGrid;
-  readonly capture: (source: string) => GridReloadHandoff;
+  readonly capture: (source: string) => GridReloadHandoff | Promise<GridReloadHandoff>;
   readonly transaction: (source: string) => GridReloadExit;
   readonly report: (error: unknown) => void;
 }
@@ -38,7 +38,10 @@ export class RoadReload {
   private start(): void {
     const source = this.source, active = this.active;
     if (source === null || active === null) return;
-    try { void active.start(this.ports.capture(source)).catch(this.ports.report); }
+    try {
+      const value = this.ports.capture(source);
+      void active.start(value instanceof Promise ? () => value : value).catch(this.ports.report);
+    }
     catch (error) { this.ports.report(error); }
   }
   /** G119 panel state; source-local failures retain the same held transaction for retry. */

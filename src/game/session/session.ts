@@ -36,6 +36,7 @@ import { showLoadFailure } from '@wildshard/engine/ui/errorScreen';
 import { installWorldRegistry } from '@wildshard/engine/world/registry';
 import { bootPageMode, type PageMode } from '../grid/boot';
 import { installGridDebug } from '../grid/debug';
+import { plannedGridReload } from '../grid/reloadBoot';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
 
@@ -89,6 +90,10 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
   } catch (error) {
     options.residency?.dispose(); // Pre-bootstrap failures have no consumers; runShardLoad disposes allocated ones first.
     markBootHandledError();
+    if (plannedGridReload() !== null) {
+      // The transfer was consumed before hydration; returning to the bare title cannot repeat a failed resume.
+      location.replace(new URL('/', location.origin).href); return;
+    }
     if (!session.fatalShown) showError(error instanceof Error ? `${error.name}: ${error.message}` : String(error), error instanceof Error ? error.stack ?? '' : '');
   }
 }
