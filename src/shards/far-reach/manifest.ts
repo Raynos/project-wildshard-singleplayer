@@ -9,6 +9,7 @@ import { SKY_REACH_MINIMAP } from './look/minimap';
 
 export const SKY_REACH: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: 'far-reach', order: 60, status: 'experimental', name: STRINGS.name, label: STRINGS.label, seed: 6417,
+  accent: 'pink', // G104: the HUD accent inside its grid cell
   biome: STRINGS.biome, blurb: STRINGS.blurb, 
   card: { thumb: SKY_CARD.thumb, portrait: SKY_CARD.portrait, landscape: SKY_CARD.landscape },
   style: 'skyReach', kitLook: 'toon', hands: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'pines' },

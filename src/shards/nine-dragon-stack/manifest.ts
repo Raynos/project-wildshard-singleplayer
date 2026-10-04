@@ -80,6 +80,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   label: '(−2, +1)',
   seed: SEED,
   treeCount: 0,
+  accent: 'iris', // G104: the HUD accent inside its grid cell
   biome: 'Vertical neon city',
   blurb: 'Lantern Square, halfway up a city stacked 500 m high: wet granite, a cinnabar gate, neon calligraphy and the Yamen Well dropping away into silk fog. A prototype fragment — the square, the Well\'s rim and the stair-street — rough edges everywhere.',
 

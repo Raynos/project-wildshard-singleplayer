@@ -51,6 +51,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   label: '(+4, −2)',
   seed: SEED,
   treeCount: 1400, // (N23's edge: the berm's spruce lines too)
+  accent: 'ember', // G104: the HUD accent inside its grid cell
   biome: 'Alpine steppe',
    // NALATI-MERGE E1 (the user's pick): in the shard picker for everyone, tagged EARLY ACCESS
   blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.',

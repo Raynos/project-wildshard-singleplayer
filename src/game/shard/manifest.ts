@@ -19,6 +19,7 @@ import type { WaterBody } from '@wildshard/engine/world/water/body';
 import type { ShardSlug } from './slugs.generated';
 import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 import type { ShardPlugin } from './plugin';
+import type { AccentId } from '../shardfile/accent';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
  *
@@ -472,6 +473,8 @@ export interface ShardManifest {
   treeCount: number;
   /** one-line biome name for the picker, e.g. "Boreal pine forest" */
   biome: string;
+  /** the HUD accent inside its grid cell: one of the platform's 20 (G104, `src/game/shardfile/accent.ts`); absent: the road's cyan */
+  accent?: AccentId;
   /** two sentences for the title-screen picker */
   blurb: string;
   /** picker thumbnail and full-bleed title-screen stills, imported from the shard's thumbs folder */

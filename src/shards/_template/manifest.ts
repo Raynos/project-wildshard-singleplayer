@@ -5,6 +5,7 @@ import { GREY_CARD, EXPLORE } from './explore/art';
 
 export const TEMPLATE: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: '_template', order: 1000, status: 'hidden', name: 'Template shard', label: '(+0, +0)', seed: 357,
+  accent: 'sand', // G104: the HUD accent inside its grid cell
   biome: 'Grey-box teaching level', blurb: 'A hut, a blob, and declared platform systems.', 
   card: { thumb: GREY_CARD, portrait: GREY_CARD, landscape: GREY_CARD },
   style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'trees' },
