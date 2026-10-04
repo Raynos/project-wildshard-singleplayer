@@ -10702,6 +10702,18 @@
         "from": "@wildshard/engine/world/water/body"
       },
       {
+        "name": "declaredWaterBody",
+        "kind": "function",
+        "doc": "Compile validated data into the existing swim/wade port, with no renderer or import-time registration.",
+        "from": "@wildshard/engine/world/water/declared"
+      },
+      {
+        "name": "WaterDeclaration",
+        "kind": "type",
+        "doc": "One bounded water region in the shard's local frame; stream point heights describe a sloping rest surface.",
+        "from": "@wildshard/engine/world/water/declared"
+      },
+      {
         "name": "surfaceReflect",
         "kind": "function",
         "doc": "the reflect hook of a body drawn with the shared photoreal water (waterSurface.ts): the pond, the creek",
@@ -12454,6 +12466,24 @@
         "kind": "const",
         "doc": "The shardfile format and script ABI revision; v0 is provisional until the phone gate.",
         "from": "@wildshard/game/shardfile/version"
+      },
+      {
+        "name": "shardfileWater",
+        "kind": "function",
+        "doc": "Validate untrusted declarations and return fresh motor-compatible bodies for one level instance.",
+        "from": "@wildshard/game/shardfile/water"
+      },
+      {
+        "name": "ShardWater",
+        "kind": "type",
+        "doc": "A serialisable water section for pools, seas and streams, defaulting to [] in the full format.",
+        "from": "@wildshard/game/shardfile/water"
+      },
+      {
+        "name": "WaterSchema",
+        "kind": "const",
+        "doc": "Bounded water declarations; the sea comes last so smaller regions retain their authored rest surfaces.",
+        "from": "@wildshard/game/shardfile/water"
       },
       {
         "name": "applyTravelCarry",

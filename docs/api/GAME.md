@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-266 members; 112 without a doc line (—).
+269 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -265,6 +265,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `uiRules` | function | @wildshard/game/shardfile/ui | Reference rules: unique ids, counters read a declared numeric field, one boss panel per encounter, one relabel per disc, one spec per bag tab. |
 | `UiSchema` | const | @wildshard/game/shardfile/ui | The declared UI kinds of shardfile v0: plain data the platform draws in its own HUD style and slots. |
 | `SHARDFILE_VERSION` | const | @wildshard/game/shardfile/version | The shardfile format and script ABI revision; v0 is provisional until the phone gate. |
+| `shardfileWater` | function | @wildshard/game/shardfile/water | Validate untrusted declarations and return fresh motor-compatible bodies for one level instance. |
+| `ShardWater` | type | @wildshard/game/shardfile/water | A serialisable water section for pools, seas and streams, defaulting to [] in the full format. |
+| `WaterSchema` | const | @wildshard/game/shardfile/water | Bounded water declarations; the sea comes last so smaller regions retain their authored rest surfaces. |
 | `applyTravelCarry` | function | @wildshard/game/travel/travel | Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly. |
 | `bindTravelInventory` | function | @wildshard/game/travel/travel | The composition root binds the live Bag and rows; the cold title has no running shard. |
 | `consumeTravelHandoff` | function | @wildshard/game/travel/travel | — |

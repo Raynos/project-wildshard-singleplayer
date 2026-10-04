@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1815 members; 831 without a doc line (—).
+1817 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1788,6 +1788,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `swellBody` | function | @wildshard/engine/world/water/body | A body whose surface rides the engine's Gerstner swell (../waves.ts) over a flat rest level: an open sea. |
 | `WaterBodies` | class | @wildshard/engine/world/water/body | `app.world.water`: the level's registered bodies; each leaves with the scope that added it. |
 | `WaterBody` | interface | @wildshard/engine/world/water/body | A body of water a level registers with the engine (01 §6, §17; 08 §6.1 step 4): the sea (S4.1), a still basin (a |
+| `declaredWaterBody` | function | @wildshard/engine/world/water/declared | Compile validated data into the existing swim/wade port, with no renderer or import-time registration. |
+| `WaterDeclaration` | type | @wildshard/engine/world/water/declared | One bounded water region in the shard's local frame; stream point heights describe a sloping rest surface. |
 | `surfaceReflect` | function | @wildshard/engine/world/water/view | the reflect hook of a body drawn with the shared photoreal water (waterSurface.ts): the pond, the creek |
 | `waterView` | const | @wildshard/engine/world/water/view | The World Explorer map's top-down shot (src/engine/explore/MiniMap.ts, EXPLORE-V2 V3): 1 while it renders. Straight down the |
 | `WaterView` | type | @wildshard/engine/world/water/view | where a water surface is seen from: the player's eye, or Explore's top-down map shot |
