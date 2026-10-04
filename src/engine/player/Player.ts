@@ -15,6 +15,13 @@ import { CharacterMotor } from '../physics/CharacterMotor';
 import { floorBelow } from '../physics/query';
 import type { Physics } from '../physics/Physics';
 
+/** Frame-local surfaces supplied with a motor rebind; null restores the standalone level's existing queries. */
+export interface PlayerFrameQueries {
+  heightAt: (x: number, z: number) => number;
+  waterSurfaceAt: (x: number, z: number) => number | null;
+  platforms: readonly ((x: number, z: number) => number | undefined)[];
+}
+
 const EYE = 1.68;
 const RADIUS = 0.38;
 const BODY_HEIGHT = 1.8;               // the capsule, feet to crown
@@ -223,6 +230,7 @@ export class Player {
 
   public camera: THREE.PerspectiveCamera;
   private physics: Physics;
+  private frameQueries: PlayerFrameQueries | null = null;
   private canvas: HTMLCanvasElement;
   /** `waterLine`: the swimming water-line view (the DOM WaterLine by default; a test or a headless tool passes its own) */
   constructor(camera: THREE.PerspectiveCamera, physics: Physics, canvas: HTMLCanvasElement, views: { waterLine?: WaterLineView } = {}) {
@@ -234,11 +242,13 @@ export class Player {
   }
 
   /** Bind an already committed local frame without respawning, advancing physics or clearing travel state. */
-  bindFrame(physics: Physics, motor: CharacterMotor): void {
+  bindFrame(physics: Physics, motor: CharacterMotor, queries: PlayerFrameQueries | null = null): void {
     if (physics.world.getCollider(motor.collider.handle) !== motor.collider) throw new Error('Player motor belongs to another frame');
-    this.physics = physics; this.currentMotor = motor;
+    this.physics = physics; this.currentMotor = motor; this.frameQueries = queries;
     this.prevFeet.copy(this.position); this.renderFeet.copy(this.position);
   }
+  private groundHeightAt(x: number, z: number): number { return this.frameQueries === null ? heightAt(x, z) : this.frameQueries.heightAt(x, z); }
+  private walkableSurfaces(): readonly ((x: number, z: number) => number | undefined)[] { return this.frameQueries?.platforms ?? this.platforms; }
 
   /** The input service owns mouse events; the player owns look sensitivity and lock offsets. */
   look(x: number, y: number): void {
@@ -269,7 +279,7 @@ export class Player {
   /** water surface height at (x, z): the level's water bodies' rest surface (app.world.water, in registration order: the
    *  sea, a pond / river basin, running water such as a creek), else null */
   waterSurfaceAt(x: number, z: number): number | null {
-    return app.world.water.restAt(x, z);
+    return this.frameQueries === null ? app.world.water.restAt(x, z) : this.frameQueries.waterSurfaceAt(x, z);
   }
 
   private setSwimming(on: boolean): void {
@@ -281,7 +291,7 @@ export class Player {
 
   /** `y`: the feet's height (a shard whose floor is built: ShardManifest.spawn.y); omitted = the ground's */
   spawn(x: number, z: number, yaw: number, y?: number): void {
-    this.position.set(x, y ?? heightAt(x, z), z);
+    this.position.set(x, y ?? this.groundHeightAt(x, z), z);
     this.motor.release();
     this.prevFeet.copy(this.position);
     this.yaw = yaw; this.pitch = 0;
@@ -371,8 +381,8 @@ export class Player {
   /** deep water at (x, z) with no deck over it — where a dash must not carry you */
   private deepAt(x: number, z: number): boolean {
     const ws = this.waterSurfaceAt(x, z);
-    if (ws === null || ws - heightAt(x, z) <= WADE_MAX) return false;
-    for (const p of this.platforms) { const y = p(x, z); if (y !== undefined && y > ws - 0.5) return false; }
+    if (ws === null || ws - this.groundHeightAt(x, z) <= WADE_MAX) return false;
+    for (const p of this.walkableSurfaces()) { const y = p(x, z); if (y !== undefined && y > ws - 0.5) return false; }
     // a pier / jetty / boat deck over the water — or any floor the feet are on, however high: the practice arena stands
     // 900 m over Driftwood's sea, and a probe from just over the surface found no deck there and killed every dodge (E285)
     const top = Math.max(ws + 3, this.position.y + 0.5);
@@ -505,8 +515,8 @@ export class Player {
     // (floor functions) that are not Rapier colliders until P4 / P3.
     const groundAt = () => {
       const p = this.position;
-      let g = heightAt(p.x, p.z);
-      for (const f of this.platforms) {
+      let g = this.groundHeightAt(p.x, p.z);
+      for (const f of this.walkableSurfaces()) {
         const y = f(p.x, p.z);
         if (y !== undefined && y > g && p.y >= y - 0.5) g = y;
       }
@@ -517,7 +527,7 @@ export class Player {
     /** the highest platform floor under the feet that they can stand on (at or above it, or ≤ 0.5 m below its top) */
     const platformAt = (): number | undefined => {
       let best: number | undefined;
-      for (const p of this.platforms) {
+      for (const p of this.walkableSurfaces()) {
         const y = p(this.position.x, this.position.z);
         if (y !== undefined && this.position.y >= y - 0.5 && (best === undefined || y > best)) best = y;
       }
@@ -608,7 +618,7 @@ export class Player {
         if (len > 0.3) {
           const px = p.x + mx * CLIMB_PROBE, pz = p.z + mz * CLIMB_PROBE;
           let here = false, ahead: number | undefined;
-          for (const pl of this.platforms) {
+          for (const pl of this.walkableSurfaces()) {
             if (pl(p.x, p.z) !== undefined) here = true;
             const y = pl(px, pz);
             if (y !== undefined && y > ws - 0.3 && y - ws < CLIMB_REACH && (ahead === undefined || y < ahead)) ahead = y;
