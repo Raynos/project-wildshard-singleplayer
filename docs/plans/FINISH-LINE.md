@@ -1,6 +1,6 @@
 # Plan: finish line (E108): from a pile of pieces to a finished-feeling game
 
-**State:** `draft` 2026-10-03 — Jake approved PK1–PK5 in the E423 grill (EF9 worker pool, EF3 pools, TP18 asset re-layout, BatchedMesh → instancing where it measures better, the desktop help chip): buildable, unowned. unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). The row tags below are older than these facts: S1, S3, S5, S6, S7 moved into GAME-NORMALIZATION (archived); D1–D4, D7 and P3 were built as DRIFTWOOD-TOP10 rows 1–5 and 9b (archived 2026-09-30); S2, S4, P1, D5, D6 are done, P2 is moot. Open, waiting on Jake's pick: N-a (the kurgan / east edges), N-b, N-c, N-d, M1, M2, M3's controls half, and S8 (a golden-path phone run per shard; Jake: "later", E430).
+**State:** `in progress` 2026-10-03 — Jake approved in the E423 grill, buildable and unowned: N-a (hide the kurgan and east edges), N-b (verify the elite banner, fix or close), N-c (Driftwood's fight rules for the wolves), M1 (CONTINUE + a shard map on the title; mockups first), M3 (the controls audit) and PK1–PK5 (EF9 worker pool, EF3 pools, TP18 per-shard assets, BatchedMesh → instancing where it measures better, the desktop help chip). S8 stays "later"; N-d and M2 dropped. Earlier rows: S1, S3, S5–S7 went into GAME-NORMALIZATION (archived); D1–D4, D7 and P3 were built as DRIFTWOOD-TOP10 (archived); S2, S4, P1, D5, D6 are done; P2 is moot.
 
 ## Read this first
 
@@ -56,7 +56,7 @@ Four read-only audits on build `f86b4c3` gave the same answer from four directio
 | S5 | *(Not built.)* **Input actions (ENGINE-FIT E4).** One layer with contexts (walk / ride / menu / dialog), a 100–150 ms input buffer for every action, ~100 ms coyote time, gamepad support and rebinding. It replaces the listeners spread across 26+ files. | M |
 | S6 | **Tests where the bugs are.** Node tests for the boss, elite, quest and weather state machines, AnimalManager AI and weapon timing (all at 0–5% today). | M |
 | S7 | **Budgets that run.** `bench:ci` runs nightly, the baseline is re-set after the freeze, and CI commits `latest.md`. The committed table dates from 09-18. | S |
-| S8 | **A golden-path phone run per shard** (GW2-ZONES §3 / §14, [docs/design/gw2-zones/GW2-ZONES.md](../design/gw2-zones/GW2-ZONES.md); Jake, 2026-10-01: "later"). One person plays each shard on the phone: touch, no dev flags, no forged saves, timed and split into active play, traversal, forced waiting, retries and walk-backs, and completion. Pine's and Nalati's friction (night-only steps, gate respawns, the fight frame rate, wolf balance) is fixed first. **Done when** every shard has one timed, unforged run on record, with its split. Waits on Jake's go ("later") | M |
+| S8 | **Jake: keep as later; ask again when the shards are closer to done (E423 grill, 2026-10-03).** **A golden-path phone run per shard** (GW2-ZONES §3 / §14, [docs/design/gw2-zones/GW2-ZONES.md](../design/gw2-zones/GW2-ZONES.md); Jake, 2026-10-01: "later"). One person plays each shard on the phone: touch, no dev flags, no forged saves, timed and split into active play, traversal, forced waiting, retries and walk-backs, and completion. Pine's and Nalati's friction (night-only steps, gate respawns, the fight frame rate, wolf balance) is fixed first. **Done when** every shard has one timed, unforged run on record, with its split. Waits on Jake's go ("later") | M |
 
 ## P — player mode (every shard, a day's work)
 
@@ -82,18 +82,16 @@ Four read-only audits on build `f86b4c3` gave the same answer from four directio
 
 | Row | What | Effort |
 |---|---|---|
-| N-a | *(The camp side is NALATI-FINISH B6, done `48740dc`; the kurgan / east edges not checked here.)* **Hide the world edge from mid-map.** At the kurgans (`x=-106 z=100`) you can see a flat plane with a seam and cyan posts. This goes beyond N23, which covers only the camp side. Also fix the untextured slabs and black spruce cut-outs on the east edge (`x=209`). | M |
-| N-b | **The "elite nearby" banner only near the lair.** Today it shows for Aqbars at the camp and at Eagle Rock. | S |
-| N-c | **The same fight rules as D1–D2.** Wolves take you from 100 to 4 health in about 8 s. | S |
-| N-d | **One chapter polished end to end as the golden path.** No new Nalati systems until it's done. | M |
+| N-a | **Jake: yes, fix both edges (E423 grill, 2026-10-03).** *(The camp side is NALATI-FINISH B6, done `48740dc`; the kurgan / east edges not checked here.)* **Hide the world edge from mid-map.** At the kurgans (`x=-106 z=100`) you can see a flat plane with a seam and cyan posts. This goes beyond N23, which covers only the camp side. Also fix the untextured slabs and black spruce cut-outs on the east edge (`x=209`). | M |
+| N-b | **Jake: verify on HEAD, then fix or close (E423 grill, 2026-10-03).** **The "elite nearby" banner only near the lair.** Today it shows for Aqbars at the camp and at Eagle Rock. | S |
+| N-c | **Jake: yes, Driftwood's fight rules (E423 grill, 2026-10-03).** **The same fight rules as D1–D2.** Wolves take you from 100 to 4 health in about 8 s. | S |
 
 ## M — one game, not three demos (after F0 ends)
 
 | Row | What | Effort |
 |---|---|---|
-| M1 | **Continue, and a shard map with progress on the title screen.** | M |
-| M2 | **Titles and trophies that carry across shards.** Finishing one shard's story lights up the next. | M |
-| M3 | **(The HUD half done: E154, `50a29525`, one shared base HUD on every shard.)** **One controls and HUD spec for every shard.** Same verbs, same buttons, the weapon strip everywhere, one phone layout. | M |
+| M1 | **Jake: yes, CONTINUE and a shard map with progress on the title; title mockups asked with the question tool first (E423 grill, 2026-10-03).** **Continue, and a shard map with progress on the title screen.** | M |
+| M3 | **Jake: yes, the controls half as a per-shard verb audit, then align the outliers (E423 grill, 2026-10-03).** **(The HUD half done: E154, `50a29525`, one shared base HUD on every shard.)** **One controls and HUD spec for every shard.** Same verbs, same buttons, the weapon strip everywhere, one phone layout. | M |
 
 ## PK — rows Jake picked in the E423 grill (2026-10-03): approved, unowned
 
