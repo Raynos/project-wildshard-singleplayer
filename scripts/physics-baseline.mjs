@@ -26,13 +26,15 @@
 //   node scripts/physics-baseline.mjs --no-build --mode=walk --tier=desktop # same portrait walk, desktop assets
 //   node scripts/physics-baseline.mjs --compare progress/physics/p0-x.json progress/physics/p2-y.json
 //   node scripts/physics-baseline.mjs --mode=walk --shard=nalati-grasslands --url=http://127.0.0.1:5188   # a served build, no build
+//   scripts/browser-lane.sh node scripts/physics-baseline.mjs --mode=grid --url=http://127.0.0.1:5188
 import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
-import { debugSettings } from './debug-settings.mjs';
+import { debugSettings, saveFixture } from './debug-settings.mjs';
 import { walkPhysicsLeg } from './physics-walk.mjs';
+import { driveGridSeam, gridSeamRoute, gridDriveFailures } from './physics-grid.mjs';
 
-const { chromium } = await import('playwright');
+const { chromium, devices } = await import('playwright');
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const OUT_DIR = resolvePath(ROOT, 'progress/physics');
@@ -86,6 +88,7 @@ if (has('compare')) {
 }
 
 const MODE = flag('mode', 'poses,walk').split(',');
+if (MODE.some((mode) => !['poses', 'walk', 'grid'].includes(mode))) throw new Error('--mode must name poses, walk or grid');
 const LABEL = flag('label', 'p0');
 const CPU = Number(flag('cpu', '4'));
 const WALK_CPU = Number(flag('walk-cpu', '1'));
@@ -136,7 +139,7 @@ try { build = (await (await fetch(`${BASE}/version.json`, { cache: 'no-store' })
 console.error(`> physics-baseline ${LABEL} build=${build} modes=${MODE.join(',')} cpu=${CPU}× (walk ${WALK_CPU}×)`);
 
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
-const result = { label: LABEL, build, tier: TIER, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], physics: {} };
+const result = { label: LABEL, build, tier: TIER, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], grid: [], gridFailures: [], physics: {} };
 
 async function openGame(shard, q, { cpu, video }) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, ...(video ? { recordVideo: { dir: join(OUT_DIR, '.video-tmp'), size: { width: 390, height: 844 } } } : {}) });
@@ -150,6 +153,32 @@ async function openGame(shard, q, { cpu, video }) {
   await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.world !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
   await page.waitForTimeout(SETTLE_MS);
   return { ctx, page, errors };
+}
+
+// ── grid: title entry, then continuous seam drives in both directions (no URL switch / fresh-document cell travel) ──
+if (MODE.includes('grid')) {
+  const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage(), errors = [];
+  page.on('pageerror', (error) => { errors.push(error.message); });
+  await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
+  if (Object.keys(SETTINGS).length > 0) await debugSettings(ctx, SETTINGS);
+  try {
+    if (WALK_CPU > 1) await (await ctx.newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: WALK_CPU });
+    await page.goto(`${BASE}/?tier=${TIER}&mute=1&nolock=1&sw=0`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
+    await page.locator('.ws-menu-entry-grid').waitFor({ timeout: TIMEOUT_MS });
+    await page.locator('.ws-menu-entry-grid').click();
+    await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
+    await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
+    await page.waitForTimeout(SETTLE_MS);
+    for (const speed of [15, 30]) {
+      const state = await page.evaluate(() => window.__wildshard.shard.grid.state()), route = gridSeamRoute(state, speed);
+      console.error(`> grid ${speed} m/s ${route.home} → deck → ${route.peer} → deck → ${route.home}`);
+      const drive = await page.evaluate(driveGridSeam, route), failures = gridDriveFailures(drive);
+      result.grid.push(drive); result.gridFailures.push(...failures.map((failure) => `${speed} m/s: ${failure}`));
+      if (failures.length > 0) break;
+    }
+  } catch (error) { result.gridFailures.push(error instanceof Error ? error.message : String(error)); }
+  finally { await ctx.close(); }
+  result.gridErrors = errors; result.gridFailures.push(...errors.map((error) => `page: ${error}`));
 }
 
 // ── poses ──
@@ -305,5 +334,9 @@ if (result.walk.length > 0) {
   for (const l of result.walk) console.log(`| ${l.shard} ${l.name} | ${l.seconds} | ${l.end.x}, ${l.end.y}, ${l.end.z} | ${l.expectY ?? '—'} | ${l.maxY} | ${l.groundSpeedP50} | ${l.airFrames} / ${l.swimFrames} / ${l.slideFrames} | ${l.stuck.length > 0 ? l.stuck.map((s) => `wp${s.wp}@${s.x},${s.y},${s.z}`).join(' ') : '—'}${l.out === undefined ? '' : ` · out ${l.out} (min y ${l.minY})`} |`);
 }
 console.log(`\n→ ${file}`);
+if (MODE.includes('grid')) {
+  for (const drive of result.grid) console.log(`grid ${drive.speed} m/s: ${drive.crossingDelta} crossings, ${drive.stuck.length} stuck, completed=${drive.complete}`);
+  for (const failure of result.gridFailures) console.error(`grid FAIL: ${failure}`);
+}
 cleanup();
-process.exit(0); // the preview child would keep the event loop alive
+process.exit(result.gridFailures.length > 0 ? 1 : 0); // the preview child would keep the event loop alive
