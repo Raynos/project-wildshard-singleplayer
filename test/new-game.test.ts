@@ -48,3 +48,10 @@ it('refused storage leaves before and after equal and permits normal old save wr
   const result = resetNewGame(store, identity); expect(result.applied).toBe(false); expect(result.summary.after).toEqual(result.summary.before);
   setter.mockRestore(); expect(resetNewGame(store, identity).applied).toBe(true);
 });
+it('previews and resets portable regional progress without decoding obsolete engine bytes', () => {
+  const { local, store } = fixture(), identity = { id: 'template-1', shard: 'template' };
+  local.setItem(`${prefix}${identity.id}`, JSON.stringify({ keys: { 'platform.region': { v: 1, data: { revision: 1, snapshot: 'unsupported engine',
+    logical: { flags: ['quest.done'], quests: [{ id: 'intro', started: true, currentId: null }] } } } } }));
+  const before = previewNewGame(store, identity).before; expect(before.quests.completed).toBe(1); expect(before.flags).toEqual(['quest.done']);
+  expect(resetNewGame(store, identity).applied).toBe(true); expect(previewNewGame(store, identity).before.flags).toEqual([]);
+});

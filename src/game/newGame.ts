@@ -23,8 +23,9 @@ const kept = (key: string): boolean => key === 'progress' || key.startsWith('pro
 function progress(entries: Readonly<Record<string, unknown>>, quests: readonly NewGameQuest[]): NewGameProgress {
   const data = (key: string): unknown => record(entries[key])['data'];
   const continuation = record(data('platform.continuation')), region = record(data('platform.region'));
-  const packed: unknown = typeof region['snapshot'] === 'string' ? JSON.parse(region['snapshot']) : null;
-  const regional = record(record(packed)['snapshot']);
+  const logical = record(region['logical']);
+  const packed: unknown = Object.keys(logical).length === 0 && typeof region['snapshot'] === 'string' ? JSON.parse(region['snapshot']) : null;
+  const regional = Object.keys(logical).length > 0 ? logical : record(record(packed)['snapshot']);
   const flags = [...new Set([...strings(data('flags')), ...strings(continuation['flags']), ...strings(regional['flags'])])].sort();
   const rows: unknown[] = Array.isArray(continuation['quests']) ? continuation['quests'] : Array.isArray(regional['quests']) ? regional['quests'] : [];
   const states = rows.map(record), hasProgress = flags.length > 0 || states.some((row) => row['started'] === true);
@@ -46,7 +47,7 @@ export function previewNewGame(store: SaveStore, instance: LocalSaveInstance, qu
   return { instance: { ...instance }, before: progress(entries, quests), after: empty(), kept: ['profile', 'feats', 'other-shards'],
     removedKeys: Object.keys(entries).filter((key) => !kept(key)).sort() };
 }
-/** Confirm a fresh preview and reset durably; old live checkpoints cannot revive it. Reload/rebind the active instance only when applied is true; a refusal keeps playing intact. */
+/** Confirm a fresh preview and reset durably; old live checkpoints cannot revive it. Reload the page or evict/rebind this instance including frozen grid residents only when applied is true; a refusal keeps playing intact. */
 export function resetNewGame(store: SaveStore, instance: LocalSaveInstance, quests: readonly NewGameQuest[] = []): { applied: boolean; summary: NewGameSummary } {
   const summary = previewNewGame(store, instance, quests);
   const identity = instanceSaveIdentity(instance), entries = store.inspectShard(identity);
