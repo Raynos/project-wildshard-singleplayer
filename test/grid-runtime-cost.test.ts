@@ -3,8 +3,9 @@ import { CONTENT_CAPS } from '../src/engine/core/config';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
+import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 
-const measured = { webContentMB: 613, glMB: 272, engineBaseMB: 299, rev: '91f97bdfc', device: 'iOS Simulator iPhone 17 Pro Safari', evidence: 'progress/memory/sf22a-2026-10-04.json' };
+const measured = DRIFTWOOD_RUNTIME_COST;
 
 it('applies calibration once to the measured whole runtime home, including its render cost', () => {
   const owner = new PageResidency(new ResidencyAllocator());

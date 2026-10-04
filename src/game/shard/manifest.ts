@@ -20,6 +20,7 @@ import type { ShardSlug } from './slugs.generated';
 import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 import type { ShardPlugin } from './plugin';
 import type { AccentId } from '../shardfile/accent';
+import type { RuntimeCost } from '../grid/runtimeCost';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
  *
@@ -436,6 +437,8 @@ export const hitDamage = (def: { fight?: { maxHitDamage?: number | undefined; ca
 /** Compatibility names for manifests not yet migrated to the engine look contract. */
 
 export interface ShardManifest {
+  /** Reviewed opaque-runtime home measurements, available before world bootstrap; the declaration shares this data. */
+  runtimeCost?: RuntimeCost;
   next?: string;
   /** Built first-party data source, admitted before the existing session boot; picker identity stays on this manifest. */
   shardfile?: string;
