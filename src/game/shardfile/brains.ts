@@ -3,10 +3,11 @@ import * as v from 'valibot';
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.:-]*$/u), v.maxLength(128));
 const cue = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9_.:-]*$/u), v.maxLength(128));
 const radius = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(600));
+const cadence = v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(60), v.check(n => 60 % n === 0, 'Brain divisor divides 60')), 6);
 const duration = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(600));
 /** Circling melee policy data; the host retains navigation, attack tokens, strike clocks and random streams. */
 export const SkirmisherSchema = v.pipe(v.strictObject({
-  id: key, kind: v.literal('skirmisher'), awareRadius: radius, shyRadius: radius, disengageRadius: radius,
+  id: key, kind: v.literal('skirmisher'), thinkDivisor: cadence, awareRadius: radius, shyRadius: radius, disengageRadius: radius,
   holdRadius: radius, attackRadius: radius, attackDuration: v.pipe(duration, v.minValue(Number.MIN_VALUE)),
   attackCooldown: duration, alertCooldown: duration,
   fleeSpeed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)),
@@ -35,7 +36,7 @@ export function parseScriptBrain(data: unknown): ShardScriptBrain { return v.par
 
 /** Interior guardian policy; native floor and rise/sink recipes publish completion through trusted ports. */
 export const GuardianSchema = v.pipe(v.strictObject({
-  id: key, kind: v.literal('guardian'), wakeRadius: radius, guardRadius: radius, approachRadius: radius,
+  id: key, kind: v.literal('guardian'), thinkDivisor: cadence, wakeRadius: radius, guardRadius: radius, approachRadius: radius,
   swingRadius: radius, swingDuration: v.pipe(duration, v.minValue(Number.MIN_VALUE)),
   speed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)), holdRadius: radius,
   sideSpeed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)),
@@ -49,7 +50,7 @@ export function parseGuardian(data: unknown): ShardGuardian { return v.parse(Gua
 
 /** Perch hunting decisions; native perch selection, vertical completion and shared attack RNG remain trusted host ports. */
 export const PerchHunterSchema = v.pipe(v.strictObject({
-  id: key, kind: v.literal('perch-hunter'), throwRadius: radius, throwDuration: v.pipe(duration, v.minValue(Number.MIN_VALUE)),
+  id: key, kind: v.literal('perch-hunter'), thinkDivisor: cadence, throwRadius: radius, throwDuration: v.pipe(duration, v.minValue(Number.MIN_VALUE)),
   biteRadius: radius, biteDuration: v.pipe(duration, v.minValue(Number.MIN_VALUE)), underRadius: radius, underSeconds: duration,
   holdRadius: radius, runSpeed: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(15)), activeGroundSeconds: duration,
   biteCooldown: duration, throwCooldownMin: duration, throwCooldownMax: duration, alertCue: cue, noticeCue: cue,

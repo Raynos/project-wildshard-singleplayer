@@ -101,8 +101,8 @@ export function buildPlatformSpawns(rows: readonly PlatformSpawn[], species: Pla
 }
 /** A bounded path port can be backed by the engine navmesh; direct pursuit still resolves collisions in the motor. */
 export type BrainNavigation = PlatformBrainPorts['path'];
-/** Scoped brain registrations use the real sim's damage/strike clocks, physics queries and per-host RNG streams. */
-export function installPlatformBrains(sim: SimHost, rows: readonly PlatformSpawn[], specs: readonly PlatformBrainSpec[], navigation: BrainNavigation = (_from, to) => [to]): ReadonlyMap<string, PlatformBrain> {
+/** Validate and construct all pursuit policies without registering fixed-step work or consuming random state. */
+export function preparePlatformBrains(sim: SimHost, rows: readonly PlatformSpawn[], specs: readonly PlatformBrainSpec[], navigation: BrainNavigation = (_from, to) => [to]): ReadonlyMap<string, PlatformBrain> {
   const definitions = new Map(specs.map((spec) => [spec.id, spec])), result = new Map<string, PlatformBrain>();
   if (definitions.size !== specs.length) throw new Error('Duplicate brain archetype');
   for (const row of rows) {
@@ -118,7 +118,14 @@ export function installPlatformBrains(sim: SimHost, rows: readonly PlatformSpawn
         return !hit || hit.distance >= length - 0.1;
       }, path: navigation, attack: (target) => { sim.startStrike(row.id, target); }, random: () => sim.rng.stream('ai').next(),
     });
-    sim.onStep(`brain.${row.id}`, () => { brain.step(sim.state.tick); }, { snapshot: () => brain.snapshot(), restore: (value) => { brain.restore(value); } }); result.set(row.id, brain);
+    result.set(row.id, brain);
   }
   return result;
+}
+
+/** Scoped brain registrations use the real sim's damage/strike clocks, physics queries and per-host RNG streams. */
+export function installPlatformBrains(sim: SimHost, rows: readonly PlatformSpawn[], specs: readonly PlatformBrainSpec[], navigation: BrainNavigation = (_from, to) => [to]): ReadonlyMap<string, PlatformBrain> {
+  const brains = preparePlatformBrains(sim, rows, specs, navigation);
+  for (const [id, brain] of brains) sim.onStep(`brain.${id}`, () => { brain.step(sim.state.tick); }, { snapshot: () => brain.snapshot(), restore: value => { brain.restore(value); } });
+  return brains;
 }
