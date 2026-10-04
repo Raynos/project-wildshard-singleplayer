@@ -24,7 +24,6 @@ import {
 } from 'three/tsl';
 import { compilePbr } from '@wildshard/engine/render/families/pbr';
 import { parseFamilyMaterial } from '@wildshard/engine/render/families/params';
-import { setMeasureLook } from '@wildshard/engine/render/families/measure';
 import { installAtmosphere, fogUniforms } from '@wildshard/engine/world/Atmosphere';
 
 const VARIANT = location.hash.slice(1) || 'family';
@@ -108,7 +107,6 @@ camera.position.set(0, 9, 34);
 camera.lookAt(0, 0, -6);
 
 // the PBR family with SF56's measure layer, through the engine's own compiler (the hand-written family)
-setMeasureLook(true);
 const params = parseFamilyMaterial({ family: 'pbr', colour: [0.8, 0.8, 0.8], roughness: 0.85, metalness: 0, measure: {} });
 if (params.family !== 'pbr' || params.measure === null) throw new Error('spike: a PBR measure surface');
 const measure = params.measure;

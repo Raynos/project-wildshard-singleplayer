@@ -1,7 +1,7 @@
 /**
  * The PBR family's measure layer (SHARD-PLATFORM SF56, G152): a blockout "dev map" look in the spirit of the Source
- * engine's developer measure textures, drawn entirely by the shader (no texture, no memory). Per pixel, while the look is
- * switched on (`setMeasureLook`, one engine-wide uniform a Debug row drives):
+ * engine's developer measure textures, drawn entirely by the shader (no texture, no memory). A PBR surface that declares
+ * the layer always draws it (G163: Jake picked the dev map over the plain grey, so there is no off switch). Per pixel:
  * - the surface takes its role's flat colour (structure orange, trim grey, floor light grey) in place of its vertex colour,
  *   a share of it glowing so a shade side stays readable (the dev textures' flat read);
  * - a 1 m grid and a lighter sub-grid cross it, each line at least a pixel wide and faded by coverage (crisp at 2×, no
@@ -9,7 +9,8 @@
  * - a structure or trim face of at least 1 m × 1 m carries its size in metres ("4×3") as seven-segment glyphs in its
  *   top-left corner.
  * Role, face metres and size ride in the first UV set (`measureUv` in params.ts); a surface with none is floor, gridded in
- * world space. Off, the layer leaves the surface exactly as the plain PBR material draws it. Identifiers carry a `famM` prefix.
+ * world space. The layer is self-contained (this module, `MeasureLayerSchema` and `measureUv`), so a later material
+ * format can carry it as one node. Identifiers carry a `famM` prefix.
  */
 import * as THREE from 'three';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
@@ -17,13 +18,6 @@ import { MEASURE_SLOT, type MeasureLayerParams } from './params';
 
 /** the program-cache key of every PBR material with a measure layer */
 export const MEASURE_PROGRAM_KEY = 'family.pbr.measure.v1';
-
-/** one uniform every measure material shares: 1 while the look is on */
-const on = { value: 0 };
-/** Switch the measure look on or off for every measure-layer material (a uniform: no recompile). */
-export function setMeasureLook(enabled: boolean): void { on.value = enabled ? 1 : 0; }
-/** whether the measure look is on */
-export function measureLookOn(): boolean { return on.value === 1; }
 
 const VERT_PARS = 'varying vec2 vFamMUv;\nvarying vec3 vFamMPos;\nvarying vec3 vFamMN;';
 const VERT_WORLD = /* glsl */`#include <worldpos_vertex>
@@ -41,7 +35,6 @@ const FRAG_PARS = /* glsl */`
 varying vec2 vFamMUv;
 varying vec3 vFamMPos;
 varying vec3 vFamMN;
-uniform float famMOn;
 uniform vec3 famMStructure;
 uniform vec3 famMTrim;
 uniform vec3 famMFloor;
@@ -130,8 +123,8 @@ vec3 famMGlow = vec3( 0.0 );
   vec3 famMOut = mix( famMBase, famMLine.rgb, famMFine * famMAlpha.z );
   famMOut = mix( famMOut, famMLine.rgb, famMMain * famMLineA );
   famMOut = mix( famMOut, famMLabel.rgb, famMInk * 0.92 );
-  diffuseColor.rgb = mix( diffuseColor.rgb, famMOut, famMOn );
-  famMGlow = famMOut * famMLift * famMOn;
+  diffuseColor.rgb = famMOut;
+  famMGlow = famMOut * famMLift;
 }`;
 const FRAG_GLOW = '#include <emissivemap_fragment>\ntotalEmissiveRadiance += famMGlow;';
 
@@ -141,7 +134,6 @@ const linear = (rgb: readonly [number, number, number]): THREE.Color => new THRE
 export function applyMeasure(m: THREE.MeshStandardMaterial, p: MeasureLayerParams): void {
   const line = linear(p.line.colour), label = linear(p.label.colour);
   const uniforms: Record<string, { value: unknown }> = {
-    famMOn: on,
     famMStructure: { value: linear(p.structure) },
     famMTrim: { value: linear(p.trim) },
     famMFloor: { value: linear(p.floor) },

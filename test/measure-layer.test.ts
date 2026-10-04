@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { legacyDouble } from './fake/FakeGame';
 import { MEASURE_SLOT, measureUv, parseFamilyMaterial } from '../src/engine/render/families/params';
-import { MEASURE_PROGRAM_KEY, measureLookOn, setMeasureLook } from '../src/engine/render/families/measure';
+import { MEASURE_PROGRAM_KEY } from '../src/engine/render/families/measure';
 import { compilePbr, pbrFillers } from '../src/engine/render/families/pbr';
 import { measureBox } from '../src/shards/_template/generators/world';
-import { declaresMeasure } from '../src/game/shardfile/measureLook';
+import { TEMPLATE_LOOK } from '../src/shards/_template/data/look';
 
 /** the shader's decode of a measure UV, mirrored */
 function decode(x: number, y: number): { role: number; u: number; v: number; w: number; h: number } {
@@ -44,23 +44,21 @@ describe('SF56 measure layer', () => {
     expect(faces[4]).toMatchObject({ w: 6, h: 3 }); expect(faces[0]).toMatchObject({ w: 0, h: 3 });
   });
 
-  it('compiles to the measure program on the PBR family and switches by one shared uniform', () => {
+  it('compiles to the measure program on the PBR family and always draws the dev map (G163: no off switch)', () => {
     const m = compilePbr(parsePbr({ vertexColours: true, metalness: 0, faceted: true, measure: {} }), () => pbrFillers().white);
     expect(m.customProgramCacheKey()).toContain(MEASURE_PROGRAM_KEY);
     const shader = compiled(m);
     expect(shader.fragmentShader).toContain('famMGlyph(');
-    expect(shader.fragmentShader).toContain('diffuseColor.rgb = mix( diffuseColor.rgb, famMOut, famMOn );');
+    expect(shader.fragmentShader).toContain('diffuseColor.rgb = famMOut;');
+    expect(shader.fragmentShader).not.toContain('famMOn');
+    expect(shader.uniforms).not.toHaveProperty('famMOn');
     expect(shader.vertexShader).toContain('vFamMUv = uv;');
-    const on = shader.uniforms['famMOn'];
-    expect(on?.value).toBe(0);
-    setMeasureLook(true); expect(on?.value).toBe(1); expect(measureLookOn()).toBe(true);
-    setMeasureLook(false); expect(on?.value).toBe(0);
     expect(() => compilePbr(parsePbr({ measure: {}, ground: {} }), () => pbrFillers().white)).toThrow(/ground or a measure/);
   });
 
-  it('opts a shardfile in only through its look data', () => {
-    const look = (materials: Record<string, ReturnType<typeof parseFamilyMaterial>>) => ({ look: { families: [], materials, familyLooks: {}, grade: { exposure: 0, saturation: 1, contrast: 1, lut: null }, clock: 'engine' as const, dayOverride: null, keys: [] } });
-    expect(declaresMeasure(look({ pbr: parseFamilyMaterial({ family: 'pbr' }) }))).toBe(false);
-    expect(declaresMeasure(look({ pbr: parseFamilyMaterial({ family: 'pbr', measure: {} }) }))).toBe(true);
+  it('opts a shardfile in only through its look data, and Template 1 declares it', () => {
+    expect(parsePbr({}).measure).toBeNull();
+    expect(compilePbr(parsePbr({ vertexColours: true }), () => pbrFillers().white).customProgramCacheKey()).not.toContain(MEASURE_PROGRAM_KEY);
+    expect(parsePbr(TEMPLATE_LOOK.materials.pbr).measure).not.toBeNull();
   });
 });

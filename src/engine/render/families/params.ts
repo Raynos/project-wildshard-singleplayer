@@ -146,8 +146,8 @@ const metres = (max: number) => v.pipe(v.number(), v.finite(), v.minValue(1e-3),
  * Every surface is coloured by its role, crossed by a 1 m grid with a lighter sub-grid, and a structure or trim face of at
  * least 1 m × 1 m carries its size in metres ("4×3") in its top-left corner. The role, the face's own metres and its size
  * ride in the surface's first UV set (`measureUv`, written by a generator); a surface with no such UV (terrain, a plain
- * prop) is floor, gridded in world space on the plane its normal faces. The layer draws only while the look is switched on
- * (a Debug row): off, the surface is exactly its plain PBR self.
+ * prop) is floor, gridded in world space on the plane its normal faces. A surface that declares the layer always draws it
+ * (G163: Jake picked the dev map).
  */
 export const MeasureLayerSchema = v.strictObject({
   /** sRGB: walls, structures and props (role 1) */
@@ -205,7 +205,7 @@ export const PbrMaterialSchema = v.strictObject({
   alphaCutoff: v.optional(unit, 0),
   /** a procedural ground layer (wind ripples, grain, terrain light shaping); null = a plain surface */
   ground: v.optional(v.nullable(GroundLayerSchema), null),
-  /** a procedural measure layer (SF56: the dev-map look, drawn while its Debug row is on); null = none */
+  /** a procedural measure layer (SF56: the dev-map look, always drawn when declared); null = none */
   measure: v.optional(v.nullable(MeasureLayerSchema), null),
 });
 /** A PBR material entry with every default filled. */
