@@ -16,7 +16,7 @@ it('SF24 compares every director event tick with the actual shipping Driftwood f
   const data = parseDirector(declaration), lane = await createDirectorLane(data, readFileSync(`src/shards/driftwood-isle/assets/${data.module}`), 357);
   const scope = new Scope('finale.oracle'), flags = new Flags('driftwood-isle', false);
   const player = { position: new Vector3(20, 0, 0), velocity: new Vector3(), yaw: 0, pitch: 0, carried: false };
-  const updates: ((dt: number) => void)[] = [], legacy: { tick: number; key: string }[] = [], directed: typeof legacy = [];
+  const updates: ((dt: number, time: number) => void)[] = [], legacy: { tick: number; key: string }[] = [], directed: typeof legacy = [];
   let tick = 0, updating = false;
   const emit = (key: string): void => { legacy.push({ tick, key }); };
   const world: FinaleWorld<AdvAnimal> = {
@@ -40,10 +40,10 @@ it('SF24 compares every director event tick with the actual shipping Driftwood f
       if (tick === 200) flags.set('dead:captain');
       player.position.copy(tick >= 220 ? finale.rewardAt : new Vector3(20, 0, 0));
       const events = lane.step(tick, observe()); directed.push(...events.map((event) => ({ tick: event.tick, key: event.key })));
-      updating = true; for (const update of updates) update(1 / 60); updating = false;
+      updating = true; for (const update of updates) update(1 / 60, tick / 60); updating = false;
       expect(directed).toEqual(legacy);
     }
     expect(legacy).toEqual([{ tick: 10, key: 'captain.wake' }, { tick: 200, key: 'captain.dead' }, { tick: 220, key: 'reward.start' }, { tick: 640, key: 'reward.finish' }]);
-    expect(finale.captain()?.mem.awake).toBe(1);
+    expect(finale.captain()?.mem['awake']).toBe(1);
   } finally { scope.dispose(); document.body.replaceChildren(); }
 }, 60000);
