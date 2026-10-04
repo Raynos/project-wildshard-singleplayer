@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Hash the committed client module bytes.
 import { createHash } from 'node:crypto';
 import { Object3D, Points } from 'three';
 import { beforeAll, describe, expect, it } from 'vitest';
