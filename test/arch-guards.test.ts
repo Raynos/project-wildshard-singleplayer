@@ -77,7 +77,7 @@ describe('AG14 generated vocabulary', () => {
     expect(data.shards['emberfall']?.settings).toEqual(['emberfall.heat', 'heat', 'wind']);
     genShardWords(root); const file = join(root, 'lint/shard-words.generated.json'), source = readFileSync(file, 'utf8');
     genShardWords(root); expect(readFileSync(file, 'utf8')).toBe(source); expect(() => genShardWords(root, true)).not.toThrow();
-    for (const name of ['package.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', ...['lint/sim-closure.mjs', 'lint/sim-closure.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json']) {
+    for (const name of ['package.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', ...['lint/sim-closure.mjs', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json']) {
       mkdirSync(dirname(join(root, name)), { recursive: true }); copyFileSync(name, join(root, name));
     }
     symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
@@ -121,7 +121,7 @@ describe('AG9 shard layout', () => {
 describe('AG20 staged content isolation', () => {
   function repo(): { root: string; git: (...args: string[]) => void; run: () => ReturnType<typeof spawnSync> } {
     const root = temp();
-    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', ...['lint/sim-closure.mjs', 'lint/sim-closure.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/check-platform-ratchets.mjs', 'scripts/shard-coupling.mjs', 'lint/shard-coupling.json', 'lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
+    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', ...['lint/sim-closure.mjs', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json'].filter((policyPath) => existsSync(policyPath)), 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/check-platform-ratchets.mjs', 'scripts/shard-coupling.mjs', 'lint/shard-coupling.json', 'lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
     for (const file of files) { mkdirSync(dirname(join(root, file)), { recursive: true }); copyFileSync(file, join(root, file)); }
     put(root, 'lint/ratchet.json', '{}'); put(root, 'src/engine/example.ts', 'export const value = 1;');
     symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
@@ -310,6 +310,18 @@ describe('SF1b historical platform allowances', () => {
       { violations: { site: { count: 2, row: 'SF3b' } } },
       { violations: { added: { count: 1, row: 'SF3c' } } },
     ]) expect(compare('lint/sim-closure.json', before, after).length).toBeGreaterThan(0);
+  });
+  it('only shrinks reviewed schema leaves and preserves their owner and removal obligation', () => {
+    const leaf = { reason: 'pure schema', owner: 'SF16', removal: 'move to data' };
+    const before = { 'src/engine/render/families/params.ts': leaf };
+    expect(compare('lint/sim-schema-leaves.json', before, {})).toEqual([]);
+    expect(compare('lint/sim-schema-leaves.json', before, before)).toEqual([]);
+    for (const after of [
+      { added: leaf },
+      { 'src/engine/render/families/params.ts': { ...leaf, owner: 'SF99' } },
+      { 'src/engine/render/families/params.ts': { ...leaf, reason: 'allow renderer' } },
+      { 'src/engine/render/families/params.ts': { reason: leaf.reason, owner: leaf.owner } },
+    ]) expect(compare('lint/sim-schema-leaves.json', before, after).length).toBeGreaterThan(0);
   });
   it('admits Thin Ice only with a first-commit 20 % ceiling', () => {
     const before = { baseline: {}, enforced: {} };

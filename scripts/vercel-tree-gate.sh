@@ -44,7 +44,7 @@ node "$ROOT/scripts/link-node-modules.mjs" "$ROOT" "$work/tree" || fail "link no
 
 # Historical allowances come from the predecessor, even in this export without .git.
 mkdir -p "$work/predecessor"
-git archive "$sha^" -- lint/row-functions.json lint/edge-exemptions.json lint/shard-platform.json lint/sim-closure.json lint/shard-coupling.json | tar -xf - -C "$work/predecessor" || fail "predecessor lists"
+git archive "$sha^" -- lint/row-functions.json lint/edge-exemptions.json lint/shard-platform.json lint/sim-closure.json lint/sim-schema-leaves.json lint/shard-coupling.json | tar -xf - -C "$work/predecessor" || fail "predecessor lists"
 
 # ── 3. the CI gates, in the Vercel tree ──
 cd "$work/tree" || exit 1

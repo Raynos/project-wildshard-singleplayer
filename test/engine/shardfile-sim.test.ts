@@ -96,12 +96,13 @@ it('reconnects declared collider activation after whole-world restore without al
 it('admits item hook events independently of the named quest scene table', async () => {
   const shard = emptyShardfile({ slug: 'item-events', name: 'Items', author: 'Fixture', revision: 1, seed: 1 });
   const module = 'a'.repeat(64), bytes = await compileScript(scriptSource('store<f64>(24576,3);store<f64>(24584,101);store<f64>(24592,1001);store<f64>(24600,1);', '', '1'));
-  shard.items = parseItems({ ...ITEMS, rows: ITEMS.rows.map((row) => ({ ...row, hook: row.hook === null ? null : { ...row.hook, module } })) });
+  shard.items = parseItems(structuredClone(ITEMS));
+  for (const row of shard.items.rows) if (row.hook !== null) row.hook.module = module;
   shard.sim.scripts = [module]; shard.sim.scriptTickDivisor = 1;
   shard.sim.bindings = [{ module, entity: 1001, actorId: 'actor.player', kind: 'entity' }];
   const sim = createShardfileSim(shard, new Map([[module, bytes]]), { rapier });
   try {
-    sim.host.step(); const result = sim.lane?.host.call(module, 1001);
+    sim.host.step(); const result = sim.lane?.host.call(module, 1001, [sim.host.state.tick]);
     expect(result?.ok).toBe(true); expect(result?.events).toEqual([{ type: 101, target: 1001, value: 1 }]);
   } finally { sim.dispose(); }
 });
