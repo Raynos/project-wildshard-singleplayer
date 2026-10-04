@@ -23,6 +23,7 @@
 //   node scripts/physics-baseline.mjs                         # build, poses + walk, label p0
 //   node scripts/physics-baseline.mjs --no-build --mode=walk --video
 //   node scripts/physics-baseline.mjs --label=p2 --mode=walk
+//   node scripts/physics-baseline.mjs --no-build --mode=walk --tier=desktop # same portrait walk, desktop assets
 //   node scripts/physics-baseline.mjs --compare progress/physics/p0-x.json progress/physics/p2-y.json
 //   node scripts/physics-baseline.mjs --mode=walk --shard=nalati-grasslands --url=http://127.0.0.1:5188   # a served build, no build
 import { spawn, execSync } from 'node:child_process';
@@ -93,6 +94,9 @@ const PORT = Number(flag('port', '4176'));
 const SETTLE_MS = Number(flag('settle', '4000'));
 const TIMEOUT_MS = Number(flag('timeout', '240')) * 1000;
 const ONLY = flag('shard', '');
+// Keep the phone baseline by default; explicitly select the other asset/physics tier for cross-tier proofs.
+const TIER = flag('tier', 'phone');
+if (TIER !== 'phone' && TIER !== 'desktop') throw new Error('--tier must be phone or desktop');
 // Focused before/after repro: keep the authored route and controller unchanged.
 const ONLY_LEG = flag('leg', '');
 const REPEAT = Number(flag('repeat', '1'));
@@ -132,7 +136,7 @@ try { build = (await (await fetch(`${BASE}/version.json`, { cache: 'no-store' })
 console.error(`> physics-baseline ${LABEL} build=${build} modes=${MODE.join(',')} cpu=${CPU}× (walk ${WALK_CPU}×)`);
 
 const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
-const result = { label: LABEL, build, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], physics: {} };
+const result = { label: LABEL, build, tier: TIER, date: new Date().toISOString(), cpu: CPU, walkCpu: WALK_CPU, frames: FRAMES, poses: [], walk: [], physics: {} };
 
 async function openGame(shard, q, { cpu, video }) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, ...(video ? { recordVideo: { dir: join(OUT_DIR, '.video-tmp'), size: { width: 390, height: 844 } } } : {}) });
@@ -142,7 +146,7 @@ async function openGame(shard, q, { cpu, video }) {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const cdp = await ctx.newCDPSession(page);
   if (cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
-  await page.goto(`${BASE}/?chunk=${shard}&tier=phone&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}${EXTRA_Q ? `&${EXTRA_Q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
+  await page.goto(`${BASE}/?chunk=${shard}&tier=${TIER}&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}${EXTRA_Q ? `&${EXTRA_Q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
   await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.world !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
   await page.waitForTimeout(SETTLE_MS);
   return { ctx, page, errors };
@@ -291,7 +295,7 @@ if (existsSync(file)) {
 }
 writeFileSync(file, `${JSON.stringify(result)}\n`);
 
-console.log(`\n### ${LABEL} — build ${build}, phone tier 390×844, ${CPU}× CPU (walk ${WALK_CPU}×), ${FRAMES} frames per pose\n`);
+console.log(`\n### ${LABEL} — build ${build}, ${TIER} tier 390×844, ${CPU}× CPU (walk ${WALK_CPU}×), ${FRAMES} frames per pose\n`);
 if (result.poses.length > 0) {
   console.log('| pose | animals (motors) | frame JS ms p50 / p95 | of it: input + fixed steps | steps / frame | per step p50 / p95 | Rapier step phase | player | animals.update | render | rAF ms p50 / p95 | calls | tris M |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|');
   for (const p of result.poses) console.log(`| ${p.shard} ${p.name} | ${p.animals} (${p.motors ?? '?'}) | ${p.updateP50} / ${p.updateP95} | ${p.fixedP50 ?? 0} / ${p.fixedP95 ?? 0} | ${p.stepsP50 ?? '?'} | ${p.perStepP50 ?? '?'} / ${p.perStepP95 ?? '?'} | ${p.worldP50 ?? '?'} / ${p.worldP95 ?? '?'} | ${p.playerP50} / ${p.playerP95} | ${p.animalsP50} / ${p.animalsP95} | ${p.renderP50} / ${p.renderP95} | ${p.frameP50} / ${p.frameP95} | ${p.calls} | ${p.trisM} |`);
