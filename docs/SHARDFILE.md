@@ -299,7 +299,7 @@ equipment viewmodel host, including off-hand tools, and leave with the level sco
 
 Edge rows retain every native boundary vertex; 129-point decimation is refused. A modern terrain collider is 257² and carries 257 samples per side, without resampling. When a 256-point neighbour meets a 257-point neighbour, the platform strip uses the sorted union of their native positions (511 points), so both exact boundaries survive.
 
-`creatures.brains` accepts `pursue`, `skirmisher`, `guardian` and `perch-hunter`
+`creatures.brains` accepts `pursue`, `skirmisher`, `guardian`, `perch-hunter` and `script`
 policies. The three native families use the strict schemas in `shardfile/brains`;
 their optional `thinkDivisor` defaults to six and must divide 60. Decisions run at
 that cadence, and the owning body recipe runs once per fixed step. The loader
@@ -308,8 +308,23 @@ brain callback. Native perception, attack tokens, floor/reach, rise/sink,
 perches, projectiles and movement remain explicitly injected trusted recipes;
 missing recipes refuse boot rather than inventing gameplay. Policy contracts,
 actor memory and RNG restore without executing a decision or body callback.
-`pursue` retains its existing platform behavior. `kind: "script"` remains refused
-by the full format until one composed host enforces the shared script quotas.
+`pursue` retains its existing platform behavior. A custom `script` policy declares
+an admitted module in `sim.scripts`, a `thinkDivisor` dividing 60, bounded
+`maxSpeed`, `maxStrafe` and `maxTurnRate`, up to 64 finite parameters, and up to
+32 unique numeric strike events resolving `rows.strikes`. No actor handle is
+accepted from this declaration. The factory derives a trusted `brain:<actorId>`
+alias per spawn and rejects collisions with actor, item and director handles.
+All aliases count toward the one `serverBudget.entities` allowance.
+
+Custom policies and numeric state share one module union and one host: memory,
+fuel, queries, effects, events and quarantine are charged once per fixed tick,
+with independent binding cadences. Brain effects request bounded motion and
+named strikes only; they cannot use the numeric role to write shared state.
+The factory requires injected observation, attack-token and strike recipes;
+missing recipes refuse boot. Its structural numeric-state facade preserves
+quest/item plumbing and snapshots both roles and the one host together.
+Restoration executes no observation or decision; logical migration extracts
+only the explicit numeric role, preserving historical standalone saves.
 
 `audio` retains `cues`, nullable wind `ambience` and `score: "silent" | "default"`.
 Its optional `routing` defaults to an empty ordered array. At most 512 cue rules

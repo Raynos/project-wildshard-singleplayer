@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { ScriptLane } from '@wildshard/engine/script/lane';
+import type { ScriptLanePort } from '@wildshard/engine/script/lane';
 import { LogicalStateSchema, type LogicalState } from './migrations';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -33,7 +33,7 @@ export function logicalStateFromLane(version: number, text: string | null): Logi
     players: saved.world.players.map((player) => ({ actorId: player.actorId, fields: values(fields.player, player.values) })) });
 }
 /** Overlay migrated fields onto a freshly installed lane; new actors and all executable state remain freshly initialized. */
-export function restoreLogicalLane(lane: Pick<ScriptLane, 'world'> | undefined, state: LogicalState): void {
+export function restoreLogicalLane(lane: Pick<ScriptLanePort, 'world'> | undefined, state: LogicalState): void {
   if (lane === undefined) {
     if (state.shared.length > 0 || state.players.some((player) => player.fields.length > 0)) throw new Error('Missing logical state lane');
     return;

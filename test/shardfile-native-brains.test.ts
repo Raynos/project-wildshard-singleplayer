@@ -33,7 +33,7 @@ function recipes(trace: string[]): DeclaredBrainPorts {
     perchHunter: (actor, host) => ({ observe: dt => ({ ...common(host), dt, attackRandom: host.rng.stream('ai'), pickPerch: () => -1, setPerch: () => undefined }), body: body(actor) }),
   };
 }
-it('admits native policy defaults and refuses unknown families, invalid cadence and custom script brains', () => {
+it('admits native policy defaults and refuses unknown families, invalid cadence and undeclared custom modules', () => {
   const s = source(), { thinkDivisor: _cadence, ...crab } = CRAB_BRAIN;
   const parsed = parseShardfile({ ...s, creatures: { brains: [crab], spawns: [] } });
   expect(parsed.creatures.brains[0]?.thinkDivisor).toBe(6);

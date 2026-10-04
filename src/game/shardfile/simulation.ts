@@ -3,7 +3,7 @@ import { buildPlatformSpawns } from '@wildshard/engine/ai/platform';
 import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
 import { fnv1a32 } from '@wildshard/engine/core/rng';
-import { installScriptLane, type ScriptLane } from '@wildshard/engine/script/lane';
+import { installScriptLane, type ScriptLanePort } from '@wildshard/engine/script/lane';
 import type { EffectRules, ScriptEntity } from '@wildshard/engine/script/effects';
 import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
 import { WaterBodies } from '@wildshard/engine/world/water/body';
@@ -16,8 +16,9 @@ import { createQuestScriptPorts, DeclaredQuests, type QuestDataPorts, type Quest
 import { installDeclaredEncounters } from '../shard/declaredEncounters';
 import type { Shardfile } from './schema';
 import { speciesResolver, simStrikes } from './rows';
-import { createShardfileScriptLane } from './scripts';
+import { createShardfileScriptLane, type ShardScriptPorts } from './scripts';
 import { installDeclaredBrains, type DeclaredBrainPorts } from './brainRuntime';
+import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from './scriptComposition';
 
 /** Positive stable actor handle; reordering spawns changes nothing. Hash collisions are refused during composition. */
 export function numericScriptEntityId(id: string): number { return (fnv1a32(id) & 0x7fffffff) || 1; }
@@ -28,13 +29,15 @@ export interface ShardfileSimPorts extends SimHostPorts {
   water?: WaterBodies; colliders?: ReadonlyMap<string, PropColliderPort>;
   /** Trusted native actor recipes; a declaration without its required family port refuses boot. */
   brains?: DeclaredBrainPorts;
+  /** Trusted custom-policy observations and strike execution; aliases and actors belong to this factory. */
+  scriptBrains?: (host: SimHost) => Pick<DeclaredScriptBrainPorts, 'ports'> & Partial<Pick<DeclaredScriptBrainPorts, 'query'>>;
   scriptEntities?: { entities: readonly ScriptEntity[]; actors: ReadonlyMap<number, string> };
   query?: Parameters<typeof createShardfileScriptLane>[2]['query']; navigation?: Parameters<typeof scriptPhysicsQueries>[0]['navigation'];
   restoring?: boolean;
 }
 /** Authoritative handles for UI, quests and the existing client fixed-step driver. */
 export interface ShardfileSimulation {
-  host: SimHost; lane: ScriptLane | undefined; actors: ReadonlyMap<string, number>; quest: DeclaredQuests;
+  host: SimHost; lane: ScriptLanePort | undefined; actors: ReadonlyMap<string, number>; quest: DeclaredQuests;
   encounters: ReturnType<typeof installDeclaredEncounters>; water: WaterBodies; colliders: ReadonlyMap<string, PropColliderPort>; dispose: () => void;
 }
 /** One declared simulation core, used by the normal browser loader and the headless author validator. */
@@ -90,7 +93,13 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       const handle = numericScriptEntityId(id); if (reverse.has(handle)) throw new Error('Script actor handle collision');
       actors.set(id, handle); reverse.set(handle, id);
     }
-    let lane: ScriptLane | undefined;
+    const custom = new Map(shard.creatures.brains.filter((brain) => brain.kind === 'script').map((brain) => [brain.id, brain]));
+    const brainBindings = shard.creatures.spawns.flatMap((spawn) => {
+      const brain = spawn.brain === null ? undefined : custom.get(spawn.brain);
+      return brain === undefined ? [] : [{ actorId: spawn.id, entity: numericScriptEntityId(`brain:${spawn.id}`), brain }];
+    });
+    if (brainBindings.length > 0 && ports.scriptBrains === undefined) throw new Error('Missing custom brain port');
+    let lane: ScriptLanePort | undefined;
     if (shard.sim.scripts.length > 0) {
       const entities = new Map<number, ScriptEntity>();
       for (const [id, handle] of actors) {
@@ -111,11 +120,23 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         } else if (!entities.has(binding.entity)) entities.set(binding.entity, { id: binding.entity, name: `director:${binding.entity}`, position: [0, 0, 0], fields: {}, frozen: false, interactive: true });
         else if (reverse.has(binding.entity)) throw new Error('Actor-free script cannot reuse an actor handle');
       }
-      lane = createShardfileScriptLane({ ...shard, state: { shared: shard.state.shared, player: shard.state.player } }, assets, {
+      const aliases = new Set<number>();
+      for (const binding of brainBindings) {
+        if (entities.has(binding.entity) || aliases.has(binding.entity)) throw new Error('Custom brain alias collision');
+        aliases.add(binding.entity);
+      }
+      if (entities.size + aliases.size > shard.serverBudget.entities) throw new Error('Aggregate script entity allowance');
+      const options: ShardScriptPorts = {
         rules: ports.scriptRules ?? { fields: {}, archetypes: [], events: [...new Set([...hooks.scenes.map((scene) => scene.type), ...shard.items.rows.flatMap((row) => row.hook === null ? [] : [row.hook.event])])], maxEntities: shard.serverBudget.entities },
         entities: [...entities.values()], actors: reverse,
         query: ports.query ?? ((kind, input, entity) => scriptPhysicsQueries({ physics: host.physics, navigation: ports.navigation ?? { closestWalkable: () => null, findPath: () => null }, handle: (owner) => typeof owner === 'string' ? actors.get(owner) : undefined })(kind, input, entity)),
-      });
+      };
+      if (brainBindings.length > 0) {
+        if (ports.scriptBrains === undefined) throw new Error('Missing custom brain port');
+        const trustedBrains = ports.scriptBrains(host);
+        if (typeof trustedBrains.ports.observe !== 'function' || typeof trustedBrains.ports.mayAttack !== 'function' || typeof trustedBrains.ports.strike !== 'function') throw new Error('Missing custom brain observation or strike recipe');
+        lane = createShardfileComposedLane(shard, assets, options, { ...trustedBrains, query: trustedBrains.query ?? options.query, actors: host.entities, bindings: brainBindings });
+      } else lane = createShardfileScriptLane(shard, assets, options);
       installScriptLane(host, 'script.declared', lane);
     }
     if (shard.targets.panels.length > 0) {
@@ -132,7 +153,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const quest = new DeclaredQuests(host, shard.quests, { ...ports.quest,
       ...(lane === undefined ? {} : { script: createQuestScriptPorts(lane, hooks, actors) }),
     });
-    installDeclaredBrains(host, shard.creatures.spawns, shard.creatures.brains, ports.brains);
+    installDeclaredBrains(host, shard.creatures.spawns.filter((spawn) => spawn.brain === null || !custom.has(spawn.brain)), shard.creatures.brains.filter((brain) => brain.kind !== 'script'), ports.brains);
     const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud);
     if (!host.embedded && !ports.restoring) host.physics.step();
     return { host, lane, actors, quest, encounters, water, colliders, dispose: () => { host.dispose(); } };
