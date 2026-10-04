@@ -4,13 +4,12 @@
  * on short posts. The rail is where the grid's closed rim walls stand (`session.ts` `rimEdges`), so the wall you bump is
  * the rail you see.
  *
- * Cheap by construction: the floor is one square annulus (8 triangles) with a grid shader (no textures, no lights, no fog),
- * the rail one mesh of four beams, the posts one instanced mesh. Lines are anti-aliased with screen derivatives and fade
+ * Cheap by construction: the floor is one square annulus (8 triangles) with a grid shader (no textures, no lights, no fog);
+ * the rail and posts are part of the road system's one solid material (`roadSolid.ts`). Lines are anti-aliased with screen derivatives and fade
  * as they shrink under a pixel, so the horizon stays clean instead of shimmering.
  */
-import {
-  BoxGeometry, BufferAttribute, BufferGeometry, Color, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshLambertMaterial, type Object3D, ShaderMaterial,
-} from 'three';
+import { BufferAttribute, BufferGeometry, Color, Group, Mesh, type Object3D, ShaderMaterial } from 'three';
+import { uniformPart, type SolidPart } from './roadSolid';
 import type { GridCell } from './assembly';
 import type { LookScope, RailBox } from './roadLayout';
 
@@ -18,7 +17,7 @@ import type { LookScope, RailBox } from './roadLayout';
 const REACH = 6000;
 /** The floor sits a hair above road level so it covers the outer strip beyond the rail. */
 const FLOOR_Y = 0.04;
-const RAIL_Y = 0.95, POST_STEP = 6;
+const RAIL_Y = 0.95, POST_STEP = 6, RAIL_PIECE = 50;
 const CYAN = new Color(0x38e6ff);
 
 const vertex = /* glsl */ `
@@ -77,8 +76,37 @@ function floorGeometry(box: RailBox, home: GridCell): BufferGeometry {
 /** The readout. */
 export interface VoidLookState { readonly rail: RailBox; readonly posts: number }
 
-/** Draw the void and its rail; everything is disposed with the scope. */
-export function installVoidLook(input: { readonly rail: RailBox; readonly home: GridCell; readonly scene: Object3D; readonly scope: LookScope }): VoidLookState {
+/** A box builder for the rail and posts (sides and top, outward normals, vertex colours). */
+class SolidMesher {
+  private readonly p: number[] = []; private readonly n: number[] = []; private readonly c: number[] = []; private readonly i: number[] = [];
+  private quad(corners: readonly (readonly [number, number, number])[], normal: readonly [number, number, number], colour: Color): void {
+    const base = this.p.length / 3;
+    for (const [x, y, z] of corners) { this.p.push(x, y, z); this.n.push(...normal); this.c.push(colour.r, colour.g, colour.b); }
+    // wind so the face looks along its normal
+    const [a, b, c] = corners, e = (k: number, o: number): number => (corners[k]?.[o] ?? 0) - (a?.[o] ?? 0);
+    const cx = e(1, 1) * e(2, 2) - e(1, 2) * e(2, 1), cy = e(1, 2) * e(2, 0) - e(1, 0) * e(2, 2), cz = e(1, 0) * e(2, 1) - e(1, 1) * e(2, 0);
+    if (b === undefined || c === undefined || cx * normal[0] + cy * normal[1] + cz * normal[2] >= 0) this.i.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    else this.i.push(base, base + 2, base + 1, base, base + 3, base + 2);
+  }
+  beam(a: { x: number; z: number }, b: { x: number; z: number }, y0: number, width: number, height: number, colour: Color): void {
+    const dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz); if (len < 1e-4) return;
+    const ux = dx / len, uz = dz / len, ox = -uz * width / 2, oz = ux * width / 2, y1 = y0 + height;
+    const A = [a.x - ox, a.z - oz] as const, B = [b.x - ox, b.z - oz] as const, C = [b.x + ox, b.z + oz] as const, D = [a.x + ox, a.z + oz] as const;
+    this.quad([[A[0], y1, A[1]], [B[0], y1, B[1]], [C[0], y1, C[1]], [D[0], y1, D[1]]], [0, 1, 0], colour);
+    const side = (p: readonly [number, number], q: readonly [number, number], nx: number, nz: number): void => { this.quad([[p[0], y0, p[1]], [q[0], y0, q[1]], [q[0], y1, q[1]], [p[0], y1, p[1]]], [nx, 0, nz], colour); };
+    side(D, C, -uz, ux); side(B, A, uz, -ux); side(A, D, -ux, -uz); side(C, B, ux, uz);
+  }
+  part(): { positions: Float32Array; normals: Float32Array; colours: Float32Array; uvs: Float32Array; indices: Uint32Array } {
+    return { positions: new Float32Array(this.p), normals: new Float32Array(this.n), colours: new Float32Array(this.c), uvs: new Float32Array((this.p.length / 3) * 2), indices: new Uint32Array(this.i) };
+  }
+}
+
+/**
+ * Draw the void and its rail; everything is disposed with the scope. The floor is its own always-drawn mesh; the rail
+ * (unlit cyan, in ≤ 50 m beams so the per-view cull can drop what is out of view) and its posts go to `solid`, the road
+ * system's one solid material (SF17b per-view budget).
+ */
+export function installVoidLook(input: { readonly rail: RailBox; readonly home: GridCell; readonly scene: Object3D; readonly scope: LookScope; readonly solid: (part: SolidPart) => void }): VoidLookState {
   const { rail: box, home, scene, scope } = input, group = new Group();
   group.name = 'grid-void';
   const x0 = box.minX - home.origin.x, x1 = box.maxX - home.origin.x, z0 = box.minZ - home.origin.z, z1 = box.maxZ - home.origin.z;
@@ -89,31 +117,25 @@ export function installVoidLook(input: { readonly rail: RailBox; readonly home: 
   floorMaterial.name = 'grid-void-floor';
   const floor = new Mesh(floorGeometry(box, home), floorMaterial);
   floor.name = 'grid-void-floor'; floor.frustumCulled = false;
-  // the rail: four thin beams; unlit, past tone mapping, so it glows the HUD's cyan
-  const beam = new BoxGeometry(1, 0.07, 0.07), railMaterial = new MeshBasicMaterial({ color: CYAN.clone().multiplyScalar(1.6), toneMapped: false });
+  floor.castShadow = false; floor.receiveShadow = false; floor.matrixAutoUpdate = false; floor.updateMatrix(); group.add(floor);
+  // the rail: thin beams along the four sides (unlit, the HUD's cyan); short dark posts carry it
   const sides: readonly [number, number, number, number][] = [[x0, z0, x1, z0], [x1, z0, x1, z1], [x1, z1, x0, z1], [x0, z1, x0, z0]];
-  const rail = new InstancedMesh(beam, railMaterial, 4), m = new Matrix4(), scale = new Matrix4();
-  sides.forEach(([ax, az, bx, bz], k) => {
-    const len = Math.hypot(bx - ax, bz - az) + 0.07;
-    m.makeRotationY(-Math.atan2(bz - az, bx - ax)).setPosition((ax + bx) / 2, RAIL_Y, (az + bz) / 2);
-    rail.setMatrixAt(k, m.multiply(scale.makeScale(len, 1, 1)));
-  });
-  rail.name = 'grid-void-rail'; rail.frustumCulled = false;
-  // short dark posts carry it
-  const perSide = sides.map(([ax, az, bx, bz]) => Math.max(1, Math.floor(Math.hypot(bx - ax, bz - az) / POST_STEP)));
-  const posts = new InstancedMesh(new BoxGeometry(0.08, RAIL_Y, 0.08), new MeshLambertMaterial({ color: 0x2b3036 }), perSide.reduce((a, b) => a + b, 0));
-  let k = 0;
-  sides.forEach(([ax, az, bx, bz], side) => {
-    const n = perSide[side] ?? 1;
-    for (let i = 0; i < n; i++) { const t = i / n; posts.setMatrixAt(k++, m.makeTranslation(ax + (bx - ax) * t, RAIL_Y / 2, az + (bz - az) * t)); }
-  });
-  posts.name = 'grid-void-posts'; posts.frustumCulled = false;
-  const meshes: Mesh[] = [floor, rail, posts];
-  for (const mesh of meshes) { mesh.castShadow = false; mesh.receiveShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); group.add(mesh); }
+  const rail = new SolidMesher(), posts = new SolidMesher(), cyan = CYAN.clone().multiplyScalar(1.6), dark = new Color(0x2b3036);
+  let count = 0;
+  for (const [ax, az, bx, bz] of sides) {
+    const len = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / len, uz = (bz - az) / len, pieces = Math.max(1, Math.ceil(len / RAIL_PIECE));
+    for (let i = 0; i < pieces; i++) {
+      const s0 = i === 0 ? -0.035 : len * i / pieces, s1 = i === pieces - 1 ? len + 0.035 : len * (i + 1) / pieces;
+      rail.beam({ x: ax + ux * s0, z: az + uz * s0 }, { x: ax + ux * s1, z: az + uz * s1 }, RAIL_Y - 0.035, 0.07, 0.07, cyan);
+    }
+    const n = Math.max(1, Math.floor(len / POST_STEP));
+    for (let i = 0; i < n; i++) {
+      const t = i / n, px = ax + (bx - ax) * t, pz = az + (bz - az) * t;
+      posts.beam({ x: px - ux * 0.04, z: pz - uz * 0.04 }, { x: px + ux * 0.04, z: pz + uz * 0.04 }, 0, 0.08, RAIL_Y, dark); count++;
+    }
+  }
+  input.solid(uniformPart(rail.part(), 'white', true)); input.solid(uniformPart(posts.part(), 'white'));
   scene.add(group);
-  scope.onDispose(() => {
-    group.removeFromParent();
-    for (const mesh of meshes) { mesh.geometry.dispose(); const material = mesh.material; for (const mat of Array.isArray(material) ? material : [material]) mat.dispose(); }
-  });
-  return { rail: box, posts: k };
+  scope.onDispose(() => { group.removeFromParent(); floor.geometry.dispose(); floorMaterial.dispose(); });
+  return { rail: box, posts: count };
 }

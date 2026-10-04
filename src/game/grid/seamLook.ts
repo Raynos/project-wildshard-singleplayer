@@ -3,8 +3,9 @@
  * generated deck and seams wear. The generator (`@wildshard/engine/sim/strips`) returns ONE triangle mesh per strip, the
  * same triangles the world collides with, plus ordered feature ranges naming what each run of triangles is (the deck, the
  * neutral buffer, the gradient, a retaining wall, a cliff and its talus, a parapet, Driftwood's dike, a culvert, the road
- * wall and its rail). This look never rebuilds that geometry: it copies the vertices once into the home frame, sorts the
- * index ranges by material and draws each material as one geometry group, so the whole platform is a handful of draws.
+ * wall and its rail). This look never rebuilds that geometry: it copies the vertices once into the home frame and sorts the
+ * index ranges by material; `seamSolid` hands every opaque material to the road system's one solid material
+ * (`roadSolid.ts`, the old texture as a grain layer) and the curtain to its own mesh, so the whole platform is two draws.
  *
  * - **ground** (deck, neutral buffer, gradient, the quarter-metre overlap, turn-ins): the generator's vertex colours, the
  *   neutral platform grey easing into each shard's own edge colour, under a fine gravel grain.
@@ -15,11 +16,9 @@
  * - **curtain** (the road wall at an edge that can't blend, G99 / G101): a faint cyan grid, unlit and additive, no glass.
  * - **rail** (its top bar): the thin glowing cyan rail, unlit, past tone mapping like the void's rail (G89).
  */
-import {
-  AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, LinearMipmapLinearFilter, type Material, Mesh, MeshBasicMaterial,
-  MeshLambertMaterial, RepeatWrapping, SRGBColorSpace, ShaderMaterial,
-} from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, ShaderMaterial } from 'three';
 import { GAP_HALF } from './roadLayout';
+import { linear, splitByKey, tintedPart, uniformPart, type GrainLayer, type SolidPart } from './roadSolid';
 
 /** The material a feature kind wears. */
 export type SeamBucket = 'ground' | 'stone' | 'rock' | 'dike' | 'curtain' | 'rail';
@@ -151,15 +150,8 @@ function rockColours(positions: Float32Array, colours: Float32Array, bucketOf: I
 
 /** A deterministic hash in [0, 1) (the look is identical every run). */
 function hash(n: number): number { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
-function canvasTexture(size: number, paint: (g: CanvasRenderingContext2D, size: number) => void): CanvasTexture {
-  const el = document.createElement('canvas'); el.width = size; el.height = size;
-  const g = el.getContext('2d'); if (g === null) throw new Error('No 2D canvas for the seam look');
-  paint(g, size);
-  const t = new CanvasTexture(el); t.colorSpace = SRGBColorSpace; t.anisotropy = 8; t.minFilter = LinearMipmapLinearFilter; t.wrapS = RepeatWrapping; t.wrapT = RepeatWrapping;
-  return t;
-}
 /** Light grain over white, so the vertex colour (the shard's edge colour) keeps its value. */
-function gravel(g: CanvasRenderingContext2D, s: number): void {
+export function gravel(g: CanvasRenderingContext2D, s: number): void {
   g.fillStyle = '#ececec'; g.fillRect(0, 0, s, s);
   for (let k = 0; k < s * s / 10; k++) {
     const r = hash(k * 1.7), l = Math.round(200 + r * 55), x = hash(k * 3.3) * s, y = hash(k * 5.9) * s;
@@ -167,7 +159,7 @@ function gravel(g: CanvasRenderingContext2D, s: number): void {
   }
 }
 /** Dressed stone courses: offset blocks with dark mortar (2.4 m per tile: four courses). */
-function stone(g: CanvasRenderingContext2D, s: number): void {
+export function stone(g: CanvasRenderingContext2D, s: number): void {
   g.fillStyle = '#5c5a55'; g.fillRect(0, 0, s, s);
   const rows = 4, h = s / rows;
   for (let r = 0; r < rows; r++) {
@@ -181,13 +173,13 @@ function stone(g: CanvasRenderingContext2D, s: number): void {
   }
 }
 /** Rock strata: soft horizontal bands with cracks, near white so the shard's colour leads. */
-function strata(g: CanvasRenderingContext2D, s: number): void {
+export function strata(g: CanvasRenderingContext2D, s: number): void {
   for (let y = 0; y < s; y++) { const l = Math.round(170 + 50 * hash(Math.floor(y / 6)) + 25 * Math.sin(y * 0.09)); g.fillStyle = `rgb(${String(l)},${String(l)},${String(l)})`; g.fillRect(0, y, s, 1); }
   g.strokeStyle = 'rgba(40,36,32,0.35)'; g.lineWidth = 2;
   for (let k = 0; k < 18; k++) { let x = hash(k * 13) * s, y = hash(k * 17) * s; g.beginPath(); g.moveTo(x, y); for (let j = 0; j < 5; j++) { x += (hash(k * 5 + j) - 0.5) * 30; y += 12 + hash(k + j * 3) * 20; g.lineTo(x, y); } g.stroke(); }
 }
 /** The dike's revetment: rounded rip-rap boulders packed in dark joints. */
-function riprap(g: CanvasRenderingContext2D, s: number): void {
+export function riprap(g: CanvasRenderingContext2D, s: number): void {
   g.fillStyle = '#3b3833'; g.fillRect(0, 0, s, s);
   for (let k = 0; k < 70; k++) {
     const x = hash(k * 2.1) * s, y = hash(k * 4.7) * s, r = s * (0.05 + hash(k * 8.3) * 0.05), l = Math.round(120 + hash(k * 6.1) * 60);
@@ -217,31 +209,37 @@ void main() {
   gl_FragColor = vec4(uLine * (0.05 + line * 0.55) * rise * fade, 1.0);
 }`;
 
-/** The materials, in `SEAM_BUCKETS` order (a geometry group's material index is its bucket's index). */
-function seamMaterials(home: { readonly origin: { readonly x: number; readonly z: number } }): Material[] {
-  const tex = (paint: (g: CanvasRenderingContext2D, s: number) => void, size = 256): CanvasTexture => canvasTexture(size, paint);
-  const curtain = new ShaderMaterial({ vertexShader: curtainVertex, fragmentShader: curtainFragment, uniforms: { uLine: { value: CYAN.clone() }, uOrigin: { value: [home.origin.x, home.origin.z] } },
-    transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide, fog: false, lights: false });
-  curtain.name = 'grid-seam-curtain';
-  const byBucket: Readonly<Record<SeamBucket, Material>> = {
-    ground: new MeshLambertMaterial({ vertexColors: true, map: tex(gravel) }),
-    stone: new MeshLambertMaterial({ color: 0xc9c4b8, map: tex(stone) }),
-    rock: new MeshLambertMaterial({ vertexColors: true, map: tex(strata) }),
-    dike: new MeshLambertMaterial({ color: 0xe0dcd2, map: tex(riprap) }),
-    rail: new MeshBasicMaterial({ color: CYAN.clone().multiplyScalar(1.6), toneMapped: false }),
-    curtain,
-  };
-  for (const [name, material] of Object.entries(byBucket)) if (material.name === '') material.name = `grid-seam-${name}`;
-  return SEAM_BUCKETS.map((b) => byBucket[b]);
+/** The seam's old material colours that multiplied their maps (now baked into the solid part's vertex colours). */
+const STONE = 0xc9c4b8, DIKE = 0xe0dcd2;
+const LAYER_OF: Readonly<Record<Exclude<SeamBucket, 'curtain'>, GrainLayer>> = { ground: 'gravel', stone: 'stone', rock: 'strata', dike: 'riprap', rail: 'white' };
+
+/**
+ * The seams for the one solid road material (SF17b per-view budget): ground, stone, rock, dike and rail become solid parts
+ * (their own vertices, the old material colour or the generator's, the old texture as a grain layer, the rail unlit), and
+ * the additive curtain its own small geometry. The triangles are exactly `seamLookGeometry`'s.
+ */
+export function seamSolid(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { parts: SolidPart[]; curtain: BufferGeometry; state: SeamLookState } {
+  const { geometry, state } = seamLookGeometry(pieces, home, surfaces, pitch), bucketOfTriangle = new Int8Array((geometry.getIndex()?.count ?? 0) / 3).fill(-1);
+  for (const g of geometry.groups) bucketOfTriangle.fill(g.materialIndex ?? 0, g.start / 3, (g.start + g.count) / 3);
+  const split = splitByKey(geometry, (t) => bucketOfTriangle[t] ?? 0, SEAM_BUCKETS.length), parts: SolidPart[] = [];
+  let curtain = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(0), 3)).setIndex(new BufferAttribute(new Uint32Array(0), 1));
+  SEAM_BUCKETS.forEach((bucket, k) => {
+    const part = split[k]; if (part === undefined || part.indices.length === 0) return;
+    if (bucket === 'curtain') {
+      curtain = new BufferGeometry().setAttribute('position', new BufferAttribute(part.positions, 3)).setIndex(new BufferAttribute(part.indices, 1));
+      curtain.computeBoundingSphere(); return;
+    }
+    const layered = uniformPart(part, LAYER_OF[bucket], bucket === 'rail');
+    parts.push(bucket === 'stone' ? tintedPart(layered, linear(STONE)) : bucket === 'dike' ? tintedPart(layered, linear(DIKE)) : bucket === 'rail' ? tintedPart(layered, CYAN.clone().multiplyScalar(1.6)) : layered);
+  });
+  geometry.dispose();
+  return { parts, curtain, state };
 }
 
-/** The deck and seams as one mesh in the home frame: one draw per material present. Dispose with the returned function. */
-export function seamMesh(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { mesh: Mesh; state: SeamLookState; dispose: () => void } {
-  const { geometry, state } = seamLookGeometry(pieces, home, surfaces, pitch), materials = seamMaterials(home);
-  const mesh = new Mesh(geometry, materials);
-  mesh.name = 'grid-deck'; mesh.receiveShadow = true; mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
-  return { mesh, state, dispose: () => {
-    geometry.dispose();
-    for (const material of materials) { if (material instanceof MeshLambertMaterial) material.map?.dispose(); material.dispose(); }
-  } };
+/** The additive curtain material (G99 / G101), drawn in one pass (additive needs no back-then-front order). */
+export function curtainMaterial(home: { readonly origin: { readonly x: number; readonly z: number } }): ShaderMaterial {
+  const curtain = new ShaderMaterial({ vertexShader: curtainVertex, fragmentShader: curtainFragment, uniforms: { uLine: { value: CYAN.clone() }, uOrigin: { value: [home.origin.x, home.origin.z] } },
+    transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide, fog: false, lights: false });
+  curtain.name = 'grid-seam-curtain'; curtain.forceSinglePass = true;
+  return curtain;
 }

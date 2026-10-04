@@ -2,16 +2,17 @@
  * The boulevard's look (SHARD-PLATFORM SF17b look, G80 / G81 / G93): the asphalt the deck's road band wears, its
  * markings, kerbs, turn-ins, roundabouts, streetlights and green distance signs, drawn over the generator's deck in the
  * home frame. A handful of draws for the whole grid: one asphalt mesh (one canvas texture), one junction mesh (one
- * canvas), one kerb / island mesh (vertex colours), two instanced meshes for the streetlights and one sign mesh (one
- * canvas atlas). No shadow casters (the 80 m rule) and no colliders: the deck's own trimesh stays the ground.
+ * canvas), one sign mesh (one canvas atlas); the kerbs, islands and
+ * streetlights join the road system's one solid material (`roadSolid.ts`). No shadow casters (the 80 m rule) and no colliders: the deck's own trimesh stays the ground.
  *
  * The layout is `roadLayout.ts`; sign text comes from the catalogue's slugs through the shard registry.
  */
 import {
-  BufferAttribute, BufferGeometry, CanvasTexture, Color, DynamicDrawUsage, Group, InstancedMesh, LinearMipmapLinearFilter, Matrix4, Mesh, MeshBasicMaterial,
+  BufferAttribute, BufferGeometry, CanvasTexture, Color, Group, LinearMipmapLinearFilter, Matrix4, Mesh,
   MeshLambertMaterial, type Object3D, Quaternion, RepeatWrapping, SRGBColorSpace, Vector3,
 } from 'three';
 import type { GridCell } from './assembly';
+import { uniformPart, type SolidPart } from './roadSolid';
 import {
   ENTRY_ASPHALT, GAP_HALF, RING_ISLAND, RING_OUTER, ROAD_HALF, SEGMENT_HALF, TURN_IN_HALF, segmentPoint,
   type ArmSide, type LookScope, type RoadJunction, type RoadLayout, type RoadSign, type SignLine,
@@ -25,6 +26,10 @@ export interface RoadLookInput {
   readonly scope: LookScope;
   /** SF19a: tag a mesh as highway (its grade is the neutral road grade, G75) */
   readonly tag?: (mesh: Mesh) => void;
+  /** the road system's one solid material takes the kerbs, islands and streetlights (SF17b per-view budget) */
+  readonly solid: (part: SolidPart) => void;
+  /** the per-view cull for each textured mesh (`roadCull.ts`) */
+  readonly cull?: (mesh: Mesh) => void;
 }
 /** The readout (tests, the board). */
 export interface RoadLookState { readonly segments: number; readonly junctions: number; readonly roundabouts: number; readonly signs: number; readonly lights: number; readonly draws: number }
@@ -48,6 +53,10 @@ class Mesher {
   }
   /** A quad a-b-c-d in order round its edge (either way round). */
   quad(a: number, b: number, c: number, d: number): void { this.tri(a, b, c); this.tri(a, c, d); }
+  /** The triangles as a solid part's arrays (vertex colours, uv, no layer yet). */
+  part(): { positions: Float32Array; normals: Float32Array; colours: Float32Array; uvs: Float32Array; indices: Uint32Array } {
+    return { positions: new Float32Array(this.p), normals: new Float32Array(this.n), colours: new Float32Array(this.c), uvs: new Float32Array(this.uv), indices: new Uint32Array(this.i) };
+  }
   geometry(colours = false): BufferGeometry {
     const g = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(this.p), 3)).setAttribute('normal', new BufferAttribute(new Float32Array(this.n), 3))
       .setAttribute('uv', new BufferAttribute(new Float32Array(this.uv), 2)).setIndex(new BufferAttribute(new Uint32Array(this.i), 1));
@@ -224,7 +233,7 @@ function quadrants(j: RoadJunction): [1 | -1, 1 | -1, boolean, boolean][] {
 }
 
 /** Kerbs along every segment (open at the turn-ins), round each junction, and the roundabouts' raised islands. */
-function kerbs(layout: RoadLayout, home: GridCell): BufferGeometry {
+function kerbs(layout: RoadLayout, home: GridCell): SolidPart {
   const m = new Mesher(), W = 0.25, H = 0.15, at = (p: { x: number; z: number }): { x: number; z: number } => ({ x: p.x - home.origin.x, z: p.z - home.origin.z });
   const kt = ROAD_HALF + W / 2;
   for (const segment of layout.segments) for (const [cell, t] of [[segment.low, -1], [segment.high, 1]] as const) {
@@ -264,28 +273,33 @@ function kerbs(layout: RoadLayout, home: GridCell): BufferGeometry {
       for (let k = 0; k < rim.length - 1; k++) m.tri(centre, rim[k] ?? centre, rim[k + 1] ?? centre);
     }
   }
-  return m.geometry(true);
+  return uniformPart(m.part(), 'white');
 }
 
-/** Streetlights: an instanced pole + arm and an instanced lamp head. */
-function streetlights(layout: RoadLayout, home: GridCell): { poles: InstancedMesh; heads: InstancedMesh } {
+/** Streetlights: a pole + arm and a lamp head per light, merged into the solid material (the head unlit, as it always was). */
+function streetlights(layout: RoadLayout, home: GridCell): { poles: SolidPart; heads: SolidPart } {
   const pole = new Mesher(), head = new Mesher(), grey = new Color(0x5d6166);
   const HEIGHT = 8.2, REACH = 1.9;
   // a square-section pole (cheap), an arm toward +x, the head under the arm's tip
   pole.beam({ x: -0.07, z: 0 }, { x: 0.07, z: 0 }, 0, 0.14, HEIGHT, grey);
   pole.beam({ x: 0, z: 0 }, { x: REACH, z: 0 }, HEIGHT - 0.12, 0.09, 0.09, grey);
-  head.beam({ x: REACH - 0.45, z: 0 }, { x: REACH + 0.15, z: 0 }, HEIGHT - 0.24, 0.26, 0.14, new Color(1, 1, 1));
-  const poles = new InstancedMesh(pole.geometry(true), new MeshLambertMaterial({ vertexColors: true }), layout.lights.length);
-  const heads = new InstancedMesh(head.geometry(), new MeshBasicMaterial({ color: 0xfff0c8 }), layout.lights.length);
-  const matrix = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), pos = new Vector3(), one = new Vector3(1, 1, 1);
-  layout.lights.forEach((light, k) => {
-    q.setFromAxisAngle(up, Math.atan2(-light.reach.z, light.reach.x));
-    matrix.compose(pos.set(light.at.x - home.origin.x, 0, light.at.z - home.origin.z), q, one);
-    poles.setMatrixAt(k, matrix); heads.setMatrixAt(k, matrix);
-  });
-  for (const mesh of [poles, heads]) { mesh.instanceMatrix.setUsage(DynamicDrawUsage); mesh.instanceMatrix.needsUpdate = true; mesh.computeBoundingSphere(); mesh.castShadow = false; mesh.receiveShadow = false; }
-  poles.name = 'grid-streetlights'; heads.name = 'grid-streetlight-heads';
-  return { poles, heads };
+  head.beam({ x: REACH - 0.45, z: 0 }, { x: REACH + 0.15, z: 0 }, HEIGHT - 0.24, 0.26, 0.14, new Color(0xfff0c8));
+  const place = (template: Mesher, unlit: boolean): SolidPart => {
+    const out = new Mesher(), matrix = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0), pos = new Vector3(), one = new Vector3(1, 1, 1), v = new Vector3(), n = new Vector3();
+    for (const light of layout.lights) {
+      q.setFromAxisAngle(up, Math.atan2(-light.reach.z, light.reach.x));
+      matrix.compose(pos.set(light.at.x - home.origin.x, 0, light.at.z - home.origin.z), q, one);
+      const base = out.p.length / 3;
+      for (let k = 0; k < template.p.length / 3; k++) {
+        v.set(template.p[k * 3] ?? 0, template.p[k * 3 + 1] ?? 0, template.p[k * 3 + 2] ?? 0).applyMatrix4(matrix);
+        n.set(template.n[k * 3] ?? 0, template.n[k * 3 + 1] ?? 0, template.n[k * 3 + 2] ?? 0).applyQuaternion(q);
+        out.p.push(v.x, v.y, v.z); out.n.push(n.x, n.y, n.z); out.uv.push(0, 0); out.c.push(template.c[k * 3] ?? 1, template.c[k * 3 + 1] ?? 1, template.c[k * 3 + 2] ?? 1);
+      }
+      for (const i of template.i) out.i.push(i + base);
+    }
+    return uniformPart(out.part(), 'white', unlit);
+  };
+  return { poles: place(pole, false), heads: place(head, true) };
 }
 
 /** Sign text atlas: one cell per unique line (white on sign green), plus green / grey / white swatches for boards and posts. */
@@ -350,7 +364,11 @@ function signMesh(signs: readonly RoadSign[], home: GridCell): Mesh {
   return mesh;
 }
 
-/** Draw the boulevard; everything is disposed with the scope. */
+/**
+ * Draw the boulevard; everything is disposed with the scope. The asphalt, junctions and signs are three textured meshes (each
+ * handed to `cull`, the per-view budget); the kerbs, islands and streetlights go to `solid`, the road system's one solid
+ * material.
+ */
 export function installRoadLook(input: RoadLookInput): RoadLookState {
   const { layout, home, scene, scope } = input, group = new Group();
   group.name = 'grid-boulevard';
@@ -360,12 +378,11 @@ export function installRoadLook(input: RoadLookInput): RoadLookState {
   };
   const road = overlay(asphalt(layout, home), roadTexture(), 'grid-asphalt');
   const junctions = overlay(junctionAsphalt(layout, home), junctionTexture(), 'grid-junctions');
-  const kerb = new Mesh(kerbs(layout, home), new MeshLambertMaterial({ vertexColors: true }));
-  kerb.name = 'grid-kerbs'; kerb.receiveShadow = true;
-  const { poles, heads } = streetlights(layout, home);
   const signs = signMesh(layout.signs, home);
-  const meshes: Mesh[] = [road, junctions, kerb, poles, heads, signs];
-  for (const mesh of meshes) { mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); input.tag?.(mesh); group.add(mesh); }
+  const { poles, heads } = streetlights(layout, home);
+  for (const part of [kerbs(layout, home), poles, heads]) input.solid(part);
+  const meshes: Mesh[] = [road, junctions, signs];
+  for (const mesh of meshes) { mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); input.tag?.(mesh); group.add(mesh); input.cull?.(mesh); }
   scene.add(group);
   scope.onDispose(() => {
     group.removeFromParent();
