@@ -109,3 +109,49 @@ Every finding, with a stable ID. Status: `fixed` + commit · `rejected` + reason
 | R1-C39 | 1 | C | nit | SF17 | Origin rebasing | fixed (round-1 commit) | §3.3 |
 
 Round 1 (2026-10-04): 103 findings (must-fix 27, should-fix 56, should-add 8, nit 12); 99 fixed, 3 settled by G48, 1 parked.
+
+| R2-A1 | 2 | A | must-fix | SF7b, §5 | SF7b needs the CLI, SDK and grid file before they exist | fixed (round-2 commit) | SF7b layout + grid catalogue; SF8d build integration later |
+| R2-A2 | 2 | A | must-fix | SF15b | Hybrid loader proof needs post-M1 Driftwood | fixed (round-2 commit) | SF15b moved into SF46 (fixture first) |
+| R2-A3 | 2 | A | must-fix | §4.1, SF16 | Template elite and boss unowned | fixed (round-2 commit) | SF13b; §4.1 complete |
+| R2-A4 | 2 | A | should-fix | §3.1, SF11 | Script cross-engine check lost its owner | fixed (round-2 commit) | SF11c conformance gate |
+| R2-A5 | 2 | A | should-fix | SF7c | "0 for the template" not expressible | fixed (round-2 commit) | SF7c data-only schema check; global ratchet stays |
+| R2-A6 | 2 | A | must-fix | SF18a | Collider metadata keyed by per-world handles | fixed (round-2 commit) | SF18a world-scoped metadata + fixture |
+| R2-A7 | 2 | A | should-fix | §3.3, SF14 | No placement instance in fact ids | fixed (round-2 commit) | SF14 placement instance id |
+| R2-A8 | 2 | A | should-fix | §3.2 | Validator counts part of the working set | fixed (round-2 commit) | §3.2 one cost model |
+| R2-A9 | 2 | A | should-fix | SF18d, SF22 | Readiness distance omits transfer time | fixed (round-2 commit) | SF18d formula + critical bundle cap + soft wall |
+| R2-A10 | 2 | A | must-fix | SF50, S5 | Signal Dunes shader fallback breaks grid-ready | fixed (round-2 commit) | SF10a acceptance includes Signal Dunes; SF50 adapter must pass the gate |
+| R2-A11 | 2 | A | should-fix | §3.4, S18 | No Part A upgrade path | fixed (round-2 commit) | §3.4 one-commit bump + manual steps |
+| R2-C1 | 2 | C | must-fix | §4.1, SF7d, SF16 | Template boss, elite, audio unowned before M1 | fixed (round-2 commit) | SF13b, SF29a, SF7f, SF7h; §4.1 complete |
+| R2-C2 | 2 | C | must-fix | SF15b | SF15b on M1 path needs Driftwood | fixed (round-2 commit) | moved into SF46 |
+| R2-C3 | 2 | C | must-fix | SF20a | SF20a deletes the Select a shard path | fixed (round-2 commit) | travel.ts stays for Select a shard and explore |
+| R2-C4 | 2 | C | must-fix | SF22a, §3.2 | Memory measured on the Simulator only, then frozen | fixed (round-2 commit) | SF22a instruments + Jake's physical rig reading before v1 freeze |
+| R2-C5 | 2 | C | must-fix | §5, SF46–48 | Grid-ready not separated from 80/20 | fixed (round-2 commit) | -g / -p split; M2 needs the -g parts |
+| R2-C6 | 2 | C | must-fix | SF18d, SF22 | 30 m/s gates need a vehicle | fixed (round-2 commit) | G60: hoverboard 30 m/s on the highway |
+| R2-C7 | 2 | C | should-fix | §3.3, SF21a | Select a shard "unchanged" exposes Nine Dragon; explore has two homes | fixed (round-2 commit) | §3.3 mode table; Nine Dragon at (+1, −1), Debug toggle |
+| R2-C8 | 2 | C | should-fix | SF21a | iOS memory kill reloads into the grid | fixed (round-2 commit) | SF21a unexpected-end → title |
+| R2-C9 | 2 | C | should-fix | SF3a, SF4a | Template sim invisible to SF3a; SF4a too early | fixed (round-2 commit) | SF3a walks template sim files; SF4a after SF3c |
+| R2-C10 | 2 | C | should-fix | S1, S4, S8 | Stretch goals hold capabilities used today | fixed (round-2 commit) | swim → SF34, stems → SF29, far herd → SF27, crowd → SF25 |
+| R2-C11 | 2 | C | should-fix | SF7a, SF9b | No skinned assets in the format | fixed (round-2 commit) | SF9c |
+| R2-C12 | 2 | C | should-fix | §10, MMO-REQ §5 | Changed answers unmarked | fixed (round-2 commit) | narrowed-by notes; MMO-REQ §5 aligned |
+| R2-C13 | 2 | C | should-fix | SF7b vs SF17a | Grid file read before it exists | fixed (round-2 commit) | SF7b creates the catalogue |
+| R2-C14 | 2 | C | should-fix | §3.3, SF14, SF33 | Template instance saves have no owner | fixed (round-2 commit) | SF33 instance key; SF14 instance id |
+| R2-C15 | 2 | C | should-fix | SF18a, SF20a | Player world and frame across a border unspecified | fixed (round-2 commit) | SF18a names it |
+| R2-C16 | 2 | C | should-fix | §3.3 | EXPERIMENTAL label covers grid only, not shared code | fixed (round-2 commit) | §3.3 + SF18a: grid paths only inside EXPERIMENTAL |
+| R2-C17 | 2 | C | nit | SF24, SF30, SF51, SF26 | "Used today by" wrong in places | fixed (round-2 commit) | corrected |
+| R2-C18 | 2 | C | nit | SF23 | Impostors have no consumer in 3 × 3 | fixed (round-2 commit) | moved to S6b |
+| R2-C19 | 2 | C | nit | §7, Handoff | Stale refs | fixed (round-2 commit) | fixed |
+| R2-C20 | 2 | C | nit | SF22a, SF22 | Measurement is Codex tooling | fixed (round-2 commit) | SF22a X+O |
+| R2-D1 | 2 | D | must-fix | §5, SF7b, SF15b | F1 order needs downstream work | fixed (round-2 commit) | see R2-A1, R2-A2 |
+| R2-D2 | 2 | D | should-fix | SF4c | Full snapshot gate precedes its components | fixed (round-2 commit) | SF4c interface + fixture; SF16a full test |
+| R2-D3 | 2 | D | must-fix | §4.1 | Template slices incomplete (boss, audio, meter, bag) | fixed (round-2 commit) | see R2-C1 |
+| R2-D4 | 2 | D | must-fix | §4.1, SF1d | JumpCourse at y ≈ 3000 violates cell bounds | fixed (round-2 commit) | moved inside the cell |
+| R2-D5 | 2 | D | must-fix | §3.2, SF22a | Admission omits resident allocations | fixed (round-2 commit) | see R2-A8; SF22a fills every category |
+| R2-D6 | 2 | D | must-fix | SF47 | gpuTrace gives counts, not bytes; MiB ratchet | fixed (round-2 commit) | SF47 uses glbytes + native footprint |
+| R2-D7 | 2 | D | must-fix | SF14 | Template instances collide in fact ids | fixed (round-2 commit) | see R2-A7 |
+| R2-D8 | 2 | D | must-fix | SF20a | Deleting travel.ts breaks the single-shard flow | fixed (round-2 commit) | see R2-C3 |
+| R2-D9 | 2 | D | must-fix | SF7c | Checker can't express the done-when | fixed (round-2 commit) | see R2-A5 |
+| R2-D10 | 2 | D | should-fix | SF16, §3.4, MMO-REQ | M1 vs S19 and upgrade contradictions | fixed (round-2 commit) | see R2-A11, R2-C12 |
+| R2-D11 | 2 | D | should-fix | SF34, S4 | Swim classified as new | fixed (round-2 commit) | see R2-C10 |
+| R2-D12 | 2 | D | should-fix | §3.3 | Nine Dragon cell unnamed | fixed (round-2 commit) | see R2-C7 |
+
+Round 2 (2026-10-04): 43 findings (must-fix 19, should-fix 20, nit 4); all fixed. Must-fix fell 27 → 19 (many duplicates across seats), should-fix 56 → 20.

@@ -194,8 +194,8 @@ In order (Jake, E435: package-first; seamless travel designed first):
 
 | Milestone | Exit test |
 |---|---|
-| **The package** | The template boots from its package with no trusted code; a fresh author builds a small shard outside the repo with only the SDK (A0, A6); the template's simulation runs in Node with no renderer |
-| **The crossroads** | A 2 × 2 rig of synthetic tiles built at the caps, four looks, a scripted 30 m/s drive through a 5 Mbit/s link with 3–10 s stalls: ≤ 0.85 GB peak, 95 % of frames ≤ 33.3 ms, no holes or falls, no shader compile at the first crossroads, no tab kill in three runs. The iOS Simulator first, then one physical-iPhone reading by Jake (E435) |
+| **The package** | The template boots from its shardfile with no trusted code and its simulation runs in Node with no renderer (SHARD-PLATFORM M1). A fresh author outside the repo building with only the SDK (A0, A6) is SHARD-PLATFORM's stretch goal S19 |
+| **The crossroads** | SHARD-PLATFORM SF22a's synthetic 2 × 2 rig measured on the Simulator and once on a physical iPhone before the format freezes; then the real grid's crossroads (SF22): ≤ 0.85 GB peak, 95 % of frames ≤ 33.3 ms, no holes or falls, no shader compile at the first crossroads, no tab kill in three runs |
 | **Multiplayer** | Two players in one shard on an authoritative server, from the same package, with the progress ledger |
 | **Upload** | An outside author uploads a validated shard through the ritual and it appears on the grid |
 | **The grid** | 25 shards live, seamless travel over the highway, profiles that travel |
