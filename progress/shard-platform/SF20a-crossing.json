@@ -1,0 +1,41 @@
+{
+  "row": "SF20a",
+  "implementation": ["28999b9fb", "57402ecc5"],
+  "residencyDependency": "d6ca38bb87e77ab68bd0a7821008c95368e7bf46",
+  "checks": {
+    "command": "pnpm exec vitest run test/grid-crossing.test.ts test/grid-wallet.test.ts test/grid-crossing-residency.test.ts test/engine/declared-items.test.ts test/game-travel.test.ts test/engine/instance-saves.test.ts test/ledger.test.ts",
+    "files": 7,
+    "tests": 42,
+    "passed": 42,
+    "strictTypecheck": "pnpm exec tsc --noEmit",
+    "scopedLint": "pnpm exec oxlint test/grid-crossing-residency.test.ts",
+    "integration": {
+      "fixture": "test/grid-crossing-residency.test.ts",
+      "tests": 3,
+      "physics": "Committed Rapier WASM, real SimHost and GridSimulation frames",
+      "proofs": [
+        "Five shard/highway transfers preserve global feet and stable instance saves without navigation.",
+        "Driftwood's 23 coins, five coconuts and boar HP 41 survive unload/reload; Pine's wallet stays empty.",
+        "Only the current simulation steps; frozen neighbour tick and creature HP remain unchanged.",
+        "The readiness fence holds the original motor and exactly one enabled player capsule, then commits the latest pose and yaw.",
+        "Twenty ticks of a blocked source checkpoint preserve the original motor; durability recovery commits once.",
+        "The real declared held weapon stays hidden during five render updates before and five after the physical border transfer."
+      ]
+    }
+  },
+  "floor": {
+    "command": "node scripts/frame-floor.mjs --shards=_template --surface=both --rev=57402ecc5 --device=sf20a-iphone-17-pro",
+    "artifact": "progress/frame-floor/57402ecc5-33513-1791114803978.json",
+    "quiet": "Coordinator held every agent; all samples came after the final machine-wide quiet go. Two earlier overlapping runs were discarded and deleted.",
+    "elapsedSeconds": 61.058,
+    "posesPassed": 4,
+    "desktop": { "medianFps": 59.88, "medianFpsRounded": 60, "p95Ms": 16.7, "workP95MsMax": 1.1, "pass": true, "strictP95Pass": true },
+    "simulator": { "medianFps": 30.303, "medianFpsRounded": 30, "p95Ms": 34, "workP95MsMax": 2, "pass": true, "strictP95Pass": false },
+    "resourcesClosed": true
+  },
+  "limits": [
+    "The integration fixture uses a flat 2400 m test ground; it proves frame/save/stow behavior, not rendered grid traversal performance.",
+    "The floor measures stationary template spawn and reversed spawn on desktop and Mac-backed Simulator Safari; it is not a physical-phone measurement.",
+    "The grid session owner must call crossing.step before GridSimulation.step and bind its admitted local loadout; Select a shard retains the existing fresh-document travel path."
+  ]
+}

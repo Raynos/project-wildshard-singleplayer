@@ -1,0 +1,314 @@
+{
+  "schema": 2,
+  "sha": "57402ecc5fa66eef9bfa50ed92704c994d90eb3b",
+  "runId": "33513-1791114803978",
+  "device": "sf20a-iphone-17-pro",
+  "when": "2026-10-04T11:54:25.028Z",
+  "elapsedSeconds": 61.058,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "_template"
+  ],
+  "surface": "both",
+  "settings": {
+    "tier": "desktop",
+    "fps": "auto"
+  },
+  "complete": true,
+  "pass": true,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on sf20a-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds only live harness pose pins before the byte-identical clean HEAD modules."
+  ],
+  "results": [
+    {
+      "surface": "desktop",
+      "rows": [
+        {
+          "shard": "_template",
+          "complete": true,
+          "pass": true,
+          "seconds": 16.834,
+          "floorMs": 16.7,
+          "metadata": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+            "viewport": [
+              1440,
+              900
+            ],
+            "devicePixelRatio": 2,
+            "renderScale": 2,
+            "canvas": [
+              2880,
+              1800
+            ],
+            "settings": {
+              "tier": "desktop",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "clock": "live",
+            "spawn": {
+              "name": "spawn",
+              "x": 0.000002331184315595286,
+              "y": 1.0072887507194537,
+              "z": 0.00014321444920994963,
+              "yaw": 0,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+          },
+          "cameraSource": "no declared parity cameras; reversed spawn fallback",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.000002331184315595286,
+                "y": 1.0072887507194537,
+                "z": 0.00014321444920994963,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 16.7,
+              "workP95Ms": 1.1,
+              "calls": 64,
+              "triangles": 12177
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.000002331184315595286,
+                "y": 1.0072887507194537,
+                "z": 0.00014321444920994963,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.4,
+              "callbackP99Ms": 18.1,
+              "callbackMaxMs": 18.3,
+              "gameP95Ms": 17.5,
+              "workP95Ms": 1.1,
+              "calls": 71,
+              "triangles": 14993,
+              "position": {
+                "x": 0.000007164588420992962,
+                "y": 1.031988494018151,
+                "z": 0.00023729209260636708
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.000002331184315595286,
+                "y": 1.0072887507194537,
+                "z": 0.00014321444920994963,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 59.88,
+              "p50Ms": 16.7,
+              "p95Ms": 16.7,
+              "p99Ms": 16.8,
+              "maxMs": 16.8,
+              "callbackP95Ms": 17.5,
+              "callbackP99Ms": 18.1,
+              "callbackMaxMs": 18.3,
+              "gameP95Ms": 17.6,
+              "workP95Ms": 1,
+              "calls": 64,
+              "triangles": 12177,
+              "position": {
+                "x": 0.000007164588420992962,
+                "y": 1.031988494018151,
+                "z": 0.00023729209260636708
+              },
+              "contextLost": false,
+              "floorFps": 60,
+              "medianFpsRounded": 60,
+              "strictMs": 16.7,
+              "limitMs": 17.5,
+              "pass": true,
+              "strictP95Pass": true,
+              "strictPass": true,
+              "miss": null
+            }
+          ],
+          "errors": []
+        }
+      ]
+    },
+    {
+      "surface": "sim",
+      "rows": [
+        {
+          "shard": "_template",
+          "complete": true,
+          "pass": true,
+          "seconds": 20.573,
+          "floorMs": 33.3,
+          "metadata": {
+            "renderer": "Apple GPU",
+            "viewport": [
+              402,
+              714
+            ],
+            "devicePixelRatio": 3,
+            "renderScale": 2,
+            "canvas": [
+              804,
+              1428
+            ],
+            "settings": {
+              "tier": "phone",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "clock": "live",
+            "spawn": {
+              "name": "spawn",
+              "x": 0.0000029297320300984697,
+              "y": 1.0059887647876167,
+              "z": 0.0001401805431981984,
+              "yaw": 0,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+          },
+          "cameraSource": "no declared parity cameras; reversed spawn fallback",
+          "scan": [
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.0000029297320300984697,
+                "y": 1.0059887647876167,
+                "z": 0.0001401805431981984,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "p95Ms": 34,
+              "workP95Ms": 2,
+              "calls": 38,
+              "triangles": 11473
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": 0.0000029297320300984697,
+                "y": 1.0059887647876167,
+                "z": 0.0001401805431981984,
+                "yaw": 0,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 34,
+              "callbackP95Ms": 34,
+              "callbackP99Ms": 34,
+              "callbackMaxMs": 40,
+              "gameP95Ms": 34,
+              "workP95Ms": 2,
+              "calls": 48,
+              "triangles": 11857,
+              "position": {
+                "x": 0.000011780813462324707,
+                "y": 1.042988387736841,
+                "z": 0.00027886969667179073
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "spawn-reverse",
+                "x": 0.0000029297320300984697,
+                "y": 1.0059887647876167,
+                "z": 0.0001401805431981984,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 34,
+              "callbackP95Ms": 34,
+              "callbackP99Ms": 35,
+              "callbackMaxMs": 35,
+              "gameP95Ms": 34,
+              "workP95Ms": 2,
+              "calls": 38,
+              "triangles": 11473,
+              "position": {
+                "x": 0.00001153631653117923,
+                "y": 1.0427883889933582,
+                "z": 0.0002782046320533027
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator"
+  }
+}
