@@ -1,5 +1,5 @@
 import type { SaveStore, InstanceSaveKeyDef, InstanceSaveSlot } from '@wildshard/engine/saves/store';
-import catalogue from './grid/singleplayer.json';
+import catalogue from './grid/singleplayer.json' with { type: 'json' };
 
 /** Stable placement identity passed by the session, independent of cell or launch mode. */
 export interface LocalSaveInstance { id: string; shard: string }
