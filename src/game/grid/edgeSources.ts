@@ -15,7 +15,6 @@
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { GridCell } from './assembly';
 import type { GridEdgeObservations, GridEdgeSource } from './edgeProfiles';
-import { gridShardfileProduct } from './products';
 import type { ShardEntryways } from '../shardfile/entryways';
 import { findShard } from '../shard/registry';
 
@@ -58,18 +57,18 @@ function observe(entries: ShardEntryways, water: number | undefined): GridEdgeOb
 
 /** Admitted products and immutable transport can be supplied by the owning composition without replacing modules. */
 export interface GridEdgeReaderPorts {
-  product: (slug: string) => Promise<{ admitted: { source: { edge: Rows; entryways: ShardEntryways } } }> | null;
+  product: (slug: string) => Promise<{ admitted: { source: { edge: Rows; entryways: ShardEntryways } }; release?: () => void }> | null;
   fetch: (url: string) => Promise<Response>;
 }
 
 /** Read one cell's edge source from its shard's own data. */
-export async function readGridEdges(cell: GridCell, ports?: GridEdgeReaderPorts): Promise<GridEdgeSource> {
-  const reader = ports ?? { product: gridShardfileProduct, fetch: (url: string) => fetch(url) };
+export async function readGridEdges(cell: GridCell, reader: GridEdgeReaderPorts): Promise<GridEdgeSource> {
   const manifest = findShard(cell.slug), water = manifest?.minimap?.openWater?.level;
   const product = reader.product(cell.slug);
   if (product !== null) {
-    const source = (await product).admitted.source;
-    return { kind: 'declared', profiles: source.edge, observations: observe(source.entryways, water) };
+    const lease = await product;
+    try { const source = lease.admitted.source; return { kind: 'declared', profiles: structuredClone(source.edge), observations: observe(source.entryways, water) }; }
+    finally { lease.release?.(); }
   }
   const response = await reader.fetch(versionedUrl(`/assets/baked/${cell.slug}/terrain.bin`));
   if (!response.ok) throw new Error(`terrain.bin ${cell.slug}: ${String(response.status)}`);

@@ -69,7 +69,7 @@ function socketHandles(sim: simulation.ShardfileSimulation): number[] {
 
 it('holds a real live crossing on home or region save refusal and reloads the earned quest and coins', async () => {
   const assets = new Map(source.files.map((file) => [file.hash, readFileSync(`src/shards/_template/assets/${file.hash}`)]));
-  vi.spyOn(products, 'gridShardfileProduct').mockReturnValue(Promise.resolve({ admitted: { source, assets, cached: false },
+  vi.spyOn(products, 'gridShardfileProduct').mockReturnValue(Promise.resolve({ admitted: { source, assets, cached: false }, release: () => undefined,
     options: { base: 'https://fixture.invalid/', offline: false, firstParty: true, fetch: () => Promise.reject(new Error('No fixture network')), hash: () => Promise.reject(new Error('Already admitted')) } }));
   const regions: simulation.ShardfileSimulation[] = [], create = simulation.createShardfileSim;
   let pageScope: Scope | undefined;
@@ -177,7 +177,7 @@ it('admits an old-revision region through its logical companion before exposing 
   const nextSource = { ...source, identity: { ...source.identity, revision: source.identity.revision + 1 },
     migrations: parseMigrations([{ from: 1, to: 2, fields: [{ op: 'default', scope: 'shared', field: { id: 303, name: 'checkpoint.added', type: 'f64', value: 0.4 } }] }]),
     state: { ...source.state, version: 2, shared: [...source.state.shared, { id: 303, name: 'checkpoint.added', type: 'f64' as const, privacy: 'public' as const, default: 0.25 }] } };
-  vi.spyOn(products, 'gridShardfileProduct').mockReturnValue(Promise.resolve({ admitted: { source: nextSource, assets, cached: false },
+  vi.spyOn(products, 'gridShardfileProduct').mockReturnValue(Promise.resolve({ admitted: { source: nextSource, assets, cached: false }, release: () => undefined,
     options: { base: 'https://fixture.invalid/', offline: false, firstParty: true, fetch: () => Promise.reject(new Error('No fixture network')), hash: () => Promise.reject(new Error('Already admitted')) } }));
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');

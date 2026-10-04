@@ -4,6 +4,7 @@ import { ProductLeases } from '../src/game/grid/productLeases';
 import { productResidentBytes } from '../src/game/shardfile/productCost';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { CONTENT_CAPS as C } from '../src/engine/core/config';
+import { admitProduct } from '../src/game/shardfile/product';
 
 const source = emptyShardfile({ slug: 'leased-product', name: 'Leased product', author: 'Test', revision: 1, seed: 58 });
 const bytes = productResidentBytes(source);
@@ -65,5 +66,15 @@ describe('grid product leases', () => {
     const loading = cache.acquire('one', async reserve => { reserve(source); await new Promise<void>(resolve => { complete = resolve; }); return 1; });
     await Promise.resolve(); expect(allocator.entries()).toHaveLength(1); cache.dispose(); complete?.();
     await expect(loading).rejects.toThrow('disposed during admission'); expect(allocator.entries()).toHaveLength(0);
+  });
+  it('runs the real product reservation before immutable cache or fetch requests', async () => {
+    const s = structuredClone(source), hash = 'a'.repeat(64); let reads = 0;
+    s.files = [{ hash, kind: 'binary', compressed: 1, decoded: 1, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }]; s.library = [hash];
+    s.budgets.library = { resident: 1, compressed: 1 };
+    await expect(admitProduct(s, { base: 'https://fixture.invalid/', offline: false, firstParty: true,
+      reserve: () => { throw new Error('No residency room'); },
+      fetch: () => { reads++; return Promise.resolve(new Response(new Uint8Array([1]))); }, hash: () => Promise.resolve(hash),
+      cache: { product: () => Promise.resolve(null), asset: () => { reads++; return Promise.resolve(new Uint8Array([1])); }, putAsset: () => Promise.resolve(), putProduct: () => Promise.resolve() },
+    })).rejects.toThrow('No residency room'); expect(reads).toBe(0);
   });
 });

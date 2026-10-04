@@ -28,6 +28,8 @@ export interface ProductOptions {
   fetch: (url: string) => Promise<Response>;
   hash: (bytes: Uint8Array) => Promise<string>;
   versions?: ProductVersions;
+  /** Trusted residency owner reserves parsed source and immutable transport before any asset-cache read or owned copy. */
+  reserve?: (source: Shardfile) => void;
 }
 /** Admitted owned wire bytes; callers release this map when decoded resources take over. */
 export interface AdmittedProduct { source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean; instance?: string }
@@ -76,6 +78,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   preflightAssetGraph(source);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && version(visited.source) === versions.current) assertStateCompatibility(parseStateLineage(visited.source), source);
+  options.reserve?.(source);
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
   for (const { ref, cap } of refs) {
     const hash = ref.replace(/^commons:/u, ''); if (!HASH.test(hash)) throw new Error('Invalid asset address');

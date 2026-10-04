@@ -287,9 +287,11 @@ export class LiveGridSession {
 
   /** Shardfile cells admit a bodyless regional host with their strip duplicates; every other cell waits for M3. */
   private async admit(cell: GridCell): Promise<LiveGridAdmission> {
-    const pending = gridShardfileProduct(cell.slug);
+    const pending = gridShardfileProduct(cell.slug, { allocator: this.ports.allocator, scope: this.ports.scope });
     if (pending === null) throw new Error(`${cell.slug} is not a shardfile shard (it stays a far proxy until M3)`);
-    const { source, assets } = (await pending).admitted;
+    const retained = await pending, { source, assets } = retained.admitted;
+    let releaseProduct = retained.release;
+    try {
     if (source.runtime !== null) throw new Error(`${cell.slug} declares a hybrid runtime (M3)`);
     let durability = this.durability.get(cell.instance);
     if (durability === undefined) {
@@ -297,10 +299,14 @@ export class LiveGridSession {
       this.durability.set(cell.instance, durability);
     }
     const savedRegion = durability, quest = savedRegion.quest;
+    releaseProduct = () => {
+      if (this.durability.get(cell.instance) === savedRegion) this.durability.delete(cell.instance);
+      retained.release();
+    };
     const groundResolution = source.edge.north.heights.length === 256 ? 256 : 257;
     const generatedGroundBytes = source.terrain === null ? 2 * groundResolution ** 2 * Float32Array.BYTES_PER_ELEMENT : 0;
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
-    return { bytes: source.budgets.sim.resident + generatedGroundBytes, reloadsCheckpoint: true, create: (saved) => {
+    return { bytes: source.budgets.sim.resident + generatedGroundBytes, reloadsCheckpoint: true, cancel: releaseProduct, create: (saved) => {
       let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false, quest, groundResolution });
       let releaseBasis: () => void = () => undefined;
       try {
@@ -332,7 +338,7 @@ export class LiveGridSession {
         this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: source.entryways });
         return Promise.resolve({ host: region.host, dispose: () => {
           this.regions.delete(cell.instance); savedRegion.unbind();
-          try { region.dispose(); } finally { releaseBasis(); }
+          try { region.dispose(); } finally { try { releaseBasis(); } finally { releaseProduct(); } }
         } });
       } catch (error) {
         savedRegion.unbind();
@@ -340,6 +346,7 @@ export class LiveGridSession {
         throw error;
       }
     } };
+    } catch (error) { releaseProduct(); throw error; }
   }
 
   /** The fixed-boundary rebind: the page's stepped world, the player's motor and the render origin. */

@@ -51,6 +51,7 @@ import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
 import { gridShardfileProduct } from './products';
+import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
 import type { RoadLookState } from './roadLook';
 import { installPlatformRoad } from './roadLookPlatform';
@@ -192,20 +193,26 @@ export class GridSession {
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
   static async create(host: GridSessionHost): Promise<GridSession> {
+    const allocator = host.residency?.allocator ?? new ResidencyAllocator();
     const assembly = new GridAssembly(gridMode(devserverCellOn())), empty = assembly.emptyNeighbour.edge;
     const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
-      try { return await readGridEdges(cell); } catch (error) {
+      try {
+        const edge = await readGridEdges(cell, { product: slug => gridShardfileProduct(slug, { allocator, scope: host.scope }), fetch: url => fetch(url) });
+        const claim = allocator.reserve({ id: `product:grid:edge:${cell.instance}`, category: 'product', owner: cell.instance, bytes: jsonResidentBytes(edge), distance: 0, needed: true });
+        if (claim === null) throw new Error('Grid edge metadata residency deferred');
+        host.scope.onDispose(() => { claim.release(); }); return edge;
+      } catch (error) {
         console.warn(`[grid] ${cell.instance} edges stay at road level:`, error);
         const closed = { entryWidth: 0 };
         return { kind: 'declared', profiles: { north: empty, east: empty, south: empty, west: empty }, observations: { north: closed, east: closed, south: closed, west: closed } };
       }
     });
-    return new GridSession(host, edges);
+    return new GridSession(host, edges, allocator);
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[]) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator) {
     this.host = host;
-    this.allocator = host.residency?.allocator ?? new ResidencyAllocator();
+    this.allocator = host.residency?.allocator ?? allocator ?? new ResidencyAllocator();
     const instance = pageGridInstance();
     this.assembly = new GridAssembly(gridMode(devserverCellOn()));
     if (instance === null) throw new Error('A grid session needs a grid page');
@@ -310,14 +317,19 @@ export class GridSession {
     const scope = this.host.scope, skins = new Map<string, Promise<ReadonlyMap<string, ClientSkin>>>();
     const shared = new Map<string, Promise<{ source: ClientRingInstance['source']; assets: ClientAssets; views: ClientTileViews; bytes: ReadonlyMap<string, Uint8Array>; compile: (entry: unknown) => Material }>>();
     for (const cell of this.neighbours) {
-      const product = gridShardfileProduct(cell.slug), root = roots.get(cell.instance);
-      if (product === null || root === undefined) continue;
+      const root = roots.get(cell.instance); if (root === undefined) continue;
       let loading = shared.get(cell.slug);
       if (loading === undefined) {
+        const product = gridShardfileProduct(cell.slug, { allocator: this.allocator, scope });
+        if (product === null) continue;
         loading = (async () => {
-          const { admitted, options } = await product, source = admitted.source;
-          const presentation = await clientMaterials(source, admitted.assets, renderer, scope);
-          return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, ...presentation }), bytes: admitted.assets, compile: presentation.compile };
+          const retained = await product, { admitted, options } = retained, source = admitted.source;
+          try {
+            if (scope.disposed) throw new Error('Grid product view disposed during admission');
+            scope.onDispose(retained.release);
+            const presentation = await clientMaterials(source, admitted.assets, renderer, scope);
+            return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, ...presentation }), bytes: admitted.assets, compile: presentation.compile };
+          } catch (error) { retained.release(); throw error; }
         })();
         shared.set(cell.slug, loading);
       }
