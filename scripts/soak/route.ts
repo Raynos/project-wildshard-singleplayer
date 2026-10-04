@@ -5,7 +5,7 @@ interface Gl { readonly totalBytes: number; readonly reconciled: boolean; readon
 interface Sample { readonly type: string; readonly phase: string; readonly elapsed: number; readonly footprint: number; readonly interval?: number; readonly gl?: Gl }
 interface Window { readonly start: number; readonly end: number }
 interface Entry { readonly instance: string; readonly admitted: boolean }
-interface Leak { readonly disposalErrors: readonly string[]; readonly scope: { readonly bodies: number; readonly colliders: number }; readonly before?: { readonly events?: { readonly listeners: number; readonly answerers: number } }; readonly after: { readonly events?: { readonly listeners: number; readonly answerers: number }; readonly bodies: number; readonly colliders: number; readonly [key: string]: unknown } }
+interface Leak { readonly disposalErrors: readonly string[]; readonly scope: { readonly bodies: number; readonly colliders: number; readonly [key: string]: unknown }; readonly before?: { readonly events?: { readonly listeners: number; readonly answerers: number } }; readonly after: { readonly events?: { readonly listeners: number; readonly answerers: number }; readonly bodies: number; readonly colliders: number; readonly [key: string]: unknown } }
 interface Witness { readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly engineBase?: number; readonly rehearsal?: boolean }
 interface Loop { cycle: number; peakBytes: number; troughBytes: number }
 interface Grade { memoryPass: boolean; gatePass: boolean; peakBytes: number; loadingPeakBytes: number; phoneEstimateBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; loops: Loop[]; recovery: boolean; calibration: boolean; ratios: { cycle: number; raw: number; adjusted: number }[]; missingGlSamples: number; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null; rehearsal: boolean }
@@ -86,7 +86,7 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
   const visited = expected.every((id) => entries.some((row) => row.instance === id));
   const zeroCensus = (value: unknown): boolean => typeof value === 'number' ? value <= 0 : value !== null && typeof value === 'object' && Object.values(value).every(zeroCensus);
   const leakZero = leak?.disposalErrors.length === 0
-    && leak.scope.bodies === 0 && leak.scope.colliders === 0 && leak.after.bodies === 0 && leak.after.colliders === 0
+    && zeroCensus(leak.scope) && leak.after.bodies === 0 && leak.after.colliders === 0
     && zeroCensus({ ...leak.after, events: {
       listeners: (leak.after.events?.listeners ?? 0) - (leak.before?.events?.listeners ?? 0),
       answerers: (leak.after.events?.answerers ?? 0) - (leak.before?.events?.answerers ?? 0),
