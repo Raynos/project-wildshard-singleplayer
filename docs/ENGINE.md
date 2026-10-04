@@ -56,7 +56,7 @@ through the vitest-only `#engine-internal/*` alias; `src/` never does.
 | **Behaviour vs tuning** | Behaviour is a class that extends an engine or kit class. Tuning is a typed data row |
 | **Names** | Events, asks, tags, cues, actions and effect ids are dot-case strings: `'damage.dealt'`, `'creature.greyBlob'`, `'cue.sword.hit'`, `'effect.poison'`. Prefix your own with your shard's short name (`template.*`) |
 | **Strict** | Strict TS, type-aware oxlint at zero warnings. No `any`, `!`, `as unknown as` or ts-ignore |
-| **Simulation apart from visuals** | Gameplay state is plain data. `src/engine/{combat,ai,saves,quests,effects}/**` may not import three beyond its math types (`wildshard/sim-no-render`) |
+| **Simulation apart from visuals** | Gameplay state is plain data. `src/engine/{ai,combat,events,quest,saves}/**` (less their `view` parts) may not import three beyond its math types or read the DOM (`wildshard/sim-no-render`; a test keeps every listed folder real) |
 | **Determinism** | Gameplay randomness comes from `app.rng`, time from `app.clock` |
 | **Strings** | Every player-facing line comes from a string table: your `strings.ts`, or `engineString` for the engine's |
 

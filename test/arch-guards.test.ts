@@ -12,7 +12,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
 import { checkShardLayout, checkShards, shardEntries, type ShardLayout } from '../scripts/check-shards.mjs';
 import { genShardWords, shardWordData } from '../scripts/gen-shard-words.mjs';
-import { CAPTURE_SHELL_FILES, TIME_ALLOW } from '../lint/wildshard-plugin.js';
+import { CAPTURE_SHELL_FILES, SIM_DIRS, TIME_ALLOW, VIEW_PATHS } from '../lint/wildshard-plugin.js';
 import { compareEdges, graph, layerOf, reachViolation } from '../scripts/check-graph.mjs';
 import { layoutBlock, withLayout } from '../scripts/gen-shard-layout-doc.mjs';
 
@@ -37,6 +37,10 @@ describe('E405 AG24 no dead exemptions', () => {
     const ratchet = JSON.parse(readFileSync('lint/ratchet.json', 'utf8')) as { allow?: Record<string, Record<string, string>> };
     const allowed = Object.values(ratchet.allow ?? {}).flatMap((paths) => Object.keys(paths));
     const missing = [...Object.keys(TIME_ALLOW), ...CAPTURE_SHELL_FILES, ...allowed].filter((path) => !existsSync(path));
+    expect(missing).toEqual([]);
+  });
+  it('sim-no-render names only engine folders that exist (SHARD-PLATFORM SP1: `quests` and `effects` never did)', () => {
+    const missing = [...SIM_DIRS, ...VIEW_PATHS].map((path) => `src/engine/${path}`).filter((path) => !existsSync(path));
     expect(missing).toEqual([]);
   });
 });

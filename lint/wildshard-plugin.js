@@ -484,8 +484,12 @@ const noRawShaderPatch = rule('Shader patches go through the one registry (E357 
     if (left?.type === 'MemberExpression' && SHADER_HOOKS.has(propName(left) ?? stringOf(left.property) ?? '')) report(context, node, 'Patch shaders with patchShader / setProgramKey (#engine/render/shaderPatches)');
   } };
 });
-const SIM = /^src\/engine\/(?:combat|ai|saves|quests|effects)\//u;
-const VIEW = /^src\/engine\/(?:combat|ai)\/view\//u;
+// The engine folders that hold simulation, and the view parts inside them (SHARD-PLATFORM SP1: the old list named
+// `quests` and `effects`, which never existed, so the quest code went unchecked; a test keeps every entry real).
+export const SIM_DIRS = ['ai', 'combat', 'events', 'quest', 'saves'];
+export const VIEW_PATHS = ['ai/view/', 'combat/view/', 'quest/view/', 'quest/view.ts'];
+const SIM = new RegExp(`^src/engine/(?:${SIM_DIRS.join('|')})/`, 'u');
+const VIEW = new RegExp(`^src/engine/(?:${VIEW_PATHS.map((p) => p.replaceAll('.', '\\.')).join('|')})`, 'u');
 const VISUAL = /^src\/engine\/(?:render|ui|fx|anim)\//u;
 const MATH_TYPES = new Set(['Vector3', 'Quaternion', 'Matrix4', 'Box3', 'Ray']);
 const DOM_GLOBALS = new Set(['document', 'HTMLElement', 'HTMLCanvasElement', 'requestAnimationFrame']);
