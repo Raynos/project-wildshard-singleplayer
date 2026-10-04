@@ -13944,6 +13944,42 @@
         "from": "@wildshard/game/shardfile/groupBrains"
       },
       {
+        "name": "DeclaredGroupPolicy",
+        "kind": "type",
+        "doc": "One group continuation; actor memory, motors and random streams remain with the simulation owner.",
+        "from": "@wildshard/game/shardfile/groupRuntime"
+      },
+      {
+        "name": "DeclaredGroupPorts",
+        "kind": "interface",
+        "doc": "Native recipes for declared groups; no author callback receives the world or chooses an actor binding.",
+        "from": "@wildshard/game/shardfile/groupRuntime"
+      },
+      {
+        "name": "DeclaredHerdRecipe",
+        "kind": "interface",
+        "doc": "Trusted herd perception, taming/contact identities and per-actor steering observations. Recipe construction is pure.",
+        "from": "@wildshard/game/shardfile/groupRuntime"
+      },
+      {
+        "name": "DeclaredPackRecipe",
+        "kind": "interface",
+        "doc": "Trusted pack perception, prey/contact identities and per-actor steering observations. Recipe construction is pure.",
+        "from": "@wildshard/game/shardfile/groupRuntime"
+      },
+      {
+        "name": "prepareDeclaredGroupBrains",
+        "kind": "function",
+        "doc": "Validate every roster and recipe without draws, memory writes or registration. Install after all controller preflight; restore skips setup.",
+        "from": "@wildshard/game/shardfile/groupRuntime"
+      },
+      {
+        "name": "PreparedGroupBrains",
+        "kind": "interface",
+        "doc": "Pure preparation lets a loader preflight its other controllers before initialization and callback registration.",
+        "from": "@wildshard/game/shardfile/groupRuntime"
+      },
+      {
         "name": "HybridCellBinding",
         "kind": "interface",
         "doc": "Interior events for one catalogue resident; another cell never activates its trusted hooks.",

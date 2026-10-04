@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-483 members; 113 without a doc line (—).
+489 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -349,6 +349,12 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardGroupBrain` | type | @wildshard/game/shardfile/groupBrains | A pack or herd group controller; an actor may belong to exactly one controller. |
 | `ShardHerdGroup` | type | @wildshard/game/shardfile/groupBrains | Admitted guarded-herd data and explicit roster, independent from native recipes. |
 | `ShardPackGroup` | type | @wildshard/game/shardfile/groupBrains | Admitted circling-pack data and explicit roster, independent from native recipes. |
+| `DeclaredGroupPolicy` | type | @wildshard/game/shardfile/groupRuntime | One group continuation; actor memory, motors and random streams remain with the simulation owner. |
+| `DeclaredGroupPorts` | interface | @wildshard/game/shardfile/groupRuntime | Native recipes for declared groups; no author callback receives the world or chooses an actor binding. |
+| `DeclaredHerdRecipe` | interface | @wildshard/game/shardfile/groupRuntime | Trusted herd perception, taming/contact identities and per-actor steering observations. Recipe construction is pure. |
+| `DeclaredPackRecipe` | interface | @wildshard/game/shardfile/groupRuntime | Trusted pack perception, prey/contact identities and per-actor steering observations. Recipe construction is pure. |
+| `prepareDeclaredGroupBrains` | function | @wildshard/game/shardfile/groupRuntime | Validate every roster and recipe without draws, memory writes or registration. Install after all controller preflight; restore skips setup. |
+| `PreparedGroupBrains` | interface | @wildshard/game/shardfile/groupRuntime | Pure preparation lets a loader preflight its other controllers before initialization and callback registration. |
 | `HybridCellBinding` | interface | @wildshard/game/shardfile/hybrid | Interior events for one catalogue resident; another cell never activates its trusted hooks. |
 | `hybridInstallation` | function | @wildshard/game/shardfile/hybrid | Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations. |
 | `HybridResident` | interface | @wildshard/game/shardfile/hybrid | A resident's data world stays alive when its independently scoped trusted play hooks leave. |
