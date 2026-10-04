@@ -105,7 +105,19 @@
         "colliders": 0
       }
     },
-    "defaultOffComparison": "TOP priority after coordinator quiet window: d143452b1 vs origin HEAD, both tiers and unload; pending"
+    "defaultOffComparison": {
+      "artifact": "SF46-shipped-off-parity.json",
+      "parent": "d143452b19bc06348bc1fafeff8b528a3ba1bb86",
+      "current": "659066b1dc449cdedd1c281236909d66bf8ab8ca",
+      "verdict": "red",
+      "visuals": 6,
+      "visualsPass": 6,
+      "minimumSsim": 0.9901372952294992,
+      "unloadErrors": 0,
+      "remainingBodies": 0,
+      "remainingColliders": 0,
+      "followup": "SF30 legacy bridge restore8d6b4f91c and OFF bypass; fresh comparison pending"
+    }
   },
   "floor": "pending serialized window",
   "fullGateAndOriginPush": {
@@ -164,5 +176,20 @@
     "trueOnlyAfterPlayResolves": true,
     "cancelledLateHooksCannotChangeNextReadiness": true,
     "moduleAdmissionSeparateFromGameplay": true
+  },
+  "liveReadinessIntegration": {
+    "commit": "44b0b0f47",
+    "driver": "ae651fa76",
+    "command": "pnpm exec vitest run test/hybrid-live-grid.test.ts test/hybrid-runtime.test.ts test/shards/driftwood-isle/hybrid.test.ts",
+    "files": 3,
+    "tests": 15,
+    "pass": true,
+    "moduleAdmissionRunsNoHooks": true,
+    "stripFrameCommitBeforeInterior": true,
+    "regionalTicksBeforeReady": 0,
+    "regionalTicksAfterReady": 30,
+    "regionalTicksAfterLeave": 30,
+    "physicalPlayerControllers": 1,
+    "actualClientInputFreeze": "caller wiring belongs to grid-client2; fixture proves regional freeze and readiness callback"
   }
 }
