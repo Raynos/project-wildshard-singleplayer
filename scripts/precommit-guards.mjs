@@ -1,12 +1,13 @@
 // E362 AG20: inspect the commit's index tree, never the shared working copy.
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { pathToFileURL } from 'node:url';
 import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { checkShardLayout, shardEntries } from './check-shards.mjs';
+import { checkPlatformRatchets, PLATFORM_LISTS } from './check-platform-ratchets.mjs';
 import { guardSnapshot } from './guard-snapshot.mjs';
 
 const run = (cwd, command, args, options = {}) => {
@@ -25,13 +26,18 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
   const changed = run(root, 'git', ['diff', '--cached', '--name-only', '--diff-filter=ACMRD', '-z']).split('\0').filter(Boolean);
   const paths = changed.filter((p) => /^src\/.*\.[jt]s$/u.test(p) && !p.endsWith('.generated.ts'));
   const slugs = new Set(changed.flatMap((p) => /^src\/shards\/([^/]+)\//u.exec(p)?.[1] ?? []));
-  if (paths.length === 0 && slugs.size === 0) return;
+  const platform = changed.some((p) => PLATFORM_LISTS.includes(p));
+  if (paths.length === 0 && slugs.size === 0 && !platform) return;
   // macOS /var aliases /private/var; oxlint override globs must share the canonical cwd/config path.
   const scratch = realpathSync(mkdtempSync(join(tmpdir(), 'wildshard-precommit-')));
   try {
     // write-tree observes Git's pathspec temporary index too. Exporting it prevents dependency reads from WIP.
     const tree = run(root, 'git', ['write-tree']).trim();
     const manifest = changed.some((p) => /^src\/shards\/[^/]+\/manifest\.ts$/u.test(p));
+    const predecessor = join(scratch, 'predecessor');
+    mkdirSync(predecessor);
+    const lists = run(root, 'git', ['archive', 'HEAD', '--', ...PLATFORM_LISTS], { encoding: 'buffer' });
+    run(root, 'tar', ['-xf', '-', '-C', predecessor], { input: lists });
     const snapshot = guardSnapshot(root, tree, scratch, paths);
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
     const baseline = JSON.parse(readFileSync(join(scratch, 'lint/ratchet.json'), 'utf8'));
@@ -46,7 +52,7 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     writeFileSync(guardConfig, JSON.stringify(config));
     const existing = new Set(snapshot.paths);
     const lintPaths = paths.filter((p) => existing.has(p));
-    const counts = {}, failures = [];
+    const counts = {}, failures = checkPlatformRatchets(predecessor, scratch);
     if (lintPaths.length > 0) {
       const result = spawnSync(process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths], { cwd: scratch, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
       if (result.error) throw result.error;

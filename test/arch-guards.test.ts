@@ -9,6 +9,7 @@ import { dirname, join, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Subprocesses use the same Node executable as Vitest.
 import { env, execPath } from 'node:process';
 import { afterAll, describe, expect, it } from 'vitest';
+import { comparePlatformList } from '../scripts/check-platform-ratchets.mjs';
 import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
 import { checkShardLayout, checkShards, shardEntries, type ShardLayout } from '../scripts/check-shards.mjs';
 import { genShardWords, shardWordData } from '../scripts/gen-shard-words.mjs';
@@ -110,7 +111,7 @@ describe('AG9 shard layout', () => {
 describe('AG20 staged content isolation', () => {
   function repo(): { root: string; git: (...args: string[]) => void; run: () => ReturnType<typeof spawnSync> } {
     const root = temp();
-    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
+    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/check-platform-ratchets.mjs', 'lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
     for (const file of files) { mkdirSync(dirname(join(root, file)), { recursive: true }); copyFileSync(file, join(root, file)); }
     put(root, 'lint/ratchet.json', '{}'); put(root, 'src/engine/example.ts', 'export const value = 1;');
     symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
@@ -119,6 +120,25 @@ describe('AG20 staged content isolation', () => {
     git('add', '--', ...files, 'lint/ratchet.json', 'src/engine/example.ts'); git('commit', '-qm', 'fixture');
     return { root, git, run: () => spawnSync(execPath, ['scripts/precommit-guards.mjs'], { cwd: root, encoding: 'utf8', env: { ...env, SKIP_ARCH_GUARDS: '0' } }) };
   }
+  it('rejects config-only platform allowance growth in the index', () => {
+    const f = repo();
+    const file = 'lint/row-functions.json';
+    const doc = JSON.parse(readFileSync(join(f.root, file), 'utf8')) as { fields: string[] };
+    doc.fields.push('Injected.callback'); put(f.root, file, JSON.stringify(doc)); f.git('add', '--', file);
+    const result = f.run(); expect(result.status).toBe(1); expect(result.stderr).toContain('new function allowance Injected.callback');
+  });
+  it('rejects matching code and allowance growth after commit using explicit predecessor files', () => {
+    const f = repo(), previous = temp();
+    const lists = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json'];
+    for (const file of lists) put(previous, file, readFileSync(join(f.root, file), 'utf8'));
+    const file = lists[0]; if (file === undefined) throw new Error('Missing fixture list');
+    const doc = JSON.parse(readFileSync(join(f.root, file), 'utf8')) as { fields: string[] };
+    doc.fields.push('Injected.callback'); put(f.root, file, JSON.stringify(doc));
+    put(f.root, 'src/engine/example.ts', 'export interface Injected { callback: () => void }');
+    f.git('add', '--', file, 'src/engine/example.ts'); f.git('commit', '-qm', 'code and list grow together');
+    const result = spawnSync(execPath, ['scripts/check-platform-ratchets.mjs', previous, f.root], { cwd: f.root, encoding: 'utf8' });
+    expect(result.status).toBe(1); expect(result.stderr).toContain('new function allowance');
+  });
   it('passes staged valid contents despite invalid working contents and unrelated invalid files', () => {
     const f = repo(); put(f.root, 'src/engine/example.ts', 'export const value = 2;'); f.git('add', '--', 'src/engine/example.ts');
     put(f.root, 'src/engine/example.ts', 'const = ;'); put(f.root, 'src/engine/unrelated.ts', 'const = ;');
@@ -216,5 +236,30 @@ describe('AG22 SHARDS.md layout tables from lint/shard-layout.json', () => {
   it.runIf(existsSync('docs/SHARDS.md'))('docs/SHARDS.md holds the current tables (node scripts/gen-shard-layout-doc.mjs)', () => {
     const doc = readFileSync('docs/SHARDS.md', 'utf8');
     expect(withLayout(doc, layout)).toBe(doc);
+  });
+});
+
+describe('SF1b historical platform allowances', () => {
+  function compare(list: string, before: object, after: object): string[] {
+    const root = temp(); put(root, 'before.json', JSON.stringify(before)); put(root, 'after.json', JSON.stringify(after));
+    return comparePlatformList(list, join(root, 'before.json'), join(root, 'after.json'));
+  }
+  it('allows list shrinkage but refuses a new edge exemption', () => {
+    expect(compare('lint/edge-exemptions.json', { levels: { old: 'reason' } }, { levels: {} })).toEqual([]);
+    expect(compare('lint/edge-exemptions.json', { levels: {} }, { levels: { added: 'matching code' } }).join(',')).toContain('new edge exemption');
+  });
+  it('refuses raised, removed or oversized ceilings and altered or unknown baselines', () => {
+    const before = { baseline: { alpha: 100 }, enforced: { alpha: 19 } };
+    expect(compare('lint/shard-platform.json', before, { ...before, enforced: { alpha: 18 } })).toEqual([]);
+    for (const after of [
+      { ...before, enforced: { alpha: 20 } }, { ...before, enforced: {} },
+      { ...before, enforced: { alpha: 21 } }, { ...before, baseline: { alpha: 101 } },
+      { ...before, baseline: { alpha: 100, unknown: 10 } }, { ...before, enforced: { alpha: 19, unknown: 1 } },
+    ]) expect(compare('lint/shard-platform.json', before, after).length).toBeGreaterThan(0);
+  });
+  it('admits Thin Ice only with a first-commit 20 % ceiling', () => {
+    const before = { baseline: {}, enforced: {} };
+    expect(compare('lint/shard-platform.json', before, { baseline: { 'thin-ice': 101 }, enforced: { 'thin-ice': 20 } })).toEqual([]);
+    expect(compare('lint/shard-platform.json', before, { baseline: { 'thin-ice': 101 }, enforced: {} }).join(',')).toContain('first commit');
   });
 });

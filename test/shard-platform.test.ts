@@ -14,6 +14,7 @@ describe('SP5 the custom share', () => {
     const lines = { alpha: { generators: 70, data: 10, runtime: 20 } };
     expect(checkShares({ baseline: { alpha: 100 }, enforced: { alpha: 20 } }, lines)).toEqual([]);
     expect(checkShares({ baseline: { alpha: 100 }, enforced: { alpha: 19 } }, lines)[0]).toContain('ceiling 19');
-    expect(checkShares({ baseline: { gone: 1 }, enforced: {} }, lines)[0]).toContain("doesn't exist");
+    expect(checkShares({ baseline: { gone: 1 }, enforced: {} }, lines).join(',')).toContain("doesn't exist");
+    expect(checkShares({ baseline: {}, enforced: {} }, lines).join(',')).toContain('unknown shard');
   });
 });

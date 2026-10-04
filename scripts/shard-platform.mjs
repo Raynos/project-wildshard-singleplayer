@@ -47,6 +47,7 @@ export function shardLines(root = ROOT) {
 /** failures: an enforced shard over its ceiling, or a recorded slug with no folder */
 export function checkShares(recorded, lines) {
   const failures = [];
+  for (const slug of Object.keys(lines)) if (!Object.hasOwn(recorded.baseline, slug)) failures.push(`${slug}: unknown shard (no baseline in ${LIST})`);
   for (const slug of [...Object.keys(recorded.baseline), ...Object.keys(recorded.enforced)]) if (!lines[slug]) failures.push(`${slug} is recorded in ${LIST} but src/shards/${slug} doesn't exist`);
   for (const [slug, ceiling] of Object.entries(recorded.enforced)) {
     const runtime = lines[slug]?.runtime ?? 0;

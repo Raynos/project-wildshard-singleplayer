@@ -39,6 +39,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [check-models.mjs](./check-models.mjs)
 - [check-paths.allow.json](./check-paths.allow.json)
 - [check-paths.mjs](./check-paths.mjs)
+- [check-platform-ratchets.d.mts](./check-platform-ratchets.d.mts)
+- [check-platform-ratchets.mjs](./check-platform-ratchets.mjs)
 - [check-row-data.d.mts](./check-row-data.d.mts)
 - [check-row-data.mjs](./check-row-data.mjs)
 - [check-shards.d.mts](./check-shards.d.mts)

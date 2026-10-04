@@ -7,7 +7,7 @@
 #   1. fails if .vercelignore excludes any tracked file under src/ public/ api/ scripts/ (or a top-level file);
 #   2. checks out ONLY the files Vercel would upload (gitignore rules of the commit's own .vercelignore) into a temp dir;
 #   3. runs the CI gates there: check-css, typecheck (app + api), oxlint, node-only bake-check, vitest, vite build.
-# A commit that passed is stamped in .git/vercel-gate-node-bakes-v1/ and never re-built.
+# A commit that passed is stamped in .git/vercel-gate-platform-ratchets-v2/ and never re-built.
 #
 #   scripts/vercel-tree-gate.sh [<commit>]     (default HEAD; .githooks/pre-push runs it on the pushed tip)
 #   escape (rare, logged in the push output only): SKIP_VERCEL_GATE=1 scripts/push-main.sh
@@ -17,7 +17,7 @@ ROOT="$PWD"
 
 sha="$(git rev-parse --verify "${1:-HEAD}^{commit}")" || exit 1
 short="$(git rev-parse --short "$sha")"
-stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate-node-bakes-v1"
+stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate-platform-ratchets-v2"
 if [ -f "$stamp_dir/$sha" ]; then echo "vercel-gate: $short already passed"; exit 0; fi
 
 work="$(cd "$(mktemp -d -t vercel-gate)" && pwd -P)" || exit 1 # canonical: /var is a symlink on macOS (E432)
@@ -42,10 +42,15 @@ GIT_INDEX_FILE="$work/index" git read-tree "$sha" || fail "read-tree"
 tr '\n' '\0' < "$work/keep" | GIT_INDEX_FILE="$work/index" git checkout-index -z --stdin --prefix="$work/tree/" || fail "checkout-index"
 node "$ROOT/scripts/link-node-modules.mjs" "$ROOT" "$work/tree" || fail "link node_modules" # E432: @wildshard/* → this tree
 
+# Historical allowances come from the predecessor, even in this export without .git.
+mkdir -p "$work/predecessor"
+git archive "$sha^" -- lint/row-functions.json lint/edge-exemptions.json lint/shard-platform.json | tar -xf - -C "$work/predecessor" || fail "predecessor lists"
+
 # ── 3. the CI gates, in the Vercel tree ──
 cd "$work/tree" || exit 1
 echo "vercel-gate: $short — $(wc -l < "$work/keep" | tr -d ' ') files as Vercel sees them; check-css · typecheck · oxlint · bake-check · vitest · vite build"
 run() { local name="$1"; shift; local t0=$SECONDS; if ! "$@" > "$work/$name.log" 2>&1; then tail -40 "$work/$name.log" >&2; fail "$name"; fi; echo "  ✓ $name ($((SECONDS - t0)) s)"; }
+run platform-ratchets node scripts/check-platform-ratchets.mjs "$work/predecessor" "$work/tree"
 run check-css node scripts/check-css.mjs
 run gen pnpm gen --check-budgets
 run gen-check node scripts/gen-shards.mjs --check
