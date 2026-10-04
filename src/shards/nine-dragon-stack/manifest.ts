@@ -74,7 +74,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   ktx2: () => import('./ktx2.generated'),
   order: 4,
   status: 'experimental',
-  placement: { grid: [-2, 1], size: [500, 500, 500] },
+  
   slug: 'nine-dragon-stack',
   name: 'Nine Dragon Stack',
   label: '(−2, +1)',

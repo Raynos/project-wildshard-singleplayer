@@ -459,7 +459,6 @@ export interface ShardManifest {
   /** title-card order, starting at one */
   order: number;
   status: 'live' | 'experimental' | 'earlyAccess' | 'hidden';
-  placement: { grid: [number, number]; size: [number, number, number] };
   /** URL-safe key used by `?chunk=<slug>` and the registry */
   slug: ShardSlug;
   name: string;

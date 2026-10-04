@@ -55,3 +55,6 @@ src/**/*.generated.*
 
 # E362 AG4: the layered TypeScript build's declaration output (tsc -b tsconfig.layers.json)
 .tsc-layers/
+
+# Rebuilt SDK projects; source remains in src/shards.
+/public/shardfiles/

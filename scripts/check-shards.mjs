@@ -15,7 +15,8 @@ export function checkShardLayout(entries, config, readManifest, runtimeBaseline 
     if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
     const legacy = config.legacy[slug] ?? { entries: [], missing: [] };
     for (const name of names) if (!files.has(name) && !folders.has(name) && !legacy.entries.includes(name)) failures.push(`${slug}/${name}: outside the canonical shard layout`);
-    for (const name of config.requiredFiles) if (!names.includes(name) && !legacy.missing.includes(name)) failures.push(`${slug}: missing required ${name}`);
+    const required = names.includes('shard.config.ts') && !names.includes('manifest.ts') ? (config.shardfileRequiredFiles ?? ['shard.config.ts', 'README.md']) : config.requiredFiles;
+    for (const name of required) if (!names.includes(name) && !legacy.missing.includes(name)) failures.push(`${slug}: missing required ${name}`);
     for (const folder of config.folders) if (names.includes(`${folder}.ts`) && names.includes(`${folder}/`)) failures.push(`${slug}: ${folder}.ts and ${folder}/ name the same concept`);
     if (names.includes('manifest.ts') && readManifest) {
       const file = `src/shards/${slug}/manifest.ts`;

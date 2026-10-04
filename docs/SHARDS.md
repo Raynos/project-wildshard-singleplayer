@@ -1,5 +1,13 @@
 # How to write a shard
 
+SDK projects use `shard.config.ts` plus `generators/`, `data/`, `behaviour/`, `quests/`,
+`assets/` and optional trusted transition `runtime/`. A pure shardfile project requires
+`shard.config.ts` and `README.md`; it does not require `plugin.ts`. The template currently
+keeps its legacy manifest/plugin alongside an empty SDK config until SF16 ports its content.
+Build output goes in git-ignored `public/shardfiles/`. Placement is platform data in
+`src/game/grid/singleplayer.json`, attached by `scripts/gen-shards.mjs`; source manifests
+and shardfiles carry no placement. SF17a changes the catalogue to the 3 × 3 grid.
+
 A shard is one Wildshard level: a folder `src/shards/<slug>/` with a manifest (data) and a plugin (code). The engine,
 the game layer and the kit do the rest. This guide takes you from a copy of the template to a shard that is `live` on
 the title deck.
@@ -131,6 +139,7 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 | `strings.ts` | every player-facing string (§11) |
 | `layout.ts` | every coordinate: sites, trails, spawn points |
 | `debug.ts` | your Debug rows |
+| `shard.config.ts` | the SDK project source that builds shard.json (SHARD-PLATFORM SF7b) |
 
 **Folders**
 
@@ -155,6 +164,9 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 | `generators/` | build-time code that makes assets (models, terrain, scatter): run by the bake, never imported by the shard's runtime and never shipped (SHARD-PLATFORM SP5; optional) |
 | `data/` | the shard's content rows and layouts as serialisable values (JSON-able, no functions, no three.js or DOM): `sim-no-render` and the row ratchet hold it (SHARD-PLATFORM SP5; optional) |
 | `runtime/` | the shard's own runtime code that no approved system covers yet: the custom share the 80/20 split counts (SHARD-PLATFORM SP5; optional) |
+| `behaviour/` | AssemblyScript entity and director scripts |
+| `quests/` | serialisable quest graphs and dialogue trees |
+| `assets/` | source assets consumed by the build |
 <!-- /generated:shard-layout -->
 
 One name per concept: `quest/` or `quest.ts`, never both.

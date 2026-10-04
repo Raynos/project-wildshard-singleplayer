@@ -10,7 +10,7 @@ import { poolMask, POOL } from './world/pool';
 
 export const TEMPLATE: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: '_template', order: 1000, status: 'hidden', name: STRINGS.name, label: '(+0, +0)', seed: 357,
-  biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [0, 0], size: [500, 500, 500] },
+  biome: STRINGS.biome, blurb: STRINGS.blurb, 
   card: { thumb: GREY_CARD, portrait: GREY_CARD, landscape: GREY_CARD },
   style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'trees' },
   ground: { paths: 'plugin', water: [POOL], terrain: buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5,

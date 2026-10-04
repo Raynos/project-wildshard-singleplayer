@@ -45,7 +45,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   ktx2: () => import('./ktx2.generated'),
   order: 3,
   status: 'earlyAccess',
-  placement: { grid: [4, -2], size: [500, 500, 500] },
+  
   slug: 'nalati-grasslands',
   name: 'Nalati Grasslands',
   label: '(+4, −2)',

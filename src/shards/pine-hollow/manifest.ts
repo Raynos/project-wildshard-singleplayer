@@ -65,7 +65,7 @@ export const PINE_HOLLOW: ShardManifest = {
   ktx2: () => import('./ktx2.generated'),
   order: 2,
   status: 'earlyAccess', // Jake 2026-10-01: Pine Hollow is an early access level
-  placement: { grid: [3, -2], size: [500, 500, 500] },
+  
   slug: 'pine-hollow',
   name: 'Pine Hollow',
   label: '(+3, −2)',

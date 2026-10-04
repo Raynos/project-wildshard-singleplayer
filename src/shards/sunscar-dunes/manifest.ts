@@ -17,7 +17,7 @@ const feet = (x: number, z: number): [number, number, number] => [x, ground(x, z
 
 export const SUNSCAR_DUNES: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: 'sunscar-dunes', order: 50, status: 'experimental', name: STRINGS.name, label: '(+2, −1)', seed: SEED,
-  biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [2, -1], size: [500, 500, 500] },
+  biome: STRINGS.biome, blurb: STRINGS.blurb, 
   card: { thumb: DUSK_CARD.thumb, portrait: DUSK_CARD.portrait, landscape: DUSK_CARD.landscape },
   style: 'dusk', kitLook: 'pbr', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'dunes' },
   ground: { paths: 'plugin', terrain },

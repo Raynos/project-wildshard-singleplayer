@@ -50,8 +50,8 @@ describe('SP4 the world contract', () => {
     expect(structureFailures({ slug: fixture.slug, ground: fixture.ground, spawn: fixture.spawn })).toContain('structure world needs declared bounds');
   });
   it('declares the template 500³ without changing the runtime world', () => {
-    expect(TEMPLATE.placement.size).toEqual([500, 500, 500]);
-    const oldSize: ShardManifest = { ...TEMPLATE, placement: { grid: [0, 0], size: [200, 200, 200] } };
+    expect(SHARDS.find((m) => m.slug === '_template')?.placement.size).toEqual([500, 500, 500]);
+    const oldSize = { ...TEMPLATE, placement: { grid: [0, 0], size: [200, 200, 200] } };
     expect(toLevelSpec(TEMPLATE)).toEqual(toLevelSpec(oldSize));
   });
   it('exempts only levels that exist', () => {

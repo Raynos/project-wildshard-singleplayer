@@ -9,7 +9,7 @@ import { SKY_REACH_MINIMAP } from './look/minimap';
 
 export const SKY_REACH: ShardManifest = {
   budgets: BUDGETS, api: 1, slug: 'far-reach', order: 60, status: 'experimental', name: STRINGS.name, label: STRINGS.label, seed: 6417,
-  biome: STRINGS.biome, blurb: STRINGS.blurb, placement: { grid: [1, 4], size: [500, 500, 500] },
+  biome: STRINGS.biome, blurb: STRINGS.blurb, 
   card: { thumb: SKY_CARD.thumb, portrait: SKY_CARD.portrait, landscape: SKY_CARD.landscape },
   style: 'skyReach', kitLook: 'toon', hands: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'pines' },
   // A built world (G23, structures only): every island and bridge is a registry piece (world/build.ts); no terrain mesh or

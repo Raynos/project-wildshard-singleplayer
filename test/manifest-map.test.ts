@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { exploreArt } from '../src/engine/level/data';
 import { SHARDS } from '../src/shards.generated';
-import { formatGrid, terrainFor, type ShardManifest } from '../src/game/shard/manifest';
+import { formatGrid, terrainFor } from '../src/game/shard/manifest';
 
 // Captured before F6 from the four authored definitions; functions remain lazy hooks.
 const ORIGINAL = [
@@ -3454,7 +3454,7 @@ function originalArt(value: unknown): unknown {
   return value.replace(/^\/src\/shards\/([^/]+)\/thumbs\//, '/src/chunks/thumbs/');
 }
 
-function originalShape(m: ShardManifest, fixture: (typeof ORIGINAL)[number]['data']): object {
+function originalShape(m: (typeof SHARDS)[number], fixture: (typeof ORIGINAL)[number]['data']): object {
   const { navmesh: _navmesh, creatures: _creatures, debugOptions: _debugOptions, next: _next, blender: _blender, pondLilyExclusions: _pondLilyExclusions, horizonStrips: _horizonStrips, uses: _uses, loadout: _loadout, budgets: _budgets, audio: _audio, species: _species, encounters: _encounters, bag: _bag, dev: _dev, api: _api, assetGlobs: _assetGlobs, ktx2: _ktx2, kitLook: _kitLook, hands: _hands, load: _load, boot: _boot, tiers: _tiers, name, label, card, ground, spawns, minimap, fight, camera, status, order: _order, render: _render, placement: _placement, explore, ...kept } = m;
   const old = {
     ...kept, id: `chunk://local/${m.slug}`, displayName: name, gridCoords: label,

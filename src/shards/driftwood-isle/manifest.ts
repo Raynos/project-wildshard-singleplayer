@@ -140,7 +140,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   // the toon look (look/render.ts, E357 S4.3): the engine's clean chain
   render: async () => (await import('./look/render')).shardRender(),
   status: 'live',
-  placement: { grid: [-1, 6], size: [500, 500, 500] },
+  
   slug: 'driftwood-isle',
   next: 'nalati-grasslands',
   name: 'Driftwood Isle',
