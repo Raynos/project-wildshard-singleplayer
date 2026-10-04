@@ -43,7 +43,8 @@ export class QuestRewardBeat {
     });
   }
   get active(): boolean { return this.elapsed >= 0; }
-  update(dt: number): void {
+  /** An admitted director may supply completion explicitly; the local elapsed clock then serves presentation only. */
+  update(dt: number, authoritativeFinish?: boolean): void {
     if (this.host.scope.disposed) return;
     const { player, dayNight, objective } = this.host;
     if (this.elapsed === -1 && this.spec.when()) {
@@ -65,7 +66,7 @@ export class QuestRewardBeat {
       const ahead = ((this.spec.phase - this.fromPhase) % 1 + 1) % 1;
       dayNight.phase = (this.fromPhase + ahead * MathUtils.smoothstep(this.elapsed, 0, 3.5)) % 1;
     }
-    if (this.elapsed > (this.spec.holdSeconds ?? 7)) {
+    if (authoritativeFinish ?? this.elapsed > (this.spec.holdSeconds ?? 7)) {
       this.elapsed = -2; this.caption.show(false);
       if (this.spec.finish() !== true) this.release();
     }

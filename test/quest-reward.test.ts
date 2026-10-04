@@ -21,6 +21,22 @@ function beat(takeover = false) {
 }
 
 describe('Wendell reward beat shared by all shards', () => {
+  it('keeps the same fixed-step pose with a director-owned finish and never completes from its presentation clock', () => {
+    const legacy = beat(), directed = beat(); legacy.start(); directed.start();
+    let elapsed = 0;
+    for (let tick = 1; tick <= 421; tick++) {
+      elapsed += 1 / 60;
+      legacy.reward.update(1 / 60); directed.reward.update(1 / 60, elapsed > 7);
+      expect(directed.player.position.toArray()).toEqual(legacy.player.position.toArray());
+      expect(directed.player.yaw).toBe(legacy.player.yaw); expect(directed.player.pitch).toBe(legacy.player.pitch);
+      expect(directed.player.carried).toBe(legacy.player.carried); expect(directed.dayNight.phase).toBe(legacy.dayNight.phase);
+    }
+    expect(directed.finish).toHaveBeenCalledOnce();
+    const held = beat(); held.start(); held.reward.update(20, false);
+    expect(held.finish).not.toHaveBeenCalled(); expect(held.player.carried).toBe(true);
+    held.reward.update(0, true); held.reward.update(0, true);
+    expect(held.finish).toHaveBeenCalledOnce(); expect(held.player.carried).toBe(false);
+  });
   it('eases by the shortest yaw and forward clock path; holds for seven seconds then releases once', () => {
     const h = beat(); h.reward.update(1); expect(h.sting).not.toHaveBeenCalled();
     h.start(); h.reward.update(1.25);
