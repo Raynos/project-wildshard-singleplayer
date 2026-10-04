@@ -7,7 +7,7 @@ import { setDev } from '../src/engine/core/devMode';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { gridIntents } from '../src/game/grid/intent';
 import { DEVSERVER, gridEntryShown, gridMode, selectEnters, selectExplores, type MenuMode } from '../src/game/grid/menu';
-import { gridHome } from '../src/game/grid/boot';
+import { GridCellEvents, gridHome } from '../src/game/grid/boot';
 import { devserverCellOn, installGridDebug } from '../src/game/grid/debug';
 import { levelDebugRows } from '../src/engine/ui/debugOptions';
 import { shards } from '../src/game/shard/list';
@@ -164,5 +164,21 @@ describe('a DEVSERVER build (§3.3)', () => {
     row?.set('on');
     remove();
     expect(levelDebugRows().some((entry) => entry.id === 'gridDevserverCell')).toBe(false);
+  });
+});
+
+describe('the inside-cell enter / leave seam (SF46 consumes it; the grid client produces it)', () => {
+  it('passes stable instance ids, leaves before the next enter, and replays the current cell to a late subscriber', () => {
+    const cells = new GridCellEvents(), log: string[] = [];
+    cells.enter({ instance: 'driftwood-isle', slug: 'driftwood-isle' });
+    const offEnter = cells.onEnter((cell) => { log.push(`enter ${cell.instance}`); });
+    const offLeave = cells.onLeave((cell) => { log.push(`leave ${cell.instance}`); });
+    cells.enter({ instance: 'driftwood-isle', slug: 'driftwood-isle' }); // already inside: no event
+    cells.enter({ instance: 'template-3', slug: '_template' });
+    cells.leave(); cells.leave();
+    offEnter(); offLeave();
+    cells.enter({ instance: 'pine-hollow', slug: 'pine-hollow' });
+    expect(log).toEqual(['enter driftwood-isle', 'leave driftwood-isle', 'enter template-3', 'leave template-3']);
+    expect(cells.cell?.instance).toBe('pine-hollow');
   });
 });
