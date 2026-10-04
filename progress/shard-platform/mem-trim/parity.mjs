@@ -20,6 +20,8 @@ const out = resolve(flag('out', `/private/tmp/claude-501/sp-builders/mem-trim/pa
 mkdirSync(out, { recursive: true });
 const shards = flag('shards', 'driftwood-isle').split(',');
 const hybrid = flag('hybrid', 'off');
+// the Driftwood row compared OFF vs ON (G144 island-inst: --row=driftwoodIslandInstancing)
+const ROW = flag('row', 'driftwoodGpuOnlyCopies');
 if (!['off', 'on'].includes(hybrid)) throw new Error('--hybrid must be off or on');
 const pool = browserPool(ROOT, 1, 'metal'), records = {}, reports = [];
 const start = Date.now();
@@ -43,7 +45,7 @@ try {
         newContext: async (options) => {
           const context = await browser.newContext(options);
           if (hybrid === 'on') await saveFixture(context, { scope: 'device', key: 'debug.plugin.driftwood-isle.driftwoodHybrid', data: 'on' });
-          await saveFixture(context, { scope: 'device', key: 'debug.plugin.driftwood-isle.driftwoodGpuOnlyCopies', data: row });
+          await saveFixture(context, { scope: 'device', key: `debug.plugin.driftwood-isle.${ROW}`, data: row });
           return context;
         },
       };
@@ -78,12 +80,12 @@ try {
       console.log(`mem-trim ${key}: ${result.verdict}, images ${images.map((i) => `${i.name}=${i.ssim}`).join(', ')}`);
     }
   } finally { await context.close(); }
-  const record = { row: 'G144 mem-trim driftwoodGpuOnlyCopies off vs on', parent, current, hybridDebugFixture: hybrid, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
+  const record = { row: `G144 mem-trim ${ROW} off vs on`, parent, current, hybridDebugFixture: hybrid, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
     method: 'Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.',
     ambientInfo: ['forest.thrall'], reports };
   writeFileSync(join(out, 'mem-trim-parity.json'), JSON.stringify(record, null, 2) + '\n');
   const slim = { ...record, reports: reports.map((r) => ({ setting: r.setting, shard: r.shard, tier: r.tier, verdict: r.verdict, images: r.images.map((i) => ({ name: i.name, ssim: i.ssim, note: i.note })), differences: r.differences.map((d) => ({ path: d.path, verdict: d.verdict, before: d.before, after: d.after })), heapMB: { off: r.parent?.boot?.heapMB ?? null, on: r.current?.boot?.heapMB ?? null } })) };
-  const summary = join(ROOT, 'progress/shard-platform/mem-trim', `parity-${current.slice(0, 9)}${hybrid === 'on' ? '-hybrid' : ''}.json`);
+  const summary = join(ROOT, 'progress/shard-platform/mem-trim', `parity-${current.slice(0, 9)}${ROW === 'driftwoodGpuOnlyCopies' ? '' : `-${ROW}`}${hybrid === 'on' ? '-hybrid' : ''}.json`);
   mkdirSync(join(ROOT, 'progress/shard-platform/mem-trim'), { recursive: true });
   writeFileSync(summary, JSON.stringify(slim, null, 2) + '\n'); console.log(`Summary ${summary}`);
   console.log(`Report ${join(out, 'mem-trim-parity.json')}`);

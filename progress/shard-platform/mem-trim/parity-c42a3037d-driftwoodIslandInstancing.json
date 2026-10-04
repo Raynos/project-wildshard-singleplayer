@@ -1,0 +1,168 @@
+{
+  "row": "G144 mem-trim driftwoodIslandInstancing off vs on",
+  "parent": "c42a3037d5b2c5ab281da5b96bd5d45d87211422",
+  "current": "c42a3037d5b2c5ab281da5b96bd5d45d87211422",
+  "hybridDebugFixture": "off",
+  "when": "2026-10-04T22:38:10.014Z",
+  "elapsedSeconds": 215.093,
+  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+  "ambientInfo": [
+    "forest.thrall"
+  ],
+  "reports": [
+    {
+      "setting": "off",
+      "shard": "driftwood-isle",
+      "tier": "phone",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "pier",
+          "ssim": 0.9977567996668048,
+          "note": null
+        },
+        {
+          "name": "beach",
+          "ssim": 0.9942085461565194,
+          "note": null
+        },
+        {
+          "name": "wreck",
+          "ssim": 0.9999434765957654,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        }
+      ],
+      "heapMB": {
+        "off": 62.646873474121094,
+        "on": 106.52090454101562
+      }
+    },
+    {
+      "setting": "off",
+      "shard": "driftwood-isle",
+      "tier": "desktop",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "pier",
+          "ssim": 0.9993402552835712,
+          "note": null
+        },
+        {
+          "name": "beach",
+          "ssim": 0.9992657081660667,
+          "note": null
+        },
+        {
+          "name": "wreck",
+          "ssim": 0.9999713487225601,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        }
+      ],
+      "heapMB": {
+        "off": 144.0509796142578,
+        "on": 217.61397171020508
+      }
+    }
+  ]
+}

@@ -39,6 +39,7 @@ import { worldDrop } from './sea';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
+import { IslandInstances, TINT_VERTEX, edgeOf } from './islandInstances';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { CHUNK_HALF, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
@@ -146,6 +147,9 @@ export interface BlenderIslandCtx {
   replace: (THREE.Mesh | null)[];
   /** GroundCover's group: its instanced plants are hidden inside the area, its static logs dropped there */
   cover: THREE.Object3D | null;
+  /** G144 (E435, the default-off `driftwoodIslandInstancing` row): the placements drawn instanced (./islandInstances.ts),
+   *  not merged into tiles */
+  instanced?: boolean;
 }
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
@@ -217,6 +221,18 @@ function* coverTriangles(geos: THREE.BufferGeometry[]): Generator<CoverTri> {
   }
 }
 
+/** G144: the same triangles from the instanced placements (./islandInstances.ts), exactly as the merged tiles held them */
+function* instancedCoverTriangles(ins: IslandInstances): Generator<CoverTri> {
+  const o: CoverTri = { x: 0, z: 0, top: 0, side: 0, r: 0, g: 0, b: 0 };
+  for (const t of ins.coverTriangles()) {
+    const ar = triAreas(t.ax, t.ay, t.az, t.bx, t.by, t.bz, t.dx, t.dy, t.dz);
+    o.top = ar.top; o.side = ar.side;
+    o.x = (t.ax + t.bx + t.dx) / 3; o.z = (t.az + t.bz + t.dz) / 3;
+    o.r = t.r; o.g = t.g; o.b = t.b;
+    yield o;
+  }
+}
+
 function load<T>(f: (ok: (v: T) => void, bad: (e: unknown) => void) => void): Promise<T> { return new Promise<T>((resolve, reject) => { f(resolve, reject); }); }
 
 export class BlenderIsland {
@@ -232,6 +248,8 @@ export class BlenderIsland {
   private cold: { mesh: THREE.Mesh; tile: Tile; far: boolean }[] = [];
   private readonly drawnOnce = new WeakSet<THREE.Object3D>();
   private warm: { mesh: THREE.Mesh; start: number; count: number; culled: boolean } | null = null;
+  /** G144: the instanced placements (the row ON), repacked in `late` */
+  instances: IslandInstances | null = null;
 
   static async install(ctx: BlenderIslandCtx): Promise<BlenderIsland> {
     const island = new BlenderIsland();
@@ -270,7 +288,8 @@ export class BlenderIsland {
 	reflectedLight.directDiffuse *= mix( 1.0, ambientOcclusion, ${AO_DIRECT.toFixed(2)} );`);
     }, { mode: 'replace', key: 'island-terrain' });
     ctx.sky.setupMaterial(terrainMat);
-    const makePropsMat = (cover: { near: number; far: number; grow: number; key: string } | null) => {
+    const inst = ctx.instanced === true;
+    const makePropsMat = (cover: { near: number; far: number; grow: number; key: string } | null, tinted = inst) => {
       const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
       patchShader(mat, 'driftwood.island-props', PATCH_ORDER.material, (s) => {
         attachFogUniforms(s);
@@ -282,6 +301,8 @@ export class BlenderIsland {
         // ground it stands on (the cover grid's, as the tinted terrain draws it far out) — it no longer sinks into the
         // ground (Jake: the plants "bouncing like they're being reanimated"). Measured from the plant's own base (aBase), so
         // the whole plant goes at once; the tiles are merged in world space.
+        // G144: instanced, each placement's tint is applied per vertex as the merged tiles baked it (./islandInstances.ts)
+        if (tinted) s.vertexShader = s.vertexShader.replace('#include <common>', TINT_VERTEX.common).replace('#include <color_vertex>', TINT_VERTEX.color);
         if (cover !== null) {
           s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nattribute float aEdge;\nattribute vec3 aBase;\nattribute vec4 aGround;\nvarying vec4 vGround;\nvarying float vFar;\nvarying float vGone;')
             .replace('#include <begin_vertex>', `#include <begin_vertex>
@@ -292,7 +313,7 @@ export class BlenderIsland {
             .replace('#include <color_fragment>', '#include <color_fragment>\n\tdiffuseColor.rgb = mix( diffuseColor.rgb, vGround.rgb, vFar );')
             .replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\n\tnormal = normalize( mix( normal, normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz ), vFar ) );');
         }
-      }, { mode: 'replace', key: (cover !== null ? cover.key : 'island-props') });
+      }, { mode: 'replace', key: (cover !== null ? cover.key : 'island-props') + (tinted ? '|inst' : '') });
       ctx.sky.setupMaterial(mat);
       return mat;
     };
@@ -368,8 +389,6 @@ export class BlenderIsland {
     }
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3();
     const e = m.elements;
-    // a placement's own edge in the cover's reach (0..1): a hash of where it stands
-    const edgeOf = (x: number, z: number): number => { const hsh = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return hsh - Math.floor(hsh); };
     const merge = (items: number[], far: boolean, edges = false): THREE.BufferGeometry | null => {
       let verts = 0, indices = 0;
       const pick = (i: number) => { const pi = f[i * 10] ?? 0; return protos[far ? lodOf.get(pi) ?? pi : pi]; };
@@ -419,13 +438,21 @@ export class BlenderIsland {
       this.group.add(mesh);
       return mesh;
     };
-    for (const [k, items] of casters.entries()) {
+    if (inst) {
+      // G144: one InstancedMesh per prototype × set, the tiles kept as the unit of reach and view (./islandInstances.ts)
+      const ins = this.instances = new IslandInstances(this.group, protos, meta.protos.map((p) => p.name), f, lodOf);
+      ins.add({ tag: 'casters', tiles: casters, rects: casters.map((_, k) => rect(k, CT)), material: propsMat, cast: true, reach: 0, lod: LOD_D, cover: false });
+      ins.add({ tag: 'cover', tiles: covers, rects: covers.map((_, k) => rect(k, VT)), material: coverMat, cast: false, reach: COVER_FAR + 1, lod: LOD_D, cover: true });
+      ins.add({ tag: 'cover-big', tiles: bigs, rects: bigs.map((_, k) => rect(k, VT)), material: bigMat, cast: false, reach: BIG_FAR + 1, lod: LOD_D, cover: true });
+      for (const set of [casters, covers, bigs]) for (const items of set) for (const i of items) this.stats.propTris += (protos[f[i * 10] ?? 0]?.index.length ?? 0) / 3;
+    }
+    for (const [k, items] of (inst ? [] : casters).entries()) {
       const hi = merge(items, false), lo = merge(items, true);
       if (!hi || !lo) continue;
       this.tiles.push({ ...rect(k, CT), near: add(hi, `island-casters-${k}`, true), far: add(lo, `island-casters-${k}-far`, true), cover: 0 });
       this.stats.propTris += (hi.getIndex()?.count ?? 0) / 3;
     }
-    for (const [set, mat, reach, tag] of [[covers, coverMat, COVER_FAR + 1, 'cover'], [bigs, bigMat, BIG_FAR + 1, 'cover-big']] as const) {
+    for (const [set, mat, reach, tag] of inst ? [] : [[covers, coverMat, COVER_FAR + 1, 'cover'], [bigs, bigMat, BIG_FAR + 1, 'cover-big']] as const) {
       for (const [k, items] of set.entries()) {
         const g = merge(items, false, true);
         if (!g) continue;
@@ -437,9 +464,15 @@ export class BlenderIsland {
     // GroundCover's estimate for this area, then sampled by the cove's terrain
     const coverGrid = CoverGrid.get();
     if (coverGrid) {
-      coverGrid.splat(coverTriangles(this.tiles.filter((tile) => tile.cover > 0).map((tile) => tile.near.geometry)), area.x0, area.x1, area.z0, area.z1, 0.6);
+      const ins = this.instances;
+      coverGrid.splat(ins !== null ? instancedCoverTriangles(ins) : coverTriangles(this.tiles.filter((tile) => tile.cover > 0).map((tile) => tile.near.geometry)), area.x0, area.x1, area.z0, area.z1, 0.6);
       // each cover plant's fade-out colour: the grid's at its base (a = 0 where the grid has none: it keeps its own)
       const smp = coverSample();
+      ins?.fillGround((x, z, out, o) => {
+        coverGrid.sample(x, z, smp);
+        const ok = smp.top + smp.side > 0.01, j = coverJitter(x, z), byte = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255);
+        out[o] = byte(smp.r * j); out[o + 1] = byte(smp.g * j); out[o + 2] = byte(smp.b * j); out[o + 3] = ok ? 255 : 0;
+      });
       for (const tile of this.tiles) {
         if (tile.cover <= 0) continue;
         const g = tile.near.geometry, b = g.getAttribute('aBase'), gr = g.getAttribute('aGround');
@@ -463,7 +496,8 @@ export class BlenderIsland {
     this.stats.draws = this.group.children.length;
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
-    const unclaimed = await this.placeModels(models, f, used, meta, protos, propsMat);
+    // the specimens draw with the merged path's material (one instance of it has no `aTint`)
+    const unclaimed = await this.placeModels(models, f, used, meta, protos, inst ? makePropsMat(null, false) : propsMat);
 
     // ── hide what the area replaces ──
     clipTerrain(ctx.terrain);
@@ -581,6 +615,9 @@ export class BlenderIsland {
     if (claim.size > 0) console.warn(`[island] ${claim.size} collider boxes stand on no cove copy: they stay on the P2 bridge`);
     return [...claim.values()];
   }
+
+  /** G144: once a frame with the camera posed (the late phase): the instanced placements repack for the view */
+  late(sky: Sky): void { this.instances?.update(sky.viewCamera, sky.csm.lights); }
 
   /** per frame: the baked bounce follows the live sun (colour × intensity × elevation over the bake's reference) */
   update(sky: Sky): void {
