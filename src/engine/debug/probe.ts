@@ -102,7 +102,11 @@ export interface Fingerprint {
   facade?: { multiDraw: boolean; batches: number; instances: number };
   playMs: number; stepMs: Record<string, number>; heapMB: number;
 }
-export interface ProbeDeps { bootSteps: Record<string, number>; health: () => number; quest: () => unknown }
+export interface ProbeDeps {
+  bootSteps: Record<string, number>; health: () => number; quest: () => unknown;
+  /** The retained level world used for leak counts when active frame worlds can be replaced and freed. */
+  leakPhysics?: World['physics'];
+}
 export interface ProbeApp {
   readonly state: AppState;
   readonly systems: Readonly<Record<Phase, readonly string[]>>;
@@ -282,8 +286,9 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
     audio: { activeVoices: 0, beds: 0, buses: 0 }, systems: { input: 0, fixed: { pre: 0, step: 0, post: 0 }, update: 0, late: 0, render: 0 },
     events: app.events.census(game.levelScope), dom: { hud: 0, body: 0 }, sceneObjects: 0,
   };
-  const retainedPhysics = { bodies: world.physics.world.bodies.len() - game.levelScope.census.bodies,
-    colliders: world.physics.world.colliders.len() - game.levelScope.census.colliders };
+  const leakPhysics = deps.leakPhysics ?? world.physics;
+  const retainedPhysics = { bodies: leakPhysics.world.bodies.len() - game.levelScope.census.bodies,
+    colliders: leakPhysics.world.colliders.len() - game.levelScope.census.colliders };
   app.debug.leakBaseline = { ...baseline };
   app.debug.expose('leakBaseline', app.debug.leakBaseline);
   const engineSystemIds = new Set(Object.values(app.systemsByPhase()).flat().filter((system) => !game.levelSystemIds().includes(system.id)).map((system) => system.id));
@@ -302,7 +307,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
     const phases = app.systemsByPhase(), phaseCount = (phase: Phase): number => phases[phase].filter((s) => !engineSystemIds.has(s.id)).length;
     return { geometries: game.renderer.info.memory.geometries - gpu.geometries, textures: game.renderer.info.memory.textures - gpu.textures,
       programs: (game.renderer.info.programs?.length ?? 0) - gpu.programs,
-      bodies: world.physics.world.bodies.len() - retainedPhysics.bodies, colliders: world.physics.world.colliders.len() - retainedPhysics.colliders,
+      bodies: leakPhysics.world.bodies.len() - retainedPhysics.bodies, colliders: leakPhysics.world.colliders.len() - retainedPhysics.colliders,
       listeners, timers, audio: { ...audio, buses: 0 },
       systems: { input: phaseCount('input'), fixed: { pre: phaseCount('fixed.pre'), step: phaseCount('fixed.step'), post: phaseCount('fixed.post') },
         update: phaseCount('update'), late: phaseCount('late'), render: phaseCount('render') },

@@ -9,7 +9,10 @@ import { installProbe, programHash, compiledProgramHash, type ProbeWorld, type E
 import type { WildshardProbe as ScriptProbe } from '../scripts/types/wildshard-probe';
 import type { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
-import type { Physics } from '../src/engine/physics/Physics';
+import { Physics } from '../src/engine/physics/Physics';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { withOwner } from '../src/engine/app/ownership';
+import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import type { World as RapierWorld, RigidBodySet, ColliderSet } from '@dimforge/rapier3d-simd';
 import type { Audio } from '../src/engine/audio/Audio';
 import type { Music } from '../src/engine/audio/Music';
@@ -114,6 +117,35 @@ describe('probe contract', () => {
       expect(result.after.bodies).toBe(0);
       expect(result.scope.disposers).toBe(0);
     } finally { vi.useRealTimers(); }
+  });
+  it('counts the retained page world after freeing a native temporary frame and keeps active queries live', async () => {
+    window.__wildshardHarness = { seed: 1, capture: null, resources: () => ({
+      listeners: { window: 0, document: 0, canvas: 0, other: 0 },
+      timers: { timeouts: 0, intervals: 0, raf: 1 }, timerIds: { timeouts: [], intervals: [], raf: [1] },
+      stacks: { listeners: [], timers: [] },
+    }) };
+    const R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()), page = new Physics(R), temporary = new Physics(R);
+    const world = fixture(); let active = temporary;
+    Object.defineProperty(world, 'physics', { get: () => active });
+    withOwner(world.game.levelScope, () => {
+      const body = page.world.createRigidBody(R.RigidBodyDesc.fixed());
+      page.world.createCollider(R.ColliderDesc.cuboid(1, 1, 1), body);
+    });
+    Object.assign(world.game, { retainedGpuCounts: () => ({ geometries: 1, textures: 2, programs: 0 }),
+      retainedHudCount: () => 0, retainedSceneObjects: () => 4, gpuResourceDiagnostics: () => ({}) });
+    Object.assign(world.audio, { census: () => ({ activeVoices: 0, beds: 0, buses: 0 }) });
+    vi.spyOn(world.game.app, 'unloadLevel').mockImplementation(() => {
+      active = page; temporary.dispose(); world.game.levelScope.dispose(); return Promise.resolve();
+    });
+    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
+    try {
+      const probe = installProbe(world, { ...deps, leakPhysics: page });
+      expect(probe.world.physics).toBe(temporary);
+      const pending = probe.leak(); await vi.runAllTimersAsync();
+      const result = await pending;
+      expect(probe.world.physics).toBe(page); expect(() => temporary.world.bodies.len()).toThrow();
+      expect(result.disposalErrors).toEqual([]); expect(result.after.bodies).toBe(0); expect(result.after.colliders).toBe(0);
+    } finally { vi.useRealTimers(); page.dispose(); }
   });
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
     expectTypeOf<ScriptProbe>().toEqualTypeOf<EngineProbe>();

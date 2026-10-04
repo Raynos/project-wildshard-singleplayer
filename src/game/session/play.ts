@@ -82,6 +82,7 @@ import { pickInteractable } from '@wildshard/engine/world/interact/Interactables
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
+  const leakPhysics = world.physics; // The borrowed page world outlives temporary active frames.
 
   const planned = plannedGridReload();
   const reloadExitOn = pageMode() === 'grid' && gridFadeReloadOn();
@@ -655,7 +656,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       onFixed: (run) => { game.onFixed('post', run, 'game.grid.reload.exit'); }, report: (error) => { console.warn('[grid reload]', error); } });
   }
   const getPlayground = (): Playground | null => playground;
-  return { ...ctx, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground };
+  return { ...ctx, leakPhysics, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground };
 }
 
 export const playStage: typeof buildPlay = buildPlay;
