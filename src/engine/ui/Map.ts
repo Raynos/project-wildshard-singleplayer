@@ -149,6 +149,11 @@ export class FullMap {
     this.root.style.display = 'block';
     this.cx = 0; this.cz = 0; this._zoom = 1;
     this.fit();
+    // E440: the map draws itself every frame while open. The menu that shows it pauses the app (Menu.open), and a paused
+    // app runs no update phase (Game.runPhase, E357 F8), so a draw driven from the play loop never came and the frame stayed black
+    const scope = this.openScope;
+    const frame = (): void => { this.draw(); scope.raf(frame); };
+    scope.raf(frame);
     this.onToggle?.(true);
     this.onZoom?.(1);
   }
@@ -192,9 +197,13 @@ export class FullMap {
   }
   private clamp() { const m = CHUNK_HALF * (1 - 0.5 / this._zoom); this.cx = Math.max(-m, Math.min(m, this.cx)); this.cz = Math.max(-m, Math.min(m, this.cz)); }
 
-  /** Every frame while open. */
-  update(pos: { x: number; z: number }, yaw: number): void {
+  private readonly pose = { x: 0, z: 0, yaw: 0 };
+  /** Every frame of play: where you are. The map draws from it on its own frames while open (show), paused or not. */
+  update(pos: { x: number; z: number }, yaw: number): void { this.pose.x = pos.x; this.pose.z = pos.z; this.pose.yaw = yaw; }
+
+  private draw(): void {
     if (!this.open) return;
+    const pos = this.pose, yaw = this.pose.yaw;
     const room = this.minimap.room;
     if (room !== null) {   // a practice room: its own layout, fitted to the frame (the zoom chips scale it), no shard, no pins
       const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height, view = fitRoom(room, W, H, false);
