@@ -280,5 +280,6 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [soak/](./soak/)
 - [steam-trailer/](./steam-trailer/)
 - [trailer/](./trailer/)
+- [tsl-spike/](./tsl-spike/)
 - [types/](./types/)
 - [worldclaw/](./worldclaw/)
