@@ -1,0 +1,184 @@
+{
+  "row": "SF49-g farReachEntries off vs on",
+  "parent": "db70998e9f62239d58d0ab7c938d32650147a572",
+  "current": "db70998e9f62239d58d0ab7c938d32650147a572",
+  "when": "2026-10-04T23:13:32.697Z",
+  "elapsedSeconds": 85.065,
+  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+  "ambientInfo": [
+    "forest.thrall"
+  ],
+  "reports": [
+    {
+      "setting": "off",
+      "shard": "far-reach",
+      "tier": "phone",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "spawn",
+          "ssim": 0.9996210767979578,
+          "note": null
+        },
+        {
+          "name": "hover",
+          "ssim": 0.9944924622673176,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        }
+      ],
+      "heapMB": {
+        "off": 51.616355895996094,
+        "on": 30.31277084350586
+      }
+    },
+    {
+      "setting": "off",
+      "shard": "far-reach",
+      "tier": "desktop",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "spawn",
+          "ssim": 0.9998909727215934,
+          "note": null
+        },
+        {
+          "name": "hover",
+          "ssim": 0.9985482849311264,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        }
+      ],
+      "heapMB": {
+        "off": 72.16432189941406,
+        "on": 43.562503814697266
+      }
+    }
+  ]
+}

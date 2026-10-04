@@ -1,0 +1,223 @@
+{
+ "$doc": "SF49-g walks with farReachEntries ON (scripts/browser-lane.sh node scripts/physics-baseline.mjs --no-build --mode=walk --shard=far-reach [--route=progress/shard-platform/sf49/entries-route.json] --device-save=debug.plugin.far-reach.farReachEntries=on), phone tier 390x844, on the private tree db70998e9 (HEAD ac4fb4fd7 + the SF49-g files). entries: the four ramps both ways; shared: Sky Reach's own route (scripts/physics-route.json).",
+ "entries": {
+  "build": "db70998-muuf69et",
+  "legs": [
+   {
+    "name": "north in",
+    "seconds": 72.5,
+    "end": {
+     "x": 6.5,
+     "y": 30.02,
+     "z": 11.992
+    },
+    "expectY": 30,
+    "maxY": 30.02,
+    "groundSpeedP50": 4.21,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "north out",
+    "seconds": 70.9,
+    "end": {
+     "x": 0.744,
+     "y": 0.02,
+     "z": 234.392
+    },
+    "expectY": 0,
+    "maxY": 30.02,
+    "groundSpeedP50": 4.33,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "east in",
+    "seconds": 69.4,
+    "end": {
+     "x": 68.231,
+     "y": 34.02,
+     "z": -6.5
+    },
+    "expectY": 34,
+    "maxY": 34.02,
+    "groundSpeedP50": 4.15,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "east out",
+    "seconds": 67.5,
+    "end": {
+     "x": 234.392,
+     "y": 0.019,
+     "z": -0.739
+    },
+    "expectY": 0,
+    "maxY": 34.02,
+    "groundSpeedP50": 4.33,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "south in",
+    "seconds": 77.4,
+    "end": {
+     "x": 6.503,
+     "y": 44.02,
+     "z": -204.978
+    },
+    "expectY": 44,
+    "maxY": 44.02,
+    "groundSpeedP50": 4.09,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "south out",
+    "seconds": 74.5,
+    "end": {
+     "x": 0.752,
+     "y": 0.02,
+     "z": -234.391
+    },
+    "expectY": 0,
+    "maxY": 44.02,
+    "groundSpeedP50": 4.33,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "west in",
+    "seconds": 60.7,
+    "end": {
+     "x": -62.33,
+     "y": 27.02,
+     "z": 6.5
+    },
+    "expectY": 27,
+    "maxY": 27.02,
+    "groundSpeedP50": 4.21,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "west out",
+    "seconds": 59.2,
+    "end": {
+     "x": -234.392,
+     "y": 0.016,
+     "z": 0.739
+    },
+    "expectY": 0,
+    "maxY": 27.02,
+    "groundSpeedP50": 4.33,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   }
+  ]
+ },
+ "shared": {
+  "build": "db70998-muuf69et",
+  "legs": [
+   {
+    "name": "windmill",
+    "seconds": 14.8,
+    "end": {
+     "x": -2.731,
+     "y": 30.02,
+     "z": -55.251
+    },
+    "expectY": 30,
+    "maxY": 30.87,
+    "groundSpeedP50": 4.27,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "grove",
+    "seconds": 24,
+    "end": {
+     "x": -51.253,
+     "y": 27.02,
+     "z": 4.007
+    },
+    "expectY": 27,
+    "maxY": 30.03,
+    "groundSpeedP50": 4.32,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "roost",
+    "seconds": 8.5,
+    "end": {
+     "x": 55.435,
+     "y": 34.436,
+     "z": -13.632
+    },
+    "expectY": 34,
+    "maxY": 34.51,
+    "groundSpeedP50": 14.11,
+    "airFrames": 22,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "keeper",
+    "seconds": 13,
+    "end": {
+     "x": -57.028,
+     "y": 32.957,
+     "z": -57.234
+    },
+    "expectY": 32.5,
+    "maxY": 34.49,
+    "groundSpeedP50": 14.11,
+    "airFrames": 43,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "keeper-to-roost",
+    "seconds": 13,
+    "end": {
+     "x": 55.437,
+     "y": 34.436,
+     "z": -13.633
+    },
+    "expectY": 34,
+    "maxY": 34.51,
+    "groundSpeedP50": 14.12,
+    "airFrames": 26,
+    "slideFrames": 0,
+    "stuck": 0
+   },
+   {
+    "name": "ruin",
+    "seconds": 12.9,
+    "end": {
+     "x": 65.794,
+     "y": 28.02,
+     "z": -67.302
+    },
+    "expectY": 28,
+    "maxY": 34.02,
+    "groundSpeedP50": 4.32,
+    "airFrames": 0,
+    "slideFrames": 0,
+    "stuck": 0
+   }
+  ]
+ }
+}
