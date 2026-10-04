@@ -217,3 +217,7 @@ installer refuses it too: the admitted data plugin must enter the explicit hybri
 compositor, whose trusted registry matches both shard slug and entry. Content cannot
 select an import URL. Neighbours retain data without running trusted play hooks;
 entering a cell installs those hooks in its child scope and leaving disposes them.
+The trusted compositor may explicitly request `trustedRuntime` for a first-party
+runtime declaration. When its data/content/assets are empty, the data stages add no
+services; the existing runtime supplies gameplay and presentation. Authored data
+still installs normally, and external empty products retain the ordinary Game path.

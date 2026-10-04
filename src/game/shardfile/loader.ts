@@ -66,6 +66,7 @@ export async function shardfileSource(input: unknown, options: ProductOptions, b
 
 function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindings: ShardfileClientBindings): ShardManifest {
   const source = admitted.source, assets = new ClientAssets(source, admitted.assets, options);
+  if (bindings.trustedRuntime === true && (!options.firstParty || source.runtime === null)) throw new Error('Empty hybrid policy requires a trusted first-party runtime declaration');
   const manifest = sourceManifest(source);
   const clientBindings = { ...bindings, allocator: bindings.allocator ?? new ResidencyAllocator() };
   return { ...manifest, biome: 'Authored world', blurb: source.identity.name,

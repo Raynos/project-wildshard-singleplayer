@@ -45,9 +45,18 @@ export interface ShardfileClientBindings {
   voices: (audio: ShardPlayHost['audio']) => DeclaredAudioPorts['voices']; catalogue: readonly LedgerCatalogueItem[];
   instance: string;
   allocator?: ResidencyAllocator;
+  /** Explicit first-party transition policy: a completely empty data declaration adds no gameplay services. */
+  trustedRuntime?: boolean;
 }
 const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
 const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
+
+function emptyHybridData(source: Shardfile): boolean {
+  return source.files.length + source.requires.commons.length + source.requires.capabilities.length + source.tiles.length + source.library.length + source.critical.length + source.ui.length + source.sim.scripts.length + source.sim.bindings.length + source.state.shared.length + source.state.player.length + Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.water.length + source.creatures.brains.length + source.creatures.spawns.length + source.encounters.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0) + source.audio.cues.length + source.ledger.length + source.hooks.conditions.length + source.hooks.scenes.length + source.items.rows.length + source.items.contexts.length + source.targets.panels.length + source.targets.interactions.length + source.look.families.length + source.look.keys.length + Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length === 0
+    && source.terrain === null && source.props === null && source.far === null && source.plumbing === null
+    && source.audio.ambience === null && source.audio.score === 'silent' && source.look.grade.lut === null
+    && source.look.day === undefined && source.look.dayOverride === null;
+}
 
 /** The existing Game's world/kit/play stages install one authored level, one borrowed simulation and the normal equipment/HUD. */
 export class ShardfileClient {
@@ -59,9 +68,11 @@ export class ShardfileClient {
   private sim: ShardfileSimulation | undefined;
   private items: DeclaredItems | undefined;
   private readonly animals = new Map<string, Animal>();
-  constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) { this.source = source; this.assets = assets; this.bindings = bindings; }
+  private readonly emptyTrustedData: boolean;
+  constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) { this.source = source; this.assets = assets; this.bindings = bindings; this.emptyTrustedData = bindings.trustedRuntime === true && emptyHybridData(source); }
 
   async world(ctx: ShardContext): Promise<void> {
+    if (this.emptyTrustedData) return;
     const runtime = ctx.game.runtime, world = runtime?.world;
     if (runtime === undefined || world === null || world === undefined) throw new Error('Shardfile requires the normal world stage');
     ctx.scope.onDispose(this.assets.pin());
@@ -89,6 +100,7 @@ export class ShardfileClient {
   }
 
   kit(ctx: ShardContext): void {
+    if (this.emptyTrustedData) return;
     const runtime = ctx.game.runtime, world = runtime?.world, presentation = this.presentation;
     if (runtime === undefined || world === null || world === undefined || presentation === undefined) throw new Error('Shardfile requires the normal kit stage');
     const source = this.source;
@@ -124,6 +136,7 @@ export class ShardfileClient {
   }
 
   play(ctx: ShardContext): void {
+    if (this.emptyTrustedData) return;
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play, items = this.items, tiles = this.worldTiles;
     const health = ctx.app.player;
     if (runtime === undefined || world === null || world === undefined || play === null || play === undefined || items === undefined || tiles === undefined || health === null) throw new Error('Shardfile requires the normal play stage');
