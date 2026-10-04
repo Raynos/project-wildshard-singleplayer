@@ -1,6 +1,6 @@
 # Plan: finish line (E108): from a pile of pieces to a finished-feeling game
 
-**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). The row tags below are older than these facts: S1, S3, S5, S6, S7 moved into GAME-NORMALIZATION (archived); D1–D4, D7 and P3 were built as DRIFTWOOD-TOP10 rows 1–5 and 9b (archived 2026-09-30); S2, S4, P1, D5, D6 are done, P2 is moot. Open, waiting on Jake's pick: N-a (the kurgan / east edges), N-b, N-c, N-d, M1, M2, M3's controls half.
+**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). The row tags below are older than these facts: S1, S3, S5, S6, S7 moved into GAME-NORMALIZATION (archived); D1–D4, D7 and P3 were built as DRIFTWOOD-TOP10 rows 1–5 and 9b (archived 2026-09-30); S2, S4, P1, D5, D6 are done, P2 is moot. Open, waiting on Jake's pick: N-a (the kurgan / east edges), N-b, N-c, N-d, M1, M2, M3's controls half, and S8 (a golden-path phone run per shard; Jake: "later", E430).
 
 ## Read this first
 
@@ -56,6 +56,7 @@ Four read-only audits on build `f86b4c3` gave the same answer from four directio
 | S5 | *(Not built.)* **Input actions (ENGINE-FIT E4).** One layer with contexts (walk / ride / menu / dialog), a 100–150 ms input buffer for every action, ~100 ms coyote time, gamepad support and rebinding. It replaces the listeners spread across 26+ files. | M |
 | S6 | **Tests where the bugs are.** Node tests for the boss, elite, quest and weather state machines, AnimalManager AI and weapon timing (all at 0–5% today). | M |
 | S7 | **Budgets that run.** `bench:ci` runs nightly, the baseline is re-set after the freeze, and CI commits `latest.md`. The committed table dates from 09-18. | S |
+| S8 | **A golden-path phone run per shard** (GW2-ZONES §3 / §14, [docs/design/gw2-zones/GW2-ZONES.md](../design/gw2-zones/GW2-ZONES.md); Jake, 2026-10-01: "later"). One person plays each shard on the phone: touch, no dev flags, no forged saves, timed and split into active play, traversal, forced waiting, retries and walk-backs, and completion. Pine's and Nalati's friction (night-only steps, gate respawns, the fight frame rate, wolf balance) is fixed first. **Done when** every shard has one timed, unforged run on record, with its split. Waits on Jake's go ("later") | M |
 
 ## P — player mode (every shard, a day's work)
 
