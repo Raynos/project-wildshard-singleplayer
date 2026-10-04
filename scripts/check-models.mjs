@@ -131,6 +131,8 @@ export const DONE = {
     'src/engine/practice/playground/devGrid.ts': { why: "the playgrounds' grid floor (a practice scene, not a shard)", counts: { mergeGeometries: 1 } },
     'src/engine/practice/TrainingArena.ts': { why: "the practice room's walls and floor (the arena's world)", counts: { 'registry add with object': 1 } },
     'src/engine/practice/TrainingDummy.ts': { why: "the shared training dummy's builder (the model shared/training-dummy, M5: listed on every shard)", counts: { mergeGeometries: 1 } },
+    'src/game/grid/roadLook.ts': { why: "the grid's boulevard (SF17b, G80 / G81): asphalt, kerbs, streetlights and signs generated along the platform deck's 24 km of road from its layout — world, welded to the deck (no fixed copies for place() to count)", counts: { InstancedMesh: 2 } },
+    'src/game/grid/voidLook.ts': { why: "the grid's edge (SF17b, G89): the VR void's floor, its rail and the rail's posts round the outer road — world, like the shard's edge in Boundary.ts", counts: { InstancedMesh: 2 } },
     'src/engine/world/Boundary.ts': { why: "the shard's edge — cliffs, walls, the sea wall: world, welded to the ground", counts: { mergeGeometries: 6 } },
     'src/engine/world/forest/Forest.ts': { why: 'the forest field: a scatter (world, §1); Pine Hollow places its trees as the forest tree model, the other forests are the field', counts: { InstancedMesh: 1, BatchedMesh: 1 } },
     'src/engine/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
