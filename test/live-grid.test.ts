@@ -8,3 +8,8 @@ it('drives the admitted template through live page frames and restores its froze
   const output = execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/fixtures/grid/live.mjs'], { encoding: 'utf8', timeout: 20_000 });
   expect(JSON.parse(output)).toEqual({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: 670, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: 55, restored: true, borrowedHomeRetained: true });
 });
+
+it('restores the same authoritative continuation without a permanent in-memory pool when factories reload durable checkpoints', () => {
+  const output = execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/fixtures/grid/live.mjs', '--durable'], { encoding: 'utf8', timeout: 20_000 });
+  expect(JSON.parse(output)).toEqual({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: 670, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: 55, restored: true, borrowedHomeRetained: true, durableOnly: true, retainedChars: 0 });
+});

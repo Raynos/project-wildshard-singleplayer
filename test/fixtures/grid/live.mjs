@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the shipped Rapier binary and admitted template payloads.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Exercise both the default memory path and the production durable-only path.
+import { argv } from 'node:process';
 import { Vector3 } from 'three';
 import source from '../../../src/shards/_template/shard.config.ts';
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/shardfile/simulation.ts';
@@ -19,6 +21,7 @@ import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 import { PageResidency } from '../../../src/game/grid/pageResidency.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
+const durableOnly = argv.includes('--durable');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
 const assembly = new GridAssembly({ developer: false, devserver: false }), homeCell = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
@@ -28,7 +31,7 @@ const strip = generateStrip({ id: 'west', axis: 'x', origin: { x: -277.5, z: 0 }
 const highwayBytes = strip.mesh.positions.byteLength + strip.mesh.indices.byteLength;
 // Keep the original one-region admission envelope, plus its newly charged fixed packed continuation pool.
 const homeBytes = 20_000_000;
-const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil((GRID_CONTINUATION_CACHE_BYTES + homeBytes + highwayBytes + source.budgets.sim.resident) * CONTENT_CAPS.residentFactor) });
+const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil(((durableOnly ? 0 : GRID_CONTINUATION_CACHE_BYTES) + homeBytes + highwayBytes + source.budgets.sim.resident) * CONTENT_CAPS.residentFactor) });
 const pageResidency = new PageResidency(allocator), homeClaim = pageResidency.admitHome(homeCell.instance, homeBytes);
 // The early owner reserves before even the borrowed page's world is allocated.
 const pageHost = createSimHost(level, { rapier });
@@ -39,8 +42,9 @@ const player = { position: pageHost.player.position, yaw: 0, health: pageHost.pl
 const saves = new Map(), values = new Map(); let durable = true;
 const facts = new Set(); let coins = 0;
 const quest = { fact: (id) => { facts.add(id); }, coins: (amount) => { coins += amount; } };
-let physicsSteps = 0, regionCreations = 0;
+let physicsSteps = 0, regionCreations = 0, factoryCanReload = durableOnly;
 const ports = {
+  continuations: durableOnly ? 'durable' : 'memory',
   maxResidents: 2,
   home: { instance: homeCell.instance, physics: pageHost.physics, bytes: homeBytes, residency: homeClaim, checkpoint: () => true }, player, allocator,
   highway: { bytes: highwayBytes, create: () => {
@@ -51,8 +55,9 @@ const ports = {
   save: (id, snapshot) => { if (!durable) return false; const packed = serializeSimSnapshot(snapshot); assert.deepEqual(decodeSimSnapshot(packed), snapshot); saves.set(id, packed); return true; },
   gameplayReady: () => gameplay,
   bindFrame: ({ physics, host, instance }) => { assert.equal(host === undefined, instance === homeCell.instance); if (host !== undefined) assert.equal(host.physics, physics); currentPhysics = physics; frameBinds++; },
-  admit: async () => ({ bytes: source.budgets.sim.resident, create: async (saved) => {
+  admit: async () => ({ bytes: source.budgets.sim.resident, reloadsCheckpoint: factoryCanReload, create: async (input) => {
     regionCreations++;
+    const wire = saves.get(target.instance), saved = input ?? (durableOnly && wire !== undefined ? decodeSimSnapshot(wire) : undefined);
     let sim = createShardfileSim(source, assets, { rapier, playerBody: false, quest });
     if (saved !== undefined) {
       const authored = sim.host.level; sim.dispose();
@@ -79,8 +84,15 @@ const step = () => { currentPhysics.step(); physicsSteps++; registry.afterPlayer
 try {
   assert.equal(allocator.entries().find((entry) => entry.id === `sim:${homeCell.instance}`).refs, 2);
   assert.equal(allocator.entries().find((entry) => entry.id === `sim:${homeCell.instance}`).bytes, homeBytes);
-  assert.equal(allocator.entries().find((entry) => entry.id === `sim-continuations:live:${homeCell.instance}`).bytes, GRID_CONTINUATION_CACHE_BYTES);
+  if (durableOnly) assert.equal(allocator.has(`sim-continuations:live:${homeCell.instance}`), false);
+  else assert.equal(allocator.entries().find((entry) => entry.id === `sim-continuations:live:${homeCell.instance}`).bytes, GRID_CONTINUATION_CACHE_BYTES);
   const homeMotor = player.motor;
+  if (durableOnly) {
+    factoryCanReload = false;
+    await assert.rejects(registry.prefetch([target.instance]), /checkpoint reader before allocation/);
+    assert.equal(regionCreations, 0); assert.equal(player.motor, homeMotor);
+    factoryCanReload = true; registry.retry(target.instance);
+  }
   await assert.rejects(registry.prefetch([target.instance]), /deferred by the shared budget/);
   assert.equal(regionCreations, 0); assert.equal(player.motor, homeMotor); assert.equal(registry.ready(target.instance), false);
   assert.equal(pageHost.physics.world.colliders.len(), 3); blocker.release(); registry.retry(target.instance);
@@ -106,8 +118,9 @@ try {
   assert.equal(registry.checkpoint(target.instance), false); assert.equal(player.motor, beforeCheckpoint);
   assert.equal(first.host.hasPlayerMotor, false); assert.equal(saves.size, 0); durable = true;
   assert.equal(registry.checkpoint(target.instance), true); const leave = await registry.prepare(target.instance, null); leave.commit();
+  if (durableOnly) assert.deepEqual(registry.state().continuations, { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 });
   const frozen = first.host.state.tick; for (let i = 0; i < 600; i++) step(); assert.equal(first.host.state.tick, frozen);
-  durable = false; assert.equal(registry.unload(target.instance), false); assert.equal(registry.ready(target.instance), true);
+  if (!durableOnly) { durable = false; assert.equal(registry.unload(target.instance), false); assert.equal(registry.ready(target.instance), true); }
   assert.equal(first.host.state.tick, frozen); durable = true;
   assert.equal(registry.unload(target.instance), true); const again = await registry.prepare(null, target.instance); again.commit();
   const restored = values.get(target.instance); assert.ok(restored);
@@ -121,6 +134,6 @@ try {
   assert.equal(allocator.entries()[0].refs, 1);
   // The page's world and early claim remain live after registry teardown, until the page itself disposes.
   assert.equal(allocator.entries()[0].bytes, homeBytes);
-  console.info(JSON.stringify({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: physicsSteps, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: hp, restored: true, borrowedHomeRetained: true }));
+  console.info(JSON.stringify({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: physicsSteps, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: hp, restored: true, borrowedHomeRetained: true, ...(durableOnly ? { durableOnly: true, retainedChars: registry.state().continuations.storedChars } : {}) }));
 } finally { blocker.release(); registry.dispose(); player.motor.dispose(); pageHost.dispose(); pageResidency.dispose(); }
 assert.deepEqual(allocator.entries(), []);

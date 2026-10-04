@@ -41,6 +41,8 @@ export interface LiveGridPorts {
   readiness: { link: ReadinessLink; bundle: (cell: GridCell) => ReadinessBundle };
   mount?: () => FrameMember | undefined;
   maxResidents?: number;
+  /** Durable-only factories retain no packed snapshots; admission refuses a factory without a durable read capability. */
+  continuations?: 'memory' | 'durable';
 }
 /** Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. */
 export interface LiveGridState {
@@ -57,7 +59,7 @@ export class LiveGridHost {
   readonly readiness = new TraversalReadiness();
   private readonly residents = new Map<string, Resident>();
   private readonly saved = new GridContinuationCache();
-  private readonly cacheLease: ResidencyLease;
+  private readonly cacheLease: ResidencyLease | undefined;
   private readonly requests = new Map<string, Promise<void>>();
   private readonly issues = new Map<string, string>();
   private readonly frames = new Set<() => void>();
@@ -79,11 +81,13 @@ export class LiveGridHost {
     const home = assembly.cell(ports.home.instance), homeEstimate = readinessModel(ports.readiness.bundle(home), ports.readiness.link);
     this.active = ports.home.instance; this.limit = ports.maxResidents ?? 4;
     if (!Number.isInteger(this.limit) || this.limit < 1 || this.limit > 8) throw new RangeError('Invalid live grid resident limit');
-    const cacheId = `sim-continuations:live:${ports.home.instance}`;
-    if (ports.allocator.has(cacheId)) throw new Error('Live continuation cache already has an owner');
-    const cacheLease = ports.allocator.reserve({ id: cacheId, category: 'sim', owner: ports.home.instance, bytes: GRID_CONTINUATION_CACHE_BYTES, distance: 0, needed: true });
-    if (cacheLease === null) throw new Error('Live continuation cache admission deferred by the shared budget');
-    this.cacheLease = cacheLease;
+    if (ports.continuations !== 'durable') {
+      const cacheId = `sim-continuations:live:${ports.home.instance}`;
+      if (ports.allocator.has(cacheId)) throw new Error('Live continuation cache already has an owner');
+      const cacheLease = ports.allocator.reserve({ id: cacheId, category: 'sim', owner: ports.home.instance, bytes: GRID_CONTINUATION_CACHE_BYTES, distance: 0, needed: true });
+      if (cacheLease === null) throw new Error('Live continuation cache admission deferred by the shared budget');
+      this.cacheLease = cacheLease;
+    }
     try {
       this.homeLease = this.retainHome();
       try {
@@ -91,7 +95,7 @@ export class LiveGridHost {
         try { this.highway = ports.highway.create(); try { this.checkRegion(this.highway); } catch (error) { this.highway.dispose(); throw error; } }
         catch (error) { this.highwayLease.release(); throw error; }
       } catch (error) { this.homeLease.release(); throw error; }
-    } catch (error) { this.cacheLease.release(); throw error; }
+    } catch (error) { this.cacheLease?.release(); throw error; }
     const ticket = this.readiness.request(ports.home.instance, 0, homeEstimate, false);
     if (ticket !== null) for (const part of ['colliders', 'sim', 'runtime'] as const) this.readiness.complete(ticket, part);
   }
@@ -153,6 +157,7 @@ export class LiveGridHost {
       await previous; this.assertAlive();
       const admitted = await this.ports.admit(cell);
       this.assertAlive();
+      if (this.ports.continuations === 'durable' && admitted.reloadsCheckpoint !== true && this.ports.read === undefined) throw new Error('Durable-only live regions require a checkpoint reader before allocation');
       // The borrowed home is a resident too; the permanent highway is outside the per-shard count.
       while (this.residents.size + 1 >= this.limit) {
         const candidate = [...this.residents].filter(([id, value]) => id !== this.active && value.reservations === 0 && !value.evicting)
@@ -162,7 +167,7 @@ export class LiveGridHost {
       const lease = this.claim(instance, admitted.bytes, true); let region: LiveGridRegion | undefined;
       try {
         const prior = this.saved.read(instance) ?? this.ports.read?.(instance);
-        const packed = prior === undefined ? undefined : this.saved.pack(instance, prior);
+        const packed = prior === undefined || this.ports.continuations === 'durable' ? undefined : this.saved.pack(instance, prior);
         if (packed === null) throw new Error('Live continuation cache capacity exceeded');
         if (bundle.hybridWireBytes > 0 && admitted.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
         await admitted.prepareRuntime?.(); this.assertAlive(); this.readiness.complete(ticket, 'runtime');
@@ -213,9 +218,9 @@ export class LiveGridHost {
       try { snapshot = snapshotSimHost(host); } finally { host.releasePlayerMotor(); }
     }
     if (snapshot === undefined) return true; // Never-entered bodyless content is reconstructed from immutable admission.
-    const packed = this.saved.pack(instance, snapshot); if (packed === null) return false;
+    const packed = this.ports.continuations === 'durable' ? undefined : this.saved.pack(instance, snapshot); if (packed === null) return false;
     if (!this.ports.save(instance, snapshot)) return false;
-    this.saved.store(instance, packed); return true;
+    if (packed !== undefined) this.saved.store(instance, packed); return true;
   }
   /** Prepare durability before allocator eviction; commit only disposes an already-frozen world. */
   prepareUnload(instance: string): ResidencyEviction | null {
@@ -260,7 +265,7 @@ export class LiveGridHost {
     } };
   }
   /** Read-only crossing evidence and failures for the real grid physics harness. */
-  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...this.requests.keys()].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), continuations: { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
+  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...this.requests.keys()].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
   /** Dispose owned regions/controllers only; the page retains its traveller and borrowed home physics. */
   dispose(): void {
     if (this.disposed) return; this.disposed = true;
@@ -273,7 +278,7 @@ export class LiveGridHost {
       this.ports.bindFrame({ instance: this.active, physics: this.ports.home.physics, motor: rider.motor, origin });
     }
     const cleanups = [...this.residents.values()].flatMap((resident) => [resident.region.dispose, () => { resident.lease.release(); }]);
-    cleanups.push(this.highway.dispose, () => { this.highwayLease.release(); }, () => { this.homeLease.release(); }, () => { this.cacheLease.release(); });
+    cleanups.push(this.highway.dispose, () => { this.highwayLease.release(); }, () => { this.homeLease.release(); }, () => { this.cacheLease?.release(); });
     this.residents.clear(); this.saved.clear(); const failures: unknown[] = [];
     for (const cleanup of cleanups) try { cleanup(); } catch (error) { failures.push(error); }
     if (failures.length > 0) throw new AggregateError(failures, 'Live grid disposal failed');
