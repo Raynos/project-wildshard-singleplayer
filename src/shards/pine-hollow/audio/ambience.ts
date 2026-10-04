@@ -41,6 +41,8 @@ import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield'
  */
 import type { Camera } from 'three';
 import { PineHollowSfx, type PhBed } from './sfx';
+import { requireAudioProfile, requireAudioLevel } from '@wildshard/engine/audio/audioProfiles';
+import source from '../shard.config';
 
 export type ForestZone = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill' | 'ridge' | 'oldgrowth' | 'cave';
 type Room = 'cabin' | 'den' | 'oldgrowth' | 'bowl';
@@ -57,23 +59,21 @@ export interface ForestAmbienceOpts {
 }
 
 const ss = (a: number, b: number, x: number): number => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const TAU = 0.1;
-const ZONE_HZ = 10;
+const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.pine');
+const TAU = PROFILE.smoothSeconds;
+const ZONE_HZ = PROFILE.tickHz;
 /** the ambient bus's level (Audio's `ambient` gain is 0.55) — these beds sit beside it on `world` */
-const OUT = 0.55;
+const OUT = requireAudioLevel(PROFILE.levels, 'out');
 /** each bed's level at full weight, before sfx.json's gain (the files are at -24 LUFS) */
-const LEVEL: Record<PhBed, number> = {
-  hollow: 0.7, pond: 1.0, cabin: 1.1, creek: 0.9, waterfall: 1.1, mill: 0.9, ridge: 0.9, oldgrowth: 1.0, cave: 1.0,
-  night: 0.9, nightfog: 0.7, 'rain-canopy': 1.0, 'rain-open': 0.9, dawn: 0.9,
-};
+
 /** the beds that are positional (panned toward their zone's centre); the rest surround you */
 const PANNED = new Set<PhBed>(['pond', 'creek', 'waterfall', 'mill']);
 /** wet level per room at full weight (the IRs are unit-energy) */
-const WET: Record<Room, number> = { cabin: 0.4, den: 0.55, oldgrowth: 0.3, bowl: 0.12 };
+const WET: Record<Room, number> = { cabin: requireAudioLevel(PROFILE.wet, 'cabin'), den: requireAudioLevel(PROFILE.wet, 'den'), oldgrowth: requireAudioLevel(PROFILE.wet, 'oldgrowth'), bowl: requireAudioLevel(PROFILE.wet, 'bowl') };
 /** a cabin's inside: its floor, and within the smallest cabin's half-width of the site along the door axis (the porch is past it) */
 const CABIN_HALF_W = 2.45;
 const ROCK_SLOPE = 0.32;
-const DROP_S = 60;
+const DROP_S = PROFILE.silentSeconds;
 
 interface Bed extends ZoneVoice { name: PhBed; pending: boolean; idle: number; heard: boolean }
 
@@ -136,7 +136,7 @@ export class ForestAmbience {
     void this.sfx.bed(name).then((l) => {
       b.pending = false;
       if (!l || this.beds.get(name) !== b) { if (!l) audioLog('bed', name, false, 'will not decode'); return undefined; }
-      this.zones.start(def, l, this.audio.ctx.currentTime + 0.05, l.gain * LEVEL[name]);
+      this.zones.start(def, l, this.audio.ctx.currentTime + 0.05, l.gain * requireAudioLevel(PROFILE.levels, name));
       audioLog('bed', name, true, 'loop in');
       return undefined;
     });

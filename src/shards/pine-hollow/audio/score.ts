@@ -6,6 +6,11 @@ import type { ScoreSource } from '@wildshard/engine/audio/SetScore';
 import type { SlotAudio, StyleBank, StemSting, BossPhase } from '@wildshard/engine/audio/Stems';
 import { jsonSlot } from '@wildshard/engine/saves/slots';
 import type { MusicStyle } from '@wildshard/engine/ui/Settings';
+import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import { selectScoreSlots } from '@wildshard/engine/audio/scoreSelection';
+import source from '../shard.config';
+
+const PROFILE = requireAudioProfile(source.audio.music, 'score.pine');
 
 export type PineScene = 'day' | 'night' | 'boss';
 export const PINE_SCORE_PICKS = ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'] as const;
@@ -19,9 +24,9 @@ const sources = new WeakMap<Music, PineScore>();
 
 /** Scene, genre, phase and reward policy for the existing Pine recordings. */
 export class PineScore implements ScoreSource {
-  readonly base = 'pine';
-  readonly slots = ['pine', 'night', 'boss'];
-  readonly minFade = 0;
+  readonly base = PROFILE.base;
+  readonly slots = PROFILE.slots;
+  readonly minFade = PROFILE.minFade;
   readonly stings = new Map<StemSting, AudioBuffer>();
   readonly failures = new Set<string>();
   sceneName: PineScene = 'day';
@@ -41,9 +46,9 @@ export class PineScore implements ScoreSource {
     }
   }
   get pending(): boolean { return this.decoding.size > 0; }
-  target(_state: MusicState): string { return this.sceneName === 'day' ? 'pine' : this.sceneName; }
+  target(_state: MusicState): string { return selectScoreSlots(PROFILE.selection, PROFILE.selectMode, { scene: this.sceneName })[0] ?? this.base; }
   useBank(bank: Parameters<ScoreSource['useBank']>[0]): void {
-    const theme = bank.slots.get('pine'); if (theme) { this.theme = theme; this.stings.clear(); }
+    const theme = bank.slots.get(this.base); if (theme) { this.theme = theme; this.stings.clear(); }
     for (const [name, buffer] of bank.stings) this.stings.set(name, buffer);
   }
   useStyleBank(bank: StyleBank): void { this.useBank(bank); }
@@ -51,16 +56,16 @@ export class PineScore implements ScoreSource {
     const genre = this.music.genre, want = this.target(this.music.state);
     if (genre !== this.genre) { this.genre = genre; this.failures.clear(); }
     if (genre === 'synth') return undefined;
-    if (want !== 'pine') {
+    if (want !== this.base) {
       const slot = this.extra?.genre === genre ? this.extra.slot : undefined;
       if (slot?.slot === want) return slot;
-      this.prepare(genre, want === 'boss' ? 'boss' : 'night');
+      this.prepare(genre, want);
     }
     if (this.theme?.genre === genre) return this.theme;
-    this.prepare(genre, 'pine');
+    this.prepare(genre, this.base);
     return undefined;
   }
-  private prepare(genre: MusicStyle, slot: 'pine' | 'night' | 'boss'): void {
+  private prepare(genre: MusicStyle, slot: string): void {
     const key = `${genre}/${slot}`;
     if (this.decoding.has(key) || this.failures.has(key) || this.scope?.disposed) return;
     this.decoding.add(key);
@@ -68,13 +73,13 @@ export class PineScore implements ScoreSource {
       let bank: StyleBank | undefined;
       try {
         const [{ decodeStyle }, { cachedBytes, decodeBytes }] = await Promise.all([import('@wildshard/engine/audio/Stems'), import('@wildshard/engine/audio/preload')]);
-        bank = await decodeStyle(genre, [slot], cachedBytes, decodeBytes, undefined, slot === 'pine' ? 'base' : 'pine-hollow', slot === 'pine' ? undefined : ['dawn']);
+        bank = await decodeStyle(genre, [slot], cachedBytes, decodeBytes, undefined, PROFILE.sets[slot] ?? 'base', slot === this.base ? undefined : ['dawn']);
       } catch (error) { console.info(`[music] pine-hollow ${key}: ${error instanceof Error ? error.message : String(error)} — the theme plays`); }
       finally { this.decoding.delete(key); }
       const audio = bank?.slots.get(slot);
       if (!audio) { this.failures.add(key); return; }
       if (this.music.genre !== genre || this.scope?.disposed) return;
-      if (slot === 'pine' && bank) this.useStyleBank(bank);
+      if (slot === this.base && bank) this.useStyleBank(bank);
       else this.extra = { genre, slot: audio, dawn: bank?.stings.get('dawn') ?? (this.extra?.genre === genre ? this.extra.dawn : undefined) };
       this.music.refreshScore();
     })();
@@ -115,12 +120,12 @@ export function pineScore(music: Music): PineScore {
   const have = sources.get(music); if (have) return have;
   const score = new PineScore(music);
   const bank = music.residentBank(); if (bank) score.useStyleBank(bank);
-  music.setScore('score.pine', score); sources.set(music, score); return score;
+  music.setScore(PROFILE.id, score); sources.set(music, score); return score;
 }
 export function installPineScore(audio: Audio, music: Music, scope: Scope, debugRow?: ShardContext['debugRow']): PineScore {
   const score = pineScore(music); score.attach(scope);
   debugRow?.({ id: 'pineScore', group: 'audio', label: 'Pine Hollow score', choices: PINE_SCORE_PICKS.map((value) => ({ value, text: value === 'auto' ? 'Auto' : value === 'boss' ? 'Boss I' : value === 'boss-2' ? 'Boss II' : value === 'boss-3' ? 'Boss III' : value === 'dawn' ? 'Dawn sting' : 'Night' })), initial: pineScorePick(), reload: true, change: () => undefined, ask: 'E357', reviewBy: '2026-12-30', note: 'E357: pin the scene, boss layers or reward sting.' });
-  scope.onDispose(music.setScore('score.pine', score));
+  scope.onDispose(music.setScore(PROFILE.id, score));
   audio.onLevelBank((bank) => { if (bank.title) score.useStyleBank(bank.title); }, scope);
   return score;
 }

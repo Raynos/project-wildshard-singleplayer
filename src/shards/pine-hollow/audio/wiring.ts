@@ -7,9 +7,8 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ForestAmbience, ZoneSpot } from './ambience';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import {
-  BEAR_CAVE, CREEK, HAMLET_SITES, LOOKOUT, OLD_GROWTH, RIDGE, RIDGE_STREAM, WATERFALL, ridgeFootZ, type XZ,
-} from '../layout';
+import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import source from '../shard.config';
 
 /**
  * Pine Hollow's sound, hooked to its gameplay (PINE-HOLLOW-REMASTER A-rows, the audio-wiring lane). The sound lane made
@@ -43,41 +42,16 @@ export interface PineAudioHost {
 const NIGHT_ON = 0.55, NIGHT_OFF = 0.35;
 const SNORT_R = 70, SNORT_GAP = 3;
 
-/** points along a polyline, every `step` m (the vertices and the points between them) */
-function along(poly: readonly XZ[], step: number): XZ[] {
-  const out: XZ[] = [];
-  for (let i = 0; i + 1 < poly.length; i++) {
-    const a = poly[i], b = poly[i + 1];
-    if (!a || !b) continue;
-    const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
-    for (let k = 0; k < n; k++) out.push([a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n]);
-  }
-  const last = poly[poly.length - 1];
-  if (last) out.push([last[0], last[1]]);
-  return out;
-}
-
-/** Pine Hollow's zone spots from the layout (src/shards/pine-hollow/layout.ts); `wheel` = the mill wheel's speed */
+/** The shardfile's exact baked zone rows; only a live mill-wheel query remains a trusted runtime port. */
 export function pineZoneSpots(wheel: () => number): ZoneSpot[] {
-  const spots: ZoneSpot[] = [];
-  // the creek from the pond's outlet to the slab's edge, and the ridge-top stream that feeds the waterfall: its bed, close up
-  for (const [x, z] of along(CREEK, 18)) spots.push({ zone: 'creek', x, z, r: 6, fade: 18 });
-  for (const [x, z] of along(RIDGE_STREAM, 18)) spots.push({ zone: 'creek', x, z, r: 4, fade: 14 });
-  // the waterfall: its plunge pool at the foot (heard across the pond's north shore) and its lip up on the ridge
-  spots.push({ zone: 'waterfall', x: WATERFALL.foot.x, z: WATERFALL.foot.z, r: 10, fade: 45, open: true });
-  spots.push({ zone: 'waterfall', x: WATERFALL.lip.x, z: WATERFALL.lip.z, r: 5, fade: 25, open: true });
-  // the mill wheel in the creek: only while it turns (the miller's errand starts it)
-  spots.push({ zone: 'mill', x: HAMLET_SITES.wheel.x, z: HAMLET_SITES.wheel.z, r: 5, fade: 30, gain: () => (wheel() > 0.01 ? 1 : 0) });
-  // ridge wind: along the crest (its foot + `climb`), and the lookout's crag top — open sky, the rain falls on you
-  for (let x = -230; x <= 150; x += 38) spots.push({ zone: 'ridge', x, z: ridgeFootZ(x) + RIDGE.climb, r: 18, fade: 22, open: true });
-  spots.push({ zone: 'ridge', x: LOOKOUT.x, z: LOOKOUT.z, r: 16, fade: 26, open: true });
-  // the old-growth: its ellipse (centre, half-axes ax × az) as a column of circles down its long axis
-  const og = OLD_GROWTH, rOg = Math.min(og.ax, og.az) * 0.62;
-  for (let k = -2; k <= 2; k++) spots.push({ zone: 'oldgrowth', x: og.x + 10, z: og.z + k * (og.az - rOg) / 2, r: rOg, fade: 30 });
-  // the bear cave: its dark mouth in the den's wall (a step inside the arch, toward the rock)
-  const fx = -Math.sin(BEAR_CAVE.rot), fz = -Math.cos(BEAR_CAVE.rot);
-  spots.push({ zone: 'cave', x: BEAR_CAVE.x - fx * 2, z: BEAR_CAVE.z - fz * 2, r: 2, fade: 12 });
-  return spots;
+  return requireAudioProfile(source.audio.zones, 'ambience.pine').zones.map((row) => {
+    const zone = row.source === 'mill.wheel' ? 'mill' : row.source;
+    if (zone !== 'creek' && zone !== 'waterfall' && zone !== 'mill' && zone !== 'ridge' && zone !== 'oldgrowth' && zone !== 'cave') throw new Error(`Unknown forest audio zone: ${row.id}`);
+    const spot: ZoneSpot = { zone, x: row.x, z: row.z, r: row.inner, fade: row.fade ?? row.outer - row.inner };
+    if (row.open !== undefined) spot.open = row.open;
+    if (row.source === 'mill.wheel') spot.gain = () => (wheel() > 0.01 ? 1 : 0);
+    return spot;
+  });
 }
 
 export function installPineAudio(h: PineAudioHost): void {

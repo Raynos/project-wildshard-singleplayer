@@ -2,7 +2,11 @@ import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 import { FOREST_AUDIO } from './profile';
 import { pineShotFiles, decodePineShots } from './sfx';
 
-const OWN = 'pine-hollow';
+import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import source from '../shard.config';
+
+const OWN = requireAudioProfile(source.audio.samples, 'pine.samples').set;
+const BOOT_SLOTS = requireAudioProfile(source.audio.music, 'score.pine').bootSlots;
 /** Full manifest inventory; selected decoding stays in the profile's bootFiles. */
 export async function BOOT_AUDIO(): Promise<readonly string[]> {
   const files = (await createPineAudio()).files();
@@ -23,10 +27,10 @@ export async function createPineAudio(): Promise<LevelAudioProfile> {
       const dirs = [...ownMusic().map(musicDir), ...ownSfx().map(sfxDir)];
       return [...files.music, ...files.sfx].filter((url) => dirs.some((dir) => url.startsWith(dir)));
     },
-    bootFiles: (style) => [...styleFiles(style, ['title', 'pine']), ...sfxFiles(getSfxSet(), FOREST_AUDIO.bed, FOREST_AUDIO.samples), ...(getSfxSet() === 'synth' ? [] : pineShotFiles())],
+    bootFiles: (style) => [...styleFiles(style, BOOT_SLOTS), ...sfxFiles(getSfxSet(), FOREST_AUDIO.bed, FOREST_AUDIO.samples), ...(getSfxSet() === 'synth' ? [] : pineShotFiles())],
     decode: async (style, read, decode, onFile) => {
       const [title, samples] = await Promise.all([
-        decodeStyle(style, ['title', 'pine'], read, decode, onFile).catch(() => undefined),
+        decodeStyle(style, BOOT_SLOTS, read, decode, onFile).catch(() => undefined),
         decodeSfxSet(getSfxSet(), FOREST_AUDIO.bed, read, onFile, decode, FOREST_AUDIO.samples),
         ...(getSfxSet() === 'synth' ? [] : [decodePineShots(read, onFile)]),
       ]);

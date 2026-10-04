@@ -5,6 +5,7 @@ import { Vector3 } from 'three';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
 import { pineCombatCues } from '../../../src/shards/pine-hollow/audio/combatCues';
 import source from '../../../src/shards/pine-hollow/shard.config';
+import { pineZoneSpots } from '../../../src/shards/pine-hollow/audio/wiring';
 
 // Captured from the pre-conversion router at 093bb2f47; no rebaseline when the implementation changes.
 it('preserves recipe options, false primary fallback, silent reload and echo scheduling across 1,728 dispatches', () => {
@@ -21,4 +22,16 @@ it('preserves recipe options, false primary fallback, silent reload and echo sch
     }
   expect(dispatches).toBe(1728);
   expect(digest.digest('hex')).toBe('b78ae2d0005429ab7b6a9d9048cd3976362baf136b77ae94548e17d89c39c3e8');
+});
+
+// Captured from the same pre-conversion layout bake; this covers positions and exact fade widths.
+it('preserves every baked ambience zone and the moving wheel gain', () => {
+  const rows = pineZoneSpots(() => 1).map((spot) => {
+    const row: { zone: string; x: number; z: number; r: number; fade: number; open?: boolean; gain?: number } = { zone: spot.zone, x: spot.x, z: spot.z, r: spot.r, fade: spot.fade };
+    if (spot.open !== undefined) row.open = spot.open;
+    if (spot.gain !== undefined) row.gain = spot.gain();
+    return row;
+  });
+  expect(rows).toHaveLength(54);
+  expect(createHash('sha256').update(JSON.stringify(rows)).digest('hex')).toBe('ad09418d3136583d3cfab3cd5a6a39a2323afd8418e0dd7890d82e7ec0356e4c');
 });

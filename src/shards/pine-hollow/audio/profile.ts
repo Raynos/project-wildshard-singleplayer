@@ -1,7 +1,6 @@
-/** Pine's original base-set decode selection and levels, independent of the bed's name. */
-export const FOREST_AUDIO = {
-  bed: 'forest',
-  samples: {
-    loopGains: { forest: 0.5 },
-  },
-};
+import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import source from '../shard.config';
+
+const profile = requireAudioProfile(source.audio.samples, 'pine.samples');
+/** Pine's original base-set decode selection and levels, supplied by its shardfile. */
+export const FOREST_AUDIO = { bed: profile.bed, samples: { loopGains: profile.loopGains } };
