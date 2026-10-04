@@ -11598,6 +11598,42 @@
         "from": "@wildshard/game/Progress"
       },
       {
+        "name": "createQuestScriptPorts",
+        "kind": "function",
+        "doc": "Resolve conditions through public/owner state and scenes through the bounded next-tick event queue.",
+        "from": "@wildshard/game/quest/declared"
+      },
+      {
+        "name": "DeclaredQuests",
+        "kind": "class",
+        "doc": "Bind validated quest graphs to the existing engine journal/marker state and the host's snapshot boundary.",
+        "from": "@wildshard/game/quest/declared"
+      },
+      {
+        "name": "DialogueView",
+        "kind": "interface",
+        "doc": "A live dialogue tree view; selection resolves declared flags and scenes without executing author closures.",
+        "from": "@wildshard/game/quest/declared"
+      },
+      {
+        "name": "QuestDataPorts",
+        "kind": "interface",
+        "doc": "Platform-owned fact/reward ports; authored quests never write the profile or progress store.",
+        "from": "@wildshard/game/quest/declared"
+      },
+      {
+        "name": "QuestScriptBindings",
+        "kind": "interface",
+        "doc": "Loader-resolved stable script field/event ids; actor target handles come from the session.",
+        "from": "@wildshard/game/quest/declared"
+      },
+      {
+        "name": "QuestScriptPorts",
+        "kind": "interface",
+        "doc": "Hooks read atomically published script fields or queue declared events for the next script tick.",
+        "from": "@wildshard/game/quest/declared"
+      },
+      {
         "name": "installQuestPresentation",
         "kind": "function",
         "doc": "One call in play(ctx): Wendell's chip, MAP card, diamonds, world pins, discovery, dialogue and reward.",
@@ -12220,6 +12256,30 @@
         "kind": "function",
         "doc": "Project an empty shardfile into the same engine spec consumed by legacy sources.",
         "from": "@wildshard/game/shardfile/loader"
+      },
+      {
+        "name": "parseQuestData",
+        "kind": "function",
+        "doc": "Compile TypeScript-authored rows to validated serialisable quest/dialogue data.",
+        "from": "@wildshard/game/shardfile/quests"
+      },
+      {
+        "name": "QuestData",
+        "kind": "type",
+        "doc": "Plain quest graphs, declared flags/triggers and finite dialogue trees; hooks name platform-resolved script ports.",
+        "from": "@wildshard/game/shardfile/quests"
+      },
+      {
+        "name": "questDataRules",
+        "kind": "function",
+        "doc": "Reject dangling flags, repeated identities, unreachable dialogue nodes and cycles before installing authored data.",
+        "from": "@wildshard/game/shardfile/quests"
+      },
+      {
+        "name": "QuestDataSchema",
+        "kind": "const",
+        "doc": "Serialisable quest/dialogue section with semantic validation in the same admission pass.",
+        "from": "@wildshard/game/shardfile/quests"
       },
       {
         "name": "assertStateCompatibility",
@@ -13856,6 +13916,24 @@
         "kind": "function",
         "doc": "Validate graph closure costs, actual assets and the worst resident disc before writing a product.",
         "from": "@wildshard/sdk/project"
+      },
+      {
+        "name": "parseQuestData",
+        "kind": "function",
+        "doc": "Compile TypeScript author data after checking declared flags and graph references.",
+        "from": "@wildshard/sdk/quests"
+      },
+      {
+        "name": "QuestData",
+        "kind": "type",
+        "doc": "Validated quest/dialogue declarations consumed by the platform runtime.",
+        "from": "@wildshard/sdk/quests"
+      },
+      {
+        "name": "QuestDataSchema",
+        "kind": "const",
+        "doc": "Compile declared quest graphs and dialogue trees with bounded, serialisable script hook names.",
+        "from": "@wildshard/sdk/quests"
       },
       {
         "name": "assertStateCompatibility",

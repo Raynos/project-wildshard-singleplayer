@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-253 members; 112 without a doc line (—).
+263 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -125,6 +125,12 @@ The game layer's public modules (src/game/package.json `exports`).
 | `Progress` | class | @wildshard/game/Progress | — |
 | `ProgressRow` | interface | @wildshard/game/Progress | — |
 | `ProgressSink` | interface | @wildshard/game/Progress | what a shard's feats code records into (Driftwood's quest/Feats.ts, Nalati's adventure): the game layer's type, so two shards share it without importing each other (E357 F6) |
+| `createQuestScriptPorts` | function | @wildshard/game/quest/declared | Resolve conditions through public/owner state and scenes through the bounded next-tick event queue. |
+| `DeclaredQuests` | class | @wildshard/game/quest/declared | Bind validated quest graphs to the existing engine journal/marker state and the host's snapshot boundary. |
+| `DialogueView` | interface | @wildshard/game/quest/declared | A live dialogue tree view; selection resolves declared flags and scenes without executing author closures. |
+| `QuestDataPorts` | interface | @wildshard/game/quest/declared | Platform-owned fact/reward ports; authored quests never write the profile or progress store. |
+| `QuestScriptBindings` | interface | @wildshard/game/quest/declared | Loader-resolved stable script field/event ids; actor target handles come from the session. |
+| `QuestScriptPorts` | interface | @wildshard/game/quest/declared | Hooks read atomically published script fields or queue declared events for the next script tick. |
 | `installQuestPresentation` | function | @wildshard/game/quest/presentation | One call in play(ctx): Wendell's chip, MAP card, diamonds, world pins, discovery, dialogue and reward. |
 | `PresentedQuestDef` | interface | @wildshard/game/quest/presentation | — |
 | `PresentedQuestStep` | interface | @wildshard/game/quest/presentation | — |
@@ -229,6 +235,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `installShardfileSource` | function | @wildshard/game/shardfile/loader | Select a validated external source before the normal session starts. |
 | `loadShardfile` | function | @wildshard/game/shardfile/loader | Load through an installed engine driver; the ordinary unloadLevel owns every resource. |
 | `shardfileLevelSpec` | function | @wildshard/game/shardfile/loader | Project an empty shardfile into the same engine spec consumed by legacy sources. |
+| `parseQuestData` | function | @wildshard/game/shardfile/quests | Compile TypeScript-authored rows to validated serialisable quest/dialogue data. |
+| `QuestData` | type | @wildshard/game/shardfile/quests | Plain quest graphs, declared flags/triggers and finite dialogue trees; hooks name platform-resolved script ports. |
+| `questDataRules` | function | @wildshard/game/shardfile/quests | Reject dangling flags, repeated identities, unreachable dialogue nodes and cycles before installing authored data. |
+| `QuestDataSchema` | const | @wildshard/game/shardfile/quests | Serialisable quest/dialogue section with semantic validation in the same admission pass. |
 | `assertStateCompatibility` | function | @wildshard/game/shardfile/revision | Preserve saved field identities across validated author revisions; declaration ordering is immaterial. |
 | `LOOK_LUT_BYTES` | const | @wildshard/game/shardfile/schema | A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). |
 | `parseShardfile` | function | @wildshard/game/shardfile/schema | Parse untrusted JSON as a validated shardfile, or throw a Valibot error. |

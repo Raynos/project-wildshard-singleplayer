@@ -51,6 +51,8 @@
     "./shardfile/ledger": "./shardfile/ledger.ts",
     "./shardfile/terrain": "./shardfile/terrain.ts",
     "./shardfile/encounters": "./shardfile/encounters.ts",
-    "./shard/declaredEncounters": "./shard/declaredEncounters.ts"
+    "./shard/declaredEncounters": "./shard/declaredEncounters.ts",
+    "./quest/declared": "./quest/declared.ts",
+    "./shardfile/quests": "./shardfile/quests.ts"
   }
 }

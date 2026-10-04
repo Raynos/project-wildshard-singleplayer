@@ -17,6 +17,14 @@ document. Cells never enter a save or fact key. First-party modes resolve one id
 through `@wildshard/game/grid/instances`; template copies use `template-1` … `template-6`,
 while Select a shard uses `template-solo`. The legacy template switches at SF16.
 
+Quest authors use `@wildshard/sdk/quests` to compile declared flags, quest steps,
+world markers, region/death triggers and finite dialogue trees. The platform binds them
+to the existing `QuestState`, preserving journal/chip/marker text and counters. Custom
+conditions read atomically published public/owner script fields by stable id; scene hooks
+queue declared events for the next script tick with the session's actor binding. Profile
+outcomes pass through the ledger fact port, while coins remain local. Dialogue cursors
+and quest state restore at the same simulation checkpoint.
+
 A shard is one Wildshard level: a folder `src/shards/<slug>/` with a manifest (data) and a plugin (code). The engine,
 the game layer and the kit do the rest. This guide takes you from a copy of the template to a shard that is `live` on
 the title deck.
