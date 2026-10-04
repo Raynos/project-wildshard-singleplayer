@@ -218,7 +218,11 @@ Jake (G57): *"we want to get the 6 shards ported over to the shardfile format fi
 
 | Row | Lane | What | Done when | Size |
 |---|---|---|---|---|
-| SF0 | X | **The frame floor** (§9.4): `scripts/frame-floor.mjs` measures every playable surface on desktop (Chromium on Metal, uncapped, 2×: ≥ 60 fps) and on the iOS Simulator (Safari via `scripts/sim-lane.sh`: ≥ 30 fps); baseline first; misses become fix rows | Today's baseline committed in `progress/frame-floor/`; the script runs in under 10 minutes for all seven shards | M |
+| SF0 | X | **The frame floor** (§9.4): `scripts/frame-floor.mjs` (desktop Chromium on Metal, uncapped, 2×; the iOS Simulator via `scripts/sim-lane.sh`). PASS = integer-rounded median fps ≥ 60 / 30 and p95 ≤ 17.5 / 35.0 ms; raw fps, strict p95 and CPU work p95 kept | **done** `417db57d2`: baseline `progress/frame-floor/4b4de05c2.json` (7 shards × 2 surfaces, 425.8 s). All seven pass on the Simulator; on desktop Driftwood (p95 18.3 ms, CPU 5.8), Nalati (17.9, CPU 3.6) and Nine Dragon (18.5, CPU 2.6) miss: SF0a–c | M |
+| SF0a | O | **Driftwood's desktop frame floor**: CPU p95 5.8 ms while frames miss 17.5 ms, so the GPU (or the compositor) is the limit at 2× 1440 × 900: measure GPU time (timer queries), find the costly passes, fix without changing the look (or board a variant) | Driftwood passes SF0 on desktop; the Simulator still passes | M |
+| SF0b | O | **Nalati's desktop frame floor** (p95 17.9 ms, CPU 3.6): same method | Nalati passes SF0 on desktop | M |
+| SF0c | O | **Nine Dragon's desktop frame floor** (p95 18.5 ms, CPU 2.6): same method | Nine Dragon passes SF0 on desktop | M |
+| SF0d | X | **`sim-lane.sh` exclusive driving**: a `run` on an already-booted device with the same UDID doesn't wait and overwrites the lease, so two drivers share one Simulator (found by SF0) | Two concurrent `run`s on the same device serialize; a fixture proves it | S |
 | SF1a | X | **Guard bootstrap.** Add `ShardManifest` and `ground.terrain` to `scripts/check-row-data.mjs`; record the ~38 existing fields with provenance ("legacy, pre-SF1"); re-baseline `lint/row-functions.json` once in this commit (A1, B21) | The expanded list is committed with each field's provenance; the count is stated in the commit | S |
 | SF1b | X | **Shrink-only comparators that work.** Comparators take an explicit baseline file and candidate file; pre-commit compares the index with `HEAD` (config-only edits included, `scripts/precommit-guards.mjs`); the push gate exports the predecessor's lists into its tree (`scripts/vercel-tree-gate.sh`) (A2). Covers row functions, edge exemptions, shard-platform ceilings | A fixture that raises a list together with matching code fails after commit; an unknown shard fails | M |
 | SF1c | X | **The transition allowlist**: the six shards, the template and Thin Ice (its 20 % ceiling from its first commit) may hold `runtime/`; "a new shard" = not in `lint/shard-platform.json`, and it may not (A3, B12) | Thin Ice's runtime passes; a new shard with `runtime/` fails | S |
@@ -371,7 +375,7 @@ Jake (G57): *"Stretch goals at the bottom like "crodws of hundreds of creatures"
 
 ## 5. Order and why
 
-1. **Now, alongside the council:** SF22a (memory: the empty template's engine base and a synthetic four-corner rig on the
+1. **Now, alongside the council:** SF0 is done (`417db57d2`); SF0a–c fix the three desktop misses first when code rows open; SF22a (memory: the empty template's engine base and a synthetic four-corner rig on the
    Simulator; Jake: memory is a huge problem) and SF0 (the frame-floor baseline). Their numbers set §3.2's caps before
    SF7a freezes them.
 2. **F0**: SF1a → SF1b → (SF1c, SF1d, SF1e, SF2) in parallel; SF3a → SF3b → SF3c → SF4a; SF5a → SF5b → SF5c → SF4c;
