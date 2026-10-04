@@ -1,6 +1,7 @@
 import { Wildlife, type SheepHit } from '../creatures/wildlife';
 import { wildEnv } from '../creatures/env';
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { directorVariant } from '@wildshard/game/shardfile/directorClient';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { installRide } from '../ride/input';
 import { Color, Vector3, type Object3D } from 'three';
@@ -110,6 +111,7 @@ export interface Nalati {
 }
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Promise<Nalati> {
+  const declaredGroups = directorVariant(plugin) ? await import('./groupDeclared') : null;
   const { game, sky } = ctx;
   const [{ practiceRoom }, { modelContext }] = await Promise.all([import('@wildshard/engine/core/practiceRoom'), import('@wildshard/engine/models/model')]);
   const { trample, grassHeightAt, grassBaseHeightAt } = await loadGrassField();
@@ -283,7 +285,10 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
       attachedAnimals = animals;
       animals.wetAt = nalatiWetAt;
       animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
-      const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed }).build();
+      const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed });
+      const controllers = declaredGroups?.declaredGroupFactories({ preyIdentity: prey => w.preyIdentity(prey), resolvePrey: id => w.resolvePrey(id),
+        resolveActor: id => animals.animals.find(actor => actor.entityId === id) ?? null });
+      w.build(controllers);
       wildlife = w; nalati.wildlife = w;
       night.attach(animals);
       weather.bind({ scare: (x, z) => { w.scare(x, z, 60); } }); // a lightning strike breaks a pack / stampedes a herd within 60 m

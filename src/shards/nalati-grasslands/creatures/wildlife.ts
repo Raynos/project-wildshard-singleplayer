@@ -9,9 +9,9 @@ import * as THREE from 'three';
 
 
 
-import { Pack, type PackController } from '../runtime/packLegacy';
+import { Pack, type PackController, type PackPrey } from '../runtime/packLegacy';
 import { HorseHerd, type HerdController } from '../runtime/herdLegacy';
-import { Flock, dogWolves } from './flock';
+import { Flock, SheepPrey, dogWolves } from './flock';
 import { wildEnv } from './env';
 import { Marmots } from './marmots';
 import { HITCH_HORSE_SPOTS } from '../world/layout';
@@ -61,7 +61,12 @@ export const NALATI_WILDLIFE: WildlifeLayout = {
 
 const MARE_VARIANTS = ['bay', 'chestnut', 'bay', 'dun', 'chestnut', 'grey', 'bay', 'black', 'dun', 'bay', 'chestnut', 'grey'];
 
-export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; layout?: WildlifeLayout }
+/** Group policy factories leave placement, prey, mounts and unique elites in their shipping native recipes. */
+export interface WildlifeControllers {
+  pack: (members: Animal[], x: number, z: number) => PackController;
+  herd: (members: Animal[]) => HerdController;
+}
+export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; layout?: WildlifeLayout; controllers?: WildlifeControllers }
 export interface SheepHit { flock: Flock; index: number; distance: number }
 
 /** the player surface Wildlife reads (Player satisfies it) */
@@ -80,10 +85,13 @@ export class Wildlife {
   private wolves: Animal[] = [];
   private _v = new THREE.Vector3();
   private sheepHit: SheepHit | null = null;
+  private readonly preyBindings = new Map<string, PackPrey>();
+  private controllers: WildlifeControllers | undefined;
 
-  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.rng = new Rng(opts.seed ^ 0x3a17); }
+  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.rng = new Rng(opts.seed ^ 0x3a17); this.controllers = opts.controllers; }
 
-  build(): this {
+  build(controllers = this.opts.controllers): this {
+    this.controllers = controllers;
     const layout = this.opts.layout ?? NALATI_WILDLIFE;
     for (const p of layout.packs) this.spawnPack(p.x, p.z, p.variants);
     for (const h of layout.herds) this.spawnHerd(h.x, h.z, h.mares, h.foals, h.stallion);
@@ -128,7 +136,7 @@ export class Wildlife {
       w.herd = herd; this.animals.herds[herd]?.members.push(w);
       members.push(w); this.wolves.push(w);
     }
-    const pack = new Pack(members, x, z);
+    const pack = this.controllers === undefined ? new Pack(members, x, z) : this.controllers.pack(members, x, z);
     pack.findPrey = (px, pz, r) => this.nearestFoal(px, pz, r);
     this.packs.push(pack);
     return pack;
@@ -153,7 +161,7 @@ export class Wildlife {
       if (mom !== undefined) f.place(mom.position.x + this.rng.range(-2, 2), mom.position.z + this.rng.range(-2, 2), mom.yaw);
     }
     if (stallion) { const s = add('stallion', 4); s.place(x + 16, z + 4, 0); }
-    const h = new HorseHerd(members);
+    const h = this.controllers === undefined ? new HorseHerd(members) : this.controllers.herd(members);
     h.findWolf = (px, pz, r) => this.nearestWolf(px, pz, r);
     this.herds.push(h);
     return h;
@@ -177,6 +185,25 @@ export class Wildlife {
     let best: Animal | null = null, bd = r;
     for (const w of this.wolves) { if (!w.alive) continue; const d = Math.hypot(w.position.x - x, w.position.z - z); if (d < bd) { bd = d; best = w; } }
     return best;
+  }
+  /** Native identity ownership: bind only an existing animal or an authored flock member. */
+  preyIdentity(prey: PackPrey): string {
+    const actor = this.animals.animals.find(value => value === prey);
+    if (actor !== undefined) return `actor:${actor.entityId}`;
+    if (!(prey instanceof SheepPrey)) throw new Error('Unbound native prey');
+    const flock = this.flocks.indexOf(prey.flock);
+    if (flock === -1 || prey.index < 0 || prey.index >= prey.flock.n) throw new Error('Unbound native flock prey');
+    const id = `sheep:${flock}:${prey.index}`; this.preyBindings.set(id, prey); return id;
+  }
+  /** Resolve through this world's recipe; same-world restores preserve raid object identity. */
+  resolvePrey(id: string): PackPrey | null {
+    if (id.startsWith('actor:')) return this.animals.animals.find(actor => actor.entityId === id.slice(6)) ?? null;
+    const existing = this.preyBindings.get(id); if (existing !== undefined) return existing;
+    const match = /^sheep:(\d+):(\d+)$/u.exec(id);
+    if (match === null) return null;
+    const flock = this.flocks[Number(match[1])], index = Number(match[2]);
+    if (flock === undefined || !Number.isSafeInteger(index) || index < 0 || index >= flock.n) return null;
+    const prey = flock.prey(index); this.preyBindings.set(id, prey); return prey;
   }
   private nearestFoal(x: number, z: number, r: number): Animal | null {
     let best: Animal | null = null, bd = r;
