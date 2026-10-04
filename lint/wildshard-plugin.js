@@ -16,6 +16,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { simClosure, simRoot } from './sim-closure.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -482,36 +483,21 @@ const noRawShaderPatch = rule('Shader patches go through the one registry (E357 
     if (left?.type === 'MemberExpression' && SHADER_HOOKS.has(propName(left) ?? stringOf(left.property) ?? '')) report(context, node, 'Patch shaders with patchShader / setProgramKey (@wildshard/engine)');
   } };
 });
-// The engine folders that hold simulation, and the view parts inside them (SHARD-PLATFORM SP1: the old list named
-// `quests` and `effects`, which never existed, so the quest code went unchecked; a test keeps every entry real).
+// SF3a: check every runtime dependency, including helpers outside the sim folders.
 export const SIM_DIRS = ['ai', 'combat', 'events', 'quest', 'saves'];
 export const VIEW_PATHS = ['ai/view/', 'combat/view/', 'quest/view/', 'quest/view.ts'];
-// SP5: a shard's `data/` holds serialisable rows, so it is simulation too (no shard has one yet).
-export const SHARD_SIM_DIRS = ['data'];
-const SIM = new RegExp(`^src/(?:engine/(?:${SIM_DIRS.join('|')})|shards/[^/]+/(?:${SHARD_SIM_DIRS.join('|')}))/`, 'u');
-const VIEW = new RegExp(`^src/engine/(?:${VIEW_PATHS.map((p) => p.replaceAll('.', String.raw`\.`)).join('|')})`, 'u');
-const VISUAL = /^src\/engine\/(?:render|ui|fx|anim)\//u;
-const MATH_TYPES = new Set(['Vector3', 'Quaternion', 'Matrix4', 'Box3', 'Ray']);
-const DOM_GLOBALS = new Set(['document', 'HTMLElement', 'HTMLCanvasElement', 'requestAnimationFrame']);
-const simNoRender = rule('Simulation stays independent of visuals (E357)', (context) => {
-  const path = pathOf(context);
-  if (!SIM.test(path) || VIEW.test(path)) return {};
-  return {
-    ...importsVisitor((node) => {
-      const source = stringOf(node.source);
-      if (source === null) return;
-      if (source === 'three' && (!node.specifiers?.length || node.specifiers.some((specifier) => specifier.type !== 'ImportSpecifier' || !MATH_TYPES.has(nameOf(specifier.imported))))) {
-        report(context, node, 'Simulation imports only Vector3, Quaternion, Matrix4, Box3 or Ray from three');
-      } else if (VISUAL.test(modulePath(context.filename, source)) || VIEW.test(modulePath(context.filename, source))) {
-        report(context, node, 'Simulation cannot import a visual module');
-      }
-    }),
-    Identifier(node) { if (isReference(node) && DOM_GLOBALS.has(node.name)) report(context, node, 'Simulation cannot read a DOM global'); },
-    MemberExpression(node) {
-      const object = unwrap(node.object);
-      if (object?.type === 'Identifier' && ['window', 'globalThis'].includes(object.name) && DOM_GLOBALS.has(propName(node) ?? stringOf(node.property))) report(context, node, 'Simulation cannot read a DOM global');
-    },
-  };
+export const SHARD_SIM_DIRS = ['data', 'behaviour'];
+const simAllow = JSON.parse(readFileSync(new URL('sim-closure.json', import.meta.url), 'utf8')).violations;
+const simNoRender = rule('Headless simulation checks its complete runtime import closure (SF3a)', (context) => {
+  if (!simRoot(pathOf(context))) return {};
+  return { Program(node) {
+    const marker = context.filename.replaceAll('\\', '/').lastIndexOf('/src/');
+    const root = marker === -1 ? REPO : context.filename.slice(0, marker);
+    for (const item of simClosure(root, [pathOf(context)])) {
+      const allowance = root === REPO.replace(/\/$/u, '') ? simAllow[item.id]?.count ?? 0 : 0;
+      if (item.count > allowance) report(context, node, `Simulation closure: ${item.id} (${item.count} > ${allowance}); ${item.trace.join(' → ')}`);
+    }
+  } };
 });
 
 // SHARD-PLATFORM SP5: generator code runs on the author's machine and never ships, so only the bake and other generators
