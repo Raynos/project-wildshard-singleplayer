@@ -31,6 +31,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
  */
 import * as THREE from 'three';
 import { PINE_SKY_KEYS, type SkyKeyName } from './skyKeys';
+import { packSkyKeyRgb9e5 } from './skyKeyFormat';
 import { PINE_DAY, PINE_PHASES, FIXED_PHASE, P, clonePreset, pineSunAt, pineMoonAt, pineNightAt, type Preset } from './dayKeys';
 
 /** the PMREMGenerator (r186) internals the stepped refresh drives, one call a frame (PineDayNight.stepEnvironment) */
@@ -140,7 +141,7 @@ export class PineSkyBackdrop {
    */
   private envStep = -1;
 
-  private constructor(private renderer: SkyBackdropContext['renderer'], private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean, private readonly envSteps: boolean) {
+  private constructor(private renderer: SkyBackdropContext['renderer'], private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean, private readonly envSteps: boolean, private readonly packKeys: boolean) {
     this.clock = new DayCycle({ ...PINE_DAY, start: phase, curves: { night: pineNightAt, dusk: PINE_DAY.curves?.dusk ?? (() => 0), dawn: PINE_DAY.curves?.dawn ?? (() => 0), lamps: (p) => Math.max(PINE_DAY.curves?.lamps(p) ?? 0, .35 * this.mod.overcast) } });
     this.clock.cycle = cycle; this.clock.paused = frozen;
     this.clock.onSet = () => this.jump();
@@ -182,7 +183,7 @@ export class PineSkyBackdrop {
   }
 
   /** the clock at the URL's / Settings' time, its first two keys decoded, the environment rendered */
-  static async create(renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, envSteps: boolean): Promise<PineSkyBackdrop> {
+  static async create(renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, envSteps: boolean, packKeys = false): Promise<PineSkyBackdrop> {
     const qs = new URLSearchParams(location.search);
     const todRaw = qs.get('tod') ?? '';
     const named = (PINE_PHASES as Record<string, number | undefined>)[todRaw];
@@ -191,7 +192,7 @@ export class PineSkyBackdrop {
     const time = setting('time'); // 'live' whenever ?tod / ?clock are in the URL
     const frozen = time !== 'live';
     const phase = frozen ? FIXED_PHASE[time] : Number.isFinite(tod) ? ((tod % 1) + 1) % 1 : PINE_PHASES.morning + 0.05;
-    const dn = new PineSkyBackdrop(renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : 24 * 60, frozen, envSteps);
+    const dn = new PineSkyBackdrop(renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : 24 * 60, frozen, envSteps, packKeys);
     const [a, b] = dn.segment(phase);
     await Promise.all([dn.ensure(a[1].key), dn.ensure(b[1].key)]);
     return dn;
@@ -291,8 +292,9 @@ export class PineSkyBackdrop {
           tex.name = `hdri/${PINE_SKY_KEYS[k].id}_2k.key.jpg + gain.png`;
           tex.wrapS = THREE.RepeatWrapping; // the equirect seam blends across u = 0 / 1
           const horizon = horizonOf(tex);
+          if (this.packKeys) packSkyKeyRgb9e5(tex); // Pine memory trim (SF47-g): half the key's GPU bytes
           this.renderer.initTexture(tex); // upload now, not on the frame that first draws it
-          tex.image.data = null;          // the GPU has it: drop the 16 MB CPU copy (rebuild() decodes again after a context loss)
+          tex.image.data = null;          // the GPU has it: drop the 16 MB (packed: 12 MB) CPU copy (rebuild() decodes again after a context loss)
           const r: Resident = { tex, horizon, used: this.frame };
           this.resident.set(k, r);
           this.evict();
