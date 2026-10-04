@@ -19,8 +19,9 @@ export class Purse {
   private dirty = false;
   private listeners: ((coins: number, delta: number) => void)[] = [];
 
-  constructor(readonly shard: string) {
-    const saved = purseSave.read(saveSlug(shard));
+  /** The default game save or an injected local slot owns durable coin storage. */
+  constructor(readonly shard: string, private readonly save: Pick<typeof purseSave, 'read' | 'write'> = purseSave) {
+    const saved = this.save.read(saveSlug(shard));
     this.n = typeof saved === 'number' && Number.isFinite(saved) && saved > 0 ? Math.floor(saved) : 0;
   }
 
@@ -43,10 +44,12 @@ export class Purse {
     return true;
   }
 
-  flush(): void {
-    if (!this.dirty) return;
+  /** Confirm durable storage; failed writes keep the current balance dirty for retry. */
+  flush(): boolean {
+    if (!this.dirty) return true;
+    if (!this.save.write(this.n, saveSlug(this.shard))) return false;
     this.dirty = false;
-    purseSave.write(this.n, saveSlug(this.shard));
+    return true;
   }
 
   onChange(fn: (coins: number, delta: number) => void): () => void {

@@ -26,6 +26,14 @@ export const clientStateSave = { key: 'platform.continuation', scope: 'shard' as
   schema: v.nullable(checkpoint), initial: (): ClientCheckpoint | null => null };
 type Runtimes = DeclaredItems['runtimes'];
 
+/** Retry every home save owner; a logical continuation alone cannot confirm durable rewards or coins. */
+export function checkpointClientState(ports: { ledger: { flush: () => boolean }; purse: { flush: () => boolean } | null; encounters: () => boolean; continuation: () => boolean }): boolean {
+  const profile = ports.ledger.flush(), coins = ports.purse?.flush() ?? true;
+  // Attempt all writes even after a refusal, retaining the latest local progress for the next retry.
+  const encounters = ports.encounters(), continuation = ports.continuation();
+  return profile && coins && encounters && continuation;
+}
+
 function itemStates(items: Runtimes): v.InferOutput<typeof itemsSchema> {
   return v.parse(itemsSchema, Object.fromEntries([...items].map(([id, runtime]) => [id, runtime.snapshot()])));
 }

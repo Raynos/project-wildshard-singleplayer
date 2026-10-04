@@ -31,7 +31,7 @@ import { installClientWater } from './clientWater';
 import { clientWorld } from './clientWorld';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
-import { captureClientState, restoreClientState, installClientItemState, clientStateSave } from './clientState';
+import { captureClientState, restoreClientState, installClientItemState, clientStateSave, checkpointClientState } from './clientState';
 import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
@@ -48,7 +48,7 @@ export interface ShardfileClientBindings {
   allocator?: ResidencyAllocator;
   /** Explicit first-party transition policy: a completely empty data declaration adds no gameplay services. */
   trustedRuntime?: boolean;
-  /** Production handoff after logical continuation restoration. The existing Game driver remains the home tick owner. */
+  /** Production handoff after restoration; checkpoint confirms ledger, coins, encounters and continuation writes. The existing Game driver remains the home tick owner. */
   onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void }) => void;
 }
 const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
@@ -222,7 +222,9 @@ export class ShardfileClient {
     const prior = continuation.read();
     if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) continuation.write(null);
     syncTargetColliders(source.targets, sim.colliders, read);
-    const checkpoint = (): boolean => continuation.write(captureClientState(source, sim, items.runtimes));
+    const checkpoint = (): boolean => checkpointClientState({ ledger, purse: loot?.purse ?? null,
+      encounters: () => saved.write(encounters), continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
+    });
     sim.host.onStep('client.save', () => { if (sim.host.state.tick % 300 === 0) checkpoint(); });
     ctx.scope.onDispose(() => { checkpoint(); });
     ctx.scope.listen(window, 'pagehide', () => { checkpoint(); });
