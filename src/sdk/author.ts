@@ -4,6 +4,7 @@ import { parseShardfile, type Shardfile } from './shardfile';
 export function emptyShardfile(identity: Shardfile['identity']): Shardfile {
   const edge = { heights: [0, 0], colours: [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5]], roadHeight: 0 };
   return parseShardfile({ version: 0, identity, requires: { sdk: 0, capabilities: [], commons: [] }, budgets: { library: { resident: 0, compressed: 0 }, sim: { resident: 0, compressed: 0 }, overlap: 0 },
+    entryways: [{ edge: 'north', at: [0, 0, 250], width: 6 }, { edge: 'east', at: [250, 0, 0], width: 6 }, { edge: 'south', at: [0, 0, -250], width: 6 }, { edge: 'west', at: [-250, 0, 0], width: 6 }],
     look: { families: [], grade: { exposure: 0, saturation: 1, contrast: 1, lut: null }, clock: 'engine', dayOverride: null, keys: [] },
     sim: { fixedHz: 60, scriptTickDivisor: 2, commandVersion: 0, snapshotVersion: 0, scripts: [] },
     state: { version: 1, sharedOwner: 'host', playerKey: 'actorId', shared: [], player: [] }, authorCaps: { players: 32, speed: 15 },

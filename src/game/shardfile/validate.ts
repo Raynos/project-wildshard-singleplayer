@@ -6,6 +6,7 @@ import { parseShardfile, type Shardfile } from './schema';
 import { assetCost } from './assets';
 import { validateTerrainAssets } from './terrain';
 import { validateSkinAssets } from './skins';
+import { validateEntrywayTerrain } from './entryways';
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
 export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string): Shardfile {
@@ -88,6 +89,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   if (clientModules.size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || sum(s.library).resident + clientMemory > s.budgets.library.resident) throw new Error('client script memory budget understated or above host cap');
   const cost = worstContentCost(s, commons);
   if (cost.playing > C.playing || cost.loading > C.loading) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
+  validateEntrywayTerrain(s, assets);
   if (s.terrain !== null) validateTerrainAssets(s.terrain, assets, s);
   validateSkinAssets(s, assets);
   return s;

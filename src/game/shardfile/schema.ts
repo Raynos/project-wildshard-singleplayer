@@ -19,6 +19,7 @@ import { ItemsSchema, itemRules } from './items';
 import { TraversalSchema } from './traversal';
 import { RuntimeSchema } from './runtime';
 import { ClientScriptsSchema, clientScriptRules } from './clientScripts';
+import { EntrywaysSchema, entrywayRules } from './entryways';
 import { skinLookRules } from './skins';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs } from './materials';
 
@@ -53,6 +54,7 @@ const rawSchema = v.strictObject({
   authorCaps: v.strictObject({ players: v.pipe(positive, v.maxValue(32)), speed: v.pipe(finite, v.minValue(0), v.maxValue(15)) }),
   serverBudget: v.strictObject({ tickMicros: v.pipe(positive, v.maxValue(16_666)), memory: v.pipe(positive, v.maxValue(CONTENT_CAPS.sim.resident)), entities: v.pipe(natural, v.maxValue(10_000)), commandsPerTick: v.pipe(natural, v.maxValue(1024)) }),
   edge: v.strictObject({ north: edge, east: edge, south: edge, west: edge }),
+  entryways: EntrywaysSchema,
   files: v.array(file), tiles: v.array(tile), library: v.array(ref), critical: v.array(ref),
   far: v.nullable(v.strictObject({ files: v.array(ref), bounds, ...costs })),
   ui: v.optional(UiSchema, []),
@@ -80,6 +82,7 @@ export type Shardfile = v.InferOutput<typeof rawSchema>;
 /** Semantic format violations, including reference integrity and the acyclic dependency graph. */
 export function shardfileRules(s: Shardfile): string[] {
   const errors: string[] = [];
+  errors.push(...entrywayRules(s));
   const files = new Map(s.files.map((f) => [f.hash, f]));
   if (files.size !== s.files.length) errors.push('unique file hashes');
   const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...(s.far?.files ?? []), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
@@ -160,6 +163,7 @@ export function shardfileRules(s: Shardfile): string[] {
   return [...new Set(errors)];
 }
 /** Strict schema for the public SDK format; rejects unknown fields and invalid references. */
-export const ShardfileSchema = v.pipe(rawSchema, v.check((s) => shardfileRules(s).length === 0, 'shardfile semantic rules'));
+export const ShardfileSchema = v.pipe(v.unknown(), v.check((input) => typeof input === 'object' && input !== null && 'entryways' in input && input.entryways !== undefined, 'illegal shard: four midpoint entryways are required'), rawSchema,
+  v.check((s) => entrywayRules(s).length === 0, 'illegal shard: entryway openings must meet road height y=0'), v.check((s) => shardfileRules(s).length === 0, 'shardfile semantic rules'));
 /** Parse untrusted JSON as a validated shardfile, or throw a Valibot error. */
 export function parseShardfile(input: unknown): Shardfile { return v.parse(ShardfileSchema, input); }

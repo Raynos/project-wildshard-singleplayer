@@ -332,5 +332,43 @@
   "tiles": [],
   "library": [],
   "critical": [],
-  "far": null
+  "far": null,
+  "entryways": [
+    {
+      "edge": "north",
+      "at": [
+        0,
+        0,
+        250
+      ],
+      "width": 6
+    },
+    {
+      "edge": "east",
+      "at": [
+        250,
+        0,
+        0
+      ],
+      "width": 6
+    },
+    {
+      "edge": "south",
+      "at": [
+        0,
+        0,
+        -250
+      ],
+      "width": 6
+    },
+    {
+      "edge": "west",
+      "at": [
+        -250,
+        0,
+        0
+      ],
+      "width": 6
+    }
+  ]
 }
