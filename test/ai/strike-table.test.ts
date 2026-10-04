@@ -39,7 +39,7 @@ const tuning = [
   ['S25 Titan wind charge', `${nalati}stormTitan.ts`, { CHARGE_DMG: 30, LANE_T: 1.2, FLANK_T: 2, STUN_T: 4 }],
   ['S26 Titan chain', `${nalati}stormTitan.ts`, { CHAIN_DMG: 18, CHAIN_R: 3, CHAIN_LAND: 0.6 }],
   ['S27 Titan fire', `${nalati}stormTitan.ts`, { CELL: 4, BURN_T: 7, FIRE_DPS: 8 }],
-  ['S36 Antler King stomp', `${pine}antlerKing.ts`, { STOMP_R: 4.4 }],
+  ['S36 Antler King stomp', 'src/shards/pine-hollow/runtime/antlerKing.ts', { STOMP_R: 4.4 }],
 ] as const;
 describe('strike tuning from current production declarations', () => {
   it('S8/S9 the charge wind-ups are the species rows\' own (E405: the kit\'s boar 0.55 s, bear 0.65 s)', () => {
@@ -60,8 +60,8 @@ const laneRows: { name: string; file: string; index: number; tell: number; optio
   { name: 'S31 Blackpaw', file: `${pine}elites.ts`, index: 1, tell: 0.75, options: { width: 2.6, speed: 10.5, overshoot: 5, dmg: 28, skid: 1.2, reach: 1.6 } },
   { name: 'S33 Imperial Bull', file: `${pine}elites.ts`, index: 2, tell: 1, options: { width: 2.8, speed: 11, overshoot: 8, dmg: 34, skid: 1.3, reach: 1.8 } },
   { name: 'S34 rival', file: `${pine}elites.ts`, index: 3, tell: 0.9, options: { width: 2.4, speed: 9.5, overshoot: 6, dmg: 18, skid: 1.4, reach: 1.7 } },
-  { name: 'S37 Antler King', file: `${pine}antlerKing.ts`, index: 0, tell: 1.1, options: { width: 5.2, speed: 13, overshoot: 10, dmg: 32, skid: 1.6, reach: 2 } },
-  { name: 'S38 thrall', file: `${pine}antlerKing.ts`, index: 1, tell: 0.7, options: { width: 2.4, speed: 9, overshoot: 5, dmg: 14, skid: 1.2, reach: 1.7 } },
+  { name: 'S37 Antler King', file: 'src/shards/pine-hollow/runtime/antlerKing.ts', index: 0, tell: 1.1, options: { width: 5.2, speed: 13, overshoot: 10, dmg: 32, skid: 1.6, reach: 2 } },
+  { name: 'S38 thrall', file: 'src/shards/pine-hollow/runtime/antlerKing.ts', index: 1, tell: 0.7, options: { width: 2.4, speed: 9, overshoot: 5, dmg: 14, skid: 1.2, reach: 1.7 } },
 ];
 describe('real Pine lane strikes at the body clock', () => {
   it.each(laneRows)('$name holds its tell, hits once and finishes recovery', ({ file, index, options, tell }) => {
