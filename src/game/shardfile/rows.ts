@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { sketchReference } from './sketch';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { SimStrike } from '@wildshard/engine/sim';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
@@ -22,7 +23,7 @@ const shape = v.variant('kind', [
   v.pipe(v.strictObject({ kind: v.literal('ring'), inner: nonnegative, outer: dimension }), v.check((r) => r.inner <= r.outer, 'ordered ring')),
 ]);
 const strike = v.strictObject({ id, shape, windup: nonnegative, active: nonnegative, recover: nonnegative, cooldown: nonnegative, range: dimension, damage: nonnegative,
-  tags: v.pipe(v.array(v.custom<CombatTag>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))), v.maxLength(32)), weight: nonnegative, speed: v.pipe(nonnegative, v.maxValue(15)) });
+  tags: v.pipe(v.array(v.custom<CombatTag>((value) => typeof value === 'string' && value.length <= 128 && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))), v.maxLength(32)), weight: nonnegative, speed: v.pipe(nonnegative, v.maxValue(15)) });
 const numbers = v.strictObject({ overcast: unit, rain: unit, wet: unit, wind: unit, fog: unit });
 const weather = v.strictObject({ id, states: v.pipe(v.array(v.strictObject({ id, next: id, length: ordered, numbers })), v.minLength(1), v.maxLength(64)), initial: numbers, soak: unit, dry: unit,
   modes: v.pipe(v.array(v.strictObject({ id, hold: v.nullable(id), at: unit, dry: v.boolean() })), v.maxLength(64)) });
@@ -45,7 +46,7 @@ const look = v.strictObject({ id, species: id, recipe: id, material: v.optional(
   animation: v.strictObject({ recipe: id, parameters: v.record(id, parameter) }) });
 const compendium = v.strictObject({ id, className: id, title: text, tabs: v.pipe(v.array(v.strictObject({ id, label: text })), v.maxLength(16)), stamp: text,
   stats: v.pipe(v.array(v.strictObject({ label: text, value: text })), v.maxLength(8)),
-  entries: v.pipe(v.array(v.strictObject({ id, kind: v.literal('species'), tab: id, name: text, notes: text, sketch: v.pipe(v.string(), v.maxLength(500000)), species: id })), v.maxLength(256)) });
+  entries: v.pipe(v.array(v.strictObject({ id, kind: v.literal('species'), tab: id, name: text, notes: text, sketch: v.pipe(text, v.check(sketchReference, 'bounded inert SVG data or admitted sketch hash')), species: id })), v.maxLength(256)) });
 const loot = v.strictObject({ id, gear: v.literal('purse.coins'), finds: v.null(), marks: v.null(), charted: v.boolean(), chime: id });
 const raw = v.strictObject({ strikes: v.pipe(v.array(strike), v.maxLength(256)), weather: v.pipe(v.array(weather), v.maxLength(16)), days: v.pipe(v.array(day), v.maxLength(16)),
   species: v.pipe(v.array(species), v.maxLength(256)), looks: v.pipe(v.array(look), v.maxLength(256)), compendiums: v.pipe(v.array(compendium), v.maxLength(16)), loot: v.pipe(v.array(loot), v.maxLength(16)) });

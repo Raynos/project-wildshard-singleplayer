@@ -24,6 +24,7 @@ import { EmptyEquipment } from './emptyEquipment';
 import type { ResidencyAllocator } from '../grid/allocator';
 import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
 import { leaseClientLibrary } from './clientLibrary';
+import { compendiumSketches } from './sketch';
 import { clientMaterials } from './clientMaterials';
 import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
 import { loadClientSkins, type ClientSkin } from './clientSkins';
@@ -143,7 +144,10 @@ export class ShardfileClient {
     const source = this.source;
     ctx.rows.species(source.rows.species.map((row) => ({ ...row, variants: row.variants.map((variant) => ({ ...variant, scale: [...variant.scale] })) })));
     ctx.rows.speciesLook(clientSpeciesLooks(source.rows, this.bindings.recipes, presentation.materials, this.skins));
-    for (const row of source.rows.compendiums) ctx.rows.compendium({ id: row.id, ...declaredCompendium(row, source.rows, ctx.manifest.slug) });
+    const sketches = compendiumSketches(source.rows, this.assets.retained);
+    for (const row of source.rows.compendiums) ctx.rows.compendium({ id: row.id, ...declaredCompendium(row, source.rows, ctx.manifest.slug, ref => {
+      const sketch = sketches.get(ref); if (sketch === undefined) throw new Error('Missing admitted compendium sketch'); return sketch.data;
+    }) });
     ctx.rows.lootTable(source.rows.loot);
     runtime.hooks.animalsReady = (manager) => {
       for (const spawn of source.creatures.spawns) {

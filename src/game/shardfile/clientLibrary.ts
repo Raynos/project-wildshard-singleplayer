@@ -4,12 +4,16 @@ import { assetCost } from './assets';
 import { admitScript } from '@wildshard/engine/script/admission';
 import type { Shardfile } from './schema';
 import { clientScriptViewCost } from './clientScripts';
+import { compendiumSketches } from './sketch';
 
 /** Reserve only library and commons bytes in the session's one allocator; render rings and the sim registry own their claims. */
 export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: { allocator: ResidencyAllocator; scope: Pick<ShardContext['scope'], 'onDispose'>; owner: string }): void {
   const files = new Map(source.files.map((file) => [file.hash, file])), closure = new Set<string>();
-  const visit = (ref: string): void => { if (closure.has(ref)) return; closure.add(ref); for (const dependency of files.get(ref)?.dependencies ?? []) visit(dependency); };
-  for (const root of source.library) visit(root);
+  const pending = [...source.library];
+  while (pending.length > 0) {
+    const ref = pending.pop(); if (ref === undefined || closure.has(ref)) continue;
+    closure.add(ref); pending.push(...files.get(ref)?.dependencies ?? []);
+  }
   const claims: ResidencyClaim[] = [];
   for (const ref of closure) {
     if (ref.startsWith('commons:')) continue;
@@ -28,6 +32,8 @@ export function leaseClientLibrary(source: Shardfile, assets: ReadonlyMap<string
   }
   const views = clientScriptViewCost(source.clientScripts);
   if (views.capacity > 0) claims.push({ id: `library:${ports.owner}:client-views`, category: 'library', bytes: views.decoded + views.gpu, owner: ports.owner, distance: 0, needed: true });
+  let sketchIndex = 0;
+  for (const sketch of compendiumSketches(source.rows, assets).values()) claims.push({ id: `library:${ports.owner}:sketch:${sketchIndex++}`, category: 'library', bytes: sketch.decoded + sketch.gpu, owner: ports.owner, distance: 0, needed: true });
   const leases: ReturnType<ResidencyAllocator['reserve']>[] = [];
   try {
     for (const claim of claims) {

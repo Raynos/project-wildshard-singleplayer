@@ -12,6 +12,7 @@ import { validateSocketLandings } from './entryLanding';
 import { clientScriptViewCost } from './clientScripts';
 import { preflightShardfile } from './preflight';
 import { preflightAssetGraph } from './assetGraph';
+import { compendiumSketches } from './sketch';
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
 export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string): Shardfile {
@@ -49,6 +50,8 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     if (actual.decoded > f.decoded || actual.gpu > f.gpu || actual.triangles > f.triangles || actual.draws > f.draws) throw new Error('asset cost declaration understated');
   }
   const library = closure(s.library);
+  const sketches = compendiumSketches(s.rows, assets);
+  const sketchResident = [...sketches.values()].reduce((total, sketch) => total + sketch.decoded + sketch.gpu, 0);
   if (s.sim.scripts.some((id) => !id.startsWith('commons:') && files.get(id)?.kind !== 'wasm')) throw new Error('script reference is not an admitted Wasm file');
   for (const t of s.tiles) {
     const roots = closure(t.files);
@@ -94,7 +97,9 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     clientMemory += admission.maximumPages * 65536 * 3;
   }
   const clientViews = clientScriptViewCost(s.clientScripts);
-  if (clientModules.size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || sum(s.library).resident + clientMemory + clientViews.decoded + clientViews.gpu > s.budgets.library.resident) throw new Error('client script memory or view budget understated or above host cap');
+  const libraryResident = sum(s.library).resident + clientMemory + clientViews.decoded + clientViews.gpu;
+  if (clientModules.size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || libraryResident > s.budgets.library.resident) throw new Error('client script memory or view budget understated or above host cap');
+  if (libraryResident + sketchResident > s.budgets.library.resident) throw new Error('compendium sketch raster budget understated');
   const cost = worstContentCost(s, commons);
   if (cost.playing > C.playing || cost.loading > C.loading) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
   validateEntrywayTerrain(s, assets);
