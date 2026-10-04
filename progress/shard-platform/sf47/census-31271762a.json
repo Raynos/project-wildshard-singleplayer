@@ -1,0 +1,55 @@
+{
+ "$doc": "SF47-g part 2: labelled GL census (progress/shard-platform/sf47/glbytes.mjs = scripts/parity/glbytes-probe.mjs + the trim row and GPU textures forced to KTX2), Pine Hollow phone tier, iPhone 16 Pro context, render scale 2, Chromium on Metal, after every capture pose. off/on = pineMemoryTrim on clean 31271762a; cap512 = the same build with the phone maxTexture 1024 -> 512 (dangling scratch commit b3b5de626, never pushed: the G65 \"512 sets\" emulation; only loadTexture KTX2 sets trim, glTF props and arrays do not). Decimal MB.",
+ "build": "31271762a",
+ "off": {
+  "totalBytes": 357016242,
+  "resources": 1308,
+  "unlabelled": 0,
+  "reconciled": true,
+  "mb": {
+   "textures": 305.93,
+   "skyKeys": 33.55,
+   "rigHullMaps": 8.39,
+   "rigHullNormals": 11.18,
+   "coatCanvases": 15.38,
+   "practiceDummies": 33.55,
+   "groundSetsGroupMesh1to3": 26.52,
+   "rockGroundKtx2": 5.77,
+   "ktx2TextureSets": 33.64
+  }
+ },
+ "on": {
+  "totalBytes": 340239026,
+  "resources": 1308,
+  "unlabelled": 0,
+  "reconciled": true,
+  "mb": {
+   "textures": 289.15,
+   "skyKeys": 16.78,
+   "rigHullMaps": 8.39,
+   "rigHullNormals": 11.18,
+   "coatCanvases": 15.38,
+   "practiceDummies": 33.55,
+   "groundSetsGroupMesh1to3": 26.52,
+   "rockGroundKtx2": 5.77,
+   "ktx2TextureSets": 33.64
+  }
+ },
+ "cap512": {
+  "totalBytes": 336481682,
+  "resources": 1310,
+  "unlabelled": 0,
+  "reconciled": true,
+  "mb": {
+   "textures": 285.39,
+   "skyKeys": 33.55,
+   "rigHullMaps": 8.39,
+   "rigHullNormals": 11.18,
+   "coatCanvases": 15.38,
+   "practiceDummies": 33.55,
+   "groundSetsGroupMesh1to3": 26.52,
+   "rockGroundKtx2": 1.57,
+   "ktx2TextureSets": 13.11
+  }
+ }
+}

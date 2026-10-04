@@ -1,0 +1,71 @@
+{
+  "row": "SF47-g pineMemoryTrim off vs off",
+  "parent": "31271762ac8f4541d2e895cc459dad493ad5006b",
+  "current": "31271762ac8f4541d2e895cc459dad493ad5006b",
+  "a": "off",
+  "b": "off",
+  "when": "2026-10-04T22:49:05.765Z",
+  "elapsedSeconds": 581.875,
+  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+  "ambientInfo": [
+    "forest.thrall"
+  ],
+  "reports": [
+    {
+      "setting": "off",
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 0.9999969377259407,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9995896684109031,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "heapMB": {
+        "off": 211.2089080810547,
+        "on": 135.35059356689453
+      }
+    },
+    {
+      "setting": "off",
+      "shard": "pine-hollow",
+      "tier": "desktop",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 1,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9999686949660154,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "heapMB": {
+        "off": 176.49342346191406,
+        "on": 172.87454986572266
+      }
+    }
+  ]
+}
