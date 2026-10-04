@@ -63,7 +63,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
   tiers: { phone: { godRays: false, ao: false }, desktop: { godRays: false, ao: false } },
   loot: { coins: true },
-  audio: { ambience: 'none', score: 'sunscar.silent', cues: async () => (await import('./audio/cues')).CUES },
+  audio: { ambience: 'none', score: 'sunscar.silent', cues: async () => (await import('./data/cues')).CUES },
   boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
   dev: { poses: () => Promise.resolve({
     spawn: { eye: eye(SPAWN.x, SPAWN.z), feet: feet(SPAWN.x, SPAWN.z), yaw: 0, pitch: 2, mockup: 'art/sunscar-dunes/round-2-dunes/C-dusk-signal-fire.jpg', frame: STRINGS.frameSpawn },

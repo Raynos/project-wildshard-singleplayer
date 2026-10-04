@@ -2,6 +2,7 @@ import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installSilentScore } from '@wildshard/kit/audio/forest';
+import source from './shard.config';
 import { Vector3 } from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { QuestState } from '@wildshard/engine/quest/core';
@@ -89,7 +90,7 @@ export class SignalDunesPlugin extends ShardPlugin {
     if (host !== null && whip !== null) { host.viewmodel.add(whip.model); lastLightAll(whip.model, ctx.scope); ownPrimitives(whip.model, ctx.scope); }
     ctx.inputContext({ id: 'sunscar.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } });
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player;
-    if (rt?.play) { installSilentScore(rt.play.music, ctx.scope); installSunscarCues(rt.play.audio, rt.play.cues, ctx.scope); }
+    if (rt?.play) { if (source.audio.score === 'silent') installSilentScore(rt.play.music, ctx.scope); installSunscarCues(rt.play.audio, rt.play.cues, ctx.scope); }
     const loot = rt?.play && rt.world ? installLoot({ ctx, manifest: ctx.manifest, owned: rt.play.owned, scene: rt.world.game.scene,
       player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,
       presentation: { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt.play?.cues.cue('cue.swap'); } } }) : null;

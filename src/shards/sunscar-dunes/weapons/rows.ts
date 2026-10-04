@@ -1,6 +1,6 @@
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import { STRINGS } from '../strings';
-import { CUES } from '../audio/cues';
+import { CUES } from '../data/cues';
 
 export const WHIP_ROW: EquipmentRow = { id: 'weapon.sunscar-whip', legacySlot: 'sunscar-whip',
   cues: CUES,

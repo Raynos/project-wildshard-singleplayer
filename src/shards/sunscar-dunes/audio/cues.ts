@@ -1,20 +1,20 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
-import type { CombatCues } from '@wildshard/engine/combat/cues';
+import type { CombatCues, CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
+import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
+import source from '../shard.config';
 
-/** The bullwhip's cues. Until the locally generated crack lands (README leftovers) they play kit voices. */
-export const CUES = { fire: 'cue.sunscar.whip.crack', heavy: 'cue.sunscar.whip.double', impact: 'cue.sunscar.whip.hit', reload: 'cue.reload' } as const;
+/** Bind the existing kit recipes to declared cue ids, preserving optional pan/gain arguments. */
+export function sunscarCueMap(voices: Pick<ReturnType<typeof sharedWeaponVoices>, 'swordSwing' | 'swordHeavy' | 'swordHit' | 'weaponSwap' | 'reload'>): CombatCueMap {
+  const recipes = new Map<string, (opts: CombatCueOpts) => undefined>();
+  recipes.set('kit.swordSwing', () => { voices.swordSwing(); });
+  recipes.set('kit.swordHeavy', () => { voices.swordHeavy(); });
+  recipes.set('kit.swordHit', (opts) => { voices.swordHit('flesh', opts.pan, opts.gain); });
+  recipes.set('kit.weaponSwap', () => { voices.weaponSwap(); });
+  recipes.set('kit.reload', () => { voices.reload(); });
+  return createCueRouter(source.audio.routing, { voices: recipes });
+}
 export function installSunscarCues(audio: Audio, cues: CombatCues, scope: Scope): void {
-  const voices = sharedWeaponVoices(audio);
-  cues.use((id, opts) => {
-    switch (id) {
-      case CUES.fire: voices.swordSwing(); return true;
-      case CUES.heavy: voices.swordHeavy(); return true;
-      case CUES.impact: voices.swordHit('flesh', opts.pan, opts.gain); return true;
-      case CUES.reload: voices.reload(); return true;
-      case 'cue.swap': voices.weaponSwap(); return true;
-      default: return false;
-    }
-  }, scope);
+  cues.use(sunscarCueMap(sharedWeaponVoices(audio)), scope);
 }
