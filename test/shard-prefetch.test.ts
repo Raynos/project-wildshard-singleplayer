@@ -61,7 +61,7 @@ describe('shardBootRequests: the boot request list of each shard', () => {
     const { prepareBootAudio } = await import('../src/engine/boot/audioInventory');
     const [{ createPineAudio }, { createNalatiAudio }, { createNdAudio }, { createDriftwoodAudio }] = await Promise.all([
       import('../src/shards/pine-hollow/runtime/audio/files'), import('../src/shards/nalati-grasslands/runtime/audio/files'),
-      import('../src/shards/nine-dragon-stack/audio/files'), import('../src/shards/driftwood-isle/runtime/audio/files'),
+      import('../src/shards/nine-dragon-stack/runtime/audio/files'), import('../src/shards/driftwood-isle/runtime/audio/files'),
     ]);
     for (const [slug, create] of [['pine-hollow', createPineAudio], ['nalati-grasslands', createNalatiAudio], ['nine-dragon-stack', createNdAudio], ['driftwood-isle', createDriftwoodAudio]] as const) {
       const def = PLAYABLE_SHARDS.find((row) => row.slug === slug);

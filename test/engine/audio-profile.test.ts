@@ -8,9 +8,9 @@ import type { AudioMixer } from '../../src/engine/audio/levelAudio';
 import { AmbienceBeds, PositionalLoops } from '../../src/engine/audio/AmbienceBeds';
 import { CuePlayer, cueFiles, decodeCueSet } from '../../src/engine/audio/Cues';
 import { SetScore, scoreFiles, decodeScore } from '../../src/engine/audio/SetScore';
-import { ndPick, createNdAudio, SCORE_SET } from '../../src/shards/nine-dragon-stack/audio/files';
-import { ndZones } from '../../src/shards/nine-dragon-stack/audio/ambience';
-import { ndCueMap } from '../../src/shards/nine-dragon-stack/audio/cues';
+import { ndPick, createNdAudio, SCORE_SET } from '../../src/shards/nine-dragon-stack/runtime/audio/files';
+import { ndZones } from '../../src/shards/nine-dragon-stack/runtime/audio/ambience';
+import { ndCueMap } from '../../src/shards/nine-dragon-stack/runtime/audio/cues';
 import { tap, ambientTick } from '../../src/engine/core/harnessTap';
 import type { MusicState } from '../../src/engine/audio/Music';
 

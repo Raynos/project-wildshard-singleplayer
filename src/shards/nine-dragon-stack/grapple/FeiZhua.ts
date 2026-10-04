@@ -29,7 +29,7 @@ import { RIM } from '../world/well-plan';
 import { Filament, Rope } from './line';
 import { Flash, Sparks } from './fx';
 import type { GrappleCourse } from './course';
-import { grappleCue } from '../audio/cues';
+import { grappleCue } from '../runtime/audio/cues';
 
 const MIN_RANGE = 2.5;
 const MAX_RANGE = 38;

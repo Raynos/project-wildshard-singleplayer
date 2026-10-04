@@ -4,7 +4,7 @@ import type { SetScore, ScoreSource } from '@wildshard/engine/audio/SetScore';
 
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { selectScoreSlots } from '@wildshard/engine/audio/scoreSelection';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 const PROFILE = requireAudioProfile(source.audio.music, 'score.nd');
 export const SCORE_SET = requireAudioProfile(PROFILE.source ?? undefined, 'nd.music.source');

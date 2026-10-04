@@ -18,8 +18,8 @@ describe('every sound source is observed', () => {
     expect(files.length).toBeGreaterThan(0);
     // Generic audio players accept content ids; R4-12 keeps their literal taps in their shipping owners.
     const owners: Readonly<Record<string, string>> = {
-      '../src/engine/audio/Cues.ts': '../src/shards/nine-dragon-stack/audio/cues.ts',
-      '../src/engine/audio/AmbienceBeds.ts': '../src/shards/nine-dragon-stack/audio/ambience.ts',
+      '../src/engine/audio/Cues.ts': '../src/shards/nine-dragon-stack/runtime/audio/cues.ts',
+      '../src/engine/audio/AmbienceBeds.ts': '../src/shards/nine-dragon-stack/runtime/audio/ambience.ts',
       '../src/engine/audio/ambience.ts': '../src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts',
       '../src/engine/audio/synth.ts': '../src/engine/audio/playerVoices.ts',
     };

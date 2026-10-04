@@ -3,7 +3,7 @@ import { tap } from '@wildshard/engine/core/harnessTap';
 
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueOpts } from '@wildshard/engine/combat/cues';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 /** The shardfile owns the cue aliases; trusted recipes retain taps, footfall sequence and chime randomness. */
 export function ndCueMap(player: Pick<CuePlayer, 'play'>, random: () => number): CueMap {

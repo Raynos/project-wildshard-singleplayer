@@ -8,7 +8,7 @@ import { WorldRegistry } from '../../src/engine/world/registry';
 import { shardContext, type GameServices } from '../../src/game/shard/context';
 import { toLevelSpec } from '../../src/game/shard/spec';
 import manifest from '../../src/shards/nine-dragon-stack/manifest';
-import { installAudio } from '../../src/shards/nine-dragon-stack/audio/ambience';
+import { installAudio } from '../../src/shards/nine-dragon-stack/runtime/audio/ambience';
 
 const noop = (): void => { /* Test only the kit service registration. */ };
 describe('plugin audio lifecycle', () => {

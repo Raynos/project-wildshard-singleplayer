@@ -3,9 +3,9 @@ import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import type { CueOpts } from '../../../src/engine/audio/Cues';
 import { tap } from '../../../src/engine/core/harnessTap';
-import { ndCueMap } from '../../../src/shards/nine-dragon-stack/audio/cues';
-import { ndPick } from '../../../src/shards/nine-dragon-stack/audio/files';
-import { ndZones } from '../../../src/shards/nine-dragon-stack/audio/ambience';
+import { ndCueMap } from '../../../src/shards/nine-dragon-stack/runtime/audio/cues';
+import { ndPick } from '../../../src/shards/nine-dragon-stack/runtime/audio/files';
+import { ndZones } from '../../../src/shards/nine-dragon-stack/runtime/audio/ambience';
 
 // Captured from cues.ts at 12310ead5, before declared routing. No rebaseline.
 it('preserves 9396 dispatches, aliases, taps, footfall cycle, fallbacks and chime random draws', () => {

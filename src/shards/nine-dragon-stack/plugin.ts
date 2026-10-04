@@ -9,7 +9,7 @@ import type { PerspectiveCamera } from 'three';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
-import { installAudio } from './audio/ambience';
+import { installAudio } from './runtime/audio/ambience';
 import { STRINGS } from './strings';
 
 

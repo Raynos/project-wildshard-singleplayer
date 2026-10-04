@@ -3,9 +3,9 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ZoneWeights } from '@wildshard/engine/audio/AmbienceBeds';
 import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import { castRay } from '@wildshard/engine/physics/query';
-import { lanternAudioPositions } from '../look/lanterns';
+import { lanternAudioPositions } from '../../look/lanterns';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../shard.config';
+import source from '../../shard.config';
 import { ndCueMap, bindTraversalCue } from './cues';
 import { ndScore } from './files';
 
