@@ -8,7 +8,6 @@
 import * as THREE from 'three';
 import type { Physics } from './Physics';
 import { tagOf } from './surface';
-import { activeNavmesh } from './navmesh';
 import { app } from '../app/runtime';
 
 const LIFT = 0.02;
@@ -46,7 +45,7 @@ export function installPhysicsDebug(physics: Physics, scene: THREE.Scene, params
  * (NALATI-MERGE P3). Dev only: navcat's three helpers load only with the param.
  */
 function installNavmeshDebug(scene: THREE.Scene): void {
-  const layer = activeNavmesh()?.layers[0];
+  const layer = app.navmesh?.layers[0];
   if (layer === undefined) { console.warn('[navmesh] ?navmesh=debug: this level has no navmesh'); return; }
   void (async () => {
     const { createNavMeshHelper } = await import('navcat/three');

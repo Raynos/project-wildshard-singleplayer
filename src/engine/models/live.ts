@@ -15,9 +15,10 @@
  * tells how THIS shard makes it when the model's own list covers them all (a boar: a lofted code rig on Driftwood, a
  * Hunyuan3D-2 hull on that rig in Pine Hollow).
  */
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { Rng } from '../core/rng';
-import { activeRegistry, type DrawnAs, type ModelEntry, type Pipeline, type WorldRegistry } from '../world/registry';
+import type { DrawnAs, ModelEntry, Pipeline, WorldRegistry } from '../world/registry';
 import { withTier } from '../explore/tiers';
 import type { Animal } from '../entities/Animal';
 import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart } from './model';
@@ -41,7 +42,7 @@ const pieceId = (id: string): string => `model:${id}`;
 
 /** List a live model in this shard's Model Explorer (see the header). Listing the same model again is a no-op. */
 export function listModel<P extends object>(def: ModelDef<P>, o: ListOptions): void {
-  const registry = o.registry ?? activeRegistry();
+  const registry = o.registry ?? app.registry;
   if (registry.get(pieceId(def.id)) !== undefined) return;
   const specimen = new THREE.Group();
   specimen.name = `model:${def.id}`;

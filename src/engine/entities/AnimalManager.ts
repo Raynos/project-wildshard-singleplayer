@@ -2,13 +2,11 @@ import { app } from '../app/runtime';
 import { ParticlePool } from '../fx/ParticlePool';
 import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
-import { activePhysics } from '../physics/active';
 import { canReach } from '../ai/reach';
 import { AggressionDirector } from '../ai/director';
 import { brainPinned, inspectTick } from '../ai/inspect';
 import { TickScheduler, type InterruptReason } from '../app/scheduler';
 import { dodgeFx } from '../player/dodge';
-import { activeNavmesh } from '../physics/navmesh';
 import { castRay, floorBelow } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
 import type { CharacterMotor } from '../physics/CharacterMotor';
@@ -33,7 +31,7 @@ import { practiceRoom } from '../core/practiceRoom';
 import { AnimalGroup } from './animalMatrices';
 import { reengage, backoffPoint, aroundPoint, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from './fightRules';
 /** the live WORLD physics, read in one place (blood decals, the spawn floor) */
-const worldPhysics = (): ReturnType<typeof activePhysics> => activePhysics();
+const worldPhysics = (): typeof app.physics => app.physics;
 
 export interface WanderGoalQuery { herd: number; goal: { x: number; z: number; r: number } | null }
 declare module '../events/maps' {
@@ -532,7 +530,7 @@ export class AnimalManager {
     if (app.world.water.sea !== null) return false; // the open sea (the level's registered water body)
     if (!hasPond()) {
       // no pond to measure against (Nalati): the navmesh bake's own wet test — walkable on it = dry
-      const nav = activeNavmesh();
+      const nav = app.navmesh;
       if (nav === null) return false;
       const p = nav.closestWalkable(_navFrom.set(x, y, z), 0, _navTo);
       return p !== null && Math.hypot(p.x - x, p.z - z) < 1;
@@ -1158,7 +1156,7 @@ export class AnimalManager {
       case 'wander': {
         const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
         let ok = false;
-        const nav = activeNavmesh();
+        const nav = app.navmesh;
         const goal = app.events.ask('creature.wander-goal', { herd: a.herd, goal: this.wanderGoal?.(a) ?? null }).goal;
         if (goal !== null && nav !== null) {
           const t = nav.randomPointNear(_navFrom.set(goal.x, heightAt(goal.x, goal.z), goal.z), goal.r, this.agentRadius(a), () => rng.next(), _navTo);
@@ -1272,7 +1270,7 @@ export class AnimalManager {
    * the straight heading through `steer`'s trunk / slope / edge bending, as before.
    */
   private steerTo(a: Animal, br: Brain, tx: number, tz: number, speed: number, turnRate: number, every: number): void {
-    if (activeNavmesh() === null) { this.steer(a, Math.atan2(tx - a.position.x, tz - a.position.z), speed, turnRate); return; }
+    if (app.navmesh === null) { this.steer(a, Math.atan2(tx - a.position.x, tz - a.position.z), speed, turnRate); return; }
     a.setMotion(this.pathYaw(a, br, tx, tz, every), speed, turnRate);
   }
 
@@ -1281,7 +1279,7 @@ export class AnimalManager {
    * > 2 m or every `every` s — at most 8 plans a think tick), the straight heading without a navmesh or a path.
    */
   private pathYaw(a: Animal, br: Brain, tx: number, tz: number, every: number): number {
-    const nav = activeNavmesh();
+    const nav = app.navmesh;
     if (nav === null) return Math.atan2(tx - a.position.x, tz - a.position.z);
     const now = this.clock;
     const stale = br.path.length === 0 || Math.hypot(tx - br.goalX, tz - br.goalZ) > 2 || now >= br.repathAt;
@@ -1310,7 +1308,7 @@ export class AnimalManager {
    */
   navSteer = false;
   private steerNav(a: Animal, yaw: number, speed: number, turnRate: number): void {
-    const nav = activeNavmesh();
+    const nav = app.navmesh;
     if (nav === null || speed <= 0.05) { this.steer(a, yaw, speed, turnRate); return; }
     const r = this.agentRadius(a), look = Math.max(3, 1.5 + speed * 0.7);
     const ahead = nav.clearAhead(a.position, yaw, look, r);
@@ -1406,7 +1404,7 @@ export class AnimalManager {
   private bodies: CreatureBodies<Animal> | null = null;
   /** the physics side of the herds (src/engine/physics/creatures.ts), made once the shard's world exists */
   private bodiesFor(): CreatureBodies<Animal> | null {
-    if (this.bodies === null) { const p = activePhysics(); if (p !== null) this.bodies = new CreatureBodies<Animal>(p); }
+    if (this.bodies === null) { const p = app.physics; if (p !== null) this.bodies = new CreatureBodies<Animal>(p); }
     return this.bodies;
   }
   /** how many animals have a physics body (the near LOD) — the bench reads it */

@@ -3,7 +3,7 @@
  * footprints in world XZ — the minimap's terrain layer and the full map's zoom tiles draw them (src/engine/ui/Minimap.ts
  * `paintRegion`). Nothing is hand-placed: a piece moves, the map follows on the next repaint.
  *
- *   const shapes = mapShapes(getActiveChunk().map, activeRegistry().pieces);   // once per layer paint
+ *   const shapes = mapShapes(getActiveChunk().map, app.registry.pieces);   // once per layer paint
  *   shapes.polys / shapes.dots                                                    // world metres, with a bbox each
  *   mapWants(def, piece.id)                                                       // should a newly added piece repaint the map
  */

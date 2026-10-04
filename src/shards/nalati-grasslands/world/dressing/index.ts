@@ -8,7 +8,7 @@
  *   import { NalatiDressing } from '../world/nalati/dressing';
  *   const dressing = await new NalatiDressing(sky, forest).build(macrotask);   // deterministic from the seed; yields between passes
  *   dressing.addTo(game.scene, pois.colliders);                  // meshes (+ the camp clutter, clear of those boxes)
- *   await dressing.place(activeRegistry(), macrotask);             // its collision into the world registry (NALATI-MERGE P1)
+ *   await dressing.place(app.registry, macrotask);             // its collision into the world registry (NALATI-MERGE P1)
  *   game.onUpdate((dt) => dressing.update(dt, game.camera, player.position, renderer));
  *   dressing.stats()                                             // { calls, tris, perLayer } for the perf report
  *

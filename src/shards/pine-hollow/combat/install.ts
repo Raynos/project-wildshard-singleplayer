@@ -1,5 +1,5 @@
 import { type SkinLocker, type Inventory, Elites, GroundTell, type EliteRule } from '#game';
-import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight, canReach, type AnimalManager, type Animal, CameraFX, type HUD, type Audio, type Music, EliteBar, activePhysics } from '#engine';
+import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight, canReach, type AnimalManager, type Animal, CameraFX, type HUD, type Audio, type Music, EliteBar } from '#engine';
 import * as THREE from 'three';
 
 
@@ -111,7 +111,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     pickupHum: (on) => { h.audio.pickupHum(on); },
     ownSkin: (id) => { if (id in SKINS) ctx.ownSkin(id as keyof typeof SKINS); },
     // the floating name hides behind the cabin's walls, the crags, a rise (no physics yet: always seen)
-    canSee: (from, to) => { const ph = activePhysics(); return ph === null || lineOfSight(ph, from, to, 0.6); },
+    canSee: (from, to) => { const ph = app.physics; return ph === null || lineOfSight(ph, from, to, 0.6); },
   }, new EliteBar(), 'pine-hollow');
   const pineElites = makePineElites(ctx, elites);
 

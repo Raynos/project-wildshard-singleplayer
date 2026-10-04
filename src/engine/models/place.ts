@@ -19,10 +19,11 @@
  * part per variant per LOD level in view; batched = one per material; single = one per part per copy) and its cullers
  * allocate nothing per frame (./cull.ts).
  */
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
-import { activeRegistry, type ColliderDesc, type DrawnAs, type ModelEntry, type WorldRegistry } from '../world/registry';
+import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/registry';
 import { withTier } from '../explore/tiers';
 import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
@@ -1044,7 +1045,7 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   const view = o.cull?.view, cullWith = drawn.cullWith;
   if (view !== undefined && cullWith) view.onViewChange(cullWith); // the shard's view drives it (never per frame here)
   else if (drawn.cull) cullers.push(drawn.cull);
-  const registry = o.registry === undefined ? activeRegistry() : o.registry;
+  const registry = o.registry === undefined ? app.registry : o.registry;
   // drawn by what it shares (a set's kit, a weld): its piece anchors on its copies, and a tap claims one of them
   const shared = o.drawnInto !== undefined || w !== undefined;
   if (registry === null) { if (w === undefined) o.parent?.add(drawn.object); return placed; }

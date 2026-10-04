@@ -1,5 +1,5 @@
 import { bagMenu } from '../bag/tabs';
-import { app, hudSlots, activePhysics, lineOfSight, type HUD, type GameMenu, type AnimalManager, type Interactable } from '#engine';
+import { app, hudSlots, lineOfSight, type HUD, type GameMenu, type AnimalManager, type Interactable } from '#engine';
 /**
  * installCompendium — wires the active shard's compendium into the game (one call from main.ts; nothing happens on a
  * shard that registered none). It owns: the state + its save, the tracker's hooks, the book, the ways in, the trophy wall.
@@ -49,7 +49,7 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
   const state = new CompendiumState(def);
   const journal = new Journal(state);
   const tracker = new CompendiumTracker(state, {
-    canSee: (from, to) => { const p = activePhysics(); return p === null || lineOfSight(p, from, to, 1.2); },
+    canSee: (from, to) => { const p = app.physics; return p === null || lineOfSight(p, from, to, 1.2); },
   });
 
   // ── ways in ── (the phone's JOURNAL tag: a tag of the base HUD's status column, src/engine/ui/hudSlots.ts)

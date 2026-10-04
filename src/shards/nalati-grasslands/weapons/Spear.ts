@@ -1,5 +1,5 @@
 import { smoothstep as sstep } from '#engine/data';
-import { weaponActionGate, quiverState, type WeaponState, type AimInfo, gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext, type Game, type Sky, type Player, type Forest, impactSurfaceOf, worldHit, type ImpactSurface, type Targets, type TargetAnimal, type TargetHit, floorBelow, sticksIn, gloveFist, riderArm, placeArm, painterlyMaterial, lin, activePhysics, heightAt, getAimTargets, targetRadius, type AimTarget } from '#engine';
+import { weaponActionGate, quiverState, type WeaponState, type AimInfo, gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext, type Game, type Sky, type Player, type Forest, impactSurfaceOf, worldHit, type ImpactSurface, type Targets, type TargetAnimal, type TargetHit, floorBelow, sticksIn, gloveFist, riderArm, placeArm, painterlyMaterial, lin, heightAt, targetRadius, type AimTarget } from '#engine';
 import { Melee, SWORD_WOOD, Thrown, type ThrownProfile, type MeleeProfile } from '#kit';
 import { SPEAR } from './equipment';
 
@@ -187,7 +187,7 @@ const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vect
 const _head = new THREE.Vector3(), _nrm = new THREE.Vector3(), _arcPrev = new THREE.Vector3();
 /** the top of the world under (x, z) from y down (terrain, a deck, a rock); the terrain when there is no physics */
 function floorUnder(x: number, y: number, z: number): number {
-  const ph = activePhysics();
+  const ph = app.physics;
   return (ph ? floorBelow(ph, x, z, y, 60) : undefined) ?? heightAt(x, z);
 }
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), _m = new THREE.Matrix4(), _s1 = new THREE.Vector3(1, 1, 1);
@@ -524,7 +524,7 @@ export class Spear extends Melee<typeof SPEAR_PROFILE> {
     const p = this.player.position, cam = this.game.camera;
     const heading = this.mount !== null ? this.mount.yaw : this.player.yaw;
     const fx = -Math.sin(heading), fz = -Math.cos(heading);
-    for (const a of getAimTargets()) {
+    for (const a of app.aimTargets) {
       let prev = this.prevPos.get(a);
       if (prev === undefined) { prev = a.position.clone(); this.prevPos.set(a, prev); continue; }
       const vx = (a.position.x - prev.x) / Math.max(dt, 1e-3), vz = (a.position.z - prev.z) / Math.max(dt, 1e-3);

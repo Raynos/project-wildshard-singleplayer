@@ -1,7 +1,6 @@
 import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
 import type { CharacterMotor } from '../physics/CharacterMotor';
-import { activePhysics } from '../physics/active';
 import { ragdollsFor, type Ragdoll } from '../physics/ragdoll';
 import { TIER } from '../core/tier';
 import { frameCost } from '../core/frameCost';
@@ -409,7 +408,7 @@ export class Animal {
    * past the tier cap or with no physics world — then the keyframed collapse runs as before.
    */
   private startRagdoll(damage: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): void {
-    const physics = activePhysics();
+    const physics = app.physics;
     if (physics === null) return;
     const d = this.model.dims;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);

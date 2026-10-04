@@ -3,7 +3,7 @@
  * lies about and gets knocked around is a Rapier dynamic body spawned here, with a shape, a material and an owner
  * (queries and plates read the owner back through `tagOf`).
  *
- *   const b = activeBodies()?.spawn({ shape: { ball: 0.13 }, material: 'wood', owner: this, expendable: true }, from, vel);
+ *   const b = app.bodies?.spawn({ shape: { ball: 0.13 }, material: 'wood', owner: this, expendable: true }, from, vel);
  *   b.pose(bodies.alpha, pos, quat);        // the render pose, interpolated between the last two fixed steps
  *   bodies.remove(b);
  *
@@ -348,7 +348,7 @@ const DROP_REST_SPEED = 0.1, DROP_REST_T = 0.3, DROP_MAX_T = 5;
  * from `from` with `vel`, bounces, settles on whatever is under it (a deck, a rock, the ground), and then the body goes
  * — the thing lies still at its `floor` point from then on and costs the physics nothing.
  *
- *   const drop = new Drop(activeBodies(), owner, from, vel);
+ *   const drop = new Drop(app.bodies, owner, from, vel);
  *   drop.update(dt);  drop.floor   // per frame: the point under it (interpolated in flight; final once `landed`)
  *
  * With no body service (node, before boot) it lands at once where it starts, on the first surface below `from` if

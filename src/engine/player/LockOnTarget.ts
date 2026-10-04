@@ -27,9 +27,8 @@ import type { InputService } from '../input/InputService';
 import * as THREE from 'three';
 import type { Player } from './Player';
 import type { EquipmentService } from '../combat/EquipmentService';
-import { getAimTargets, lockOn, targetRadius, type AimTarget } from './AimTargets';
+import { lockOn, targetRadius, type AimTarget } from './AimTargets';
 import { lineOfSight } from '../physics/query';
-import { activePhysics } from '../physics/active';
 import { getNumber, getSetting } from '../ui/Settings';
 
 const DEG = Math.PI / 180;
@@ -252,7 +251,7 @@ export class LockOnSystem {
   /** line of sight eye → the target's body through the physics world (terrain, decks, huts, the wreck); true while there is
    *  no physics world yet */
   private visible(t: AimTarget): boolean {
-    const physics = activePhysics();
+    const physics = app.physics;
     if (physics === null) return true;
     this.eye(_eye); aimPoint(t, _aim);
     return lineOfSight(physics, _eye, _aim, targetRadius(t), this.player.motor.collider);
@@ -264,7 +263,7 @@ export class LockOnSystem {
     const fx = -Math.sin(yaw) * Math.cos(pitch), fy = Math.sin(pitch), fz = -Math.cos(yaw) * Math.cos(pitch);
     this.cands.length = 0;
     this.eye(_eye);
-    for (const t of getAimTargets()) {
+    for (const t of app.aimTargets) {
       if (!t.alive || t.hidden || !(t.lockable ?? t.flying === true)) continue;
       const dist = this.distance(t);
       if (dist > this.range(t) && t !== lockOn.target) continue;

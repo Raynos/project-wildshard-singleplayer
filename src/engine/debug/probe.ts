@@ -10,7 +10,7 @@ import type { Audio } from '../audio/Audio';
 import type { Music } from '../audio/Music';
 import type { Interactable } from '../world/interact/types';
 import { floorBelow } from '../physics/query';
-import { activeNavmesh, type Navmesh } from '../physics/navmesh';
+import type { Navmesh } from '../physics/navmesh';
 import { Rng } from '../core/rng';
 import { TIER } from '../core/tier';
 import { tap } from '../core/harnessTap';
@@ -308,7 +308,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       events: app.events.census(), dom: { hud: document.querySelectorAll('#hud *').length - game.retainedHudCount(), body: document.body.children.length - bodyBaseline },
       sceneObjects: objects - game.retainedSceneObjects() };
   };
-  const mesh = activeNavmesh(), query = mesh ? createProbeNav(mesh, pins?.seed ?? 0x2545f491) : null;
+  const mesh = app.navmesh, query = mesh ? createProbeNav(mesh, pins?.seed ?? 0x2545f491) : null;
   const nav: ProbeNav | null = query ? {
     randomPoint: (near, min, max) => { requireHarness(); return query.randomPoint(near, min, max); },
     path: (a, b) => { requireHarness(); return query.path(a, b); },

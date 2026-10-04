@@ -40,33 +40,6 @@
       "E423"
     ]
   },
-  "wildshard/no-active-singleton": {
-    "src/engine/core/bootstrap.ts": 1,
-    "src/engine/debug/probe.ts": 1,
-    "src/engine/entities/Animal.ts": 1,
-    "src/engine/entities/AnimalManager.ts": 7,
-    "src/engine/explore/registry.ts": 3,
-    "src/engine/fx/Impacts.ts": 1,
-    "src/engine/models/live.ts": 1,
-    "src/engine/models/place.ts": 1,
-    "src/engine/models/sets.ts": 1,
-    "src/engine/physics/debug.ts": 1,
-    "src/engine/player/AimAssist.ts": 1,
-    "src/engine/player/LockOnTarget.ts": 2,
-    "src/engine/player/WeaponPickup.ts": 3,
-    "src/engine/ui/Minimap.ts": 2,
-    "src/engine/world/interact/Interactables.ts": 4,
-    "src/game/compendium/install.ts": 1,
-    "src/game/session/play.ts": 3,
-    "src/shards/nalati-grasslands/ride/Mount.ts": 4,
-    "src/shards/nalati-grasslands/weapons/Naizagai.ts": 1,
-    "src/shards/nalati-grasslands/weapons/Sabre.ts": 1,
-    "src/shards/nalati-grasslands/weapons/Spear.ts": 2,
-    "src/shards/nalati-grasslands/world/index.ts": 2,
-    "src/shards/nalati-grasslands/world/KurganDungeon.ts": 1,
-    "src/shards/pine-hollow/combat/install.ts": 1,
-    "src/shards/pine-hollow/world/PineWeatherFX.ts": 1
-  },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,
     "src/engine/audio/Music.ts": 2,

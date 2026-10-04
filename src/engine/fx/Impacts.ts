@@ -1,8 +1,8 @@
+import { app } from '../app/runtime';
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
 import { worldTime } from '../core/time';
 import { lin } from '../math/color';
-import { activePhysics } from '../physics/active';
 import { floorBelow } from '../physics/query';
 
 /**
@@ -86,7 +86,7 @@ export class Impacts {
   burst(kind: ImpactKind, point: THREE.Vector3, dir: THREE.Vector3, n: number): void {
     const cols = COLOURS[kind];
     const dl = Math.hypot(dir.x, dir.z) || 1, dx = dir.x / dl, dz = dir.z / dl;
-    const physics = activePhysics();
+    const physics = app.physics;
     const hit = physics ? floorBelow(physics, point.x, point.z, point.y + FLOOR_UP, FLOOR_UP + FLOOR_DOWN) : undefined;
     // a ray that starts inside something (sparks off a bulkhead's face) says nothing
     const floor = hit !== undefined && hit < point.y + FLOOR_UP - 0.01 ? hit : point.y - (kind === 'sand' ? 0.05 : 0.9);

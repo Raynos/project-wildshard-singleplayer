@@ -30,9 +30,8 @@ import { boxInFrame, type BoxSpec as Collider } from '../../physics/box';
 import { boxDesc, type Piece } from '../registry';
 import type { Physics } from '../../physics/Physics';
 import type { GroupName } from '../../physics/groups';
-import { activePhysics } from '../../physics/active';
 import { castSegment, lineOfSight } from '../../physics/query';
-import { activeBodies, overlapBox, type Body, type BodySpec } from '../../physics/bodies';
+import { overlapBox, type Body, type BodySpec } from '../../physics/bodies';
 import { waterLevel } from '../Heightfield';
 import { test, type Flags } from './flags';
 import { autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
@@ -331,7 +330,7 @@ export class Interactables {
   dispose(opts: { batches?: boolean } = {}): void {
     this.unsub?.();
     for (const bm of Object.values(this.batches)) { this.host.scene.remove(bm); if (opts.batches !== false) bm.dispose(); }
-    for (const lv of this.lives) { if (lv.prompt) { const i = this.host.prompts.indexOf(lv.prompt); if (i !== -1) this.host.prompts.splice(i, 1); } if (lv.collider) Object.assign(lv.collider, OFF); if (lv.body) { activeBodies()?.remove(lv.body); lv.body = null; } }
+    for (const lv of this.lives) { if (lv.prompt) { const i = this.host.prompts.indexOf(lv.prompt); if (i !== -1) this.host.prompts.splice(i, 1); } if (lv.collider) Object.assign(lv.collider, OFF); if (lv.body) { app.bodies?.remove(lv.body); lv.body = null; } }
   }
 
   /** move a row to world (x, z) on the floor there (a key dropped by an enemy) */
@@ -437,7 +436,7 @@ export class Interactables {
       case 'door': lv.collider = box(d.w / 2 + 0.05, 0.16, d.h); break;
       case 'barrel': {
         // a free dynamic cylinder the player's capsule tips and rolls (PHYSICS P7-L1); a static box where there is no world (tests)
-        const bodies = activeBodies();
+        const bodies = app.bodies;
         lv.rot.setFromAxisAngle(_v.set(0, 1, 0), p.yaw);
         if (bodies) {
           lv.body = bodies.spawn({ ...BARREL_BODY, owner: lv }, { x: p.x, y: p.y + BARREL_HALF + 0.01, z: p.z }, undefined, lv.rot);
@@ -660,7 +659,7 @@ export class Interactables {
   // ── per frame ──────────────────────────────────────────────────────────────────────────────────
 
   update(dt: number, t: number): void {
-    const pl = this.host.player.position, F = this.host.flags, physics = activePhysics();
+    const pl = this.host.player.position, F = this.host.flags, physics = app.physics;
     // barrels first: their pose from the body (plates feel the body itself)
     for (const lv of this.lives) if (lv.def.kind === 'barrel' && lv.shown) this.syncBarrel(lv, dt);
     for (const lv of this.lives) {
@@ -707,7 +706,7 @@ export class Interactables {
    * (`BarrelWatch`): past its leash, lost in the sea or under the world, or wedged, it goes home upright.
    */
   private syncBarrel(lv: Live, dt: number): void {
-    const b = lv.body, bodies = activeBodies();
+    const b = lv.body, bodies = app.bodies;
     if (b === null || bodies === null) return;
     b.pose(bodies.alpha, _bp, _bq);
     _q.set(_bq.x, _bq.y, _bq.z, _bq.w);

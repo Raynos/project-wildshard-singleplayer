@@ -168,6 +168,7 @@
         // E362 AG19: paid down to 0 (2026-10-03) and promoted
         "wildshard/no-hook-chain": "error",
         "wildshard/no-renderer-type": "error",
+        "wildshard/no-active-singleton": "error",
         "wildshard/no-level-identity": "error",
         // E405 AG28: imports point down; the engine knows no game, kit, shard or app module
         "wildshard/layer": "error",

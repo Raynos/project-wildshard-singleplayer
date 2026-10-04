@@ -25,7 +25,7 @@
  * mesh + the balbal InstancedMeshes.
  */
 import * as THREE from 'three';
-import { heightAt, type Sky, activeRegistry, type WorldRegistry, modelContext, type ModelContext, type Placed } from '#engine';
+import { app, heightAt, type Sky, type WorldRegistry, modelContext, type ModelContext, type Placed } from '#engine';
 import { Flutter } from './Flutter';
 import { Smoke } from './Smoke';
 import { buildNomadCamp } from './NomadCamp';
@@ -103,14 +103,14 @@ export class NalatiPOIs {
   }
 
   /** into the scene, and each POI into the world registry (drawn, collides, in Explore) — at once (the dev pages) */
-  addTo(scene: THREE.Object3D, player: { position?: THREE.Vector3 }, registry: WorldRegistry = activeRegistry()): void {
+  addTo(scene: THREE.Object3D, player: { position?: THREE.Vector3 }, registry: WorldRegistry = app.registry): void {
     scene.add(this.group);
     this.viewer = player.position ?? null;
     for (const _ of this.registrations(registry)) { /* every piece, no yielding */ }
   }
 
   /** the shard's boot: the same, a task apart per POI (the 30 ms per-task collider budget on the phone) */
-  async place(scene: THREE.Object3D, player: { position?: THREE.Vector3 }, yieldTask: () => Promise<void>, registry: WorldRegistry = activeRegistry()): Promise<void> {
+  async place(scene: THREE.Object3D, player: { position?: THREE.Vector3 }, yieldTask: () => Promise<void>, registry: WorldRegistry = app.registry): Promise<void> {
     scene.add(this.group);
     this.viewer = player.position ?? null;
     for (const _ of this.registrations(registry)) await yieldTask();

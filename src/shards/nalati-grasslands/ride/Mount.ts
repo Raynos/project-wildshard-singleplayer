@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { type Player, type Forest, type Interactable, CharacterMotor, activePhysics, castRay, floorBelow, tagOf, lockOn, type InputService, type EquipmentService } from '#engine';
+import { app, type Player, type Forest, type Interactable, CharacterMotor, castRay, floorBelow, tagOf, lockOn, type InputService, type EquipmentService } from '#engine';
 import { Animal } from '#engine/entities/Animal';
 import { heightAt, inChunk, waterLevel } from '#engine/world/Heightfield';
 import { HorseHerd } from '../creatures/herd';
@@ -271,7 +271,7 @@ export class Mount {
     this.jostles = 0; this.shoveX = this.shoveZ = 0; this.jolt = 0;
     this.cruise = 0; this.gallopWas = false; this.sectorWas = 2; this.skidT = 0; this.panicT = 0; this.panicRear = 0; this.onRoad = false;
     this.spur.reset(); this.spur.good = 0; this.lastPhase = a.gaitPhase;
-    const physics = activePhysics();
+    const physics = app.physics;
     if (physics !== null) {
       const s = a.scale;
       this.motor = new CharacterMotor(physics, { radius: BODY.radius * s, height: BODY.radius * 2 * s, length: BODY.length * s, step: BODY.step * s, maxClimbDeg: CLIMB.walk, snap: BODY.snap, group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner: a, weight: BODY.kg });
@@ -624,7 +624,7 @@ export class Mount {
     const heading = glide ? this.prevHeading + angDiff(this.heading, this.prevHeading) * t : this.heading;
     // the hooves on the ground: the capsule rides on its lowest point, so on a slope its middle floats a little — draw the
     // horse on the floor under its middle (a physics query; decks and the jump keep the body's own height)
-    const physics = activePhysics();
+    const physics = app.physics;
     if (this.grounded && !this.onDeck && !this.swimming && this.airT < 0 && physics !== null && this.motor !== null) {
       const fl = floorBelow(physics, px, pz, py + 0.3, 0.9, this.motor.collider);
       if (fl !== undefined && fl < py) py = fl;
@@ -706,7 +706,7 @@ export class Mount {
    * is a collider since NALATI-MERGE P1.
    */
   private land(): void {
-    const f = this.feet, physics = activePhysics();
+    const f = this.feet, physics = app.physics;
     if (physics === null) return;
     const top = floorBelow(physics, f.x, f.z, f.y + 2.5, 2.6, this.motor?.collider);
     if (top !== undefined && top > f.y) { f.y = top; this.onDeck = top - heightAt(f.x, f.z) > 0.3; }
@@ -717,7 +717,7 @@ export class Mount {
    * it and ground beyond (the horse jumps it by itself), or a ditch / the brook with a far bank. Physics queries only.
    */
   private obstacleAhead(): boolean {
-    const physics = activePhysics(), m = this.motor;
+    const physics = app.physics, m = this.motor;
     if (physics === null || m === null) return false;
     const f = this.feet, s = this.horse?.scale ?? 1;
     const sx = Math.sin(this.heading), sz = Math.cos(this.heading);

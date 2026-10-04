@@ -1,5 +1,5 @@
 import { Sabre, SABRE_PROFILE, type SabreOptions } from './Sabre';
-import { app, type SwordWorld, type Targets, type Move, type Player, type AnimalManager, type Animal, heightAt, activePhysics, castRay, floorBelow } from '#engine';
+import { app, type SwordWorld, type Targets, type Move, type Player, type AnimalManager, type Animal, heightAt, castRay, floorBelow } from '#engine';
 import { meleeActor } from '#kit';
 import * as THREE from 'three';
 import { GroundTell } from '#game';
@@ -267,7 +267,7 @@ export class NaizagaiPower {
   private callBolt(): void {
     const cam = this.deps.camera;
     cam.getWorldPosition(_o); cam.getWorldDirection(_d);
-    const ph = activePhysics();
+    const ph = app.physics;
     const hit = ph ? castRay(ph, _o, _d, NAIZAGAI_PROFILE.powers.callRange) : null;
     if (hit) _v.set(hit.point.x, hit.point.y, hit.point.z);
     else _v.copy(_o).addScaledVector(_w.set(_d.x, 0, _d.z).normalize(), NAIZAGAI_PROFILE.powers.callRange);

@@ -41,7 +41,6 @@ import { Noise2D, smoothstep } from '../core/noise';
 import { Rng } from '../core/rng';
 import { activeLevel, onLevelChange } from '../level/selection';
 import { hasSpecies, speciesDef } from '../entities/species/registry';
-import { activeRegistry } from '../world/registry';
 import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 import { app } from '../app/runtime';
 import { onOwnerDispose } from '../app/ownership';
@@ -180,7 +179,7 @@ export class Minimap {
     // switch between them — this map's shard, its drawn layer and its explored fog stay as they are
     onOwnerDispose(onLevelChange(() => { if (app.levelScope !== null) return; this.layerDirty = true; this.clearCoverage(); }));
     // a piece the map draws that lands after the layer was drawn (the zipline, with the adventure) → paint again
-    activeRegistry().onAdd((p) => { if (this.shapes !== null && mapWants(activeLevel().minimap, p.id)) this.layerDirty = true; });
+    app.registry.onAdd((p) => { if (this.shapes !== null && mapWants(activeLevel().minimap, p.id)) this.layerDirty = true; });
 
     if (typeof ResizeObserver !== 'undefined') {
       this.ro = new ResizeObserver(() => this.fit());
@@ -571,7 +570,7 @@ export class Minimap {
    *  silhouette (every outline first, then every fill), a soft shadow under them like the cabin roofs */
   private paintBuilt(ctx: CanvasRenderingContext2D, toU: (x: number) => number, toV: (z: number) => number, ppm: number, px: number, k: number): void {
     const def = activeLevel().minimap;
-    this.shapes ??= mapShapes(def, activeRegistry().pieces);
+    this.shapes ??= mapShapes(def, app.registry.pieces);
     const { polys, dots } = this.shapes;
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const [w, style] of [[4.5, PATH_EDGE], [3, PATH]] as const) {

@@ -36,7 +36,7 @@ import { RAIN_PROGRAM } from './rainProgram';
  * walks it).
  */
 import * as THREE from 'three';
-import { Rng, CHUNK_HALF, activePhysics, floorBelow, practiceRoom, type Sky, type TreeInstance } from '#engine';
+import { app, Rng, CHUNK_HALF, floorBelow, practiceRoom, type Sky, type TreeInstance } from '#engine';
 import { heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, streamAt, inChunk } from '#engine/world/Heightfield';
 import { BEAR_CAVE } from '../layout';
 import { createWaterMaterial } from '#engine/world/waterSurface';
@@ -310,7 +310,7 @@ export class PineWeatherFX {
   private spawnSplashes(dt: number, rain: number): void {
     const a = this.splashAttr, arr = a.array, n = a.count, rng = this.xrng, t = this.splashU.uTime.value;
     this.splashAcc += dt * rain * (this.o.phone ? 70 : 110);
-    const phys = activePhysics();
+    const phys = app.physics;
     let wrote = false;
     for (let guard = 0; this.splashAcc >= 1 && guard < 12; guard++) {
       this.splashAcc -= 1;

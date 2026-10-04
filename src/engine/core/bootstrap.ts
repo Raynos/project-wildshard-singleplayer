@@ -25,7 +25,7 @@ import { setRagdollClock } from '../physics/ragdoll';
 import { Bodies, setActiveBodies } from '../physics/bodies';
 import { addEdgeWalls, addTerrain } from '../physics/terrain';
 import { addPiece } from '../physics/pieces';
-import { activeRegistry, type WorldRegistry } from '../world/registry';
+import type { WorldRegistry } from '../world/registry';
 import { installPhysicsDebug } from '../physics/debug';
 import { installCrashFlag } from './crashFlag';
 import { withOwner } from '../app/ownership';
@@ -110,7 +110,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   player.coyoteMs = level.fight.input?.coyoteMs ?? 100;
   setActiveBodies(new Bodies(physics, player.position).attach(game)); // PHYSICS P7: items as bodies (src/engine/physics/bodies.ts), stepped in the fixed phases, capped near the player
   // the registry's listeners: a registered piece is drawn, collides, and (until P4 / P3) lends the player its floor
-  const registry = activeRegistry(); // the one list of built things: scene, physics, floors and Explore's catalog read it
+  const registry = app.registry; // the one list of built things: scene, physics, floors and Explore's catalog read it
   const moving: (() => void)[] = []; // pieces that follow a moving object (the boat): posed every fixed step
   game.levelScope.onDispose(() => { moving.length = 0; player.platforms.length = 0; registry.pieces.length = 0; registry.picks.length = 0; registry.sets.length = 0; });
   registry.onAdd((piece) => {

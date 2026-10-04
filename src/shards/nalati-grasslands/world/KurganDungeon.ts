@@ -1,4 +1,4 @@
-import { fxMaterial, annulus, FX, type FxMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, type Material, activePhysics, type Rng } from '#engine';
+import { app, fxMaterial, annulus, FX, type FxMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, type Material, type Rng } from '#engine';
 /**
  * KurganDungeon — the INSIDE of the great kurgan (plan row B13; design docs/design/nalati/elites-and-bosses.md §2 "The Golden
  * King fight"; mockups art/nalati-grasslands/round-2/5-bosses/boss-1…4). A timber-lined dromos (the entrance corridor, the
@@ -25,7 +25,7 @@ import { fxMaterial, annulus, FX, type FxMaterial, type BoxSpec as Collider, box
  * uniform picks the look), additive or alpha-blended per material.
  *
  *   const dungeon = new KurganDungeon().build();
- *   scene.add(dungeon.group);  dungeon.register(activeRegistry());   // NALATI-MERGE P1: walls, floor slabs, plinth, beams,
+ *   scene.add(dungeon.group);  dungeon.register(app.registry);   // NALATI-MERGE P1: walls, floor slabs, plinth, beams,
  *                                                                   // the seal (a follows piece) and the sand (a HeightPatch)
  *   dungeon.update(dt, t, player.position);
  *   dungeon.local(p) → { x, y, z }  chamber-local (origin = chamber floor centre, +z = north toward the dromos)
@@ -725,7 +725,7 @@ export class KurganDungeon {
       id: 'nalati-kurgan-seal', name: 'The sand seal', category: 'buildings', file: 'src/shards/nalati-grasslands/world/KurganDungeon.ts', surface: 'sand', follows: this.group,
       colliders: [{ kind: 'box', x: 0, y: DOOR_H / 2, z: CH + 0.1, hx: DOOR_W + 0.3, hy: DOOR_H / 2 + 1, hz: 0.25 }], active: () => this.sealed,
     });
-    const ph = activePhysics();
+    const ph = app.physics;
     if (ph) this.sandPatch = new HeightPatch(ph, { x: DUNGEON.x, y: Y0, z: DUNGEON.z, size: CH * 2, res: SAND_N + 1, material: 'sand', owner: this });
   }
 

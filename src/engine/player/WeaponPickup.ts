@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -5,9 +6,8 @@ import type { Interactable } from '../world/interact/types';
 import { isMesh } from '#engine/combat/view/ranged';
 import { TIER_CONFIG } from '../core/tier';
 import { LightPool } from '../fx/LightPool';
-import { activePhysics } from '../physics/active';
 import { floorBelow } from '../physics/query';
-import { activeBodies, Drop } from '../physics/bodies';
+import { Drop } from '../physics/bodies';
 import type { Renderer } from '../render/renderer';
 
 /**
@@ -178,7 +178,7 @@ export class ItemPickup {
     this.sparkCol.copy(colour).lerp(new THREE.Color(1, 1, 1), 0.7);
     let at: THREE.Vector3;
     if (opts.toss) {
-      const p = opts.position, d = new Drop(activeBodies(), this, { x: p.x, y: p.y + TOSS_UP, z: p.z }, opts.toss, activePhysics());
+      const p = opts.position, d = new Drop(app.bodies, this, { x: p.x, y: p.y + TOSS_UP, z: p.z }, opts.toss, app.physics);
       at = new THREE.Vector3(d.floor.x, d.floor.y, d.floor.z);
       if (!d.landed) this.drop = d;
     } else at = settle(opts.position);
@@ -447,7 +447,7 @@ export class ItemPickup {
  * physics world (node) or nothing within reach: where it was put.
  */
 function settle(p: THREE.Vector3): THREE.Vector3 {
-  const physics = activePhysics();
+  const physics = app.physics;
   const from = p.y + SETTLE_FROM, y = physics ? floorBelow(physics, p.x, p.z, from, SETTLE_FROM + SETTLE_DROP) : undefined;
   return new THREE.Vector3(p.x, y !== undefined && y < from - 0.01 ? y : p.y, p.z); // a ray that starts inside something (a wall, a rock) says nothing
 }

@@ -6,11 +6,12 @@
  *
  *   registeredModels() / registeredPicks() / registeredSets()
  */
-import { activeRegistry, type RegisteredModel, type RegisteredPick, type RegisteredSet } from '../world/registry';
+import { app } from '../app/runtime';
+import type { RegisteredModel, RegisteredPick, RegisteredSet } from '../world/registry';
 
 export type { ModelCategory, RegisteredModel, RegisteredPick, RegisteredSet } from '../world/registry';
 
-export function registeredModels(): readonly RegisteredModel[] { return activeRegistry().models(); }
-export function registeredPicks(): readonly RegisteredPick[] { return activeRegistry().picks; }
+export function registeredModels(): readonly RegisteredModel[] { return app.registry.models(); }
+export function registeredPicks(): readonly RegisteredPick[] { return app.registry.picks; }
 /** the shard's sets (E306 M7: `placeSet`, src/engine/models/sets.ts) — the Sets explorer's list, a model card's PART OF */
-export function registeredSets(): readonly RegisteredSet[] { return activeRegistry().sets; }
+export function registeredSets(): readonly RegisteredSet[] { return app.registry.sets; }

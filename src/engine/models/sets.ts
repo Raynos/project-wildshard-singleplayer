@@ -11,8 +11,9 @@
  *   const yurts = place(yurt, camp.yurts, { ctx, draw: 'merged' }), props = place(cauldron, camp.props, { ctx, draw: 'instanced' });
  *   placeSet({ id: 'nalati-grasslands/spring-camp', name: 'Spring camp', file: 'src/shards/…/world/camp.ts', members: [yurts, props] });
  */
+import { app } from '../app/runtime';
 import * as THREE from 'three';
-import { activeRegistry, type RegisteredSet, type WorldRegistry } from '../world/registry';
+import type { RegisteredSet, WorldRegistry } from '../world/registry';
 import type { Placed } from './place';
 
 export interface SetOptions {
@@ -40,6 +41,6 @@ export function placeSet(o: SetOptions): RegisteredSet {
   }
   const set: RegisteredSet = { id: o.id, name: o.name, file: o.file, members: [...copies].map(([model, n]) => ({ model, copies: n })), bounds, placed: o.members,
     ...(o.place === undefined ? {} : { place: o.place }), ...(o.pending === undefined ? {} : { pending: o.pending }) };
-  (o.registry ?? activeRegistry()).addSet(set);
+  (o.registry ?? app.registry).addSet(set);
   return set;
 }

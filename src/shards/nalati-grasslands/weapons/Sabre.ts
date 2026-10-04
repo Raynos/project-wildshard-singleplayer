@@ -1,7 +1,7 @@
 import { SABRE } from './equipment';
 import * as THREE from 'three';
 import { Sword, SWORD_WOOD, type MeleeProfile, type SwordWorld, type SwordRig, type SwordMoveSet, key, type Move } from '#kit';
-import { type Targets, forearm, lin, getAimTargets } from '#engine';
+import { app, type Targets, forearm, lin } from '#engine';
 import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
 
@@ -251,7 +251,7 @@ export class Sabre extends Sword {
     const p = this.player.position;
     const fx = -Math.sin(m.yaw), fz = -Math.cos(m.yaw), rx = Math.cos(m.yaw), rz = -Math.sin(m.yaw);
     let best = Infinity, side = 0;
-    for (const t of getAimTargets()) {
+    for (const t of app.aimTargets) {
       if (!t.alive || t.hidden === true) continue;
       const dx = t.position.x - p.x, dz = t.position.z - p.z, d = Math.hypot(dx, dz);
       if (d > this.sabreProfile.mounted.sense || d >= best) continue;

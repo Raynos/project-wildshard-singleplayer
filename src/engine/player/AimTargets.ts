@@ -3,7 +3,7 @@ import { app } from '../app/runtime';
  * AimTargets — the live list of things the touch aim assist (AimAssist.ts) may help you onto.
  *
  *   setAimTargets(animals.animals)   // main.ts, ONCE at boot — the AnimalManager mutates this array in place
- *   getAimTargets()                  // ReadonlyArray<AimTarget>
+ *   app.aimTargets                  // ReadonlyArray<AimTarget>
  *
  * The shape is the subset of `Animal` (src/engine/entities/Animal.ts) the assist reads: `alive`, `position` (feet, world),
  * `kind`, optional `hidden` (faded-out corpse), optional `scale`, optional `headWorld(out)` for the head sphere centre and

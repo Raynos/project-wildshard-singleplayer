@@ -1,3 +1,4 @@
+import { app } from '../app/runtime';
 import { engineString } from '#engine/strings';
 /**
  * AimAssist — console-style (CoD / GTA pad) aim help for TOUCH play. Mouse users never get it: only TouchControls
@@ -28,7 +29,7 @@ import { engineString } from '#engine/strings';
  */
 import * as THREE from 'three';
 import type { Player } from './Player';
-import { getAimTargets, type AimTarget } from './AimTargets';
+import type { AimTarget } from './AimTargets';
 import { getSetting, setting } from '../ui/Settings';
 import { viewportHeight } from '../core/viewport';
 
@@ -96,7 +97,7 @@ export class AimAssist {
     _fwd.set(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
     let best: Candidate | null = null;
     const margin = adsOn ? FRICTION_MARGIN_ADS : FRICTION_MARGIN_HIP;
-    for (const t of getAimTargets()) {
+    for (const t of app.aimTargets) {
       if (!t.alive || t.hidden) { this.bearings.delete(t); continue; }
       aimPoint(t, _aim);
       _dir.subVectors(_aim, p);

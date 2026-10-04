@@ -16,7 +16,7 @@ import { describeKeyBindings } from '../keyBindings';
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const { engine, manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, interactables, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
-  const { app, EffectService, CombatCues, installBounds, CHUNK_HALF, getNumber, onNumber, floorBelow, lineOfSight, tap, Hands, CameraFX, WeaponStrip, hudSlots, applySkin, LockOn, SpeedLines, buzz, HAPTIC, Perf, Minimap, FullMap, GameMenu, practiceRoom, KeepAlive, Combat, aimReadout, HurtArc, deathCause, respawnWhere, PlayerHealth, PlayerHurt, installPlayerDeath, WindupWarn, DeathFade, FirstHints, setAimTargets, meleeLock, macrotask, startMenuPreload, onReview, queuedCount, quickNote, rotateGated, loadPlayground, TIER, frameCost, Impacts, activePhysics, pickInteractable, beginExploreEntry, recordBootCheckpoint, isDev } = engine;
+  const { app, EffectService, CombatCues, installBounds, CHUNK_HALF, getNumber, onNumber, floorBelow, lineOfSight, tap, Hands, CameraFX, WeaponStrip, hudSlots, applySkin, LockOn, SpeedLines, buzz, HAPTIC, Perf, Minimap, FullMap, GameMenu, practiceRoom, KeepAlive, Combat, aimReadout, HurtArc, deathCause, respawnWhere, PlayerHealth, PlayerHurt, installPlayerDeath, WindupWarn, DeathFade, FirstHints, setAimTargets, meleeLock, macrotask, startMenuPreload, onReview, queuedCount, quickNote, rotateGated, loadPlayground, TIER, frameCost, Impacts, pickInteractable, beginExploreEntry, recordBootCheckpoint, isDev } = engine;
 
   let playground: Playground | null = null;
   const away = (): boolean => arena.entered || playground?.entered === true;
@@ -213,7 +213,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       if (a.state === 'charge' || a.state === 'stalk' || a.state === 'attack' || (a.state === 'sidestep' && d < 80)) chase++; // 'sidestep' = a Pine Hollow fight owns it (pinehollow/ctx.ts SCRIPTED): the elite, the bull's rivals
       else if (a.state === 'flee') flee++;
     }
-    const ph = activePhysics();
+    const ph = app.physics;
     return { animals: alive, near, motors, chase, flee, elite: boot.runtime.hooks.eliteEngaged?.() === true ? 1 : 0, bodies: ph?.world.bodies.len() ?? 0, colliders: ph?.world.colliders.len() ?? 0, 'fx chips': Impacts.for(game).mesh.count };
   });
   player.onStep = (sprinting) => {
@@ -250,7 +250,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       if (since < 0.25) return;
       since = 0;
       if (deathFade.active || !hud.entered || world.freeCamera || world.tour.active || away() || practiceRoom.open) return; // a practice room is never the checkpoint (E321)
-      const p = player.position, ph = activePhysics();
+      const p = player.position, ph = app.physics;
       const floor = ph ? floorBelow(ph, p.x, p.z, p.y + 0.6, 1.2) : undefined; // real walkable footing under the feet
       const grounded = floor !== undefined && Math.abs(floor - p.y) < 0.3 && player.onGround && !player.swimming && !player.wading && !player.hover
         && !player.carried && player.ride === null && floor > (app.world.water.level ?? -Infinity) + 0.3;
@@ -447,7 +447,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     mark('audio');
 
     // nearest interactable
-    const physics = activePhysics();
+    const physics = app.physics;
     nearest = pickInteractable(interactables, game.camera.position, physics);
     carcass = undefined;
     if (!nearest) for (const a of animals.animals) {
