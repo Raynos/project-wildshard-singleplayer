@@ -48,9 +48,10 @@ try {
     return { bodies: physics.world.bodies.len(), colliders: physics.world.colliders.len(), scopeBodies: scope.bodies, scopeColliders: scope.colliders, remaining };
   });
   const coinsAndFacts = (instance) => page.evaluate((id) => {
-    const local = JSON.parse(localStorage.getItem(`wildshard.save.v2.${id}`) ?? '{"keys":{}}');
+    const raw = localStorage.getItem(`wildshard.save.v2.${id}`) ?? '{"keys":{}}', local = JSON.parse(raw);
     const profile = JSON.parse(localStorage.getItem('wildshard.save.v2.profile') ?? '{"keys":{}}');
     return { coins: local.keys.purse?.data ?? 0, saved: local.keys['platform.region'] !== undefined,
+      mode: local.keys['platform.region']?.data?.mode ?? null, characters: raw.length,
       facts: Object.values(profile.keys['platform.ledger']?.data?.facts ?? {}).filter((fact) => fact.instance === id).length };
   }, instance);
   const drive = (waypoints) => page.evaluate(async (points) => {
@@ -112,10 +113,13 @@ try {
   }, cell.instance);
   await page.waitForTimeout(2500);
   result.afterReturn = await coinsAndFacts(cell.instance); result.sibling = await coinsAndFacts('template-2');
+  result.storage = await page.evaluate(() => ({ failures: window.__durabilityWriteFailures,
+    documents: Object.keys(localStorage).map((key) => ({ key, characters: localStorage.getItem(key)?.length ?? 0 })) }));
   result.leak = await page.evaluate(() => window.__wildshard.leak());
   result.physicsAfterUnload = await physicsCensus();
   result.pass = result.restored.complete === true && result.restored.questComplete === true && result.restored.blobAlive === false
     && result.afterReload.coins === 5 && result.afterReturn.coins === 5 && result.afterReturn.facts === 1 && result.sibling.coins === 0
+    && result.beforeReload.characters <= 512 * 1024 && result.afterReturn.characters <= 512 * 1024 && result.storage.failures.length === 0
     && result.errors.length === 0 && result.leak.disposalErrors.length === 0 && result.leak.scope.colliders === 0 && result.leak.scope.bodies === 0
     && result.leak.after.colliders === 0 && result.leak.after.bodies === 0;
 } catch (error) {

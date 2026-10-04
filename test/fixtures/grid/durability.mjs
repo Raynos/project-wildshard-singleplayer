@@ -108,7 +108,10 @@ try {
       region.host.combat.hit({ source: region.host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: target.combatActor(),
         amount: 1000, point: target.position, dir: new Vector3(0, 0, 1) }); region.host.step();
       region.colliders.get('template.door').setActive(false);
-      const checkpoint = snapshotSimHost(region.host); assert.equal(owner.checkpoint(checkpoint), true);
+      const checkpoint = snapshotSimHost(region.host);
+      // A valid oversized exact adapter remains possible after geometry optimizations; portable state must still fit.
+      if (mode === 'logical') checkpoint.adapters.push({ id: 'fixture.quota', state: 'x'.repeat(512 * 1024) });
+      assert.equal(owner.checkpoint(checkpoint), true);
       assert.equal(owner.state().mode, mode); assert.ok(owner.state().characters < 512 * 1024);
       const savedKey = [...regionLocal.data.keys()].find((name) => name.endsWith(placement.id)); assert.ok(savedKey);
       const fullCharacters = regionLocal.getItem(savedKey).length; assert.ok(fullCharacters < 512 * 1024);
