@@ -61,6 +61,9 @@
     "./shard/declaredRows": "./shard/declaredRows.ts",
     "./shardfile/plumbing": "./shardfile/plumbing.ts",
     "./shard/declaredPlumbing": "./shard/declaredPlumbing.ts",
-    "./instanceSaves": "./instanceSaves.ts"
+    "./instanceSaves": "./instanceSaves.ts",
+    "./shardfile/assets": "./shardfile/assets.ts",
+    "./shardfile/validate": "./shardfile/validate.ts",
+    "./shardfile/product": "./shardfile/product.ts"
   }
 }

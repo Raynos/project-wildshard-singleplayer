@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-291 members; 112 without a doc line (—).
+306 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -228,6 +228,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardRuntime` | interface | @wildshard/game/shard/runtime | Typed, per-build handoff between the staged shell and an authored plugin. |
 | `parseShardSlug` | function | @wildshard/game/shard/slug | Brand only validated identities; callers cannot supply arbitrary strings as shard keys. |
 | `ValidatedShardSlug` | type | @wildshard/game/shard/slug | An external identity whose format was validated at the catalogue or shardfile boundary. |
+| `assetCost` | function | @wildshard/game/shardfile/assets | Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. |
+| `AssetCost` | interface | @wildshard/game/shardfile/assets | Actual costs derived from a bounded parser, never trusted from the author declaration. |
+| `parseAudio` | function | @wildshard/game/shardfile/assets | Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory. |
+| `parseGlb` | function | @wildshard/game/shardfile/assets | Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. |
+| `parseKtx2` | function | @wildshard/game/shardfile/assets | Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. |
 | `AudioData` | type | @wildshard/game/shardfile/audio | Validated audio data; voice ids are resolved only through the platform's admitted catalogue. |
 | `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
 | `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |
@@ -253,6 +258,15 @@ The game layer's public modules (src/game/package.json `exports`).
 | `PlumbingData` | type | @wildshard/game/shardfile/plumbing | Serialisable scoped input actions, tier values and Debug choices with named admitted script hooks. |
 | `plumbingRules` | function | @wildshard/game/shardfile/plumbing | Semantic identities stay in the owning namespace; Debug defaults and touch actions must exist. |
 | `PlumbingSchema` | const | @wildshard/game/shardfile/plumbing | Bound the declarations and reject non-owned, duplicate or dangling settings at admission. |
+| `admitProduct` | function | @wildshard/game/shardfile/product | Validate a visited cached product again, including cached Wasm; previous versions require offline first-party provenance. |
+| `AdmittedProduct` | interface | @wildshard/game/shardfile/product | Admitted owned wire bytes; callers release this map when decoded resources take over. |
+| `boundedResponse` | function | @wildshard/game/shardfile/product | Stream bounded wire bytes, including responses without a trustworthy Content-Length header. |
+| `browserContentHash` | function | @wildshard/game/shardfile/product | SHA-256 over an owned ArrayBuffer, usable by WebKit without Node or SDK dependencies. |
+| `browserProductCache` | function | @wildshard/game/shardfile/product | Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. |
+| `CachedProduct` | interface | @wildshard/game/shardfile/product | A complete visited product is published only after every immutable asset has passed admission. |
+| `ProductCache` | interface | @wildshard/game/shardfile/product | Storage is injected so offline admission uses the same path in browsers and tests. |
+| `ProductOptions` | interface | @wildshard/game/shardfile/product | Loading is explicit about connectivity and first-party provenance, never inferred from an author field. |
+| `ProductVersions` | interface | @wildshard/game/shardfile/product | Version readers are trusted client migrations; content cannot register its own compatibility rule. |
 | `parseQuestData` | function | @wildshard/game/shardfile/quests | Compile TypeScript-authored rows to validated serialisable quest/dialogue data. |
 | `QuestData` | type | @wildshard/game/shardfile/quests | Plain quest graphs, declared flags/triggers and finite dialogue trees; hooks name platform-resolved script ports. |
 | `questDataRules` | function | @wildshard/game/shardfile/quests | Reject dangling flags, repeated identities, unreachable dialogue nodes and cycles before installing authored data. |
@@ -286,6 +300,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `UI_DECLARATIONS_MAX` | const | @wildshard/game/shardfile/ui | The most declarations one shardfile's `ui` section may hold. |
 | `uiRules` | function | @wildshard/game/shardfile/ui | Reference rules: unique ids, counters read a declared numeric field, one boss panel per encounter, one relabel per disc, one spec per bag tab. |
 | `UiSchema` | const | @wildshard/game/shardfile/ui | The declared UI kinds of shardfile v0: plain data the platform draws in its own HUD style and slots. |
+| `validateShardfileAssets` | function | @wildshard/game/shardfile/validate | Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. |
 | `SHARDFILE_VERSION` | const | @wildshard/game/shardfile/version | The shardfile format and script ABI revision; v0 is provisional until the phone gate. |
 | `shardfileWater` | function | @wildshard/game/shardfile/water | Validate untrusted declarations and return fresh motor-compatible bodies for one level instance. |
 | `ShardWater` | type | @wildshard/game/shardfile/water | A serialisable water section for pools, seas and streams, defaulting to [] in the full format. |

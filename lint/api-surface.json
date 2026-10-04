@@ -12276,6 +12276,36 @@
         "from": "@wildshard/game/shard/slug"
       },
       {
+        "name": "assetCost",
+        "kind": "function",
+        "doc": "Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run.",
+        "from": "@wildshard/game/shardfile/assets"
+      },
+      {
+        "name": "AssetCost",
+        "kind": "interface",
+        "doc": "Actual costs derived from a bounded parser, never trusted from the author declaration.",
+        "from": "@wildshard/game/shardfile/assets"
+      },
+      {
+        "name": "parseAudio",
+        "kind": "function",
+        "doc": "Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory.",
+        "from": "@wildshard/game/shardfile/assets"
+      },
+      {
+        "name": "parseGlb",
+        "kind": "function",
+        "doc": "Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays.",
+        "from": "@wildshard/game/shardfile/assets"
+      },
+      {
+        "name": "parseKtx2",
+        "kind": "function",
+        "doc": "Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound.",
+        "from": "@wildshard/game/shardfile/assets"
+      },
+      {
         "name": "AudioData",
         "kind": "type",
         "doc": "Validated audio data; voice ids are resolved only through the platform's admitted catalogue.",
@@ -12424,6 +12454,60 @@
         "kind": "const",
         "doc": "Bound the declarations and reject non-owned, duplicate or dangling settings at admission.",
         "from": "@wildshard/game/shardfile/plumbing"
+      },
+      {
+        "name": "admitProduct",
+        "kind": "function",
+        "doc": "Validate a visited cached product again, including cached Wasm; previous versions require offline first-party provenance.",
+        "from": "@wildshard/game/shardfile/product"
+      },
+      {
+        "name": "AdmittedProduct",
+        "kind": "interface",
+        "doc": "Admitted owned wire bytes; callers release this map when decoded resources take over.",
+        "from": "@wildshard/game/shardfile/product"
+      },
+      {
+        "name": "boundedResponse",
+        "kind": "function",
+        "doc": "Stream bounded wire bytes, including responses without a trustworthy Content-Length header.",
+        "from": "@wildshard/game/shardfile/product"
+      },
+      {
+        "name": "browserContentHash",
+        "kind": "function",
+        "doc": "SHA-256 over an owned ArrayBuffer, usable by WebKit without Node or SDK dependencies.",
+        "from": "@wildshard/game/shardfile/product"
+      },
+      {
+        "name": "browserProductCache",
+        "kind": "function",
+        "doc": "Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product.",
+        "from": "@wildshard/game/shardfile/product"
+      },
+      {
+        "name": "CachedProduct",
+        "kind": "interface",
+        "doc": "A complete visited product is published only after every immutable asset has passed admission.",
+        "from": "@wildshard/game/shardfile/product"
+      },
+      {
+        "name": "ProductCache",
+        "kind": "interface",
+        "doc": "Storage is injected so offline admission uses the same path in browsers and tests.",
+        "from": "@wildshard/game/shardfile/product"
+      },
+      {
+        "name": "ProductOptions",
+        "kind": "interface",
+        "doc": "Loading is explicit about connectivity and first-party provenance, never inferred from an author field.",
+        "from": "@wildshard/game/shardfile/product"
+      },
+      {
+        "name": "ProductVersions",
+        "kind": "interface",
+        "doc": "Version readers are trusted client migrations; content cannot register its own compatibility rule.",
+        "from": "@wildshard/game/shardfile/product"
       },
       {
         "name": "parseQuestData",
@@ -12622,6 +12706,12 @@
         "kind": "const",
         "doc": "The declared UI kinds of shardfile v0: plain data the platform draws in its own HUD style and slots.",
         "from": "@wildshard/game/shardfile/ui"
+      },
+      {
+        "name": "validateShardfileAssets",
+        "kind": "function",
+        "doc": "Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated.",
+        "from": "@wildshard/game/shardfile/validate"
       },
       {
         "name": "SHARDFILE_VERSION",
@@ -14022,31 +14112,31 @@
       {
         "name": "assetCost",
         "kind": "function",
-        "doc": "Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run.",
+        "doc": "Select the game's shared asset parser for CLI and browser admission.",
         "from": "@wildshard/sdk/assets"
       },
       {
         "name": "AssetCost",
-        "kind": "interface",
-        "doc": "Actual costs derived from a bounded parser, never trusted from the author declaration.",
+        "kind": "type",
+        "doc": "Actual parsed residency and draw costs, independent of author declarations.",
         "from": "@wildshard/sdk/assets"
       },
       {
         "name": "parseAudio",
         "kind": "function",
-        "doc": "Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory.",
+        "doc": "Admit bounded PCM audio and derive decoded sample residency.",
         "from": "@wildshard/sdk/assets"
       },
       {
         "name": "parseGlb",
         "kind": "function",
-        "doc": "Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays.",
+        "doc": "Admit a self-contained GLB and derive its geometry and instance costs.",
         "from": "@wildshard/sdk/assets"
       },
       {
         "name": "parseKtx2",
         "kind": "function",
-        "doc": "Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound.",
+        "doc": "Admit bounded KTX2 mip ranges and conservative transcode residency.",
         "from": "@wildshard/sdk/assets"
       },
       {
@@ -14184,7 +14274,7 @@
       {
         "name": "validateProject",
         "kind": "function",
-        "doc": "Validate graph closure costs, actual assets and the worst resident disc before writing a product.",
+        "doc": "Validate graph closure costs and actual bytes through the same admission used by the browser loader.",
         "from": "@wildshard/sdk/project"
       },
       {

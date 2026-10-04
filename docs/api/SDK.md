@@ -8,11 +8,11 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
-| `assetCost` | function | @wildshard/sdk/assets | Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. |
-| `AssetCost` | interface | @wildshard/sdk/assets | Actual costs derived from a bounded parser, never trusted from the author declaration. |
-| `parseAudio` | function | @wildshard/sdk/assets | Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory. |
-| `parseGlb` | function | @wildshard/sdk/assets | Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. |
-| `parseKtx2` | function | @wildshard/sdk/assets | Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. |
+| `assetCost` | function | @wildshard/sdk/assets | Select the game's shared asset parser for CLI and browser admission. |
+| `AssetCost` | type | @wildshard/sdk/assets | Actual parsed residency and draw costs, independent of author declarations. |
+| `parseAudio` | function | @wildshard/sdk/assets | Admit bounded PCM audio and derive decoded sample residency. |
+| `parseGlb` | function | @wildshard/sdk/assets | Admit a self-contained GLB and derive its geometry and instance costs. |
+| `parseKtx2` | function | @wildshard/sdk/assets | Admit bounded KTX2 mip ranges and conservative transcode residency. |
 | `AudioData` | type | @wildshard/sdk/audio | A serialisable audio recipe whose voice ids the platform catalogue admits. |
 | `AudioDataSchema` | const | @wildshard/sdk/audio | Compile cue mappings, wind ambience and silent/default score declarations. |
 | `parseAudioData` | function | @wildshard/sdk/audio | Validate the thin audio section before compiling a shardfile. |
@@ -35,7 +35,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `newProject` | function | @wildshard/sdk/project | Create the canonical SDK project layout without replacing existing work. |
 | `projectAssets` | function | @wildshard/sdk/project | Read content-addressed source assets inside the project's assets and commons directories. |
 | `readProject` | function | @wildshard/sdk/project | Compile a trusted local TypeScript config; only its serialisable default export enters the product. |
-| `validateProject` | function | @wildshard/sdk/project | Validate graph closure costs, actual assets and the worst resident disc before writing a product. |
+| `validateProject` | function | @wildshard/sdk/project | Validate graph closure costs and actual bytes through the same admission used by the browser loader. |
 | `parseQuestData` | function | @wildshard/sdk/quests | Compile TypeScript author data after checking declared flags and graph references. |
 | `QuestData` | type | @wildshard/sdk/quests | Validated quest/dialogue declarations consumed by the platform runtime. |
 | `QuestDataSchema` | const | @wildshard/sdk/quests | Compile declared quest graphs and dialogue trees with bounded, serialisable script hook names. |

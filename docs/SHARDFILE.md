@@ -156,3 +156,10 @@ radius by the sample spacing's half diagonal, so gaps cannot hide a heavier disc
 The normal client accepts an embedded `<script id="ws-shardfile" type="application/json">` source. The game validates it before selecting the level, then uses the existing session, Game, player, physics, HUD and staged LevelLoader. `loadShardfile(app, input)` also feeds an installed level driver; `app.unloadLevel()` owns disposal. External names cross `parseShardSlug`; built-in names keep their generated union.
 
 SF15a-min accepts an empty authored world only, plus a look (day keys and a LUT, whose file is the only file allowed). It refuses other content, declared state and non-empty UI before allocation; the full loader binds those in SF15a. The asset-free backdrop and inert primary satisfy the current session ports. Unsupported format versions request a compatible client.
+
+The browser and CLI share game-layer asset admission: exact wire hashes and sizes, bounded parsers, terrain semantics,
+transitive bundle costs and the script memory growth ceiling are checked before allocating a level. Cached Wasm passes
+admission again on every load. A visited product is published to Cache Storage only after all its immutable files pass;
+an offline load reads those files without fetching and refuses missing or corrupted bytes. A revision keeps each saved
+field's scope, name, id and type. Previous-format readers are trusted client code, and only an offline visited first-party
+product may select one; provisional v0 currently has no previous format reader.
