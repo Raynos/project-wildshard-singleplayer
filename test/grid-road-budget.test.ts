@@ -24,7 +24,7 @@ function platform(assembly: GridAssembly): PlatformCell[] {
     observations: { north: { entryWidth: 8 }, east: { entryWidth: 8 }, south: { entryWidth: 8 }, west: { entryWidth: 8 } } }));
 }
 
-function build(): { roots: Group[]; plans: Map<Mesh, CullPlan>; culled: Mesh[] } {
+function buildPlatform(): { roots: Group[]; plans: Map<Mesh, CullPlan>; culled: Mesh[] } {
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell(assembly.cells.find((c) => c.cell[0] === 0 && c.cell[1] === 0)?.instance ?? '');
   const empty = assembly.emptyNeighbour.edge, cells = platform(assembly);
   // corners must agree between edges: fall back to road-level edges where the synthetic rows disagree (as the session does)
@@ -43,11 +43,17 @@ function build(): { roots: Group[]; plans: Map<Mesh, CullPlan>; culled: Mesh[] }
   return { roots: [scene], plans, culled };
 }
 
+/** One build shared by the tests (≈ 5 s: the generator, the clipping and the LOD clustering over the whole platform). */
+let built: ReturnType<typeof buildPlatform> | undefined;
+const build = (): ReturnType<typeof buildPlatform> => { built ??= buildPlatform(); return built; };
+/** The CI coverage runner is several times slower than a laptop: each test gets 120 s (its default is 20 s). */
+const SLOW = 120_000;
+
 it('keeps every road bin compact so frustum culling can drop it (no triangle spans a whole platform side)', () => {
   const { plans } = build();
   const widest = Math.max(...[...plans.values()].flatMap((p) => p.bins.map((b) => b.sphere.radius)));
   expect(widest).toBeLessThan(260);
-});
+}, SLOW);
 
 it('draws the road system within §3.2 from every grid pose: ≤ 8 draws with shadows, ≤ 60k triangles', () => {
   const { roots, plans } = build();
@@ -68,7 +74,7 @@ it('draws the road system within §3.2 from every grid pose: ≤ 8 draws with sh
   views.sort((a, b) => a - b);
   expect(views[Math.floor(views.length / 2)] ?? Infinity).toBeLessThan(resident.triangles / 4);
   expect(worst.triangles).toBeLessThanOrEqual(60_000);
-});
+}, SLOW);
 
 it('a culled mesh draws one contiguous range of only the bins in view, re-uploaded only when the set changes', () => {
   const { culled } = build();
@@ -84,4 +90,4 @@ it('a culled mesh draws one contiguous range of only the bins in view, re-upload
   expect(first).toBeGreaterThan(0); expect(first).toBeLessThan(full);
   call();
   expect(index?.version).toBe(version); // the same view: no upload
-});
+}, SLOW);
