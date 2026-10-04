@@ -192,6 +192,7 @@ it('the admitted empty hybrid preserves the legacy service census and staged hoo
   const ctx = shardContext(installation.context, template, { shard: template, runtime: parent, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
   const before = Object.getOwnPropertyDescriptors(parent);
   try {
+    if (plugin.world === undefined || plugin.kit === undefined || plugin.play === undefined) throw new Error('Missing trusted runtime stages');
     await plugin.world(ctx); await plugin.kit(ctx); await plugin.play(ctx);
     expect(calls).toEqual(['world', 'kit', 'play']); expect(app.systemIds(app.engineScope)).toEqual([]);
     expect(parent.hooks.meleeSilent).toBe(true); scope.dispose(); expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
