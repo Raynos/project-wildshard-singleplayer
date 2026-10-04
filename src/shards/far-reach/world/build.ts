@@ -1,6 +1,6 @@
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, DAIS, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
@@ -25,6 +25,7 @@ import { STORM, crownStorm, type CrownStorm } from './storm';
 import { updraftFx, type UpdraftFx } from './windFx';
 import { SUN_DIR } from '../look/sun';
 import { bakeSeaTexture } from '../look/cloudSea';
+import { entryPieces } from './entries';
 
 const FILE = 'src/shards/far-reach/world/build.ts';
 /** How far the fallen bridge hangs below level (radians about its pivot). */
@@ -126,7 +127,8 @@ function millDrum(): ColliderDesc {
   }
   return { kind: 'hull', x: MILL.x, y: DECK, z: MILL.z, points, surface: 'stone' };
 }
-export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorld {
+/** `entries`: SF49-g's four switchback entries (debug.ts row, default off). */
+export function buildWorld(ctx: ShardContext, isBoard: () => boolean, entries = false): BuiltWorld {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
     keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
@@ -188,12 +190,16 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   // faint glass while you walk (E399, the council: 'translucent rectangles' over the windmill isle from the spawn): the glowing
   // frame shows the path; the plugin fills the glass in while you ride
   const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.16, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 });
-  for (const span of SPANS) {
+  const bridges = SPANS.map((span): Piece => {
     const hover = span.kind === 'hover', length = spanLength(span), bridge = plankBridge(length, span.width, hover ? hoverDeck : plank, hover ? null : rope);
-    bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ'); root.add(bridge);
-    ctx.piece({ id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
-      colliders: hover ? [deckCollider(span)] : saggedColliders(span), surface: 'wood', ...(hover ? { active: isBoard } : {}) });
-  }
+    bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ');
+    const piece: Piece = { id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
+      colliders: hover ? [deckCollider(span)] : saggedColliders(span), surface: 'wood' };
+    if (hover) piece.active = isBoard;
+    return piece;
+  });
+  // SF49-g: the four switchback entries (world/entries.ts; the farReachEntries row) are plank structures like the bridges
+  for (const piece of entries ? [...bridges, ...entryPieces()] : bridges) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
   const ramp = plankBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, null);

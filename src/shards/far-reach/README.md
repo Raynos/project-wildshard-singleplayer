@@ -13,7 +13,7 @@ Storm Roc.
 | `status`, `order` | `experimental`, 60 |
 | `style`, `kitLook` | `skyReach` (its own label), `toon` |
 | `ground` | `structures: true` only (G23): eight islands and their bridges are registry pieces (`world/build.ts`); no terrain mesh or collider, the analytic floor is y −1000; `world.killY` ends a fall into the cloud sea |
-| `world`, `bounds` | `killY` 6 m (creature death plane); a soft-respawn floor 12 m for a player who falls |
+| `world`, `bounds` | `killY` 6 m (creature death plane); the whole 500 m cell, a soft-respawn floor at −8 m (under the road-level entry landings, SF49-g) for a player who falls |
 | `horizon`, `boundary` | no ridge rings, the engine's cloud sea; no drawn edge |
 | `uses` | `hover`, `quests`, `bosses`, `coins`, `loot` |
 | `loadout` | the war fan (held) and the kit hoverboard |
@@ -31,6 +31,7 @@ Storm Roc.
 | `world/shapes.ts` | flat-shaded vertex-coloured islands (12-gon grass top, violet keel), instanced pines, plank bridges (a rope span lays the generated deck segments, instanced, and four generated anchor posts; hover decks keep glass planks), the windmill, the winch |
 | `world/meshes.ts` | the generated models (C6): loads the five GLBs once in `world` (`preloadSkyMeshes`), flattens each to vertex-coloured facets (the baked AO kept at 60 %), `fit` (size, floor / middle, `pitch`, footing centre), `bindRigid` (a creature's facets ride one bone each), `splitAbove` (the vane's rotor). A model that fails to load leaves the code model |
 | `world/build.ts` | the pieces: island tops (six box strips cover the 12-gon), the rope bridge (deck + rails), the hover bridge (`active` only while `app.player.mode === 'board'`), the fallen bridge (`active` once raised), the windmill, the winch interactable, the vanes (`vaneColliders`: plinth, shrine box and post, measured off the generated shrine) |
+| `world/ramps.ts`, `world/entries.ts`, `debug.ts` | SF49-g (G99 / G102): the four entries. At each edge midpoint a plank road landing (top y = 0, across the platform socket's full 8 m far edge; `shard.config.ts` declares the four as `socketOverWater` landings), a two-lane timber switchback tower (3 m per 15 m flight, a level turn landing at each end, rope rails) and a plank causeway on trestles straight inward onto the nearest island (Sunrest, the Roost, the storm crown, the pine grove). Built behind the default-off `farReachEntries` Debug row |
 | `weapons/WarFan.ts` | the war fan (rung 3, `extends Weapon`): SWING arc slash and the held / HEAVY slash through `blocks.melee`; GUST (touch `verb.1`, key G) gives every creature in a 9 m cone `animal.impulse` away and a 4-point hit |
 | `species/skyGoat.ts` | sky goats: ground walkers spawned on their deck (`animals.spawn(…, { fromY })` on the first fixed step: the spawn ray finds the islands only once physics has stepped); graze inside the rim, ram (lane) when crowded; GUSTed past the rim they fall (G27) through `killY`. `warmCoat` lifts the generated coat toward cream so it does not read mauve under the violet sky light |
 | `species/galeWisp.ts` | gale wisps: drift over their island, dart and burst (sphere) at the chest; the burst shoves you back 7 m/s (G24, `pushPlayer` in `species/rig.ts`, bound to `app.player.impulse` in `play`) |

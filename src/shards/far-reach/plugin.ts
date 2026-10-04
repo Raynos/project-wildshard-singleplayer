@@ -9,6 +9,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from './strings';
+import { farReachEntriesOn } from './debug';
 import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, WISP_HOMES, apothem, type Home } from './layout';
 import { buildWorld, type BuiltWorld } from './world/build';
 import { skyMoverViews } from './runtime/movers';
@@ -97,7 +98,7 @@ export class SkyReachPlugin extends ShardPlugin {
     setMillTextures({ stone: millStone, canvas: millCanvas, ivy: millIvy });
     setFirSheet(branches);
     setIsleTextures({ rock, meadow: meadowTex });
-    this.built = buildWorld(ctx, () => this.board());
+    this.built = buildWorld(ctx, () => this.board(), farReachEntriesOn(ctx));
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
     const field = meadow(SUN_DIR, ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades, ISLES, heroStoneDiscs());
