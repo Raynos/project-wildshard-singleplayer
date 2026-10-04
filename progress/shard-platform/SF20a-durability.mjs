@@ -33,6 +33,11 @@ try {
     await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
   };
   const state = () => page.evaluate(() => window.__wildshard.shard.grid.state());
+  const physicsCensus = () => page.evaluate(() => {
+    const world = window.__wildshard.world, physics = world.physics, scope = world.game.levelScope.census, remaining = [];
+    physics.world.forEachCollider((collider) => { if (remaining.length < 12) remaining.push({ handle: collider.handle, at: collider.translation(), groups: collider.collisionGroups() }); });
+    return { bodies: physics.world.bodies.len(), colliders: physics.world.colliders.len(), scopeBodies: scope.bodies, scopeColliders: scope.colliders, remaining };
+  });
   const coinsAndFacts = (instance) => page.evaluate((id) => {
     const local = JSON.parse(localStorage.getItem(`wildshard.save.v2.${id}`) ?? '{"keys":{}}');
     const profile = JSON.parse(localStorage.getItem('wildshard.save.v2.profile') ?? '{"keys":{}}');
@@ -62,6 +67,7 @@ try {
   }, waypoints);
 
   await page.goto(url, { waitUntil: 'domcontentloaded' }); await enter();
+  result.physicsAtBoot = await physicsCensus();
   const boot = await state(), cell = boot.cells.find((entry) => entry.instance === 'template-1');
   if (cell === undefined) throw new Error('Expected an independent template copy');
   const origin = { x: cell.cell[0] * 555, z: cell.cell[1] * 555 };
@@ -98,6 +104,7 @@ try {
   await page.waitForTimeout(2500);
   result.afterReturn = await coinsAndFacts(cell.instance); result.sibling = await coinsAndFacts('template-2');
   result.leak = await page.evaluate(() => window.__wildshard.leak());
+  result.physicsAfterUnload = await physicsCensus();
   result.pass = result.restored.complete === true && result.restored.questComplete === true && result.restored.blobAlive === false
     && result.afterReload.coins === 5 && result.afterReturn.coins === 5 && result.afterReturn.facts === 1 && result.sibling.coins === 0
     && result.errors.length === 0 && result.leak.disposalErrors.length === 0 && result.leak.scope.colliders === 0 && result.leak.scope.bodies === 0
