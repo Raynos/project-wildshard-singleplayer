@@ -11,6 +11,7 @@ import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { prepareFrameMotors } from '../../../src/engine/physics/frame.ts';
 import { generateStrip } from '../../../src/engine/sim/strips.ts';
 import { installStripCollider } from '../../../src/engine/physics/stripColliders.ts';
+import { CONTENT_CAPS } from '../../../src/engine/core/config.ts';
 import { GridAssembly } from '../../../src/game/grid/assembly.ts';
 import { LiveGridHost } from '../../../src/game/grid/live.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
@@ -22,6 +23,9 @@ const assembly = new GridAssembly({ developer: false, devserver: false }), homeC
 const level = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [], weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 const pageHost = createSimHost(level, { rapier }), empty = assembly.emptyNeighbour.edge;
 const strip = generateStrip({ id: 'west', axis: 'x', origin: { x: -277.5, z: 0 }, profiles: [empty, empty], adjacent: [target, homeCell] });
+const highwayBytes = strip.mesh.positions.byteLength + strip.mesh.indices.byteLength;
+const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil((1 + highwayBytes + source.budgets.sim.resident) * CONTENT_CAPS.residentFactor) });
+const blocker = allocator.reserve({ id: 'library:held', category: 'library', bytes: source.budgets.sim.resident, owner: 'platform', distance: 0, needed: true }); assert.ok(blocker);
 installStripCollider(pageHost.physics, strip.mesh, pageHost.scope);
 let currentPhysics = pageHost.physics, gameplay = true, frameBinds = 0;
 const player = { position: pageHost.player.position, yaw: 0, health: pageHost.player.health, owner: pageHost.player, motor: pageHost.releasePlayerMotor() };
@@ -31,8 +35,8 @@ const quest = { fact: (id) => { facts.add(id); }, coins: (amount) => { coins += 
 let physicsSteps = 0, regionCreations = 0;
 const registry = new LiveGridHost(assembly, {
   maxResidents: 2,
-  home: { instance: homeCell.instance, physics: pageHost.physics, bytes: 1, checkpoint: () => true }, player, allocator: new ResidencyAllocator(),
-  highway: { bytes: strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, create: () => {
+  home: { instance: homeCell.instance, physics: pageHost.physics, bytes: 1, checkpoint: () => true }, player, allocator,
+  highway: { bytes: highwayBytes, create: () => {
     const host = createSimHost({ ...level, ground: { size: 2000, height: 0 } }, { rapier, playerBody: false, ground: false });
     installStripCollider(host.physics, strip.mesh, host.scope); return { host, dispose: () => host.dispose() };
   } },
@@ -56,6 +60,10 @@ const registry = new LiveGridHost(assembly, {
 });
 const step = () => { currentPhysics.step(); physicsSteps++; registry.afterPlayerStep(); };
 try {
+  const homeMotor = player.motor;
+  await assert.rejects(registry.prefetch([target.instance]), /deferred by the shared budget/);
+  assert.equal(regionCreations, 0); assert.equal(player.motor, homeMotor); assert.equal(registry.ready(target.instance), false);
+  assert.equal(pageHost.physics.world.colliders.len(), 3); blocker.release(); registry.retry(target.instance);
   player.position.x = -249;
   for (let frame = 0; frame < 100; frame++) registry.beforeFixed();
   assert.deepEqual(registry.state().pending, [target.instance]);
@@ -88,5 +96,6 @@ try {
   assert.equal(facts.size, 0); assert.equal(coins, 0);
   assert.equal(pageHost.physics.world.colliders.len(), 2); // borrowed home keeps ground + seam, no duplicate player
   registry.dispose(); assert.equal(currentPhysics, pageHost.physics); assert.equal(pageHost.physics.world.colliders.len(), 3);
-  console.info(JSON.stringify({ nativeLiveGrid: true, crossings: 4, existingPhysicsSteps: physicsSteps, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: hp, restored: true, borrowedHomeRetained: true }));
-} finally { registry.dispose(); player.motor.dispose(); pageHost.dispose(); }
+  assert.deepEqual(allocator.entries(), []);
+  console.info(JSON.stringify({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: physicsSteps, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: hp, restored: true, borrowedHomeRetained: true }));
+} finally { blocker.release(); registry.dispose(); player.motor.dispose(); pageHost.dispose(); }

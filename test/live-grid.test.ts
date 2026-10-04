@@ -6,5 +6,5 @@ import { expect, it } from 'vitest';
 
 it('drives the admitted template through live page frames and restores its frozen continuation in plain Node', () => {
   const output = execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/fixtures/grid/live.mjs'], { encoding: 'utf8', timeout: 20_000 });
-  expect(JSON.parse(output)).toEqual({ nativeLiveGrid: true, crossings: 4, existingPhysicsSteps: 670, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: 55, restored: true, borrowedHomeRetained: true });
+  expect(JSON.parse(output)).toEqual({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: 670, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: 55, restored: true, borrowedHomeRetained: true });
 });
