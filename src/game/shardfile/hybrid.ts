@@ -124,8 +124,18 @@ export class HybridShardPlugin extends ShardPlugin {
 /** Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. */
 export async function prepareHybridShard(source: Shardfile, options: ProductOptions | { firstParty: true },
   bindings: Omit<ShardfileClientBindings, 'instance' | 'trustedRuntime'>,
-  entries: readonly TrustedRuntimeEntry[]): Promise<HybridShardPlugin> {
+  entries: readonly TrustedRuntimeEntry[],
+  debug?: { context: ShardContext; row: Omit<Parameters<ShardContext['debugRow']>[0], 'change'> }): Promise<ShardPlugin> {
   if (source.runtime === null) throw new Error('Hybrid requires a declared runtime entry');
+  if (debug !== undefined) {
+    const choice = { hybrid: false };
+    const adapters = debug.context;
+    adapters.debugRow({ ...debug.row, change: (value) => { choice.hybrid = value === 'on'; } });
+    if (!choice.hybrid) {
+      const Runtime = await prepareTrustedRuntime(source.runtime, source.identity.slug, options.firstParty, entries);
+      return new Runtime();
+    }
+  }
   const productOptions = 'base' in options ? options : browserShardfileOptions(
     new URL(`shardfiles/${source.identity.slug}/`, document.baseURI || location.href).href, options.firstParty);
   const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
