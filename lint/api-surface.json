@@ -7975,6 +7975,60 @@
         "from": "@wildshard/engine/script/admission"
       },
       {
+        "name": "CLIENT_SCRIPT_LIMITS",
+        "kind": "const",
+        "doc": "Aggregate presentation ceilings; emitted particles are visual instances, never simulation entities.",
+        "from": "@wildshard/engine/script/client"
+      },
+      {
+        "name": "CLIENT_SCRIPT_OP",
+        "kind": "const",
+        "doc": "Presentation-only operations. Authoritative field, position, spawn, event and shared/player writes are refused.",
+        "from": "@wildshard/engine/script/client"
+      },
+      {
+        "name": "ClientParticleRequest",
+        "kind": "interface",
+        "doc": "Validated particle request, published only after the entire script call commits.",
+        "from": "@wildshard/engine/script/client"
+      },
+      {
+        "name": "ClientScriptBinding",
+        "kind": "interface",
+        "doc": "One stable visual target. Parameters and read count are fixed before any bytecode is instantiated.",
+        "from": "@wildshard/engine/script/client"
+      },
+      {
+        "name": "ClientScriptEmitter",
+        "kind": "interface",
+        "doc": "An admitted visual emitter; its recipe, lifetime and limits are host declarations rather than script effects.",
+        "from": "@wildshard/engine/script/client"
+      },
+      {
+        "name": "ClientScriptFrame",
+        "kind": "interface",
+        "doc": "A visual transform relative to the host's authoritative anchor, plus this tick's bounded particle requests.",
+        "from": "@wildshard/engine/script/client"
+      },
+      {
+        "name": "ClientScriptLane",
+        "kind": "class",
+        "doc": "Bounded presentation lane with private Wasm memory and private visual output; a frozen sim is never stepped or mutated.",
+        "from": "@wildshard/engine/script/client"
+      },
+      {
+        "name": "ClientScriptObservation",
+        "kind": "interface",
+        "doc": "A copied, read-only observation supplied by the platform; frozen describes the authoritative sim, not this lane.",
+        "from": "@wildshard/engine/script/client"
+      },
+      {
+        "name": "ClientScriptOptions",
+        "kind": "interface",
+        "doc": "Explicit module installation. The lane has no reference to physics, a save store or an authoritative script world.",
+        "from": "@wildshard/engine/script/client"
+      },
+      {
         "name": "EffectRules",
         "kind": "interface",
         "doc": "Content supplies legal field ranges, archetypes and event ids as data.",

@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1903 members; 830 without a doc line (—).
+1912 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1334,6 +1334,15 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SCRIPT_IMPORTS` | const | @wildshard/engine/script/abi | Import signatures: parameter types followed by a single result, or zero for void. |
 | `admitScript` | function | @wildshard/engine/script/admission | Validate bytes and metering without instantiating or executing any module code. Tables are capped at zero in v0. |
 | `ScriptAdmission` | interface | @wildshard/engine/script/admission | Limits and complete mutable-global snapshot names established without executing module code. |
+| `CLIENT_SCRIPT_LIMITS` | const | @wildshard/engine/script/client | Aggregate presentation ceilings; emitted particles are visual instances, never simulation entities. |
+| `CLIENT_SCRIPT_OP` | const | @wildshard/engine/script/client | Presentation-only operations. Authoritative field, position, spawn, event and shared/player writes are refused. |
+| `ClientParticleRequest` | interface | @wildshard/engine/script/client | Validated particle request, published only after the entire script call commits. |
+| `ClientScriptBinding` | interface | @wildshard/engine/script/client | One stable visual target. Parameters and read count are fixed before any bytecode is instantiated. |
+| `ClientScriptEmitter` | interface | @wildshard/engine/script/client | An admitted visual emitter; its recipe, lifetime and limits are host declarations rather than script effects. |
+| `ClientScriptFrame` | interface | @wildshard/engine/script/client | A visual transform relative to the host's authoritative anchor, plus this tick's bounded particle requests. |
+| `ClientScriptLane` | class | @wildshard/engine/script/client | Bounded presentation lane with private Wasm memory and private visual output; a frozen sim is never stepped or mutated. |
+| `ClientScriptObservation` | interface | @wildshard/engine/script/client | A copied, read-only observation supplied by the platform; frozen describes the authoritative sim, not this lane. |
+| `ClientScriptOptions` | interface | @wildshard/engine/script/client | Explicit module installation. The lane has no reference to physics, a save store or an authoritative script world. |
 | `EffectRules` | interface | @wildshard/engine/script/effects | Content supplies legal field ranges, archetypes and event ids as data. |
 | `EffectTransaction` | interface | @wildshard/engine/script/effects | Complete transaction result; publication is a single host-owned state replacement. |
 | `SCRIPT_OP` | const | @wildshard/engine/script/effects | V0 numeric effect operations; all records contain [op,a,b,c,d] f64 values. |

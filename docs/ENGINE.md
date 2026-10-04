@@ -1807,7 +1807,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1886 exports, grouped by the module to import them from.
+1895 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2034,6 +2034,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/saves/view/storage`: `installBrowserSaveEnvironment`
 - `@wildshard/engine/script/abi`: `SCRIPT_ABI`, `SCRIPT_EXPORTS`, `SCRIPT_IMPORTS`
 - `@wildshard/engine/script/admission`: `admitScript`, `ScriptAdmission`
+- `@wildshard/engine/script/client`: `CLIENT_SCRIPT_LIMITS`, `CLIENT_SCRIPT_OP`, `ClientParticleRequest`, `ClientScriptBinding`, `ClientScriptEmitter`, `ClientScriptFrame`, `ClientScriptLane`, `ClientScriptObservation`, `ClientScriptOptions`
 - `@wildshard/engine/script/effects`: `EffectRules`, `EffectTransaction`, `SCRIPT_OP`, `ScriptEffect`, `ScriptEntity`, `ScriptEvent`, `ScriptWorld`
 - `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `SCRIPT_PARAMETER_QUERY`, `ScriptCall`, `ScriptHost`, `ScriptHostOptions`, `ScriptHostState`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
 - `@wildshard/engine/script/lane`: `installScriptLane`, `ScriptBinding`, `ScriptLane`, `ScriptLaneOptions`, `ScriptModule`
