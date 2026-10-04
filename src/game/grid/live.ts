@@ -158,11 +158,16 @@ export class LiveGridHost {
   /** Before the existing page physics/player step: radial requests are U-turn safe, and current-world walls synchronize first. */
   beforeFixed(): void {
     if (this.disposed) return;
-    for (const cell of [...this.assembly.cells].sort((a, b) => a.instance.localeCompare(b.instance))) {
+    // Request the closest cells that fit the shard count. Requesting all eight within a wide cold bound
+    // would repeatedly evict and rebuild earlier admissions even while the traveller stands still.
+    const nearby = this.assembly.cells.filter((cell) => cell.instance !== this.ports.home.instance)
+      .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance)).slice(0, this.limit - 1);
+    const requested = new Set(nearby.map((cell) => cell.instance));
+    for (const cell of this.assembly.cells) {
       if (cell.instance === this.ports.home.instance) continue;
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
       const resident = this.residents.get(cell.instance); resident?.lease.update({ distance, needed: cell.instance === this.active || resident.reservations > 0 });
-      if (distance <= estimate.distance && !this.issues.has(cell.instance)) void this.ensure(cell.instance).catch(() => undefined);
+      if (requested.has(cell.instance) && distance <= estimate.distance && !this.issues.has(cell.instance)) void this.ensure(cell.instance).catch(() => undefined);
     }
     const walls = this.active === this.ports.home.instance ? this.ports.home.walls : this.region(this.active)?.walls;
     walls?.sync(this.readiness);

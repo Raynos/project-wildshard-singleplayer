@@ -56,7 +56,12 @@ const registry = new LiveGridHost(assembly, {
 });
 const step = () => { currentPhysics.step(); physicsSteps++; registry.afterPlayerStep(); };
 try {
+  player.position.x = -249;
+  for (let frame = 0; frame < 100; frame++) registry.beforeFixed();
+  assert.deepEqual(registry.state().pending, [target.instance]);
   await registry.prefetch([target.instance]); const first = values.get(target.instance); assert.ok(first);
+  for (let frame = 0; frame < 100; frame++) registry.beforeFixed();
+  assert.deepEqual(registry.state().pending, []); assert.equal(regionCreations, 1);
   assert.equal(first.host.hasPlayerMotor, false); assert.equal(first.host.state.tick, 0);
   player.position.set(-261, 0.02, 0); assert.equal(registry.target(registry.worldFeet()), null);
   const cancelled = await registry.prepare(homeCell.instance, null); const original = player.motor; cancelled.cancel(); assert.equal(player.motor, original);
