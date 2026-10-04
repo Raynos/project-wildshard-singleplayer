@@ -22,7 +22,7 @@ try {
     saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
   ].join(';'));
   const page = await context.newPage();
-  const errors = [];
+  const errors = /** @type {string[]} */ ([]);
   page.on('pageerror', (error) => errors.push(error.message));
   const version = await (await page.request.get(new URL('/version.json', url).href)).json();
   await page.goto(`${url}/?chunk=${encodeURIComponent(shard)}&mute=1&skipintro=1&nolock=1&sw=0`);
@@ -38,7 +38,7 @@ try {
       await new Promise((resolve) => { const tick = () => { if (window.__wildshard.world.game.frameCount >= end) resolve(undefined); else requestAnimationFrame(tick); }; requestAnimationFrame(tick); });
     });
   }
-  const observed = await page.evaluate(`(() => {
+  const observed = /** @type {import('./glbytes.mjs').CensusObservation} */ (await page.evaluate(`(() => {
     const g = window.__wildshard.world.game;
     const contexts = window.__sc_gl().map(({gl,...record}) => record);
     const groups = new Map();
@@ -54,7 +54,7 @@ try {
       reconciled:contexts.every(c=>c.reconciled),
       renderScale:g.renderer.getPixelRatio(),canvas:[g.canvas.width,g.canvas.height],viewport:[innerWidth,innerHeight],
       renderer:g.renderer.getContext().getParameter(g.renderer.getContext().RENDERER)};
-  })()`);
+  })()`));
   const record = { version, shard, tier, poses: ['spawn', ...poses.map((pose) => pose.name)], observed, errors };
   mkdirSync(dirname(output), { recursive: true });
   writeFileSync(output, `${JSON.stringify(record, null, 2)}\n`);
