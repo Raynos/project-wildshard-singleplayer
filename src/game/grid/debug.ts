@@ -53,25 +53,6 @@ function globalRow(spec: GlobalRowSpec): () => void {
 }
 const grid = { debugRow: globalRow };
 
-/**
- * SF17b's "Grid road cull" row: each road material draws only the half-pitch bins inside the view (`roadCull.ts`: one
- * plain indexed draw over a dynamic index range, no multi-draw). Default off until parity captures and a quiet frame floor
- * back it (RENDERING.md, G112); applies at the next grid start.
- */
-const CULL_ROW = 'gridRoadCull';
-/** the road-cull row's value (off by default) */
-export function gridRoadCullOn(): boolean {
-  try { return saved(CULL_ROW).read() === 'on'; } catch { return false; }
-}
-/** Install the road-cull row (the grid session calls it once and disposes it with the level scope). */
-export function installGridRoadCullRow(): () => void {
-  const strings = GAME_STRINGS.grid;
-  return grid.debugRow({
-    id: 'gridRoadCull', group: 'look', label: strings.roadCull, choices: [{ value: 'off', text: strings.off }, { value: 'on', text: strings.on }], initial: 'off',
-    change: () => undefined, note: strings.roadCullNote, ask: 'E435', reviewBy: '2026-12-30',
-  });
-}
-
 /** Install the one-frame row (the grid session calls it once and disposes it with the level scope). */
 export function installGridFrameRow(): () => void {
   const strings = GAME_STRINGS.grid;

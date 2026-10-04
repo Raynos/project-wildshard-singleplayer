@@ -42,8 +42,6 @@ export const GAME_STRINGS = {
     saveFailed: 'SAVE FAILED, RETRY',
     oneFrame: 'Grid one frame',
     oneFrameNote: 'SF19a: one sky, sun, exposure and air for the whole grid, each pixel graded by its own region. Applies at the next grid start.',
-    roadCull: 'Grid road cull',
-    roadCullNote: 'SF17b: the road system draws only what the view sees (one draw per material). Applies at the next grid start.',
     off: 'Off',
     on: 'On',
   },

@@ -39,7 +39,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripMesh } from '@wildshard/engine/sim/strips';
 import { GridAssembly, type GridCell } from './assembly';
 import { gridMode } from './menu';
-import { devserverCellOn, gridOneFrameOn, gridRoadCullOn, installGridFrameRow, installGridRoadCullRow } from './debug';
+import { devserverCellOn, gridOneFrameOn, installGridFrameRow } from './debug';
 import { gridCells, pageGridInstance, pageMode } from './boot';
 import { ResidencyAllocator } from './allocator';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
@@ -220,9 +220,8 @@ export class GridSession {
     // drawn through the road system's one solid material (SF17b per-view budget, G101)
     const pitch = this.assembly.pitch, seams = seamSolid(this.strips, home, undefined, pitch); this.seams = seams.state;
     const solidParts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { solidParts.push(part); };
-    // SF17b's per-view cull, behind its Debug row (default off; applies at the next grid start)
-    host.scope.onDispose(installGridRoadCullRow());
-    const culling = gridRoadCullOn(), cull = (mesh: Mesh): void => { if (culling) this.roadPlans.set(mesh, cullRoadMesh(mesh, pitch, () => host.frame?.camera, mesh.name === 'grid-deck' ? ROAD_LOD : []).plan); };
+    // SF17b's per-view cull: each road material draws only the half-pitch bins in view (G112: the only path since the quiet frame floor)
+    const cull = (mesh: Mesh): void => { this.roadPlans.set(mesh, cullRoadMesh(mesh, pitch, () => host.frame?.camera, mesh.name === 'grid-deck' ? ROAD_LOD : []).plan); };
     // SF19a: one frame for the grid, behind its Debug row (default off; applies at the next grid start)
     host.scope.onDispose(installGridFrameRow());
     const frameHost = host.frame;
