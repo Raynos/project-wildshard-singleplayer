@@ -68,7 +68,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 |---|---|
 | `identity` | Kebab/dot slug, nonempty display name and author (128 characters max), positive revision, unsigned seed. No grid coordinates. |
 | `accent` | Required lowercase ID from the platform’s 20-colour palette; road/safe-zone cyan is reserved. |
-| `requires` | SDK revision 0; capability names; declared SHA-256 commons hashes. |
+| `requires` | SDK revision 0; capability names; unique declared SHA-256 commons hashes and `commonsWire`, an exact hash→wire-byte map. The map defaults to `{}` only for an empty commons list; missing or extra keys fail format admission. |
 | `budgets` | Library resident ≤25 MB and wire ≤8 MB; sim resident ≤25 MB and critical wire ≤2 MB; decode/refinement slack ≤80 MB. |
 | `look` | Fixed platform family names; grade exposure/saturation/contrast and optional LUT reference; engine clock with an optional `day`; optional normalised day override; ordered day keys carrying sky gradient, fog, sun and ambient values (below). |
 | `sim` | 60 Hz fixed step; positive script tick divisor dividing 60; command and snapshot schema version 0; script references. |

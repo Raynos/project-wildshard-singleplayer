@@ -50,7 +50,7 @@ const rawSchema = v.strictObject({
   version: v.literal(SHARDFILE_VERSION),
   accent: AccentSchema,
   identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), revision: positive, seed: natural }),
-  requires: v.strictObject({ sdk: v.literal(0), capabilities: v.array(name), commons: v.array(hash) }),
+  requires: v.strictObject({ sdk: v.literal(0), capabilities: v.array(name), commons: v.array(hash), commonsWire: v.optional(v.record(hash, natural), {}) }),
   budgets: v.strictObject({ library: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.compressed)) }), sim: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.compressed)) }), overlap: v.pipe(natural, v.maxValue(CONTENT_CAPS.overlap)) }),
   look: v.strictObject({ families: v.array(name), materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
   sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: v.array(ref), bindings: v.optional(ScriptBindingsSchema, []) }),
@@ -89,6 +89,9 @@ export function shardfileRules(s: Shardfile): string[] {
   const errors: string[] = [];
   errors.push(...entrywayRules(s));
   errors.push(...migrationRules(s.migrations, s.state.version));
+  const commons = new Set(s.requires.commons), commonsWire = Object.keys(s.requires.commonsWire);
+  if (commons.size !== s.requires.commons.length) errors.push('unique commons hashes');
+  if (commonsWire.length !== commons.size || commonsWire.some((id) => !commons.has(id))) errors.push('commons wire declarations match the exact commons hash keyset');
   const files = new Map(s.files.map((f) => [f.hash, f]));
   if (files.size !== s.files.length) errors.push('unique file hashes');
   const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...(s.far?.files ?? []), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
