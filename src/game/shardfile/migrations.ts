@@ -43,6 +43,41 @@ export function migrationRules(rows: DeclaredMigrations, stateVersion: number): 
   if (!parsed.success) return ['valid unambiguous migration rows'];
   return parsed.output.some((row) => row.to > stateVersion) ? ['migration target within declared state version'] : [];
 }
+interface StateDeclaration { version: number; shared: readonly MigrationFieldDeclaration[]; player: readonly MigrationFieldDeclaration[] }
+/** Admission checks field lineage without guessing saved enum values; rejected values are checked atomically during restore. Dropped ids remain reserved. */
+export function assertMigrationCompatibility(previous: StateDeclaration, next: StateDeclaration, migrations: DeclaredMigrations = []): void {
+  const rows = parseMigrations(migrations);
+  if (next.version < previous.version || migrationRules(rows, next.version).length > 0) throw new Error('Invalid migration target version');
+  const fields = { shared: previous.shared.map((field) => ({ ...field })), player: previous.player.map((field) => ({ ...field })) };
+  const owners = new Map([...previous.shared.map((field) => [field.id, 'shared'] as const), ...previous.player.map((field) => [field.id, 'player'] as const)]);
+  const dropped = new Set<number>();
+  for (const row of rows.filter((step) => step.from >= previous.version && step.to <= next.version).sort((a, b) => a.from - b.from)) {
+    for (const op of row.fields) {
+      const list = fields[op.scope], id = op.op === 'default' ? op.field.id : op.id, index = list.findIndex((field) => field.id === id), field = list[index];
+      if (op.op === 'default') {
+        if (field === undefined) {
+          if (owners.has(id)) throw new Error('State id cannot be reused');
+          owners.set(id, op.scope); list.push({ ...op.field, default: op.field.value });
+        }
+        continue;
+      }
+      if (field === undefined) throw new Error('Migration names a missing stable field');
+      if (op.op === 'drop') { list.splice(index, 1); dropped.add(id); }
+      else if (op.op === 'rename') field.name = op.name;
+      else field.type = op.type;
+    }
+  }
+  for (const kind of ['shared', 'player'] as const) {
+    for (const field of fields[kind]) {
+      const replacement = next[kind].find((entry) => entry.id === field.id);
+      if (replacement === undefined || replacement.name !== field.name || replacement.type !== field.type) throw new Error('State change requires an explicit valid migration');
+    }
+    for (const field of next[kind]) {
+      const owner = owners.get(field.id);
+      if (dropped.has(field.id) || (owner !== undefined && owner !== kind)) throw new Error('State id cannot be reused');
+    }
+  }
+}
 function valueValid(field: MigrationFieldDeclaration, value: number | boolean | string): boolean {
   if (field.type === 'bool') return typeof value === 'boolean';
   if (field.type === 'string') return typeof value === 'string' && value.length <= 4096;
@@ -54,13 +89,15 @@ export function migrateLogicalState(input: unknown, target: { version: number; s
   const state = v.parse(LogicalStateSchema, structuredClone(input)), rows = parseMigrations(migrations);
   if (!Number.isSafeInteger(target.version) || target.version < state.version || rows.some((row) => row.to > target.version)) throw new Error('Invalid migration target version');
   if (new Set(state.players.map((player) => player.actorId)).size !== state.players.length) throw new Error('Duplicate logical actor');
+  const owners = new Map([...state.shared.map((field) => [field.id, 'shared'] as const), ...state.players.flatMap((player) => player.fields.map((field) => [field.id, 'player'] as const))]);
+  const dropped = new Set<number>();
   const lists = (kind: 'shared' | 'player') => kind === 'shared' ? [state.shared] : state.players.map((player) => player.fields);
   for (const row of rows.filter((step) => step.from >= state.version && step.to <= target.version).sort((a, b) => a.from - b.from)) {
     for (const op of row.fields) for (const fields of lists(op.scope)) {
       const id = op.op === 'default' ? op.field.id : op.id, index = fields.findIndex((field) => field.id === id), field = fields[index];
-      if (op.op === 'default') { if (field === undefined) fields.push({ ...op.field }); continue; }
+      if (op.op === 'default') { if (field === undefined) { if (dropped.has(id)) throw new Error('State id cannot be reused'); fields.push({ ...op.field }); } continue; }
       if (field === undefined) throw new Error('Migration names a missing stable field');
-      if (op.op === 'drop') fields.splice(index, 1);
+      if (op.op === 'drop') { fields.splice(index, 1); dropped.add(id); }
       else if (op.op === 'rename') field.name = op.name;
       else {
         const replacement = op.values.find((value) => value.from === field.value);
@@ -81,6 +118,10 @@ export function migrateLogicalState(input: unknown, target: { version: number; s
       return { id: field.id, name: field.name, type: field.type, value };
     }).sort((a, b) => a.id - b.id);
   };
+  for (const kind of ['shared', 'player'] as const) for (const field of target[kind]) {
+    const owner = owners.get(field.id);
+    if (dropped.has(field.id) || (owner !== undefined && owner !== kind)) throw new Error('State id cannot be reused');
+  }
   return { version: target.version, shared: finish(state.shared, target.shared),
     players: state.players.map((player) => ({ actorId: player.actorId, fields: finish(player.fields, target.player) })) };
 }

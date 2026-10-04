@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { migrateLogicalState, parseMigrations, type LogicalState } from '../src/game/shardfile/migrations';
+import { assertMigrationCompatibility, migrateLogicalState, parseMigrations, type LogicalState } from '../src/game/shardfile/migrations';
 
 const old: LogicalState = { version: 1, shared: [{ id: 7, name: 'door.open', type: 'bool', value: true }, { id: 8, name: 'stage', type: 'i32', value: 2 }],
   players: [{ actorId: 'actor.player', fields: [{ id: 10, name: 'oil', type: 'f64', value: 0.3 }] }] };
@@ -22,4 +22,21 @@ it('refuses ambiguous rows, unadmitted AS hooks, invalid value maps, implicit re
   expect(() => migrateLogicalState(old, { ...target, version: 0 })).toThrow('target');
   const rows = parseMigrations([{ from: 1, to: 2, fields: [{ op: 'map', scope: 'shared', id: 8, type: 'i32', values: [{ from: 1, to: 8 }], fallback: 'reject' }] }]);
   expect(() => migrateLogicalState(old, target, rows)).toThrow('Unmapped');
+});
+it('admits explicit declaration changes without guessing saved enum values, and never recycles dropped ids or scopes', () => {
+  const previous = { ...target, version: 1 };
+  const next = { version: 2, shared: [{ id: 7, name: 'gate.open', type: 'bool' as const, default: false }, { id: 8, name: 'stage', type: 'string' as const, default: 'fresh' }], player: [] };
+  const rows = parseMigrations([{ from: 1, to: 2, fields: [
+    { op: 'rename', scope: 'shared', id: 7, name: 'gate.open' },
+    { op: 'map', scope: 'shared', id: 8, type: 'string', values: [{ from: 2, to: 'complete' }], fallback: 'reject' },
+    { op: 'drop', scope: 'shared', id: 9 }, { op: 'drop', scope: 'player', id: 10 },
+  ] }]);
+  expect(() => assertMigrationCompatibility(previous, next, rows)).not.toThrow();
+  expect(() => assertMigrationCompatibility(previous, next)).toThrow('explicit');
+  expect(() => assertMigrationCompatibility(previous, { ...next, version: 1 }, rows)).toThrow('target');
+  expect(() => assertMigrationCompatibility(previous, { ...next, player: target.player }, rows)).toThrow('reused');
+  expect(() => assertMigrationCompatibility(previous, { ...next, player: [target.shared[0]].filter((field) => field !== undefined) }, rows)).toThrow('reused');
+  const drop = parseMigrations([{ from: 1, to: 2, fields: [{ op: 'drop', scope: 'shared', id: 7 }] }]);
+  expect(() => migrateLogicalState(old, target, drop)).toThrow('reused');
+  expect(() => migrateLogicalState(old, { ...target, shared: target.shared.filter((field) => field.id !== 7), player: [{ id: 7, name: 'recycled', type: 'bool', default: false }, ...target.player] }, drop)).toThrow('reused');
 });
