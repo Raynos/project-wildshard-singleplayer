@@ -1,6 +1,6 @@
 # Plan: SHARD-PLATFORM — MMO-compatible shardfiles in the singleplayer game (E431, E435)
 
-**State:** `in progress` 2026-10-04 — rewritten from Jake's E435 grill and his 2026-10-04 steering session (§10, G1–G128: G62–G71 re-asked agent decisions, G72–G107 mockup picks, G108 the coordinator's calls, G109–G128 his review of the 34 agent-made decisions) and the clean-room audits ([Wildshard MMO Review](../reviews/wildshard-mmo-review.md)); **the four-round council has ended** (217 findings, all fixed or decided; register in [`shard-platform/reviews/`](shard-platform/reviews/register.md)). **Two parts** (G57): Part A, the core (milestones M1 the package, M2 the grid, M3 the seven at 80/20), then Part B, stretch goals. The grid is the main menu's **INFINITE WILDSHARD** card beside **SHARD SELECT** (G79, G88; Developer-only until SF22's gates, G63). **By effort (Jake asked for effort, not rows): Part A ≈ 45 % (±5), the whole plan with Part B ≈ 30 %** (Part A ≈ 362 agent-days, ≈ 165 done, ≈ 197 left: 2026-10-04 added ≈ 52 for G72–G107 and its commits earned ≈ 40 back; for what remains an agent-day is ≈ 1–2 wall-clock hours of the fleet). **M1 ≈ 97 %:** the template boots from its shardfile with every proof true; left: the refreshed M1 board at HEAD. **M2 ≈ 55 %:** INFINITE WILDSHARD boots a real grid with the Driftwood ↔ template round trip proven, the boulevard / roundabouts / VR void / seams / soft wall, the grid HUD, the new menu, SAVES / New game; left: the unload proof, the seam budget (565k triangles today against G101), the minimap blend (G107), the four midpoint entries with 15 m of asphalt in Driftwood, Pine Hollow, Nalati and the template (G93, G103), SF22's gates. **M3 ≈ 13 %** (`scripts/shard-platform.mjs`, generated files excluded: Driftwood 1.2 %, Sky Reach 0.8 %, Nalati 0.1 %, Pine 0.2 %, Nine Dragon and Signal Dunes 0 % public; the template 87.4 %). **Budget (G109):** Claude burns to 100 % and then everything pauses until the Claude reset (Tue 2026-10-06 18:00 UTC); resume from the Handoff. Built by Codex and Opus lanes the coordinator dispatches (§9). Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md).
+**State:** `in progress` 2026-10-04 — rewritten from Jake's E435 grill and his 2026-10-04 steering session (§10, G1–G132: G62–G71 re-asked agent decisions, G72–G107 mockup picks, G108 the coordinator's calls, G109–G128 his review of the 34 agent-made decisions) and the clean-room audits ([Wildshard MMO Review](../reviews/wildshard-mmo-review.md)); **the four-round council has ended** (217 findings, all fixed or decided; register in [`shard-platform/reviews/`](shard-platform/reviews/register.md)). **Two parts** (G57): Part A, the core (milestones M1 the package, M2 the grid, M3 the seven at 80/20), then Part B, stretch goals. The grid is the main menu's **INFINITE WILDSHARD** card beside **SHARD SELECT** (G79, G88; Developer-only until SF22's gates, G63). **By effort (Jake asked for effort, not rows): Part A ≈ 45 % (±5), the whole plan with Part B ≈ 30 %** (Part A ≈ 362 agent-days, ≈ 165 done, ≈ 197 left: 2026-10-04 added ≈ 52 for G72–G107 and its commits earned ≈ 40 back; for what remains an agent-day is ≈ 1–2 wall-clock hours of the fleet). **M1 ≈ 97 %:** the template boots from its shardfile with every proof true; left: the refreshed M1 board at HEAD. **M2 ≈ 55 %:** INFINITE WILDSHARD boots a real grid with the Driftwood ↔ template round trip proven, the boulevard / roundabouts / VR void / seams / soft wall, the grid HUD, the new menu, SAVES / New game; left: the unload proof, the seam budget (565k triangles today against G101), the minimap blend (G107), the four midpoint entries with 15 m of asphalt in Driftwood, Pine Hollow, Nalati and the template (G93, G103), SF22's gates. **M3 ≈ 13 %** (`scripts/shard-platform.mjs`, generated files excluded: Driftwood 1.2 %, Sky Reach 0.8 %, Nalati 0.1 %, Pine 0.2 %, Nine Dragon and Signal Dunes 0 % public; the template 87.4 %). **Budget (G109):** Claude burns to 100 % and then everything pauses until the Claude reset (Tue 2026-10-06 18:00 UTC); resume from the Handoff. Built by Codex and Opus lanes the coordinator dispatches (§9). Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md).
 
 **Reviews:** [Wildshard MMO Review](../reviews/wildshard-mmo-review.md) (the clean-room audits, E435); [SHARD-PLATFORM mockups](../reviews/shard-platform-mockups.md) (Jake's E438 picks G72–G107, boards in `art/`).
 
@@ -188,7 +188,7 @@ template in the empty slots. In dev mode we have 5 shards, so you render 4 templ
   switches only after Jake has played the grid (G64, R4-E2). The INFINITE WILDSHARD card shows only with Settings ▸
   Developer on until SF22's gates pass (G63). The one phone reading is Jake's normal grid playtest (SF22c, G71).
 - **Entries, seams and edges (the contract `validate` and the strip generator enforce):** every shard is a 500 × 500 ×
-  500 cube with **four entryways at its edge midpoints that meet the road at y = 0** (G93, G99), each carrying **15 m of
+  500 cube with **four entryways at its edge midpoints that meet the road at y = 0** (G93, G99), each a two-lane road ≈ 8 m wide (G131) carrying **15 m of
   the platform's asphalt into the shard** (G103: the road's style is forced into the shard, never the reverse); a shard
   without them is illegal. Each road segment along a cell edge has one turn-in, at the midpoint: a plain T-junction with
   a green shard sign (G100). Outside the entries the engine blends the edge to the road by step size (G90: a ramp under
@@ -198,11 +198,11 @@ template in the empty slots. In dev mode we have 5 shards, so you render 4 templ
   jump can't clear it, a double jump or the hoverboard jump can (G99, G101, G108 C1). The **outer VR-void wall is closed
   at full height** (not the jumpable rail). A legacy shard without road-height midpoints meets the turn-in with a rail
   until it converts.
-- **Safe zone, crossing and respawn:** the road and strips are a safe zone (G68, G78); the line is the **cell edge** (the
+- **Safe zone, crossing and respawn:** the road and strips are a safe zone (G68, G78); the line is the **cell edge** (G130; the
   15 m of entry asphalt is inside the shard). Crossing stows a shard weapon and dismounts a shard's own mount (the Nalati
   horse); only platform mounts (the hoverboard) cross (G68, G126). A fall death respawns on the road until the player has
   really entered the shard: through an entryway, or ≥ 5 s on the shard's own ground and ≥ 20 m past the cell edge
-  (G127; the threshold is the coordinator's call, for Jake to review); after that the shard's own respawn applies. A
+  (G127, G129); after that the shard's own respawn applies. A
   fall below the grid's −60 m floor counts as a fall death.
 - Dev mode changes apply at the next grid start (return to title), never live under the player (A17, C23).
 
@@ -483,7 +483,7 @@ successor plan.
   born on the format and that Thin Ice's `runtime/` is allowlisted (B12).
 - **NINE-DRAGON-STACK**: Nine Dragon becomes DEVSERVER-only (G46); its owner is told (B11).
 - **EXPLORE-V2, WORLDCLAW-TOOLS**: explore mode is one shard at a time behind the dev toggle (G46).
-- **FINISH-LINE**: its M1 (Jake, E423: CONTINUE + a shard map with progress on the title) must fit the new menu (G79 / G88: a hero and two cards). Open question for Jake (Handoff §5); G84's "no grid map" is about the in-game map, not this title progress map.
+- **FINISH-LINE**: its M1 (Jake, E423: CONTINUE + a shard map with progress on the title) moves inside the SHARD SELECT screen; the main menu stays the two cards (G132).
 - **ANIMATION-REMASTER**: standard rigs and the clip library (S7); skinned assets in the format (SF9c).
 - **PHYSICS-POLISH**: colliders move into tiles and per-shard worlds (SF9a, SF18a).
 - **NATIVE-APPS**: the shells need the shardfile loader and the save scopes (SF15a).
@@ -713,6 +713,10 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G126 | Nothing crosses a border but you | **Keep, and shard mounts stay** (Jake: *"Keep but shard specific mounts like a nalati horse have to be unequipped lol"*): no cross-border combat, creatures stay home; a shard's own mount is dismounted at the border like a shard weapon; only platform mounts (the hoverboard) cross (owner sp-x1) |
 | G127 | Falling and respawn | **The shard's own respawn, after a real entry** (Jake: *"Shards own respawn, the point I was making is that if you jump over the fence into the shard and die you go to the road like it doesn't count as entering the shard there needs to be some time or distance threshold before the respawn locks onto the shard figure it out"*): inside a shard a fall uses the shard's respawn. **The threshold (decided by the coordinator, for Jake to review):** the respawn locks onto the shard only after the player enters through an entryway, or stands on the shard's own ground for ≥ 5 s and ≥ 20 m past the cell edge; until then a fall death respawns on the road (G101) |
 | G128 | The last eight | **Accept all 8** (Jake): Nine Dragon at (+1, −1) on by default in the DEVSERVER grid; dev-mode changes apply at the next grid start; the scope moves (swim, stems, far herd, crowds in Part A; Nalati's horses as a client script; impostors Part B); unique bosses may stay in `runtime/`; the coordinator approves guard-ratchet increases itself (listed in its commits); the Driftwood ground-monkey perch fix; "STARTED" on SAVES cards; Sky Reach's far proxy fixed with SF49 |
+| G129 | G127's respawn threshold | **Keep 5 s + 20 m** (Jake: *"Keep 5 s + 20 m"*): the respawn locks onto the shard after an entryway entry, or ≥ 5 s on the shard's own ground and ≥ 20 m past the cell edge; until then a fall death respawns on the road |
+| G130 | Where the safe zone ends | **At the cell edge** (Jake: *"At the cell edge"*): the title card, weapon, mount rule and HUD accent switch at the border shimmer; the 15 m of entry asphalt is the shard's |
+| G131 | Entry width | **Two lanes, ≈ 8 m** (Jake: *"Two lanes, ~8 m"*): each midpoint entry is a two-lane asphalt side road ≈ 8 m wide branching off the boulevard, 15 m deep into the shard (G103); the schema's 6 m and the contract test's 15 m both become 8 |
+| G132 | FINISH-LINE M1 vs the new menu | **Both inside SHARD SELECT** (Jake: *"Both inside SHARD SELECT"*): the main menu stays the two cards (G88); FINISH-LINE M1's CONTINUE and the shard map with progress live on the SHARD SELECT screen |
 
 ## Handoff (shard-platform)
 
@@ -791,12 +795,11 @@ council ran four rounds (G59: *"4 round council approach is better then 8 rounds
    **SF22c** = Jake's normal grid playtest (G71).
 7. The E437 audit leftovers: §2 "Where it stands" is stale; SP3 shipped only the ratchet; SF14 was marked done early.
 
-**5. Open questions for Jake** (none block): G127's respawn threshold (≥ 5 s and ≥ 20 m, or an entryway) is the
-coordinator's call for him to review; the safe-zone line is the cell edge, so the 15 m of entry asphalt counts as the
-shard; the entry WIDTH is unspecified (6 m in the schema, 15 m in the contract test; G103's 15 m is depth): pick one and
-record it. Where FINISH-LINE M1's CONTINUE + title shard-progress map (E423) goes in the new menu (G88). G108 C1 / C2 / C6 / C7 were accepted by G115. The double jump exists (`Player.ts` jumpsLeft).
+**5. Open questions for Jake:** none open. G129–G132 (2026-10-04) answered the respawn threshold, the safe-zone line
+(the cell edge), the entry width (two lanes, ≈ 8 m) and FINISH-LINE M1 (inside SHARD SELECT). The double jump exists
+(`Player.ts` jumpsLeft).
 
-**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §9 (how it is built), §10 (G1–G128,
+**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §9 (how it is built), §10 (G1–G132,
 Jake's words verbatim) and this Handoff → `docs/plans/shard-platform/reviews/register.md` →
 `docs/reviews/shard-platform-mockups.md` + `art/README.md` (the boards Jake picked) → `herdr agent list` (the Codex panes) →
 `git log --oneline -30` → `node scripts/asks.mjs`. The coordinator's scratch helpers (`setrows.py`, `donecells.py`,

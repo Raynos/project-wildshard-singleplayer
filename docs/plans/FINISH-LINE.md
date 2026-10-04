@@ -92,7 +92,7 @@ Four read-only audits on build `f86b4c3` gave the same answer from four directio
 
 | Row | What | Effort |
 |---|---|---|
-| M1 | **Jake: yes, CONTINUE and a shard map with progress on the title; title mockups asked with the question tool first (E423 grill, 2026-10-03).** **Continue, and a shard map with progress on the title screen.** | M |
+| M1 | **Jake: yes, CONTINUE and a shard map with progress on the title; title mockups asked with the question tool first (E423 grill, 2026-10-03).** **Continue, and a shard map with progress on the title screen.** **Moved by SHARD-PLATFORM G132 (Jake, 2026-10-04):** both live inside the SHARD SELECT screen; the new main menu stays two cards (G88). | M |
 | M3 | **Jake: yes, the controls half as a per-shard verb audit, then align the outliers (E423 grill, 2026-10-03).** **(The HUD half done: E154, `50a29525`, one shared base HUD on every shard.)** **One controls and HUD spec for every shard.** Same verbs, same buttons, the weapon strip everywhere, one phone layout. | M |
 
 ## PK — rows Jake picked in the E423 grill (2026-10-03): approved, unowned
