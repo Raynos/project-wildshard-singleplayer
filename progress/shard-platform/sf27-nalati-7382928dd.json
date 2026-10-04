@@ -1,0 +1,3014 @@
+{
+  "row": "SF27",
+  "parent": "931b845b8e67d1fa8bd669e41992eb5bf27fa281",
+  "current": "7382928dd4e5a8d267d1215f55c3ed2a406d62b9",
+  "hybridDebugFixtures": [
+    "off",
+    "on"
+  ],
+  "when": "2026-10-04T19:30:10.357Z",
+  "elapsedSeconds": 594.345,
+  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+  "ambientInfo": [
+    "forest.thrall"
+  ],
+  "rescore": "Same captures and image scores; independently asserted activation metadata excluded from gameplay records. All gameplay checks retained.",
+  "command": "node progress/shard-platform/SF27-parity.mjs --current=7382928dd --parent=f8f340796^ --shards=nalati-grasslands --hybrid=off,on --out=<owned scratch>",
+  "result": "Desktop OFF/ON green; phone OFF/ON red solely on the unchanged parent/current bow-vs-wolf zero-hit absolute combat check. No default retirement.",
+  "reports": [
+    {
+      "hybrid": "off",
+      "setting": "off",
+      "shard": "nalati-grasslands",
+      "tier": "phone",
+      "rawVerdict": "red",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "camp",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.271,
+          "note": null
+        },
+        {
+          "name": "bridge",
+          "ssim": 0.9999998852806743,
+          "full": 0.9999998868129176,
+          "masked": 0.013,
+          "note": null
+        },
+        {
+          "name": "plains",
+          "ssim": 0.9999977670742817,
+          "full": 0.9999980178509803,
+          "masked": 0.112,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "field": "combat.shot",
+          "baseline": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 0,
+            "hitWithinS": null,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "now": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 0,
+            "hitWithinS": null,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "class": "D",
+          "band": "hit and kill within limits",
+          "verdict": "red"
+        }
+      ],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot",
+          "baseline": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 0,
+            "hitWithinS": null,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "now": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 0,
+            "hitWithinS": null,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "class": "D",
+          "band": "hit and kill within limits",
+          "verdict": "red"
+        }
+      ],
+      "parent": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "packs": [
+            {
+              "members": [
+                "creature:0",
+                "creature:1",
+                "creature:2",
+                "creature:3",
+                "creature:4"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:36",
+                "creature:37",
+                "creature:38"
+              ],
+              "declared": false
+            }
+          ],
+          "herds": [
+            {
+              "members": [
+                "creature:5",
+                "creature:6",
+                "creature:7",
+                "creature:8",
+                "creature:9",
+                "creature:10",
+                "creature:11",
+                "creature:12",
+                "creature:13",
+                "creature:14",
+                "creature:15",
+                "creature:16",
+                "creature:17",
+                "creature:18",
+                "creature:19"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:26",
+                "creature:27",
+                "creature:28",
+                "creature:29",
+                "creature:30",
+                "creature:31",
+                "creature:32",
+                "creature:33",
+                "creature:34",
+                "creature:35"
+              ],
+              "declared": false
+            }
+          ],
+          "saved": "off"
+        },
+        "walk": {
+          "stuck": 0,
+          "legs": [
+            {
+              "name": "road-camp",
+              "stuck": 0,
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              }
+            },
+            {
+              "name": "bridge",
+              "stuck": 0,
+              "end": {
+                "x": 0.206,
+                "y": -6.979,
+                "z": 142.655
+              }
+            },
+            {
+              "name": "eagle-rock",
+              "stuck": 0,
+              "end": {
+                "x": 181.16,
+                "y": 65.02,
+                "z": 85.874
+              }
+            },
+            {
+              "name": "kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -94.393,
+                "y": 31.7,
+                "z": 103.366
+              }
+            },
+            {
+              "name": "great-kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -191.038,
+                "y": 39.64,
+                "z": 72.336
+              }
+            },
+            {
+              "name": "great-kurgan-door",
+              "stuck": 0,
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              }
+            },
+            {
+              "name": "dungeon",
+              "stuck": 0,
+              "end": {
+                "x": -38.895,
+                "y": 140.47,
+                "z": -95.068
+              }
+            },
+            {
+              "name": "leopard-cave",
+              "stuck": 0,
+              "end": {
+                "x": 137.226,
+                "y": 54.117,
+                "z": -66.045
+              }
+            },
+            {
+              "name": "summer-camp",
+              "stuck": 0,
+              "end": {
+                "x": -87.377,
+                "y": 28.365,
+                "z": -24.15
+              }
+            },
+            {
+              "name": "cairn",
+              "stuck": 0,
+              "end": {
+                "x": -26.502,
+                "y": 33.565,
+                "z": -41.479
+              }
+            },
+            {
+              "name": "watchtower",
+              "stuck": 0,
+              "end": {
+                "x": -199.926,
+                "y": 44.127,
+                "z": -37.45
+              }
+            },
+            {
+              "name": "argymaq-pasture",
+              "stuck": 0,
+              "end": {
+                "x": -159.631,
+                "y": 51.858,
+                "z": -71.61
+              }
+            },
+            {
+              "name": "trail-0-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-0-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            }
+          ]
+        },
+        "bootErrors": [],
+        "disposalErrors": [],
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 0,
+          "hitWithinS": null,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 20,
+          "killLimit": 20
+        }
+      },
+      "current": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "packs": [
+            {
+              "members": [
+                "creature:0",
+                "creature:1",
+                "creature:2",
+                "creature:3",
+                "creature:4"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:36",
+                "creature:37",
+                "creature:38"
+              ],
+              "declared": false
+            }
+          ],
+          "herds": [
+            {
+              "members": [
+                "creature:5",
+                "creature:6",
+                "creature:7",
+                "creature:8",
+                "creature:9",
+                "creature:10",
+                "creature:11",
+                "creature:12",
+                "creature:13",
+                "creature:14",
+                "creature:15",
+                "creature:16",
+                "creature:17",
+                "creature:18",
+                "creature:19"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:26",
+                "creature:27",
+                "creature:28",
+                "creature:29",
+                "creature:30",
+                "creature:31",
+                "creature:32",
+                "creature:33",
+                "creature:34",
+                "creature:35"
+              ],
+              "declared": false
+            }
+          ],
+          "saved": "off"
+        },
+        "walk": {
+          "stuck": 0,
+          "legs": [
+            {
+              "name": "road-camp",
+              "stuck": 0,
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              }
+            },
+            {
+              "name": "bridge",
+              "stuck": 0,
+              "end": {
+                "x": 0.206,
+                "y": -6.979,
+                "z": 142.655
+              }
+            },
+            {
+              "name": "eagle-rock",
+              "stuck": 0,
+              "end": {
+                "x": 181.16,
+                "y": 65.02,
+                "z": 85.874
+              }
+            },
+            {
+              "name": "kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -94.393,
+                "y": 31.7,
+                "z": 103.366
+              }
+            },
+            {
+              "name": "great-kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -191.038,
+                "y": 39.64,
+                "z": 72.336
+              }
+            },
+            {
+              "name": "great-kurgan-door",
+              "stuck": 0,
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              }
+            },
+            {
+              "name": "dungeon",
+              "stuck": 0,
+              "end": {
+                "x": -38.895,
+                "y": 140.47,
+                "z": -95.068
+              }
+            },
+            {
+              "name": "leopard-cave",
+              "stuck": 0,
+              "end": {
+                "x": 137.226,
+                "y": 54.117,
+                "z": -66.045
+              }
+            },
+            {
+              "name": "summer-camp",
+              "stuck": 0,
+              "end": {
+                "x": -87.377,
+                "y": 28.365,
+                "z": -24.15
+              }
+            },
+            {
+              "name": "cairn",
+              "stuck": 0,
+              "end": {
+                "x": -26.502,
+                "y": 33.565,
+                "z": -41.479
+              }
+            },
+            {
+              "name": "watchtower",
+              "stuck": 0,
+              "end": {
+                "x": -199.926,
+                "y": 44.127,
+                "z": -37.45
+              }
+            },
+            {
+              "name": "argymaq-pasture",
+              "stuck": 0,
+              "end": {
+                "x": -159.631,
+                "y": 51.858,
+                "z": -71.61
+              }
+            },
+            {
+              "name": "trail-0-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-0-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            }
+          ]
+        },
+        "bootErrors": [],
+        "disposalErrors": [],
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 0,
+          "hitWithinS": null,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 20,
+          "killLimit": 20
+        }
+      }
+    },
+    {
+      "hybrid": "off",
+      "setting": "off",
+      "shard": "nalati-grasslands",
+      "tier": "desktop",
+      "rawVerdict": "green",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "camp",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.155,
+          "note": null
+        },
+        {
+          "name": "bridge",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.012,
+          "note": null
+        },
+        {
+          "name": "plains",
+          "ssim": 0.9999765192965546,
+          "full": 0.9999736659054979,
+          "masked": 0.052,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        }
+      ],
+      "parent": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "packs": [
+            {
+              "members": [
+                "creature:0",
+                "creature:1",
+                "creature:2",
+                "creature:3",
+                "creature:4"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:36",
+                "creature:37",
+                "creature:38"
+              ],
+              "declared": false
+            }
+          ],
+          "herds": [
+            {
+              "members": [
+                "creature:5",
+                "creature:6",
+                "creature:7",
+                "creature:8",
+                "creature:9",
+                "creature:10",
+                "creature:11",
+                "creature:12",
+                "creature:13",
+                "creature:14",
+                "creature:15",
+                "creature:16",
+                "creature:17",
+                "creature:18",
+                "creature:19"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:26",
+                "creature:27",
+                "creature:28",
+                "creature:29",
+                "creature:30",
+                "creature:31",
+                "creature:32",
+                "creature:33",
+                "creature:34",
+                "creature:35"
+              ],
+              "declared": false
+            }
+          ],
+          "saved": "off"
+        },
+        "walk": {
+          "stuck": 0,
+          "legs": [
+            {
+              "name": "road-camp",
+              "stuck": 0,
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              }
+            },
+            {
+              "name": "bridge",
+              "stuck": 0,
+              "end": {
+                "x": 0.206,
+                "y": -6.979,
+                "z": 142.655
+              }
+            },
+            {
+              "name": "eagle-rock",
+              "stuck": 0,
+              "end": {
+                "x": 181.16,
+                "y": 65.02,
+                "z": 85.874
+              }
+            },
+            {
+              "name": "kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -94.393,
+                "y": 31.7,
+                "z": 103.366
+              }
+            },
+            {
+              "name": "great-kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -191.038,
+                "y": 39.64,
+                "z": 72.336
+              }
+            },
+            {
+              "name": "great-kurgan-door",
+              "stuck": 0,
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              }
+            },
+            {
+              "name": "dungeon",
+              "stuck": 0,
+              "end": {
+                "x": -38.895,
+                "y": 140.47,
+                "z": -95.068
+              }
+            },
+            {
+              "name": "leopard-cave",
+              "stuck": 0,
+              "end": {
+                "x": 137.229,
+                "y": 54.117,
+                "z": -66.044
+              }
+            },
+            {
+              "name": "summer-camp",
+              "stuck": 0,
+              "end": {
+                "x": -87.377,
+                "y": 28.365,
+                "z": -24.15
+              }
+            },
+            {
+              "name": "cairn",
+              "stuck": 0,
+              "end": {
+                "x": -26.502,
+                "y": 33.565,
+                "z": -41.479
+              }
+            },
+            {
+              "name": "watchtower",
+              "stuck": 0,
+              "end": {
+                "x": -199.926,
+                "y": 44.127,
+                "z": -37.45
+              }
+            },
+            {
+              "name": "argymaq-pasture",
+              "stuck": 0,
+              "end": {
+                "x": -159.631,
+                "y": 51.858,
+                "z": -71.61
+              }
+            },
+            {
+              "name": "trail-0-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-0-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            }
+          ]
+        },
+        "bootErrors": [],
+        "disposalErrors": [],
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 2,
+          "hitWithinS": 1.5333333333332462,
+          "killed": true,
+          "killWithinS": 3.0666666666664923,
+          "hitLimit": 20,
+          "killLimit": 20
+        }
+      },
+      "current": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "packs": [
+            {
+              "members": [
+                "creature:0",
+                "creature:1",
+                "creature:2",
+                "creature:3",
+                "creature:4"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:36",
+                "creature:37",
+                "creature:38"
+              ],
+              "declared": false
+            }
+          ],
+          "herds": [
+            {
+              "members": [
+                "creature:5",
+                "creature:6",
+                "creature:7",
+                "creature:8",
+                "creature:9",
+                "creature:10",
+                "creature:11",
+                "creature:12",
+                "creature:13",
+                "creature:14",
+                "creature:15",
+                "creature:16",
+                "creature:17",
+                "creature:18",
+                "creature:19"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:26",
+                "creature:27",
+                "creature:28",
+                "creature:29",
+                "creature:30",
+                "creature:31",
+                "creature:32",
+                "creature:33",
+                "creature:34",
+                "creature:35"
+              ],
+              "declared": false
+            }
+          ],
+          "saved": "off"
+        },
+        "walk": {
+          "stuck": 0,
+          "legs": [
+            {
+              "name": "road-camp",
+              "stuck": 0,
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              }
+            },
+            {
+              "name": "bridge",
+              "stuck": 0,
+              "end": {
+                "x": 0.206,
+                "y": -6.979,
+                "z": 142.655
+              }
+            },
+            {
+              "name": "eagle-rock",
+              "stuck": 0,
+              "end": {
+                "x": 181.16,
+                "y": 65.02,
+                "z": 85.874
+              }
+            },
+            {
+              "name": "kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -94.393,
+                "y": 31.7,
+                "z": 103.366
+              }
+            },
+            {
+              "name": "great-kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -191.038,
+                "y": 39.64,
+                "z": 72.336
+              }
+            },
+            {
+              "name": "great-kurgan-door",
+              "stuck": 0,
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              }
+            },
+            {
+              "name": "dungeon",
+              "stuck": 0,
+              "end": {
+                "x": -38.895,
+                "y": 140.47,
+                "z": -95.068
+              }
+            },
+            {
+              "name": "leopard-cave",
+              "stuck": 0,
+              "end": {
+                "x": 137.229,
+                "y": 54.117,
+                "z": -66.044
+              }
+            },
+            {
+              "name": "summer-camp",
+              "stuck": 0,
+              "end": {
+                "x": -87.377,
+                "y": 28.365,
+                "z": -24.15
+              }
+            },
+            {
+              "name": "cairn",
+              "stuck": 0,
+              "end": {
+                "x": -26.502,
+                "y": 33.565,
+                "z": -41.479
+              }
+            },
+            {
+              "name": "watchtower",
+              "stuck": 0,
+              "end": {
+                "x": -199.926,
+                "y": 44.127,
+                "z": -37.45
+              }
+            },
+            {
+              "name": "argymaq-pasture",
+              "stuck": 0,
+              "end": {
+                "x": -159.631,
+                "y": 51.858,
+                "z": -71.61
+              }
+            },
+            {
+              "name": "trail-0-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-0-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            }
+          ]
+        },
+        "bootErrors": [],
+        "disposalErrors": [],
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 2,
+          "hitWithinS": 1.5333333333332462,
+          "killed": true,
+          "killWithinS": 3.0666666666664923,
+          "hitLimit": 20,
+          "killLimit": 20
+        }
+      }
+    },
+    {
+      "hybrid": "on",
+      "setting": "off",
+      "shard": "nalati-grasslands",
+      "tier": "phone",
+      "rawVerdict": "red",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "camp",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.271,
+          "note": null
+        },
+        {
+          "name": "bridge",
+          "ssim": 0.9999934985276075,
+          "full": 0.9999935853642216,
+          "masked": 0.013,
+          "note": null
+        },
+        {
+          "name": "plains",
+          "ssim": 0.9999994358047957,
+          "full": 0.9999994991687533,
+          "masked": 0.112,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "field": "combat.shot",
+          "baseline": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 0,
+            "hitWithinS": null,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "now": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 0,
+            "hitWithinS": null,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "class": "D",
+          "band": "hit and kill within limits",
+          "verdict": "red"
+        }
+      ],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot",
+          "baseline": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 0,
+            "hitWithinS": null,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "now": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 0,
+            "hitWithinS": null,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "class": "D",
+          "band": "hit and kill within limits",
+          "verdict": "red"
+        }
+      ],
+      "parent": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "packs": [
+            {
+              "members": [
+                "creature:0",
+                "creature:1",
+                "creature:2",
+                "creature:3",
+                "creature:4"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:36",
+                "creature:37",
+                "creature:38"
+              ],
+              "declared": false
+            }
+          ],
+          "herds": [
+            {
+              "members": [
+                "creature:5",
+                "creature:6",
+                "creature:7",
+                "creature:8",
+                "creature:9",
+                "creature:10",
+                "creature:11",
+                "creature:12",
+                "creature:13",
+                "creature:14",
+                "creature:15",
+                "creature:16",
+                "creature:17",
+                "creature:18",
+                "creature:19"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:26",
+                "creature:27",
+                "creature:28",
+                "creature:29",
+                "creature:30",
+                "creature:31",
+                "creature:32",
+                "creature:33",
+                "creature:34",
+                "creature:35"
+              ],
+              "declared": false
+            }
+          ],
+          "saved": "on"
+        },
+        "walk": {
+          "stuck": 0,
+          "legs": [
+            {
+              "name": "road-camp",
+              "stuck": 0,
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              }
+            },
+            {
+              "name": "bridge",
+              "stuck": 0,
+              "end": {
+                "x": 0.206,
+                "y": -6.979,
+                "z": 142.655
+              }
+            },
+            {
+              "name": "eagle-rock",
+              "stuck": 0,
+              "end": {
+                "x": 181.16,
+                "y": 65.02,
+                "z": 85.874
+              }
+            },
+            {
+              "name": "kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -94.393,
+                "y": 31.7,
+                "z": 103.366
+              }
+            },
+            {
+              "name": "great-kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -191.038,
+                "y": 39.64,
+                "z": 72.336
+              }
+            },
+            {
+              "name": "great-kurgan-door",
+              "stuck": 0,
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              }
+            },
+            {
+              "name": "dungeon",
+              "stuck": 0,
+              "end": {
+                "x": -38.895,
+                "y": 140.47,
+                "z": -95.068
+              }
+            },
+            {
+              "name": "leopard-cave",
+              "stuck": 0,
+              "end": {
+                "x": 137.226,
+                "y": 54.117,
+                "z": -66.045
+              }
+            },
+            {
+              "name": "summer-camp",
+              "stuck": 0,
+              "end": {
+                "x": -87.377,
+                "y": 28.365,
+                "z": -24.15
+              }
+            },
+            {
+              "name": "cairn",
+              "stuck": 0,
+              "end": {
+                "x": -26.502,
+                "y": 33.565,
+                "z": -41.479
+              }
+            },
+            {
+              "name": "watchtower",
+              "stuck": 0,
+              "end": {
+                "x": -199.926,
+                "y": 44.127,
+                "z": -37.45
+              }
+            },
+            {
+              "name": "argymaq-pasture",
+              "stuck": 0,
+              "end": {
+                "x": -159.631,
+                "y": 51.858,
+                "z": -71.61
+              }
+            },
+            {
+              "name": "trail-0-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-0-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            }
+          ]
+        },
+        "bootErrors": [],
+        "disposalErrors": [],
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 0,
+          "hitWithinS": null,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 20,
+          "killLimit": 20
+        }
+      },
+      "current": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "packs": [
+            {
+              "members": [
+                "creature:0",
+                "creature:1",
+                "creature:2",
+                "creature:3",
+                "creature:4"
+              ],
+              "declared": true
+            },
+            {
+              "members": [
+                "creature:36",
+                "creature:37",
+                "creature:38"
+              ],
+              "declared": true
+            }
+          ],
+          "herds": [
+            {
+              "members": [
+                "creature:5",
+                "creature:6",
+                "creature:7",
+                "creature:8",
+                "creature:9",
+                "creature:10",
+                "creature:11",
+                "creature:12",
+                "creature:13",
+                "creature:14",
+                "creature:15",
+                "creature:16",
+                "creature:17",
+                "creature:18",
+                "creature:19"
+              ],
+              "declared": true
+            },
+            {
+              "members": [
+                "creature:26",
+                "creature:27",
+                "creature:28",
+                "creature:29",
+                "creature:30",
+                "creature:31",
+                "creature:32",
+                "creature:33",
+                "creature:34",
+                "creature:35"
+              ],
+              "declared": true
+            }
+          ],
+          "saved": "on"
+        },
+        "walk": {
+          "stuck": 0,
+          "legs": [
+            {
+              "name": "road-camp",
+              "stuck": 0,
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              }
+            },
+            {
+              "name": "bridge",
+              "stuck": 0,
+              "end": {
+                "x": 0.206,
+                "y": -6.979,
+                "z": 142.655
+              }
+            },
+            {
+              "name": "eagle-rock",
+              "stuck": 0,
+              "end": {
+                "x": 181.16,
+                "y": 65.02,
+                "z": 85.874
+              }
+            },
+            {
+              "name": "kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -94.393,
+                "y": 31.7,
+                "z": 103.366
+              }
+            },
+            {
+              "name": "great-kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -191.038,
+                "y": 39.64,
+                "z": 72.336
+              }
+            },
+            {
+              "name": "great-kurgan-door",
+              "stuck": 0,
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              }
+            },
+            {
+              "name": "dungeon",
+              "stuck": 0,
+              "end": {
+                "x": -38.895,
+                "y": 140.47,
+                "z": -95.068
+              }
+            },
+            {
+              "name": "leopard-cave",
+              "stuck": 0,
+              "end": {
+                "x": 137.226,
+                "y": 54.117,
+                "z": -66.045
+              }
+            },
+            {
+              "name": "summer-camp",
+              "stuck": 0,
+              "end": {
+                "x": -87.377,
+                "y": 28.365,
+                "z": -24.15
+              }
+            },
+            {
+              "name": "cairn",
+              "stuck": 0,
+              "end": {
+                "x": -26.502,
+                "y": 33.565,
+                "z": -41.479
+              }
+            },
+            {
+              "name": "watchtower",
+              "stuck": 0,
+              "end": {
+                "x": -199.926,
+                "y": 44.127,
+                "z": -37.45
+              }
+            },
+            {
+              "name": "argymaq-pasture",
+              "stuck": 0,
+              "end": {
+                "x": -159.631,
+                "y": 51.858,
+                "z": -71.61
+              }
+            },
+            {
+              "name": "trail-0-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-0-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            }
+          ]
+        },
+        "bootErrors": [],
+        "disposalErrors": [],
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 0,
+          "hitWithinS": null,
+          "killed": false,
+          "killWithinS": null,
+          "hitLimit": 20,
+          "killLimit": 20
+        }
+      }
+    },
+    {
+      "hybrid": "on",
+      "setting": "off",
+      "shard": "nalati-grasslands",
+      "tier": "desktop",
+      "rawVerdict": "red",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "camp",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.155,
+          "note": null
+        },
+        {
+          "name": "bridge",
+          "ssim": 0.9999998402658152,
+          "full": 0.9999998422223693,
+          "masked": 0.012,
+          "note": null
+        },
+        {
+          "name": "plains",
+          "ssim": 0.9999670600194378,
+          "full": 0.9999634174269881,
+          "masked": 0.052,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        }
+      ],
+      "parent": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "packs": [
+            {
+              "members": [
+                "creature:0",
+                "creature:1",
+                "creature:2",
+                "creature:3",
+                "creature:4"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:36",
+                "creature:37",
+                "creature:38"
+              ],
+              "declared": false
+            }
+          ],
+          "herds": [
+            {
+              "members": [
+                "creature:5",
+                "creature:6",
+                "creature:7",
+                "creature:8",
+                "creature:9",
+                "creature:10",
+                "creature:11",
+                "creature:12",
+                "creature:13",
+                "creature:14",
+                "creature:15",
+                "creature:16",
+                "creature:17",
+                "creature:18",
+                "creature:19"
+              ],
+              "declared": false
+            },
+            {
+              "members": [
+                "creature:26",
+                "creature:27",
+                "creature:28",
+                "creature:29",
+                "creature:30",
+                "creature:31",
+                "creature:32",
+                "creature:33",
+                "creature:34",
+                "creature:35"
+              ],
+              "declared": false
+            }
+          ],
+          "saved": "on"
+        },
+        "walk": {
+          "stuck": 0,
+          "legs": [
+            {
+              "name": "road-camp",
+              "stuck": 0,
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              }
+            },
+            {
+              "name": "bridge",
+              "stuck": 0,
+              "end": {
+                "x": 0.206,
+                "y": -6.979,
+                "z": 142.655
+              }
+            },
+            {
+              "name": "eagle-rock",
+              "stuck": 0,
+              "end": {
+                "x": 181.16,
+                "y": 65.02,
+                "z": 85.874
+              }
+            },
+            {
+              "name": "kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -94.393,
+                "y": 31.7,
+                "z": 103.366
+              }
+            },
+            {
+              "name": "great-kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -191.038,
+                "y": 39.64,
+                "z": 72.336
+              }
+            },
+            {
+              "name": "great-kurgan-door",
+              "stuck": 0,
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              }
+            },
+            {
+              "name": "dungeon",
+              "stuck": 0,
+              "end": {
+                "x": -38.895,
+                "y": 140.47,
+                "z": -95.068
+              }
+            },
+            {
+              "name": "leopard-cave",
+              "stuck": 0,
+              "end": {
+                "x": 137.229,
+                "y": 54.117,
+                "z": -66.044
+              }
+            },
+            {
+              "name": "summer-camp",
+              "stuck": 0,
+              "end": {
+                "x": -87.377,
+                "y": 28.365,
+                "z": -24.15
+              }
+            },
+            {
+              "name": "cairn",
+              "stuck": 0,
+              "end": {
+                "x": -26.502,
+                "y": 33.565,
+                "z": -41.479
+              }
+            },
+            {
+              "name": "watchtower",
+              "stuck": 0,
+              "end": {
+                "x": -199.926,
+                "y": 44.127,
+                "z": -37.45
+              }
+            },
+            {
+              "name": "argymaq-pasture",
+              "stuck": 0,
+              "end": {
+                "x": -159.631,
+                "y": 51.858,
+                "z": -71.61
+              }
+            },
+            {
+              "name": "trail-0-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-0-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            }
+          ]
+        },
+        "bootErrors": [],
+        "disposalErrors": [],
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 2,
+          "hitWithinS": 1.5333333333332462,
+          "killed": true,
+          "killWithinS": 3.0666666666664923,
+          "hitLimit": 20,
+          "killLimit": 20
+        }
+      },
+      "current": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "packs": [
+            {
+              "members": [
+                "creature:0",
+                "creature:1",
+                "creature:2",
+                "creature:3",
+                "creature:4"
+              ],
+              "declared": true
+            },
+            {
+              "members": [
+                "creature:36",
+                "creature:37",
+                "creature:38"
+              ],
+              "declared": true
+            }
+          ],
+          "herds": [
+            {
+              "members": [
+                "creature:5",
+                "creature:6",
+                "creature:7",
+                "creature:8",
+                "creature:9",
+                "creature:10",
+                "creature:11",
+                "creature:12",
+                "creature:13",
+                "creature:14",
+                "creature:15",
+                "creature:16",
+                "creature:17",
+                "creature:18",
+                "creature:19"
+              ],
+              "declared": true
+            },
+            {
+              "members": [
+                "creature:26",
+                "creature:27",
+                "creature:28",
+                "creature:29",
+                "creature:30",
+                "creature:31",
+                "creature:32",
+                "creature:33",
+                "creature:34",
+                "creature:35"
+              ],
+              "declared": true
+            }
+          ],
+          "saved": "on"
+        },
+        "walk": {
+          "stuck": 0,
+          "legs": [
+            {
+              "name": "road-camp",
+              "stuck": 0,
+              "end": {
+                "x": 94.221,
+                "y": -4.336,
+                "z": 204.071
+              }
+            },
+            {
+              "name": "bridge",
+              "stuck": 0,
+              "end": {
+                "x": 0.206,
+                "y": -6.979,
+                "z": 142.655
+              }
+            },
+            {
+              "name": "eagle-rock",
+              "stuck": 0,
+              "end": {
+                "x": 181.16,
+                "y": 65.02,
+                "z": 85.874
+              }
+            },
+            {
+              "name": "kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -94.393,
+                "y": 31.7,
+                "z": 103.366
+              }
+            },
+            {
+              "name": "great-kurgan-crown",
+              "stuck": 0,
+              "end": {
+                "x": -191.038,
+                "y": 39.64,
+                "z": 72.336
+              }
+            },
+            {
+              "name": "great-kurgan-door",
+              "stuck": 0,
+              "end": {
+                "x": -172.985,
+                "y": 34.935,
+                "z": 75
+              }
+            },
+            {
+              "name": "dungeon",
+              "stuck": 0,
+              "end": {
+                "x": -38.895,
+                "y": 140.47,
+                "z": -95.068
+              }
+            },
+            {
+              "name": "leopard-cave",
+              "stuck": 0,
+              "end": {
+                "x": 137.229,
+                "y": 54.117,
+                "z": -66.044
+              }
+            },
+            {
+              "name": "summer-camp",
+              "stuck": 0,
+              "end": {
+                "x": -87.377,
+                "y": 28.365,
+                "z": -24.15
+              }
+            },
+            {
+              "name": "cairn",
+              "stuck": 0,
+              "end": {
+                "x": -26.502,
+                "y": 33.565,
+                "z": -41.479
+              }
+            },
+            {
+              "name": "watchtower",
+              "stuck": 0,
+              "end": {
+                "x": -199.926,
+                "y": 44.127,
+                "z": -37.45
+              }
+            },
+            {
+              "name": "argymaq-pasture",
+              "stuck": 0,
+              "end": {
+                "x": -159.631,
+                "y": 51.858,
+                "z": -71.61
+              }
+            },
+            {
+              "name": "trail-0-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-0-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-1-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-2-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-3-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-4-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-5-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-6-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-forward",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            },
+            {
+              "name": "trail-7-back",
+              "stuck": 0,
+              "end": {
+                "x": 0,
+                "y": 0,
+                "z": 232
+              }
+            }
+          ]
+        },
+        "bootErrors": [],
+        "disposalErrors": [],
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 2,
+          "hitWithinS": 1.5333333333332462,
+          "killed": true,
+          "killWithinS": 3.0666666666664923,
+          "hitLimit": 20,
+          "killLimit": 20
+        }
+      }
+    }
+  ]
+}

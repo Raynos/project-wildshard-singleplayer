@@ -21,6 +21,8 @@ const variants = flag('hybrid', 'off,on').split(',');
 if (variants.some(value => !['off', 'on'].includes(value))) throw new Error('--hybrid must list off/on variants');
 const pool = browserPool(ROOT, 1, 'metal'), records = {}, reports = [];
 const start = Date.now();
+// Activation is independently asserted above; the intentional implementation change is receipt metadata.
+const gameplayRecord = (record) => Object.fromEntries(Object.entries(record).filter(([key]) => key !== 'activation'));
 async function run(command, args) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { cwd: out, env: { ...process.env, CLAUDE_CODE_SESSION_ID: `sp-x4-sf27-${process.pid}`, SERVE_BUILD_DIR: join(out, 'serve') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -96,7 +98,7 @@ try {
   try {
     for (const hybrid of variants) for (const setting of ['off']) for (const shard of shards) for (const tier of ['phone', 'desktop']) {
       const key = `${hybrid}/${setting}/${shard}/${tier}`;
-      const baseline = await aggregate(scorePage, [records[`parent/${key}`]], { sha: parent, browser: browser.version() });
+      const baseline = await aggregate(scorePage, [gameplayRecord(records[`parent/${key}`])], { sha: parent, browser: browser.version() });
       const record = records[`current/${key}`], images = [];
       for (const pose of array(record.poses)) {
         const p = object(pose), name = string(p.name), before = object(object(baseline.poses)[name]);
@@ -105,7 +107,7 @@ try {
         p.ssim = score.ssim; images.push({ name, ssim: score.ssim, full: score.full, masked: score.masked, note: score.note });
       }
       // Existing approved ambient information entry, also used by the main parity harness.
-      const result = compare(baseline, record, { ambientInfo: ['forest.thrall'] });
+      const result = compare(baseline, gameplayRecord(record), { ambientInfo: ['forest.thrall'] });
       reports.push({ hybrid, setting, shard, tier, verdict: result.verdict, images, differences: result.rows.filter((r) => r.verdict === 'red' || r.verdict === 'new'), checks: result.rows.filter((r) => r.class === 'D'), parent: records[`parent/${key}`], current: record });
       console.log(`SF27 ${key}: ${result.verdict}, images ${images.map((i) => `${i.name}=${i.ssim}`).join(', ')}`);
     }
