@@ -54,11 +54,12 @@ function perimeter(r: number): number[] {
 /**
  * Install one admitted terrain render tile under `root`; `scope` owns its geometry and its place in the scene.
  * The mesh receives shadows; it casts them only when `shadow` is set (an L0 tile wholly inside the shadow disc). `material`
- * stays the caller's (one family material shared by every tile).
+ * stays the caller's (one family material shared by every tile). It takes the tile's wire bytes, or the tile already
+ * decoded (and validated) by `decodeTerrainTile` off the main thread (SF18b's decode workers).
  */
-export function installTerrainTile(bytes: Uint8Array, ports: { root: Object3D; scope: Scope; material: Material; shadow: boolean }): Mesh {
+export function installTerrainTile(bytes: Uint8Array | TerrainTileData, ports: { root: Object3D; scope: Scope; material: Material; shadow: boolean }): Mesh {
   if (ports.scope.disposed) throw new Error('terrain tile: its scope is already disposed');
-  const data = decodeTerrainTile(bytes), r = data.resolution, colours = data.colours;
+  const data = bytes instanceof Uint8Array ? decodeTerrainTile(bytes) : bytes, r = data.resolution, colours = data.colours;
   if (colours === undefined) throw new Error('terrain tile: a render tile needs vertex colours (a heights-only payload is a collider)');
   const coarse = isCoarse(data), ring = coarse ? [] : perimeter(r), grid = r * r, vertices = grid + ring.length;
   const gridIndices = (r - 1) ** 2 * 6, total = gridIndices + ring.length * 6;
