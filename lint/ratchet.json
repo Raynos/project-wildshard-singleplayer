@@ -37,9 +37,9 @@
     "max": 26,
     "raisedBy": [
       "E357",
-      "E435",
-      "SF7h: generic declared-row installer; falls back to 25 at SF16 when the template's legacy installDebug is deleted"
-    ]
+      "E435"
+    ],
+    "review": "SF7h: generic declared-row installer; falls back to 25 at SF16 when the template's legacy installDebug is deleted"
   },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,

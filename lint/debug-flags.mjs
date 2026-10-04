@@ -14,6 +14,21 @@ function walk(node, visit) {
     else if (object(value)) walk(value, visit);
   }
 }
+/** Literal rows in admitted plumbing data are inventoried instead of the generic adapter's callback argument. */
+export function declaredDebugRows(program) {
+  const names = new Set(['parsePlumbing']), rows = [];
+  walk(program, (node) => {
+    if (node.type === 'ImportSpecifier' && node.imported?.name === 'parsePlumbing') names.add(node.local.name);
+  });
+  walk(program, (node) => {
+    if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier' || !names.has(node.callee.name)) return;
+    const declared = unwrap(field(node.arguments[0], 'debug'));
+    if (declared === undefined) return;
+    if (declared.type !== 'ArrayExpression' || declared.elements.some((value) => value === null || value.type === 'SpreadElement')) throw new Error('Declared Debug rows must be a literal array');
+    rows.push(...declared.elements);
+  });
+  return rows;
+}
 /** Read authored rows without executing the game or loading its renderer. */
 export function debugFlags(root) {
   const rows = [];
@@ -40,6 +55,7 @@ export function debugFlags(root) {
         }
         throw new Error(`Unresolvable Debug row in ${file}`);
       };
+      for (const value of declaredDebugRows(program)) rows.push({ ...row(value), file });
       walk(program, (node) => {
         if (node.type === 'VariableDeclarator' && node.id?.name === 'DEBUG_ROWS') for (const value of unwrap(node.init).elements) rows.push({ ...row(value), file });
         if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') rows.push({ ...row(node.arguments[0]), file });

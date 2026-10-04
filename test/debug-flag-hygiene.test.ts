@@ -3,9 +3,16 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-side repository inventory resolves fixture paths.
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { askExists, debugFlags, validateFlags } from '../lint/debug-flags.mjs';
+import { askExists, debugFlags, declaredDebugRows, validateFlags } from '../lint/debug-flags.mjs';
+import { parseSync } from 'vite';
 
 interface Ceiling { debugRows: { max: number; raisedBy: string[] } }
+it('inventories literal declared rows through an aliased parser and rejects opaque spread rows', () => {
+  const parse = (source: string): ReturnType<typeof parseSync>['program'] => parseSync('declarations.ts', source).program;
+  expect(declaredDebugRows(parse("import { parsePlumbing as compile } from '@wildshard/sdk/plumbing'; const data=compile({debug:[{id:'owned',ask:'E435',reviewBy:'2026-12-01'}]});"))).toHaveLength(1);
+  expect(declaredDebugRows(parse('const data = parsePlumbing(input);'))).toEqual([]);
+  expect(() => declaredDebugRows(parse('parsePlumbing({debug:[...opaque]});'))).toThrow('literal array');
+});
 describe('Debug flag ownership and review dates', () => {
   it('inventories all static/plugin rows, checks the ceiling, and lists overdue flags without failing', () => {
     const root = resolve('.'), ceiling = JSON.parse(readFileSync('lint/ratchet.json', 'utf8')) as Ceiling;

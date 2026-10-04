@@ -2,6 +2,7 @@
 // E357 F4: the linter measures file counts; budget measurements belong to the parity harness.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { declaredDebugRows } from './debug-flags.mjs';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseSync } from 'vite';
@@ -72,6 +73,7 @@ function debugCount(root) {
       if (!/\.[cm]?[jt]sx?$/u.test(file)) continue;
       const parsed = parseSync(file, readFileSync(file, 'utf8'));
       if (parsed.errors.length > 0) throw new Error(`Cannot count Debug rows in ${file}`);
+      count += declaredDebugRows(parsed.program).length;
       walk(parsed.program, (node) => {
         if (node.type === 'VariableDeclarator' && node.id?.name === 'DEBUG_ROWS') {
           let array = node.init;

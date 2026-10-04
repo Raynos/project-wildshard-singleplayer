@@ -13,7 +13,7 @@ export interface PlumbingPorts {
 export interface PlumbingHandles { contexts: ReadonlyMap<string, string>; knobs: Readonly<Record<string, number>> }
 /** Install declared input through the normal command path and Debug choices through admitted script scene hooks. */
 export function installDeclaredPlumbing(input: PlumbingData, ports: PlumbingPorts): PlumbingHandles {
-  const data = parsePlumbing(input);
+  const data = parsePlumbing(input), adapters = ports;
   if (ports.scope.disposed || !/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(ports.instance)) throw new Error('Invalid plumbing instance');
   const knobs = Object.fromEntries(data.knobs.map((row) => [row.id, row[ports.tier]]));
   ports.knobs({ id: `${ports.instance}.${data.namespace}`, defaults: knobs });
@@ -25,7 +25,7 @@ export function installDeclaredPlumbing(input: PlumbingData, ports: PlumbingPort
     for (const action of row.actions) ports.input.bind(action.id, () => { ports.scene(action.scene); }, ports.scope, ports.active);
     ports.input.push(id, ports.scope);
   }
-  for (const row of data.debug) ports.debugRow({ ...row, change: (value) => {
+  for (const row of data.debug) adapters.debugRow({ ...row, change: (value) => {
     const choice = row.choices.find((entry) => entry.value === value); if (choice === undefined) throw new Error('Unknown declared Debug choice');
     if (choice.scene !== undefined) ports.scene(choice.scene);
   } });
