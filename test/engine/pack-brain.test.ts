@@ -8,7 +8,8 @@ import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { app } from '../../src/engine/app/runtime';
 import { Rng } from '../../src/engine/core/rng';
-import { Pack } from '../../src/shards/nalati-grasslands/runtime/packLegacy';
+import { Pack, type PackController } from '../../src/shards/nalati-grasslands/runtime/packLegacy';
+import { declaredGroupFactories } from '../../src/shards/nalati-grasslands/runtime/groupDeclared';
 import { wildEnv, playerVisibility, downwindOf, hearingRadius } from '../../src/shards/nalati-grasslands/creatures/env';
 import { NALATI_STRIKES, sampleStrike } from '../../src/shards/nalati-grasslands/combat/strikes';
 import { NALATI_PACK_BRAIN } from '../../src/shards/nalati-grasslands/data/brains';
@@ -18,8 +19,8 @@ const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 
 afterAll(restoreTerrain);
 const originalEnv = { ...wildEnv }, originalPacks = Pack.all;
 afterEach(() => { Object.assign(wildEnv, originalEnv); Pack.all = originalPacks; });
-function fixture(platform: boolean, restoring = false): {
-  policy: Pack | PackBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx'];
+function fixture(platform: boolean | 'bound', restoring = false): {
+  policy: PackController | PackBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx'];
   events: unknown[]; prey: { position: Vector3; yaw: number; alive: boolean; applyDamage: () => boolean };
   ports: PackPorts<Animal>;
   construction: { beforeRng: ReturnType<Rng['snapshot']>; afterRng: ReturnType<Rng['snapshot']>; beforeMemory: Record<string, number>[]; afterMemory: Record<string, number>[] };
@@ -45,9 +46,11 @@ function fixture(platform: boolean, restoring = false): {
     preyIdentity: value => { if (value !== prey) throw new Error('Unknown prey'); return 'sheep.0'; }, resolvePrey: id => id === 'sheep.0' ? prey : null,
   };
   const beforeRng = app.rng.stream('ai').snapshot(), beforeMemory = members.map(actor => ({ ...actor.mem }));
-  const policy = platform ? new PackBrain(members, 0, 0, NALATI_PACK_BRAIN, ports) : new Pack(members, 0, 0);
+  const policy = platform === 'bound' ? declaredGroupFactories({ preyIdentity: value => { if (value !== prey) throw new Error('Unknown prey'); return 'sheep.0'; },
+    resolvePrey: id => id === 'sheep.0' ? prey : null, resolveActor: id => members.find(actor => actor.entityId === id) ?? null }).pack(members, 0, 0)
+    : platform ? new PackBrain(members, 0, 0, NALATI_PACK_BRAIN, ports) : new Pack(members, 0, 0);
   const construction = { beforeRng, afterRng: app.rng.stream('ai').snapshot(), beforeMemory, afterMemory: members.map(actor => ({ ...actor.mem })) };
-  if (policy instanceof PackBrain && !restoring) policy.initialize();
+  if (policy instanceof PackBrain && platform !== 'bound' && !restoring) policy.initialize();
   f.ctx.rng = new Rng(357); f.ctx.herd = members;
   f.ctx.confine = actor => { actor.position.x = Math.max(-220, Math.min(220, actor.position.x)); actor.position.z = Math.max(-220, Math.min(220, actor.position.z)); };
   f.ctx.claim = actor => app.events.ask('ai.claim', actor);
@@ -55,7 +58,7 @@ function fixture(platform: boolean, restoring = false): {
   return { policy, members, context: f.ctx, events, prey, ports, construction };
 }
 const stateKeys = ['phase', 'awareness', 'homeX', 'homeZ', 'phaseT', 'roamX', 'roamZ', 'roamT', 'nextTokenT', 'boldT', 'calmT', 'hpStart', 'halfDone', 'deadSeen', 'shadowDur', 'howled', 'bites', 'scared'] as const;
-function state(policy: Pack | PackBrain<Animal>): unknown[] {
+function state(policy: PackController | PackBrain<Animal>): unknown[] {
   return stateKeys.map(key => { const value: unknown = Reflect.get(policy, key); if (!['number', 'string', 'boolean'].includes(typeof value)) throw new Error(`Missing group state ${key}`); return value; });
 }
 function step(f: ReturnType<typeof fixture>, tick: number, scenario: 'senses' | 'raid' | 'regroup' | 'mounted'): void {
@@ -76,7 +79,7 @@ function step(f: ReturnType<typeof fixture>, tick: number, scenario: 'senses' | 
   const body = { ...c, dt: 1 / 60 };
   for (const actor of f.members) { if (actor.alive) { f.policy.drive(actor, body, true); c.confine(actor); } actor.step(1 / 60); }
 }
-function replay(platform: boolean, scenario: Parameters<typeof step>[2]): { hash: string; phases: string[]; groupRng: ReturnType<typeof app.rng.snapshot>; actorRng: ReturnType<Rng['snapshot']> } {
+function replay(platform: boolean | 'bound', scenario: Parameters<typeof step>[2]): { hash: string; phases: string[]; groupRng: ReturnType<typeof app.rng.snapshot>; actorRng: ReturnType<Rng['snapshot']> } {
   const f = fixture(platform), hash = createHash('sha256'), phases = new Set<string>();
   for (let tick = 0; tick < 10000; tick++) {
     step(f, tick, scenario); phases.add(f.policy.phase);
@@ -85,6 +88,13 @@ function replay(platform: boolean, scenario: Parameters<typeof step>[2]): { hash
   return { hash: hash.digest('hex'), phases: [...phases], groupRng: app.rng.snapshot(), actorRng: f.context.rng.snapshot() };
 }
 describe('declared pack family', () => {
+  it('binds the declared pack into the shipping species/prey/raid registry once', () => {
+    const bound = fixture('bound');
+    for (const actor of bound.members) expect(Pack.of(actor)).toBe(bound.policy);
+    const before = app.rng.snapshot(); Pack.register(bound.policy);
+    expect(Pack.all).toEqual([bound.policy]); expect(app.rng.snapshot()).toEqual(before);
+    expect(bound.policy.raid(bound.prey)).toBe(true);
+  });
   it('keeps constructors pure and performs exactly the shipping setup draws and member writes once', () => {
     const native = fixture(false), expectedRng = app.rng.stream('ai').snapshot();
     const platform = fixture(true), policy = platform.policy; if (!(policy instanceof PackBrain)) throw new Error('Missing platform brain');
@@ -96,7 +106,7 @@ describe('declared pack family', () => {
     expect(app.rng.stream('ai').snapshot()).toEqual(expectedRng);
   });
   it.each(['senses', 'raid', 'regroup', 'mounted'] as const)('matches the actual shipping group, body, strikes and RNG for 10,000 fixed ticks: %s', scenario => {
-    const actual = replay(true, scenario); expect(actual).toEqual(replay(false, scenario));
+    const actual = replay(true, scenario); expect(actual).toEqual(replay(false, scenario)); expect(replay('bound', scenario)).toEqual(actual);
     for (const phase of ['roam', 'shadow', 'encircle', 'break']) expect(actual.phases).toContain(phase);
     if (scenario === 'regroup') expect(actual.phases).toContain('regroup');
   });

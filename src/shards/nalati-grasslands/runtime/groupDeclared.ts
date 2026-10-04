@@ -1,0 +1,40 @@
+import { PackBrain } from '@wildshard/engine/ai/pack';
+import { HerdBrain } from '@wildshard/engine/ai/herd';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import { groupBrain } from '@wildshard/sdk/groupBrains';
+import { Pack, nativePackPorts, type PackController, type PackPrey } from './packLegacy';
+import { HorseHerd, nativeHerdPorts, type HerdController } from './herdLegacy';
+import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../data/brains';
+
+/** Stable native prey/actor identities for raid, flock and elite continuation; no invented guest control protocol. */
+export interface NativeGroupIdentity {
+  preyIdentity: (prey: PackPrey) => string;
+  resolvePrey: (id: string) => PackPrey | null;
+  resolveActor: (id: string) => Animal | null;
+}
+/** The existing AnimalManager schedules these controllers through its species callbacks. */
+export interface NativeGroupFactories {
+  pack: (members: Animal[], x: number, z: number) => PackController;
+  herd: (members: Animal[]) => HerdController;
+}
+function declaredPack(members: Animal[], x: number, z: number, identity: NativeGroupIdentity): PackBrain<Animal> {
+    const data = groupBrain({ ...NALATI_PACK_BRAIN, home: [x, z], members: members.map(actor => actor.entityId) });
+    if (data.kind !== 'pack') throw new Error('Invalid pack declaration');
+    const policy = new PackBrain(members, x, z, data, { ...nativePackPorts(),
+      preyIdentity: identity.preyIdentity, resolvePrey: identity.resolvePrey });
+    policy.initialize(); Pack.register(policy); return policy;
+}
+function declaredHerd(members: Animal[], identity: NativeGroupIdentity): HerdBrain<Animal> & HerdController {
+    const data = groupBrain({ ...NALATI_HERD_BRAIN, members: members.map(actor => actor.entityId) });
+    if (data.kind !== 'herd') throw new Error('Invalid herd declaration');
+    const view: Pick<HerdController, 'findWolf'> = { findWolf: undefined };
+    const policy = Object.assign(new HerdBrain(members, data, { ...nativeHerdPorts(), resolveActor: identity.resolveActor }), view);
+    policy.findThreat = (x, z, radius) => policy.findWolf?.(x, z, radius) ?? null;
+    const adopt = policy.adoptStallion.bind(policy);
+    policy.adoptStallion = actor => { adopt(actor); HorseHerd.register(policy); };
+    policy.initialize(); HorseHerd.register(policy); return policy;
+}
+/** Declared decisions reuse the shipping species, prey, mount, taming, shared-RNG and strike recipes through one registry. */
+export function declaredGroupFactories(identity: NativeGroupIdentity): NativeGroupFactories {
+  return { pack: (members, x, z) => declaredPack(members, x, z, identity), herd: members => declaredHerd(members, identity) };
+}

@@ -3,6 +3,7 @@ import { GroupBrain } from '@wildshard/engine/ai/GroupBrain';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { PackPorts } from '@wildshard/engine/ai/pack';
 import { terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 
 
@@ -476,4 +477,27 @@ function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x)
 export function actWolf(a: Animal, c: ThinkCtx): void {
   const p = Pack.forThink(a, c); if (p === null || !a.alive) return;
   p.drive(a, c, true); c.confine(a);
+}
+
+/** Refuse a native contact recipe without its host-owned LOS and damage ports. */
+export function nativeContactContext(context: { player: THREE.Vector3 }): Pick<ThinkCtx, 'player' | 'reach' | 'hurt'> {
+  if (!hasContact(context)) throw new Error('Unbound native group contact');
+  return context;
+}
+function hasContact(context: { player: THREE.Vector3 }): context is Pick<ThinkCtx, 'player' | 'reach' | 'hurt'> {
+  return 'reach' in context && typeof context.reach === 'function' && 'hurt' in context && typeof context.hurt === 'function';
+}
+/** Shipping sensing, token and strike recipes consume only a host-owned species context with native contact LOS. */
+export function nativePackPorts(): PackPorts<Animal> {
+  return {
+    sharedRng: () => app.rng.stream('ai'), environment: () => wildEnv, visibility: playerVisibility,
+    hearing: (radii, player, speed) => hearingRadius([...radii], player, speed), downwind: downwindOf,
+    inBounds: inChunk, normalY: (x, z) => normalAt(x, z)[1],
+    register: (actor, director) => { app.aggression.register(actor, director); },
+    bite: (actor, context, radius) => {
+      const native = nativeContactContext(context);
+      sampleStrike(NALATI_STRIKES.wolf, actor, native.player, () => { native.hurt(actor.mods.chargeDamage); },
+        { shape: { kind: 'point', radius, exclusive: true }, reach: () => native.reach(actor) });
+    }, onEvent: (event, x, z) => { wildEnv.onEvent?.(event, x, z); },
+  };
 }

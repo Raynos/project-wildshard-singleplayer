@@ -3,6 +3,7 @@ import { GroupBrain } from '@wildshard/engine/ai/GroupBrain';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { HerdPorts } from '@wildshard/engine/ai/herd';
 import type { GroupName } from '@wildshard/engine/physics/groups';
 import { terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 
@@ -12,7 +13,7 @@ import * as THREE from 'three';
 
 
 import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from '../creatures/env';
-import { Pack } from './packLegacy';
+import { Pack, nativeContactContext } from './packLegacy';
 
 
 /** the kinds a stampeding horse's body lets through (R3): the player on foot · none */
@@ -550,4 +551,22 @@ function inChunk(x: number, z: number, margin = 0): boolean { return Math.abs(x)
 export function actHorse(a: Animal, c: ThinkCtx): void {
   const herd = HorseHerd.forThink(a, c); if (herd === null || !a.alive) return;
   herd.drive(a, c, true);
+}
+
+/** Shipping perception, ghost filter, kick/contact and shared RNG; taming and elite recipes retain their actors. */
+export function nativeHerdPorts(): HerdPorts<Animal> {
+  return {
+    sharedRng: () => app.rng.stream('ai'), environment: () => wildEnv, visibility: playerVisibility,
+    hearing: (radii, player, speed) => hearingRadius([...radii], player, speed), downwind: downwindOf,
+    inBounds: inChunk, normalY: (x, z) => normalAt(x, z)[1],
+    passThrough: (actor, through) => { actor.motor?.passThrough(through ? THROUGH_PLAYER : BLOCKED); },
+    chargeContact: (actor, context, radius) => {
+      const native = nativeContactContext(context);
+      sampleStrike(NALATI_STRIKES.stallion, actor, native.player, () => { native.hurt(actor.mods.chargeDamage); },
+        { shape: { kind: 'point', radius, exclusive: true }, reach: () => native.reach(actor) });
+    },
+    scarePack: (actor, radius) => { const pack = Pack.of(actor); if (pack === null) return false; pack.scare(actor.position.x, actor.position.z, radius); return true; },
+    onEvent: (event, x, z) => { wildEnv.onEvent?.(event, x, z); },
+    onKnockdown: (x, z, strength) => { wildEnv.onKnockdown?.(x, z, strength); },
+  };
 }
