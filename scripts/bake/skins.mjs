@@ -5,6 +5,7 @@ import { mkdtempSync, rmSync, symlinkSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+
 const repo = resolve(import.meta.dirname, '../..'), scratch = mkdtempSync(join(tmpdir(), 'skin-export-'));
 try {
   process.chdir(repo); symlinkSync(join(repo, 'node_modules'), join(scratch, 'node_modules'));
