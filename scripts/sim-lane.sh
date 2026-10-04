@@ -26,7 +26,7 @@ set -uo pipefail
 
 LANES="${SIM_LANES:-1}"
 IDLE_MIN="${SIM_IDLE_MIN:-30}"
-DIR="$HOME/.sim-lane"
+DIR="${SIM_LANE_DIR:-$HOME/.sim-lane}"
 mkdir -p "$DIR"
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
@@ -78,6 +78,26 @@ resolve() {  # name or UDID → UDID (creating a missing name)
   echo "$u"
 }
 
+# FD locks keep a stable inode and live until the owning shell closes the descriptor. Resolve/create and boot
+# admission are atomic machine-wide; the device lock lasts through command completion and shutdown (SF0d).
+locked_resolve() (
+  exec 9>"$DIR/admission.lock"
+  lockf -s 9 || exit "$?"
+  resolve "$1"
+)
+lock_device() {
+  exec 8>"$DIR/$1.drive.lock"
+  lockf -s 8 || return "$?"
+  # A wrapper started before SF0d has no drive lock. Let its live owner finish before adopting the device.
+  local f exp pid
+  f="$(lease_file "$1")"
+  while [ -f "$f" ]; do
+    read -r exp pid < "$f" || break
+    [ "${pid:-0}" != "0" ] && [ "$pid" != "$$" ] && kill -0 "$pid" 2>/dev/null || break
+    sleep 1
+  done
+}
+
 is_booted() { booted | cut -f1 | grep -qx "$1"; }
 
 shutdown_dev() {
@@ -87,22 +107,27 @@ shutdown_dev() {
   return 0
 }
 
+reap_device() (
+  local udid="$1" name="$2" dry="$3" up why d
+  exec 8>"$DIR/$udid.drive.lock"
+  lockf -s -t 0 8 || exit 0 # a run owns the device, including before it writes its lease
+  lease_valid "$udid" && exit 0
+  d="$(drivers "$udid" "$name")"
+  [ -n "$d" ] && exit 0
+  up="$(uptime_s "$udid")"; why=""
+  if [ -f "$(lease_file "$udid")" ]; then why="lease expired"
+  elif [ "$up" -gt $((IDLE_MIN * 60)) ]; then why="no lease, idle, up $((up / 60)) min"; fi
+  [ -z "$why" ] && exit 0
+  if [ "$dry" = "--dry-run" ]; then echo "would shut down simulator $name ($udid): $why"
+  else log "shutdown $name ($udid): $why"; echo "shut down simulator $name ($why)"; shutdown_dev "$udid"; fi
+  exit 2 # tell the parent one idle device was found
+)
 reap() {
-  local dry="${1:-}" n=0 udid name up why d
+  local dry="${1:-}" n=0 udid name
   while IFS=$'\t' read -r udid name; do
     [ -z "$udid" ] && continue
-    lease_valid "$udid" && continue
-    d="$(drivers "$udid" "$name")"
-    [ -n "$d" ] && continue
-    up="$(uptime_s "$udid")"; why=""
-    if [ -f "$(lease_file "$udid")" ]; then why="lease expired"
-    elif [ "$up" -gt $((IDLE_MIN * 60)) ]; then why="no lease, idle, up $((up / 60)) min"; fi
-    [ -z "$why" ] && continue
-    n=$((n + 1))
-    if [ "$dry" = "--dry-run" ]; then echo "would shut down simulator $name ($udid): $why"; continue; fi
-    log "shutdown $name ($udid): $why"
-    echo "shut down simulator $name ($why)"
-    shutdown_dev "$udid"
+    reap_device "$udid" "$name" "$dry"
+    [ "$?" -eq 2 ] && n=$((n + 1))
   done < <(booted)
   [ "$dry" = "--dry-run" ] && [ $n -eq 0 ] && echo "no idle simulator"
   if [ "$dry" != "--dry-run" ] && [ "$(booted_count)" -eq 0 ] && pgrep -x Simulator >/dev/null; then
@@ -128,7 +153,7 @@ wait_room() {  # $1 = a UDID that may already be booted (it doesn't need a new s
   while :; do
     [ -n "${1:-}" ] && is_booted "$1" && return 0
     [ "$(booted_count)" -lt "$LANES" ] && return 0
-    reap >/dev/null
+    bash "$SELF" reap 8>&- 9>&- >/dev/null
     [ "$(booted_count)" -lt "$LANES" ] && return 0
     [ $said -eq 0 ] && { echo "sim-lane: $LANES simulator(s) already booted, waiting … (scripts/sim-lane.sh status)" >&2; said=1; }
     sleep 15
@@ -141,30 +166,45 @@ boot() {
   xcrun simctl bootstatus "$1" -b >/dev/null 2>&1 || true
 }
 
+boot_in_lane() {
+  while :; do
+    wait_room "$1"
+    exec 9>"$DIR/admission.lock"
+    lockf -s 9 || return "$?"
+    if is_booted "$1" || [ "$(booted_count)" -lt "$LANES" ]; then
+      boot "$1"; exec 9>&-; return 0
+    fi
+    exec 9>&- # someone admitted another device between the capacity check and the lock
+  done
+}
+
 case "${1:-}" in
   status) status;;
   reap) reap "${2:-}";;
   wait) wait_room "";;
   lease)
     dev="${2:?lease <device> [min]}"; min="${3:-30}"
-    udid="$(resolve "$dev")"
-    exec 9>"$DIR/mutex"; lockf -s 9 2>/dev/null || true
-    wait_room "$udid"; boot "$udid"
+    udid="$(locked_resolve "$dev")" || exit "$?"
+    lock_device "$udid" || exit "$?"
+    boot_in_lane "$udid" || exit "$?"
     echo "$(( $(now) + min * 60 )) 0" > "$(lease_file "$udid")"
     echo "$udid"; echo "sim-lane: $dev leased for $min min — renew with the same command, end with: scripts/sim-lane.sh release $dev" >&2;;
   release)
-    udid="$(resolve "${2:?release <device>}")"; shutdown_dev "$udid"; log "released $udid"; echo "released $2";;
+    udid="$(locked_resolve "${2:?release <device>}")" || exit "$?"
+    lock_device "$udid" || exit "$?"
+    shutdown_dev "$udid"; log "released $udid"; echo "released $2";;
   run)
     shift; max=60; keep=0
     while :; do case "${1:-}" in --max) max="$2"; shift 2;; --keep) keep=1; shift;; *) break;; esac; done
     dev="${1:?run <device> <cmd …>}"; shift
     [ $# -gt 0 ] || { echo "usage: sim-lane.sh run [--max <min>] [--keep] <device> <cmd …>" >&2; exit 64; }
-    udid="$(resolve "$dev")"
-    wait_room "$udid"; boot "$udid"
+    udid="$(locked_resolve "$dev")" || exit "$?"
+    lock_device "$udid" || exit "$?"
+    boot_in_lane "$udid" || exit "$?"
     echo "$(( $(now) + max * 60 )) $$" > "$(lease_file "$udid")"
-    SIM_UDID="$udid" "$@" & child=$!
+    SIM_UDID="$udid" "$@" 8>&- 9>&- & child=$!
     # The watchdog must not inherit a caller's output pipe: Node awaits close after all pipe holders exit.
-    ( sleep $((max * 60)); if kill -0 "$child" 2>/dev/null; then echo "sim-lane: killed after ${max} min (--max)" >&2; log "run on $dev killed after ${max} min"; pkill -TERM -P "$child"; kill -TERM "$child"; fi ) >/dev/null 2>&1 & timer=$!
+    ( sleep $((max * 60)); if kill -0 "$child" 2>/dev/null; then echo "sim-lane: killed after ${max} min (--max)" >&2; log "run on $dev killed after ${max} min"; pkill -TERM -P "$child"; kill -TERM "$child"; fi ) 8>&- 9>&- >/dev/null 2>&1 & timer=$!
     trap 'pkill -TERM -P "$child"; kill -TERM "$child" 2>/dev/null' INT TERM
     wait "$child"; rc=$?
     # Stop sleep before its parent; otherwise it is reparented before pkill can find it.
