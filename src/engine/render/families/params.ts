@@ -151,7 +151,7 @@ const metres = (max: number) => v.pipe(v.number(), v.finite(), v.minValue(1e-3),
  */
 export const MeasureLayerSchema = v.strictObject({
   /** sRGB: walls, structures and props (role 1) */
-  structure: v.optional(srgb, [0.95, 0.53, 0.1]),
+  structure: v.optional(srgb, [1, 0.58, 0.12]),
   /** sRGB: structural surfaces and trim (role 2) */
   trim: v.optional(srgb, [0.45, 0.45, 0.46]),
   /** sRGB: the floor (no role) */
@@ -159,11 +159,11 @@ export const MeasureLayerSchema = v.strictObject({
   /** the 1 m lines: sRGB colour, opacity on a role surface and on the floor, half-width (m) */
   line: v.optional(v.strictObject({ colour: srgb, alpha: unit, floorAlpha: unit, width: metres(0.1) }), { colour: [1, 1, 1], alpha: 0.7, floorAlpha: 0.55, width: 0.011 }),
   /** the sub-grid: step (m, divides 1) and opacity */
-  sub: v.optional(v.strictObject({ step: metres(0.5), alpha: unit }), { step: 0.25, alpha: 0.22 }),
+  sub: v.optional(v.strictObject({ step: metres(0.5), alpha: unit }), { step: 0.25, alpha: 0.12 }),
   /** the size label: sRGB colour and glyph height (m) */
-  label: v.optional(v.strictObject({ colour: srgb, height: metres(2) }), { colour: [1, 1, 1], height: 0.3 }),
+  label: v.optional(v.strictObject({ colour: srgb, height: metres(2) }), { colour: [1, 1, 1], height: 0.36 }),
   /** the share of the role colour that glows (unlit), so a face turned from the sun stays readable */
-  lift: v.optional(unit, 0.3),
+  lift: v.optional(unit, 0.4),
 });
 /** A measure layer with every default filled. */
 export type MeasureLayerParams = v.InferOutput<typeof MeasureLayerSchema>;
