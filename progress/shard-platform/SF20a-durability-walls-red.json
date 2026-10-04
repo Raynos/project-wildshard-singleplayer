@@ -1,0 +1,190 @@
+{
+  "sha": "f8b7025da",
+  "surface": "Chromium emulating iPhone 16 Pro portrait",
+  "started": "2026-10-04T16:07:40.069Z",
+  "phases": [
+    {
+      "name": "enter-copy",
+      "seconds": 16.763400000095366,
+      "waypoints": 3,
+      "transitions": [
+        "driftwood-isle",
+        null,
+        "template-1"
+      ]
+    },
+    {
+      "name": "visit-hut",
+      "seconds": 16.397400000095367,
+      "waypoints": 1,
+      "transitions": [
+        "template-1"
+      ]
+    },
+    {
+      "name": "leave-copy",
+      "seconds": 20.660599999904633,
+      "waypoints": 1,
+      "transitions": [
+        "template-1",
+        null
+      ]
+    },
+    {
+      "name": "return-copy",
+      "seconds": 16.8332000002861,
+      "waypoints": 3,
+      "transitions": [
+        "driftwood-isle",
+        null,
+        "template-1"
+      ]
+    }
+  ],
+  "errors": [],
+  "home": "driftwood-isle",
+  "instance": "template-1",
+  "contact": {
+    "actor": "grey-blob:1",
+    "hp": 0,
+    "dead": true
+  },
+  "beforeReload": {
+    "coins": 5,
+    "saved": true,
+    "facts": 1
+  },
+  "afterReload": {
+    "coins": 5,
+    "saved": true,
+    "facts": 1
+  },
+  "restored": {
+    "complete": true,
+    "blobAlive": false,
+    "tick": 2257,
+    "questComplete": true
+  },
+  "afterReturn": {
+    "coins": 5,
+    "saved": true,
+    "facts": 1
+  },
+  "sibling": {
+    "coins": 0,
+    "saved": false,
+    "facts": 0
+  },
+  "leak": {
+    "before": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 44,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "disposalErrorCount": 40,
+    "disposalErrors": [
+      "Cannot read properties of undefined (reading 'contains')"
+    ]
+  },
+  "pass": false,
+  "seconds": 83.218,
+  "interpretation": "Motor and independent-host ownership fixes remove body residue and aliasing; RED remains because 40 highway readiness walls captured the page owner and polluted its retained-physics census. Fixed by 76f9ede46; requires measured rerun."
+}

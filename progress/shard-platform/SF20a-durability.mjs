@@ -100,7 +100,8 @@ try {
   result.leak = await page.evaluate(() => window.__wildshard.leak());
   result.pass = result.restored.complete === true && result.restored.questComplete === true && result.restored.blobAlive === false
     && result.afterReload.coins === 5 && result.afterReturn.coins === 5 && result.afterReturn.facts === 1 && result.sibling.coins === 0
-    && result.errors.length === 0 && result.leak.disposalErrors.length === 0 && result.leak.scope.colliders === 0 && result.leak.scope.bodies === 0;
+    && result.errors.length === 0 && result.leak.disposalErrors.length === 0 && result.leak.scope.colliders === 0 && result.leak.scope.bodies === 0
+    && result.leak.after.colliders === 0 && result.leak.after.bodies === 0;
 } catch (error) {
   result.failure = String(error.stack ?? error); result.pass = false;
   if (page !== undefined) {
