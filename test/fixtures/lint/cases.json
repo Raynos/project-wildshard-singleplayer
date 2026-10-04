@@ -24,7 +24,7 @@
     "id": "layer-deep",
     "file": "src/kit/deep.ts",
     "rule": "public-index",
-    "code": "import { value } from '@wildshard/engine/core/clock';",
+    "code": "import { value } from '@wildshard/engine/core/fixedStep';",
     "count": 1
   },
   {
