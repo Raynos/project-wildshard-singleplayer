@@ -2,8 +2,12 @@ import type { LevelContext, DebugRowSpec } from '@wildshard/engine/level/context
 import { parseDirector, type DirectorData, type DirectorEvent } from './director';
 import { createDirectorLane, type DirectorLane } from './directorRuntime';
 
+const DEBUG_ROWS = [{ id: 'shardDirectors', group: 'tools', label: 'Shard directors (data)',
+  choices: [{ value: 'off', text: 'Legacy' }, { value: 'on', text: 'Script' }], initial: 'off', reload: true,
+  ask: 'E435', reviewBy: '2026-10-18', note: 'SF24: default off; retired with the SF46–SF48 conversions.' }] as const;
+
 /** Data-selected debug variant, default off; the generic adapter adds no shard service coupling. */
-export function directorVariant(context: Pick<LevelContext, 'debugRow'>, row: Omit<DebugRowSpec, 'change'>): boolean {
+export function directorVariant(context: Pick<LevelContext, 'debugRow'>, row: Omit<DebugRowSpec, 'change'> = DEBUG_ROWS[0]): boolean {
   if (row.initial !== 'off' || row.reload !== true || row.choices.length !== 2 || row.choices[0]?.value !== 'off' || row.choices[1]?.value !== 'on') throw new Error('Director variant must be default off and reload on change');
   const choice = { on: false }, adapters = context;
   adapters.debugRow({ ...row, change: (value) => { choice.on = value === 'on'; } });

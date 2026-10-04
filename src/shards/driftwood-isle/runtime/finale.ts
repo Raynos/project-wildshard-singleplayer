@@ -18,7 +18,6 @@ import { DrownedCaptain, CAPTAIN_DEF } from '../combat/captain';
 import { directorVariant, installDeclaredDirector } from '@wildshard/game/shardfile/directorClient';
 import { director } from '@wildshard/sdk/director';
 import declaration from '../data/director.json';
-import { STRINGS } from '../strings';
 
 const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
 const ARENA = 22;
@@ -133,9 +132,7 @@ export function installLegacyFinale<A extends AdvAnimal>(adv: FinaleAdventure, w
 }
 /** SF24 decisions/timers are data + bounded script; captain combat and reward camera/renderer remain runtime recipes (G51). */
 export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<A>, context: Parameters<typeof installDeclaredDirector>[0] & Parameters<typeof directorVariant>[0], app: FinaleHost): Promise<Finale> {
-  const on = directorVariant(context, { id: 'driftwood.director', group: 'tools', label: STRINGS['debug.director.label'],
-    choices: [{ value: 'off', text: STRINGS['debug.director.off'] }, { value: 'on', text: STRINGS['debug.director.on'] }],
-    initial: 'off', reload: true, note: STRINGS['debug.director.note'], ask: 'E435', reviewBy: '2026-10-18' });
+  const on = directorVariant(context);
   const recipe = finaleRecipe(adv, w, on, app);
   if (on) await installDeclaredDirector(context, { data: director(declaration), seed: 357, systemId: 'shard.driftwood.director',
     bytes: async () => {

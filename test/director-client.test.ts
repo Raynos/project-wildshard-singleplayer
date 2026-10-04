@@ -12,6 +12,7 @@ const data = parseDirector(declaration), bytes = readFileSync(`src/shards/driftw
 const row: Omit<DebugRowSpec, 'change'> = { id: 'fixture.director', group: 'tools', label: 'Director', choices: [{ value: 'off', text: 'Off' }, { value: 'on', text: 'On' }], initial: 'off', reload: true, note: 'Fixture', ask: 'E435', reviewBy: '2026-10-18' };
 describe('SF24 director installation lifecycle', () => {
   it('requires the default-off reload variant and activates only a saved Debug choice', () => {
+    expect(directorVariant({ debugRow: (value) => { expect(value.id).toBe('shardDirectors'); expect(value.label).toBe('Shard directors (data)'); } })).toBe(false);
     expect(directorVariant({ debugRow: () => { /* Saved choice is absent. */ } }, row)).toBe(false);
     expect(directorVariant({ debugRow: (value) => { value.change('on'); } }, row)).toBe(true);
     expect(() => directorVariant({ debugRow: () => { /* Validation runs before registration. */ } }, { ...row, initial: 'on' })).toThrow('default off');

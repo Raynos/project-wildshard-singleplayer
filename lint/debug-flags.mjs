@@ -23,7 +23,7 @@ export function declaredDebugRows(program) {
   });
   walk(program, (node) => {
     if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier') return;
-    if (directors.has(node.callee.name)) { rows.push(node.arguments[1]); return; }
+    if (directors.has(node.callee.name)) { if (node.arguments[1] !== undefined) rows.push(node.arguments[1]); return; }
     if (!names.has(node.callee.name)) return;
     const declared = unwrap(field(node.arguments[0], 'debug'));
     if (declared === undefined) return;
