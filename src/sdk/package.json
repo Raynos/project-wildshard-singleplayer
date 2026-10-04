@@ -28,7 +28,8 @@
     "./brains": "./brains.ts",
     "./accent": "./accent.ts",
     "./groupBrains": "./groupBrains.ts",
-    "./admission": "./admission.ts"
+    "./admission": "./admission.ts",
+    "./headless": "./headless.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -157,6 +158,10 @@
       "./admission": {
         "types": "./dist/types/sdk/admission.d.ts",
         "default": "./dist/admission.js"
+      },
+      "./headless": {
+        "types": "./dist/types/sdk/headless.d.ts",
+        "default": "./dist/headless.js"
       }
     }
   }
