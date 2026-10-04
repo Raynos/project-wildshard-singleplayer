@@ -287,6 +287,7 @@ async function main() {
   if (args.includes('--readme')) {
     const entries = (await readdir(join(root, 'scripts'), { withFileTypes: true })).filter(entry => !['README.md', '.DS_Store', '__pycache__'].includes(entry.name)).map(entry => ({ name: entry.name, folder: entry.isDirectory() })).sort((a, b) => a.name.localeCompare(b.name));
     const expected = readme(entries), path = join(root, 'scripts/README.md');
+    if (args.includes('--stdout')) { process.stdout.write(expected); return; }
     if (args.includes('--check')) { if (await readFile(path, 'utf8').catch(() => '') !== expected) throw new Error('scripts/README.md is stale; run node scripts/normalize/liveness.mjs --readme'); }
     else await writeFile(path, expected);
     console.log(`scripts/README.md: ${entries.length} entries${args.includes('--check') ? ' checked' : ' written'}`);
