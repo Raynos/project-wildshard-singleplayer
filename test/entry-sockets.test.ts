@@ -41,8 +41,8 @@ it('walks the full 15 metre socket at road height in either axis without introdu
       if (alongX) feet.x -= sign * 7; else feet.z -= sign * 7;
       const start = alongX ? feet.x : feet.z;
       for (let tick = 0; tick < 168; tick++) {
-        const delta = motor.move(feet, { x: alongX ? sign / 12 : 0, y: -9.81 / 3600, z: alongX ? 0 : sign / 12 });
-        feet.x += delta.x; feet.y += delta.y; feet.z += delta.z;
+        const result = motor.move(feet, { x: alongX ? sign / 12 : 0, y: -9.81 / 3600, z: alongX ? 0 : sign / 12 });
+        expect(result.horizontalFreedom).toBeGreaterThan(0.98);
         expect(feet.y).toBeGreaterThanOrEqual(-0.01); expect(feet.y).toBeLessThan(0.1);
       }
       expect(Math.abs((alongX ? feet.x : feet.z) - start)).toBeGreaterThan(13.9);
