@@ -1,3 +1,5 @@
+import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import source from '../shard.config';
 import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { Audio, HoofSurface, ImpactKind } from '@wildshard/engine/audio/Audio';
@@ -16,7 +18,7 @@ import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
  */
 
 /** the bed id this profile's synth bed answers to (`audio.setAmbient(STEPPE_BED)`) */
-export const STEPPE_BED = 'steppe';
+export const STEPPE_BED = requireAudioProfile(source.audio.samples, 'nalati.samples').bed;
 /** the steppe bed's live levels (sound.ts, ~4 Hz) */
 export interface SteppeLevels { wind: number; gust: number; river: number; waterfall: number; camp: number; night: number }
 /** the steppe's creature calls (Wildlife / Flock / Marmots / Pack / Herd and the elites) */

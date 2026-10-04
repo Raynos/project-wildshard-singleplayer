@@ -34,11 +34,20 @@ import { SteppeAmbience } from './SteppeAmbience';
 import { installSteppeVoices, STEPPE_BED, type SteppeCall, type SteppeVoices } from './synth';
 import type { Nalati } from '../runtime/state';
 import type { NalatiWeather } from '../world/installWeather';
-import { CAMP, SUMMER_YURTS, GLACIER, MELT_STREAM as BROOK } from '../layout';
+import { MELT_STREAM as BROOK } from '../layout';
+import { requireAudioProfile, requireAudioZone } from '@wildshard/engine/audio/audioProfiles';
+import source from '../shard.config';
+
 import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../world/terrain';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 import { nalatiCombatCues } from './combatCues';
+
+const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.nalati');
+const MUSIC = requireAudioProfile(source.audio.music, 'score.nalati');
+const RIVER_ZONE = requireAudioZone(PROFILE, 'river'), BROOK_ZONE = requireAudioZone(PROFILE, 'brook');
+const FALL_ZONE = requireAudioZone(PROFILE, 'fall'), CAMP = requireAudioZone(PROFILE, 'camp'), SUMMER_YURTS = requireAudioZone(PROFILE, 'summer');
+const MELT_ZONE = requireAudioZone(PROFILE, 'melt');
 
 export interface NalatiSound {
   bind: (audio: Audio, music?: Music, animals?: AnimalManager, wildlife?: Wildlife) => void;
@@ -161,7 +170,7 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
       if (music) {
         score = createSteppeScore((url) => import('@wildshard/engine/audio/preload').then(({ cachedBytes }) => cachedBytes(url)), (bytes) => import('@wildshard/engine/audio/preload').then(({ decodeBytes }) => decodeBytes(bytes)), () => { music.refreshScore(); });
         refresh = () => { music.refreshScore(); };
-        const release = music.setScore('score.nalati', score);
+        const release = music.setScore(MUSIC.id, score);
         ctx.scope.onDispose(release);
         a.onLevelBank((bank) => { score?.useBank(bank.score); }, ctx.scope);
       }
@@ -180,11 +189,11 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
       const p = player.position, clock = weather.clock;
       bedT -= dt;
       if (bedT <= 0) {
-        bedT = 0.25;
-        const river = smoothstep(70, 6, Math.abs(p.z - RIVER.z(p.x)) - RIVER.half(p.x));
-        const brook = smoothstep(24, 2, brookDistance(p.x, p.z)) * 0.45;
-        const fall = smoothstep(90, 10, Math.hypot(p.x - GLACIER.x1, p.z - GLACIER.z1)) * 0.6; // the meltwater roaring out from under the glacier's snout
-        const camp = Math.max(smoothstep(45, 6, Math.hypot(p.x - CAMP.x, p.z - CAMP.z)), 0.6 * smoothstep(30, 5, Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z)));
+        bedT = 1 / PROFILE.tickHz;
+        const river = smoothstep(RIVER_ZONE.outer, RIVER_ZONE.inner, Math.abs(p.z - RIVER.z(p.x)) - RIVER.half(p.x)) * RIVER_ZONE.gain;
+        const brook = smoothstep(BROOK_ZONE.outer, BROOK_ZONE.inner, brookDistance(p.x, p.z)) * BROOK_ZONE.gain;
+        const fall = smoothstep(FALL_ZONE.outer, FALL_ZONE.inner, Math.hypot(p.x - FALL_ZONE.x, p.z - FALL_ZONE.z)) * FALL_ZONE.gain; // the meltwater roaring out from under the glacier's snout
+        const camp = Math.max(smoothstep(CAMP.outer, CAMP.inner, Math.hypot(p.x - CAMP.x, p.z - CAMP.z)), SUMMER_YURTS.gain * smoothstep(SUMMER_YURTS.outer, SUMMER_YURTS.inner, Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z)));
         const night = smoothstep(0.75, 0.45, (0.4 + 0.3 * smoothstep(-14, -2, clock.sunElevation) + 0.3 * smoothstep(-2, 10, clock.sunElevation)));
         // in the kurgan's sealed chamber the steppe is gone (the boss fight has its own sound)
         const out = nalati.boss.inside ? 0 : 1;
@@ -195,8 +204,8 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
           const panTo = (dx: number, dz: number): number => panFromYaw(dx, dz, player.yaw, 0.7);
           const toCamp = Math.hypot(p.x - CAMP.x, p.z - CAMP.z) < Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z) ? CAMP : SUMMER_YURTS;
           amb.set({
-            zones: zoneAt(p.x, p.z), river, melt: Math.max(fall, smoothstep(40, 3, bd)), camp, night, wind: wind.speed, gust, out,
-            pan: { river: panTo(0, RIVER.z(p.x) - p.z), camp: panTo(toCamp.x - p.x, toCamp.z - p.z), melt: bd < 40 ? panTo(side.x, side.z) : panTo(GLACIER.x1 - p.x, GLACIER.z1 - p.z) },
+            zones: zoneAt(p.x, p.z), river, melt: Math.max(fall, smoothstep(MELT_ZONE.outer, MELT_ZONE.inner, bd)), camp, night, wind: wind.speed, gust, out,
+            pan: { river: panTo(0, RIVER.z(p.x) - p.z), camp: panTo(toCamp.x - p.x, toCamp.z - p.z), melt: bd < MELT_ZONE.outer ? panTo(side.x, side.z) : panTo(FALL_ZONE.x - p.x, FALL_ZONE.z - p.z) },
           });
         }
         // A2: the score's scene — the King's barrow, a storm (Jel Ata's cue), the night; the zone comes from amb.onZone

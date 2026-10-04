@@ -29,6 +29,10 @@ import { Rng, fnv1a32 } from '@wildshard/engine/core/rng';
 import { Vector3 } from 'three';
 import { steppeVoices } from './synth';
 import type { SteppeZone } from './SteppeScore';
+import { requireAudioProfile, requireAudioLevel } from '@wildshard/engine/audio/audioProfiles';
+import source from '../shard.config';
+
+const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.nalati');
 
 /** where the listener is, from src/shards/nalati-grasslands/sound.ts (all 0..1 unless noted) */
 export interface SteppePlace {
@@ -43,9 +47,9 @@ export interface SteppePlace {
   pan: { river: number; camp: number; melt: number };
 }
 
-const TAU = 0.35;         // setTargetAtTime: ~1 s to 95 % (the mix changes at 4 Hz, walking pace)
-const SILENT_S = 8;       // a bed silent this long stops its source
-const ZONE_HOLD_S = 3;    // a zone must lead this long before onZone fires (no flapping on a line)
+const TAU = PROFILE.smoothSeconds;         // setTargetAtTime: ~1 s to 95 % (the mix changes at 4 Hz, walking pace)
+const SILENT_S = PROFILE.silentSeconds;       // a bed silent this long stops its source
+const ZONE_HOLD_S = PROFILE.holdSeconds;    // a zone must lead this long before onZone fires (no flapping on a line)
 /** Nalati's sampled beds (NALATI-MERGE A1 / A4) */
 export type SteppeLoop = 'steppe-wind' | 'steppe-larks' | 'steppe-night' | 'river' | 'meltwater' | 'camp' | 'highwind' | 'coldwind' | 'rain' | 'stormwind';
 export const STEPPE_LOOPS: readonly SteppeLoop[] = ['steppe-wind', 'steppe-larks', 'steppe-night', 'river', 'meltwater', 'camp', 'highwind', 'coldwind', 'rain', 'stormwind'];
@@ -106,11 +110,11 @@ export class SteppeAmbience {
       coldwind: snow * (0.45 + 0.35 * w + 0.25 * g),
       'steppe-larks': day * calm * (0.8 * valley + 0.45 * bowl) * (1 - 0.6 * w),
       'steppe-night': clamp01(p.night) * calm * (0.8 * valley + 0.7 * bowl + 0.15 * snow),
-      river: 0.9 * clamp01(p.river),
-      meltwater: 0.85 * clamp01(p.melt),
-      camp: 0.8 * clamp01(p.camp),
-      rain: 0.9 * clamp01(this.storm.rain),
-      stormwind: 0.85 * clamp01(this.storm.wind),
+      river: requireAudioLevel(PROFILE.levels, 'river') * clamp01(p.river),
+      meltwater: requireAudioLevel(PROFILE.levels, 'meltwater') * clamp01(p.melt),
+      camp: requireAudioLevel(PROFILE.levels, 'camp') * clamp01(p.camp),
+      rain: requireAudioLevel(PROFILE.levels, 'rain') * clamp01(this.storm.rain),
+      stormwind: requireAudioLevel(PROFILE.levels, 'stormwind') * clamp01(this.storm.wind),
     };
     let any = 0;
     for (const k of STEPPE_LOOPS) {
