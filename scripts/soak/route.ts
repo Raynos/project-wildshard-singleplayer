@@ -1,12 +1,14 @@
 interface Cell { readonly instance: string; readonly slug: string; readonly cell: readonly number[] }
 interface Point { readonly x: number; readonly z: number }
 interface Step extends Point { readonly kind: string; readonly instance?: string; readonly slug?: string; readonly id?: string; readonly seconds?: number }
-interface Sample { readonly type: string; readonly phase: string; readonly elapsed: number; readonly footprint: number; readonly interval?: number }
+interface Gl { readonly totalBytes: number; readonly reconciled: boolean; readonly unlabelled: number; readonly accountedBytes: number | null; readonly cycle: number | null }
+interface Sample { readonly type: string; readonly phase: string; readonly elapsed: number; readonly footprint: number; readonly interval?: number; readonly gl?: Gl }
 interface Window { readonly start: number; readonly end: number }
 interface Entry { readonly instance: string; readonly admitted: boolean }
 interface Leak { readonly disposalErrors: readonly string[]; readonly scope: { readonly bodies: number; readonly colliders: number }; readonly after: { readonly bodies: number; readonly colliders: number; readonly [key: string]: unknown } }
-interface Witness { readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[] }
-interface Grade { memoryPass: boolean; gatePass: boolean; peakBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; recovery: boolean; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null }
+interface Witness { readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly engineBase?: number; readonly rehearsal?: boolean }
+interface Loop { cycle: number; peakBytes: number; troughBytes: number }
+interface Grade { memoryPass: boolean; gatePass: boolean; peakBytes: number; loadingPeakBytes: number; phoneEstimateBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; loops: Loop[]; recovery: boolean; calibration: boolean; ratios: { cycle: number; raw: number; adjusted: number }[]; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null; rehearsal: boolean }
 /** The drive uses the admitted catalogue, never a second hand-maintained shard list. */
 export function soakRoute(cells: readonly Cell[], pitch = 555): { reference: Point; steps: readonly Step[] } {
   const roads = [-1.5, -0.5, 0.5, 1.5].map((n) => n * pitch);
@@ -44,21 +46,40 @@ export function soakRoute(cells: readonly Cell[], pitch = 555): { reference: Poi
 
 const median = (values: readonly number[]): number => { const sorted = [...values].sort((a, b) => a - b); const result = sorted.at(Math.floor(sorted.length / 2)); if (result === undefined) throw new Error('No native readings'); return result; };
 /** Grade native readings at the same road pose, after natural production eviction circuits. No reload is allowed. */
-export function gradeSoak({ samples, windows, seconds, circuits, evictions, errors, leak, expected, entries, crossroads }: Witness): Grade {
+export function gradeSoak({ samples, windows, seconds, circuits, evictions, errors, leak, expected, entries, crossroads, engineBase = 300_000_000, rehearsal = false }: Witness): Grade {
+  const combined = (row: Sample, peak = false): number => (peak ? Math.max(row.footprint, row.interval ?? row.footprint) : row.footprint) + (row.gl?.totalBytes ?? Number.POSITIVE_INFINITY);
   const active = samples.filter((row) => row.type === 'sample' && /^(baseline|drive|settle|unloaded)/u.test(row.phase));
   const drive = active.filter((row) => row.phase !== 'unloaded');
-  const peakBytes = Math.max(0, ...drive.map((row) => Math.max(row.footprint, row.interval ?? row.footprint)));
+  const peakBytes = Math.max(0, ...drive.map((row) => combined(row, true)));
+  const loading = samples.filter((row) => row.type === 'sample' && row.phase === 'loading');
+  const loadingPeakBytes = Math.max(0, ...loading.map((row) => combined(row, true)));
   const baselines = windows.map((window) => {
     const points = samples.filter((row) => row.type === 'sample' && row.elapsed >= window.start && row.elapsed <= window.end);
-    return { ...window, samples: points.length, bytes: points.length === 0 ? null : median(points.map((row) => row.footprint)) };
+    return { ...window, samples: points.length, bytes: points.length === 0 ? null : median(points.map((row) => combined(row))) };
   });
-  const first = baselines.at(0)?.bytes;
-  const recovery = first !== null && first !== undefined && baselines.length >= Math.max(2, circuits + 1)
-    && baselines.every((row) => row.bytes !== null && row.samples >= 5 && Math.abs(row.bytes - first) <= 30_000_000);
+  const first = baselines.at(2)?.bytes;
+  const baselineRecovery = first !== null && first !== undefined && baselines.length >= Math.max(2, circuits + 1)
+    && baselines.every((row) => row.bytes !== null && row.samples >= 5)
+    && baselines.slice(2).every((row) => row.bytes !== null && Math.abs(row.bytes - first) <= 30_000_000);
   const baselineDeltaBytes = baselines.map((row) => row.bytes === null || first === null || first === undefined ? null : row.bytes - first);
+  const loops: Loop[] = [];
+  for (let cycle = 0; cycle <= circuits; cycle++) {
+    const rows = drive.filter((row) => row.gl?.cycle === cycle);
+    if (rows.length > 0) loops.push({ cycle, peakBytes: Math.max(...rows.map((row) => combined(row, true))), troughBytes: Math.min(...rows.map((row) => combined(row))) });
+  }
+  const loopTwo = loops.find((loop) => loop.cycle === 1);
+  // Loop one warms the process. Loop two is the peak/trough reference, including the last partial loop.
+  const recovery = baselineRecovery && loopTwo !== undefined && loops.filter((loop) => loop.cycle >= 1).every((loop) => Math.abs(loop.peakBytes - loopTwo.peakBytes) <= 30_000_000 && Math.abs(loop.troughBytes - loopTwo.troughBytes) <= 30_000_000);
+  const ratios = windows.slice(1).flatMap((window, index) => {
+    const points = samples.filter((row) => row.type === 'sample' && row.elapsed >= window.start && row.elapsed <= window.end && (row.gl?.accountedBytes ?? 0) > 0);
+    if (points.length === 0) return [];
+    const measured = median(points.map((row) => combined(row))), accounted = median(points.map((row) => row.gl?.accountedBytes ?? 0));
+    return [{ cycle: index + 1, raw: measured / accounted, adjusted: (measured - engineBase) / accounted }];
+  });
+  const calibration = ratios.length === windows.length - 1 && ratios.every((ratio) => ratio.adjusted <= 1.11);
   const gaps = active.slice(1).map((row, index) => row.elapsed - (active.at(index)?.elapsed ?? row.elapsed));
-  const sampling = drive.length >= seconds * 0.95 && gaps.every((gap) => gap <= 2.5)
-    && drive.every((row) => row.footprint > 0);
+  const sampling = loading.length > 0 && drive.length >= seconds * 0.95 && gaps.every((gap) => gap <= 2.5)
+    && [...drive, ...loading].every((row) => row.footprint > 0 && row.gl?.reconciled === true && row.gl.unlabelled === 0);
   const admitted = expected.filter((id) => entries.some((row) => row.instance === id && row.admitted));
   const refused = expected.filter((id) => !admitted.includes(id));
   const visited = expected.every((id) => entries.some((row) => row.instance === id));
@@ -66,8 +87,8 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
   const leakZero = leak?.disposalErrors.length === 0
     && leak.scope.bodies === 0 && leak.scope.colliders === 0 && leak.after.bodies === 0 && leak.after.colliders === 0
     && zeroCensus(leak.after);
-  const memoryPass = seconds >= 1800 && circuits >= 2 && evictions > 0 && sampling && peakBytes < 1_000_000_000 && recovery && leakZero && errors.length === 0;
-  return { memoryPass, gatePass: memoryPass && refused.length === 0 && visited && new Set(crossroads).size === 16,
-    peakBytes, baselines, baselineDeltaBytes, recovery, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size,
-    limitation: refused.length === 0 ? null : 'M3 runtime cells remain behind production admission walls. A far proxy is not an entry; rerun after SF46–48.' };
+  const memoryPass = seconds >= 1800 && circuits >= 2 && evictions > 0 && sampling && peakBytes <= 1_000_000_000 && loadingPeakBytes <= 1_800_000_000 && recovery && calibration && leakZero && errors.length === 0;
+  return { memoryPass, gatePass: !rehearsal && memoryPass && refused.length === 0 && visited && new Set(crossroads).size === 16,
+    peakBytes, loadingPeakBytes, phoneEstimateBytes: peakBytes * 1.4, baselines, baselineDeltaBytes, loops, recovery, calibration, ratios, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size, rehearsal,
+    limitation: refused.length === 0 ? null : 'Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48.' };
 }

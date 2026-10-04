@@ -3,7 +3,8 @@ import catalogue from '../src/game/grid/singleplayer.json' with { type: 'json' }
 import { soakRoute, gradeSoak } from '../scripts/soak/route';
 
 const witness = () => ({
-  samples: Array.from({ length: 1841 }, (_, elapsed) => ({ type: 'sample', phase: 'drive', elapsed, footprint: 400_000_000, interval: 400_000_000 })),
+  samples: [{ type: 'sample', phase: 'loading', elapsed: -1, footprint: 400_000_000, interval: 400_000_000, gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: 0 } }, ...Array.from({ length: 1841 }, (_, elapsed) => ({ type: 'sample', phase: 'drive', elapsed, footprint: 400_000_000, interval: 400_000_000,
+    gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: Math.min(2, Math.floor(elapsed / 600)) } }))],
   windows: [{ start: 0, end: 10 }, { start: 600, end: 610 }, { start: 1200, end: 1210 }],
   seconds: 1800, circuits: 2, evictions: 6, errors: [],
   leak: { disposalErrors: [], scope: { bodies: 0, colliders: 0 }, before: {}, after: { bodies: 0, colliders: 0, listeners: { window: 0 }, timers: { intervals: 0 } } },
@@ -34,12 +35,13 @@ describe('SF57 honest drive and native memory gate', () => {
   });
   it('passes only a complete 30-minute native witness with repeated eviction, recovery and leak zero', () => {
     expect(gradeSoak(witness()).gatePass).toBe(true);
+    expect(gradeSoak(witness()).ratios[0]).toEqual({ cycle: 1, raw: 2.5, adjusted: 1 });
     for (const patch of [{ seconds: 1799 }, { circuits: 1 }, { evictions: 0 }, { errors: ['WebContent gone'] }, { crossroads: [] }]) expect(gradeSoak({ ...witness(), ...patch }).gatePass).toBe(false);
   });
   it('counts interval highs, refuses missing readings and baseline growth even when the final unload is small', () => {
     const high = witness(); const row = high.samples[20]; if (row === undefined) throw new Error('Missing witness reading'); row.interval = 1_000_000_000; expect(gradeSoak(high).memoryPass).toBe(false);
     const gap = witness(); gap.samples.splice(20, 5); expect(gradeSoak(gap).sampling).toBe(false);
-    const drift = witness(); for (const sample of drift.samples) if (sample.elapsed >= 600) sample.footprint = 431_000_000;
+    const drift = witness(); for (const sample of drift.samples) if (sample.elapsed >= 1200) sample.footprint = 431_000_000;
     expect(gradeSoak(drift).recovery).toBe(false);
     const missing = witness(); missing.windows.pop(); expect(gradeSoak(missing).recovery).toBe(false);
     const leak = witness(); leak.leak.after.timers.intervals = 1; expect(gradeSoak(leak).leakZero).toBe(false);
@@ -47,5 +49,25 @@ describe('SF57 honest drive and native memory gate', () => {
   it('reports a refused runtime cell as M3 incomplete even if its proxy and the memory readings look good', () => {
     const result = gradeSoak({ ...witness(), expected: ['template-1', 'runtime-cell'], entries: [...witness().entries, { instance: 'runtime-cell', admitted: false }] });
     expect(result.memoryPass).toBe(true); expect(result.gatePass).toBe(false); expect(result.refused).toEqual(['runtime-cell']); expect(result.attemptedEveryCell).toBe(true);
+  });
+  it('allows loop-one warmup, then requires loop-two peak and trough stability', () => {
+    const result = witness(); for (const sample of result.samples) if (sample.elapsed < 600) sample.footprint = 350_000_000;
+    expect(gradeSoak(result).recovery).toBe(true);
+  });
+  it('fails WebContent under the cap when labelled GL pushes the playing total over it', () => {
+    const result = witness(); for (const sample of result.samples) sample.gl.totalBytes = 650_000_000;
+    expect(gradeSoak(result).peakBytes).toBe(1_050_000_000); expect(gradeSoak(result).memoryPass).toBe(false);
+    expect(gradeSoak({ ...witness(), rehearsal: true }).gatePass).toBe(false);
+    const over = witness(); for (const sample of over.samples) sample.footprint = 422_000_001;
+    expect(gradeSoak(over).calibration).toBe(false);
+  });
+  it('fails a loading-only combined over-cap and an unreconciled/missing GL reading', () => {
+    const result = witness(); result.samples.push({ ...result.samples[0], type: 'sample', phase: 'loading', elapsed: -1, footprint: 1_750_000_000, interval: 1_750_000_000,
+      gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 0, cycle: 0 } });
+    expect(gradeSoak(result).loadingPeakBytes).toBe(1_850_000_000); expect(gradeSoak(result).memoryPass).toBe(false);
+    expect(gradeSoak({ ...witness(), samples: witness().samples.filter((sample) => sample.phase !== 'loading') }).sampling).toBe(false);
+    const broken = witness(); for (const sample of broken.samples) sample.gl.reconciled = false;
+    expect(gradeSoak(broken).sampling).toBe(false);
+    expect(gradeSoak({ ...witness(), samples: witness().samples.map(({ gl: _gl, ...sample }) => sample) }).memoryPass).toBe(false);
   });
 });
