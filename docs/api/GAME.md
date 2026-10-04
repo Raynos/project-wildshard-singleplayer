@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-359 members; 112 without a doc line (—).
+362 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -288,11 +288,14 @@ The game layer's public modules (src/game/package.json `exports`).
 | `LedgerRule` | type | @wildshard/game/shardfile/ledger | Data mapping declared facts to platform-controlled profile rewards. |
 | `LedgerRulesSchema` | const | @wildshard/game/shardfile/ledger | Profile rewards are approved catalogue objects or achievements/titles; shard coins are excluded. |
 | `parseLedgerRules` | function | @wildshard/game/shardfile/ledger | Validate compiled author data before the platform binds its allowed reward mappings. |
+| `browserShardfileOptions` | function | @wildshard/game/shardfile/loader | Browser connectivity and visited-product storage feed the same admission path as headless validation. |
 | `configuredShardfile` | function | @wildshard/game/shardfile/loader | The prebuilt client's HTML supplies data, without a second boot loop or URL switch. |
 | `emptyShardfileSource` | function | @wildshard/game/shardfile/loader | Validate before allocating a level. Content bindings belong to the full loader. |
+| `installShardfileProduct` | function | @wildshard/game/shardfile/loader | Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed. |
 | `installShardfileSource` | function | @wildshard/game/shardfile/loader | Select a validated external source before the normal session starts. |
 | `loadShardfile` | function | @wildshard/game/shardfile/loader | Load through an installed engine driver; the ordinary unloadLevel owns every resource. |
 | `shardfileLevelSpec` | function | @wildshard/game/shardfile/loader | Project an empty shardfile into the same engine spec consumed by legacy sources. |
+| `shardfileSource` | function | @wildshard/game/shardfile/loader | Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. |
 | `parsePlumbing` | function | @wildshard/game/shardfile/plumbing | Compile TypeScript author plumbing into validated data with no callback closures. |
 | `PlumbingData` | type | @wildshard/game/shardfile/plumbing | Serialisable scoped input actions, tier values and Debug choices with named admitted script hooks. |
 | `plumbingRules` | function | @wildshard/game/shardfile/plumbing | Semantic identities stay in the owning namespace; Debug defaults and touch actions must exist. |

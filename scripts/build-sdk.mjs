@@ -49,5 +49,5 @@ for (const [mode, folder] of [['production', 'client'], ['devserver', 'client-de
   await build({ root, mode, configFile: resolve(root, 'vite.config.ts'), logLevel: 'warn', build: {
     outDir: resolve(root, `src/sdk/dist/${folder}`), emptyOutDir: true, copyPublicDir: false, sourcemap: false,
   } });
-  for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'assets/physics']) cpSync(resolve(root, 'public', entry), resolve(root, `src/sdk/dist/${folder}`, entry), { recursive: true });
+  for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'assets/physics', 'assets/sfx/best', 'assets/music/piano', 'assets/music/orchestral', 'assets/music/folk']) cpSync(resolve(root, 'public', entry), resolve(root, `src/sdk/dist/${folder}`, entry), { recursive: true });
 }

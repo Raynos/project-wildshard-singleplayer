@@ -55,7 +55,7 @@ function residentFixture() {
     hash: (bytes) => Promise.resolve(contentHash(bytes)), fetch: () => Promise.reject(new Error('Offline must never fetch')),
     cache: { product: () => Promise.resolve(null), asset: (_base, hash) => Promise.resolve(cached.get(hash) ?? null), putAsset: () => Promise.resolve(), putProduct: () => Promise.resolve() },
   };
-  return { assets: new ClientAssets(source, cached, options), cached, tile, tileHash, libraryHash };
+  return { assets: new ClientAssets(source, cached, options), cached, tile, tileHash, libraryHash, source, options };
 }
 it('releases tile transport bytes, retains library roots and rechecks cache corruption on revisit', async () => {
   const fixture = residentFixture(); fixture.assets.releaseTiles();
@@ -69,4 +69,24 @@ it('releases tile transport bytes, retains library roots and rechecks cache corr
 it('fails an evicted offline tile without touching the network', async () => {
   const fixture = residentFixture(); fixture.assets.releaseTiles(); fixture.cached.delete(fixture.tileHash);
   await expect(fixture.assets.read(fixture.tileHash)).rejects.toThrow('Missing cached');
+});
+it('leases library roots separately from resident tiles and releases both at their respective lifetimes', () => {
+  const f = residentFixture(), cache = f.options.cache; if (cache === undefined) throw new Error('Missing fixture cache');
+  const active = new Map<string, number>();
+  cache.pin = (hashes) => {
+    const keys = [...hashes]; for (const hash of keys) active.set(hash, (active.get(hash) ?? 0) + 1);
+    return () => { for (const hash of keys) { const next = (active.get(hash) ?? 0) - 1; if (next === 0) active.delete(hash); else active.set(hash, next); } };
+  };
+  const assets = new ClientAssets(f.source, f.cached, f.options), level = assets.pin();
+  expect([...active.keys()]).toEqual([f.libraryHash]);
+  const tile = assets.lease([f.tileHash]); expect(active.size).toBe(2);
+  tile(); expect([...active.keys()]).toEqual([f.libraryHash]); level(); expect(active.size).toBe(0);
+});
+it('caches reloaded tile bytes for the next visit and still tolerates a full cache', async () => {
+  const f = residentFixture(), cache = f.options.cache; if (cache === undefined) throw new Error('Missing fixture cache');
+  f.cached.delete(f.tileHash); let writes = 0;
+  const assets = new ClientAssets(f.source, f.cached, { ...f.options, offline: false, fetch: () => Promise.resolve(new Response(Uint8Array.from(f.tile))),
+    cache: { ...cache, putAsset: (_base, hash, bytes) => { writes++; expect(hash).toBe(f.tileHash); expect(bytes).toEqual(f.tile); return Promise.resolve(false); } },
+  });
+  expect(await assets.read(f.tileHash)).toEqual(f.tile); expect(writes).toBe(1); expect(assets.retained.has(f.tileHash)).toBe(false);
 });

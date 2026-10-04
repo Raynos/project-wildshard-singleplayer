@@ -1694,6 +1694,12 @@ Debug-row count has its own cap (`debugRows`).
 Trusted transition code in `runtime/` keeps legacy public engine/game/kit access; build-time generators never ship.
 The SDK cannot import shard content. Each module owns its exports; there is no barrel.
 
+`@wildshard/game/shardfile/loader` admits a browser product with `shardfileSource` or selects it with
+`installShardfileProduct`; `browserShardfileOptions` supplies the verified origin-wide content cache. Trusted kit
+recipes and item factories are injected by the composition root. The resulting manifest runs the ordinary Game
+stages and borrows its player, physics and fixed-step driver. Terrain and props refine under scoped tile residency;
+UI reads the same admitted script and item state. The SDK's client includes the platform's base audio assets.
+
 ## Appendix: every export
 
 Generated from `lint/api-surface.json` (each package's exported modules). Each line is one module and the names it exports. The
@@ -2072,7 +2078,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-359 exports, grouped by the module to import them from.
+362 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2127,7 +2133,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `ShardItems`
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
-- `@wildshard/game/shardfile/loader`: `configuredShardfile`, `emptyShardfileSource`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`
+- `@wildshard/game/shardfile/loader`: `browserShardfileOptions`, `configuredShardfile`, `emptyShardfileSource`, `installShardfileProduct`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`, `shardfileSource`
 - `@wildshard/game/shardfile/plumbing`: `parsePlumbing`, `PlumbingData`, `plumbingRules`, `PlumbingSchema`
 - `@wildshard/game/shardfile/product`: `admitProduct`, `AdmittedProduct`, `boundedResponse`, `browserContentHash`, `browserProductCache`, `CachedProduct`, `ProductCache`, `ProductOptions`, `ProductVersions`
 - `@wildshard/game/shardfile/props`: `propColliderDescriptors`, `PropsSchema`, `ShardProps`, `validatePropsReferences`

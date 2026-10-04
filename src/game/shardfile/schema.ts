@@ -16,6 +16,7 @@ import { PlumbingSchema } from './plumbing';
 import { PropsSchema, validatePropsReferences } from './props';
 import { TargetsSchema, targetRules } from './targets';
 import { ItemsSchema, itemRules } from './items';
+import { TraversalSchema } from './traversal';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs } from './materials';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
@@ -65,6 +66,7 @@ const rawSchema = v.strictObject({
   items: v.optional(ItemsSchema, { version: 1, rows: [], contexts: [], loadout: { primary: null, secondary: null, tools: [] } }),
   props: v.optional(v.nullable(PropsSchema), null),
   targets: v.optional(TargetsSchema, { panels: [], interactions: [] }),
+  traversal: v.optional(TraversalSchema, { hoverCap: 15 }),
   spawn: v.optional(v.strictObject({ x: finite, y: finite, z: finite, yaw: finite }), { x: 0, y: 2, z: 0, yaw: 0 }),
 });
 /** A serialisable shardfile v0, independent of renderer and placement. */

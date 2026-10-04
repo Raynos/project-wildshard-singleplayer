@@ -17,12 +17,14 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
   const fine = new Map<string, Scope>(), fineTiles = new Map<string, ResidentTile[]>(), coarse = new Map<string, ResidentTile>(), coarseProps = new Map<string, ResidentTile>(), terrainRows = new Map(source.terrain?.tiles.map((tile) => [`${tile.lod}/${tile.x}/${tile.z}`, tile]));
   const terrain = async (key: string, scope: Scope, shadow: boolean): Promise<ResidentTile | null> => {
     const row = terrainRows.get(key); if (row === undefined) return null;
+    scope.onDispose(assets.lease([row.file]));
     const bytes = await assets.read(row.file); if (scope.disposed) throw new Error('Tile unloaded while reading');
     return ports.views.terrain(bytes, scope, shadow);
   };
   const props = source.props === null ? null : await ports.views.library(source.props, assets.retained, ports.scope);
   const tileProps = async (key: string, scope: Scope): Promise<ResidentTile | null> => {
     const row = source.props?.tiles.find((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key); if (row === undefined || source.props === null) return null;
+    scope.onDispose(assets.lease([row.file]));
     const bytes = await assets.read(row.file); if (scope.disposed) throw new Error('Prop tile unloaded while reading');
     return ports.views.props(source.props, key, bytes, scope);
   };

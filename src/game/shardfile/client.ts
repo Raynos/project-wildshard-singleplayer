@@ -1,0 +1,184 @@
+import * as v from 'valibot';
+import { Vector3 } from 'three';
+import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
+import { scriptItemHook, type ItemTarget } from '@wildshard/engine/combat/items';
+import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
+import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
+import { installDeclaredAudio, type DeclaredAudioPorts } from '@wildshard/engine/audio/declared';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { ShardContext } from '../shard/context';
+import type { ShardPlayHost } from '../shard/runtime';
+import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
+import { declaredCompendium, declaredDay, declaredLootPresentation, declaredWeather } from '../shard/declaredRows';
+import { installCompendium } from '../compendium/install';
+import { installLoot } from '../loot/runtime';
+import { installDeclaredTargets } from '../shard/declaredTargets';
+import { mountDeclaredUi } from '../shard/declaredUi';
+import { createQuestScriptPorts } from '../quest/declared';
+import { installQuestPresentation } from '../quest/presentation';
+import { instanceSave } from '../instanceSaves';
+import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
+import { EmptyEquipment } from './emptyEquipment';
+import { clientMaterials } from './clientMaterials';
+import { clientSpeciesLooks, type ShardViewRecipe } from './clientRecipes';
+import { clientViews } from './clientViews';
+import { installClientWater } from './clientWater';
+import { clientWorld } from './clientWorld';
+import { clientSimStep } from './clientStep';
+import { clientScene, projectItemFields } from './clientItems';
+import type { ClientAssets } from './clientAssets';
+import { installDeclaredItems, type DeclaredItems } from './items';
+import { createShardfileSim, type ShardfileSimulation } from './simulation';
+import type { Shardfile } from './schema';
+
+/** Trusted catalogue dependencies are injected by the normal composition root, never imported upward by the loader. */
+export interface ShardfileClientBindings {
+  recipes: ReadonlyMap<string, ShardViewRecipe>; items: ReadonlyMap<string, ItemFamily>; icon: (name: string) => EquipmentIcon;
+  voices: (audio: ShardPlayHost['audio']) => DeclaredAudioPorts['voices']; catalogue: readonly LedgerCatalogueItem[];
+  instance: string;
+}
+const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
+const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
+
+/** The existing Game's world/kit/play stages install one authored level, one borrowed simulation and the normal equipment/HUD. */
+export class ShardfileClient {
+  private readonly source: Shardfile;
+  private readonly assets: ClientAssets;
+  private readonly bindings: ShardfileClientBindings;
+  private presentation: Awaited<ReturnType<typeof clientMaterials>> | undefined;
+  private worldTiles: Awaited<ReturnType<typeof clientWorld>> | undefined;
+  private sim: ShardfileSimulation | undefined;
+  private items: DeclaredItems | undefined;
+  private readonly animals = new Map<string, Animal>();
+  constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) { this.source = source; this.assets = assets; this.bindings = bindings; }
+
+  async world(ctx: ShardContext): Promise<void> {
+    const runtime = ctx.game.runtime, world = runtime?.world;
+    if (runtime === undefined || world === null || world === undefined) throw new Error('Shardfile requires the normal world stage');
+    ctx.scope.onDispose(this.assets.pin());
+    const presentation = await clientMaterials(this.source, this.assets.retained, world.game.renderer, ctx.scope);
+    this.presentation = presentation;
+    installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials });
+    this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
+      views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, ...presentation }),
+    });
+    let refreshX = this.source.spawn.x, refreshZ = this.source.spawn.z, failure: Error | undefined;
+    const refresh = async (x: number, z: number): Promise<void> => {
+      try { await this.worldTiles?.refresh(x, z); }
+      catch (error) { failure = error instanceof Error ? error : new Error(String(error)); }
+    };
+    ctx.system({ id: 'game.shardfile.residency', phase: 'update', run: (dt) => {
+      if (failure !== undefined) throw failure;
+      presentation.tick(dt);
+      const position = runtime.viewer();
+      if (Math.hypot(position.x - refreshX, position.z - refreshZ) < 5) return;
+      refreshX = position.x; refreshZ = position.z;
+      void refresh(position.x, position.z);
+    } });
+  }
+
+  kit(ctx: ShardContext): void {
+    const runtime = ctx.game.runtime, world = runtime?.world, presentation = this.presentation;
+    if (runtime === undefined || world === null || world === undefined || presentation === undefined) throw new Error('Shardfile requires the normal kit stage');
+    const source = this.source;
+    ctx.rows.species(source.rows.species.map((row) => ({ ...row, variants: row.variants.map((variant) => ({ ...variant, scale: [...variant.scale] })) })));
+    ctx.rows.speciesLook(clientSpeciesLooks(source.rows, this.bindings.recipes, presentation.materials));
+    for (const row of source.rows.compendiums) ctx.rows.compendium({ id: row.id, ...declaredCompendium(row, source.rows, ctx.manifest.slug) });
+    ctx.rows.lootTable(source.rows.loot);
+    runtime.hooks.animalsReady = (manager) => {
+      for (const spawn of source.creatures.spawns) {
+        const species = source.rows.species.find((row) => row.id === spawn.species); if (species === undefined) throw new Error('Missing authored creature species');
+        const view = manager.spawn(species.kind, spawn.at[0], spawn.at[2], spawn.yaw, spawn.variant, { y: spawn.at[1], entityId: spawn.id });
+        this.animals.set(spawn.id, view);
+      }
+    };
+    const player = (): NonNullable<ShardContext['app']['player']> => { const actor = ctx.app.player; if (actor === null) throw new Error('Player health has not entered play'); return actor; };
+    const actor: Actor = { id: 'actor.player', get tags() { return player().tags; }, get state() { return player().state; }, get attributes() { return player().attributes; }, get alive() { return player().alive; }, applyDamage: (request) => player().applyDamage(request) };
+    const aimTarget = (target: CombatTarget): ItemTarget => {
+      const body = this.sim?.host.entities.get(target.actor.id);
+      return { ...target, aimPoint: target.position.clone().add(new Vector3(0, body === undefined ? 0.9 : body.dims.bodyY * body.scale, 0)) };
+    };
+    runtime.buildEquipment = () => {
+      const items = installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, families: this.bindings.items, icon: this.bindings.icon,
+        aim: () => ({ origin: world.game.camera.getWorldPosition(new Vector3()), direction: world.game.camera.getWorldDirection(new Vector3()) }),
+        runtime: (row) => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play' && !world.freeCamera,
+          targets: () => ctx.app.combat.targets().map(aimTarget),
+          effect: (target, effect, from) => { const service = ctx.app.effects; if (service === null) throw new Error('Missing normal effect host'); service.apply(target, effect, from); },
+          hook: row.hook === null ? null : (command) => { const lane = this.sim?.lane, hook = row.hook; if (lane === undefined || hook === null) throw new Error('Missing admitted item lane'); return scriptItemHook(lane.host, hook.module, hook.entity, hook.event, actor.id)(command); },
+        }),
+      });
+      this.items = items;
+      return Promise.resolve({ primary: items.primary ?? new EmptyEquipment(), secondary: items.secondary, rifle: null, extras: items.extras, order: items.order, install: items.install });
+    };
+  }
+
+  play(ctx: ShardContext): void {
+    const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play, items = this.items, tiles = this.worldTiles;
+    const health = ctx.app.player;
+    if (runtime === undefined || world === null || world === undefined || play === null || play === undefined || items === undefined || tiles === undefined || health === null) throw new Error('Shardfile requires the normal play stage');
+    const source = this.source, identity = { instance: this.bindings.instance, shard: source.identity.slug, revision: source.identity.revision };
+    const lootRow = source.rows.loot[0], loot = lootRow === undefined ? null : installLoot({ ctx, manifest: ctx.manifest, owned: play.owned, scene: world.game.scene,
+      player: world.player, camera: world.game.camera, animals: () => play.animals.animals, menu: play.menu, presentation: declaredLootPresentation(lootRow, (id) => { if (!id.startsWith('cue.')) throw new Error('Unknown registered loot cue'); play.cues.cue(`cue.${id.slice(4)}`); }),
+    });
+    if (source.rows.compendiums.length > 0) {
+      const journal = installCompendium({ chunkId: ctx.manifest.slug, game: world.game, camera: world.game.camera, hud: play.hud, menu: play.menu,
+        animals: play.animals, cabins: null, interactables: runtime.interactables, weapons: play.weapons, touchUi: play.touchUi, nolock: play.nolock });
+      if (journal !== null) ctx.scope.onDispose(() => { journal.journal.scope.dispose(); });
+    }
+    const ledger = new Ledger(ctx.app.saves, [{ id: identity.instance, shard: identity.shard }], [{ shard: identity.shard, revision: identity.revision, rules: source.ledger }], this.bindings.catalogue);
+    const emitters = new Map<string, LedgerEmitter>();
+    const fact = (name: string, entity: string, origin: string): void => {
+      const emitter = emitters.get(origin); if (emitter === undefined) throw new Error('Missing declared fact provenance'); emitter.emit(name, entity);
+    };
+    const read = (scope: 'shared' | 'player', id: number): number => {
+      const field = source.state[scope].find((row) => row.id === id); if (field === undefined) throw new Error('Missing declared state field');
+      const value = this.sim?.lane?.world.view(health.id)[scope][field.name];
+      if (value !== undefined) return value;
+      if (typeof field.default === 'string') throw new Error('UI requires numeric state'); return typeof field.default === 'boolean' ? Number(field.default) : field.default;
+    };
+    const ui = mountDeclaredUi(source.ui, { hud: ctx.hud, system: ctx.system, scope: ctx.scope, bag: ctx.bag,
+      read: (name) => { const scope = source.state.shared.some((row) => row.name === name) ? 'shared' : 'player', field = source.state[scope].find((row) => row.name === name); if (field === undefined) throw new Error('Missing declared counter field'); return read(scope, field.id); },
+    });
+    const saved = instanceSave(ctx.app.saves, encounterSave, { id: identity.instance, shard: identity.shard }), encounters = saved.read();
+    const sim = createShardfileSim(source, this.assets.retained, { rapier: world.physics.R, physics: world.physics,
+      player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, motor: world.player.motor },
+      events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,
+      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
+      quest: { fact: (name, entity) => { fact(name, entity, 'quest.complete'); }, coins: (amount, entity) => {
+        if (loot?.purse !== null && loot?.purse !== undefined) { loot.purse.add(amount); return; }
+        const host = this.sim?.host; if (host === undefined) throw new Error('Missing local coin host');
+        const key = `coins.${entity}`, prior = host.slots.questState[key]; host.slots.questState[key] = (typeof prior === 'number' ? prior : 0) + amount;
+      } },
+      encounters: (id) => ({ saved: encounters[id] ?? { defeated: false, rewardTaken: false, kills: 0 }, persist: (value) => { encounters[id] = value; saved.write(encounters); },
+        reward: () => { for (const rule of source.ledger) if (rule.origin.kind === 'engine' && rule.origin.source === 'encounter.complete') fact(rule.fact, id, rule.origin.source); },
+      }),
+    });
+    this.sim = sim;
+    const authoredDay = source.rows.days[0], day = ctx.app.dayCycle ?? (authoredDay === undefined ? null : declaredDay(authoredDay));
+    const ownsDay = ctx.app.dayCycle === null && day !== null;
+    if (ownsDay) ctx.app.registerDayCycle(day, ctx.scope);
+    const weather = new Map(source.rows.weather.map((row) => [row.id, declaredWeather(row, sim.host.rng.stream('cosmetic').fork(row.id))]));
+    sim.host.onStep('climate.declared', (dt) => { if (ownsDay) day.update(dt); for (const profile of weather.values()) profile.update(dt, day); });
+    for (const rule of source.ledger) if (!emitters.has(rule.origin.source)) emitters.set(rule.origin.source, installLedgerEmitter(sim.host, ledger, identity, rule.origin));
+    for (const [id, view] of this.animals) {
+      const core = sim.host.entities.get(id); if (core === undefined) throw new Error('Missing authoritative creature');
+      view.bindSimulation(core); view.mesh.scale.setScalar(core.scale);
+    }
+    sim.host.onStep('items.declared', (dt) => {
+      items.step(sim.host.state.tick, dt);
+      const lane = sim.lane, player = sim.actors.get(health.id);
+      if (lane !== undefined && player !== undefined) projectItemFields(source, items.runtimes, lane, player);
+    });
+    const hooks = sim.lane === undefined ? null : createQuestScriptPorts(sim.lane, source.hooks, sim.actors);
+    const scene = clientScene(source, items.runtimes, (id) => { if (hooks === null) throw new Error('Missing admitted scene lane'); hooks.scene(id, health.id); });
+    if (source.plumbing !== null) installDeclaredPlumbing(source.plumbing, { instance: source.identity.slug, tier: TIER, scope: ctx.scope, input: ctx.app.input,
+      active: () => ctx.app.state === 'play' && !world.freeCamera, scene, knobs: ctx.tiers.knobs, debugRow: ctx.debugRow,
+    });
+    installDeclaredTargets(source.targets, { panels: tiles.props?.panels ?? new Map(), colliders: sim.colliders, read, scene, interactables: runtime.interactables, scope: ctx.scope, system: ctx.system });
+    for (const quest of sim.quest.quests) installQuestPresentation(ctx, quest);
+    runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;
+    installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope });
+    ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather });
+  }
+}

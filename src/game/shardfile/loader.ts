@@ -4,7 +4,7 @@ import { _applyChunkConstants } from '@wildshard/engine/core/config';
 import { configureLevel } from '@wildshard/engine/level/selection';
 import type { ShardManifest } from '../shard/manifest';
 import { game } from '../shard/registry';
-import { installShards } from '../shard/list';
+import { installShards, shards } from '../shard/list';
 import { toLevelSpec } from '../shard/spec';
 import { parseShardSlug } from '../shard/slug';
 import { parseShardfile, type Shardfile } from './schema';
@@ -13,6 +13,11 @@ import { emptyLook } from './emptyLook';
 import { shardfileLook } from './look';
 import { EmptyEquipment } from './emptyEquipment';
 import type { ShardContext } from '../shard/context';
+import { admitProduct, browserContentHash, browserProductCache, type ProductOptions } from './product';
+import { ClientAssets } from './clientAssets';
+import { ShardfileClient, type ShardfileClientBindings } from './client';
+import { clientGround } from './clientGround';
+import { shardfileWater } from './water';
 
 /** Validate before allocating a level. Content bindings belong to the full loader. */
 export function emptyShardfileSource(input: unknown): ShardManifest {
@@ -23,6 +28,10 @@ export function emptyShardfileSource(input: unknown): ShardManifest {
   const lutOnly = source.files.every((f) => f.hash === lut) && source.requires.commons.every((h) => `commons:${h}` === lut);
   const newContent = source.water.length + source.creatures.spawns.length + source.creatures.brains.length + source.encounters.length + source.ledger.length + source.audio.cues.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0);
   if (source.items.rows.length + source.items.contexts.length > 0 || source.props !== null || source.targets.panels.length + source.targets.interactions.length > 0 || Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length > 0 || newContent > 0 || source.hooks.conditions.length + source.hooks.scenes.length > 0 || source.plumbing !== null || source.terrain !== null || source.audio.ambience !== null || source.audio.score !== 'silent' || Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.ui.length + source.tiles.length + source.library.length + source.requires.capabilities.length + source.sim.scripts.length + source.sim.bindings.length + source.look.families.length > 0 || !lutOnly || source.far !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
+  return sourceManifest(source);
+}
+
+function sourceManifest(source: Shardfile): ShardManifest {
   const card = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/%3E';
   return {
     api: 1, slug: parseShardSlug(source.identity.slug), name: source.identity.name, seed: source.identity.seed,
@@ -45,6 +54,35 @@ export function emptyShardfileSource(input: unknown): ShardManifest {
         runtime.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), secondary: null, rifle: null });
       }
     } }),
+  };
+}
+
+/** Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. */
+export async function shardfileSource(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+  const admitted = await admitProduct(input, options), source = admitted.source, assets = new ClientAssets(source, admitted.assets, options);
+  const manifest = sourceManifest(source);
+  return { ...manifest, biome: 'Authored world', blurb: source.identity.name,
+    ground: { ...(source.terrain === null ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
+    species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],
+    loot: { coins: source.rows.loot.length > 0 },
+    creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
+    render: () => Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look, assets.retained)),
+    load: () => Promise.resolve({ default: class extends ShardfileClient { constructor() { super(source, assets, bindings); } } }),
+  };
+}
+
+/** Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed. */
+export async function installShardfileProduct(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+  const source = await shardfileSource(input, options, bindings);
+  const list = new Map(options.firstParty ? shards().map((manifest) => [manifest.slug.replace(/^_/u, ''), manifest]) : []);
+  list.set(source.slug, source); installShards([...list.values()]);
+  game.shard = source; _applyChunkConstants(source); configureLevel(toLevelSpec(source)); return source;
+}
+
+/** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
+export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
+  return { base, firstParty, offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
+    ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
   };
 }
 

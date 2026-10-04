@@ -184,7 +184,14 @@ radius by the sample spacing's half diagonal, so gaps cannot hide a heavier disc
 
 The normal client accepts an embedded `<script id="ws-shardfile" type="application/json">` source. The game validates it before selecting the level, then uses the existing session, Game, player, physics, HUD and staged LevelLoader. `loadShardfile(app, input)` also feeds an installed level driver; `app.unloadLevel()` owns disposal. External names cross `parseShardSlug`; built-in names keep their generated union.
 
-SF15a-min accepts an empty authored world only, plus a look (day keys and a LUT, whose file is the only file allowed). It refuses other content, declared state and non-empty UI before allocation; the full loader binds those in SF15a. The asset-free backdrop and inert primary satisfy the current session ports. Unsupported format versions request a compatible client.
+The browser product loader binds admitted terrain and prop tiles, water, creature views, equipment, script state,
+quests, encounters, declared UI, audio and target interactions through the existing world/kit/play stages.
+Its simulation borrows the Game's physics, player, events and fixed-step driver. Creature views share their core's
+health and position; a rendered frame never steps that core. Library and critical cache leases last for the level,
+while tile leases end with residency. A quota refusal permits online play without publishing an incomplete offline
+visit. `emptyShardfileSource` and `loadShardfile` retain the minimal empty-world adapter for installed-driver callers.
+Unsupported format versions request a compatible client. Optional `traversal.hoverCap` defaults to 15 m/s and may
+lower the platform's interior travel ceiling; placement and highway speed remain platform-owned.
 
 The browser and CLI share game-layer asset admission: exact wire hashes and sizes, bounded parsers, terrain semantics,
 transitive bundle costs and the script memory growth ceiling are checked before allocating a level. Cached Wasm passes

@@ -2,6 +2,7 @@ import { parseShardfile, type Shardfile } from './schema';
 import { SHARDFILE_VERSION } from './version';
 import { assertStateCompatibility } from './revision';
 import { validateShardfileAssets } from './validate';
+import { ContentCache } from '@wildshard/engine/boot/contentCache';
 
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
@@ -11,8 +12,9 @@ export interface CachedProduct { source: unknown; firstParty: boolean }
 export interface ProductCache {
   product: (key: string) => Promise<CachedProduct | null>;
   asset: (base: string, hash: string) => Promise<Uint8Array | null>;
-  putAsset: (base: string, hash: string, bytes: Uint8Array) => Promise<void>;
+  putAsset: (base: string, hash: string, bytes: Uint8Array) => Promise<boolean> | Promise<void>;
   putProduct: (key: string, product: CachedProduct) => Promise<void>;
+  pin?: (hashes: Iterable<string>) => () => void;
 }
 /** Version readers are trusted client migrations; content cannot register its own compatibility rule. */
 export interface ProductVersions { current: number; readers: ReadonlyMap<number, (source: unknown) => Shardfile> }
@@ -82,8 +84,13 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
   });
   if (!options.offline && options.cache !== undefined) {
-    for (const [ref, bytes] of assets) await options.cache.putAsset(base, ref.replace(/^commons:/u, ''), bytes);
-    await options.cache.putProduct(base, { source: raw, firstParty: options.firstParty });
+    const cache = options.cache, release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')));
+    try {
+      let complete = true;
+      for (const [ref, bytes] of assets) if (await cache.putAsset(base, ref.replace(/^commons:/u, ''), bytes) === false) complete = false;
+      for (const ref of assets.keys()) if (await cache.asset(base, ref.replace(/^commons:/u, '')) === null) complete = false;
+      if (complete) await cache.putProduct(base, { source: raw, firstParty: options.firstParty });
+    } finally { release?.(); }
   }
   return { source, assets, cached: cached !== null && cached !== undefined };
 }
@@ -91,6 +98,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
 export function browserProductCache(storage: Pick<CacheStorage, 'open'>): ProductCache {
   const open = () => storage.open('ws-shardfile-products-v0');
   const productUrl = (base: string) => new URL('__visited_shardfile__', base).href;
+  const content = new ContentCache({ storage, origin: location.origin, hash: browserContentHash, estimate: () => navigator.storage.estimate() });
   return {
     product: async (base) => {
       const response = await (await open()).match(productUrl(base)); if (response === undefined) return null;
@@ -99,10 +107,11 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'>): Produc
       return { source: value.source, firstParty: value.firstParty };
     },
     asset: async (base, hash) => {
+      const bytes = await content.get(hash); if (bytes !== null) return bytes;
       const response = await (await open()).match(new URL(hash, base).href);
       return response === undefined ? null : boundedResponse(response, MAX_FILE_BYTES);
     },
-    putAsset: async (base, hash, bytes) => { await (await open()).put(new URL(hash, base).href, new Response(Uint8Array.from(bytes))); },
+    putAsset: (_base, hash, bytes) => content.put(hash, bytes), pin: (hashes) => content.pin(hashes),
     putProduct: async (base, product) => { await (await open()).put(productUrl(base), Response.json(product)); },
   };
 }

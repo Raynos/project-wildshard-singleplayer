@@ -12924,6 +12924,12 @@
         "from": "@wildshard/game/shardfile/ledger"
       },
       {
+        "name": "browserShardfileOptions",
+        "kind": "function",
+        "doc": "Browser connectivity and visited-product storage feed the same admission path as headless validation.",
+        "from": "@wildshard/game/shardfile/loader"
+      },
+      {
         "name": "configuredShardfile",
         "kind": "function",
         "doc": "The prebuilt client's HTML supplies data, without a second boot loop or URL switch.",
@@ -12933,6 +12939,12 @@
         "name": "emptyShardfileSource",
         "kind": "function",
         "doc": "Validate before allocating a level. Content bindings belong to the full loader.",
+        "from": "@wildshard/game/shardfile/loader"
+      },
+      {
+        "name": "installShardfileProduct",
+        "kind": "function",
+        "doc": "Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed.",
         "from": "@wildshard/game/shardfile/loader"
       },
       {
@@ -12951,6 +12963,12 @@
         "name": "shardfileLevelSpec",
         "kind": "function",
         "doc": "Project an empty shardfile into the same engine spec consumed by legacy sources.",
+        "from": "@wildshard/game/shardfile/loader"
+      },
+      {
+        "name": "shardfileSource",
+        "kind": "function",
+        "doc": "Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings.",
         "from": "@wildshard/game/shardfile/loader"
       },
       {

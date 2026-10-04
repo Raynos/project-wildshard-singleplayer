@@ -32,6 +32,18 @@ it('does not publish an incomplete or understated product as visited', async () 
   await expect(admitProduct(f.shard, f.options)).rejects.toThrow('understated'); expect(f.cache.products.size).toBe(0); expect(f.cache.bytes.size).toBe(0);
   await expect(admitProduct(f.shard, { ...f.options, offline: true })).rejects.toThrow('incomplete');
 });
+it('keeps online admission playable when cache quota refuses bytes, without publishing an offline visit', async () => {
+  const f = fixture(), leases: string[][] = []; let releases = 0;
+  const cache: ProductCache = { ...f.cache, putAsset: () => Promise.resolve(false), pin: (hashes) => { leases.push([...hashes]); return () => { releases++; }; } };
+  const admitted = await admitProduct(f.shard, { ...f.options, cache });
+  expect(admitted.assets.get(f.hash)).toEqual(f.bytes);
+  expect(f.cache.products.size).toBe(0); expect(leases).toEqual([[f.hash]]); expect(releases).toBe(1);
+});
+it('checks durable presence before publishing a visit, even when a cache silently evicts a completed write', async () => {
+  const f = fixture(), cache: ProductCache = { ...f.cache, putAsset: () => Promise.resolve(), asset: () => Promise.resolve(null) };
+  await admitProduct(f.shard, { ...f.options, cache });
+  expect(f.cache.products.size).toBe(0);
+});
 it('allows previous format only from a visited first-party cache while offline', async () => {
   const f = fixture(); f.options.firstParty = true; await admitProduct(f.shard, f.options);
   const versions = { current: 1, readers: new Map([[0, parseShardfile], [1, parseShardfile]]) };

@@ -67,14 +67,20 @@ export async function start(): Promise<void> {
   await retried(() => import('./shardList')); // the shard list before @wildshard/game reads it (AG4)
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
   const [{ game }, { installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { KIT_ITEMS }, { HOVERBOARD_TOOL },
-    { sharedWeaponVoices }, { sharedCombatCues }] = await Promise.all([
+    { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies }] = await Promise.all([
     retried(() => import('./game/shard/registry')), retried(() => import('./kit/species/install')), retried(() => import('./kit/icons')),
     retried(() => import('./kit/models/pickups')), retried(() => import('./kit/models/interact')), retried(() => import('./kit/bag/items')),
     retried(() => import('./kit/tools/hoverboard')), retried(() => import('./kit/audio/weaponVoices')), retried(() => import('./kit/audio/combatCues')),
+    retried(() => import('@wildshard/kit/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
   ]);
-  const { configuredShardfile, installShardfileSource } = await retried(() => import('@wildshard/game/shardfile/loader'));
+  const { configuredShardfile, installShardfileProduct, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
   const source = configuredShardfile(document);
-  const manifest = source === null ? game.shard : installShardfileSource(source);
+  const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
+  const manifest = source === null ? game.shard : await installShardfileProduct(source, browserShardfileOptions(document.baseURI), {
+    instance: `standalone-${source.identity.slug}`, catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,
+    icon: (name) => { const id = declaredIcons.find((entry) => entry === name); if (id === undefined) throw new Error(`Unknown catalogue item icon ${name}`); return id; },
+    recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
+  });
   if (source !== null) document.documentElement.classList.remove('title-first');
   installKitSpecies();
   installKitIcons();
