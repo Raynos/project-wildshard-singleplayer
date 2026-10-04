@@ -61,6 +61,15 @@ describe('SF6 platform measures', () => {
       expect(alpha(root)).toMatchObject({ publicLines: 6, customLines: 2, runtimeLines: 1 });
     });
   });
+  it('classifies a resolved local trusted namespace without confusing a similarly named directory', () => {
+    fixture((root, put) => {
+      put('src/sdk/runtime/play.ts', 'export const play = 1;\n');
+      put('src/sdk/runtime-other/play.ts', 'export const play = 1;\n');
+      put('src/shards/alpha/data/trusted.ts', "import '../../../sdk/runtime/play';\n");
+      put('src/shards/alpha/data/other.ts', "import '../../../sdk/runtime-other/play';\n");
+      expect(alpha(root)).toMatchObject({ customLines: 2, runtimeLines: 1, trustedRuntimeLines: 1 });
+    });
+  });
   it('includes type imports, transitive imports, cycles, and nonliteral imports in the public closure', () => {
     fixture((root, put) => {
       put('src/engine/private.ts', 'export type Secret = number;\n');

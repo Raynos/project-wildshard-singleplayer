@@ -97,7 +97,10 @@ export function shardLines(root = ROOT) {
       // Local AssemblyScript imports are part of the same authored closure, including extensionless imports.
       const base = spec?.startsWith('.') ? relative(root, resolve(root, path, '..', spec)).replaceAll('\\', '/') : null;
       const assemblyPath = base === null ? null : [base, `${base}.as`, `${base}/index.as`].find((candidate) => candidate.endsWith('.as') && exists(candidate));
-      return { sdk: published('sdk', spec), trusted: /^@wildshard\/sdk\/runtime(?:\/|$)/u.test(spec ?? '') || (to ?? '').startsWith('src/sdk/runtime/'), commons: published('commons', spec), to: to ?? assemblyPath ?? null };
+      // Classify the resolved path's namespace components; an audited tree need not contain that namespace.
+      const local = (to ?? '').split('/');
+      const trustedLocal = local.length > 3 && local[0] === 'src' && local[1] === 'sdk' && local[2] === 'runtime';
+      return { sdk: published('sdk', spec), trusted: /^@wildshard\/sdk\/runtime(?:\/|$)/u.test(spec ?? '') || trustedLocal, commons: published('commons', spec), to: to ?? assemblyPath ?? null };
     }));
     return graphs.get(path);
   };
