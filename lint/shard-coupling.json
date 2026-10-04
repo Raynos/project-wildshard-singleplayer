@@ -1,0 +1,1378 @@
+{
+  "about": "SF2: legacy, pre-SF2 typed coupling ceilings; counts only shrink.",
+  "shards": {
+    "_template": {
+      "counts": {
+        "ctx.app": 22,
+        "ctx.game": 12,
+        "ctx.game.runtime": 12,
+        "engineSubclasses": 5,
+        "subclass.EliteBrain": 1,
+        "context.app": 22,
+        "context.game": 12,
+        "subclass.BossBrain": 1,
+        "context.manifest": 11,
+        "context.scope": 17,
+        "context.answer": 2,
+        "context.system": 6,
+        "context.debugRow": 1,
+        "context.strings": 1,
+        "context.tiers": 1,
+        "context.playground": 1,
+        "context.rows": 10,
+        "context.inputContext": 2,
+        "context.hud": 3,
+        "context.bag": 2,
+        "context.debug": 1,
+        "context.on": 1,
+        "subclass.CreatureBrain": 1,
+        "subclass.Tool": 1,
+        "subclass.Weapon": 1,
+        "context.root": 6,
+        "context.piece": 4
+      },
+      "sites": {
+        "engineSubclasses": [
+          "src/shards/_template/combat/encounters.ts:11:1",
+          "src/shards/_template/combat/encounters.ts:19:1",
+          "src/shards/_template/species/greyBlob.ts:16:1",
+          "src/shards/_template/weapons/TemplateLantern.ts:5:1",
+          "src/shards/_template/weapons/TemplateWhip.ts:10:1"
+        ],
+        "subclass.EliteBrain": [
+          "src/shards/_template/combat/encounters.ts:11:1"
+        ],
+        "ctx.app": [
+          "src/shards/_template/combat/encounters.ts:13:181",
+          "src/shards/_template/combat/encounters.ts:37:17",
+          "src/shards/_template/combat/encounters.ts:38:158",
+          "src/shards/_template/combat/encounters.ts:44:17",
+          "src/shards/_template/combat/encounters.ts:47:16",
+          "src/shards/_template/plugin.ts:46:43",
+          "src/shards/_template/plugin.ts:65:36",
+          "src/shards/_template/plugin.ts:71:27",
+          "src/shards/_template/plugin.ts:92:77",
+          "src/shards/_template/plugin.ts:93:130",
+          "src/shards/_template/plugin.ts:94:5",
+          "src/shards/_template/plugin.ts:95:78",
+          "src/shards/_template/plugin.ts:103:21",
+          "src/shards/_template/plugin.ts:105:60",
+          "src/shards/_template/plugin.ts:106:93",
+          "src/shards/_template/plugin.ts:106:118",
+          "src/shards/_template/quest/install.ts:15:17",
+          "src/shards/_template/quest/install.ts:19:15",
+          "src/shards/_template/world/build.ts:34:39",
+          "src/shards/_template/world/climate.ts:13:20",
+          "src/shards/_template/world/climate.ts:18:69",
+          "src/shards/_template/world/climate.ts:19:3"
+        ],
+        "context.app": [
+          "src/shards/_template/combat/encounters.ts:13:181",
+          "src/shards/_template/combat/encounters.ts:37:17",
+          "src/shards/_template/combat/encounters.ts:38:158",
+          "src/shards/_template/combat/encounters.ts:44:17",
+          "src/shards/_template/combat/encounters.ts:47:16",
+          "src/shards/_template/plugin.ts:46:43",
+          "src/shards/_template/plugin.ts:65:36",
+          "src/shards/_template/plugin.ts:71:27",
+          "src/shards/_template/plugin.ts:92:77",
+          "src/shards/_template/plugin.ts:93:130",
+          "src/shards/_template/plugin.ts:94:5",
+          "src/shards/_template/plugin.ts:95:78",
+          "src/shards/_template/plugin.ts:103:21",
+          "src/shards/_template/plugin.ts:105:60",
+          "src/shards/_template/plugin.ts:106:93",
+          "src/shards/_template/plugin.ts:106:118",
+          "src/shards/_template/quest/install.ts:15:17",
+          "src/shards/_template/quest/install.ts:19:15",
+          "src/shards/_template/world/build.ts:34:39",
+          "src/shards/_template/world/climate.ts:13:20",
+          "src/shards/_template/world/climate.ts:18:69",
+          "src/shards/_template/world/climate.ts:19:3"
+        ],
+        "ctx.game.runtime": [
+          "src/shards/_template/combat/encounters.ts:14:42",
+          "src/shards/_template/combat/encounters.ts:15:47",
+          "src/shards/_template/combat/encounters.ts:37:84",
+          "src/shards/_template/combat/encounters.ts:38:48",
+          "src/shards/_template/combat/encounters.ts:39:49",
+          "src/shards/_template/combat/encounters.ts:45:19",
+          "src/shards/_template/plugin.ts:48:5",
+          "src/shards/_template/plugin.ts:61:16",
+          "src/shards/_template/plugin.ts:77:16",
+          "src/shards/_template/quest/install.ts:21:17",
+          "src/shards/_template/quest/install.ts:27:99",
+          "src/shards/_template/quest/install.ts:28:5"
+        ],
+        "ctx.game": [
+          "src/shards/_template/combat/encounters.ts:14:42",
+          "src/shards/_template/combat/encounters.ts:15:47",
+          "src/shards/_template/combat/encounters.ts:37:84",
+          "src/shards/_template/combat/encounters.ts:38:48",
+          "src/shards/_template/combat/encounters.ts:39:49",
+          "src/shards/_template/combat/encounters.ts:45:19",
+          "src/shards/_template/plugin.ts:48:5",
+          "src/shards/_template/plugin.ts:61:16",
+          "src/shards/_template/plugin.ts:77:16",
+          "src/shards/_template/quest/install.ts:21:17",
+          "src/shards/_template/quest/install.ts:27:99",
+          "src/shards/_template/quest/install.ts:28:5"
+        ],
+        "context.game": [
+          "src/shards/_template/combat/encounters.ts:14:42",
+          "src/shards/_template/combat/encounters.ts:15:47",
+          "src/shards/_template/combat/encounters.ts:37:84",
+          "src/shards/_template/combat/encounters.ts:38:48",
+          "src/shards/_template/combat/encounters.ts:39:49",
+          "src/shards/_template/combat/encounters.ts:45:19",
+          "src/shards/_template/plugin.ts:48:5",
+          "src/shards/_template/plugin.ts:61:16",
+          "src/shards/_template/plugin.ts:77:16",
+          "src/shards/_template/quest/install.ts:21:17",
+          "src/shards/_template/quest/install.ts:27:99",
+          "src/shards/_template/quest/install.ts:28:5"
+        ],
+        "subclass.BossBrain": [
+          "src/shards/_template/combat/encounters.ts:19:1"
+        ],
+        "context.manifest": [
+          "src/shards/_template/combat/encounters.ts:22:36",
+          "src/shards/_template/combat/encounters.ts:34:41",
+          "src/shards/_template/plugin.ts:46:22",
+          "src/shards/_template/plugin.ts:58:63",
+          "src/shards/_template/plugin.ts:80:70",
+          "src/shards/_template/plugin.ts:84:55",
+          "src/shards/_template/quest/install.ts:14:27",
+          "src/shards/_template/quest/install.ts:20:38",
+          "src/shards/_template/quest/install.ts:25:20",
+          "src/shards/_template/quest/install.ts:26:23",
+          "src/shards/_template/world/build.ts:12:13"
+        ],
+        "context.scope": [
+          "src/shards/_template/combat/encounters.ts:32:41",
+          "src/shards/_template/combat/encounters.ts:44:87",
+          "src/shards/_template/combat/encounters.ts:47:89",
+          "src/shards/_template/combat/encounters.ts:49:3",
+          "src/shards/_template/plugin.ts:75:7",
+          "src/shards/_template/plugin.ts:79:55",
+          "src/shards/_template/plugin.ts:79:104",
+          "src/shards/_template/plugin.ts:79:165",
+          "src/shards/_template/plugin.ts:87:23",
+          "src/shards/_template/plugin.ts:94:44",
+          "src/shards/_template/plugin.ts:103:65",
+          "src/shards/_template/plugin.ts:108:39",
+          "src/shards/_template/plugin.ts:108:97",
+          "src/shards/_template/quest/install.ts:19:31",
+          "src/shards/_template/quest/install.ts:23:3",
+          "src/shards/_template/world/build.ts:39:27",
+          "src/shards/_template/world/climate.ts:19:33"
+        ],
+        "context.answer": [
+          "src/shards/_template/combat/encounters.ts:33:5",
+          "src/shards/_template/combat/encounters.ts:48:3"
+        ],
+        "context.system": [
+          "src/shards/_template/combat/encounters.ts:50:3",
+          "src/shards/_template/plugin.ts:95:5",
+          "src/shards/_template/plugin.ts:99:5",
+          "src/shards/_template/quest/install.ts:22:3",
+          "src/shards/_template/quest/install.ts:31:3",
+          "src/shards/_template/world/climate.ts:20:3"
+        ],
+        "context.debugRow": [
+          "src/shards/_template/debug.ts:6:3"
+        ],
+        "context.strings": [
+          "src/shards/_template/plugin.ts:45:5"
+        ],
+        "context.tiers": [
+          "src/shards/_template/plugin.ts:45:27"
+        ],
+        "context.playground": [
+          "src/shards/_template/plugin.ts:49:5"
+        ],
+        "context.rows": [
+          "src/shards/_template/plugin.ts:52:5",
+          "src/shards/_template/plugin.ts:52:46",
+          "src/shards/_template/plugin.ts:52:74",
+          "src/shards/_template/plugin.ts:53:5",
+          "src/shards/_template/plugin.ts:54:5",
+          "src/shards/_template/plugin.ts:54:56",
+          "src/shards/_template/plugin.ts:55:5",
+          "src/shards/_template/plugin.ts:56:5",
+          "src/shards/_template/plugin.ts:57:5",
+          "src/shards/_template/plugin.ts:58:5"
+        ],
+        "context.inputContext": [
+          "src/shards/_template/plugin.ts:91:5",
+          "src/shards/_template/plugin.ts:92:5"
+        ],
+        "context.hud": [
+          "src/shards/_template/plugin.ts:97:5",
+          "src/shards/_template/plugin.ts:97:41",
+          "src/shards/_template/plugin.ts:98:80"
+        ],
+        "context.bag": [
+          "src/shards/_template/plugin.ts:100:5",
+          "src/shards/_template/plugin.ts:101:5"
+        ],
+        "context.debug": [
+          "src/shards/_template/plugin.ts:107:5"
+        ],
+        "context.on": [
+          "src/shards/_template/quest/install.ts:30:3"
+        ],
+        "subclass.CreatureBrain": [
+          "src/shards/_template/species/greyBlob.ts:16:1"
+        ],
+        "subclass.Tool": [
+          "src/shards/_template/weapons/TemplateLantern.ts:5:1"
+        ],
+        "subclass.Weapon": [
+          "src/shards/_template/weapons/TemplateWhip.ts:10:1"
+        ],
+        "context.root": [
+          "src/shards/_template/world/build.ts:21:3",
+          "src/shards/_template/world/build.ts:23:3",
+          "src/shards/_template/world/build.ts:30:3",
+          "src/shards/_template/world/build.ts:36:3",
+          "src/shards/_template/world/build.ts:38:65",
+          "src/shards/_template/world/build.ts:39:17"
+        ],
+        "context.piece": [
+          "src/shards/_template/world/build.ts:21:22",
+          "src/shards/_template/world/build.ts:23:24",
+          "src/shards/_template/world/build.ts:30:23",
+          "src/shards/_template/world/build.ts:36:24"
+        ]
+      }
+    },
+    "driftwood-isle": {
+      "counts": {
+        "ctx.app": 3,
+        "ctx.game": 5,
+        "ctx.game.runtime": 5,
+        "engineSubclasses": 5,
+        "context.game": 5,
+        "context.scope": 19,
+        "context.answer": 1,
+        "context.debug": 6,
+        "context.system": 14,
+        "subclass.BossBrain": 1,
+        "context.rows": 9,
+        "context.on": 2,
+        "context.strings": 1,
+        "context.manifest": 5,
+        "context.app": 3,
+        "subclass.CreatureBrain": 4
+      },
+      "sites": {
+        "ctx.game.runtime": [
+          "src/shards/driftwood-isle/audio/install.ts:18:17",
+          "src/shards/driftwood-isle/creatures/install.ts:20:17",
+          "src/shards/driftwood-isle/plugin.ts:32:19",
+          "src/shards/driftwood-isle/plugin.ts:54:19",
+          "src/shards/driftwood-isle/quest/install.ts:18:17"
+        ],
+        "ctx.game": [
+          "src/shards/driftwood-isle/audio/install.ts:18:17",
+          "src/shards/driftwood-isle/creatures/install.ts:20:17",
+          "src/shards/driftwood-isle/plugin.ts:32:19",
+          "src/shards/driftwood-isle/plugin.ts:54:19",
+          "src/shards/driftwood-isle/quest/install.ts:18:17"
+        ],
+        "context.game": [
+          "src/shards/driftwood-isle/audio/install.ts:18:17",
+          "src/shards/driftwood-isle/creatures/install.ts:20:17",
+          "src/shards/driftwood-isle/plugin.ts:32:19",
+          "src/shards/driftwood-isle/plugin.ts:54:19",
+          "src/shards/driftwood-isle/quest/install.ts:18:17"
+        ],
+        "context.scope": [
+          "src/shards/driftwood-isle/audio/install.ts:21:39",
+          "src/shards/driftwood-isle/audio/install.ts:22:62",
+          "src/shards/driftwood-isle/audio/install.ts:25:42",
+          "src/shards/driftwood-isle/audio/install.ts:30:27",
+          "src/shards/driftwood-isle/audio/install.ts:47:3",
+          "src/shards/driftwood-isle/creatures/install.ts:16:31",
+          "src/shards/driftwood-isle/creatures/install.ts:19:30",
+          "src/shards/driftwood-isle/creatures/install.ts:28:45",
+          "src/shards/driftwood-isle/creatures/install.ts:34:3",
+          "src/shards/driftwood-isle/plugin.ts:37:9",
+          "src/shards/driftwood-isle/plugin.ts:60:5",
+          "src/shards/driftwood-isle/plugin.ts:68:5",
+          "src/shards/driftwood-isle/quest/adventure.ts:117:52",
+          "src/shards/driftwood-isle/quest/adventure.ts:148:3",
+          "src/shards/driftwood-isle/quest/install.ts:23:7",
+          "src/shards/driftwood-isle/quest/install.ts:38:42",
+          "src/shards/driftwood-isle/quest/install.ts:44:17",
+          "src/shards/driftwood-isle/quest/install.ts:45:108",
+          "src/shards/driftwood-isle/quest/install.ts:47:36"
+        ],
+        "context.answer": [
+          "src/shards/driftwood-isle/audio/install.ts:31:3"
+        ],
+        "context.debug": [
+          "src/shards/driftwood-isle/audio/install.ts:46:3",
+          "src/shards/driftwood-isle/loot/keepsakes.ts:242:30",
+          "src/shards/driftwood-isle/plugin.ts:45:5",
+          "src/shards/driftwood-isle/plugin.ts:48:5",
+          "src/shards/driftwood-isle/quest/adventure.ts:117:70",
+          "src/shards/driftwood-isle/quest/adventure.ts:243:3"
+        ],
+        "context.system": [
+          "src/shards/driftwood-isle/audio/systems.ts:13:3",
+          "src/shards/driftwood-isle/audio/systems.ts:17:3",
+          "src/shards/driftwood-isle/audio/systems.ts:18:3",
+          "src/shards/driftwood-isle/onboarding/firstMinutes.ts:56:3",
+          "src/shards/driftwood-isle/quest/adventure.ts:117:133",
+          "src/shards/driftwood-isle/quest/install.ts:40:75",
+          "src/shards/driftwood-isle/world/systems.ts:25:14",
+          "src/shards/driftwood-isle/world/systems.ts:26:13",
+          "src/shards/driftwood-isle/world/systems.ts:27:14",
+          "src/shards/driftwood-isle/world/systems.ts:28:14",
+          "src/shards/driftwood-isle/world/systems.ts:29:29",
+          "src/shards/driftwood-isle/world/systems.ts:30:15",
+          "src/shards/driftwood-isle/world/systems.ts:31:13",
+          "src/shards/driftwood-isle/world/systems.ts:32:15"
+        ],
+        "engineSubclasses": [
+          "src/shards/driftwood-isle/combat/captain.ts:28:1",
+          "src/shards/driftwood-isle/species/captain.ts:356:1",
+          "src/shards/driftwood-isle/species/crab.ts:329:1",
+          "src/shards/driftwood-isle/species/monkey.ts:390:1",
+          "src/shards/driftwood-isle/species/sailor.ts:393:1"
+        ],
+        "subclass.BossBrain": [
+          "src/shards/driftwood-isle/combat/captain.ts:28:1"
+        ],
+        "context.rows": [
+          "src/shards/driftwood-isle/creatures/install.ts:14:3",
+          "src/shards/driftwood-isle/creatures/install.ts:15:3",
+          "src/shards/driftwood-isle/creatures/install.ts:17:3",
+          "src/shards/driftwood-isle/creatures/install.ts:18:3",
+          "src/shards/driftwood-isle/plugin.ts:59:5",
+          "src/shards/driftwood-isle/plugin.ts:61:5",
+          "src/shards/driftwood-isle/plugin.ts:61:37",
+          "src/shards/driftwood-isle/plugin.ts:62:5",
+          "src/shards/driftwood-isle/plugin.ts:62:41"
+        ],
+        "context.on": [
+          "src/shards/driftwood-isle/onboarding/firstMinutes.ts:42:3",
+          "src/shards/driftwood-isle/quest/adventure.ts:118:32"
+        ],
+        "context.strings": [
+          "src/shards/driftwood-isle/plugin.ts:31:5"
+        ],
+        "context.manifest": [
+          "src/shards/driftwood-isle/plugin.ts:48:39",
+          "src/shards/driftwood-isle/quest/install.ts:26:113",
+          "src/shards/driftwood-isle/quest/install.ts:38:101",
+          "src/shards/driftwood-isle/quest/install.ts:38:153",
+          "src/shards/driftwood-isle/quest/install.ts:52:48"
+        ],
+        "ctx.app": [
+          "src/shards/driftwood-isle/quest/install.ts:36:19",
+          "src/shards/driftwood-isle/quest/install.ts:36:45",
+          "src/shards/driftwood-isle/quest/install.ts:57:21"
+        ],
+        "context.app": [
+          "src/shards/driftwood-isle/quest/install.ts:36:19",
+          "src/shards/driftwood-isle/quest/install.ts:36:45",
+          "src/shards/driftwood-isle/quest/install.ts:57:21"
+        ],
+        "subclass.CreatureBrain": [
+          "src/shards/driftwood-isle/species/captain.ts:356:1",
+          "src/shards/driftwood-isle/species/crab.ts:329:1",
+          "src/shards/driftwood-isle/species/monkey.ts:390:1",
+          "src/shards/driftwood-isle/species/sailor.ts:393:1"
+        ]
+      }
+    },
+    "far-reach": {
+      "counts": {
+        "ctx.app": 16,
+        "ctx.game": 12,
+        "ctx.game.runtime": 12,
+        "engineSubclasses": 6,
+        "subclass.BossBrain": 1,
+        "context.scope": 28,
+        "context.answer": 2,
+        "context.manifest": 10,
+        "context.app": 16,
+        "context.game": 12,
+        "context.strings": 1,
+        "context.tiers": 1,
+        "context.root": 6,
+        "context.rows": 4,
+        "context.inputContext": 1,
+        "context.system": 12,
+        "context.debug": 1,
+        "subclass.CreatureBrain": 4,
+        "subclass.Weapon": 1,
+        "context.piece": 16
+      },
+      "sites": {
+        "engineSubclasses": [
+          "src/shards/far-reach/combat/stormRoc.ts:20:1",
+          "src/shards/far-reach/species/driftRay.ts:21:1",
+          "src/shards/far-reach/species/galeWisp.ts:20:1",
+          "src/shards/far-reach/species/skyGoat.ts:29:1",
+          "src/shards/far-reach/species/stormRoc.ts:60:1",
+          "src/shards/far-reach/weapons/WarFan.ts:71:1"
+        ],
+        "subclass.BossBrain": [
+          "src/shards/far-reach/combat/stormRoc.ts:20:1"
+        ],
+        "context.scope": [
+          "src/shards/far-reach/combat/stormRoc.ts:37:41",
+          "src/shards/far-reach/plugin.ts:82:44",
+          "src/shards/far-reach/plugin.ts:89:106",
+          "src/shards/far-reach/plugin.ts:100:52",
+          "src/shards/far-reach/plugin.ts:100:88",
+          "src/shards/far-reach/plugin.ts:100:124",
+          "src/shards/far-reach/plugin.ts:101:5",
+          "src/shards/far-reach/plugin.ts:123:57",
+          "src/shards/far-reach/plugin.ts:126:61",
+          "src/shards/far-reach/plugin.ts:127:55",
+          "src/shards/far-reach/plugin.ts:127:111",
+          "src/shards/far-reach/plugin.ts:139:137",
+          "src/shards/far-reach/plugin.ts:179:5",
+          "src/shards/far-reach/plugin.ts:193:87",
+          "src/shards/far-reach/plugin.ts:193:119",
+          "src/shards/far-reach/plugin.ts:193:151",
+          "src/shards/far-reach/plugin.ts:224:61",
+          "src/shards/far-reach/plugin.ts:226:5",
+          "src/shards/far-reach/plugin.ts:237:55",
+          "src/shards/far-reach/plugin.ts:243:47",
+          "src/shards/far-reach/plugin.ts:243:77",
+          "src/shards/far-reach/plugin.ts:243:107",
+          "src/shards/far-reach/quest/install.ts:60:31",
+          "src/shards/far-reach/quest/install.ts:64:3",
+          "src/shards/far-reach/quest/install.ts:73:79",
+          "src/shards/far-reach/quest/install.ts:81:22",
+          "src/shards/far-reach/world/build.ts:252:45",
+          "src/shards/far-reach/world/build.ts:255:43"
+        ],
+        "context.answer": [
+          "src/shards/far-reach/combat/stormRoc.ts:38:5",
+          "src/shards/far-reach/plugin.ts:238:5"
+        ],
+        "context.manifest": [
+          "src/shards/far-reach/combat/stormRoc.ts:39:41",
+          "src/shards/far-reach/plugin.ts:97:20",
+          "src/shards/far-reach/plugin.ts:99:35",
+          "src/shards/far-reach/plugin.ts:128:70",
+          "src/shards/far-reach/quest/install.ts:49:27",
+          "src/shards/far-reach/quest/install.ts:61:38",
+          "src/shards/far-reach/quest/install.ts:69:23",
+          "src/shards/far-reach/quest/install.ts:70:26",
+          "src/shards/far-reach/quest/install.ts:78:128",
+          "src/shards/far-reach/quest/install.ts:92:26"
+        ],
+        "ctx.app": [
+          "src/shards/far-reach/combat/stormRoc.ts:43:17",
+          "src/shards/far-reach/combat/stormRoc.ts:44:158",
+          "src/shards/far-reach/plugin.ts:83:24",
+          "src/shards/far-reach/plugin.ts:99:56",
+          "src/shards/far-reach/plugin.ts:110:49",
+          "src/shards/far-reach/plugin.ts:111:27",
+          "src/shards/far-reach/plugin.ts:122:18",
+          "src/shards/far-reach/plugin.ts:126:29",
+          "src/shards/far-reach/plugin.ts:137:100",
+          "src/shards/far-reach/plugin.ts:139:5",
+          "src/shards/far-reach/plugin.ts:164:19",
+          "src/shards/far-reach/plugin.ts:177:22",
+          "src/shards/far-reach/plugin.ts:237:17",
+          "src/shards/far-reach/quest/install.ts:49:58",
+          "src/shards/far-reach/quest/install.ts:60:15",
+          "src/shards/far-reach/world/build.ts:130:18"
+        ],
+        "context.app": [
+          "src/shards/far-reach/combat/stormRoc.ts:43:17",
+          "src/shards/far-reach/combat/stormRoc.ts:44:158",
+          "src/shards/far-reach/plugin.ts:83:24",
+          "src/shards/far-reach/plugin.ts:99:56",
+          "src/shards/far-reach/plugin.ts:110:49",
+          "src/shards/far-reach/plugin.ts:111:27",
+          "src/shards/far-reach/plugin.ts:122:18",
+          "src/shards/far-reach/plugin.ts:126:29",
+          "src/shards/far-reach/plugin.ts:137:100",
+          "src/shards/far-reach/plugin.ts:139:5",
+          "src/shards/far-reach/plugin.ts:164:19",
+          "src/shards/far-reach/plugin.ts:177:22",
+          "src/shards/far-reach/plugin.ts:237:17",
+          "src/shards/far-reach/quest/install.ts:49:58",
+          "src/shards/far-reach/quest/install.ts:60:15",
+          "src/shards/far-reach/world/build.ts:130:18"
+        ],
+        "ctx.game.runtime": [
+          "src/shards/far-reach/combat/stormRoc.ts:43:84",
+          "src/shards/far-reach/combat/stormRoc.ts:44:48",
+          "src/shards/far-reach/combat/stormRoc.ts:45:49",
+          "src/shards/far-reach/plugin.ts:102:5",
+          "src/shards/far-reach/plugin.ts:108:16",
+          "src/shards/far-reach/plugin.ts:120:16",
+          "src/shards/far-reach/quest/install.ts:62:17",
+          "src/shards/far-reach/quest/install.ts:66:103",
+          "src/shards/far-reach/quest/install.ts:75:16",
+          "src/shards/far-reach/quest/install.ts:75:43",
+          "src/shards/far-reach/quest/install.ts:75:67",
+          "src/shards/far-reach/quest/install.ts:82:26"
+        ],
+        "ctx.game": [
+          "src/shards/far-reach/combat/stormRoc.ts:43:84",
+          "src/shards/far-reach/combat/stormRoc.ts:44:48",
+          "src/shards/far-reach/combat/stormRoc.ts:45:49",
+          "src/shards/far-reach/plugin.ts:102:5",
+          "src/shards/far-reach/plugin.ts:108:16",
+          "src/shards/far-reach/plugin.ts:120:16",
+          "src/shards/far-reach/quest/install.ts:62:17",
+          "src/shards/far-reach/quest/install.ts:66:103",
+          "src/shards/far-reach/quest/install.ts:75:16",
+          "src/shards/far-reach/quest/install.ts:75:43",
+          "src/shards/far-reach/quest/install.ts:75:67",
+          "src/shards/far-reach/quest/install.ts:82:26"
+        ],
+        "context.game": [
+          "src/shards/far-reach/combat/stormRoc.ts:43:84",
+          "src/shards/far-reach/combat/stormRoc.ts:44:48",
+          "src/shards/far-reach/combat/stormRoc.ts:45:49",
+          "src/shards/far-reach/plugin.ts:102:5",
+          "src/shards/far-reach/plugin.ts:108:16",
+          "src/shards/far-reach/plugin.ts:120:16",
+          "src/shards/far-reach/quest/install.ts:62:17",
+          "src/shards/far-reach/quest/install.ts:66:103",
+          "src/shards/far-reach/quest/install.ts:75:16",
+          "src/shards/far-reach/quest/install.ts:75:43",
+          "src/shards/far-reach/quest/install.ts:75:67",
+          "src/shards/far-reach/quest/install.ts:82:26"
+        ],
+        "context.strings": [
+          "src/shards/far-reach/plugin.ts:77:5"
+        ],
+        "context.tiers": [
+          "src/shards/far-reach/plugin.ts:98:5"
+        ],
+        "context.root": [
+          "src/shards/far-reach/plugin.ts:100:26",
+          "src/shards/far-reach/plugin.ts:178:39",
+          "src/shards/far-reach/plugin.ts:193:65",
+          "src/shards/far-reach/plugin.ts:243:27",
+          "src/shards/far-reach/quest/install.ts:73:29",
+          "src/shards/far-reach/world/build.ts:255:3"
+        ],
+        "context.rows": [
+          "src/shards/far-reach/plugin.ts:105:5",
+          "src/shards/far-reach/plugin.ts:106:5",
+          "src/shards/far-reach/plugin.ts:106:68",
+          "src/shards/far-reach/plugin.ts:107:5"
+        ],
+        "context.inputContext": [
+          "src/shards/far-reach/plugin.ts:135:5"
+        ],
+        "context.system": [
+          "src/shards/far-reach/plugin.ts:148:5",
+          "src/shards/far-reach/plugin.ts:158:5",
+          "src/shards/far-reach/plugin.ts:168:5",
+          "src/shards/far-reach/plugin.ts:184:5",
+          "src/shards/far-reach/plugin.ts:194:5",
+          "src/shards/far-reach/plugin.ts:203:5",
+          "src/shards/far-reach/plugin.ts:228:5",
+          "src/shards/far-reach/plugin.ts:239:5",
+          "src/shards/far-reach/plugin.ts:244:5",
+          "src/shards/far-reach/quest/install.ts:63:3",
+          "src/shards/far-reach/quest/install.ts:74:3",
+          "src/shards/far-reach/quest/install.ts:83:3"
+        ],
+        "context.debug": [
+          "src/shards/far-reach/plugin.ts:253:5"
+        ],
+        "subclass.CreatureBrain": [
+          "src/shards/far-reach/species/driftRay.ts:21:1",
+          "src/shards/far-reach/species/galeWisp.ts:20:1",
+          "src/shards/far-reach/species/skyGoat.ts:29:1",
+          "src/shards/far-reach/species/stormRoc.ts:60:1"
+        ],
+        "subclass.Weapon": [
+          "src/shards/far-reach/weapons/WarFan.ts:71:1"
+        ],
+        "context.piece": [
+          "src/shards/far-reach/world/build.ts:143:5",
+          "src/shards/far-reach/world/build.ts:149:5",
+          "src/shards/far-reach/world/build.ts:176:3",
+          "src/shards/far-reach/world/build.ts:180:3",
+          "src/shards/far-reach/world/build.ts:183:3",
+          "src/shards/far-reach/world/build.ts:194:5",
+          "src/shards/far-reach/world/build.ts:204:3",
+          "src/shards/far-reach/world/build.ts:210:3",
+          "src/shards/far-reach/world/build.ts:214:3",
+          "src/shards/far-reach/world/build.ts:218:3",
+          "src/shards/far-reach/world/build.ts:224:3",
+          "src/shards/far-reach/world/build.ts:228:3",
+          "src/shards/far-reach/world/build.ts:235:5",
+          "src/shards/far-reach/world/build.ts:243:3",
+          "src/shards/far-reach/world/build.ts:247:3",
+          "src/shards/far-reach/world/build.ts:250:3"
+        ]
+      }
+    },
+    "nalati-grasslands": {
+      "counts": {
+        "ctx.app": 35,
+        "ctx.game": 1,
+        "ctx.game.runtime": 1,
+        "engineSubclasses": 18,
+        "context.on": 7,
+        "context.system": 5,
+        "context.debug": 9,
+        "subclass.EliteBrain": 6,
+        "subclass.GroupBrain": 4,
+        "subclass.BossBrain": 2,
+        "context.game": 1,
+        "context.strings": 2,
+        "context.scope": 18,
+        "context.manifest": 1,
+        "context.app": 35,
+        "context.rows": 4,
+        "context.answer": 4,
+        "context.bag": 1,
+        "context.playground": 1,
+        "context.inputContext": 4,
+        "context.hud": 5,
+        "subclass.Weapon": 4,
+        "subclass.TreeFactory": 1,
+        "subclass.Weather": 1
+      },
+      "sites": {
+        "context.on": [
+          "src/shards/nalati-grasslands/adventure.ts:228:5",
+          "src/shards/nalati-grasslands/plugin.ts:104:5",
+          "src/shards/nalati-grasslands/plugin.ts:119:5",
+          "src/shards/nalati-grasslands/plugin.ts:120:5",
+          "src/shards/nalati-grasslands/runtime.ts:384:91",
+          "src/shards/nalati-grasslands/runtime.ts:398:3",
+          "src/shards/nalati-grasslands/runtime.ts:399:3"
+        ],
+        "context.system": [
+          "src/shards/nalati-grasslands/adventure.ts:260:8",
+          "src/shards/nalati-grasslands/ride/input.ts:39:3",
+          "src/shards/nalati-grasslands/runtime.ts:394:5",
+          "src/shards/nalati-grasslands/runtime.ts:397:3",
+          "src/shards/nalati-grasslands/stealth.ts:290:3"
+        ],
+        "context.debug": [
+          "src/shards/nalati-grasslands/adventure.ts:264:82",
+          "src/shards/nalati-grasslands/plugin.ts:67:5",
+          "src/shards/nalati-grasslands/ride/input.ts:45:3",
+          "src/shards/nalati-grasslands/runtime.ts:384:109",
+          "src/shards/nalati-grasslands/runtime.ts:407:3",
+          "src/shards/nalati-grasslands/runtime.ts:408:3",
+          "src/shards/nalati-grasslands/runtime.ts:409:3",
+          "src/shards/nalati-grasslands/stealth.ts:291:3",
+          "src/shards/nalati-grasslands/world/installWeather.ts:315:3"
+        ],
+        "engineSubclasses": [
+          "src/shards/nalati-grasslands/combat/elites.ts:151:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:208:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:337:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:448:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:592:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:752:1",
+          "src/shards/nalati-grasslands/combat/ghostRiders.ts:180:1",
+          "src/shards/nalati-grasslands/combat/goldenKing.ts:645:1",
+          "src/shards/nalati-grasslands/combat/stormTitan.ts:967:1",
+          "src/shards/nalati-grasslands/creatures/flock.ts:71:1",
+          "src/shards/nalati-grasslands/creatures/herd.ts:61:1",
+          "src/shards/nalati-grasslands/creatures/pack.ts:76:1",
+          "src/shards/nalati-grasslands/weapons/GoldenBow.ts:232:1",
+          "src/shards/nalati-grasslands/weapons/Naizagai.ts:289:1",
+          "src/shards/nalati-grasslands/weapons/Sabre.ts:217:1",
+          "src/shards/nalati-grasslands/weapons/Spear.ts:239:1",
+          "src/shards/nalati-grasslands/world/Spruce.ts:236:1",
+          "src/shards/nalati-grasslands/world/Weather.ts:78:1"
+        ],
+        "subclass.EliteBrain": [
+          "src/shards/nalati-grasslands/combat/elites.ts:151:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:208:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:337:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:448:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:592:1",
+          "src/shards/nalati-grasslands/combat/elites.ts:752:1"
+        ],
+        "subclass.GroupBrain": [
+          "src/shards/nalati-grasslands/combat/ghostRiders.ts:180:1",
+          "src/shards/nalati-grasslands/creatures/flock.ts:71:1",
+          "src/shards/nalati-grasslands/creatures/herd.ts:61:1",
+          "src/shards/nalati-grasslands/creatures/pack.ts:76:1"
+        ],
+        "subclass.BossBrain": [
+          "src/shards/nalati-grasslands/combat/goldenKing.ts:645:1",
+          "src/shards/nalati-grasslands/combat/stormTitan.ts:967:1"
+        ],
+        "ctx.game.runtime": [
+          "src/shards/nalati-grasslands/plugin.ts:25:14"
+        ],
+        "ctx.game": [
+          "src/shards/nalati-grasslands/plugin.ts:25:14"
+        ],
+        "context.game": [
+          "src/shards/nalati-grasslands/plugin.ts:25:14"
+        ],
+        "context.strings": [
+          "src/shards/nalati-grasslands/plugin.ts:40:5",
+          "src/shards/nalati-grasslands/plugin.ts:41:5"
+        ],
+        "context.scope": [
+          "src/shards/nalati-grasslands/plugin.ts:43:71",
+          "src/shards/nalati-grasslands/plugin.ts:68:48",
+          "src/shards/nalati-grasslands/plugin.ts:70:5",
+          "src/shards/nalati-grasslands/plugin.ts:106:251",
+          "src/shards/nalati-grasslands/plugin.ts:122:24",
+          "src/shards/nalati-grasslands/plugin.ts:123:24",
+          "src/shards/nalati-grasslands/plugin.ts:127:9",
+          "src/shards/nalati-grasslands/ride/input.ts:28:52",
+          "src/shards/nalati-grasslands/ride/input.ts:29:27",
+          "src/shards/nalati-grasslands/ride/input.ts:32:35",
+          "src/shards/nalati-grasslands/ride/input.ts:36:38",
+          "src/shards/nalati-grasslands/ride/input.ts:44:3",
+          "src/shards/nalati-grasslands/ride/ride.ts:78:91",
+          "src/shards/nalati-grasslands/ride/ride.ts:79:70",
+          "src/shards/nalati-grasslands/runtime.ts:249:3",
+          "src/shards/nalati-grasslands/runtime.ts:384:73",
+          "src/shards/nalati-grasslands/stealth.ts:288:33",
+          "src/shards/nalati-grasslands/world/installWeather.ts:192:3"
+        ],
+        "context.manifest": [
+          "src/shards/nalati-grasslands/plugin.ts:67:39"
+        ],
+        "ctx.app": [
+          "src/shards/nalati-grasslands/plugin.ts:68:5",
+          "src/shards/nalati-grasslands/plugin.ts:96:22",
+          "src/shards/nalati-grasslands/plugin.ts:98:7",
+          "src/shards/nalati-grasslands/plugin.ts:100:61",
+          "src/shards/nalati-grasslands/plugin.ts:121:20",
+          "src/shards/nalati-grasslands/plugin.ts:122:72",
+          "src/shards/nalati-grasslands/plugin.ts:123:73",
+          "src/shards/nalati-grasslands/ride/input.ts:12:17",
+          "src/shards/nalati-grasslands/ride/input.ts:30:48",
+          "src/shards/nalati-grasslands/ride/input.ts:33:60",
+          "src/shards/nalati-grasslands/ride/input.ts:33:79",
+          "src/shards/nalati-grasslands/ride/input.ts:37:9",
+          "src/shards/nalati-grasslands/ride/input.ts:37:28",
+          "src/shards/nalati-grasslands/ride/ride.ts:76:28",
+          "src/shards/nalati-grasslands/ride/ride.ts:78:41",
+          "src/shards/nalati-grasslands/ride/ride.ts:79:15",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:119:124",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:119:271",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:123:126",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:124:125",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:124:227",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:125:126",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:125:228",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:126:122",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:126:228",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:230:33",
+          "src/shards/nalati-grasslands/runtime.ts:141:50",
+          "src/shards/nalati-grasslands/runtime.ts:148:43",
+          "src/shards/nalati-grasslands/runtime.ts:168:44",
+          "src/shards/nalati-grasslands/runtime.ts:170:42",
+          "src/shards/nalati-grasslands/runtime.ts:206:101",
+          "src/shards/nalati-grasslands/runtime.ts:235:5",
+          "src/shards/nalati-grasslands/stealth.ts:288:3",
+          "src/shards/nalati-grasslands/world/installWeather.ts:181:14",
+          "src/shards/nalati-grasslands/world/installWeather.ts:305:43"
+        ],
+        "context.app": [
+          "src/shards/nalati-grasslands/plugin.ts:68:5",
+          "src/shards/nalati-grasslands/plugin.ts:96:22",
+          "src/shards/nalati-grasslands/plugin.ts:98:7",
+          "src/shards/nalati-grasslands/plugin.ts:100:61",
+          "src/shards/nalati-grasslands/plugin.ts:121:20",
+          "src/shards/nalati-grasslands/plugin.ts:122:72",
+          "src/shards/nalati-grasslands/plugin.ts:123:73",
+          "src/shards/nalati-grasslands/ride/input.ts:12:17",
+          "src/shards/nalati-grasslands/ride/input.ts:30:48",
+          "src/shards/nalati-grasslands/ride/input.ts:33:60",
+          "src/shards/nalati-grasslands/ride/input.ts:33:79",
+          "src/shards/nalati-grasslands/ride/input.ts:37:9",
+          "src/shards/nalati-grasslands/ride/input.ts:37:28",
+          "src/shards/nalati-grasslands/ride/ride.ts:76:28",
+          "src/shards/nalati-grasslands/ride/ride.ts:78:41",
+          "src/shards/nalati-grasslands/ride/ride.ts:79:15",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:119:124",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:119:271",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:123:126",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:124:125",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:124:227",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:125:126",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:125:228",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:126:122",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:126:228",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:230:33",
+          "src/shards/nalati-grasslands/runtime.ts:141:50",
+          "src/shards/nalati-grasslands/runtime.ts:148:43",
+          "src/shards/nalati-grasslands/runtime.ts:168:44",
+          "src/shards/nalati-grasslands/runtime.ts:170:42",
+          "src/shards/nalati-grasslands/runtime.ts:206:101",
+          "src/shards/nalati-grasslands/runtime.ts:235:5",
+          "src/shards/nalati-grasslands/stealth.ts:288:3",
+          "src/shards/nalati-grasslands/world/installWeather.ts:181:14",
+          "src/shards/nalati-grasslands/world/installWeather.ts:305:43"
+        ],
+        "context.rows": [
+          "src/shards/nalati-grasslands/plugin.ts:76:5",
+          "src/shards/nalati-grasslands/plugin.ts:77:5",
+          "src/shards/nalati-grasslands/plugin.ts:78:5",
+          "src/shards/nalati-grasslands/plugin.ts:79:5"
+        ],
+        "context.answer": [
+          "src/shards/nalati-grasslands/plugin.ts:124:5",
+          "src/shards/nalati-grasslands/runtime.ts:400:3",
+          "src/shards/nalati-grasslands/runtime.ts:401:3",
+          "src/shards/nalati-grasslands/stealth.ts:289:3"
+        ],
+        "context.bag": [
+          "src/shards/nalati-grasslands/plugin.ts:128:27"
+        ],
+        "context.playground": [
+          "src/shards/nalati-grasslands/plugin.ts:129:5"
+        ],
+        "context.inputContext": [
+          "src/shards/nalati-grasslands/ride/input.ts:13:3",
+          "src/shards/nalati-grasslands/ride/input.ts:16:3",
+          "src/shards/nalati-grasslands/ride/input.ts:20:3",
+          "src/shards/nalati-grasslands/stealth.ts:287:3"
+        ],
+        "context.hud": [
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:118:68",
+          "src/shards/nalati-grasslands/ride/RideHUD.ts:131:19",
+          "src/shards/nalati-grasslands/stealth.ts:136:96",
+          "src/shards/nalati-grasslands/stealth.ts:142:19",
+          "src/shards/nalati-grasslands/stealth.ts:147:19"
+        ],
+        "subclass.Weapon": [
+          "src/shards/nalati-grasslands/weapons/GoldenBow.ts:232:1",
+          "src/shards/nalati-grasslands/weapons/Naizagai.ts:289:1",
+          "src/shards/nalati-grasslands/weapons/Sabre.ts:217:1",
+          "src/shards/nalati-grasslands/weapons/Spear.ts:239:1"
+        ],
+        "subclass.TreeFactory": [
+          "src/shards/nalati-grasslands/world/Spruce.ts:236:1"
+        ],
+        "subclass.Weather": [
+          "src/shards/nalati-grasslands/world/Weather.ts:78:1"
+        ]
+      }
+    },
+    "nine-dragon-stack": {
+      "counts": {
+        "ctx.app": 15,
+        "ctx.game": 1,
+        "ctx.game.runtime": 1,
+        "engineSubclasses": 1,
+        "context.app": 15,
+        "context.scope": 13,
+        "context.system": 2,
+        "context.debug": 1,
+        "subclass.Tool": 1,
+        "context.hud": 3,
+        "context.progress": 2,
+        "context.rows": 2,
+        "context.game": 1,
+        "context.strings": 1,
+        "context.playground": 1,
+        "context.piece": 4
+      },
+      "sites": {
+        "ctx.app": [
+          "src/shards/nine-dragon-stack/audio/ambience.ts:23:17",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:25:53",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:35:51",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:52:25",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:269:18",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:297:17",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:302:110",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:399:3",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:440:3",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:444:3",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:506:3",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:565:3",
+          "src/shards/nine-dragon-stack/plugin.ts:19:18",
+          "src/shards/nine-dragon-stack/plugin.ts:45:23",
+          "src/shards/nine-dragon-stack/plugin.ts:60:26"
+        ],
+        "context.app": [
+          "src/shards/nine-dragon-stack/audio/ambience.ts:23:17",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:25:53",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:35:51",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:52:25",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:269:18",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:297:17",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:302:110",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:399:3",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:440:3",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:444:3",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:506:3",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:565:3",
+          "src/shards/nine-dragon-stack/plugin.ts:19:18",
+          "src/shards/nine-dragon-stack/plugin.ts:45:23",
+          "src/shards/nine-dragon-stack/plugin.ts:60:26"
+        ],
+        "context.scope": [
+          "src/shards/nine-dragon-stack/audio/ambience.ts:27:39",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:28:3",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:29:3",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:30:26",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:31:3",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:32:90",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:40:3",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:41:40",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:45:55",
+          "src/shards/nine-dragon-stack/audio/ambience.ts:46:43",
+          "src/shards/nine-dragon-stack/plugin.ts:58:9",
+          "src/shards/nine-dragon-stack/plugin.ts:60:42",
+          "src/shards/nine-dragon-stack/world/install.ts:14:18"
+        ],
+        "context.system": [
+          "src/shards/nine-dragon-stack/audio/ambience.ts:50:3",
+          "src/shards/nine-dragon-stack/world/install.ts:35:5"
+        ],
+        "context.debug": [
+          "src/shards/nine-dragon-stack/audio/ambience.ts:66:3"
+        ],
+        "engineSubclasses": [
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:257:1"
+        ],
+        "subclass.Tool": [
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:257:1"
+        ],
+        "context.hud": [
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:294:5",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:296:3",
+          "src/shards/nine-dragon-stack/grapple/FeiZhua.ts:381:41"
+        ],
+        "context.progress": [
+          "src/shards/nine-dragon-stack/plugin.ts:22:5",
+          "src/shards/nine-dragon-stack/plugin.ts:23:31"
+        ],
+        "context.rows": [
+          "src/shards/nine-dragon-stack/plugin.ts:32:5",
+          "src/shards/nine-dragon-stack/plugin.ts:33:5"
+        ],
+        "ctx.game.runtime": [
+          "src/shards/nine-dragon-stack/plugin.ts:34:19"
+        ],
+        "ctx.game": [
+          "src/shards/nine-dragon-stack/plugin.ts:34:19"
+        ],
+        "context.game": [
+          "src/shards/nine-dragon-stack/plugin.ts:34:19"
+        ],
+        "context.strings": [
+          "src/shards/nine-dragon-stack/plugin.ts:55:5"
+        ],
+        "context.playground": [
+          "src/shards/nine-dragon-stack/plugin.ts:56:5"
+        ],
+        "context.piece": [
+          "src/shards/nine-dragon-stack/world/install.ts:16:5",
+          "src/shards/nine-dragon-stack/world/install.ts:20:5",
+          "src/shards/nine-dragon-stack/world/install.ts:22:5",
+          "src/shards/nine-dragon-stack/world/install.ts:30:5"
+        ]
+      }
+    },
+    "pine-hollow": {
+      "counts": {
+        "ctx.app": 11,
+        "ctx.game": 1,
+        "ctx.game.runtime": 1,
+        "engineSubclasses": 8,
+        "subclass.EliteBrain": 5,
+        "context.debugRow": 3,
+        "context.scope": 25,
+        "context.on": 5,
+        "context.manifest": 6,
+        "context.system": 7,
+        "context.debug": 5,
+        "context.game": 1,
+        "context.strings": 1,
+        "context.app": 11,
+        "context.rows": 11,
+        "context.answer": 1,
+        "subclass.Weapon": 1,
+        "subclass.TreeFactory": 1,
+        "subclass.Weather": 1
+      },
+      "sites": {
+        "engineSubclasses": [
+          "src/shards/pine-hollow/combat/elites.ts:127:1",
+          "src/shards/pine-hollow/combat/elites.ts:164:1",
+          "src/shards/pine-hollow/combat/elites.ts:178:1",
+          "src/shards/pine-hollow/combat/elites.ts:222:1",
+          "src/shards/pine-hollow/combat/elites.ts:269:1",
+          "src/shards/pine-hollow/weapons/LeverRifle.ts:292:1",
+          "src/shards/pine-hollow/world/treeFactory.ts:72:1",
+          "src/shards/pine-hollow/world/weatherProfile.ts:74:1"
+        ],
+        "subclass.EliteBrain": [
+          "src/shards/pine-hollow/combat/elites.ts:127:1",
+          "src/shards/pine-hollow/combat/elites.ts:164:1",
+          "src/shards/pine-hollow/combat/elites.ts:178:1",
+          "src/shards/pine-hollow/combat/elites.ts:222:1",
+          "src/shards/pine-hollow/combat/elites.ts:269:1"
+        ],
+        "context.debugRow": [
+          "src/shards/pine-hollow/debug/options.ts:19:3",
+          "src/shards/pine-hollow/debug/options.ts:23:3",
+          "src/shards/pine-hollow/plugin.ts:159:47"
+        ],
+        "context.scope": [
+          "src/shards/pine-hollow/life/index.ts:138:98",
+          "src/shards/pine-hollow/life/index.ts:140:113",
+          "src/shards/pine-hollow/life/index.ts:819:3",
+          "src/shards/pine-hollow/models/skinningKnife.ts:58:111",
+          "src/shards/pine-hollow/models/skinningKnife.ts:59:5",
+          "src/shards/pine-hollow/models/skinningKnife.ts:66:11",
+          "src/shards/pine-hollow/plugin.ts:75:38",
+          "src/shards/pine-hollow/plugin.ts:127:32",
+          "src/shards/pine-hollow/plugin.ts:159:36",
+          "src/shards/pine-hollow/plugin.ts:185:146",
+          "src/shards/pine-hollow/plugin.ts:225:38",
+          "src/shards/pine-hollow/quest/index.ts:115:7",
+          "src/shards/pine-hollow/quest/index.ts:124:85",
+          "src/shards/pine-hollow/quest/index.ts:185:3",
+          "src/shards/pine-hollow/quest/index.ts:189:30",
+          "src/shards/pine-hollow/quest/index.ts:258:9",
+          "src/shards/pine-hollow/quest/index.ts:313:47",
+          "src/shards/pine-hollow/quest/index.ts:339:118",
+          "src/shards/pine-hollow/quest/index.ts:354:5",
+          "src/shards/pine-hollow/quest/index.ts:361:17",
+          "src/shards/pine-hollow/quest/index.ts:370:36",
+          "src/shards/pine-hollow/quest/index.ts:465:3",
+          "src/shards/pine-hollow/quest/index.ts:533:3",
+          "src/shards/pine-hollow/quest/index.ts:610:3",
+          "src/shards/pine-hollow/quest/index.ts:614:5"
+        ],
+        "context.on": [
+          "src/shards/pine-hollow/life/index.ts:140:3",
+          "src/shards/pine-hollow/life/index.ts:286:3",
+          "src/shards/pine-hollow/models/skinningKnife.ts:58:5",
+          "src/shards/pine-hollow/plugin.ts:171:5",
+          "src/shards/pine-hollow/quest/index.ts:401:3"
+        ],
+        "context.manifest": [
+          "src/shards/pine-hollow/life/index.ts:140:53",
+          "src/shards/pine-hollow/models/skinningKnife.ts:58:53",
+          "src/shards/pine-hollow/plugin.ts:204:57",
+          "src/shards/pine-hollow/plugin.ts:207:153",
+          "src/shards/pine-hollow/plugin.ts:219:39",
+          "src/shards/pine-hollow/quest/index.ts:608:37"
+        ],
+        "context.system": [
+          "src/shards/pine-hollow/life/index.ts:740:3",
+          "src/shards/pine-hollow/quest/index.ts:179:3",
+          "src/shards/pine-hollow/quest/index.ts:186:3",
+          "src/shards/pine-hollow/quest/index.ts:196:5",
+          "src/shards/pine-hollow/quest/index.ts:541:3",
+          "src/shards/pine-hollow/world/weather.ts:206:5",
+          "src/shards/pine-hollow/world/weather.ts:207:5"
+        ],
+        "context.debug": [
+          "src/shards/pine-hollow/life/index.ts:816:3",
+          "src/shards/pine-hollow/plugin.ts:219:5",
+          "src/shards/pine-hollow/quest/index.ts:607:3",
+          "src/shards/pine-hollow/quest/index.ts:608:3",
+          "src/shards/pine-hollow/world/weather.ts:228:12"
+        ],
+        "ctx.game.runtime": [
+          "src/shards/pine-hollow/plugin.ts:54:14"
+        ],
+        "ctx.game": [
+          "src/shards/pine-hollow/plugin.ts:54:14"
+        ],
+        "context.game": [
+          "src/shards/pine-hollow/plugin.ts:54:14"
+        ],
+        "context.strings": [
+          "src/shards/pine-hollow/plugin.ts:66:5"
+        ],
+        "ctx.app": [
+          "src/shards/pine-hollow/plugin.ts:75:5",
+          "src/shards/pine-hollow/plugin.ts:125:19",
+          "src/shards/pine-hollow/plugin.ts:168:7",
+          "src/shards/pine-hollow/plugin.ts:179:20",
+          "src/shards/pine-hollow/plugin.ts:200:50",
+          "src/shards/pine-hollow/plugin.ts:200:75",
+          "src/shards/pine-hollow/plugin.ts:203:46",
+          "src/shards/pine-hollow/plugin.ts:224:20",
+          "src/shards/pine-hollow/plugin.ts:225:22",
+          "src/shards/pine-hollow/plugin.ts:225:73",
+          "src/shards/pine-hollow/quest/index.ts:124:69"
+        ],
+        "context.app": [
+          "src/shards/pine-hollow/plugin.ts:75:5",
+          "src/shards/pine-hollow/plugin.ts:125:19",
+          "src/shards/pine-hollow/plugin.ts:168:7",
+          "src/shards/pine-hollow/plugin.ts:179:20",
+          "src/shards/pine-hollow/plugin.ts:200:50",
+          "src/shards/pine-hollow/plugin.ts:200:75",
+          "src/shards/pine-hollow/plugin.ts:203:46",
+          "src/shards/pine-hollow/plugin.ts:224:20",
+          "src/shards/pine-hollow/plugin.ts:225:22",
+          "src/shards/pine-hollow/plugin.ts:225:73",
+          "src/shards/pine-hollow/quest/index.ts:124:69"
+        ],
+        "context.rows": [
+          "src/shards/pine-hollow/plugin.ts:129:5",
+          "src/shards/pine-hollow/plugin.ts:130:5",
+          "src/shards/pine-hollow/plugin.ts:131:5",
+          "src/shards/pine-hollow/plugin.ts:132:5",
+          "src/shards/pine-hollow/plugin.ts:133:5",
+          "src/shards/pine-hollow/plugin.ts:134:5",
+          "src/shards/pine-hollow/plugin.ts:146:5",
+          "src/shards/pine-hollow/plugin.ts:147:5",
+          "src/shards/pine-hollow/plugin.ts:148:5",
+          "src/shards/pine-hollow/plugin.ts:149:5",
+          "src/shards/pine-hollow/plugin.ts:150:5"
+        ],
+        "context.answer": [
+          "src/shards/pine-hollow/plugin.ts:203:5"
+        ],
+        "subclass.Weapon": [
+          "src/shards/pine-hollow/weapons/LeverRifle.ts:292:1"
+        ],
+        "subclass.TreeFactory": [
+          "src/shards/pine-hollow/world/treeFactory.ts:72:1"
+        ],
+        "subclass.Weather": [
+          "src/shards/pine-hollow/world/weatherProfile.ts:74:1"
+        ]
+      }
+    },
+    "sunscar-dunes": {
+      "counts": {
+        "ctx.app": 7,
+        "ctx.game": 20,
+        "ctx.game.runtime": 20,
+        "engineSubclasses": 6,
+        "context.game": 20,
+        "context.scope": 27,
+        "context.on": 1,
+        "context.system": 6,
+        "subclass.BossBrain": 1,
+        "context.manifest": 11,
+        "context.answer": 2,
+        "context.app": 7,
+        "context.strings": 1,
+        "context.rows": 4,
+        "context.inputContext": 1,
+        "context.debug": 1,
+        "context.root": 10,
+        "context.piece": 7,
+        "subclass.CreatureBrain": 4,
+        "subclass.Weapon": 1
+      },
+      "sites": {
+        "ctx.game.runtime": [
+          "src/shards/sunscar-dunes/combat/creatures.ts:17:19",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:42:19",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:88:39",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:97:84",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:98:48",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:99:49",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:101:28",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:113:19",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:116:76",
+          "src/shards/sunscar-dunes/plugin.ts:79:16",
+          "src/shards/sunscar-dunes/plugin.ts:91:16",
+          "src/shards/sunscar-dunes/quest/install.ts:67:17",
+          "src/shards/sunscar-dunes/quest/install.ts:74:99",
+          "src/shards/sunscar-dunes/quest/install.ts:87:16",
+          "src/shards/sunscar-dunes/quest/install.ts:87:43",
+          "src/shards/sunscar-dunes/quest/install.ts:87:67",
+          "src/shards/sunscar-dunes/quest/install.ts:94:26",
+          "src/shards/sunscar-dunes/world/build.ts:32:60",
+          "src/shards/sunscar-dunes/world/build.ts:63:25",
+          "src/shards/sunscar-dunes/world/build.ts:146:16"
+        ],
+        "ctx.game": [
+          "src/shards/sunscar-dunes/combat/creatures.ts:17:19",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:42:19",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:88:39",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:97:84",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:98:48",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:99:49",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:101:28",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:113:19",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:116:76",
+          "src/shards/sunscar-dunes/plugin.ts:79:16",
+          "src/shards/sunscar-dunes/plugin.ts:91:16",
+          "src/shards/sunscar-dunes/quest/install.ts:67:17",
+          "src/shards/sunscar-dunes/quest/install.ts:74:99",
+          "src/shards/sunscar-dunes/quest/install.ts:87:16",
+          "src/shards/sunscar-dunes/quest/install.ts:87:43",
+          "src/shards/sunscar-dunes/quest/install.ts:87:67",
+          "src/shards/sunscar-dunes/quest/install.ts:94:26",
+          "src/shards/sunscar-dunes/world/build.ts:32:60",
+          "src/shards/sunscar-dunes/world/build.ts:63:25",
+          "src/shards/sunscar-dunes/world/build.ts:146:16"
+        ],
+        "context.game": [
+          "src/shards/sunscar-dunes/combat/creatures.ts:17:19",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:42:19",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:88:39",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:97:84",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:98:48",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:99:49",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:101:28",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:113:19",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:116:76",
+          "src/shards/sunscar-dunes/plugin.ts:79:16",
+          "src/shards/sunscar-dunes/plugin.ts:91:16",
+          "src/shards/sunscar-dunes/quest/install.ts:67:17",
+          "src/shards/sunscar-dunes/quest/install.ts:74:99",
+          "src/shards/sunscar-dunes/quest/install.ts:87:16",
+          "src/shards/sunscar-dunes/quest/install.ts:87:43",
+          "src/shards/sunscar-dunes/quest/install.ts:87:67",
+          "src/shards/sunscar-dunes/quest/install.ts:94:26",
+          "src/shards/sunscar-dunes/world/build.ts:32:60",
+          "src/shards/sunscar-dunes/world/build.ts:63:25",
+          "src/shards/sunscar-dunes/world/build.ts:146:16"
+        ],
+        "context.scope": [
+          "src/shards/sunscar-dunes/combat/creatures.ts:26:53",
+          "src/shards/sunscar-dunes/combat/creatures.ts:40:3",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:51:7",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:51:38",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:51:69",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:71:34",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:92:41",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:105:5",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:114:196",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:115:54",
+          "src/shards/sunscar-dunes/plugin.ts:89:100",
+          "src/shards/sunscar-dunes/plugin.ts:89:138",
+          "src/shards/sunscar-dunes/plugin.ts:92:55",
+          "src/shards/sunscar-dunes/plugin.ts:92:115",
+          "src/shards/sunscar-dunes/plugin.ts:112:7",
+          "src/shards/sunscar-dunes/quest/install.ts:65:31",
+          "src/shards/sunscar-dunes/quest/install.ts:80:57",
+          "src/shards/sunscar-dunes/quest/install.ts:80:94",
+          "src/shards/sunscar-dunes/quest/install.ts:92:22",
+          "src/shards/sunscar-dunes/quest/install.ts:96:3",
+          "src/shards/sunscar-dunes/world/build.ts:52:105",
+          "src/shards/sunscar-dunes/world/build.ts:58:59",
+          "src/shards/sunscar-dunes/world/build.ts:133:26",
+          "src/shards/sunscar-dunes/world/build.ts:134:27",
+          "src/shards/sunscar-dunes/world/build.ts:135:35",
+          "src/shards/sunscar-dunes/world/build.ts:136:3",
+          "src/shards/sunscar-dunes/world/build.ts:137:3"
+        ],
+        "context.on": [
+          "src/shards/sunscar-dunes/combat/creatures.ts:29:3"
+        ],
+        "context.system": [
+          "src/shards/sunscar-dunes/combat/creatures.ts:32:3",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:119:3",
+          "src/shards/sunscar-dunes/plugin.ts:111:7",
+          "src/shards/sunscar-dunes/quest/install.ts:85:5",
+          "src/shards/sunscar-dunes/quest/install.ts:95:3",
+          "src/shards/sunscar-dunes/world/build.ts:142:3"
+        ],
+        "engineSubclasses": [
+          "src/shards/sunscar-dunes/combat/matriarch.ts:32:1",
+          "src/shards/sunscar-dunes/species/duneRay.ts:21:1",
+          "src/shards/sunscar-dunes/species/matriarch.ts:35:1",
+          "src/shards/sunscar-dunes/species/skitterer.ts:27:1",
+          "src/shards/sunscar-dunes/species/strider.ts:28:1",
+          "src/shards/sunscar-dunes/weapons/Bullwhip.ts:29:1"
+        ],
+        "subclass.BossBrain": [
+          "src/shards/sunscar-dunes/combat/matriarch.ts:32:1"
+        ],
+        "context.manifest": [
+          "src/shards/sunscar-dunes/combat/matriarch.ts:42:130",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:46:41",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:90:56",
+          "src/shards/sunscar-dunes/plugin.ts:73:45",
+          "src/shards/sunscar-dunes/plugin.ts:93:70",
+          "src/shards/sunscar-dunes/quest/install.ts:46:54",
+          "src/shards/sunscar-dunes/quest/install.ts:66:38",
+          "src/shards/sunscar-dunes/quest/install.ts:68:33",
+          "src/shards/sunscar-dunes/quest/install.ts:72:19",
+          "src/shards/sunscar-dunes/quest/install.ts:73:22",
+          "src/shards/sunscar-dunes/world/build.ts:46:19"
+        ],
+        "context.answer": [
+          "src/shards/sunscar-dunes/combat/matriarch.ts:93:5",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:118:3"
+        ],
+        "ctx.app": [
+          "src/shards/sunscar-dunes/combat/matriarch.ts:97:17",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:98:158",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:114:16",
+          "src/shards/sunscar-dunes/plugin.ts:81:32",
+          "src/shards/sunscar-dunes/plugin.ts:87:18",
+          "src/shards/sunscar-dunes/quest/install.ts:44:35",
+          "src/shards/sunscar-dunes/quest/install.ts:65:15"
+        ],
+        "context.app": [
+          "src/shards/sunscar-dunes/combat/matriarch.ts:97:17",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:98:158",
+          "src/shards/sunscar-dunes/combat/matriarch.ts:114:16",
+          "src/shards/sunscar-dunes/plugin.ts:81:32",
+          "src/shards/sunscar-dunes/plugin.ts:87:18",
+          "src/shards/sunscar-dunes/quest/install.ts:44:35",
+          "src/shards/sunscar-dunes/quest/install.ts:65:15"
+        ],
+        "context.strings": [
+          "src/shards/sunscar-dunes/plugin.ts:70:5"
+        ],
+        "context.rows": [
+          "src/shards/sunscar-dunes/plugin.ts:76:5",
+          "src/shards/sunscar-dunes/plugin.ts:77:5",
+          "src/shards/sunscar-dunes/plugin.ts:77:81",
+          "src/shards/sunscar-dunes/plugin.ts:78:5"
+        ],
+        "context.inputContext": [
+          "src/shards/sunscar-dunes/plugin.ts:90:5"
+        ],
+        "context.debug": [
+          "src/shards/sunscar-dunes/plugin.ts:114:5"
+        ],
+        "context.root": [
+          "src/shards/sunscar-dunes/quest/install.ts:80:5",
+          "src/shards/sunscar-dunes/world/build.ts:50:3",
+          "src/shards/sunscar-dunes/world/build.ts:52:43",
+          "src/shards/sunscar-dunes/world/build.ts:54:42",
+          "src/shards/sunscar-dunes/world/build.ts:56:54",
+          "src/shards/sunscar-dunes/world/build.ts:58:71",
+          "src/shards/sunscar-dunes/world/build.ts:88:53",
+          "src/shards/sunscar-dunes/world/build.ts:133:16",
+          "src/shards/sunscar-dunes/world/build.ts:134:17",
+          "src/shards/sunscar-dunes/world/build.ts:141:56"
+        ],
+        "context.piece": [
+          "src/shards/sunscar-dunes/quest/install.ts:83:5",
+          "src/shards/sunscar-dunes/world/build.ts:51:3",
+          "src/shards/sunscar-dunes/world/build.ts:53:3",
+          "src/shards/sunscar-dunes/world/build.ts:55:3",
+          "src/shards/sunscar-dunes/world/build.ts:57:3",
+          "src/shards/sunscar-dunes/world/build.ts:59:3",
+          "src/shards/sunscar-dunes/world/build.ts:89:5"
+        ],
+        "subclass.CreatureBrain": [
+          "src/shards/sunscar-dunes/species/duneRay.ts:21:1",
+          "src/shards/sunscar-dunes/species/matriarch.ts:35:1",
+          "src/shards/sunscar-dunes/species/skitterer.ts:27:1",
+          "src/shards/sunscar-dunes/species/strider.ts:28:1"
+        ],
+        "subclass.Weapon": [
+          "src/shards/sunscar-dunes/weapons/Bullwhip.ts:29:1"
+        ]
+      }
+    }
+  }
+}

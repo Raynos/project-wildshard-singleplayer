@@ -127,6 +127,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [pine-hollow-tree-shots.mjs](./pine-hollow-tree-shots.mjs)
 - [pine-hollow-trees-board.mjs](./pine-hollow-trees-board.mjs)
 - [playground-cards.mjs](./playground-cards.mjs)
+- [shard-coupling.d.mts](./shard-coupling.d.mts)
+- [shard-coupling.mjs](./shard-coupling.mjs)
 - [shard-compare-sheet.py](./shard-compare-sheet.py)
 
 ## One-off asks
