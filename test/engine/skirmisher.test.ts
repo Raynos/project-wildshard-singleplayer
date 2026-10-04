@@ -44,10 +44,10 @@ function replay(platform: boolean, scenario: 'approach' | 'tokens' | 'scatter'):
   return { frames, hits: f.hits, sounds: f.sounds, starts: f.starts, rng: f.ctx.rng.snapshot() };
 }
 describe('data-selected circling melee archetype', () => {
-  it('replaces only the crab policy in the hybrid catalogue, retaining the shipping body/rig recipes', () => {
+  it('selects the declared crab policy in the hybrid catalogue, retaining shipping body/rig recipes', () => {
     const row = declaredCreatureRows().find(species => species.kind === 'crab');
     if (row?.think === undefined) throw new Error('Missing declared crab policy');
-    const f = creature('crab', 'small', {}, undefined, row.think); f.advance(80);
+    const f = creature('crab', 'small', {}, undefined, row.think, row.act); f.advance(80);
     expect(f.states).toEqual(['idle', 'sidestep', 'attack', 'sidestep']);
     expect(f.hits).toEqual([{ frame: 43, damage: 10 }]);
   });

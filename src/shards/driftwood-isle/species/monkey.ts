@@ -241,6 +241,9 @@ const THROW_R = 14, THROW_DUR = 1.0, THROW_RELEASE = 0.62, BITE_R = 1.3, BITE_DA
 /** E297 fight rules: a monkey on the sand waiting its turn (two others attacking) hangs back this far (m) */
 const HOLD_R = 3.4;
 
+/** G51: preserve the existing shared cooldown stream and its lazy creation order. */
+export function monkeyAttackRandom(): Pick<Rng, 'range'> { return app.rng.stream('ai'); }
+
 export function pickPerch(a: Animal, c: ThinkCtx, minD: number, maxD: number, awayFrom?: THREE.Vector3): number {
   const P = c.world.perches; if (P === undefined || P.length === 0) return -1;
   let best = -1, bestScore = -Infinity;
@@ -300,7 +303,7 @@ export function legacyMonkeyDecision(a: Animal, c: ThinkCtx): void {
       a.state = 'attack';
       a.setMotion(toPlayer, 0, 6); a.setStrafe(0);
       const p = a.attackPhase;
-      if (p >= 1 || p < 0) { a.cancelAttack(); if (m.bite) { m.cd = 1.2; m.st = ST_GROUND; m.bit = 1; } else { m.cd = app.rng.stream('ai').range(2.5, 4); m.st = m.onGround ? ST_GROUND_IDLE : ST_PERCH; } }
+      if (p >= 1 || p < 0) { a.cancelAttack(); if (m.bite) { m.cd = 1.2; m.st = ST_GROUND; m.bit = 1; } else { m.cd = monkeyAttackRandom().range(2.5, 4); m.st = m.onGround ? ST_GROUND_IDLE : ST_PERCH; } }
       break;
     }
     case ST_DROP: {
@@ -388,9 +391,10 @@ function strikeMonkey(a: Animal, c: ThinkCtx): void {
 }
 const STATES = ['perch', 'ground-idle', 'attack', 'drop', 'ground', 'return', 'climb'] as const;
 export class MonkeyBrain extends CreatureBrain<typeof STATES[number], Animal> {
-  constructor(actor: Animal) { super(actor, STATES); }
+  private readonly decide: typeof legacyMonkeyDecision;
+  constructor(actor: Animal, decide = legacyMonkeyDecision) { super(actor, STATES); this.decide = decide; }
   override think(ctx: ThinkCtx): void {
-    legacyMonkeyDecision(this.actor, ctx);
+    this.decide(this.actor, ctx);
     const state = STATES[this.actor.mem['st'] ?? 0];
     if (state !== undefined) this.transition(state);
   }

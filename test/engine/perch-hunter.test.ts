@@ -17,7 +17,7 @@ function replay(platform: boolean, scenario: 'ground' | 'perch' | 'flee' | 'toke
   let brain: PerchHunterBrain<Animal> | undefined;
   const f = creature('monkey', 'monkey', {}, undefined, platform ? (actor, ctx) => {
     brain ??= new PerchHunterBrain(actor, MONKEY_BRAIN);
-    brain.think({ ...ctx, attackRandom: app.rng.stream('ai'),
+    brain.think({ ...ctx, attackRandom: { range: (min, max) => app.rng.stream('ai').range(min, max) },
       pickPerch: (a, min, max, away) => pickPerch(a, ctx, min, max, away), setPerch: (a, index) => { setPerch(a, ctx, index); } });
   } : undefined);
   f.ctx.rng = new Rng(357);

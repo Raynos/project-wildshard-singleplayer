@@ -391,9 +391,10 @@ function strikeSailor(a: Animal, c: ThinkCtx): void {
 }
 const STATES = ['hide', 'rise', 'attack', 'guard', 'sink'] as const;
 export class SailorBrain extends CreatureBrain<typeof STATES[number], Animal> {
-  constructor(actor: Animal) { super(actor, STATES); }
+  private readonly decide: typeof legacySailorDecision;
+  constructor(actor: Animal, decide = legacySailorDecision) { super(actor, STATES); this.decide = decide; }
   override think(ctx: ThinkCtx): void {
-    legacySailorDecision(this.actor, ctx);
+    this.decide(this.actor, ctx);
     const state = STATES[this.actor.mem['st'] ?? 0];
     if (state !== undefined) this.transition(state);
   }
