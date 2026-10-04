@@ -50,6 +50,7 @@ import type { Cabins } from '../world/homestead';
 import type { PineHollowSfx } from '../audio/sfx';
 import { SKINS } from '../loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
+import { LegacyPineClock, type PineClockEvent } from '../runtime/questClock';
 import { waystoneSites, contractBoardSite, CANOE_SITE, ZIP_YAW, pineHamletBuildings, type PineLandmarks } from '../world/landmarks';
 import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../layout';
 import { KING_KIND } from '../combat/antlerKing';
@@ -463,35 +464,27 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     const span = (((to - dn.phase) % 1) + 1) % 1;
     ff = { from: dn.phase, span, t: 0, dur, to };
   };
-  ctx.scope.onDispose(flags.onChange((f, on) => {
-    if (!on) return;
-    if (f === 'wait:night') {
-      flags.clear('wait:night');
-      if (night() < 0.5 && sky.dayNight) { hud.toast('You sit with Hale on the porch while the light goes out of the Hollow…'); fastForward(PINE_PHASES.night, 6); }
-    }
-    if (f.startsWith('lit:')) syncLanterns();
-  }));
-  let dawnT = -1;
-  const runDawn = (): void => {
-    if (dawnT >= 0 || flags.has('seen:dawn')) return;
-    dawnT = 0;
-    hud.toast('The Antler King falls. In the east, the sky is going grey');
-  };
-  const dawnTick = (dt: number): void => {
-    if (dawnT < 0) return;
-    const was = dawnT; dawnT += dt;
-    const at = (s: number): boolean => was < s && dawnT >= s;
-    if (at(2.5) && sky.dayNight) fastForward(PINE_PHASES.sunrise + 0.012, 7);
-    if (at(4)) { for (const f of LANTERN_FLAGS) flags.set(f); if (lm) for (const id of ['pond', 'ridge', 'den'] as const) lm.setLit(id, true); h.music.sting('dawn'); }
-    if (at(5)) { reward.show(true); objective.root.classList.add('ws-quest-hide'); }
-    if (at(12)) {
+  const publishClock = (event: PineClockEvent, value: number): void => {
+    if (event === 'night.consume') flags.clear('wait:night');
+    else if (event === 'night.start') { hud.toast('You sit with Hale on the porch while the light goes out of the Hollow…'); fastForward(PINE_PHASES.night, value); }
+    else if (event === 'dawn.start') hud.toast('The Antler King falls. In the east, the sky is going grey');
+    else if (event === 'dawn.sunrise') fastForward(PINE_PHASES.sunrise + 0.012, value);
+    else if (event === 'dawn.lanterns') { for (const f of LANTERN_FLAGS) flags.set(f); if (lm) for (const id of ['pond', 'ridge', 'den'] as const) lm.setLit(id, true); h.music.sting('dawn'); }
+    else if (event === 'dawn.caption') { reward.show(true); objective.root.classList.add('ws-quest-hide'); }
+    else if (event === 'dawn.finish') {
       reward.show(false); objective.root.classList.remove('ws-quest-hide');
       inventory.add('amber-resin', 4); // was 2 amber heartwood, which nothing used (E314 C)
       hud.toast("Hale's thanks · 4 amber resin — and the Warden's bow is yours to keep");
       flags.set('seen:dawn');
-      dawnT = -1;
     }
   };
+  const clock = new LegacyPineClock({ seen: () => flags.has('seen:dawn'), hasClock: () => sky.dayNight !== null, night, publish: publishClock });
+  ctx.scope.onDispose(flags.onChange((f, on) => {
+    if (!on) return;
+    if (f === 'wait:night') clock.night();
+    if (f.startsWith('lit:')) syncLanterns();
+  }));
+  const runDawn = (): void => { clock.dawn(); };
 
   // ── the quest ──
   h.fullMap.setQuest(() => ({ title: quest.isStarted ? WARDENS_HOLLOW.title : 'Pine Hollow', objective: quest.objective(), hint: quest.isComplete ? '' : quest.hint() }));
@@ -557,7 +550,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       sky.dayNight.phase = (ff.from + ff.span * e) % 1;
       if (k >= 1) { const to = ff.to; ff = null; void sky.dayNight.set(to); }
     }
-    dawnTick(dt);
+    clock.tick(dt);
     if (!perfLap.active) { // E350 F-J1: the PERF LAP's teleports call no stag and no thralls
       stag.update(dt, t, quest.current?.id === 'stag' && night() > 0.5, pp);
       thralls.update(dt, t, pp);
