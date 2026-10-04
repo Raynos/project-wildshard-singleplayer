@@ -6360,6 +6360,30 @@
         "from": "@wildshard/engine/physics/edgeEntries"
       },
       {
+        "name": "EntrySocket",
+        "kind": "interface",
+        "doc": "One canonical platform-owned asphalt footprint: full width/depth, with its top at road height y=0.",
+        "from": "@wildshard/engine/physics/entrySockets"
+      },
+      {
+        "name": "EntrySocketOrigin",
+        "kind": "interface",
+        "doc": "A cell centre in the receiving physics world's frame, never an authored shard collider.",
+        "from": "@wildshard/engine/physics/entrySockets"
+      },
+      {
+        "name": "entrySockets",
+        "kind": "function",
+        "doc": "Pure geometry shared by standalone, grid and regional composition; north is positive z.",
+        "from": "@wildshard/engine/physics/entrySockets"
+      },
+      {
+        "name": "installEntrySockets",
+        "kind": "function",
+        "doc": "Install the same four scoped WORLD floors for each cell in any play mode. Returned handles belong to the caller's scope.",
+        "from": "@wildshard/engine/physics/entrySockets"
+      },
+      {
         "name": "FrameMember",
         "kind": "interface",
         "doc": "Frame-local traveller poses are retained by their existing gameplay owner.",

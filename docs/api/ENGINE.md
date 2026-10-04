@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1979 members; 830 without a doc line (—).
+1983 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1065,6 +1065,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PropColliderPort` | interface | @wildshard/engine/physics/declaredProps | Authoritative active-state ports for static declared props; scripts call them on the fixed-step host. |
 | `PropColliderState` | interface | @wildshard/engine/physics/declaredProps | Stable Rapier handles carried by the simulation adapter; activation is saved in the physics snapshot. |
 | `walkEdgeEntries` | function | @wildshard/engine/physics/edgeEntries | Real capsule walks cover every legal 8 m entry for 50 m, at overlapping lateral intervals. |
+| `EntrySocket` | interface | @wildshard/engine/physics/entrySockets | One canonical platform-owned asphalt footprint: full width/depth, with its top at road height y=0. |
+| `EntrySocketOrigin` | interface | @wildshard/engine/physics/entrySockets | A cell centre in the receiving physics world's frame, never an authored shard collider. |
+| `entrySockets` | function | @wildshard/engine/physics/entrySockets | Pure geometry shared by standalone, grid and regional composition; north is positive z. |
+| `installEntrySockets` | function | @wildshard/engine/physics/entrySockets | Install the same four scoped WORLD floors for each cell in any play mode. Returned handles belong to the caller's scope. |
 | `FrameMember` | interface | @wildshard/engine/physics/frame | Frame-local traveller poses are retained by their existing gameplay owner. |
 | `PreparedFrameMotors` | interface | @wildshard/engine/physics/frame | A prepared motor set can be abandoned without changing any source collider or controller. |
 | `prepareFrameMotors` | function | @wildshard/engine/physics/frame | Prepare rider and optional mount together; source bodies remain authoritative until the synchronous commit. |
