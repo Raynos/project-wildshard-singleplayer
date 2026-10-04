@@ -146,15 +146,21 @@ function restore(a: object, buffer: WebGLBuffer, Ctor: ArrayCtor, length: number
   return array;
 }
 
+/** has `a` given up its CPU array (reading `a.array` would read it back from the GPU): the census labels skip it */
+export function arrayReleased(a: object): boolean { return releasedAttributes.has(a); }
+
 /** may `a` give up its array: a static, plain (not instanced, not interleaved) attribute three uploaded, untouched since */
 function releasableAttribute(name: string, a: unknown): a is THREE.BufferAttribute {
   return !KEEP.has(name) && a instanceof THREE.BufferAttribute && !(a instanceof THREE.InstancedBufferAttribute) && !releasedAttributes.has(a) && !touched.has(a) &&
     a.usage === THREE.StaticDrawUsage && a.updateRanges.length === 0 && a.array.length > 0 && uploadedTo.has(a.array);
 }
 
+/**
+ * No bounds are computed here: `position` stays, so a box or sphere is computed when something asks, as with the row off.
+ * Computing them at release read geometries whose owner had already dropped its arrays (the far herd's view batch: its
+ * attributes keep their count over an empty array, gpuOnly-style), so every vertex came back NaN (SF22d).
+ */
 function releaseGeometry(g: THREE.BufferGeometry, label: string): void {
-  if (g.boundingBox === null) g.computeBoundingBox();
-  if (g.boundingSphere === null) g.computeBoundingSphere();
   let bytes = 0;
   for (const [name, a] of Object.entries(g.attributes)) {
     if (!releasableAttribute(name, a)) continue;

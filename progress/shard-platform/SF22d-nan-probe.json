@@ -1,0 +1,14 @@
+{
+  "row": "SF22d follow-up (NaN bounding box)",
+  "probe": "progress/shard-platform/SF22d-nan-probe.mjs, desktop 1600x900, Memory saver ON, 1500 accelerated frames then the level unload (LEAK=1); Pine Hollow in rain, Driftwood clear",
+  "old": { "rev": "31dc7e17e",
+    "pine-hollow": { "nanErrors": 17, "firstAtFrame": 100, "readbacks": { "calls": 413, "bytes": 17025332 } },
+    "driftwood-isle": { "nanErrors": 1, "firstAtFrame": 100, "readbacks": { "calls": 406, "bytes": 138356208 } },
+    "stack": "three computeBoundingBox <- memorySaver releaseGeometry <- settle <- the renderBufferDirect hook",
+    "geometry": "Pine: the far herd's view batch (position/normal/uv/skin*: count 45384 over an emptied Float32Array(0), color live). Driftwood: a position+uv geometry with emptied arrays",
+    "readbackCaller": "gpuLabels tree walk (census harness only) reading attribute.array" },
+  "fix": { "rev": "probe build c3aea55d3 (this commit's two files on 25db3410f)",
+    "pine-hollow": { "nanErrors": 0, "readbacks": { "calls": 0, "bytes": 0 } },
+    "driftwood-isle": { "nanErrors": 0, "readbacks": { "calls": 0, "bytes": 0 } },
+    "loadingReadbacks": 0, "zeroFillWarnings": 0, "pageErrors": 0 }
+}

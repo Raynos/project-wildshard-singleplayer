@@ -1,5 +1,6 @@
 import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, Skeleton, Texture, WebGLRenderTarget } from 'three';
 import type { Renderer } from './renderer';
+import { arrayReleased } from './memorySaver';
 
 interface Label { owner: string; asset: string; priority: number }
 const labels = new WeakMap<object, Label>();
@@ -68,6 +69,7 @@ function markMaterial(material: Material, label: Label): void {
 function markGeometry(geometry: BufferGeometry, fallback: Label): void {
   const label = remember(geometry, fallback);
   const attribute = (value: BufferAttribute | InterleavedBufferAttribute, role: string): void => {
+    if (arrayReleased(value)) return; // the Memory saver let its CPU copy go: touching `array` would read it back (SF22d)
     const array = value instanceof InterleavedBufferAttribute ? value.data.array : value.array;
     data(array, { ...label, asset: `${label.asset}/${role}` });
   };
@@ -90,7 +92,7 @@ function nodeResources(node: Object3D, label: Label): void {
     markTexture(bones, { ...owner, asset: `${owner.asset}/skeleton/bones` });
   }
   for (const [role, value] of Object.entries(node)) {
-    if (value instanceof BufferAttribute) data(value.array, { ...label, asset: `${label.asset}/${role}` });
+    if (value instanceof BufferAttribute) { if (!arrayReleased(value)) data(value.array, { ...label, asset: `${label.asset}/${role}` }); }
     else if (isTexture(value)) markTexture(value, { ...label, asset: `${label.asset}/${role}` });
   }
 }
