@@ -29,4 +29,6 @@ Every current boot has exactly four more colliders. Causal source review confirm
 
 Evidence: `SF29-parity-7382928dd.json` retains every red field, gameplay check, sound multiset and teardown result, plus the full raw-report SHA-256. Reproduce with `node progress/shard-platform/SF29-parity.mjs --current=7382928dd --parent-pine-hollow=c2e314725 --out=<owned scratch>`. No stored baseline or quarantine changed. All owned browsers and preview servers were closed after comparison.
 
-Remaining acceptance: footstep/endpoint causal review, desktop/Simulator floors, coordinator gate/push receipt and final origin SHA. SF29 remains in flight.
+Coordinator floor coverage on `07209c626` is **green**. The [default floor artifact](../frame-floor/07209c626-81205-1791143738188.json) covers all seven shards plus the grid on both surfaces: **16/16 shard/surface results passed**, 489.659 seconds, every rounded desktop median at least **60 fps** (worst p95 **16.8 ms**) and Simulator median at least **30 fps** (worst p95 **34 ms**), zero errors. The [rows-ON artifact](../frame-floor/07209c626-172-1791144229193.json) additionally covers Driftwood, Nalati, the template and grid: **8/8 passed**, 250.346 seconds, the same worst 16.8/34 ms p95. These are desktop and Simulator results, not physical-device readings.
+
+Remaining acceptance: after SF57's quiet measurement, a one-browser direct `ff2f848c9^` versus `ff2f848c9` control must attribute the footstep/endpoint differences; no baseline edits. The coordinator owns the serialized evidence push. SF29 remains in flight.
