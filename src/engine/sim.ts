@@ -45,6 +45,9 @@ export interface SimCommand { moveX: number; moveZ: number; yaw: number; attack?
 /** Each future brain/script instance registers its own continuation state, never a process singleton. */
 export interface SimStateAdapter { snapshot: () => SimValue; restore: (value: SimValue) => void }
 
+/** The existing page owns this traveller, its health update and its one physics/movement step. */
+export interface SimExternalPlayer { position: Vector3; readonly yaw: number; health: PlayerHealth; owner: object }
+
 /** Borrowed client state is stepped and disposed by its existing world owner. */
 export interface SimHostPorts {
   rapier: Rapier; physics?: Physics; player?: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
@@ -83,6 +86,7 @@ export class SimHost {
   readonly embedded: boolean;
   private readonly ownsPlayer: boolean;
   private playerMotor: CharacterMotor | undefined;
+  private externalPlayer: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private heightAt: (x: number, z: number) => number;
 
   constructor(level: SimLevel, ports: SimHostPorts) {
@@ -132,6 +136,7 @@ export class SimHost {
     this.events.on('actor.died', ({ actor }) => { this.flags.set(`dead:${actor.id}`); }, this.scope);
     this.scope.onDispose(() => {
       this.disposed = true;
+      this.externalPlayer?.scope.dispose(); this.externalPlayer = undefined;
       if (this.ownsPlayer) this.playerMotor?.dispose();
       for (const entity of this.entities.values()) entity.motor?.dispose();
       if (!this.embedded) this.physics.dispose();
@@ -162,6 +167,29 @@ export class SimHost {
   attachPlayerMotor(motor: CharacterMotor): void {
     if (this.embedded || this.playerMotor !== undefined || this.disposed) throw new Error('Invalid regional motor attachment');
     this.playerMotor = motor;
+  }
+  /** Bind the page traveller to an owned bodyless region; deactivation leaves the page's health and motor intact. */
+  bindExternalPlayer(value: SimExternalPlayer): () => void {
+    if (this.disposed || this.embedded || this.hasPlayerMotor || this.externalPlayer !== undefined || value.health.id !== this.player.id) throw new Error('Invalid external regional player');
+    const scope = new Scope(`sim:${this.level.id}:traveller`), binding = { value, health: this.player.health, scope };
+    this.externalPlayer = binding; this.player.health = value.health;
+    this.combat.playerRules(scope, { target: value.health });
+    return () => {
+      if (this.externalPlayer !== binding) return;
+      scope.dispose(); this.player.health = binding.health; this.externalPlayer = undefined;
+    };
+  }
+  /** Trusted page-object alias used only by same-engine continuation encoding, never author-selected query input. */
+  isExternalPlayerObject(value: unknown): boolean { return this.externalPlayer !== undefined && value === this.externalPlayer.value.owner; }
+  /** One active region's systems/local clock after the page move; no physics, player, health or page event phase advances. */
+  stepExternal(): void {
+    const external = this.externalPlayer;
+    if (this.disposed || external === undefined || this.embedded) throw new Error('External regional player is not bound');
+    const { position, yaw } = external.value;
+    if (![position.x, position.y, position.z, yaw].every(Number.isFinite)) throw new RangeError('Invalid external player pose');
+    this.events.beginFrame(); this.clock.tick(FIXED_STEP);
+    this.player.position.copy(position); this.player.yaw = yaw;
+    this.stepSystems(); this.events.flush('fixed.post');
   }
   /** Scoped fixed-step work; removing a registration also releases its future snapshot adapter. */
   onStep(id: string, run: (dt: number, host: SimHost) => void, adapter?: SimStateAdapter): () => void {

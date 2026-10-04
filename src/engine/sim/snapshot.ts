@@ -46,7 +46,7 @@ function encode(value: unknown, host: SimHost, parents = new Set<object>()): Eve
   if (typeof value === 'number' && !Number.isFinite(value)) return { kind: 'number', value: Number.isNaN(value) ? 'nan' : value > 0 ? 'infinity' : '-infinity' };
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return { kind: 'value', value };
   if (typeof value !== 'object') throw new TypeError('Snapshot payload contains a callback or unsupported value');
-  if (value === host.player) return { kind: 'player' };
+  if (value === host.player || host.isExternalPlayerObject(value)) return { kind: 'player' };
   if (value === host.player.position) return { kind: 'position', id: host.player.id };
   if (value === host.player.health) return { kind: 'actor', id: host.player.id };
   for (const entity of host.entities.values()) {
