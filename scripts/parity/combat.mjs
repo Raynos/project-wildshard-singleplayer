@@ -10,6 +10,20 @@ export const STEPS={
   'nalati-grasslands':[{step:'swing',weapon:'sabre',target:'wolf',near:{x:0,z:232},distance:1.8,hit:3,kill:15},{step:'shot',weapon:'bow',target:'wolf',near:{x:0,z:232},distance:12,hit:20,kill:20}],
   'nine-dragon-stack':[{step:'swing',weapon:'sword',target:'training-dummy',near:{x:0,z:0},distance:1.8,hit:3,kill:null}],
 };
+/** Resolve the real weapon and target; the player's new XZ samples its own ground through probe.pose()/Player.spawn().
+ * Copying the target's Y can put a distant firing position underneath a hillside.
+ * @param {Step} s */
+export function combatSetup(s) {
+  const probe=window.__wildshard,p=probe.world.player;
+  const weapon=probe.world.weapons.list.find((w)=>w.id===s.weapon);
+  if(!weapon)throw new Error(`Scripted weapon absent: ${s.weapon}`);
+  probe.world.weapons.unlock(weapon.id);probe.combat.equip(weapon.id);
+  if(probe.world.weapons.current.id!==weapon.id)throw new Error(`Scripted equip failed: ${weapon.id}`);
+  const target=probe.combat.target(s.target,s.near),at=target.position;
+  let dx=p.position.x-at.x,dz=p.position.z-at.z;const len=Math.hypot(dx,dz);if(len<0.01){dx=0;dz=1;}else{dx/=len;dz/=len;}
+  const cy=at.y+target.dims.bodyY*('scale' in target?target.scale:1);
+  return {pose:{x:at.x+dx*s.distance,z:at.z+dz*s.distance,yaw:Math.atan2(dx,dz)},aim:{x:at.x,y:cy,z:at.z}};
+}
 /** @param {import('playwright').Page} page @param {{shard:string,tier:string,lane:string}} opts */
 export async function combat(page,opts) {
   if(opts.shard==='nine-dragon-stack'){await page.evaluate(()=>window.__wildshard.arena());await advance(page,2);}
@@ -19,17 +33,7 @@ export async function combat(page,opts) {
   for(const step of STEPS[opts.shard] ?? []) {
     // A scenario may follow a live dash; finish it before sampling the target-relative aim pose.
     if(step.settleFrames)await advance(page,step.settleFrames);
-    const setup=await page.evaluate((s)=> {
-      const probe=window.__wildshard,p=probe.world.player;
-      const weapon=probe.world.weapons.list.find((w)=>w.id===s.weapon);
-      if(!weapon)throw new Error(`Scripted weapon absent: ${s.weapon}`);
-      probe.world.weapons.unlock(weapon.id);probe.combat.equip(weapon.id);
-      if(probe.world.weapons.current.id!==weapon.id)throw new Error(`Scripted equip failed: ${weapon.id}`);
-      const target=probe.combat.target(s.target,s.near),at=target.position;
-      let dx=p.position.x-at.x,dz=p.position.z-at.z;const len=Math.hypot(dx,dz);if(len<0.01){dx=0;dz=1;}else{dx/=len;dz/=len;}
-      const cy=at.y+target.dims.bodyY*('scale' in target?target.scale:1);
-      return {pose:{x:at.x+dx*s.distance,z:at.z+dz*s.distance,y:at.y,yaw:Math.atan2(dx,dz)},aim:{x:at.x,y:cy,z:at.z}};
-    },step);
+    const setup=await page.evaluate(combatSetup,step);
     await poseAt(page,setup.pose);
     await advance(page,30); // land and settle the weapon switch, camera and input mode
     await page.evaluate((aim)=>{const p=window.__wildshard.world.player;const d=Math.hypot(p.position.x-aim.x,p.position.z-aim.z);p.pitch=Math.atan2(aim.y-(p.position.y+1.68),d);},setup.aim);
