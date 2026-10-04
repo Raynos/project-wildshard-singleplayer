@@ -1,5 +1,11 @@
 # The engine API: `@wildshard/engine`, `@wildshard/game`, `@wildshard/kit`
 
+`@wildshard/game/grid/simulation` owns local physics residencies, prepared fixed-step frame changes and durable
+two-phase unloads through the session's one allocator. `@wildshard/engine/sim/strips` generates deterministic
+highway, strip and crossroads meshes with local duplicates; `@wildshard/engine/physics/frame` prepares rider/mount
+motor transfers. `@wildshard/game/grid/state` fingerprints authored continuation without global placement or
+platform colliders. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.
+
 This is the public API a shard is written against. It covers the three public layers and what each one gives a
 shard. One section per § of [01-architecture](../project/archive/game-normalization/01-architecture.md), in the same order.
 
@@ -1762,7 +1768,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1855 exports, grouped by the module to import them from.
+1872 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1927,6 +1933,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/CharacterMotor`: `CharacterMotor`, `MotorOptions`, `MoveResult`, `rideable`
 - `@wildshard/engine/physics/declaredProps`: `installDeclaredPropColliders`, `PropColliderPort`, `PropColliderState`
 - `@wildshard/engine/physics/edgeEntries`: `walkEdgeEntries`
+- `@wildshard/engine/physics/frame`: `FrameMember`, `PreparedFrameMotors`, `prepareFrameMotors`
 - `@wildshard/engine/physics/gridBorders`: `gridCreatureConstraint`, `GridMountBody`, `installGridBorders`, `installGridMountPassage`
 - `@wildshard/engine/physics/groups`: `GROUP`, `GroupName`, `groups`, `queryGroups`
 - `@wildshard/engine/physics/heightPatch`: `HeightPatch`, `HeightPatchOpts`
@@ -1934,7 +1941,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/query`: `castRay`, `castSegment`, `floorBelow`, `Hit`, `lineOfSight`, `sticksIn`, `sweepBall`
 - `@wildshard/engine/physics/rapier`: `loadRapier`, `Rapier`
 - `@wildshard/engine/physics/readinessWalls`: `ReadinessEdge`, `ReadinessWalls`
+- `@wildshard/engine/physics/regionalState`: `regionalPhysicsState`
 - `@wildshard/engine/physics/ropeChain`: `RopeChain`, `RopeChainSpec`
+- `@wildshard/engine/physics/stripColliders`: `installStripCollider`, `PLATFORM_COLLIDER_OWNER`
 - `@wildshard/engine/physics/surface`: `clearTags`, `ColliderTag`, `Material`, `tagCollider`, `tagOf`, `untagCollider`
 - `@wildshard/engine/physics/terrain`: `addEdgeWalls`, `addTerrain`, `cutTerrain`, `EDGE_WALL_INSET`, `TerrainCut`, `terrainGrid`, `toColumnMajor`
 - `@wildshard/engine/physics/terrainTiles`: `addBakedTerrainCollider`
@@ -1990,7 +1999,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/script/state`: `DeclaredScriptWorld`, `SCRIPT_STATE_OP`, `ScriptStateDeclaration`, `ScriptStateField`, `ScriptWorldState`
 - `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimCommand`, `SimHost`, `SimHostPorts`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
 - `@wildshard/engine/sim/readiness`: `ReadinessBundle`, `ReadinessEstimate`, `ReadinessLink`, `readinessModel`, `ReadinessPart`, `ReadinessStatus`, `ReadinessTicket`, `TraversalReadiness`
-- `@wildshard/engine/sim/snapshot`: `restoreSimHost`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost`
+- `@wildshard/engine/sim/snapshot`: `regionalContinuation`, `restoreSimHost`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost`
+- `@wildshard/engine/sim/strips`: `generateCrossroads`, `GeneratedStrip`, `generatePlatform`, `generateStrip`, `PlatformCell`, `STRIP_OFFSETS`, `StripCell`, `StripCorner`, `StripMesh`, `StripProfile`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
 - `@wildshard/engine/ui/authoredDebugRows`: `authoredRows`, `GlobalDebugActionSpec`, `registerGlobalDebugAction`
 - `@wildshard/engine/ui/BossBar`: `BossBar`
@@ -2078,7 +2088,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-362 exports, grouped by the module to import them from.
+369 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2099,6 +2109,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/crossing`: `GridCrossing`, `GridCrossingDriver`, `GridCrossingPorts`, `GridCrossingSession`, `GridCrossingState`, `installGridCrossing`, `PreparedGridCrossing`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
 - `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `reframeGridUnit`
+- `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
+- `@wildshard/game/grid/state`: `regionalState`
 - `@wildshard/game/grid/wallet`: `GridLoadout`, `GridWallet`, `installGridLoadout`, `stowGridEquipment`
 - `@wildshard/game/instanceSaves`: `instanceSave`, `LocalSaveInstance`
 - `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`

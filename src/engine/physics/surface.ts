@@ -25,5 +25,5 @@ export function tagOf(c: Collider): ColliderTag | undefined { return tags.get(c)
 
 export function untagCollider(c: Collider): void { tags.delete(c); }
 
-/** Drop every tag (a shard's world was disposed; handles are reused by the next one). */
+/** Global test reset only. World disposal removes its own collider tags; other live worlds retain theirs. */
 export function clearTags(): void { tags = new WeakMap(); }

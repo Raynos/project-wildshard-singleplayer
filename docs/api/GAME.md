@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-362 members; 112 without a doc line (—).
+369 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -109,6 +109,13 @@ The game layer's public modules (src/game/package.json `exports`).
 | `gridZone` | function | @wildshard/game/grid/rules | Distance from a cell's centre classifies its interior, easing strip and shared highway deck. |
 | `installGridHoverSpeed` | function | @wildshard/game/grid/rules | Install the live deck/strip cap and restore the previous port when this residency scope leaves. |
 | `reframeGridUnit` | function | @wildshard/game/grid/rules | Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection. |
+| `GridResident` | interface | @wildshard/game/grid/simulation | Admission returns one owned, renderer-free regional host; its world is always in authored local coordinates. |
+| `GridSimLease` | interface | @wildshard/game/grid/simulation | Narrow adapter to the session's one residency allocator; bytes are charged only once. |
+| `GridSimulation` | class | @wildshard/game/grid/simulation | Independent local physics worlds; only the current one advances, while visible neighbours remain frozen. |
+| `GridSimulationPorts` | interface | @wildshard/game/grid/simulation | Durable snapshots and native/browser admission are injected; no network operation runs during a fixed tick. |
+| `PreparedGridFrame` | interface | @wildshard/game/grid/simulation | A synchronous, rollback-safe motor change, matching the crossing coordinator's transaction port. |
+| `PreparedGridUnload` | interface | @wildshard/game/grid/simulation | Two-phase durable eviction; abort retains the world and commit retires only the prepared frozen residency. |
+| `regionalState` | function | @wildshard/game/grid/state | Authored state hash input excludes global placement, platform collision geometry and profile-owned traveler data. |
 | `GridLoadout` | interface | @wildshard/game/grid/wallet | Source-local ports consumed by crossing; the normal equipment service retains catalogue gear and owns presentation. |
 | `GridWallet` | class | @wildshard/game/grid/wallet | A shard's money, bag and item continuation stay bound to its stable instance in either entry mode. |
 | `installGridLoadout` | function | @wildshard/game/grid/wallet | Restore one instance's held selection and bind reversible border stow to the existing equipment and scope. |

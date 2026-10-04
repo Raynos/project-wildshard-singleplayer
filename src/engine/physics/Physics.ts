@@ -57,5 +57,5 @@ export class Physics {
     this.stepMs = performance.now() - t0;
   }
 
-  dispose(): void { this.world.free(); }
+  dispose(): void { this.world.forEachCollider(untagCollider); this.world.free(); }
 }

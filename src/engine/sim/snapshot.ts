@@ -107,6 +107,24 @@ function entityMotor(entity: AnimalSim): CharacterMotor | null {
   return entity.motor;
 }
 
+/** Canonical logical continuation for a local authored region, without the profile-owned traveler or opaque world bytes. */
+export function regionalContinuation(host: SimHost): string {
+  const motorState = (motor: CharacterMotor | null) => {
+    if (motor === null) return null;
+    const state = motor.snapshot();
+    const body = state.anchorBodyHandle === null ? null : host.physics.world.getRigidBody(state.anchorBodyHandle);
+    return { filter: state.filter, ghost: state.ghost, enabled: state.enabled, yaw: state.yaw, anchor: state.anchor,
+      anchorBody: body === null ? null : { position: body.translation(), rotation: body.rotation() }, climb: state.climbAngle, slide: state.slideAngle,
+      result: { grounded: state.result.grounded, groundNormalY: state.result.groundNormalY, downhillX: state.result.downhillX, downhillZ: state.result.downhillZ, horizontalFreedom: state.result.horizontalFreedom } };
+  };
+  return JSON.stringify({ level: host.level, state: host.state, clock: host.clock.snapshot(), rng: host.rng.snapshot(),
+    entities: [...host.entities].sort(([a], [b]) => a.localeCompare(b)).map(([id, entity]) => [id, entity.snapshot(), motorState(entityMotor(entity))]),
+    strikes: [...host.strikes].filter(([id]) => id !== host.player.id).sort(([a], [b]) => a.localeCompare(b)).map(([id, runner]) => [id, runner.snapshot()]),
+    targets: host.attackTargets().filter(([id]) => id !== host.player.id), flags: host.flags.all.sort((a, b) => a.localeCompare(b)), quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
+    events: host.events.snapshot((value) => encode(value, host)),
+    adapters: [...host.adapters].sort(([a], [b]) => a.localeCompare(b)).map(([id, adapter]) => [id, cloneValue(adapter.snapshot())]) });
+}
+
 /** Capture at a fixed-step boundary; pending events are preserved without flushing them. */
 export function snapshotSimHost(host: SimHost): SimSnapshot {
   if (host.embedded) throw new Error('Borrowed simulation snapshots belong to the client world owner');

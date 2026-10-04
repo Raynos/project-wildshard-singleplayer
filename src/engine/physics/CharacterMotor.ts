@@ -134,6 +134,25 @@ export class CharacterMotor {
         horizontalFreedom: result.horizontalFreedom, groundColliderHandle: result.groundCollider?.handle ?? null } };
   }
 
+  /** Prepare a motor in another world without retiring this one. World-bound ground/ride anchors are reacquired. */
+  transferTo(physics: Physics, feet: Vec3): CharacterMotor {
+    if (![feet.x, feet.y, feet.z].every(Number.isFinite)) throw new RangeError('Invalid motor transfer feet');
+    const motor = new CharacterMotor(physics, this.opts);
+    try {
+      motor.syncTransfer(this, feet);
+      return motor;
+    } catch (error) { motor.dispose(); throw error; }
+  }
+  /** Refresh a disabled prepared replacement at commit; no source handles or ride anchors cross world boundaries. */
+  syncTransfer(source: CharacterMotor, feet: Vec3): void {
+    if (![feet.x, feet.y, feet.z].every(Number.isFinite)) throw new RangeError('Invalid motor transfer feet');
+    this.filter = source.filter; this.ghost = source.ghost; this.yaw = source.yaw;
+    this.kcc.setMaxSlopeClimbAngle(source.kcc.maxSlopeClimbAngle()); this.kcc.setMinSlopeSlideAngle(source.kcc.minSlopeSlideAngle());
+    this.setEnabled(source.enabled);
+    if (this.opts.length !== undefined) { this.layAlong(this.yaw); this.collider.setRotation(this.rot); }
+    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + 0.005, z: feet.z });
+  }
+
   /** the quaternion for a lying capsule along `yaw` (animal convention: forward = (sin yaw, 0, cos yaw)): Rapier's
    *  capsule runs along Y — tip it onto +Z (90° about X), then turn it about Y */
   private layAlong(yaw: number): void {

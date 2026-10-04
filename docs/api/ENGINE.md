@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1872 members; 831 without a doc line (—).
+1889 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1018,6 +1018,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PropColliderPort` | interface | @wildshard/engine/physics/declaredProps | Authoritative active-state ports for static declared props; scripts call them on the fixed-step host. |
 | `PropColliderState` | interface | @wildshard/engine/physics/declaredProps | Stable Rapier handles carried by the simulation adapter; activation is saved in the physics snapshot. |
 | `walkEdgeEntries` | function | @wildshard/engine/physics/edgeEntries | Real capsule walks cover every 15 m wide entry for 50 m, at overlapping lateral intervals. |
+| `FrameMember` | interface | @wildshard/engine/physics/frame | Frame-local traveller poses are retained by their existing gameplay owner. |
+| `PreparedFrameMotors` | interface | @wildshard/engine/physics/frame | A prepared motor set can be abandoned without changing any source collider or controller. |
+| `prepareFrameMotors` | function | @wildshard/engine/physics/frame | Prepare rider and optional mount together; source bodies remain authoritative until the synchronous commit. |
 | `gridCreatureConstraint` | function | @wildshard/engine/physics/gridBorders | Physics-owned constraint for fliers and distant analytic creatures that have no movement capsule. Reuse per creature. |
 | `GridMountBody` | interface | @wildshard/engine/physics/gridBorders | The traveling mount exposes its current motor through a getter, so a frame replacement keeps the same passage ownership. |
 | `installGridBorders` | function | @wildshard/engine/physics/gridBorders | Home walls affect creatures only, through Rapier. A traveler or player still sees the actual WORLD deck. |
@@ -1041,9 +1044,12 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Rapier` | type | @wildshard/engine/physics/rapier | Initialized Rapier bindings supplied to a physics world or renderer-free simulation host. |
 | `ReadinessEdge` | interface | @wildshard/engine/physics/readinessWalls | A platform edge in this physics world's frame; null instance means an out-of-bounds proxy. |
 | `ReadinessWalls` | class | @wildshard/engine/physics/readinessWalls | Real Rapier walls hold a capsule on the solid strip until all readiness fences open. Own the deck separately. |
+| `regionalPhysicsState` | function | @wildshard/engine/physics/regionalState | Canonical authored collision state omits the traveler and platform colliders (shared seams, home/soft walls). |
 | `RopeChain` | class | @wildshard/engine/physics/ropeChain | — |
 | `RopeChainSpec` | interface | @wildshard/engine/physics/ropeChain | — |
-| `clearTags` | function | @wildshard/engine/physics/surface | Drop every tag (a shard's world was disposed; handles are reused by the next one). |
+| `installStripCollider` | function | @wildshard/engine/physics/stripColliders | Install the generated field itself as the WORLD collider; the renderer draws these same vertices. |
+| `PLATFORM_COLLIDER_OWNER` | const | @wildshard/engine/physics/stripColliders | Platform geometry is tagged separately so regional state hashes can omit shared deck and seam duplicates. |
+| `clearTags` | function | @wildshard/engine/physics/surface | Global test reset only. World disposal removes its own collider tags; other live worlds retain theirs. |
 | `ColliderTag` | interface | @wildshard/engine/physics/surface | — |
 | `Material` | type | @wildshard/engine/physics/surface | `felt` (a yurt's walls) and `earth` (a kurgan's turf, a kokpar goal mound): Nalati's soft surfaces — arrows stick, blades thud |
 | `tagCollider` | function | @wildshard/engine/physics/surface | — |
@@ -1368,10 +1374,21 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ReadinessStatus` | interface | @wildshard/engine/sim/readiness | Frozen public status; unknown and out-of-bounds neighbours are closed by default. |
 | `ReadinessTicket` | interface | @wildshard/engine/sim/readiness | Completion belongs to this particular residency attempt, never merely a slug shared by several placements. |
 | `TraversalReadiness` | class | @wildshard/engine/sim/readiness | Node-safe readiness fence. Call request from radial distance every fixed step, so a U-turn cannot skip prefetch. |
+| `regionalContinuation` | function | @wildshard/engine/sim/snapshot | Canonical logical continuation for a local authored region, without the profile-owned traveler or opaque world bytes. |
 | `restoreSimHost` | function | @wildshard/engine/sim/snapshot | Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. |
 | `SIM_SNAPSHOT_VERSION` | const | @wildshard/engine/sim/snapshot | Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. |
 | `SimSnapshot` | interface | @wildshard/engine/sim/snapshot | Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. |
 | `snapshotSimHost` | function | @wildshard/engine/sim/snapshot | Capture at a fixed-step boundary; pending events are preserved without flushing them. |
+| `generateCrossroads` | function | @wildshard/engine/sim/strips | Four corner samples meet the strips exactly, while both crossing highway lanes remain at road height zero. |
+| `GeneratedStrip` | interface | @wildshard/engine/sim/strips | The highway owns the primary mesh; neighbouring worlds receive exact translated duplicates. |
+| `generatePlatform` | function | @wildshard/engine/sim/strips | Generate every deck corridor and four-way junction, including the explicit empty-neighbour perimeter. |
+| `generateStrip` | function | @wildshard/engine/sim/strips | Both profiles run in positive lateral order (south→north or west→east); no neighbour reversal is implicit. |
+| `PlatformCell` | interface | @wildshard/engine/sim/strips | Declared edge data placed on an integer platform grid; placement never enters a regional simulation. |
+| `STRIP_OFFSETS` | const | @wildshard/engine/sim/strips | The 55 m gap consists of two 20 m strips and a 15 m highway. Entries at 6/10 m are explicit mesh vertices. |
+| `StripCell` | interface | @wildshard/engine/sim/strips | A regional placement is used only to translate the platform's duplicate collider. |
+| `StripCorner` | interface | @wildshard/engine/sim/strips | Southwest, southeast, northwest and northeast outer corner values, in that order. |
+| `StripMesh` | interface | @wildshard/engine/sim/strips | A triangle mesh is local to its origin. Colour triples use the same vertex ordering. |
+| `StripProfile` | interface | @wildshard/engine/sim/strips | Deterministic platform seam data, independent of rendering, devices and physics wrappers. |
 | `ENGINE_STRINGS` | const | @wildshard/engine/strings | English engine UI strings. Content-owned overrides are installed by the composition root. |
 | `engineString` | function | @wildshard/engine/strings | — |
 | `EngineStringKey` | type | @wildshard/engine/strings | — |

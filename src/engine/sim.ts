@@ -50,6 +50,8 @@ export interface SimHostPorts {
   rapier: Rapier; physics?: Physics; player?: { id: string; position: Vector3; yaw: number; health: PlayerHealth; motor: CharacterMotor };
   events?: Events; clock?: GameClock; combat?: CombatPipeline; scope?: Scope;
   ground?: boolean; heightAt?: (x: number, z: number) => number;
+  /** Frozen grid neighbours have logical player state, but no player capsule or controller. */
+  playerBody?: boolean;
   fixedStep?: (run: () => void) => () => void;
 }
 
@@ -80,6 +82,7 @@ export class SimHost {
   private disposed = false;
   readonly embedded: boolean;
   private readonly ownsPlayer: boolean;
+  private playerMotor: CharacterMotor | undefined;
   private heightAt: (x: number, z: number) => number;
 
   constructor(level: SimLevel, ports: SimHostPorts) {
@@ -103,7 +106,12 @@ export class SimHost {
     this.combat = ports.combat ?? new CombatPipeline(this.events, this.scope, () => this.physics);
     const position = new Vector3(level.player.at.x, level.player.at.y, level.player.at.z);
     const health = new PlayerHealth(this.events, { now: () => this.clock.now * 1000, position: () => position, dodging: () => false, dodgeGuard: () => false });
-    this.player = ports.player ?? { id: health.id, position, yaw: level.player.yaw, health, motor: this.motor('PLAYER', 0.35, 1.8, health.id) };
+    if (ports.player !== undefined && ports.playerBody === false) throw new Error('A borrowed player owns its motor');
+    this.playerMotor = ports.player === undefined && ports.playerBody !== false ? this.motor('PLAYER', 0.35, 1.8, health.id) : undefined;
+    const readMotor = (): CharacterMotor => { if (this.playerMotor === undefined) throw new Error('Frozen simulation has no player motor'); return this.playerMotor; };
+    const writeMotor = (motor: CharacterMotor): void => { this.playerMotor = motor; };
+    this.player = ports.player ?? { id: health.id, position, yaw: level.player.yaw, health,
+      get motor(): CharacterMotor { return readMotor(); }, set motor(motor: CharacterMotor) { writeMotor(motor); } };
     if (this.ownsPlayer) this.combat.playerRules(this.scope, { target: health });
     this.flags = new Flags(level.id, false);
     this.quests = level.quests.map((def) => new QuestState(def, this.flags, this.events, this.scope));
@@ -124,7 +132,7 @@ export class SimHost {
     this.events.on('actor.died', ({ actor }) => { this.flags.set(`dead:${actor.id}`); }, this.scope);
     this.scope.onDispose(() => {
       this.disposed = true;
-      if (this.ownsPlayer) this.player.motor.dispose();
+      if (this.ownsPlayer) this.playerMotor?.dispose();
       for (const entity of this.entities.values()) entity.motor?.dispose();
       if (!this.embedded) this.physics.dispose();
     });
@@ -138,6 +146,23 @@ export class SimHost {
   }
   /** Reinstall the admitted terrain height query before a fresh host's same-engine continuation resumes. */
   setHeightQuery(heightAt: (x: number, z: number) => number): void { this.heightAt = heightAt; }
+  /** True only while this regional world owns the traveller's capsule and controller. */
+  get hasPlayerMotor(): boolean { return this.embedded || this.playerMotor !== undefined; }
+  /** Freeze a regional host after its checkpoint; its authored creatures and colliders remain available for views. */
+  detachPlayerMotor(): void {
+    if (this.embedded) throw new Error('Borrowed player motor belongs to its world owner');
+    if (this.playerMotor !== undefined) this.releasePlayerMotor().dispose();
+  }
+  /** Transfer ownership after a prepared frame commit has already retired the old collider. */
+  releasePlayerMotor(): CharacterMotor {
+    if (this.embedded || this.playerMotor === undefined) throw new Error('Invalid regional motor release');
+    const motor = this.playerMotor; this.playerMotor = undefined; return motor;
+  }
+  /** Commit a prepared motor, without allocating or stepping during the fixed-step frame change. */
+  attachPlayerMotor(motor: CharacterMotor): void {
+    if (this.embedded || this.playerMotor !== undefined || this.disposed) throw new Error('Invalid regional motor attachment');
+    this.playerMotor = motor;
+  }
   /** Scoped fixed-step work; removing a registration also releases its future snapshot adapter. */
   onStep(id: string, run: (dt: number, host: SimHost) => void, adapter?: SimStateAdapter): () => void {
     if (this.disposed || this.callbacks.has(id)) throw new Error(`Invalid simulation registration ${id}`);
@@ -154,6 +179,7 @@ export class SimHost {
   step(command?: SimCommand): void {
     if (this.disposed) throw new Error('Simulation host is disposed');
     if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
+    if (!this.hasPlayerMotor) throw new Error('Frozen simulation cannot step');
     if (command !== undefined && ![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     this.physics.step();

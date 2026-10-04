@@ -74,6 +74,8 @@
     "./grid/rules": "./grid/rules.ts",
     "./shardfile/traversal": "./shardfile/traversal.ts",
     "./grid/crossing": "./grid/crossing.ts",
-    "./grid/wallet": "./grid/wallet.ts"
+    "./grid/wallet": "./grid/wallet.ts",
+    "./grid/simulation": "./grid/simulation.ts",
+    "./grid/state": "./grid/state.ts"
   }
 }

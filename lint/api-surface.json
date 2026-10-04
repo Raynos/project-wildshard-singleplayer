@@ -6078,6 +6078,24 @@
         "from": "@wildshard/engine/physics/edgeEntries"
       },
       {
+        "name": "FrameMember",
+        "kind": "interface",
+        "doc": "Frame-local traveller poses are retained by their existing gameplay owner.",
+        "from": "@wildshard/engine/physics/frame"
+      },
+      {
+        "name": "PreparedFrameMotors",
+        "kind": "interface",
+        "doc": "A prepared motor set can be abandoned without changing any source collider or controller.",
+        "from": "@wildshard/engine/physics/frame"
+      },
+      {
+        "name": "prepareFrameMotors",
+        "kind": "function",
+        "doc": "Prepare rider and optional mount together; source bodies remain authoritative until the synchronous commit.",
+        "from": "@wildshard/engine/physics/frame"
+      },
+      {
         "name": "gridCreatureConstraint",
         "kind": "function",
         "doc": "Physics-owned constraint for fliers and distant analytic creatures that have no movement capsule. Reuse per creature.",
@@ -6216,6 +6234,12 @@
         "from": "@wildshard/engine/physics/readinessWalls"
       },
       {
+        "name": "regionalPhysicsState",
+        "kind": "function",
+        "doc": "Canonical authored collision state omits the traveler and platform colliders (shared seams, home/soft walls).",
+        "from": "@wildshard/engine/physics/regionalState"
+      },
+      {
         "name": "RopeChain",
         "kind": "class",
         "doc": "",
@@ -6228,9 +6252,21 @@
         "from": "@wildshard/engine/physics/ropeChain"
       },
       {
+        "name": "installStripCollider",
+        "kind": "function",
+        "doc": "Install the generated field itself as the WORLD collider; the renderer draws these same vertices.",
+        "from": "@wildshard/engine/physics/stripColliders"
+      },
+      {
+        "name": "PLATFORM_COLLIDER_OWNER",
+        "kind": "const",
+        "doc": "Platform geometry is tagged separately so regional state hashes can omit shared deck and seam duplicates.",
+        "from": "@wildshard/engine/physics/stripColliders"
+      },
+      {
         "name": "clearTags",
         "kind": "function",
-        "doc": "Drop every tag (a shard's world was disposed; handles are reused by the next one).",
+        "doc": "Global test reset only. World disposal removes its own collider tags; other live worlds retain theirs.",
         "from": "@wildshard/engine/physics/surface"
       },
       {
@@ -8179,6 +8215,12 @@
         "from": "@wildshard/engine/sim/readiness"
       },
       {
+        "name": "regionalContinuation",
+        "kind": "function",
+        "doc": "Canonical logical continuation for a local authored region, without the profile-owned traveler or opaque world bytes.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
         "name": "restoreSimHost",
         "kind": "function",
         "doc": "Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay.",
@@ -8201,6 +8243,66 @@
         "kind": "function",
         "doc": "Capture at a fixed-step boundary; pending events are preserved without flushing them.",
         "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
+        "name": "generateCrossroads",
+        "kind": "function",
+        "doc": "Four corner samples meet the strips exactly, while both crossing highway lanes remain at road height zero.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "GeneratedStrip",
+        "kind": "interface",
+        "doc": "The highway owns the primary mesh; neighbouring worlds receive exact translated duplicates.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "generatePlatform",
+        "kind": "function",
+        "doc": "Generate every deck corridor and four-way junction, including the explicit empty-neighbour perimeter.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "generateStrip",
+        "kind": "function",
+        "doc": "Both profiles run in positive lateral order (south→north or west→east); no neighbour reversal is implicit.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "PlatformCell",
+        "kind": "interface",
+        "doc": "Declared edge data placed on an integer platform grid; placement never enters a regional simulation.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "STRIP_OFFSETS",
+        "kind": "const",
+        "doc": "The 55 m gap consists of two 20 m strips and a 15 m highway. Entries at 6/10 m are explicit mesh vertices.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "StripCell",
+        "kind": "interface",
+        "doc": "A regional placement is used only to translate the platform's duplicate collider.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "StripCorner",
+        "kind": "interface",
+        "doc": "Southwest, southeast, northwest and northeast outer corner values, in that order.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "StripMesh",
+        "kind": "interface",
+        "doc": "A triangle mesh is local to its origin. Colour triples use the same vertex ordering.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "StripProfile",
+        "kind": "interface",
+        "doc": "Deterministic platform seam data, independent of rendering, devices and physics wrappers.",
+        "from": "@wildshard/engine/sim/strips"
       },
       {
         "name": "ENGINE_STRINGS",
@@ -11860,6 +11962,48 @@
         "kind": "function",
         "doc": "Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection.",
         "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "GridResident",
+        "kind": "interface",
+        "doc": "Admission returns one owned, renderer-free regional host; its world is always in authored local coordinates.",
+        "from": "@wildshard/game/grid/simulation"
+      },
+      {
+        "name": "GridSimLease",
+        "kind": "interface",
+        "doc": "Narrow adapter to the session's one residency allocator; bytes are charged only once.",
+        "from": "@wildshard/game/grid/simulation"
+      },
+      {
+        "name": "GridSimulation",
+        "kind": "class",
+        "doc": "Independent local physics worlds; only the current one advances, while visible neighbours remain frozen.",
+        "from": "@wildshard/game/grid/simulation"
+      },
+      {
+        "name": "GridSimulationPorts",
+        "kind": "interface",
+        "doc": "Durable snapshots and native/browser admission are injected; no network operation runs during a fixed tick.",
+        "from": "@wildshard/game/grid/simulation"
+      },
+      {
+        "name": "PreparedGridFrame",
+        "kind": "interface",
+        "doc": "A synchronous, rollback-safe motor change, matching the crossing coordinator's transaction port.",
+        "from": "@wildshard/game/grid/simulation"
+      },
+      {
+        "name": "PreparedGridUnload",
+        "kind": "interface",
+        "doc": "Two-phase durable eviction; abort retains the world and commit retires only the prepared frozen residency.",
+        "from": "@wildshard/game/grid/simulation"
+      },
+      {
+        "name": "regionalState",
+        "kind": "function",
+        "doc": "Authored state hash input excludes global placement, platform collision geometry and profile-owned traveler data.",
+        "from": "@wildshard/game/grid/state"
       },
       {
         "name": "GridLoadout",
