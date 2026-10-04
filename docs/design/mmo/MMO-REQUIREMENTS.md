@@ -66,7 +66,7 @@ editor is Claude Code. Unreviewed arbitrary code from strangers. A native-only c
 |---|---|---|---|
 | W1 | A shard is **500 × 500 × 500 m**, in its own local coordinates; x and z ∈ [−250, 250] | MUST | J (was 500 × 500 × 200, F) |
 | W2 | The vertical split around the highway level y = 0 is an engine constant, the same for every shard: **250 m below, 250 m above** (O1) | MUST | J |
-| W3 | Shards sit on a grid, centres 515 m apart, with a **15 m highway** between them owned by the server (no man's land). The first deployment is **5 × 5 = 25** | MUST | F |
+| W3 | Shards sit on a grid with a **15 m highway** between them owned by the server, and a **platform-owned no-man's land of N m on each side of it** (G37), generated when the grid is assembled from both neighbours' edges to ease each shard down to road level; crossroads blend four ways. Start N = 20 m, so centres sit 555 m apart; N is tuned in the crossroads prototype. The grid is **unbounded-ready** (G38: signed coordinates, no assumed edge); the first deployment is **5 × 5 = 25** | MUST | F, J |
 | W4 | **Edge entries:** at each of the four edge midpoints a 15 m road runs at least 50 m in, level with the highway. No wall or cliff may close an edge. The validator proves each entry is **walkable** (ingress, clearance, terrain continuity), not just present. During the transition Driftwood Isle (open sea) and Sky Reach (floating islands) are exempt; their conversion adds the entries (Jake, 2026-10-03) | MUST | F, V |
 | W5 | The **centre shard** is first-party and changes only with a server release | MUST | F |
 | W6 | **The server places shards.** Authors build in isolation (a floating cube) and never pick their cell. Identity, revision, placement and host are separate fields, and the server owns all four | MUST | F |
@@ -78,6 +78,7 @@ editor is Claude Code. Unreviewed arbitrary code from strangers. A native-only c
 | W7e | **Borders are invisible to play**: crossing hands the player from room to room with nothing lost or duplicated and no hitch; creatures and players across a border are seen | MUST | J |
 | W7f | **Several looks on one screen** (Jake, E435): one frame owned by the camera (one sun, sky and fog) under **one world clock** (G27; a shard may override time inside its cell, blended at its edge band); inside a shard, that shard's look; on the highway, a neutral world look; the change blends across each shard's edge band. A shard's style lives in its materials and a colour grade chosen per pixel, never in a full-screen pass of its own | MUST | J |
 | W7g | **Simple borders for the first grid** (Jake, E435): creatures never leave their shard; no combat across a border; the highway is a no-combat zone; a vehicle crosses with its passengers as one unit; players and creatures across a border are visible, read-only. Lifted only once authority transfer is proven | MUST | J |
+| W7h | **Travel only** (G33, like Black Desert Online): no fast travel; the hoverboard, highway cars (≥ 30 m/s, highway only) and auto-pathing along the highway to a shard's edge entry (G40); inside shards about 15 m/s, lower if the author sets it (G39) | MUST | J |
 | W8 | **The grid is seen from afar**: every shard has a far form (a proxy, then a horizon impostor) made by the platform from its package, so distant shards are visible at little cost | MUST | N, J |
 
 ### 3.2 Authoring
