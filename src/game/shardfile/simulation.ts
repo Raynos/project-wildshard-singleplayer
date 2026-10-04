@@ -1,5 +1,5 @@
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimStrike, type SimValue } from '@wildshard/engine/sim';
-import { buildPlatformSpawns, installPlatformBrains } from '@wildshard/engine/ai/platform';
+import { buildPlatformSpawns } from '@wildshard/engine/ai/platform';
 import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
 import { fnv1a32 } from '@wildshard/engine/core/rng';
@@ -17,6 +17,7 @@ import { installDeclaredEncounters } from '../shard/declaredEncounters';
 import type { Shardfile } from './schema';
 import { speciesResolver, simStrikes } from './rows';
 import { createShardfileScriptLane } from './scripts';
+import { installDeclaredBrains, type DeclaredBrainPorts } from './brainRuntime';
 
 /** Positive stable actor handle; reordering spawns changes nothing. Hash collisions are refused during composition. */
 export function numericScriptEntityId(id: string): number { return (fnv1a32(id) & 0x7fffffff) || 1; }
@@ -25,6 +26,8 @@ export interface ShardfileSimPorts extends SimHostPorts {
   weapon?: SimStrike; quest?: QuestDataPorts; hooks?: QuestScriptBindings; scriptRules?: EffectRules;
   encounters?: Parameters<typeof installDeclaredEncounters>[2]; hud?: Parameters<typeof installDeclaredEncounters>[3];
   water?: WaterBodies; colliders?: ReadonlyMap<string, PropColliderPort>;
+  /** Trusted native actor recipes; a declaration without its required family port refuses boot. */
+  brains?: DeclaredBrainPorts;
   scriptEntities?: { entities: readonly ScriptEntity[]; actors: ReadonlyMap<number, string> };
   query?: Parameters<typeof createShardfileScriptLane>[2]['query']; navigation?: Parameters<typeof scriptPhysicsQueries>[0]['navigation'];
   restoring?: boolean;
@@ -129,7 +132,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const quest = new DeclaredQuests(host, shard.quests, { ...ports.quest,
       ...(lane === undefined ? {} : { script: createQuestScriptPorts(lane, hooks, actors) }),
     });
-    installPlatformBrains(host, shard.creatures.spawns, shard.creatures.brains);
+    installDeclaredBrains(host, shard.creatures.spawns, shard.creatures.brains, ports.brains);
     const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud);
     if (!host.embedded && !ports.restoring) host.physics.step();
     return { host, lane, actors, quest, encounters, water, colliders, dispose: () => { host.dispose(); } };

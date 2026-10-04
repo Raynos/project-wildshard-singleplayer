@@ -289,3 +289,15 @@ keeps its previous untracked adventure. Declared item views mount in the normal
 equipment viewmodel host, including off-hand tools, and leave with the level scope.
 
 Edge rows retain every native boundary vertex; 129-point decimation is refused. A modern terrain collider is 257² and carries 257 samples per side, without resampling. When a 256-point neighbour meets a 257-point neighbour, the platform strip uses the sorted union of their native positions (511 points), so both exact boundaries survive.
+
+`creatures.brains` accepts `pursue`, `skirmisher`, `guardian` and `perch-hunter`
+policies. The three native families use the strict schemas in `shardfile/brains`;
+their optional `thinkDivisor` defaults to six and must divide 60. Decisions run at
+that cadence, and the owning body recipe runs once per fixed step. The loader
+preflights all actor identities and native recipe ports before registering any
+brain callback. Native perception, attack tokens, floor/reach, rise/sink,
+perches, projectiles and movement remain explicitly injected trusted recipes;
+missing recipes refuse boot rather than inventing gameplay. Policy contracts,
+actor memory and RNG restore without executing a decision or body callback.
+`pursue` retains its existing platform behavior. `kind: "script"` remains refused
+by the full format until one composed host enforces the shared script quotas.

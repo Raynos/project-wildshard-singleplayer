@@ -39,6 +39,7 @@ import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
 import { createShardfileSim, type ShardfileSimulation } from './simulation';
 import type { Shardfile } from './schema';
+import type { DeclaredBrainPorts } from './brainRuntime';
 
 function isItemModel(value: unknown): value is Object3D { return value instanceof Object3D; }
 
@@ -48,6 +49,8 @@ export interface ShardfileClientBindings {
   voices: (audio: ShardPlayHost['audio']) => DeclaredAudioPorts['voices']; catalogue: readonly LedgerCatalogueItem[];
   instance: string;
   allocator?: ResidencyAllocator;
+  /** Explicit trusted native actor recipes for declared brain families. */
+  brains?: DeclaredBrainPorts;
   /** Explicit first-party transition policy: a completely empty data declaration adds no gameplay services. */
   trustedRuntime?: boolean;
   /** Declared audio is the default. A trusted first-party transition may let its runtime consume the same audio declaration exactly once. */
@@ -197,6 +200,7 @@ export class ShardfileClient {
     const saved = instanceSave(ctx.app.saves, encounterSave, { id: identity.instance, shard: identity.shard }), encounters = saved.read();
     let simulationActive = true;
     const sim = createShardfileSim(source, this.assets.retained, { rapier: world.physics.R, physics: world.physics,
+      ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
       player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
       events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,
       fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
