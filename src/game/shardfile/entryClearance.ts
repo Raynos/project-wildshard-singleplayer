@@ -53,17 +53,21 @@ export function validateEntrywayClearance(source: { entryways: ShardEntryways; p
       }
     }
   }
-  for (const water of source.water) for (const rect of rectangles) {
+  for (const water of source.water) for (const [index, rect] of rectangles.entries()) {
+    const entry = source.entryways[index]; if (entry === undefined) throw new Error('Missing water entryway');
+    if (water.dryEntries?.includes(entry.edge)) continue;
+    const socket = entry.kind === 'socketOverWater';
     let wet = false;
     // Sum of absolute amplitudes bounds every swell phase; a below-road sea is safe only below that crest.
-    if (water.kind === 'sea') wet = water.level + (water.waves ? WAVES.reduce((sum, wave) => sum + Math.abs(wave[2]), 0) : 0) >= 0;
-    else if (water.kind === 'pool' && water.level >= 0) {
+    if (water.kind === 'sea') wet = socket || water.level + (water.waves ? WAVES.reduce((sum, wave) => sum + Math.abs(wave[2]), 0) : 0) >= 0;
+    else if (water.kind === 'pool' && (socket || water.level >= 0)) {
       const shape = water.shape;
       wet = shape.kind === 'circle' ? circleIntersects(shape.x, shape.z, shape.radius, rect)
         : clipEntryPolygon(shape.points.map(([x, z]) => ({ x, y: water.level, z })), rect).length > 0;
     } else if (water.kind === 'stream') {
       for (let i = 1; i < water.points.length; i++) {
-        const a = water.points[i - 1], b = water.points[i]; if (a === undefined || b === undefined || Math.max(a.level, b.level) < 0) continue;
+        const a = water.points[i - 1], b = water.points[i]; if (a === undefined || b === undefined || (!socket && Math.max(a.level, b.level) < 0)) continue;
+        if (socket) { wet ||= segmentIntersects({ x: a.x, y: 0, z: a.z }, { x: b.x, y: 0, z: b.z }, water.width / 2, rect); continue; }
         const t = a.level === b.level ? 0 : Math.max(0, Math.min(1, -a.level / (b.level - a.level)));
         const at = { x: a.x + (b.x - a.x) * t, y: 0, z: a.z + (b.z - a.z) * t };
         const start = a.level < 0 ? at : { x: a.x, y: a.level, z: a.z }, end = b.level < 0 ? at : { x: b.x, y: b.level, z: b.z };

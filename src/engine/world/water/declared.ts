@@ -1,11 +1,26 @@
 import type { WaterBody } from './body';
 import { waveHeight } from '../waves';
+import { CHUNK_HALF, ENTRY_WIDTH, ENTRY_ASPHALT } from '../../core/config';
+
+/** Canonical entryway exclusions; they remove water across the entire platform socket, not an authored sample point. */
+export type DryEntryEdge = 'north' | 'east' | 'south' | 'west';
+/** Pure water clipping shared by body admission and the renderer's data adapter. */
+export function dryEntryContains(edge: DryEntryEdge, x: number, z: number): boolean {
+  switch (edge) {
+    case 'north': return Math.abs(x) <= ENTRY_WIDTH / 2 && z >= CHUNK_HALF - ENTRY_ASPHALT && z <= CHUNK_HALF;
+    case 'south': return Math.abs(x) <= ENTRY_WIDTH / 2 && z >= -CHUNK_HALF && z <= -CHUNK_HALF + ENTRY_ASPHALT;
+    case 'east': return Math.abs(z) <= ENTRY_WIDTH / 2 && x >= CHUNK_HALF - ENTRY_ASPHALT && x <= CHUNK_HALF;
+    case 'west': return Math.abs(z) <= ENTRY_WIDTH / 2 && x >= -CHUNK_HALF && x <= -CHUNK_HALF + ENTRY_ASPHALT;
+    default: throw new Error('Invalid dry entryway');
+  }
+}
 
 /** One bounded water region in the shard's local frame; stream point heights describe a sloping rest surface. */
-export type WaterDeclaration =
+export type WaterDeclaration = (
   | { id: string; kind: 'pool'; level: number; shape: { kind: 'circle'; x: number; z: number; radius: number } | { kind: 'polygon'; points: readonly (readonly [number, number])[] } }
   | { id: 'sea'; kind: 'sea'; level: number; waves: boolean }
-  | { id: string; kind: 'stream'; width: number; points: readonly { x: number; z: number; level: number }[] };
+  | { id: string; kind: 'stream'; width: number; points: readonly { x: number; z: number; level: number }[] }
+) & { dryEntries?: readonly DryEntryEdge[] | undefined };
 
 /** Compile validated data into the existing swim/wade port, with no renderer or import-time registration. */
 export function declaredWaterBody(input: WaterDeclaration): WaterBody {
@@ -13,6 +28,7 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
   const level = data.kind === 'stream' ? data.points[0]?.level ?? 0 : data.level;
   const restAt = (x: number, z: number): number | null => {
     if (![x, z].every(Number.isFinite) || Math.abs(x) > 250 || Math.abs(z) > 250) return null;
+    if (data.dryEntries?.some((edge) => dryEntryContains(edge, x, z))) return null;
     if (data.kind === 'sea') return data.level;
     if (data.kind === 'pool') {
       const shape = data.shape;

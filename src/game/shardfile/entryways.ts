@@ -7,6 +7,7 @@ const finite = v.pipe(v.number(), v.finite());
 const points = { north: [0, 0, 250], south: [0, 0, -250], east: [250, 0, 0], west: [-250, 0, 0] } as const;
 /** A legal 500 m cube has exactly one opening at each edge midpoint, meeting the highway at y=0. */
 export const EntrywaysSchema = v.pipe(v.array(v.strictObject({ edge: v.picklist(['north', 'east', 'south', 'west']), at: v.tuple([finite, finite, finite]),
+  kind: v.optional(v.picklist(['ground', 'socketOverWater'])),
   width: v.literal(ENTRY_WIDTH, 'illegal shard: entryways must be 8 metres wide') }), 'illegal shard: four midpoint entryways are required'),
 v.length(4, 'illegal shard: exactly four midpoint entryways are required'),
 v.check((rows) => new Set(rows.map((row) => row.edge)).size === 4 && rows.every((row) => row.at.every((coordinate, axis) => coordinate === points[row.edge][axis])),
@@ -23,7 +24,7 @@ function flatOpening(samples: readonly number[], width: number): boolean {
 }
 /** Declared boundary rows must be flat at road height across each opening's full width. */
 export function entrywayRules(source: { entryways: ShardEntryways; edge: Record<ShardEntryways[number]['edge'], { heights: readonly number[]; roadHeight: number }> }): string[] {
-  return source.entryways.some((row) => source.edge[row.edge].roadHeight !== 0 || !flatOpening(source.edge[row.edge].heights, row.width))
+  return source.entryways.some((row) => source.edge[row.edge].roadHeight !== 0 || (row.kind !== 'socketOverWater' && !flatOpening(source.edge[row.edge].heights, row.width)))
     ? ['illegal shard: entryway opening must meet road height y=0 across its width'] : [];
 }
 /** Verify every native collision triangle across the full 8×15 m approach before platform floors exist. */
@@ -33,7 +34,8 @@ export function validateEntrywayTerrain(source: { entryways: ShardEntryways; ter
   const bytes = assets.get(source.terrain.collider); if (bytes === undefined) throw new Error('Missing entryway terrain');
   const terrain = decodeTerrainTile(bytes);
   const n = terrain.resolution - 1, stride = terrain.size / n;
-  for (const rect of entryFootprints(source.entryways)) {
+  for (const [index, rect] of entryFootprints(source.entryways).entries()) {
+    const socket = source.entryways[index]?.kind === 'socketOverWater';
     if (rect.minX < terrain.x || rect.maxX > terrain.x + terrain.size || rect.minZ < terrain.z || rect.maxZ > terrain.z + terrain.size) throw new Error('illegal shard: missing entryway ground footprint');
     const vertex = (x: number, z: number) => {
       const y = terrain.heights[z * terrain.resolution + x]; if (y === undefined) throw new Error('Missing terrain sample');
@@ -44,7 +46,9 @@ export function validateEntrywayTerrain(source: { entryways: ShardEntryways; ter
     for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {
       const a = vertex(x, z), b = vertex(x + 1, z), c = vertex(x, z + 1), d = vertex(x + 1, z + 1);
       // Same diagonal as the baked Rapier heightfield, including fractional rectangle boundaries.
-      for (const triangle of [[a, b, c], [d, c, b]]) if (clipEntryPolygon(triangle, rect).some((p) => p.y !== 0)) throw new Error('illegal shard: baked entryway footprint must be flat at road height y=0');
+      for (const triangle of [[a, b, c], [d, c, b]]) if (clipEntryPolygon(triangle, rect).some((p) => socket ? p.y > 0 : p.y !== 0)) throw new Error(socket
+        ? 'illegal shard: socket entryway terrain cannot rise above road height'
+        : 'illegal shard: baked entryway footprint must be flat at road height y=0');
     }
   }
 }

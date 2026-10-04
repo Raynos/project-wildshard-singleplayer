@@ -27,7 +27,7 @@ integers. MB means 1,000,000 bytes. The platform owns caps in
 
 Every shard occupies a 500×500×500 m cube. Validation reports “illegal shard”
 for a missing, duplicate, displaced or elevated midpoint entryway. North is +z;
-south is −z. Boundary samples must be flat at y=0 across the opening's full width,
+south is −z. An omitted entry `kind` means `ground`. Its boundary samples must be flat at y=0 across the opening's full width,
 and admission clips the critical baked collider's native triangles against each
 full 8×15 m approach. Every point must lie at y=0; an interior trench, raised
 patch or missing ground fails before platform socket floors exist. An author cannot
@@ -39,6 +39,17 @@ projects and the template explicitly declare four 8 m openings. Canonical
 `ENTRY_WIDTH = 8` and `ENTRY_ASPHALT = 15` live in the engine core config;
 entry width is independent from the boulevard width.
 
+G164's explicit `kind: "socketOverWater"` permits below-zero native ground inside
+the canonical footprint. Ground above zero still fails. Admission proves a continuous
+collision landing across the entire 8 m shard-side line, 15 m inward, at y=0: actual
+native collision triangles or active, static declared deck/stair top triangles must
+cover it. Hidden, inactive or panel-controlled colliders and visible-only GLBs never
+prove that landing. A `terrain:null` runtime must declare its collision deck; its
+selector and the ordinary implicit flat-ground default cannot prove a socket landing.
+Only this admitted kind uses the platform socket floor at top y=0 as its approach
+ground. Ordinary ground entries keep the independently authored footprint requirement
+and the platform's 5 mm backstop.
+
 Each approach must also stay clear and dry. Admission inspects actual placed GLB
 triangles (including node hierarchy and GPU instance transforms), every declared
 box/stair collider, and water regions. Hidden panels and inactive colliders still
@@ -47,6 +58,11 @@ as scenery. Side walls may touch the boundary of the 8 m opening; no surface abo
 y=0 may enter it. Water at road height is refused; a declared sea must remain below
 the road even at its bounded maximum swell. These checks run without allocating
 socket floors and apply equally to implicit-flat non-terrain data products.
+Every water row may declare unique `dryEntries` (at most four edge names). These clip
+the whole canonical 8×15 rectangles, including their boundaries, from the swim/wade
+body and the water view. A socket entry requires this explicit exclusion for any
+intersecting water, even below-zero pools, streams or seas; a low rest level alone
+does not establish the clip. Render adapters consume the same exclusion data.
 
 | Section | Contract |
 |---|---|
@@ -70,7 +86,7 @@ socket floors and apply equally to implicit-flat non-terrain data products.
 | `serverBudget` | Positive tick budget ≤16,666 μs, positive memory ≤25 MB, ≤10,000 entities, ≤1,024 commands per tick. These are author declarations, not a server implementation. |
 | `edge` | Four ordered perimeter profiles with exactly 256 (legacy native bake) or 257 (tile-bake native lattice) height and RGB samples of equal length, heights inside ±250 m, colours in [0,1], road height exactly 0. North/south samples run west→east; east/west run south→north. |
 | `files` | Unique lowercase 64-character SHA-256 hash, kind (`glb`, `ktx2`, `audio`, `json`, `wasm`, `binary`), compressed/decoded/GPU byte sizes, triangles, draws including shadows, dependency references, critical flag. |
-| `entryways` | Required, four unique openings: north `[0,0,250]`, east `[250,0,0]`, south `[0,0,-250]`, west `[-250,0,0]`; width exactly 8 m (`ENTRY_WIDTH`). Every opening reaches road height y=0. |
+| `entryways` | Required, four unique openings: north `[0,0,250]`, east `[250,0,0]`, south `[0,0,-250]`, west `[-250,0,0]`; width exactly 8 m (`ENTRY_WIDTH`); optional kind `ground` or `socketOverWater`. Every opening reaches road height y=0 through the applicable footprint/landing proof. |
 | `tiles` | L0 62.5 m or L1 125 m; integer x/z address; exact horizontal grid bounds and vertical bounds inside the 500 m cube; nonnegative geometric error; file roots and declared costs. |
 | `library`, `critical`, `far` | Library roots, critical roots, optional whole-shard proxy with bounds and costs. Critical flags match critical roots. |
 | `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |
