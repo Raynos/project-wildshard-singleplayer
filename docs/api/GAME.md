@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-518 members; 113 without a doc line (—).
+519 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -287,6 +287,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `playable` | const | @wildshard/game/shard/registry | — |
 | `setActiveChunk` | function | @wildshard/game/shard/registry | Select a chunk by slug. Unknown slugs fall back to the default (and warn). |
 | `shardSlugFromUrl` | function | @wildshard/game/shard/registry | — |
+| `resolveLevelBounds` | function | @wildshard/game/shard/runtime | Select the staged bounds override once before installing normal fall recovery; absent hooks retain authored policy. |
 | `ShardPlayHooks` | interface | @wildshard/game/shard/runtime | — |
 | `ShardPlayHost` | interface | @wildshard/game/shard/runtime | Services supplied by the gameplay shell after it has built the player kit and UI. |
 | `ShardRuntime` | interface | @wildshard/game/shard/runtime | Typed, per-build handoff between the staged shell and an authored plugin. |

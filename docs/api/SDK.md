@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-96 members; 0 without a doc line (—).
+98 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -66,6 +66,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `RamGrazerData` | type | @wildshard/sdk/grazers | Admitted rim-aware ram policy with named strikes and host-owned home, terrain and random stream. |
 | `groupBrain` | function | @wildshard/sdk/groupBrains | Validate a pack or guarded-herd controller before loading its native world recipes. |
 | `GroupBrainData` | type | @wildshard/sdk/groupBrains | One admitted group policy and its explicit ordered stable actor roster. |
+| `HeadlessSimulation` | class | @wildshard/sdk/headless | A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. |
+| `validateSimulation` | function | @wildshard/sdk/headless | CLI validation uses the same preemptible, plain-Node session as an embedding host. |
 | `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |
 | `LedgerFactSchema` | const | @wildshard/sdk/ledger | Compile a host-witnessed fact with placement identity and provenance. |
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |

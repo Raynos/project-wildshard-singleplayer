@@ -13770,6 +13770,12 @@
         "from": "@wildshard/game/shard/registry"
       },
       {
+        "name": "resolveLevelBounds",
+        "kind": "function",
+        "doc": "Select the staged bounds override once before installing normal fall recovery; absent hooks retain authored policy.",
+        "from": "@wildshard/game/shard/runtime"
+      },
+      {
         "name": "ShardPlayHooks",
         "kind": "interface",
         "doc": "",
@@ -16874,6 +16880,18 @@
         "kind": "type",
         "doc": "One admitted group policy and its explicit ordered stable actor roster.",
         "from": "@wildshard/sdk/groupBrains"
+      },
+      {
+        "name": "HeadlessSimulation",
+        "kind": "class",
+        "doc": "A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint.",
+        "from": "@wildshard/sdk/headless"
+      },
+      {
+        "name": "validateSimulation",
+        "kind": "function",
+        "doc": "CLI validation uses the same preemptible, plain-Node session as an embedding host.",
+        "from": "@wildshard/sdk/headless"
       },
       {
         "name": "LedgerFact",
