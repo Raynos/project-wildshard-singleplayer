@@ -2153,7 +2153,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-492 exports, grouped by the module to import them from.
+498 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2175,7 +2175,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/edgeProfiles`: `GridEdgeObservations`, `GridEdgeSource`, `loadGridEdgeProfiles`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
 - `@wildshard/game/grid/live`: `LiveGridAdmission`, `LiveGridFrame`, `LiveGridHome`, `LiveGridHost`, `LiveGridPorts`, `LiveGridRegion`, `LiveGridState`
-- `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preparePageResidency`
+- `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preparePageResidency`, `validatePlannedGridReload`
+- `@wildshard/game/grid/reloadBoot`: `consumeGridReloadBoot`, `GridReloadBoot`, `installPlannedGridReload`, `plannedGridReload`
 - `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `reframeGridUnit`
 - `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
 - `@wildshard/game/grid/state`: `regionalState`
@@ -2249,7 +2250,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/validate`: `validateShardfileAssets`
 - `@wildshard/game/shardfile/version`: `SHARDFILE_VERSION`
 - `@wildshard/game/shardfile/water`: `shardfileWater`, `ShardWater`, `WaterSchema`
-- `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
+- `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `replaceTravelDocument`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 

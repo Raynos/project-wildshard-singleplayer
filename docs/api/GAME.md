@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-492 members; 113 without a doc line (—).
+498 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -111,6 +111,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `LiveGridState` | interface | @wildshard/game/grid/live | Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. |
 | `PageResidencyBoot` | interface | @wildshard/game/grid/pageBoot | The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. |
 | `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
+| `validatePlannedGridReload` | function | @wildshard/game/grid/pageBoot | Verify the consumed transfer against today's layout and authored revision before any home hydration. |
+| `consumeGridReloadBoot` | function | @wildshard/game/grid/reloadBoot | The first boot consumes the record durably. A kill during later admission cannot retry the same transfer. |
+| `GridReloadBoot` | type | @wildshard/game/grid/reloadBoot | Entry routing happens before the crash-rescue path, without loading the renderer or a runtime chunk. |
+| `installPlannedGridReload` | function | @wildshard/game/grid/reloadBoot | Only the composition root installs the consumed transfer; imports alone never change page routing. |
+| `plannedGridReload` | function | @wildshard/game/grid/reloadBoot | The already-consumed transfer is shared by early residency, the live frame restore and the reveal gate. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |
@@ -494,6 +499,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `applyTravelCarry` | function | @wildshard/game/travel/travel | Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly. |
 | `bindTravelInventory` | function | @wildshard/game/travel/travel | The composition root binds the live Bag and rows; the cold title has no running shard. |
 | `consumeTravelHandoff` | function | @wildshard/game/travel/travel | — |
+| `replaceTravelDocument` | function | @wildshard/game/travel/travel | A fresh document releases the previous WebKit heap. Call only after the caller's durable transfer succeeds. |
 | `travel` | function | @wildshard/game/travel/travel | — |
 | `TravelHandoff` | interface | @wildshard/game/travel/travel | — |
 | `TravelRequest` | interface | @wildshard/game/travel/travel | — |

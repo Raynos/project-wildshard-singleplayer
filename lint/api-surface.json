@@ -12618,6 +12618,36 @@
         "from": "@wildshard/game/grid/pageBoot"
       },
       {
+        "name": "validatePlannedGridReload",
+        "kind": "function",
+        "doc": "Verify the consumed transfer against today's layout and authored revision before any home hydration.",
+        "from": "@wildshard/game/grid/pageBoot"
+      },
+      {
+        "name": "consumeGridReloadBoot",
+        "kind": "function",
+        "doc": "The first boot consumes the record durably. A kill during later admission cannot retry the same transfer.",
+        "from": "@wildshard/game/grid/reloadBoot"
+      },
+      {
+        "name": "GridReloadBoot",
+        "kind": "type",
+        "doc": "Entry routing happens before the crash-rescue path, without loading the renderer or a runtime chunk.",
+        "from": "@wildshard/game/grid/reloadBoot"
+      },
+      {
+        "name": "installPlannedGridReload",
+        "kind": "function",
+        "doc": "Only the composition root installs the consumed transfer; imports alone never change page routing.",
+        "from": "@wildshard/game/grid/reloadBoot"
+      },
+      {
+        "name": "plannedGridReload",
+        "kind": "function",
+        "doc": "The already-consumed transfer is shared by early residency, the live frame restore and the reveal gate.",
+        "from": "@wildshard/game/grid/reloadBoot"
+      },
+      {
         "name": "gridCanAct",
         "kind": "function",
         "doc": "Only the active writable shard interior accepts authoritative actions; visible neighbours are projections.",
@@ -14913,6 +14943,12 @@
         "name": "consumeTravelHandoff",
         "kind": "function",
         "doc": "",
+        "from": "@wildshard/game/travel/travel"
+      },
+      {
+        "name": "replaceTravelDocument",
+        "kind": "function",
+        "doc": "A fresh document releases the previous WebKit heap. Call only after the caller's durable transfer succeeds.",
         "from": "@wildshard/game/travel/travel"
       },
       {
