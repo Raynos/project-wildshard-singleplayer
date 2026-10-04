@@ -17,7 +17,7 @@ import { swellBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterExtent } from '@wildshard/engine/world/waves';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
 import { jsonSlot } from '@wildshard/engine/saves/slots';
-import type { TerrainField } from '@wildshard/engine/level/data';
+import type { ChunkTerrain } from '@wildshard/game/shard/manifest';
 
 /** the waterline the island was authored round (its landscape and its offline bake) */
 export const SHORE_LEVEL = 0.8;
@@ -46,7 +46,7 @@ export function waterline(): number { return SHORE_LEVEL - worldDrop(); }
 /** G164: Driftwood's terrain field with the page's drop applied (its heights and its waterline; the offline bake, made
  *  from the authored field, is installed shifted by the same `datum`). Normals and splat are unchanged by a vertical
  *  shift. Row OFF the drop is 0: the authored field's numbers exactly. `drop` is the page's (`worldDrop`) unless given. */
-export function droppedTerrain(field: TerrainField, drop: () => number = worldDrop): TerrainField {
+export function droppedTerrain(field: ChunkTerrain, drop: () => number = worldDrop): ChunkTerrain {
   return {
     ...field,
     heightAt: (x, z) => field.heightAt(x, z) - drop(),
