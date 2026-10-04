@@ -9,10 +9,12 @@ const inspector = (samples: SettledSample[]) => [
 ].map((row) => JSON.stringify(row)).join('\n');
 
 describe('Simulator phase settling', () => {
-  it('waits out a synthetic phase-entry spike and takes the median of three settled samples', () => {
+  it('takes the median of the last three samples, so one phase-entry spike drops out (E388: no settle tolerance)', () => {
+    const spiked = settledMemory([sample(1, 0.589), sample(2, 0.439), sample(3, 0.440)]);
+    expect(spiked?.nativeGB).toBe(0.440);
+    expect(spiked?.spreadGB).toBeCloseTo(0.15);
     const readings = [sample(1, 0.589), sample(2, 0.439), sample(3, 0.440), sample(4, 0.438)];
     expect(settledMemory(readings.slice(0, 2))).toBeNull();
-    expect(settledMemory(readings.slice(0, 3))).toBeNull();
     const result = settledMemory(readings);
     expect(result?.nativeGB).toBe(0.439);
     expect(result?.inspectorGB).toBeCloseTo(0.639);
@@ -21,21 +23,10 @@ describe('Simulator phase settling', () => {
     expect(result?.spreadGB).toBeCloseTo(0.002);
     expect(result?.spreadPercent).toBeCloseTo(0.002 / 0.439 * 100);
     expect(result?.samples).toEqual(readings.slice(1));
-    expect(result?.timedOut).toBe(false);
+    expect(result?.seconds).toBe(4);
   });
 
-  it('resets settling when a third sample spikes and bounds waiting at 20 seconds', () => {
-    const readings = [sample(18, 0.4), sample(19, 0.401), sample(20, 0.6)];
-    expect(settledMemory(readings.slice(0, 2))).toBeNull();
-    const result = settledMemory(readings);
-    expect(result?.nativeGB).toBe(0.401);
-    expect(result?.timedOut).toBe(true);
-    expect(result?.settled).toBe(false);
-    expect(result?.spreadGB).toBeCloseTo(0.2);
-    expect(settledMemory(readings.map((row) => sample(row.seconds - 1, row.nativeGB)))).toBeNull();
-  });
-
-  it('rejects incomplete or invalid readings, including at the deadline', () => {
+  it('rejects incomplete or invalid readings', () => {
     expect(settledMemory([sample(20, 0.4), sample(21, 0.4)])).toBeNull();
     expect(settledMemory([sample(18, 0.4), sample(19, Number.NaN), sample(20, 0.4)])).toBeNull();
     expect(settledMemory([sample(18, 0.4), sample(19, 0.4), { seconds: 20, nativeGB: 0.4, inspectorGB: 0 }])).toBeNull();

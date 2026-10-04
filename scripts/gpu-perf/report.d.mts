@@ -3,8 +3,8 @@ export const MEMORY_PROTOCOL: string;
 export interface PendingMemory { fields: string[] }
 export interface MemoryResult { verdict: string; reason: string; limitGB: number | undefined; growth?: number | null }
 export interface SettledSample { seconds: number; nativeGB: number; inspectorGB: number }
-export interface SettledReading { nativeGB: number; inspectorGB: number; minGB: number; maxGB: number; spreadGB: number; spreadPercent: number; samples: SettledSample[]; settled: boolean; timedOut: boolean; seconds: number }
-export function settledMemory(samples: SettledSample[], maxSeconds?: number): SettledReading | null;
+export interface SettledReading { nativeGB: number; inspectorGB: number; minGB: number; maxGB: number; spreadGB: number; spreadPercent: number; samples: SettledSample[]; seconds: number }
+export function settledMemory(samples: SettledSample[]): SettledReading | null;
 export interface MemoryRow extends MemoryResult { shard: string; phase: string; nativeGB: number | undefined; inspectorGB: number | undefined; nativePeakGB?: number; previousGB: number | null; measurement: string; settling?: SettledReading }
 export interface MemoryReferenceReport { sha?: string; started?: string; shards?: string[]; memoryProtocol?: string; steps?: { name: string; code: number }[]; memory?: MemoryRow[] }
 export interface MemoryReference { path: string; sha: string | null; rejected: { path: string; sha: string | null; reason: string }[] }

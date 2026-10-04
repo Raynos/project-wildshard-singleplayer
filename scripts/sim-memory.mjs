@@ -36,7 +36,7 @@ function table(out) {
       const reading = readJsonl(inf).find((r) => r.kind === 'settled' && r.phase === ph)?.result;
       const n = reading?.nativeGB ?? native.phases[ph]?.gameHighGB, i = reading?.inspectorGB ?? insp.inspectorPeakGB?.[ph];
       if (typeof n === 'number' && typeof i === 'number') { (avg[run.label] ??= {})[ph] ??= []; avg[run.label][ph].push([n, i]); }
-      return `${n?.toFixed(3) ?? '—'} / ${i?.toFixed(3) ?? '—'}${reading ? ` (spread ${reading.minGB.toFixed(3)}–${reading.maxGB.toFixed(3)}, ${reading.spreadPercent.toFixed(1)}%; ${reading.timedOut ? 'timeout' : 'settled'})` : ''}`;
+      return `${n?.toFixed(3) ?? '—'} / ${i?.toFixed(3) ?? '—'}${reading ? ` (spread ${reading.minGB.toFixed(3)}–${reading.maxGB.toFixed(3)}, ${reading.spreadPercent.toFixed(1)}%)` : ''}`;
     };
     const gpu = Math.max(...PHASES.map((ph) => native.phases[ph]?.gpuProcessGB ?? 0));
     const held = insp.sceneStats ? `${(insp.sceneStats.geometryBytes / 1e6).toFixed(0)} MB / ${(insp.sceneStats.textureImageBytes / 1e6).toFixed(0)} MB` : '—';
@@ -48,7 +48,7 @@ function table(out) {
     const mean = (ph) => { const v = phases[ph] ?? []; if (v.length === 0) return '—'; const m = (k) => (v.reduce((s, x) => s + x[k], 0) / v.length).toFixed(3); return `${m(0)} / ${m(1)}`; };
     lines.push(`| ${label} | ${mean('loading')} | ${mean('play')} | ${mean('explorer')} |`);
   }
-  const text = `${lines.join('\n')}\n\nnative/Inspector = median of three one-second samples after each phase's work; two consecutive pairs within 2%, or 20 s maximum. Native phase peaks still enforce absolute caps. Decimal GB. Simulator: a regression check, not phone evidence.\n`;
+  const text = `${lines.join('\n')}\n\nnative/Inspector = median of three one-second samples after each phase's work, their spread beside it. Native phase peaks still enforce absolute caps. Decimal GB. Simulator: a regression check, not phone evidence.\n`;
   writeFileSync(join(out, 'table.md'), text);
   return text;
 }
@@ -198,7 +198,7 @@ async function oneRun(udid, run, opts) {
           const bytes = Math.max(...Object.values(sample.pids).map((value) => value[0]));
           readings.push({ seconds, nativeGB: bytes / 1e9, inspectorGB: inspector.bytes / 1e9 });
           const reading = settledMemory(readings);
-          if (reading) { write({ kind: 'settled', result: reading }); say(`${phase} median ${reading.nativeGB.toFixed(3)} GB; spread ${reading.minGB.toFixed(3)}–${reading.maxGB.toFixed(3)} GB (${reading.spreadPercent.toFixed(1)}%); ${reading.timedOut ? 'settle timeout' : 'settled'}`); return; }
+          if (reading) { write({ kind: 'settled', result: reading }); say(`${phase} median ${reading.nativeGB.toFixed(3)} GB; spread ${reading.minGB.toFixed(3)}–${reading.maxGB.toFixed(3)} GB (${reading.spreadPercent.toFixed(1)}%)`); return; }
         }
         if (seconds >= 22) throw new Error(`missing three valid native/Inspector samples while settling ${phase}`);
       }

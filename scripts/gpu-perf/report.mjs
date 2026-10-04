@@ -14,7 +14,7 @@ export function memoryReferenceProblem(report, shards) {
     if (matches.length !== 1) return 'missing or duplicate phase';
     const row = matches[0];
     if (row.verdict !== 'success') return 'memory gate is not green';
-    if (row.measurement !== 'settled-median-3' || !row.settling?.settled) return 'measurement is not a settled median';
+    if (row.measurement !== 'settled-median-3' || !row.settling) return 'measurement is not a settled median';
     if (memoryVerdict(shard, phase, row.nativeGB, row.inspectorGB).verdict !== 'success' || !Number.isFinite(row.nativePeakGB) || row.nativePeakGB <= 0 || row.nativePeakGB > PHASE_LIMITS[phase]) return 'invalid measurement or absolute limit';
   }
   return null;
@@ -31,24 +31,24 @@ export function selectMemoryReference(candidates, shards, started) {
   return { path: '', sha: null, rejected };
 }
 
-/** Three one-second readings after settling; the deadline returns the last three with their spread.
+/** The phase's reading: the median of three one-second samples taken after its work, with their spread beside it.
+ * E388 deleted the invented "settled" rule on top (consecutive samples within 2 %, else a 20 s deadline): growth is
+ * reported, never gated, and the only red is the native peak against the device limit. Of the 81 phase readings the
+ * nightly recorded under that rule (four nights, 2026-10-02..03, ~/.wildshard/gpu-perf/*-sim-*), 75 met it on their
+ * first three samples, and a median of three already drops a single phase-entry spike.
  * @param {{seconds: number, nativeGB: number, inspectorGB: number}[]} samples
- * @param {number} [maxSeconds]
  */
-export function settledMemory(samples, maxSeconds = 20) {
+export function settledMemory(samples) {
   if (samples.length < 3) return null;
   const tail = samples.slice(-3);
   if (tail.some((sample) => !Number.isFinite(sample.nativeGB) || sample.nativeGB <= 0 || !Number.isFinite(sample.inspectorGB) || sample.inspectorGB <= 0)) return null;
-  const close = (a, b) => Math.abs(a.nativeGB - b.nativeGB) / a.nativeGB <= 0.02 + 1e-12;
-  const settled = close(tail[0], tail[1]) && close(tail[1], tail[2]);
   const seconds = tail[2].seconds;
-  if (!settled && seconds < maxSeconds) return null;
   const median = (key) => tail.map((sample) => sample[key]).toSorted((a, b) => a - b)[1];
   const nativeGB = median('nativeGB'), inspectorGB = median('inspectorGB');
   const minGB = Math.min(...tail.map((sample) => sample.nativeGB));
   const maxGB = Math.max(...tail.map((sample) => sample.nativeGB));
   return { nativeGB, inspectorGB, minGB, maxGB, spreadGB: maxGB - minGB, spreadPercent: (maxGB - minGB) / nativeGB * 100,
-    samples: tail, settled, timedOut: !settled, seconds };
+    samples: tail, seconds };
 }
 
 export function memoryVerdict(shard, phase, nativeGB, inspectorGB, previousGB, pending = []) {

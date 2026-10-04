@@ -8,7 +8,7 @@ function completeReport() {
       shard: 'pine-hollow', phase, nativeGB: 0.6, inspectorGB: 0.8, nativePeakGB: 0.7, previousGB: null,
       measurement: 'settled-median-3', verdict: 'success', reason: 'first reading', limitGB: 1,
       settling: { nativeGB: 0.6, inspectorGB: 0.8, minGB: 0.6, maxGB: 0.6, spreadGB: 0, spreadPercent: 0,
-        samples: [], settled: true, timedOut: false, seconds: 3 },
+        samples: [], seconds: 3 },
     })),
   };
 }
@@ -32,7 +32,7 @@ describe('memory comparison reference', () => {
     if (!row) throw new Error('fixture row missing');
     expect(memoryReferenceProblem({ ...report, memory: [row, row, row] }, ['pine-hollow'])).toContain('duplicate');
   });
-  it('rejects failed or pending measurements, legacy peaks and unsettled medians', () => {
+  it('rejects failed or pending measurements, legacy peaks and medians with no samples recorded', () => {
     for (const verdict of ['failure', 'pending']) {
       const report = completeReport();
       for (const row of report.memory) row.verdict = verdict;
@@ -41,9 +41,8 @@ describe('memory comparison reference', () => {
     const legacy = completeReport();
     for (const row of legacy.memory) row.measurement = 'legacy-peak';
     expect(memoryReferenceProblem(legacy, ['pine-hollow'])).toContain('settled median');
-    const unsettled = completeReport();
-    for (const row of unsettled.memory) row.settling.settled = false;
-    expect(memoryReferenceProblem(unsettled, ['pine-hollow'])).toContain('settled median');
+    const unrecorded = { ...completeReport(), memory: completeReport().memory.map(({ settling: _settling, ...row }) => row) };
+    expect(memoryReferenceProblem(unrecorded, ['pine-hollow'])).toContain('settled median');
     const overLimit = completeReport();
     for (const row of overLimit.memory) row.nativePeakGB = 2;
     expect(memoryReferenceProblem(overLimit, ['pine-hollow'])).toContain('absolute limit');
