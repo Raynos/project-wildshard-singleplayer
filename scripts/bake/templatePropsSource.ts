@@ -1,4 +1,7 @@
 import { BoxGeometry, Group, type Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
+import { buildTerrain } from '../../src/engine/world/terrainField';
+import { TRAIL } from '../../src/shards/_template/layout';
+import { poolMask } from '../../src/shards/_template/world/pool';
 import { Scope } from '../../src/engine/app/scope';
 import { RngService } from '../../src/engine/core/rng';
 import { WorldRegistry } from '../../src/engine/world/registry';
@@ -11,7 +14,7 @@ import type { PropsBakeSource } from '../../src/sdk/bake/props';
 /** Actual template generators, captured before merging. Water remains owned by the water declaration. */
 export function templateProps(count = 20): { source: PropsBakeSource; original: Group; dispose: () => void } {
   const original = new Group(), registry = new WorldRegistry(), scope = new Scope('props.generator');
-  buildWorld({ root: original, scope, piece: (p) => { registry.add(p); }, app: { rng: new RngService(357) }, manifest: { ground: {} } }, count);
+  buildWorld({ root: original, scope, piece: (p) => { registry.add(p); }, app: { rng: new RngService(357) }, manifest: { ground: { terrain: buildTerrain(357, { landscape: (x, z, { n }) => poolMask(x, z) ? -3 : n.get(x * 0.015, z * 0.015) * 0.5, trails: TRAIL, cabinSites: [] }) } } }, count);
   const shape = (id: string): Object3D => { const object = registry.get(id)?.object; if (object === undefined) throw new Error(`Missing template shape ${id}`); return object; };
   const staticRoot = new Group(); staticRoot.add(shape('template.hut').clone(), shape('template.ramp').clone());
   const scatter = shape('template.props'), transforms: Matrix4[] = []; scatter.updateMatrixWorld(true);

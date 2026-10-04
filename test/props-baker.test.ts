@@ -42,7 +42,11 @@ describe('declared prop baker', () => {
     } finally { restoredScope.dispose(); first.dispose(); physics.dispose(); }
   });
   it('installs the exact hut, ramp, door and practice collision descriptors, toggles their active ports, and unloads all colliders', async () => {
-    const baked = bakeProps(source().source), R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()), physics = new Physics(R), scope = new Scope('props.physics');
+    const fixture = source(), hutY = fixture.source.static.children[0]?.position.y;
+    expect(hutY).not.toBe(0);
+    const baked = bakeProps(fixture.source), R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()), physics = new Physics(R), scope = new Scope('props.physics');
+    const wall = baked.props.colliders.find((row) => row.id === 'template.hut')?.shapes[0];
+    expect(wall?.kind === 'box' ? wall.y - wall.hy : null).toBe(hutY);
     try {
       const ports = installDeclaredPropColliders(propColliderDescriptors(baked.props), physics, scope); physics.world.step();
       expect(physics.world.colliders.len()).toBe(20);
