@@ -63,7 +63,10 @@ import { installPlayerDeath } from '@wildshard/engine/ui/playerDeath';
 import { PlayerHurt } from '@wildshard/engine/ui/playerHurt';
 import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
-import { gridCells, pageMode } from '../grid/boot';
+import { gridCells, gridHomeSim, pageMode } from '../grid/boot';
+import { installGridReveal } from '../grid/reveal';
+import { installGridHud } from '../grid/gridHud';
+import { findShard } from '../shard/registry';
 import { firstPartyInstance } from '../grid/instances';
 import { installSavesSettings } from '../savesSettings';
 import { GridSession } from '../grid/session';
@@ -92,8 +95,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     // + the practice room's dummies in Developer mode: full on its first frame (E291); the Memory saver loads them when the room opens (SF22d)
     const practice = isDev() && setting('memorySaver') === 'off' ? arena.preload() : null;
     await (menuLoad ?? startMenuPreload(files, chunk)).wait(p);
-    await practice;
-    await grid?.ready(); // the loading screen holds until every visible neighbour is drawn
+    await practice; // the grid's streaming is covered by its entry reveal (G98, below), not the loading screen
   });
   const { audio, music } = prepareAudio();
   const arrivalSpawn = boot.handoff?.arrive ?? chunk.spawn;
@@ -443,6 +445,17 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
   else if (arrival?.mode === 'explore') { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); hud.setOnEnter(enter); } // Explore ▸ Practice enters through it without the title: no handler left the weapon off and the DODGE disc dead (E285)
   else { hud.markEntered(enter); weapons.setEnabled(!nolock || params.has('skipintro')); }
+  // the grid's player-facing moments: G98's sky-down reveal to the pier (it waits for the rings and the home handoff), then
+  // G78's SAFE ZONE + dimmed ATTACK on the road, G82 / G105's title card on entering a shard, G97's speed look (gridHud.ts)
+  if (grid !== null) {
+    const revealing = installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
+      home: chunk.name, ringsReady: () => grid.ringsReady(), homeSimReady: () => !gridHomeSim.pending, weapons, viewmodel: game.viewmodel, entered: () => hud.entered });
+    const gridHud = installGridHud({ scope: game.levelScope, hudRoot: hud.root, camera: game.camera, cells: gridCells,
+      title: (cell) => { const shard = findShard(cell.slug); return { name: shard?.name ?? cell.slug, subtitle: shard?.biome ?? '' }; },
+      velocity: () => player.velocity, live: () => hud.entered && !hud.paused && !revealing(),
+      onInput: (fn) => { game.onInput(fn, 'game.grid.hud.fov'); }, onLate: (fn) => { game.onLate(fn, 'game.grid.hud'); } });
+    game.levelScope.onDispose(app.debug.scopedExpose('gridHud', { state: gridHud }));
+  }
   // ?explore=hub|world|model|sets[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ShardManifest.explore — D4, E66; a note's "go there")
   if (exploreParam !== null && chunk.explore !== undefined) {
     const cam = (params.get('cam') ?? '').split(',').filter((v) => v !== '').map(Number);

@@ -1,0 +1,59 @@
+{
+  "url": "http://127.0.0.1:4400",
+  "started": "2026-10-04T16:39:33.940Z",
+  "errors": [],
+  "reveal": {
+    "shownMs": 6945,
+    "readout": {
+      "startedAt": 2486.300000190735,
+      "pathEndMs": 7031.900000095367,
+      "ringsReadyMs": 0,
+      "homeSimMs": 0,
+      "endedMs": 7031.900000095367,
+      "skipped": false,
+      "ceiling": false
+    }
+  },
+  "pier": {
+    "hud": {
+      "safe": false,
+      "card": null,
+      "speed": 0,
+      "fov": 93.94
+    },
+    "inside": "driftwood-isle",
+    "stowed": false,
+    "frame": "driftwood-isle"
+  },
+  "safe": {
+    "hud": {
+      "safe": true,
+      "card": null,
+      "speed": 0,
+      "fov": 93.94
+    },
+    "inside": null,
+    "stowed": true,
+    "frame": null
+  },
+  "title": {
+    "hud": {
+      "safe": false,
+      "card": "Driftwood Isle",
+      "speed": 0,
+      "fov": 93.94
+    },
+    "inside": "driftwood-isle",
+    "stowed": false,
+    "frame": "driftwood-isle"
+  },
+  "speed": {
+    "v": 29.999999999999925,
+    "hud": {
+      "safe": true,
+      "card": null,
+      "speed": 0.9,
+      "fov": 102.69
+    }
+  }
+}

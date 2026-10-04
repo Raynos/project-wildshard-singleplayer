@@ -148,6 +148,7 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
   const productOptions = 'base' in options ? options : browserShardfileOptions(
     new URL(`shardfiles/${source.identity.slug}/`, document.baseURI || location.href).href, options.firstParty);
   const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
+  if (gridInstance !== null) gridHomeSim.expect(); // the entry reveal waits for this handoff (G98)
   // in a grid page the restored home simulation goes to the live grid owner (its freeze fence gates the existing driver)
   const onSimulation: ShardfileClientBindings['onSimulation'] = gridInstance === null ? bindings.onSimulation : (binding) => {
     bindings.onSimulation?.(binding);

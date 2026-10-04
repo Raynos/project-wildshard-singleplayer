@@ -58,9 +58,9 @@ try {
     await page.waitForSelector('.ws-main-grid', { timeout: 120000 });
     await sleep(1200);
     await page.click('.ws-main-grid');
-    await page.waitForFunction(() => document.querySelector('.ws-reveal') !== null, null, { timeout: 180000 });
+    await page.waitForFunction(() => document.querySelector('.ws-grid-reveal') !== null, null, { timeout: 180000 });
     const t0 = Date.now();
-    await page.waitForFunction(() => document.querySelector('.ws-reveal') === null, null, { timeout: 120000 });
+    await page.waitForFunction(() => document.querySelector('.ws-grid-reveal') === null, null, { timeout: 120000 });
     const reveal = await page.evaluate(() => window.__wsReveal ?? null);
     await sleep(1500);
     results.reveal = { shownMs: Date.now() - t0, readout: reveal };

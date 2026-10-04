@@ -83,6 +83,11 @@ export class GridHomeHandoff {
   private current: GridHomeSimulation | null = null;
   private readonly takers = new Set<(sim: GridHomeSimulation) => void>();
   get simulation(): GridHomeSimulation | null { return this.current !== null && !this.current.disposed() ? this.current : null; }
+  private expected = false;
+  /** the home client announces a handoff on its way (a hybrid home in a grid page), so the entry reveal waits for it (G98) */
+  expect(): void { this.expected = true; }
+  /** true while an announced handoff has not arrived (the reveal's third wait; false when none was announced) */
+  get pending(): boolean { return this.expected && this.current === null; }
   offer(sim: GridHomeSimulation): void { this.current = sim; for (const fn of this.takers) fn(sim); }
   take(fn: (sim: GridHomeSimulation) => void): () => void {
     this.takers.add(fn);

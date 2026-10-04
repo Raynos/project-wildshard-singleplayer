@@ -35,6 +35,8 @@ export const GAME_STRINGS = {
     devserverCellNote: 'SF21a (G46): the DEVSERVER cell of Infinite Wildshard, or the template it replaces. Applies at the next grid start.',
     reveal: (home: string): string => `Arriving at ${home}`,
     revealSkip: 'Tap to skip',
+    /** G78: the chip above ATTACK on the road and in no-man's land (the weapon is stowed there, G68) */
+    safeZone: 'SAFE ZONE',
     oneFrame: 'Grid one frame',
     oneFrameNote: 'SF19a: one sky, sun, exposure and air for the whole grid, each pixel graded by its own region. Applies at the next grid start.',
     off: 'Off',
