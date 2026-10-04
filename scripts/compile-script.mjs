@@ -1,6 +1,9 @@
 /** JS-only ABI-v0 AssemblyScript compiler and Binaryen metering transform. */
-import { main } from 'assemblyscript/asc';
 import binaryen from 'binaryen';
+
+/** @typedef {{main:(args:string[],options:{readFile:(name:string)=>string|null,writeFile:(name:string,contents:string|Uint8Array)=>void})=>Promise<{error:Error|null}>}} Compiler */
+/** @param {unknown} value @returns {value is Compiler} */
+function isCompiler(value) { return typeof value === 'object' && value !== null && 'main' in value && typeof value.main === 'function'; }
 
 const FEATURES = binaryen.Features.MutableGlobals | binaryen.Features.SignExt | binaryen.Features.NontrappingFPToInt | binaryen.Features.BulkMemory;
 /** Tokenise Binaryen's own WAT output, keeping quoted data opaque. */
@@ -77,8 +80,14 @@ export function instrumentScript(bytes) {
 }
 /** Build source in-memory; no native compiler or Rust toolchain. ABI/compiler versions are pinned in package.json. */
 export async function compileScript(source) {
+  // asc's declaration bundle globally changes Array.at to return T, unsound in host JS.
+  // Keep its portable ambient declarations inside the author compiler, not the host type program.
+  const compilerSpecifier = ['assemblyscript', 'asc'].join('/');
+  /** @type {unknown} */
+  const compiler = await import(compilerSpecifier);
+  if (!isCompiler(compiler)) throw new Error('Invalid pinned AssemblyScript compiler');
   let bytes = new Uint8Array();
-  const result = await main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', '1', '--maximumMemory', '64', '--exportStart', '__start', '-O3'], {
+  const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', '1', '--maximumMemory', '64', '--exportStart', '__start', '-O3'], {
     readFile: (name) => name === 'main.ts' ? source : null,
     writeFile: (name, contents) => { if (name === 'main.wasm' && contents instanceof Uint8Array) bytes = contents; },
   });
