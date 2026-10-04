@@ -87,3 +87,33 @@ Round 1 (2026-10-04): 46 findings (must-fix 17, should-fix 21, should-add 3, nit
 | C2-R2-C17 | 2 | C | nit | §3.2 | Collider wording vs G90 | fixed (round-2 commit) | collider = generator mesh |
 
 Round 2 (2026-10-04): 27 findings (must-fix 9, should-fix 14, nit 4); accepted must-fix + should-fix fell from 38 (round 1) to 23; 25 fixed, 1 decided by Jake (G143), 1 resolved by his pick (G138). Jake decided during the round: G138–G146 (the hybrid commons, build-time commons imports, weapons on SDK families, quest generators Part B, the platform asphalt socket, runtime/ imports, real-total memory checks, the 99 % wind-down, data / AS only in the shardfile).
+
+| ID | Round | Seat | Severity | Location | Finding | Status | Resolution |
+|---|---|---|---|---|---|---|---|
+| C2-R3-A1 | 3 | A | must-fix | SF18b, SF8a | Real-total admission needs one live residency owner | fixed (round-3 commit) | SF18b reopened: live accounting |
+| C2-R3-A2 | 3 | A | should-fix | SF54, Part B | G141 work not assigned to a row | fixed (round-3 commit) | SF54 Part A list + Part B row S22 |
+| C2-R3-A3 | 3 | A | should-fix | SF54 → SF36 | Four-weapon transition has no exit or ratchet | fixed (round-3 commit) | allowlist + SF36 exit |
+| C2-R3-A4 | 3 | A | should-fix | Handoff NEXT | Order fix missed the resume queue | fixed (round-3 commit) | NEXT 2 = format lane SF8a then SF8c |
+| C2-R3-B1 | 3 | B | should-fix | §3.3 shore rule | Shore vs G90 negative gradient and drop guards | fixed (round-3 commit) | strip stays at 0; no drop wall at a shore |
+| C2-R3-B2 | 3 | B | should-fix | §1, SF6 | Fixtures miss data / quest commons imports | fixed (round-3 commit) | fixtures added |
+| C2-R3-B3 | 3 | B | should-fix | §3.2, SF17b | 16-chunk claim not the built topology | fixed (round-3 commit) | landed mesh facts + measured accounting |
+| C2-R3-B4 | 3 | B | should-fix | SF54 | Routing ignores the audit | fixed (round-3 commit) | audit routing + commons layer |
+| C2-R3-B5 | 3 | B | should-fix | SF54, G141 | No Part B row exists | fixed (round-3 commit) | S22 added |
+| C2-R3-B6 | 3 | B | should-fix | SF21a G133 | No completed-quest numerator for legacy saves | fixed (round-3 commit) | completion read adapter |
+| C2-R3-B7 | 3 | B | nit | SF8c, SF52 | Stale "today" facts | fixed (round-3 commit) | landed sub-slice recorded |
+| C2-R3-C1 | 3 | C | must-fix | §6, Handoff | Resume queue fights §6; §6 not on the restart list | fixed (round-3 commit) | §6 on the restart list; before-M2 slices in NEXT 1 |
+| C2-R3-C2 | 3 | C | must-fix | §3.2, SF17b | Round-2 fix contradicts the landed seam mesh | fixed (round-3 commit) | landed facts (33e0192de, 674629fef) |
+| C2-R3-C3 | 3 | C | must-fix | §3.3 | Shore rule builds a water wall | fixed (G149, Jake) | strip at 0, +0.6 m rip-rap |
+| C2-R3-C4 | 3 | C | must-fix | SF22 | Gates can pass vacuously and flip public | fixed (G148, Jake) | prepared looks ON, zero refusals; public after Jake |
+| C2-R3-C5 | 3 | C | must-fix | §1, SF6 | "Any folder" TS counted public vs G146 | fixed (round-3 commit) | shipped TS counts custom |
+| C2-R3-C6 | 3 | C | must-fix | SF54 | Done-when unreachable before M3 | fixed (round-3 commit) | kit-only exit; engine/game ratchet per -p port |
+| C2-R3-C7 | 3 | C | should-fix | SF54, G140 | Weapons outside runtime/ break G143 | fixed (round-3 commit) | move to runtime/weapons |
+| C2-R3-C8 | 3 | C | should-fix | §3.3, SF46 | Lowered sea grid-only? | fixed (G147, Jake) | every mode behind the SF46 row |
+| C2-R3-C9 | 3 | C | should-fix | SF8a | Refusal order and hysteresis | fixed (round-3 commit) | priority + 5 % headroom |
+| C2-R3-C10 | 3 | C | should-fix | SF8c | Stale "today" facts | fixed (round-3 commit) | with B7 |
+| C2-R3-C11 | 3 | C | should-fix | §3.5 | "No commons code" must be transitive | fixed (round-3 commit) | transitive closure |
+| C2-R3-C12 | 3 | C | nit | Handoff budget | Missing G145 | fixed (round-3 commit) | updated |
+| C2-R3-C13 | 3 | C | nit | State | Stale M3 shares | fixed (round-3 commit) | updated |
+| C2-R3-C14 | 3 | C | nit | SF6b | No status | fixed (round-3 commit) | done acd435407, 7be018a0c |
+
+Round 3 (2026-10-04, final): 25 findings (must-fix 8, should-fix 13, nit 4); accepted must-fix + should-fix went 38 → 23 → 21, and round 3's were narrower (wiring and landed-code facts, no new design gaps); 22 fixed, 3 decided by Jake (G147–G149). **Council 2 ended after round 3** (Jake asked for three). Nothing is left open. Jake also added G150 (generators are any tool) and G151 (Template 2, the Blender shard). The round files are archived in `project/archive/2026-10-04-shard-platform-council-2/`.
