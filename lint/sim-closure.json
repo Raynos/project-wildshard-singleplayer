@@ -64,14 +64,6 @@
       "count": 2,
       "row": "SF3c"
     },
-    "src/engine/saves/store.ts:global:navigator": {
-      "count": 1,
-      "row": "SF3c"
-    },
-    "src/engine/saves/store.ts:global:window": {
-      "count": 1,
-      "row": "SF3c"
-    },
     "src/engine/world/Atmosphere.ts:import:src/engine/render/fogPatches.ts": {
       "count": 1,
       "row": "SF3c"

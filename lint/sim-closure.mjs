@@ -3,7 +3,7 @@ import { existsSync, readFileSync, globSync, statSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
 import { parseSync } from 'vite';
 
-const VIEW = /^src\/engine\/(?:ai\/view\/|combat\/view\/|quest\/view(?:\/|\.ts$))/u;
+const VIEW = /^src\/engine\/(?:ai\/view\/|combat\/view\/|quest\/view(?:\/|\.ts$)|saves\/view\/)/u;
 const FORBIDDEN = /^src\/engine\/(?:app\/runtime(?:\.ts)?$|core\/(?:tier|frameCost)(?:\.ts)?$|render\/|ui\/|fx\/|anim\/)/u;
 const MATH = new Set(['Vector2', 'Vector3', 'Vector4', 'Euler', 'Quaternion', 'Matrix3', 'Matrix4', 'Box2', 'Box3', 'Ray', 'Sphere', 'Plane', 'Frustum', 'MathUtils', 'Color']);
 const DOM = new Set(['window', 'document', 'navigator', 'localStorage', 'sessionStorage', 'HTMLElement', 'HTMLCanvasElement', 'Element', 'requestAnimationFrame', 'cancelAnimationFrame', 'matchMedia', 'ResizeObserver', 'Image', 'Audio']);
@@ -55,6 +55,7 @@ export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }
     };
     walk(parsed(file), (node, parent) => {
       if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration', 'ImportExpression'].includes(node.type)) {
+        if (simRoot(path) && value(node.source) === 'three' && node.importKind === 'type' && node.specifiers?.some((s) => s.type !== 'ImportSpecifier' || !MATH.has(s.imported.name))) add('import', 'three');
         if (node.importKind === 'type' || node.exportKind === 'type' || (node.specifiers?.length && node.specifiers.every((s) => s.importKind === 'type'))) return;
         const source = value(node.source);
         if (source === null) { if (node.source) add('import', 'dynamic'); return; }
@@ -71,6 +72,8 @@ export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }
         if (FORBIDDEN.test(destPath) || VIEW.test(destPath)) add('import', destPath);
         else if (/\.[cm]?[jt]s$/u.test(destPath)) next.push(destPath);
       }
+      if (simRoot(path) && node.type === 'Identifier' && ['HTMLElement', 'HTMLCanvasElement'].includes(node.name) && parent?.type === 'TSTypeReference') add('global', node.name);
+      if (node.type === 'MemberExpression' && ['window', 'globalThis'].includes(node.object?.name) && DOM.has(node.property?.name) && node.property?.name !== 'window') add('global', node.property.name);
       if (node.type === 'Identifier' && reference(node, parent) && DOM.has(node.name)) add('global', node.name);
     });
     for (const dest of next) visit(dest, [...trace, dest]);

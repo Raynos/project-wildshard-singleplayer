@@ -424,14 +424,14 @@
     "file": "src/engine/combat/qualified.ts",
     "rule": "sim-no-render",
     "code": "void window.document; globalThis.requestAnimationFrame(fn); void local.document;",
-    "count": 2
+    "count": 3
   },
   {
     "id": "sim-storage",
     "file": "src/engine/saves/local.ts",
     "rule": "sim-no-render",
     "code": "localStorage.getItem('x'); sessionStorage.getItem('x'); void navigator.storage;",
-    "count": 0
+    "count": 3
   },
   {
     "id": "sim-combat-view",

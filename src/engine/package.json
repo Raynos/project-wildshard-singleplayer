@@ -275,6 +275,7 @@
     "./world/waterSurface": "./world/waterSurface.ts",
     "./world/waves": "./world/waves.ts",
     "./world/weather": "./world/weather.ts",
-    "./world/wind": "./world/wind.ts"
+    "./world/wind": "./world/wind.ts",
+    "./saves/view/storage": "./saves/view/storage.ts"
   }
 }

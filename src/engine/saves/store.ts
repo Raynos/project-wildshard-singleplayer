@@ -1,6 +1,7 @@
 import { appIdentity, installedIdentity } from '../app/identity';
 import * as v from 'valibot';
 import { resetLegacy } from './legacy';
+import { saveEnvironment } from './environment';
 
 /**
  * Where a save key lives; `profile` (reserved, no key yet) is the player above every level.
@@ -43,9 +44,7 @@ const object = (value: unknown): value is Record<string, unknown> => typeof valu
 const entry = (value: unknown): value is Entry => object(value) && typeof value['v'] === 'number' && Number.isInteger(value['v']) && value['v'] > 0 && Object.hasOwn(value, 'data');
 const doc = (value: unknown): value is Document => object(value) && object(value['keys']);
 const clone = <T>(value: T): T => structuredClone(value);
-function browserStorage(scope: SaveScope): SaveStorage | null {
-  try { return scope === 'session' ? globalThis.sessionStorage : globalThis.localStorage; } catch { return null; }
-}
+
 
 /** Renderer-free, write-through save service. Re-read each savedDoc before writing to preserve other keys. */
 export class SaveStore {
@@ -59,8 +58,8 @@ export class SaveStore {
   private readonly options: StoreOptions;
   constructor(options: StoreOptions = {}) { this.options = options; }
   private storage(scope: SaveScope): SaveStorage | null {
-    return scope === 'session' ? this.options.session === undefined ? browserStorage(scope) : this.options.session
-      : this.options.local === undefined ? browserStorage(scope) : this.options.local;
+    return scope === 'session' ? this.options.session === undefined ? saveEnvironment().storage(scope) : this.options.session
+      : this.options.local === undefined ? saveEnvironment().storage(scope) : this.options.local;
   }
   private initialize(): void {
     if (this.initialized) return;
@@ -71,7 +70,7 @@ export class SaveStore {
     if (scope === 'shard' && (!namespace || !shardNamespace(namespace))) throw new Error('Shard saves need a slug');
     let persisted = false;
     // a page's storage persists; Node's global localStorage (a script, a bake) does not outlive the process
-    try { persisted = typeof window !== 'undefined' && this.storage(scope) !== null; } catch { /* blocked storage: memory only */ }
+    try { persisted = saveEnvironment().persistent() && this.storage(scope) !== null; } catch { /* blocked storage: memory only */ }
     return keyPrefix(persisted) + (scope === 'shard' ? namespace : scope);
   }
   private get(scope: SaveScope, name: string): string | null {
@@ -186,7 +185,7 @@ export class SaveStore {
   persist(): Promise<boolean> {
     this.persistence ??= (async () => {
       let granted = false;
-      try { granted = await (this.options.persist?.() ?? navigator.storage.persist()); } catch { /* API missing or denied */ }
+      try { granted = await (this.options.persist?.() ?? saveEnvironment().persist()); } catch { /* API missing or denied */ }
       const name = this.name('device'), savedDoc = this.savedDoc('device', name);
       savedDoc.keys['storage.persisted'] = { v: 1, data: granted };
       this.put('device', name, JSON.stringify(savedDoc));
