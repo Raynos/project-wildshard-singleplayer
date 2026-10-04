@@ -13,7 +13,7 @@ import { facetGeometry, lowPolyMaterials, oneMaterial } from '../../../../src/en
 import { Rng } from '../../../../src/engine/core/rng';
 import { BOAR } from '../../../../src/kit/species/boar';
 import { BOAR_LOOK } from '../../../../src/kit/species/view/boar';
-import { GREY_BLOB, GREY_BLOB_LOOK } from '../../../../src/shards/_template/species/greyBlob';
+import { GREY_BLOB_SOURCE, GREY_BLOB_SOURCE_LOOK } from './greyBlobSource';
 import { rigLegs } from '../../../../src/shards/pine-hollow/quest/npcRig';
 import { legBones, legPose } from '../../../../src/kit/npc/npcRig';
 import { MeshStandardMaterial as StandardMaterial } from 'three';
@@ -23,7 +23,7 @@ import type { ClipName } from '../../../../src/engine/anim/rig';
 export interface SkinSource { mesh: SkinnedMesh; skeleton: string; clips: readonly ClipName[]; sockets: string[]; pose: (clip: ClipName, time: number, dt: number, phase?: number) => void; dispose: () => void }
 /** Construct the template's actual faceted grey blob or boar, including the same factory merge, facet, palette and bone offsets. */
 export function creatureSkinSource(kind: 'grey-blob' | 'boar'): SkinSource {
-  const species = kind === 'boar' ? speciesWithLook(BOAR, BOAR_LOOK) : speciesWithLook(GREY_BLOB, GREY_BLOB_LOOK), variant = species.variants[0]; if (variant === undefined) throw new Error('Missing creature variant');
+  const species = kind === 'boar' ? speciesWithLook(BOAR, BOAR_LOOK) : speciesWithLook(GREY_BLOB_SOURCE, GREY_BLOB_SOURCE_LOOK), variant = species.variants[0]; if (variant === undefined) throw new Error('Missing creature variant');
   let seed = 2166136261; const key = `${species.kind}:${variant.id}`; for (let i = 0; i < key.length; i++) { seed ^= key.charCodeAt(i); seed = Math.imul(seed, 16777619); }
   const prior = isLowPoly(); setLowPoly(true); const built = species.build(variant, new Rng(seed >>> 0)); setLowPoly(prior);
   const geometry = facetGeometry(mergeAnimalGeometry(built.furParts, built.hardParts, built.eyeParts), built.facetJitter); oneMaterial(geometry, null);
