@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { Uniform } from 'three';
-import { BlendFunction, Effect } from 'postprocessing';
+import { PerspectiveCamera, type Uniform } from 'three';
+import { BlendFunction, Effect, EffectPass } from 'postprocessing';
 import { FRAME_BAND, HIGHWAY_GRADE, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
-import { FrameGradeEffect, opacityFade } from '../src/game/grid/frame';
+import { FrameGradeEffect, opacityFade, passEffects } from '../src/game/grid/frame';
 
 // SHARD-PLATFORM SF19a re-aimed by G158: the shard the player stands in owns the whole frame, the road look the road
 const pitch = 555, half = 250;
@@ -80,5 +80,13 @@ describe('grid frame grade pieces', () => {
     fade.weight(0); expect(a.blendMode.opacity.value).toBe(0);
     a.blendMode.opacity.value = 0.6; fade.weight(0.5); expect(a.blendMode.opacity.value).toBeCloseTo(0.3);
     fade.dispose(); expect(a.blendMode.opacity.value).toBeCloseTo(0.6);
+  });
+  it('reads the pass\'s own effect list, so the appended frame grade is drawn (a copy dropped it, SF19a proof)', () => {
+    const a = new Effect('A', 'void mainImage(const in vec4 i, const in vec2 uv, out vec4 o) { o = i; }', { blendFunction: BlendFunction.NORMAL, uniforms: new Map<string, Uniform>() });
+    const pass = new EffectPass(new PerspectiveCamera(), a), grade = new FrameGradeEffect();
+    const list = passEffects(pass);
+    if (list === null) throw new Error('no effect list');
+    list.push(grade);
+    expect(passEffects(pass)).toBe(list); expect(passEffects(pass)).toContain(grade);
   });
 });

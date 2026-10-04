@@ -99,12 +99,18 @@ export function opacityFade(effects: readonly Effect[]): FrameStack & { readonly
   };
 }
 
-/** The effects of an EffectPass (its list is private in the typings; read at run time and checked). */
-function passEffects(pass: EffectPass): Effect[] | null {
+/** Every entry an Effect: the narrowing keeps the array itself, never a copy. */
+function isEffectList(list: unknown): list is Effect[] {
+  return Array.isArray(list) && list.every((e) => e instanceof Effect);
+}
+
+/**
+ * The effects of an EffectPass (its list is private in the typings; read at run time and checked). It is the pass's own
+ * live array, so an effect pushed into it is drawn on the next recompile (a filtered copy dropped the frame grade).
+ */
+export function passEffects(pass: EffectPass): Effect[] | null {
   const found: unknown = Reflect.get(pass, 'effects');
-  if (!Array.isArray(found)) return null;
-  const list: unknown[] = found;
-  return list.every((e) => e instanceof Effect) ? list.filter((e): e is Effect => e instanceof Effect) : null;
+  return isEffectList(found) ? found : null;
 }
 
 /** The live one frame. Built by the grid session when the row is on; disposed with the level scope. */
