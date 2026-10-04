@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./newGame": "./newGame.ts",
     "./shard/runtimeVariant": "./shard/runtimeVariant.ts",
     "./grid/live": "./grid/live.ts",
     "./Boss": "./Boss.ts",
