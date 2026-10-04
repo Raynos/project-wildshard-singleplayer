@@ -1,0 +1,22 @@
+[
+  {
+    "name": "goat",
+    "source": "src/shards/far-reach/species/skyGoat.ts",
+    "revision": "3877c5ebd0e5229a1f95da7c28969a4a620136f8",
+    "blob": "b37208bafa2e1625149a489856ac950048d80d64",
+    "start": "/** The ram:",
+    "end": "const brains =",
+    "bodySha256": "7ef4107677e7a83cce3c460313be0439f8d84f5ae2245b2b1c6bf2bb826a7f66",
+    "fixtureSha256": "838af1e7d0b89087e88872296031679c17d36b81c4667c15297ecff5e61cee00"
+  },
+  {
+    "name": "strider",
+    "source": "src/shards/sunscar-dunes/species/strider.ts",
+    "revision": "3877c5ebd0e5229a1f95da7c28969a4a620136f8",
+    "blob": "576ff909b7e9ce82090e7d04219f556cb7e281eb",
+    "start": "/** The strider's numbers",
+    "end": "const brains =",
+    "bodySha256": "8760617abbd5e57aa5a5784732550371d0457777e7f503b43376aa6efc0178e7",
+    "fixtureSha256": "e8dcc2c4fd1c4b6e9149124371b68cdad72c902b4ea7be82dc96230b32e17a80"
+  }
+]
