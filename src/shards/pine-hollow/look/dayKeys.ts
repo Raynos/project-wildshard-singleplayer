@@ -1,4 +1,5 @@
-import { DayCycle, type DayCycleSpec, type OptionValue } from '@wildshard/engine';
+import type { OptionValue } from '@wildshard/engine/ui/Settings';
+import { DayCycle, type DayCycleSpec } from '@wildshard/engine/world/dayCycle';
 import * as THREE from 'three';
 import type { SkyKeyName } from './skyKeys';
 

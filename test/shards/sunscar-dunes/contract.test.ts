@@ -1,12 +1,20 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { App, WorldRegistry, TabRegistry, StrikeRunner, type Actor, type LevelDriver } from '@wildshard/engine';
-import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } from '@wildshard/game';
+import { StrikeRunner } from '../../../src/engine/ai/strikes';
+import { App } from '../../../src/engine/app/app';
+import type { Actor } from '../../../src/engine/combat/pipeline';
+import type { LevelDriver } from '../../../src/engine/level/load';
+import { TabRegistry } from '../../../src/engine/ui/tabs';
+import { WorldRegistry } from '../../../src/engine/world/registry';
+import { purseSave, shardSave } from '../../../src/game/saves';
+import { shardContext, type GameServices } from '../../../src/game/shard/context';
+import { toLevelSpec } from '../../../src/game/shard/spec';
 import { Vector3 } from 'three';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import { SignalDunesPlugin } from '../../../src/shards/sunscar-dunes/plugin';
 import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
-import { MATRIARCH_FLAG, SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/quest/install';
+import { MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/quest/install';
+import { SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/quest/scout';
 import { DUNE_RAY, DUNE_RAY_LOOK, SWOOP } from '../../../src/shards/sunscar-dunes/species/duneRay';
 import { FakeGame } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';

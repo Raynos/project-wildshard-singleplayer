@@ -14,10 +14,16 @@
  * `anchors` (world coords, yaw = world facing, 0 = +Z): altar, pool, stairFoot, ring (see the model).
  */
 import * as THREE from 'three';
-import { heightAt, SEED, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, place, type Placed } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin, type ShrineAnchor, type ShrineParams } from '../models/shrine';
 
-export type { ShrineAnchor } from '../models/shrine';
 export interface ShrineSpec { x: number; z: number; rot: number }
 
 const FIREFLIES = 90;

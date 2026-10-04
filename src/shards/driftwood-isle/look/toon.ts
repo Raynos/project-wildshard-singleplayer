@@ -29,7 +29,7 @@
  * no cloud shadow — still the ramp.
  */
 import * as THREE from 'three';
-import { addFogUniforms } from '@wildshard/engine';
+import { addFogUniforms } from '@wildshard/engine/world/Atmosphere';
 
 export const toonUniforms = {
   /** added to the shade band (linear, ×albedo): the blue-violet of Rime's shadows */

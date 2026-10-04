@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { WorldRegistry } from '../../../src/engine/world/registry';
-import type { Sky } from '../../../src/engine/world/Sky';
+import type { SkyRig as Sky } from '../../../src/engine/world/skyRig';
 import { defineModel, modelContext } from '../../../src/engine/models/model';
 import { place } from '../../../src/engine/models/place';
 import { boat, boatColliders } from '../../../src/shards/driftwood-isle/models/boat';

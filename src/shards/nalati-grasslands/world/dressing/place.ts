@@ -17,9 +17,14 @@
  *   · each instance carries its own draw distance: small things go early, and inside a drift the outer clumps go
  *     before the heart, so a drift shrinks to its core with distance instead of vanishing at a ring
  */
-import { Rng, Noise2D, smoothstep, clamp, lerp, type Forest, heightAt, normalAt, trailDistance, inChunk, TRAILS } from '@wildshard/engine';
-import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '@wildshard/kit';
-import { RIVER, riverMask, BROOK, CRAGS, WEST_CRAGS, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD, CAMP_SPUR, zoneAt, snowValleyX, snowValleyHalf, glacierMask } from '../../manifest';
+import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/engine/core/noise';
+import { Rng } from '@wildshard/engine/core/rng';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import { normalAt, trailDistance, inChunk, TRAILS } from '@wildshard/engine/world/Heightfield';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '@wildshard/kit/looks/grassField';
+import { MELT_STREAM as BROOK, CRAGS, WEST_CRAGS, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD, CAMP_SPUR, snowValleyX, snowValleyHalf } from '../../layout';
+import { RIVER, riverMask, zoneAt, glacierMask } from '../terrain';
 import { inPoiClearing } from '../clearings';
 import type { Box } from '../solid';
 import type { Inst } from './layer';

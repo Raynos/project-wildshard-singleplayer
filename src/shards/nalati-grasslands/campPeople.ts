@@ -29,11 +29,15 @@
  *   people.fig.elder.headWorld                       // where its "[E] Talk" prompt sits
  */
 import * as THREE from 'three';
-import type { Scope, Sky, WorldRegistry, ColliderDesc } from '@wildshard/engine';
-import { PaintKit, pole, v3, lathe, poiMaterial } from './world/paint';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { WorldRegistry, ColliderDesc } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { PaintKit, v3, poiMaterial } from './world/paint';
+import { pole, lathe } from '@wildshard/engine/world/geometryKit';
 import { CAMP_PEOPLE } from './quest';
-import { loadPeopleRig, type PersonFrame, type PeopleRig } from './campPeopleModels';
-import { stepNpcFigure, npcFigurePose } from '@wildshard/kit';
+import { loadPeopleRig } from './campPeopleModels';
+import type { NpcFigureFrame as PersonFrame, NpcFigureRig as PeopleRig } from '@wildshard/kit/npc/figureRig';
+import { stepNpcFigure, npcFigurePose } from '@wildshard/kit/npc/figureMotion';
 import { campPersonProfile, type CampPersonProfile } from './campPeopleProfiles';
 
 export type PersonId = keyof typeof CAMP_PEOPLE;

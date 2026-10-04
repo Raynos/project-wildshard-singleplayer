@@ -9,11 +9,21 @@ import { pineLooks } from './species/looks';
 import { PINE_FEATS } from './feats';
 import { PINE_HOLLOW_COMPENDIUM } from './compendium';
 import { installPineCompendium } from './compendium/install';
-import { ShardPlugin, type ShardContext, type ShardRuntime } from '@wildshard/game';
-import { loadWorldContent, macrotask, heightAt, installAiDebug } from '@wildshard/engine';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import type { ShardRuntime } from '@wildshard/game/shard/runtime';
+import { installAiDebug } from '@wildshard/engine/ai/view/DebugOverlay';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import { CABIN_SITES } from './layout';
-import { Crossbow, Bow, STARTER_EFFECTS, installStarterEffects, crossbowDisplayModel, loadParticles, loadGrassField, type Particles } from '@wildshard/kit';
+import { installStarterEffects } from '@wildshard/kit/effects/install';
+import { STARTER_EFFECTS } from '@wildshard/kit/effects/starter';
+import { loadParticles, loadGrassField } from '@wildshard/kit/lookApi';
+import type { Particles } from '@wildshard/kit/looks/particles';
+import { Bow } from '@wildshard/kit/weapons/bow/family';
+import { Crossbow } from '@wildshard/kit/weapons/crossbow/Crossbow';
+import { crossbowDisplayModel } from '@wildshard/kit/weapons/crossbow/display';
 import { Cabins } from './world/homestead';
 import { Undergrowth } from './world/undergrowth';
 import { Props } from './world/props';
@@ -59,7 +69,7 @@ export class PineHollow extends ShardPlugin {
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
     rt.menu = { skins: () => rt.play ? pineFinishes(rt.play.skins) : [], onWearSkin: (id) => { rt.hooks.wearFinish?.(id); }, skinsTitle: 'Finishes', pack: { note: "Everything here trades at Mott's stall", hint: "Trade at Mott's stall", gearHint: 'Tap a weapon to hold it · a finish to wear it', line: (id) => isPineItem(id) ? mottLine(id) : null } };
-    const { Grass, cutTerrain, setSight } = await loadWorldContent();
+    const [{ Grass }, { cutTerrain }, { setSight }] = await Promise.all([import('@wildshard/engine/world/Grass'), import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/interact/Interactables')]);
     const { Particles: ParticleField } = await loadParticles();
     const { trample, TRAMPLE_GLSL } = await loadGrassField();
     ctx.app.registerTrample(trample, ctx.scope);
@@ -141,7 +151,7 @@ export class PineHollow extends ShardPlugin {
   }
 
   override async play(ctx: ShardContext): Promise<void> {
-    const { WeaponPickup, applySkin, clearSkin } = await loadWorldContent();
+    const [{ WeaponPickup }, { applySkin, clearSkin }] = await Promise.all([import('@wildshard/engine/player/WeaponPickup'), import('@wildshard/engine/player/Skins')]);
     const rt = runtime(ctx), world = rt.world, h = rt.play;
     if (world === null || h === null) throw new Error('Pine gameplay needs its player host');
     const { game, sky, player, forest, registry, params } = world;

@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../../../src/engine/core/rng';
 import { WorldRegistry } from '../../../src/engine/world/registry';
-import type { Sky } from '../../../src/engine/world/Sky';
+import type { SkyRig as Sky } from '../../../src/engine/world/skyRig';
 import { rockGeometry, SHORE_ROCK } from '../../../src/shards/driftwood-isle/world/rockKit';
 import { defineModel, definedModels, modelContext, type Placement } from '../../../src/engine/models/model';
 import { cullPlaced, place, placedCopies } from '../../../src/engine/models/place';

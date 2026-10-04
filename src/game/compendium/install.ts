@@ -1,5 +1,12 @@
 import { bagMenu } from '../bag/tabs';
-import { app, hudSlots, lineOfSight, type HUD, type GameMenu, type AnimalManager, type Interactable, perfLap } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { perfLap } from '@wildshard/engine/core/perfLap';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { lineOfSight } from '@wildshard/engine/physics/query';
+import type { HUD } from '@wildshard/engine/ui/HUD';
+import { hudSlots } from '@wildshard/engine/ui/hudSlots';
+import type { GameMenu } from '@wildshard/engine/ui/Menu';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 /**
  * installCompendium — wires the active shard's compendium into the game (one call from main.ts; nothing happens on a
  * shard that registered none). It owns: the state + its save, the tracker's hooks, the book, the ways in, the trophy wall.

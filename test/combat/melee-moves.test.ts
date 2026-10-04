@@ -1,9 +1,10 @@
-import { SWORD } from '@wildshard/kit';
+import { SWORD } from '../../src/kit/weapons/equipment';
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { onFault } from '../../src/engine/core/faults';
-import { Sword, type SwordArms } from '../../src/kit/weapons/melee/SweptMelee';
-import { COMBO, HEAVY, REST, CHARGE, SPRINT, type Move } from '../../src/kit/weapons/melee/moves';
+import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import type { SwordArms, Move } from '../../src/engine/combat/view/melee';
+import { COMBO, HEAVY, REST, CHARGE, SPRINT } from '../../src/kit/weapons/melee/moves';
 import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '../../src/shards/nalati-grasslands/weapons/Sabre';
 import { setAimTargets } from '../../src/engine/player/AimTargets';
 import { setActivePhysics } from '../../src/engine/physics/active';

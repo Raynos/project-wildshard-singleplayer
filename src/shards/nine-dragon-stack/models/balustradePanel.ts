@@ -5,7 +5,7 @@
  * sides of every panel, each copy scaled to its gap. Past PANEL_LOD m (E283) the 2–5 cm scroll strokes are gone and the
  * frame and medallion stay. The balustrade's posts, rails and plinth are the square's own fabric (its kit).
  */
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { PANEL_LOD, carvedPanel } from '../world/square';
 import { ndLook, need } from '../world/modelLook';
 

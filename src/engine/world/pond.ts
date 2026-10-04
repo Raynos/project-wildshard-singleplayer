@@ -1,7 +1,7 @@
 import { pondGrid } from './pondGrid';
 import * as THREE from 'three';
 import { POND, waterLevel, heightAt } from './Heightfield';
-import type { Sky } from './Sky';
+import type { SkyRig as Sky } from './skyRig';
 import { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import { SEED } from '../core/config';

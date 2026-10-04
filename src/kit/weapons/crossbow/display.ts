@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { fixIBL, isMesh, VIEWMODEL_GROUP, type Sky } from '@wildshard/engine';
+import { fixIBL, isMesh, VIEWMODEL_GROUP } from '@wildshard/engine/combat/view/ranged';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 /** A world-space copy of the crossbow for a floor drop: the viewmodel's meshes with plain render flags, no depth
  *  clearer, no hands, no pose / 1.35× scale, unit materials shared (a skin clones what it changes). ~0.85 m long, bow forward (−Z).

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PerspectiveCamera } from 'three';
-import { App, Scope } from '@wildshard/engine';
+import { App } from '../../../src/engine/app/app';
+import { Scope } from '../../../src/engine/app/scope';
 import { Shared } from '../../../src/shards/nine-dragon-stack/look/style';
 import { JiehuaEffect, BLEED } from '../../../src/shards/nine-dragon-stack/look/render/jiehua';
 import { glowUniforms } from '../../../src/shards/nine-dragon-stack/look/light/glow';

@@ -1,4 +1,11 @@
-import { resourceScope, audioRandom, AmbienceZones, type ZoneVoice, tap, ambientTick, type Audio, type StepSurface, CABIN_SITES, POND, hasPond, audioLog } from '@wildshard/engine';
+import { resourceScope } from '@wildshard/engine/app/resources';
+import { AmbienceZones, type ZoneVoice } from '@wildshard/engine/audio/ambience';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import { audioLog } from '@wildshard/engine/audio/audioLog';
+import type { StepSurface } from '@wildshard/engine/audio/surface';
+import { audioRandom } from '@wildshard/engine/audio/util';
+import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
  * pattern with generated beds (src/shards/pine-hollow/audio/sfx.ts: public/assets/sfx/pine-hollow/, MOSS-SoundEffect v2 vs Stable

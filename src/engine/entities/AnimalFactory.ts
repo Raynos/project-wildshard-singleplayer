@@ -4,7 +4,7 @@ import { selectedLevel } from '../level/selection';
 import * as THREE from 'three';
 import { mergeAnimalGeometry } from '../models/animalGeometry';
 import { Rng } from '../core/rng';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import { attachFogUniforms, fogUniforms } from '../world/Atmosphere';
 import { bakedTexture } from '../boot/bakedTextures';
 import { validateCreatureBones, speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
@@ -17,9 +17,6 @@ import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 // every species file registers itself on import: drop `src/engine/entities/species/<kind>.ts` in and it exists
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts', '!./species/look.ts'], { eager: true });
 
-export { registerSpecies, speciesDef, hasSpecies, speciesKinds, variantDef, variantMods, rollVariant, RARITY_ORDER } from './species/registry';
-export type { SpeciesDef, VariantDef, VariantMods, Rarity, AnimalDims, BoneDef, AnimalSpecies, FurStyle, RigAnimCtx, ThinkCtx, EnemyWorld } from './species/registry';
-export type { Paint, Station } from './species/loft';
 
 /**
  * AnimalFactory — procedural, code-built animals from a pluggable SPECIES REGISTRY.

@@ -99,7 +99,7 @@
     "src/shards/pine-hollow/quest/nightThralls.ts": 1
   },
   "wildshard/public-index": {
-    "src/entry.ts": 11,
+    "src/entry.ts": 21,
     "src/identity.ts": 7,
     "src/native.ts": 1,
     "src/pageServices.ts": 5,

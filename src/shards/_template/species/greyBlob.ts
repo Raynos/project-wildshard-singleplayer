@@ -1,4 +1,11 @@
-import { CreatureBrain, StrikeRunner, canReach, NO_FUR, type SpeciesRow, type SpeciesLook, type Animal, type ThinkCtx, type StrikeSpec, type StrikeContext } from '@wildshard/engine';
+import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
+import { canReach } from '@wildshard/engine/ai/reach';
+import type { SpeciesRow } from '@wildshard/engine/ai/species';
+import { StrikeRunner, type StrikeSpec, type StrikeContext } from '@wildshard/engine/ai/strikes';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { SphereGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';
 import { STRINGS } from '../strings';
 

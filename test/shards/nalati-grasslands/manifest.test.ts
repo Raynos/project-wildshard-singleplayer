@@ -3,7 +3,7 @@ import { NALATI_GRASSLANDS as def } from '../../../src/shards/nalati-grasslands/
 import { bootSources, bootFiles } from '../../../src/shards/nalati-grasslands/boot/files';
 import { BOOT_STEPS } from '../../../src/shards/nalati-grasslands/boot/steps';
 import { GPU_FILES } from '../../../src/shards/nalati-grasslands/ktx2.generated';
-import { filePolicy } from '@wildshard/engine/data';
+import { filePolicy } from '../../../src/engine/boot/filePolicy';
 import before from './manifest-before.json';
 import { COMPARE } from '../../../src/shards/nalati-grasslands/explore/compare';
 

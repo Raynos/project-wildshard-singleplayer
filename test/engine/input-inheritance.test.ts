@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { InputService, Scope } from '@wildshard/engine';
+import { Scope } from '../../src/engine/app/scope';
+import { InputService } from '../../src/engine/input/InputService';
 import { Bindings } from '../../src/engine/input/bindings';
 import { BindingTable } from '../../src/engine/input/bindingTable';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';

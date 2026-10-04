@@ -1,4 +1,4 @@
-import type { TreeSetVariant, TreeSpeciesTraits } from '@wildshard/engine';
+import type { TreeSetVariant, TreeSpeciesTraits } from '@wildshard/engine/world/forest/treeSpecies';
 
 /**
  * Pine Hollow's Blender-built photoreal tree set (PH-B4, Jake's PH-U17; moved from the engine, E405): its species and how

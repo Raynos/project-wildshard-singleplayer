@@ -8,7 +8,7 @@
  * one, then the generated one the moment the file is in (`ws:model-ready`).
  */
 import * as THREE from 'three';
-import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { loadBirdModels, type BirdSet } from '../life/birdModels';
 import { KIND, wildlifeSpecimen, type WildKind } from './wildlife';
 

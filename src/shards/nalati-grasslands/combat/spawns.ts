@@ -1,4 +1,8 @@
-import { app, type Animal, type AnimalManager, type Scope, type SpawnTableRow, type Spawner } from '@wildshard/engine';
+import type { SpawnTableRow, Spawner } from '@wildshard/engine/ai/encounters';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 
 const allowed = (tags: readonly string[], phase: readonly string[]): boolean => tags.some(tag => phase.includes(tag)) || tags.includes('force');
 export const NIGHT_SPAWNS: readonly SpawnTableRow[] = [

@@ -3,7 +3,9 @@
 // pavilions), each its model (../models/) drawn as one InstancedMesh and handed to the fragment's culler. The lion's cast
 // is loaded first (`place` is synchronous); a set's geometry is the one its builder made at the first copy.
 import type { Group, Matrix4 } from 'three';
-import { type ModelContext, type ModelDef, type Placement, type InstancedCuller, type Placed, copiesAt, place, placeSet } from '@wildshard/engine';
+import type { ModelContext, ModelDef, Placement } from '@wildshard/engine/models/model';
+import { type InstancedCuller, type Placed, copiesAt, place } from '@wildshard/engine/models/place';
+import { placeSet } from '@wildshard/engine/models/sets';
 import { guardianLion, loadLion } from '../models/lion';
 import { diningPavilion, marketBooth, parasolTable } from '../models/market';
 import { balustradePanel } from '../models/balustradePanel';

@@ -1,10 +1,19 @@
-import { uiScope, mountUi, EffectService, sourceMultiplier, type Scope, type LevelContext, type EffectTarget, type Player, type TargetHit, hudSlots, practiceRoom } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import { sourceMultiplier, type EffectTarget } from '@wildshard/engine/combat/effects/types';
+import type { TargetHit } from '@wildshard/engine/combat/types';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import type { Player } from '@wildshard/engine/player/Player';
+import { hudSlots } from '@wildshard/engine/ui/hudSlots';
+import { uiScope, mountUi } from '@wildshard/engine/ui/ownership';
 import { SNEAK_SHOT, NALATI_SOURCE_MULTIPLIERS } from './weapons/effects';
 
 import type { Wildlife } from './creatures/wildlife';
 
 import type { NalatiLoadout } from './weapons/loadout';
-import { grassHeightAt, grassBaseHeightAt } from '@wildshard/kit';
+import { grassBaseHeightAt } from '@wildshard/kit/looks/grassField';
+import { grassHeightAt } from '@wildshard/kit/looks/trample';
 import './stealth.css';
 
 /**

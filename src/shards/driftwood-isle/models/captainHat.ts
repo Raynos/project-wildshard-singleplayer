@@ -13,7 +13,10 @@
  * About 0.48 m across the points, 0.13 m tall. No colliders (a pickup is a trigger, not a solid).
  */
 import * as THREE from 'three';
-import { LowPolyKit, rock, tris, lowPolyMaterial, swayDepthMaterial, defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { rock, tris } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 
 const C = { felt: '#2a292f', feltB: '#232228', top: '#323039', trim: '#c9a24a', band: '#3a2f2c', cockade: '#8e302a', button: '#d8b457', kelp: '#4f7a3a' };
 

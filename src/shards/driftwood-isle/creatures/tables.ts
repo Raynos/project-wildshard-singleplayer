@@ -1,7 +1,7 @@
-import type { ShardManifest } from '@wildshard/game';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { ISLAND_BOARS } from './species';
-import { WeightedTable } from '@wildshard/engine/data';
-import type { SpawnTableRow, SpawnContext } from '@wildshard/engine';
+import { WeightedTable } from '@wildshard/engine/ai/weighted';
+import type { SpawnTableRow, SpawnContext } from '@wildshard/engine/ai/encounters';
 
 /** Counts consume one draw per tidepool/grove, in the original placement order. */
 export const DRIFTWOOD_ENEMIES: SpawnTableRow = {

@@ -4,13 +4,12 @@
 import { describe, expect, it } from 'vitest';
 import type * as THREE from 'three';
 import { WorldRegistry } from '../../../src/engine/world/registry';
-import type { Sky } from '../../../src/engine/world/Sky';
+import type { SkyRig as Sky } from '../../../src/engine/world/skyRig';
 import { modelContext } from '../../../src/engine/models/model';
 import { listRoster } from '../../../src/engine/models/live';
 import { ROSTER } from '../../../src/shards/nalati-grasslands/roster';
 import { GOLDEN_KING } from '../../../src/shards/nalati-grasslands/species/goldenKing';
-import { KURGAN_BALBAL } from '../../../src/shards/nalati-grasslands/species/kurganBalbal';
-import { BALBAL } from '../../../src/shards/nalati-grasslands/species/balbal';
+import { BALBAL as KURGAN_BALBAL, BALBAL } from '../../../src/shards/nalati-grasslands/species/balbal';
 import { GHOST_RIDER } from '../../../src/shards/nalati-grasslands/species/ghostRider';
 import { LEOPARD } from '../../../src/shards/nalati-grasslands/species/leopard';
 import { KOKBORI } from '../../../src/shards/nalati-grasslands/species/kokbori';

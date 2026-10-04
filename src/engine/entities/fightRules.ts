@@ -14,7 +14,6 @@
  * Pure (no THREE, no DOM): the vitests in test/fight-rules.test.ts drive it directly.
  */
 
-export { AttackTokens } from '../ai/director';
 
 /** below this fraction of its health a non-relentless charger may break off after a hit … */
 export const BREAK_OFF_HP = 0.25;

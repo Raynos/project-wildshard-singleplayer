@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
-import { App, Scope, type LevelContext, type InputContextDef } from '@wildshard/engine';
+import { App } from '../../../src/engine/app/app';
+import { Scope } from '../../../src/engine/app/scope';
+import type { LevelContext, InputContextDef } from '../../../src/engine/level/context';
 import * as THREE from 'three';
 import { BindingTable } from '../../../src/engine/input/bindingTable';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';

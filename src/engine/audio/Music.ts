@@ -57,7 +57,6 @@ function arrangementOf(name: ArrangementName): Arrangement {
 
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
 export type StingName = 'pickup' | 'death' | 'chunk' | 'dawn';
-export type { BossPhase } from './Stems';
 export interface MusicState { lead?: 'pluck' | 'marimba'; mode: MusicMode; intensity: number; underwater: boolean }
 
 const LOOKAHEAD_BARS = 2;

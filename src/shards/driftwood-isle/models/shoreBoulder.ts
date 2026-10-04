@@ -7,7 +7,7 @@
  */
 import { rockGeometry, rockMaterial, SHORE_ROCK } from '../world/rockKit';
 import { islandKnobs } from '../tiers';
-import { defineModel } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
 
 export interface ShoreBoulderParams {
   /** radius, metres */

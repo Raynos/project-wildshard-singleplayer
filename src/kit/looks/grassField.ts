@@ -1,4 +1,9 @@
-import { SEED, CHUNK_HALF, Noise2D, smoothstep, lerp, activeLevel, onLevelChange, type Scope, heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, inChunk } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { SEED, CHUNK_HALF } from '@wildshard/engine/core/config';
+import { Noise2D, smoothstep, lerp } from '@wildshard/engine/core/noise';
+import { activeLevel, onLevelChange } from '@wildshard/engine/level/selection';
+import { normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 /**
  * The painterly grass *field*: how tall the grass stands, how golden it is and which flowers grow, as pure

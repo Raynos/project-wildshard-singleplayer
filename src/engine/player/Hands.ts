@@ -21,7 +21,7 @@
  * speed blend, with the water line drawn on the arms, and it is the same pair of arms the sword is held in.
  */
 import * as THREE from 'three';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import { SWIM_SPEED, STROKE_PERIOD, type Player } from './Player';
 import { activeLevel } from '../level/selection';
 import { isMesh, viewmodelMaterial, whiteColors } from '../combat/view/ranged';

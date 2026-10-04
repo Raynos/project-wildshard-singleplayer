@@ -1,4 +1,10 @@
-import { type LookReplaceContext, Rng, smoothstep, TreeFactory, type TreeVariant, TREE_SPECS, painterlyMaterial, type Sky } from '@wildshard/engine';
+import { smoothstep } from '@wildshard/engine/core/noise';
+import { Rng } from '@wildshard/engine/core/rng';
+import type { LookReplaceContext } from '@wildshard/engine/render/look';
+import { TREE_SPECS } from '@wildshard/engine/world/forest/treeSpec';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { TreeFactory, type TreeVariant } from '@wildshard/engine/world/TreeFactory';
 /**
  * Spruce — a Tian Shan spruce (Picea schrenkiana) for Nalati's gullies, in the painterly style (style B).
  *

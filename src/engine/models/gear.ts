@@ -17,7 +17,7 @@ import { engineString } from '../strings';
  */
 import * as THREE from 'three';
 import { applySkin, type SkinId, type WeaponKind, type SkinDef } from '../player/Skins';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import type { ModelVariant } from './model';
 
 

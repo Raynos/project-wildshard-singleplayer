@@ -16,7 +16,7 @@
 import { Color, Matrix4, Vector3, Vector4 } from 'three';
 import { Builder, E, K, type Look } from './geo';
 import { BALCONY_W, CAGE_W, PAL, type PieceId } from './pieces';
-import { Rng } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
 
 export interface TowerSpec {
   /** footprint centre (world) */

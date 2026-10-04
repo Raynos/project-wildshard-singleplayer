@@ -17,7 +17,8 @@ import { Vector3 } from 'three';
 import { Kit } from '../world/kit';
 import { type HookSink, dragonHook, person, scooter, stool } from '../world/props';
 import { mahjongTable } from '../world/square';
-import { Rng, defineModel, type ModelContext, type ModelPart, type ModelVariant } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelContext, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
 import { ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/inKit.ts';

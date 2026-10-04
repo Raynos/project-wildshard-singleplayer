@@ -4,11 +4,14 @@
  * phase events live in the engine's dayCycle.ts; elevation keys and interpolation policy are this look's data.
  */
 import * as THREE from 'three';
-import type { ShardManifest, RGB } from '@wildshard/game';
-import { painterlyUniforms, syncPainterlySun, fogUniforms, compassDir, type Game, type Sky, type DayCycle, type DayCycleClock, type DayKeys } from '@wildshard/engine';
-import { smoothstep } from '@wildshard/engine/data';
+import type { ShardManifest, RGB } from '@wildshard/game/shard/manifest';
+import type { Game } from '@wildshard/engine/core/Game';
+import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { compassDir, type DayCycle, type DayCycleClock, type DayKeys } from '@wildshard/engine/world/dayCycle';
+import { painterlyUniforms, syncPainterlySun } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
-export type { DayPhase } from '@wildshard/engine';
 export interface SkyKey {
   el: number;
   sun: RGB; sunI: number;

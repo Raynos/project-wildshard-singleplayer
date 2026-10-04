@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { App, InputService, Scope, type DiscSpot, type TouchRelabel } from '@wildshard/engine';
+import { App } from '../../src/engine/app/app';
+import { Scope } from '../../src/engine/app/scope';
+import { InputService } from '../../src/engine/input/InputService';
+import type { DiscSpot, TouchRelabel } from '../../src/engine/ui/hudSlots';
 
 describe('additive input contexts', () => {
   it('keeps weapon actions live under a tool and restores lower relabels on pop and disposal', () => {

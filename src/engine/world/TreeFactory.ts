@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Renderer } from '../render/renderer';
-import type { TreeSpecies } from './forest/placement';
+import type { TreeSpecies } from './forest/treeSpecies';
 import { crownTopUniforms, type CrownTop } from './forest/treeSet';
 import { windUniforms as sharedWind, patchWindField, windStrength } from './wind';
 

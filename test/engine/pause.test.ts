@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { App } from '@wildshard/engine';
+import { App } from '../../src/engine/app/app';
 import { Game } from '../../src/engine/core/Game';
 
 it('runs no fixed phase while paused, including a forced redraw, and resumes the accumulator unchanged', () => {

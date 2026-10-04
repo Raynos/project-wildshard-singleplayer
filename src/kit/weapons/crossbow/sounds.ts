@@ -1,4 +1,6 @@
-import { tap, audioRandom, type ImpactKind } from '@wildshard/engine';
+import type { ImpactKind } from '@wildshard/engine/audio/Audio';
+import { audioRandom } from '@wildshard/engine/audio/util';
+import { tap } from '@wildshard/engine/core/harnessTap';
 import type { WeaponSynth } from '../../audio/weaponVoices';
 
 const rnd = (a: number, b: number): number => a + audioRandom() * (b - a);

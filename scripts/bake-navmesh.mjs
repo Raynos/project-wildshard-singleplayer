@@ -104,6 +104,7 @@ const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.Direction
 // asset geometry, model placement, terrain cuts and collider construction use the production code.
 async function shardColliders(def) {
   const { app } = await src('engine/app/runtime.ts');
+  (await src('engine/world/registry.ts')).installWorldRegistry(); // the bake builds a level, as the session does (E434)
   const { toLevelSpec } = await src('game/shard/spec.ts');
   const { shardContext } = await src('game/shard/context.ts');
   const { TreeFactory } = await src('engine/world/TreeFactory.ts');

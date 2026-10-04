@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { stepNpcFigure, npcFigurePose, fitNpcFigure, mergeNpcFigures, type NpcFigureState } from '@wildshard/kit';
+import { stepNpcFigure, npcFigurePose, type NpcFigureState } from '../../../src/kit/npc/figureMotion';
+import { fitNpcFigure, mergeNpcFigures } from '../../../src/kit/npc/figureRig';
 import { CAMP_MOTION } from '../../../src/shards/nalati-grasslands/campPeopleProfiles';
 import before from './camp-motion-before.json';
 

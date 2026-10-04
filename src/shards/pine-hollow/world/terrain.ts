@@ -1,4 +1,8 @@
-import { smoothstep, clamp, lerp, CHUNK_HALF, buildTerrain, type SpeciesWeights, type TerrainNoise, type Vec2 } from '@wildshard/engine/data';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { smoothstep, clamp, lerp } from '@wildshard/engine/core/noise';
+import type { TerrainNoise, Vec2 } from '@wildshard/engine/level/data';
+import type { SpeciesWeights } from '@wildshard/engine/world/forest/treeSpecies';
+import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import { PINE_TREE_IDS } from './treeSet';
 import { CABIN_SITES, RIDGE, ridgeFootZ, LOOKOUT, ZIPLINE, POND, ISLET, WATERFALL, RIDGE_STREAM, CREEK, CREEK_BED, CREEK_BRIDGE, DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS, GRADED, BEAVER_POOL, nearestOnPolyline, creekBedAt, creekWaterAt, beaverPoolBed, inBeaverPool } from '../layout';
 /** a smooth min / max (k = the blend width in metres): the creek's banks and the dry-land floor meet the ground without a crease */

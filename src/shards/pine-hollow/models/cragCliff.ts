@@ -9,7 +9,7 @@
  * the slab are crags-b.glb's fused, weathered masses (build_crags_b.py, overlaid on crags.glb's), and `hero` is the
  * lookout's ~26 m granite prow.
  */
-import { defineModel } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
 import { cragHull, cragPart, CRAG_LOD } from '../world/cragKit';
 
 export const CLIFF_MODULES = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'hero'] as const;

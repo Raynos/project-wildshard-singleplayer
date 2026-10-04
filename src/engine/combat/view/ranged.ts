@@ -1,7 +1,7 @@
 import { app } from '../../app/runtime';
 import * as THREE from 'three';
 import type { Game } from '../../core/Game';
-import type { Sky } from '../../world/Sky';
+import type { SkyRig as Sky } from '../../world/skyRig';
 import type { Player } from '../../player/Player';
 import type { Forest } from '../../world/forest/Forest';
 import type { EquipmentRow } from '../Equipment';
@@ -13,9 +13,6 @@ import { makePixels, clamp01, CLASSIC_SETS, MODERN_SETS, type Pixels, type SetNa
 import { PATCH_ORDER, patchShader } from '../../render/shaderPatches';
 import { ParticlePool, pointScale } from '../../fx/ParticlePool';
 
-export type { ImpactSurface } from '../Weapon';
-export type { TargetAnimal, TargetHit, Targets } from '../types';
-export { clamp01, sstep, makeNoise, type Noise } from '../../player/viewmodelTextures';
 export interface RangedWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface RangedOptions { row: EquipmentRow; allowUnlocked?: boolean }
 export type CrossbowWorld = RangedWorld;

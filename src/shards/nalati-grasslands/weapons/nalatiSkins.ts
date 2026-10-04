@@ -1,8 +1,10 @@
-import { CosmeticsLocker } from '@wildshard/game';
-import { EffectService, type EffectTarget, type Animal } from '@wildshard/engine';
+import { CosmeticsLocker } from '@wildshard/game/cosmetics/locker';
+import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import type { EffectTarget } from '@wildshard/engine/combat/effects/types';
+import type { Animal } from '@wildshard/engine/entities/Animal';
 import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
-import type { Bow } from '@wildshard/kit';
+import type { Bow } from '@wildshard/kit/weapons/bow/family';
 import type { Sabre } from './Sabre';
 import { horseBones } from '../species/horse';
 import { skyMarkedAtlas } from '../species/coats';

@@ -1,12 +1,25 @@
 import { INPUT_CONTEXTS } from '../inputContexts';
-import type { Audio as LevelAudio, Music as LevelMusic, LevelContext } from '@wildshard/engine';
-import { toLevelSpec } from '../index';
+import { type Audio as LevelAudio, Audio } from '@wildshard/engine/audio/Audio';
+import { type Music as LevelMusic, Music } from '@wildshard/engine/audio/Music';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import { toLevelSpec } from '../shard/spec';
 import type * as THREE from 'three';
 import type { dataStage } from './data';
+import { asShell } from '@wildshard/engine/app/ownership';
+import { app } from '@wildshard/engine/app/runtime';
+import { markBootContextLost, markBootHandledError } from '@wildshard/engine/boot/bootTrace';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { bootstrap } from '@wildshard/engine/core/bootstrap';
+import { TIER } from '@wildshard/engine/core/tier';
+import { pathRampDescs } from '@wildshard/engine/physics/paths';
+import { showError } from '@wildshard/engine/ui/ErrorModal';
+import { Boundary } from '@wildshard/engine/world/Boundary';
+import { hasPond, heightAt, normalAt, TRAILS } from '@wildshard/engine/world/Heightfield';
+import { Horizon } from '@wildshard/engine/world/Horizon';
+import { HorizonMatte } from '@wildshard/engine/world/HorizonMatte';
 
 async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: LevelContext | undefined) {
-  const { engine, manifest, boot, session, audioProfile, plan, step } = ctx;
-  const { app, loadWorldContent, bootstrap, hasPond, Boundary, Horizon, HorizonMatte, macrotask, Audio, Music, showError, TIER, pathRampDescs, markBootContextLost, markBootHandledError, asShell } = engine;
+  const { manifest, boot, session, audioProfile, plan, step } = ctx;
 
   const world = Object.assign(await bootstrap(step, toLevelSpec({ ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn }), INPUT_CONTEXTS), { chunk: manifest });
   const { game, sky, player, forest, params, chunk, registry } = world;
@@ -44,7 +57,7 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
     const boundary = new Boundary(sky, game.level.boundary).build();
     game.scene.add(boundary.group);
     await macrotask(); // boundary · water · horizon each in its own task
-    const water = hasPond() ? new (await loadWorldContent()).Water(sky, forest.trees, { ...(chunk.pondClip === undefined ? {} : { clip: chunk.pondClip }), ...(chunk.pondLilyExclusions === undefined ? {} : { lilyExclusions: chunk.pondLilyExclusions }) }).build() : null;
+    const water = hasPond() ? new (await import('@wildshard/engine/world/pond')).Water(sky, forest.trees, { ...(chunk.pondClip === undefined ? {} : { clip: chunk.pondClip }), ...(chunk.pondLilyExclusions === undefined ? {} : { lilyExclusions: chunk.pondLilyExclusions }) }).build() : null;
     if (water) game.scene.add(water.group);
     // PH-L9: Pine Hollow's creek, waterfall, plunge foam and spray (two draws; they run on the wind clock)
     const streams = null;
@@ -65,10 +78,10 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   boot.runtime.horizonVeil = horizon.painted?.veil ?? null;
   // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — now that the decks are
   // registered, none where a deck carries the path (a board there pokes up through the bridge's planks); Nalati's decks
-  // register in its props step (NALATI-MERGE P1), so its paths are laid after that. The field is read off the runtime
-  // module when they are laid, not destructured above: bootstrap installs the baked grid after that destructure, and the
-  // analytic field laid 12 more ramps on Pine (R5)
-  const addPaths = (): void => { const { heightAt, normalAt, TRAILS } = engine; registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
+  // register in its props step (NALATI-MERGE P1), so its paths are laid after that. heightAt / normalAt / TRAILS are
+  // Heightfield's live bindings, read when the paths are laid: bootstrap installs the baked grid after this module loads,
+  // and a copy taken earlier (the analytic field) laid 12 more ramps on Pine (R5)
+  const addPaths = (): void => { registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
   if (chunk.ground.paths !== 'plugin' && built === undefined) addPaths();
 

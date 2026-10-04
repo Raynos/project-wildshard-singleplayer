@@ -1,6 +1,8 @@
 import { Vector3 } from 'three';
-import type { ShardContext } from '@wildshard/game';
-import { loadAudio, tap, ambientTick, castRay, type ZoneWeights } from '@wildshard/engine';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import type { ZoneWeights } from '@wildshard/engine/audio/AmbienceBeds';
+import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { castRay } from '@wildshard/engine/physics/query';
 import { lanternAudioPositions } from '../look/lanterns';
 import { PLAZA, STREET, STAIR, WELL } from '../layout';
 import { ndCueMap, bindTraversalCue } from './cues';
@@ -17,7 +19,7 @@ export function ndZones(pos: Pick<Vector3, 'x' | 'z'>): ZoneWeights {
   return { market: 1 - well, well };
 }
 export async function installAudio(ctx: ShardContext): Promise<void> {
-  const { AmbienceBeds, PositionalLoops, CuePlayer } = await loadAudio();
+  const [{ AmbienceBeds, PositionalLoops }, { CuePlayer }] = await Promise.all([import('@wildshard/engine/audio/AmbienceBeds'), import('@wildshard/engine/audio/Cues')]);
   const audio = ctx.app.audio;
   if (audio?.music === null || audio === null) throw new Error('Nine Dragon kit needs the audio/music service');
   const music = audio.music, random = (): number => ctx.app.rng.stream('cosmetic').next();

@@ -11,7 +11,7 @@ import { uiScope, mountUi } from './ownership';
  *   const speed = new SpeedLines();
  *   speed.update(dt, player.dashing, meleeLock.lunging);   // once per frame
  */
-import { dodgeFx, dodgeEnv } from '../player/Player';
+import { dodgeFx, dodgeEnv } from '../player/dodge';
 
 export class SpeedLines {
   readonly scope = uiScope('SpeedLines');

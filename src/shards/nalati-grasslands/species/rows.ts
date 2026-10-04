@@ -1,4 +1,8 @@
-import { app, registerSpecies, speciesWithLook, type SpeciesDef, type SpeciesRow, type SpeciesLook, type SpeciesVariant, type VariantDef, type Scope } from '@wildshard/engine';
+import type { SpeciesRow, SpeciesVariant } from '@wildshard/engine/ai/species';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { speciesWithLook, type SpeciesLook } from '@wildshard/engine/entities/species/look';
+import { registerSpecies, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 import { creatureHull, creatureRigs, type CreatureRigs } from './hulls';
 import { HORSE_SPECIES } from './horse';

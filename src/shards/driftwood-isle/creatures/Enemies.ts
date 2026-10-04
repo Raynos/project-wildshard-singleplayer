@@ -1,6 +1,17 @@
 import * as THREE from 'three';
-import { app, heightAt, terrainWaterLevel as waterLevel, Rng, SEED, worldTime, groups, waveHeight, ParticlePool,
-  type Sky, type AnimalManager, type Animal, type Body, type BodySpec, type Scope } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { worldTime } from '@wildshard/engine/core/time';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { ParticlePool } from '@wildshard/engine/fx/ParticlePool';
+import type { Body, BodySpec } from '@wildshard/engine/physics/bodies';
+import { groups } from '@wildshard/engine/physics/groups';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt, terrainWaterLevel as waterLevel } from '@wildshard/engine/world/terrainHeight';
+import { waveHeight } from '@wildshard/engine/world/waves';
 import type { PalmSpec } from '../world/Palms';
 import { WRECK } from '../manifest';
 import { enemyCount, DRIFTWOOD_PRACTICE } from './tables';

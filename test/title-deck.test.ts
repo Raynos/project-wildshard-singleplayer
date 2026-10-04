@@ -4,7 +4,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SHARDS } from '../src/shards.generated';
 import { findChunk } from '../src/game/shard/registry';
-import { isDev, setDev } from '@wildshard/engine';
+import { isDev, setDev } from '../src/engine/core/devMode';
 import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
 
 afterEach(() => { setDev(false); });

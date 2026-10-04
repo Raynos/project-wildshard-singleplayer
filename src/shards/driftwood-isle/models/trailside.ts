@@ -11,7 +11,8 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Rng, defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
+import type { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 
 const C = {
   post: new THREE.Color('#6f5638'), postTop: new THREE.Color('#8a6d48'), rope: new THREE.Color('#d2bd85'),

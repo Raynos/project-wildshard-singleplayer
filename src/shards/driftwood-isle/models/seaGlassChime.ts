@@ -15,7 +15,11 @@
  * x along the bar, the faces toward ±z. No colliders: it hangs over the doorway, out of the way.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, rock, rope, lowPolyMaterial, swayDepthMaterial, defineModel, type ModelContext, SlotGeometry, SlotRecorder } from '@wildshard/engine';
+import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import { SlotGeometry, SlotRecorder } from '@wildshard/engine/models/slots';
+import { log, rock, rope } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 
 /** pieces the chime can hold (the beach's sea glass: DRIFTWOOD-LOOT) */
 export const CHIME_PIECES = 15;

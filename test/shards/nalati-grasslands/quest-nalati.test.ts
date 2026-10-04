@@ -2,8 +2,8 @@
 // as data — validated, walked, caught up from a save that already tamed / won / beat a boss, and the elder's dialogue order.
 import { describe, expect, it } from 'vitest';
 import { Flags } from '../../../src/engine/world/interact/flags';
-import { lineFor, validateQuest } from '../../../src/game/quest/quest';
-import { QuestLine, placesWithDiscovery } from '../../../src/game/quest/core';
+import { lineFor, validateQuest, QuestLine } from '../../../src/engine/quest/core';
+import { placesWithDiscovery } from '../../../src/engine/quest/view';
 import { CAMP_NPCS, CLUE_FLAGS, ELDER, FEATHER_FLAGS, KING_DONE, NALATI_PLACES, NALATI_QUESTS, NALATI_QUEST_EXTERNAL, TULPAR_DONE, TULPAR_QUEST, WIND_DONE } from '../../../src/shards/nalati-grasslands/quest';
 import { NALATI_MAP } from '../../../src/shards/nalati-grasslands/layout';
 

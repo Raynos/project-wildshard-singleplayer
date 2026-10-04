@@ -1,6 +1,7 @@
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
-import type { WeaponId, EquipmentService } from '../combat/EquipmentService';
+import type { EquipmentService } from '../combat/EquipmentService';
+import type { WeaponId } from '../combat/Equipment';
 
 /**
  * WeaponStrip — the one weapon-swap control of every shard, built once by main.ts.

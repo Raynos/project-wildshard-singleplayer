@@ -9,7 +9,7 @@
  * something places them.)
  */
 import type { BufferGeometry } from 'three';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { PIECES } from '../world/dressing';
 import { acKit } from '../world/props';
 import { ndLook, need } from '../world/modelLook';

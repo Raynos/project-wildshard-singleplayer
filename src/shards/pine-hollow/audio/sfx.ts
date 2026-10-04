@@ -1,4 +1,11 @@
-import { publicBytes, sfxManifests, resourceScope, app, tap, getSfxSet, type Audio, cachedBytes, decodeBytes, audioLog } from '@wildshard/engine';
+import { resourceScope } from '@wildshard/engine/app/resources';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import { audioLog } from '@wildshard/engine/audio/audioLog';
+import { cachedBytes, decodeBytes } from '@wildshard/engine/audio/preload';
+import { publicBytes, sfxManifests } from '@wildshard/engine/boot/tables';
+import { tap } from '@wildshard/engine/core/harnessTap';
+import { getSfxSet } from '@wildshard/engine/ui/Settings';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
  * the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium (scripts/music/gen/sfx_merge.py --jobs

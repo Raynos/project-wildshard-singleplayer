@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Player } from '../../src/engine/player/Player';
-import type { Sky } from '../../src/engine/world/Sky';
+import type { SkyRig as Sky } from '../../src/engine/world/skyRig';
 import type { Forest } from '../../src/engine/world/forest/Forest';
 import type { CharacterMotor } from '../../src/engine/physics/CharacterMotor';
 import type { Collider } from '@dimforge/rapier3d-simd';

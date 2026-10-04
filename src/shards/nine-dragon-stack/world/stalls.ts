@@ -8,7 +8,7 @@ import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from '
 import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
 import { HAWKER, STALL, Y0 } from '../layout';
-import type { Rng } from '@wildshard/engine';
+import type { Rng } from '@wildshard/engine/core/rng';
 import { SURF } from '../look/paint';
 import { person } from './hero/figures';
 import { KitX, curve, merge } from './hero/kitx';

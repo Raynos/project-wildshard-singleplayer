@@ -1,4 +1,6 @@
-import { loadRigFile, TIER, type Sky } from '@wildshard/engine';
+import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 /**
  * The hamlet's people, generated (PINE-HOLLOW-REMASTER PH-M4): Hale the ranger (board B3 pick A, "the old warden"), Mott
  * the trader, Brandt the miller — photoreal codex references (A-pose, art/pine-hollow/round-11-npcs/) → Hunyuan3D-2 full +
@@ -22,7 +24,8 @@ import { loadRigFile, TIER, type Sky } from '@wildshard/engine';
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { NpcKind } from '../models/people';
-import { legBones, legPose, legRigOf } from './npcRig';
+import { legRigOf } from './npcRig';
+import { legBones, legPose } from '@wildshard/kit/npc/npcRig';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
 

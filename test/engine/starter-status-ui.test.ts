@@ -1,7 +1,11 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { App, Scope, EffectService, PlayerHealth, type DebugRowSpec } from '@wildshard/engine';
+import { App } from '../../src/engine/app/app';
+import { Scope } from '../../src/engine/app/scope';
+import { EffectService } from '../../src/engine/combat/effects/EffectService';
+import { PlayerHealth } from '../../src/engine/combat/health';
+import type { DebugRowSpec } from '../../src/engine/level/context';
 import { STARTER_EFFECTS } from '../../src/kit/effects/starter';
 import { installStarterEffects } from '../../src/kit/effects/install';
 import { DialogueBox } from '../../src/engine/quest/view/ui';

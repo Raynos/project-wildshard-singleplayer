@@ -1,4 +1,6 @@
-import { loft, S, mix, speciesSstep as sstep, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station, type BoneDef } from '@wildshard/engine';
+import { smoothstep as sstep } from '@wildshard/engine/core/noise';
+import { loft, S, mix, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station } from '@wildshard/engine/entities/species/loft';
+import type { BoneDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 

@@ -19,7 +19,7 @@ import { resolveTierKnobs, type LevelSpec, type TierKnobs } from '../level/spec'
 import { installAtmosphere } from '../world/Atmosphere';
 import { installFogPatch } from '../render/fogPatches';
 import { setAnisotropy } from './assets';
-import { Sky } from '../world/Sky';
+import { SkyRig as Sky } from '../world/skyRig';
 import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { TIER, TIER_CONFIG, frameCapFps, type Tier } from './tier';

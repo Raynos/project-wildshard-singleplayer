@@ -134,7 +134,13 @@ function main(argv) {
     const head = (p) => { try { return execFileSync('git', ['show', `HEAD:${p}`], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1 << 26 }); } catch { return ''; } };
     const staged = (p) => { try { return execFileSync('git', ['show', `:${p}`], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 1 << 26 }); } catch { return ''; } };
     const present = paths.filter((p) => staged(p) !== '');
-    const now = graph(present, staged, exists), before = graph(paths.filter((p) => head(p) !== ''), head, exists);
+    // HEAD's graph resolves against HEAD's files (a commit that deletes a module HEAD imported must not read as HEAD
+    // having no such edge, E434)
+    const headFiles = new Set(execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', '--', 'src'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 }).split('\n'));
+    // and a file the commit deletes still counts in HEAD's graph (its edges leave with it)
+    const deleted = execFileSync('git', ['diff', '--cached', '--no-renames', '--name-only', '--diff-filter=D', '--', 'src'], { cwd: ROOT, encoding: 'utf8' }).split('\n')
+      .filter((p) => /^src\/.*\.[cm]?[jt]sx?$/u.test(p) && !p.endsWith('.d.ts') && !paths.includes(p));
+    const now = graph(present, staged, exists), before = graph([...paths, ...deleted].filter((p) => head(p) !== ''), head, (p) => headFiles.has(p));
     const failures = [];
     // a rise the same commit records in lint/layer-edges.json (`--update`, a reviewed crossing) passes
     const recorded = (read) => { try { return JSON.parse(read(EDGES_FILE)).edges ?? {}; } catch { return {}; } };

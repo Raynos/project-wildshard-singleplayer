@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { expect, it } from 'vitest';
-import { SaveStore } from '@wildshard/engine';
+import { SaveStore } from '../src/engine/saves/store';
 import { buildSummary, summaryStore, summaryView } from '../src/game/summary';
 import { progressSave } from '../src/game/saves';
 import { Progress } from '../src/game/Progress';

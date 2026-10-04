@@ -9,7 +9,8 @@
  * own; walk-through (the stream runs out of it).
  */
 import * as THREE from 'three';
-import { defineModel, heightAt } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { poiMaterial } from '../world/paint';
 import { GLACIER } from '../layout';
 

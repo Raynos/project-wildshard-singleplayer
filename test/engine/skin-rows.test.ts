@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { SkinLocker } from '@wildshard/game';
-import type { SkinDef } from '@wildshard/engine';
+import { SkinLocker } from '../../src/game/cosmetics/locker';
+import type { SkinDef } from '../../src/engine/player/Skins';
 import { saveFixture } from '../fake/saveFixture';
 
 const rows: readonly SkinDef[] = [

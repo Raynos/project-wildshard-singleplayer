@@ -13,7 +13,6 @@
 import type { InteractSound } from './gen';
 import type { Audio } from './Audio';
 
-export type { InteractSound } from './gen';
 interface At { x: number; y: number; z: number }
 
 const INTERACT_LEVEL: Record<InteractSound, number> = { chest: 0.7, locked: 0.6, lever: 0.7, plate: 0.65, door: 0.7, grate: 0.6, chime: 0.45, glyph: 0.6, ignite: 0.8 };

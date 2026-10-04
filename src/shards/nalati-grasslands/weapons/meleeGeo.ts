@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Sky, painterlyMaterial, viewmodelMaterial } from '@wildshard/engine';
+import { viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 
 

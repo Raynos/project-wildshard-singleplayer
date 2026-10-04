@@ -1,6 +1,6 @@
-import { heightAt, loadWorldContent } from '@wildshard/engine';
-import type { ShardContext } from '@wildshard/game';
-import { swordEvents } from '@wildshard/kit';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { swordEvents } from '@wildshard/kit/weapons/melee/SweptMelee';
 import { OCEAN, SHRINE } from '../manifest';
 import { driftwoodWorld } from '../world/build';
 import { Cove } from '../world/Cove';
@@ -20,7 +20,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const { game, sky, player } = shell.world, { audio, music } = shell.play;
   installDriftwoodScore(audio, music, ctx.scope);
   audio.installSampleDecoder(await driftwoodSampleDecoder(), ctx.scope);
-  const built = driftwoodWorld(shell), { trailDistance } = await loadWorldContent();
+  const built = driftwoodWorld(shell), { trailDistance } = await import('@wildshard/engine/world/Heightfield');
   const shrineHum = built.shrine === null ? null : new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z });
   const islandSfx = new IslandSfx(audio, ctx.scope);
   const surfaces = new SurfaceMap({ sea: OCEAN.level, heightAt, trailDistance,

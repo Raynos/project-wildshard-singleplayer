@@ -7,7 +7,7 @@
  * It collides as two jambs and a lintel (boxes from its LOD1's bounds), rock. LOD0 (with shadow) within 70 m, LOD1 past.
  */
 import * as THREE from 'three';
-import { defineModel, type ColliderSpec, type ModelContext, type ModelPart } from '@wildshard/engine';
+import { defineModel, type ColliderSpec, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { BEAR_CAVE } from '../layout';
 import { heroFar, heroLod0, heroLod1, heroNear } from '../world/hero';
 

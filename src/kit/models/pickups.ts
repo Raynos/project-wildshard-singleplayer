@@ -1,6 +1,10 @@
 import * as THREE from 'three';
-import { LowPolyKit, rock, interactParts, pickupModel, registerPickupLook, type PickupLook } from '@wildshard/engine';
-import { coinModel } from '@wildshard/game';
+import { pickup as pickupModel } from '@wildshard/engine/models/interact';
+import { rock } from '@wildshard/engine/world/geometryKit';
+import { interactParts } from '@wildshard/engine/world/interact/kit';
+import { registerPickupLook, type PickupLook } from '@wildshard/engine/world/interact/types';
+import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import { coinModel } from '@wildshard/game/loot/coinModel';
 
 const M = new THREE.Matrix4();
 const at = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0): THREE.Matrix4 =>

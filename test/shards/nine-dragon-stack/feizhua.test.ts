@@ -5,8 +5,13 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the installed WASM outside a symlinked clean export in this Node test.
 import { createRequire } from 'node:module';
 import { Vector3 } from 'three';
-import { App, Scope, Tool, type EquipmentHost, type DiscSpot, type TouchRelabel, type HudVerbs } from '@wildshard/engine';
-import type { ShardContext } from '@wildshard/game';
+import { App } from '../../../src/engine/app/app';
+import { Scope } from '../../../src/engine/app/scope';
+import { Tool } from '../../../src/engine/combat/Tool';
+import type { EquipmentHost } from '../../../src/engine/combat/view/EquipmentHost';
+import type { HudVerbs } from '../../../src/engine/level/context';
+import type { DiscSpot, TouchRelabel } from '../../../src/engine/ui/hudSlots';
+import type { ShardContext } from '../../../src/game/shard/context';
 import { FeiZhua } from '../../../src/shards/nine-dragon-stack/grapple/FeiZhua';
 import { FEI_ZHUA_ROW } from '../../../src/shards/nine-dragon-stack/grapple/row';
 import { toolEntries } from '../../../src/game/bag/equipment';

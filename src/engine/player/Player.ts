@@ -63,7 +63,6 @@ const SLIDE_ACCEL = 5;                // … reached at this rate (/s)
 // ── dash (on foot): the DODGE (Left Alt / the DODGE disc) and the sword's lunge (Sword.ts) — a short fixed-velocity burst ──
 const DODGE_DIST = 3;                 // m …
 const DODGE_TIME = 0.25;              // … over this long (12 m/s), toward the move input; no input = a backstep
-export { dodgeFx, dodgeEnv } from './dodge';
 const DODGE_FX_END = 700;              // ms: every dodge curve has settled
 const DODGE_COOLDOWN = 0.8;           // s from one dodge's start to the next (E59: 0.6 → 0.8, shown as a sweep on the DODGE disc)
 const DASH_PROBE = 0.5;               // m ahead of the feet: deep water there (no deck under it) ends a dash — it never carries you off a pier

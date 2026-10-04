@@ -1,4 +1,4 @@
-import { TIER } from '@wildshard/engine';
+import { TIER } from '@wildshard/engine/core/tier';
 /**
  * The Nalati creatures' rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES): their names and the one URL each tier
  * loads. Split from glbCreatures.ts (which pulls in three's GLTFLoader) so the boot manifest can declare the files —

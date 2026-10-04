@@ -1,8 +1,15 @@
-import { type LevelContext, type Player, type Forest, type AnimalManager, type AnimalSoundId as AnimalSound, type Animal, heightAt, type Interactable, practiceRoom } from '@wildshard/engine';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager, AnimalSound } from '@wildshard/engine/entities/AnimalManager';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
 import { Mount } from './Mount';
-import { Bow } from '@wildshard/kit';
+import { Bow } from '@wildshard/kit/weapons/bow/family';
 import { Taming } from './Taming';
 import { RideHUD } from './RideHUD';
 import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/layout';

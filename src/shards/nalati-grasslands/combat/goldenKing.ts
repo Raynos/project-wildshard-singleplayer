@@ -1,5 +1,16 @@
 import { NALATI_STRIKES, sampleStrike, sampleArena } from './strikes';
-import { app, listenPage, type Game, type Sky, type Player, type AnimalManager, type Animal, type ThinkCtx, type Interactable, BossBar, canReach, type WorldRegistry } from '@wildshard/engine';
+import { canReach } from '@wildshard/engine/ai/reach';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { listenPage } from '@wildshard/engine/input/dom';
+import type { Player } from '@wildshard/engine/player/Player';
+import { BossBar } from '@wildshard/engine/ui/BossBar';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
 
@@ -8,13 +19,14 @@ import * as THREE from 'three';
 
 
 
-import type { Bow } from '@wildshard/kit';
+import type { Bow } from '@wildshard/kit/weapons/bow/family';
 
 import type { KurganEntrance } from '../world/KurganField';
 import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
-import { KURGAN_BALBAL } from '../species/kurganBalbal';
+import { BALBAL as KURGAN_BALBAL } from '../species/balbal';
 import { KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from '../world/KurganDungeon';
-import { Boss, type BossDef, type BossScript } from '@wildshard/game';
+import type { BossScript } from '@wildshard/engine/ai/BossBrain';
+import { Boss, type BossDef } from '@wildshard/game/Boss';
 
 import { GoldenBowPower, goldenBowModel } from '../weapons/GoldenBow';
 

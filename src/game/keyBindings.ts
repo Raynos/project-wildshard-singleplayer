@@ -1,4 +1,5 @@
-import { app, type Action } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Action } from '@wildshard/engine/input/InputService';
 
 type Scope = Parameters<typeof app.input.bindings.describe>[1];
 type Table = Parameters<typeof app.input.bindings.describe>[0];

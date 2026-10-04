@@ -1,5 +1,15 @@
 import * as THREE from 'three';
-import { PATCH_ORDER, patchShader, SEED, Rng, attachFogUniforms, windUniforms, patchWindField, type Sky, type Forest, TIER_CONFIG, DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type UndergrowthPlacement as Placement, type UnderPlacements, bakedUndergrowth } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { bakedUndergrowth } from '@wildshard/engine/world/BakedTerrain';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement, type UnderPlacements } from '@wildshard/engine/world/forest/placement';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { windUniforms } from '@wildshard/engine/world/TreeFactory';
+import { patchWindField } from '@wildshard/engine/world/wind';
 
 /**
  * Forest-floor undergrowth: ferns, low round-leaf shrubs and needle/twig litter — the field (world): where every copy

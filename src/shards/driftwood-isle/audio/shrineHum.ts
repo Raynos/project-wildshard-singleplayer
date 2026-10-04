@@ -1,4 +1,8 @@
-import { ownAudioSource, tap, Scope, type Audio, type Music } from '@wildshard/engine';
+import { Scope } from '@wildshard/engine/app/scope';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Music } from '@wildshard/engine/audio/Music';
+import { ownAudioSource } from '@wildshard/engine/audio/ownership';
+import { tap } from '@wildshard/engine/core/harnessTap';
 // src/shards/driftwood-isle/audio/shrineHum.ts — the Driftwood ring shrine hums (project/archive/2026-09-23-music.md v3 row 9; ASKS D42: "always, by proximity").
 //
 //   const hum = new ShrineHum(audio, music, { x, y, z });   // main.ts, when the shard has a shrine

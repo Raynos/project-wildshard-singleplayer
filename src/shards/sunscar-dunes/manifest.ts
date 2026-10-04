@@ -1,5 +1,5 @@
-import { buildTerrain } from '@wildshard/engine/data';
-import type { ShardManifest } from '@wildshard/game';
+import { buildTerrain } from '@wildshard/engine/world/terrainField';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './strings';
 import { SEED, SPAWN, TOWER, TRAIL, PLAY_HALF } from './layout';
 import { BUDGETS } from './budgets';

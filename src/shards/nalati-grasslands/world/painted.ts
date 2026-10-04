@@ -36,7 +36,12 @@ import { Flutter } from './Flutter';
 import { Smoke } from './Smoke';
 import { boxDescs, highest, type Box } from './solid';
 import { instanceModel, loadNalatiModel, MODEL_SIZE, MODEL_TRIS, placementMatrix, type ModelLod, type ModelLook, type ModelPlacement, type NalatiModelName } from './glbPaint';
-import { heightAt, type ColliderDesc, type WorldRegistry, type Sky, type Rng, type ModelBuild, type ModelContext, type ModelDef, type ModelPart, type Placement, place, type Draw, type Placed } from '@wildshard/engine';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { ModelBuild, ModelContext, ModelDef, ModelPart, Placement } from '@wildshard/engine/models/model';
+import { place, type Draw, type Placed } from '@wildshard/engine/models/place';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { NalatiTexName } from '../look/nalatiTextures';
 import type { Ground, Platform } from './types';
 

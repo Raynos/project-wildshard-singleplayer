@@ -8,7 +8,8 @@
  * A copy is a run: `at` is its first point on the ground, `pts` the run's points relative to it (x, z), the first (0, 0).
  */
 import type * as THREE from 'three';
-import { defineModel, type BoxSpec as Collider } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { v3, woodPole } from '../world/paint';
 import { GRAIN, WOOD } from '../world/props';
 import { painted, type Kit, type Paint } from '../world/painted';

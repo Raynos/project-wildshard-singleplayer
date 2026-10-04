@@ -21,7 +21,14 @@
  * vertex shader from a per-instance vec4 (flap, head yaw, wing fold, leg tuck). No per-frame allocations.
  */
 import * as THREE from 'three';
-import { ambientTick, PATCH_ORDER, patchShader, Rng, CHUNK_HALF, attachFogUniforms, type Sky, heightAt, waterLevel, inChunk } from '@wildshard/engine';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { ambientTick } from '@wildshard/engine/core/harnessTap';
+import { Rng } from '@wildshard/engine/core/rng';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 export interface GullsSpec {
   /** world positions a gull can stand on (feet); posts, gunwales, rock tops, sand */

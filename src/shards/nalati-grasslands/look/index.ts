@@ -16,8 +16,10 @@
  * (light.ts) and keeps the static bake (bake.ts) on the key.
  */
 import type * as THREE from 'three';
-import type { Game, Sky, Forest } from '@wildshard/engine';
-import type { NalatiWeather } from '../weather';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import type { NalatiWeather } from '../world/installWeather';
 import { SkyDomeV2 } from './sky';
 import { fogLut } from './fog';
 import { updateTint } from './tint';
@@ -26,7 +28,7 @@ import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
 import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
 import { setModelShade } from '../world/glbPaint';
 import { applyCloudSeaV2 } from './cloudSea';
-import { smoothstep } from '@wildshard/engine/data';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface LookV2Ctx {
   game: Game; sky: Sky; weather: NalatiWeather;

@@ -1,5 +1,10 @@
 import * as THREE from 'three';
-import { Tool, app, isMesh, buildHoverboard, type Player, type EquipContext } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+import { Tool } from '@wildshard/engine/combat/Tool';
+import { isMesh } from '@wildshard/engine/combat/view/ranged';
+import type { Player } from '@wildshard/engine/player/Player';
+import { buildHoverboard } from '@wildshard/engine/render/hoverboardGeometry';
 
 export class Hoverboard extends Tool {
   readonly id = 'tool.hoverboard' as const;

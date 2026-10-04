@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Texture } from 'three';
-import { App, type LevelAdapters, type LevelContext, type LevelDriver } from '@wildshard/engine';
+import { App } from '../../src/engine/app/app';
+import type { LevelAdapters, LevelContext } from '../../src/engine/level/context';
+import type { LevelDriver } from '../../src/engine/level/load';
 import { WorldRegistry } from '../../src/engine/world/registry';
 import manifest from '../../src/shards/nine-dragon-stack/manifest';
 import { toLevelSpec } from '../../src/game/shard/spec';

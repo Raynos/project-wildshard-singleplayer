@@ -1,9 +1,17 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { App, WorldRegistry, TabRegistry, EffectService, SaveStore, type Actor, type LevelDriver } from '@wildshard/engine';
-import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } from '@wildshard/game';
+import { App } from '../../../src/engine/app/app';
+import { EffectService } from '../../../src/engine/combat/effects/EffectService';
+import type { Actor } from '../../../src/engine/combat/pipeline';
+import type { LevelDriver } from '../../../src/engine/level/load';
+import { SaveStore } from '../../../src/engine/saves/store';
+import { TabRegistry } from '../../../src/engine/ui/tabs';
+import { WorldRegistry } from '../../../src/engine/world/registry';
+import { purseSave, shardSave } from '../../../src/game/saves';
+import { shardContext, type GameServices } from '../../../src/game/shard/context';
+import { toLevelSpec } from '../../../src/game/shard/spec';
 import { Vector3 } from 'three';
-import { STARTER_EFFECTS } from '@wildshard/kit';
+import { STARTER_EFFECTS } from '../../../src/kit/effects/starter';
 import { summaryStore } from '../../../src/game/summary';
 import { SHARDS } from '../../../src/shards.generated';
 import { playable } from '../../../src/game/shard/registry';

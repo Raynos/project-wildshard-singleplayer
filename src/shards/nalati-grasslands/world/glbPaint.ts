@@ -27,7 +27,11 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { voxelAO, hemisphere, TIER, painterlyMaterial, painterlyKnobs, type Sky, setting } from '@wildshard/engine';
+import { TIER } from '@wildshard/engine/core/tier';
+import { setting } from '@wildshard/engine/ui/Settings';
+import { painterlyMaterial, painterlyKnobs } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { voxelAO, hemisphere } from '@wildshard/engine/world/voxelAO';
 
 export type NalatiModelName =
   | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'

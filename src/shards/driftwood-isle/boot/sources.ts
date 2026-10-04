@@ -1,4 +1,8 @@
-import { filePolicy, publicBytes, type ChunkFiles, type Tier, type TexMode } from '@wildshard/engine/data';
+import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
+import { filePolicy } from '@wildshard/engine/boot/filePolicy';
+import type { TexMode } from '@wildshard/engine/boot/gpuFiles';
+import { publicBytes } from '@wildshard/engine/boot/tables';
+import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 
 const ROOT = '/assets/baked/driftwood-isle/';

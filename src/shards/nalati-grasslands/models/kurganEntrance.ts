@@ -10,8 +10,10 @@
  * back wall as boxes, the hood's walkable top in slices, the passage floor as a timber slab, the steps as treads.
  */
 import * as THREE from 'three';
-import { defineModel, type ColliderDesc } from '@wildshard/engine';
-import { M, pole, v3, blob } from '../world/paint';
+import { defineModel } from '@wildshard/engine/models/model';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { M, v3 } from '../world/paint';
+import { pole, blob } from '@wildshard/engine/world/geometryKit';
 import { highest, slab, type Box } from '../world/solid';
 import { painted, type Paint } from '../world/painted';
 import type { Platform } from '../world/types';

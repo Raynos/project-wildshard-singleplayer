@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { WeaponId } from '../combat/Equipment';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import { fixIBL, isMesh, VIEWMODEL_GROUP } from '../combat/view/ranged';
 
 

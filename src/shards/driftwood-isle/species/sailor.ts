@@ -1,5 +1,13 @@
-import { faceHead, loadFaceHead, type FaceHead } from '@wildshard/kit';
-import { CreatureBrain, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '@wildshard/engine';
+import { faceHead, loadFaceHead, type FaceHead } from '@wildshard/kit/npc/faceHeads';
+import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
+import type { SpeciesRow } from '@wildshard/engine/ai/species';
+import { smoothstep as sstep } from '@wildshard/engine/core/noise';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
+import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
+import type { AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from '@wildshard/engine/entities/species/rigs';
 import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
 

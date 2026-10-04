@@ -1,7 +1,7 @@
 import type * as THREE from 'three';
 import type { SpeciesRow } from '../../ai/species';
 import { registeredSpecies, validateCreatureBones, type SpeciesDef, type VariantDef, type BoneDef, type FurStyle } from './registry';
-import type { Sky } from '../../world/Sky';
+import type { SkyRig as Sky } from '../../world/skyRig';
 import type { AnimalMaterial } from '../AnimalFactory';
 import type { Scope } from '../../app/scope';
 

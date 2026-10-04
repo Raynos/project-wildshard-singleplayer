@@ -7,10 +7,10 @@
  * (`underSpecimen`: the field's shader fades a copy by the player's distance, so a turntable copy would vanish).
  */
 import * as THREE from 'three';
-import type { ModelContext, ModelPart, UnderPlacements } from '@wildshard/engine';
+import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
+import type { UnderPlacements } from '@wildshard/engine/world/forest/placement';
 import type { UnderKind, UnderKindDraw } from './undergrowth';
 
-export type { UnderKind } from './undergrowth';
 
 const KEY = 'pine-hollow/undergrowth';
 

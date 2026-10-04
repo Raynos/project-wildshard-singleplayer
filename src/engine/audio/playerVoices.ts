@@ -2,7 +2,7 @@ import { Synth } from './synth';
 import { audioRandom } from './util';
 import { tap } from '../core/harnessTap';
 import type { Voices } from './Voices';
-import type { StepSurface } from './Audio';
+import type { StepSurface } from './surface';
 import type { CueOpts } from './Cues';
 
 const rnd = (a: number, b: number): number => a + audioRandom() * (b - a);

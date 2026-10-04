@@ -19,7 +19,11 @@
  */
 import * as THREE from 'three';
 import type { BirdMesh, BirdSet } from '../life/birdModels';
-import { PATCH_ORDER, patchShader, type Renderer, attachFogUniforms, type Sky, defineModel, type ModelContext, type ModelDef } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
+import type { Renderer } from '@wildshard/engine/render/renderer';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];

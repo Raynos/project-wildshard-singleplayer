@@ -22,8 +22,6 @@ import { heightAt, normalAt, splatAt, trailDistance, cabinMask, inChunk, pondMas
 import { activeLevel } from '../../level/selection';
 import type { TreeSpecies, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from './treeSpecies';
 
-export { TREE_SPECS, treeSetOf } from './treeSpec';
-export type { TreeSpecies, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from './treeSpecies';
 
 export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color; species?: TreeSpecies | undefined }
 

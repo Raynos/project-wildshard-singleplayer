@@ -1,5 +1,5 @@
-import { jsonSlot } from '@wildshard/engine';
-import type { ShardContext } from '@wildshard/game';
+import { jsonSlot } from '@wildshard/engine/saves/slots';
+import type { ShardContext } from '@wildshard/game/shard/context';
 
 export const CRAG_VIEWS = ['shaded', 'ao', 'sun', 'wet', 'normal', 'albedo'] as const;
 const LIFE = ['on', 'off'] as const;

@@ -19,7 +19,6 @@ import {
 import { navmeshUrl } from './navmeshUrl';
 import { frameCost } from '../core/frameCost';
 
-export { navmeshUrl } from './navmeshUrl';
 
 /** One agent class's mesh. */
 export interface NavLayer { radius: number; height: number; climb: number; mesh: NavMesh }

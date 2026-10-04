@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { UiLayers } from '../../src/engine/ui/layers';
 import { Scope } from '../../src/engine/app/scope';
-import { BagRegistry } from '../../src/game/bag/registry';
+import { TabRegistry as BagRegistry } from '../../src/engine/ui/tabs';
 
 describe('scoped overlay stack', () => {
   it('sends back only to the highest layer, restoring lower input on disposal', () => {

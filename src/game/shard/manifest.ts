@@ -1,6 +1,23 @@
-import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand, Noise2D, HuntTuning, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant, WorldRegistry, Sky, Forest, SwordArms, SwordFraming, SwordMoveSet, SwordRig, SwimArms, RosterEntry, Renderer } from '@wildshard/engine';
+import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
+import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
+import type { Noise2D } from '@wildshard/engine/core/noise';
+import type { HuntTuning } from '@wildshard/engine/entities/AnimalManager';
+import type { ExploreSpec } from '@wildshard/engine/level/data';
+import type { LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec } from '@wildshard/engine/level/spec';
+import type { RosterEntry } from '@wildshard/engine/models/live';
+import type { SwimArms } from '@wildshard/engine/player/Hands';
+import type { LookReplaceContext, LookStrategy } from '@wildshard/engine/render/look';
+import type { Renderer } from '@wildshard/engine/render/renderer';
+import type { HudBand } from '@wildshard/engine/ui/hudSlots';
+import type { MinimapPalette } from '@wildshard/engine/ui/Minimap';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '@wildshard/engine/world/forest/treeSpecies';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import type { TreeFactory } from '@wildshard/engine/world/TreeFactory';
+import type { WaterBody } from '@wildshard/engine/world/water/body';
 import type { ShardSlug } from './slugs.generated';
-import { terrainFieldFor } from '@wildshard/engine/data';
+import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 import type { ShardPlugin } from './plugin';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
@@ -413,7 +430,6 @@ export const hitDamage = (def: { fight?: { maxHitDamage?: number | undefined; ca
   def.fight?.maxHitDamage === undefined || (kind !== undefined && def.fight.capExempt?.includes(kind) === true) ? damage : Math.min(damage, def.fight.maxHitDamage);
 
 /** Compatibility names for manifests not yet migrated to the engine look contract. */
-export type { EngineEffects, LookComposeContext as ShardComposeContext, LookComposition as ShardComposition, LookStrategy as ShardRender } from '@wildshard/engine';
 
 export interface ShardManifest {
   next?: string;
@@ -587,10 +603,8 @@ export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }
 
 /** Four authored shards; F9 generates this union from the registry. */
-export type { ShardSlug } from './slugs.generated';
 
 /** Explore entry art is owned by its shard and imported without world code. */
-export type { ExploreSpec } from '@wildshard/engine';
 
 export function formatGrid(grid: readonly [number, number]): string {
   const signed = (n: number): string => n < 0 ? `−${-n}` : `+${n}`;

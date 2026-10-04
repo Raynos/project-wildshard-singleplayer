@@ -1,5 +1,5 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMaterial, type Texture } from 'three';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { apothem, type Isle } from '../layout';
 
 /**

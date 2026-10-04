@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { app, Scope, WeightedTable } from '@wildshard/engine';
-import { getLootTable, registerLootTable, rollLoot, type LootTableRow } from '@wildshard/game';
+import { WeightedTable } from '../../../src/engine/ai/weighted';
+import { app } from '../../../src/engine/app/runtime';
+import { Scope } from '../../../src/engine/app/scope';
+import { getLootTable, registerLootTable, rollLoot, type LootTableRow } from '../../../src/game/loot/tables';
 import { DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES } from '../../../src/shards/driftwood-isle/loot/tables';
 
 describe('authored Driftwood rewards', () => {

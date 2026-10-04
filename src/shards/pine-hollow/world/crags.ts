@@ -40,7 +40,19 @@ import { CRAG_LOD, useCragKit } from './cragKit';
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
-import { PATCH_ORDER, patchShader, setProgramKey, type ColliderDesc, type WorldRegistry, type TerrainCut, attachFogUniforms, loadPBR, type PBRSet, TIER, Rng, CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES, type Sky, type ModelDef, type Placement, heightAt, normalAt, trailDistance, cabinMask, inChunk, place, type Placed } from '@wildshard/engine';
+import { loadPBR, type PBRSet } from '@wildshard/engine/core/assets';
+import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { ModelDef, Placement } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { TerrainCut } from '@wildshard/engine/physics/terrain';
+import { PATCH_ORDER, patchShader, setProgramKey } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { normalAt, trailDistance, cabinMask, inChunk } from '@wildshard/engine/world/Heightfield';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
 

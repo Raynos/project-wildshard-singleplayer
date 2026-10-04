@@ -1,5 +1,7 @@
-import { PATCH_ORDER, boxDesc, patchShader, type ColliderDesc, type Interactable } from '@wildshard/engine';
-import type { ShardContext } from '@wildshard/game';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import { Euler, Group, Quaternion, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, DAIS, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, apothem, ropeSag, type Isle, type Span } from '../layout';
 import { STRINGS } from '../strings';

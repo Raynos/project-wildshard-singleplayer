@@ -1,10 +1,12 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { App, type LevelDriver } from '@wildshard/engine';
+import { App } from '../../src/engine/app/app';
+import type { LevelDriver } from '../../src/engine/level/load';
 import { Audio } from '../../src/engine/audio/Audio';
 import { Music } from '../../src/engine/audio/Music';
 import { WorldRegistry } from '../../src/engine/world/registry';
-import { shardContext, toLevelSpec, type GameServices } from '@wildshard/game';
+import { shardContext, type GameServices } from '../../src/game/shard/context';
+import { toLevelSpec } from '../../src/game/shard/spec';
 import manifest from '../../src/shards/nine-dragon-stack/manifest';
 import { installAudio } from '../../src/shards/nine-dragon-stack/audio/ambience';
 

@@ -3,7 +3,7 @@ import type { BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, 
 import type { N8AOPostPass } from 'n8ao';
 import type { GradeEffect } from '../core/Grade';
 import type { DayCycleClock } from '../world/dayCycle';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import type { App } from '../app/app';
 import type { Scope } from '../app/scope';
 import type { LevelContext } from '../level/context';

@@ -15,7 +15,14 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { CHUNK_HALF, ROAD_WIDTH, Rng, Noise2D, type Sky, modelContext, type ModelPart, type Placement, heightAt, normalAt, inChunk, place, type Placed } from '@wildshard/engine';
+import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
+import { Noise2D } from '@wildshard/engine/core/noise';
+import { Rng } from '@wildshard/engine/core/rng';
+import { modelContext, type ModelPart, type Placement } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import { normalAt, inChunk } from '@wildshard/engine/world/Heightfield';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { OCEAN } from '../manifest';
 import { REEF, reefMaterial, type ReefParams } from '../models/reef';
 import { REEF_FISH_COLOURS, reefFish } from '../models/reefFish';

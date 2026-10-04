@@ -7,7 +7,7 @@
 //  - GLSL (`GRADE_GLSL`): `vec3 gradeLut(vec3 srgb)`, the composite's LAST colour step (after toSRGB, before grain):
 //    one trilinear texture3D fetch.
 import { ClampToEdgeWrapping, type Color, Data3DTexture, LinearFilter, NoColorSpace, RGBAFormat, UnsignedByteType } from 'three';
-import { LUT_SIZE, fetchLut } from '@wildshard/engine';
+import { LUT_SIZE, fetchLut } from '@wildshard/engine/render/lut';
 
 export const LUT_N = LUT_SIZE;
 

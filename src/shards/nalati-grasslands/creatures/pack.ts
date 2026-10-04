@@ -1,5 +1,9 @@
 import { NALATI_STRIKES, sampleStrike } from '../combat/strikes';
-import { GroupBrain, app, type Animal, type ThinkCtx, terrainNormal as normalAt } from '@wildshard/engine';
+import { GroupBrain } from '@wildshard/engine/ai/GroupBrain';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 
 
 import * as THREE from 'three';

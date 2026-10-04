@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { registerGlobalDebugAction } from '@wildshard/engine';
+import { registerGlobalDebugAction } from '../../src/engine/ui/authoredDebugRows';
 import { levelDebugRows } from '../../src/engine/ui/debugOptions';
 import { SHARDS } from '../../src/shards.generated';
-import { toLevelSpec } from '@wildshard/game';
+import { toLevelSpec } from '../../src/game/shard/spec';
 
 describe('global developer action lifecycle', () => {
   it('runs only on a press, remains global and makes discarded callbacks inert', async () => {

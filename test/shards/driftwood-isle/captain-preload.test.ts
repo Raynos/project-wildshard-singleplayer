@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { app, Rng, Scope, speciesWithLook } from '@wildshard/engine';
+import { app } from '../../../src/engine/app/runtime';
+import { Scope } from '../../../src/engine/app/scope';
+import { Rng } from '../../../src/engine/core/rng';
+import { speciesWithLook } from '../../../src/engine/entities/species/look';
 import { AnimalFactory } from '../../../src/engine/entities/AnimalFactory';
 import { CaptainMesh } from '../../../src/shards/driftwood-isle/species/captainMesh';
 import { CAPTAIN, captainLook } from '../../../src/shards/driftwood-isle/species/captain';
 import { installDriftwoodAdventure } from '../../../src/shards/driftwood-isle/quest/install';
-import type { ShardContext } from '@wildshard/game';
+import type { ShardContext } from '../../../src/game/shard/context';
 import { fakeWorld } from '../../fake/world';
 
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void; reject: (reason: Error) => void } {

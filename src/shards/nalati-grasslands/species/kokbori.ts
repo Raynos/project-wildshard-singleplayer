@@ -1,4 +1,8 @@
-import { engineString, type SpeciesDef, type SpeciesRGB as RGB, NO_FUR, eliteThink, eliteAct, eliteDamageMul } from '@wildshard/engine';
+import { eliteThink, eliteAct, eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
+import type { RGB } from '@wildshard/engine/entities/species/loft';
+import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
+import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
+import { engineString } from '@wildshard/engine/strings';
 
 
 

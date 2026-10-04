@@ -15,7 +15,9 @@
  * `LOOK_BAKE_GLSL` holds the uniforms + both functions; `bakeUniforms` are shared by every receiver.
  */
 import * as THREE from 'three';
-import { TIER, onGpuRestored, type Renderer } from '@wildshard/engine';
+import { onGpuRestored } from '@wildshard/engine/core/gpuOnly';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 
 const LAYER = 7;
 const SIZE = TIER === 'phone' ? 1024 : 2048;

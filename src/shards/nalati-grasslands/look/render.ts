@@ -9,7 +9,7 @@
  *   sky             no engine cloud layer or planet; the cloud shadows' field + drift (air.ts `NALATI_SKY`)
  * The panorama dome, the day keys and the per-frame look are still wired by `wireLookV2` (index.ts) until 07 §6.2 step 6.
  */
-import type { LookStrategy } from '@wildshard/engine';
+import type { LookStrategy } from '@wildshard/engine/render/look';
 import { installPaintedAir, NALATI_SKY } from './air';
 import { installLookV2Fog } from './fog';
 import { lookV2Passes } from './grade';

@@ -1,5 +1,7 @@
-import type { AchievementDef, ItemId, ItemRow } from '@wildshard/game';
-import type { IconId } from '@wildshard/engine';
+import type { AchievementDef } from '@wildshard/game/achievements';
+import type { ItemRow } from '@wildshard/game/bag/items';
+import type { ItemId } from '@wildshard/game/Inventory';
+import type { IconId } from '@wildshard/engine/ui/icons';
 
 export const DRIFTWOOD_FEATS: AchievementDef[] = [
   { id: 'castaway', name: 'Message in a Bottle', goal: 'Talk to the castaway', count: 1, event: 'talked', title: 'Honorary Castaway', icon: 'rope' },

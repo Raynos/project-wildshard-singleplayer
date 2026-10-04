@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Spear } from '../../src/shards/nalati-grasslands/weapons/Spear';
 import { activePhysics, setActivePhysics } from '../../src/engine/physics/active';
-import { app, Scope } from '@wildshard/engine';
+import { app } from '../../src/engine/app/runtime';
+import { Scope } from '../../src/engine/app/scope';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { setAimTargets } from '../../src/engine/player/AimTargets';
 import { fakeWorld } from '../fake/world';

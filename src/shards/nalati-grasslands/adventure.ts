@@ -1,6 +1,19 @@
-import { app, resourceScope, type Actor, Flags, heightAt, type WorldRegistry, type Sky, type Interactable, type FullMapPoi as MapPoi, type MapQuest } from '@wildshard/engine';
+import { resourceScope } from '@wildshard/engine/app/resources';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Actor } from '@wildshard/engine/combat/pipeline';
+import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
+import { Flags } from '@wildshard/engine/world/interact/flags';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
-import { elitesSave, type ShardContext, DialogueBox, RewardCaption, NpcTalk, QuestChip, QuestLine, placesWithDiscovery, type LiveMarker, type Places, type QuestState, type ProgressSink } from '@wildshard/game';
+import { QuestLine, type QuestState } from '@wildshard/engine/quest/core';
+import { NpcTalk, QuestChip, placesWithDiscovery, type LiveMarker, type Places } from '@wildshard/engine/quest/view';
+import { DialogueBox, RewardCaption } from '@wildshard/engine/quest/view/ui';
+import type { ProgressSink } from '@wildshard/game/Progress';
+import { elitesSave } from '@wildshard/game/saves';
+import type { ShardContext } from '@wildshard/game/shard/context';
 /**
  * Nalati's adventure layer (NALATI-MERGE Q1–Q5) — the shard's quest line on the shared quest core
  * (src/game/quest/core.ts: the chip, NPC talk, places with saved discovery, chained chapters), wired from main.ts in

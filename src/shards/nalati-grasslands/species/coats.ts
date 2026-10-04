@@ -1,4 +1,5 @@
-import { type SpeciesRGB as RGB, variantDef } from '@wildshard/engine';
+import type { RGB } from '@wildshard/engine/entities/species/loft';
+import { variantDef } from '@wildshard/engine/entities/species/registry';
 /**
  * creatureCoats — one rigged hull, every coat: the hull's atlas recoloured per variant (glbCreatures.ts), so a herd of
  * bay, chestnut, grey and black mares, or a pack of grey, tawny and dark wolves, all wear the generated model.

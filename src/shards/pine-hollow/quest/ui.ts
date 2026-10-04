@@ -10,7 +10,8 @@
  * Both panels release the pointer lock and the weapons while open (like the journal) and close on CLOSE / Esc / E.
  */
 import './pinehollow.css';
-import { Scope, listenPage } from '@wildshard/engine';
+import { Scope } from '@wildshard/engine/app/scope';
+import { listenPage } from '@wildshard/engine/input/dom';
 import { isFilled, type Board, type Contract } from './contracts';
 import { TRADES, tradeState, type Pack, type Room, type Trade } from './trades';
 

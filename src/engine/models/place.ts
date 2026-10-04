@@ -30,7 +30,6 @@ import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type
 import { BatchedCull, CelledCopiesCull, CellCull, InstancedCull, SetCull, UntilCull, WeldCull, type BatchedSlot, type CullOptions, type HostedSet, type InstancedSink } from './cull';
 import { UnitParts, nearProxy, weldAcross, type WeldBuild } from './weld';
 
-export type { CullOptions, CullView } from './cull';
 
 /** how the copies are drawn (see ./model.ts step 3) */
 export type Draw = 'single' | 'merged' | 'instanced' | 'batched';

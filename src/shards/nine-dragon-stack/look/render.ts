@@ -5,7 +5,8 @@
 // the engine (the clean room's post.ts, deleted in E357 F7; git show b1b8f9c9:src/chunks/nine-dragon-stack/look/post.ts).
 // `window.__wildshard.shard['nd.render']` (captures / A/B, no URL switch): the live pieces and their switches.
 import { Color, Fog, type IUniform, Mesh, type Object3D, type PerspectiveCamera, ShaderMaterial, Vector4 } from 'three';
-import type { LookComposeContext, LookComposition, LookStrategy, Renderer } from '@wildshard/engine';
+import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 import { installRenderEvents } from './renderEvents';
 import { ndRuntime } from '../runtime';
 import { glowUniforms } from './light/glow';

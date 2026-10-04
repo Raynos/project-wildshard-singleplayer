@@ -1,5 +1,7 @@
 import type { GearTool } from './bag';
-import type { Weapon, Tool, KitEntry } from '@wildshard/engine';
+import type { Tool } from '@wildshard/engine/combat/Tool';
+import type { Weapon } from '@wildshard/engine/combat/Weapon';
+import type { KitEntry } from '@wildshard/engine/ui/Menu';
 
 /** The Bag reads authored metadata; ammo and selected state remain live weapon state. */
 export function equipmentEntry(w: Weapon, current: Weapon, suffix = ''): KitEntry {

@@ -1,7 +1,12 @@
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { EquipmentService, Scope, app, type TargetHit } from '@wildshard/engine';
-import { Melee, Thrown, SWORD_WOOD } from '@wildshard/kit';
+import { app } from '../../src/engine/app/runtime';
+import { Scope } from '../../src/engine/app/scope';
+import { EquipmentService } from '../../src/engine/combat/EquipmentService';
+import type { TargetHit } from '../../src/engine/combat/types';
+import { Melee } from '../../src/kit/weapons/melee/Melee';
+import { SWORD_WOOD } from '../../src/kit/weapons/melee/profiles';
+import { Thrown } from '../../src/kit/weapons/thrown/Thrown';
 import { Sabre, PASS_RIGHT, SABRE_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Sabre';
 import { Spear, JAVELIN, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Spear';
 import { Naizagai, NaizagaiPower, NAIZAGAI_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Naizagai';

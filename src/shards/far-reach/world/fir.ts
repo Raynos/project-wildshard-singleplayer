@@ -1,4 +1,4 @@
-import { PATCH_ORDER, patchShader } from '@wildshard/engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type Texture } from 'three';
 
 /**

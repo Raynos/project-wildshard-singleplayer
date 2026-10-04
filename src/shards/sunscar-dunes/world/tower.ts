@@ -1,6 +1,6 @@
 import { addFire, addLampGlow, KEEPER_LAMP, SIGNAL_FIRE } from './fireFx';
 import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PointLight, Vector3, type Material } from 'three';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { TOWER } from '../layout';
 import { duneHd, duneMesh, fit } from './meshes';
 import { kindling, litDune } from './places';

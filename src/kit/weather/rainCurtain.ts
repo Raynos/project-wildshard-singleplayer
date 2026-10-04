@@ -1,4 +1,5 @@
-import { Rng, attachFogUniforms } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import * as THREE from 'three';
 
 export interface RainProgram { vertexShader: string; fragmentShader: string }

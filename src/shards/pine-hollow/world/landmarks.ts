@@ -25,7 +25,16 @@
  *   lm.setLit('pond', true);                                                  // the quest relights a waystone
  */
 import * as THREE from 'three';
-import { heightAt, type ColliderDesc, type WorldRegistry, type Sky, TIER_CONFIG, Rng, SEED, macrotask, type ModelDef, type Placement, place, type CullOptions, type Placed } from '@wildshard/engine';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import type { CullOptions } from '@wildshard/engine/models/cull';
+import type { ModelDef, Placement } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { makeGlowTexture, type ExtraBuilding, type Cabins } from './homestead';
 import {
   LOOKOUT, ZIPLINE, CREEK_BRIDGE, E_ROAD, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS,

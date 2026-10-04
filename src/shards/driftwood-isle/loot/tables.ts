@@ -1,5 +1,6 @@
-import { WeightedTable, type Scope } from '@wildshard/engine';
-import { registerLootTable, type LootContext, type LootTableRow } from '@wildshard/game';
+import { WeightedTable } from '@wildshard/engine/ai/weighted';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { registerLootTable, type LootContext, type LootTableRow } from '@wildshard/game/loot/tables';
 
 export const DRIFTWOOD_COIN_VALUES: Readonly<Record<string, number>> = {
   crab: 1, monkey: 1, boar: 2, sailor: 5, bear: 10, captain: 25,

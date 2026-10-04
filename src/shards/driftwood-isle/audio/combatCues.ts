@@ -1,4 +1,4 @@
-import type { CombatCueMap } from '@wildshard/engine';
+import type { CombatCueMap } from '@wildshard/engine/combat/cues';
 import type { IslandSfx } from './sfx';
 
 /** The rich sword-event layer keeps its bank calls (and sound-log ids) at their original boundaries. */

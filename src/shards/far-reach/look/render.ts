@@ -1,6 +1,9 @@
 import { Color, Fog, Mesh, Vector3, type Object3D, type Texture } from 'three';
 import { ToneMappingMode } from 'postprocessing';
-import { DayCycle, loadLUT, patchShader, PATCH_ORDER, type LookStrategy } from '@wildshard/engine';
+import { loadLUT } from '@wildshard/engine/boot/bakedApi';
+import type { LookStrategy } from '@wildshard/engine/render/look';
+import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
+import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
@@ -13,7 +16,6 @@ import { SKY_ISLES } from '../world/skyIsles';
 import { loadPainted } from './image';
 import { TEX_URL } from '../boot/files';
 
-export { FOG, SKY, SUN_DIR } from './sun';
 
 /** A fixed golden-hour clock: Sky Reach does not run a day cycle (no `dayCycle` in `uses`). */
 export function createDay(): DayCycle {

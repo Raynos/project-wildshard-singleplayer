@@ -1,5 +1,7 @@
-import type { Audio, CombatCues, Scope } from '@wildshard/engine';
-import { sharedWeaponVoices } from '@wildshard/kit';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { CombatCues } from '@wildshard/engine/combat/cues';
+import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
 
 export const CUES = { fire: 'cue.sword.swing', impact: 'cue.sword.hit', heavy: 'cue.sword.heavy', reload: 'cue.reload' } as const;
 /** The war fan's cues point at kit sounds (own MOSS / Stable Audio takes are a later polish ask). */

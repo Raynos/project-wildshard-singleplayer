@@ -1,4 +1,8 @@
-import { Weapon, blocks, type Actor, type App, type EquipContext, type WeaponState } from '@wildshard/engine';
+import type { App } from '@wildshard/engine/app/app';
+import { blocks } from '@wildshard/engine/blocks';
+import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+import type { Actor } from '@wildshard/engine/combat/pipeline';
+import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
 import { Vector2, Vector3, type Texture } from 'three';
 import { FAN_ROW } from './rows';
 import { fanParts } from './fanModel';

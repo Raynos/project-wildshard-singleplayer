@@ -32,13 +32,23 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
-import { CELL } from '@wildshard/engine/data';
+import { CELL } from '@wildshard/engine/world/blenderArea';
 import { area, inArea, BLENDER_MODELS } from './blenderArea';
 import type { PalmSpec } from './Palms';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
-import { PATCH_ORDER, patchShader, ktx2Texture, attachFogUniforms, CHUNK_HALF, TERRAIN_RES, TIER, type Sky, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, slicer, modelContext, type ModelContext, type Placement, place as placeModel } from '@wildshard/engine';
+import { slicer } from '@wildshard/engine/boot/plan';
+import { CHUNK_HALF, TERRAIN_RES } from '@wildshard/engine/core/config';
+import { ktx2Texture } from '@wildshard/engine/core/ktx2';
+import { TIER } from '@wildshard/engine/core/tier';
+import { modelContext, type ModelContext, type Placement } from '@wildshard/engine/models/model';
+import { place as placeModel } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are this file's own
 /** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */

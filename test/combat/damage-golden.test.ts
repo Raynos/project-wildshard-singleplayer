@@ -1,7 +1,7 @@
 import { CROSSBOW_PROFILE } from '../../src/kit/weapons/crossbow/profiles';
 import { AR15 } from '../../src/kit/weapons/firearm/profiles';
 import { LEVER_PROFILE, LeverRifle } from '../../src/shards/pine-hollow/weapons/LeverRifle';
-import { Thrown } from '@wildshard/kit';
+import { Thrown } from '../../src/kit/weapons/thrown/Thrown';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { damageFor } from '../../src/engine/entities/Animal';
@@ -9,8 +9,8 @@ import { speciesDef } from '../../src/engine/entities/species/registry';
 import { balbalCombat } from '../../src/shards/nalati-grasslands/species/balbal';
 import { Projectiles } from '../../src/engine/combat/view/projectile';
 import { Crossbow } from '../../src/kit/weapons/crossbow/Crossbow';
-import type { TargetHit } from '../../src/engine/combat/view/targets';
-import { Bow } from '../../src/kit/weapons/bow/index';
+import type { TargetHit } from '../../src/engine/combat/types';
+import { Bow } from '../../src/kit/weapons/bow/family';
 import { Rifle } from '../../src/kit/weapons/firearm/Rifle';
 
 import { Spear, JAVELIN, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Spear';

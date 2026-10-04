@@ -5,7 +5,7 @@
  * `dead:captain` on the kills, `seen:reward` after the reward view).
  */
 import { SHARD_FLAGS } from './interactables';
-import type { NpcDef, QuestDef } from '@wildshard/game';
+import type { NpcDef, QuestDef } from '@wildshard/engine/quest/core';
 
 export const QUEST_DONE = 'quest:driftwood-done';
 

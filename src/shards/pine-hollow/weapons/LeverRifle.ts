@@ -1,5 +1,21 @@
-import { weaponActionGate, type EquipContext, blendAds, hitscan, stepBrass, brassFloor, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type TexSet, type CrossbowWorld, type CrossbowOptions, type Targets, makeFlashTexture, HitLine, type Sky, SHADOW_LAYER } from '@wildshard/engine';
-import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold, Firearm, AR15, type FirearmProfile } from '@wildshard/kit';
+import { app } from '@wildshard/engine/app/runtime';
+import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
+import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+import type { Targets } from '@wildshard/engine/combat/types';
+import { stepBrass, brassFloor } from '@wildshard/engine/combat/view/brass';
+import { makeFlashTexture, HitLine } from '@wildshard/engine/combat/view/firearmFx';
+import { hitscan } from '@wildshard/engine/combat/view/hitscan';
+import { Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type TexSet, type CrossbowWorld, type CrossbowOptions } from '@wildshard/engine/combat/view/ranged';
+import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
+import { SHADOW_LAYER } from '@wildshard/engine/core/shadowLayer';
+import { LightPool } from '@wildshard/engine/fx/LightPool';
+import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
+import { sstep, clamp01 } from '@wildshard/engine/player/viewmodelTextures';
+import { getSetting } from '@wildshard/engine/ui/Settings';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '@wildshard/kit/viewmodel/hunterHands';
+import { Firearm } from '@wildshard/kit/weapons/firearm/Firearm';
+import { AR15, type FirearmProfile } from '@wildshard/kit/weapons/firearm/profiles';
 
 
 

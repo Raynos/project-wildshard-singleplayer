@@ -1,4 +1,4 @@
-import { smoothstep } from '@wildshard/engine/data';
+import { smoothstep } from '@wildshard/engine/core/noise';
 /**
  * Pine Hollow world layout v2 — Map D, layout A "the ridge north" (project/archive/2026-09-25-pine-hollow-remaster.md §2 B1 / §4, Jake's
  * pick: art/pine-hollow/round-1-map/A-ridge-north.jpg). Every coordinate of the shard as plain data with NO imports, so the

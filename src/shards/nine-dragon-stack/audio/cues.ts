@@ -1,4 +1,5 @@
-import { tap, type CuePlayer, type CueMap, type CueOpts } from '@wildshard/engine';
+import type { CuePlayer, CueMap, CueOpts } from '@wildshard/engine/audio/Cues';
+import { tap } from '@wildshard/engine/core/harnessTap';
 
 /** The cue map is content: the engine knows only the generic method cue, never an instrument or weapon name. */
 export function ndCueMap(player: Pick<CuePlayer, 'play'>, random: () => number): CueMap {

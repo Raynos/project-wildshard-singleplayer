@@ -1,4 +1,5 @@
-import { loadRigFile, type BoneDef } from '@wildshard/engine';
+import { loadRigFile } from '@wildshard/engine/anim/rig';
+import type { BoneDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 

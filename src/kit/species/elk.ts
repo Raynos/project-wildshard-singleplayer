@@ -1,7 +1,12 @@
 // The elk, a kit creature (moved from the engine's species folder, E405 LAYER-PURITY); installKitSpecies registers it.
 // A level adds its own spawn-only variants (Pine Hollow's thrall: src/shards/pine-hollow/species/rows.ts).
 import * as THREE from 'three';
-import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint, type RGB, type Rng, type HuntTuning, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesDef } from '@wildshard/engine';
+import { smoothstep as sstep } from '@wildshard/engine/core/noise';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { HuntTuning } from '@wildshard/engine/entities/AnimalManager';
+import { loft, tube, skinPlain, S, boneIndex, mix, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint } from '@wildshard/engine/entities/species/loft';
+import type { AnimalSpecies, BoneDef, VariantDef, SpeciesDef } from '@wildshard/engine/entities/species/registry';
+import type { RGB } from '@wildshard/engine/level/data';
 
 /**
  * Elk (wapiti) — a much bigger beast than the deer: 1.5 m at the shoulder, ~2.4 m of body, a heavy neck

@@ -9,5 +9,5 @@
     "tsBuildInfoFile": ".tsc-layers/shards.tsbuildinfo"
   },
   "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.game.json" }, { "path": "./tsconfig.kit.json" }],
-  "include": ["src/shards", "src/engine/**/*.d.ts"]
+  "include": ["src/shards", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts", "src/kit/**/*.merge.d.ts"]
 }

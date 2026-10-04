@@ -27,7 +27,16 @@
  *                                                                        // trophy in front of you
  */
 import * as THREE from 'three';
-import { app, type Audio, modelContext, practiceRoom, type Sky, type WorldRegistry, type Renderer, InteractSfx, place, ItemPickup, type PickupTier } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place } from '@wildshard/engine/models/place';
+import { ItemPickup, type PickupTier } from '@wildshard/engine/player/WeaponPickup';
+import type { Renderer } from '@wildshard/engine/render/renderer';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { islandTrophies } from './tables';
 import { seaGlassChime, SeaGlassChime } from '../models/seaGlassChime';
 import { buildTrophy, trophyPlaques, TrophyPlaques } from '../models/trophyPlaques';
@@ -35,7 +44,9 @@ import { buildCaptainHat } from '../models/captainHat';
 import { buildSailclothCape } from '../models/sailclothCape';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../quest/interactables';
 import type { Adventure } from '../quest/adventure';
-import type { BodyShadow, ShardContext, Owned } from '@wildshard/game';
+import type { BodyShadow } from '@wildshard/game/cosmetics/bodyShadow';
+import type { Owned } from '@wildshard/game/loot/Owned';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import { seaGlassFound } from './finds';
 import { charmsFor, chimeCount, dodgeCooldownScale, heavyMult, nightGlow } from './perks';
 

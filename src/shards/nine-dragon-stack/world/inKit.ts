@@ -3,7 +3,10 @@
 // the region's neon spill baked in), carries each copy's world box and registers the model's catalog entry and a tap
 // target on the kit's mesh. One `place` per model per kit.
 import { Box3, type Mesh } from 'three';
-import { type ModelContext, type ModelDef, type ModelPart, type Placement, paramsOf, Rng, type Placed, place, poseOf } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import { poseOf } from '@wildshard/engine/models/colliders';
+import { type ModelContext, type ModelDef, type ModelPart, type Placement, paramsOf } from '@wildshard/engine/models/model';
+import { type Placed, place } from '@wildshard/engine/models/place';
 import type { InKit } from './ctx';
 import type { Kit } from './kit';
 

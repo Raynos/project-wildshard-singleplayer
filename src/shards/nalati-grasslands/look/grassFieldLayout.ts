@@ -1,4 +1,4 @@
-import { RIVER } from '../manifest';
+import { RIVER } from '../world/terrain';
 
 interface Zone { x: number; z: number; r: number; h: number }
 const TALL_GRASS = 1.12;

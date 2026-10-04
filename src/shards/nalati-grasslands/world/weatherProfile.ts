@@ -1,4 +1,4 @@
-import type { WeatherProfile, WeatherNumbers } from '@wildshard/engine';
+import type { WeatherProfile, WeatherNumbers } from '@wildshard/engine/world/weather';
 import type { WeatherOpts } from './Weather';
 
 export type StormPhase = 'clear' | 'building' | 'gust' | 'storm' | 'clearing' | 'after';

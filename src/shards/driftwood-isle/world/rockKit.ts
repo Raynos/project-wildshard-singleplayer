@@ -15,8 +15,10 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Rng, type Sky, lowPolyMaterial } from '@wildshard/engine';
-import { smoothstep } from '@wildshard/engine/data';
+import type { Rng } from '@wildshard/engine/core/rng';
+import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 /** the shore's boulders (Boulders.ts, Explore's Boulder): beach granite, a shade lighter than the reef */
 export const SHORE_ROCK: RockPalette = {

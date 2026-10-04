@@ -1,5 +1,9 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import { Rng, boxDesc, patchShader, PATCH_ORDER, rock, type ColliderDesc, type Scope } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { Rng } from '@wildshard/engine/core/rng';
+import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
+import { rock } from '@wildshard/engine/world/geometryKit';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from '../layout';
 import { WIND } from './dunes';
 

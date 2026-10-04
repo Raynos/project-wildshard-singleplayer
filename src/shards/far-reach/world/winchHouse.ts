@@ -1,5 +1,5 @@
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from 'three';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { STEP, apothem } from '../layout';
 import { beam, leanAbove, quad, shackMesh, shackPart, strut, tri, type ShackPart } from './shack';
 

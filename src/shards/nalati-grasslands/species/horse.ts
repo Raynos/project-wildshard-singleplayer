@@ -1,4 +1,10 @@
-import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, srgb, paletteColors, type Station, type SpeciesRGB as RGB, type Paint, NO_FUR, smooth01, bump, rigClamp as clamp, type Animal } from '@wildshard/engine';
+import { smoothstep as sstep } from '@wildshard/engine/core/noise';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import { loft, tube, skinPlain, S, boneIndex, mix, srgb, paletteColors, type Station, type RGB, type Paint } from '@wildshard/engine/entities/species/loft';
+import type { SpeciesDef, AnimalSpecies, BoneDef, VariantDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
+import { NO_FUR, smooth01, bump, clamp } from '@wildshard/engine/entities/species/rigs';
+import { engineString } from '@wildshard/engine/strings';
 
 import * as THREE from 'three';
 

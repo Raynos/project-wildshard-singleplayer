@@ -1,4 +1,4 @@
-import type { AchievementDef } from '@wildshard/game';
+import type { AchievementDef } from '@wildshard/game/achievements';
 
 export const NALATI_FEATS: AchievementDef[] = [
   { id: 'storm-titan', name: 'Weather Report', goal: 'Defeat Jel Ata, the Storm Titan', count: 1, event: 'storm-titan', title: 'Partly Cloudy', icon: 'laurel' },

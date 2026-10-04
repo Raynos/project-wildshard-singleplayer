@@ -1,5 +1,7 @@
 import { NALATI_STRIKES, sampleArena } from '../../src/shards/nalati-grasslands/combat/strikes';
-import { app, PlayerHealth, Scope } from '@wildshard/engine';
+import { app } from '../../src/engine/app/runtime';
+import { Scope } from '../../src/engine/app/scope';
+import { PlayerHealth } from '../../src/engine/combat/health';
 import { encounterHit } from '../../src/shards/nalati-grasslands/combat/damage';
 import * as THREE from 'three';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';

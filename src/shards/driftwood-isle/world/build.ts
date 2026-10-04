@@ -5,7 +5,13 @@
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, ROAD_LENGTH, heightAt, macrotask, slicer, loadWorldContent, RopeChain, pathRampDescs, type World, type BoxSpec as Collider } from '@wildshard/engine';
+import { macrotask, slicer } from '@wildshard/engine/boot/plan';
+import type { World } from '@wildshard/engine/core/bootstrap';
+import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { pathRampDescs } from '@wildshard/engine/physics/paths';
+import { RopeChain } from '@wildshard/engine/physics/ropeChain';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import manifest, { OCEAN, HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR, PIER_PENNANT_AT } from '../manifest';
 import { Ocean } from './Ocean';
 import { Pier } from './Pier';
@@ -45,7 +51,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 /** main.ts:366-467's Driftwood builders, verbatim (`sea` is the manifest's OCEAN). */
 export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3): Promise<DriftwoodWorld> {
   const { game, sky, player, registry } = world;
-  const { cutTerrain, normalAt, TRAILS } = await loadWorldContent(); // the deferred world code (cut, the live baked heightfield)
+  const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield')]); // the deferred world code (cut, the live baked heightfield)
   const sea = OCEAN;
   // the built things' legacy boxes, for the ocean's foam rings (every one registers itself: models through
   // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)

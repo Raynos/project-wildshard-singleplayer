@@ -1,5 +1,21 @@
 import { nightSpawner } from './spawns';
-import { GroupBrain, app, pinBrain, type Scope, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt, PATCH_ORDER, patchShader } from '@wildshard/engine';
+import type { Spawner } from '@wildshard/engine/ai/encounters';
+import { GroupBrain } from '@wildshard/engine/ai/GroupBrain';
+import { pinBrain } from '@wildshard/engine/ai/inspect';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
+import { Projectiles, type ProjectileKind } from '@wildshard/engine/combat/view/projectile';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { Player } from '@wildshard/engine/player/Player';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { setting } from '@wildshard/engine/ui/Settings';
+import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 
 

@@ -1,4 +1,4 @@
-import { rainCurtain } from '@wildshard/kit';
+import { rainCurtain } from '@wildshard/kit/weather/rainCurtain';
 import { RAIN_PROGRAM } from './rainProgram';
 /**
  * PineWeatherFX — what Pine Hollow's rain looks like (PH-L10): the rain around the camera with the canopy's drips in it,
@@ -36,7 +36,16 @@ import { RAIN_PROGRAM } from './rainProgram';
  * walks it).
  */
 import * as THREE from 'three';
-import { app, Rng, CHUNK_HALF, floorBelow, practiceRoom, type Sky, type TreeInstance, heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, streamAt, inChunk, createWaterMaterial } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { Rng } from '@wildshard/engine/core/rng';
+import { floorBelow } from '@wildshard/engine/physics/query';
+import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
+import { normalAt, splatAt, trailDistance, cabinMask, pondMask, streamAt, inChunk } from '@wildshard/engine/world/Heightfield';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
 import { BEAR_CAVE } from '../layout';
 import type { PineWeather } from './weatherProfile';
 

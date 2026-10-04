@@ -1,54 +1,11 @@
-import type { BagIcons } from '@wildshard/game';
-import { iconParts, registerIcons } from '@wildshard/engine';
+import type { BagIcons } from '@wildshard/game/bag/tabs';
+import { iconParts, registerIcons } from '@wildshard/engine/ui/icons';
 
 /**
  * The kit's icons (moved from the engine, E405 LAYER-PURITY): the creatures, the pack items, the weapons and the Bag's
  * GEAR / FINDS stickers, drawn in the engine's 64×64 frame (`iconParts`). installKitIcons registers them; a level that
  * needs one names its id.
  */
-declare module '@wildshard/engine' {
-  interface IconMap {
-    deer: true;
-    elk: true;
-    boar: true;
-    bear: true;
-    ghost: true;
-    ironhide: true;
-    meat: true;
-    hide: true;
-    tusk: true;
-    antlers: true;
-    bolt: true;
-    claw: true;
-    shell: true;
-    coconut: true;
-    coin: true;
-    seaglass: true;
-    rope: true;
-    whetstone: true;
-    chart: true;
-    bearclaw: true;
-    boartusk: true;
-    crossbow: true;
-    sword: true;
-    rifle: true;
-    lever: true;
-    longbow: true;
-    hat: true;
-    cape: true;
-    charm: true;
-    necklace: true;
-    glyph: true;
-    purse: true;
-    talon: true;
-    leopard: true;
-    wolf: true;
-    eagle: true;
-    rider: true;
-    horse: true;
-    grapple: true;
-  }
-}
 
 const { svg, stroke: S, legs, circle } = iconParts;
 

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine';
+import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 
 /**
  * Pine Hollow's fight FX (PH-C2 / PH-C3), all on programs built at boot (a mid-fight compile is a multi-second hitch on

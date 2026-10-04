@@ -28,13 +28,24 @@
  * v2 chain. Budget (phone): 5 draws, ~0.3 M submitted triangles (the cards ~16 k).
  */
 import * as THREE from 'three';
-import { TIER, CHUNK_HALF, wind, WIND_GLSL, painterlyUniforms, fogUniforms, type Sky, type Forest, macrotask, type Renderer, heightAt, trailDistance, splatAt } from '@wildshard/engine';
-import { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt, flowerSpeciesAt, trample, TRAMPLE_GLSL } from '@wildshard/kit';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { Renderer } from '@wildshard/engine/render/renderer';
+import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import { trailDistance, splatAt } from '@wildshard/engine/world/Heightfield';
+import { painterlyUniforms } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { wind, WIND_GLSL } from '@wildshard/engine/world/steppeWind';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt, flowerSpeciesAt } from '@wildshard/kit/looks/grassField';
+import { trample, TRAMPLE_GLSL } from '@wildshard/kit/looks/trample';
 import { paintedAir } from './air';
 import { dressingCover } from '../world/dressing/index';
 import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
 import { GRASS_CARDS, loadGrassCardAtlas } from './nalatiTextures';
-import { smoothstep } from '@wildshard/engine/data';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 const PHONE = TIER === 'phone';
 

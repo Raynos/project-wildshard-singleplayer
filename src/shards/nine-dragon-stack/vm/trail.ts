@@ -1,4 +1,4 @@
-import { SlashTrail } from '@wildshard/engine';
+import { SlashTrail } from '@wildshard/engine/combat/view/slashTrail';
 // The slash trail, 飞白 "flying white" (lab P8 "viewmodel", E169). Driftwood's sword ribbon (src/engine/player/Sword.ts
 // buildTrail / trailSample / trailRebuild) is the base: a ring of blade samples (an inner point on the blade and the tip),
 // each gap subdivided on a Catmull-Rom curve so a fast slash reads as an arc, alpha by age. What is new is the brush:

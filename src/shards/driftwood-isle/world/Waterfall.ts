@@ -18,7 +18,8 @@
  *   Every puff is a 20-face icosahedron, toon-lit in two bands, all of them one merged mesh posed in the vertex shader.
  */
 import * as THREE from 'three';
-import { PATCH_ORDER, patchShader, attachFogUniforms } from '@wildshard/engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 
 export interface WaterfallSpec {
   lip: THREE.Vector3;

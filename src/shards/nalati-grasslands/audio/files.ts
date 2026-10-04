@@ -1,4 +1,5 @@
-import { loadAudio, type LevelAudioProfile, type CueBank } from '@wildshard/engine';
+import type { CueBank } from '@wildshard/engine/audio/Cues';
+import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 
 const SCORE = { dir: '/assets/music/nalati/', manifestKey: 'nalati' };
 const SFX = 'nalati-grasslands';
@@ -11,7 +12,7 @@ export async function BOOT_AUDIO(): Promise<readonly string[]> {
 
 /** Existing takes and score files in their original order; only their owning set changes. */
 export async function createNalatiAudio(): Promise<LevelAudioProfile> {
-  const { audioFiles, scoreFiles, cueFiles, sfxFiles, styleFiles, getSfxSet, decodeStyle, decodeScore, decodeCueSet, decodeSfxSet } = await loadAudio();
+  const [{ audioFiles }, { scoreFiles, decodeScore }, { cueFiles, decodeCueSet }, { sfxFiles, decodeSfxSet }, { styleFiles, decodeStyle }, { getSfxSet }] = await Promise.all([import('@wildshard/engine/boot/audioFiles'), import('@wildshard/engine/audio/SetScore'), import('@wildshard/engine/audio/Cues'), import('@wildshard/engine/audio/preload'), import('@wildshard/engine/audio/Stems'), import('@wildshard/engine/ui/Settings')]);
   return {
     files: () => {
       const base = audioFiles();

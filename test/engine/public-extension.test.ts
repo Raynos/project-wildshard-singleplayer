@@ -1,9 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { blocks, melee, viewmodel, resolveTierKnobs, WorldRegistry, type Action, type TierKnobs, type WeaponId } from '@wildshard/engine';
+import { blocks } from '../../src/engine/blocks';
+import { melee } from '../../src/engine/combat/blocks/melee';
+import type { WeaponId } from '../../src/engine/combat/Equipment';
+import type { Action } from '../../src/engine/input/InputService';
+import { resolveTierKnobs, type TierKnobs } from '../../src/engine/level/spec';
+import { viewmodel } from '../../src/engine/render/viewmodelFeel';
+import { WorldRegistry } from '../../src/engine/world/registry';
 
-declare module '@wildshard/engine' {
+declare module '../../src/engine/level/spec' {
   interface TierKnobMap { 'contract.propCount': number }
+}
+declare module '../../src/engine/input/InputService' {
   interface ActionMap { 'contract.lantern.toggle': true }
+}
+declare module '../../src/engine/combat/Equipment' {
   interface EquipmentSlotMap { 'contract-whip': true }
 }
 

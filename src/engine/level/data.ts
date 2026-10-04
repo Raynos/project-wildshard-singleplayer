@@ -1,7 +1,7 @@
 import type { HudBand } from '../ui/hudSlots';
 import type { MinimapPalette } from '../ui/Minimap';
 import type { LookReplaceContext } from '../render/look';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import type { TreeFactory } from '../world/TreeFactory';
 import type { Noise2D } from '../core/noise';
 import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '../world/forest/treeSpecies';

@@ -1,4 +1,4 @@
-import { sourceMultiplier } from '@wildshard/engine';
+import { sourceMultiplier } from '@wildshard/engine/combat/effects/types';
 import { AMMO_ROWS, PINE_SOURCE_MULTIPLIERS } from './effects';
 /**
  * Pine Hollow's special ammunition (PINE-HOLLOW-REMASTER PH-C11, Jake's PH-U16: the trader swaps hides / antlers / resin

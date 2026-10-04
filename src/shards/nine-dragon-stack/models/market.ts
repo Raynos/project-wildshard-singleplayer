@@ -11,7 +11,9 @@
 import type { BufferGeometry } from 'three';
 import { BOOTH, PAV, boothSet, parasolSet, pavilionSet } from '../world/stalls';
 import { ndLook, need } from '../world/modelLook';
-import { Rng, defineModel, type ModelContext, type ModelPart, type ColliderDesc } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 const FILE = 'src/shards/nine-dragon-stack/models/market.ts';
 

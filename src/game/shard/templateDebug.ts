@@ -1,4 +1,6 @@
-import { registerGlobalDebugAction, type App, type Scope } from '@wildshard/engine';
+import type { App } from '@wildshard/engine/app/app';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { registerGlobalDebugAction } from '@wildshard/engine/ui/authoredDebugRows';
 import { travel } from '../travel/travel';
 import { findShard } from './registry';
 /** Game-owned discovery: the engine's developer registry knows no shard slug. */

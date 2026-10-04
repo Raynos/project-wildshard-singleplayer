@@ -13,9 +13,11 @@
  * who rides a slow ring round the flock and whips the raiding wolves off it.
  */
 import type * as THREE from 'three';
-import { defineModel, type ModelDef, creatureFactory } from '@wildshard/engine';
+import { creatureFactory } from '@wildshard/engine/models/creature';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { personFigure, type PersonId } from '../campPeople';
-import { loadPeopleRig, type PersonFrame } from '../campPeopleModels';
+import { loadPeopleRig } from '../campPeopleModels';
+import type { NpcFigureFrame as PersonFrame } from '@wildshard/kit/npc/figureRig';
 import { shepherdRider } from '../creatures/sheepRaid';
 
 export interface CampPersonParams { readonly person: PersonId }

@@ -3,7 +3,8 @@
  * scripts/img2mesh/props/nalati.json), 0.55 × 0.5 m — clustered in the rocks of the snow ring (src/shards/nalati-grasslands/world/Bowl.ts
  * scatters them: the Snow lotus meadow set). One InstancedMesh for every copy; no shadow on the phone. Walk-through.
  */
-import { defineModel, TIER } from '@wildshard/engine';
+import { TIER } from '@wildshard/engine/core/tier';
+import { defineModel } from '@wildshard/engine/models/model';
 import { generated } from '../world/painted';
 
 export const snowLotus = defineModel<object>({

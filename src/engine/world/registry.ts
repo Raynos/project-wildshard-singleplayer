@@ -259,7 +259,9 @@ export class WorldRegistry {
   }
 }
 
-app.registryFactory = () => new WorldRegistry();
+/** Install the registry service: the session does, before it builds a level; a test's setup does (E434: no module installs
+ *  a service by being imported — with no barrel loading every module, that would hang on import order). */
+export function installWorldRegistry(): void { app.registryFactory ??= () => new WorldRegistry(); }
 /** The running game's registry (bootstrap takes it); one is made on first use (a test, a tool). */
 export function activeRegistry(): WorldRegistry { return app.registry; }
 

@@ -22,7 +22,15 @@
  * view looks through it; y = its centre).
  */
 import * as THREE from 'three';
-import { PATCH_ORDER, patchShader, SEED, type Rng, attachFogUniforms, LowPolyKit, rock, tris, bakeLight, lowPolyMaterial, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel, type ModelContext } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import type { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { rock, tris } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, bakeLight, lowPolyMaterial, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from '@wildshard/engine/world/lowpolyKit';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
 /** where a shrine stands: its centre (world xz) and which way its front faces (rot, radians about +Y) */
 export interface ShrineSite { readonly x: number; readonly z: number; readonly rot: number }

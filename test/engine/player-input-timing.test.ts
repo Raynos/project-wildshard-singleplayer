@@ -1,7 +1,8 @@
 import { expect, it, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { PerspectiveCamera } from 'three';
-import { Events, Scope } from '@wildshard/engine';
+import { Scope } from '../../src/engine/app/scope';
+import { Events } from '../../src/engine/events/events';
 import { Player } from '../../src/engine/player/Player';
 import { InputService } from '../../src/engine/input/InputService';
 import { Physics } from '../../src/engine/physics/Physics';

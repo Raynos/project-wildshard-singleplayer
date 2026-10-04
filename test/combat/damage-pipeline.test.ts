@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { app } from '../../src/engine/app/runtime';
 import { damageFor } from '../../src/engine/entities/Animal';
 import { Crossbow } from '../../src/kit/weapons/crossbow/Crossbow';
-import type { TargetHit } from '../../src/engine/combat/view/targets';
+import type { TargetHit } from '../../src/engine/combat/types';
 import { Projectiles } from '../../src/engine/combat/view/projectile';
 import { boltDamage } from '../../src/shards/pine-hollow/loadout/ammo';
 import { legacyActor, invokeLegacy, damageTarget } from '../fake/legacyActor';

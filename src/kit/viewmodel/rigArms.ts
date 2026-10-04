@@ -1,4 +1,9 @@
-import { app, retainCachedResources, loadRigFile, bindRig, AnimMachine, type ClipChannel, type RigContract, type RigBake, type Sky } from '@wildshard/engine';
+import type { ClipChannel } from '@wildshard/engine/anim/channel';
+import { AnimMachine } from '@wildshard/engine/anim/machine';
+import { loadRigFile, bindRig, type RigContract, type RigBake } from '@wildshard/engine/anim/rig';
+import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
+import { app } from '@wildshard/engine/app/runtime';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 // rigArms — the first-person arm player shared by the skinned viewmodel rigs (E334).
 //
@@ -16,10 +21,8 @@ import {
   type AnimationAction, type AnimationClip, Group, Matrix4, type Mesh, type Object3D, type Vector2, Vector3,
 } from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import type { SwordArms } from '../weapons/melee/SweptMelee';
-import type { Move } from '../weapons/melee/moves';
+import type { SwordArms, Move } from '@wildshard/engine/combat/view/melee';
 
-export { ClipChannel } from '@wildshard/engine';
 
 /** the viewmodel's vertical field (degrees): the clips' canonical camera */
 export const VM_FOV = 70;

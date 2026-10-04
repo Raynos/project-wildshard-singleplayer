@@ -13,7 +13,7 @@ import { E, K, Kit, type Look } from './kit';
 import { GATE, PLAZA, STALL, STREET, WELL, Y0, walkable } from '../layout';
 import { dragonHook, scooter } from './props';
 import { MIN, METAL } from '../util';
-import { Rng } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
 
 // the balustrade's stone: a mid wet grey (dome A's ΔE: 0x76767b rendered #757784, 0x4a4c53 #44454e; the spawn target #656469)
 const STONE: Look = { wash: 0x626469, kind: K.stone, line: 1, wet: 0.55, surf: SURF.concrete };

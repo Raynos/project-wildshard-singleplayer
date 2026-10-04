@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Scope, type MusicState, type SlotAudio } from '@wildshard/engine';
+import { Scope } from '../../../src/engine/app/scope';
+import type { MusicState } from '../../../src/engine/audio/Music';
+import type { SlotAudio } from '../../../src/engine/audio/Stems';
 import { PineScore } from '../../../src/shards/pine-hollow/audio/score';
 
 const pcm = new Float32Array(48000);

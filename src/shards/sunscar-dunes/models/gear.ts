@@ -1,4 +1,4 @@
-import { defineModel } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
 import { Group, Mesh, MeshStandardMaterial } from 'three';
 import { buildWhipModel } from '../weapons/whipModel';
 import { buildTower } from '../world/tower';

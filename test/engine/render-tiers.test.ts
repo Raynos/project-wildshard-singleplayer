@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { needsTerrainCollider, resolveTierKnobs } from '@wildshard/engine';
+import { needsTerrainCollider, resolveTierKnobs } from '../../src/engine/level/spec';
 import manifest from '../../src/shards/nine-dragon-stack/manifest';
 import { toLevelSpec } from '../../src/game/shard/spec';
 

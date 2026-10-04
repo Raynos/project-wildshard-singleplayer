@@ -5,11 +5,12 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { WorldRegistry } from '../../../src/engine/world/registry';
-import type { Sky } from '../../../src/engine/world/Sky';
+import type { SkyRig as Sky } from '../../../src/engine/world/skyRig';
 import { modelContext, defineModel } from '../../../src/engine/models/model';
 import { place, placedCopies } from '../../../src/engine/models/place';
 import { placeSet } from '../../../src/engine/models/sets';
-import { PaintKit, M, blob } from '../../../src/shards/nalati-grasslands/world/paint';
+import { PaintKit, M } from '../../../src/shards/nalati-grasslands/world/paint';
+import { blob } from '../../../src/engine/world/geometryKit';
 import { Flutter } from '../../../src/shards/nalati-grasslands/world/Flutter';
 import { Smoke } from '../../../src/shards/nalati-grasslands/world/Smoke';
 import { NalatiSet } from '../../../src/shards/nalati-grasslands/world/painted';

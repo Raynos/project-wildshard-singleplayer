@@ -3,8 +3,9 @@
  * (src/shards/nalati-grasslands/world/Bowl.ts sets 34; every fourth carries a pennant — the shard's cloth, not the model). Placed on the
  * ground (`at.y`), sunk 0.3 m. Painted into its place's mesh (src/shards/nalati-grasslands/world/painted.ts). Walk-through.
  */
-import { defineModel } from '@wildshard/engine';
-import { pole, v3 } from '../world/paint';
+import { defineModel } from '@wildshard/engine/models/model';
+import { v3 } from '../world/paint';
+import { pole } from '@wildshard/engine/world/geometryKit';
 import { PC } from '../world/props';
 import { painted, type Paint } from '../world/painted';
 

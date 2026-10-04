@@ -776,7 +776,7 @@ const engineInternal = new Set(existsSync(engineInternalFile) ? Object.keys(JSON
 const engineInternalRule = rule('Game-only engine exports stay out of the kit and the shards (E362 AG6)', (context) => {
   if (!/^src\/(?:kit|shards)\//u.test(pathOf(context))) return {};
   return { ImportDeclaration(node) {
-    if (stringOf(node.source) !== '@wildshard/engine') return;
+    if (!(stringOf(node.source) ?? '').startsWith('@wildshard/engine/')) return; // any engine module (E434: no index)
     for (const s of node.specifiers ?? []) {
       const name = s.type === 'ImportSpecifier' ? nameOf(s.imported) : null;
       if (name !== null && engineInternal.has(name)) report(context, s, `${name} is the game's (lint/engine-internal.json): ask for a ShardContext verb instead`);
@@ -789,7 +789,7 @@ const SHARD_SERVICES = new Set(['app', 'saves', 'hudSlots', 'practiceRoom', 'loc
 const shardServices = rule('Shards get engine services through ShardContext (E362 AG12)', (context) => {
   if (!pathOf(context).startsWith('src/shards/')) return {};
   return { ImportDeclaration(node) {
-    if (stringOf(node.source) !== '@wildshard/engine' || node.importKind === 'type') return;
+    if (!(stringOf(node.source) ?? '').startsWith('@wildshard/engine/') || node.importKind === 'type') return; // any engine module (E434)
     for (const s of node.specifiers ?? []) {
       const name = s.type === 'ImportSpecifier' && s.importKind !== 'type' ? nameOf(s.imported) : null;
       if (name !== null && SHARD_SERVICES.has(name)) report(context, s, `${name} is a page service: use the ShardContext (ctx.app, ctx.hud …) instead of importing it`);
@@ -811,9 +811,31 @@ const shardNames = rule('The game and the kit name no particular shard (E405 LAY
   };
 });
 
+// E434 (Jake: "barrel files are the devil"): no module re-exports another of ours. An import names the module that
+// defines the binding (`@wildshard/<layer>/<path>` across layers, a relative path within one); a package's public surface
+// is its package.json `exports`. A re-export of a third-party module (a bundler shim) is not a barrel and passes.
+const ownModule = (source) => typeof source === 'string' && (source.startsWith('.') || source.startsWith('@wildshard/'));
+const noReexport = rule('No barrels: no module re-exports one of ours (E434)', (context) => {
+  if (!pathOf(context).startsWith('src/')) return {};
+  const imported = new Set();
+  const message = (what) => `${what}: import it from the module that defines it (E434: no barrels)`;
+  return {
+    ImportDeclaration(node) { if (ownModule(stringOf(node.source))) for (const s of node.specifiers ?? []) imported.add(s.local.name); },
+    ExportAllDeclaration(node) { if (ownModule(stringOf(node.source))) report(context, node, message(`export * from '${stringOf(node.source)}'`)); },
+    ExportNamedDeclaration(node) {
+      if (node.source) { if (ownModule(stringOf(node.source))) report(context, node, message(`a re-export from '${stringOf(node.source)}'`)); return; }
+      for (const s of node.specifiers ?? []) {
+        const local = s.local?.name;
+        if (local !== undefined && imported.has(local)) report(context, s, message(`export { ${local} } re-exports an imported binding`));
+      }
+    },
+  };
+});
+
 const plugin = {
   meta: { name: 'wildshard' },
   rules: {
+    'no-reexport': noReexport,
     'no-url-switch': noUrlSwitch, layer, 'public-index': publicIndex, 'engine-words': engineWordsRule, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
     'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,
     'no-renderer-type': noRendererType, 'no-raw-shader-patch': noRawShaderPatch, 'sim-no-render': simNoRender,

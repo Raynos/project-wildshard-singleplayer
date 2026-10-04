@@ -1,5 +1,6 @@
 import { ITEMS } from './bag/itemCatalog';
-import { WeightedTable, type WeightedRow, type IconId } from '@wildshard/engine';
+import { WeightedTable, type WeightedRow } from '@wildshard/engine/ai/weighted';
+import type { IconId } from '@wildshard/engine/ui/icons';
 import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
 import type { ItemRow } from './bag/items';
@@ -25,7 +26,6 @@ import type { ItemRow } from './bag/items';
  *   inventory.onChange = () => menu.refresh();
  */
 
-export { ITEMS, isItemId, registerItemRow } from './bag/itemCatalog';
 
 export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar-tusk' | 'antlers' | 'elk-meat' | 'elk-hide' | 'bear-pelt' | 'bear-claw'
   | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon'

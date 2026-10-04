@@ -1,5 +1,5 @@
 import { buildSword, swordMaterial } from '../weapons/melee/SweptMelee';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 
 const FILE = 'src/kit/models/sword.ts';
 

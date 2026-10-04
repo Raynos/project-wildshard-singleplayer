@@ -10,7 +10,7 @@
  *   burst.dispose()
  */
 import * as THREE from 'three';
-import { app } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
 import { coinModel } from './coinModel';
 import { burstCount, coinShare } from './coins';
 

@@ -1,9 +1,22 @@
 import type { BuiltWorld } from './context';
 import type { playStage } from './play';
+import { asShell } from '@wildshard/engine/app/ownership';
+import { app } from '@wildshard/engine/app/runtime';
+import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
+import { startAudioPreload } from '@wildshard/engine/boot/extras';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { loadExplore } from '@wildshard/engine/boot/runtime';
+import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
+import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
+import { TIER } from '@wildshard/engine/core/tier';
+import { installProbe } from '@wildshard/engine/debug/probe';
+import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
+import { precompileLevel } from '@wildshard/engine/render/precompile';
+import { textureBytes } from '@wildshard/engine/render/textureBytes';
+import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
-  const { engine, manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground } = ctx;
-  const { app, installProbe, installGpuRecovery, setPoseProvider, lockState, macrotask, releaseByteCounter, startAudioPreload, startShardPrefetch, TIER, textureBytes, asShell } = engine;
+  const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground } = ctx;
 
   await macrotask();
   game.buildComposer();
@@ -11,7 +24,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
   try {
-    await step('shaders', (p) => engine.precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+    await step('shaders', (p) => precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during shader compile');
     await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during first frame');
@@ -70,7 +83,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // first frame the same). A return from the background already draws such a frame on the title (Game.start).
   if (menuFirst) game.levelScope.timeout(1200, () => {
     if (hud.entered || exploring()) return;
-    if (chunk.explore !== undefined) void engine.loadExplore();
+    if (chunk.explore !== undefined) void loadExplore();
     game.primeFrame();
   });
   const handle = { ...world, boundary, water, streams: edgeDressing.streams, hands, props, animals, interactables, crossbow, hud, audio, music, lockSys, lockState, weapons, arena, playground: getPlayground, ...boot.runtime.objects };

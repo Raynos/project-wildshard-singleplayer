@@ -1,4 +1,4 @@
-import type { ActiveEffect } from '@wildshard/engine';
+import type { ActiveEffect } from '@wildshard/engine/combat/effects/types';
 import './status.css';
 
 const PATHS: Readonly<Record<string, string>> = {

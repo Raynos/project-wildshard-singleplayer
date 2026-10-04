@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { App, Scope, type DiscSpot, type TouchRelabel } from '@wildshard/engine';
+import { App } from '../../src/engine/app/app';
+import { Scope } from '../../src/engine/app/scope';
+import type { DiscSpot, TouchRelabel } from '../../src/engine/ui/hudSlots';
 import { hudAdapters } from '../../src/engine/ui/hudAdapters';
 import type { Game } from '../../src/engine/core/Game';
 import { legacyDouble } from '../fake/FakeGame';

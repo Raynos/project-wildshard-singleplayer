@@ -12,7 +12,9 @@
  * the trolley parked at the top.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, beam, plank, rope, rock, lowPolyMaterial, defineModel } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
+import { log, beam, plank, rope, rock } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 export interface ZiplineSpec { top: THREE.Vector3; bottom: THREE.Vector3; /** sag in metres at mid-span per 100 m (default 1.6) */ sag?: number }
 

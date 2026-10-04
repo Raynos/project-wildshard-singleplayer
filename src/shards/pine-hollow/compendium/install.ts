@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { installCompendium, type CompendiumHost } from '@wildshard/game';
+import { installCompendium, type CompendiumHost } from '@wildshard/game/compendium/install';
 import { PINE_HOLLOW_COMPENDIUM } from '../compendium';
 import { TrophyWall } from '../world/trophyWall';
 

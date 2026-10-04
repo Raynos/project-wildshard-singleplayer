@@ -3,7 +3,8 @@ import { saveFixture } from '../../fake/saveFixture';
 // no pack and no harvest, every skin on GEAR (the locked ones say who drops them), FINDS = the 5 elites with their
 // prizes + the places, and Argymaq's prize is the horse (his old drop id 'argymaq' was no skin, silently dropped).
 import { describe, expect, it } from 'vitest';
-import { Inventory, ITEMS, harvestOf, type ItemId } from '../../../src/game/Inventory';
+import { Inventory, harvestOf, type ItemId } from '../../../src/game/Inventory';
+import { ITEMS } from '../../../src/game/bag/itemCatalog';
 import { NALATI_SKINS, NalatiSkinLocker } from '../../../src/shards/nalati-grasslands/weapons/nalatiSkins';
 import { ELITE_DEFS } from '../../../src/shards/nalati-grasslands/combat/elites';
 import { FINDS_ELITES, elitePrize, nalatiFinds, skinRows, skinSource } from '../../../src/shards/nalati-grasslands/bag';

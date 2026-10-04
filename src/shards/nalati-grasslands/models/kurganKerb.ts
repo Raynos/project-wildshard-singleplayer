@@ -6,8 +6,9 @@
  * No colliders (the mound under it is the ground).
  */
 import * as THREE from 'three';
-import { defineModel } from '@wildshard/engine';
-import { M, blob } from '../world/paint';
+import { defineModel } from '@wildshard/engine/models/model';
+import { M } from '../world/paint';
+import { blob } from '@wildshard/engine/world/geometryKit';
 import { painted, type Paint } from '../world/painted';
 
 export interface KurganKerbParams {

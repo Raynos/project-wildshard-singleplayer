@@ -1,4 +1,4 @@
-import type { ItemId } from '@wildshard/game';
+import type { ItemId } from '@wildshard/game/Inventory';
 /** Pine Hollow's pack: only what Mott the trader takes (src/shards/pine-hollow/quest/trades.ts; E314 pick C) — nothing else drops there */
 export const PINE_PACK_KINDS = ['venison', 'deer-hide', 'boar-hide', 'boar-tusk', 'bear-pelt', 'amber-resin', 'lodge-ribbon'] as const satisfies readonly ItemId[];
 export type PineItem = (typeof PINE_PACK_KINDS)[number];

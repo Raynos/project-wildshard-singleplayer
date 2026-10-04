@@ -11,9 +11,10 @@ import type { Ctx } from './ctx';
 import { E, K, type Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { laundry, stool } from './props';
-import { NEONS, WORDS } from './towers';
+import { NEONS } from './towers';
+import { WORDS } from './words';
 import { Y0 } from '../layout';
-import { Rng } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
 
 export const FLOOR_H = 3;
 const UP = new Vector3(0, 1, 0);

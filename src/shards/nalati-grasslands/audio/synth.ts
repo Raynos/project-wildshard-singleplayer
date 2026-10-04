@@ -1,5 +1,9 @@
-import { sharedWeaponVoices } from '@wildshard/kit';
-import { ownAudioSource, audioRandom, tap, ambientTick, Scope, type Audio, type HoofSurface, type ImpactKind } from '@wildshard/engine';
+import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
+import { Scope } from '@wildshard/engine/app/scope';
+import type { Audio, HoofSurface, ImpactKind } from '@wildshard/engine/audio/Audio';
+import { ownAudioSource } from '@wildshard/engine/audio/ownership';
+import { audioRandom } from '@wildshard/engine/audio/util';
+import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 /**
  * Nalati's synth voices (07 §6.5 A.3, moved verbatim out of the engine mixer): the steppe's creature calls, hooves and the
  * stampede, the steppe weapons (bow / javelin / sabre / spear), the storm beds, thunder and the lightning crackle, and the

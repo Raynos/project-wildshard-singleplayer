@@ -10,7 +10,8 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { realpathSync } from 'node:fs';
 import * as THREE from 'three';
-import { rigLegs, legBones, legPose, LEG_BONE_NAMES } from '../src/shards/pine-hollow/quest/npcRig.ts';
+import { rigLegs } from '../src/shards/pine-hollow/quest/npcRig.ts';
+import { legBones, legPose, LEG_BONE_NAMES } from '../src/kit/npc/npcRig.ts';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);

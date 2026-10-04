@@ -6,7 +6,7 @@
  * one smooth-shaded mesh (their normals can't join the flat-shaded kits) and places the model `drawnInto` it.
  */
 import { rockGeometry, rockMaterial, REEF_ROCK } from '../world/rockKit';
-import { defineModel } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
 
 export interface ReefRockParams {
   /** radius, metres */

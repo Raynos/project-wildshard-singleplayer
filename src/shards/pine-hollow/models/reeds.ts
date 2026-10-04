@@ -5,7 +5,7 @@
  * field's shader fades them past the tier's range and sways them. The Explorer's specimen wears a plain material.
  * Walked through: no collider.
  */
-import { defineModel } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
 import { underPart, underSpecimen } from '../world/undergrowthKit';
 
 export const reeds = defineModel<Record<string, never>>({

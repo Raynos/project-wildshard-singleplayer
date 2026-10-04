@@ -1,4 +1,4 @@
-import { loadAudio, type LevelAudioProfile } from '@wildshard/engine';
+import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 import { FOREST_AUDIO } from './profile';
 import { pineShotFiles, decodePineShots } from './sfx';
 
@@ -10,7 +10,7 @@ export async function BOOT_AUDIO(): Promise<readonly string[]> {
 }
 /** The existing selected-style-first file order and exclusions, owned by this level. */
 export async function createPineAudio(): Promise<LevelAudioProfile> {
-  const { audioFiles, musicManifests, sfxManifests, getMusicStyle, getSfxSet, musicDir, sfxDir, styleFiles, sfxFiles, decodeStyle, decodeSfxSet } = await loadAudio();
+  const [{ audioFiles, musicDir, sfxDir }, { musicManifests, sfxManifests }, { getMusicStyle, getSfxSet }, { styleFiles, decodeStyle }, { sfxFiles, decodeSfxSet }] = await Promise.all([import('@wildshard/engine/boot/audioFiles'), import('@wildshard/engine/boot/tables'), import('@wildshard/engine/ui/Settings'), import('@wildshard/engine/audio/Stems'), import('@wildshard/engine/audio/preload')]);
   const ownMusic = (): string[] => {
     const style = getMusicStyle(), key = `${OWN}-${style}`;
     return style !== 'synth' && Object.hasOwn(musicManifests(), key) ? [key] : [];

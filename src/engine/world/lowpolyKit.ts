@@ -19,7 +19,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
-import type { Sky } from './Sky';
+import type { SkyRig as Sky } from './skyRig';
 import { patchSway, swayByHeight } from './wind';
 import { attachFogUniforms } from './Atmosphere';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
@@ -140,7 +140,6 @@ export class LowPolyKit {
 // ── primitives ────────────────────────────────────────────────────────────────────────────────────
 
 // the shared engine geometry kit (E357 X5): imported here for the kit's own users
-export { wobble, log, beam, rope, sagLine, rock, plank, tris } from './geometryKit';
 
 
 // ── plants (multi-colour parts: `kit.addParts(fern(rng, 1), { matrix })`) ────────────────────────

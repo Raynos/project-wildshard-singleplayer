@@ -9,7 +9,9 @@
 // few px, so no moiré), a 1.2 m module seam grid, the 8 m steel frame; a faint row scan, a rolling refresh band, a few
 // dead diodes, and the bright clouds pushed over the bloom threshold (the post's Karis prefilter at 1.0 picks them up).
 import { LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, SRGBColorSpace, ShaderMaterial, type Texture, TextureLoader, Vector2, Vector4 } from 'three';
-import { phoneUrl, ktx2Texture, gpuOnlyTexture } from '@wildshard/engine';
+import { phoneUrl } from '@wildshard/engine/boot/bytes';
+import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
+import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 
 const VS = /* glsl */ `

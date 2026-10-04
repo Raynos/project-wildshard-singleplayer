@@ -26,7 +26,7 @@
  */
 import * as THREE from 'three';
 import { patchWindField, windUniforms, WIND_DIR } from './wind';
-import type { Sky } from './Sky';
+import type { SkyRig as Sky } from './skyRig';
 import type { TreeInstance } from './forest/placement';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { waterView } from './water/view';

@@ -1,5 +1,10 @@
-import { Scope, tap, ambientTick, audioRandom, panFromYaw, impact, type Audio, type VoiceTable } from '@wildshard/engine';
-import { vocal, windup } from '@wildshard/kit';
+import { Scope } from '@wildshard/engine/app/scope';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import { impact } from '@wildshard/engine/audio/gen';
+import { audioRandom, panFromYaw } from '@wildshard/engine/audio/util';
+import type { VoiceTable } from '@wildshard/engine/audio/Voices';
+import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { vocal, windup } from '@wildshard/kit/audio/creatureVoices';
 import type { Vector3 } from 'three';
 import type { Surface } from './surface';
 /**

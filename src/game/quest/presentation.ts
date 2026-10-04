@@ -1,8 +1,16 @@
 import { Vector3 } from 'three';
-import { Flags, practiceRoom, type Scope, type FullMapPoi as MapPoi, type MapQuest, type MapMark, type HudVerbs, type Place, type Events, type SystemSpec } from '@wildshard/engine';
-import { QuestState, type QuestDef, type QuestStep, type NpcDef } from './quest';
-import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from './core';
-import { DialogueBox } from './QuestUI';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { SystemSpec } from '@wildshard/engine/app/systems';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import type { Events } from '@wildshard/engine/events/events';
+import type { HudVerbs } from '@wildshard/engine/level/context';
+import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
+import type { MapMark } from '@wildshard/engine/ui/Minimap';
+import { Flags } from '@wildshard/engine/world/interact/flags';
+import type { Place } from '@wildshard/engine/world/interact/types';
+import { QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
+import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from '@wildshard/engine/quest/view';
+import { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from './reward';
 import './presentation.css';
 

@@ -1,4 +1,4 @@
-import type { ShardContext } from '@wildshard/game';
+import type { ShardContext } from '@wildshard/game/shard/context';
 /**
  * The skinning beat's first-person knife (PINE-HOLLOW-REMASTER §5 Polish, on PH-F2's beat): a gloved right hand holding a
  * drop-point skinning knife at the lower right of the view, in the lever-action's style — a Blender model
@@ -18,7 +18,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Game, type Sky, isMesh, viewmodelMaterial, whiteColors, defineModel, type ModelContext, type ModelDef } from '@wildshard/engine';
+import { isMesh, viewmodelMaterial, whiteColors } from '@wildshard/engine/combat/view/ranged';
+import type { Game } from '@wildshard/engine/core/Game';
+import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 
 import { BEAT } from '../life/lifeMath';

@@ -1,4 +1,7 @@
-import { loadRigFile, TIER, painterlyMaterial, type Sky } from '@wildshard/engine';
+import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { TIER } from '@wildshard/engine/core/tier';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 /**
  * The camp's people as generated + rigged models (NALATI-MERGE D2) — the user's pick (N20: "Models 3D local ai model is
  * best"): Nalati's pipeline, the image-to-3D mesh with its base-colour atlas (TRELLIS.2 / Hunyuan3D-2 → Blender normalise
@@ -27,9 +30,8 @@ import * as THREE from 'three';
 import { rawFromGltf } from './world/glbPaint';
 
 
-import { fitNpcFigure, mergeNpcFigures, type NpcFigureFrame as PersonFrame, type NpcFigureRig as PeopleRig } from '@wildshard/kit';
+import { fitNpcFigure, mergeNpcFigures, type NpcFigureFrame as PersonFrame, type NpcFigureRig as PeopleRig } from '@wildshard/kit/npc/figureRig';
 
-export type { NpcFigureFrame as PersonFrame, NpcFigureBones as PersonBones, NpcFigureRig as PeopleRig } from '@wildshard/kit';
 
 const DIR = '/assets/nalati/models/people/';
 

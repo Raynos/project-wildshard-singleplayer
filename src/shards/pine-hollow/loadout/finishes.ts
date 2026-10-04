@@ -1,4 +1,5 @@
-import type { EffectDef, SkinRow } from '@wildshard/engine';
+import type { EffectDef } from '@wildshard/engine/combat/effects/types';
+import type { SkinRow } from '@wildshard/engine/ui/Menu';
 import { pineFinishEffect } from './effects';
 /**
  * Pine Hollow's FINISHES row on the Bag's GEAR (E314, Jake's pick C, art/loot/round-3-other-shards/board-1-pine-hollow.jpg):
@@ -9,7 +10,7 @@ import { pineFinishEffect } from './effects';
  *   pineFinishes(locker) → SkinRow[]           (Menu's `skins`)
  *   finishPick(locker, id) → 'wear' | 'off' | null   (what a tap does: main.ts applies it to the weapon's model)
  */
-import type { SkinLocker } from '@wildshard/game';
+import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
 import { SKINS, type SkinId } from './skins';
 
 /** the row's order: the crossbow's first (the hero), then the lever-action's; and where each one comes from */

@@ -1,6 +1,21 @@
 import { NALATI_STRIKES, sampleStrike } from './strikes';
 import { registerNalatiDefinition } from '../species/rows';
-import { app, EliteBrain, pinBrain, type Scope, canReach, hasSpecies as hasLegacySpecies, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '@wildshard/engine';
+import { EliteBrain } from '@wildshard/engine/ai/EliteBrain';
+import { pinBrain } from '@wildshard/engine/ai/inspect';
+import { canReach } from '@wildshard/engine/ai/reach';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
+import { hasSpecies as hasLegacySpecies, speciesDef, type ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { Player } from '@wildshard/engine/player/Player';
+import { EliteBar } from '@wildshard/engine/ui/EliteBar';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 import { encounterHit } from './damage';
 import * as THREE from 'three';
@@ -22,11 +37,12 @@ import { horseSaddle } from '../species/horse';
 import { LEOPARD } from '../species/leopard';
 import { EAGLE } from '../species/eagle';
 import { KOKBORI } from '../species/kokbori';
-import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule } from '@wildshard/game';
+import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule } from '@wildshard/game/Elite';
 
 
-import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
-import { PaintKit, M, pole, v3, blob } from '../world/paint';
+import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
+import { PaintKit, M, v3 } from '../world/paint';
+import { pole, blob } from '@wildshard/engine/world/geometryKit';
 import { EAGLE_ROCK, CRAG_CAVE } from '../world/layout';
 import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from '../layout';
 

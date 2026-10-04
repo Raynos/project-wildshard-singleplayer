@@ -56,7 +56,7 @@ export const ON_CONTRACT = [
   'src/shards/nalati-grasslands/world/EagleRock.ts', 'src/shards/nalati-grasslands/world/Cairn.ts', 'src/shards/nalati-grasslands/world/Crags.ts', 'src/shards/nalati-grasslands/world/Stair.ts',
   'src/shards/nalati-grasslands/world/Bowl.ts', 'src/shards/nalati-grasslands/world/NomadCamp.ts', 'src/shards/nalati-grasslands/world/SummerCamp.ts', 'src/shards/nalati-grasslands/world/RoadFurniture.ts',
   'src/shards/nalati-grasslands/world/index.ts', 'src/shards/nalati-grasslands/world/dressing/index.ts', 'src/shards/nalati-grasslands/world/dressing/statics.ts', 'src/shards/nalati-grasslands/outcrops.ts',
-  'src/shards/nalati-grasslands/cragRock.ts', 'src/shards/nalati-grasslands/index.ts',
+  'src/shards/nalati-grasslands/cragRock.ts',
 ];
 
 /**

@@ -28,7 +28,7 @@ import { SURF } from '../look/paint';
 import { SignBuilder, type SignPlace } from '../look/signs';
 import { STAIR, Y0 } from '../layout';
 import { MIN, NEON } from '../util';
-import { Rng } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
 
 // ── looks ──
 const STEP_TOP: Look = { wash: 0x51545a, kind: K.flag, wet: 1, line: 1.8 };

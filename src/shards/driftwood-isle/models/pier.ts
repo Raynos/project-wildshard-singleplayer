@@ -15,7 +15,14 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { PATCH_ORDER, patchShader, type BoxSpec as Collider, SEED, type Rng, boxDesc, type ColliderDesc, lowPolyMaterial, patchSway, defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import type { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import { patchSway } from '@wildshard/engine/world/wind';
 
 export interface PierLanding {
   /** where the deck starts ramping down (metres from the sea end) */

@@ -10,7 +10,17 @@
  *   game.onUpdate((dt) => palms.update(dt));
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, ROAD_WIDTH, Rng, Noise2D, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, windFieldUniforms as windUniforms, updateWind, modelContext, type Placement, heightAt, normalAt, waterLevel, inChunk, place, type Placed } from '@wildshard/engine';
+import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
+import { Noise2D } from '@wildshard/engine/core/noise';
+import { Rng } from '@wildshard/engine/core/rng';
+import { modelContext, type Placement } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { windUniforms, updateWind } from '@wildshard/engine/world/wind';
 import { islandKnobs } from '../tiers';
 import { palm, type PalmParams } from '../models/palm';
 

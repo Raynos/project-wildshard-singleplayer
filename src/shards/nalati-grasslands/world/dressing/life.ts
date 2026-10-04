@@ -16,8 +16,14 @@
  *   life.update(dt, camera, playerPos);
  */
 import * as THREE from 'three';
-import { Rng, clamp, smoothstep, TIER, heightAt, wind, painterlyMaterial, painterlyUniforms, type Sky } from '@wildshard/engine';
-import { grassBaseHeightAt } from '@wildshard/kit';
+import { clamp, smoothstep } from '@wildshard/engine/core/noise';
+import { Rng } from '@wildshard/engine/core/rng';
+import { TIER } from '@wildshard/engine/core/tier';
+import { painterlyMaterial, painterlyUniforms } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { wind } from '@wildshard/engine/world/steppeWind';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { grassBaseHeightAt } from '@wildshard/kit/looks/grassField';
 import { BUTTERFLIES, BUTTERFLY_HUES, FLY_SCALE, halfBirdGeo, RAPTORS, wingGeo } from '../../models/ambientLife';
 
 const PHONE = TIER === 'phone';

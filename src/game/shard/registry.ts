@@ -1,11 +1,11 @@
 /** Generated shard discovery and the legacy active-shard bridge (removed by shard phases). */
 import type { ShardManifest } from './manifest';
-import { configureLevel, _applyChunkConstants, onOwnerDispose } from '@wildshard/engine';
+import { onOwnerDispose } from '@wildshard/engine/app/ownership';
+import { _applyChunkConstants } from '@wildshard/engine/core/config';
+import { configureLevel } from '@wildshard/engine/level/selection';
 import { toLevelSpec } from './spec';
 import { shards } from './list';
 
-export { installShards, shards } from './list';
-export { SHARD_API } from './api';
 /** a bare URL boots the first shard by `order` (the list is sorted by it) */
 export function defaultShard(): string {
   const first = shards()[0];

@@ -1,4 +1,4 @@
-import type { EffectDef, EffectId } from '@wildshard/engine';
+import type { EffectDef, EffectId } from '@wildshard/engine/combat/effects/types';
 
 /** Proposed S2.5 values from 09 §2.4; only Blackpaw's existing stun applies in normal play. */
 export const STARTER_EFFECTS: readonly EffectDef[] = [

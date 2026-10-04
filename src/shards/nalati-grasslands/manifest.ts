@@ -1,8 +1,8 @@
 import { COMPARE } from './explore/compare';
 import exploreHorse from './explore/playground-horse.webp';
 import { NALATI_BUDGET_INPUTS } from './budgets';
-import type { ShardManifest } from '@wildshard/game';
-import { basinBody } from '@wildshard/engine/data';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
+import { basinBody } from '@wildshard/engine/world/water/body';
 import { nalatiWetAt } from './wet';
 import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, loneSpruceMask, edgeBermAt } from './world/terrain';
 import { NALATI_MAP } from './layout';
@@ -20,8 +20,6 @@ import exploreModels from './explore/models-nalati-grasslands.webp';
 import exploreSets from './explore/sets-nalati-grasslands.webp';
 import explorePractice from './explore/practice-nalati-grasslands.webp';
 
-export { RIVER_LEVEL, riverZAt, riverHalfAt, BRIDGE_XZ, CAMP, PASTURE, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, HORSE_PLAINS, KOKPAR, KURGANS, GREAT_KURGAN_DOOR, SUMMER_YURTS, WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, snowValleyX, snowValleyHalf, snowValleyFloor, GLACIER, MELT_STREAM, LEOPARD_CAVE, SNOW_LOTUS, KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL, BOWL_TRACKS, LONE_SPRUCE, NALATI_MAP } from './layout';
-export { RIVER, BRIDGE, BROOK, RIM_Z, riverMask, rimZAt, brookMask, zoneAt, glacierMask, kokparMask, outcropAt, ringGround, edgeBermAt, TERRAIN } from './world/terrain';
 
 const EXPLORE = { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice } satisfies NonNullable<ShardManifest['explore']>;
 

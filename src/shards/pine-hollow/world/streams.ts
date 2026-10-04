@@ -17,12 +17,19 @@
  *     where it hits the pond, tinted by the fog / sun colours so they follow the clock.
  */
 import * as THREE from 'three';
-import { fogGLSL, makeMistTexture } from '@wildshard/kit';
+import { fogGLSL } from '@wildshard/kit/looks/fogProgram';
+import { makeMistTexture } from '@wildshard/kit/looks/particles';
 import {
   CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt, type XZ,
 } from '../layout';
-import { PATCH_ORDER, patchShader, attachFogUniforms, type Sky, windFieldUniforms as windUniforms, WIND_DIR, heightAt, normalAt, waterLevel, createWaterMaterial } from '@wildshard/engine';
-import { smoothstep } from '@wildshard/engine/data';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { normalAt, waterLevel } from '@wildshard/engine/world/Heightfield';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
+import { windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 /** the creek ribbon's across-stream offsets (m): dense where the water meets the banks */
 const CREEK_ACROSS = [-6, -4.6, -3.8, -3.2, -2.6, -1.5, 0, 1.5, 2.6, 3.2, 3.8, 4.6, 6];

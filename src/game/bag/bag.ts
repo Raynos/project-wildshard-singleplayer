@@ -1,5 +1,8 @@
 import type { BagIcons } from './tabs';
-import { uiScope, type Scope, icon, type IconId, type KitEntry, type MenuTab, type SkinRow } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { icon, type IconId } from '@wildshard/engine/ui/icons';
+import type { KitEntry, MenuTab, SkinRow } from '@wildshard/engine/ui/Menu';
+import { uiScope } from '@wildshard/engine/ui/ownership';
 /**
  * The Bag's GEAR and FINDS panels (E314 L5, Jake's picks: board 6 C, a paper doll; board 7 B, a sticker book). One
  * shared implementation for every shard: src/engine/ui/Menu.ts calls these renderers with what the shard has, and a part the

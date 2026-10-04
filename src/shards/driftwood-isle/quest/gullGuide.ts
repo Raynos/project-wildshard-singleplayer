@@ -8,8 +8,8 @@
  *   cooldown GUIDE.cooldown s between two guides, so it never nags; none once every place is found
  */
 import type * as THREE from 'three';
-import type { PlacePoint } from '@wildshard/game';
-import { TRANSIENT_PREFIXES } from '@wildshard/engine';
+import type { PlacePoint } from '@wildshard/engine/quest/view';
+import { TRANSIENT_PREFIXES } from '@wildshard/engine/world/interact/types';
 
 export const GUIDE = {
   /** seconds of wandering with no progress before the gulls show the way */

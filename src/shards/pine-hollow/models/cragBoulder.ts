@@ -4,7 +4,7 @@
  * (src/shards/pine-hollow/world/crags.ts `placeCrags`), drawn in the crags' one BatchedMesh. LOD0 near, LOD1 further, gone past the
  * talus range; a copy collides as the hull of ≤ 60 of its LOD1's vertices.
  */
-import { defineModel } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
 import { cragHull, cragPart, CRAG_LOD } from '../world/cragKit';
 
 export const BOULDER_MODULES = ['boulder-a', 'boulder-b', 'boulder-c'] as const;

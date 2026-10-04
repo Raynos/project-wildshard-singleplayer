@@ -1,6 +1,11 @@
-import { Weapon, type Actor, type DamageDealt, app, melee, type TargetAnimal, type TargetHit, type Move, type SwordMoveSet, type SwordFraming } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { melee } from '@wildshard/engine/combat/blocks/melee';
+import type { Actor, DamageDealt } from '@wildshard/engine/combat/pipeline';
+import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
+import type { Move, SwordMoveSet, SwordFraming } from '@wildshard/engine/combat/view/melee';
+import { Weapon } from '@wildshard/engine/combat/Weapon';
 import type { Vector3, Quaternion } from 'three';
-import type { EquipmentRow } from '@wildshard/game';
+import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 
 export interface ViewmodelFeel {
   lag: { gain: number; clampYaw: number; clampPitch: number; k: number; c: number; posYaw: number; posPitch: number };

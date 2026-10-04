@@ -6,7 +6,7 @@
  * weapons keep drawing the copies (./live.ts).
  */
 import type { AnimalStyle } from '../entities/AnimalFactory';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import type { WorldRegistry } from '../world/registry';
 import { creatureContext } from './creature';
 import { listRoster, live, type RosterEntry } from './live';

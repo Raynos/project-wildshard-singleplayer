@@ -1,6 +1,13 @@
 import { elitesSave } from './saves';
 import * as THREE from 'three';
-import { resourceScope, fxMaterial, annulus, FX, type FxMaterial, type Renderer, type Animal, heightAt, type Interactable, type EliteBar, WeaponPickup } from '@wildshard/engine';
+import { resourceScope } from '@wildshard/engine/app/resources';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import { fxMaterial, annulus, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
+import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
+import type { Renderer } from '@wildshard/engine/render/renderer';
+import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 /**
  * Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). "Elites

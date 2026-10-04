@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BoxGeometry, MeshBasicMaterial, Texture, WebGLRenderTarget } from 'three';
-import { Scope, AssetService } from '../../src/engine/index';
-import { disposalErrorMessages } from '../../src/engine/app/scope';
+import { AssetService } from '../../src/engine/app/assets';
+import { Scope, disposalErrorMessages } from '../../src/engine/app/scope';
 
 const originalRaf = globalThis.requestAnimationFrame;
 const originalCancelRaf = globalThis.cancelAnimationFrame;

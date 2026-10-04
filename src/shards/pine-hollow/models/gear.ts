@@ -5,11 +5,16 @@
  * ones; each card is a separate build by the weapon's own builder on its own materials (src/engine/models/gear.ts says why).
  */
 import * as THREE from 'three';
-import { buildBolt, buildCrossbow, MAX_BOLTS, crossbowDisplayModel } from '@wildshard/kit';
-import { isMesh, whiteColors, defineModel, type ModelDef, live, type RosterEntry, loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine';
+import { buildBolt, buildCrossbow, MAX_BOLTS } from '@wildshard/kit/weapons/crossbow/Crossbow';
+import { crossbowDisplayModel } from '@wildshard/kit/weapons/crossbow/display';
+import { isMesh, whiteColors } from '@wildshard/engine/combat/view/ranged';
+import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
+import { live, type RosterEntry } from '@wildshard/engine/models/live';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { PINE_FINISHES } from '../loadout/skins';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
-import { arrowMaterial, buildArrowGeometry, longbowSpecimen, QUIVER_MAX } from '../weapons/Longbow';
+import { QUIVER_MAX } from '../weapons/Longbow';
+import { arrowMaterial, buildArrowGeometry, longbowSpecimen } from '../weapons/longbowView';
 import { skinningKnife } from './skinningKnife';
 
 const FILE = 'src/shards/pine-hollow/models/gear.ts';

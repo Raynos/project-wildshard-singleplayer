@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Sky, type ProjectileKind, gloveFist, riderArm, fixIBL, viewmodelMaterial } from '@wildshard/engine';
-import { withHunterPalette, type BowView, type GripPose } from '@wildshard/kit';
+import type { ProjectileKind } from '@wildshard/engine/combat/view/projectile';
+import { fixIBL, viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
+import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { withHunterPalette } from '@wildshard/kit/viewmodel/hunterHands';
+import type { BowView, GripPose } from '@wildshard/kit/weapons/bow/profile';
 
 
 

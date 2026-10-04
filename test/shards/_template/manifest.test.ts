@@ -7,11 +7,11 @@ import manifest from '../../../src/shards/_template/manifest';
 import { manifestClosure } from '../../../scripts/gen-shards.mjs';
 
 describe('node-safe template manifest', () => {
-  it('imports the documented data entry and has no browser runtime in its startup closure', { timeout: 30_000 }, () => {
+  it('imports buildTerrain from its module (no barrel) and has no browser runtime in its startup closure', { timeout: 30_000 }, () => {
     const root = cwd();
-    expect(readFileSync(`${root}/src/shards/_template/manifest.ts`, 'utf8')).toContain("import { buildTerrain } from '@wildshard/engine/data'");
+    expect(readFileSync(`${root}/src/shards/_template/manifest.ts`, 'utf8')).toContain("import { buildTerrain } from '@wildshard/engine/world/terrainField'");
     const closure = manifestClosure(root)['_template'];
-    expect(closure).toContain('src/engine/data.ts');
+    expect(closure).toContain('src/engine/world/terrainField.ts');
     expect(closure).not.toContain('src/engine/index.ts');
     expect(closure).not.toContain('src/engine/core/tier.ts');
     expect(closure).not.toContain('src/shards/_template/plugin.ts');

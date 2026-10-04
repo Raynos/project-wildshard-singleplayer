@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { CHUNK_HALF, CHUNK_DEPTH, ROAD_WIDTH } from '../core/config';
 import { heightAt as terrainHeightAt, waterLevel, pondMask, streamAt } from './Heightfield';
 import { app } from '../app/runtime';
-import type { Sky } from './Sky';
+import type { SkyRig as Sky } from './skyRig';
 import type { LevelSpec } from '../level/spec';
 import { TIER_CONFIG } from '../core/tier';
 

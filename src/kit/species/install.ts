@@ -1,4 +1,5 @@
-import { registerSpecies, setCreatureSoundDefaults, speciesWithLook } from '@wildshard/engine';
+import { speciesWithLook } from '@wildshard/engine/entities/species/look';
+import { registerSpecies, setCreatureSoundDefaults } from '@wildshard/engine/entities/species/registry';
 import { BOAR } from './boar';
 import { DEER } from './deer';
 import { ELK } from './elk';

@@ -1,4 +1,5 @@
-import type { ShardWorld as World, ShardRuntime } from '@wildshard/game';
+import type { ShardRuntime } from '../../../src/game/shard/runtime';
+import type { ShardWorld as World } from '../../../src/game/shard/world';
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { driftwoodLoadoutRows, ironSwordDrop } from '../../../src/shards/driftwood-isle/loadout/rows';

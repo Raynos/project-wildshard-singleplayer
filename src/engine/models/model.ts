@@ -80,12 +80,11 @@ import type * as THREE from 'three';
 import type { ColliderDesc, ModelCategory, Pipeline } from '../world/registry';
 import type { Material } from '../physics/surface';
 import type { Rng } from '../core/rng';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import type { Animal } from '../entities/Animal';
 import type { WeldBuild } from './weld';
 import type { Renderer } from '../render/renderer';
 
-export type { DrawnAs, ModelCategory, Pipeline } from '../world/registry';
 
 /** What a model's builder gets from the shard it's placed on. Make one per shard with `modelContext`. */
 export interface ModelContext {

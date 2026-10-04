@@ -1,8 +1,14 @@
 import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
-import { retried, type BootRuntime, type LevelContext, type LevelSequence, type SkinDef } from '@wildshard/engine';
-import { toLevelSpec, shardContext, type ShardManifest, type GameServices, type ShardContext } from '../index';
-import { shards, playable, findChunk } from '../shard/registry';
+import { type LevelSequence, bootLevel } from '@wildshard/engine/boot';
+import { retried } from '@wildshard/engine/boot/retry';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import type { SkinDef } from '@wildshard/engine/player/Skins';
+import { shardContext, type GameServices, type ShardContext } from '../shard/context';
+import type { ShardManifest } from '../shard/manifest';
+import { toLevelSpec } from '../shard/spec';
+import { playable, findChunk } from '../shard/registry';
+import { shards } from '../shard/list';
 import { ART_URL_BYTES } from '../shard/art.generated';
 import { runShardLoad, withShardHooks, ShardLoadError, type LoadStage } from '../shard/load';
 import type { KitPorts, BuiltWorld, SessionState, StagedBoot, SessionContext } from './context';
@@ -12,13 +18,28 @@ import { worldStage } from './world';
 import { loadoutStage } from './loadout';
 import { playStage } from './play';
 import { finishStage } from './finish';
+import { currentOwner, enterOwner } from '@wildshard/engine/app/ownership';
+import { app } from '@wildshard/engine/app/runtime';
+import { Scope } from '@wildshard/engine/app/scope';
+import { markBootHandledError } from '@wildshard/engine/boot/bootTrace';
+import { setBootCatalog } from '@wildshard/engine/boot/catalog';
+import { setAliveSource } from '@wildshard/engine/boot/lastEnd';
+import { consumeTitleArrival } from '@wildshard/engine/boot/titleArrival';
+import { reportError } from '@wildshard/engine/core/errorReport';
+import { pageSeed } from '@wildshard/engine/core/rng';
+import { LevelLoadError } from '@wildshard/engine/level/load';
+import { registerPlayground } from '@wildshard/engine/practice/playground/catalog';
+import { textureBytes } from '@wildshard/engine/render/textureBytes';
+import { installErrorModal, showError } from '@wildshard/engine/ui/ErrorModal';
+import { registerLevelDebugRow } from '@wildshard/engine/ui/debugOptions';
+import { showLoadFailure } from '@wildshard/engine/ui/errorScreen';
+import { installWorldRegistry } from '@wildshard/engine/world/registry';
 
 declare const __BUILD_ID__: string;
 
 /** Game presentation and plugin discovery belong to the game adapter, after the root selects content. */
-export async function startSession(manifest: ShardManifest, engine: BootRuntime, kit: KitPorts): Promise<void> {
-  const { app, pageSeed, consumeTitleArrival, Scope, enterOwner, setAliveSource,
-    textureBytes, installErrorModal, markBootHandledError, showError, setBootCatalog } = engine;
+export async function startSession(manifest: ShardManifest, kit: KitPorts): Promise<void> {
+  installWorldRegistry(); // the level's pieces and colliders register here (before the boot builds anything)
   // the boot and the background download read the registry through the engine's catalog (E405: no engine → game import)
   setBootCatalog({ levels: shards(), playable: shards().filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   installErrorModal();
@@ -37,12 +58,12 @@ export async function startSession(manifest: ShardManifest, engine: BootRuntime,
     const scope = new Scope('level');
     enterOwner(scope);
     const world = await runShardLoad(manifest, (stage) => withShardHooks(manifest, stage,
-      () => buildSession(manifest, stage, engine, kit, session)), {
+      () => buildSession(manifest, stage, kit, session)), {
       build: __BUILD_ID__, dispose: () => {
         if (app.render !== null) app.render.hold = true;
         scope.dispose();
-      }, report: engine.reportError,
-      show: (failure) => { session.fatalShown = true; engine.showLoadFailure(failure); },
+      }, report: reportError,
+      show: (failure) => { session.fatalShown = true; showLoadFailure(failure); },
     });
     let memoryAt = -Infinity, memoryMB = 0;
     const memory = (maxAgeMs = 5000) => {
@@ -58,19 +79,18 @@ export async function startSession(manifest: ShardManifest, engine: BootRuntime,
   }
 }
 
-async function buildSession(manifest: ShardManifest, stage: LoadStage, engine: BootRuntime, kit: KitPorts, session: SessionState): Promise<BuiltWorld> {
-  const { app, registerLevelDebugRow, registerPlayground, LevelLoadError } = engine;
+async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitPorts, session: SessionState): Promise<BuiltWorld> {
   const boot: StagedBoot = { handoff: null, items: new Map(), featTotal: undefined, skins: [],
     runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null },
     progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };
-  const sequence = sessionStages({ engine, kit, manifest, slug: manifest.slug, stage, session, boot });
+  const sequence = sessionStages({ kit, manifest, slug: manifest.slug, stage, session, boot });
   const loadPlugin = manifest.load;
   if (loadPlugin === undefined) {
     let next = await sequence.next();
     while (!next.done) next = await sequence.next();
     return next.value;
   }
-  const scope = engine.currentOwner();
+  const scope = currentOwner();
   if (scope === null) throw new Error('Plugin boot needs a level scope');
   const { default: Plugin } = await stage('manifest.load', () => retried(loadPlugin));
   const plugin = new Plugin();
@@ -88,7 +108,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, engine: B
   app.levelAdapters.playground = (spec) => registerPlayground(manifest.slug, spec);
   installTemplateDebug(app, app.engineScope);
   try {
-    return await engine.bootLevel(toLevelSpec(manifest), {
+    return await bootLevel(toLevelSpec(manifest), {
       sequence, scope, progress: () => boot.progress,
       afterData: (spec) => { if (boot.handoff?.arrive) spec.spawn = boot.handoff.arrive; },
       dispose: () => {

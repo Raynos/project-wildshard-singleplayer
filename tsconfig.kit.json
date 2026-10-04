@@ -9,5 +9,5 @@
     "tsBuildInfoFile": ".tsc-layers/kit.tsbuildinfo"
   },
   "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.game.json" }],
-  "include": ["src/kit", "src/engine/**/*.d.ts"]
+  "include": ["src/kit", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts"]
 }

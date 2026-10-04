@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { InputService } from '../../src/engine/input/InputService';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { Bindings } from '../../src/engine/input/bindings';
-import { Scope } from '@wildshard/engine';
+import { Scope } from '../../src/engine/app/scope';
 
 describe('the shared input service', () => {
   it('composes ride/tool discs and drops blocked verbs without hiding the weapon', () => {

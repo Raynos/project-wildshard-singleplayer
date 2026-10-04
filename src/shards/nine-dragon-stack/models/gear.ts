@@ -4,7 +4,10 @@
  * vm/arms.ts). That is the whole kit: no rifle slot on a sword shard (E333), no iron sword (E314 A: nothing here unlocks it).
  */
 import * as THREE from 'three';
-import { defineModel, type ModelDef, live, type RosterEntry, type Renderer, loadingSpecimen } from '@wildshard/engine';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { live, type RosterEntry } from '@wildshard/engine/models/live';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 import { NineDragonArms } from '../vm/fpArms';
 
 /** fp-rig.glb's clips (scripts/blender/nine-dragon-stack/viewmodel/rig/check-clips.mjs holds them to moves.ts): the right

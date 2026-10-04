@@ -7,10 +7,10 @@
  * The model modules read `TIER_CONFIG.*` (palmFrondSegs, bushDetail, …) synchronously inside build(), so swapping the
  * live config object's fields for the call and putting them back is enough — nothing else runs in between.
  */
-import { TIER, TIER_CONFIG, TIER_TABLE, buildTier, _buildAs, type Tier } from '../core/tier';
+import { TIER, TIER_CONFIG, buildTier, _buildAs, type Tier } from '../core/tier';
+import { TIER_TABLE } from '../render/tiers';
 
 export const TIERS: readonly Tier[] = ['phone', 'desktop'];
-export { TIER as CURRENT_TIER } from '../core/tier';
 
 export function withTier<T>(tier: Tier, fn: () => T): T {
   if (tier === TIER) return fn();

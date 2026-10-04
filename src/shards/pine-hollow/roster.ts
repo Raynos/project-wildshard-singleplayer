@@ -7,8 +7,9 @@
  * `pipeline`: a generated mesh on a code rig lists its generator(s) first, then 'code'; a GLB posed in a shader (the
  * birds) is its generator alone.
  */
-import { live, type RosterEntry, swimHands } from '@wildshard/engine';
-import { bear, boar, deer } from '@wildshard/kit/creatures'; // the creature rows build from registered species: the roster's own entry
+import { live, type RosterEntry } from '@wildshard/engine/models/live';
+import { swimHands } from '@wildshard/engine/models/swimHands';
+import { bear, boar, deer } from '@wildshard/kit/models/creatures'; // the creature rows build from registered species: the roster's own entry
 import { elk } from './models/creatures';
 import { antlerKing } from './models/antlerKing';
 import { owl, raven, woodpecker } from './models/birds';

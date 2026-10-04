@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { CombatCues, Events, Scope } from '@wildshard/engine';
+import { Scope } from '../../../src/engine/app/scope';
+import { CombatCues } from '../../../src/engine/combat/cues';
+import { Events } from '../../../src/engine/events/events';
 import { LONGBOW } from '../../../src/shards/pine-hollow/weapons/equipment';
 import { bindLongbowCharge } from '../../../src/shards/pine-hollow/loadout/events';
 import { pineCombatCues } from '../../../src/shards/pine-hollow/audio/combatCues';

@@ -1,4 +1,5 @@
-import type { SpeciesRow, HuntTuning } from '@wildshard/engine';
+import type { SpeciesRow } from '@wildshard/engine/ai/species';
+import type { HuntTuning } from '@wildshard/engine/entities/AnimalManager';
 
 export const BOAR_TUNING: HuntTuning = {
   hp: 100, sightRange: 22, sightRangeGraze: 14, sightCone: 60 * Math.PI / 180,

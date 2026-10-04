@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, it } from 'vitest';
-import { EquipmentService, Scope, app } from '@wildshard/engine';
+import { app } from '../../src/engine/app/runtime';
+import { Scope } from '../../src/engine/app/scope';
+import { EquipmentService } from '../../src/engine/combat/EquipmentService';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { TouchControls } from '../../src/engine/player/TouchControls';
 import { TemplateWhip } from '../../src/shards/_template/weapons/TemplateWhip';

@@ -1,7 +1,7 @@
 import type { DrawingBuffer } from '../../render/viewmodelFeel';
 import type * as THREE from 'three';
 import type { Game } from '../../core/Game';
-import type { Sky } from '../../world/Sky';
+import type { SkyRig as Sky } from '../../world/skyRig';
 import type { Player } from '../../player/Player';
 import type { Forest } from '../../world/forest/Forest';
 

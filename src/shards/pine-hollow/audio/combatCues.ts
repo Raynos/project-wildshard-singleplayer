@@ -1,4 +1,4 @@
-import type { CombatCueMap } from '@wildshard/engine';
+import type { CombatCueMap } from '@wildshard/engine/combat/cues';
 import type { Vector3 } from 'three';
 import type { PhShot } from './sfx';
 

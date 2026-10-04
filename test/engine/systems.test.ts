@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { App, Scope, PHASES, inState, type SystemSpec } from '../../src/engine/index';
+import { App } from '../../src/engine/app/app';
+import { Scope } from '../../src/engine/app/scope';
+import { PHASES, inState, type SystemSpec } from '../../src/engine/app/systems';
 
 function system(id: string, overrides: Partial<SystemSpec> = {}): SystemSpec {
   return { id, phase: 'update', run: vi.fn<() => void>(), ...overrides };

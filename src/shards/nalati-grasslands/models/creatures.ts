@@ -13,7 +13,8 @@
  * space.
  */
 import * as THREE from 'three';
-import { defineModel, type ModelDef, creature, type CreatureParams } from '@wildshard/engine';
+import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { LEOPARD } from '../species/leopard';
 import { KOKBORI } from '../species/kokbori';
 import { EAGLE } from '../species/eagle';

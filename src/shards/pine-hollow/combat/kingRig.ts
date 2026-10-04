@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import type { BoneDef, RigAnimCtx } from '@wildshard/engine';
-import { smoothstep } from '@wildshard/engine/data';
+import type { BoneDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 /**
  * The Antler King's OWN rig (E322 F-M1; Jake picked B — A, the Bark Warden hull baked onto the elk's bones, walking like

@@ -1,5 +1,7 @@
 import * as THREE from 'three';
-import { type Scope, type Animal, painterlyMaterial } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { horseBones } from '../species/horse';
 
 /**

@@ -1,5 +1,13 @@
 import { NALATI_STRIKES, sampleStrike } from '../combat/strikes';
-import { engineString, type DamageRequest, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, paintNoise, setShapeFn, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, step, rigClamp as clamp, heightAt } from '@wildshard/engine';
+import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
+import { smoothstep as sstep } from '@wildshard/engine/core/noise';
+import type { Rng } from '@wildshard/engine/core/rng';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import { loft, tube, skinPlain, S, boneIndex, mix, paletteColors, paintNoise, setShapeFn, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
+import type { SpeciesDef, AnimalSpecies, BoneDef, VariantDef, RigAnimCtx, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { NO_FUR, lookAngles, smooth01, step, clamp } from '@wildshard/engine/entities/species/rigs';
+import { engineString } from '@wildshard/engine/strings';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 
 import * as THREE from 'three';

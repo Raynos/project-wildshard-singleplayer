@@ -1,5 +1,9 @@
-import { ShopPanel, OWNED, type CosmeticSlot, type LootPresentation, type Owned } from '@wildshard/game';
-import { loadAudio, type Audio, type Scope } from '@wildshard/engine';
+import type { CosmeticSlot } from '@wildshard/game/bag/bag';
+import { OWNED, type Owned } from '@wildshard/game/loot/Owned';
+import type { LootPresentation } from '@wildshard/game/loot/runtime';
+import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Adventure } from '../quest/adventure';
 import { TRADER_NAME } from '../quest/TraderStall';
 import { driftwoodFinds, nextCharmAt, seaChartMarks, seaGlassFound } from './finds';
@@ -8,7 +12,7 @@ import { buyGood, goodById, goodState, GOODS, maxHealthOf, type Good } from './s
 /** The island's authored counter and bag rows, supplied to the common loot mechanism. */
 export async function driftwoodLootPresentation(o: { adventure: Adventure; owned: Owned; audio: Audio; scope: Scope; toast: (text: string) => void; hold: (on: boolean) => void }): Promise<LootPresentation> {
   const { adventure: adv, owned } = o;
-  const { InteractSfx } = await loadAudio();
+  const { InteractSfx } = await import('@wildshard/engine/audio/interactSfx');
   const sfx = new InteractSfx(o.audio);
   const cosmetic = (id: 'captain-hat' | 'cape', icon: 'hat' | 'cape', how: string): CosmeticSlot =>
     ({ id, name: OWNED[id].label, icon, owned: owned.has(id), worn: owned.worn(id), how });

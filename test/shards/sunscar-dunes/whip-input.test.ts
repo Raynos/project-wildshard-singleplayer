@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { App, Scope } from '@wildshard/engine';
+import { App } from '../../../src/engine/app/app';
+import { Scope } from '../../../src/engine/app/scope';
 import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
 
 describe('bullwhip light and heavy input', () => {

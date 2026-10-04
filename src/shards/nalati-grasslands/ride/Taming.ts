@@ -1,4 +1,9 @@
-import { type InputService, type Player, type Animal, type AnimalManager, type Interactable, heightAt } from '@wildshard/engine';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { InputService } from '@wildshard/engine/input/InputService';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import type { Mount } from './Mount';
 import type { HorseHerd } from '../creatures/herd';

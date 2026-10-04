@@ -3,9 +3,9 @@
 import { BOAR } from '../src/kit/species/boar';
 import { BEAR } from '../src/kit/species/bear';
 import { describe, expect, it } from 'vitest';
-import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, BACKOFF_PAST, type ReengageIn } from '../src/engine/entities/fightRules';
+import { reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, BACKOFF_PAST, type ReengageIn } from '../src/engine/entities/fightRules';
+import { AttackTokens, AggressionDirector } from '../src/engine/ai/director';
 import { SHARDS } from '../src/shards.generated';
-import { AggressionDirector } from '../src/engine/ai/director';
 import { DRIFTWOOD_ISLE } from '../src/shards/driftwood-isle/manifest';
 import * as THREE from 'three';
 import { clearBody } from '../src/engine/entities/AnimalManager';

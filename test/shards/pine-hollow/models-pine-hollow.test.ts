@@ -4,7 +4,7 @@
 // again, and draw by hand only what they declare world.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import type { Sky } from '../../../src/engine/world/Sky';
+import type { SkyRig as Sky } from '../../../src/engine/world/skyRig';
 import { WorldRegistry } from '../../../src/engine/world/registry';
 import { defineModel, definedModels, modelContext } from '../../../src/engine/models/model';
 import { copiesNear, cullPlaced, place } from '../../../src/engine/models/place';

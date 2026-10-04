@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GameClock } from '../../src/engine/index';
+import { GameClock } from '../../src/engine/core/clock';
 
 describe('game clock', () => {
   it('advances live wall and game seconds, excluding pauses and slowing simulation with hit-stop', () => {

@@ -1,4 +1,9 @@
-import { loadAudio, type Audio, type Music, type MusicState, type ScoreSource, type Scope, type SlotAudio, type StyleBank, type StemSting, type MusicStyle } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Music, MusicState } from '@wildshard/engine/audio/Music';
+import type { ScoreSource } from '@wildshard/engine/audio/SetScore';
+import type { SlotAudio, StyleBank, StemSting } from '@wildshard/engine/audio/Stems';
+import type { MusicStyle } from '@wildshard/engine/ui/Settings';
 
 /** The base genre bank's island slot in play; Music owns its common title slot on the menu. */
 export class DriftwoodScore implements ScoreSource {
@@ -29,8 +34,8 @@ export class DriftwoodScore implements ScoreSource {
   }
   private async prepare(genre: MusicStyle): Promise<void> {
     try {
-      const ports = await loadAudio();
-      const bank = await ports.decodeStyle(genre, ['title', this.base], ports.cachedBytes, ports.decodeBytes);
+      const [{ decodeStyle }, { cachedBytes, decodeBytes }] = await Promise.all([import('@wildshard/engine/audio/Stems'), import('@wildshard/engine/audio/preload')]);
+      const bank = await decodeStyle(genre, ['title', this.base], cachedBytes, decodeBytes);
       if (!this.scope.disposed && this.music.genre === genre) this.useStyleBank(bank);
     } catch { this.failures.add(genre); }
     finally {

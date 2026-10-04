@@ -1,4 +1,10 @@
-import { ownAudioSource, tap, ambientTick, audioRandom, windUniforms, AmbienceZones, Scope, type Audio } from '@wildshard/engine';
+import { Scope } from '@wildshard/engine/app/scope';
+import { AmbienceZones } from '@wildshard/engine/audio/ambience';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import { ownAudioSource } from '@wildshard/engine/audio/ownership';
+import { audioRandom } from '@wildshard/engine/audio/util';
+import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 import { IslandBed, ISLAND_BED } from './sfx';
 /**
  * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), project/archive/2026-09-23-driftwood-remaster.md;

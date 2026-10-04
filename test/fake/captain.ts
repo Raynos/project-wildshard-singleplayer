@@ -1,6 +1,8 @@
 import { vi } from 'vitest';
 import { Vector3 } from 'three';
-import { Events, Scope, type BossPresentation } from '@wildshard/engine';
+import type { BossPresentation } from '../../src/engine/ai/BossBrain';
+import { Scope } from '../../src/engine/app/scope';
+import { Events } from '../../src/engine/events/events';
 import { DrownedCaptain } from '../../src/shards/driftwood-isle/combat/captain';
 
 export function captainFixture(): {

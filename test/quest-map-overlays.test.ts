@@ -1,7 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MapQuest } from '@wildshard/engine';
-import { FullMap } from '../src/engine/ui/Map';
+import { type MapQuest, FullMap } from '../src/engine/ui/Map';
 import { Minimap } from '../src/engine/ui/Minimap';
 import { legacyDouble } from './fake/FakeGame';
 

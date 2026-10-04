@@ -1,4 +1,7 @@
-import { filePolicy, publicBytes, type Tier, type TexMode } from '@wildshard/engine/data';
+import { filePolicy } from '@wildshard/engine/boot/filePolicy';
+import type { TexMode } from '@wildshard/engine/boot/gpuFiles';
+import { publicBytes } from '@wildshard/engine/boot/tables';
+import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 
 /** the painted horizon's day / night strips (src/engine/world/HorizonMatte.ts reads them after boot) */

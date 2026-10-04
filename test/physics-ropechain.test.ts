@@ -7,7 +7,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { Physics } from '../src/engine/physics/Physics';
 import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { RopeChain } from '../src/engine/physics/ropeChain';
-import type { DeckSegment } from '../src/shards/driftwood-isle/world/RopeBridge';
+import type { DeckSegment } from '../src/shards/driftwood-isle/models/ropeBridge';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

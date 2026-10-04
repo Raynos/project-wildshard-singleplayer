@@ -1,4 +1,5 @@
-import type { EffectDef, SourceMulDef, CombatTag, DamageRequest } from '@wildshard/engine';
+import type { EffectDef, SourceMulDef } from '@wildshard/engine/combat/effects/types';
+import type { CombatTag, DamageRequest } from '@wildshard/engine/combat/pipeline';
 
 export const SNEAK_SHOT: EffectDef = {
   id: 'effect.sneak-shot', kind: 'timed', duration: 4, stacking: 'refresh', tags: [],

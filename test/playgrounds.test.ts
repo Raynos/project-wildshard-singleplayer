@@ -8,7 +8,7 @@ import { registerPlayground, PLAYGROUND_CARDS, asPlaygroundId, playgroundsFor } 
 import { COLUMN, HOOKS, PADS, RING_UP, ROOM, coursePad, padLabelAt, type CourseHook, type CoursePad } from '../src/shards/nine-dragon-stack/playground/grappleCourse';
 import { FIELD, HORSE_START, JUMPS, LAP_M, OVAL, POST_OFF, RIDER_START, ovalLine } from '../src/shards/nalati-grasslands/playground/horseCourse';
 import { practiceRoom } from '../src/engine/core/practiceRoom';
-import { placesWithDiscovery } from '../src/game/quest/core';
+import { placesWithDiscovery } from '../src/engine/quest/view';
 import { Flags } from '../src/engine/world/interact/flags';
 
 const unregister = registerPlayground('nine-dragon-stack', GRAPPLE_PLAYGROUND);

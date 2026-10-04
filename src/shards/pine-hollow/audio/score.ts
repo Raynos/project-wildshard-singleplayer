@@ -1,5 +1,11 @@
-import type { ShardContext } from '@wildshard/game';
-import { loadAudio, jsonSlot, type Audio, type Music, type MusicState, type ScoreSource, type Scope, type SlotAudio, type StyleBank, type StemSting, type BossPhase, type MusicStyle } from '@wildshard/engine';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Music, MusicState } from '@wildshard/engine/audio/Music';
+import type { ScoreSource } from '@wildshard/engine/audio/SetScore';
+import type { SlotAudio, StyleBank, StemSting, BossPhase } from '@wildshard/engine/audio/Stems';
+import { jsonSlot } from '@wildshard/engine/saves/slots';
+import type { MusicStyle } from '@wildshard/engine/ui/Settings';
 
 export type PineScene = 'day' | 'night' | 'boss';
 export const PINE_SCORE_PICKS = ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'] as const;
@@ -61,8 +67,8 @@ export class PineScore implements ScoreSource {
     void (async () => {
       let bank: StyleBank | undefined;
       try {
-        const ports = await loadAudio();
-        bank = await ports.decodeStyle(genre, [slot], ports.cachedBytes, ports.decodeBytes, undefined, slot === 'pine' ? 'base' : 'pine-hollow', slot === 'pine' ? undefined : ['dawn']);
+        const [{ decodeStyle }, { cachedBytes, decodeBytes }] = await Promise.all([import('@wildshard/engine/audio/Stems'), import('@wildshard/engine/audio/preload')]);
+        bank = await decodeStyle(genre, [slot], cachedBytes, decodeBytes, undefined, slot === 'pine' ? 'base' : 'pine-hollow', slot === 'pine' ? undefined : ['dawn']);
       } catch (error) { console.info(`[music] pine-hollow ${key}: ${error instanceof Error ? error.message : String(error)} — the theme plays`); }
       finally { this.decoding.delete(key); }
       const audio = bank?.slots.get(slot);
@@ -78,13 +84,14 @@ export class PineScore implements ScoreSource {
     const genre = this.music.genre;
     if (this.extra?.genre === genre && this.extra.dawn) return this.extra.dawn;
     try {
-      const ports = await loadAudio(), bank = await ports.decodeStyle(genre, [], ports.cachedBytes, ports.decodeBytes, undefined, 'pine-hollow', ['dawn']);
+      const [{ decodeStyle }, { cachedBytes, decodeBytes }] = await Promise.all([import('@wildshard/engine/audio/Stems'), import('@wildshard/engine/audio/preload')]);
+      const bank = await decodeStyle(genre, [], cachedBytes, decodeBytes, undefined, 'pine-hollow', ['dawn']);
       const buffer = bank.stings.get('dawn');
       if (buffer && this.music.genre === genre && !this.scope?.disposed) this.extra = { genre, slot: this.extra?.genre === genre ? this.extra.slot : undefined, dawn: buffer };
       return buffer;
     } catch { return undefined; }
   }
-  private log(id: string): void { void loadAudio().then((ports) => ports.audioLog('music', id)); }
+  private log(id: string): void { void import('@wildshard/engine/audio/audioLog').then(({ audioLog }) => audioLog('music', id)); }
   setPineScene(scene: PineScene): void {
     if (scene === this.sceneName) return;
     this.sceneName = scene; this.log(`scene:${scene}`);

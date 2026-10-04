@@ -1,4 +1,9 @@
-import { app, type Animal, type AnimalManager, painterlyMaterial, TIER, practiceRoom } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 
 import * as THREE from 'three';
 
@@ -7,7 +12,8 @@ import type { Wildlife } from './wildlife';
 import type { SheepPrey, Flock } from './flock';
 import { Pack } from './pack';
 import { HORSE_SPEED, horseBones } from '../species/horse';
-import { PaintKit, pole, v3, lathe } from '../world/paint';
+import { PaintKit, v3 } from '../world/paint';
+import { pole, lathe } from '@wildshard/engine/world/geometryKit';
 
 
 

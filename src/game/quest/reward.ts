@@ -1,6 +1,6 @@
 import { MathUtils, Vector3 } from 'three';
-import type { Scope } from '@wildshard/engine';
-import { RewardCaption } from './QuestUI';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { RewardCaption } from '@wildshard/engine/quest/view/ui';
 
 export interface QuestRewardPlayer {
   position: Vector3; velocity: Vector3; yaw: number; pitch: number; carried: boolean;

@@ -1,4 +1,4 @@
-import { app } from '@wildshard/engine';
+import { app } from '../../src/engine/app/runtime';
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';

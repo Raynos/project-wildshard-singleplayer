@@ -9,7 +9,8 @@
  * kill to count — and driven from here (its gait from Animal.update). The elite at its lair is untouched.
  */
 import * as THREE from 'three';
-import type { Animal, AnimalManager } from '@wildshard/engine';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { Puffs } from '../combat/fxKit';
 import { headingTo } from '../combat/combatMath';
 import { voice } from '../combat/ctx';

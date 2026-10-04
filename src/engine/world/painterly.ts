@@ -54,7 +54,7 @@
  */
 import * as THREE from 'three';
 import { attachFogUniforms } from './Atmosphere';
-import type { Sky } from './Sky';
+import type { SkyRig as Sky } from './skyRig';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
 export interface PainterlyOpts {

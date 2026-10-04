@@ -1,5 +1,6 @@
-import { DayCycle, Weather, type DayCycleClock } from '@wildshard/engine';
-import type { ShardContext } from '@wildshard/game';
+import { DayCycle, type DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import { Weather } from '@wildshard/engine/world/weather';
+import type { ShardContext } from '@wildshard/game/shard/context';
 
 /** Small authored schedules exercise both engine mechanisms without a custom renderer. */
 export function createDay(): DayCycle {

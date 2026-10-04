@@ -1,4 +1,7 @@
-import { type Game, app, heightAt, ParticlePool, pointScale } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Game } from '@wildshard/engine/core/Game';
+import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 import * as THREE from 'three';
 

@@ -1,5 +1,6 @@
 import { afterEach, expect, it } from 'vitest';
-import { App, app } from '@wildshard/engine';
+import { App } from '../../src/engine/app/app';
+import { app } from '../../src/engine/app/runtime';
 import { activeRegistry, WorldRegistry } from '../../src/engine/world/registry';
 import { activePhysics, setActivePhysics } from '../../src/engine/physics/active';
 import { activeBodies, setActiveBodies } from '../../src/engine/physics/bodies';

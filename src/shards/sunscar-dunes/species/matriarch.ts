@@ -1,4 +1,9 @@
-import { CreatureBrain, StrikeRunner, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '@wildshard/engine';
+import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
+import type { SpeciesRow } from '@wildshard/engine/ai/species';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { Vector3, type BufferGeometry } from 'three';
 import { mantaBody } from './manta';
 import { BASIN } from '../layout';

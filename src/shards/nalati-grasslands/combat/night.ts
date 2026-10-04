@@ -1,5 +1,11 @@
 import { NALATI_STRIKES, sampleStrike } from './strikes';
-import type { Game, Sky, Player, Forest, TargetHit, DayCycleClock, AnimalManager } from '@wildshard/engine';
+import type { TargetHit } from '@wildshard/engine/combat/types';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { encounterHit } from './damage';
 import type * as THREE from 'three';
 

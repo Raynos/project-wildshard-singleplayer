@@ -13,7 +13,8 @@
  *   addBarrel(kit, matrix, lying);  addCrate(kit, matrix, size, broken);  addCoil(kit, matrix, r);
  */
 import * as THREE from 'three';
-import { LowPolyKit, lowPolyMaterial, defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 const C = { barrel: '#8a5a34', barrelB: '#76492a', band: '#3b3b3f', crate: '#a47b4b', crateB: '#8b6538', rope: '#b99d6c' };
 

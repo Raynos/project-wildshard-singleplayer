@@ -65,7 +65,7 @@ for (const slug of specs.keys()) {
     if ((tier !== 'phone' && tier !== 'desktop') || !pose || !metric) throw new Error(`Invalid budget key ${key}`);
     (ceilings[tier][pose] ??= {})[metric] = ceiling;
   }
-  writeFileSync(join(root, 'src/shards', slug, 'budgetCeilings.ts'), `import type { LevelSpec } from '@wildshard/engine';\n\n/** Measured rollout maxima; count targets rederive after calibration; provenance: budgets/ceiling-sources.json. */\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)} satisfies NonNullable<LevelSpec['budgets']['ceilings']>;\n`);
+  writeFileSync(join(root, 'src/shards', slug, 'budgetCeilings.ts'), `import type { LevelSpec } from '@wildshard/engine/level/spec';\n\n/** Measured rollout maxima; count targets rederive after calibration; provenance: budgets/ceiling-sources.json. */\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)} satisfies NonNullable<LevelSpec['budgets']['ceilings']>;\n`);
 }
 // Manifest data now owns every rollout ceiling; the legacy fallback must not duplicate it.
 ratchet.budgets = {};

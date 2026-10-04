@@ -1,6 +1,7 @@
-import type { NpcFigureMotionProfile } from '@wildshard/kit';
+import type { NpcFigureMotionProfile } from '@wildshard/kit/npc/figureMotion';
 import { CAMP_PEOPLE } from './quest';
-import { peopleModelUrl, type PersonFrame } from './campPeopleModels';
+import { peopleModelUrl } from './campPeopleModels';
+import type { NpcFigureFrame as PersonFrame } from '@wildshard/kit/npc/figureRig';
 
 export interface CampPersonProfile {
   id: keyof typeof CAMP_PEOPLE; model: string; frame: PersonFrame; motion: NpcFigureMotionProfile;

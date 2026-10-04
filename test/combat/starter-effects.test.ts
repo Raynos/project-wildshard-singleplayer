@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { EffectService, Scope, Events, CombatPipeline, PlayerHealth, type Actor } from '@wildshard/engine';
+import { Scope } from '../../src/engine/app/scope';
+import { EffectService } from '../../src/engine/combat/effects/EffectService';
+import { PlayerHealth } from '../../src/engine/combat/health';
+import { CombatPipeline, type Actor } from '../../src/engine/combat/pipeline';
+import { Events } from '../../src/engine/events/events';
 import { STARTER_EFFECTS, starterId } from '../../src/kit/effects/starter';
 import { bindStarterEffects } from '../../src/kit/effects/bindings';
 

@@ -1,5 +1,8 @@
 import * as v from 'valibot';
-import { saves, type SaveSlot, type SkinDef, type WeaponId } from '@wildshard/engine';
+import type { WeaponId } from '@wildshard/engine/combat/Equipment';
+import type { SkinDef } from '@wildshard/engine/player/Skins';
+import { saves } from '@wildshard/engine/saves/runtime';
+import type { SaveSlot } from '@wildshard/engine/saves/store';
 
 export interface CosmeticState { owned: string[]; worn: Record<string, string> }
 export interface CosmeticDef<Slot extends string> { id: string; slot: Slot }

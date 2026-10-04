@@ -1,9 +1,17 @@
 import { NALATI_SPECIES, NALATI_LOOKS } from './species/rows';
 import { STRINGS } from './strings';
 import { NALATI_FEATS } from './feats';
-import { renderFinds, ShardPlugin, type ShardContext, type ShardRuntime } from '@wildshard/game';
-import { loadMeadow, loadWorldContent, heightAt, macrotask, setting, onSettingChange, pathRampDescs, type DamageRequest } from '@wildshard/engine';
-import { Rifle, loadParticles, loadGrassField } from '@wildshard/kit';
+import { renderFinds } from '@wildshard/game/bag/bag';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import type { ShardRuntime } from '@wildshard/game/shard/runtime';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
+import { pathRampDescs } from '@wildshard/engine/physics/paths';
+import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { loadParticles, loadGrassField } from '@wildshard/kit/lookApi';
+import { Rifle } from '@wildshard/kit/weapons/firearm/Rifle';
 import { NALATI_GRASS_LAYOUT } from './look/grassFieldLayout';
 import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './runtime';
@@ -31,7 +39,7 @@ export class NalatiPlugin extends ShardPlugin {
     const { game, sky, forest, registry } = world;
     ctx.strings(STRINGS);
     ctx.strings({ 'respawn.default': 'respawning on the north road', 'cause.ride': 'Thrown from the saddle', 'cause.ride.text': 'Thrown from the saddle', 'cause.lightning': 'Struck by lightning', 'cause.lightning.text': 'Struck by lightning', 'cause.stormTitan': 'the Storm Titan' });
-    const { Grass } = await loadMeadow();
+    const { Grass } = await import('@wildshard/engine/world/Grass');
     (await loadGrassField()).configureGrassField(NALATI_GRASS_LAYOUT, ctx.scope);
     // the grass step also builds the shared mote / mist / needle field the steppe has always carried (main.ts built it for
     // every forest shard before the plugin split; R2: dropping it lost a Points, two InstancedMeshes and three textures)
@@ -50,7 +58,7 @@ export class NalatiPlugin extends ShardPlugin {
     const rt = this.rt;
     // the ramps sit on the live (baked) heightfield the capsule walks, not the analytic TERRAIN field (R2: the analytic
     // heights laid 9 fewer ramps)
-    const ground = await loadWorldContent();
+    const ground = await import('@wildshard/engine/world/Heightfield');
     registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground', colliders: pathRampDescs(ground.TRAILS, heightAt, (x, z) => ground.normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
     shell.hooks.animalsReady = (animals) => { rt.attachAnimals(animals); };
     shell.menu = { skins: () => skinRows(rt.skins), onWearSkin: (id) => { rt.skins.toggle(id); }, skinsTitle: 'Skins' };

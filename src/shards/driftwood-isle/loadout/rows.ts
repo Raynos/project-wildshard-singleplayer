@@ -1,6 +1,11 @@
-import { heightAt, macrotask, type World } from '@wildshard/engine';
-import { SWORD_WOOD, SWORD_IRON, Sword, type MeleeProfile } from '@wildshard/kit';
-import type { ShardRuntime, ShardSword } from '@wildshard/game';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import type { World } from '@wildshard/engine/core/bootstrap';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import type { MeleeProfile } from '@wildshard/kit/weapons/melee/Melee';
+import { SWORD_WOOD, SWORD_IRON } from '@wildshard/kit/weapons/melee/profiles';
+import { Sword } from '@wildshard/kit/weapons/melee/SweptMelee';
+import type { ShardSword } from '@wildshard/game/shard/manifest';
+import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { driftwoodWorld } from '../world/build';
 import { IronSwordPickup, ironSwordSite } from '../weapons/IronSword';
 

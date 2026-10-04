@@ -1,4 +1,5 @@
-import { type RGB, DayCycle, type DayCycleSpec, type ScheduleSeg } from '@wildshard/engine';
+import type { RGB } from '@wildshard/engine/level/data';
+import { DayCycle, type DayCycleSpec, type ScheduleSeg } from '@wildshard/engine/world/dayCycle';
 import type { SkyKey as SteppeKey } from './skyRig';
 
 export const DEFAULT_SCHEDULE: ScheduleSeg[] = [
@@ -10,7 +11,6 @@ export const DEFAULT_SCHEDULE: ScheduleSeg[] = [
 ];
 
 
-export type { SkyKey as SteppeKey } from './skyRig';
 export function nightKeys(day: SteppeKey): SteppeKey[] {
   const golden: SteppeKey = {
     ...day, el: 6,

@@ -14,7 +14,8 @@
  */
 import * as THREE from 'three';
 import { poiMaterial } from './paint';
-import { painterlyUniforms, type Sky } from '@wildshard/engine';
+import { painterlyUniforms } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 interface Strip {
   ax: number; ay: number; az: number;

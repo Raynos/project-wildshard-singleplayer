@@ -1,4 +1,8 @@
-import { AmbienceZones, Rng, app, fnv1a32, tap, ambientTick, type Audio, type SampleLoop } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { AmbienceZones } from '@wildshard/engine/audio/ambience';
+import type { Audio, SampleLoop } from '@wildshard/engine/audio/Audio';
+import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { Rng, fnv1a32 } from '@wildshard/engine/core/rng';
 /**
  * SteppeAmbience — Nalati's zoned soundscape (NALATI-MERGE A4), the IslandAmbience pattern for the steppe.
  *
@@ -26,7 +30,6 @@ import { Vector3 } from 'three';
 import { steppeVoices } from './synth';
 import type { SteppeZone } from './SteppeScore';
 
-export type { SteppeZone } from './SteppeScore';
 /** where the listener is, from src/shards/nalati-grasslands/sound.ts (all 0..1 unless noted) */
 export interface SteppePlace {
   /** [valley, bowl, snow] — zoneAt at the listener */

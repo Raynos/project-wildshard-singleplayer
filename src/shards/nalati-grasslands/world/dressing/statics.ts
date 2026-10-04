@@ -13,7 +13,11 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng, heightAt, type Sky, type BoxSpec as Collider, type ColliderDesc } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { PaintKit, poiMaterial, texturedMaterial } from '../paint';
 import { NalatiSet } from '../painted';
 import { Flutter } from '../Flutter';

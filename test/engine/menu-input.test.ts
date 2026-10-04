@@ -1,7 +1,7 @@
 import { Scope } from '../../src/engine/app/scope';
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
-import { app } from '@wildshard/engine';
+import { app } from '../../src/engine/app/runtime';
 import { containMenuInput } from '../../src/engine/input/menuInput';
 import { weaponActionGate } from '../../src/engine/input/weaponActions';
 import type { Weapon } from '../../src/engine/combat/Weapon';

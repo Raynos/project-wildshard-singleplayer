@@ -165,7 +165,7 @@ The manifest is data. Fill it top to bottom ([ENGINE.md §6](ENGINE.md#6-the-sha
 
 1. **Identity:** `api: 1`, `slug`, `name`, `blurb`, `biome`, `label`, `order`, `status`, `seed`, `placement`.
 2. **Card art:** `card: { thumb, portrait, landscape }` from `thumbs/`. A portrait first: the game is an iPhone PWA.
-3. **Ground:** `ground.terrain = buildTerrain(seed, { landscape, trails, cabinSites })` from `@wildshard/engine/data`, or
+3. **Ground:** `ground.terrain = buildTerrain(seed, { landscape, trails, cabinSites })` from `@wildshard/engine/world/terrainField`, or
    `ground.structures: true` for a built world, or both. With structures only, there is no terrain mesh/collider:
    `heightAt` / `terrainFor` return an analytic floor at **y = −1,000 m**, not a walkable surface (dry water sentinel
    −1,001 m). Set `spawn.y` to your built floor and register its colliders with `ctx.piece`. Set `bounds.floor` /
@@ -186,7 +186,7 @@ The manifest is data. Fill it top to bottom ([ENGINE.md §6](ENGINE.md#6-the-sha
 11. **Plugin:** `load: () => import('./plugin')`.
 
 Keep every coordinate in `layout.ts` and import it. The manifest must import in bare node
-(`test/manifests-node-safe.test.ts`): no three.js objects, no DOM, no `@wildshard/engine` runtime (use `@wildshard/engine/data`).
+(`test/manifests-node-safe.test.ts`): no three.js objects, no DOM, only node-safe engine modules (`world/terrainField`, `core/config`, `core/noise` …; `lint/manifest-closure-budget.json` caps the files a manifest pulls).
 
 For a skyline of your own, set `horizon` in the manifest; [ENGINE §6](ENGINE.md#6-the-shard-manifest-game)
 lists every ring and compass-band field. `horizon: { rings: [], cloudSea: false }` removes the default ridges
@@ -245,7 +245,7 @@ For each weapon:
    raises `adsHeld`, fills your `charge` readout, and its true → false transition releases the heavy. A light tap
    already fires on touch-down; do not read `altHeld` for melee heavy (that field serves a bow's draw).
    The template's `TemplateWhip.install/update` shows both paths and cancels a pending charge when holstered.
-5. **Its slot type:** merge the legacy slot into `EquipmentSlotMap` (`declare module '@wildshard/engine' { interface EquipmentSlotMap { … } }`).
+5. **Its slot type:** merge the legacy slot into `EquipmentSlotMap` (`declare module '@wildshard/engine/combat/Equipment' { interface EquipmentSlotMap { … } }`: augment the module that declares the interface).
 6. **Damage** goes through the pipeline (`blocks.melee(app.combat).hit(req)` or a family's own path). An effect on a
    hit is `app.effects.apply(actor, 'effect.poison')`.
 
@@ -356,7 +356,7 @@ ownership; do not also own those resources. See [ENGINE §13.1](ENGINE.md#131-lo
 - Define a key with `ctx.app.saves.define({ key, scope, version, schema, initial })`. Keys are dot-case and prefixed
   with your shard: `<slug>.notes`.
 - Shard state is `scope: 'shard'`; read and write with your slug: `slot.read(ctx.manifest.slug)`.
-- The shared game keys (purse, progress, bosses, elites, compendium, owned) come from `@wildshard/game`; bind them with
+- The shared game keys (purse, progress, bosses, elites, compendium, owned) come from `@wildshard/game/saves`; bind them with
   `shardSave(purseSave, ctx.manifest.slug)`.
 - Change a shape → bump `version`, add a `migrate` step. Never touch `localStorage`.
 
@@ -382,7 +382,7 @@ These are game mechanisms: list them in `uses`, then wire them in `play`.
 For Wendell's quest presentation, use one call in `play(ctx)`:
 
 ```ts
-import { installQuestPresentation } from '@wildshard/game';
+import { installQuestPresentation } from '@wildshard/game/quest/presentation';
 import { Vector3 } from 'three';
 
 const view = installQuestPresentation(ctx, {
@@ -431,10 +431,10 @@ See [ENGINE.md §20](ENGINE.md#20-the-game-layer-game) for options and the compl
 
 | Guard | Runs | Run it yourself |
 |---|---|---|
-| `wildshard/layer`, `wildshard/public-index` | pre-commit, `pnpm test` | `node lint/ratchet.mjs`. Imports: `@wildshard/engine`, `@wildshard/engine/data`, `@wildshard/game`, `@wildshard/kit`, and `./` inside your folder. Nothing deeper, no other shard |
+| `wildshard/layer`, `wildshard/public-index` | pre-commit, `pnpm test` | `node lint/ratchet.mjs`. Imports: the modules `@wildshard/engine`, `@wildshard/game` and `@wildshard/kit` export (each name from the module that defines it, `docs/api/`), and `./` inside your folder. No other shard; no re-exports (`wildshard/no-reexport`) |
 | `wildshard/shard-sandbox` | pre-commit, `pnpm test` | same. No `window` / `globalThis`, no window or document input listeners, only your own settings and asset folders |
 | `wildshard/engine-words`, `wildshard/shard-names` | pre-commit, lint (hard) | what is particular to your shard (its creatures' labels and tuning, its places, its tree set, its pickups' and icons' ids, its strings) lives in your folder; reusable content goes to `@wildshard/kit`. The engine names no content and the game and kit name no shard (E405 LAYER-PURITY): when you need the engine to know something, hand it in as data (a species row field, `registerPickupLook`, `ctx.strings`, the manifest's `blender.area` / `forest.speciesTraits`) — ask the lead for a new hook rather than writing your slug into shared code |
-| `wildshard/shard-services` | pre-commit, `pnpm test` (ratchet) | take the engine's services from `ctx` (`ctx.app`, `ctx.hud`, `ctx.game` …); importing `app`, `saves`, `hudSlots`, `practiceRoom` or `lockOn` from `@wildshard/engine` fails a new file |
+| `wildshard/shard-services` | pre-commit, `pnpm test` (ratchet) | take the engine's services from `ctx` (`ctx.app`, `ctx.hud`, `ctx.game` …); importing `app`, `saves`, `hudSlots`, `practiceRoom` or `lockOn` from an engine module fails a new file |
 | `wildshard/engine-internal` | lint (hard) | the game's own engine exports (`lint/engine-internal.json`: session, boot, title, installers) are not yours to import; what you need from the engine arrives through `ctx` |
 | `wildshard/no-level-identity`, `no-shard-branch` | pre-commit, lint | they guard the engine and game against branching on your slug; in your folder, keep identity checks out of shared helpers |
 | the hard rules (`no-raw-save`, `no-raw-input`, `no-raw-hud`, `no-raw-shader-patch`, `no-raw-animation-mixer`, `no-url-switch`) | lint, pre-commit | `pnpm exec oxlint src/shards/<slug>` |

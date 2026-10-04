@@ -1,6 +1,19 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { loadPBR, loadGLTF, pbrMaterial, Rng, SEED, heightAt, attachFogUniforms, boxDesc, TIER_CONFIG, macrotask, LightPool, twoSidedPositions, type Interactable, type PBRSet, type Sky, type BoxSpec as Collider, type ColliderDesc, type WeldBuild, PATCH_ORDER, patchShader } from '@wildshard/engine';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { loadPBR, loadGLTF, pbrMaterial, type PBRSet } from '@wildshard/engine/core/assets';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import { LightPool } from '@wildshard/engine/fx/LightPool';
+import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { CABIN_SITES } from '../layout';
 import {
   CABIN_SPECS, CabinBuilder, PROP_KINDS, mergeParts,
@@ -32,9 +45,7 @@ import {
  */
 
 /** `weak`: shown only when no other prompt is in reach (the saddle's Dismount: it hid the Wind Cairn's tie, E288) */
-export type { Interactable } from '@wildshard/engine';
 
-export type { CabinSpec } from '../models/logCabin';
 
 // ───────────────────────────── materials ─────────────────────────────
 

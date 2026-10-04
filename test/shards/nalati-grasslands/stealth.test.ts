@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Events, Scope, InputService } from '@wildshard/engine';
+import { Scope } from '../../../src/engine/app/scope';
+import { Events } from '../../../src/engine/events/events';
+import { InputService } from '../../../src/engine/input/InputService';
 import { Stealth } from '../../../src/shards/nalati-grasslands/stealth';
 import { fakeWorld } from '../../fake/world';
 

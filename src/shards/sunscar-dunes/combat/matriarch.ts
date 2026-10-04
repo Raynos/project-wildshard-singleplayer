@@ -1,5 +1,10 @@
-import { BossBar, BossBrain, weatherFog, type Animal, type BossScript, type WeatherFog } from '@wildshard/engine';
-import { CoinBurst, bossesSave, purseSave, shardSave, type ShardContext } from '@wildshard/game';
+import { BossBrain, type BossScript } from '@wildshard/engine/ai/BossBrain';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import { BossBar } from '@wildshard/engine/ui/BossBar';
+import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere';
+import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
+import { bossesSave, purseSave, shardSave } from '@wildshard/game/saves';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import { Color, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
 import { BASIN } from '../layout';
 import { STRINGS } from '../strings';

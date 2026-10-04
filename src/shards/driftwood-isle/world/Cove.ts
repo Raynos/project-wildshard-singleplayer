@@ -34,7 +34,18 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { waterfallFor, type WaterfallLike } from './Waterfall';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
 import { reefRock } from '../models/reefRock';
-import { PATCH_ORDER, patchShader, heightAt, attachFogUniforms, SEED, LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight, Rng, type BoxSpec as Collider, type Sky, boxDesc, type ColliderDesc, type WorldRegistry, modelContext, place, type Placed } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { rock, log, tris } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, bakeLight, lowPolyMaterial, type BakedLight } from '@wildshard/engine/world/lowpolyKit';
+import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }

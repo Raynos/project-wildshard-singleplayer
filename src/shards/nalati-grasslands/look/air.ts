@@ -9,7 +9,9 @@
  * its cloud fbm drives the cloud shadows, which drift downwind with the steppe's one Wind.
  */
 import * as THREE from 'three';
-import { addFogUniforms, wind, type SkyDressing } from '@wildshard/engine';
+import type { SkyDressing } from '@wildshard/engine/render/look';
+import { addFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { wind } from '@wildshard/engine/world/steppeWind';
 
 /**
  * Aerial perspective: the painter's distance cue. Past `fogAerial.x` metres everything first loses saturation, then

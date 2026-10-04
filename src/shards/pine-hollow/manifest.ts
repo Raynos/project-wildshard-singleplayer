@@ -21,8 +21,9 @@ import explorePractice from './explore/practice-pine-hollow.webp';
  * running SE from the pond to the Mill hamlet, and the Hollow with its cabins and the crossroads at the centre. Every
  * coordinate lives in ./pineHollowLayout.ts (+z north, +x WEST — see its header). Golden-hour sunset sky.
  */
-import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES, layoutFauna } from '@wildshard/engine/data';
-import type { ShardManifest } from '@wildshard/game';
+import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
+import { layoutFauna } from '@wildshard/engine/world/faunaLayout';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { TERRAIN, forestDensity, oldGrowthMask, speciesMix } from './world/terrain';
 import { PINE_WATER } from './world/water';
 import { SPAWN, CABIN_SITES, POND, HAMLET, KINGS_CLEARING, DEN, ridgeFootZ, PINE_HOLLOW_POIS, inBeaverPool } from './layout';

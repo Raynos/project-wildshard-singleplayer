@@ -34,7 +34,6 @@ export interface InputContextDef {
   keysFrom?: string;
   touch?: { mode?: string; lockable?: boolean; relabel: Partial<Record<DiscSpot, TouchRelabel>>; verbs?: Partial<Record<'verb.1' | 'verb.2', TouchVerbSpec>> };
 }
-export type { HudBand } from '../ui/hudSlots';
 export interface VerbSlotOpts { label: string; icon: string; press: () => void; release?: () => void }
 export interface HudVerbs {
   widget: (band: HudBand, el: HTMLElement, order: number) => void;

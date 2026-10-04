@@ -10,7 +10,12 @@
  * (src/shards/driftwood-isle/world/Boat.ts) — and its colliders ride it (`follows: 'copy'`): the four gunwale / bow / stern walls and the floor.
  */
 import * as THREE from 'three';
-import { SEED, swayDepthMaterial, LowPolyKit, lowPolyMaterial, beam, log, plank, rope, sagLine, type ColliderDesc, defineModel, type ModelContext } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import { beam, log, plank, rope, sagLine } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 
 export const LENGTH = 6.4, BEAM = 2.2;
 /** the floor boards' top over the waterline (own y): where you stand in it */

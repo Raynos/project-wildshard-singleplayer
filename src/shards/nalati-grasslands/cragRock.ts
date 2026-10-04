@@ -25,10 +25,19 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng, Noise2D, smoothstep, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, type ModelContext, heightAt, trailDistance, place, type Placed } from '@wildshard/engine';
+import { Noise2D, smoothstep } from '@wildshard/engine/core/noise';
+import { Rng } from '@wildshard/engine/core/rng';
+import type { ModelContext } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { trailDistance } from '@wildshard/engine/world/Heightfield';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { inPoiClearing } from './world/clearings';
 import { isPhoneTier } from './look/nalatiTextures';
-import { zoneAt, glacierMask, brookMask, LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER } from './manifest';
+import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER } from './layout';
+import { zoneAt, glacierMask, brookMask } from './world/terrain';
 import { supportHull } from './world/solid';
 import { cragRock, cragMaterial, finGeometry, ribGeometry, towerGeometry, type CragKind } from './models/cragRock';
 

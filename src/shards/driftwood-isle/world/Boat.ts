@@ -15,7 +15,14 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type BoxSpec as Collider, type Sky, heightAt, waveHeight, seaDamp, lowPolyMaterial, type ColliderDesc, type WorldRegistry, modelContext, place, type Placed } from '@wildshard/engine';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
 import { BEAM, BOAT_CLEATS, BOAT_FLOOR, LENGTH, boat, boatColliders } from '../models/boat';
 
 export interface BoatSpec {

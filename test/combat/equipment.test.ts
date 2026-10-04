@@ -1,7 +1,12 @@
 // @vitest-environment happy-dom
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { app as inputApp, EquipmentService, Weapon, Scope, Tool, quiverState, type EquipmentRow, type WeaponId, type WeaponState } from '@wildshard/engine';
+import { app as inputApp } from '../../src/engine/app/runtime';
+import { Scope } from '../../src/engine/app/scope';
+import type { EquipmentRow, WeaponId } from '../../src/engine/combat/Equipment';
+import { EquipmentService } from '../../src/engine/combat/EquipmentService';
+import { Tool } from '../../src/engine/combat/Tool';
+import { Weapon, quiverState, type WeaponState } from '../../src/engine/combat/Weapon';
 import { SABRE, BOW, SPEAR } from '../../src/shards/nalati-grasslands/weapons/equipment';
 import { CROSSBOW } from '../../src/shards/pine-hollow/weapons/equipment';
 import { App } from '../../src/engine/app/app';

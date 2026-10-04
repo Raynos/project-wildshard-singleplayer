@@ -1,5 +1,5 @@
-import type { PlaygroundHost } from '@wildshard/engine';
-import type { ShardContext } from '@wildshard/game';
+import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import type { Ride } from '../ride/ride';
 // the card's art: the rider at a canter down the jump lane's rails, shot live in Nalati's grade (E325)
 import playgroundHorse from '../explore/playground-horse.webp';

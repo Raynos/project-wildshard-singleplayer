@@ -1,5 +1,6 @@
 import { wildEnv } from '../creatures/env';
-import { clockForSun, steppeClock, nightKeys, blendSteppeKey, type SteppeKey } from '../look/dayKeys';
+import { clockForSun, steppeClock, nightKeys, blendSteppeKey } from '../look/dayKeys';
+import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, lightLevel, type SkyLook } from '../look/skyRig';
 /**
  * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
  * visuals, and everything they touch — the sky rig (sun / moon, sky, fog, grade), the one Wind, the creatures'
@@ -20,17 +21,29 @@ import { clockForSun, steppeClock, nightKeys, blendSteppeKey, type SteppeKey } f
  * herds / packs: `w.weather.onStrike((s) => wildlife.scare(s.x, s.z, 60))` (or pass `scare` to `bind`).
  */
 import * as THREE from 'three';
-import { heightAt, wind, TIER, setting, onSettingChange, type Game, type Sky, type Player, type BoxSpec as Collider, type DayCycle, type Forest, type Audio, type HUD } from '@wildshard/engine';
-import type { ShardContext, ShardManifest } from '@wildshard/game';
-import { SkyRig, makeLook, copyLook, lightLevel, type SkyLook, type DayPhase } from '../look/skyRig';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Game } from '@wildshard/engine/core/Game';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { HUD } from '@wildshard/engine/ui/HUD';
+import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
+import type { DayCycle, DayPhase } from '@wildshard/engine/world/dayCycle';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { wind } from '@wildshard/engine/world/steppeWind';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { steppeVoices } from '../audio/synth';
-import { SteppeStorm as Weather, STORM_PHASES, type Exposed, type LightningPlayer } from './Weather';
+import { SteppeStorm as Weather, type Exposed, type LightningPlayer } from './Weather';
+import { STORM_PHASES } from './weatherProfile';
 import { WeatherFX } from './WeatherFX';
 import { waterOf } from '../water';
-import { smoothstep } from '@wildshard/engine/data';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 type WeatherHUD = Parameters<HUD['setWeather']>[0];
-declare module '@wildshard/engine' { interface EventMap { 'weather.changed': WeatherHUD } }
+declare module '@wildshard/engine/events/maps' { interface EventMap { 'weather.changed': WeatherHUD } }
 
 export interface WeatherCtx {
   ctx: ShardContext; manifest: ShardManifest;

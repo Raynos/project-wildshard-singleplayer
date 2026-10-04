@@ -8,7 +8,8 @@
  */
 import type * as THREE from 'three';
 import { loadLod, prepModel } from '../world/homestead';
-import { defineModel, type ModelContext, bakePart, supportPoints } from '@wildshard/engine';
+import { bakePart, supportPoints } from '@wildshard/engine/models/hull';
+import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 
 interface Part { geometry: THREE.BufferGeometry; material: THREE.Material; hull: Float32Array }
 

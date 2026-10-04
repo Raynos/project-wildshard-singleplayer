@@ -2,7 +2,9 @@ import { addFire, addLampGlow, COOKFIRE, fireLight, WAYMARK_FIRE } from './fireF
 import { BoxGeometry, BufferGeometry, CapsuleGeometry, CylinderGeometry, DataTexture, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, LinearFilter,
   LinearMipmapLinearFilter, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Quaternion, RGBAFormat, SphereGeometry, SRGBColorSpace, TorusGeometry,
   UnsignedByteType, Vector3, type Material } from 'three';
-import { Rng, boxDesc, rock, type ColliderDesc } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import { rock } from '@wildshard/engine/world/geometryKit';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { CARAVAN, SEED, WELL } from '../layout';
 import { WIND } from './dunes';
 import { duneHd, duneMaterial, duneMesh, fit, smoothColors, warmByFire, without } from './meshes';

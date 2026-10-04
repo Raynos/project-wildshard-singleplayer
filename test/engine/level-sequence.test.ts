@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { App, Scope } from '@wildshard/engine';
+import { App } from '../../src/engine/app/app';
+import { Scope } from '../../src/engine/app/scope';
 import { levelSequenceDriver, type LevelSequence } from '../../src/game/shard/sequence';
-import { toLevelSpec } from '@wildshard/game';
+import { toLevelSpec } from '../../src/game/shard/spec';
 import manifest from '../../src/shards/nine-dragon-stack/manifest';
 
 const noop = (): void => { /* No renderer in this stage-order contract. */ };

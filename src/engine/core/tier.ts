@@ -20,7 +20,6 @@ const mobileUA = mobileDevice(navigator.userAgent, navigator.platform, navigator
 export let automaticTier: Tier = mobileUA ? 'phone' : 'desktop';
 export let TIER: Tier = automaticTier;
 
-export { TIER_TABLE } from '../render/tiers';
 
 export const TIER_CONFIG = { ...TIER_TABLE[TIER] };
 

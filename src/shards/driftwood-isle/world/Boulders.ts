@@ -10,7 +10,15 @@
  *   scene.add(rocks.mesh); its registry piece.push(...rocks.colliders);
  */
 import type * as THREE from 'three';
-import { CHUNK_HALF, ROAD_WIDTH, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, heightAt, normalAt, waterLevel, inChunk, place, type Placed } from '@wildshard/engine';
+import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { modelContext, type Placement } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { WRECK } from '../manifest';
 import { shoreBoulder, type ShoreBoulderParams } from '../models/shoreBoulder';
 

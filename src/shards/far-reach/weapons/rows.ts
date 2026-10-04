@@ -1,4 +1,4 @@
-import type { EquipmentRow } from '@wildshard/engine';
+import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import { STRINGS } from '../strings';
 import { CUES } from '../audio/cues';
 

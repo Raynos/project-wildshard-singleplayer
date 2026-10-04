@@ -1,4 +1,17 @@
-import { weaponActionGate, type EquipContext, HitLine, makeFlashTexture, hitscan, brassFloor, stepBrass, blendAds, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, type TexSet, type Targets, type CrossbowWorld, type CrossbowOptions, type Sky } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
+import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+import type { Targets } from '@wildshard/engine/combat/types';
+import { brassFloor, stepBrass } from '@wildshard/engine/combat/view/brass';
+import { HitLine, makeFlashTexture } from '@wildshard/engine/combat/view/firearmFx';
+import { hitscan } from '@wildshard/engine/combat/view/hitscan';
+import { Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, isMesh, worldHit, type TexSet, type CrossbowWorld, type CrossbowOptions } from '@wildshard/engine/combat/view/ranged';
+import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
+import { LightPool } from '@wildshard/engine/fx/LightPool';
+import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
+import { sstep, clamp01 } from '@wildshard/engine/player/viewmodelTextures';
+import { getSetting } from '@wildshard/engine/ui/Settings';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 import { Firearm } from './Firearm';
 import { AR15, type FirearmProfile } from './profiles';

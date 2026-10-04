@@ -5,9 +5,9 @@
  * A drone carries its navigation lights (red, white, cyan), neon quads in the sign atlas's program.
  */
 import { Mesh, Vector3 } from 'three';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { droneKit, trainKit } from '../world/towers';
-import { gondolaKit } from '../world/well';
+import { gondolaCabin as gondolaKit } from '../world/well-bridges';
 import { SignBuilder } from '../look/signs';
 import { ndLook, need } from '../world/modelLook';
 

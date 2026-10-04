@@ -12,8 +12,10 @@
  * geometry, the big foot boulders, the rail and the flagpole as boxes; its floor (placement) is the scramble + the summit.
  */
 import * as THREE from 'three';
-import { defineModel, type ColliderDesc } from '@wildshard/engine';
-import { M, pole, v3, blob } from '../world/paint';
+import { defineModel } from '@wildshard/engine/models/model';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { M, v3 } from '../world/paint';
+import { pole, blob } from '@wildshard/engine/world/geometryKit';
 import { graniteBlock } from '../world/granite';
 import { highest, prism, slab, type Box } from '../world/solid';
 import { painted, type Paint } from '../world/painted';

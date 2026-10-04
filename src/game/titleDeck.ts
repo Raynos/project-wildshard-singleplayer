@@ -1,4 +1,6 @@
-import { listenDom, app, isDev } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { isDev } from '@wildshard/engine/core/devMode';
+import { listenDom } from '@wildshard/engine/input/dom';
 /**
  * The title screen's shard deck — ONE implementation for both ways in (E318, Jake: "lol wtf why do we have two title
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸
@@ -16,7 +18,7 @@ import { listenDom, app, isDev } from '@wildshard/engine';
  * Cards use the generated, node-safe manifests; world builders remain lazy.
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
-import { shards } from './shard/registry';
+import { shards } from './shard/list';
 import type { ShardSlug } from './shard/slugs.generated';
 import type { ShardManifest } from './shard/manifest';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
@@ -24,7 +26,6 @@ import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
 import './summary.css';
 
-export { travel } from './travel/travel';
 
 export type TitleBadge = 'Early access' | 'Experimental' | 'Developer only';
 

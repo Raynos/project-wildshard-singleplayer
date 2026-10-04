@@ -24,7 +24,9 @@
  * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, rope, lowPolyMaterial, type Sky } from '@wildshard/engine';
+import { log, rope } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 const C = {
   skin: '#a86e48', skinDark: '#8a5636', hair: '#2b1f19', eye: '#1d1a18', lips: '#8f4538',

@@ -1,5 +1,5 @@
-import type { EquipmentRow } from '@wildshard/game';
-import { SWAP_GLYPHS } from '@wildshard/kit';
+import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
+import { SWAP_GLYPHS } from '@wildshard/kit/weapons/ui';
 
 export const SABRE: EquipmentRow = {
   cues: {"fire": "cue.sabre.swing", "reload": "cue.reload", "impact": "cue.sabre.hit"},

@@ -7,13 +7,10 @@
  * for a building, the way its door / front faces — 0 faces −z (south), π/2 faces −x (east), π faces +z (north),
  * −π/2 faces +x (west). (The unit vector a `rot` faces is (−sin rot, −cos rot).)
  */
-import {
-  CAMP as CHUNK_CAMP, BRIDGE as CHUNK_BRIDGE, EAGLE_ROCK as CHUNK_EAGLE_ROCK, KURGANS as CHUNK_KURGANS, CRAGS as CHUNK_CRAGS,
-  WEST_CRAGS as CHUNK_WEST_CRAGS, SNOW_LINE, SUMMER_YURTS, CAIRN, LEOPARD_CAVE, WATCHTOWER as CHUNK_WATCHTOWER,
-} from '../manifest';
+import { CAMP as CHUNK_CAMP, EAGLE_ROCK as CHUNK_EAGLE_ROCK, KURGANS as CHUNK_KURGANS, CRAGS as CHUNK_CRAGS, WEST_CRAGS as CHUNK_WEST_CRAGS, SNOW_LINE, SUMMER_YURTS, CAIRN, LEOPARD_CAVE, WATCHTOWER as CHUNK_WATCHTOWER } from '../layout';
+import { BRIDGE as CHUNK_BRIDGE } from './terrain';
 
 /** the kokpar field (an oval of trodden earth); the great kurgan's doorway faces west (+x), toward the bowl */
-export { KOKPAR, GREAT_KURGAN_DOOR } from '../manifest';
 
 export interface PoiSpot { x: number; z: number; rot: number }
 

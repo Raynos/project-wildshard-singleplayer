@@ -1,5 +1,9 @@
-import { QuestState, boxDesc, type QuestMarker } from '@wildshard/engine';
-import { CoinBurst, installQuestPresentation, purseSave, shardSave, type QuestPresentation, type ShardContext } from '@wildshard/game';
+import { QuestState, type QuestMarker } from '@wildshard/engine/quest/core';
+import { boxDesc } from '@wildshard/engine/world/registry';
+import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
+import { installQuestPresentation, type QuestPresentation } from '@wildshard/game/quest/presentation';
+import { purseSave, shardSave } from '@wildshard/game/saves';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import { Scene, Vector3 } from 'three';
 import { FLAG, type SignalWorld } from '../world/build';
@@ -9,7 +13,6 @@ import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
 import { SCOUT_AT, SCOUT_FLAG, scout, scoutNpc } from './scout';
 
-export { SCOUT_FLAG } from './scout';
 
 /** Whether the signal reward was paid (shard save, SHARDS §10). */
 const SIGNAL = { key: 'sunscar.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };

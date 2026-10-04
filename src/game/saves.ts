@@ -1,5 +1,6 @@
 import * as v from 'valibot';
-import { app, type SaveSlot } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import type { SaveSlot } from '@wildshard/engine/saves/store';
 import type { ShardSlug } from './shard/slugs.generated';
 
 const finite = v.pipe(v.number(), v.finite());

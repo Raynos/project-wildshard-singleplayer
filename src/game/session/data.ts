@@ -1,11 +1,22 @@
-import { consumeTravelHandoff } from '../index';
-import type { StepRunner } from '@wildshard/engine';
+import { consumeTravelHandoff } from '../travel/travel';
+import { type StepRunner, createBootPlan } from '@wildshard/engine/boot/plan';
 import { prepareShardAssets } from '../shard/load';
 import type { SessionContext } from './context';
+import { currentOwner } from '@wildshard/engine/app/ownership';
+import { app } from '@wildshard/engine/app/runtime';
+import { declareTotals, installByteCounter } from '@wildshard/engine/boot/bytes';
+import { bootFiles, extraFetches, startAudioPreload, startDeferredAudioPreload, startMenuPreload } from '@wildshard/engine/boot/extras';
+import { registerGpuFiles, setTexturePolicy } from '@wildshard/engine/boot/gpuFiles';
+import { packFor, streamPack } from '@wildshard/engine/boot/pack';
+import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from '@wildshard/engine/boot/prefetch';
+import { useShardSteps } from '@wildshard/engine/boot/steps';
+import { startViewmodelTextures } from '@wildshard/engine/combat/view/ranged';
+import { TIER } from '@wildshard/engine/core/tier';
+import { Loading } from '@wildshard/engine/ui/Loading';
+import { resumeProgress, resumeScreen } from '@wildshard/engine/ui/Resume';
 
 async function buildData(ctx: SessionContext) {
-  const { engine, manifest, stage, boot, session } = ctx;
-  const { app, startViewmodelTextures, Loading, resumeProgress, resumeScreen, createBootPlan, useShardSteps, declareTotals, installByteCounter, bootFiles, extraFetches, startAudioPreload, startDeferredAudioPreload, startMenuPreload, bootFetches, prefetch, prefetchAfter, whenPrefetched, packFor, streamPack, registerGpuFiles, setTexturePolicy, TIER } = engine;
+  const { manifest, stage, boot, session } = ctx;
 
   // level.data consumes the per-tab intent before any expensive build can fail.
   boot.handoff = consumeTravelHandoff(manifest.slug);
@@ -27,8 +38,8 @@ async function buildData(ctx: SessionContext) {
   const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); for (const r of view.rows) if (r.state === 'ok') bootSteps[r.key] = Math.round(r.ms); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/engine/ui/ErrorModal.ts)
-  (engine.currentOwner() ?? app.engineScope).listen(window, 'unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
-  (engine.currentOwner() ?? app.engineScope).listen(window, 'error', (e) => plan.fail(`BOOT FAILED · ${e.message} @ ${e.filename.split('/').pop()}:${e.lineno}`.slice(0, 300)));
+  (currentOwner() ?? app.engineScope).listen(window, 'unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
+  (currentOwner() ?? app.engineScope).listen(window, 'error', (e) => plan.fail(`BOOT FAILED · ${e.message} @ ${e.filename.split('/').pop()}:${e.lineno}`.slice(0, 300)));
   const step: StepRunner = (key, work) => stage(key, () => plan.step(key, work).then((p) => p.value));
   boot.worldHook = manifest.boot?.stagedWorld === true ? (work) => work() : (work) => step('props', (p) => { boot.progress = p; return work(); });
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached (a shard built

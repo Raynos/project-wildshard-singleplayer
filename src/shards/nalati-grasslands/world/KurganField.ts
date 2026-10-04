@@ -14,7 +14,8 @@
  */
 import { PaintKit } from './paint';
 import { NalatiSet } from './painted';
-import { KURGANS, GREAT_KURGAN, GREAT_KURGAN_DOOR, KURGAN_BALBALS } from './layout';
+import { KURGANS, GREAT_KURGAN, KURGAN_BALBALS } from './layout';
+import { GREAT_KURGAN_DOOR } from '../layout';
 import type { PoiCtx, PoiPiece } from './types';
 import { kurganKerb } from '../models/kurganKerb';
 import { fieldstone } from '../models/fieldstone';

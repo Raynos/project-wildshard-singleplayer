@@ -16,9 +16,11 @@
  *   k.update(dt, player.position, mount)       // every frame
  */
 import * as THREE from 'three';
-import { PaintKit, pole, v3, blob, poiMaterial } from './world/paint';
+import { PaintKit, v3, poiMaterial } from './world/paint';
+import { pole, blob } from '@wildshard/engine/world/geometryKit';
 import { KOKPAR } from './layout';
-import { practiceRoom, type Sky } from '@wildshard/engine';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 /** a point on the field's oval at angle t, scaled by k (1 = its edge) — Bowl.ts buildKokpar's own `onOval` */
 export function kokparOval(t: number, k: number): { x: number; z: number } {

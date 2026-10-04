@@ -15,8 +15,12 @@
  */
 import * as THREE from 'three';
 import { loadNalatiTextures, TEX_METRES, TEX_MEAN, isPhoneTier } from '../look/nalatiTextures';
-import { SNOW_LINE } from '../manifest';
-import { PATCH_ORDER, patchShader, Rng, defineModel, painterlyMaterial, type Sky } from '@wildshard/engine';
+import { SNOW_LINE } from '../layout';
+import { Rng } from '@wildshard/engine/core/rng';
+import { defineModel } from '@wildshard/engine/models/model';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 // ── the rock pieces ─────────────────────────────────────────────────────────────────────────────────────────────
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { app, Scope } from '@wildshard/engine';
+import { app } from '../src/engine/app/runtime';
+import { Scope } from '../src/engine/app/scope';
 import { deathLine, respawnWhere } from '../src/engine/ui/HurtArc';
 import { STRINGS as DRIFTWOOD } from '../src/shards/driftwood-isle/strings';
 import { STRINGS as PINE } from '../src/shards/pine-hollow/strings';

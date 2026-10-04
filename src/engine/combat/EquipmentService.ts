@@ -263,5 +263,3 @@ export class EquipmentService implements WeaponHooks {
   }
 }
 
-export type { WeaponId } from './Equipment';
-export type { WeaponState, AimInfo } from './Weapon';

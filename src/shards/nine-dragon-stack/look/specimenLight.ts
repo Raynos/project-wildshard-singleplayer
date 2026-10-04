@@ -8,7 +8,8 @@
 // toward), and the washes drawn dry. All four are put back when it closes. Uniform values only: no program recompiles, and
 // the world is hidden while a model is on show.
 import { Color, type Vector3 } from 'three';
-import type { Events, Scope } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Events } from '@wildshard/engine/events/events';
 import type { Shared } from './style';
 
 /** the turntable's light: the ambient, how far the shade wash is lifted toward white (0 = the city's, 1 = unshaded), the

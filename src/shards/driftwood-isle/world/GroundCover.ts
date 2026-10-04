@@ -58,7 +58,20 @@ import { rockGeometry } from './rockKit';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter, triAreas } from './coverTint';
 import { driftLog, driftLogBox } from '../models/driftLog';
-import { PATCH_ORDER, patchShader, attachFogUniforms, SEED, Rng, LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part, windFieldUniforms as windUniforms, TIER, type BlenderArea, type Sky, modelContext, heightAt, normalAt, trailDistance, place, type Placed } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { TIER } from '@wildshard/engine/core/tier';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import type { BlenderArea } from '@wildshard/engine/world/blenderArea';
+import { rock, log, tris } from '@wildshard/engine/world/geometryKit';
+import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
+import { LowPolyKit, fern, hibiscus, grassTuft, broadClump, lowPolyMaterial, PLANT, type Part } from '@wildshard/engine/world/lowpolyKit';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { windUniforms } from '@wildshard/engine/world/wind';
 
 export interface GroundCoverOpts {
   sea: number;

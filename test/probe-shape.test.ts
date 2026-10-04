@@ -1,4 +1,8 @@
-import { type EquipmentService, type Weapon, App, Scope, type LevelSpec } from '@wildshard/engine';
+import { App } from '../src/engine/app/app';
+import { Scope } from '../src/engine/app/scope';
+import type { EquipmentService } from '../src/engine/combat/EquipmentService';
+import type { Weapon } from '../src/engine/combat/Weapon';
+import type { LevelSpec } from '../src/engine/level/spec';
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { installProbe, programHash, compiledProgramHash, type ProbeWorld, type EngineProbe } from '../src/engine/debug/probe';

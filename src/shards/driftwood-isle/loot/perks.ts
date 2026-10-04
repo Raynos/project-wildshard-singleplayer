@@ -11,7 +11,7 @@
  * Every shard has an Owned store, but only Driftwood grants hearts, charms and trophies, so elsewhere these are the
  * defaults (×1, 0, ×1, false).
  */
-import type { OwnedId } from '@wildshard/game';
+import type { OwnedId } from '@wildshard/game/loot/Owned';
 import { DRIFTWOOD_EFFECTS } from './effects';
 
 const effect = (id: string) => {

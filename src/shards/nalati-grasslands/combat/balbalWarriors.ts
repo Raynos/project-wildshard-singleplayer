@@ -1,6 +1,13 @@
-import { GroundTell, type GroundTellWedgeStyle } from '@wildshard/game';
+import { GroundTell, type GroundTellWedgeStyle } from '@wildshard/game/Elite';
 import { nightSpawner } from './spawns';
-import { app, type Animal, type AnimalManager, type DayCycleClock, type Scope, type Spawner, heightAt, setting } from '@wildshard/engine';
+import type { Spawner } from '@wildshard/engine/ai/encounters';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { setting } from '@wildshard/engine/ui/Settings';
+import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { balbalPiercing } from '../weapons/effects';
 
 import * as THREE from 'three';

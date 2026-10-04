@@ -9,7 +9,7 @@
  * nothing past 130 m (the silk fog has swallowed them). ../world/crowd.ts `dealCrowd` deals the figures to the colourways.
  */
 import type { BufferGeometry } from 'three';
-import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelLod, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
 import { BLUE_UMBRELLA, LOD_FAR, LOD_NEAR, LOD_TRIS, MID_FROM, MID_PX, type SitterPick, type WalkerPick, clusterLod, tintUmbrella } from '../world/crowd';
 import { loadGlb } from '../world/hero/glb';
 import { PX_PER_M, simplifiedCopy } from '../world/lod';

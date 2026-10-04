@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import type { ShardManifest } from '@wildshard/game';
+import type { ShardManifest } from '../../src/game/shard/manifest';
 import { SHARDS } from '../../src/shards.generated';
 import { toLevelSpec } from '../../src/game/shard/spec';
 

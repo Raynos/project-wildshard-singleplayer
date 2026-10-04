@@ -1,4 +1,6 @@
-import { Noise2D, smoothstep, clamp, lerp, CHUNK_HALF, buildTerrain } from '@wildshard/engine/data';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/engine/core/noise';
+import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import {
   RIVER_LEVEL, riverZAt, riverHalfAt, BRIDGE_XZ, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,
   WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, snowValleyX, snowValleyHalf, snowValleyFloor, GLACIER, MELT_STREAM,
@@ -6,7 +8,7 @@ import {
   EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL,
 } from '../layout';
 import { edgeRise } from '../edge';
-import type { ChunkTerrain, RGB, Vec2 } from '@wildshard/game';
+import type { ChunkTerrain, RGB, Vec2 } from '@wildshard/game/shard/manifest';
 
 export const SEED = 0x4a1a;
 
@@ -18,7 +20,6 @@ export const RIVER = { level: RIVER_LEVEL, z: riverZAt, half: riverHalfAt };
 export const BRIDGE = { x: BRIDGE_XZ.x, z: BRIDGE_XZ.z, deckY: BRIDGE_XZ.deckY, span: RIVER.half(0) * 2 + 8 };
 /** the meltwater stream (Snow Lotus Valley) is `BROOK` to the water / wet-ground / dressing modules; `RIM_Z` = the north
  *  rim's mean z (the top of the escarpment), the band outcrops / wet ground work from */
-export { MELT_STREAM as BROOK, RIM_N as RIM_Z } from '../layout';
 
 /** on the N road, 18 m in from the gate, facing south: the bridge, the escarpment and the bowl ahead (yaw 0 faces −z) */
 export const SPAWN = { x: 0, z: 232, yaw: 0 };

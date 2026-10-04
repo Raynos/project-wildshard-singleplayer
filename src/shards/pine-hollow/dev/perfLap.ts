@@ -1,5 +1,12 @@
-import { type Game, type Player, type AnimalManager, type Music, type HUD, practiceRoom, type Scope, perfLap, type LapSpot } from '@wildshard/engine';
-import type { Elites } from '@wildshard/game';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Music } from '@wildshard/engine/audio/Music';
+import type { Game } from '@wildshard/engine/core/Game';
+import { perfLap, type LapSpot } from '@wildshard/engine/core/perfLap';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { HUD } from '@wildshard/engine/ui/HUD';
+import type { Elites } from '@wildshard/game/Elite';
 import type { AntlerKing } from '../combat/antlerKing';
 
 /**

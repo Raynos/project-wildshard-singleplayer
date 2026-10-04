@@ -1,4 +1,6 @@
-import type { LevelContext, LevelDriver, Scope } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import type { LevelDriver } from '@wildshard/engine/level/load';
 
 export type LevelBoundary = 'world' | 'kit' | 'loadout' | 'play' | 'finish';
 export type LevelSequence<T> = AsyncGenerator<LevelBoundary, T, LevelContext | undefined>;

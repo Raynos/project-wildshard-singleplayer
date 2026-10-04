@@ -1,7 +1,12 @@
 import { pineScore, pineScorePick } from './score';
-import { type Game, type Sky, type Music, type AnimalManager, type Animal, audioLog } from '@wildshard/engine';
+import { audioLog } from '@wildshard/engine/audio/audioLog';
+import type { Music } from '@wildshard/engine/audio/Music';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ForestAmbience, ZoneSpot } from './ambience';
-import type { Interactable } from '../world/homestead';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 import {
   BEAR_CAVE, CREEK, HAMLET_SITES, LOOKOUT, OLD_GROWTH, RIDGE, RIDGE_STREAM, WATERFALL, ridgeFootZ, type XZ,
 } from '../layout';

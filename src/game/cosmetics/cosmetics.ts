@@ -20,7 +20,7 @@
  * and Driftwood's keepsakes (src/shards/driftwood-isle/loot/keepsakes.ts) dress it from the Owned store's worn cosmetics.
  */
 import * as THREE from 'three';
-import { SHADOW_LAYER } from '@wildshard/engine';
+import { SHADOW_LAYER } from '@wildshard/engine/core/shadowLayer';
 
 /** where a worn model's own-space origin sits, from the player's feet (m): y up, z toward the way the player faces */
 export const WEAR_SOCKET = {

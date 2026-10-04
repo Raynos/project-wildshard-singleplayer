@@ -2,7 +2,7 @@ import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
 import type { Renderer } from '../render/renderer';
 import type { Scope } from '../app/scope';
-import type { Sky } from './Sky';
+import type { SkyRig as Sky } from './skyRig';
 import type { SkySpec } from '../level/data';
 import type { LevelSpec } from '../level/spec';
 import type { SkyDressing } from '../render/look';

@@ -1,4 +1,4 @@
-import type { AchievementDef } from '@wildshard/game';
+import type { AchievementDef } from '@wildshard/game/achievements';
 
 export const PINE_FEATS: AchievementDef[] = [
   { id: 'deer5', name: 'Deerstalker', goal: 'Kill 5 deer', count: 5, kind: 'deer', title: 'Antler Management', icon: 'deer' },

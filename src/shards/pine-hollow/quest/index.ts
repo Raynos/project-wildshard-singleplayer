@@ -1,6 +1,32 @@
 import * as v from 'valibot';
-import { saves, jsonSchema, boxInFrame, QuestLine, loadQuest, type NpcDef, type NpcTalk, type SkinDef, type Game, type Sky, type Player, type AnimalManager, type WorldRegistry, type HUD, type Audio, type Music, type FullMap, type FullMapPoi as MapPoi, type TreeInstance, heightAt, Flags, test, type Place, InteractSfx, Interactables, type InteractEvent, place as placeModel, perfLap } from '@wildshard/engine';
-import type { SkinLocker, ShardContext, Inventory, ItemId, Progress, CompendiumState } from '@wildshard/game';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
+import type { Music } from '@wildshard/engine/audio/Music';
+import type { Game } from '@wildshard/engine/core/Game';
+import { perfLap } from '@wildshard/engine/core/perfLap';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { place as placeModel } from '@wildshard/engine/models/place';
+import { boxInFrame } from '@wildshard/engine/physics/box';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { SkinDef } from '@wildshard/engine/player/Skins';
+import { QuestLine, type NpcDef } from '@wildshard/engine/quest/core';
+import type { NpcTalk } from '@wildshard/engine/quest/view';
+import { saves } from '@wildshard/engine/saves/runtime';
+import { jsonSchema } from '@wildshard/engine/saves/slots';
+import type { HUD } from '@wildshard/engine/ui/HUD';
+import type { FullMap, MapPoi } from '@wildshard/engine/ui/Map';
+import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
+import { Flags, test } from '@wildshard/engine/world/interact/flags';
+import { Interactables, type InteractEvent } from '@wildshard/engine/world/interact/Interactables';
+import type { Place, Interactable } from '@wildshard/engine/world/interact/types';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import type { CompendiumState } from '@wildshard/game/compendium/state';
+import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
+import type { Inventory, ItemId } from '@wildshard/game/Inventory';
+import type { Progress } from '@wildshard/game/Progress';
+import type { ShardContext } from '@wildshard/game/shard/context';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
  * Hollow*, PH-C6 the mill hamlet, PH-C7 night play, PH-C8 collectibles + secrets, PH-C10's event achievements, the C9
@@ -20,7 +46,7 @@ import type { SkinLocker, ShardContext, Inventory, ItemId, Progress, CompendiumS
  * Dev: `?quest=ranger|pond|ridge|zip|den|stag|king|dawn|done` (beats.ts), `?resetquest`, `window.__pineQuest`.
  */
 import * as THREE from 'three';
-import type { Interactable, Cabins } from '../world/homestead';
+import type { Cabins } from '../world/homestead';
 import type { PineHollowSfx } from '../audio/sfx';
 import { SKINS } from '../loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
@@ -79,6 +105,11 @@ const TALK_R = 3.2;
 const _v = new THREE.Vector3();
 
 /** `deps`: the people's preload and the quest UI's loader (the page's by default; a test passes its own) */
+/** the quest views, loaded after the NPC models (`deps.loadQuest` lets a test fail it) */
+async function loadQuest() {
+  const [{ QuestChip, NpcTalk }, { DialogueBox, RewardCaption }] = await Promise.all([import('@wildshard/engine/quest/view'), import('@wildshard/engine/quest/view/ui')]);
+  return { QuestChip, NpcTalk, DialogueBox, RewardCaption };
+}
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
   await (deps.preload ?? preloadNpcModels)();
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');

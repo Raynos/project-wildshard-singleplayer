@@ -4,7 +4,8 @@
  * or the same rigs wearing TRELLIS.2 / Hunyuan3D-2 hulls, scripts/creature-rig-bake.mjs); the AnimalManager spawns and
  * animates the copies from the level's herd plans. The engine's `creature` helper says how a species becomes a model.
  */
-import { defineModel, type ModelDef, creature, type CreatureParams } from '@wildshard/engine';
+import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 // not on the engine index: it builds through AnimalFactory, which the node-safe manifests never load
 
 const FILE = 'src/kit/models/creatures.ts';

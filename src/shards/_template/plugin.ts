@@ -1,7 +1,18 @@
-import { ShardPlugin, installLoot, installCompendium, type ShardContext } from '@wildshard/game';
-import { IRON_SWORD, Sword, SWORD_IRON, BOAR, BOAR_LOOK, STARTER_EFFECTS, installStarterEffects, installSilentScore, installForestAmbience } from '@wildshard/kit';
+import { installCompendium } from '@wildshard/game/compendium/install';
+import { installLoot } from '@wildshard/game/loot/runtime';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import { installSilentScore, installForestAmbience } from '@wildshard/kit/audio/forest';
+import { installStarterEffects } from '@wildshard/kit/effects/install';
+import { STARTER_EFFECTS } from '@wildshard/kit/effects/starter';
+import { BOAR } from '@wildshard/kit/species/boar';
+import { BOAR_LOOK } from '@wildshard/kit/species/view/boar';
+import { IRON_SWORD } from '@wildshard/kit/weapons/equipment';
+import { SWORD_IRON } from '@wildshard/kit/weapons/melee/profiles';
+import { Sword } from '@wildshard/kit/weapons/melee/SweptMelee';
 import { Vector3 } from 'three';
-import type { QuestState, Interactable } from '@wildshard/engine';
+import type { QuestState } from '@wildshard/engine/quest/core';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { STRINGS } from './strings';
 import { buildWorld } from './world/build';
 import { GREY_BLOB, GREY_BLOB_LOOK } from './species/greyBlob';
@@ -14,12 +25,16 @@ import { installEncounters } from './combat/encounters';
 import { BLOB } from './layout';
 import { ownPrimitives } from './world/resources';
 import { installClimate } from './world/climate';
-import { GREY_CARD } from './thumbs/card';
+import { GREY_CARD } from './explore/art';
 import { installTemplateCues } from './audio/cues';
 
-declare module '@wildshard/engine' {
+declare module '@wildshard/engine/level/spec' {
   interface TierKnobMap { 'template.propCount': number }
+}
+declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'template.lantern.toggle': true }
+}
+declare module '@wildshard/engine/combat/Equipment' {
   interface EquipmentSlotMap { 'template-whip': true }
 }
 

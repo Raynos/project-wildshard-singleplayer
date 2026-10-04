@@ -25,7 +25,15 @@
  * scaled down on the phone tier.
  */
 import * as THREE from 'three';
-import { TIER, painterlyMaterial, type Sky, type Forest, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, modelContext, type ModelDef, type Renderer, place, type PlaceOptions, type Placed } from '@wildshard/engine';
+import { TIER } from '@wildshard/engine/core/tier';
+import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
+import { place, type PlaceOptions, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { Renderer } from '@wildshard/engine/render/renderer';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Flutter } from '../Flutter';
 import { DressLayer, type Inst } from './layer';
 import { planDressing, type DressPlan } from './place';

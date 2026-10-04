@@ -1,7 +1,14 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { App, WorldRegistry, TabRegistry, StrikeRunner, type Actor, type LevelDriver, type StrikeContext } from '@wildshard/engine';
-import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } from '@wildshard/game';
+import { StrikeRunner, type StrikeContext } from '../../../src/engine/ai/strikes';
+import { App } from '../../../src/engine/app/app';
+import type { Actor } from '../../../src/engine/combat/pipeline';
+import type { LevelDriver } from '../../../src/engine/level/load';
+import { TabRegistry } from '../../../src/engine/ui/tabs';
+import { WorldRegistry } from '../../../src/engine/world/registry';
+import { purseSave, shardSave } from '../../../src/game/saves';
+import { shardContext, type GameServices } from '../../../src/game/shard/context';
+import { toLevelSpec } from '../../../src/game/shard/spec';
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 import manifest from '../../../src/shards/far-reach/manifest';
 import { SkyReachPlugin } from '../../../src/shards/far-reach/plugin';
@@ -10,7 +17,8 @@ import { DIVE } from '../../../src/shards/far-reach/species/driftRay';
 import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE, apothem } from '../../../src/shards/far-reach/layout';
 import { UPDRAFT_ANGLE, vaneColliders } from '../../../src/shards/far-reach/world/build';
 import { SKY_GOAT, warmCoat } from '../../../src/shards/far-reach/species/skyGoat';
-import { FLAGS, REWARD } from '../../../src/shards/far-reach/quest/install';
+import { REWARD } from '../../../src/shards/far-reach/quest/install';
+import { FLAGS } from '../../../src/shards/far-reach/quest/flags';
 import { FakeGame } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 

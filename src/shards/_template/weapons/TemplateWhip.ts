@@ -1,4 +1,9 @@
-import { Weapon, blocks, type Actor, type Targets, type TargetAnimal, type WeaponState, type App, type EquipContext } from '@wildshard/engine';
+import type { App } from '@wildshard/engine/app/app';
+import { blocks } from '@wildshard/engine/blocks';
+import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+import type { Actor } from '@wildshard/engine/combat/pipeline';
+import type { Targets, TargetAnimal } from '@wildshard/engine/combat/types';
+import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
 import { Group, Mesh, CylinderGeometry, MeshStandardMaterial, Vector2, Vector3 } from 'three';
 import { WHIP_ROW } from './rows';
 /** A custom lane weapon composes the same public viewmodel and contact blocks as kit families. */

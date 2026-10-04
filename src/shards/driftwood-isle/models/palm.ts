@@ -9,7 +9,12 @@
  */
 import * as THREE from 'three';
 import { islandKnobs } from '../tiers';
-import { PATCH_ORDER, patchShader, attachFogUniforms, windFieldUniforms as windUniforms, type ColliderDesc, type Rng, defineModel, type ModelContext } from '@wildshard/engine';
+import type { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { windUniforms } from '@wildshard/engine/world/wind';
 
 export interface PalmParams {
   /** trunk height, metres */

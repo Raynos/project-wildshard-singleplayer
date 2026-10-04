@@ -2,7 +2,24 @@ import type { SkinLocker } from '../cosmetics/locker';
 import type { BagMenuOptions } from '../bag/tabs';
 import type { ShardWorld } from './world';
 import type { BodyShadow } from '../cosmetics/bodyShadow';
-import type { StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinDef, CombatCues, Targets, FirstHints, MapMark } from '@wildshard/engine';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Music } from '@wildshard/engine/audio/Music';
+import type { StepSurface } from '@wildshard/engine/audio/surface';
+import type { StepRunner } from '@wildshard/engine/boot/plan';
+import type { CombatCues } from '@wildshard/engine/combat/cues';
+import type { WeaponId } from '@wildshard/engine/combat/Equipment';
+import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import type { Targets } from '@wildshard/engine/combat/types';
+import type { Weapon } from '@wildshard/engine/combat/Weapon';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { SkinDef } from '@wildshard/engine/player/Skins';
+import type { FirstHints } from '@wildshard/engine/ui/FirstHints';
+import type { HUD } from '@wildshard/engine/ui/HUD';
+import type { FullMap } from '@wildshard/engine/ui/Map';
+import type { GameMenu } from '@wildshard/engine/ui/Menu';
+import type { MapMark } from '@wildshard/engine/ui/Minimap';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { Group, Vector2, Vector3 } from 'three';
 import type { Inventory } from '../Inventory';
 import type { Progress } from '../Progress';
@@ -54,7 +71,7 @@ export interface ShardRuntime {
   horizonVeil: { value: Vector2 } | null;
 }
 
-declare module '@wildshard/engine' {
+declare module '@wildshard/engine/events/maps' {
   interface AskMap {
     'feat.toast': [{ id: string; event?: string; allowed: boolean }, { id: string; event?: string; allowed: boolean }];
   }

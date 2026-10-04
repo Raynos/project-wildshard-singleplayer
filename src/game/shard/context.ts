@@ -1,14 +1,14 @@
-import type { BagTabId, BagTabSpec, BagFragment } from '../bag/registry';
+import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from '@wildshard/engine/ui/tabs';
 import { registerItemRow } from '../bag/itemCatalog';
 import { registerAchievements, type AchievementDef } from '../achievements';
 import { registerCompendium } from '../compendium/registry';
 import type { ShardCompendium } from '../compendium/types';
 import type { ShardRuntime } from './runtime';
 import { normalizeItemRow, type ItemRow } from '../bag/items';
-import type { ContentRow, SkinDef, EngineRows, LevelContext } from '@wildshard/engine';
+import type { ContentRow, EngineRows, LevelContext } from '@wildshard/engine/level/context';
+import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { ShardManifest } from './manifest';
 
-export type { BagTabId, BagTabSpec, BagFragment } from '../bag/registry';
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }
 export interface GameRowMap { item: ItemRow; lootTable: ContentRow; skin: SkinDef; feat: AchievementDef; shop: ContentRow; compendium: ShardCompendium & { id: string }; places: ContentRow }
 export type GameRows = { [K in keyof GameRowMap]: (value: GameRowMap[K] | readonly GameRowMap[K][]) => void };

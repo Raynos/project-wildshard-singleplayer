@@ -4,10 +4,9 @@ import { CHUNK_HALF, CHUNK_SIZE } from '../../core/config';
 import { placeForest, TreeGrid, type TreeInstance } from './placement';
 import { type TreeFactory, forestFade } from '../TreeFactory';
 import { updateWind } from '../wind';
-import type { Sky } from '../Sky';
+import type { SkyRig as Sky } from '../skyRig';
 import { TIER_CONFIG } from '../../core/tier';
 
-export type { TreeInstance } from './placement';
 
 /**
  * The LOD bands dissolve instead of popping (E94): over the last FAR_FADE metres before FAR_DIST a tree is drawn as both

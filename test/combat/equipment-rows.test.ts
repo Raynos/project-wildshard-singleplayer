@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { Weapon } from '@wildshard/engine';
-import { WOODEN_SWORD, IRON_SWORD } from '@wildshard/kit';
-import { JIAN } from '../../src/shards/nine-dragon-stack/weapons/jian';
+import { Weapon } from '../../src/engine/combat/Weapon';
+import { WOODEN_SWORD, IRON_SWORD } from '../../src/kit/weapons/equipment';
+import { JIAN_ROW as JIAN } from '../../src/shards/nine-dragon-stack/vm/jianRow';
 import { SABRE, SPEAR, BOW, AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
 import { CROSSBOW, LONGBOW, LEVER } from '../../src/shards/pine-hollow/weapons/equipment';
 import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
-import { Bow } from '../../src/kit/weapons/bow/index';
+import { Bow } from '../../src/kit/weapons/bow/family';
 import { Crossbow } from '../../src/kit/weapons/crossbow/Crossbow';
 import { Rifle } from '../../src/kit/weapons/firearm/Rifle';
 import { Sabre } from '../../src/shards/nalati-grasslands/weapons/Sabre';

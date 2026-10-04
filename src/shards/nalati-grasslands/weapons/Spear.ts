@@ -1,6 +1,25 @@
-import { smoothstep as sstep } from '@wildshard/engine/data';
-import { weaponActionGate, quiverState, type WeaponState, type AimInfo, gameplayRandom, app, aimRay, viewmodel, fovForAspect, type EquipContext, type Game, type Sky, type Player, type Forest, impactSurfaceOf, worldHit, type ImpactSurface, type Targets, type TargetAnimal, type TargetHit, floorBelow, sticksIn, gloveFist, riderArm, placeArm, painterlyMaterial, lin, heightAt, targetRadius, type AimTarget } from '@wildshard/engine';
-import { Melee, SWORD_WOOD, Thrown, type ThrownProfile, type MeleeProfile } from '@wildshard/kit';
+import { smoothstep as sstep } from '@wildshard/engine/core/noise';
+import { gameplayRandom, app } from '@wildshard/engine/app/runtime';
+import { aimRay, fovForAspect } from '@wildshard/engine/combat/blocks/melee';
+import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+import type { Targets, TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
+import { impactSurfaceOf, worldHit } from '@wildshard/engine/combat/view/ranged';
+import { quiverState, type WeaponState, type AimInfo, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
+import type { Game } from '@wildshard/engine/core/Game';
+import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
+import { lin } from '@wildshard/engine/math/color';
+import { floorBelow, sticksIn } from '@wildshard/engine/physics/query';
+import { targetRadius, type AimTarget } from '@wildshard/engine/player/AimTargets';
+import { gloveFist, riderArm, placeArm } from '@wildshard/engine/player/nalatiArms';
+import type { Player } from '@wildshard/engine/player/Player';
+import { viewmodel } from '@wildshard/engine/render/viewmodelFeel';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { Melee, type MeleeProfile } from '@wildshard/kit/weapons/melee/Melee';
+import { SWORD_WOOD } from '@wildshard/kit/weapons/melee/profiles';
+import { Thrown, type ThrownProfile } from '@wildshard/kit/weapons/thrown/Thrown';
 import { SPEAR } from './equipment';
 
 import * as THREE from 'three';

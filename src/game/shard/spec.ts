@@ -1,4 +1,4 @@
-import type { EngineMechanism, LevelSpec } from '@wildshard/engine';
+import type { EngineMechanism, LevelSpec } from '@wildshard/engine/level/spec';
 import type { ShardManifest } from './manifest';
 
 const ENGINE_MECHANISMS: ReadonlySet<string> = new Set(['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice']);

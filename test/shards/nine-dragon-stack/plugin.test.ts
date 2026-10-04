@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Group } from 'three';
-import { App, type LevelContext, type LevelDriver } from '@wildshard/engine';
-import { shardContext, toLevelSpec, type GameServices } from '@wildshard/game';
+import { App } from '../../../src/engine/app/app';
+import type { LevelContext } from '../../../src/engine/level/context';
+import type { LevelDriver } from '../../../src/engine/level/load';
+import { shardContext, type GameServices } from '../../../src/game/shard/context';
+import { toLevelSpec } from '../../../src/game/shard/spec';
 import manifest from '../../../src/shards/nine-dragon-stack/manifest';
 import { NdPlugin } from '../../../src/shards/nine-dragon-stack/plugin';
 import { ndRuntime } from '../../../src/shards/nine-dragon-stack/runtime';

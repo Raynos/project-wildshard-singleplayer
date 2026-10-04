@@ -1,5 +1,5 @@
 import { BUDGET_CEILINGS } from './budgetCeilings';
-import type { LevelSpec } from '@wildshard/engine';
+import type { LevelSpec } from '@wildshard/engine/level/spec';
 
 /** Inputs only (SHARDS §9): the template's numbers; the engine derives draws, triangles, programs and GPU MB. */
 const tier = (fps: number): NonNullable<LevelSpec['budgets']['phone']> => ({ fps, variability: 1.3, cpuMs: fps === 30 ? 9.6 : 4.8, gcMs: 0.3,

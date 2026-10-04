@@ -1,14 +1,33 @@
-import { type SkinLocker, type Inventory, Elites, GroundTell, type EliteRule } from '@wildshard/game';
-import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight, canReach, type AnimalManager, type Animal, CameraFX, type HUD, type Audio, type Music, EliteBar, applySkin, type SkinDef, perfLap } from '@wildshard/engine';
+import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
+import { Elites, GroundTell, type EliteRule } from '@wildshard/game/Elite';
+import type { Inventory } from '@wildshard/game/Inventory';
+import { canReach } from '@wildshard/engine/ai/reach';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Music } from '@wildshard/engine/audio/Music';
+import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import type { Weapon } from '@wildshard/engine/combat/Weapon';
+import type { Game } from '@wildshard/engine/core/Game';
+import { perfLap } from '@wildshard/engine/core/perfLap';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { lineOfSight } from '@wildshard/engine/physics/query';
+import { CameraFX } from '@wildshard/engine/player/CameraFX';
+import type { Player } from '@wildshard/engine/player/Player';
+import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
+import { EliteBar } from '@wildshard/engine/ui/EliteBar';
+import type { HUD } from '@wildshard/engine/ui/HUD';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 
 
 
 
-import { Crossbow, MAX_BOLTS, crossbowDisplayModel } from '@wildshard/kit';
+import { Crossbow, MAX_BOLTS } from '@wildshard/kit/weapons/crossbow/Crossbow';
+import { crossbowDisplayModel } from '@wildshard/kit/weapons/crossbow/display';
 import { SKINS, type SkinId } from '../loadout/skins';
 import type { PineHollowSfx } from '../audio/sfx';
-import type { Interactable } from '../world/homestead';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { voice, type PineCtx } from './ctx';
 import { installPinePresentation } from './chargeTells';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';

@@ -1,7 +1,8 @@
 import * as v from 'valibot';
-import { app, type SaveStore } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import type { SaveStore } from '@wildshard/engine/saves/store';
 import { progressSave } from './saves';
-import { shards as installedShards } from './shard/registry';
+import { shards as installedShards } from './shard/list';
 import type { ShardSlug } from './shard/slugs.generated';
 
 const count = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));

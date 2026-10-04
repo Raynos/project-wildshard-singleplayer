@@ -7,7 +7,10 @@
  * (`letteringMesh`), so a signpost costs no draw of its own. Collides: the post as a box.
  */
 import * as THREE from 'three';
-import { defineModel, type ModelBuild, type ModelContext, type ModelPart, type Rng, painterlyMaterial, type Sky } from '@wildshard/engine';
+import type { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelBuild, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { M, v3, woodPole } from '../world/paint';
 import { PC, GRAIN, WOOD } from '../world/props';
 import { painted, type Paint } from '../world/painted';

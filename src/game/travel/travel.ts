@@ -1,9 +1,14 @@
 import * as v from 'valibot';
-import { app, markUnload, setTitleArrival, type SaveSlot } from '@wildshard/engine';
-import { chunkUrl, findShard, shards } from '../shard/registry';
+import { app } from '@wildshard/engine/app/runtime';
+import { markUnload } from '@wildshard/engine/boot/lastEnd';
+import { setTitleArrival } from '@wildshard/engine/boot/titleArrival';
+import type { SaveSlot } from '@wildshard/engine/saves/store';
+import { chunkUrl, findShard } from '../shard/registry';
+import { shards } from '../shard/list';
 import type { ShardSlug } from '../shard/slugs.generated';
 import type { SpawnPose } from '../shard/manifest';
-import { isItemId, ITEMS, type Inventory, type ItemId } from '../Inventory';
+import type { Inventory, ItemId } from '../Inventory';
+import { isItemId, ITEMS } from '../bag/itemCatalog';
 import type { ItemRow } from '../bag/items';
 
 export interface TravelRequest { to: ShardSlug; mode: 'enter' | 'explore' | 'arena'; arrive?: SpawnPose }

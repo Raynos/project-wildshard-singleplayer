@@ -22,10 +22,11 @@ import { E, K, Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { dragonHook } from './props';
 import { hipRoof } from './square';
-import { WORDS } from './towers';
+import { WORDS } from './words';
 import { stand } from './well-galleries';
 import { NEON, clamp } from '../util';
-import { Rng, type ColliderDesc } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 export type BridgeKind = 'stone' | 'timber' | 'steel' | 'covered' | 'gate';
 

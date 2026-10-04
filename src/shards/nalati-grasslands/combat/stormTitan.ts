@@ -1,5 +1,19 @@
 import { NALATI_STRIKES, sampleArena } from './strikes';
-import { app, listenPage, type Game, type Player, type TargetAnimal, type TargetHit, wind, type Animal, type AnimalManager, type Interactable, type AimTarget, BossBar, heightAt, terrainNormal as normalAt, setEliteDamage, TIER, PATCH_ORDER, patchShader } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
+import type { Game } from '@wildshard/engine/core/Game';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
+import { listenPage } from '@wildshard/engine/input/dom';
+import type { AimTarget } from '@wildshard/engine/player/AimTargets';
+import type { Player } from '@wildshard/engine/player/Player';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { BossBar } from '@wildshard/engine/ui/BossBar';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { wind } from '@wildshard/engine/world/steppeWind';
+import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 
 
@@ -10,20 +24,22 @@ import type { Wildlife } from '../creatures/wildlife';
 
 
 import type { Sabre } from '../weapons/Sabre';
-import type { NalatiWeather } from '../weather';
+import type { NalatiWeather } from '../world/installWeather';
 import type { GhostRiders } from './ghostRiders';
 import type { Ride } from '../ride/ride';
-import { Boss, type BossDef, type BossScript, GroundTell } from '@wildshard/game';
+import type { BossScript } from '@wildshard/engine/ai/BossBrain';
+import { Boss, type BossDef } from '@wildshard/game/Boss';
+import { GroundTell } from '@wildshard/game/Elite';
 
-import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
+import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 
 
 import { wildEnv } from '../creatures/env';
 
-import { CAIRN } from '../manifest';
+import { CAIRN } from '../layout';
 import { LightningStrip, NaizagaiPower, naizagaiModel } from '../weapons/Naizagai';
 import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
-import { smoothstep } from '@wildshard/engine/data';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 
 /**

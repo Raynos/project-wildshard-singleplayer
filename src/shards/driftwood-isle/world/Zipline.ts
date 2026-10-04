@@ -18,10 +18,14 @@
  * cliff lip on the line from the platform to the cave, so it still reads as the lookout's zipline.
  */
 import * as THREE from 'three';
-import { lowPolyMaterial, type Sky, type Interactable, type ColliderDesc, type WorldRegistry, modelContext, place, type Placed } from '@wildshard/engine';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { zipline, ziplineGeometry, ZiplineLayout, type ZiplineSpec } from '../models/zipline';
 
-export type { ZiplineSpec } from '../models/zipline';
 
 const HANG = 2.9;   // the eye rides ~1.2 m under the wire, below the T-bar: the trolley stays out of the view
 const G = 9.8, DRAG = 0.012, VMAX = 16;

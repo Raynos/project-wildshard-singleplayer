@@ -1,6 +1,18 @@
-import { smoothstep as sstep } from '@wildshard/engine/data';
-import { weaponActionGate, type EquipContext, Weapon, quiverState, app, gameplayRandom, type Game, type Sky, type Player, type Forest, getSetting, rangedFovForAspect as fovForAspect, FOV_HIP, isMesh, type Targets, type TargetHit, Projectiles, type WindField, DropArc, placeArm } from '@wildshard/engine';
-import type { EquipmentRow } from '@wildshard/game';
+import { smoothstep as sstep } from '@wildshard/engine/core/noise';
+import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
+import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipment';
+import type { Targets, TargetHit } from '@wildshard/engine/combat/types';
+import { DropArc } from '@wildshard/engine/combat/view/DropArc';
+import { Projectiles, type WindField } from '@wildshard/engine/combat/view/projectile';
+import { fovForAspect, FOV_HIP, isMesh } from '@wildshard/engine/combat/view/ranged';
+import { Weapon, quiverState } from '@wildshard/engine/combat/Weapon';
+import type { Game } from '@wildshard/engine/core/Game';
+import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
+import { placeArm } from '@wildshard/engine/player/nalatiArms';
+import type { Player } from '@wildshard/engine/player/Player';
+import { getSetting } from '@wildshard/engine/ui/Settings';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 
 import * as THREE from 'three';

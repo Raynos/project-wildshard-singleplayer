@@ -17,7 +17,9 @@ import { Ctx } from '../world/ctx';
 import { merge } from '../world/hero/kitx';
 import { NoSigns, ndLook, need } from '../world/modelLook';
 import { type StallRect, centred, hawkerStall, noodleStall } from '../world/stalls';
-import { Rng, defineModel, type ModelContext, type ModelPart, type ColliderDesc } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 const FILE = 'src/shards/nine-dragon-stack/models/stalls.ts';
 

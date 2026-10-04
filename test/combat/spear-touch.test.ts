@@ -2,7 +2,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-hosted happy-dom test reads the shipped stylesheet to verify the actual cascade.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { EquipmentService, Scope, app } from '@wildshard/engine';
+import { app } from '../../src/engine/app/runtime';
+import { Scope } from '../../src/engine/app/scope';
+import { EquipmentService } from '../../src/engine/combat/EquipmentService';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { TouchControls } from '../../src/engine/player/TouchControls';
 import { Spear } from '../../src/shards/nalati-grasslands/weapons/Spear';

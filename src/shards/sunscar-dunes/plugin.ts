@@ -1,7 +1,11 @@
-import { ShardPlugin, installLoot, type ShardContext } from '@wildshard/game';
-import { installSilentScore } from '@wildshard/kit';
+import { installLoot } from '@wildshard/game/loot/runtime';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import { installSilentScore } from '@wildshard/kit/audio/forest';
 import { Vector3 } from 'three';
-import { Flags, type Animal, type QuestState } from '@wildshard/engine';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { QuestState } from '@wildshard/engine/quest/core';
+import { Flags } from '@wildshard/engine/world/interact/flags';
 import { STRINGS } from './strings';
 import { buildWorld, FLAG, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
@@ -11,7 +15,8 @@ import { preloadDuneMeshes } from './world/meshes';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
-import { installQuest, MATRIARCH_FLAG, SCOUT_FLAG } from './quest/install';
+import { installQuest, MATRIARCH_FLAG } from './quest/install';
+import { SCOUT_FLAG } from './quest/scout';
 import { installSunscarCues } from './audio/cues';
 import { installCreatures } from './combat/creatures';
 import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from './species/skitterer';
@@ -20,7 +25,7 @@ import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
 import { installMatriarch, type DuneMatriarch } from './combat/matriarch';
 
 // the slot merges through @wildshard/engine (deep engine paths do not resolve); a program sees it only when it includes this file
-declare module '@wildshard/engine' {
+declare module '@wildshard/engine/combat/Equipment' {
   interface EquipmentSlotMap { 'sunscar-whip': true }
 }
 

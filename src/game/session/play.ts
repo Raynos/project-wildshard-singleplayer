@@ -1,22 +1,71 @@
 import { SkinLocker } from '../cosmetics/locker';
 import { BagMenu } from '../bag/tabs';
 import { equipmentEntry, toolEntries } from '../bag/equipment';
-import type { WeaponId, SkinDef, DeathCause, AimTarget, Feedback, Explore, ExploreMode, Playground, PlaygroundId, Bucket } from '@wildshard/engine';
-import { installBodyShadow, isOwnedId, bindTravelInventory, applyTravelCarry } from '../index';
+import type { WeaponId } from '@wildshard/engine/combat/Equipment';
+import type { DeathCause } from '@wildshard/engine/combat/pipeline';
+import { type Bucket, frameCost } from '@wildshard/engine/core/frameCost';
+import type { Explore, ExploreMode } from '@wildshard/engine/explore/Explore';
+import { type AimTarget, meleeLock, setAimTargets } from '@wildshard/engine/player/AimTargets';
+import { type SkinDef, applySkin } from '@wildshard/engine/player/Skins';
+import type { PlaygroundId } from '@wildshard/engine/practice/playground/catalog';
+import type { Playground } from '@wildshard/engine/practice/playground/Playground';
+import type { Feedback } from '@wildshard/engine/ui/Feedback';
+import { installBodyShadow } from '../cosmetics/bodyShadow';
+import { isOwnedId, Owned } from '../loot/Owned';
+import { bindTravelInventory, applyTravelCarry } from '../travel/travel';
 import * as THREE from 'three';
 import { BagButton } from '../bag/BagButton';
 import { Progress } from '../Progress';
-import { Inventory, ITEMS } from '../Inventory';
-import { Owned } from '../loot/Owned';
+import { Inventory } from '../Inventory';
+import { ITEMS } from '../bag/itemCatalog';
 import { LastPlace, placeName } from '../LastPlace';
 import { shardCompleteUp } from '../complete/ShardComplete';
 import type { loadoutStage } from './loadout';
 import { animalPositions } from './positions';
 import { describeKeyBindings } from '../keyBindings';
+import { app } from '@wildshard/engine/app/runtime';
+import { beginExploreEntry, recordBootCheckpoint } from '@wildshard/engine/boot/bootTrace';
+import { startMenuPreload } from '@wildshard/engine/boot/extras';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { loadExplore, loadFeedback as loadFeedbackModule } from '@wildshard/engine/boot/runtime';
+import { CombatCues } from '@wildshard/engine/combat/cues';
+import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import { PlayerHealth } from '@wildshard/engine/combat/health';
+import { KeepAlive } from '@wildshard/engine/core/KeepAlive';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { isDev } from '@wildshard/engine/core/devMode';
+import { tap } from '@wildshard/engine/core/harnessTap';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { TIER } from '@wildshard/engine/core/tier';
+import { Impacts } from '@wildshard/engine/fx/Impacts';
+import { floorBelow, lineOfSight } from '@wildshard/engine/physics/query';
+import { CameraFX } from '@wildshard/engine/player/CameraFX';
+import { Hands } from '@wildshard/engine/player/Hands';
+import { loadPlayground } from '@wildshard/engine/practice/playground/load';
+import { Combat, aimReadout } from '@wildshard/engine/ui/Combat';
+import { DeathFade } from '@wildshard/engine/ui/DeathFade';
+import { FirstHints } from '@wildshard/engine/ui/FirstHints';
+import { HurtArc, deathCause, respawnWhere } from '@wildshard/engine/ui/HurtArc';
+import { LockOn } from '@wildshard/engine/ui/LockOn';
+import { FullMap } from '@wildshard/engine/ui/Map';
+import { GameMenu } from '@wildshard/engine/ui/Menu';
+import { Minimap } from '@wildshard/engine/ui/Minimap';
+import { Perf } from '@wildshard/engine/ui/Perf';
+import { rotateGated } from '@wildshard/engine/ui/RotateGate';
+import { getNumber, onNumber } from '@wildshard/engine/ui/Settings';
+import { SpeedLines } from '@wildshard/engine/ui/SpeedLines';
+import { WeaponStrip } from '@wildshard/engine/ui/WeaponStrip';
+import { WindupWarn } from '@wildshard/engine/ui/WindupWarn';
+import { HAPTIC, buzz } from '@wildshard/engine/ui/haptics';
+import { hudSlots } from '@wildshard/engine/ui/hudSlots';
+import { installPlayerDeath } from '@wildshard/engine/ui/playerDeath';
+import { PlayerHurt } from '@wildshard/engine/ui/playerHurt';
+import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
+import { installBounds } from '@wildshard/engine/world/bounds';
+import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
-  const { engine, manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, interactables, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
-  const { app, EffectService, CombatCues, installBounds, CHUNK_HALF, getNumber, onNumber, floorBelow, lineOfSight, tap, Hands, CameraFX, WeaponStrip, hudSlots, applySkin, LockOn, SpeedLines, buzz, HAPTIC, Perf, Minimap, FullMap, GameMenu, practiceRoom, KeepAlive, Combat, aimReadout, HurtArc, deathCause, respawnWhere, PlayerHealth, PlayerHurt, installPlayerDeath, WindupWarn, DeathFade, FirstHints, setAimTargets, meleeLock, macrotask, startMenuPreload, onReview, queuedCount, quickNote, rotateGated, loadPlayground, TIER, frameCost, Impacts, pickInteractable, beginExploreEntry, recordBootCheckpoint, isDev } = engine;
+  const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, interactables, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
 
   let playground: Playground | null = null;
   const away = (): boolean => arena.entered || playground?.entered === true;
@@ -94,7 +143,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const touchUi = () => document.getElementById('hud')?.classList.contains('touch') === true;
   let explore: Explore | null = null; // Explore World (below) — while it is up, notes describe the viewer, not the player
   const exploring = (): boolean => explore?.active === true;
-  const loadFeedback = (): Promise<Feedback> => { feedback ??= engine.loadFeedback().then(({ Feedback: F }) => new F({
+  const loadFeedback = (): Promise<Feedback> => { feedback ??= loadFeedbackModule().then(({ Feedback: F }) => new F({
     capture: () => game.captureFrame(1280),
     context: () => (explore?.active === true ? { shard: manifest.slug, ...explore.context(), tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles } : {
       shard: manifest.slug, pos: [player.position.x, player.position.y, player.position.z].map((v) => Number(v.toFixed(2))),
@@ -343,7 +392,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     weapons.setEnabled(false); weapons.visible = false;
     perf.setActive(false); // the Explore readout carries fps / calls / tris
     const t0 = performance.now();
-    const { Explore: X } = await engine.loadExplore();
+    const { Explore: X } = await loadExplore();
     const t1 = performance.now();
     recordBootCheckpoint('explore:imported');
     explore ??= new X({ world, title: { name: manifest.name, landscape: manifest.card.landscape, thumb: manifest.card.thumb }, onExit: exitExplore, onPractice: () => { hud.enterArenaNow(); }, onPlayground: (id) => { void enterPlayground(id); }, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,

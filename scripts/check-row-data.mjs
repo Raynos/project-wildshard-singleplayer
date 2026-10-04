@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// SHARD-PLATFORM SP3: content rows become data. The TypeScript compiler walks every content row type the public
-// indexes export (species, strikes, loot, quests, weapon profiles …) and lists each field whose type is a function or a
+// SHARD-PLATFORM SP3: content rows become data. The TypeScript compiler walks every content row type the layer
+// packages export (species, strikes, loot, quests, weapon profiles …) and lists each field whose type is a function or a
 // class: a row with one can't be written as JSON, so it can't ship in an uploaded shard (MMO-REQUIREMENTS R1, S6).
 // The list is a ratchet in lint/row-functions.json: a new function field fails, and a field that became data must
 // leave the list in the same commit. Fields become data by turning into a value or a named id the engine resolves.
@@ -8,22 +8,23 @@
 //   node scripts/check-row-data.mjs --check   fail on a new field or a stale entry
 //   node scripts/check-row-data.mjs --update  rewrite the list (only after removing fields)
 import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const LIST = 'lint/row-functions.json';
-/** the content row types: what a shard registers or ships as rows, by the index that exports them */
+/** the content row types: what a shard registers or ships as rows, by the package that exports them (E434: a package's
+ *  surface is the modules its package.json `exports` lists; there is no index) */
 export const ROW_TYPES = {
-  'src/engine/index.ts': [
+  'src/engine/package.json': [
     'AmmoRow', 'BossDef', 'BossDefinition', 'DamageRuleDef', 'DayCycleSpec', 'EffectDef', 'EliteDefinition', 'EncounterDefinition',
     'EquipmentRow', 'HitscanProfile', 'HitStopProfile', 'InteractTable', 'LevelAudioProfile', 'LoadoutSpec', 'NpcDef', 'PickupDef',
     'QuestDef', 'RangedFeelProfile', 'SkinDef', 'SkinRow', 'SlashTrailProfile', 'SpawnTableRow', 'SpeciesLook', 'SpeciesRow',
     'StrikeSpec', 'StringTable', 'TableSpec', 'VoiceTable', 'WeatherProfile',
   ],
-  'src/game/index.ts': ['AchievementDef', 'CosmeticDef', 'EliteDef', 'ItemRow', 'LootTableRow', 'PresentedQuestDef', 'QuestRewardSpec'],
-  'src/kit/index.ts': ['BowProfile', 'CrossbowProfile', 'FirearmProfile', 'MeleeProfile', 'NpcRigProfile', 'NpcRow', 'RainCurtainSpec', 'ThrownProfile'],
+  'src/game/package.json': ['AchievementDef', 'CosmeticDef', 'EliteDef', 'ItemRow', 'LootTableRow', 'PresentedQuestDef', 'QuestRewardSpec'],
+  'src/kit/package.json': ['BowProfile', 'CrossbowProfile', 'FirearmProfile', 'MeleeProfile', 'NpcRigProfile', 'NpcRow', 'RainCurtainSpec', 'ThrownProfile'],
 };
 const DEPTH = 5;
 
@@ -32,7 +33,9 @@ export function rowFunctions(root = ROOT) {
   const configPath = ts.findConfigFile(root, (f) => ts.sys.fileExists(f));
   const config = configPath ? ts.readConfigFile(configPath, (f) => ts.sys.readFile(f)).config : {};
   const { options } = ts.parseJsonConfigFileContent(config, ts.sys, root);
-  const program = ts.createProgram(Object.keys(ROW_TYPES).map((f) => resolve(root, f)), { ...options, noEmit: true });
+  const modulesOf = (pkg) => Object.values(JSON.parse(readFileSync(resolve(root, pkg), 'utf8')).exports ?? {})
+    .filter((target) => typeof target === 'string').map((target) => resolve(root, dirname(pkg), target));
+  const program = ts.createProgram(Object.keys(ROW_TYPES).flatMap(modulesOf), { ...options, noEmit: true });
   const checker = program.getTypeChecker();
   const external = (type) => (type.getSymbol()?.declarations ?? []).some((d) => d.getSourceFile().fileName.includes('/node_modules/'));
   const found = new Set();
@@ -58,10 +61,12 @@ export function rowFunctions(root = ROOT) {
     }
   };
   for (const [file, names] of Object.entries(ROW_TYPES)) {
-    const source = program.getSourceFile(resolve(root, file));
-    const module = source && checker.getSymbolAtLocation(source);
-    if (!module) throw new Error(`check-row-data: cannot read ${file}`);
-    const exports = new Map(checker.getExportsOfModule(module).map((s) => [s.getName(), s]));
+    const exports = new Map();
+    for (const path of modulesOf(file)) {
+      const source = program.getSourceFile(path);
+      const module = source && checker.getSymbolAtLocation(source);
+      if (module) for (const s of checker.getExportsOfModule(module)) if (!exports.has(s.getName())) exports.set(s.getName(), s);
+    }
     for (const name of names) {
       const symbol = exports.get(name);
       if (!symbol) throw new Error(`check-row-data: ${file} no longer exports ${name}`);

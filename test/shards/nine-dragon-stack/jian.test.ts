@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SWORD_WOOD } from '@wildshard/kit';
-import type { ShardSword } from '@wildshard/game';
+import { SWORD_WOOD } from '../../../src/kit/weapons/melee/profiles';
+import type { ShardSword } from '../../../src/game/shard/manifest';
 import { JIAN_ROW, jianViewmodel } from '../../../src/shards/nine-dragon-stack/vm/jianRow';
 
 afterEach(() => { vi.restoreAllMocks(); });

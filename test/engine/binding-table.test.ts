@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Scope } from '@wildshard/engine';
+import { Scope } from '../../src/engine/app/scope';
 import { Bindings } from '../../src/engine/input/bindings';
 import { BindingTable, foldKeys, keyOfCode, bindableKey } from '../../src/engine/input/bindingTable';
 import { keycap } from '../../src/engine/input/ControlsPanel';

@@ -1,4 +1,6 @@
-import { engineString, type SpeciesDef, NO_FUR } from '@wildshard/engine';
+import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
+import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
+import { engineString } from '@wildshard/engine/strings';
 
 
 

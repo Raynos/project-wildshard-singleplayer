@@ -1,4 +1,8 @@
-import type { Actor, CombatCues, EquipmentRow, Events, Scope } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { CombatCues } from '@wildshard/engine/combat/cues';
+import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
+import type { Actor } from '@wildshard/engine/combat/pipeline';
+import type { Events } from '@wildshard/engine/events/events';
 
 /** Full draw is a state notification; the creak belongs only to the start of the draw. */
 export function bindLongbowCharge(events: Events, scope: Scope, row: EquipmentRow, cues: CombatCues, recovered: (ok: boolean) => void): void {

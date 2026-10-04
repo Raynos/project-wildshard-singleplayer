@@ -10,8 +10,9 @@
 // punch) then leave the arms still. The depth clear in front of the viewmodel queue (Sword.ts) keeps them out of the
 // walls.
 import { Quaternion, Vector3 } from 'three';
-import type { ShardSword } from '@wildshard/game';
-import { type SwordArms, type Move, vmScale } from '@wildshard/kit';
+import type { ShardSword } from '@wildshard/game/shard/manifest';
+import type { SwordArms, Move } from '@wildshard/engine/combat/view/melee';
+import { vmScale } from '@wildshard/kit/viewmodel/rigArms';
 import { type MoveName, NineDragonArms } from './fpArms';
 
 /** the engine's moves → the rig's clips (the sabre's passes never reach this sword) */

@@ -72,7 +72,6 @@ export interface CallVoice {
 }
 /** a level's synth bed (`installSynthBed`): started when its id is the bed and no sampled bed of that id decoded */
 export interface SynthBed { start: () => void; stop: () => void }
-export type { StepSurface } from './surface';
 /** sfx.json `oneshots` keys: the method each replaces (`footstep-sand`, `boltImpact-wood`, `land-hard`, the AnimalSound ids, `gull`);
  *  a level's own families are plain strings */
 export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 'swordSwing' | 'swordHeavy' | `swordHit-${'flesh' | 'wood'}`

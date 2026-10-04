@@ -1,8 +1,15 @@
-import { loadAudio, type LevelAudioProfile } from '@wildshard/engine';
+import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 
 const SET = 'driftwood-isle', BED = 'island';
 const SAMPLES = { loopGains: { island: 0.5 } };
-type Ports = Awaited<ReturnType<typeof loadAudio>>;
+/** the engine's audio functions this file uses, loaded when the island's audio is (they stay out of the manifest closure) */
+async function audioPorts() {
+  const [{ decodeSfxSet, cachedBytes, decodeBytes, sfxFiles }, { getSfxSet }, { audioFiles }, { styleFiles, decodeStyle }] = await Promise.all([
+    import('@wildshard/engine/audio/preload'), import('@wildshard/engine/ui/Settings'), import('@wildshard/engine/boot/audioFiles'), import('@wildshard/engine/audio/Stems'),
+  ]);
+  return { decodeSfxSet, cachedBytes, decodeBytes, sfxFiles, getSfxSet, audioFiles, styleFiles, decodeStyle };
+}
+type Ports = Awaited<ReturnType<typeof audioPorts>>;
 type SfxBank = Awaited<ReturnType<Ports['decodeSfxSet']>>;
 
 /** The selected base set plus the island's same-byte takes. Synth selects neither sampled set. */
@@ -22,13 +29,13 @@ async function samples(ports: Ports, set: Parameters<Ports['decodeSfxSet']>[0],
 }
 
 export async function driftwoodSampleDecoder(): Promise<(set: Parameters<Ports['decodeSfxSet']>[0]) => Promise<SfxBank>> {
-  const ports = await loadAudio();
+  const ports = await audioPorts();
   return (set) => samples(ports, set, ports.cachedBytes, ports.decodeBytes);
 }
 
 /** Preserve every base-style download and decode only title + island for the selected style. */
 export async function createDriftwoodAudio(): Promise<LevelAudioProfile> {
-  const ports = await loadAudio();
+  const ports = await audioPorts();
   const selectedSfx = (): string[] => [...ports.sfxFiles(ports.getSfxSet(), BED, SAMPLES),
     ...(ports.getSfxSet() === 'synth' ? [] : ports.sfxFiles(SET, BED, SAMPLES))];
   return {

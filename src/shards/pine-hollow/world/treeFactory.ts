@@ -1,6 +1,18 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loadTexture, loadPBR, loadPBRArray, Rng, attachFogUniforms, TIER_CONFIG, loadBakedCards, exportCardTextures, macrotask, markGpuOnly, TREE_SPECS, BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls, TreeFactory, patchFade, patchWind, treeSetOf, publicBytes, type FadeBand, type LookReplaceContext, PATCH_ORDER, patchShader } from '@wildshard/engine';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { publicBytes } from '@wildshard/engine/boot/tables';
+import { loadTexture, loadPBR, loadPBRArray } from '@wildshard/engine/core/assets';
+import { markGpuOnly } from '@wildshard/engine/core/gpuOnly';
+import { Rng } from '@wildshard/engine/core/rng';
+import { TIER_CONFIG } from '@wildshard/engine/core/tier';
+import type { LookReplaceContext } from '@wildshard/engine/render/look';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { loadBakedCards, exportCardTextures } from '@wildshard/engine/world/BakedCards';
+import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls } from '@wildshard/engine/world/forest/treeSet';
+import { TREE_SPECS, treeSetOf } from '@wildshard/engine/world/forest/treeSpec';
+import { TreeFactory, patchFade, patchWind, type FadeBand } from '@wildshard/engine/world/TreeFactory';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 import { PINE_TREE_ASSETS } from './treeAssets';
 

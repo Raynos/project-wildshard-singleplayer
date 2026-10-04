@@ -27,7 +27,8 @@
  *   told:wind             home to the elder
  * The bosses stay open any time: a boss beaten before its chapter skips the steps that lead to it.
  */
-import type { NpcDef, QuestDef, PlacePoint } from '@wildshard/game';
+import type { NpcDef, QuestDef } from '@wildshard/engine/quest/core';
+import type { PlacePoint } from '@wildshard/engine/quest/view';
 import { NALATI_MAP, CAMP, HORSE_PLAINS, KOKPAR, ARGYMAQ_PASTURE, KURGANS, CAIRN, KOKBORI_DEN, QARA_CAIRN, LEOPARD_CAVE, EAGLE_ROCK } from './layout';
 
 export const TULPAR_DONE = 'quest:tulpar';

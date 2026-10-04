@@ -1,4 +1,10 @@
-import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '@wildshard/engine';
+import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
+import type { SpeciesRow } from '@wildshard/engine/ai/species';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
+import type { AnimalSpecies, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
 import { DECK, RAY_HOMES } from '../layout';
 import { STRINGS } from '../strings';

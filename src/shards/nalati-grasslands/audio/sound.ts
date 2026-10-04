@@ -1,6 +1,13 @@
 import type { Wildlife } from '../creatures/wildlife';
-import type { ShardContext } from '@wildshard/game';
-import { CombatCues, type Scope, panFromYaw, audioRandom, loadAudio, wind, type Audio, type Music, type Player, type AnimalManager, type HoofSurface, type ImpactKind } from '@wildshard/engine';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Audio, HoofSurface, ImpactKind } from '@wildshard/engine/audio/Audio';
+import type { Music } from '@wildshard/engine/audio/Music';
+import { panFromYaw, audioRandom } from '@wildshard/engine/audio/util';
+import { CombatCues } from '@wildshard/engine/combat/cues';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { Player } from '@wildshard/engine/player/Player';
+import { wind } from '@wildshard/engine/world/steppeWind';
 import { createSteppeScore, type SteppeScene } from './SteppeScore';
 /**
  * Nalati's sound (row B16, the audio half): the steppe's creatures, hooves on the ground they cross, the stampede, the
@@ -25,10 +32,11 @@ import { createSteppeScore, type SteppeScene } from './SteppeScore';
 import * as THREE from 'three';
 import { SteppeAmbience } from './SteppeAmbience';
 import { installSteppeVoices, STEPPE_BED, type SteppeCall, type SteppeVoices } from './synth';
-import type { Nalati } from '../index';
-import type { NalatiWeather } from '../weather';
-import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt, TERRAIN } from '../manifest';
-import { smoothstep } from '@wildshard/engine/data';
+import type { Nalati } from '../runtime';
+import type { NalatiWeather } from '../world/installWeather';
+import { CAMP, SUMMER_YURTS, GLACIER, MELT_STREAM as BROOK } from '../layout';
+import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../world/terrain';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 const surfaceOf = (surface: string | undefined): ImpactKind => surface === 'wood' || surface === 'flesh' ? surface : 'ground';
 
@@ -168,7 +176,7 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
       a.setAmbient(STEPPE_BED);
       // A4: the zones' sampled beds (the synth bed stays the fallback); A2: the score follows the zone they report
       if (music) {
-        score = createSteppeScore((url) => loadAudio().then((ports) => ports.cachedBytes(url)), (bytes) => loadAudio().then((ports) => ports.decodeBytes(bytes)), () => { music.refreshScore(); });
+        score = createSteppeScore((url) => import('@wildshard/engine/audio/preload').then(({ cachedBytes }) => cachedBytes(url)), (bytes) => import('@wildshard/engine/audio/preload').then(({ decodeBytes }) => decodeBytes(bytes)), () => { music.refreshScore(); });
         refresh = () => { music.refreshScore(); };
         const release = music.setScore('score.nalati', score);
         ctx.scope.onDispose(release);

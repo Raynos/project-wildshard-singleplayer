@@ -1,9 +1,10 @@
-import { ShardPlugin, type ShardContext } from '@wildshard/game';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { STRINGS } from './strings';
 import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from './world/build';
 import { islandSystems } from './world/systems';
 import { installDriftwoodAudio } from './audio/install';
-import type { World } from '@wildshard/engine';
+import type { World } from '@wildshard/engine/core/bootstrap';
 import type { Vector3 } from 'three';
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from './quest/rows';
 import { DRIFTWOOD_EFFECTS } from './loot/effects';

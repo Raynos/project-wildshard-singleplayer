@@ -14,7 +14,7 @@
  * test so its shadow still falls into view from behind the camera.
  */
 import * as THREE from 'three';
-import { smoothstep } from '@wildshard/engine';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface Inst {
   x: number; y: number; z: number;

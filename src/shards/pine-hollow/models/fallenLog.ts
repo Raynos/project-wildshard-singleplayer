@@ -9,7 +9,9 @@
  */
 import * as THREE from 'three';
 import { loadLod, prepModel } from '../world/homestead';
-import { defineModel, type ModelContext, type ColliderDesc, bakePart } from '@wildshard/engine';
+import { bakePart } from '@wildshard/engine/models/hull';
+import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 interface Log {
   parts: { geometry: THREE.BufferGeometry; material: THREE.Material }[];

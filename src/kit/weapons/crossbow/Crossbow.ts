@@ -1,4 +1,18 @@
-import { weaponActionGate, type EquipContext, type AmmoRow, type TargetHit, blendAds, Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, rangedFovForAspect as fovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, sstep, type CrossbowWorld, type CrossbowOptions, type Targets, Weapon, quiverState, type ImpactSurface, app, gameplayRandom, type Game, type Sky, type Player, sticksIn, CHUNK_HALF, getSetting } from '@wildshard/engine';
+import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
+import type { AmmoRow } from '@wildshard/engine/combat/ammo';
+import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
+import type { EquipContext } from '@wildshard/engine/combat/Equipment';
+import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
+import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, fovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, type CrossbowWorld, type CrossbowOptions } from '@wildshard/engine/combat/view/ranged';
+import { Weapon, quiverState, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import type { Game } from '@wildshard/engine/core/Game';
+import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
+import { sticksIn } from '@wildshard/engine/physics/query';
+import type { Player } from '@wildshard/engine/player/Player';
+import { sstep } from '@wildshard/engine/player/viewmodelTextures';
+import { getSetting } from '@wildshard/engine/ui/Settings';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../../viewmodel/hunterHands';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from './profiles';
 
@@ -49,7 +63,6 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
  */
 
 
-export type { ImpactSurface } from '@wildshard/engine';
 export const MAX_BOLTS = 30;
 /** Stuck bolts are PERMANENT (target practice): no lifetime — only the cap evicts, oldest first. */
 /** how deep the broadhead sits in wood / ground (m); the rest of the bolt stands proud of the surface */

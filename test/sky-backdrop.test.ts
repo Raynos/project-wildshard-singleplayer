@@ -1,6 +1,8 @@
 import { expect, it } from 'vitest';
 import { Object3D, Scene, Vector3 } from 'three';
-import { Scope, type Renderer, type Sky } from '@wildshard/engine';
+import { Scope } from '../src/engine/app/scope';
+import type { Renderer } from '../src/engine/render/renderer';
+import type { SkyRig as Sky } from '../src/engine/world/skyRig';
 import { SkyBackdropView } from '../src/engine/world/skyBackdrop';
 
 function fixture<T extends object>(fields: Partial<T>): T {

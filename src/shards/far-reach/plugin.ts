@@ -1,6 +1,11 @@
-import { ShardPlugin, installLoot, type ShardContext } from '@wildshard/game';
-import { installSilentScore } from '@wildshard/kit';
-import { PATCH_ORDER, patchShader, type Animal, type Flags, type QuestState } from '@wildshard/engine';
+import { installLoot } from '@wildshard/game/loot/runtime';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import { installSilentScore } from '@wildshard/kit/audio/forest';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { QuestState } from '@wildshard/engine/quest/core';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from './strings';
 import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, WISP_HOMES, apothem, type Home } from './layout';
@@ -26,12 +31,17 @@ import { meadow, type Meadow } from './world/meadow';
 import { heroStoneDiscs } from './world/dressing';
 import { SUN_DIR } from './look/sun';
 import { ROC_ID, StormRocBoss } from './combat/stormRoc';
-import { BOSS_REWARD, FLAGS, installQuest, vaneFlag } from './quest/install';
+import { BOSS_REWARD, installQuest } from './quest/install';
+import { FLAGS, vaneFlag } from './quest/flags';
 import { installSkyCues } from './audio/cues';
 
-declare module '@wildshard/engine' {
+declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }
+}
+declare module '@wildshard/engine/level/spec' {
   interface TierKnobMap { 'far.meadowBlades': number }
+}
+declare module '@wildshard/engine/combat/Equipment' {
   interface EquipmentSlotMap { 'far-fan': true }
 }
 

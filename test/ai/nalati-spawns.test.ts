@@ -1,4 +1,6 @@
-import { app, Scope, WeightedTable } from '@wildshard/engine';
+import { WeightedTable } from '../../src/engine/ai/weighted';
+import { app } from '../../src/engine/app/runtime';
+import { Scope } from '../../src/engine/app/scope';
 import { describe, expect, it, vi } from 'vitest';
 import { NIGHT_SPAWNS, nightSpawner } from '../../src/shards/nalati-grasslands/combat/spawns';
 import { NALATI_DEFINITIONS, NALATI_SPECIES, NALATI_LOOKS } from '../../src/shards/nalati-grasslands/species/rows';

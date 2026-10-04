@@ -1,4 +1,7 @@
-import { uiScope, mountUi, type UiHandle, app, type Scope } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { UiHandle } from '@wildshard/engine/ui/layers';
+import { uiScope, mountUi } from '@wildshard/engine/ui/ownership';
 /**
  * ShardComplete — the "<shard> complete" card (E132, mockup A: art/quest/round-2-complete-screen/A.jpg): a centred glass
  * card over the dimmed last frame. It shows the shard's title, a stats grid, the "still to find" chips and three buttons:

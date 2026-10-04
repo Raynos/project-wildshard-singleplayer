@@ -4,7 +4,7 @@ import { CHUNK_DEPTH } from '../core/config';
 import { Noise2D } from '../core/noise';
 import { attachFogUniforms, fogUniforms } from './Atmosphere';
 import { PaintedHorizon, levelHorizonStrips } from './HorizonMatte';
-import type { Sky } from './Sky';
+import type { SkyRig as Sky } from './skyRig';
 import { activeLevel } from '../level/selection';
 import type { HorizonSpec } from '../level/data';
 import type { LevelSpec } from '../level/spec';

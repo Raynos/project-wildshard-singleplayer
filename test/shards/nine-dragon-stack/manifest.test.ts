@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { toLevelSpec } from '@wildshard/game';
+import { toLevelSpec } from '../../../src/game/shard/spec';
 import { SHARDS } from '../../../src/shards.generated';
 import { playable } from '../../../src/game/shard/registry';
 import { PUBLIC_BYTES } from '../../../src/game/boot/bytes.generated';

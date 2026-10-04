@@ -1,5 +1,4 @@
-import { buildTier } from '@wildshard/engine';
-import type { Tier } from '@wildshard/engine/data';
+import { buildTier, type Tier } from '@wildshard/engine/core/tier';
 
 /**
  * Driftwood's own tier knobs (E357 S4.1, 08 §6.1 step 6; until then rows of the engine's TIER_TABLE): the ocean grid

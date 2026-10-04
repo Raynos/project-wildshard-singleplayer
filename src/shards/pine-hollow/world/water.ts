@@ -4,7 +4,8 @@
  * and the beaver pool, whose level drives `creekWaterAt`; drawn by ./streams.ts and ./beaverPool.ts). Both are drawn
  * with the shared photoreal water, so both carry its reflect hook. Swimming and wading ask the pond first, then the creek.
  */
-import { basinBody, surfaceReflect, type WaterBody } from '@wildshard/engine/data';
+import { basinBody, type WaterBody } from '@wildshard/engine/world/water/body';
+import { surfaceReflect } from '@wildshard/engine/world/water/view';
 import { creekWaterAt } from '../layout';
 import { TERRAIN } from './terrain';
 

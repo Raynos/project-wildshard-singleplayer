@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type AnimalSpecies, type SpeciesDef, type VariantDef, skinPlain, type Paint, type Sky, defineModel, type ModelDef, Animal, CREATURE_CLIPS, creatureFactory, type CreatureParams } from '@wildshard/engine';
+import { Animal } from '@wildshard/engine/entities/Animal';
+import { skinPlain, type Paint } from '@wildshard/engine/entities/species/loft';
+import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
+import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '@wildshard/engine/models/creature';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { KING_BONES, animateKing } from '../combat/kingRig';
 
 /**

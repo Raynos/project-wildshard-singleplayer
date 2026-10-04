@@ -1,7 +1,12 @@
-import { type ShardWorld as World, shardContext, toLevelSpec, type GameServices, type ShardRuntime } from '@wildshard/game';
+import { shardContext, type GameServices } from '../../../src/game/shard/context';
+import type { ShardRuntime } from '../../../src/game/shard/runtime';
+import { toLevelSpec } from '../../../src/game/shard/spec';
+import type { ShardWorld as World } from '../../../src/game/shard/world';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { App, type LevelDriver, type World as EngineWorld } from '@wildshard/engine';
+import { App } from '../../../src/engine/app/app';
+import type { World as EngineWorld } from '../../../src/engine/core/bootstrap';
+import type { LevelDriver } from '../../../src/engine/level/load';
 import manifest, { OCEAN } from '../../../src/shards/driftwood-isle/manifest';
 import { DriftwoodPlugin } from '../../../src/shards/driftwood-isle/plugin';
 import { driftwoodWorld, noDriftwoodWorld } from '../../../src/shards/driftwood-isle/world/build';

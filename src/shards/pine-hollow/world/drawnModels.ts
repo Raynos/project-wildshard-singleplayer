@@ -15,9 +15,11 @@
  *   fieldModels: async () => (await import('./pine-hollow/world/drawnModels')).placeDrawnModels,
  */
 import * as THREE from 'three';
-import { place, type Placement, type GroundPlacement as UnderPlacement } from '@wildshard/engine';
+import type { Placement } from '@wildshard/engine/models/model';
+import { place } from '@wildshard/engine/models/place';
+import type { Placement as UnderPlacement } from '@wildshard/engine/world/forest/placement';
 import { matrixOf, UNDER_CELLS, type Undergrowth } from './undergrowth';
-import type { FieldModelsContext } from '@wildshard/game';
+import type { FieldModelsContext } from '@wildshard/game/shard/manifest';
 import { PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 import { pineModels } from './context';
 import { useUndergrowth } from './undergrowthKit';

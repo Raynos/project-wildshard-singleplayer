@@ -1,4 +1,6 @@
-import { StrikeRunner, type StrikeSpec, type Animal, type ThinkCtx } from '@wildshard/engine';
+import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 
 const point = (id: string, radius: number, damage: number, windup: number, recover: number, cooldown: number): StrikeSpec => ({
   id, shape: { kind: 'point', radius }, range: radius, damage, windup, active: 0, recover, cooldown,

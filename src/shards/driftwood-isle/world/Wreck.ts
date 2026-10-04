@@ -20,7 +20,17 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { heightAt, SEED, log, plank, rock, rope, lowPolyMaterial, swayDepthMaterial, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, place, type Placed } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { modelContext, type Placement } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { log, plank, rock, rope } from '@wildshard/engine/world/geometryKit';
+import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
 import { addDriftLog, DRIFT } from './driftLogs';
 import { ShipwreckBuilder, shipwreck, WRECK_COLOURS as C, type CargoCopy, type WreckAnchor, type HoldBounds, type WreckSpec, type WreckAround } from '../models/shipwreck';
@@ -28,7 +38,6 @@ import { barrel as barrelModel, crate as crateModel, ropeCoil, cargoBox, addBarr
 import { driftLog, driftLogBox } from '../models/driftLog';
 import { reefRock } from '../models/reefRock';
 
-export type { WreckSpec, WreckAnchor, HoldBounds } from '../models/shipwreck';
 
 export class Wreck {
   group = new THREE.Group();

@@ -25,7 +25,7 @@
  */
 import * as THREE from 'three';
 import { ktx2Texture, readTexturePixels } from '../core/ktx2';
-import type { Sky } from './Sky';
+import type { SkyRig as Sky } from './skyRig';
 import { fogUniforms } from './Atmosphere';
 import { activeLevel } from '../level/selection';
 import { TIER } from '../core/tier';

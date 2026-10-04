@@ -1,5 +1,5 @@
-import type { Animal } from '@wildshard/engine';
-import type { ShardContext } from '@wildshard/game';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import { PACKS, RAY_HOME, STRIDERS } from '../layout';
 import { lastLightAll } from '../look/light';
 

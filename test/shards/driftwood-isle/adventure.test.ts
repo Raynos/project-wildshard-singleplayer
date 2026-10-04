@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { Events, Scope, type Actor, type DamageRequest, type LevelContext } from '@wildshard/engine';
+import { Scope } from '../../../src/engine/app/scope';
+import type { Actor, DamageRequest } from '../../../src/engine/combat/pipeline';
+import { Events } from '../../../src/engine/events/events';
+import type { LevelContext } from '../../../src/engine/level/context';
 import { Vector3 } from 'three';
 import { DEATH_ORDER, onCreatureDeath } from '../../../src/game/loot/deaths';
 

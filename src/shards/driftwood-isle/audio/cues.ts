@@ -1,4 +1,4 @@
-import type { CueMap } from '@wildshard/engine';
+import type { CueMap } from '@wildshard/engine/audio/Cues';
 import type { Vector3 } from 'three';
 import type { IslandSfx, Material, Enemy, WindupEnemy } from './sfx';
 import type { Surface } from './surface';

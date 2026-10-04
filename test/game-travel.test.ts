@@ -1,8 +1,12 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-import { SaveStore, App, type LevelDriver } from '@wildshard/engine';
-import { shardContext, toLevelSpec, type GameServices } from '@wildshard/game';
+import { App } from '../src/engine/app/app';
+import type { LevelDriver } from '../src/engine/level/load';
+import { SaveStore } from '../src/engine/saves/store';
+import { shardContext, type GameServices } from '../src/game/shard/context';
+import { toLevelSpec } from '../src/game/shard/spec';
 import manifest from '../src/shards/nine-dragon-stack/manifest';
-import { Inventory, ITEMS } from '../src/game/Inventory';
+import { Inventory } from '../src/game/Inventory';
+import { ITEMS } from '../src/game/bag/itemCatalog';
 import { normalizeItemRow } from '../src/game/bag/items';
 import { applyTravelCarry, travelService, travelSlot, type TravelSource } from '../src/game/travel/travel';
 

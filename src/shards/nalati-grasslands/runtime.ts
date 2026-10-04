@@ -1,9 +1,21 @@
 import { Wildlife, type SheepHit } from './creatures/wildlife';
 import { wildEnv } from './creatures/env';
-import type { ShardContext, ShardManifest } from '@wildshard/game';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { installRide } from './ride/input';
 import { Color, Vector3, type Object3D } from 'three';
-import { type Game, type Sky, type Player, type Forest, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms, wind, type ImpactSurface, type TargetAnimal, type TargetHit, type AnimalManager, loadMeadow, windUniforms, macrotask, heightAt } from '@wildshard/engine';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
+import type { ImpactSurface } from '@wildshard/engine/combat/Weapon';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import { syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { wind } from '@wildshard/engine/world/steppeWind';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { windUniforms } from '@wildshard/engine/world/TreeFactory';
 
 
 
@@ -25,7 +37,7 @@ import { nalatiWetAt } from './wet';
 import { wireNightEnemies } from './combat/night';
 import { installStealth, type Stealth } from './stealth';
 import { wireSound, type NalatiSound } from './audio/sound';
-import { loadGrassField } from '@wildshard/kit';
+import { loadGrassField } from '@wildshard/kit/lookApi';
 import { wireLookV2 } from './look/index';
 import { reseedGrassV2 } from './look/grass';
 import { wireRide, type Ride } from './ride/ride';
@@ -33,6 +45,7 @@ import { wireStormTitan, type StormTitan } from './combat/stormTitan';
 import { NalatiSkinLocker, NalatiSkinPainter } from './weapons/nalatiSkins';
 import { HITCHING_RAIL } from './world/layout';
 import { registerNalatiPlaces } from './world/places';
+import type { RayTargets } from '@wildshard/engine/combat/targets';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ShardManifest; params: URLSearchParams }
 
@@ -98,7 +111,7 @@ export interface Nalati {
 
 export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Promise<Nalati> {
   const { game, sky } = ctx;
-  const { practiceRoom, modelContext } = await loadMeadow();
+  const [{ practiceRoom }, { modelContext }] = await Promise.all([import('@wildshard/engine/core/practiceRoom'), import('@wildshard/engine/models/model')]);
   const { trample, grassHeightAt, grassBaseHeightAt } = await loadGrassField();
   const updates: ((dt: number, t: number) => void)[] = [];
   const groups: Record<string, Object3D> = {};
@@ -384,7 +397,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   plugin.system({ id: 'shard.nalati.reins', phase: 'late', run: (dt) => { ride?.late(dt); } });
   plugin.on('weapon.fired', () => { nalati.onShot(); });
   plugin.on('weapon.impact', ({ surface, point }) => { nalati.onImpact(surface, point); });
-  plugin.answer('combat.targets.ray', (request) => ({ ...request, hit: nalati.sheepTarget(request.origin, request.dir, request.maxDist, request.hit) }));
+  plugin.answer('combat.targets.ray', (request: RayTargets): RayTargets => ({ ...request, hit: nalati.sheepTarget(request.origin, request.dir, request.maxDist, request.hit) }));
   plugin.answer('combat.aimTargets', (list) => {
     const filtered = list.filter((a) => !('mem' in a) || typeof a.mem !== 'object' || a.mem === null || (!('hidden' in a.mem) || a.mem.hidden !== 1) && (!('owned' in a.mem) || a.mem.owned !== 1));
     const heart = titan.lockTarget();

@@ -1,11 +1,28 @@
-import { weaponInputContext, type TrainingArena as Arena, type Weapon, type DiscSpot, type Targets } from '@wildshard/engine';
+import type { Targets } from '@wildshard/engine/combat/types';
+import type { Weapon } from '@wildshard/engine/combat/Weapon';
+import { weaponInputContext } from '@wildshard/engine/input/gameplay';
+import { type TrainingArena as Arena, TrainingArena } from '@wildshard/engine/practice/TrainingArena';
+import type { DiscSpot } from '@wildshard/engine/ui/hudSlots';
 import { GAME_STRINGS } from '../strings';
-import { buildTitleDeck, titleCards, travel } from '../titleDeck';
+import { buildTitleDeck, titleCards } from '../titleDeck';
+import { travel } from '../travel/travel';
 import type { worldStage } from './world';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { app } from '@wildshard/engine/app/runtime';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import { authoredTargets } from '@wildshard/engine/combat/targets';
+import { viewmodelTexturesReady } from '@wildshard/engine/combat/view/ranged';
+import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { listShardModels } from '@wildshard/engine/models/roster';
+import { LockOnSystem } from '@wildshard/engine/player/LockOnTarget';
+import { TouchControls } from '@wildshard/engine/player/TouchControls';
+import { HUD } from '@wildshard/engine/ui/HUD';
+import { onSettingChange, setting } from '@wildshard/engine/ui/Settings';
+import { hudAdapters } from '@wildshard/engine/ui/hudAdapters';
 
 async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
-  const { engine, kit, stage, boot, step, fieldModels, world, game, sky, player, forest, chunk, registry, nolock } = ctx;
-  const { hudAdapters, app, EquipmentService, viewmodelTexturesReady, authoredTargets, onSettingChange, setting, AnimalManager, TouchControls, HUD, LockOnSystem, macrotask, listShardModels, TrainingArena, withOwner } = engine;
+  const { kit, stage, boot, step, fieldModels, world, game, sky, player, forest, chunk, registry, nolock } = ctx;
 
 
   const animals = await step('animals', async (p) => {

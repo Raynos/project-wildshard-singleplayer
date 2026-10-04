@@ -12,7 +12,7 @@ import { Terrain } from '../world/Terrain';
 import { TreeFactory } from '../world/TreeFactory';
 import { Forest } from '../world/forest/Forest';
 import { Player } from '../player/Player';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
 import type { StepRunner } from '../boot/plan';

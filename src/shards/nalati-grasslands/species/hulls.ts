@@ -1,4 +1,6 @@
-import { loadRigFile, retainCachedResources, variantDef, type BoneDef } from '@wildshard/engine';
+import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
+import { variantDef, type BoneDef } from '@wildshard/engine/entities/species/registry';
 
 /**
  * glbCreatures — the generated creature hulls, pre-skinned to the procedural species' skeletons, so the species' own
@@ -26,7 +28,6 @@ import { modelsOn } from '../world/glbPaint';
 import { coatAtlas, HULL_COATS } from './coats';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES; the names + URLs in creatureRigs.ts, which the boot manifest declares) */
-export type { CreatureRigName } from './rigs';
 
 const HULL: Readonly<Record<string, CreatureRigName>> = {
   // every coat wears its hull, recoloured (creatureCoats.ts)

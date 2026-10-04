@@ -1,4 +1,4 @@
-import type { SpeciesRGB as RGB } from '@wildshard/engine';
+import type { RGB } from '@wildshard/engine/entities/species/loft';
 
 export const DEER_PALETTE = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
   // autumn coat: ~#7a5a3c body, greyer neck/legs, cream belly + throat, pale rump patch with a dark tail stripe

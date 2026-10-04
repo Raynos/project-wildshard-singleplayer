@@ -1,4 +1,4 @@
-import { app } from '@wildshard/engine';
+import { app } from '../../src/engine/app/runtime';
 import { EliteBrain } from '../../src/engine/ai/EliteBrain';
 import { canReach } from '../../src/engine/ai/reach';
 import * as THREE from 'three';

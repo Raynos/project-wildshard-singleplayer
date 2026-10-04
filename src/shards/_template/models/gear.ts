@@ -1,4 +1,4 @@
-import { defineModel } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
 import { TemplateLantern } from '../weapons/TemplateLantern';
 import { STRINGS } from '../strings';
 

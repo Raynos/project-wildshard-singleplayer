@@ -1,4 +1,6 @@
-import type { LevelAudioProfile, Scope, Audio } from '@wildshard/engine';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 /** Asset-free profile; installForestAmbience supplies the shared synth wind bed. */
 export function createForestAudio(): LevelAudioProfile {
   return { files: () => ({ music: [], sfx: [] }), bootFiles: () => [],

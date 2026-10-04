@@ -1,9 +1,12 @@
 // @vitest-environment happy-dom
 import { Group, Vector3 } from 'three';
 import { describe, expect, it, vi } from 'vitest';
-import { EquipmentService, Scope, Weapon, type EquipmentRow } from '@wildshard/engine';
+import { Scope } from '../../src/engine/app/scope';
+import type { EquipmentRow } from '../../src/engine/combat/Equipment';
+import { EquipmentService } from '../../src/engine/combat/EquipmentService';
+import { Weapon } from '../../src/engine/combat/Weapon';
 import type { EquipmentPickup } from '../../src/engine/combat/EquipmentPickup';
-import { SWORD_WOOD, SWORD_IRON } from '@wildshard/kit';
+import { SWORD_WOOD, SWORD_IRON } from '../../src/kit/weapons/melee/profiles';
 
 class FixtureWeapon extends Weapon {
   readonly model = new Group(); enabled = true; adsHeld = false; holster = 0; aimInfo = null;

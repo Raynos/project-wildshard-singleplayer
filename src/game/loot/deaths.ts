@@ -1,4 +1,5 @@
-import type { Actor, LevelContext } from '@wildshard/engine';
+import type { Actor } from '@wildshard/engine/combat/pipeline';
+import type { LevelContext } from '@wildshard/engine/level/context';
 
 export const DEATH_ORDER = { spine: 10, ecology: 20, keepsakes: 30, loot: 40 } as const;
 export interface CreatureDeathSource { combatActor: () => Actor }

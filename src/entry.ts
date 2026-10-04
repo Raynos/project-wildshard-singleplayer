@@ -21,7 +21,7 @@ import { guardBoot } from './engine/boot/stuck';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from './engine/boot/bootTrace';
 import { setting } from './engine/ui/Settings';
 import { Scope } from './engine/app/scope';
-import { retried } from '@wildshard/engine/retry';
+import { retried } from './engine/boot/retry';
 import { bootRoute } from './bootRoute';
 
 const entryScope = new Scope('entry');
@@ -45,7 +45,7 @@ if (rescueBoot) {
 /** resolves once the title or the selected shard's entry has been evaluated */
 export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? (async () => {
   await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
-  const [{ showStartTitle }, { buildTitleDeck, titleCards, travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/titleDeck')]));
+  const [{ showStartTitle }, { buildTitleDeck, titleCards }, { travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/titleDeck'), import('./game/travel/travel')]));
   // the composition root wires the game's deck into the engine's title (E405)
   showStartTitle(({ settings, notice }) => buildTitleDeck({
     cards: titleCards(), active: null,
@@ -65,20 +65,23 @@ guardBoot(entered);
 /** Composition root: select authored content and inject reusable kit recipes. */
 export async function start(): Promise<void> {
   await retried(() => import('./shardList')); // the shard list before @wildshard/game reads it (AG4)
-  const [{ game }, kit, { loadBootRuntime }, { sharedCombatCues }] = await Promise.all([
-    retried(() => import('@wildshard/game')), retried(() => import('@wildshard/kit')), retried(() => import('@wildshard/engine')), retried(() => import('./kit/audio/combatCues')),
+  // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
+  const [{ game }, { installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { KIT_ITEMS }, { HOVERBOARD_TOOL },
+    { sharedWeaponVoices }, { sharedCombatCues }] = await Promise.all([
+    retried(() => import('./game/shard/registry')), retried(() => import('./kit/species/install')), retried(() => import('./kit/icons')),
+    retried(() => import('./kit/models/pickups')), retried(() => import('./kit/models/interact')), retried(() => import('./kit/bag/items')),
+    retried(() => import('./kit/tools/hoverboard')), retried(() => import('./kit/audio/weaponVoices')), retried(() => import('./kit/audio/combatCues')),
   ]);
   const manifest = game.shard;
-  kit.installKitSpecies();
-  kit.installKitIcons();
-  kit.installKitPickups();
-  kit.installKitProps();
-  const engine = await retried(loadBootRuntime);
+  installKitSpecies();
+  installKitIcons();
+  installKitPickups();
+  installKitProps();
   const { startSession } = await retried(() => import('./game/session/session'));
-  await startSession(manifest, engine, {
-    items: kit.KIT_ITEMS,
-    tools: [kit.HOVERBOARD_TOOL],
-    combatCues: (audio, silent) => sharedCombatCues(kit.sharedWeaponVoices(audio), silent),
-    bagIcons: kit.BAG_ICONS,
+  await startSession(manifest, {
+    items: KIT_ITEMS,
+    tools: [HOVERBOARD_TOOL],
+    combatCues: (audio, silent) => sharedCombatCues(sharedWeaponVoices(audio), silent),
+    bagIcons: BAG_ICONS,
   });
 }

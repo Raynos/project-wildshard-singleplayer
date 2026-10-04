@@ -9,8 +9,13 @@
  *   water.setLight({ brightness, sky, sun });  water.setRain(0..1);   // day/night + weather (src/shards/nalati-grasslands/weather.ts)
  */
 import * as THREE from 'three';
-import { RIVER, BROOK } from './manifest';
-import { setProgramKey, heightAt, attachFogUniforms, type Sky, CHUNK_HALF } from '@wildshard/engine';
+import { MELT_STREAM as BROOK } from './layout';
+import { RIVER } from './world/terrain';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 const VERT = /* glsl */`
 attribute float depth;

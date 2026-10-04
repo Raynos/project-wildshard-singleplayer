@@ -5,7 +5,9 @@
  * sword shard (E333). The viewmodels keep drawing the held ones; each card is its own skeleton clone of the rig's one parse
  * (the same geometry), on its own materials, standing in the idle's first pose.
  */
-import { defineModel, type ModelDef, live, type RosterEntry, loadingSpecimen } from '@wildshard/engine';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { live, type RosterEntry } from '@wildshard/engine/models/live';
+import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 
 /** the rig's rough size (m, camera space) for the loading box */
 const SIZE = [0.7, 0.5, 0.8] as const;

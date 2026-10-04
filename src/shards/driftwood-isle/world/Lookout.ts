@@ -14,11 +14,15 @@
  * (see the model).
  */
 import type * as THREE from 'three';
-import { heightAt, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, modelContext, place, type Placed } from '@wildshard/engine';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { Cove } from './Cove';
 import { lookout, lookoutLayout, lookoutOrigin, type LookoutAnchor, type LookoutParams } from '../models/lookout';
 
-export type { LookoutAnchor } from '../models/lookout';
 export interface LookoutSpec { x: number; z: number; rot: number }
 
 export class Lookout {

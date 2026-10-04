@@ -1,4 +1,9 @@
-import { type Sky, heightAt, terrainNormal as normalAt, Rng, loft, S, mix, speciesSstep as sstep, srgb, type Paint, TickScheduler } from '@wildshard/engine';
+import { TickScheduler } from '@wildshard/engine/app/scheduler';
+import { smoothstep as sstep } from '@wildshard/engine/core/noise';
+import { Rng } from '@wildshard/engine/core/rng';
+import { loft, S, mix, srgb, type Paint } from '@wildshard/engine/entities/species/loft';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 

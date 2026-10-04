@@ -1,6 +1,7 @@
 import { AdditiveBlending, BufferGeometry, CapsuleGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3, type Object3D } from 'three';
 import { fit, hdMaterial, skyHd, skyMesh, splitTriangles } from '../world/meshes';
-import { PATCH_ORDER, patchShader, type NpcDef } from '@wildshard/engine';
+import type { NpcDef } from '@wildshard/engine/quest/core';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { FLAGS } from './flags';
 import { STRINGS } from '../strings';
 import { SPAWN } from '../layout';

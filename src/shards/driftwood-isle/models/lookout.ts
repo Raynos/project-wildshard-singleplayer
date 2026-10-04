@@ -19,7 +19,13 @@
  * it; the cable leaves the pulley 2.5 m above it), stairFoot (y = ground).
  */
 import * as THREE from 'three';
-import { SEED, LowPolyKit, log, plank, rope, sagLine, tris, lowPolyMaterial, swayDepthMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import { defineModel } from '@wildshard/engine/models/model';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { log, plank, rope, sagLine, tris } from '@wildshard/engine/world/geometryKit';
+import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 
 /** where a lookout stands: its centre (world xz) and which side its stair descends toward (rot, radians) */
 export interface LookoutSite { readonly x: number; readonly z: number; readonly rot: number }

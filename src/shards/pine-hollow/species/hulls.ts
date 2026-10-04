@@ -1,4 +1,8 @@
-import { loadRigFile, retainCachedResources, variantDef, type BoneDef, type VariantDef, setting, type SpeciesRGB as RGB } from '@wildshard/engine';
+import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
+import type { RGB } from '@wildshard/engine/entities/species/loft';
+import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
+import { setting } from '@wildshard/engine/ui/Settings';
 /**
  * pineCreatures — Pine Hollow's generated creature hulls (PINE-HOLLOW-REMASTER PH-M1 / PH-M2, Jake's PH-U11), pre-skinned
  * to the procedural species' own skeletons, so the species' bones, gaits and AI drive them. On by default in Pine Hollow;
@@ -21,10 +25,10 @@ import * as THREE from 'three';
 import { pineCreatureRigUrl, PINE_CREATURE_RIGS, type PineRigName } from './rigs';
 import { pineCoatAtlas, type CoatSpec } from './coats';
 import { DEER_PALETTE, ELK_PALETTE } from './palettes';
-import { BOAR_PALETTE, BEAR_PALETTE } from '@wildshard/kit';
+import { BEAR_PALETTE } from '@wildshard/kit/species/view/bear';
+import { BOAR_PALETTE } from '@wildshard/kit/species/view/boar';
 import { BEAR_FIX_COATS, BEAR_FIX_FUR, BEAR_TAIL_TRIM, trimTail } from './bearFix';
 
-export type { PineRigName } from './rigs';
 
 /** Pine Hollow's creatures are the rigged hulls (PH-U11, Jake's pick), unless Debug ▸ Creatures = Procedural (the rig
  *  bakes, scripts/creature-rig-bake.mjs, set it: they need the procedural skeletons) or the shard isn't Pine Hollow */

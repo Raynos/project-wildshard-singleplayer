@@ -8,53 +8,50 @@ shard. One section per § of [01-architecture](../project/archive/game-normaliza
   plugin verb once. Most examples below are copied from it.
 - **This file describes HEAD, not the plan.** Where 01-architecture names something that isn't built yet, or built
   under another name, the section says so.
-- **It can't drift.** [`test/engine-docs.test.ts`](../test/engine-docs.test.ts) reads the four index files and
-  fails when an export is missing from the [appendix](#appendix-every-export) or the appendix names one that is gone.
-  After an index change, run `ENGINE_DOC_WRITE=1 pnpm exec vitest run test/engine-docs.test.ts`, then describe the
+- **It can't drift.** [`test/engine-docs.test.ts`](../test/engine-docs.test.ts) reads `lint/api-surface.json` (every
+  export of every public module, built by `scripts/gen-api.mjs`) and fails when an export is missing from the
+  [appendix](#appendix-every-export) or the appendix names one that is gone. After a public module changes, run
+  `node scripts/gen-api.mjs` and `ENGINE_DOC_WRITE=1 pnpm exec vitest run test/engine-docs.test.ts`, then describe the
   new API in its section.
 
-| Import | File | What it is |
+**No barrels (E434).** There is no index file. The three layers are workspace packages (`pnpm-workspace.yaml`), and
+each `package.json`'s `exports` lists the layer's public modules one by one. An import names the module that defines
+the binding:
+
+```ts
+import { castRay, floorBelow } from '@wildshard/engine/physics/query';
+import { buildTerrain } from '@wildshard/engine/world/terrainField';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
+import { Bow } from '@wildshard/kit/weapons/bow/family';
+```
+
+| Package | Public modules | What it is |
 |---|---|---|
-| `@wildshard/engine` | `src/engine/index.ts` | The engine: app, scopes, events, saves, input, UI, render, physics, audio, combat, AI |
-| `@wildshard/engine/retry` | `src/engine/retry.ts` | Pre-entry-safe retry policy; exports only `retried`, without App or Three |
-| `@wildshard/engine/data` | `src/engine/data.ts` | The node-safe slice of the engine, for manifests and offline tools (B31) |
-| `@wildshard/game` | `src/game/index.ts` | The Wildshard game: the manifest and plugin types, Bag, coins, loot, compendium, feats, travel |
-| `@wildshard/kit` | `src/kit/index.ts` | Shared content, used by 2+ shards: weapon families, boar and bear, starter effects, NPC rig, hoverboard |
-| `@wildshard/kit/data` | `src/kit/data.ts` | The kit's node-safe content rows for manifest closures: `BOAR`, `BOAR_TUNING`, `BEAR`, `SWORD_WOOD` (AG5) |
+| `@wildshard/engine` | `src/engine/package.json` `exports` | The engine: app, scopes, events, saves, input, UI, render, physics, audio, combat, AI |
+| `@wildshard/game` | `src/game/package.json` `exports` | The Wildshard game: the manifest and plugin types, Bag, coins, loot, compendium, feats, travel |
+| `@wildshard/kit` | `src/kit/package.json` `exports` | Shared content, used by 2+ shards: weapon families, boar and bear, starter effects, NPC rig, hoverboard |
 
-Many `@wildshard/engine` exports are **ports**: legacy classes a shard still needs while the plan runs (`Game`, `World`, `HUD`,
-`AnimalManager`, `Animal`, `getActiveChunk`). They are listed so the test passes, and each section says which ones are
-ports. Prefer the context verbs (`ctx.*`) and the services on `ctx.app` where both exist.
+[docs/api/ENGINE.md](api/ENGINE.md), [GAME.md](api/GAME.md) and [KIT.md](api/KIT.md) (generated) list every export
+with the module to import it from; where this file says a name is "on `@wildshard/engine`", that list gives its
+module. A path the package does not export (`@wildshard/engine/world/Sky`) is `ERR_PACKAGE_PATH_NOT_EXPORTED` in
+TypeScript, Vite and node alike; `wildshard/no-reexport` (hard) refuses any `export … from` of our own modules, so a
+barrel can't come back. A module that should be public gets a line in its package's `exports`.
 
-**No deep paths (AG5, E432).** The layers are workspace packages (`pnpm-workspace.yaml`): `@wildshard/engine`,
-`@wildshard/game` and `@wildshard/kit`, each with a `package.json` whose `exports` are its public entries (`.`, plus
-`./data` and `./retry` for the engine, `./data` and `./creatures` for the kit). A deep path
-(`@wildshard/engine/world/Sky`) is `ERR_PACKAGE_PATH_NOT_EXPORTED` in TypeScript, Vite and node alike, so the index
-carries everything the layers above use. The names AG5 brought up from deep paths, by area:
-placement (`place`, `PlaceOptions`, `Draw`, `CullOptions`, `CullView`, `copiesAt`, `copiesNear`, `placedGroups`, `weld`,
-`finishWeld`, `placeSet`, `poseOf`, `SlotGeometry`, `SlotRecorder`, `bakePart`, `supportPoints`, `vertexHull`,
-`loadLodPairInto`, `lodPairOf`, `GlbPart`); models (`creature`, `creatureFactory`, `CreatureParams`, `CREATURE_CLIPS`,
-`loadingSpecimen`, `skinVariants`, `wearSkin`, `GearSkinParams`, `swimHands`, `applySkin`); the live terrain field
-(`normalAt`, `splatAt`, `trailDistance`, `cabinMask`, `pondMask`, `waterLevel`, `streamAt`, `inChunk`, `hasPond`, `POND`,
-`TRAILS`, `CABIN_SITES`, `HORIZON_RADIUS`, `createWaterMaterial`, `waterWeather`, `HeightPatch`, `layoutFauna`,
-`bakedUndergrowth`, `FOREST_BANDS`, `trunkCapsule`, `placeUndergrowth`, `DecisionLog`, `placementChecksum`,
-`sameChecksum`, `UndergrowthPlacement`); audio (`SetScore`, `scoreManifest`, `scoreFiles`, `decodeScore`, `ScoreBank`,
-`AudioRead`, `AudioDecode`, `cachedBytes`, `decodeBytes`, `InteractSfx`, `audioLog`); the adventure view (`QuestChip`,
-`NpcTalk`, `NpcTalkOpts`, `ChipSource`, `Places`, `PlacePoint`, `LiveMarker`, `placesWithDiscovery`, `ObjectiveLine`,
-`DialogueBox`, `RewardCaption`, `Interactables`); pickups and the playgrounds (`ItemPickup` / `WeaponPickup`,
-`PickupTier`, `DevKit`, `devLabel`, `devMaterial`, `PlaygroundChip`, `clock`, `PLAYGROUND_Y`); `Animal` as a value;
-and `perfLap` / `LapSpot`. The composition root (`src/*.ts`, outside the layers) keeps its relative paths
-into the engine so the pre-entry stays small. Tests reach a layer's internals by
-relative path (`../src/engine/world/Sky`); `src/` never does (`wildshard/public-index`).
+Many engine exports are **ports**: legacy classes a shard still needs while the plan runs (`Game`, `World`, `HUD`,
+`AnimalManager`, `Animal`, `getActiveChunk`). Each section says which ones are ports. Prefer the context verbs
+(`ctx.*`) and the services on `ctx.app` where both exist.
+
+The composition root (`src/*.ts`, outside the layers) and the tests import by relative path
+(`../src/engine/world/Sky`); `src/` code across layers never does (`wildshard/public-index`).
 
 ## 0. Conventions
 
 | Rule | What it means for you |
 |---|---|
 | **Layers** | `src/engine/` → `src/game/` → `src/kit/` → `src/shards/<slug>/`. Imports point down the arrow only. A shard never imports another shard |
-| **Public index only** | A shard imports `@wildshard/engine`, `@wildshard/engine/data`, `@wildshard/game`, `@wildshard/kit` and `@wildshard/kit/data`, nothing deeper. `@wildshard/engine/combat/pipeline` does not resolve (not in the package's `exports`), and `wildshard/layer` names it. Inside your own folder, use `./` |
+| **Public modules only** | A shard imports the modules `@wildshard/engine`, `@wildshard/game` and `@wildshard/kit` list in their `exports`, by the module that defines each name (`@wildshard/engine/physics/query`), nothing else. Inside your own folder, use `./` |
 | **Composition root** | `src/entry.ts` and `src/main.ts` sit outside the layers. You never edit them for a shard |
-| **Node-safe manifest** | `manifest.ts` imports only data and types: `@wildshard/engine/data`, `@wildshard/game` types and its own data files. Code arrives through lazy thunks (`load`, `render`, `cues`, `roster`, `preload`). `test/manifests-node-safe.test.ts` imports every manifest in bare node |
+| **Node-safe manifest** | `manifest.ts` imports only data and types: node-safe engine modules (`@wildshard/engine/world/terrainField`, `@wildshard/engine/core/config`, `@wildshard/engine/core/noise` …), `@wildshard/game` types and its own data files; `lint/manifest-closure-budget.json` caps the files it pulls. Code arrives through lazy thunks (`load`, `render`, `cues`, `roster`, `preload`). `test/manifests-node-safe.test.ts` imports every manifest in bare node |
 | **Extractable engine** | `src/engine/**` holds no Wildshard word: no slug, no "shard", no Bag, coin, loot, compendium or feat. The engine says `level` |
 | **Behaviour vs tuning** | Behaviour is a class that extends an engine or kit class. Tuning is a typed data row |
 | **Names** | Events, asks, tags, cues, actions and effect ids are dot-case strings: `'damage.dealt'`, `'creature.greyBlob'`, `'cue.sword.hit'`, `'effect.poison'`. Prefix your own with your shard's short name (`template.*`) |
@@ -72,8 +69,8 @@ import type { QuestState, Interactable } from '@wildshard/engine';
 import { STRINGS } from './strings';
 ```
 
-Constants every level shares come from `@wildshard/engine` / `@wildshard/engine/data`: `CHUNK_SIZE` (500 m), `CHUNK_HALF`, `CHUNK_DEPTH`,
-`TERRAIN_RES`, `ROAD_LENGTH`, `SEED`. `ENGINE_API`, `GAME_API` and `KIT_API` are each layer's API version (all 1).
+Constants every level shares come from `@wildshard/engine/core/config`: `CHUNK_SIZE` (500 m), `CHUNK_HALF`, `CHUNK_DEPTH`,
+`TERRAIN_RES`, `ROAD_LENGTH`, `SEED`.
 
 ## 1. App, phases, systems, states
 
@@ -351,7 +348,7 @@ are the row types; `EngineRows` is the verb set.
 | Field | Meaning |
 |---|---|
 | `style` | an open, opaque string authored by the shard; familiar `pbr`, `toon`, `painterly`, `jiehua`, `greybox` words retain editor completion. Render choices use `render`, `creatures` and `kitLook` |
-| `ground` | `{ terrain?, structures?, paths?, water? }`, at least one of terrain / structures. `terrain` comes from `buildTerrain(seed, spec)` (`@wildshard/engine/data`). `water` is `WaterBody` rows (§17) |
+| `ground` | `{ terrain?, structures?, paths?, water? }`, at least one of terrain / structures. `terrain` comes from `buildTerrain(seed, spec)` (`@wildshard/engine/world/terrainField`). `water` is `WaterBody` rows (§17) |
 | `spawn`, `bounds?`, `camera?` | where the player starts; a soft-respawn box; the portrait FOV |
 | `world?` | `{ killY, fallCause? }`: optional creature death plane (§19); the engine reports an out-of-world cause below it |
 | `sky`, `atmosphere`, `grade`, `look?` | pure-data look fields |
@@ -413,7 +410,7 @@ This does not change `bounds` / soft respawn or the creature death plane `world.
 
 **Structures-only ground:** `ground: { structures: true }` needs no `terrain`. The engine draws no terrain mesh
 and creates no terrain collider. Analytic placement readers (`heightAt`, `terrainFor`) return the fixed floor
-**y = −1,000 m** everywhere; this floor is not walkable geometry. `terrainFieldFor(ground, id)` (`@wildshard/engine/data`)
+**y = −1,000 m** everywhere; this floor is not walkable geometry. `terrainFieldFor(ground, id)` (`@wildshard/engine/world/groundField`)
 returns the authored field when present, otherwise this fallback for structures; missing both is an error.
 The fallback has no trails, cabins, pond or stream, an upward normal and a dry water sentinel at **y = −1,001 m**.
 Set `spawn.y` to an authored structure's floor, register its colliders with `ctx.piece`, and set `bounds.floor` /
@@ -437,7 +434,7 @@ export default TEMPLATE;
 ```
 
 `@wildshard/game` also exports `ShardSword` (a legacy `sword` field's viewmodel), `ChunkTerrain` (the built terrain functions),
-and `RGB` / `Vec2` (`@wildshard/engine/data` has `Vec2`, `TerrainNoise` too).
+and `RGB` / `Vec2` (`@wildshard/engine/level/data` has `Vec2`, `TerrainNoise` too).
 
 ### 6.1 Authored diagnostic cameras
 
@@ -524,11 +521,11 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 
 ### Pre-entry safe
 
-`@wildshard/engine/retry` is the public bootstrap index. It exports only `retried` from the import-free retry leaf. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Other runtime loaders can use the same function through `@wildshard/engine`.
+`@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.
 
 `retried(load)` retries a rejected async module download after 800 ms and 2500 ms, then preserves the final
-rejection. The entry (including composition-root imports), shard plugin loader and level look loader share this policy. It is an import-free leaf at
-`@wildshard/engine/retry` for the pre-engine entry, and is public through `@wildshard/engine` for game and shard loaders.
+rejection. The entry (including composition-root imports), shard plugin loader and level look loader share this policy. It is the import-free module
+`@wildshard/engine/boot/retry`, for the pre-engine entry and for game and shard loaders alike.
 
 | Stage | The engine does | You fill |
 |---|---|---|
@@ -565,10 +562,13 @@ export const bootFiles = (): readonly string[] => Object.values(bootSources('pho
 ```
 
 Boot helpers on `@wildshard/engine`: `StepProgress`, `StepRunner`, `macrotask`, `slicer` (yield inside a long build),
-`loadBootRuntime` / `BootRuntime`, `preloadBakedTextures`, `loadBakedSky`, `loadLUT`, `fetchLut`, `LUT_SIZE`,
-`PUBLIC_BYTES`, `markUnload`, `setTitleArrival` / `TitleArrival`, `Ktx2Table`, `LoadFailure`. `@wildshard/engine/data` has
-`filePolicy`, `PUBLIC_BYTES`, `ChunkFiles`, `Tier`, `TexMode` for node-side tools, and for a manifest's creature and
-loot tables (E405 AG5) `CHUNK_SIZE`, `CELL_HEIGHT` / `CELL_BELOW` / `CELL_ABOVE` (the 500 m cell, 250 m each side of the highway level: SHARD-PLATFORM SP4), `TERRAIN_RES`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `Noise2D`, `Rng`, `deriveSpecies`, `WeightedTable`.
+`preloadBakedTextures`, `loadBakedSky`, `loadLUT`, `fetchLut`, `LUT_SIZE`,
+`PUBLIC_BYTES`, `markUnload`, `setTitleArrival` / `TitleArrival`, `Ktx2Table`, `LoadFailure`. For node-side tools and a
+manifest's creature and loot tables, the node-safe modules are `boot/filePolicy` (`filePolicy`), `boot/bytes`
+(`ChunkFiles`), `core/tier` (`Tier`), `boot/gpuFiles` (`TexMode`), `core/config` (`CHUNK_SIZE`, `CELL_HEIGHT` /
+`CELL_BELOW` / `CELL_ABOVE`: the 500 m cell, 250 m each side of the highway level, SHARD-PLATFORM SP4; `TERRAIN_RES`,
+`ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`), `core/noise` (`Noise2D`), `core/rng` (`Rng`), `ai/species` (`deriveSpecies`) and
+`ai/weighted` (`WeightedTable`); `lint/manifest-closure-budget.json` keeps a manifest on them.
 
 ## 9. Saves
 
@@ -945,7 +945,7 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 | `CombatCues`, `audioCueMap`, `CombatCueMap`, `CombatCueOpts` | `runtime.play.cues`: `cues.use(fn, scope)` adds a handler; `fire`, `charge`, `cue` play one |
 | `AmbienceZones`, `ZoneVoice`, `ZoneWeights` | ambience beds by zone |
 | `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy` | the positional voice engine |
-| `LevelAudioProfile`, `loadAudio` | a level's audio profile and the lazy audio runtime |
+| `LevelAudioProfile` | a level's audio profile (the audio runtime loads lazily: `await import('@wildshard/engine/audio/Stems')` …, by the module a level uses) |
 | `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName` | the synth score Music plays: the composition root installs the game's (src/game/audio/theme.ts, E405: the engine holds no theme) |
 | `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (@wildshard/kit's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
@@ -996,19 +996,19 @@ rigContract: { skeleton: 'template.greyBlob', sockets: ['body', 'head'], clips: 
 
 | Mechanism | Exports | Example |
 |---|---|---|
-| Terrain | `buildTerrain` (also `@wildshard/engine/data`), `heightAt`, `terrainNormal`, `terrainWaterLevel`, `Terrain`, `Noise2D`, `smoothstep`, `clamp`, `lerp`, `TerrainNoise` | `buildTerrain(357, { landscape, trails, cabinSites: [] })` |
+| Terrain | `buildTerrain` (`@wildshard/engine/world/terrainField`, node-safe), `heightAt`, `terrainNormal`, `terrainWaterLevel`, `Terrain`, `Noise2D`, `smoothstep`, `clamp`, `lerp`, `TerrainNoise` | `buildTerrain(357, { landscape, trails, cabinSites: [] })` |
 | Sky | `Sky`, `SkyBackdrop*` (§13.1), `compassDir` | the template's backdrop drives `sky.setKeyLight` |
 | Day cycle | `DayCycle`, `DayCycleSpec`, `DayCycleClock`, `DayKeys`, `DayPhase`, `TimePick`, `LightPreset`, `ScheduleSeg`; `app.registerDayCycle(clock, scope)` | `createDay()` in `_template/world/climate.ts` |
 | Weather | `Weather`, `WeatherProfile`, `WeatherNumbers`; asks `weather.hold` / `weather.damage`; kit `rainCurtain` | `new Weather<'clear' \| 'cloudy'>({ states, next, length, … }, ctx.app.rng.stream('gameplay'))` |
-| Water | `WaterBody`, `WaterBodies` (`app.world.water`), `swellBody`, `basinBody` (`@wildshard/engine/data`), `surfaceReflect`, `WaterView`, `pondGrid`, `waveHeight` | the template's `POOL` row in `ground.water` |
+| Water | `WaterBody`, `WaterBodies` (`app.world.water`), `swellBody`, `basinBody` (`@wildshard/engine/world/water/body`), `surfaceReflect`, `WaterView`, `pondGrid`, `waveHeight` | the template's `POOL` row in `ground.water` |
 | Fog | `attachFogUniforms`, `addFogUniforms`, `fogUniforms`; your `FogModel`; weather fog `weatherFog`, `WeatherFog`, `WeatherFogSpec` (E390: a second exponential fog over the level's own, compiled only when the manifest sets `atmosphere.weather: true`; `set(strength 0..1)` each time it changes, cleared when the scope ends; it composes with a backdrop's clock and the underwater blend) | `const storm = weatherFog(ctx.scope, { dist: 0.05, color: 0x8a5238 }); storm.set(eased)` (Signal Dunes' sand storm) |
 | Wind | `wind`, `WIND_DIR`, `windGustAt`, `windUniforms`, `WindField` | grass, trees and arrow drift read it |
 | Placement and models | `defineModel`, `ModelDef`, `modelContext`, `ModelContext`, `ModelPart`, `live`, `listModel`, `RosterEntry`, `twoSidedPositions`, `WeldBuild`, `markGpuOnly` | `defineModel({ id: '_template/lantern', pipeline: 'code', build: () => … })` |
 | Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchFade`, `patchWind`, `TREE_SPECS`, `TreeSpeciesTraits` (a species' planting: scale, growth, girth, spacing, hue), `TreeSetVariant` (a tree set's variant), `SpeciesWeights` (the level's own set and traits: `TreeSpec.setVariants`, `ForestSpec.speciesTraits`; E405), `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `loadBakedCards`, `exportCardTextures` | |
 | Geometry kit | `log`, `beam`, `rope`, `sagLine`, `rock`, `plank`, `tris`, `wobble`, `pole`, `blob`, `lathe`, `revolve`, `revolveUV`, `mergeVerticesByPos`, `voxelAO`, `aoTint`, `hemisphere`, `VoxelAOParams`, `HemiRing`, `HemiDir`, `lin` | |
 | Interactables | `Interactable`, `Interactables`, `InteractEvent`, `Flags`, `Place`, `PoiId` | the template's hut door |
-| Bounds and layout | `installBounds`, `layoutFauna` (`@wildshard/engine/data`), `CHUNK_*` | |
-| Content loaders | `loadWorldContent`, `loadMeadow`, `loadPBR`, `loadPBRArray`, `loadGLTF`, `loadTexture`, `pbrMaterial`, `PBRSet` | lazy engine content (ports) |
+| Bounds and layout | `installBounds`, `layoutFauna` (`@wildshard/engine/world/faunaLayout`), `CHUNK_*` | |
+| Content loaders | `loadPBR`, `loadPBRArray`, `loadGLTF`, `loadTexture`, `pbrMaterial`, `PBRSet` | lazy engine content (ports) |
 | Painterly helpers | `painterlyMaterial`, `syncPainterlySun`, `updatePainterly`, `setPainterlyLook`, `painterlyUniforms` | ports of Nalati's material, waiting to move |
 | Light layers | `SHADOW_LAYER`, `World` (a port) | |
 
@@ -1178,7 +1178,7 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 
 `GroundTell` (`@wildshard/game`) supports ring, lane and wedge decals. `GroundTellWedgeStyle` supplies the cone and authored material/fill/alpha uniforms; `wedge(x, z, yaw, reach, fill, alpha, lift?)` uses animal yaw convention and drapes the sector onto terrain. Existing ring/lane shader behavior remains unchanged.
 
-`smoothstep` (`@wildshard/engine/data`) also drives DeathFade and the bow/spear authored curves; the normalized fade uses edges zero and one. Unclamped and early-return curves retain their distinct behavior.
+`smoothstep` (`@wildshard/engine/core/noise`) also drives DeathFade and the bow/spear authored curves; the normalized fade uses edges zero and one. Unclamped and early-return curves retain their distinct behavior.
 
 ## 19. Creatures and AI
 
@@ -1445,7 +1445,7 @@ runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
 `CosmeticsLocker<Slot, Row>` (`@wildshard/game`) owns registered cosmetics, validates saved ownership and slot matches, and provides `own`, `wear`, `toggle`, `wearing`, `entries`, `version` and `onChange`. A `CosmeticProfile` supplies a slot selector, save slot and optional `autoWear` for empty slots. `SkinLocker` is the weapon-material profile (`SkinDef.weapon`), using the existing per-shard `skins` save with manual wear; Nalati supplies its own saved skin rows and auto-wear policy.
 
 The game's quest wiring sits on the engine's quest core: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`,
-`CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`, `QuestChip`, `NpcTalk`, `loadQuest`
+`CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`, `QuestChip`, `NpcTalk` (load the quest views lazily with `import('@wildshard/engine/quest/view')`)
 (all `@wildshard/engine`). The template's quest:
 
 ```ts
@@ -1585,7 +1585,8 @@ in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that alrea
 | Rule | What it refuses | Status |
 |---|---|---|
 | `wildshard/layer` | import direction (engine < game < kit < shards); shard ↔ shard; a file or import outside the four layers | hard (`.oxlintrc.json`, E405 AG28) |
-| `wildshard/public-index` | a cross-layer import skips the public index (`@wildshard/engine/x/y` does not resolve at all: it is not in the package's `exports`; relative ones too); a subpath the layer's `package.json` `exports` lists (`@wildshard/engine/data`, `@wildshard/engine/retry`, `@wildshard/kit/data`, `@wildshard/kit/creatures`) is a public entry | ratchet (per file) |
+| `wildshard/public-index` | a cross-layer import names a module the layer's package does not export (`@wildshard/engine/x/y` does not resolve at all; a relative path into another layer is refused too); a module the layer's `package.json` `exports` lists is public | ratchet (per file) |
+| `wildshard/no-reexport` | `export … from` (or `export *`, or exporting an imported binding) of our own modules: no barrels; a third-party re-export (a bundler shim) passes | hard (`.oxlintrc.json`, E434) |
 | `wildshard/engine-words` | Wildshard vocabulary (shard names, species, items, the word "shard") in engine code; comments are not counted. A wire contract's field may keep the name `shard` (telemetry tags, reports, the harness probe, a model id) only as a property name or key, only in the files `lint/ratchet.json` `allow['wildshard/engine-words']` lists with the reason (E405, Jake). Engine copy says "level" and the game supplies its word (`s_level_word`) | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
 | `wildshard/shard-names` | the game and the kit name no particular shard: slugs, display names, camelCase forms, distinctive stems and shard-declared ids, from `lint/shard-words.generated.json`; comments and ordinary words (pine, driftwood) pass | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
 | `wildshard/no-shard-branch` | outside `src/shards/`: a branch on a slug or a style (`slug ===`, `style ===`, `isNalati`, a slug literal in a comparison or `case`) | hard error |
@@ -1633,399 +1634,368 @@ Debug-row count has its own cap (`debugRows`).
 
 ## Appendix: every export
 
-Generated from the four index files. Each line is one source module and the names the index exports from it. The
+Generated from `lint/api-surface.json` (each package's exported modules). Each line is one module and the names it exports. The
 sections above describe what to use; this list is the complete inventory.
 
 <!-- exports:start (generated by test/engine-docs.test.ts; do not edit by hand) -->
 
-### `@wildshard/engine` (`src/engine/index.ts`)
+### `@wildshard/engine` (`src/engine/package.json`)
 
-919 exports, grouped by the module they come from.
+1630 exports, grouped by the module to import them from.
 
-- `./core/devMode`: `isDev`, `onDev`, `setDev`
-- `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`, `ROAD_WIDTH`, `_applyChunkConstants`
-- `./world/terrainField`: `buildTerrain`
-- `./world/bounds`: `installBounds`
-- `./level/data`: `ExploreSpec`, `RGB`, `TerrainField`
-- `./app/app`: `App`, `SystemsByPhase`
-- `./app/systems`: `PHASES`, `inState`, `AppState`, `Phase`, `RunCondition`, `SystemSpec`, `TickRateId`
-- `./app/scope`: `Scope`, `Disposable3`, `PhysicsHandle`, `SoundHandle`, `ScopeCensus`
-- `./app/assets`: `AssetService`, `AssetCensus`, `AssetRecord`
-- `./events/events`: `Events`, `EVENT_FLUSH_LIMIT`, `ListenerOptions`
-- `./events/maps`: `EventMap`, `AskMap`, `TagMap`, `Tag`, `FaultEvent`, `AskInput`, `AskOutput`
-- `./events/tags`: `hasTag`
-- `./core/clock`: `GameClock`
-- `./core/rng`: `Rng`, `RngService`, `fnv1a32`, `pageSeed`, `RngStream`, `RngStreams`
-- `./app/runtime`: `app`, `gameplayRandom`
-- `./app/ownership`: `currentOwner`, `enterOwner`, `withOwner`, `asShell`, `onOwnerDispose`
-- `./app/resources`: `resourceScope`, `pageScope`
-- `./audio/ownership`: `ownAudioSource`
-- `./core/harnessTap`: `ambientTick`, `tap`
-- `./app/cachedAssets`: `retainCachedResources`
-- `./boot/gpuFiles`: `Ktx2Table`
-- `./core/errorReport`: `LoadFailure`
-- `./boot/retry`: `retried`
-- `./level/load`: `LevelLoadError`, `LevelDriver`, `LevelStage`
-- `./level/spec`: `resolveTierKnobs`, `needsTerrainCollider`, `LevelSpec`, `BootSpec`, `LoadoutSpec`, `EngineMechanism`, `TierKnobMap`, `TierKnobs`, `TierOverrides`
-- `./level/registrations`: `LevelRegistrations`
-- `./level/context`: `LevelContext`, `LevelHooks`, `LevelAdapters`, `ResidentMemory`, `EngineRows`, `ContentRow`, `ContentRowMap`, `InputContextDef`, `HudVerbs`, `HudBand`, `VerbSlotOpts`, `DebugRowSpec`, `PlaygroundSpec`, `StringTable`, `TierKnobSchema`
-- `./render/look`: `LookStrategy`, `LookComposeContext`, `LookComposition`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropTargets`, `SkyBackdropPost`, `LookReplaceContext`, `LookChain`, `FogModel`, `TerrainPainter`, `PainterField`, `GrassDriver`, `GrassLayer`, `ExtendLook`, `ReplaceLook`, `SkyDressing`, `EngineEffects`
-- `./render/shaderPatches`: `patchShader`, `takeForeignHook`, `setInheritedPatch`, `setProgramKey`, `hasProgramKey`, `PATCH_ORDER`, `ShaderSource`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`
-- `./physics/box`: `boxInFrame`, `BoxSpec`
-- `./player/Player`: `Player`
-- `./saves/store`: `SaveStore`, `SaveKeyDef`, `SaveSlot`, `SaveScope`, `ImportReport`, `CorruptSave`
-- `./saves/runtime`: `saves`, `persistHomeScreen`
-- `./saves/slots`: `jsonSlot`, `jsonSchema`, `jsonRecord`, `saveStorage`
-- `./audio/contentApi`: `loadAudio`
-- `./audio/SetScore`: `ScoreSource`, `SetScore`, `decodeScore`, `scoreFiles`, `scoreManifest`, `AudioRead`, `AudioDecode`, `ScoreBank`
-- `./audio/Cues`: `CuePlayer`, `CueMap`, `CueOpts`, `CueBank`, `SampleClip`
-- `./audio/AmbienceBeds`: `ZoneWeights`
-- `./audio/levelAudio`: `LevelAudioProfile`
-- `./audio/Music`: `MusicState`, `Music`
-- `./physics/query`: `castRay`, `castSegment`, `floorBelow`, `lineOfSight`, `sticksIn`
-- `./combat/Equipment`: `Equipment`, `EquipmentRow`, `EquipmentMeta`, `EquipmentSlotMap`, `EquipmentIconMap`, `EquipmentTouchMap`, `WeaponUi`, `EquipContext`, `BlockSet`, `EquipmentId`, `WeaponId`, `ToolId`, `EquipmentCues`
-- `./combat/Weapon`: `Weapon`, `quiverState`, `WeaponState`, `AimInfo`, `WeaponHooks`, `ImpactSurface`
-- `./combat/Tool`: `Tool`, `EquipmentAction`
-- `./combat/EquipmentService`: `EquipmentService`
-- `./input/equipmentInput`: `EquipmentInput`
-- `./ui/icons`: `IconId`, `IconMap`, `icon`, `registerIcons`, `iconParts`
-- `./ui/Menu`: `KitEntry`, `SkinRow`, `GameMenu`, `GameMenuOptions`, `MenuTab`
-- `./combat/pipeline`: `CombatPipeline`, `CombatTarget`, `Actor`, `CombatTag`, `DamageRequest`, `DamageDealt`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
-- `./combat/health`: `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
-- `./combat/effects/EffectService`: `EffectService`
-- `./combat/effects/types`: `sourceMultiplier`, `matchesTag`, `AttributeSet`, `EffectDef`, `EffectTarget`, `EffectId`, `ActiveEffect`, `SourceMulDef`, `CueId`
-- `./combat/cues`: `CombatCues`, `audioCueMap`, `resolveHitStop`, `CombatCueMap`, `CombatCueOpts`, `HitStopProfile`
-- `./blocks`: `blocks`
-- `./combat/blocks/melee`: `melee`, `aimRay`, `fovForAspect`
-- `./render/viewmodelFeel`: `viewmodel`, `DrawingBuffer`, `LookSpring`, `LookLag`
-- `./core/Game`: `Game`
-- `./world/Sky`: `Sky`
-- `./world/forest/Forest`: `Forest`, `FOREST_BANDS`, `trunkCapsule`
-- `./combat/types`: `Targets`, `TargetAnimal`, `TargetHit`
-- `./combat/view/melee`: `Move`, `Key`, `Trail`, `SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet`
-- `./player/bladeGlow`: `BladeGlow`
-- `./player/dodge`: `dodgeFx`, `dodgeEnv`
-- `./player/AimTargets`: `getAimTargets`, `lockOn`, `meleeLock`, `targetRadius`, `AimTarget`
-- `./player/MeleeSweep`: `bladeBlocked`, `bladeContact`, `Clang`
-- `./core/time`: `worldTime`
-- `./player/CameraFX`: `CameraFX`
-- `./fx/Impacts`: `Impacts`
-- `./models/model`: `defineModel`, `ModelContext`, `ModelPart`, `ModelDef`, `modelContext`, `paramsOf`, `ColliderSpec`, `ModelBuild`, `ModelLod`, `ModelVariant`, `Pipeline`, `Placement`
-- `./world/dayCycle`: `DayCycle`, `DayCycleSpec`, `DayCycleClock`, `DayKeys`, `DayPhase`, `TimePick`, `LightPreset`, `compassDir`, `ScheduleSeg`
-- `./world/weather`: `Weather`, `WeatherProfile`, `WeatherNumbers`
-- `./input/InputService`: `InputService`, `Action`, `ActionMap`, `TouchVerb`, `TouchVerbSpec`
-- `./combat/view/EquipmentHost`: `EquipmentHost`
-- `./ui/hudSlots`: `hudSlots`, `TouchRelabel`, `DiscSpot`, `DiscOpts`
-- `./combat/view/projectile`: `Projectiles`, `projectileFlightStep`, `ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `WindField`
-- `./combat/view/DropArc`: `DropArc`
-- `./combat/blocks/ads`: `blendAds`
-- `./combat/view/brass`: `brassFloor`, `stepBrass`, `BrassCase`
-- `./combat/view/hitscan`: `hitscan`, `HitscanProfile`, `HitscanResult`
-- `./combat/view/firearmFx`: `HitLine`, `makeFlashTexture`
-- `./combat/view/ranged`: `Puffs`, `worldHit`, `impactSurfaceOf`, `FOV_HIP`, `FOV_ADS`, `rangedFovForAspect`, `dataTexture`, `viewmodelTexSet`, `remapUV`, `makeCord`, `makeBoltAtlas`, `fixIBL`, `VIEWMODEL_GROUP`, `viewmodelMaterial`, `isMesh`, `box`, `cyl`, `edgeWear`, `whiteColors`, `stripExtra`, `TRACER_ORDER`, `TRACER_RED`, `clamp01`, `sstep`, `startViewmodelTextures`, `viewmodelTexturesReady`, `TexSet`, `CrossbowWorld`, `CrossbowOptions`, `RangedWorld`, `RangedOptions`
-- `./ui/Settings`: `getSetting`, `getNumber`, `onNumber`, `onSettingChange`, `setting`, `OptionValue`, `MusicStyle`, `getSfxSet`
-- `./fx/LightPool`: `LightPool`
-- `./fx/ParticlePool`: `ParticlePool`, `pointScale`, `ParticlePoolSpec`, `ParticleAttr`
-- `./world/voxelAO`: `voxelAO`, `aoTint`, `hemisphere`, `VoxelAOParams`, `HemiRing`, `HemiDir`
-- `./world/geometryKit`: `log`, `beam`, `rope`, `sagLine`, `rock`, `plank`, `tris`, `wobble`, `pole`, `blob`, `mergeVerticesByPos`, `lathe`, `revolve`, `revolveUV`
-- `./world/painterly`: `painterlyMaterial`, `syncPainterlySun`, `updatePainterly`, `setPainterlyLook`, `painterlyUniforms`, `painterlyKnobs`
-- `./player/nalatiArms`: `ARM_PAL`, `gloveFist`, `riderArm`, `placeArm`, `forearm`
-- `./world/steppeWind`: `wind`, `WIND_GLSL`
-- `./world/wind`: `WIND_DIR`, `windGustAt`, `patchSway`, `patchWindField`, `swayByHeight`, `swayDepthMaterial`, `updateWind`, `windBoost`, `windFieldUniforms`
-- `./core/shadowLayer`: `SHADOW_LAYER`
-- `./combat/ammo`: `AmmoId`, `AmmoRow`, `ProjectileModification`
-- `./ai/hfsm`: `Hfsm`, `StateDef`, `StateChange`
-- `./app/scheduler`: `TickScheduler`, `TickBand`, `TickRate`, `TickActor`, `InterruptReason`
-- `./ai/strikes`: `StrikeRunner`, `StrikeSpec`, `StrikeContext`, `StrikeActor`, `StrikePhase`, `UtilityScore`, `StrikeShape`
-- `./ai/reach`: `canReach`, `ReachActor`
-- `./ai/director`: `AggressionDirector`, `AggressionService`
-- `./ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossSaved`, `BossPorts`, `BossPresentation`, `BossScript`, `BossState`
-- `./ai/EliteBrain`: `EliteBrain`, `EliteDefinition`, `EliteActor`, `ElitePorts`
-- `./ai/encounters`: `EncounterRegistry`, `EncounterDefinition`, `EncounterService`, `SpawnTableRow`, `SpawnEntry`, `SpawnContext`, `SpawnPoint`, `Spawner`
-- `./world/Atmosphere`: `attachFogUniforms`, `fogUniforms`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `addFogUniforms`, `volumetricFog`, `weatherUniforms`
-- `./boot/bakedApi`: `preloadBakedTextures`, `loadBakedSky`, `loadLUT`
-- `./render/lut`: `fetchLut`, `LUT_SIZE`
-- `./math/color`: `lin`
-- `./core/assets`: `loadPBR`, `loadGLTF`, `pbrMaterial`, `PBRSet`, `loadTexture`, `loadPBRArray`
-- `./world/terrainHeight`: `heightAt`, `terrainNormal`, `terrainWaterLevel`, `setTerrainHeight`
-- `./world/registry`: `boxDesc`, `ColliderDesc`, `WorldRegistry`, `activeRegistry`
-- `./core/tier`: `TIER_CONFIG`, `TIER`, `buildTier`, `practiceFps`
-- `./boot/plan`: `macrotask`, `slicer`, `StepRunner`, `StepProgress`, `Plan`
-- `./models/weld`: `twoSidedPositions`, `WeldBuild`, `UnitParts`, `flatPositions`, `mergeOrNull`, `nearProxy`, `shadowProxy`, `WeldPart`
-- `./world/interact/types`: `Interactable`, `PoiId`, `Place`, `registerPickupLook`, `registerInteractProps`, `PickupLook`, `PickupPart`, `InteractProps`, `ChestLook`, `DoorLook`, `ChestDims`, `TRANSIENT_PREFIXES`, `InteractTable`, `PickupDef`
-- `./core/bootstrap`: `World`
-- `./entities/AnimalManager`: `AnimalManager`, `HuntTuning`, `AnimalSoundId`, `Herd`
-- `./audio/Audio`: `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind`, `SampleLoop`
-- `./ui/HUD`: `HUD`
-- `./ui/Map`: `FullMap`, `FullMapPoi`, `MapQuest`
-- `./player/Skins`: `SkinDef`, `applySkin`
-- `./contentApi`: `loadWorldContent`
-- `./combat/view/rangedFeel`: `installRangedFeel`, `RangedFeelProfile`
-- `./ai/inspect`: `inspectBrain`, `pinBrain`, `brainInspection`, `BrainInspection`
-- `./ai/view/DebugOverlay`: `installAiDebug`, `AiDebugHost`, `AiDebugView`
-- `./ai/weighted`: `WeightedTable`, `WeightedRow`, `TableDrop`, `TableSpec`
-- `./quest/core`: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`, `CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`
-- `./quest/contentApi`: `loadQuest`
-- `./ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
-- `./ai/flight`: `SpeciesFlight`
-- `./entities/species/look`: `speciesWithLook`, `SpeciesLook`, `CreatureHull`, `EyeSpot`, `SpeciesService`
-- `./entities/species/registry`: `registerSpecies`, `setCreatureSoundDefaults`, `speciesDef`, `variantDef`, `hasSpecies`, `SpeciesDef`, `VariantDef`, `AnimalSpecies`, `BoneDef`, `CreatureSoundDefaults`, `RigAnimCtx`, `FurStyle`, `ThinkCtx`, `EnemyWorld`, `AnimalDims`, `VariantMods`, `Rarity`
-- `./entities/species/loft`: `loft`, `tube`, `skinPlain`, `S`, `boneIndex`, `srgb`, `mix`, `speciesSstep`, `paintNoise`, `setShag`, `isLowPoly`, `registerToonPaint`, `toonPaint`, `paletteColors`, `Paint`, `ToonPaint`, `SpeciesRGB`, `setShapeFn`, `Station`
-- `./entities/lowpoly`: `crestSpikes`
-- `./fx/groundFx`: `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`
-- `./world/TreeFactory`: `TreeFactory`, `patchFade`, `patchWind`, `TreeVariant`, `FadeBand`, `windUniforms`
-- `./audio/ambience`: `AmbienceZones`, `ZoneVoice`
-- `./audio/util`: `panFromYaw`, `loopAt`, `audioRandom`
-- `./audio/Voices`: `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy`
-- `./ui/Minimap`: `MinimapPalette`, `MapOverlay`, `MapPoi`, `MapMark`
-- `./core/noise`: `Noise2D`, `smoothstep`, `clamp`, `lerp`
-- `./world/Terrain`: `Terrain`
-- `./world/BakedCards`: `loadBakedCards`, `exportCardTextures`
-- `./core/gpuOnly`: `markGpuOnly`, `gpuOnlyAttributes`, `gpuOnlyTexture`, `onGpuRestored`
-- `./world/forest/treeSpec`: `treeSetOf`, `TREE_SPECS`
-- `./world/forest/treeSet`: `BARK_LAYERS`, `loadTreeSetGeometry`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `treeSetUrls`
-- `./boot/tables`: `publicBytes`, `assetVersions`, `musicManifests`, `sfxManifests`, `bootPacks`, `installAssetTables`, `AssetTables`, `PackDef`, `PackPart`, `PackFile`
-- `./boot/lastEnd`: `markUnload`
-- `./boot/titleArrival`: `setTitleArrival`, `TitleArrival`
-- `./world/forest/treeSpecies`: `TreeSpeciesTraits`, `TreeSetVariant`, `SpeciesWeights`
-- `./combat/targets`: `authoredTargets`, `RayTargets`
-- `./meadowApi`: `loadMeadow`
-- `./practice/playground/Playground`: `PlaygroundHost`, `Playground`, `PLAYGROUND_Y`
-- `./physics/paths`: `pathRampDescs`
-- `./analytics`: `AnalyticsSink`, `AnalyticsEvent`, `AnalyticsMap`, `AnalyticsBatch`
-- `./audio/Stems`: `SlotAudio`, `StyleBank`, `StemSting`, `BossPhase`, `MusicManifest`
-- `./audio/synth`: `Synth`
-- `./audio/score/score`: `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName`
-- `./strings`: `ENGINE_STRINGS`, `engineString`, `installEngineStrings`, `EngineStringKey`
-- `./physics/ropeChain`: `RopeChain`, `RopeChainSpec`
-- `./world/water/body`: `WaterBodies`, `swellBody`, `WaterBody`
-- `./entities/species/rigs`: `NO_FUR`, `lookAngles`, `smooth01`, `bump`, `step`, `rigClamp`, `squashBody`
-- `./ui/BossBar`: `BossBar`
-- `./world/pondGrid`: `pondGrid`
-- `./ai/GroupBrain`: `GroupBrain`, `GroupMember`
-- `./ai/CreatureBrain`: `CreatureBrain`
-- `./ai/bossDefinition`: `BossDef`
-- `./entities/eliteBrain`: `setEliteBrain`, `setEliteDamage`, `setEliteAct`, `eliteThink`, `eliteDamageMul`, `eliteAct`
-- `./ui/EliteBar`: `EliteBar`
-- `./physics/groups`: `GroupName`, `groups`
-- `./core/practiceRoom`: `practiceRoom`
-- `./world/interact/flags`: `Flags`, `test`
-- `./world/interact/Interactables`: `InteractEvent`, `Interactables`
-- `./ui/FirstHints`: `FirstHints`
-- `./physics/bodies`: `activeBodies`, `Body`, `BodySpec`
-- `./world/waves`: `waveHeight`, `WAVES_GLSL`, `WAVES_NORMAL_GLSL`, `seaDamp`, `waveClock`
-- `./audio/gen`: `impact`, `synthKit`
-- `./world/interact/kit`: `interactParts`, `pickupModel`
-- `./world/lowpolyKit`: `LowPolyKit`, `PLANT`, `bakeLight`, `broadClump`, `fern`, `grassTuft`, `hibiscus`, `hibiscusBush`, `lilyPad`, `lotus`, `lowPolyMaterial`, `vineStrand`, `BakedLight`, `Part`
-- `./anim/index`: `loadRigFile`, `loadRig`, `bindRig`, `ClipChannel`, `AnimMachine`, `ClipName`, `SocketName`, `RigContract`, `RigBake`, `RigRef`, `RigInstance`, `AnimMachineDef`, `AnimState`, `AnimService`
-- `./level/selection`: `activeLevel`, `selectedLevel`, `onLevelChange`, `configureLevel`
-- `./render/renderer`: `Renderer`, `probeRenderer`, `isRenderer`
-- `./ui/Feedback`: `Feedback`
-- `./explore/Explore`: `Explore`, `ExploreMode`
-- `./practice/playground/catalog`: `PlaygroundId`
-- `./core/frameCost`: `Bucket`
-- `./boot/contentApi`: `loadBootRuntime`, `BootRuntime`
-- `./boot`: `levelSequenceDriver`, `LevelSequence`, `LevelBoundary`
-- `./practice/TrainingArena`: `TrainingArena`
-- `./render/hoverboardGeometry`: `buildHoverboard`
-- `./input/gameplay`: `installGameplayInput`, `weaponInputContext`
-- `./ui/ownership`: `uiScope`, `mountUi`
-- `./ui/layers`: `UiLayers`, `UiLayer`, `UiView`, `UiHandle`
-- `./ui/tabs`: `TabRegistry`, `TabId`, `TabSpec`, `TabFragment`
-- `./input/weaponActions`: `weaponActionGate`
-- `./input/dom`: `listenDom`, `listenPage`, `PageInputEvent`
-- `./ui/authoredDebugRows`: `registerGlobalDebugAction`, `GlobalDebugActionSpec`
-- `./models/live`: `live`, `listModel`, `RosterEntry`
-- `./combat/view/slashTrail`: `SlashTrail`, `SlashTrailProfile`
-- `./world/skyRig`: `SkyRig`
-- `./world/skyBackdrop`: `SkyBackdropView`
-- `./app/identity`: `installAppIdentity`, `appIdentity`, `AppIdentity`
-- `./debug/probe`: `EngineProbe`, `HarnessPins`
-- `./boot/bootTrace`: `inspectPreviousBoot`, `previousBootLevel`, `previousBootLine`
-- `./boot/bytes`: `fetchImage`, `phoneUrl`, `versionedUrl`
-- `./core/ktx2`: `ktx2Texture`, `readTexturePixels`
-- `./entities/AnimalFactory`: `AnimalFactory`
-- `./models/place`: `HandedBatch`, `InstancedCuller`, `Placed`, `place`, `PlaceOptions`, `Draw`, `copiesAt`, `finishWeld`, `weld`, `CullOptions`, `copiesNear`, `placedGroups`, `CullView`
-- `./physics/active`: `activePhysics`
-- `./physics/CharacterMotor`: `CharacterMotor`
-- `./physics/surface`: `tagOf`, `Material`
-- `./physics/terrain`: `TerrainCut`
-- `./player/Hands`: `SwimArms`, `Hands`
-- `./telemetry/runtime`: `startTelemetry`
-- `./ui/roomMap`: `RoomMap`, `RoomMarker`, `RoomShape`
-- `./world/blenderArea`: `BlenderArea`
-- `./world/forest/placement`: `GroundPlacement`, `TreeInstance`, `UnderPlacements`, `DecisionLog`, `placeUndergrowth`, `placementChecksum`, `sameChecksum`, `UndergrowthPlacement`
-- `./audio/audioLog`: `audioLog`
-- `./audio/interactSfx`: `InteractSfx`
-- `./audio/preload`: `cachedBytes`, `decodeBytes`
-- `./core/perfLap`: `perfLap`, `LapSpot`
-- `./entities/Animal`: `Animal`
-- `./models/colliders`: `poseOf`
-- `./models/creature`: `creature`, `CreatureParams`, `creatureFactory`, `CREATURE_CLIPS`
-- `./models/gear`: `loadingSpecimen`, `skinVariants`, `wearSkin`, `GearSkinParams`
-- `./models/glb`: `vertexHull`, `loadLodPairInto`, `lodPairOf`, `GlbPart`
-- `./models/hull`: `bakePart`, `supportPoints`
-- `./models/sets`: `placeSet`
-- `./models/slots`: `SlotGeometry`, `SlotRecorder`
-- `./models/swimHands`: `swimHands`
-- `./physics/heightPatch`: `HeightPatch`
-- `./player/WeaponPickup`: `WeaponPickup`, `ItemPickup`, `PickupTier`
-- `./practice/playground/devGrid`: `DevKit`, `devLabel`, `devMaterial`
-- `./practice/playground/hud`: `PlaygroundChip`, `clock`
-- `./quest/view`: `NpcTalk`, `QuestChip`, `placesWithDiscovery`, `LiveMarker`, `ChipSource`, `NpcTalkOpts`, `PlacePoint`, `Places`
-- `./quest/view/ui`: `ObjectiveLine`, `DialogueBox`, `RewardCaption`
-- `./world/BakedTerrain`: `bakedUndergrowth`
-- `./world/faunaLayout`: `layoutFauna`
-- `./world/Heightfield`: `normalAt`, `splatAt`, `trailDistance`, `cabinMask`, `pondMask`, `waterLevel`, `inChunk`, `POND`, `TRAILS`, `CABIN_SITES`, `hasPond`, `streamAt`
-- `./world/HorizonMatte`: `HORIZON_RADIUS`
-- `./world/waterSurface`: `createWaterMaterial`, `waterWeather`
-- `./combat/EquipmentPickup`: `EquipmentPickupSpec`
-- `./boot/extras`: `AudioBanks`, `Preload`
-- `./player/LockOnTarget`: `LockOnSystem`
-- `./player/TouchControls`: `TouchControls`
-- `./ui/Loading`: `Loading`
-- `./ui/Perf`: `Perf`
-- `./ui/WindupWarn`: `WindupWarn`
-- `./world/Boundary`: `Boundary`
-- `./world/Horizon`: `Horizon`
-- `./world/pond`: `Water`
-- `(local)`: `ENGINE_API`
+- `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
+- `@wildshard/engine/ai/bossDefinition`: `BossDef`
+- `@wildshard/engine/ai/CreatureBrain`: `CreatureBrain`
+- `@wildshard/engine/ai/EliteBrain`: `EliteActor`, `EliteBrain`, `EliteDefinition`, `ElitePorts`
+- `@wildshard/engine/ai/encounters`: `EncounterDefinition`, `EncounterRegistry`, `EncounterService`, `SpawnContext`, `SpawnEntry`, `Spawner`, `SpawnPoint`, `SpawnTableRow`
+- `@wildshard/engine/ai/GroupBrain`: `GroupBrain`, `GroupMember`
+- `@wildshard/engine/ai/inspect`: `brainInspection`, `BrainInspection`, `brainPinned`, `inspectBrain`, `inspectTick`, `pinBrain`
+- `@wildshard/engine/ai/reach`: `canReach`, `ReachActor`
+- `@wildshard/engine/ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
+- `@wildshard/engine/ai/strikes`: `BrainPoint`, `StrikeActor`, `StrikeContext`, `StrikePhase`, `StrikeRunner`, `StrikeShape`, `StrikeSpec`, `UtilityScore`
+- `@wildshard/engine/ai/view/DebugOverlay`: `AiDebugHost`, `AiDebugView`, `DebugActor`, `installAiDebug`
+- `@wildshard/engine/ai/weighted`: `TableDrop`, `TableSpec`, `WeightedRow`, `WeightedTable`
+- `@wildshard/engine/anim/channel`: `ClipChannel`
+- `@wildshard/engine/anim/machine`: `AnimMachine`, `AnimMachineDef`, `AnimService`, `AnimState`
+- `@wildshard/engine/anim/rig`: `bindRig`, `ClipName`, `loadRig`, `loadRigFile`, `RigBake`, `RigContract`, `RigInstance`, `RigRef`, `SocketName`
+- `@wildshard/engine/app/app`: `App`, `SystemsByPhase`, `TrampleField`
+- `@wildshard/engine/app/cachedAssets`: `retainCachedResources`
+- `@wildshard/engine/app/identity`: `appIdentity`, `AppIdentity`, `currentProbe`, `harnessPins`, `installAppIdentity`, `installedIdentity`, `setCurrentProbe`
+- `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enterOwner`, `onOwnerDispose`, `withOwner`
+- `@wildshard/engine/app/resources`: `pageScope`, `resourceScope`
+- `@wildshard/engine/app/runtime`: `app`, `gameplayRandom`
+- `@wildshard/engine/app/scheduler`: `InterruptReason`, `TickActor`, `TickBand`, `TickPoint`, `TickRate`, `TickScheduler`
+- `@wildshard/engine/app/scope`: `Disposable3`, `disposalErrorMessages`, `NativeCensus`, `nodeOwner`, `PhysicsHandle`, `registrationTimerIds`, `Scope`, `ScopeCensus`, `scopeRegistrations`, `SoundHandle`
+- `@wildshard/engine/app/systems`: `AppState`, `inState`, `Phase`, `PHASES`, `RunCondition`, `sortSystems`, `SystemSpec`, `TickRateId`
+- `@wildshard/engine/audio/ambience`: `AmbienceZones`, `ZoneBed`, `ZoneVoice`
+- `@wildshard/engine/audio/AmbienceBeds`: `AmbienceBeds`, `BedDef`, `PositionalLoops`, `ZoneWeights`
+- `@wildshard/engine/audio/Audio`: `AmbientBed`, `AnimalSound`, `Audio`, `CallVoice`, `GameAudio`, `HoofSurface`, `ImpactKind`, `LoopName`, `OneShot`, `SampleLoop`, `SynthBed`
+- `@wildshard/engine/audio/audioLog`: `audioLog`, `AudioLogEntry`
+- `@wildshard/engine/audio/Cues`: `CueBank`, `cueFiles`, `CueMap`, `CueOpts`, `CuePlayer`, `decodeCueSet`, `SampleClip`
+- `@wildshard/engine/audio/gen`: `bubbleBed`, `death`, `footstep`, `hurt`, `impact`, `impulse`, `impulseChannel`, `interact`, `INTERACT_SOUNDS`, `InteractSound`, `Material`, `MATERIALS`, `noiseLoop`, `plunge`, `Room`, `ROOMS`, `STEP_KINDS`, `StepKind`, `synthKit`, `whoosh`
+- `@wildshard/engine/audio/interactSfx`: `InteractSfx`
+- `@wildshard/engine/audio/levelAudio`: `AudioMixer`, `LevelAudioBank`, `LevelAudioProfile`, `NO_AUDIO`
+- `@wildshard/engine/audio/Music`: `Music`, `MusicMode`, `MusicState`, `StingName`
+- `@wildshard/engine/audio/ownership`: `ownAudioSource`
+- `@wildshard/engine/audio/preload`: `AudioKind`, `cachedBytes`, `DECODE_RATE`, `decodeBytes`, `decodeSfxSet`, `onAudioBusy`, `SfxBank`, `SfxDecodePolicy`, `sfxFiles`, `trackBusy`
+- `@wildshard/engine/audio/score/score`: `Arrangement`, `ChordEv`, `ChordName`, `installScore`, `LayerId`, `MixEv`, `MixKey`, `Mode`, `NoteEv`, `score`, `Score`, `Segment`
+- `@wildshard/engine/audio/SetScore`: `AudioDecode`, `AudioRead`, `decodeScore`, `ScoreBank`, `scoreFiles`, `scoreManifest`, `ScoreSet`, `ScoreSource`, `SetScore`, `SetScoreOptions`
+- `@wildshard/engine/audio/Stems`: `BossPhase`, `Deck`, `decodeStyle`, `GenreBank`, `musicManifest`, `MusicManifest`, `MusicSet`, `musicSetDir`, `parseManifest`, `setFiles`, `shipped`, `SlotAudio`, `SlotName`, `SlotSpec`, `StemSting`, `StyleBank`, `styleFiles`
+- `@wildshard/engine/audio/surface`: `GroundSurface`, `StepSurface`, `StepSurfaceRequest`
+- `@wildshard/engine/audio/util`: `audioRandom`, `bindAudioRandom`, `loopAt`, `panFromYaw`
+- `@wildshard/engine/audio/Voices`: `FAMILIES`, `Family`, `FamilyName`, `PlayOpts`, `SamplePlay`, `SamplePolicy`, `SampleVoice`, `VoicePool`, `Voices`, `VoiceTable`
+- `@wildshard/engine/blocks`: `blocks`
+- `@wildshard/engine/boot`: `bootLevel`, `LevelBoundary`, `LevelSequence`, `levelSequenceDriver`
+- `@wildshard/engine/boot/audioFiles`: `AudioFilePolicy`, `audioFiles`, `manifestFiles`, `musicDir`, `musicStyles`, `sfxDir`, `sfxSets`
+- `@wildshard/engine/boot/bakedApi`: `loadBakedSky`, `loadLUT`, `preloadBakedTextures`
+- `@wildshard/engine/boot/bootTrace`: `beginExploreEntry`, `bootDiagnostic`, `bootDiagnosticJson`, `BootTrace`, `bootTraceActive`, `BootTraceTransports`, `createBootTrace`, `endExploreEntry`, `exploreEntryPending`, `flushBootReports`, `inspectPreviousBoot`, `markBootContextLost`, `markBootHandledError`, `markBootPlanned`, `previousBootLevel`, `previousBootLine`, `recordBootCheckpoint`, `recordBootProgress`, `recordExploreFrame`, `recordGpuRecovery`, `startBoot`
+- `@wildshard/engine/boot/bytes`: `addBytes`, `ChunkFiles`, `declareTotals`, `fetchImage`, `gpuLayerUrl`, `gpuUrl`, `installByteCounter`, `phoneUrl`, `releaseByteCounter`, `tierUrl`, `versionedUrl`
+- `@wildshard/engine/boot/catalog`: `bootCatalog`, `BootCatalog`, `BootLevel`, `setBootCatalog`
+- `@wildshard/engine/boot/extras`: `AudioBanks`, `bootFiles`, `extraFetches`, `Preload`, `startAudioPreload`, `startDeferredAudioPreload`, `startMenuPreload`
+- `@wildshard/engine/boot/filePolicy`: `filePolicy`
+- `@wildshard/engine/boot/gpuFiles`: `gpuFile`, `Ktx2Table`, `MAY_KTX2`, `registerGpuFiles`, `setAutoKtx2Check`, `setTexturePolicy`, `standIn`, `texMode`, `TexMode`, `texModeWhy`
+- `@wildshard/engine/boot/lastEnd`: `AliveInfo`, `lastEnd`, `LastEnd`, `lastEndLine`, `lastRecordedEnd`, `markUnload`, `PageLife`, `setAliveSource`
+- `@wildshard/engine/boot/pack`: `bootParts`, `packFor`, `streamPack`
+- `@wildshard/engine/boot/plan`: `ByteProgress`, `createBootPlan`, `formatMB`, `LogRow`, `macrotask`, `Plan`, `PlanOptions`, `ProgressView`, `runDirect`, `Sink`, `slicer`, `StepProgress`, `StepRunner`
+- `@wildshard/engine/boot/prefetch`: `bootFetches`, `prefetch`, `prefetchAfter`, `whenPrefetched`
+- `@wildshard/engine/boot/retry`: `retried`
+- `@wildshard/engine/boot/runtime`: `loadExplore`, `loadFeedback`
+- `@wildshard/engine/boot/shardPrefetch`: `ktx2MarkerKey`, `ktx2Ready`, `ktx2Set`, `lateReads`, `PrefetchEnv`, `PrefetchHandle`, `PrefetchState`, `prefetchVeto`, `setHash`, `shardBootRequests`, `shardPrefetchList`, `ShardTally`, `startShardPrefetch`
+- `@wildshard/engine/boot/steps`: `BOOT_STEPS`, `BootStep`, `BYTE_SOURCES`, `ByteKey`, `byteLabel`, `closedBy`, `shardTimingKey`, `STEP_INFO`, `StepInfo`, `useShardSteps`
+- `@wildshard/engine/boot/tables`: `AssetTables`, `assetVersions`, `bootPacks`, `installAssetTables`, `musicManifests`, `PackDef`, `PackFile`, `PackPart`, `publicBytes`, `sfxManifests`
+- `@wildshard/engine/boot/titleArrival`: `consumeTitleArrival`, `setTitleArrival`, `TitleArrival`, `TitleArrivalMode`
+- `@wildshard/engine/combat/ammo`: `AmmoId`, `AmmoRow`, `ProjectileModification`
+- `@wildshard/engine/combat/blocks/ads`: `ads`
+- `@wildshard/engine/combat/blocks/melee`: `aimRay`, `fovForAspect`, `melee`
+- `@wildshard/engine/combat/cues`: `audioCueMap`, `CombatCueMap`, `CombatCueOpts`, `CombatCues`, `HitStopProfile`, `resolveHitStop`, `WeaponChargePhase`
+- `@wildshard/engine/combat/effects/EffectService`: `EffectService`
+- `@wildshard/engine/combat/effects/types`: `ActiveEffect`, `AttributeSet`, `CueId`, `EffectDef`, `EffectId`, `EffectTarget`, `matchesTag`, `SourceMulDef`, `sourceMultiplier`
+- `@wildshard/engine/combat/Equipment`: `BlockSet`, `EquipContext`, `Equipment`, `EquipmentBlock`, `EquipmentCues`, `EquipmentIcon`, `EquipmentIconMap`, `EquipmentId`, `EquipmentMeta`, `EquipmentRow`, `EquipmentSlotMap`, `EquipmentTouchMap`, `RangedFeelProfile`, `ToolId`, `WeaponId`, `WeaponUi`
+- `@wildshard/engine/combat/EquipmentPickup`: `EquipmentPickup`, `EquipmentPickupHost`, `EquipmentPickupSpec`, `PickupLoadout`
+- `@wildshard/engine/combat/EquipmentService`: `EquipmentService`
+- `@wildshard/engine/combat/health`: `HealthLifecycle`, `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
+- `@wildshard/engine/combat/pipeline`: `Actor`, `CombatPipeline`, `CombatTag`, `CombatTarget`, `DamageDealt`, `DamageRequest`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
+- `@wildshard/engine/combat/targets`: `authoredTargets`, `RayTargets`
+- `@wildshard/engine/combat/Tool`: `EquipmentAction`, `Tool`
+- `@wildshard/engine/combat/types`: `TargetAnimal`, `TargetFrame`, `TargetHit`, `Targets`
+- `@wildshard/engine/combat/view/brass`: `BrassCase`, `brassFloor`, `stepBrass`
+- `@wildshard/engine/combat/view/DropArc`: `DropArc`
+- `@wildshard/engine/combat/view/EquipmentHost`: `EquipmentHost`
+- `@wildshard/engine/combat/view/firearmFx`: `HitLine`, `makeFlashTexture`
+- `@wildshard/engine/combat/view/hitscan`: `hitscan`, `HitscanProfile`, `HitscanResult`
+- `@wildshard/engine/combat/view/melee`: `Key`, `Move`, `SwordArms`, `SwordFraming`, `SwordMoveSet`, `SwordRig`, `SwordWorld`, `Trail`
+- `@wildshard/engine/combat/view/projectile`: `projectileFlightStep`, `ProjectileKind`, `Projectiles`, `ProjectileWorld`, `ShotOpts`, `WindField`
+- `@wildshard/engine/combat/view/ranged`: `box`, `CrossbowOptions`, `CrossbowWorld`, `cyl`, `dataTexture`, `edgeWear`, `fixIBL`, `FOV_ADS`, `FOV_HIP`, `fovForAspect`, `impactSurfaceOf`, `isMesh`, `makeBoltAtlas`, `makeCord`, `Puffs`, `RangedOptions`, `RangedWorld`, `remapUV`, `startViewmodelTextures`, `stripExtra`, `TexSet`, `TRACER_ORDER`, `TRACER_RED`, `VIEWMODEL_GROUP`, `viewmodelMaterial`, `viewmodelTexSet`, `viewmodelTexturesReady`, `whiteColors`, `worldHit`
+- `@wildshard/engine/combat/view/rangedFeel`: `installRangedFeel`
+- `@wildshard/engine/combat/view/slashTrail`: `SlashTrail`, `SlashTrailProfile`
+- `@wildshard/engine/combat/Weapon`: `AimInfo`, `EquipmentView`, `ImpactSurface`, `quiverState`, `ViewFrame`, `Weapon`, `WeaponHooks`, `WeaponState`
+- `@wildshard/engine/core/assets`: `loadGLTF`, `loadHDR`, `loadImage`, `loadPBR`, `loadPBRArray`, `loadTexture`, `pbrMaterial`, `PBRSet`, `pbrUrls`, `setAnisotropy`, `texUrl`
+- `@wildshard/engine/core/bootstrap`: `bootstrap`, `World`
+- `@wildshard/engine/core/config`: `_applyChunkConstants`, `CELL_ABOVE`, `CELL_BELOW`, `CELL_HEIGHT`, `CHUNK_COORDS`, `CHUNK_DEPTH`, `CHUNK_HALF`, `CHUNK_SIZE`, `PAGE_LEVEL`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `TERRAIN_RES`, `TREE_COUNT`
+- `@wildshard/engine/core/devMode`: `isDev`, `onDev`, `setDev`
+- `@wildshard/engine/core/errorReport`: `ContextValue`, `ErrorPayload`, `ErrorReporter`, `keyOf`, `LoadFailure`, `QUEUE_KEY`, `QUEUE_MAX`, `REPORT_DELAY_MS`, `ReporterDeps`, `reportError`, `ReportOutcome`, `REPORTS_MAX`, `safeUrl`, `sendReport`, `SendResult`, `SESSION_KEY`, `StorageLike`
+- `@wildshard/engine/core/frameCost`: `Bucket`, `BUCKETS`, `frameCost`, `FrameCostSnapshot`, `FrameRecord`, `Sub`, `SUBS`
+- `@wildshard/engine/core/Game`: `FixedPhase`, `Game`
+- `@wildshard/engine/core/gpuOnly`: `gpuOnlyAttributes`, `gpuOnlyContent`, `gpuOnlyTexture`, `markGpuOnly`, `onGpuRestored`, `rebakeGpuContent`
+- `@wildshard/engine/core/GpuRecovery`: `installGpuRecovery`, `RecoveryHost`, `RELOAD_PARAM`
+- `@wildshard/engine/core/harnessTap`: `ambientTick`, `tap`
+- `@wildshard/engine/core/KeepAlive`: `KeepAlive`
+- `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `readTexturePixels`, `releaseAfterUpload`
+- `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
+- `@wildshard/engine/core/perfLap`: `LapPlayer`, `LapSpot`, `perfLap`, `PerfLapHost`
+- `@wildshard/engine/core/practiceRoom`: `practiceRoom`
+- `@wildshard/engine/core/rng`: `fnv1a32`, `pageSeed`, `Rng`, `RngService`, `RngStream`, `RngStreams`
+- `@wildshard/engine/core/shadowLayer`: `SHADOW_LAYER`
+- `@wildshard/engine/core/tier`: `_buildAs`, `applyLevelTier`, `automaticTier`, `buildTier`, `frameCapFps`, `frameProbe`, `gfxPrefs`, `GfxPrefs`, `initializeTier`, `MOBILE_DEVICE`, `practiceFps`, `saveGfxPrefs`, `Tier`, `TIER`, `TIER_CONFIG`
+- `@wildshard/engine/core/time`: `worldTime`
+- `@wildshard/engine/debug/probe`: `CombatTarget`, `compiledProgramHash`, `createProbeNav`, `EngineProbe`, `Fingerprint`, `GameplayState`, `GpuBytes`, `HarnessPins`, `installProbe`, `LeakCensus`, `LeakResult`, `ProbeApp`, `ProbeDeps`, `ProbeNav`, `ProbePose`, `ProbeWorld`, `programHash`, `ResourceCounts`, `Saves`, `SoundLog`, `Vec3`, `WalkLeg`, `WalkResult`
+- `@wildshard/engine/entities/Animal`: `Animal`, `AnimalState`, `DAMAGE`, `damageFor`, `P_COUNT`
+- `@wildshard/engine/entities/AnimalFactory`: `AnimalFactory`, `AnimalKind`, `AnimalMaterial`, `AnimalModel`, `AnimalRig`, `AnimalStyle`, `AnimalVariant`, `DEFAULT_CREATURE_RENDER`, `SHELL_LAYERS`
+- `@wildshard/engine/entities/AnimalManager`: `AnimalHit`, `AnimalManager`, `AnimalSound`, `BOAR_TUNING`, `BodyClearable`, `clearBody`, `DEER_TUNING`, `Herd`, `HuntTuning`, `WanderGoalQuery`
+- `@wildshard/engine/entities/eliteBrain`: `eliteAct`, `eliteDamageMul`, `eliteThink`, `setEliteAct`, `setEliteBrain`, `setEliteDamage`
+- `@wildshard/engine/entities/lowpoly`: `crestSpikes`, `facetGeometry`, `lowPolyMaterials`, `LowPolyMaterials`, `oneMaterial`, `patchEyeGlow`
+- `@wildshard/engine/entities/species/loft`: `boneIndex`, `isLowPoly`, `loft`, `lowPolySides`, `mix`, `Paint`, `paintNoise`, `paletteColors`, `registerToonPaint`, `RGB`, `S`, `setLowPoly`, `setShag`, `setShapeFn`, `skinPlain`, `srgb`, `Station`, `TEX_M`, `toonPaint`, `ToonPaint`, `tube`
+- `@wildshard/engine/entities/species/look`: `CreatureHull`, `EyeSpot`, `SpeciesLook`, `SpeciesService`, `speciesWithLook`
+- `@wildshard/engine/entities/species/registry`: `AnimalDims`, `AnimalSpecies`, `BoneDef`, `creatureSoundDefaults`, `CreatureSoundDefaults`, `EnemyWorld`, `FurStyle`, `hasSpecies`, `Rarity`, `RARITY_ORDER`, `registeredSpecies`, `registerSpecies`, `RigAnimCtx`, `rollVariant`, `setCreatureSoundDefaults`, `setSpeciesResolver`, `speciesDef`, `SpeciesDef`, `speciesKinds`, `ThinkCtx`, `validateCreatureBones`, `variantDef`, `VariantDef`, `variantMods`, `VariantMods`
+- `@wildshard/engine/entities/species/rigs`: `bump`, `clamp`, `lookAngles`, `NO_FUR`, `smooth01`, `squashBody`, `step`
+- `@wildshard/engine/events/events`: `EVENT_FLUSH_LIMIT`, `Events`, `ListenerOptions`
+- `@wildshard/engine/events/maps`: `AskInput`, `AskMap`, `AskOutput`, `CrouchAnswer`, `CrouchRequest`, `EventMap`, `FaultEvent`, `Tag`, `TagMap`
+- `@wildshard/engine/explore/Explore`: `Explore`, `ExploreHost`, `ExploreMode`, `ExplorePane`, `ExploreTitle`
+- `@wildshard/engine/fx/groundFx`: `annulus`, `FX`, `fxMaterial`, `FxMaterial`, `FxMode`
+- `@wildshard/engine/fx/Impacts`: `ImpactKind`, `Impacts`
+- `@wildshard/engine/fx/LightPool`: `LightPool`
+- `@wildshard/engine/fx/ParticlePool`: `ParticleAttr`, `ParticlePool`, `ParticlePoolSpec`, `pointScale`
+- `@wildshard/engine/input/dom`: `listenDom`, `listenPage`, `mountDom`, `PageInputEvent`
+- `@wildshard/engine/input/gameplay`: `installGameplayInput`, `weaponInputContext`
+- `@wildshard/engine/input/InputService`: `Action`, `ActionMap`, `InputService`, `TouchStack`, `TouchVerb`, `TouchVerbSpec`
+- `@wildshard/engine/input/weaponActions`: `weaponActionGate`
+- `@wildshard/engine/level/context`: `ContentRow`, `ContentRowMap`, `CreatureMaterialFactory`, `DebugRowSpec`, `EngineRows`, `HudVerbs`, `InputContextDef`, `LevelAdapters`, `LevelContext`, `LevelHooks`, `PlaygroundSpec`, `ResidentMemory`, `RowVerb`, `StringTable`, `TierKnobSchema`, `VerbSlotOpts`
+- `@wildshard/engine/level/data`: `AtmosphereSpec`, `CabinSite`, `CompareTarget`, `exploreArt`, `ExploreArt`, `ExploreSpec`, `FaunaKind`, `ForestSpec`, `GradeLook`, `GradeSpec`, `HerdPlan`, `HorizonBand`, `HorizonRing`, `HorizonSpec`, `HudSpec`, `LevelAssets`, `MapLook`, `MinimapSpec`, `PoiSpec`, `PondDef`, `RGB`, `SkySpec`, `SpawnPose`, `TerrainField`, `TerrainNoise`, `TerrainSpec`, `TreeSpec`, `Vec2`
+- `@wildshard/engine/level/load`: `LevelDriver`, `LevelLoader`, `LevelLoadError`, `LevelStage`
+- `@wildshard/engine/level/selection`: `activeLevel`, `configureLevel`, `onLevelChange`, `selectedLevel`
+- `@wildshard/engine/level/spec`: `AudioSpec`, `BootSpec`, `Bounds`, `CreatureRenderSpec`, `EngineMechanism`, `FightRules`, `LevelSpec`, `LoadoutSpec`, `needsTerrainCollider`, `resolveTierKnobs`, `TierKnobMap`, `TierKnobs`, `TierOverrides`
+- `@wildshard/engine/math/color`: `lin`
+- `@wildshard/engine/models/colliders`: `drawnHullOwn`, `drawnHullWorld`, `placeCollider`, `Pose`, `poseGeometry`, `poseOf`
+- `@wildshard/engine/models/creature`: `creature`, `CREATURE_CLIPS`, `creatureContext`, `creatureFactory`, `CreatureParams`
+- `@wildshard/engine/models/cull`: `BatchedCull`, `BatchedSlot`, `CellCull`, `CelledCopiesCull`, `CullOptions`, `CullView`, `HostedSet`, `InstancedCull`, `InstancedSink`, `SetCull`, `UntilCull`, `WeldCull`
+- `@wildshard/engine/models/gear`: `GearSkinParams`, `loadingSpecimen`, `skinVariants`, `wearSkin`
+- `@wildshard/engine/models/glb`: `GlbPart`, `loadGlbPart`, `loadLodPair`, `loadLodPairInto`, `LodPair`, `lodPairOf`, `vertexHull`
+- `@wildshard/engine/models/hull`: `bakePart`, `supportPoints`
+- `@wildshard/engine/models/interact`: `glow`, `lit`, `pickup`
+- `@wildshard/engine/models/live`: `listModel`, `ListOptions`, `listRoster`, `live`, `RosterEntry`
+- `@wildshard/engine/models/model`: `ColliderSpec`, `definedModels`, `defineModel`, `ModelBuild`, `modelContext`, `ModelContext`, `ModelDef`, `ModelInfo`, `ModelLod`, `ModelPart`, `ModelVariant`, `paramsOf`, `Placement`, `seedOf`
+- `@wildshard/engine/models/place`: `CLAIM_MARGIN`, `claimCopy`, `copiesAt`, `copiesNear`, `cullPlaced`, `Draw`, `DrawnInto`, `finishWeld`, `HandedBatch`, `InstancedCuller`, `PieceOptions`, `place`, `Placed`, `placedCopies`, `placedGroups`, `PlaceOptions`, `rayCopy`, `weld`, `Weld`, `WeldOptions`
+- `@wildshard/engine/models/roster`: `listShardModels`, `ShardModelsOptions`
+- `@wildshard/engine/models/sets`: `placeSet`, `SetOptions`
+- `@wildshard/engine/models/slots`: `SlotGeometry`, `SlotRange`, `SlotRecorder`
+- `@wildshard/engine/models/swimHands`: `swimHands`, `SwimHandsParams`
+- `@wildshard/engine/models/weld`: `flatPositions`, `mergeOrNull`, `nearProxy`, `shadowProxy`, `twoSidedPositions`, `UnitDrawn`, `UnitParts`, `weldAcross`, `WeldBatch`, `WeldBuild`, `WeldPart`, `WeldView`
+- `@wildshard/engine/physics/bodies`: `activeBodies`, `Bodies`, `Body`, `BODY_CAP`, `BodyShape`, `BodySpec`, `Drop`, `DROP_BODY`, `FixedClock`, `FloatSpec`, `overlapBox`, `setActiveBodies`
+- `@wildshard/engine/physics/box`: `boxInFrame`, `BoxSpec`
+- `@wildshard/engine/physics/CharacterMotor`: `CharacterMotor`, `MotorOptions`, `MoveResult`, `rideable`
+- `@wildshard/engine/physics/groups`: `GROUP`, `GroupName`, `groups`, `queryGroups`
+- `@wildshard/engine/physics/heightPatch`: `HeightPatch`, `HeightPatchOpts`
+- `@wildshard/engine/physics/paths`: `pathRampDescs`, `PathRampOptions`
+- `@wildshard/engine/physics/query`: `castRay`, `castSegment`, `floorBelow`, `Hit`, `lineOfSight`, `sticksIn`, `sweepBall`
+- `@wildshard/engine/physics/ropeChain`: `RopeChain`, `RopeChainSpec`
+- `@wildshard/engine/physics/surface`: `clearTags`, `ColliderTag`, `Material`, `tagCollider`, `tagOf`, `untagCollider`
+- `@wildshard/engine/physics/terrain`: `addEdgeWalls`, `addTerrain`, `cutTerrain`, `EDGE_WALL_INSET`, `TerrainCut`, `terrainGrid`, `toColumnMajor`
+- `@wildshard/engine/player/AimTargets`: `AimTarget`, `getAimTargets`, `lockOn`, `meleeLock`, `setAimTargets`, `targetRadius`
+- `@wildshard/engine/player/bladeGlow`: `BladeGlow`
+- `@wildshard/engine/player/CameraFX`: `CameraFX`
+- `@wildshard/engine/player/dodge`: `dodgeEnv`, `dodgeFx`
+- `@wildshard/engine/player/Hands`: `buildSwimGloves`, `ELBOW`, `Hands`, `IDLE`, `SwimArms`, `SwimStyle`
+- `@wildshard/engine/player/LockOnTarget`: `addLockOffset`, `aimPoint`, `FlickDir`, `FlickTracker`, `LOCK`, `LockOnSystem`, `lockScore`, `pickSwitch`, `wrapAngle`
+- `@wildshard/engine/player/MeleeSweep`: `BLADE_SLACK`, `bladeBlocked`, `bladeContact`, `BladeContact`, `Clang`, `clangOf`
+- `@wildshard/engine/player/nalatiArms`: `ARM_PAL`, `Fist`, `FistOpts`, `forearm`, `gloveFist`, `placeArm`, `riderArm`
+- `@wildshard/engine/player/Player`: `HOVER_TOP`, `Player`, `STROKE_PERIOD`, `SWIM_SPEED`
+- `@wildshard/engine/player/Skins`: `applySkin`, `clearSkin`, `SkinDef`, `SkinId`, `WeaponKind`
+- `@wildshard/engine/player/TouchControls`: `IS_TOUCH`, `TouchControls`
+- `@wildshard/engine/player/viewmodelTextures`: `clamp01`, `CLASSIC_SETS`, `Ctx2D`, `makeNoise`, `makePixels`, `MODERN_SETS`, `Noise`, `normalPixels`, `Pixels`, `SetName`, `sstep`
+- `@wildshard/engine/player/WeaponPickup`: `ItemPickup`, `ItemPickupOptions`, `PickupTier`, `TIER_COLOUR`, `WeaponPickup`
+- `@wildshard/engine/practice/playground/catalog`: `asPlaygroundId`, `PLAYGROUND_CARDS`, `playgroundCard`, `PlaygroundCard`, `PlaygroundId`, `playgroundsFor`, `registeredPlayground`, `registerPlayground`
+- `@wildshard/engine/practice/playground/devGrid`: `DevKit`, `devLabel`, `devMaterial`, `devTexture`, `DevTone`, `TILE`
+- `@wildshard/engine/practice/playground/hud`: `clock`, `PlaygroundChip`
+- `@wildshard/engine/practice/playground/load`: `loadPlayground`
+- `@wildshard/engine/practice/playground/Playground`: `Playground`, `PLAYGROUND_Y`, `PlaygroundHost`
+- `@wildshard/engine/practice/TrainingArena`: `TrainingArena`, `TrainingTarget`
+- `@wildshard/engine/quest/core`: `CHIP_MAX`, `DialogueEntry`, `lineFor`, `NpcDef`, `QuestDef`, `QuestLine`, `QuestMarker`, `QuestState`, `QuestStep`, `validateQuest`
+- `@wildshard/engine/quest/view`: `ChipSource`, `LiveMarker`, `NpcTalk`, `NpcTalkOpts`, `PlacePoint`, `Places`, `placesWithDiscovery`, `QuestChip`
+- `@wildshard/engine/quest/view/ui`: `DialogueBox`, `ObjectiveLine`, `RewardCaption`
+- `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
+- `@wildshard/engine/render/look`: `EngineChainKind`, `EngineEffects`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
+- `@wildshard/engine/render/lut`: `fetchLut`, `LUT_SIZE`
+- `@wildshard/engine/render/precompile`: `backgroundJob`, `collectTextures`, `CompileJob`, `postJobs`, `precompileLevel`, `PrecompileReport`, `runPrecompile`, `sceneJobs`, `shadowJobs`
+- `@wildshard/engine/render/renderer`: `createRenderer`, `isRenderer`, `probeRenderer`, `Renderer`
+- `@wildshard/engine/render/shaderPatches`: `hasProgramKey`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
+- `@wildshard/engine/render/textureBytes`: `textureBytes`
+- `@wildshard/engine/render/viewmodelFeel`: `DrawingBuffer`, `LookLag`, `LookSpring`, `viewmodel`
+- `@wildshard/engine/saves/runtime`: `homeScreenPersistence`, `installLegacyMirror`, `installSaveReporter`, `persistHomeScreen`, `saves`, `standaloneDisplay`
+- `@wildshard/engine/saves/slots`: `Json`, `jsonRecord`, `jsonSchema`, `jsonSlot`, `saveStorage`
+- `@wildshard/engine/saves/store`: `CorruptSave`, `ImportReport`, `SaveKeyDef`, `SaveScope`, `SaveSlot`, `SaveStorage`, `SaveStore`, `SchemaFailure`
+- `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
+- `@wildshard/engine/ui/authoredDebugRows`: `authoredRows`, `GlobalDebugActionSpec`, `registerGlobalDebugAction`
+- `@wildshard/engine/ui/BossBar`: `BossBar`
+- `@wildshard/engine/ui/Combat`: `aimReadout`, `Combat`
+- `@wildshard/engine/ui/DeathFade`: `DARK_UNTIL`, `DeathFade`, `DeathHooks`, `FADE_IN`, `FADE_OUT`
+- `@wildshard/engine/ui/debugOptions`: `action`, `DEBUG_GROUPS`, `DEBUG_READOUTS`, `DEBUG_ROWS`, `DebugActionSpec`, `DebugChoice`, `DebugCtx`, `DebugGroup`, `DebugGroupId`, `DebugRow`, `levelDebugRows`, `opt`, `registerLevelDebugRow`, `TITLE_SKIPPERS`
+- `@wildshard/engine/ui/EliteBar`: `EliteBar`, `SkullMark`
+- `@wildshard/engine/ui/ErrorModal`: `installErrorModal`, `showError`
+- `@wildshard/engine/ui/errorScreen`: `showLoadFailure`
+- `@wildshard/engine/ui/Feedback`: `bake`, `Feedback`, `FeedbackHost`, `headingDeg`, `reproUrl`, `SHOT_MAX_BYTES`, `SHOT_MAX_W`
+- `@wildshard/engine/ui/FirstHints`: `FirstHints`, `FirstHintsOptions`, `HintControl`, `HintTrigger`
+- `@wildshard/engine/ui/haptics`: `buzz`, `CAN_VIBRATE`, `HAPTIC`
+- `@wildshard/engine/ui/HUD`: `bearingTo`, `HUD`, `HUDOptions`, `HUDState`, `IntroStats`, `TitleDeckFactory`, `TitleDeckView`, `WEATHER_EVENT`, `WeatherHUD`
+- `@wildshard/engine/ui/hudAdapters`: `hudAdapters`
+- `@wildshard/engine/ui/hudSlots`: `DiscOpts`, `DiscSpot`, `HudBand`, `hudSlots`, `HudSlots`, `ROW`, `TouchRelabel`
+- `@wildshard/engine/ui/HurtArc`: `deathCause`, `deathLine`, `HurtArc`, `respawnWhere`
+- `@wildshard/engine/ui/icons`: `icon`, `IconId`, `IconMap`, `iconParts`, `registerIcons`
+- `@wildshard/engine/ui/layers`: `UiHandle`, `UiLayer`, `UiLayers`, `UiView`
+- `@wildshard/engine/ui/Loading`: `Loading`
+- `@wildshard/engine/ui/LockOn`: `LockOn`
+- `@wildshard/engine/ui/Map`: `FullMap`, `MapPoi`, `MapQuest`, `MapZone`
+- `@wildshard/engine/ui/Menu`: `GameMenu`, `GameMenuOptions`, `KitEntry`, `MenuGroup`, `MenuTab`, `SkinRow`
+- `@wildshard/engine/ui/Minimap`: `LAYER_PPM`, `MapFeatures`, `MapMark`, `MapOverlay`, `MapPoi`, `mapPois`, `Minimap`, `MinimapAnimal`, `MinimapPalette`
+- `@wildshard/engine/ui/ownership`: `mountUi`, `uiScope`
+- `@wildshard/engine/ui/Perf`: `Perf`, `PerfBudget`
+- `@wildshard/engine/ui/playerDeath`: `installPlayerDeath`
+- `@wildshard/engine/ui/playerHurt`: `HurtPlayer`, `PlayerHurt`, `PlayerHurtPorts`
+- `@wildshard/engine/ui/ReloadPrompt`: `askReload`, `currentPose`, `reloadWithPicks`, `setPoseProvider`
+- `@wildshard/engine/ui/Resume`: `BRAND_KEY`, `resumeHtml`, `resumeProgress`, `resumeScreen`, `SHOT_KEY`
+- `@wildshard/engine/ui/review`: `CATEGORIES`, `Category`, `ContextValue`, `flushQueue`, `INBOX_URL`, `loadState`, `lockReview`, `NotePayload`, `onReview`, `QUEUE_MAX`, `queuedCount`, `quickNote`, `readQueue`, `ReviewDesk`, `reviewUnlocked`, `sendNote`, `setQuickNote`, `StorageLike`, `unlockReview`, `writeQueue`
+- `@wildshard/engine/ui/roomMap`: `arenaMap`, `fitRoom`, `paintRoom`, `ROOM_BG`, `RoomMap`, `RoomMarker`, `RoomShape`, `RoomView`
+- `@wildshard/engine/ui/RotateGate`: `rotateGated`
+- `@wildshard/engine/ui/Settings`: `BOOT_OPTIONS`, `createSettings`, `getMusicStyle`, `getNumber`, `getSetting`, `getSfxSet`, `MUSIC_STYLES`, `MusicStyle`, `NUM_RANGE`, `NumberKey`, `onMusicStyle`, `onNumber`, `onSetting`, `onSettingChange`, `onSfxSet`, `OPTION_VALUES`, `OptionKey`, `OptionValue`, `overrideSetting`, `pendingReload`, `savedSetting`, `saveSetting`, `setMusicStyle`, `setNumber`, `setSetting`, `setSfxSet`, `setting`, `settingFromUrl`, `SettingKey`, `settingParams`, `Settings`, `settingsReloadUrl`, `SFX_SETS`, `SfxSet`
+- `@wildshard/engine/ui/SpeedLines`: `SpeedLines`
+- `@wildshard/engine/ui/tabs`: `TabFragment`, `TabId`, `TabRegistry`, `TabSpec`
+- `@wildshard/engine/ui/WeaponStrip`: `WeaponStrip`
+- `@wildshard/engine/ui/WindupWarn`: `Warned`, `WindupWarn`
+- `@wildshard/engine/world/Atmosphere`: `addFogUniforms`, `attachFogUniforms`, `fogUniforms`, `installAtmosphere`, `isUnderwater`, `setUnderwater`, `updateUnderwater`, `volumetricFog`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `weatherFogUniforms`, `weatherUniforms`
+- `@wildshard/engine/world/BakedCards`: `bakedCardUrls`, `CardTextures`, `exportCardTextures`, `loadBakedCards`
+- `@wildshard/engine/world/BakedTerrain`: `BakedGrid`, `BakedPlacement`, `bakedSamplers`, `bakedTerrainUrl`, `bakedUndergrowth`, `loadBakedTerrain`, `parseBakedTerrain`
+- `@wildshard/engine/world/blenderArea`: `BlenderArea`, `blenderAreaFor`, `blenderModelsBase`, `CELL`, `STEP`
+- `@wildshard/engine/world/Boundary`: `Boundary`
+- `@wildshard/engine/world/bounds`: `BoundsHost`, `installBounds`
+- `@wildshard/engine/world/dayCycle`: `compassDir`, `DayCycle`, `DayCycleClock`, `DayCycleSpec`, `DayKeys`, `DayPhase`, `LightPreset`, `PhaseListener`, `phaseOfHour`, `ScheduleSeg`, `smooth`, `TimePick`
+- `@wildshard/engine/world/faunaLayout`: `FaunaCell`, `FaunaGroup`, `FaunaLayoutOpts`, `layoutFauna`, `layoutFaunaCells`
+- `@wildshard/engine/world/forest/Forest`: `Forest`, `FOREST_BANDS`, `trunkCapsule`
+- `@wildshard/engine/world/forest/placement`: `DecisionLog`, `FERN_MAX`, `LITTER_MAX`, `MOSS_MAX`, `placeForest`, `Placement`, `placementChecksum`, `placeUndergrowth`, `PlantSpec`, `plantSpecs`, `REED_MAX`, `sameChecksum`, `SHRUB_MAX`, `STONE_MAX`, `TreeGrid`, `TreeInstance`, `UNDER_KINDS`, `UnderPlacements`
+- `@wildshard/engine/world/forest/treeSet`: `BARK_LAYERS`, `CrownTop`, `crownTopUniforms`, `loadTreeSetGeometry`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `TREE_SET_PARTS`, `treeSetFiles`, `TreeSetPart`, `treeSetUrls`
+- `@wildshard/engine/world/forest/treeSpec`: `TREE_SPECS`, `treeSetOf`
+- `@wildshard/engine/world/forest/treeSpecies`: `SpeciesWeights`, `TreeSetVariant`, `TreeSpecies`, `TreeSpeciesTraits`
+- `@wildshard/engine/world/geometryKit`: `beam`, `blob`, `lathe`, `log`, `mergeVerticesByPos`, `plank`, `pole`, `revolve`, `revolveUV`, `rock`, `rope`, `sagLine`, `tris`, `wobble`
+- `@wildshard/engine/world/Grass`: `Grass`, `GrassTrampleField`, `TrampleField`
+- `@wildshard/engine/world/groundField`: `terrainFieldFor`
+- `@wildshard/engine/world/Heightfield`: `_installBakedTerrain`, `CABIN_SITES`, `cabinMask`, `hasPond`, `heightAt`, `inChunk`, `normalAt`, `overrideTerrain`, `POND`, `pondMask`, `splatAt`, `streamAt`, `trailDistance`, `TRAILS`, `waterLevel`
+- `@wildshard/engine/world/Horizon`: `Horizon`, `horizonLight`
+- `@wildshard/engine/world/HorizonMatte`: `HORIZON_RADIUS`, `HorizonMatte`, `horizonStrips`, `HorizonStrips`, `levelHorizonStrips`, `PaintedHorizon`
+- `@wildshard/engine/world/interact/flags`: `FlagListener`, `Flags`, `test`
+- `@wildshard/engine/world/interact/Interactables`: `BARREL_BODY`, `BARREL_LOST_T`, `BARREL_SEA_DEPTH`, `BARREL_UNDER`, `BARREL_WEDGE_T`, `BarrelEnv`, `BarrelWatch`, `canSee`, `Interactables`, `InteractEvent`, `InteractHost`, `Live`, `pickInteractable`, `plateDown`, `setSight`, `Sight`, `SIGHT_SLACK`
+- `@wildshard/engine/world/interact/kit`: `interactParts`
+- `@wildshard/engine/world/interact/types`: `AltarDef`, `autoFlag`, `BarrelDef`, `BeaconDef`, `BenchDef`, `ChestDef`, `ChestDims`, `ChestItem`, `ChestLook`, `Cond`, `DoorDef`, `DoorLook`, `flagsRaised`, `flagsRead`, `Interactable`, `InteractDef`, `InteractKind`, `interactProps`, `InteractProps`, `InteractTable`, `KeyDef`, `LeverDef`, `PickupDef`, `pickupLook`, `PickupLook`, `PickupPart`, `Place`, `PlateDef`, `PoiId`, `registerInteractProps`, `registerPickupLook`, `TRANSIENT_PREFIXES`
+- `@wildshard/engine/world/lowpolyKit`: `AddOpts`, `AOOptions`, `bakeAO`, `BakedLight`, `bakeLight`, `broadClump`, `ColorLike`, `fern`, `grassTuft`, `hibiscus`, `hibiscusBush`, `leaf`, `lilyPad`, `lotus`, `LowPolyKit`, `lowPolyMaterial`, `Part`, `PLANT`, `vineStrand`
+- `@wildshard/engine/world/painterly`: `painterlyKnobs`, `PainterlyKnobs`, `PainterlyLook`, `painterlyMaterial`, `PainterlyOpts`, `painterlyUniforms`, `paintGeometry`, `setPainterlyLook`, `syncPainterlySun`, `updatePainterly`
+- `@wildshard/engine/world/pond`: `Water`
+- `@wildshard/engine/world/pondGrid`: `pondGrid`
+- `@wildshard/engine/world/registry`: `activeRegistry`, `boxDesc`, `ColliderDesc`, `DrawnAs`, `installWorldRegistry`, `ModelCategory`, `ModelEntry`, `ModelFacts`, `Piece`, `PieceCategory`, `Pipeline`, `RegisteredModel`, `RegisteredPick`, `RegisteredSet`, `SetPlacement`, `WorldRegistry`
+- `@wildshard/engine/world/skyRig`: `shadowRig`, `ShadowRig`, `SkyRig`
+- `@wildshard/engine/world/steppeWind`: `wind`, `Wind`, `WIND_GLSL`
+- `@wildshard/engine/world/Terrain`: `Terrain`
+- `@wildshard/engine/world/terrainField`: `buildTerrain`, `landscapeHash`
+- `@wildshard/engine/world/terrainHeight`: `setTerrainHeight`, `setTerrainPlacement`, `terrainHeight`, `terrainNormal`, `terrainWaterLevel`
+- `@wildshard/engine/world/TreeFactory`: `FadeBand`, `forestFade`, `patchFade`, `patchWind`, `TreeFactory`, `TreeMaterial`, `TreeVariant`, `windUniforms`
+- `@wildshard/engine/world/voxelAO`: `aoTint`, `HemiDir`, `HemiRing`, `hemisphere`, `voxelAO`, `VoxelAOParams`
+- `@wildshard/engine/world/water/body`: `basinBody`, `swellBody`, `WaterBodies`, `WaterBody`
+- `@wildshard/engine/world/water/view`: `surfaceReflect`, `waterView`, `WaterView`
+- `@wildshard/engine/world/waterSurface`: `buildSkyline`, `createWaterMaterial`, `WaterMaterial`, `WaterMaterialOptions`, `waterTexture`, `waterTime`, `waterWeather`
+- `@wildshard/engine/world/waves`: `seaDamp`, `waveClock`, `waveDisplace`, `waveHeight`, `WAVES`, `WAVES_GLSL`, `WAVES_NORMAL_GLSL`
+- `@wildshard/engine/world/weather`: `Weather`, `WeatherFrame`, `WeatherNumbers`, `WeatherProfile`
+- `@wildshard/engine/world/wind`: `FRONT_LEN`, `FRONT_SPEED`, `FRONT2_LEN`, `patchSway`, `patchWindField`, `swayByHeight`, `swayDepthMaterial`, `updateWind`, `WIND_DIR`, `WIND_FIELD_GLSL`, `windBoost`, `windGustAt`, `windStrength`, `windUniforms`
 
-### `@wildshard/engine/data` (`src/engine/data.ts`)
+### `@wildshard/game` (`src/game/package.json`)
 
-36 exports, grouped by the module they come from.
+198 exports, grouped by the module to import them from.
 
-- `./core/config`: `CHUNK_HALF`, `CHUNK_SIZE`, `CELL_ABOVE`, `CELL_BELOW`, `CELL_HEIGHT`, `TERRAIN_RES`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`
-- `./core/noise`: `Noise2D`, `smoothstep`, `clamp`, `lerp`
-- `./core/rng`: `Rng`
-- `./ai/species`: `deriveSpecies`
-- `./ai/weighted`: `WeightedTable`
-- `./world/terrainField`: `buildTerrain`
-- `./world/groundField`: `terrainFieldFor`
-- `./world/faunaLayout`: `layoutFauna`
-- `./world/forest/treeSpecies`: `SpeciesWeights`, `TreeSpeciesTraits`, `TreeSetVariant`
-- `./boot/filePolicy`: `filePolicy`
-- `./boot/tables`: `publicBytes`
-- `./boot/bytes`: `ChunkFiles`
-- `./core/tier`: `Tier`
-- `./boot/gpuFiles`: `TexMode`
-- `./level/data`: `TerrainNoise`, `Vec2`
-- `./world/blenderArea`: `CELL`, `BlenderArea`
-- `./world/water/body`: `swellBody`, `basinBody`, `WaterBody`
-- `./world/water/view`: `surfaceReflect`, `WaterView`
+- `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
+- `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
+- `@wildshard/game/bag/itemCatalog`: `isItemId`, `ITEMS`, `registerItemRow`
+- `@wildshard/game/bag/items`: `ItemRow`, `normalizeItemRow`, `RegisteredItemRow`
+- `@wildshard/game/bag/tabs`: `BagIcons`, `BagLoot`, `bagMenu`, `BagMenu`, `BagMenuOptions`
+- `@wildshard/game/Boss`: `Boss`, `BossDef`, `BossHost`, `BossPhaseDef`, `BossReward`
+- `@wildshard/game/compendium/install`: `CompendiumHost`, `CompendiumWallPort`, `installCompendium`
+- `@wildshard/game/compendium/Journal`: `Journal`, `loadHandFont`, `silhouetteOf`
+- `@wildshard/game/compendium/state`: `COMPENDIUM_STORE`, `CompendiumState`
+- `@wildshard/game/compendium/types`: `AnimalMatch`, `CompendiumSkin`, `EntryDef`, `EntryKind`, `EntryState`, `EntryStats`, `Plate`, `ShardCompendium`, `STATE_ORDER`, `TabDef`, `TrophySlot`, `WallPlacement`
+- `@wildshard/game/complete/ShardComplete`: `completeEntry`, `CompleteEntry`, `CompleteHandlers`, `CompleteStat`, `setCompleteEntry`, `ShardComplete`, `ShardCompleteData`, `shardCompleteUp`
+- `@wildshard/game/cosmetics/bodyShadow`: `BodyHost`, `BodyPlayer`, `BodyShadow`, `installBodyShadow`
+- `@wildshard/game/cosmetics/locker`: `CosmeticDef`, `CosmeticProfile`, `CosmeticsLocker`, `CosmeticState`, `SkinLocker`
+- `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
+- `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`
+- `@wildshard/game/loot/CoinBurst`: `CoinBurst`, `nearScale`
+- `@wildshard/game/loot/coinModel`: `coinModel`
+- `@wildshard/game/loot/deaths`: `CreatureDeathSource`, `DEATH_ORDER`, `onCreatureDeath`
+- `@wildshard/game/loot/Owned`: `CosmeticId`, `isCosmetic`, `isOwnedId`, `Owned`, `OWNED`, `OwnedId`, `OwnedKind`
+- `@wildshard/game/loot/runtime`: `installLoot`, `LootBody`, `LootPresentation`, `LootShop`, `ScopedLoot`, `ScopedLootHost`
+- `@wildshard/game/loot/tables`: `getLootTable`, `LootContext`, `LootTableRow`, `registerLootTable`, `rollLoot`
+- `@wildshard/game/loot/ui/ShopPanel`: `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopState`
+- `@wildshard/game/Progress`: `Progress`, `ProgressRow`, `ProgressSink`
+- `@wildshard/game/quest/presentation`: `installQuestPresentation`, `PresentedQuestDef`, `PresentedQuestStep`, `presentQuest`, `QuestPresentation`, `QuestPresentationContext`, `QuestPresentationHost`, `QuestPresentationNpc`, `QuestPresentationOptions`, `QuestTarget`
+- `@wildshard/game/quest/reward`: `QuestRewardBeat`, `QuestRewardHost`, `QuestRewardPlayer`, `QuestRewardSpec`
+- `@wildshard/game/saves`: `bossesSave`, `bountySave`, `compendiumSave`, `elitesSave`, `inventorySave`, `ownedSave`, `progressSave`, `purseSave`, `saveSlug`, `shardSave`
+- `@wildshard/game/shard/context`: `BagVerbs`, `GameRowMap`, `GameRows`, `GameServices`, `shardContext`, `ShardContext`
+- `@wildshard/game/shard/manifest`: `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `MapLook`, `OceanDef`, `PondDef`, `RGB`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
+- `@wildshard/game/shard/plugin`: `ShardPlugin`
+- `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
+- `@wildshard/game/shard/runtime`: `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
+- `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
 
-### `@wildshard/engine/retry` (`src/engine/retry.ts`)
+### `@wildshard/kit` (`src/kit/package.json`)
 
-1 exports, grouped by the module they come from.
+215 exports, grouped by the module to import them from.
 
-- `./boot/retry`: `retried`
-
-### `@wildshard/game` (`src/game/index.ts`)
-
-140 exports, grouped by the module they come from.
-
-- `./equipmentTypes`: `EquipmentRow`
-- `./shard/plugin`: `ShardPlugin`
-- `./shard/context`: `shardContext`, `ShardContext`, `GameServices`, `GameRows`, `GameRowMap`, `BagVerbs`
-- `./shard/spec`: `toLevelSpec`
-- `./shard/manifest`: `ShardManifest`, `ShardSword`, `ChunkTerrain`, `RGB`, `Vec2`, `FieldModelsContext`, `OceanDef`, `ChunkHorizon`
-- `./saves`: `progressSave`, `inventorySave`, `purseSave`, `ownedSave`, `bountySave`, `compendiumSave`, `bossesSave`, `elitesSave`, `saveSlug`, `shardSave`
-- `./loot/Owned`: `OwnedId`, `Owned`, `isOwnedId`, `isCosmetic`, `OWNED`
-- `./Inventory`: `ItemId`, `ITEMS`, `isItemId`, `Inventory`
-- `./shard/runtime`: `ShardRuntime`
-- `./compendium/install`: `installCompendium`, `CompendiumHost`, `CompendiumWallPort`
-- `./travel/travel`: `travel`, `bindTravelInventory`, `applyTravelCarry`, `consumeTravelHandoff`, `TravelRequest`, `TravelHandoff`
-- `./bag/items`: `normalizeItemRow`, `ItemRow`, `RegisteredItemRow`
-- `./bag/itemCatalog`: `registerItemRow`
-- `./achievements`: `AchievementDef`
-- `./bag/bag`: `renderFinds`, `GearLoot`, `CosmeticSlot`, `FindsView`
-- `./quest/QuestUI`: `RewardCaption`, `DialogueBox`, `ObjectiveLine`
-- `./loot/tables`: `registerLootTable`, `getLootTable`, `rollLoot`, `LootTableRow`, `LootContext`
-- `./Progress`: `ProgressSink`, `Progress`
-- `./quest/quest`: `QuestState`, `QuestMarker`, `NpcDef`, `QuestDef`
-- `./complete/ShardComplete`: `ShardComplete`, `setCompleteEntry`, `ShardCompleteData`
-- `./quest/core`: `NpcTalk`, `QuestChip`, `LiveMarker`, `QuestLine`, `placesWithDiscovery`, `PlacePoint`, `Places`
-- `./shard/registry`: `findShard`, `findChunk`, `getActiveChunk`, `game`
-- `./loot/runtime`: `installLoot`, `ScopedLootHost`, `ScopedLoot`, `LootPresentation`, `LootShop`
-- `./loot/deaths`: `onCreatureDeath`, `DEATH_ORDER`, `CreatureDeathSource`
-- `./loot/ui/ShopPanel`: `ShopPanel`, `ShopGood`, `ShopState`, `ShopOpts`
-- `./cosmetics/bodyShadow`: `BodyShadow`, `installBodyShadow`
-- `./shard/world`: `ShardWorld`
-- `./shard/templateDebug`: `installTemplateDebug`
-- `./loot/CoinBurst`: `CoinBurst`
-- `./cosmetics/locker`: `CosmeticsLocker`, `SkinLocker`, `CosmeticDef`, `CosmeticProfile`, `CosmeticState`
-- `./Elite`: `GroundTell`, `GroundTellWedgeStyle`, `Elites`, `EliteDef`, `EliteRule`, `EliteScript`
-- `./quest/presentation`: `installQuestPresentation`, `presentQuest`, `QuestPresentation`, `QuestPresentationContext`, `QuestPresentationHost`, `QuestPresentationOptions`, `QuestTarget`, `QuestPresentationNpc`, `PresentedQuestDef`, `PresentedQuestStep`
-- `./quest/reward`: `QuestRewardBeat`, `QuestRewardSpec`, `QuestRewardHost`, `QuestRewardPlayer`
-- `./bag/tabs`: `BagIcons`
-- `./compendium/Journal`: `loadHandFont`
-- `./compendium/state`: `CompendiumState`
-- `./compendium/types`: `CompendiumSkin`, `EntryDef`, `EntryStats`, `ShardCompendium`, `TrophySlot`
-- `./shard/list`: `installShards`
-- `./Boss`: `Boss`, `BossDef`, `BossScript`, `BossState`
-- `./loot/coinModel`: `coinModel`
-- `(local)`: `GAME_API`
-
-### `@wildshard/kit` (`src/kit/index.ts`)
-
-161 exports, grouped by the module they come from.
-
-- `./weapons/ui`: `SWAP_GLYPHS`
-- `./weapons/equipment`: `SWORD`, `WOODEN_SWORD`, `IRON_SWORD`
-- `./weapons/melee/Melee`: `Melee`, `meleeActor`, `MeleeProfile`, `ViewmodelFeel`
-- `./weapons/melee/SweptMelee`: `Sword`, `swordEvents`, `buildSword`, `swordMaterial`
-- `./weapons/melee/profiles`: `SWORD_WOOD`, `SWORD_IRON`
-- `./weapons/melee/moves`: `key`, `COMBO`, `HEAVY`, `REST`, `CHARGE`, `SPRINT`, `Move`
-- `@wildshard/engine`: `SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet`
-- `./weapons/thrown/Thrown`: `Thrown`, `ThrownProfile`
-- `./weapons/bow/family`: `Bow`, `BowWorld`, `BowOptions`
-- `./weapons/bow/profiles`: `BOW`
-- `./weapons/bow/profile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`
-- `./weapons/bow/recurve`: `ARROW_LEN`, `POSE`, `VM_SHADE`, `buildArrowGeometry`, `arrowKind`, `arrowMaterial`, `bowSpecimen`
-- `./weapons/bow/index`: `QUIVER_MAX`, `AIM_ZOOM`, `AIM_VM_ZOOM`, `AIM_SWAY`, `AIM_SPREAD`, `AIM_IN`
-- `./weapons/crossbow/Crossbow`: `Crossbow`, `PLAIN_BOLT`, `MAX_BOLTS`, `buildCrossbow`, `buildBolt`, `boltFlightStep`, `BoltMod`
-- `./weapons/crossbow/profiles`: `CROSSBOW_PROFILE`, `CrossbowProfile`
-- `./weapons/firearm/Firearm`: `Firearm`
-- `./weapons/firearm/profiles`: `AR15`, `FirearmProfile`
-- `./weapons/firearm/Rifle`: `Rifle`, `buildRifleParts`, `RifleParts`, `RifleOptions`
-- `./weather/rainCurtain`: `rainCurtain`, `RainProgram`, `RainCurtainSpec`
-- `./looks/fogProgram`: `fogGLSL`
-- `./viewmodel/hunterHands`: `BUCKSKIN`, `HANDS_MATERIAL`, `WeaponHands`, `coatMaterialParams`, `holdDef`, `withHunterPalette`, `blendGrip`, `gripPose`, `HandHold`
-- `./lookApi`: `loadParticles`, `loadGrassField`
-- `./looks/particles`: `Particles`, `makeMistTexture`
-- `./effects/starter`: `STARTER_EFFECTS`, `STARTER_CHOICES`, `starterId`, `StarterChoice`
-- `./effects/install`: `installStarterEffects`
-- `./weapons/crossbow/display`: `crossbowDisplayModel`
-- `./npc/npcRig`: `rigLegs`, `legRigOf`, `legBones`, `legPose`, `footPlan`, `LEG_BONE_NAMES`, `WALK`, `LegBuilt`, `NpcRigProfile`, `NpcRig`, `NpcRow`, `NpcModel`, `NpcFace`
-- `./species/boar`: `BOAR`, `BOAR_TUNING`
-- `./species/bear`: `BEAR`, `BEAR_TUNING`
-- `./species/view/boar`: `BOAR_LOOK`, `BOAR_PALETTE`
-- `./species/view/bear`: `BEAR_LOOK`, `BEAR_PALETTE`
-- `./species/install`: `installKitSpecies`
-- `./icons`: `installKitIcons`, `BAG_ICONS`
-- `./models/pickups`: `installKitPickups`, `carvedTokenGeometry`
-- `./models/interact`: `installKitProps`, `INTERACT_PROPS`
-- `./npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigureFrame`, `NpcFigureBones`, `NpcFigureRig`
-- `./npc/figureMotion`: `stepNpcFigure`, `npcFigurePose`, `NpcFigureState`, `NpcFigureMotionProfile`
-- `./bag/items`: `KIT_ITEMS`
-- `./audio/weaponVoices`: `sharedWeaponVoices`
-- `./audio/creatureVoices`: `vocal`, `windup`, `CREATURE_VOICES`, `CreatureVoice`, `CreatureWindup`
-- `./npc/faceHeads`: `faceHead`, `loadFaceHead`, `FaceHead`
-- `./viewmodel/armClips`: `ARM_CLIPS`, `SWIM_CLIPS`, `armClipNames`
-- `./tools/hoverboard`: `Hoverboard`, `HOVERBOARD_TOOL`
-- `./audio/forest`: `createForestAudio`, `installSilentScore`, `installForestAmbience`
-- `./viewmodel/armRig`: `JointAngles`, `LEFT_HAND`, `RIGHT_HAND`, `measure`
-- `./looks/grassField`: `grassBaseHeightAt`, `trailGrass`, `grassToneAt`, `groundColorAt`, `grassBloomAt`, `flowerSpeciesAt`, `flowerPatchAt`
-- `./looks/trample`: `trample`, `TRAMPLE_GLSL`, `grassHeightAt`
-- `./viewmodel/rigArms`: `RigArms`, `swordArmsOf`, `vmScale`
-- `(local)`: `KIT_API`
-
-### `@wildshard/kit/data` (`src/kit/data.ts`)
-
-4 exports, grouped by the module they come from.
-
-- `./species/boar`: `BOAR`, `BOAR_TUNING`
-- `./species/bear`: `BEAR`
-- `./weapons/melee/profiles`: `SWORD_WOOD`
+- `@wildshard/kit/audio/creatureVoices`: `CREATURE_VOICES`, `CreatureVoice`, `CreatureWindup`, `vocal`, `windup`
+- `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`, `installSilentScore`
+- `@wildshard/kit/audio/weaponVoices`: `sharedWeaponVoices`, `WeaponSynth`
+- `@wildshard/kit/effects/install`: `installStarterEffects`
+- `@wildshard/kit/effects/starter`: `STARTER_CHOICES`, `STARTER_EFFECTS`, `StarterChoice`, `starterId`
+- `@wildshard/kit/icons`: `BAG_ICONS`, `installKitIcons`
+- `@wildshard/kit/lookApi`: `loadGrassField`, `loadParticles`
+- `@wildshard/kit/looks/fogProgram`: `fogGLSL`
+- `@wildshard/kit/looks/grassField`: `configureGrassField`, `flowerPatchAt`, `flowerSpeciesAt`, `grassBaseHeightAt`, `grassBloomAt`, `GrassFieldLayout`, `grassToneAt`, `groundColorAt`, `TALL_GRASS`, `trailGrass`
+- `@wildshard/kit/looks/particles`: `makeMistTexture`, `Particles`
+- `@wildshard/kit/looks/trample`: `grassHeightAt`, `GrassTrample`, `MAX_MOVERS`, `RECOVER`, `trample`, `TRAMPLE_GLSL`
+- `@wildshard/kit/models/creatures`: `bear`, `boar`, `deer`
+- `@wildshard/kit/models/pickups`: `carvedToken`, `carvedTokenGeometry`, `doubloon`, `flintKit`, `flintKitGeometry`, `glyphShard`, `glyphShardGeometry`, `installKitPickups`, `resinDrop`, `resinDropGeometry`, `seaGlass`, `seaGlassGeometry`, `tokenRimGeometry`
+- `@wildshard/kit/npc/faceHeads`: `faceHead`, `FaceHead`, `loadFaceHead`
+- `@wildshard/kit/npc/figureMotion`: `NpcFigureMotionProfile`, `npcFigurePose`, `NpcFigureState`, `stepNpcFigure`
+- `@wildshard/kit/npc/figureRig`: `fitNpcFigure`, `mergeNpcFigures`, `NpcFigure`, `NpcFigureBones`, `NpcFigureFrame`, `NpcFigureRig`, `packNpcAtlases`
+- `@wildshard/kit/npc/npcRig`: `footPlan`, `LEG_BONE_NAMES`, `legBones`, `LegBuilt`, `legPose`, `LegPoseIn`, `legRigOf`, `NpcFace`, `NpcModel`, `NpcRig`, `NpcRigProfile`, `NpcRow`, `rigLegs`, `WALK`
+- `@wildshard/kit/species/bear`: `BEAR`, `BEAR_TUNING`
+- `@wildshard/kit/species/boar`: `BOAR`, `BOAR_TUNING`
+- `@wildshard/kit/species/view/bear`: `BEAR_LOOK`, `BEAR_PALETTE`
+- `@wildshard/kit/species/view/boar`: `BOAR_LOOK`, `BOAR_PALETTE`
+- `@wildshard/kit/viewmodel/armClips`: `ARM_CLIPS`, `armClipNames`, `SWIM_CLIPS`
+- `@wildshard/kit/viewmodel/armRig`: `armConst`, `ArmConst`, `ArmWorld`, `BONES`, `buildBones`, `frameYZ`, `GRIP`, `HandSpec`, `JointAngles`, `LEFT_HAND`, `LEFT_SCALE`, `LIMITS`, `measure`, `Pose`, `RIGHT_HAND`, `settleLeft`, `Side`, `signedAngle`, `softLimit`, `solveArm`, `TWISTS`, `twoBone`
+- `@wildshard/kit/viewmodel/hunterHands`: `blendGrip`, `BUCKSKIN`, `COAT_FROM`, `coatMaterialParams`, `coatTextures`, `gripPose`, `GripPose`, `gripQuat`, `HandDef`, `handGeometry`, `HandGeometry`, `HandHold`, `HANDS_MATERIAL`, `HandSpec`, `holdDef`, `HUNTER_PAL`, `hunterCoatSleeve`, `hunterGauntlet`, `hunterSleeve`, `V3`, `WeaponHands`, `withHunterPalette`
+- `@wildshard/kit/viewmodel/rigArms`: `RigArms`, `RigMeta`, `RigState`, `swordArmsOf`, `VM_FOV`, `VmFrame`, `vmScale`
+- `@wildshard/kit/weapons/bow/family`: `Bow`, `BowOptions`, `BowWorld`
+- `@wildshard/kit/weapons/bow/index`: `AIM_IN`, `AIM_SPREAD`, `AIM_SWAY`, `AIM_VM_ZOOM`, `AIM_ZOOM`, `QUIVER_MAX`
+- `@wildshard/kit/weapons/bow/profile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`
+- `@wildshard/kit/weapons/bow/profiles`: `BOW`
+- `@wildshard/kit/weapons/bow/recurve`: `ARROW_LEN`, `arrowKind`, `arrowMaterial`, `bowSpecimen`, `BowStyle`, `buildArrowGeometry`, `buildRecurve`, `POSE`, `VM_SHADE`
+- `@wildshard/kit/weapons/crossbow/Crossbow`: `boltFlightStep`, `BoltMod`, `buildBolt`, `buildCrossbow`, `Crossbow`, `CrossbowParts`, `MAX_BOLTS`, `PLAIN_BOLT`
+- `@wildshard/kit/weapons/crossbow/display`: `crossbowDisplayModel`
+- `@wildshard/kit/weapons/crossbow/profiles`: `CROSSBOW_PROFILE`, `CrossbowProfile`
+- `@wildshard/kit/weapons/equipment`: `IRON_SWORD`, `SWORD`, `WOODEN_SWORD`
+- `@wildshard/kit/weapons/firearm/Firearm`: `Firearm`
+- `@wildshard/kit/weapons/firearm/profiles`: `AR15`, `FirearmProfile`
+- `@wildshard/kit/weapons/firearm/Rifle`: `buildRifleParts`, `Rifle`, `RifleOptions`, `RifleParts`
+- `@wildshard/kit/weapons/melee/Melee`: `isMeleeProfile`, `Melee`, `meleeActor`, `MeleeProfile`, `ViewmodelFeel`
+- `@wildshard/kit/weapons/melee/moves`: `BACKHAND`, `CHARGE`, `COMBO`, `FINISHER`, `HEAVY`, `key`, `poseQuat`, `REST`, `SLASH`, `SPRINT`
+- `@wildshard/kit/weapons/melee/profiles`: `SWORD_IRON`, `SWORD_WOOD`
+- `@wildshard/kit/weapons/melee/SweptMelee`: `buildSword`, `HEAVY_CHARGE`, `REACH`, `Sword`, `swordEvents`, `swordMaterial`, `SwordOptions`
+- `@wildshard/kit/weapons/thrown/Thrown`: `Thrown`, `ThrownProfile`
+- `@wildshard/kit/weapons/ui`: `SWAP_GLYPHS`
+- `@wildshard/kit/weather/rainCurtain`: `rainCurtain`, `RainCurtainSpec`, `RainProgram`
 
 <!-- exports:end -->

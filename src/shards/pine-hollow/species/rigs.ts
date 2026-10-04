@@ -4,7 +4,7 @@
  * GLTFLoader) so the boot manifest can declare the files — src/engine/boot/manifest.ts runs in Node too (scripts/bake-packs.mjs).
  * Nalati's own table is src/shards/nalati-grasslands/species/rigs.ts (on its branch); the two never share a hull.
  */
-import { TIER } from '@wildshard/engine';
+import { TIER } from '@wildshard/engine/core/tier';
 
 export type PineRigName = 'deer-hind' | 'deer-stag' | 'boar' | 'elk-cow' | 'elk-bull' | 'bear-black' | 'bear-brown' | 'antler-king-rig';
 /** every rig; 'antler-king-rig' is the Antler King on his own upright rig (E322 F-M1, Jake picked B: src/shards/pine-hollow/combat/kingRig.ts,

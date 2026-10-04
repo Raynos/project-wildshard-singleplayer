@@ -12,7 +12,8 @@ import { Kit } from '../world/kit';
 import { type LaundryKind, laundry } from '../world/props';
 import { laundryLine as lowerLine, laundryPole } from '../world/well-lower-life';
 import { ndLook, need } from '../world/modelLook';
-import { Rng, defineModel, type ModelVariant } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import { defineModel, type ModelVariant } from '@wildshard/engine/models/model';
 
 const FILE = 'src/shards/nine-dragon-stack/models/laundry.ts';
 

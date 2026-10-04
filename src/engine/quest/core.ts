@@ -52,11 +52,6 @@ export function lineFor(npc: NpcDef, flags: { has: (f: string) => boolean }): Di
   return npc.dialogue.find((d) => test(flags, d.when)) ?? null;
 }
 
-declare module '../events/maps' {
-  interface EventMap {
-    'quest.step': { level: string; quest: string; step: string | null; previous: string | null };
-  }
-}
 
 export class QuestState {
   onStep?: (step: QuestStep | null, prev: QuestStep | null) => void;

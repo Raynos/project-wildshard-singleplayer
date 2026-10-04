@@ -1,4 +1,4 @@
-import { bindRig } from '@wildshard/engine';
+import { bindRig } from '@wildshard/engine/anim/rig';
 import * as THREE from 'three';
 
 /** a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT) */

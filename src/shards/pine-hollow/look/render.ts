@@ -1,4 +1,5 @@
-import { type LookStrategy, type SkyBackdropFactory, preloadBakedTextures, loadLUT } from '@wildshard/engine';
+import { preloadBakedTextures, loadLUT } from '@wildshard/engine/boot/bakedApi';
+import type { LookStrategy, SkyBackdropFactory } from '@wildshard/engine/render/look';
 import * as THREE from 'three';
 import { PineSkyBackdrop, registerPineBackdrop } from './skyBackdrop';
 import { pineSunAt } from './dayKeys';

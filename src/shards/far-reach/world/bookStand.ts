@@ -1,6 +1,6 @@
 import { AdditiveBlending, BoxGeometry, Color, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, OctahedronGeometry, SphereGeometry, type BufferGeometry, type Texture } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { fit, hdMaterial, skyHd } from './meshes';
 
 /**

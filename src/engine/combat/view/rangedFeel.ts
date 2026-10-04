@@ -9,7 +9,6 @@ import { Impacts, type ImpactKind } from '../../fx/Impacts';
 import { worldHit } from './ranged';
 import { Vector3 } from 'three';
 
-export type { RangedFeelProfile } from '../Equipment';
 export function installRangedFeel(game: Game, events: Events, scope: Scope, rowFor: (id: EquipmentId) => EquipmentRow | undefined): void {
   const fx = CameraFX.for(game), impacts = Impacts.for(game);
   const dir = new Vector3(), a = new Vector3(), b = new Vector3();

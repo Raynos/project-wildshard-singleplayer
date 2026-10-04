@@ -11,7 +11,7 @@ import {
 } from 'three';
 import { Pass } from 'postprocessing';
 import { GLOW_PRE_GLSL, type glowUniforms } from '../light/glow';
-import type { Renderer } from '@wildshard/engine';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 
 const VS = /* glsl */ `
 varying vec2 vUv;

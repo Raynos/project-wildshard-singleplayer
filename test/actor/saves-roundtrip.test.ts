@@ -1,4 +1,4 @@
-import { saves } from '@wildshard/engine';
+import { saves } from '../../src/engine/saves/runtime';
 // Gameplay clients round-trip through the versioned SaveStore in node.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Progress } from '../../src/game/Progress';

@@ -1,12 +1,16 @@
-import { sourceMultiplier, isMesh, type Sky, type Targets, painterlyMaterial } from '@wildshard/engine';
+import { sourceMultiplier } from '@wildshard/engine/combat/effects/types';
+import type { Targets } from '@wildshard/engine/combat/types';
+import { isMesh } from '@wildshard/engine/combat/view/ranged';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from './effects';
 import * as THREE from 'three';
-import { Bow, type BowWorld, type BowOptions } from '@wildshard/kit';
+import { Bow, type BowWorld, type BowOptions } from '@wildshard/kit/weapons/bow/family';
 import { BOW } from './equipment';
 
 
 
-import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
+import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 
 /**
  * The Golden Bow — the Golden King's legendary reward (elites-and-bosses.md §2 "5 — Victory"; mockup

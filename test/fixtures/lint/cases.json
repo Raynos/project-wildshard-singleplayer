@@ -628,5 +628,26 @@
     "rule": "sim-no-render",
     "code": "import * as THREE from 'three'; void document;",
     "count": 0
+  },
+  {
+    "id": "no-reexport-from",
+    "file": "src/engine/barrel.ts",
+    "rule": "no-reexport",
+    "code": "export { value } from './core/value'; export * from '@wildshard/engine/core/noise';",
+    "count": 2
+  },
+  {
+    "id": "no-reexport-binding",
+    "file": "src/kit/barrel.ts",
+    "rule": "no-reexport",
+    "code": "import { value } from './value';\nexport { value };",
+    "count": 1
+  },
+  {
+    "id": "no-reexport-own-and-shim",
+    "file": "src/engine/physics/shim.ts",
+    "rule": "no-reexport",
+    "code": "const own = 1;\nexport { own };\nexport * from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.js';",
+    "count": 0
   }
 ]

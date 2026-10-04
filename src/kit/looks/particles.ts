@@ -1,6 +1,15 @@
 import { fogGLSL } from './fogProgram';
 import * as THREE from 'three';
-import { app, activeLevel, SEED, Rng, smoothstep, attachFogUniforms, type Sky, type Forest, heightAt, POND, waterLevel } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { SEED } from '@wildshard/engine/core/config';
+import { smoothstep } from '@wildshard/engine/core/noise';
+import { Rng } from '@wildshard/engine/core/rng';
+import { activeLevel } from '@wildshard/engine/level/selection';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import { POND, waterLevel } from '@wildshard/engine/world/Heightfield';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 
 /**
  * Atmosphere particles: sun-lit dust motes, drifting ground mist and falling pine needles.
@@ -30,7 +39,6 @@ const MOTE_COUNT = 1500, MOTE_RANGE = 12;    // half-extent of the wrap box (m)
 const MIST_COUNT = 72;
 const NEEDLE_COUNT = 200;
 
-export { fogGLSL } from './fogProgram';
 
 export class Particles {
   group = new THREE.Group();

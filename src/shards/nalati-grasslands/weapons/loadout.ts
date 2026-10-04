@@ -1,7 +1,15 @@
 import { GoldenBow, type GoldenBowPower } from './GoldenBow';
-import { Bow, BOW as BOW_PROFILE } from '@wildshard/kit';
+import { Bow } from '@wildshard/kit/weapons/bow/family';
+import { BOW as BOW_PROFILE } from '@wildshard/kit/weapons/bow/profiles';
 import { Naizagai, type NaizagaiPower } from './Naizagai';
-import type { Game, Sky, Player, Forest, Targets, Weapon, WeaponId, EquipmentService } from '@wildshard/engine';
+import type { WeaponId } from '@wildshard/engine/combat/Equipment';
+import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import type { Targets } from '@wildshard/engine/combat/types';
+import type { Weapon } from '@wildshard/engine/combat/Weapon';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { Forest } from '@wildshard/engine/world/forest/Forest';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 
 

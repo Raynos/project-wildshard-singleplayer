@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
-import { Scope, TabRegistry, type TabSpec, type TabFragment, type KitEntry } from '@wildshard/engine';
+import { Scope } from '../../src/engine/app/scope';
+import type { KitEntry } from '../../src/engine/ui/Menu';
+import { TabRegistry, type TabSpec, type TabFragment } from '../../src/engine/ui/tabs';
 import { BagMenu, bagMenu } from '../../src/game/bag/tabs';
 import { Inventory } from '../../src/game/Inventory';
 import { Progress } from '../../src/game/Progress';

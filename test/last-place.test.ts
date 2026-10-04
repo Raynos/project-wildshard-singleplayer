@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { LastPlace, placeAt, placeName, yawToward, type PlaceArea } from '../src/game/LastPlace';
 import { deathCause, deathLine, respawnWhere } from '../src/engine/ui/HurtArc';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/quest/Places';
-import { app, Scope } from '@wildshard/engine';
+import { app } from '../src/engine/app/runtime';
+import { Scope } from '../src/engine/app/scope';
 import { STRINGS as PINE } from '../src/shards/pine-hollow/strings';
 
 // the level registers how its creatures kill (ctx.strings 'death.verb.<kind>'; E405)

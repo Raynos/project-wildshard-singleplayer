@@ -1,11 +1,32 @@
-import { SlashTrail, weaponActionGate, type EquipmentRow, type WeaponState, type AimInfo, type DrawingBuffer, type EquipContext, type SwordWorld, type SwordRig, type SwordArms, type SwordFraming, type SwordMoveSet, app, BladeGlow, type Game, type Sky, dodgeFx, dodgeEnv, type Player, type Targets, type TargetHit, lockOn, meleeLock, targetRadius, type AimTarget, bladeBlocked, bladeContact, type Clang, worldTime, CameraFX, Impacts, aimRay, viewmodel, fovForAspect, setProgramKey, lin, ParticlePool, pointScale } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { aimRay, fovForAspect } from '@wildshard/engine/combat/blocks/melee';
+import type { EquipmentRow, EquipContext } from '@wildshard/engine/combat/Equipment';
+import type { Targets, TargetHit } from '@wildshard/engine/combat/types';
+import type { SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet, Move } from '@wildshard/engine/combat/view/melee';
+import { SlashTrail } from '@wildshard/engine/combat/view/slashTrail';
+import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
+import type { Game } from '@wildshard/engine/core/Game';
+import { worldTime } from '@wildshard/engine/core/time';
+import { Impacts } from '@wildshard/engine/fx/Impacts';
+import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
+import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
+import { lin } from '@wildshard/engine/math/color';
+import { lockOn, meleeLock, targetRadius, type AimTarget } from '@wildshard/engine/player/AimTargets';
+import { BladeGlow } from '@wildshard/engine/player/bladeGlow';
+import { CameraFX } from '@wildshard/engine/player/CameraFX';
+import { dodgeFx, dodgeEnv } from '@wildshard/engine/player/dodge';
+import { bladeBlocked, bladeContact, type Clang } from '@wildshard/engine/player/MeleeSweep';
+import type { Player } from '@wildshard/engine/player/Player';
+import { setProgramKey } from '@wildshard/engine/render/shaderPatches';
+import { type DrawingBuffer, viewmodel } from '@wildshard/engine/render/viewmodelFeel';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Melee, isMeleeProfile, type MeleeProfile } from './Melee';
 import { SWORD_WOOD, SWORD_IRON } from './profiles';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY, type Move } from './moves';
-import { smoothstep } from '@wildshard/engine/data';
+import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY } from './moves';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ShardManifest.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -923,4 +944,3 @@ export class Sword extends Melee {
   }
 }
 
-export type { SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet } from '@wildshard/engine';

@@ -1,5 +1,7 @@
-import { boxDesc, heightAt, type Interactable } from '@wildshard/engine';
-import type { ShardContext } from '@wildshard/game';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { boxDesc } from '@wildshard/engine/world/registry';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import { BoxGeometry, CircleGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { HUT } from '../layout';
 import { STRINGS } from '../strings';

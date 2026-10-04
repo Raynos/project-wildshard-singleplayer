@@ -1,5 +1,8 @@
-import { EffectService, type EffectDef, type EffectId, type EffectTarget, type Scope, type PlayerHealth, type AttributeSet } from '@wildshard/engine';
-import type { OwnedId } from '@wildshard/game';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import type { EffectDef, EffectId, EffectTarget, AttributeSet } from '@wildshard/engine/combat/effects/types';
+import type { PlayerHealth } from '@wildshard/engine/combat/health';
+import type { OwnedId } from '@wildshard/game/loot/Owned';
 
 const permanent = (id: EffectId, modifiers: EffectDef['modifiers'] = [], grants: EffectDef['grants'] = []): EffectDef =>
   ({ id, kind: 'permanent', tags: [], modifiers, grants, stacking: 'none' });

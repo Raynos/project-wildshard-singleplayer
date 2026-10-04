@@ -1,4 +1,8 @@
-import { engineString, type SpeciesDef, type ThinkCtx, NO_FUR, type Animal, eliteDamageMul } from '@wildshard/engine';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import { eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
+import type { SpeciesDef, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
+import { engineString } from '@wildshard/engine/strings';
 
 import * as THREE from 'three';
 

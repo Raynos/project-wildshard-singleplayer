@@ -1,7 +1,7 @@
 // Nalati's score (src/shards/nalati-grasslands/audio/SteppeScore.ts, NALATI-MERGE A2): the slot the scene asks for, down the fallback chain to one the
 // build ships; decoded on demand (the wanted + the playing slot resident, nothing else); a slot that fails is skipped.
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { assetVersions, bootPacks, installAssetTables, musicManifests, publicBytes, sfxManifests } from '@wildshard/engine';
+import { assetVersions, bootPacks, installAssetTables, musicManifests, publicBytes, sfxManifests } from '../../../src/engine/boot/tables';
 import { createSteppeScore, steppeFiles, steppeBootFiles } from '../../../src/shards/nalati-grasslands/audio/SteppeScore';
 
 // The score reads the app's asset tables (E415): this test installs its own small build, then puts the real one back.

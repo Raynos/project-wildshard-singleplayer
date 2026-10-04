@@ -1,5 +1,8 @@
 import * as THREE from 'three';
-import { type Game, installRangedFeel, type EquipmentService, type AnimalManager } from '@wildshard/engine';
+import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import { installRangedFeel } from '@wildshard/engine/combat/view/rangedFeel';
+import type { Game } from '@wildshard/engine/core/Game';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 
 
 

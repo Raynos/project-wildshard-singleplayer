@@ -23,8 +23,19 @@
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
 import * as THREE from 'three';
-import { type Game, type Sky, type TreeInstance, type AnimalManager, type Herd, fogUniforms, weatherUniforms, volumetricFog, windBoost, windFieldUniforms as windUniforms, WIND_DIR, setting, onSettingChange, TIER, SEED, practiceRoom, type LevelContext, waterWeather } from '@wildshard/engine';
-import type { Particles } from '@wildshard/kit';
+import { SEED } from '@wildshard/engine/core/config';
+import type { Game } from '@wildshard/engine/core/Game';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { AnimalManager, Herd } from '@wildshard/engine/entities/AnimalManager';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
+import { fogUniforms, weatherUniforms, volumetricFog } from '@wildshard/engine/world/Atmosphere';
+import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { waterWeather } from '@wildshard/engine/world/waterSurface';
+import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
+import type { Particles } from '@wildshard/kit/looks/particles';
 import type { ForestAmbience } from '../audio/ambience';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfile';

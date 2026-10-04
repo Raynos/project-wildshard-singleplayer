@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '@wildshard/engine';
-import { QuestRewardBeat } from '@wildshard/game';
+import { Scope } from '../src/engine/app/scope';
+import { QuestRewardBeat } from '../src/game/quest/reward';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); document.body.replaceChildren(); });

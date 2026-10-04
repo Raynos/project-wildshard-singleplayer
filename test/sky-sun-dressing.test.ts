@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BufferGeometry, Mesh, PerspectiveCamera, Scene, Sprite, Vector3 } from 'three';
-import { Scope, type LevelSpec, type Renderer, type Sky, type SkyDressing } from '@wildshard/engine';
+import { Scope } from '../src/engine/app/scope';
+import type { LevelSpec } from '../src/engine/level/spec';
+import type { SkyDressing } from '../src/engine/render/look';
+import type { Renderer } from '../src/engine/render/renderer';
+import type { SkyRig as Sky } from '../src/engine/world/skyRig';
 import { SkyBackdropView } from '../src/engine/world/skyBackdrop';
 
 function fixture<T extends object>(fields: Partial<T>): T {

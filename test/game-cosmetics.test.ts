@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CosmeticsLocker, SkinLocker } from '@wildshard/game';
+import { CosmeticsLocker, SkinLocker } from '../src/game/cosmetics/locker';
 import { NALATI_SKINS, NalatiSkinLocker } from '../src/shards/nalati-grasslands/weapons/nalatiSkins';
 import { saveFixture } from './fake/saveFixture';
 

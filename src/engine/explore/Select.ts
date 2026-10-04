@@ -20,7 +20,6 @@ import { measure, type CatalogEntry } from './catalog';
 import type { Explore } from './Explore';
 import { copyInTheWay, pickTarget, type Picked, type SelectTarget } from './pick';
 
-export type { SelectTarget } from './pick';
 
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 

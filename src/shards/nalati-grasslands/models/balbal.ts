@@ -13,8 +13,11 @@
  * `balbalGeometry(variant)` (feet at y 0, facing −z, 2.1 m) is B11's rig's body too.
  */
 import * as THREE from 'three';
-import { defineModel, Noise2D, type Sky } from '@wildshard/engine';
-import { PaintKit, pole, v3, poiMaterial, mergeVerticesByPos } from '../world/paint';
+import { Noise2D } from '@wildshard/engine/core/noise';
+import { defineModel } from '@wildshard/engine/models/model';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { PaintKit, v3, poiMaterial } from '../world/paint';
+import { pole, mergeVerticesByPos } from '@wildshard/engine/world/geometryKit';
 import { loadNalatiModel, MODEL_SIZE } from '../world/glbPaint';
 
 export type BalbalCarving = 'bare' | 'capped';

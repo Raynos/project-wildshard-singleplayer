@@ -4,12 +4,12 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { WorldRegistry } from '../src/engine/world/registry';
-import type { Sky } from '../src/engine/world/Sky';
+import type { SkyRig as Sky } from '../src/engine/world/skyRig';
 import { defineModel, modelContext } from '../src/engine/models/model';
 import { listModel, listRoster, live } from '../src/engine/models/live';
 import { place } from '../src/engine/models/place';
 import { creature } from '../src/engine/models/creature';
-import { speciesDef } from '../src/engine/entities/AnimalFactory'; // (the factory registers every species file)
+import { speciesDef } from '../src/engine/entities/species/registry'; // (the factory registers every species file)
 import { checkModels } from '../scripts/check-models.mjs';
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ } } as Sky;

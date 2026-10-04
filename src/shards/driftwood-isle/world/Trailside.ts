@@ -21,7 +21,14 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { heightAt, Rng, SEED, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type ModelBuild, type ModelPart, type Placement, place, type Placed } from '@wildshard/engine';
+import { SEED } from '@wildshard/engine/core/config';
+import { Rng } from '@wildshard/engine/core/rng';
+import { modelContext, type ModelBuild, type ModelPart, type Placement } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { fencePost, plankStep, signpost, trailMaterial, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from '../models/trailside';
 
 export interface FenceSpec { path: [number, number][]; spacing?: number }

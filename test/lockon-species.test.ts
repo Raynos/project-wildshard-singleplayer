@@ -10,7 +10,7 @@ import type { EquipmentService } from '../src/engine/combat/EquipmentService';
 import { lockOn, setAimTargets, type AimTarget } from '../src/engine/player/AimTargets';
 import { LockOnSystem } from '../src/engine/player/LockOnTarget';
 import { setActivePhysics } from '../src/engine/physics/active';
-import { SWORD } from '@wildshard/kit';
+import { SWORD } from '../src/kit/weapons/equipment';
 import { CRAB, CRAB_LOOK } from '../src/shards/driftwood-isle/species/crab';
 import { fakeWorld } from './fake/world';
 import { legacyDouble } from './fake/FakeGame';

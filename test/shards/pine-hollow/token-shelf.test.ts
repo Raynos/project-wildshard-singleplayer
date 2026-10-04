@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { tokenShelfGeometry, TOKEN_SHELF_AT } from '../../../src/shards/pine-hollow/quest/tokenShelf';
+import { TOKEN_SHELF_AT } from '../../../src/shards/pine-hollow/quest/tokenShelf';
+import { tokenShelfGeometry } from '../../../src/shards/pine-hollow/models/tokenShelf';
 import { carvedTokenGeometry as carvedToken } from '../../../src/kit/models/pickups';
 
 describe('the token shelf (PH-C8: all eight carved tokens on the ranger\'s mantel)', () => {

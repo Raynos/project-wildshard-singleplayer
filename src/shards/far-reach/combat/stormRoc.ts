@@ -1,5 +1,8 @@
-import { BossBar, BossBrain, type Animal, type BossScript } from '@wildshard/engine';
-import { bossesSave, shardSave, type ShardContext } from '@wildshard/game';
+import { BossBrain, type BossScript } from '@wildshard/engine/ai/BossBrain';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import { BossBar } from '@wildshard/engine/ui/BossBar';
+import { bossesSave, shardSave } from '@wildshard/game/saves';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import { Vector3 } from 'three';
 import { CROWN, DAIS, FALLEN_BRIDGE } from '../layout';
 import { STRINGS } from '../strings';

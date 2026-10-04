@@ -32,11 +32,16 @@ registerAchievements('pine-hollow', PINE_FEATS);
 registerAchievements('driftwood-isle', DRIFTWOOD_FEATS);
 
 // The composition root owns shared species; the engine has no upward kit import.
-const { registerSpecies, speciesWithLook } = await import('@wildshard/engine');
+(await import('../src/engine/world/registry')).installWorldRegistry(); // the session installs it in the game
+const { registerSpecies } = await import('../src/engine/entities/species/registry');
+const { speciesWithLook } = await import('../src/engine/entities/species/look');
 const { installScore } = await import('../src/engine/audio/score/score');
 const { WILDSHARD_SCORE } = await import('../src/game/audio/theme');
 installScore(WILDSHARD_SCORE);
-const { installKitSpecies, installKitIcons, installKitPickups, installKitProps } = await import('@wildshard/kit');
+const { installKitSpecies } = await import('../src/kit/species/install');
+const { installKitIcons } = await import('../src/kit/icons');
+const { installKitPickups } = await import('../src/kit/models/pickups');
+const { installKitProps } = await import('../src/kit/models/interact');
 installKitSpecies();
 installKitIcons();
 installKitPickups();

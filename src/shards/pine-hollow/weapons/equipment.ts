@@ -1,5 +1,5 @@
-import type { EquipmentRow, RangedFeelProfile } from '@wildshard/engine';
-import { SWAP_GLYPHS } from '@wildshard/kit';
+import type { EquipmentRow, RangedFeelProfile } from '@wildshard/engine/combat/Equipment';
+import { SWAP_GLYPHS } from '@wildshard/kit/weapons/ui';
 
 export const PINE_BOLT_HIT_STOP = { body: 0.035, head: 0.055, kill: 0.075 } as const;
 export const PINE_RANGED_FEEL: RangedFeelProfile = {
@@ -91,4 +91,4 @@ export const LEVER: EquipmentRow = {
   }
 };
 
-declare module '@wildshard/engine' { interface RngStreams { loot: true } }
+declare module '@wildshard/engine/core/rng' { interface RngStreams { loot: true } }

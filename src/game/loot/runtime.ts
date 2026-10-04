@@ -1,6 +1,9 @@
 import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
-import { practiceRoom, type LevelContext, type GameMenu, type MapMark } from '@wildshard/engine';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import type { LevelContext } from '@wildshard/engine/level/context';
+import type { GameMenu } from '@wildshard/engine/ui/Menu';
+import type { MapMark } from '@wildshard/engine/ui/Minimap';
 import type { GearLoot, FindsView } from '../bag/bag';
 import { CoinChip } from './ui/CoinChip';
 import { CoinBurst } from './CoinBurst';

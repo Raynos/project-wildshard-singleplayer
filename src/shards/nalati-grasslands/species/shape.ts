@@ -1,4 +1,4 @@
-import { loft, type Paint, type Station } from '@wildshard/engine';
+import { loft, type Paint, type Station } from '@wildshard/engine/entities/species/loft';
 import * as THREE from 'three';
 
 

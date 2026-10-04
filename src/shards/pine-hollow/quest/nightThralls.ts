@@ -14,7 +14,11 @@
  */
 import * as THREE from 'three';
 import { NightBrain } from './nightBrain';
-import { type Animal, type AnimalManager, variantDef, heightAt, TIER } from '@wildshard/engine';
+import { TIER } from '@wildshard/engine/core/tier';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { variantDef } from '@wildshard/engine/entities/species/registry';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../layout';
 import { Puffs } from '../combat/fxKit';
 import { own, release, retire } from '../combat/ctx';

@@ -1,5 +1,5 @@
-import { NpcRig, type NpcRow } from '@wildshard/kit';
-import type { Sky } from '@wildshard/engine';
+import { NpcRig, type NpcRow } from '@wildshard/kit/npc/npcRig';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { Castaway, loadWendellFace, type Pos } from '../npc/Castaway';
 import { Trader, TRADER_NEAR_R } from '../npc/Trader';
 

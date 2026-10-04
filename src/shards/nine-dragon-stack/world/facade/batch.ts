@@ -1,4 +1,6 @@
-import { resourceScope, type ModelContext, type Placement, type InstancedCuller, type Placed, place } from '@wildshard/engine';
+import { resourceScope } from '@wildshard/engine/app/resources';
+import type { ModelContext, Placement } from '@wildshard/engine/models/model';
+import { type InstancedCuller, type Placed, place } from '@wildshard/engine/models/place';
 // Copied from the facade lab (the dev labs (deleted in E357 F7), round-7-lab-facade) into the clean room.
 // A Dressing → one merged shell mesh (the towers' built fabric, with the few-and-small pieces baked in: models too,
 // registered where they are drawn), the kit's pieces placed as models (../../models/facade.ts: one InstancedMesh per

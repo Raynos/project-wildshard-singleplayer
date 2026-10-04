@@ -11,7 +11,9 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Sky, type BoxSpec as Collider, defineModel, type ModelContext, type ModelDef } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { KINGS_CLEARING } from '../layout';
 import { npcModels, type NpcModels, type NpcRig } from '../quest/npcModels';
 import { MILLER, RANGER, TRADER } from '../quest/wardensHollow';

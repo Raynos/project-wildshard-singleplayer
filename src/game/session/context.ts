@@ -1,5 +1,15 @@
-import type { BootRuntime, CombatCueMap, Audio, StepProgress, SkinDef, Music, TitleArrival, Player, Tool } from '@wildshard/engine';
-import type { ItemRow, TravelHandoff, ShardManifest, ShardRuntime } from '../index';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Music } from '@wildshard/engine/audio/Music';
+import type { StepProgress } from '@wildshard/engine/boot/plan';
+import type { TitleArrival } from '@wildshard/engine/boot/titleArrival';
+import type { CombatCueMap } from '@wildshard/engine/combat/cues';
+import type { Tool } from '@wildshard/engine/combat/Tool';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { SkinDef } from '@wildshard/engine/player/Skins';
+import type { ItemRow } from '../bag/items';
+import type { ShardManifest } from '../shard/manifest';
+import type { ShardRuntime } from '../shard/runtime';
+import type { TravelHandoff } from '../travel/travel';
 import type { BagIcons } from '../bag/tabs';
 import type { Scene, PerspectiveCamera } from 'three';
 import type { LoadStage } from '../shard/load';
@@ -27,6 +37,6 @@ export interface StagedBoot {
   featTotal: number | undefined;
 }
 export interface SessionContext {
-  engine: BootRuntime; manifest: ShardManifest; slug: string; stage: LoadStage;
+  manifest: ShardManifest; slug: string; stage: LoadStage;
   boot: StagedBoot; session: SessionState; kit: KitPorts;
 }

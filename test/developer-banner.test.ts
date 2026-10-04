@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it } from 'vitest';
-import { app, setDev } from '@wildshard/engine';
+import { app } from '../src/engine/app/runtime';
+import { setDev } from '../src/engine/core/devMode';
 import { mountDeveloperBanner } from '../src/engine/ui/developerBanner';
 
 afterEach(() => { setDev(false); document.body.replaceChildren(); });

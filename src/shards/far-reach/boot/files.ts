@@ -1,4 +1,4 @@
-import type { ShardManifest } from '@wildshard/game';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
 
 /** The generated models (C6, and the rope-bridge kit): loaded by `world/meshes.ts`, listed here so the boot and the offline cache fetch them. */
 export type SkyMeshName = 'storm-roc' | 'sky-goat' | 'drift-ray' | 'wind-vane' | 'bridge-post' | 'bridge-deck' | 'keeper';

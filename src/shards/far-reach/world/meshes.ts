@@ -1,4 +1,4 @@
-import { loadRigFile } from '@wildshard/engine';
+import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { SKY_HD, SKY_MESHES, skyHdUrl, skyMeshUrl, type SkyHdName, type SkyMeshName } from '../boot/files';
 import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Uint32BufferAttribute, Vector3, type BufferAttribute, type InterleavedBufferAttribute, type Object3D, type Texture } from 'three';
 

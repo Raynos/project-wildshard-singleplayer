@@ -9,7 +9,8 @@
  * Model Explorer; a variant's words are ones the fragment hangs (its atlas cell is drawn: the atlas is finished once).
  */
 import { Box3, Vector3, type Object3D } from 'three';
-import { defineModel, type ModelContext, type ModelPart, type ModelVariant, type Placement, place } from '@wildshard/engine';
+import { defineModel, type ModelContext, type ModelPart, type ModelVariant, type Placement } from '@wildshard/engine/models/model';
+import { place } from '@wildshard/engine/models/place';
 import { type PlacedSign, SignBuilder, type SignStyle } from '../look/signs';
 import { ndLook, need } from '../world/modelLook';
 

@@ -12,7 +12,9 @@
  *   const n = await registerNalatiPlaces({ registry, pois: pois.placed, others: [...rocks, ...dressing.placed], yieldTask });
  */
 import * as THREE from 'three';
-import { type Placed, type WorldRegistry, placeSet } from '@wildshard/engine';
+import type { Placed } from '@wildshard/engine/models/place';
+import { placeSet } from '@wildshard/engine/models/sets';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { NALATI_PLACES } from '../quest';
 
 interface PlaceRow {

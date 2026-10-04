@@ -1,4 +1,10 @@
-import { app, BossBrain, type BossScript, type Renderer, type BossBar, type Player, type Interactable, WeaponPickup } from '@wildshard/engine';
+import { BossBrain, type BossScript } from '@wildshard/engine/ai/BossBrain';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Player } from '@wildshard/engine/player/Player';
+import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
+import type { Renderer } from '@wildshard/engine/render/renderer';
+import type { BossBar } from '@wildshard/engine/ui/BossBar';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { bossesSave, saveSlug } from './saves';
 import * as THREE from 'three';
 
@@ -68,7 +74,6 @@ export interface BossDef {
   intro: number; introShort: number;
 }
 
-export type { BossScript, BossState } from '@wildshard/engine';
 
 export interface BossHost {
   scene: THREE.Scene;

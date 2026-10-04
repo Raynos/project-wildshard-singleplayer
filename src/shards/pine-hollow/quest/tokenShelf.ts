@@ -10,11 +10,12 @@
  * Past `CULL` metres it is not drawn.
  */
 import * as THREE from 'three';
-import { type Sky, type WorldRegistry, place } from '@wildshard/engine';
+import { place } from '@wildshard/engine/models/place';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineModels } from '../world/context';
 import { tokenShelf } from '../models/tokenShelf';
 
-export { tokenShelfGeometry } from '../models/tokenShelf';
 
 /**
  * The ranger's cabin (Cabin.ts SPECS[0]: W 5, L 7, chimney −Z): the mantel is 1.7 × 0.7 m centred on x −0.6, z −3.15,

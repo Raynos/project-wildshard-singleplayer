@@ -13,8 +13,9 @@
  * draws when it is big (`solid`: a block over 1.1 m, a stream boulder over 1 m).
  */
 import * as THREE from 'three';
-import { defineModel } from '@wildshard/engine';
-import { M, blob, type PaintOpts } from '../world/paint';
+import { defineModel } from '@wildshard/engine/models/model';
+import { M, type PaintOpts } from '../world/paint';
+import { blob } from '@wildshard/engine/world/geometryKit';
 import { graniteBlock } from '../world/granite';
 import { painted, type Paint } from '../world/painted';
 import { supportHull } from '../world/solid';

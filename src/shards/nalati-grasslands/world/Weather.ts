@@ -1,4 +1,5 @@
-import { Weather as EngineWeather, Rng } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
+import { Weather as EngineWeather } from '@wildshard/engine/world/weather';
 /**
  * Weather — the steppe storm as a seeded state machine (Nalati B10; docs/design/nalati/stealth-and-storms.md "Steppe
  * storms", the plan's Decisions: a storm every 20–30 min of play, lightning CAN hit the player — 60, GET LOW first).
@@ -29,8 +30,6 @@ import { Weather as EngineWeather, Rng } from '@wildshard/engine';
  */
 import { LEN, steppeProfile, type SteppeNumbers, type StormPhase } from './weatherProfile';
 
-export { STORM_PHASES } from './weatherProfile';
-export type { StormPhase } from './weatherProfile';
 
 /** something tall the lightning may pick (a spruce, a balbal, a yurt's crown) */
 export interface Exposed { x: number; z: number; top: number; kind: 'tree' | 'thing'; ref?: unknown }

@@ -17,7 +17,13 @@
  * `Boat.moorTo`.
  */
 import type * as THREE from 'three';
-import { type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, heightAt, waterLevel, place, type Placed } from '@wildshard/engine';
+import { modelContext, type Placement } from '@wildshard/engine/models/model';
+import { place, type Placed } from '@wildshard/engine/models/place';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { waterLevel } from '@wildshard/engine/world/Heightfield';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { PENNANT_WIND, pier, pierBoxes, pierDeckAt, pierPosts, type PierParams } from '../models/pier';
 
 export interface PierSpec {

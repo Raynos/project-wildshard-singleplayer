@@ -6,7 +6,7 @@ import { heightAt, normalAt, splatAt, inChunk, pondMask, waterLevel } from './He
 import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
 import { patchWindField } from './wind';
-import type { Sky } from './Sky';
+import type { SkyRig as Sky } from './skyRig';
 import type { Forest } from './forest/Forest';
 import { TIER_CONFIG } from '../core/tier';
 import { activeLevel } from '../level/selection';

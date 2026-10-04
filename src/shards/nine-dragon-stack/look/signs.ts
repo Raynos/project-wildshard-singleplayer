@@ -14,7 +14,7 @@ import type { Kit, Look } from '../world/kit';
 import type { NeonSigns } from './neonsigns';
 import { chars } from '../util';
 import { signLayout, type NdTier } from '../tier';
-import { gpuOnlyTexture } from '@wildshard/engine';
+import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 
 export const KAI = '"LXGW WenKai TC", "Kaiti TC", "STKaiti", "BiauKai", "Songti TC", serif';
 export const SONG = '"Noto Serif TC", "Songti TC", "STSong", "PMingLiU", serif';

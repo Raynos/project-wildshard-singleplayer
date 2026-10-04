@@ -1,4 +1,6 @@
-import { StrikeRunner, canReach, type StrikeSpec, type Animal } from '@wildshard/engine';
+import { canReach } from '@wildshard/engine/ai/reach';
+import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
+import type { Animal } from '@wildshard/engine/entities/Animal';
 
 interface BrainPoint { x: number; y: number; z: number }
 

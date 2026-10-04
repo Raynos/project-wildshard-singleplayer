@@ -9,7 +9,6 @@
 import { app } from '../app/runtime';
 import type { RegisteredModel, RegisteredPick, RegisteredSet } from '../world/registry';
 
-export type { ModelCategory, RegisteredModel, RegisteredPick, RegisteredSet } from '../world/registry';
 
 export function registeredModels(): readonly RegisteredModel[] { return app.registry.models(); }
 export function registeredPicks(): readonly RegisteredPick[] { return app.registry.picks; }

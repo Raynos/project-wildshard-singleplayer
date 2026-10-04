@@ -12,8 +12,9 @@
  * shard seeds in its creature style before it lists its roster. The copies are the AnimalManager's, never placed: the
  * shard lists them (`listRoster`, ./live.ts) with the count alive of their species.
  */
-import { AnimalFactory, speciesDef, type AnimalStyle } from '../entities/AnimalFactory';
-import type { Sky } from '../world/Sky';
+import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
+import { speciesDef } from '../entities/species/registry';
+import type { SkyRig as Sky } from '../world/skyRig';
 import type { ModelCategory } from '../world/registry';
 import { modelContext, type ModelContext, type ModelDef } from './model';
 import type { Renderer } from '../render/renderer';

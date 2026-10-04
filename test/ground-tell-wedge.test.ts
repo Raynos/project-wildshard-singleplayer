@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { Scene, ShaderMaterial } from 'three';
-import { GroundTell } from '@wildshard/game';
-import { setTerrainHeight } from '@wildshard/engine';
+import { GroundTell } from '../src/game/Elite';
+import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { heightAt as fieldHeight } from '../src/engine/world/Heightfield';
 
 it('drapes the legacy balbal sector byte-for-byte and updates its fill uniforms', () => {

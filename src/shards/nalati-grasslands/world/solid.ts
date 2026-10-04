@@ -13,7 +13,9 @@
  * is data only — a hull or a prism stands in for it in the physics.
  */
 import * as THREE from 'three';
-import { type BoxSpec as Collider, type Material, boxDesc, type ColliderDesc } from '@wildshard/engine';
+import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import type { Material } from '@wildshard/engine/physics/surface';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
 /** a legacy box (Player.ts `Collider`: yaw −rot, yBottom → yTop) with its material; `ghost`: data only, not solid */
 export type Box = Collider & { surface?: Material; ghost?: true };

@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Events, Scope, hasTag, EVENT_FLUSH_LIMIT, type Tag } from '../../src/engine/index';
+import { Scope } from '../../src/engine/app/scope';
+import { Events, EVENT_FLUSH_LIMIT } from '../../src/engine/events/events';
+import type { Tag } from '../../src/engine/events/maps';
+import { hasTag } from '../../src/engine/events/tags';
 
-declare module '@wildshard/engine' {
+declare module '../../src/engine/events/maps' {
   interface EventMap { 'test.value': number; 'test.next': number }
   interface AskMap { 'test.modify': [number, number] }
   interface TagMap { 'test': true; 'test.child': true; 'test.child.deep': true; 'testing.child': true }

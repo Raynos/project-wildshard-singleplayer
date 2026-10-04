@@ -25,7 +25,12 @@
  * mesh + the balbal InstancedMeshes.
  */
 import * as THREE from 'three';
-import { app, heightAt, type Sky, type WorldRegistry, modelContext, type ModelContext, type Placed } from '@wildshard/engine';
+import { app } from '@wildshard/engine/app/runtime';
+import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
+import type { Placed } from '@wildshard/engine/models/place';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { Flutter } from './Flutter';
 import { Smoke } from './Smoke';
 import { buildNomadCamp } from './NomadCamp';

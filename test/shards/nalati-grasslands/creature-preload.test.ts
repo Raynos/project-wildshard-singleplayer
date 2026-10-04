@@ -5,7 +5,8 @@ import { NALATI_DEFINITIONS, NALATI_SPECIES, nalatiLook } from '../../../src/sha
 import { CreatureRigs } from '../../../src/shards/nalati-grasslands/species/hulls';
 import manifest from '../../../src/shards/nalati-grasslands/manifest';
 import { AnimalFactory } from '../../../src/engine/entities/AnimalFactory';
-import { app, Scope } from '@wildshard/engine';
+import { app } from '../../../src/engine/app/runtime';
+import { Scope } from '../../../src/engine/app/scope';
 import { fakeWorld } from '../../fake/world';
 
 function rig(): GLTF {

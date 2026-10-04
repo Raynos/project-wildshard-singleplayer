@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import type { Game } from '../../core/Game';
-import type { Sky } from '../../world/Sky';
+import type { SkyRig as Sky } from '../../world/skyRig';
 import type { Player } from '../../player/Player';
 import type { Forest } from '../../world/forest/Forest';
 import { terrainHeight as heightAt } from '../../world/terrainHeight';
 import { CHUNK_HALF } from '../../core/config';
-import { Puffs, impactSurfaceOf, worldHit, type ImpactSurface } from './ranged';
+import { Puffs, impactSurfaceOf, worldHit } from './ranged';
+import type { ImpactSurface } from '../Weapon';
 import type { TargetAnimal, TargetHit, Targets, TargetFrame } from '../types';
 import { floorBelow, sticksIn } from '../../physics/query';
 import { app, gameplayRandom } from '../../app/runtime';

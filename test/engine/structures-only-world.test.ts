@@ -1,7 +1,9 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { DataTexture } from 'three';
-import { App, type LevelDriver, needsTerrainCollider } from '@wildshard/engine';
-import { terrainFieldFor } from '@wildshard/engine/data';
+import { App } from '../../src/engine/app/app';
+import type { LevelDriver } from '../../src/engine/level/load';
+import { needsTerrainCollider } from '../../src/engine/level/spec';
+import { terrainFieldFor } from '../../src/engine/world/groundField';
 import { configureLevel } from '../../src/engine/level/selection';
 import * as heightfield from '../../src/engine/world/Heightfield';
 import { terrainHeight, terrainNormal, terrainWaterLevel } from '../../src/engine/world/terrainHeight';

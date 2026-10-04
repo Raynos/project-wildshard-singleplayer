@@ -6,7 +6,8 @@
  * caveArch.ts) draw LOD0 near (with its shadow) and LOD1 past their own distance (no shadow: a few pixels there).
  */
 import * as THREE from 'three';
-import { loadLodPairInto, lodPairOf, vertexHull, type GlbPart, type ModelContext, type ModelPart } from '@wildshard/engine';
+import { loadLodPairInto, lodPairOf, vertexHull, type GlbPart } from '@wildshard/engine/models/glb';
+import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
 import { pineHeroUrl, type PineHeroId } from './heroFiles';
 
 /**

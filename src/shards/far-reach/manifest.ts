@@ -1,4 +1,4 @@
-import type { ShardManifest } from '@wildshard/game';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './strings';
 import { BUDGETS } from './budgets';
 import { CROWN, DECK, HIGH, KEEPER, ROOST, SPAWN, STEP, WINDMILL } from './layout';

@@ -17,10 +17,10 @@ import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
 import { Animal } from '../entities/Animal';
 import { hasSpecies, speciesDef } from '../entities/species/registry';
 import { app } from '../app/runtime';
-import type { Sky } from '../world/Sky';
+import type { SkyRig as Sky } from '../world/skyRig';
 import { heightAt } from '../world/Heightfield';
-import type { DrawnAs, Pipeline } from '../world/registry';
-import { registeredModels, type ModelCategory, type RegisteredModel } from './registry';
+import type { DrawnAs, Pipeline, ModelCategory, RegisteredModel } from '../world/registry';
+import { registeredModels } from './registry';
 
 export type Category = ModelCategory;
 export const CATEGORIES: readonly { id: Category | 'all'; label: string }[] = [

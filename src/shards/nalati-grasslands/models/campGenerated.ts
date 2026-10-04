@@ -9,7 +9,7 @@
  * A placement is the point on the ground under it (`at.y` = the ground there), `rot` the way its front faces in the
  * camp's frame (0 = −z); the GLBs face +Z, so each turns the file by `rot + π` and sits it a few cm into the turf.
  */
-import { defineModel } from '@wildshard/engine';
+import { defineModel } from '@wildshard/engine/models/model';
 import { MODEL_SIZE } from '../world/glbPaint';
 import { generated } from '../world/painted';
 import type { Box } from '../world/solid';

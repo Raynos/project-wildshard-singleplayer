@@ -1,13 +1,26 @@
 import * as THREE from 'three';
-import { loadWorldContent, loadAudio, heightAt, Flags, type WorldRegistry, type Sky, type Interactables, type InteractEvent, type Interactable, type PoiId, type Place, type Audio, type FullMapPoi as MapPoi, type MapQuest, type Scope, type Actor } from '@wildshard/engine';
-import { ITEMS, type ItemId, type ProgressSink, type ShardContext } from '@wildshard/game';
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import type { Actor } from '@wildshard/engine/combat/pipeline';
+import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
+import { Flags } from '@wildshard/engine/world/interact/flags';
+import type { Interactables, InteractEvent } from '@wildshard/engine/world/interact/Interactables';
+import type { Interactable, PoiId, Place } from '@wildshard/engine/world/interact/types';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { ITEMS } from '@wildshard/game/bag/itemCatalog';
+import type { ItemId } from '@wildshard/game/Inventory';
+import type { ProgressSink } from '@wildshard/game/Progress';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../manifest';
 import { Cove } from '../world/Cove';
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from './interactables';
 import { installSpine, type Spine } from './Spine';
 import { installTrader, type TraderStall } from './TraderStall';
 import { installFeats } from './Feats';
-import { installPlaces, type Places } from './Places';
+import { installPlaces } from './Places';
+import type { Places } from '@wildshard/engine/quest/view';
 import { installGullGuide } from './gullGuide';
 import { installFinale, type Finale } from './Finale';
 import { installComplete, type Complete, type CompleteProgress } from './Complete';
@@ -99,8 +112,8 @@ const FRAMES: Record<Exclude<PoiId, 'world'>, { x: number; z: number; rot: numbe
 
 /** Driftwood Isle's adventure (plan Track A): the castaway spine, feats, places, the captain's finale, the zipline */
 export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, source: AdventureWorld<A>): Promise<Adventure> {
-  const { Interactables } = await loadWorldContent();
-  const { InteractSfx } = await loadAudio();
+  const { Interactables } = await import('@wildshard/engine/world/interact/Interactables');
+  const { InteractSfx } = await import('@wildshard/engine/audio/interactSfx');
   const w: AdventureWorld<A> = { ...source, scope: ctx.scope, debug: ctx.debug, game: { ...source.game, onUpdate: (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); } },
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const flags = new Flags(w.chunk.slug);

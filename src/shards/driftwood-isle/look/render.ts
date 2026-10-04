@@ -12,7 +12,7 @@
  *   backdrop        the stylized dome and the day / night clock (backdrop.ts; the keys in dayKeys.ts)
  *   terrainPainter  the faceted ground coloured by height and slope (terrainPainter.ts)
  */
-import type { LookStrategy } from '@wildshard/engine';
+import type { LookStrategy } from '@wildshard/engine/render/look';
 import { STYLIZED_BACKDROP } from './backdrop';
 import { LOWPOLY_TERRAIN } from './terrainPainter';
 import { installRampFog, installToonLighting, resumeRampFog, suspendRampFog } from './toon';

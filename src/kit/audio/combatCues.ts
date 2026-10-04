@@ -1,4 +1,4 @@
-import type { CombatCueMap, CombatCueOpts } from '@wildshard/engine';
+import type { CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
 
 interface CombatAudio {
   rifleFire: () => void; crossbowFire: () => void; swordSwing: () => void; swordHeavy: () => void;

@@ -325,21 +325,21 @@
     "id": "retry-public-index",
     "file": "src/game/retry-public.ts",
     "rule": "layer",
-    "code": "import { retried } from '@wildshard/engine/retry';",
+    "code": "import { retried } from '@wildshard/engine/boot/retry';",
     "count": 0
   },
   {
     "id": "retry-deep-refused",
     "file": "src/game/retry-deep.ts",
     "rule": "public-index",
-    "code": "import { retried } from '@wildshard/engine/boot/retry';",
+    "code": "import { retried } from '@wildshard/engine/boot/retryInternals';",
     "count": 1
   },
   {
     "id": "retry-index-lookalike-refused",
     "file": "src/game/retry-lookalike.ts",
     "rule": "public-index",
-    "code": "import { retried } from '@wildshard/engine/retry/private';",
+    "code": "import { retried } from '@wildshard/engine/boot/retry/private';",
     "count": 1
   },
   {
@@ -528,21 +528,21 @@
     "id": "engine-internal-shard",
     "file": "src/shards/demo/plugin.ts",
     "rule": "engine-internal",
-    "code": "import { configureLevel, app } from '@wildshard/engine';\nexport const used = [configureLevel, app];\n",
+    "code": "import { configureLevel } from '@wildshard/engine/level/selection';\nimport { app } from '@wildshard/engine/app/runtime';\nexport const used = [configureLevel, app];\n",
     "count": 1
   },
   {
     "id": "engine-internal-game-ok",
     "file": "src/game/session/demo.ts",
     "rule": "engine-internal",
-    "code": "import { configureLevel } from '@wildshard/engine';\nexport const used = configureLevel;\n",
+    "code": "import { configureLevel } from '@wildshard/engine/level/selection';\nexport const used = configureLevel;\n",
     "count": 0
   },
   {
     "id": "shard-services-import",
     "file": "src/shards/demo/world.ts",
     "rule": "shard-services",
-    "code": "import { app, Rng, type Scope } from '@wildshard/engine';\nimport type { saves } from '@wildshard/engine';\nexport const used: [unknown, unknown, Scope | null, unknown] = [app, Rng, null, null as unknown as typeof saves];\n",
+    "code": "import { app } from '@wildshard/engine/app/runtime';\nimport { Rng } from '@wildshard/engine/core/rng';\nimport type { Scope } from '@wildshard/engine/app/scope';\nimport type { saves } from '@wildshard/engine/saves/runtime';\nexport const used: [unknown, unknown, Scope | null, unknown] = [app, Rng, null, null as unknown as typeof saves];\n",
     "count": 1
   }
 ]

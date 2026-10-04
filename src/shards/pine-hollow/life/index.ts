@@ -1,6 +1,21 @@
-import { sharedWeaponVoices } from '@wildshard/kit';
-import type { ShardContext } from '@wildshard/game';
-import { app, ownAudioSource, TickScheduler, type EquipmentService, tap, ambientTick, type Game, type Sky, type Player, type Audio, type AnimalManager, type Animal, type TreeInstance, Rng, CameraFX, cabinMask, heightAt, inChunk, normalAt, pondMask, streamAt, waterLevel } from '@wildshard/engine';
+import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { app } from '@wildshard/engine/app/runtime';
+import { TickScheduler } from '@wildshard/engine/app/scheduler';
+import type { Audio } from '@wildshard/engine/audio/Audio';
+import { ownAudioSource } from '@wildshard/engine/audio/ownership';
+import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import type { Game } from '@wildshard/engine/core/Game';
+import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { Rng } from '@wildshard/engine/core/rng';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { CameraFX } from '@wildshard/engine/player/CameraFX';
+import type { Player } from '@wildshard/engine/player/Player';
+import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
+import { cabinMask, inChunk, normalAt, pondMask, streamAt, waterLevel } from '@wildshard/engine/world/Heightfield';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 /**
  * Pine Hollow's ambient life without wolves (PINE-HOLLOW-REMASTER PH-M5) and the harvest's skinning beat (PH-F2), in one
  * call from main.ts (`installPineLife`, before the boot's precompile: the one draw below is parked in the scene then).
@@ -46,7 +61,7 @@ import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
 import { pineOption } from '../debug/options';
-import { smoothstep } from '@wildshard/engine/data';
+import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface PineLifeHost {
   ctx: ShardContext;

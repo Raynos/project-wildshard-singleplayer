@@ -27,7 +27,14 @@ import * as THREE from 'three';
 import { OCEAN } from '../manifest';
 import { islandKnobs } from '../tiers';
 import { toonUniforms } from '../look/toon';
-import { PATCH_ORDER, patchShader, CHUNK_HALF, CHUNK_SIZE, attachFogUniforms, type Sky, WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock, heightAt, inChunk, HORIZON_RADIUS } from '@wildshard/engine';
+import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import { inChunk } from '@wildshard/engine/world/Heightfield';
+import { HORIZON_RADIUS } from '@wildshard/engine/world/HorizonMatte';
+import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock } from '@wildshard/engine/world/waves';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 

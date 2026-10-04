@@ -3,7 +3,12 @@
  * of the engine's default ground (it was `Terrain.ts`'s `style === 'painterly'` branch, moved verbatim).
  */
 import * as THREE from 'three';
-import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES, macrotask, painterlyMaterial, Noise2D, type PainterField, type Terrain, type TerrainPainter } from '@wildshard/engine';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';
+import { Noise2D } from '@wildshard/engine/core/noise';
+import type { PainterField, TerrainPainter } from '@wildshard/engine/render/look';
+import { painterlyMaterial } from '@wildshard/engine/world/painterly';
+import type { Terrain } from '@wildshard/engine/world/Terrain';
 import { NALATI_GRASSLANDS as def } from '../manifest';
 import { applyTerrainSurface } from '../terrainSurface';
 import { zoneWeights } from './zones';

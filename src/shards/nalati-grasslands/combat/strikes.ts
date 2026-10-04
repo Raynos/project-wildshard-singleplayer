@@ -1,4 +1,5 @@
-import { StrikeRunner, canReach, type StrikeActor, type StrikeContext, type StrikeSpec } from '@wildshard/engine';
+import { canReach } from '@wildshard/engine/ai/reach';
+import { StrikeRunner, type StrikeActor, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { Vector3 } from 'three';
 
 const point = (radius: number): StrikeSpec['shape'] => ({ kind: 'point', radius, exclusive: true });

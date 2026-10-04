@@ -9,7 +9,9 @@
  * at its root, a plank door about +Y at its hinge edge, a grate / sluice slides along +Y.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, beam, plank, rock, rope, type ChestDims } from '@wildshard/engine';
+import { log, beam, plank, rock, rope } from '@wildshard/engine/world/geometryKit';
+import type { ChestDims } from '@wildshard/engine/world/interact/types';
+import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 
 const C = {
   wood: '#8a6440', woodDark: '#5f432a', woodLight: '#a88157', iron: '#3b3d42', ironLight: '#62656d', brass: '#d8a640',

@@ -1,5 +1,8 @@
-import { Flags, QuestState } from '@wildshard/engine';
-import { CoinBurst, purseSave, shardSave, type ShardContext } from '@wildshard/game';
+import { QuestState } from '@wildshard/engine/quest/core';
+import { Flags } from '@wildshard/engine/world/interact/flags';
+import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
+import { purseSave, shardSave } from '@wildshard/game/saves';
+import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import { Scene, type Vector3 } from 'three';
 import { HUT } from '../layout';

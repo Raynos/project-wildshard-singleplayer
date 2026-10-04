@@ -15,7 +15,7 @@ import { Pass } from 'postprocessing';
 import { LIGHTVOL_GLSL } from '../light/lightvol';
 import type { Shared } from '../style';
 import { VM_SLICE } from './bleed';
-import type { Renderer } from '@wildshard/engine';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 
 const VS = /* glsl */ `
 varying vec2 vUv;

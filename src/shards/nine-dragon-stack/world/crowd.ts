@@ -17,7 +17,7 @@
 //    this file deals the figures out to the colourways (`dealCrowd`) and culls them (`Crowd`, handed each colourway's
 //    levels by `place`).
 import { type BufferGeometry, Color, Float32BufferAttribute, Frustum, type InstancedMesh, Matrix4, type PerspectiveCamera, Sphere, Uint32BufferAttribute, Vector3 } from 'three';
-import type { HandedBatch, InstancedCuller } from '@wildshard/engine';
+import type { HandedBatch, InstancedCuller } from '@wildshard/engine/models/place';
 
 export function tintUmbrella(src: BufferGeometry, color: number, above = 1.8): BufferGeometry {
   const g = src.clone();

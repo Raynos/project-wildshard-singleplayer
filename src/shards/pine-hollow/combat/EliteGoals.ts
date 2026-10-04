@@ -1,4 +1,4 @@
-import type { Animal } from '@wildshard/engine';
+import type { Animal } from '@wildshard/engine/entities/Animal';
 import type { PineCtx, LaneCharge } from './ctx';
 import { bugleHour, fleeHeading } from './combatMath';
 import { PINE_STRIKES, pineContact } from './strikes';

@@ -1,4 +1,4 @@
-import type { EquipmentRow } from '@wildshard/game';
+import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import { JIAN_ROW } from '../vm/jianRow';
 
 /** Node-safe authored Tool metadata; scene installation belongs to FeiZhua. */

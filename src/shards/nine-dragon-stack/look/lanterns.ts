@@ -13,7 +13,8 @@ import {
   Quaternion, ShaderMaterial, Sphere, Uint32BufferAttribute, Vector2, Vector3,
 } from 'three';
 import type { Emitter } from './emitters';
-import type { HandedBatch, InstancedCuller, Placement } from '@wildshard/engine';
+import type { Placement } from '@wildshard/engine/models/model';
+import type { HandedBatch, InstancedCuller } from '@wildshard/engine/models/place';
 import { EMIT_FOG, FOG_GLSL, NOISE_GLSL, type Shared } from './style';
 
 const R = 0.27, H = 0.24;

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { QuestLine, Events, Scope } from '@wildshard/engine';
+import { Scope } from '../../src/engine/app/scope';
+import { Events } from '../../src/engine/events/events';
+import { QuestLine } from '../../src/engine/quest/core';
 import { Flags } from '../../src/engine/world/interact/flags';
 import { WARDENS_HOLLOW } from '../../src/shards/pine-hollow/quest/wardensHollow';
 import { BEATS, beatFlags, type Beat } from '../../src/shards/pine-hollow/quest/beats';

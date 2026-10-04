@@ -1,9 +1,16 @@
 import { Sabre, SABRE_PROFILE, type SabreOptions } from './Sabre';
-import { app, type SwordWorld, type Targets, type Move, type Player, type AnimalManager, type Animal, heightAt, castRay, floorBelow } from '@wildshard/engine';
-import { meleeActor } from '@wildshard/kit';
+import { app } from '@wildshard/engine/app/runtime';
+import type { Targets } from '@wildshard/engine/combat/types';
+import type { SwordWorld, Move } from '@wildshard/engine/combat/view/melee';
+import type { Animal } from '@wildshard/engine/entities/Animal';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { castRay, floorBelow } from '@wildshard/engine/physics/query';
+import type { Player } from '@wildshard/engine/player/Player';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { meleeActor } from '@wildshard/kit/weapons/melee/Melee';
 import * as THREE from 'three';
-import { GroundTell } from '@wildshard/game';
-import { fxMaterial, FX, annulus, type FxMaterial } from '../world/KurganDungeon';
+import { GroundTell } from '@wildshard/game/Elite';
+import { fxMaterial, FX, annulus, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 
 /**
  * NAIZAGAI — the Storm Sabre of Jel Ata (Nalati row B14's reward; docs/design/nalati/elites-and-bosses.md "5 — Victory";

@@ -4,8 +4,9 @@
  * (src/shards/nalati-grasslands/world/painted.ts); every copy its own shape and turn, drawn from the place's rng stream. Walk-through.
  */
 import * as THREE from 'three';
-import { defineModel } from '@wildshard/engine';
-import { M, blob } from '../world/paint';
+import { defineModel } from '@wildshard/engine/models/model';
+import { M } from '../world/paint';
+import { blob } from '@wildshard/engine/world/geometryKit';
 import { painted, type Paint } from '../world/painted';
 
 export type FieldstoneLook = 'kurgan' | 'rubble';

@@ -16,7 +16,7 @@
  *   therefore sits crisp IN FRONT of the clouds, as in the mockups. One draw call, ~13 k triangles, slow drift.
  */
 import * as THREE from 'three';
-import { Rng } from '@wildshard/engine';
+import { Rng } from '@wildshard/engine/core/rng';
 
 /** the sky's day palette (linear, pre-tonemap); DayNight lerps these per preset */
 export interface SkyPalette {

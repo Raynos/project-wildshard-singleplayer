@@ -25,7 +25,7 @@ import { engineString } from '../../strings';
 import * as THREE from 'three';
 import { app } from '../../app/runtime';
 import { lowPolyMaterial } from '../lowpolyKit';
-import type { Sky } from '../Sky';
+import type { SkyRig as Sky } from '../skyRig';
 import { boxInFrame, type BoxSpec as Collider } from '../../physics/box';
 import { boxDesc, type Piece } from '../registry';
 import type { Physics } from '../../physics/Physics';
