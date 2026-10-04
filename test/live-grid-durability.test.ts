@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import { SaveStore } from '../src/engine/saves/store';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { ReadinessWalls } from '../src/engine/physics/readinessWalls';
+import { ReadinessWalls, type ReadinessEdge } from '../src/engine/physics/readinessWalls';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, serializeSimSnapshot } from '../src/engine/sim/snapshot';
 import { EquipmentService } from '../src/engine/combat/EquipmentService';
@@ -15,7 +15,7 @@ import * as simulation from '../src/game/shardfile/simulation';
 import * as products from '../src/game/grid/products';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { GridRegionDurability } from '../src/game/grid/durability';
-import { GridAssembly } from '../src/game/grid/assembly';
+import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { parseMigrations } from '../src/game/shardfile/migrations';
 import source from '../src/shards/_template/shard.config';
@@ -34,6 +34,20 @@ function browserEvents(): () => void {
     return () => { if (before === undefined) Reflect.deleteProperty(globalThis, name); else Object.defineProperty(globalThis, name, before); };
   });
   return () => { for (const reset of restore) reset(); };
+}
+
+function neighbourEdges(cell: GridCell, origin: { x: number; z: number }): ReadinessEdge[] {
+  const x = cell.origin.x - origin.x, z = cell.origin.z - origin.z, r = 256;
+  return [{ instance: cell.instance, x: x + r, z, axis: 'x', halfLength: r, floor: 0 },
+    { instance: cell.instance, x: x - r, z, axis: 'x', halfLength: r, floor: 0 },
+    { instance: cell.instance, x, z: z + r, axis: 'z', halfLength: r, floor: 0 },
+    { instance: cell.instance, x, z: z - r, axis: 'z', halfLength: r, floor: 0 }];
+}
+function rimEdges(): ReadinessEdge[] {
+  return [{ instance: null, x: 2000, z: 0, axis: 'x', halfLength: 2000, floor: 0 },
+    { instance: null, x: -2000, z: 0, axis: 'x', halfLength: 2000, floor: 0 },
+    { instance: null, x: 0, z: 2000, axis: 'z', halfLength: 2000, floor: 0 },
+    { instance: null, x: 0, z: -2000, axis: 'z', halfLength: 2000, floor: 0 }];
 }
 
 it('holds a real live crossing on home or region save refusal and reloads the earned quest and coins', async () => {
@@ -59,7 +73,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     const traveller = { position: pageHost.player.position, yaw: 0, motor: pageHost.releasePlayerMotor(), camera: new PerspectiveCamera(), hoverSpeedLimit: null,
       bindFrame: (physics: typeof pageHost.physics, motor: typeof pageHost.player.motor) => { currentPhysics = physics; traveller.motor = motor; } };
     const session = withOwner(scope, () => new LiveGridSession({ assembly, home, physics: pageHost.physics, scope, walls: new ReadinessWalls(pageHost.physics, [], scope),
-      strips: [], allocator: new ResidencyAllocator(), neighbourEdges: () => [], rimEdges: () => [] }, {
+      strips: [], allocator: new ResidencyAllocator(), neighbourEdges, rimEdges }, {
       traveller, health: pageHost.player.health, equipment: new EquipmentService(new EmptyEquipment(), { scope }), events: pageHost.events,
       saves: store, checkpoint: () => homeDurable, catalogue: [], setPhysics: (physics) => { currentPhysics = physics; },
       onFixedPre: (fn) => { pre.push(fn); }, onFixedPost: (fn) => { post.push(fn); }, onInput: () => undefined, onUpdate: () => undefined,
@@ -67,6 +81,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     return { session, scope, traveller, tick: () => withOwner(scope, () => { for (const fn of pre) fn(); currentPhysics.step(); for (const fn of post) fn(); }) };
   };
   const first = open();
+  expect(first.scope.census.colliders).toBe(0); // highway walls belong to their independent world, never the page
   const settle = async (tick: () => void): Promise<void> => { for (let turn = 0; turn < 20; turn++) { await Promise.resolve(); tick(); } };
   try {
     await first.session.live.prefetch([target.instance]);

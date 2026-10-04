@@ -1,5 +1,6 @@
 import type { Collider } from '@dimforge/rapier3d-simd';
 import type { Scope } from '../app/scope';
+import { withOwner } from '../app/ownership';
 import { CELL_ABOVE, CELL_BELOW } from '../core/config';
 import type { TraversalReadiness } from '../sim/readiness';
 import type { Physics } from './Physics';
@@ -24,8 +25,8 @@ export class ReadinessWalls {
     // Grid entry walls sit at the 6 m re-frame line on shared strip ground, before the capsule reaches the cell seam.
     for (const source of edges) {
       const edge = { ...source }, acrossX = edge.axis === 'x';
-      const collider = physics.world.createCollider(physics.R.ColliderDesc.cuboid(acrossX ? 0.25 : edge.halfLength, halfHeight, acrossX ? edge.halfLength : 0.25)
-        .setTranslation(edge.x, edge.floor + (CELL_ABOVE - CELL_BELOW) / 2, edge.z).setCollisionGroups(groups('WORLD')));
+      const collider = withOwner(scope, () => physics.world.createCollider(physics.R.ColliderDesc.cuboid(acrossX ? 0.25 : edge.halfLength, halfHeight, acrossX ? edge.halfLength : 0.25)
+        .setTranslation(edge.x, edge.floor + (CELL_ABOVE - CELL_BELOW) / 2, edge.z).setCollisionGroups(groups('WORLD'))));
       tagCollider(collider, 'edge', PLATFORM_COLLIDER_OWNER);
       this.walls.push({ edge, collider });
     }
