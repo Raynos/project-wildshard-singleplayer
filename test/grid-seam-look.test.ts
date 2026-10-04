@@ -49,3 +49,14 @@ it('a resolved sourceSurface colour wins over the sampled edge colour', () => {
   const first = index[rock?.start ?? 0] ?? 0, colour = geometry.getAttribute('color');
   expect(colour.getZ(first)).toBeGreaterThan(colour.getX(first) + 0.2);
 });
+
+it('darkens only the neutral verge near the road; the cell edge keeps the exact edge colour (seam ΔE)', () => {
+  const grey: readonly [number, number, number] = [0.25, 0.25, 0.25];
+  const strip = generateStrip({ id: 'gap.x.0.0', axis: 'x', origin: { x: 277.5, z: 0 }, profiles: [profile(() => 0, grey), profile(() => 0, grey)], adjacent: [] });
+  const { geometry } = seamLookGeometry([strip], { origin: { x: 0, z: 0 } }), pos = geometry.getAttribute('position'), colour = geometry.getAttribute('color');
+  for (let k = 0; k < pos.count; k++) {
+    const d = Math.abs(pos.getX(k) - 277.5);
+    if (d >= 27.5) expect(colour.getX(k)).toBeCloseTo(0.25, 5);
+    if (d <= 11.5) expect(colour.getX(k)).toBeLessThan(0.15);
+  }
+});

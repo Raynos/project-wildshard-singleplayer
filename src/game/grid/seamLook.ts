@@ -19,6 +19,7 @@ import {
   AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, LinearMipmapLinearFilter, type Material, Mesh, MeshBasicMaterial,
   MeshLambertMaterial, RepeatWrapping, SRGBColorSpace, ShaderMaterial,
 } from 'three';
+import { GAP_HALF } from './roadLayout';
 
 /** The material a feature kind wears. */
 export type SeamBucket = 'ground' | 'stone' | 'rock' | 'dike' | 'curtain' | 'rail';
@@ -44,13 +45,15 @@ export interface SeamPiece {
 const CYAN = new Color(0x38e6ff);
 const ROCK_GREY: readonly [number, number, number] = [0.32, 0.3, 0.28];
 /** The generator's neutral platform grey (linear) and how much darker the look draws it. */
-const NEUTRAL = 0.25, VERGE = 0.45;
+const NEUTRAL = 0.25, VERGE = 0.45, BUFFER = 11.5;
+/** Distance from the nearest road centre line on one axis (centre lines at k·pitch + pitch/2, grid metres). */
+const fromRoad = (v: number, pitch: number): number => Math.abs(v - (Math.round((v - pitch / 2) / pitch) * pitch + pitch / 2));
 
 /**
  * Merge every strip into one home-frame geometry whose index buffer is grouped by material. Pure (no GPU): the vertices are
  * the generator's own, translated; `uv` is world-planar (top faces xz, walls along × height) so textures tile across strips.
  */
-export function seamLookGeometry(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces): { geometry: BufferGeometry; state: SeamLookState } {
+export function seamLookGeometry(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { geometry: BufferGeometry; state: SeamLookState } {
   let vertices = 0;
   for (const { mesh } of pieces) vertices += mesh.positions.length / 3;
   const position = new Float32Array(vertices * 3), colour = new Float32Array(vertices * 3), bucketOf = new Int8Array(vertices).fill(-1);
@@ -62,7 +65,10 @@ export function seamLookGeometry(pieces: readonly SeamPiece[], home: { readonly 
       position[(base + k) * 3] = (mesh.positions[k * 3] ?? 0) + dx; position[(base + k) * 3 + 1] = mesh.positions[k * 3 + 1] ?? 0; position[(base + k) * 3 + 2] = (mesh.positions[k * 3 + 2] ?? 0) + dz;
       // the platform's neutral grey reads as a dark gravel verge; the shard's own colour at the gradient's far edge is kept
       const r = mesh.colours[k * 3] ?? 0, g = mesh.colours[k * 3 + 1] ?? 0, b = mesh.colours[k * 3 + 2] ?? 0;
-      const shade = 1 - VERGE * Math.max(0, 1 - (Math.abs(r - NEUTRAL) + Math.abs(g - NEUTRAL) + Math.abs(b - NEUTRAL)) / 0.15);
+      // only near the road: the darkening fades out across the gradient, so the cell edge keeps the shard's exact colour
+      const wx = (mesh.positions[k * 3] ?? 0) + mesh.origin.x, wz = (mesh.positions[k * 3 + 2] ?? 0) + mesh.origin.z;
+      const road = Math.max(0, Math.min(1, (GAP_HALF - Math.min(fromRoad(wx, pitch), fromRoad(wz, pitch))) / (GAP_HALF - BUFFER)));
+      const shade = 1 - VERGE * road * Math.max(0, 1 - (Math.abs(r - NEUTRAL) + Math.abs(g - NEUTRAL) + Math.abs(b - NEUTRAL)) / 0.15);
       colour[(base + k) * 3] = r * shade; colour[(base + k) * 3 + 1] = g * shade; colour[(base + k) * 3 + 2] = b * shade;
     }
     // every index in a feature range goes to its material's list; triangles no range names draw as ground
@@ -230,8 +236,8 @@ function seamMaterials(home: { readonly origin: { readonly x: number; readonly z
 }
 
 /** The deck and seams as one mesh in the home frame: one draw per material present. Dispose with the returned function. */
-export function seamMesh(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces): { mesh: Mesh; state: SeamLookState; dispose: () => void } {
-  const { geometry, state } = seamLookGeometry(pieces, home, surfaces), materials = seamMaterials(home);
+export function seamMesh(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch = 555): { mesh: Mesh; state: SeamLookState; dispose: () => void } {
+  const { geometry, state } = seamLookGeometry(pieces, home, surfaces, pitch), materials = seamMaterials(home);
   const mesh = new Mesh(geometry, materials);
   mesh.name = 'grid-deck'; mesh.receiveShadow = true; mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
   return { mesh, state, dispose: () => {

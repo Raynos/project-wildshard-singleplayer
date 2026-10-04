@@ -202,7 +202,7 @@ export class GridSession {
     try { strips = generatePlatform(edges ?? flat, empty); } catch (error) { console.warn('[grid] the platform keeps road-level edges:', error); strips = generatePlatform(flat, empty); }
     this.strips = strips;
     // the seams' materials keyed by the generator's feature ranges (phase 2): the same triangles the world collides with
-    const seams = seamMesh(this.strips, home);
+    const seams = seamMesh(this.strips, home, undefined, this.assembly.pitch);
     const deck = seams.mesh; this.seams = seams.state;
     // SF19a: one frame for the grid, behind its Debug row (default off; applies at the next grid start)
     host.scope.onDispose(installGridFrameRow());
