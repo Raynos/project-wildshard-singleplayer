@@ -36,7 +36,7 @@ try {
         arrays += g.index?.array?.byteLength ?? 0; });
       // the Blender island's vertex + index + instance bytes as uploaded (count × item size: a released array counts too)
       let islandGpu = 0; const island = game.scene.children.find((o) => o.name === 'blender-island'); const seenI = new Set();
-      const bytes = (a) => (a ? a.count * a.itemSize * (a.array?.BYTES_PER_ELEMENT || 4) : 0);
+      const bytes = (a) => (a ? a.count * a.itemSize * (a.array?.BYTES_PER_ELEMENT ?? 4) : 0);
       island?.traverse((o) => { const g = o.geometry; if (!g || seenI.has(g)) return; seenI.add(g);
         for (const a of Object.values(g.attributes)) islandGpu += bytes(a); islandGpu += bytes(g.index); if (o.isInstancedMesh) islandGpu += bytes(o.instanceMatrix); });
       const m = game.renderer.info.memory, ri = game.renderer.info.render;
