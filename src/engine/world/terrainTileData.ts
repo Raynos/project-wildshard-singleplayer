@@ -48,6 +48,7 @@ export function terrainTileHeight(data: TerrainTileData, x: number, z: number): 
 /** Conservative sample/mesh residency and draws, including an L0 shadow pass; collider-only payloads have no draws. */
 export function terrainTileCost(data: TerrainTileData): { decoded: number; gpu: number; triangles: number; draws: number } {
   const vertices = data.resolution ** 2, cells = (data.resolution - 1) ** 2;
+  const indexBytes = cells * 6 * (vertices > 65535 ? 4 : 2);
   return data.colours === undefined ? { decoded: HEADER + vertices * 8, gpu: 0, triangles: 0, draws: 0 }
-    : { decoded: HEADER + vertices * 32, gpu: vertices * 36 + cells * 6 * (vertices > 65535 ? 4 : 2), triangles: cells * 2, draws: data.size === 62.5 ? 2 : 1 };
+    : { decoded: HEADER + vertices * 56 + indexBytes, gpu: vertices * 36 + indexBytes, triangles: cells * 2, draws: data.size === 62.5 ? 2 : 1 };
 }
