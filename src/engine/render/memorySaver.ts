@@ -23,6 +23,7 @@ import * as THREE from 'three';
 import { RenderPass, type BloomEffect, type EffectComposer, type Pass } from 'postprocessing';
 import { setting } from '../ui/Settings';
 import { markGpuOnly } from '../core/gpuOnly';
+import { arrayReleased, markArrayReleased, markArrayRestored } from './releasedArrays';
 import type { Renderer } from './renderer';
 
 let on: boolean | null = null;
@@ -118,8 +119,6 @@ type ArrayCtor = new (length: number) => THREE.TypedArray;
 const uploadedTo = new WeakMap<ArrayBufferView, WebGLBuffer>();
 /** attributes whose array something touched after their release (it came back from the GPU): never released again */
 const touched = new WeakSet();
-/** attributes released (an attribute shared by several geometries is looked at once per geometry: never read it again) */
-const releasedAttributes = new WeakSet();
 let gl: WebGL2RenderingContext | null = null;
 let lostWarned = false;
 
@@ -142,16 +141,13 @@ function restore(a: object, buffer: WebGLBuffer, Ctor: ArrayCtor, length: number
   }
   Object.defineProperty(a, 'array', { value: array, writable: true, configurable: true, enumerable: true });
   touched.add(a);
-  releasedAttributes.delete(a);
+  markArrayRestored(a);
   return array;
 }
 
-/** has `a` given up its CPU array (reading `a.array` would read it back from the GPU): the census labels skip it */
-export function arrayReleased(a: object): boolean { return releasedAttributes.has(a); }
-
 /** may `a` give up its array: a static, plain (not instanced, not interleaved) attribute three uploaded, untouched since */
 function releasableAttribute(name: string, a: unknown): a is THREE.BufferAttribute {
-  return !KEEP.has(name) && a instanceof THREE.BufferAttribute && !(a instanceof THREE.InstancedBufferAttribute) && !releasedAttributes.has(a) && !touched.has(a) &&
+  return !KEEP.has(name) && a instanceof THREE.BufferAttribute && !(a instanceof THREE.InstancedBufferAttribute) && !arrayReleased(a) && !touched.has(a) &&
     a.usage === THREE.StaticDrawUsage && a.updateRanges.length === 0 && a.array.length > 0 && uploadedTo.has(a.array);
 }
 
@@ -168,7 +164,7 @@ function releaseGeometry(g: THREE.BufferGeometry, label: string): void {
     if (buffer === undefined) continue;
     const Ctor = array.constructor as ArrayCtor, length = array.length, where = `${label}.${name}`;
     bytes += array.byteLength;
-    releasedAttributes.add(a);
+    markArrayReleased(a);
     // uploaded at this version (it drew); the count stays. Reading or writing `array` brings it back (restore)
     Object.defineProperty(a, 'array', {
       configurable: true, enumerable: true,
@@ -176,7 +172,7 @@ function releaseGeometry(g: THREE.BufferGeometry, label: string): void {
       set: (value: THREE.TypedArray): void => {
         Object.defineProperty(a, 'array', { value, writable: true, configurable: true, enumerable: true });
         touched.add(a);
-        releasedAttributes.delete(a);
+        markArrayRestored(a);
       },
     });
   }

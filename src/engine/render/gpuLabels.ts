@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, Skeleton, Texture, WebGLRenderTarget } from 'three';
 import type { Renderer } from './renderer';
-import { arrayReleased } from './memorySaver';
+import { arrayReleased } from './releasedArrays';
 
 interface Label { owner: string; asset: string; priority: number }
 const labels = new WeakMap<object, Label>();
