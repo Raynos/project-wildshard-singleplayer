@@ -39,7 +39,7 @@ it('quota failure refuses the real source before any plugin or physics world can
     expect(plugins).toBe(0); expect(owner.allocator.entries()).toEqual([]);
   } finally { owner.dispose(); }
 });
-it('reuses a measured whole-data home claim without shrinking it to the critical simulation budget', async () => {
+it('preserves an early root home claim and checks that it covers the critical simulation budget', async () => {
   const owner = new PageResidency(), home = owner.admitHome('home', 40_000_000), before = owner.allocator.cost();
   try {
     await shardfileSource(source(), options, bindings(owner));

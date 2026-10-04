@@ -9,8 +9,8 @@ export function clientResidency(source: Pick<Shardfile, 'budgets' | 'runtime'>, 
   const owner = bindings.residency;
   if (owner === undefined) return { allocator: bindings.allocator ?? new ResidencyAllocator() };
   if (bindings.allocator !== undefined && bindings.allocator !== owner.allocator) throw new Error('Shardfile page and client must share one residency allocator');
-  // A hybrid world hook runs after the shell allocated. A measured root claim also covers ordinary data homes;
-  // their declared critical sim budget is a lower-bound check, never a replacement for that whole-home measurement.
+  // A hybrid world hook runs after the shell allocated. Preserve any root preclaim;
+  // declared critical sim cost is a lower-bound check, never a replacement for a runtime's whole-home measurement.
   const preclaimed = source.runtime !== null || owner.allocator.has(`sim:${bindings.instance}`);
   const home = preclaimed ? owner.home() : owner.admitHome(bindings.instance, source.budgets.sim.resident);
   if (home.instance !== bindings.instance || home.allocator !== owner.allocator) throw new Error('Shardfile home residency identity mismatch');

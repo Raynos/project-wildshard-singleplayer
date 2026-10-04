@@ -295,6 +295,13 @@ The client reserves library and commons claims in the session residency allocato
 shared dependencies are charged once and leases end with the level. The grid sim
 registry owns sim claims and render rings own tile claims. A grid page may share an
 early home claim through an explicitly injected page residency owner.
+For its data-only home, the non-ring client also reserves each combined terrain/props
+tile's validated decoded plus GPU bytes before either view installs. All 16 coarse
+claims survive refinement; fine claims end with their tile scopes. A deferred fine
+tile leaves its coarse parent unmasked. Failed or cancelled installs release their
+claims. Ring-owned callers receive no second tile claim. An owner-present opaque
+runtime home keeps cache leases but skips separate home library and tile charges,
+because its measured whole-home claim already includes those parts.
 The loader uses that owner's allocator before bootstrap and checks that the declared
 sim resident budget fits inside the existing home claim. Data-only products account
 their admitted parts separately; only opaque trusted runtime homes use a measured total.

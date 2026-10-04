@@ -105,12 +105,15 @@ export class ShardfileClient {
     if (runtime === undefined || world === null || world === undefined) throw new Error('Shardfile requires the normal world stage');
     ctx.scope.onDispose(this.assets.pin());
     const allocator = this.bindings.allocator; if (allocator === undefined) throw new Error('Shardfile requires its session residency allocator');
-    leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance });
+    // The reviewed opaque-runtime claim includes its whole home. Cache leases remain pinned above;
+    // ordinary data homes account library/commons and tile parts independently in the same allocator.
+    if (this.bindings.residency === undefined || this.source.runtime === null) leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance });
     const presentation = await clientMaterials(this.source, this.assets.retained, world.game.renderer, ctx.scope);
     this.presentation = presentation;
     this.skins = await loadClientSkins(this.source, this.assets.retained, presentation.compile, ctx.scope);
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials });
     this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
+      ...(this.bindings.residency !== undefined && this.source.runtime === null ? { residency: { allocator, owner: this.bindings.instance } } : {}),
       views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, ...presentation }),
     });
     const tiles = this.worldTiles; let priorX = this.source.spawn.x, priorZ = this.source.spawn.z;

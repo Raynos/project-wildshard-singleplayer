@@ -4,6 +4,7 @@ import type { Shardfile } from './schema';
 import type { ClientAssets } from './clientAssets';
 import { terrainResidency } from './residency';
 import type { RingCamera } from '../grid/rings';
+import type { ResidencyAllocator } from '../grid/allocator';
 
 /** Renderer-owned tile controls; the loader owns admission and residency, without shader or scene code. */
 export interface ResidentTile { mask: (excluded: ReadonlySet<number>) => void; shadow: (enabled: boolean) => void }
@@ -18,7 +19,7 @@ export interface ClientWorldRings {
   step: (camera: RingCamera) => void; ready: () => boolean; resident: () => readonly string[]; dispose: () => void;
 }
 /** One lifetime owns coarse proxies, bounded fine residency and the named prop library. */
-export async function clientWorld(source: Shardfile, assets: ClientAssets, ports: { scope: Scope; views: ClientWorldViews; x: number; z: number; rings?: ClientWorldRings }): Promise<{ props: InstalledProps | null; refresh: (x: number, z: number) => Promise<void>; step: (camera: RingCamera) => void; fine: ReadonlySet<string> }> {
+export async function clientWorld(source: Shardfile, assets: ClientAssets, ports: { scope: Scope; views: ClientWorldViews; x: number; z: number; rings?: ClientWorldRings; residency?: { allocator: ResidencyAllocator; owner: string } }): Promise<{ props: InstalledProps | null; refresh: (x: number, z: number) => Promise<void>; step: (camera: RingCamera) => void; fine: ReadonlySet<string> }> {
   if (ports.rings !== undefined) {
     const rings = ports.rings, fine = new Set<string>();
     ports.scope.onDispose(() => { rings.dispose(); fine.clear(); });
@@ -38,7 +39,21 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
     assets.releaseTiles();
     return { props, fine, step, refresh: (x, z) => { step({ x, z, vx: 0, vz: 0 }); return Promise.resolve(); } };
   }
+  const tileLifetime = ports.scope.child('shardfile-tiles');
   const fine = new Map<string, Scope>(), fineTiles = new Map<string, ResidentTile[]>(), coarse = new Map<string, ResidentTile>(), coarseProps = new Map<string, ResidentTile>(), terrainRows = new Map(source.terrain?.tiles.map((tile) => [`${tile.lod}/${tile.x}/${tile.z}`, tile]));
+  // Admission already verified each combined terrain/props row against its exact immutable dependency costs.
+  // Reserve before either view allocates; coarse coverage stays needed, fine claims live only with their tile scope.
+  const reserve = (key: string, scope: Scope): boolean => {
+    const residency = ports.residency;
+    if (residency === undefined || (!terrainRows.has(key) && !source.props?.tiles.some((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key))) return true;
+    const row = source.tiles.find((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key);
+    if (row === undefined) throw new Error('Missing admitted home tile cost');
+    const category = row.lod === 0 ? 'l0' : 'l1';
+    const lease = residency.allocator.reserve({ id: `${residency.owner}:${category}/${row.x}/${row.z}`, category,
+      owner: residency.owner, bytes: row.decoded + row.gpu, distance: 0, needed: true });
+    if (lease === null) return false;
+    scope.onDispose(() => { lease.release(); }); return true;
+  };
   const terrain = async (key: string, scope: Scope, shadow: boolean): Promise<ResidentTile | null> => {
     const row = terrainRows.get(key); if (row === undefined) return null;
     scope.onDispose(assets.lease([row.file]));
@@ -52,11 +67,13 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
     const bytes = await assets.read(row.file); if (scope.disposed) throw new Error('Prop tile unloaded while reading');
     return ports.views.props(source.props, key, bytes, scope);
   };
-  for (let z = 0; z < 4; z++) for (let x = 0; x < 4; x++) {
-    const key = `1/${x}/${z}`, mesh = await terrain(key, ports.scope.child(key), false); if (mesh !== null) coarse.set(key, mesh);
-    const propScope = ports.scope.child(`props:${key}`), proxy = await tileProps(key, propScope);
+  try { for (let z = 0; z < 4; z++) for (let x = 0; x < 4; x++) {
+    const key = `1/${x}/${z}`, scope = tileLifetime.child(key);
+    if (!reserve(key, scope)) throw new Error('Home coarse tile residency admission deferred');
+    const mesh = await terrain(key, scope, false); if (mesh !== null) coarse.set(key, mesh);
+    const proxy = await tileProps(key, scope);
     if (proxy !== null) { proxy.shadow(false); coarseProps.set(key, proxy); }
-  }
+  } } catch (error) { tileLifetime.dispose(); throw error; }
   let chain = Promise.resolve();
   const refresh = (x: number, z: number): Promise<void> => {
     const selection = terrainResidency(x, z);
@@ -64,18 +81,26 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
       if (ports.scope.disposed) return undefined;
       for (const [key, scope] of fine) if (!selection.fine.has(key)) { scope.dispose(); fine.delete(key); fineTiles.delete(key); }
       for (const key of selection.fine) if (!fine.has(key)) {
-        const scope = ports.scope.child(key);
+        const scope = tileLifetime.child(key);
+        if (!reserve(key, scope)) { scope.dispose(); continue; }
         try { const tiles = [await terrain(key, scope, selection.shadows.has(key)), await tileProps(key, scope)].filter((tile): tile is ResidentTile => tile !== null); if (scope.disposed) return undefined; fineTiles.set(key, tiles); fine.set(key, scope); }
         catch (error) { scope.dispose(); throw error; }
       }
-      for (const [key, tile] of coarse) tile.mask(selection.masks.get(key) ?? new Set());
-      for (const [key, tile] of coarseProps) tile.mask(selection.masks.get(key) ?? new Set());
+      const masks = new Map<string, Set<number>>();
+      for (const key of fine.keys()) {
+        const [, tileX, tileZ] = key.split('/').map(Number);
+        if (tileX === undefined || tileZ === undefined) throw new Error('Invalid resident tile address');
+        const parent = `1/${Math.floor(tileX / 2)}/${Math.floor(tileZ / 2)}`, mask = masks.get(parent) ?? new Set<number>();
+        mask.add(tileX % 2 + tileZ % 2 * 2); masks.set(parent, mask);
+      }
+      for (const [key, tile] of coarse) tile.mask(masks.get(key) ?? new Set());
+      for (const [key, tile] of coarseProps) tile.mask(masks.get(key) ?? new Set());
       for (const [key, tiles] of fineTiles) for (const tile of tiles) tile.shadow(selection.shadows.has(key));
       assets.releaseTiles();
       return undefined;
     });
     return chain;
   };
-  await refresh(ports.x, ports.z);
+  try { await refresh(ports.x, ports.z); } catch (error) { tileLifetime.dispose(); throw error; }
   return { props, refresh, get fine() { return new Set(fine.keys()); }, step: () => undefined };
 }
