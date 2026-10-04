@@ -35,6 +35,8 @@ export interface ShardfileSimPorts extends SimHostPorts {
   /** Trusted custom-policy observations and strike execution; aliases and actors belong to this factory. */
   scriptBrains?: (host: SimHost) => Pick<DeclaredScriptBrainPorts, 'ports'> & Partial<Pick<DeclaredScriptBrainPorts, 'query'>>;
   scriptEntities?: { entities: readonly ScriptEntity[]; actors: ReadonlyMap<number, string> };
+  /** Tick-admitted numeric command values; the existing authoritative lane samples them once per fixed step. */
+  commands?: () => ReadonlyMap<string, number>;
   query?: Parameters<typeof createShardfileScriptLane>[2]['query']; navigation?: Parameters<typeof scriptPhysicsQueries>[0]['navigation'];
   restoring?: boolean;
 }
@@ -144,7 +146,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         if (typeof trustedBrains.ports.observe !== 'function' || typeof trustedBrains.ports.mayAttack !== 'function' || typeof trustedBrains.ports.strike !== 'function') throw new Error('Missing custom brain observation or strike recipe');
         lane = createShardfileComposedLane(shard, assets, options, { ...trustedBrains, query: trustedBrains.query ?? options.query, actors: host.entities, bindings: brainBindings });
       } else lane = createShardfileScriptLane(shard, assets, options);
-      installScriptLane(host, 'script.declared', lane);
+      installScriptLane(host, 'script.declared', lane, ports.commands);
     }
     if (shard.targets.panels.length > 0) {
       const targetLane = lane; if (targetLane === undefined) throw new Error('Target fields require an installed script lane');
