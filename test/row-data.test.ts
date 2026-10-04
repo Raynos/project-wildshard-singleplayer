@@ -10,6 +10,13 @@ const recorded = (JSON.parse(readFileSync('lint/row-functions.json', 'utf8')) as
 const current = rowFunctions();
 
 describe('SP3 content rows are data', () => {
+  it('inventories legacy manifest callbacks including compiled ground terrain', () => {
+    expect(current).toContain('ShardManifest.load');
+    expect(current).toContain('ShardManifest.ground.terrain.heightAt');
+    expect(current).toContain('ShardManifest.ground.terrain.normalAt');
+    const doc = JSON.parse(readFileSync('lint/row-functions.json', 'utf8')) as { provenance: Record<string, string> };
+    expect(recorded.every((field) => doc.provenance[field] === 'legacy, pre-SF1')).toBe(true);
+  });
   it('adds no function field to a row type, and keeps no stale entry', () => {
     expect(compareRowFunctions(recorded, current)).toEqual({ added: [], removed: [] });
   });

@@ -23,7 +23,7 @@ export const ROW_TYPES = {
     'QuestDef', 'RangedFeelProfile', 'SkinDef', 'SkinRow', 'SlashTrailProfile', 'SpawnTableRow', 'SpeciesLook', 'SpeciesRow',
     'StrikeSpec', 'StringTable', 'TableSpec', 'VoiceTable', 'WeatherProfile',
   ],
-  'src/game/package.json': ['AchievementDef', 'CosmeticDef', 'EliteDef', 'ItemRow', 'LootTableRow', 'PresentedQuestDef', 'QuestRewardSpec'],
+  'src/game/package.json': ['AchievementDef', 'CosmeticDef', 'EliteDef', 'ItemRow', 'LootTableRow', 'PresentedQuestDef', 'QuestRewardSpec', 'ShardManifest'],
   'src/kit/package.json': ['BowProfile', 'CrossbowProfile', 'FirearmProfile', 'MeleeProfile', 'NpcRigProfile', 'NpcRow', 'RainCurtainSpec', 'ThrownProfile'],
 };
 const DEPTH = 5;
@@ -88,7 +88,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const path = resolve(ROOT, LIST);
   const mode = process.argv[2];
   if (mode === '--update') {
-    const doc = { about: 'SHARD-PLATFORM SP3: content row fields that hold a function or a class (scripts/check-row-data.mjs). May only shrink: turn a field into data or a named id, then remove its line.', fields: current };
+    const doc = { about: 'SHARD-PLATFORM SP3: content row fields that hold a function or a class (scripts/check-row-data.mjs). May only shrink: turn a field into data or a named id, then remove its line.', fields: current, provenance: Object.fromEntries(current.map((field) => [field, 'legacy, pre-SF1'])) };
     writeFileSync(path, `${JSON.stringify(doc, null, 2)}\n`);
     console.log(`check-row-data: ${current.length} function fields recorded`);
   } else if (mode === '--check') {
