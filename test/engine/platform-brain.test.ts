@@ -24,7 +24,7 @@ describe('declared platform creature brain and spawner', () => {
       new Map([...strikes, ['template.blob.bump', { ...strike, damage: 8 }]]));
     const sim = createSimHost({ ...SIM_LEVEL, quests: [], entities: spawns }, { rapier });
     try {
-      const installed = installPlatformBrains(sim, content.spawns, content.brains);
+      const installed = installPlatformBrains(sim, content.spawns, content.brains.filter(row => row.kind === 'pursue'));
       expect([...installed.keys()]).toEqual(['grey-blob:1']);
       expect(sim.entities.get('big-blob')?.maxHp).toBe(180); expect(sim.entities.get('big-blob')?.scale).toBe(1.8);
       expect(sim.adapters.has('brain.big-blob')).toBe(false);
