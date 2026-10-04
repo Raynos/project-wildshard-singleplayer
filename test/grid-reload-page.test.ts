@@ -9,7 +9,7 @@ import * as revision from '../src/game/grid/reloadRevision';
 import * as travel from '../src/game/travel/travel';
 import { MemoryStorage } from './setup';
 
-it('the installed page exit holds and retries real storage, fades, and replaces only after its source checkpoint', async () => {
+it.each([false, true])('the installed page exit retries real storage and validates the junction recovery point (island=%s)', async (island) => {
   vi.useFakeTimers();
   const assembly = new GridAssembly({ developer: false, devserver: false }), scope = new Scope('reload.page');
   const store = new SaveStore({ local: new MemoryStorage(), session: null });
@@ -20,7 +20,7 @@ it('the installed page exit holds and retries real storage, fades, and replaces 
   let readStatus: (() => 'saving' | 'failed' | null) | undefined;
   const steps: (() => void)[] = [];
   const host: GridReloadHost = { scope, assembly, store, homeSlug: 'driftwood-isle', grounded: () => true,
-    live: { frame: () => instance, worldFeet: () => feet, roadPoint: () => ({ x: 277.5, z: 0, yaw: 1 }),
+    live: { frame: () => instance, worldFeet: () => feet, roadPoint: () => ({ x: 277.5, z: island ? 277.5 : 0, yaw: 1 }),
       checkpointInstance: checkpoint, bindReloadStatus: (read) => { readStatus = read; }, live: { ready: () => true } },
     hold: (value) => { held = value; }, onFixed: (run) => { steps.push(run); }, report: (error) => { throw error; },
     capture: () => ({ heading: 1, mount: null, loadout: { selected: null, tools: [] },
@@ -38,7 +38,8 @@ it('the installed page exit holds and retries real storage, fades, and replaces 
     for (let tick = 0; tick < 60; tick++) for (const run of steps) run();
     await vi.advanceTimersByTimeAsync(0);
     expect(checkpoint).toHaveBeenCalledTimes(2); expect(metadata).toHaveBeenCalledTimes(2);
-    expect(gridReloadSlot(store).read()).toMatchObject({ instance: 'driftwood-isle', roadPose: feet });
+    expect(gridReloadSlot(store).read()).toMatchObject({ instance: 'driftwood-isle', roadPose: feet,
+      recovery: { lastSafeRoadPoint: { x: feet.x, z: feet.z, yaw: 1 }, state: 'on-road' } });
     expect(document.querySelector('.ws-grid-reload')?.classList.contains('opaque')).toBe(true);
     await vi.advanceTimersByTimeAsync(249); expect(navigate).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1); expect(navigate).toHaveBeenCalledTimes(1);

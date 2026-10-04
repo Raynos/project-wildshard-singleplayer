@@ -30,6 +30,7 @@ const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(
 startPageServices();
 persistHomeScreen();
 const search = new URLSearchParams(location.search);
+let plannedResume = false;
 // Do not depend on the sibling sw.ts module finishing first; both entry points share the same consumed record.
 inspectPreviousBoot();
 // Safari may reload the same document after WebContent dies. Keep that automatic retry on the
@@ -38,6 +39,7 @@ async function enterPage(): Promise<unknown> {
   const { consumeGridReloadBoot, installPlannedGridReload } = await retried(() => import('@wildshard/game/grid/reloadBoot'));
   const reload = consumeGridReloadBoot(saves, Date.now());
   installPlannedGridReload(reload);
+  plannedResume = reload.kind === 'resume';
   if (reload.kind === 'resume') {
     // Existing content selection, never a variant switch: the consumed device transaction owns the road pose.
     const url = new URL(location.href); url.searchParams.set('chunk', reload.home.slug);
@@ -126,5 +128,12 @@ export async function start(): Promise<void> {
       combatCues: (audio, silent) => sharedCombatCues(sharedWeaponVoices(audio), silent),
       bagIcons: BAG_ICONS,
     }, page === undefined ? {} : { mode: page.mode, ...(page.residency === undefined ? {} : { residency: page.residency }) });
-  } catch (error) { page?.residency?.dispose(); throw error; }
+  } catch (error) {
+    page?.residency?.dispose();
+    if (plannedResume) {
+      console.warn('[grid reload] refused during hydration', error);
+      location.replace(new URL('/', location.origin).href); return;
+    }
+    throw error;
+  }
 }

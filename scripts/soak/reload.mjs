@@ -67,6 +67,9 @@ try {
   await page.waitForSelector('.ws-main-grid', { timeout: 120000 }); await page.click('.ws-main-grid');
   await page.waitForFunction(() => window.__wildshard?.shard?.grid?.simulation !== undefined && !document.querySelector('.ws-load'), null, { timeout: 120000 });
   await page.evaluate(() => window.__wildshard.world.hud.enterNow()); await ready();
+  const renderScale = await page.evaluate(() => window.__wildshard.world.game.renderer.getPixelRatio());
+  if (renderScale !== 2) throw new Error(`Phone render scale changed: ${renderScale}`);
+  result.renderScale = renderScale;
   const initial = await state(), target = initial.cells.find((cell) => cell.instance === 'template-4');
   if (!target) throw new Error('Missing independent template target');
   const origin = { x: target.cell[0] * 555, z: target.cell[1] * 555 }, road = { x: origin.x - 277.5, z: origin.z };

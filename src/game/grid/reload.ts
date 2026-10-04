@@ -5,7 +5,7 @@ import type { GridAssembly } from './assembly';
 import type { LiveGridSession } from './liveSession';
 import { devserverCellOn } from './debug';
 import { gridMode } from './menu';
-import { GridReloadExit, gridReloadSlot, type GridReloadHandoff } from './reloadHandoff';
+import { GridReloadExit, gridReloadSlot, gridReloadDeck, validGridReload, type GridReloadHandoff } from './reloadHandoff';
 import { gridReloadRevision } from './reloadRevision';
 import { RoadReload } from './roadReload';
 import { replaceTravelDocument } from '../travel/travel';
@@ -48,9 +48,13 @@ export function installGridReload(host: GridReloadHost): void {
       const point = host.live.roadPoint();
       if (point === null) throw new Error('Planned exit has no safe road recovery point');
       const revision = await gridReloadRevision(host.assembly, instance);
-      return { v: 1, mode: 'grid', layout: { ...mode, nineDragon: mode.nineDragon ?? false },
+      // A lane snap beside a junction may land on its island. The currently grounded asphalt is a safe fallback.
+      const recovery = gridReloadDeck(host.assembly, point.x, point.z) ? point : { x: feet.x, z: feet.z, yaw: state.heading };
+      const value: GridReloadHandoff = { v: 1, mode: 'grid', layout: { ...mode, nineDragon: mode.nineDragon ?? false },
         instance, revision, cell: [...cell.cell], roadPose: { ...feet }, ...state,
-        recovery: { lastSafeRoadPoint: point, state: 'on-road' }, at: Date.now() };
+        recovery: { lastSafeRoadPoint: recovery, state: 'on-road' }, at: Date.now() };
+      if (!validGridReload(value, host.assembly, () => revision, Date.now())) throw new Error('Planned exit has no valid road transfer');
+      return value;
     },
     transaction: (source) => new GridReloadExit({ slot: gridReloadSlot(host.store), hold: host.hold,
       checkpoint: () => host.live.checkpointInstance(source), fade: fade.out,
