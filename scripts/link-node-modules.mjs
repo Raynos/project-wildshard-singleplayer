@@ -40,7 +40,9 @@ export function linkNodeModules(repo, tree) {
       const target = resolve(dirname(link), readlinkSync(link));
       const inRepo = relative(resolve(repo), target);
       if (inRepo.startsWith('..')) throw new Error(`link-node-modules: ${link} points outside the repo (${target})`);
-      symlinkSync(join(resolve(tree), inRepo), join(to, name, pkg));
+      // relative, as pnpm writes it (../../src/engine): it stays inside whatever tree holds it, even one nested in this
+      // export (a test's throwaway repo)
+      symlinkSync(relative(join(to, name), join(resolve(tree), inRepo)), join(to, name, pkg));
     }
   }
 }
