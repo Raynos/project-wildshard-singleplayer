@@ -120,10 +120,10 @@ function sample(n) {
 
 // Runtime.evaluate on Safari does not await JavaScript promises. Poll an explicit result envelope;
 // this also survives Target.* multiplexing and WebContent process swaps.
+let evalSequence = 0;
 function evaluator(raw) {
-  let seq = 0;
   return async (expression, timeout = 35000) => {
-    const key = `__frameFloorEval${++seq}`;
+    const key = `__frameFloorEval${++evalSequence}`;
     await raw(`globalThis[${JSON.stringify(key)}] = {done:false}; Promise.resolve().then(() => (${expression})).then(value => {globalThis[${JSON.stringify(key)}] = {done:true,value};}, error => {globalThis[${JSON.stringify(key)}] = {done:true,error:String(error)};}); true`);
     const start = Date.now();
     try {
@@ -253,24 +253,39 @@ async function worker() {
       const socket = xcrun(['getenv', udid, 'RWI_LISTEN_SOCKET']).trim();
       proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${socket}`, '-c', 'null:9221,:9232-9240', '-F'], { stdio: 'ignore' });
       proxy.on('error', (error) => { console.error(`Inspector proxy: ${errorText(error)}`); });
-      let evaluate;
+      let evaluate, currentUrl;
+      const connect = async (url) => {
+        inspector?.close(); inspector = undefined;
+        currentUrl = url;
+        inspector = webkit(await safariPage(url)); await inspector.opened; await sleep(500);
+        evaluate = evaluator(inspector.raw);
+      };
+      // Safari can announce a page before the old inspector target finishes its process swap. Reconnect once;
+      // these harness evaluations are observations or idempotent pose/settings writes, never gameplay commands.
+      const retryEvaluate = async (expr, timeout) => {
+        try { return await evaluate(expr, timeout); }
+        catch (error) {
+          if (!errorText(error).includes('Web Inspector timed out: Runtime.evaluate')) throw error;
+          console.log('Safari inspector target swapped; reconnecting');
+          await connect(currentUrl);
+          return evaluate(expr, timeout);
+        }
+      };
       driver = {
         load: async (shard) => {
           inspector?.close(); inspector = undefined;
           try { xcrun(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* Safari is not running on first boot. */ }
           xcrun(['openurl', udid, `${base}version.json`]);
-          inspector = webkit(await safariPage(base)); await inspector.opened; await sleep(500);
-          evaluate = evaluator(inspector.raw);
-          await evaluate(`(() => { ${fixture('phone')}; return true; })()`);
+          await connect(`${base}version.json`);
+          await retryEvaluate(`(() => { ${fixture('phone')}; return true; })()`);
           // Reconnect after navigation: an inspector evaluation envelope can disappear in a WebContent process swap.
           // The helper sets live pose pins before the clean build's modules boot.
           inspector.close(); inspector = undefined;
           const gameUrl = `${base}frame-floor-safari.html${query(shard)}`;
           xcrun(['openurl', udid, gameUrl]);
-          inspector = webkit(await safariPage(gameUrl)); await inspector.opened; await sleep(500);
-          evaluate = evaluator(inspector.raw);
+          await connect(gameUrl);
         },
-        evaluate: (expr, timeout) => evaluate(expr, timeout), errors: () => evaluate('window.__frameFloorErrors ?? []'), unload: () => { inspector?.close(); inspector = undefined; },
+        evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), unload: () => { inspector?.close(); inspector = undefined; },
       };
     }
     for (const shard of shards) rows.push(await measureShard(driver, shard, deadline));
