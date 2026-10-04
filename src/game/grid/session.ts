@@ -54,7 +54,7 @@ import { installRoadLook, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import { curtainMaterial, gravel, riprap, seamSolid, stone, strata, type SeamLookState } from './seamLook';
-import { cullRoadMesh, roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
+import { cullRoadMesh, ROAD_LOD, roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
 import { grainArray, solidGeometry, solidMaterial, type SolidPart } from './roadSolid';
 import { loadGridEdgeProfiles } from './edgeProfiles';
 import { readGridEdges } from './edgeSources';
@@ -222,7 +222,7 @@ export class GridSession {
     const solidParts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { solidParts.push(part); };
     // SF17b's per-view cull, behind its Debug row (default off; applies at the next grid start)
     host.scope.onDispose(installGridRoadCullRow());
-    const culling = gridRoadCullOn(), cull = (mesh: Mesh): void => { if (culling) this.roadPlans.set(mesh, cullRoadMesh(mesh, pitch, () => host.frame?.camera).plan); };
+    const culling = gridRoadCullOn(), cull = (mesh: Mesh): void => { if (culling) this.roadPlans.set(mesh, cullRoadMesh(mesh, pitch, () => host.frame?.camera, mesh.name === 'grid-deck' ? ROAD_LOD : undefined).plan); };
     // SF19a: one frame for the grid, behind its Debug row (default off; applies at the next grid start)
     host.scope.onDispose(installGridFrameRow());
     const frameHost = host.frame;

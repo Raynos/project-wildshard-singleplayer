@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
 import { generateStrip, type StripProfile } from '../src/engine/sim/strips';
 import type { SeamEdge } from '../src/engine/sim/seamGeometry';
-import { SEAM_BUCKETS, seamBucket, seamLookGeometry } from '../src/game/grid/seamLook';
+import { SEAM_BUCKETS, seamBucket, seamLookGeometry, seamSolid } from '../src/game/grid/seamLook';
+import { solidGeometry } from '../src/game/grid/roadSolid';
 
 const profile = (height: (i: number) => number, colour: readonly [number, number, number] = [0.3, 0.5, 0.2]): StripProfile => ({
   heights: Array.from({ length: 257 }, (_, i) => height(i)), colours: Array.from({ length: 257 }, () => [...colour]), roadHeight: 0,
@@ -59,4 +60,22 @@ it('darkens only the neutral verge near the road; the cell edge keeps the exact 
     if (d >= 27.5) expect(colour.getX(k)).toBeCloseTo(0.25, 5);
     if (d <= 11.5) expect(colour.getX(k)).toBeLessThan(0.15);
   }
+});
+
+it('the solid road material keeps every seam vertex where the generator put it, its layer per material (SF17b)', () => {
+  const strip = generateStrip({ id: 'gap.x.0.0', axis: 'x', origin: { x: 277.5, z: 0 }, profiles: [profile(entry(40), [0.6, 0.3, 0.1]), profile(entry(0.2))], adjacent: [],
+    observations: [open, { ...open, waterSurface: 0.8 }] });
+  const { geometry } = seamLookGeometry([strip], { origin: { x: 0, z: 0 } }), solid = seamSolid([strip], { origin: { x: 0, z: 0 } });
+  const merged = solidGeometry(solid.parts), pos = merged.getAttribute('position'), grain = merged.getAttribute('grainUv');
+  // the same surface: every solid vertex is a generator vertex (translated into the home frame), none collapsed
+  const keys = new Set<string>(), src = geometry.getAttribute('position'), key = (x: number, y: number, z: number): string => [x, y, z].map((v) => v.toFixed(3)).join(',');
+  for (let k = 0; k < src.count; k++) keys.add(key(src.getX(k), src.getY(k), src.getZ(k)));
+  for (let k = 0; k < pos.count; k++) expect(keys.has(key(pos.getX(k), pos.getY(k), pos.getZ(k)))).toBe(true);
+  expect(new Set(Array.from({ length: pos.count }, (_, k) => key(pos.getX(k), pos.getY(k), pos.getZ(k)))).size).toBeGreaterThan(100);
+  // ground, stone, strata, rip-rap and the unlit rail each wear their layer; the curtain is its own geometry
+  const layers = new Set(Array.from({ length: grain.count }, (_, k) => `${String(grain.getZ(k))}/${String(grain.getW(k))}`));
+  expect([...layers].sort()).toEqual(['0/0', '1/0', '2/0', '3/0', '4/1']);
+  expect(solid.curtain.getIndex()?.count).toBe((solid.state.buckets.curtain ?? 0) * 3);
+  const uv = merged.getAttribute('grainUv');
+  expect(Array.from({ length: uv.count }, (_, k) => Math.abs(uv.getX(k)) + Math.abs(uv.getY(k))).some((v) => v > 1)).toBe(true);
 });

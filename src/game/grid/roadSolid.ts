@@ -10,7 +10,7 @@
  * uv, and flags the old unlit materials (the cyan rails, the lamp heads), which skip lighting exactly as `MeshBasicMaterial`
  * did. Parts never share a vertex across materials, so a triangle's layer is constant.
  */
-import { type BufferAttribute, BufferGeometry, Color, DataArrayTexture, Float32BufferAttribute, LinearFilter, LinearMipmapLinearFilter, MeshLambertMaterial, RepeatWrapping, SRGBColorSpace, Uint32BufferAttribute } from 'three';
+import { BufferAttribute, BufferGeometry, Color, DataArrayTexture, Float32BufferAttribute, LinearFilter, LinearMipmapLinearFilter, MeshLambertMaterial, RepeatWrapping, SRGBColorSpace, Uint32BufferAttribute } from 'three';
 import { patchShader } from '@wildshard/engine/render/shaderPatches';
 
 /** The texture array's layers, in order. */
@@ -62,7 +62,7 @@ export function solidGeometry(parts: readonly SolidPart[]): BufferGeometry {
 
 /** The parts of a geometry's triangles, one per key, each with its own vertices (shared vertices are copied per key). */
 export function splitByKey(geometry: BufferGeometry, keyOf: (triangle: number) => number, keys: number): { positions: Float32Array; normals: Float32Array; colours: Float32Array; uvs: Float32Array; indices: Uint32Array; source: Uint32Array }[] {
-  const index = geometry.getIndex(), attr = (name: string): BufferAttribute | undefined => { const a = geometry.getAttribute(name); return a instanceof Float32BufferAttribute ? a : undefined; };
+  const index = geometry.getIndex(), attr = (name: string): BufferAttribute | undefined => { const a = geometry.hasAttribute(name) ? geometry.getAttribute(name) : undefined; return a instanceof BufferAttribute ? a : undefined; };
   if (index === null) throw new Error('splitByKey needs an indexed geometry');
   const pos = attr('position'), nor = attr('normal'), col = attr('color'), uv = attr('uv');
   const out = Array.from({ length: keys }, () => ({ map: new Map<number, number>(), source: [] as number[], indices: [] as number[] }));

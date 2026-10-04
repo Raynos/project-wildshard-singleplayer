@@ -12,14 +12,22 @@
  *
  * Pure three.js (no DOM), so Node tests pin the per-view numbers.
  */
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { BufferAttribute, type BufferGeometry, type Camera, DoubleSide, DynamicDrawUsage, Frustum, InstancedMesh, type Material, Matrix4, Mesh, type Object3D, Sphere, Vector3 } from 'three';
 
 /** One bin: its sphere (in the mesh's local frame) and its run of the sorted source index. */
-interface CullBin { readonly sphere: Sphere; readonly start: number; readonly count: number }
-/** A culled mesh's bins and its full, bin-sorted index (kept on the CPU to rebuild the drawn range from). */
-export interface CullPlan { readonly source: Uint32Array; readonly bins: readonly CullBin[] }
+interface CullBin { readonly sphere: Sphere; readonly start: number; readonly count: number; readonly coarseStart: number; readonly coarseCount: number }
+/** A culled mesh's bins and its full, bin-sorted index (kept on the CPU to rebuild the drawn range from); bins past `lod`
+ *  metres draw their coarse run. */
+export interface CullPlan { readonly source: Uint32Array; readonly bins: readonly CullBin[]; readonly lod: number }
+/** The far-bin LOD: past `distance` metres a bin draws a copy clustered on a `cell`-metre lattice. */
+export interface CullLod { readonly distance: number; readonly cell: number }
+/** The deck's far LOD (render only; the collider is the generator's full mesh). */
+export const ROAD_LOD: CullLod = { distance: 150, cell: 4 };
 
 const BIN_DIVISOR = 2;
+/** A cell edge's distance from its cell centre (the seam's outer row meets the shard's own ground there). */
+const CELL_EDGE = CHUNK_HALF;
 /** The bin a point falls in: squares of `pitch / BIN_DIVISOR` (half a pitch), centred on multiples of it (junctions, segment middles, cell middles). */
 export function cullBin(x: number, z: number, pitch: number): string { const s = pitch / BIN_DIVISOR; return `${String(Math.round(x / s))},${String(Math.round(z / s))}`; }
 
@@ -90,7 +98,7 @@ export function clipToBins(geometry: BufferGeometry, pitch: number): void {
 }
 
 /** Sort a geometry's triangles into bins by centroid; returns the sorted index and each bin's sphere and range. */
-export function cullPlan(geometry: BufferGeometry, pitch: number): CullPlan {
+export function cullPlan(geometry: BufferGeometry, pitch: number, lod?: CullLod): CullPlan {
   const index = geometry.getIndex(), position = geometry.getAttribute('position');
   if (index === null) throw new Error('A culled road mesh needs an index');
   const triangles = index.count / 3, byBin = new Map<string, number[]>();
@@ -100,17 +108,46 @@ export function cullPlan(geometry: BufferGeometry, pitch: number): CullPlan {
     const key = cullBin(x / 3, z / 3, pitch), list = byBin.get(key);
     if (list === undefined) byBin.set(key, [t]); else list.push(t);
   }
-  const source = new Uint32Array(index.count), bins: CullBin[] = [], point = new Vector3();
-  let at = 0;
+  const out: number[] = [], bins: CullBin[] = [], point = new Vector3();
+  const cluster = lod === undefined ? undefined : clusterer(geometry, pitch, lod.cell);
   for (const key of [...byBin.keys()].sort()) {
-    const list = byBin.get(key) ?? [], start = at, points: Vector3[] = [];
+    const list = byBin.get(key) ?? [], start = out.length, points: Vector3[] = [];
     for (const t of list) for (let c = 0; c < 3; c++) {
-      const n = index.getX(t * 3 + c); source[at++] = n;
+      const n = index.getX(t * 3 + c); out.push(n);
       points.push(point.fromBufferAttribute(position, n).clone());
     }
-    bins.push({ sphere: new Sphere().setFromPoints(points), start, count: at - start });
+    const count = out.length - start, coarseStart = out.length;
+    if (cluster !== undefined) for (const t of list) {
+      const a = cluster(index.getX(t * 3)), b = cluster(index.getX(t * 3 + 1)), c = cluster(index.getX(t * 3 + 2));
+      if (a !== b && b !== c && a !== c) out.push(a, b, c);
+    }
+    bins.push({ sphere: new Sphere().setFromPoints(points), start, count, coarseStart: cluster === undefined ? start : coarseStart, coarseCount: cluster === undefined ? count : out.length - coarseStart });
   }
-  return { source, bins };
+  return { source: Uint32Array.from(out), bins, lod: lod?.distance ?? Infinity };
+}
+
+/**
+ * Vertex clustering for the far LOD: each vertex maps to the first vertex of its `cell`-metre lattice box that wears the
+ * same material (grain layer + unlit flag). Vertices on a bin edge or a cell edge (where the seam meets the shard's own
+ * ground) stay themselves, so a coarse bin meets its fine neighbour and the shard's terrain without a crack.
+ */
+function clusterer(geometry: BufferGeometry, pitch: number, cell: number): (n: number) => number {
+  const position = geometry.getAttribute('position'), grain = geometry.hasAttribute('grainUv') ? geometry.getAttribute('grainUv') : undefined, s = pitch / BIN_DIVISOR;
+  const onLine = (v: number): boolean => {
+    const bin = Math.abs(v / s - Math.round(v / s)); if (Math.abs(bin - 0.5) * s < 1e-3) return true; // a bin edge
+    const local = Math.abs(v - Math.round(v / pitch) * pitch); return Math.abs(local - CELL_EDGE) < 1e-3; // a cell edge
+  };
+  const first = new Map<string, number>(), memo = new Int32Array(position.count).fill(-1);
+  return (n: number): number => {
+    const known = memo[n] ?? -1; if (known >= 0) return known;
+    const x = position.getX(n), y = position.getY(n), z = position.getZ(n);
+    let rep = n;
+    if (!onLine(x) && !onLine(z)) {
+      const key = `${String(Math.floor(x / cell))},${String(Math.floor(y / cell))},${String(Math.floor(z / cell))},${String(grain?.getZ(n) ?? 0)},${String(grain?.getW(n) ?? 0)}`;
+      const seen = first.get(key); if (seen === undefined) first.set(key, n); else rep = seen;
+    }
+    memo[n] = rep; return rep;
+  };
 }
 
 /** The view's frustum in world space. */
@@ -119,10 +156,14 @@ function frustumOf(camera: Camera, out: Frustum, scratch: Matrix4): Frustum {
   return out.setFromProjectionMatrix(scratch.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
 }
 
-/** The bins of a plan a camera sees (world spheres through the mesh's matrix). */
-function visibleBins(plan: CullPlan, matrixWorld: Matrix4, frustum: Frustum, sphere: Sphere): number[] {
-  const out: number[] = [];
-  plan.bins.forEach((bin, k) => { if (frustum.intersectsSphere(sphere.copy(bin.sphere).applyMatrix4(matrixWorld))) out.push(k); });
+/** The runs of a plan a camera draws: per bin in the frustum its fine run, or its coarse run past the LOD distance. */
+function visibleRuns(plan: CullPlan, matrixWorld: Matrix4, frustum: Frustum, sphere: Sphere, eye: Vector3): { start: number; count: number; id: number }[] {
+  const out: { start: number; count: number; id: number }[] = [];
+  plan.bins.forEach((bin, k) => {
+    if (!frustum.intersectsSphere(sphere.copy(bin.sphere).applyMatrix4(matrixWorld))) return;
+    const far = sphere.distanceToPoint(eye) > plan.lod;
+    out.push(far ? { start: bin.coarseStart, count: bin.coarseCount, id: k * 2 + 1 } : { start: bin.start, count: bin.count, id: k * 2 });
+  });
   return out;
 }
 
@@ -133,28 +174,29 @@ export interface CullState { readonly bins: number; readonly visible: number; re
  * Cull a road mesh by bins before every draw. `main` names the view camera (other cameras, a reflection or a probe, draw
  * the main camera's last set rather than thrash the index); without one every camera culls. Returns the readout.
  */
-export function cullRoadMesh(mesh: Mesh, pitch: number, main?: () => Camera | undefined): { plan: CullPlan; state: () => CullState } {
+export function cullRoadMesh(mesh: Mesh, pitch: number, main?: () => Camera | undefined, lod?: CullLod): { plan: CullPlan; state: () => CullState } {
   const geometry = mesh.geometry;
   clipToBins(geometry, pitch);
-  const plan = cullPlan(geometry, pitch);
+  const plan = cullPlan(geometry, pitch, lod);
   const drawn = new BufferAttribute(new Uint32Array(plan.source.length), 1).setUsage(DynamicDrawUsage);
-  drawn.array.set(plan.source);
-  geometry.setIndex(drawn); geometry.setDrawRange(0, plan.source.length);
+  let fine = 0; // until the first culled draw: every bin's fine run
+  for (const bin of plan.bins) { drawn.array.set(plan.source.subarray(bin.start, bin.start + bin.count), fine); fine += bin.count; }
+  geometry.setIndex(drawn); geometry.setDrawRange(0, fine);
   mesh.frustumCulled = false;
-  const frustum = new Frustum(), matrix = new Matrix4(), sphere = new Sphere();
-  let key = '', triangles = plan.source.length / 3, visible = plan.bins.length, rebuilds = 0;
+  const frustum = new Frustum(), matrix = new Matrix4(), sphere = new Sphere(), eye = new Vector3();
+  let key = '', triangles = fine / 3, visible = plan.bins.length, rebuilds = 0;
   mesh.onBeforeRender = (_renderer, _scene, camera) => {
     const view = main?.();
     if (view !== undefined && camera !== view) return;
-    const bins = visibleBins(plan, mesh.matrixWorld, frustumOf(camera, frustum, matrix), sphere), next = bins.join(',');
+    const runs = visibleRuns(plan, mesh.matrixWorld, frustumOf(camera, frustum, matrix), sphere, eye.setFromMatrixPosition(camera.matrixWorld)), next = runs.map((r) => r.id).join(',');
     if (next === key) return;
     key = next; rebuilds++;
     let at = 0;
-    for (const k of bins) { const bin = plan.bins[k]; if (bin === undefined) continue; drawn.array.set(plan.source.subarray(bin.start, bin.start + bin.count), at); at += bin.count; }
+    for (const run of runs) { drawn.array.set(plan.source.subarray(run.start, run.start + run.count), at); at += run.count; }
     drawn.clearUpdateRanges();
     if (at > 0) { drawn.addUpdateRange(0, at); drawn.needsUpdate = true; }
     geometry.setDrawRange(0, at);
-    triangles = at / 3; visible = bins.length;
+    triangles = at / 3; visible = runs.length;
   };
   return { plan, state: () => ({ bins: plan.bins.length, visible, triangles, rebuilds }) };
 }
@@ -184,8 +226,8 @@ export function roadViewCost(roots: readonly Object3D[], camera: Camera, plans: 
     const geometry: BufferGeometry = o.geometry, plan = plans.get(o);
     let d = 0, t = 0;
     if (plan !== undefined) {
-      const bins = visibleBins(plan, o.matrixWorld, frustum, sphere);
-      t = bins.reduce((sum, k) => sum + (plan.bins[k]?.count ?? 0), 0) / 3; d = t > 0 ? 1 : 0;
+      const runs = visibleRuns(plan, o.matrixWorld, frustum, sphere, new Vector3().setFromMatrixPosition(camera.matrixWorld));
+      t = runs.reduce((sum, r) => sum + r.count, 0) / 3; d = t > 0 ? 1 : 0;
     } else {
       if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
       const bound = geometry.boundingSphere;
@@ -215,7 +257,7 @@ export function roadResident(roots: readonly Object3D[], plans: ReadonlyMap<Mesh
   for (const root of roots) root.traverse((o) => {
     if (!isMesh(o)) return;
     const geometry: BufferGeometry = o.geometry, plan = plans.get(o);
-    const n = plan !== undefined ? plan.source.length / 3 : trianglesOf(geometry, 0, Infinity);
+    const n = plan !== undefined ? plan.bins.reduce((sum, b) => sum + b.count + (b.coarseStart === b.start ? 0 : b.coarseCount), 0) / 3 : trianglesOf(geometry, 0, Infinity);
     meshes++; triangles += n; instanced += o instanceof InstancedMesh ? n * o.count : n;
   });
   return { triangles, instanced, meshes, bins, widestBin };

@@ -7,7 +7,7 @@ import { installRoadLook } from '../src/game/grid/roadLook';
 import { installVoidLook } from '../src/game/grid/voidLook';
 import { seamSolid } from '../src/game/grid/seamLook';
 import { solidGeometry, type SolidPart } from '../src/game/grid/roadSolid';
-import { cullPlan, cullRoadMesh, roadResident, roadViewCost, type CullPlan } from '../src/game/grid/roadCull';
+import { cullPlan, cullRoadMesh, ROAD_LOD, roadResident, roadViewCost, type CullPlan } from '../src/game/grid/roadCull';
 
 // The road look paints canvases; Node has none, so a do-nothing 2D context stands in (the geometry is what is measured).
 const noop = (): unknown => new Proxy(() => undefined, { get: (_t, key) => (key === 'width' ? 0 : key === 'data' ? new Uint8ClampedArray(4 * 256 * 256) : noop()), apply: () => noop() });
@@ -33,7 +33,7 @@ function build(): { roots: Group[]; plans: Map<Mesh, CullPlan>; culled: Mesh[] }
   const scene = new Group(), scope = { onDispose: () => undefined }, parts: SolidPart[] = [], plans = new Map<Mesh, CullPlan>(), culled: Mesh[] = [];
   const seams = seamSolid(strips, home, undefined, assembly.pitch);
   parts.push(...seams.parts);
-  const cull = (mesh: Mesh): void => { plans.set(mesh, cullRoadMesh(mesh, assembly.pitch).plan); culled.push(mesh); };
+  const cull = (mesh: Mesh): void => { plans.set(mesh, cullRoadMesh(mesh, assembly.pitch, undefined, mesh.name === 'grid-deck' ? ROAD_LOD : undefined).plan); culled.push(mesh); };
   const layout = roadLayout(assembly, (slug) => slug);
   installRoadLook({ layout, home, scene, scope, solid: (p) => { parts.push(p); }, cull });
   installVoidLook({ rail: layout.rail, home, scene, scope, solid: (p) => { parts.push(p); } });
@@ -49,7 +49,7 @@ it('keeps every road bin compact so frustum culling can drop it (no triangle spa
   expect(widest).toBeLessThan(260);
 });
 
-it('draws the road system in ≤ 8 draws with shadows from every grid pose, and culls most of it in a typical view (§3.2)', () => {
+it('draws the road system within §3.2 from every grid pose: ≤ 8 draws with shadows, ≤ 60k triangles', () => {
   const { roots, plans } = build();
   const resident = roadResident(roots, plans);
   expect(resident.triangles).toBeGreaterThan(10_000);
@@ -64,11 +64,10 @@ it('draws the road system in ≤ 8 draws with shadows from every grid pose, and 
     expect(view.shadowDraws).toBe(0);
   }
   expect(worst.draws).toBeLessThanOrEqual(6); // solid, asphalt, junctions, signs, curtain, void floor
-  // culling: the median view draws under a quarter of what is resident; the worst view (from the outer corner, looking
-  // diagonally across the whole platform) still sees most of it: the 60k target there needs a distance LOD (open, SF17b)
+  // culling plus the far-bin LOD (past 150 m the deck draws its 4 m clustered copy): every view within the 60k target
   views.sort((a, b) => a - b);
   expect(views[Math.floor(views.length / 2)] ?? Infinity).toBeLessThan(resident.triangles / 4);
-  expect(worst.triangles).toBeLessThan(resident.triangles);
+  expect(worst.triangles).toBeLessThanOrEqual(60_000);
 });
 
 it('a culled mesh draws one contiguous range of only the bins in view, re-uploaded only when the set changes', () => {
