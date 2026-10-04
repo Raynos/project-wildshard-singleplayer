@@ -43,6 +43,7 @@ import { devserverCellOn, gridOneFrameOn, installGridFrameRow } from './debug';
 import { gridCells, pageGridInstance, pageMode } from './boot';
 import { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
+import { PlatformRenderResidency } from './renderResidency';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
 import { farRingPorts, type FarPrepared } from './farView';
 import type { FarLookRuntime } from './farProxy';
@@ -51,12 +52,11 @@ import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
 import { gridShardfileProduct } from './products';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
-import { installRoadLook, type RoadLookState } from './roadLook';
-import { installVoidLook } from './voidLook';
+import type { RoadLookState } from './roadLook';
+import { installPlatformRoad } from './roadLookPlatform';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
-import { curtainMaterial, gravel, riprap, seamSolid, stone, strata, type SeamLookState } from './seamLook';
-import { cullRoadMesh, ROAD_LOD, roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
-import { grainArray, solidGeometry, solidMaterial, type SolidPart } from './roadSolid';
+import type { SeamLookState } from './seamLook';
+import { roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
 import { loadGridEdgeProfiles } from './edgeProfiles';
 import { readGridEdges } from './edgeSources';
 import { findShard } from '../shard/registry';
@@ -220,12 +220,6 @@ export class GridSession {
     let strips: readonly GeneratedStrip[];
     try { strips = generatePlatform(edges ?? flat, empty); } catch (error) { console.warn('[grid] the platform keeps road-level edges:', error); strips = generatePlatform(flat, empty); }
     this.strips = strips;
-    // the seams' materials keyed by the generator's feature ranges (phase 2): the same triangles the world collides with,
-    // drawn through the road system's one solid material (SF17b per-view budget, G101)
-    const pitch = this.assembly.pitch, seams = seamSolid(this.strips, home, undefined, pitch); this.seams = seams.state;
-    const solidParts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { solidParts.push(part); };
-    // SF17b's per-view cull: each road material draws only the half-pitch bins in view (G112: the only path since the quiet frame floor)
-    const cull = (mesh: Mesh): void => { this.roadPlans.set(mesh, cullRoadMesh(mesh, pitch, () => host.frame?.camera, mesh.name === 'grid-deck' ? ROAD_LOD : []).plan); };
     // SF19a: one frame for the grid, behind its Debug row (default off; applies at the next grid start)
     host.scope.onDispose(installGridFrameRow());
     const frameHost = host.frame;
@@ -235,19 +229,15 @@ export class GridSession {
     const frame = this.frame;
     // SF17b look: the boulevard over the deck's road band (G80 / G81 / G93) and the VR void past the outer road (G89)
     const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
-    this.road = installRoadLook({ layout, home, scene: host.scene, scope: host.scope, solid, cull });
-    installVoidLook({ rail: layout.rail, home, scene: host.scene, scope: host.scope, solid });
-    // the deck: the seams, kerbs, islands, streetlights and the void's rail + posts as ONE solid mesh, and the seams' additive
-    // curtain; both culled per view like the boulevard's textured meshes (one draw per material whatever the view sees)
-    const grain = grainArray({ gravel, stone, strata, riprap });
-    const deck = new Mesh(solidGeometry(solidParts), solidMaterial(grain)), curtain = new Mesh(seams.curtain, curtainMaterial(home));
-    deck.name = 'grid-deck'; deck.receiveShadow = true; curtain.name = 'grid-seam-curtain'; curtain.receiveShadow = false;
-    for (const mesh of [deck, curtain]) { mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); host.scene.add(mesh); cull(mesh); }
-    const disposeDeck = (): void => {
-      deck.removeFromParent(); curtain.removeFromParent(); deck.geometry.dispose(); curtain.geometry.dispose(); deck.material.dispose(); curtain.material.dispose(); grain.dispose();
-    };
+    // The early owner exists only for the boot-selected Grid memory admission variant. Row OFF keeps the old build;
+    // ON admits each exact CPU/GPU byte plan before its render allocation, on the same home/region/ring allocator.
+    const admission = host.residency === undefined ? undefined : new PlatformRenderResidency(this.allocator, host.scope);
+    const platformRoad = installPlatformRoad({ strips: this.strips, home, pitch: this.assembly.pitch, layout,
+      scene: host.scene, scope: host.scope, camera: () => host.frame?.camera, plans: this.roadPlans,
+      ...(admission === undefined ? {} : { admission }) });
+    this.road = platformRoad.road; this.seams = platformRoad.seams;
     // SF17b's per-view road budget (§3.2, G101): what the view camera draws of the road system, and what stays resident
-    const roadRoots = [deck, curtain, host.scene.getObjectByName('grid-boulevard'), host.scene.getObjectByName('grid-void')].filter((o): o is Object3D => o !== undefined);
+    const roadRoots = platformRoad.roots;
     this.roadBudget = { view: () => { const camera = host.frame?.camera; return camera === undefined ? null : roadViewCost(roadRoots, camera, this.roadPlans); }, resident: () => roadResident(roadRoots, this.roadPlans) };
     // G85: a closed neighbour edge shows as a cyan hex shimmer with a loading panel where the traveller would cross
     this.softWalls = installSoftWallLook({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
@@ -302,7 +292,7 @@ export class GridSession {
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
     if (host.renderer !== undefined) void this.admitTiles(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
-      this.rings.dispose(); disposeDeck();
+      this.rings.dispose();
       for (const root of roots.values()) root.removeFromParent();
     });
     host.onFixed((dt) => { this.step(dt); this.life.fixed(); });
