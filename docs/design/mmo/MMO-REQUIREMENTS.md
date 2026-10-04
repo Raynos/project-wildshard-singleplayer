@@ -164,7 +164,7 @@ editor is Claude Code. Unreviewed arbitrary code from strangers. A native-only c
 | T1 | **Nothing breaks.** Driftwood Isle, Pine Hollow, Nalati Grasslands, Nine Dragon Stack, Signal Dunes and Sky Reach stay playable and live through every step; the singleplayer parity gate proves each step | MUST | J |
 | T2 | **The 80/20 split:** each first-party shard reaches **≥ 80 % data and approved systems, ≤ 20 % custom runtime TypeScript** (the metric is defined in SHARD-PLATFORM), without a rewrite in one go | MUST | J |
 | T3 | The 20 % lives in each shard's `runtime/` folder, behind the shard API, under a per-shard ratchet that only falls. It shrinks later by graduation (R8) or a port to a WASM plugin (R7) | MUST | J |
-| T4 | **New shards are born on the format** with no `runtime/` folder; what they lack becomes an approved system | MUST | J (the 20 % is for the existing six), N |
+| T4 | **New shards are born on the format** with no `runtime/` folder; what they lack becomes an approved system. One exception: **Thin Ice** (shard 7) starts as code with the six's 20 % allowance and converts last (Jake, SHARD-PLATFORM Q1) | MUST | J |
 | T5 | Until the first public grid, single-player stays the shipping product | MUST | N |
 
 ## 4. What the singleplayer engine already gives us
@@ -205,7 +205,7 @@ declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLAT
 | O4 | The first plugin toolchain | **Rust, with a language-neutral host ABI.** The best WASM toolchain, deterministic, and Claude Code writes it well; AssemblyScript or QuickJS for TypeScript authors later on the same ABI |
 | O5 | Live update with players inside | **A 60 s warning, then evacuate to the highway and return when the new revision is active** (the one-shot's drain → swap → re-admit) |
 | O6 | One shared look for the world, or one per shard | **One per shard**, made coherent by the shared lattice, highway and sky (Jake keeps each shard's own style today) |
-| O7 | Material graphs need a node compiler | **Compile graphs to the WebGL renderer's shader patches first.** three.js TSL node materials need its WebGPU renderer, which singleplayer keeps contained; revisit when the engine switches |
+| O7 | Material graphs need a node compiler | **Decided (Jake, SHARD-PLATFORM Q2): our own compiler onto the WebGL renderer's shader patches.** three.js TSL node materials need its WebGPU renderer, which singleplayer keeps contained; revisit when the engine switches |
 
 ## 8. Out of scope here
 

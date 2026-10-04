@@ -1,6 +1,6 @@
 # Plan: SHARD-PLATFORM — the 80/20 split: shards become data and approved systems (E431)
 
-**State:** `draft` 2026-10-03 — a plan only (E431). The requirements it serves: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md). Baseline audited on `06de6df0e`. Waits on Jake's go and his answers to §8 (Q1–Q4); a council round before `ready` is recommended (§9).
+**State:** `in progress` 2026-10-03 — P0 only (SP1–SP5, Jake's Q4: "start P0"), building now (wildshard-new); P1–P6 stay a draft until a council round (§9). Jake's picks (ask tool, 10-03): Q1 Thin Ice **starts as code** with the 20 % allowance (a seventh shard to convert, SP31); Q2 our own material-graph compiler onto `patchShader`; Q3 only the ordinary bosses move to phase tables. Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md). SP0 done (`4a95c2454`).
 
 ## 0. Read this first
 
@@ -127,7 +127,7 @@ P0 guardrails + metric ──► P1 bake (G) ───────────�
 
 | Row | What | Done when | Size |
 |---|---|---|---|
-| SP0 | This plan and the requirements doc ([MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md)) | Committed (E431) | S |
+| SP0 | This plan and the requirements doc ([MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md)) | **done** `4a95c2454` (E431) | S |
 | SP1 | **Fix `sim-no-render`'s scope**: `engine/quest` (not `quests`), drop the dead `effects`; a test fails when a rule's path pattern matches no directory (the hole ARCH-GUARDS AG24 missed). Then widen it as a ratchet over `src/kit` and `src/shards` | The rule checks the quest code; kit + shard counts in the ratchet | S |
 | SP2 | **Reserve the `profile` save scope** (meta G-6): the scope exists in `SaveStore`, no key uses it yet; the travel handoff names it as its future home | `SaveScope` includes `profile`; the save tests cover it | S |
 | SP3 | **Rows are serialisable** (meta G-2): a test round-trips every registered row (items, effects, damage rules, strikes, loot, spawns, species, bosses, interactables, quests, day keys) through JSON. Function-valued fields become **named ids** into an engine registry (`weight: 2` or `{ fn: 'weight.distance' }`; `when: { flag: … }`); a ratchet counts the function fields left (StrikeSpec.weight, WeightedTable.when ×19, think / act, curves, WeatherProfile) | The ratchet counts down from today's number; new rows can't add functions | M |
@@ -190,13 +190,14 @@ is left into `runtime/`, prove parity, lower the ceiling.
 | SP26 | Nalati Grasslands | 25 % → ≤ 20 % | ~1,700 lines: the Sabre, Naizagai and Golden Bow onto kit families, the ghost riders and balbal onto the elite table and brains; riding, the Storm Titan and the Golden King stay |
 | SP27 | Nine Dragon Stack | 28 % → ≤ 20 % | ~2,000 lines: the facade and filament programs onto material graphs and the Jiehua neon look stack; the first-person arm rig onto `#kit/viewmodel`; the movers onto devices. The grapple (Fei Zhua) becomes a device (SP15) |
 | SP28 | template | 31 % → 0 % (no `runtime/`) | The template shows only data and systems; SHARDS.md is rewritten for the format |
+| SP31 | Thin Ice (shard 7, Q1) | ≤ 20 % from its first commit after SP5 | Built as code under WORLDCLAW-SHARD with a `runtime/` folder and a 20 % ceiling; converted last, with whatever systems exist by then |
 
 ### P6 — Boot from the package
 
 | Row | What | Done when | Size |
 |---|---|---|---|
 | SP29 | Each shard boots from `shard.json` + `layout.json` + `data/` + baked assets + its `runtime/` chunk; the generated registry lists packages, not TS modules | All six boot this way; parity identical; offline boot still works (the service worker caches the package files) | M |
-| SP30 | **A shard born on the format**: a small shard with no `runtime/` folder, built by a fresh agent from SHARDS.md and the SDK only (the Z3 protocol, now for the format); every gap it hits becomes an approved system, not shard code. Candidate: Thin Ice (Q1) | It ships with a 0 % custom share and zero engine edits on the final run |
+| SP30 | **A shard born on the format**: a small shard with no `runtime/` folder, built by a fresh agent from SHARDS.md and the SDK only (the Z3 protocol, now for the format); every gap it hits becomes an approved system, not shard code. Not Thin Ice (Q1: it starts as code) | It ships with a 0 % custom share and zero engine edits on the final run |
 
 ## 5. Order and why
 
@@ -235,7 +236,7 @@ parallelise the same way.
 
 - **ARCH-GUARDS:** SP1, SP5 and SP11 add or fix guards (the `sim-no-render` path bug, `no-runtime-generator`, the
   `ctx.app` ratchet); they land as rows there or here, not both.
-- **WORLDCLAW-SHARD / THIN-ICE:** decided by Q1.
+- **WORLDCLAW-SHARD / THIN-ICE:** Q1 — Thin Ice starts as code with the 20 % allowance; from SP5 on it keeps its custom code in `runtime/` under its own ceiling, and SP31 converts it last.
 - **ANIMATION-REMASTER:** procedural animation that bakes to clips (Nine Dragon's arms, the King's rig) leaves the
   custom side.
 - **DRIFTWOOD-REMASTER-V2:** V-B1, the island-wide Blender pass, is a generator change; it lands before or after
@@ -243,9 +244,9 @@ parallelise the same way.
 - **DEPLOYMENT_ASSET_TRIM:** baked outputs add files; T5's pack layout and cost comparison count them.
 - **NINE-DRAGON-STACK:** its re-plan (E380) should write new strata on the format.
 
-## 8. Jake's picks (one recommended answer each)
+## 8. Jake's picks (answered 2026-10-03, ask tool)
 
-| # | Question | Recommended |
+| # | Question | Recommended (Jake's answer in §0's State line) |
 |---|---|---|
 | Q1 | Is Thin Ice (shard 7) born on the format, so WorldClaw's build waits for P0–P2 and the systems it needs, or does it start as code with the six's 20 % allowance? | **Born on the format.** Its grey world and layout are data anyway; what it lacks is built as an approved system first. Otherwise the transition grows a seventh shard to convert |
 | Q2 | Material graphs: compile to the WebGL renderer's shader patches, or switch the engine to three.js's WebGPU renderer (which runs TSL node materials, with a WebGL 2 fallback) first? | **Our own compiler onto `patchShader` first.** The renderer switch is a risky, phone-gated change of its own (RENDERING.md: default-off until an iPhone reading backs it) |
