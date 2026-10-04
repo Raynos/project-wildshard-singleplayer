@@ -1,0 +1,2014 @@
+{
+  "row": "SF29",
+  "control": "G142 entry-socket install",
+  "parent": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+  "current": "ff2f848c9221a98a4308f557369be1af73dd49f3",
+  "when": "2026-10-04T22:10:02.174Z",
+  "elapsedSeconds": 248.456,
+  "method": "Fresh explicit parent and current pinned builds; shared capture/weatherLeak/aggregate/imageScore/compare. Selected tiers, full poses/walk/combat/pause/unload, Metal, seeded accelerated clock, Memory saver OFF, default boot variants. Emulated phone Chromium; Safari is measured separately by frame-floor. No stored baseline writes or new quarantine.",
+  "strictVerdict": "red",
+  "causalResult": "Both Nine Dragon footstep deltas and listed traversal endpoint changes from the broad SF29 comparison reproduce exactly across the adjacent socket-install commit; audio data and adapters are identical between these control builds.",
+  "rawCaptureSha256": "fde180f612f93aea4eda8ffdb3a040858c6e15823b76b19f8a0c6dea3b5448da",
+  "reports": [
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "phone",
+      "parent": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "spawn-rail",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0,
+          "note": null
+        },
+        {
+          "name": "well-edge",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0,
+          "note": null
+        },
+        {
+          "name": "stair-street",
+          "ssim": 0.9991679349078495,
+          "full": 0.9991679349078495,
+          "masked": 0,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "field": "walk.sounds.event",
+          "baseline": {
+            "nd.step.stone": 402,
+            "nd.step.wood": 9,
+            "jump": 68,
+            "land": 67,
+            "dodge": 1
+          },
+          "now": {
+            "nd.step.stone": 398,
+            "nd.step.wood": 9,
+            "jump": 68,
+            "land": 67,
+            "dodge": 1
+          },
+          "class": "A",
+          "band": "exact multiset",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.physics.colliders",
+          "baseline": 528,
+          "now": 532,
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.end.y",
+          "baseline": 126.361,
+          "now": 126.358,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.end.z",
+          "baseline": -35.808,
+          "now": -35.811,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.maxY",
+          "baseline": 127.329,
+          "now": 127.328,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.end.x",
+          "baseline": 37.04,
+          "now": 37.036,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.end.y",
+          "baseline": 132.744,
+          "now": 132.746,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.maxY",
+          "baseline": 134.879,
+          "now": 134.88,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-top.end.z",
+          "baseline": 6,
+          "now": 6.001,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-top.maxY",
+          "baseline": 148.873,
+          "now": 148.88,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        }
+      ],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "class": "D",
+          "verdict": "green",
+          "band": "no disposal failures"
+        },
+        {
+          "field": "boot.errors",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "boot.renderer",
+          "class": "D",
+          "verdict": "green",
+          "band": "ANGLE Metal"
+        },
+        {
+          "field": "boot.scene.totals.batched",
+          "class": "D",
+          "verdict": "green",
+          "band": "0 (facade prohibition)"
+        },
+        {
+          "field": "boot.facade",
+          "class": "D",
+          "verdict": "green",
+          "band": "multiDraw available; 0 batches; >0 instances"
+        },
+        {
+          "field": "walk.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.square-to-street.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.square-to-street.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.balustrade-west-bay.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.balustrade-west-bay.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.stair-street.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.stair-street.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.stair-down.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.stair-down.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.crossing-timber-hump.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.crossing-timber-hump.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.well-rim.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.well-rim.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-hawker-roof.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-hawker-roof.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-south-front.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-south-front.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-street-end.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-street-end.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-stair-top.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-stair-top.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-rim-into-well.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-rim-into-well.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-rim-hop.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-rim-hop.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-hover-balustrade.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-hover-balustrade.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-hover-rim.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-hover-rim.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.net-well-fall.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.net-well-fall.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.touch",
+          "class": "D",
+          "verdict": "green",
+          "band": "moved ≥2; yaw changed; dodge; use"
+        },
+        {
+          "field": "combat.swing",
+          "class": "D",
+          "verdict": "green",
+          "band": "hit and kill within limits"
+        },
+        {
+          "field": "pauseResume",
+          "class": "D",
+          "verdict": "green",
+          "band": "no state drift; resumed prior state"
+        },
+        {
+          "field": "leak.geometries",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.textures",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.bodies",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.colliders",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.window",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.document",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.other",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.raf",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.beds",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.buses",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.input",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.update",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.late",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.render",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.events.listeners",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.events.answerers",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.dom.hud",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.dom.body",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "budgets.spawn-rail.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.spawn-rail.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.spawn-rail.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.spawn-rail.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 500"
+        },
+        {
+          "field": "budgets.well-edge.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.well-edge.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.well-edge.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.well-edge.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 500"
+        },
+        {
+          "field": "budgets.stair-street.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.stair-street.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.stair-street.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.stair-street.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 500"
+        },
+        {
+          "field": "budgets.D.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 1174"
+        },
+        {
+          "field": "budgets.D.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 18779873"
+        },
+        {
+          "field": "budgets.D.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 148"
+        },
+        {
+          "field": "budgets.D.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 500"
+        }
+      ],
+      "before": {
+        "boot": {
+          "sha": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+          "errors": [],
+          "physics": {
+            "fixed": 0,
+            "kinematic": 1,
+            "dynamic": 0,
+            "colliders": 528
+          }
+        },
+        "walk": {
+          "stuck": 0,
+          "sounds": {
+            "event": {
+              "nd.step.stone": 402,
+              "nd.step.wood": 9,
+              "jump": 68,
+              "land": 67,
+              "dodge": 1
+            },
+            "ambient": [
+              "nd.audio.tick",
+              "nd.hum.lantern"
+            ]
+          }
+        },
+        "combat": {
+          "swing": {
+            "weapon": "sword",
+            "target": "training-dummy",
+            "hits": 1,
+            "hitWithinS": 0.6333333333332973,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 3,
+            "killLimit": null
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 1
+          },
+          "kills": [],
+          "loot": {
+            "written": []
+          },
+          "sounds": {
+            "event": {
+              "lunge": 1,
+              "swordSwing": 1,
+              "nd.jian.swing": 1,
+              "hitMarker": 1,
+              "swordHit:flesh": 1
+            },
+            "ambient": [
+              "nd.audio.tick"
+            ]
+          }
+        },
+        "pauseResume": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "practice"
+          ],
+          "returnState": "practice"
+        },
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "gpu": {
+            "total": {
+              "geometries": 38,
+              "textures": 42,
+              "programs": 26
+            },
+            "retained": {
+              "geometries": 38,
+              "textures": 42,
+              "programs": 26
+            }
+          }
+        }
+      },
+      "current": {
+        "boot": {
+          "sha": "ff2f848c9221a98a4308f557369be1af73dd49f3",
+          "errors": [],
+          "physics": {
+            "fixed": 0,
+            "kinematic": 1,
+            "dynamic": 0,
+            "colliders": 532
+          }
+        },
+        "walk": {
+          "stuck": 0,
+          "sounds": {
+            "event": {
+              "nd.step.stone": 398,
+              "nd.step.wood": 9,
+              "jump": 68,
+              "land": 67,
+              "dodge": 1
+            },
+            "ambient": [
+              "nd.audio.tick",
+              "nd.hum.lantern"
+            ]
+          }
+        },
+        "combat": {
+          "swing": {
+            "weapon": "sword",
+            "target": "training-dummy",
+            "hits": 1,
+            "hitWithinS": 0.6333333333332973,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 3,
+            "killLimit": null
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 1
+          },
+          "kills": [],
+          "loot": {
+            "written": []
+          },
+          "sounds": {
+            "event": {
+              "lunge": 1,
+              "swordSwing": 1,
+              "nd.jian.swing": 1,
+              "hitMarker": 1,
+              "swordHit:flesh": 1
+            },
+            "ambient": [
+              "nd.audio.tick"
+            ]
+          }
+        },
+        "pauseResume": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "practice"
+          ],
+          "returnState": "practice"
+        },
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "gpu": {
+            "total": {
+              "geometries": 38,
+              "textures": 42,
+              "programs": 26
+            },
+            "retained": {
+              "geometries": 38,
+              "textures": 42,
+              "programs": 26
+            }
+          }
+        }
+      }
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "desktop",
+      "parent": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "spawn-rail",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0,
+          "note": null
+        },
+        {
+          "name": "well-edge",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0,
+          "note": null
+        },
+        {
+          "name": "stair-street",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "field": "walk.sounds.event",
+          "baseline": {
+            "nd.step.stone": 394,
+            "nd.step.wood": 9,
+            "jump": 68,
+            "land": 67
+          },
+          "now": {
+            "nd.step.stone": 390,
+            "nd.step.wood": 9,
+            "jump": 68,
+            "land": 67
+          },
+          "class": "A",
+          "band": "exact multiset",
+          "verdict": "red"
+        },
+        {
+          "field": "boot.physics.colliders",
+          "baseline": 528,
+          "now": 532,
+          "class": "A",
+          "band": "exact",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.end.y",
+          "baseline": 126.361,
+          "now": 126.358,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.end.z",
+          "baseline": -35.808,
+          "now": -35.811,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.maxY",
+          "baseline": 127.329,
+          "now": 127.328,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.end.x",
+          "baseline": 37.04,
+          "now": 37.036,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.end.y",
+          "baseline": 132.744,
+          "now": 132.746,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.maxY",
+          "baseline": 134.879,
+          "now": 134.88,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-top.end.z",
+          "baseline": 6,
+          "now": 6.001,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        },
+        {
+          "field": "walk.legs.escape-stair-top.maxY",
+          "baseline": 148.873,
+          "now": 148.88,
+          "class": "B",
+          "band": "± 0",
+          "verdict": "red"
+        }
+      ],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "class": "D",
+          "verdict": "green",
+          "band": "no disposal failures"
+        },
+        {
+          "field": "boot.errors",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "boot.renderer",
+          "class": "D",
+          "verdict": "green",
+          "band": "ANGLE Metal"
+        },
+        {
+          "field": "boot.scene.totals.batched",
+          "class": "D",
+          "verdict": "green",
+          "band": "0 (facade prohibition)"
+        },
+        {
+          "field": "boot.facade",
+          "class": "D",
+          "verdict": "green",
+          "band": "multiDraw available; 0 batches; >0 instances"
+        },
+        {
+          "field": "walk.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.square-to-street.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.square-to-street.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.balustrade-west-bay.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.balustrade-west-bay.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.stair-street.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.stair-street.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.stair-down.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.stair-down.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.crossing-gate-bridge.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.crossing-timber-hump.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.crossing-timber-hump.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.well-rim.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.well-rim.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-square-balustrade.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-street-balustrade.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-hawker-roof.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-hawker-roof.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-south-front.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-south-front.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-street-end.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-street-end.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-stair-sides.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-stair-top.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-stair-top.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-rim-into-well.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-rim-into-well.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-rim-hop.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-rim-hop.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-hover-balustrade.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-hover-balustrade.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.escape-hover-rim.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.escape-hover-rim.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "walk.legs.net-well-fall.stuck",
+          "class": "D",
+          "verdict": "green",
+          "band": "[]"
+        },
+        {
+          "field": "walk.legs.net-well-fall.out",
+          "class": "D",
+          "verdict": "green",
+          "band": "0"
+        },
+        {
+          "field": "combat.swing",
+          "class": "D",
+          "verdict": "green",
+          "band": "hit and kill within limits"
+        },
+        {
+          "field": "pauseResume",
+          "class": "D",
+          "verdict": "green",
+          "band": "no state drift; resumed prior state"
+        },
+        {
+          "field": "leak.geometries",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.textures",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.bodies",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.colliders",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.window",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.document",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.canvas",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.listeners.other",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.timeouts",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.intervals",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.timers.raf",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.activeVoices",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.beds",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.audio.buses",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.input",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.pre",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.step",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.fixed.post",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.update",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.late",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.systems.render",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.events.listeners",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.events.answerers",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.dom.hud",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.dom.body",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "leak.sceneObjects",
+          "class": "D",
+          "verdict": "green",
+          "band": "B1 = B0"
+        },
+        {
+          "field": "budgets.spawn-rail.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 3262"
+        },
+        {
+          "field": "budgets.spawn-rail.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 52174145"
+        },
+        {
+          "field": "budgets.spawn-rail.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 826"
+        },
+        {
+          "field": "budgets.spawn-rail.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 574.168532371521"
+        },
+        {
+          "field": "budgets.well-edge.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 3262"
+        },
+        {
+          "field": "budgets.well-edge.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 52174145"
+        },
+        {
+          "field": "budgets.well-edge.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 826"
+        },
+        {
+          "field": "budgets.well-edge.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 574.168532371521"
+        },
+        {
+          "field": "budgets.stair-street.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 3262"
+        },
+        {
+          "field": "budgets.stair-street.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 52174145"
+        },
+        {
+          "field": "budgets.stair-street.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 826"
+        },
+        {
+          "field": "budgets.stair-street.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 574.168532371521"
+        },
+        {
+          "field": "budgets.D.draws",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 3262"
+        },
+        {
+          "field": "budgets.D.tris",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 52174145"
+        },
+        {
+          "field": "budgets.D.programs",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 826"
+        },
+        {
+          "field": "budgets.D.gpuMB",
+          "class": "D",
+          "verdict": "green",
+          "band": "≤ 574.4839086532593"
+        }
+      ],
+      "before": {
+        "boot": {
+          "sha": "3f2bc9f623322739924718efd2c9aee4bb832eeb",
+          "errors": [],
+          "physics": {
+            "fixed": 0,
+            "kinematic": 1,
+            "dynamic": 0,
+            "colliders": 528
+          }
+        },
+        "walk": {
+          "stuck": 0,
+          "sounds": {
+            "event": {
+              "nd.step.stone": 394,
+              "nd.step.wood": 9,
+              "jump": 68,
+              "land": 67
+            },
+            "ambient": [
+              "nd.audio.tick",
+              "nd.hum.lantern"
+            ]
+          }
+        },
+        "combat": {
+          "swing": {
+            "weapon": "sword",
+            "target": "training-dummy",
+            "hits": 1,
+            "hitWithinS": 0.6333333333332973,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 3,
+            "killLimit": null
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 1
+          },
+          "kills": [],
+          "loot": {
+            "written": []
+          },
+          "sounds": {
+            "event": {
+              "lunge": 1,
+              "swordSwing": 1,
+              "nd.jian.swing": 1,
+              "hitMarker": 1,
+              "swordHit:flesh": 1
+            },
+            "ambient": [
+              "nd.audio.tick"
+            ]
+          }
+        },
+        "pauseResume": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "practice"
+          ],
+          "returnState": "practice"
+        },
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "gpu": {
+            "total": {
+              "geometries": 39,
+              "textures": 45,
+              "programs": 42
+            },
+            "retained": {
+              "geometries": 39,
+              "textures": 45,
+              "programs": 42
+            }
+          }
+        }
+      },
+      "current": {
+        "boot": {
+          "sha": "ff2f848c9221a98a4308f557369be1af73dd49f3",
+          "errors": [],
+          "physics": {
+            "fixed": 0,
+            "kinematic": 1,
+            "dynamic": 0,
+            "colliders": 532
+          }
+        },
+        "walk": {
+          "stuck": 0,
+          "sounds": {
+            "event": {
+              "nd.step.stone": 390,
+              "nd.step.wood": 9,
+              "jump": 68,
+              "land": 67
+            },
+            "ambient": [
+              "nd.audio.tick",
+              "nd.hum.lantern"
+            ]
+          }
+        },
+        "combat": {
+          "swing": {
+            "weapon": "sword",
+            "target": "training-dummy",
+            "hits": 1,
+            "hitWithinS": 0.6333333333332973,
+            "killed": false,
+            "killWithinS": null,
+            "hitLimit": 3,
+            "killLimit": null
+          },
+          "shot": "n/a",
+          "shot2": "n/a",
+          "hitsToKill": {
+            "swing": 1
+          },
+          "kills": [],
+          "loot": {
+            "written": []
+          },
+          "sounds": {
+            "event": {
+              "lunge": 1,
+              "swordSwing": 1,
+              "nd.jian.swing": 1,
+              "hitMarker": 1,
+              "swordHit:flesh": 1
+            },
+            "ambient": [
+              "nd.audio.tick"
+            ]
+          }
+        },
+        "pauseResume": {
+          "diff": [],
+          "appStates": [
+            "paused",
+            "practice"
+          ],
+          "returnState": "practice"
+        },
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "disposalErrors": [],
+          "gpu": {
+            "total": {
+              "geometries": 39,
+              "textures": 45,
+              "programs": 42
+            },
+            "retained": {
+              "geometries": 39,
+              "textures": 45,
+              "programs": 42
+            }
+          }
+        }
+      }
+    }
+  ]
+}
