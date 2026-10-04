@@ -5,6 +5,10 @@ The provisional shardfile version 0 uses the numeric core-Wasm ABI in
 in Node with pinned AssemblyScript 0.28.20 and Binaryen 132.0.0. The stub runtime
 uses the host's imported `env.memory`, initially one page and at most 64 pages
 (4 MiB). No Rust or native toolchain is involved.
+`compileScript(source, { maximumPages: 8 })` may lower the declared maximum
+to fit several modules in the sim budget; the default is 64 and v0 refuses
+values outside 1..64. Runtime cost counts three maximum-sized guest copies
+per unique module, independent of the number of entity/actor bindings.
 
 Required exports are `abi_version():i32` (returns 0), `__start():void`,
 `init(lo:i32,hi:i32):void`, `in_ptr():i32`, `in_cap():i32` (bytes),

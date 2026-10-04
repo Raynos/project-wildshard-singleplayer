@@ -10,6 +10,11 @@ function tamper(bytes: Uint8Array, edit: (text: string) => string): Uint8Array {
   try { return wasm(edit(m.emitText())); } finally { m.dispose(); }
 }
 describe('script admission without execution', () => {
+  it('permits lower authored memory maxima for dependency-deduplicated runtime budget accounting', async () => {
+    expect(admitScript(await compileScript(scriptSource(), { maximumPages: 8 })).maximumPages).toBe(8);
+    await expect(compileScript(scriptSource(), { maximumPages: 65 })).rejects.toThrow('1..64');
+    await expect(compileScript(scriptSource(), { maximumPages: 0 })).rejects.toThrow('1..64');
+  });
   it('compiles pinned AssemblyScript and admits fully metered functions, loops and state', async () => {
     const bytes = await compileScript(scriptSource('while (state < 10) state++;', 'let state:i32=0;'));
     expect(admitScript(bytes)).toMatchObject({ initialPages: 1, maximumPages: 64 });

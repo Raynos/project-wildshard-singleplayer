@@ -88,8 +88,11 @@ export function instrumentScript(bytes) {
     finally { metered.dispose(); }
   } finally { module.dispose(); }
 }
-/** Build source in-memory; no native compiler or Rust toolchain. ABI/compiler versions are pinned in package.json. */
-export async function compileScript(source) {
+/** Build source in-memory; no native compiler or Rust toolchain. ABI/compiler versions are pinned in package.json.
+ * @param {string} source @param {{maximumPages?:number}} [options] */
+export async function compileScript(source, options = {}) {
+  const maximumPages = options.maximumPages ?? 64;
+  if (!Number.isSafeInteger(maximumPages) || maximumPages < 1 || maximumPages > 64) throw new Error('Script maximumPages must be 1..64');
   // asc's declaration bundle globally changes Array.at to return T, unsound in host JS.
   // Keep its portable ambient declarations inside the author compiler, not the host type program.
   const compilerSpecifier = ['assemblyscript', 'asc'].join('/');
@@ -97,7 +100,7 @@ export async function compileScript(source) {
   const compiler = await import(compilerSpecifier);
   if (!isCompiler(compiler)) throw new Error('Invalid pinned AssemblyScript compiler');
   let bytes = new Uint8Array();
-  const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', '1', '--maximumMemory', '64', '--exportStart', '__start', '--disable', 'bulk-memory', '-O3'], {
+  const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', '1', '--maximumMemory', String(maximumPages), '--exportStart', '__start', '--disable', 'bulk-memory', '-O3'], {
     readFile: (name) => name === 'main.ts' ? source : null,
     writeFile: (name, contents) => { if (name === 'main.wasm' && contents instanceof Uint8Array) bytes = contents; },
   });
