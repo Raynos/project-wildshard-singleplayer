@@ -2133,7 +2133,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-448 exports, grouped by the module to import them from.
+449 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2190,7 +2190,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/game/shardfile/brains`: `parseScriptBrain`, `parseSkirmisher`, `ScriptBrainSchema`, `ShardScriptBrain`, `ShardSkirmisher`, `SkirmisherSchema`
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
-- `@wildshard/game/shardfile/clientScripts`: `ClientScriptContent`, `clientScriptRules`, `ClientScriptsSchema`, `ClientScriptTarget`, `createShardfileClientScripts`, `parseClientScripts`, `ShardClientScripts`, `ShardfileClientScriptPorts`
+- `@wildshard/game/shardfile/clientScripts`: `ClientScriptContent`, `clientScriptRules`, `ClientScriptsSchema`, `ClientScriptTarget`, `clientScriptViewCost`, `createShardfileClientScripts`, `parseClientScripts`, `ShardClientScripts`, `ShardfileClientScriptPorts`
 - `@wildshard/game/shardfile/creatures`: `creatureRules`, `CreaturesSchema`, `ShardCreatures`
 - `@wildshard/game/shardfile/director`: `DirectorData`, `DirectorEvent`, `DirectorSchema`, `parseDirector`
 - `@wildshard/game/shardfile/directorClient`: `DirectorInstallation`, `directorVariant`, `installDeclaredDirector`
@@ -2276,7 +2276,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-71 exports, grouped by the module to import them from.
+72 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
@@ -2287,7 +2287,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/bake/terrain`: `BakedTerrain`, `bakeTerrain`, `TerrainBakeSource`, `TerrainOverride`
 - `@wildshard/sdk/bake/texture`: `bakeColourTexture`
 - `@wildshard/sdk/brains`: `scriptBrain`, `ScriptBrainData`, `skirmisher`, `SkirmisherData`
-- `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `parseClientScripts`, `ShardClientScripts`
+- `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `clientScriptViewCost`, `parseClientScripts`, `ShardClientScripts`
 - `@wildshard/sdk/director`: `director`, `DirectorData`
 - `@wildshard/sdk/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
 - `@wildshard/sdk/migrations`: `DeclaredMigrations`, `MigrationsSchema`, `parseMigrations`

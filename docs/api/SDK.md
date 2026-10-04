@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-71 members; 0 without a doc line (—).
+72 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -37,6 +37,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `skirmisher` | function | @wildshard/sdk/brains | Validate archetype data before admitting it into a shard's creature catalogue. |
 | `SkirmisherData` | type | @wildshard/sdk/brains | Data-selected circling melee policy with host-owned perception and attack authority. |
 | `ClientScriptsSchema` | const | @wildshard/sdk/clientScripts | Strict presentation-only module/target declarations, with bounded pose and particle recipes. |
+| `clientScriptViewCost` | function | @wildshard/sdk/clientScripts | Exact bounded particle-pool resident cost to include in the authored library budget. |
 | `parseClientScripts` | function | @wildshard/sdk/clientScripts | Parse bounded visual commands and copied state-read selections. |
 | `ShardClientScripts` | type | @wildshard/sdk/clientScripts | Data-only author contract for isolated client scripts. |
 | `director` | function | @wildshard/sdk/director | Validate before admitting a bounded module or installing a fixed-step director. |

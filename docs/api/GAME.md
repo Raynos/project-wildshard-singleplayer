@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-448 members; 112 without a doc line (—).
+449 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -300,6 +300,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `clientScriptRules` | function | @wildshard/game/shardfile/clientScripts | Refuse hidden fields, undeclared targets, competing writers and modules outside the admitted render library. |
 | `ClientScriptsSchema` | const | @wildshard/game/shardfile/clientScripts | Presentation bytecode binds visual targets and selected numeric state; it never joins the authoritative script lane. |
 | `ClientScriptTarget` | type | @wildshard/game/shardfile/clientScripts | A declared visual anchor resolved by trusted composition, never by a bytecode physics query. |
+| `clientScriptViewCost` | function | @wildshard/game/shardfile/clientScripts | Charge the bounded particle pool: 56 CPU bytes and 32 GPU bytes per live slot. |
 | `createShardfileClientScripts` | function | @wildshard/game/shardfile/clientScripts | Construct one isolated presentation lane and copy only the selected public/owner values on each presentation tick. |
 | `parseClientScripts` | function | @wildshard/game/shardfile/clientScripts | Parse detached strict data before host composition allocates any guest instance. |
 | `ShardClientScripts` | type | @wildshard/game/shardfile/clientScripts | Renderer-neutral declaration consumed by the client and the frozen-neighbour presentation adapter. |

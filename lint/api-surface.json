@@ -13296,6 +13296,12 @@
         "from": "@wildshard/game/shardfile/clientScripts"
       },
       {
+        "name": "clientScriptViewCost",
+        "kind": "function",
+        "doc": "Charge the bounded particle pool: 56 CPU bytes and 32 GPU bytes per live slot.",
+        "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
         "name": "createShardfileClientScripts",
         "kind": "function",
         "doc": "Construct one isolated presentation lane and copy only the selected public/owner values on each presentation tick.",
@@ -15727,6 +15733,12 @@
         "name": "ClientScriptsSchema",
         "kind": "const",
         "doc": "Strict presentation-only module/target declarations, with bounded pose and particle recipes.",
+        "from": "@wildshard/sdk/clientScripts"
+      },
+      {
+        "name": "clientScriptViewCost",
+        "kind": "function",
+        "doc": "Exact bounded particle-pool resident cost to include in the authored library budget.",
         "from": "@wildshard/sdk/clientScripts"
       },
       {
