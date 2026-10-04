@@ -10,6 +10,8 @@ import { saves } from '@wildshard/engine/saves/runtime';
 import type { HUD } from '@wildshard/engine/ui/HUD';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineCombatCues } from '../audio/combatCues';
+import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
+import source from '../shard.config';
 import * as valibot from 'valibot';
 import * as THREE from 'three';
 
@@ -77,7 +79,8 @@ export interface PineLoadout {
   update: (dt: number) => void;
 }
 
-const ECHO_DELAY = 0.42, ECHO_GAIN = 0.55;
+const echo = requireAudioProfile(source.audio.routing.flatMap((route) => route.actions).find((action) => action.voice === 'pine.leverEcho'), 'pine.leverEcho');
+const ECHO_DELAY = echo.delay ?? 0, ECHO_GAIN = requireAudioProfile(echo.overrides?.gain, 'pine.leverEcho.gain');
 /** the bolt dress per kind: a uniform-only tint of the iron bolt's material (no program) */
 const TINT: Readonly<Record<Exclude<BoltKind, 'iron'>, { color: number; roughness: number }>> = {
   pitch: { color: 0x9a6a36, roughness: 0.55 },     // resin-dark, a warm sheen
