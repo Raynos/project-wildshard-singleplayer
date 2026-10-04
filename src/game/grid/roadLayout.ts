@@ -75,8 +75,11 @@ export function segmentPoint(segment: RoadSegment, s: number, t: number): { x: n
 }
 /** The unit vector along a segment's +s. */
 function alongUnit(segment: RoadSegment): { x: number; z: number } { return segment.axis === 'z' ? { x: 0, z: 1 } : { x: 1, z: 0 }; }
-/** The across sign (t) of a traveller's right-hand side heading `dir` (±1) along the segment (right-hand traffic). */
-export function rightSide(segment: RoadSegment, dir: 1 | -1): 1 | -1 { return segment.axis === 'z' ? dir : (dir === 1 ? -1 : 1); }
+/**
+ * The across sign (t) of a traveller's right-hand side heading `dir` (±1) along the segment (right-hand traffic). Three's
+ * frame with north +z and east +x is a mirrored map: heading north your right hand is west (−x), heading east it is +z.
+ */
+export function rightSide(segment: RoadSegment, dir: 1 | -1): 1 | -1 { return segment.axis === 'x' ? dir : (dir === 1 ? -1 : 1); }
 
 /** The boulevard's layout for an assembly; `name` turns a slug into the shard name signs show. */
 export function roadLayout(assembly: GridAssembly, name: (slug: string) => string): RoadLayout {
@@ -126,8 +129,8 @@ export function roadLayout(assembly: GridAssembly, name: (slug: string) => strin
         if (side === from) continue;
         const way = ARM[side], arm = armSegment.get(`${junction.id}:${side}`);
         if (arm === undefined) continue;
-        const cross = heading.x * way.z - heading.z * way.x; // > 0: a left turn (heading x way points up)
-        const arrow = way.x === heading.x && way.z === heading.z ? 'ahead' : cross > 0 ? 'left' : 'right';
+        const cross = heading.x * way.z - heading.z * way.x; // > 0: a right turn in three's frame (see rightSide)
+        const arrow = way.x === heading.x && way.z === heading.z ? 'ahead' : cross > 0 ? 'right' : 'left';
         const list = names(arm);
         if (list.length > 0) lines.push({ arrow, names: list, metres: round10(SEGMENT_HALF - APPROACH_SIGN + pitch / 2) });
       }

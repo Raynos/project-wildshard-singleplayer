@@ -105,8 +105,8 @@ function roadTexture(): CanvasTexture {
   for (const base of [0, half]) {
     const turnIn = base > 0;
     // wheel paths: faint darker wear in each lane
-    g.fillStyle = 'rgba(20,22,26,0.18)';
-    for (const t of [-5.9, -4.3, -2.6, -1.0, 1.0, 2.6, 4.3, 5.9]) g.fillRect(px(t, base) - 0.35 * pm, 0, 0.7 * pm, H);
+    g.fillStyle = 'rgba(20,22,26,0.07)';
+    for (const t of [-5.9, -4.3, -2.6, -1.0, 1.0, 2.6, 4.3, 5.9]) g.fillRect(px(t, base) - 0.45 * pm, 0, 0.9 * pm, H);
     g.fillStyle = YELLOW; // the double yellow centre line (G80)
     for (const t of [-0.17, 0.17]) g.fillRect(px(t, base) - 0.06 * pm, 0, 0.12 * pm, H);
     g.fillStyle = WHITE; // lane dividers: 3 m dash in a 12 m period
@@ -134,7 +134,7 @@ function junctionTexture(): CanvasTexture {
   arc((RING_ISLAND + RING_OUTER) / 2, 0, Math.PI * 2, 0.12, WHITE, [3, 3]); // the circulating lane divider
   const sides: readonly { x: number; z: number }[] = [{ x: 1, z: 0 }, { x: 0, z: 1 }, { x: -1, z: 0 }, { x: 0, z: -1 }];
   for (const d of sides) {
-    const rx = -d.z, rz = d.x; // across unit (left of outward)
+    const rx = -d.z, rz = d.x; // the across unit
     const line = (t: number, r0: number, r1: number, width: number, colour: string, dash = 0): void => {
       g.fillStyle = colour;
       for (let r = r0; r < r1; r += dash > 0 ? dash * 4 : r1 - r0) {
@@ -145,8 +145,8 @@ function junctionTexture(): CanvasTexture {
     for (const t of [-0.17, 0.17]) line(t, RING_OUTER + 3, GAP_HALF, 0.12, YELLOW);
     for (const t of [-3.55, 3.55]) line(t, RING_OUTER + 3, GAP_HALF, 0.12, WHITE, 3);
     for (const t of [-7.0, 7.0]) line(t, RING_OUTER + 0.5, GAP_HALF, 0.15, WHITE);
-    // give way: the entry half is on the inbound traveller's right (the outward unit's left), dashed, with a triangle per lane
-    const entry = 1;
+    // give way: the entry half is on the inbound traveller's right (three's mirrored frame: −across), dashed, a triangle per lane
+    const entry = -1;
     for (let t = 0.4; t < 6.9; t += 0.9) line(entry * (t + 0.3), RING_OUTER + 0.9, RING_OUTER + 1.2, 0.6, WHITE);
     for (const t of [1.8, 5.3]) {
       const tip = RING_OUTER + 2.2, base = tip + 2.6, [ax, ay] = P(d.x * tip + rx * t * entry, d.z * tip + rz * t * entry);
@@ -323,7 +323,7 @@ function signAtlas(signs: readonly RoadSign[]): { texture: CanvasTexture; cell: 
 function signMesh(signs: readonly RoadSign[], home: GridCell): Mesh {
   const atlas = signAtlas(signs), m = new Mesher(), BOARD_W = 3.6, LINE = 0.42, BOTTOM = 2.3;
   for (const sign of signs) {
-    const fx = sign.facing.x, fz = sign.facing.z, rx = -fz, rz = fx; // the board's right (seen from the front: facing toward the viewer)
+    const fx = sign.facing.x, fz = sign.facing.z, rx = fz, rz = -fx; // the board's right as its reader sees it (they look along −facing)
     const ox = sign.at.x - home.origin.x, oz = sign.at.z - home.origin.z, h = sign.lines.length * LINE + 0.3, top = BOTTOM + h;
     for (const side of [-1, 1]) {
       const px = ox + rx * side * (BOARD_W / 2 - 0.4), pz = oz + rz * side * (BOARD_W / 2 - 0.4);

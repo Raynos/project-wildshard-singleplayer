@@ -30,9 +30,15 @@ it('puts the rail on the outer road shoulder, where the rim walls stand (G89)', 
 it('names the shards ahead on green signs from the catalogue, on the traveller\'s right (G80, G81, G93)', () => {
   const segment = layout.segments.find((s) => s.id === 'gap.x.-1.0');
   if (segment === undefined) throw new Error('missing segment');
-  // heading north along the road between template-3 (west) and Driftwood (east): Driftwood's turn-in is on the right
-  const north = layout.signs.find((s) => s.facing.z === -1 && Math.abs(s.at.x - segmentPoint(segment, 0, rightSide(segment, 1) * 9.7).x) < 0.01 && s.at.z < -200 && s.at.z > -230);
-  expect(north?.lines).toEqual([{ arrow: 'left', names: ['_TEMPLATE'], metres: 220 }, { arrow: 'right', names: ['DRIFTWOOD-ISLE'], metres: 220 }]);
+  // heading north (+z) between template-3 (west, −x) and Driftwood (east, +x): in three's mirrored frame your right hand is
+  // west, so the sign stands on the west shoulder and Driftwood's turn-in is on the left
+  expect(rightSide(segment, 1)).toBe(-1);
+  const north = layout.signs.find((s) => s.facing.z === -1 && Math.abs(s.at.x - segmentPoint(segment, 0, -9.7).x) < 0.01 && s.at.z < -200 && s.at.z > -230);
+  expect(north?.lines).toEqual([{ arrow: 'right', names: ['_TEMPLATE'], metres: 220 }, { arrow: 'left', names: ['DRIFTWOOD-ISLE'], metres: 220 }]);
+  // heading east (+x) your right hand is +z (south of the road is −z)
+  const east = layout.segments.find((s) => s.id === 'gap.z.0.0');
+  if (east === undefined) throw new Error('missing segment');
+  expect(rightSide(east, 1)).toBe(1);
   // a roundabout approach lists left, ahead and right
   const approach = layout.signs.filter((s) => s.lines.some((l) => l.arrow === 'ahead'));
   expect(approach.length).toBe(4 * 4 + 8 * 2); // a T has no ahead from its stem
