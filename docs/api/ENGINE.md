@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1965 members; 830 without a doc line (—).
+1979 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -36,12 +36,24 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `GuardianBrain` | class | @wildshard/engine/ai/guardian | Renderer-free guardian decisions; vertical recipes, line of sight and attack authority remain host ports. |
 | `GuardianPorts` | interface | @wildshard/engine/ai/guardian | Trusted interior floor and vertical-motion recipes publish completion through the actor's numeric memory. |
 | `GuardianSpec` | interface | @wildshard/engine/ai/guardian | A hidden interior guardian's perception, holding ring, retreat and strike timing. |
+| `HerdBrain` | class | @wildshard/engine/ai/herd | Renderer-free guarded-herd decisions, boids and contact timing; unique taming and combat recipes are injected. |
+| `HerdContext` | interface | @wildshard/engine/ai/herd | Host-owned clock, steering and player observations for one AI or body tick. |
+| `HerdMode` | type | @wildshard/engine/ai/herd | Shared grazing, alert and flight modes of a guarded herd. |
+| `HerdPorts` | interface | @wildshard/engine/ai/herd | Native sensing, terrain, pass-through, contact and shared-RNG recipes; no renderer or app singleton. |
+| `HerdSpec` | interface | @wildshard/engine/ai/herd | Declared guarded-herd tuning, independent of any particular species rig. |
+| `StallionState` | type | @wildshard/engine/ai/herd | Guard animal decisions; riding and taming remain host-owned recipes. |
 | `brainInspection` | function | @wildshard/engine/ai/inspect | — |
 | `BrainInspection` | interface | @wildshard/engine/ai/inspect | — |
 | `brainPinned` | function | @wildshard/engine/ai/inspect | — |
 | `inspectBrain` | function | @wildshard/engine/ai/inspect | — |
 | `inspectTick` | function | @wildshard/engine/ai/inspect | — |
 | `pinBrain` | function | @wildshard/engine/ai/inspect | — |
+| `PackBrain` | class | @wildshard/engine/ai/pack | Renderer-free pack decisions and body timing; native strikes, perception and shared RNG are injected. |
+| `PackContext` | interface | @wildshard/engine/ai/pack | Caller-owned AI or body tick; motion, pathfinding and attack-token authority stay with the host. |
+| `PackPhase` | type | @wildshard/engine/ai/pack | Shared predator hunt phases; one decision clock serves every member. |
+| `PackPorts` | interface | @wildshard/engine/ai/pack | Trusted shared observations, terrain, token registration and strike recipe. |
+| `PackPrey` | interface | @wildshard/engine/ai/pack | Host-owned prey identity, pose and damage recipe; no guest code chooses its target binding. |
+| `PackSpec` | interface | @wildshard/engine/ai/pack | Declared circling-pack tuning, independent of a shard, species rig or combat recipe. |
 | `PerchHunterBrain` | class | @wildshard/engine/ai/perchHunter | Renderer-free decisions with no application singleton; all mutable policy state lives in the actor continuation. |
 | `PerchHunterPorts` | interface | @wildshard/engine/ai/perchHunter | Native perch/drop/climb recipes and shared cooldown RNG retain authority outside the decision policy. |
 | `PerchHunterSpec` | interface | @wildshard/engine/ai/perchHunter | Ranged perch hunting followed by a bounded ground attack and return to a native perch recipe. |
@@ -602,6 +614,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `CHUNK_SIZE` | const | @wildshard/engine/core/config | — |
 | `CONTENT_CAPS` | const | @wildshard/engine/core/config | Provisional phone caps v1 (SF22a); shadow draws count in each draw cap. |
 | `CONTENT_MB` | const | @wildshard/engine/core/config | Decimal bytes per MB in the streaming cost model. |
+| `ENTRY_ASPHALT` | const | @wildshard/engine/core/config | Neutral platform asphalt reserved inside each legal midpoint entry (metres). |
+| `ENTRY_WIDTH` | const | @wildshard/engine/core/config | Legal midpoint entry opening, independent from the boulevard's width (metres). |
 | `PAGE_LEVEL` | const | @wildshard/engine/core/config | the level this page booted: the registry's first apply (from ?chunk= at its import, before standalone mode strips the |
 | `ROAD_LENGTH` | const | @wildshard/engine/core/config | — |
 | `ROAD_WIDTH` | const | @wildshard/engine/core/config | — |

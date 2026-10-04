@@ -170,6 +170,42 @@
         "from": "@wildshard/engine/ai/guardian"
       },
       {
+        "name": "HerdBrain",
+        "kind": "class",
+        "doc": "Renderer-free guarded-herd decisions, boids and contact timing; unique taming and combat recipes are injected.",
+        "from": "@wildshard/engine/ai/herd"
+      },
+      {
+        "name": "HerdContext",
+        "kind": "interface",
+        "doc": "Host-owned clock, steering and player observations for one AI or body tick.",
+        "from": "@wildshard/engine/ai/herd"
+      },
+      {
+        "name": "HerdMode",
+        "kind": "type",
+        "doc": "Shared grazing, alert and flight modes of a guarded herd.",
+        "from": "@wildshard/engine/ai/herd"
+      },
+      {
+        "name": "HerdPorts",
+        "kind": "interface",
+        "doc": "Native sensing, terrain, pass-through, contact and shared-RNG recipes; no renderer or app singleton.",
+        "from": "@wildshard/engine/ai/herd"
+      },
+      {
+        "name": "HerdSpec",
+        "kind": "interface",
+        "doc": "Declared guarded-herd tuning, independent of any particular species rig.",
+        "from": "@wildshard/engine/ai/herd"
+      },
+      {
+        "name": "StallionState",
+        "kind": "type",
+        "doc": "Guard animal decisions; riding and taming remain host-owned recipes.",
+        "from": "@wildshard/engine/ai/herd"
+      },
+      {
         "name": "brainInspection",
         "kind": "function",
         "doc": "",
@@ -204,6 +240,42 @@
         "kind": "function",
         "doc": "",
         "from": "@wildshard/engine/ai/inspect"
+      },
+      {
+        "name": "PackBrain",
+        "kind": "class",
+        "doc": "Renderer-free pack decisions and body timing; native strikes, perception and shared RNG are injected.",
+        "from": "@wildshard/engine/ai/pack"
+      },
+      {
+        "name": "PackContext",
+        "kind": "interface",
+        "doc": "Caller-owned AI or body tick; motion, pathfinding and attack-token authority stay with the host.",
+        "from": "@wildshard/engine/ai/pack"
+      },
+      {
+        "name": "PackPhase",
+        "kind": "type",
+        "doc": "Shared predator hunt phases; one decision clock serves every member.",
+        "from": "@wildshard/engine/ai/pack"
+      },
+      {
+        "name": "PackPorts",
+        "kind": "interface",
+        "doc": "Trusted shared observations, terrain, token registration and strike recipe.",
+        "from": "@wildshard/engine/ai/pack"
+      },
+      {
+        "name": "PackPrey",
+        "kind": "interface",
+        "doc": "Host-owned prey identity, pose and damage recipe; no guest code chooses its target binding.",
+        "from": "@wildshard/engine/ai/pack"
+      },
+      {
+        "name": "PackSpec",
+        "kind": "interface",
+        "doc": "Declared circling-pack tuning, independent of a shard, species rig or combat recipe.",
+        "from": "@wildshard/engine/ai/pack"
       },
       {
         "name": "PerchHunterBrain",
@@ -3571,6 +3643,18 @@
         "name": "CONTENT_MB",
         "kind": "const",
         "doc": "Decimal bytes per MB in the streaming cost model.",
+        "from": "@wildshard/engine/core/config"
+      },
+      {
+        "name": "ENTRY_ASPHALT",
+        "kind": "const",
+        "doc": "Neutral platform asphalt reserved inside each legal midpoint entry (metres).",
+        "from": "@wildshard/engine/core/config"
+      },
+      {
+        "name": "ENTRY_WIDTH",
+        "kind": "const",
+        "doc": "Legal midpoint entry opening, independent from the boulevard's width (metres).",
         "from": "@wildshard/engine/core/config"
       },
       {
@@ -13812,6 +13896,54 @@
         "from": "@wildshard/game/shardfile/encounters"
       },
       {
+        "name": "groupBrainRules",
+        "kind": "function",
+        "doc": "Controller references must match the exact ordered roster, with no overlap with individual or encounter controllers.",
+        "from": "@wildshard/game/shardfile/groupBrains"
+      },
+      {
+        "name": "GroupBrainSchema",
+        "kind": "const",
+        "doc": "Group controller declaration; the full creature loader checks identity and controller conflicts.",
+        "from": "@wildshard/game/shardfile/groupBrains"
+      },
+      {
+        "name": "HerdGroupSchema",
+        "kind": "const",
+        "doc": "One guarded-herd controller with an ordered roster; native riding/taming and contact recipes are injected.",
+        "from": "@wildshard/game/shardfile/groupBrains"
+      },
+      {
+        "name": "PackGroupSchema",
+        "kind": "const",
+        "doc": "One circling pack controller and its ordered stable actor roster; setup and shared state belong to the group.",
+        "from": "@wildshard/game/shardfile/groupBrains"
+      },
+      {
+        "name": "parseGroupBrain",
+        "kind": "function",
+        "doc": "Validate finite tuning, six-tick cadence and the complete ordered roster before touching an actor or RNG.",
+        "from": "@wildshard/game/shardfile/groupBrains"
+      },
+      {
+        "name": "ShardGroupBrain",
+        "kind": "type",
+        "doc": "A pack or herd group controller; an actor may belong to exactly one controller.",
+        "from": "@wildshard/game/shardfile/groupBrains"
+      },
+      {
+        "name": "ShardHerdGroup",
+        "kind": "type",
+        "doc": "Admitted guarded-herd data and explicit roster, independent from native recipes.",
+        "from": "@wildshard/game/shardfile/groupBrains"
+      },
+      {
+        "name": "ShardPackGroup",
+        "kind": "type",
+        "doc": "Admitted circling-pack data and explicit roster, independent from native recipes.",
+        "from": "@wildshard/game/shardfile/groupBrains"
+      },
+      {
         "name": "HybridCellBinding",
         "kind": "interface",
         "doc": "Interior events for one catalogue resident; another cell never activates its trusted hooks.",
@@ -16244,6 +16376,18 @@
         "kind": "type",
         "doc": "Typed director data with bounded observations, payloads and reserved grid subscriptions.",
         "from": "@wildshard/sdk/director"
+      },
+      {
+        "name": "groupBrain",
+        "kind": "function",
+        "doc": "Validate a pack or guarded-herd controller before loading its native world recipes.",
+        "from": "@wildshard/sdk/groupBrains"
+      },
+      {
+        "name": "GroupBrainData",
+        "kind": "type",
+        "doc": "One admitted group policy and its explicit ordered stable actor roster.",
+        "from": "@wildshard/sdk/groupBrains"
       },
       {
         "name": "LedgerFact",

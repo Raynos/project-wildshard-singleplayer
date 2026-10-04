@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-81 members; 0 without a doc line (—).
+83 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -51,6 +51,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ShardClientScripts` | type | @wildshard/sdk/clientScripts | Data-only author contract for isolated client scripts. |
 | `director` | function | @wildshard/sdk/director | Validate before admitting a bounded module or installing a fixed-step director. |
 | `DirectorData` | type | @wildshard/sdk/director | Typed director data with bounded observations, payloads and reserved grid subscriptions. |
+| `groupBrain` | function | @wildshard/sdk/groupBrains | Validate a pack or guarded-herd controller before loading its native world recipes. |
+| `GroupBrainData` | type | @wildshard/sdk/groupBrains | One admitted group policy and its explicit ordered stable actor roster. |
 | `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |
 | `LedgerFactSchema` | const | @wildshard/sdk/ledger | Compile a host-witnessed fact with placement identity and provenance. |
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |

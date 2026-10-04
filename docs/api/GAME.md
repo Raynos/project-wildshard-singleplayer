@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-475 members; 113 without a doc line (—).
+483 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -341,6 +341,14 @@ The game layer's public modules (src/game/package.json `exports`).
 | `encounterRules` | function | @wildshard/game/shardfile/encounters | Full-loader references: declared actor spawn and the existing SF7f boss panel (if any). |
 | `EncountersSchema` | const | @wildshard/game/shardfile/encounters | Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references. |
 | `ShardEncounters` | type | @wildshard/game/shardfile/encounters | Validated data-only encounter tables. |
+| `groupBrainRules` | function | @wildshard/game/shardfile/groupBrains | Controller references must match the exact ordered roster, with no overlap with individual or encounter controllers. |
+| `GroupBrainSchema` | const | @wildshard/game/shardfile/groupBrains | Group controller declaration; the full creature loader checks identity and controller conflicts. |
+| `HerdGroupSchema` | const | @wildshard/game/shardfile/groupBrains | One guarded-herd controller with an ordered roster; native riding/taming and contact recipes are injected. |
+| `PackGroupSchema` | const | @wildshard/game/shardfile/groupBrains | One circling pack controller and its ordered stable actor roster; setup and shared state belong to the group. |
+| `parseGroupBrain` | function | @wildshard/game/shardfile/groupBrains | Validate finite tuning, six-tick cadence and the complete ordered roster before touching an actor or RNG. |
+| `ShardGroupBrain` | type | @wildshard/game/shardfile/groupBrains | A pack or herd group controller; an actor may belong to exactly one controller. |
+| `ShardHerdGroup` | type | @wildshard/game/shardfile/groupBrains | Admitted guarded-herd data and explicit roster, independent from native recipes. |
+| `ShardPackGroup` | type | @wildshard/game/shardfile/groupBrains | Admitted circling-pack data and explicit roster, independent from native recipes. |
 | `HybridCellBinding` | interface | @wildshard/game/shardfile/hybrid | Interior events for one catalogue resident; another cell never activates its trusted hooks. |
 | `hybridInstallation` | function | @wildshard/game/shardfile/hybrid | Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations. |
 | `HybridResident` | interface | @wildshard/game/shardfile/hybrid | A resident's data world stays alive when its independently scoped trusted play hooks leave. |
