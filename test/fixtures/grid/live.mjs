@@ -16,17 +16,22 @@ import { GridAssembly } from '../../../src/game/grid/assembly.ts';
 import { LiveGridHost } from '../../../src/game/grid/live.ts';
 import { GRID_CONTINUATION_CACHE_BYTES } from '../../../src/game/grid/continuations.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
+import { PageResidency } from '../../../src/game/grid/pageResidency.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 const assets = new Map(source.files.map((file) => [file.hash, readFileSync(new URL(`../../../src/shards/_template/assets/${file.hash}`, import.meta.url))]));
 const assembly = new GridAssembly({ developer: false, devserver: false }), homeCell = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
 const level = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [], weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
-const pageHost = createSimHost(level, { rapier }), empty = assembly.emptyNeighbour.edge;
+const empty = assembly.emptyNeighbour.edge;
 const strip = generateStrip({ id: 'west', axis: 'x', origin: { x: -277.5, z: 0 }, profiles: [empty, empty], adjacent: [target, homeCell] });
 const highwayBytes = strip.mesh.positions.byteLength + strip.mesh.indices.byteLength;
 // Keep the original one-region admission envelope, plus its newly charged fixed packed continuation pool.
-const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil((GRID_CONTINUATION_CACHE_BYTES + 1 + highwayBytes + source.budgets.sim.resident) * CONTENT_CAPS.residentFactor) });
+const homeBytes = 20_000_000;
+const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil((GRID_CONTINUATION_CACHE_BYTES + homeBytes + highwayBytes + source.budgets.sim.resident) * CONTENT_CAPS.residentFactor) });
+const pageResidency = new PageResidency(allocator), homeClaim = pageResidency.admitHome(homeCell.instance, homeBytes);
+// The early owner reserves before even the borrowed page's world is allocated.
+const pageHost = createSimHost(level, { rapier });
 const blocker = allocator.reserve({ id: 'library:held', category: 'library', bytes: source.budgets.sim.resident, owner: 'platform', distance: 0, needed: true }); assert.ok(blocker);
 installStripCollider(pageHost.physics, strip.mesh, pageHost.scope);
 let currentPhysics = pageHost.physics, gameplay = true, frameBinds = 0;
@@ -35,9 +40,9 @@ const saves = new Map(), values = new Map(); let durable = true;
 const facts = new Set(); let coins = 0;
 const quest = { fact: (id) => { facts.add(id); }, coins: (amount) => { coins += amount; } };
 let physicsSteps = 0, regionCreations = 0;
-const registry = new LiveGridHost(assembly, {
+const ports = {
   maxResidents: 2,
-  home: { instance: homeCell.instance, physics: pageHost.physics, bytes: 1, checkpoint: () => true }, player, allocator,
+  home: { instance: homeCell.instance, physics: pageHost.physics, bytes: homeBytes, residency: homeClaim, checkpoint: () => true }, player, allocator,
   highway: { bytes: highwayBytes, create: () => {
     const host = createSimHost({ ...level, ground: { size: 2000, height: 0 } }, { rapier, playerBody: false, ground: false });
     installStripCollider(host.physics, strip.mesh, host.scope); return { host, dispose: () => host.dispose() };
@@ -59,9 +64,21 @@ const registry = new LiveGridHost(assembly, {
     }
     values.set(target.instance, sim); return sim;
   } }),
-});
+};
+for (const mismatch of [
+  { ...ports, home: { ...ports.home, bytes: homeBytes + 1 } },
+  { ...ports, home: { ...ports.home, instance: target.instance } },
+  { ...ports, allocator: new ResidencyAllocator() },
+]) {
+  assert.throws(() => new LiveGridHost(assembly, mismatch), /differs from its admitted page claim/);
+  assert.equal(mismatch.allocator.has(`sim-continuations:live:${mismatch.home.instance}`), false);
+}
+assert.equal(allocator.entries().find((entry) => entry.id === `sim:${homeCell.instance}`).refs, 1);
+const registry = new LiveGridHost(assembly, ports);
 const step = () => { currentPhysics.step(); physicsSteps++; registry.afterPlayerStep(); };
 try {
+  assert.equal(allocator.entries().find((entry) => entry.id === `sim:${homeCell.instance}`).refs, 2);
+  assert.equal(allocator.entries().find((entry) => entry.id === `sim:${homeCell.instance}`).bytes, homeBytes);
   assert.equal(allocator.entries().find((entry) => entry.id === `sim-continuations:live:${homeCell.instance}`).bytes, GRID_CONTINUATION_CACHE_BYTES);
   const homeMotor = player.motor;
   await assert.rejects(registry.prefetch([target.instance]), /deferred by the shared budget/);
@@ -99,6 +116,11 @@ try {
   assert.equal(facts.size, 0); assert.equal(coins, 0);
   assert.equal(pageHost.physics.world.colliders.len(), 2); // borrowed home keeps ground + seam, no duplicate player
   registry.dispose(); assert.equal(currentPhysics, pageHost.physics); assert.equal(pageHost.physics.world.colliders.len(), 3);
-  assert.deepEqual(allocator.entries(), []);
+  assert.equal(allocator.entries().length, 1);
+  assert.equal(allocator.entries()[0].id, `sim:${homeCell.instance}`);
+  assert.equal(allocator.entries()[0].refs, 1);
+  // The page's world and early claim remain live after registry teardown, until the page itself disposes.
+  assert.equal(allocator.entries()[0].bytes, homeBytes);
   console.info(JSON.stringify({ nativeLiveGrid: true, quotaDeferred: true, crossings: 4, existingPhysicsSteps: physicsSteps, gameplayHeldTicks: 60, frozenTicks: 600, openedDoor: true, hurtCreature: hp, restored: true, borrowedHomeRetained: true }));
-} finally { blocker.release(); registry.dispose(); player.motor.dispose(); pageHost.dispose(); }
+} finally { blocker.release(); registry.dispose(); player.motor.dispose(); pageHost.dispose(); pageResidency.dispose(); }
+assert.deepEqual(allocator.entries(), []);

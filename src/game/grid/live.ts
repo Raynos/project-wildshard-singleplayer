@@ -9,6 +9,7 @@ import type { GridAssembly, GridCell, GridPoint } from './assembly';
 import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from './allocator';
 import type { PreparedGridCrossing } from './crossing';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
+import type { HomeResidencyClaim } from './pageResidency';
 
 /** An owned region has authored colliders and logical player state, but no second traveller capsule. */
 export interface LiveGridRegion { host: SimHost; dispose: () => void; walls?: ReadinessWalls }
@@ -22,6 +23,8 @@ export interface LiveGridAdmission {
 /** The page owns its initial world and continuation. The registry never replaces or disposes that borrowed world. */
 export interface LiveGridHome {
   instance: string; physics: Physics; bytes: number; checkpoint: () => boolean;
+  /** The page's pre-allocation claim. The registry acquires its own reference on the same owner and exact cost. */
+  residency?: HomeResidencyClaim;
   afterPlayerStep?: () => void; walls?: ReadinessWalls;
 }
 /** An infallible prepared assignment rebinds the existing page world/player and the renderer's local origin. */
@@ -82,7 +85,7 @@ export class LiveGridHost {
     if (cacheLease === null) throw new Error('Live continuation cache admission deferred by the shared budget');
     this.cacheLease = cacheLease;
     try {
-      this.homeLease = this.claim(ports.home.instance, ports.home.bytes, true);
+      this.homeLease = this.retainHome();
       try {
         this.highwayLease = this.claim('platform.highway', ports.highway.bytes, true);
         try { this.highway = ports.highway.create(); try { this.checkRegion(this.highway); } catch (error) { this.highway.dispose(); throw error; } }
@@ -91,6 +94,12 @@ export class LiveGridHost {
     } catch (error) { this.cacheLease.release(); throw error; }
     const ticket = this.readiness.request(ports.home.instance, 0, homeEstimate, false);
     if (ticket !== null) for (const part of ['colliders', 'sim', 'runtime'] as const) this.readiness.complete(ticket, part);
+  }
+  private retainHome(): ResidencyLease {
+    const home = this.ports.home, claim = home.residency;
+    if (claim === undefined) return this.claim(home.instance, home.bytes, true);
+    if (claim.instance !== home.instance || claim.bytes !== home.bytes || claim.allocator !== this.ports.allocator) throw new Error('Live home residency differs from its admitted page claim');
+    return claim.retain();
   }
   private claim(instance: string, bytes: number, needed: boolean): ResidencyLease {
     const lease = this.ports.allocator.reserve({ id: `sim:${instance}`, category: 'sim', owner: instance, bytes, distance: 0, needed,
