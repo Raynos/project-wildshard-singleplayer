@@ -37,22 +37,51 @@ try {
       if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error('Preview identity mismatch');
       const browser = await pool.browser(0);
       for (const hybrid of variants) {
+      let groupActivation = null;
       const captureBrowser = {
         version: () => browser.version(),
         newContext: async (options) => {
           const context = await browser.newContext(options);
           await saveFixture(context, { scope: 'device', key: 'debug.plugin.driftwood-isle.driftwoodHybrid', data: hybrid });
+          await saveFixture(context, { scope: 'device', key: 'debug.plugin.nalati-grasslands.shardDirectors', data: hybrid });
+          const newPage = context.newPage.bind(context);
+          context.newPage = async () => {
+            const page = await newPage(), wait = page.waitForFunction.bind(page);
+            page.waitForFunction = async (...args) => {
+              const result = await wait(...args);
+              const observed = await page.evaluate(() => {
+                const probe = window.__wildshard;
+                if (probe?.shard?.slug !== 'nalati-grasslands') return null;
+                const wildlife = probe.shard.wildlife;
+                if (!wildlife?.packs?.length || !wildlife?.herds?.length) return null;
+                return { packs: wildlife.packs.map(policy => ({ members: policy.members.map(actor => actor.entityId), declared: typeof policy.snapshot === 'function' })),
+                  herds: wildlife.herds.map(policy => ({ members: policy.members.map(actor => actor.entityId), declared: typeof policy.snapshot === 'function' })),
+                  saved: JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['debug.plugin.nalati-grasslands.shardDirectors']?.data };
+              });
+              if (observed !== null) groupActivation = observed;
+              return result;
+            };
+            return page;
+          };
           return context;
         },
       };
       for (const setting of ['off']) for (const shard of shards) for (const tier of ['phone', 'desktop']) {
         const folder = join(out, `${label}-${hybrid}-${setting}-${shard}-${tier}`); mkdirSync(folder, { recursive: true });
         const opts = { shard, tier, lane: 'm5', sha, root: ROOT, out: folder, timeout: 240, full: true, only: undefined, offline: false, accelerated: true, settings: { memorySaver: setting } };
+        groupActivation = null;
         const record = await capture(captureBrowser, base, opts);
         if (shard === 'driftwood-isle') {
           const installed = Object.values(object(get(record, 'boot.systems'))).flat();
           if (installed.includes('shard.driftwood.movers') !== (hybrid === 'on')) throw new Error(`Hybrid activation witness failed: ${label}/${hybrid}/${tier}`);
           record.activation = { hybrid, system: 'shard.driftwood.movers', present: hybrid === 'on', brainBindingProof: 'test/shards/driftwood-isle/brain-binding.test.ts' };
+        }
+        if (shard === 'nalati-grasslands') {
+          const expected = label === 'current' && hybrid === 'on';
+          if (groupActivation === null || groupActivation.saved !== hybrid || [...groupActivation.packs, ...groupActivation.herds].some(policy => policy.declared !== expected)) {
+            throw new Error(`Nalati group activation witness failed: ${label}/${hybrid}/${tier}: ${JSON.stringify(groupActivation)}`);
+          }
+          record.activation = { deviceKey: 'debug.plugin.nalati-grasslands.shardDirectors', ...groupActivation };
         }
         if (['pine-hollow', 'nalati-grasslands'].includes(shard)) object(record.leak).weather = await weatherLeak(captureBrowser, base, opts);
         const key = `${hybrid}/${setting}/${shard}/${tier}`;
