@@ -54,12 +54,12 @@ describe('§3.3 table: the assembly per mode and both switches together', () => 
     const restricted = (slug: string): boolean => { const m = shards().find((entry) => entry.slug === slug); return m === undefined || m.status === 'experimental' || m.status === 'hidden' || slug.startsWith('_'); };
     const enters = (mode: MenuMode): string[] => shards().map((m) => m.slug).filter((slug) => selectEnters(slug, restricted(slug), mode)).sort();
     expect(enters(MODES.shipped)).toEqual(['driftwood-isle', 'nalati-grasslands', 'pine-hollow']);
-    expect(enters(MODES.developer)).toEqual(['driftwood-isle', 'far-reach', 'nalati-grasslands', 'pine-hollow', 'sunscar-dunes']);
+    expect(enters(MODES.developer)).toEqual(shards().map((m) => m.slug).sort()); // today's switch: every card (G58)
     expect(enters(MODES.devserver)).toEqual(shards().map((m) => m.slug).sort());
     expect(selectExplores('driftwood-isle', false, MODES.shipped)).toBe(false);
     expect(selectExplores('driftwood-isle', false, MODES.developer)).toBe(true);
     expect(selectExplores('_template', true, MODES.devserver)).toBe(true);
-    expect(selectExplores('nine-dragon-stack', true, MODES.developer)).toBe(false);
+    expect(selectExplores('nine-dragon-stack', true, MODES.developer)).toBe(true);
   });
   it('EXPERIMENTAL Wildshard shows only with Developer on until SF22\'s gates pass, then to everyone', () => {
     expect(gridEntryShown(MODES.shipped)).toBe(false);

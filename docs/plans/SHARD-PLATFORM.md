@@ -155,11 +155,11 @@ template in the empty slots. In dev mode we have 5 shards, so you render 4 templ
 | Mode | Select a shard **enters** (it still **shows** what it shows today: locked "Coming soon" cards and draft titles stay; R3-C11) | EXPERIMENTAL Wildshard grid | Explore |
 |---|---|---|---|
 | Shipped | Driftwood Isle, Pine Hollow, Nalati Grasslands | 3 shards + 6 templates | — |
-| Dev mode (Settings ▸ Developer) | + Signal Dunes, Sky Reach | 5 shards + 4 templates | yes (from Select a shard) |
+| Dev mode (Settings ▸ Developer) | every card, as today (Nine Dragon and the template included) | 5 shards + 4 templates | yes (from Select a shard) |
 | DEVSERVER (build-time) | + Nine Dragon Stack, the template | + Nine Dragon at (+1, −1), on by default (its Debug row swaps it back to a template) | yes |
 
-  Today the shipped dev-mode switch unlocks every experimental card, Nine Dragon included (`src/game/titleDeck.ts:115`);
-  SF21a narrows that to the table. An assembly fixture covers each mode and both switches together.
+  The shipped dev-mode switch unlocks every experimental card, Nine Dragon included, and **keeps doing so**: Select a
+  shard is the existing flow (Jake, G58), so SF21a does not narrow it (the coordinator reverted a narrowing, 2026-10-04). An assembly fixture covers each mode and both switches together.
 - Placement lives in one platform grid file (`src/game/grid/singleplayer.json`), never in shard files (W6, B6). Template
   instances are one shardfile placed several times, each with its own save namespace keyed by its stable **instance id**
   (`template-1` … `template-6`; the cell is a separate attribute, SF14).

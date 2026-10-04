@@ -6,9 +6,7 @@ import { SHARDS } from '../src/shards.generated';
 import { findChunk } from '../src/game/shard/registry';
 import { isDev, setDev } from '../src/engine/core/devMode';
 import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
-import catalogue from '../src/game/grid/singleplayer.json';
 
-const DEVELOPER_SHARDS: ReadonlySet<string> = new Set(catalogue.grid.developer.map((row) => row.slug));
 
 afterEach(() => { setDev(false); });
 
@@ -25,12 +23,12 @@ describe('title deck cards', () => {
     expect(titleCards().map((c) => c.slug)).toEqual(SHARDS.filter((c) => c.status !== 'hidden').map((c) => c.slug));
   });
 
-  it('shows the revealed template locked in Developer mode: only a DEVSERVER build enters it (§3.3, SF21a)', () => {
+  it('renders the developer ribbon only on a revealed hidden card (Select a shard stays today\'s flow, G58)', () => {
     setDev(true);
     const deck = buildTitleDeck({ cards: titleCards(), active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined });
-    const template = [...deck.root.querySelectorAll('.ws-menu-card')].find((el) => el.textContent.includes('Template shard'));
-    expect(template?.querySelector('.ws-menu-card-exp')?.textContent).toBe('Coming soon');
-    expect([...deck.root.querySelectorAll('.ws-menu-card-exp')].filter((el) => el.textContent === 'DEVELOPER ONLY')).toHaveLength(0);
+    const ribbons = [...deck.root.querySelectorAll('.ws-menu-card-exp')].filter((el) => el.textContent === 'DEVELOPER ONLY');
+    expect(ribbons).toHaveLength(1);
+    expect(ribbons[0]?.closest('button')?.textContent).toContain('Template shard');
     deck.dispose();
   });
 
@@ -60,8 +58,8 @@ for (const dev of [false, true]) {
     for (const [index, card] of deck.cards.entries()) {
       deck.select(index, false);
       const restricted = card.badge === 'Experimental' || card.badge === 'Developer only';
-      // §3.3 (SF21a): Developer adds only the grid catalogue's developer shards; the rest wait for a DEVSERVER build
-      const enabled = !restricted || (dev && DEVELOPER_SHARDS.has(card.slug));
+      // Developer unlocks every card, as today (Select a shard is the existing flow, G58)
+      const enabled = dev || !restricted;
       const play = deck.root.querySelector<HTMLButtonElement>('.ws-menu-play');
       const explore = deck.root.querySelector<HTMLButtonElement>('.ws-menu-explore');
       expect(play?.disabled, card.slug).toBe(!enabled);

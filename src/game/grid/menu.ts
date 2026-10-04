@@ -1,4 +1,3 @@
-import catalogue from './singleplayer.json' with { type: 'json' };
 import { isDev } from '@wildshard/engine/core/devMode';
 import type { GridMode } from './catalogue';
 
@@ -9,10 +8,10 @@ declare const __DEVSERVER__: boolean;
  *
  *   | mode      | Select a shard enters                        | EXPERIMENTAL Wildshard           |
  *   | shipped   | the live and early-access shards             | hidden until SF22's gates pass   |
- *   | developer | + the catalogue's `developer` shards         | shown: 5 shards + 4 templates    |
- *   | DEVSERVER | + every shard (the `devserver` ones, the template) | + the `devserver` cell, its Debug row |
+ *   | developer | every shard, as today (Jake, G58: Select a shard is the existing flow) | shown: 5 shards + 4 templates |
+ *   | DEVSERVER | every shard                                  | + the `devserver` cell, its Debug row |
  *
- * The shard lists come from the grid catalogue (`singleplayer.json`), never from a shard name here.
+ * The grid's shard lists come from the grid catalogue (`singleplayer.json`), never from a shard name here.
  */
 
 /** SF22's crossroads gates: when they pass, EXPERIMENTAL Wildshard shows to everyone, still labelled EXPERIMENTAL (G61 E1) */
@@ -30,13 +29,11 @@ export function gridEntryShown(mode: MenuMode = menuMode(), gatesPassed = GRID_G
   return gatesPassed || mode.developer;
 }
 
-const developerSlugs: ReadonlySet<string> = new Set(catalogue.grid.developer.map((row) => row.slug));
-
 /** Select a shard's ENTER WORLD, per §3.3's table: `restricted` is a card the shipped game shows locked (experimental,
  *  hidden or a `_` prototype) */
-export function selectEnters(slug: string, restricted: boolean, mode: MenuMode = menuMode()): boolean {
-  if (!restricted || mode.devserver) return true;
-  return mode.developer && developerSlugs.has(slug);
+export function selectEnters(_slug: string, restricted: boolean, mode: MenuMode = menuMode()): boolean {
+  // Developer mode unlocks every card, Nine Dragon included, exactly as today: Select a shard stays the existing flow (G58)
+  return !restricted || mode.developer || mode.devserver;
 }
 
 /** EXPLORE WORLD: a developer tool, in Developer mode or a DEVSERVER build, for a world Select a shard can enter */
