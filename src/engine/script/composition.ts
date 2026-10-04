@@ -1,0 +1,137 @@
+import * as v from 'valibot';
+import { ScriptWorld, SCRIPT_OP, type ScriptEntity, type ScriptEffect, type EffectTransaction } from './effects';
+import { ScriptHost, type ScriptHostOptions, type ScriptCall } from './host';
+import type { ScriptModule } from './lane';
+
+/** A trusted role owns its entity handles, effect validation, query provenance and complete world continuation. */
+export interface ScriptRole {
+  id: string; world: ScriptWorld; query: ScriptHostOptions['query']; events: 'deliver' | 'consume';
+  snapshot: () => string; restore: (saved: string) => void;
+}
+/** Per-binding cadence shares the single host's global fixed-tick allowances. */
+export interface ScheduledScriptBinding { module: string; entity: number; divisor: number }
+/** Input is prepared before the tick starts; committed requests are handled only after successful validation. */
+export interface ScriptSchedule {
+  id: string; role: string; bindings: readonly ScheduledScriptBinding[];
+  input: (binding: ScheduledScriptBinding, tick: number) => readonly number[] | undefined;
+  committed: (binding: ScheduledScriptBinding, result: ScriptCall) => void;
+}
+/** Exactly one level-wide host installs the union of admitted modules once. */
+export interface ScriptCompositionOptions extends Omit<ScriptHostOptions, 'world' | 'query'> {
+  modules: readonly ScriptModule[]; roles: readonly ScriptRole[]; schedules: readonly ScriptSchedule[]; maxEntities: number;
+}
+class RoleWorld extends ScriptWorld {
+  private readonly roles: readonly ScriptRole[];
+  private readonly maximum: number;
+  private ownership: ReadonlyMap<number, ScriptRole> = new Map();
+  constructor(roles: readonly ScriptRole[], maximum: number) {
+    super({ fields: {}, events: [], archetypes: [], maxEntities: maximum }, []);
+    this.roles = roles; this.maximum = maximum; this.refresh();
+  }
+  private owners(): ReadonlyMap<number, ScriptRole> {
+    const owners = new Map<number, ScriptRole>();
+    for (const role of this.roles) for (const entity of role.world.state()) {
+      if (owners.has(entity.id)) throw new Error('Overlapping script roles'); owners.set(entity.id, role);
+    }
+    if (owners.size > this.maximum) throw new Error('Aggregate script entity allowance');
+    return owners;
+  }
+  refresh(): void { this.ownership = this.owners(); }
+  role(entity: number): ScriptRole | undefined { return this.ownership.get(entity); }
+  override entity(entity: number): ScriptEntity | undefined { return this.role(entity)?.world.entity(entity); }
+  override state(): readonly ScriptEntity[] { return this.roles.flatMap(role => role.world.state()).sort((a, b) => a.id - b.id); }
+  override freeze(entity: number, frozen: boolean): void { this.role(entity)?.world.freeze(entity, frozen); }
+  override restore(_entities: readonly ScriptEntity[]): void { throw new Error('Restore complete composed role continuations'); }
+  override prepare(effects: readonly ScriptEffect[], self: number, spawns: number, events: number): EffectTransaction {
+    const owners = this.ownership, role = owners.get(self);
+    if (role === undefined) throw new Error('Unknown script role');
+    for (const effect of effects) if (effect.op === SCRIPT_OP.event && owners.has(effect.b) && owners.get(effect.b) !== role) throw new Error('Cross-role script event');
+    const tx = role.world.prepare(effects, self, spawns, events);
+    // ScriptWorld allocates consecutive handles after its greatest retained entity handle.
+    const next = Math.max(0, ...role.world.state().map(entity => entity.id)) + 1;
+    const spawned = new Set(Array.from({ length: tx.spawns }, (_unused, i) => next + i));
+    if (owners.size + tx.spawns > this.maximum || [...spawned].some(id => owners.has(id))) throw new Error('Aggregate script spawn identity/allowance');
+    for (const effect of effects) if (effect.op === SCRIPT_OP.event && owners.get(effect.b) !== role && !spawned.has(effect.b)) throw new Error('Cross-role script event');
+    return { spawns: tx.spawns, events: tx.events, commit: () => { tx.commit(); if (tx.spawns > 0) this.refresh(); } };
+  }
+}
+const finite = v.pipe(v.number(), v.finite());
+const natural = v.pipe(finite, v.integer(), v.minValue(0));
+const savedSchema = v.strictObject({ contract: v.string(), roles: v.array(v.strictObject({ id: v.string(), state: v.string() })),
+  host: v.strictObject({ tick: v.pipe(finite, v.integer(), v.minValue(-1)), used: v.strictObject({ effects: natural, spawns: natural, events: natural, queries: natural, fuel: natural }),
+    pending: v.array(v.strictObject({ type: natural, target: natural, value: finite })), modules: v.array(v.strictObject({ name: v.string(), memory: v.array(natural), globals: v.array(v.strictObject({ name: v.string(), type: v.picklist(['number', 'bigint']), value: v.string() })), failures: natural, disabled: v.boolean() })) }) });
+
+/** Role-specific worlds share module memory, quarantine, fuel, effects, events and queries under one host. */
+export class ScriptComposition {
+  readonly host: ScriptHost;
+  private readonly world: RoleWorld;
+  private readonly roles: readonly ScriptRole[];
+  private readonly schedules: readonly ScriptSchedule[];
+  private readonly contract: string;
+  constructor(options: ScriptCompositionOptions) {
+    if (options.roles.length > 128 || options.schedules.length > 10000 || new Set(options.roles.map(role => role.id)).size !== options.roles.length
+      || new Set(options.roles.map(role => role.world)).size !== options.roles.length || options.roles.some(role => role.id.length === 0)) throw new Error('Invalid script role identities');
+    this.roles = options.roles.map(role => ({ ...role })).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+    this.world = new RoleWorld(this.roles, options.maxEntities);
+    const modules = new Set(options.modules.map(module => module.name)), keys = new Set<string>();
+    if (new Set(options.schedules.map(schedule => schedule.id)).size !== options.schedules.length) throw new Error('Duplicate script scheduler');
+    this.schedules = options.schedules.map(schedule => ({ ...schedule, bindings: schedule.bindings.map(binding => ({ ...binding }))
+      .sort((a, b) => a.entity - b.entity || (a.module < b.module ? -1 : a.module > b.module ? 1 : 0)) }))
+      .sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+    for (const schedule of this.schedules) for (const binding of schedule.bindings) {
+      const key = `${binding.module}:${binding.entity}`;
+      if (keys.has(key) || !modules.has(binding.module) || this.world.role(binding.entity)?.id !== schedule.role
+        || !Number.isInteger(binding.divisor) || binding.divisor < 1 || 60 % binding.divisor !== 0) throw new Error('Invalid composed script binding');
+      keys.add(key);
+      if (keys.size > 10000) throw new Error('Script binding count allowance');
+    }
+    this.host = new ScriptHost({ ...options, world: this.world, query: (kind, input, entity) => {
+      const role = this.world.role(entity); if (role === undefined) throw new Error('Unknown query role'); return role.query(kind, input, entity);
+    } });
+    for (const module of [...options.modules].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) this.host.install(module.name, module.bytes, module.seedLo, module.seedHi);
+    this.contract = JSON.stringify({ roles: this.roles.map(role => ({ id: role.id, events: role.events })),
+      schedules: this.schedules.map(schedule => ({ id: schedule.id, role: schedule.role, bindings: schedule.bindings })),
+      modules: options.modules.map(module => ({ ...module, bytes: Array.from(module.bytes) })).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+      maxEntities: options.maxEntities, limits: this.host.limits });
+  }
+  /** One strictly later global fixed tick; independent cadences never reset any per-level allowance. */
+  step(tick: number): readonly ScriptCall[] {
+    if (!Number.isSafeInteger(tick) || tick < 0 || tick <= this.host.currentTick) throw new Error('Invalid composed script tick');
+    const due: { schedule: ScriptSchedule; binding: ScheduledScriptBinding; input: readonly number[] }[] = [];
+    const targets = new Set<number>(), consume = new Set<number>();
+    for (const role of this.roles) if (role.events === 'consume') for (const entity of role.world.state()) consume.add(entity.id);
+    for (const schedule of this.schedules) for (const binding of schedule.bindings) {
+      if (tick % binding.divisor !== 0) continue;
+      const input = schedule.input(binding, tick); if (input === undefined) continue;
+      if (input.length > 32 || input[0] !== tick || !input.every(Number.isFinite)) throw new Error('Invalid composed script input');
+      due.push({ schedule, binding, input: [...input] });
+      if (!consume.has(binding.entity)) targets.add(binding.entity);
+    }
+    const pending = this.host.beginTick(tick, { targets, consume }), calls: ScriptCall[] = [];
+    for (const { schedule, binding, input } of due) {
+      const events = pending.flatMap(event => event.target === binding.entity ? [event.type, event.target, event.value, 0, 0, 0] : []);
+      const call = this.host.call(binding.module, binding.entity, input, events); calls.push(call); schedule.committed(binding, call);
+    }
+    return calls;
+  }
+  /** Queue through the role validator; retained and newly queued events share the same global ceiling. */
+  enqueue(event: Parameters<ScriptHost['enqueue']>[0]): void {
+    if (this.world.role(event.target)?.events !== 'deliver') throw new Error('Script role does not accept queued input'); this.host.enqueue(event);
+  }
+  /** Complete role state and the one authoritative host continuation, including sleeping bindings' pending events. */
+  snapshot(): string { return JSON.stringify({ contract: this.contract, roles: this.roles.map(role => ({ id: role.id, state: role.snapshot() })), host: this.host.checkpoint() }); }
+  /** Restore all roles atomically; no input, committed request, author initialization or decision is executed. */
+  restore(text: string): void {
+    const saved = v.parse(savedSchema, JSON.parse(text));
+    if (saved.contract !== this.contract || saved.roles.length !== this.roles.length || new Set(saved.roles.map(role => role.id)).size !== saved.roles.length
+      || saved.roles.some(role => !this.roles.some(current => current.id === role.id))) throw new Error('Incompatible composed continuation');
+    const previous = this.roles.map(role => ({ role, state: role.snapshot() })), host = this.host.checkpoint();
+    try {
+      for (const entry of saved.roles) this.roles.find(role => role.id === entry.id)?.restore(entry.state);
+      this.world.refresh();
+      for (const schedule of this.schedules) for (const binding of schedule.bindings) if (this.world.role(binding.entity)?.id !== schedule.role) throw new Error('Restored script role binding drift');
+      for (const event of saved.host.pending) this.world.prepare([{ op: SCRIPT_OP.event, a: event.type, b: event.target, c: event.value, d: 0 }], event.target, 0, 1);
+      this.host.restoreState(saved.host);
+    } catch (error) { for (const entry of previous) entry.role.restore(entry.state); this.world.refresh(); this.host.restoreState(host); throw error; }
+  }
+}

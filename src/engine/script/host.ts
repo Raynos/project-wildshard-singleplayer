@@ -18,6 +18,8 @@ export interface ScriptHostState {
   tick: number; used: { effects: number; spawns: number; events: number; queries: number; fuel: number }; pending: readonly ScriptEvent[];
   modules: readonly { name: string; memory: readonly number[]; globals: readonly { name: string; type: 'number' | 'bigint'; value: string }[]; failures: number; disabled: boolean }[];
 }
+/** Trusted schedulers retain events for sleeping bindings and consume request-only outputs without redelivery. */
+export interface ScriptEventDelivery { targets: ReadonlySet<number>; consume: ReadonlySet<number> }
 /** Results expose validated requests only after the atomic world-state transaction succeeds. */
 export interface ScriptCall { ok: boolean; effects: readonly ScriptEffect[]; events: readonly ScriptEvent[]; fuel: number; reason: string | undefined; disabled: boolean }
 /** Host dependencies are explicitly installed; no import creates an instance or changes a service. */
@@ -58,6 +60,8 @@ export class ScriptHost {
     for (const key of Object.keys(SCRIPT_LIMITS) as (keyof ScriptLimits)[]) if (!integer(limits[key], 1, SCRIPT_LIMITS[key])) throw new Error(`Invalid script limit: ${key}`);
     this.limits = Object.freeze(limits);
   }
+  /** Read the authoritative tick without copying module memories or checkpoint data. */
+  get currentTick(): number { return this.tick; }
   private charge(state: ModuleState, cost: number): void {
     if (!integer(cost, 1, 0x7fffffff)) throw new Error('Invalid fuel cost');
     state.remaining -= cost; if (state.remaining < 0) throw new Error('Script fuel exhausted');
@@ -110,9 +114,17 @@ export class ScriptHost {
     state.layout = { input, inputBytes, output, outputRecords }; state.good = snapshot(state); this.modules.set(name, state); this.reservedMemory += maximumPages * 3 * 65536;
   }
   /** Reset shared allowances only for a strictly later fixed tick; return prior queued events in insertion order. */
-  beginTick(tick: number): readonly ScriptEvent[] {
+  beginTick(tick: number, delivery?: ScriptEventDelivery): readonly ScriptEvent[] {
     if (this.active || !integer(tick, 0, Number.MAX_SAFE_INTEGER) || tick <= this.tick) throw new Error('Non-monotonic script tick');
-    this.tick = tick; this.used = { effects: 0, spawns: 0, events: 0, queries: 0, fuel: 0 }; const events = this.pending.map((e) => ({ ...e })); this.pending = []; return events;
+    if (delivery !== undefined && ([...delivery.targets, ...delivery.consume].some(id => !integer(id, 1, 0x7fffffff))
+      || [...delivery.targets].some(id => delivery.consume.has(id)))) throw new Error('Invalid scheduled event delivery');
+    const events: ScriptEvent[] = [], retained: ScriptEvent[] = [];
+    for (const event of this.pending) {
+      if (delivery?.consume.has(event.target)) continue;
+      (delivery === undefined || delivery.targets.has(event.target) ? events : retained).push({ ...event });
+    }
+    // Retained events occupy the same allowance as deliveries and newly emitted events.
+    this.tick = tick; this.used = { effects: 0, spawns: 0, events: retained.length, queries: 0, fuel: 0 }; this.pending = retained; return events;
   }
   /** Queue a declared gameplay/scene event for the next script tick, under the same bounded event allowance. */
   enqueue(event: ScriptEvent): void {

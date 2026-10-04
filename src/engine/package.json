@@ -334,6 +334,7 @@
     "./ai/scriptBrain": "./ai/scriptBrain.ts",
     "./sim/edgeProfiles": "./sim/edgeProfiles.ts",
     "./ai/guardian": "./ai/guardian.ts",
-    "./ai/perchHunter": "./ai/perchHunter.ts"
+    "./ai/perchHunter": "./ai/perchHunter.ts",
+    "./script/composition": "./script/composition.ts"
   }
 }

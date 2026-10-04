@@ -3,6 +3,7 @@ import type { AnimalSim } from '../entities/AnimalSim';
 import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptQuery, type ScriptCall } from '../script/host';
 import { ScriptWorld, SCRIPT_OP, type ScriptEffect, type EffectTransaction } from '../script/effects';
 import type { ScriptModule } from '../script/lane';
+import type { ScriptRole, ScriptSchedule, ScheduledScriptBinding } from '../script/composition';
 
 /** Numeric motion intentions; the guest cannot write positions, spawn actors or deal damage. */
 export const BRAIN_FIELD = Object.freeze({ yaw: 1, speed: 2, strafe: 3, turnRate: 4 });
@@ -71,71 +72,110 @@ class BrainWorld extends ScriptWorld {
   }
 }
 
-/** Bounded author policy applied through trusted actor ports after a successful atomic script call. */
-export class ScriptBrainLane {
-  readonly host: ScriptHost;
+/** Role-specific brain driver; it never installs modules or starts a host tick. */
+export class ScriptBrainDriver {
+  readonly world: ScriptWorld;
+  readonly query: ScriptQuery;
+  readonly contract: string;
   private readonly bindings: readonly ScriptBrainBinding[];
   private readonly actors: ReadonlyMap<string, AnimalSim>;
   private readonly ports: ScriptBrainPorts;
-  private readonly contract: string;
-  readonly divisor: number;
-  constructor(options: ScriptBrainOptions) {
+  private readonly divisors: ReadonlyMap<number, number>;
+  constructor(options: ScriptBrainOptions, cadences: ReadonlyMap<number, number> = new Map()) {
     if (!Number.isInteger(options.divisor) || options.divisor < 1 || 60 % options.divisor !== 0) throw new Error('Brain divisor divides 60');
-    this.divisor = options.divisor; this.actors = new Map(options.actors); this.ports = options.ports;
+    this.actors = new Map(options.actors); this.ports = options.ports;
     this.bindings = v.parse(v.pipe(v.array(bindingSchema), v.maxLength(128)), options.bindings).sort((a, b) => a.entity - b.entity);
     if (new Set(this.bindings.map(b => b.entity)).size !== this.bindings.length || new Set(this.bindings.map(b => b.actorId)).size !== this.bindings.length
       || this.bindings.some(b => this.actors.get(b.actorId)?.entityId !== b.actorId || !options.modules.some(m => m.name === b.module)
         || new Set(b.strikes.map(s => s.event)).size !== b.strikes.length)) throw new Error('Invalid trusted brain bindings');
+    if ([...cadences].some(([entity, divisor]) => !this.bindings.some(b => b.entity === entity) || !Number.isInteger(divisor) || divisor < 1 || 60 % divisor !== 0)) throw new Error('Invalid brain binding cadence');
+    this.divisors = new Map(this.bindings.map(b => [b.entity, cadences.get(b.entity) ?? options.divisor]));
     const bindings = new Map(this.bindings.map(b => [b.entity, b]));
-    this.host = new ScriptHost({ world: new BrainWorld(this.bindings), query: (kind, input, self) => {
+    this.world = new BrainWorld(this.bindings);
+    this.query = (kind, input, self) => {
       if (kind !== SCRIPT_PARAMETER_QUERY) return options.query(kind, input, self);
       const binding = bindings.get(self);
       if (binding === undefined || input.length !== 8 || input.some(n => n !== 0)) throw new Error('Brain parameters require trusted self');
       return [...binding.parameters];
-    } });
-    for (const module of options.modules) this.host.install(module.name, module.bytes, module.seedLo, module.seedHi);
-    this.contract = JSON.stringify({ divisor: this.divisor, bindings: this.bindings,
+    };
+    this.contract = JSON.stringify({ divisors: [...this.divisors], bindings: this.bindings,
       modules: options.modules.map(m => ({ ...m, bytes: Array.from(m.bytes) })).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0) });
+  }
+  /** Trusted entity roles select brain-only effect validation, never a general numeric-state translator. */
+  role(roleId: string): ScriptRole { return { id: roleId, world: this.world, query: this.query, events: 'consume', snapshot: () => this.snapshot(), restore: saved => { this.restore(saved); } }; }
+  /** Independent per-actor decisions submit to a composed host without resetting any allowance. */
+  schedule(scheduleId: string, role: string): ScriptSchedule {
+    return { id: scheduleId, role, bindings: this.bindings.map(binding => ({ module: binding.module, entity: binding.entity, divisor: this.divisors.get(binding.entity) ?? 1 })),
+      input: (binding, tick) => this.input(binding, tick), committed: (binding, result) => { this.committed(binding, result); } };
+  }
+  private input(scheduled: ScheduledScriptBinding, tick: number): readonly number[] | undefined {
+    const binding = this.bindings.find(b => b.entity === scheduled.entity && b.module === scheduled.module);
+    const actor = binding === undefined ? undefined : this.actors.get(binding.actorId);
+    if (actor === undefined) throw new Error('Missing trusted brain actor');
+    if (!actor.alive) return undefined;
+    const values = [...this.ports.observe(actor)];
+    if (values.length > 16 || !values.every(Number.isFinite)) throw new Error('Invalid brain observations');
+    return [tick, scheduled.divisor / 60, 0, scheduled.entity, actor.position.x, actor.position.y, actor.position.z,
+      actor.yaw, Number.isFinite(actor.lastHitT) ? actor.lastHitT : -1, actor.attackPhase, ...values];
+  }
+  private committed(scheduled: ScheduledScriptBinding, call: ScriptCall): void {
+    const binding = this.bindings.find(b => b.entity === scheduled.entity && b.module === scheduled.module);
+    const actor = binding === undefined ? undefined : this.actors.get(binding.actorId);
+    if (binding === undefined || actor === undefined) throw new Error('Missing trusted brain actor');
+    const state = this.world.entity(binding.entity);
+    if (!call.ok || state === undefined) { actor.setMotion(actor.yaw, 0, 0); actor.setStrafe(0); return; }
+    actor.setMotion(state.fields[1] ?? 0, state.fields[2] ?? 0, state.fields[4] ?? 0); actor.setStrafe(state.fields[3] ?? 0);
+    for (const event of call.events) {
+      const strike = binding.strikes.find(s => s.event === event.type);
+      if (strike !== undefined && actor.attackPhase < 0 && this.ports.mayAttack(actor)) this.ports.strike(actor, strike.strike);
+    }
+  }
+  /** Role continuation fences actor identity, cadence and tuning; the owning composition snapshots module state once. */
+  checkpoint(): { contract: string; world: ReturnType<ScriptWorld['state']> } { return { contract: this.contract, world: this.world.state() }; }
+  /** JSON role snapshot with no duplicate host or module checkpoint. */
+  snapshot(): string { return JSON.stringify(this.checkpoint()); }
+  /** Validate the complete role before restoring it, without executing decisions, motion or strikes. */
+  restore(text: string): void {
+    const raw: unknown = JSON.parse(text);
+    if (typeof raw !== 'object' || raw === null || !('contract' in raw) || !('world' in raw) || raw.contract !== this.contract) throw new Error('Incompatible brain continuation');
+    const world = v.parse(worldSchema, raw.world);
+    if (world.length !== this.bindings.length || world.some(e => !this.bindings.some(b => b.entity === e.id && b.actorId === e.name))
+      || new Set(world.map(e => e.id)).size !== world.length) throw new Error('Invalid restored brain identity');
+    this.world.restore(world);
+  }
+}
+
+/** Standalone bounded author policy; composed levels use ScriptBrainDriver with their single ScriptComposition host. */
+export class ScriptBrainLane {
+  readonly host: ScriptHost;
+  readonly divisor: number;
+  private readonly driver: ScriptBrainDriver;
+  private readonly scheduler: ScriptSchedule;
+  constructor(options: ScriptBrainOptions) {
+    this.driver = new ScriptBrainDriver(options); this.divisor = options.divisor;
+    this.scheduler = this.driver.schedule('brain', 'brain');
+    this.host = new ScriptHost({ world: this.driver.world, query: this.driver.query });
+    for (const module of options.modules) this.host.install(module.name, module.bytes, module.seedLo, module.seedHi);
   }
   /** Input slots: tick, dt, reserved, trusted self, position xyz, yaw, last-hit time, attack phase, then up to 16 host observations. */
   step(tick: number): readonly ScriptCall[] {
     if (!Number.isSafeInteger(tick) || tick < 0) throw new Error('Invalid brain tick');
     if (tick % this.divisor !== 0) return [];
-    const inputs = this.bindings.map(binding => {
-      const actor = this.actors.get(binding.actorId); if (actor === undefined) throw new Error('Missing trusted brain actor');
-      const values = [...this.ports.observe(actor)];
-      if (values.length > 16 || !values.every(Number.isFinite)) throw new Error('Invalid brain observations');
-      return { binding, actor, input: [tick, this.divisor / 60, 0, binding.entity, actor.position.x, actor.position.y, actor.position.z,
-        actor.yaw, Number.isFinite(actor.lastHitT) ? actor.lastHitT : -1, actor.attackPhase, ...values] };
+    const inputs = this.scheduler.bindings.flatMap(binding => {
+      const input = this.scheduler.input(binding, tick); return input === undefined ? [] : [{ binding, input }];
     });
     this.host.beginTick(tick);
-    const calls: ScriptCall[] = [];
-    for (const { binding, actor, input } of inputs) {
-      if (!actor.alive) continue;
-      const call = this.host.call(binding.module, binding.entity, input); calls.push(call);
-      const state = this.host.world.entity(binding.entity);
-      if (!call.ok || state === undefined) { actor.setMotion(actor.yaw, 0, 0); actor.setStrafe(0); continue; }
-      actor.setMotion(state.fields[1] ?? 0, state.fields[2] ?? 0, state.fields[4] ?? 0); actor.setStrafe(state.fields[3] ?? 0);
-      for (const event of call.events) {
-        const strike = binding.strikes.find(s => s.event === event.type);
-        if (strike !== undefined && actor.attackPhase < 0 && this.ports.mayAttack(actor)) this.ports.strike(actor, strike.strike);
-      }
-    }
-    return calls;
+    return inputs.map(({ binding, input }) => { const call = this.host.call(binding.module, binding.entity, input); this.scheduler.committed(binding, call); return call; });
   }
   /** Actor/motor snapshots are owned by the sim; this captures complete author state and the matching intent contract. */
-  snapshot(): string { return JSON.stringify({ contract: this.contract, world: this.host.world.state(), host: this.host.checkpoint() }); }
+  snapshot(): string { return JSON.stringify({ ...this.driver.checkpoint(), host: this.host.checkpoint() }); }
   /** Restore without executing policy or replaying motion/strike callbacks; reject mismatched actors or declarations atomically. */
   restore(text: string): void {
     const raw: unknown = JSON.parse(text);
-    if (typeof raw !== 'object' || raw === null || !('contract' in raw) || !('world' in raw) || !('host' in raw)
-      || raw.contract !== this.contract) throw new Error('Incompatible brain continuation');
-    const world = v.parse(worldSchema, raw.world);
-    if (world.length !== this.bindings.length || world.some(e => !this.bindings.some(b => b.entity === e.id && b.actorId === e.name))
-      || new Set(world.map(e => e.id)).size !== world.length) throw new Error('Invalid restored brain identity');
-    const beforeWorld = this.host.world.state(), beforeHost = this.host.checkpoint();
+    if (typeof raw !== 'object' || raw === null || !('contract' in raw) || !('world' in raw) || !('host' in raw)) throw new Error('Incompatible brain continuation');
+    const beforeWorld = this.driver.snapshot(), beforeHost = this.host.checkpoint();
     try {
-      this.host.world.restore(world); this.host.restoreState(raw.host as ReturnType<ScriptHost['checkpoint']>);
-    } catch (error) { this.host.world.restore(beforeWorld); this.host.restoreState(beforeHost); throw error; }
+      this.driver.restore(JSON.stringify({ contract: raw.contract, world: raw.world })); this.host.restoreState(raw.host as ReturnType<ScriptHost['checkpoint']>);
+    } catch (error) { this.driver.restore(beforeWorld); this.host.restoreState(beforeHost); throw error; }
   }
 }
