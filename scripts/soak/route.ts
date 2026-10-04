@@ -5,10 +5,10 @@ interface Gl { readonly totalBytes: number; readonly reconciled: boolean; readon
 interface Sample { readonly type: string; readonly phase: string; readonly elapsed: number; readonly footprint: number; readonly interval?: number; readonly gl?: Gl }
 interface Window { readonly start: number; readonly end: number }
 interface Entry { readonly instance: string; readonly admitted: boolean }
-interface Leak { readonly disposalErrors: readonly string[]; readonly scope: { readonly bodies: number; readonly colliders: number }; readonly after: { readonly bodies: number; readonly colliders: number; readonly [key: string]: unknown } }
+interface Leak { readonly disposalErrors: readonly string[]; readonly scope: { readonly bodies: number; readonly colliders: number }; readonly before?: { readonly events?: { readonly listeners: number; readonly answerers: number } }; readonly after: { readonly events?: { readonly listeners: number; readonly answerers: number }; readonly bodies: number; readonly colliders: number; readonly [key: string]: unknown } }
 interface Witness { readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly engineBase?: number; readonly rehearsal?: boolean }
 interface Loop { cycle: number; peakBytes: number; troughBytes: number }
-interface Grade { memoryPass: boolean; gatePass: boolean; peakBytes: number; loadingPeakBytes: number; phoneEstimateBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; loops: Loop[]; recovery: boolean; calibration: boolean; ratios: { cycle: number; raw: number; adjusted: number }[]; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null; rehearsal: boolean }
+interface Grade { memoryPass: boolean; gatePass: boolean; peakBytes: number; loadingPeakBytes: number; phoneEstimateBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; loops: Loop[]; recovery: boolean; calibration: boolean; ratios: { cycle: number; raw: number; adjusted: number }[]; missingGlSamples: number; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null; rehearsal: boolean }
 /** The drive uses the admitted catalogue, never a second hand-maintained shard list. */
 export function soakRoute(cells: readonly Cell[], pitch = 555): { reference: Point; steps: readonly Step[] } {
   const roads = [-1.5, -0.5, 0.5, 1.5].map((n) => n * pitch);
@@ -50,9 +50,9 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
   const combined = (row: Sample, peak = false): number => (peak ? Math.max(row.footprint, row.interval ?? row.footprint) : row.footprint) + (row.gl?.totalBytes ?? Number.POSITIVE_INFINITY);
   const active = samples.filter((row) => row.type === 'sample' && /^(baseline|drive|settle|unloaded)/u.test(row.phase));
   const drive = active.filter((row) => row.phase !== 'unloaded');
-  const peakBytes = Math.max(0, ...drive.map((row) => combined(row, true)));
+  const peakBytes = Math.max(0, ...drive.filter((row) => row.gl !== undefined).map((row) => combined(row, true)));
   const loading = samples.filter((row) => row.type === 'sample' && row.phase === 'loading');
-  const loadingPeakBytes = Math.max(0, ...loading.map((row) => combined(row, true)));
+  const loadingPeakBytes = Math.max(0, ...loading.filter((row) => row.gl !== undefined).map((row) => combined(row, true)));
   const baselines = windows.map((window) => {
     const points = samples.filter((row) => row.type === 'sample' && row.elapsed >= window.start && row.elapsed <= window.end);
     return { ...window, samples: points.length, bytes: points.length === 0 ? null : median(points.map((row) => combined(row))) };
@@ -78,6 +78,7 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
   });
   const calibration = ratios.length === windows.length - 1 && ratios.every((ratio) => ratio.adjusted <= 1.11);
   const gaps = active.slice(1).map((row, index) => row.elapsed - (active.at(index)?.elapsed ?? row.elapsed));
+  const missingGlSamples = [...drive, ...loading].filter((row) => row.gl === undefined).length;
   const sampling = loading.length > 0 && drive.length >= seconds * 0.95 && gaps.every((gap) => gap <= 2.5)
     && [...drive, ...loading].every((row) => row.footprint > 0 && row.gl?.reconciled === true && row.gl.unlabelled === 0);
   const admitted = expected.filter((id) => entries.some((row) => row.instance === id && row.admitted));
@@ -86,9 +87,12 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
   const zeroCensus = (value: unknown): boolean => typeof value === 'number' ? value <= 0 : value !== null && typeof value === 'object' && Object.values(value).every(zeroCensus);
   const leakZero = leak?.disposalErrors.length === 0
     && leak.scope.bodies === 0 && leak.scope.colliders === 0 && leak.after.bodies === 0 && leak.after.colliders === 0
-    && zeroCensus(leak.after);
+    && zeroCensus({ ...leak.after, events: {
+      listeners: (leak.after.events?.listeners ?? 0) - (leak.before?.events?.listeners ?? 0),
+      answerers: (leak.after.events?.answerers ?? 0) - (leak.before?.events?.answerers ?? 0),
+    } });
   const memoryPass = seconds >= 1800 && circuits >= 2 && evictions > 0 && sampling && peakBytes <= 1_000_000_000 && loadingPeakBytes <= 1_800_000_000 && recovery && calibration && leakZero && errors.length === 0;
   return { memoryPass, gatePass: !rehearsal && memoryPass && refused.length === 0 && visited && new Set(crossroads).size === 16,
-    peakBytes, loadingPeakBytes, phoneEstimateBytes: peakBytes * 1.4, baselines, baselineDeltaBytes, loops, recovery, calibration, ratios, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size, rehearsal,
+    peakBytes, loadingPeakBytes, phoneEstimateBytes: peakBytes * 1.4, baselines, baselineDeltaBytes, loops, recovery, calibration, ratios, missingGlSamples, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size, rehearsal,
     limitation: refused.length === 0 ? null : 'Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48.' };
 }

@@ -7,7 +7,7 @@ const witness = () => ({
     gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: Math.min(2, Math.floor(elapsed / 600)) } }))],
   windows: [{ start: 0, end: 10 }, { start: 600, end: 610 }, { start: 1200, end: 1210 }],
   seconds: 1800, circuits: 2, evictions: 6, errors: [],
-  leak: { disposalErrors: [], scope: { bodies: 0, colliders: 0 }, before: {}, after: { bodies: 0, colliders: 0, listeners: { window: 0 }, timers: { intervals: 0 } } },
+  leak: { disposalErrors: [], scope: { bodies: 0, colliders: 0 }, before: { events: { listeners: 7, answerers: 5 } }, after: { events: { listeners: 7, answerers: 5 }, bodies: 0, colliders: 0, listeners: { window: 0 }, timers: { intervals: 0 } } },
   expected: ['template-1'], entries: [{ instance: 'template-1', admitted: true }], crossroads: Array.from({ length: 16 }, (_, index) => String(index)),
 });
 describe('SF57 honest drive and native memory gate', () => {
@@ -45,6 +45,7 @@ describe('SF57 honest drive and native memory gate', () => {
     expect(gradeSoak(drift).recovery).toBe(false);
     const missing = witness(); missing.windows.pop(); expect(gradeSoak(missing).recovery).toBe(false);
     const leak = witness(); leak.leak.after.timers.intervals = 1; expect(gradeSoak(leak).leakZero).toBe(false);
+    const event = witness(); event.leak.after.events.listeners++; expect(gradeSoak(event).leakZero).toBe(false);
   });
   it('reports a refused runtime cell as M3 incomplete even if its proxy and the memory readings look good', () => {
     const result = gradeSoak({ ...witness(), expected: ['template-1', 'runtime-cell'], entries: [...witness().entries, { instance: 'runtime-cell', admitted: false }] });
@@ -68,6 +69,8 @@ describe('SF57 honest drive and native memory gate', () => {
     expect(gradeSoak({ ...witness(), samples: witness().samples.filter((sample) => sample.phase !== 'loading') }).sampling).toBe(false);
     const broken = witness(); for (const sample of broken.samples) sample.gl.reconciled = false;
     expect(gradeSoak(broken).sampling).toBe(false);
-    expect(gradeSoak({ ...witness(), samples: witness().samples.map(({ gl: _gl, ...sample }) => sample) }).memoryPass).toBe(false);
+    const absent = gradeSoak({ ...witness(), samples: witness().samples.map(({ gl: _gl, ...sample }) => sample) });
+    expect(absent.memoryPass).toBe(false); expect(absent.missingGlSamples).toBe(1842);
+    expect(Number.isFinite(absent.peakBytes)).toBe(true);
   });
 });
