@@ -13,7 +13,7 @@ export interface DeclaredAudioData {
 }
 /** Audio source lifetime and cue/score ports, independent of content packages and renderer state. */
 export interface DeclaredAudioPorts {
-  audio: Pick<Audio, 'installSynthBed' | 'restartSynthBed'> & { mkWind: (...args: Parameters<Audio['mkWind']>) => Pick<GainNode, 'disconnect'> };
+  audio: Pick<Audio, 'installSynthBed' | 'restartSynthBed' | 'installCues'> & { mkWind: (...args: Parameters<Audio['mkWind']>) => Pick<GainNode, 'disconnect'> };
   cues: CombatCues;
   voices: ReadonlyMap<string, (opts: CombatCueOpts) => void>;
   music: { readonly out: { readonly gain: Pick<AudioParam, 'value'> } };
@@ -27,12 +27,15 @@ export function installDeclaredAudio(data: DeclaredAudioData, ports: DeclaredAud
     return [cue.id, voice] as const;
   }));
   if (voices.size !== data.cues.length) throw new Error('Duplicate audio cue');
-  const routes = data.routing ?? [], routing = createCueRouter(routes, {
+  const routes = data.routing ?? [], routingPorts = {
     voices: new Map([...ports.voices].map(([id, voice]) => [id, (opts: CombatCueOpts): boolean => { voice(opts); return true; }])),
-    later: (run, seconds) => { ports.scope.timeout(seconds * 1000, run); },
-  });
+    later: (run: () => void, seconds: number) => { ports.scope.timeout(seconds * 1000, run); },
+  };
+  const combatRoutes = routes.filter((route) => route.bus !== 'audio'), audioRoutes = routes.filter((route) => route.bus === 'audio');
+  const combatRouting = createCueRouter(combatRoutes, routingPorts), audioRouting = createCueRouter(audioRoutes, routingPorts);
   ports.cues.use((id, opts) => { const voice = voices.get(id); if (voice === undefined) return false; voice(opts); return true; }, ports.scope);
-  if (routes.length > 0) ports.cues.use(routing, ports.scope);
+  if (combatRoutes.length > 0) ports.cues.use(combatRouting, ports.scope);
+  if (audioRoutes.length > 0) ports.audio.installCues(audioRouting, ports.scope);
   if (data.score === 'silent') {
     const gain = ports.music.out.gain, before = gain.value; gain.value = 0;
     ports.scope.onDispose(() => { gain.value = before; });

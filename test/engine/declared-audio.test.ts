@@ -11,6 +11,7 @@ function fixture() {
   const winds: number[][] = [], beds: string[] = []; let stop: (() => void) | undefined, disconnected = 0;
   const voices = new Map(TEMPLATE_AUDIO.cues.map((cue) => [cue.voice, (opts: CombatCueOpts) => { calls.push({ voice: cue.voice, opts }); }]));
   const audio: DeclaredAudioPorts['audio'] = {
+    installCues: () => undefined,
     installSynthBed: (id, bed, owner) => { beds.push(id); stop = bed.stop; owner.onDispose(bed.stop); bed.start(); },
     restartSynthBed: (id) => { beds.push(`restart:${id}`); },
     mkWind: (...args) => { winds.push(args.filter((arg): arg is number => arg !== undefined)); return { disconnect: () => { disconnected++; } }; },
@@ -62,5 +63,18 @@ it('starts and unloads the data bed through the actual engine mixer lifetime', (
     expect(wind).not.toHaveBeenCalled(); audio.resume();
     expect(wind.mock.calls).toEqual([[260, 0.5, -0.55, 0.07, 0.11], [620, 0.8, 0.55, 0.11, 0.06]]);
     audio.unloadLevel(); expect(stopped).toBe(2); f.scope.dispose(); expect(stopped).toBe(2);
+  } finally { f.scope.dispose(); audio.dispose(); }
+});
+
+it('keeps generic and combat cue buses separate and removes both on unload', () => {
+  const f = fixture(), audio = new Audio(), data = parseAudioData({ ...TEMPLATE_AUDIO, ambience: null, score: 'default', routing: [
+    { id: 'cue.shared', bus: 'audio', actions: [{ voice: 'weapon.swap' }] },
+    { id: 'cue.shared', bus: 'combat', actions: [{ voice: 'sword.hit' }] },
+  ] });
+  try {
+    installDeclaredAudio(data, { ...f.ports, audio });
+    expect(audio.cue('cue.shared')).toBe(true); expect(f.cues.cue('cue.shared')).toBe(true);
+    expect(f.calls.map((call) => call.voice)).toEqual(['weapon.swap', 'sword.hit']);
+    f.scope.dispose(); expect(audio.cue('cue.shared')).toBe(false); expect(f.cues.cue('cue.shared')).toBe(false);
   } finally { f.scope.dispose(); audio.dispose(); }
 });

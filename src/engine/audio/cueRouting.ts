@@ -8,7 +8,12 @@ type Defaults = { readonly [Key in 'pan' | 'gain' | 'strength' | 'speed' | 'heav
 /** A voice action keeps the caller's point/direction references; defaults apply only to absent options. Null delay means synchronous. */
 export interface CueAction { voice: string; when: readonly CueCondition[]; defaults: Defaults; delay: number | null }
 /** First matching route owns a cue; an empty action list consumes intentionally silent cues. */
-export interface CueRoute { id: string; when: readonly CueCondition[]; actions: readonly CueAction[] }
+export interface CueRoute {
+  id: string;
+  /** Generic mixer or combat dispatcher; omitted selects combat for existing declarations. */
+  bus?: 'audio' | 'combat' | undefined;
+  when: readonly CueCondition[]; actions: readonly CueAction[];
+}
 /** Voice recipes are trusted platform implementations. A false result preserves the original fallback boundary. Delayed actions use the supplied scope-owned scheduler. */
 export interface CueRoutingPorts {
   voices: ReadonlyMap<string, (opts: CombatCueOpts) => boolean | undefined>;
