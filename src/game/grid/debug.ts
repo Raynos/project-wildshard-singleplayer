@@ -67,7 +67,7 @@ export function gridRoadCullOn(): boolean {
 export function installGridRoadCullRow(): () => void {
   const strings = GAME_STRINGS.grid;
   return grid.debugRow({
-    id: CULL_ROW, group: 'look', label: strings.roadCull, choices: [{ value: 'off', text: strings.off }, { value: 'on', text: strings.on }], initial: 'off',
+    id: 'gridRoadCull', group: 'look', label: strings.roadCull, choices: [{ value: 'off', text: strings.off }, { value: 'on', text: strings.on }], initial: 'off',
     change: () => undefined, note: strings.roadCullNote, ask: 'E435', reviewBy: '2026-12-30',
   });
 }
