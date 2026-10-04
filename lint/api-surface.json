@@ -6366,6 +6366,12 @@
         "from": "@wildshard/engine/physics/entrySockets"
       },
       {
+        "name": "EntrySocketMode",
+        "kind": "type",
+        "doc": "Backstops sit 5 mm below separately admitted ground, avoiding duplicate coplanar contacts; they never prove ground exists.",
+        "from": "@wildshard/engine/physics/entrySockets"
+      },
+      {
         "name": "EntrySocketOrigin",
         "kind": "interface",
         "doc": "A cell centre in the receiving physics world's frame, never an authored shard collider.",
@@ -7446,6 +7452,30 @@
         "from": "@wildshard/engine/render/families/ground"
       },
       {
+        "name": "applyMeasure",
+        "kind": "function",
+        "doc": "Add a measure layer to a PBR family material (the PBR compiler calls it; the program becomes the measure program).",
+        "from": "@wildshard/engine/render/families/measure"
+      },
+      {
+        "name": "MEASURE_PROGRAM_KEY",
+        "kind": "const",
+        "doc": "the program-cache key of every PBR material with a measure layer",
+        "from": "@wildshard/engine/render/families/measure"
+      },
+      {
+        "name": "measureLookOn",
+        "kind": "function",
+        "doc": "whether the measure look is on",
+        "from": "@wildshard/engine/render/families/measure"
+      },
+      {
+        "name": "setMeasureLook",
+        "kind": "function",
+        "doc": "Switch the measure look on or off for every measure-layer material (a uniform: no recompile).",
+        "from": "@wildshard/engine/render/families/measure"
+      },
+      {
         "name": "compilePainterly",
         "kind": "function",
         "doc": "Compile a painterly surface under `look` to a three.js material (WebGL v1 renderer).",
@@ -7563,6 +7593,36 @@
         "name": "GroundLayerSchema",
         "kind": "const",
         "doc": "The PBR family's ground layer (SF10a part 2, Signal Dunes' sand): wind ripples in two octaves, grain, broad albedo",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "MEASURE_SLOT",
+        "kind": "const",
+        "doc": "the UV slot a measure UV packs into: role and size sit in multiples of it, the face's own metres (+1) below it",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "MeasureLayerParams",
+        "kind": "type",
+        "doc": "A measure layer with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "MeasureLayerSchema",
+        "kind": "const",
+        "doc": "The PBR family's measure layer (SHARD-PLATFORM SF56, G152): a blockout \"dev map\" look drawn by the shader, no texture.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "MeasureRole",
+        "kind": "type",
+        "doc": "The measure layer's surface roles: 1 = structure (orange), 2 = trim (grey).",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "measureUv",
+        "kind": "function",
+        "doc": "The first-UV pair a measure-layer surface carries at one vertex: `role`, the vertex's metres across (`u`) and up",
         "from": "@wildshard/engine/render/families/params"
       },
       {

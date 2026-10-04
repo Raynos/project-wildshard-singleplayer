@@ -1810,7 +1810,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1969 exports, grouped by the module to import them from.
+1979 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1985,7 +1985,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/CharacterMotor`: `CharacterMotor`, `MotorOptions`, `MoveResult`, `rideable`
 - `@wildshard/engine/physics/declaredProps`: `installDeclaredPropColliders`, `PropColliderPort`, `PropColliderState`
 - `@wildshard/engine/physics/edgeEntries`: `walkEdgeEntries`
-- `@wildshard/engine/physics/entrySockets`: `EntrySocket`, `EntrySocketOrigin`, `entrySockets`, `installEntrySockets`
+- `@wildshard/engine/physics/entrySockets`: `EntrySocket`, `EntrySocketMode`, `EntrySocketOrigin`, `entrySockets`, `installEntrySockets`
 - `@wildshard/engine/physics/frame`: `FrameMember`, `PreparedFrameMotors`, `prepareFrameMotors`
 - `@wildshard/engine/physics/gridBorders`: `gridCreatureConstraint`, `GridMountBody`, `installGridBorders`, `installGridMountPassage`
 - `@wildshard/engine/physics/groups`: `GROUP`, `GroupName`, `groups`, `queryGroups`
@@ -2028,8 +2028,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/dataLook`: `DATA_LOOK_DAY`, `dataLook`, `dataLookClock`, `DataLookSpec`, `LookDay`, `LookKey`, `lookSample`, `LookSample`, `sampleLook`
 - `@wildshard/engine/render/families/emissive`: `compileEmissive`, `EMISSIVE_PROGRAM_KEY`, `EmissiveLook`, `EmissiveLookUniforms`, `injectEmissive`
 - `@wildshard/engine/render/families/ground`: `applyGround`, `GROUND_PROGRAM_KEY`, `injectGround`, `updateGround`
+- `@wildshard/engine/render/families/measure`: `applyMeasure`, `MEASURE_PROGRAM_KEY`, `measureLookOn`, `setMeasureLook`
 - `@wildshard/engine/render/families/painterly`: `compilePainterly`, `gradeRgb`, `injectPainterly`, `PAINTERLY_PROGRAM_KEY`, `PainterlyLook`, `PainterlyLookUniforms`, `PainterlyMaterialUniforms`
-- `@wildshard/engine/render/families/params`: `EmissiveLookParams`, `EmissiveLookSchema`, `EmissiveMaterialParams`, `EmissiveMaterialSchema`, `FAMILY_IDS`, `FamilyId`, `FamilyMaterialInput`, `FamilyMaterialParams`, `FamilyMaterialSchema`, `GradeParams`, `GradeSchema`, `GroundLayerParams`, `GroundLayerSchema`, `NeonTubeSchema`, `PainterlyLookParams`, `PainterlyLookSchema`, `PainterlyMaterialParams`, `PainterlyMaterialSchema`, `parseEmissiveLook`, `parseFamilyMaterial`, `parseGroundLayer`, `parsePainterlyLook`, `parseToonLook`, `PbrMaterialParams`, `PbrMaterialSchema`, `Rgb`, `SkyDomeSchema`, `ToonLookParams`, `ToonLookSchema`, `ToonMaterialParams`, `ToonMaterialSchema`
+- `@wildshard/engine/render/families/params`: `EmissiveLookParams`, `EmissiveLookSchema`, `EmissiveMaterialParams`, `EmissiveMaterialSchema`, `FAMILY_IDS`, `FamilyId`, `FamilyMaterialInput`, `FamilyMaterialParams`, `FamilyMaterialSchema`, `GradeParams`, `GradeSchema`, `GroundLayerParams`, `GroundLayerSchema`, `MEASURE_SLOT`, `MeasureLayerParams`, `MeasureLayerSchema`, `MeasureRole`, `measureUv`, `NeonTubeSchema`, `PainterlyLookParams`, `PainterlyLookSchema`, `PainterlyMaterialParams`, `PainterlyMaterialSchema`, `parseEmissiveLook`, `parseFamilyMaterial`, `parseGroundLayer`, `parsePainterlyLook`, `parseToonLook`, `PbrMaterialParams`, `PbrMaterialSchema`, `Rgb`, `SkyDomeSchema`, `ToonLookParams`, `ToonLookSchema`, `ToonMaterialParams`, `ToonMaterialSchema`
 - `@wildshard/engine/render/families/pbr`: `compilePbr`, `pbrFillers`, `TextureResolver`, `TextureUse`
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `familyVariant`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`

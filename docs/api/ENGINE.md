@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1986 members; 830 without a doc line (—).
+1996 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1066,6 +1066,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PropColliderState` | interface | @wildshard/engine/physics/declaredProps | Stable Rapier handles carried by the simulation adapter; activation is saved in the physics snapshot. |
 | `walkEdgeEntries` | function | @wildshard/engine/physics/edgeEntries | Real capsule walks cover every legal 8 m entry for 50 m, at overlapping lateral intervals. |
 | `EntrySocket` | interface | @wildshard/engine/physics/entrySockets | One canonical platform-owned asphalt footprint: full width/depth, with its top at road height y=0. |
+| `EntrySocketMode` | type | @wildshard/engine/physics/entrySockets | Backstops sit 5 mm below separately admitted ground, avoiding duplicate coplanar contacts; they never prove ground exists. |
 | `EntrySocketOrigin` | interface | @wildshard/engine/physics/entrySockets | A cell centre in the receiving physics world's frame, never an authored shard collider. |
 | `entrySockets` | function | @wildshard/engine/physics/entrySockets | Pure geometry shared by standalone, grid and regional composition; north is positive z. |
 | `installEntrySockets` | function | @wildshard/engine/physics/entrySockets | Install the same four scoped WORLD floors for each cell in any play mode. Returned handles belong to the caller's scope. |
@@ -1246,6 +1247,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `GROUND_PROGRAM_KEY` | const | @wildshard/engine/render/families/ground | the program-cache key of every PBR material with a ground layer |
 | `injectGround` | function | @wildshard/engine/render/families/ground | The ground layer injected into a MeshStandard / MeshPhysical source (throws if three moved an include it edits). |
 | `updateGround` | function | @wildshard/engine/render/families/ground | Move some of a ground layer's parameters on a live material (a runtime adapter: Signal Dunes' dusk). Validated; |
+| `applyMeasure` | function | @wildshard/engine/render/families/measure | Add a measure layer to a PBR family material (the PBR compiler calls it; the program becomes the measure program). |
+| `MEASURE_PROGRAM_KEY` | const | @wildshard/engine/render/families/measure | the program-cache key of every PBR material with a measure layer |
+| `measureLookOn` | function | @wildshard/engine/render/families/measure | whether the measure look is on |
+| `setMeasureLook` | function | @wildshard/engine/render/families/measure | Switch the measure look on or off for every measure-layer material (a uniform: no recompile). |
 | `compilePainterly` | function | @wildshard/engine/render/families/painterly | Compile a painterly surface under `look` to a three.js material (WebGL v1 renderer). |
 | `gradeRgb` | function | @wildshard/engine/render/families/painterly | The grade on the CPU, scene-linear → display-linear (the same maths as the shader): to check a colour a look will |
 | `injectPainterly` | function | @wildshard/engine/render/families/painterly | The painterly light model (and, with `graded`, the per-pixel grade) injected into a MeshLambert source. |
@@ -1266,6 +1271,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `GradeSchema` | const | @wildshard/engine/render/families/params | The display grade a painterly look applies per pixel, in the material (no full-screen pass): a gentle filmic shoulder |
 | `GroundLayerParams` | type | @wildshard/engine/render/families/params | A ground layer with every default filled. |
 | `GroundLayerSchema` | const | @wildshard/engine/render/families/params | The PBR family's ground layer (SF10a part 2, Signal Dunes' sand): wind ripples in two octaves, grain, broad albedo |
+| `MEASURE_SLOT` | const | @wildshard/engine/render/families/params | the UV slot a measure UV packs into: role and size sit in multiples of it, the face's own metres (+1) below it |
+| `MeasureLayerParams` | type | @wildshard/engine/render/families/params | A measure layer with every default filled. |
+| `MeasureLayerSchema` | const | @wildshard/engine/render/families/params | The PBR family's measure layer (SHARD-PLATFORM SF56, G152): a blockout "dev map" look drawn by the shader, no texture. |
+| `MeasureRole` | type | @wildshard/engine/render/families/params | The measure layer's surface roles: 1 = structure (orange), 2 = trim (grey). |
+| `measureUv` | function | @wildshard/engine/render/families/params | The first-UV pair a measure-layer surface carries at one vertex: `role`, the vertex's metres across (`u`) and up |
 | `NeonTubeSchema` | const | @wildshard/engine/render/families/params | A neon tube drawn from a distance field (R: the glyph's fill, 0.5 on its edge; G: the distance to its skeleton): a |
 | `PainterlyLookParams` | type | @wildshard/engine/render/families/params | A painterly look with every default filled. |
 | `PainterlyLookSchema` | const | @wildshard/engine/render/families/params | The painterly family's look (Nalati Grasslands, style B): soft cel bands, shade painted with a sky tint, a warm |
