@@ -53,7 +53,7 @@ export function validateFlags(rows, { today, max, raisedBy = [], askExists: hasA
   for (const row of rows) {
     if (typeof row.id !== 'string' || typeof row.ask !== 'string' || !/^E\d+$/u.test(row.ask) || !hasAsk(row.ask)) errors.push(`Unknown ask on ${row.id}: ${row.ask}`);
     const date = Date.parse(`${row.reviewBy}T00:00:00Z`);
-    if (!/^\d{4}-\d{2}-\d{2}$/u.test(row.reviewBy ?? '') || !Number.isFinite(date) || new Date(date).toISOString().slice(0, 10) !== row.reviewBy || date - now > 90 * 86_400_000) errors.push(`Invalid reviewBy on ${row.id}: ${row.reviewBy}`);
+    if (!/^\d{4}-\d{2}-\d{2}$/u.test(row.reviewBy ?? '') || !Number.isFinite(date) || new Date(date).toISOString().slice(0, 10) !== row.reviewBy) errors.push(`Invalid reviewBy on ${row.id}: ${row.reviewBy}`);
     else if (date < now) overdue.push(`${row.id} | ${row.ask} | ${row.reviewBy}`);
   }
   if (rows.length > max) errors.push(`debugRows: was ${max}, now ${rows.length}; raise max and record the new ask in raisedBy`);

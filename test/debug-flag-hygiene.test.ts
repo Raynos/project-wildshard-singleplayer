@@ -19,12 +19,14 @@ describe('Debug flag ownership and review dates', () => {
       for (const row of debugFlags(root)) expect(ids).toContain(row.ask);
     }
   }, 30_000); // walks every Debug row's source and ask file: over 5 s on a loaded machine (assertions unchanged)
-  it('rejects unknown owners and distant dates; an overdue row passes and is listed', () => {
+  it('rejects unknown owners and malformed dates; an overdue row passes and is listed', () => {
     const options = { today: '2026-10-01', max: 1, raisedBy: [], askExists: (id: string) => id === 'E357' };
     const row = { id: 'test', ask: 'E357', reviewBy: '2026-09-30' };
     expect(validateFlags([row], options)).toEqual({ errors: [], overdue: ['test | E357 | 2026-09-30'] });
     expect(validateFlags([{ ...row, ask: 'E999999' }], options).errors).toHaveLength(1);
-    expect(validateFlags([{ ...row, reviewBy: '2026-12-31' }], options).errors).toHaveLength(1);
+    // E388: the owner's date stands; no invented horizon (the old 90-day cap had no source). A malformed date still fails.
+    expect(validateFlags([{ ...row, reviewBy: '2027-12-31' }], options).errors).toEqual([]);
+    expect(validateFlags([{ ...row, reviewBy: '2026-02-30' }], options).errors).toHaveLength(1);
     expect(validateFlags([row, row], options).errors).toHaveLength(1);
   });
 });
