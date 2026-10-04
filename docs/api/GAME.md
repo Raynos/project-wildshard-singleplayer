@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-474 members; 113 without a doc line (—).
+475 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -344,6 +344,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `HybridCellBinding` | interface | @wildshard/game/shardfile/hybrid | Interior events for one catalogue resident; another cell never activates its trusted hooks. |
 | `hybridInstallation` | function | @wildshard/game/shardfile/hybrid | Reuse the ordinary registration verbs with a child owner; changing ctx.scope alone would retain parent registrations. |
 | `HybridResident` | interface | @wildshard/game/shardfile/hybrid | A resident's data world stays alive when its independently scoped trusted play hooks leave. |
+| `HybridResidentWorld` | class | @wildshard/game/shardfile/hybrid | A transitional world's static resources persist for the resident; entered gameplay hooks retain their own scope. |
 | `HybridRuntimeSession` | class | @wildshard/game/shardfile/hybrid | Only the entered cell owns trusted hooks. Prefetch imports the declared chunk without constructing or running it. |
 | `HybridRuntimeState` | interface | @wildshard/game/shardfile/hybrid | Runtime activation status is separate from data residency and asynchronous module preparation. |
 | `hybridShardManifest` | function | @wildshard/game/shardfile/hybrid | Keep a transitional shard's existing standalone presentation while admitting data and resolving its declared code separately. |

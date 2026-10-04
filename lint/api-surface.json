@@ -13830,6 +13830,12 @@
         "from": "@wildshard/game/shardfile/hybrid"
       },
       {
+        "name": "HybridResidentWorld",
+        "kind": "class",
+        "doc": "A transitional world's static resources persist for the resident; entered gameplay hooks retain their own scope.",
+        "from": "@wildshard/game/shardfile/hybrid"
+      },
+      {
         "name": "HybridRuntimeSession",
         "kind": "class",
         "doc": "Only the entered cell owns trusted hooks. Prefetch imports the declared chunk without constructing or running it.",
