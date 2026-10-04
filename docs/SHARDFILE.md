@@ -221,3 +221,8 @@ The trusted compositor may explicitly request `trustedRuntime` for a first-party
 runtime declaration. When its data/content/assets are empty, the data stages add no
 services; the existing runtime supplies gameplay and presentation. Authored data
 still installs normally, and external empty products retain the ordinary Game path.
+
+First-party picker manifests may carry a built `shardfile` URL. The normal entry
+admits that same-origin source before starting the session, retaining the manifest's
+canonical slug, picker art and catalogue save instance. Offline admission reads the
+complete visited product without requesting its source or immutable files again.

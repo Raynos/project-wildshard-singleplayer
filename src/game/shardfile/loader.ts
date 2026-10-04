@@ -13,12 +13,13 @@ import { emptyLook } from './emptyLook';
 import { shardfileLook } from './look';
 import { EmptyEquipment } from './emptyEquipment';
 import type { ShardContext } from '../shard/context';
-import { admitProduct, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
+import { admitProduct, boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
 import { ClientAssets } from './clientAssets';
 import { ShardfileClient, type ShardfileClientBindings } from './client';
 import { clientGround } from './clientGround';
 import { shardfileWater } from './water';
 import { ResidencyAllocator } from '../grid/allocator';
+import { firstPartyInstance } from '../grid/instances';
 
 /** Validate before allocating a level. Content bindings belong to the full loader. */
 export function emptyShardfileSource(input: unknown): ShardManifest {
@@ -84,9 +85,39 @@ export async function installShardfileProduct(input: unknown, options: ProductOp
   const admitted = await admitProduct(input, options);
   if (admitted.source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
   const source = clientSource(admitted, options, bindings);
-  const list = new Map(options.firstParty ? shards().map((manifest) => [manifest.slug.replace(/^_/u, ''), manifest]) : []);
-  list.set(source.slug, source); installShards([...list.values()]);
+  return selectSource(source, options.firstParty);
+}
+
+function selectSource(source: ShardManifest, firstParty: boolean): ShardManifest {
+  const list = new Map(firstParty ? shards().map((manifest) => [manifest.slug.replace(/^_/u, ''), manifest]) : []);
+  list.set(source.slug.replace(/^_/u, ''), source); installShards([...list.values()]);
   game.shard = source; _applyChunkConstants(source); configureLevel(toLevelSpec(source)); return source;
+}
+
+/** Admit a built first-party descriptor before the normal session, preserving picker identity and its canonical save instance. */
+export async function installManifestShardfile(manifest: ShardManifest, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+  if (manifest.shardfile === undefined) return manifest;
+  if (!options.firstParty) throw new Error('Manifest shardfile descriptors require first-party provenance');
+  const url = new URL(manifest.shardfile, options.base);
+  if (url.origin !== new URL(options.base).origin || url.search !== '' || url.hash !== '') throw new Error('Manifest shardfile must be an unqualified same-origin source');
+  const productOptions = { ...options, base: new URL('.', url).href };
+  let input: unknown;
+  if (options.offline) {
+    const visited = await options.cache?.product(productOptions.base);
+    if (visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
+    input = visited.source;
+  } else {
+    input = JSON.parse(new TextDecoder().decode(await boundedResponse(await options.fetch(url.href), 4_000_000)));
+  }
+  const source = parseShardfile(input);
+  const { slug: authoredIdentity } = source.identity, expectedIdentity = manifest.slug.replace(/^_/u, '');
+  if (authoredIdentity !== expectedIdentity) throw new Error('Manifest and shardfile identities differ');
+  if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
+  const admitted = await admitProduct(source, productOptions);
+  return selectSource({ ...clientSource(admitted, productOptions, { ...bindings, instance: firstPartyInstance(manifest.slug) }),
+    slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
+    biome: manifest.biome, blurb: manifest.blurb, card: manifest.card,
+  }, true);
 }
 
 /** Browser connectivity and visited-product storage feed the same admission path as headless validation. */

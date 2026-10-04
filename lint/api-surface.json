@@ -13158,6 +13158,12 @@
         "from": "@wildshard/game/shardfile/loader"
       },
       {
+        "name": "installManifestShardfile",
+        "kind": "function",
+        "doc": "Admit a built first-party descriptor before the normal session, preserving picker identity and its canonical save instance.",
+        "from": "@wildshard/game/shardfile/loader"
+      },
+      {
         "name": "installShardfileProduct",
         "kind": "function",
         "doc": "Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed.",

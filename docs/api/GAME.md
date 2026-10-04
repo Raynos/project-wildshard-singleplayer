@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-385 members; 112 without a doc line (—).
+386 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -306,6 +306,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `browserShardfileOptions` | function | @wildshard/game/shardfile/loader | Browser connectivity and visited-product storage feed the same admission path as headless validation. |
 | `configuredShardfile` | function | @wildshard/game/shardfile/loader | The prebuilt client's HTML supplies data, without a second boot loop or URL switch. |
 | `emptyShardfileSource` | function | @wildshard/game/shardfile/loader | Validate before allocating a level. Content bindings belong to the full loader. |
+| `installManifestShardfile` | function | @wildshard/game/shardfile/loader | Admit a built first-party descriptor before the normal session, preserving picker identity and its canonical save instance. |
 | `installShardfileProduct` | function | @wildshard/game/shardfile/loader | Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed. |
 | `installShardfileSource` | function | @wildshard/game/shardfile/loader | Select a validated external source before the normal session starts. |
 | `loadShardfile` | function | @wildshard/game/shardfile/loader | Load through an installed engine driver; the ordinary unloadLevel owns every resource. |
