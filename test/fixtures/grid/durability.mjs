@@ -55,7 +55,7 @@ try {
   const sibling = new GridRegionDurability(new SaveStore({ local, session: null }), other, source, []);
   assert.equal(sibling.read(), undefined); assert.equal(sibling.wallet.coins(), 0);
   const revised = new GridRegionDurability(new SaveStore({ local, session: null }), identity, { ...source, identity: { ...source.identity, revision: source.identity.revision + 1 } }, []);
-  assert.throws(() => revised.read(), /revision changed/);
+  assert.throws(() => revised.read(), /requires logical migration/);
   const key = [...local.data.keys()].find((name) => name.endsWith(identity.id)); assert.ok(key);
   const document = JSON.parse(local.getItem(key));
   document.keys['platform.region'].data.snapshot = JSON.stringify({ version: 900 }); local.setItem(key, JSON.stringify(document));

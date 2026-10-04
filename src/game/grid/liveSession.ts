@@ -149,7 +149,7 @@ export class LiveGridSession {
       } },
       admit: (cell) => this.admit(cell),
       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
-      read: (instance) => this.regionSave(instance).read(),
+      read: (instance) => this.regionSave(instance).read(true),
       bindFrame: (frame) => { this.bind(frame); },
       gameplayReady: () => true, // a template copy has no entered hooks; Driftwood's hybrid stays default-off (its fence is SF46's)
       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },
@@ -238,6 +238,10 @@ export class LiveGridSession {
         host.detachPlayerMotor(); // the restored world carries its strip duplicates already
       } else {
         savedRegion.bind(sim.host);
+        if (!savedRegion.restoreLogical(sim)) {
+          sim.dispose();
+          throw new Error('Regional logical migration was refused');
+        }
         for (const mesh of duplicates) installStripCollider(sim.host.physics, mesh, sim.host.scope);
       }
       const region = sim, start = region.host.level.player, host = region.host, water = region.water;
