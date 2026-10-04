@@ -957,6 +957,36 @@
         "from": "@wildshard/engine/audio/audioLog"
       },
       {
+        "name": "createCueRouter",
+        "kind": "function",
+        "doc": "Resolve every voice and scheduling dependency up front, then dispatch synchronously in declaration order. Routing never creates a sound tap or random draw.",
+        "from": "@wildshard/engine/audio/cueRouting"
+      },
+      {
+        "name": "CueAction",
+        "kind": "interface",
+        "doc": "A voice action keeps the caller's point/direction references; defaults apply only to absent options. Null delay means synchronous.",
+        "from": "@wildshard/engine/audio/cueRouting"
+      },
+      {
+        "name": "CueCondition",
+        "kind": "type",
+        "doc": "Conditions inspect existing cue options without adding random draws or audio taps.",
+        "from": "@wildshard/engine/audio/cueRouting"
+      },
+      {
+        "name": "CueRoute",
+        "kind": "interface",
+        "doc": "First matching route owns a cue; an empty action list consumes intentionally silent cues.",
+        "from": "@wildshard/engine/audio/cueRouting"
+      },
+      {
+        "name": "CueRoutingPorts",
+        "kind": "interface",
+        "doc": "Voice recipes are trusted platform implementations. A false result preserves the original fallback boundary. Delayed actions use the supplied scope-owned scheduler.",
+        "from": "@wildshard/engine/audio/cueRouting"
+      },
+      {
         "name": "CueBank",
         "kind": "interface",
         "doc": "",

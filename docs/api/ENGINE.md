@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1934 members; 830 without a doc line (—).
+1939 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -167,6 +167,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SynthBed` | interface | @wildshard/engine/audio/Audio | a level's synth bed (`installSynthBed`): started when its id is the bed and no sampled bed of that id decoded |
 | `audioLog` | function | @wildshard/engine/audio/audioLog | record one audio trigger (music, sfx, bark, bed …) in the `window.__audioLog` ring a headless check reads |
 | `AudioLogEntry` | interface | @wildshard/engine/audio/audioLog | The audio trigger log (PINE-HOLLOW-REMASTER A-rows, the audio-wiring lane): every music scene / phase / sting / deck, every |
+| `createCueRouter` | function | @wildshard/engine/audio/cueRouting | Resolve every voice and scheduling dependency up front, then dispatch synchronously in declaration order. Routing never creates a sound tap or random draw. |
+| `CueAction` | interface | @wildshard/engine/audio/cueRouting | A voice action keeps the caller's point/direction references; defaults apply only to absent options. Null delay means synchronous. |
+| `CueCondition` | type | @wildshard/engine/audio/cueRouting | Conditions inspect existing cue options without adding random draws or audio taps. |
+| `CueRoute` | interface | @wildshard/engine/audio/cueRouting | First matching route owns a cue; an empty action list consumes intentionally silent cues. |
+| `CueRoutingPorts` | interface | @wildshard/engine/audio/cueRouting | Voice recipes are trusted platform implementations. A false result preserves the original fallback boundary. Delayed actions use the supplied scope-owned scheduler. |
 | `CueBank` | interface | @wildshard/engine/audio/Cues | — |
 | `cueFiles` | function | @wildshard/engine/audio/Cues | An own set uses one sprite for shots, plus its beds and positional loops. |
 | `CueMap` | type | @wildshard/engine/audio/Cues | — |

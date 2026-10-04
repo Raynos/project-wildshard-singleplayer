@@ -1807,7 +1807,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1917 exports, grouped by the module to import them from.
+1922 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1844,6 +1844,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/audio/AmbienceBeds`: `AmbienceBeds`, `BedDef`, `PositionalLoops`, `ZoneWeights`
 - `@wildshard/engine/audio/Audio`: `AmbientBed`, `AnimalSound`, `Audio`, `CallVoice`, `GameAudio`, `HoofSurface`, `ImpactKind`, `LoopName`, `OneShot`, `SampleLoop`, `SynthBed`
 - `@wildshard/engine/audio/audioLog`: `audioLog`, `AudioLogEntry`
+- `@wildshard/engine/audio/cueRouting`: `createCueRouter`, `CueAction`, `CueCondition`, `CueRoute`, `CueRoutingPorts`
 - `@wildshard/engine/audio/Cues`: `CueBank`, `cueFiles`, `CueMap`, `CueOpts`, `CuePlayer`, `decodeCueSet`, `SampleClip`
 - `@wildshard/engine/audio/declared`: `DeclaredAudioData`, `DeclaredAudioPorts`, `installDeclaredAudio`
 - `@wildshard/engine/audio/gen`: `bubbleBed`, `death`, `footstep`, `hurt`, `impact`, `impulse`, `impulseChannel`, `interact`, `INTERACT_SOUNDS`, `InteractSound`, `Material`, `MATERIALS`, `noiseLoop`, `plunge`, `Room`, `ROOMS`, `STEP_KINDS`, `StepKind`, `synthKit`, `whoosh`
