@@ -13,6 +13,8 @@ import { WorldRegistry } from '../../../src/engine/world/registry';
 import { purseSave, shardSave } from '../../../src/game/saves';
 import { shardContext, type GameServices } from '../../../src/game/shard/context';
 import { toLevelSpec } from '../../../src/game/shard/spec';
+import { resolveLevelBounds, type ShardPlayHooks } from '../../../src/game/shard/runtime';
+import { installBounds } from '../../../src/engine/world/bounds';
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 import manifest from '../../../src/shards/far-reach/manifest';
 import { SkyReachPlugin } from '../../../src/shards/far-reach/plugin';
@@ -31,7 +33,7 @@ import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 const noop = (): void => undefined;
 const loaded = new Set<App>();
 afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); vi.unstubAllGlobals(); });
-async function boot(): Promise<{ app: App; plugin: SkyReachPlugin; stages: string[]; active: Set<string>; fake: FakeGame }> {
+async function boot(entries = false): Promise<{ app: App; plugin: SkyReachPlugin; stages: string[]; active: Set<string>; fake: FakeGame; hooks: ShardPlayHooks }> {
   const fake = new FakeGame(), surface = fakeWorld();
   const physics = new Physics(await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer));
   const app = new App(), plugin = new SkyReachPlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
@@ -50,7 +52,7 @@ async function boot(): Promise<{ app: App; plugin: SkyReachPlugin; stages: strin
   app.registryValue = new WorldRegistry();
   const add = (name: string): (() => void) => { active.add(name); return () => { active.delete(name); }; };
   app.levelAdapters = { inputContext: (def) => { const scope = app.levelScope; if (scope === null) throw new Error('No input scope'); app.input.register(def, scope); app.input.push(def.id, scope); return add(def.id); },
-    debugRow: () => add('debug'), playground: () => add('playground'), hud: { widget: () => add('widget'), pin: () => add('pin'), relabel: () => add('relabel'),
+    debugRow: (row) => { if (row.id === 'farReachEntries' && entries) row.change('on'); return add('debug'); }, playground: () => add('playground'), hud: { widget: () => add('widget'), pin: () => add('pin'), relabel: () => add('relabel'),
       verb: () => add('verb'), disc: () => ({ button: document.createElement('button'), dispose: add('disc') }) } };
   const stage = (id: string): void => { stages.push(id); };
   const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: (_spec, ctx) => {
@@ -66,7 +68,7 @@ async function boot(): Promise<{ app: App; plugin: SkyReachPlugin; stages: strin
   fake.onFixed('step', (dt) => { for (const system of app.systemsByPhase()['fixed.step']) system.run(dt, fake.clock.elapsedTime); });
   fake.onFixed('post', (dt) => { for (const system of app.systemsByPhase()['fixed.post']) system.run(dt, fake.clock.elapsedTime); });
   fake.onUpdate((dt, time) => { for (const system of app.systemsByPhase().update) system.run(dt, time); });
-  app.setState('play'); return { app, plugin, stages, active, fake };
+  app.setState('play'); return { app, plugin, stages, active, fake, hooks: game.runtime?.hooks ?? {} };
 }
 const tick = (app: App, dt: number, t: number): void => {
   for (let i = 0; i < Math.round(dt * 60); i++) for (const phase of ['fixed.pre', 'fixed.step', 'fixed.post'] as const) for (const system of app.systemsByPhase()[phase]) system.run(1 / 60, t);
@@ -76,6 +78,26 @@ const piece = (app: App, id: string): { active?: () => boolean } | undefined => 
 
 describe('Sky Reach contract', () => {
   beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  it.each([false, true])('keeps shipping fall recovery until the entry row is ON (%s)', async (entries) => {
+    const { app, hooks } = await boot(entries), authored = toLevelSpec(manifest).bounds;
+    expect(authored).toEqual({ x0: -120, x1: 120, z0: -240, z1: 60, floor: 12 });
+    const selected = resolveLevelBounds(authored, hooks);
+    expect(selected).toEqual(entries ? { x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 } : authored);
+    if (!entries) { expect(hooks.levelBounds).toBeUndefined(); expect(selected).toBe(authored); }
+    const recover = vi.fn<() => void>(), player = { position: { x: 0, y: 11, z: 0 }, yaw: 0, onGround: false, hover: false, spawn: noop };
+    const scope = app.levelScope; if (scope === null) throw new Error('Missing bounds scope');
+    installBounds(app, scope, selected, { player, toSpawn: recover, floorAt: () => undefined, suspended: () => false });
+    const system = app.systemsByPhase().update.find(row => row.id === 'engine.world.bounds');
+    if (system === undefined) throw new Error('Missing bounds system');
+    system.run(1 / 60, 0); expect(recover).toHaveBeenCalledTimes(entries ? 0 : 1);
+    recover.mockClear(); player.position.y = 30; player.position.x = 130;
+    system.run(1 / 60, 0); expect(recover).toHaveBeenCalledTimes(entries ? 0 : 1);
+    recover.mockClear(); player.position.x = 0; player.position.y = -9;
+    system.run(1 / 60, 0); expect(recover).toHaveBeenCalledOnce();
+    await app.unloadLevel(); expect(toLevelSpec(manifest).bounds).toEqual(authored);
+    expect(app.systemsByPhase().update).toEqual([]);
+  });
+
   it('boots every stage, registers its pieces, creatures and boss, and tears everything down', async () => {
     const { app, plugin, stages, active } = await boot();
     expect(stages).toEqual(['data', 'world', 'kit', 'loadout', 'play', 'finish']);

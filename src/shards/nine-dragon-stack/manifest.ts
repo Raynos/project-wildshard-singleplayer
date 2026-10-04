@@ -21,7 +21,6 @@ import explorePractice from './explore/practice-nine-dragon-stack.webp';
  * calls +Z north, so the minimap's north is the clean room's south (cosmetic; the fragment has no map yet).
  */
 import { TERRAIN } from './terrain';
-import { fragmentFallFloor } from './world/entryFloor';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { ND_BUDGET_INPUTS } from './budgets';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
@@ -162,8 +161,8 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   // the fragment's limits: its footprint (the Well and its run north west of the square, the street north to its end
   // wall, the stair-street east to its top landing) and a floor under the Well's lowest crossing (Y0 − 93, well-plan.ts).
   // The walls and parapets keep the player in; past these (a grapple gone wrong, a fall into the shaft) they are put
-  // back on the last floor they stood on. SF51-g: the floor drops under the entry decks while they are on (world/entryFloor.ts)
-  bounds: { x0: WELL.x0 - 8, x1: STAIR.x1 + 20, z0: STREET.z0 + 100, z1: PLAZA.z1 + 8, get floor(): number { return fragmentFallFloor(); } },
+  // back on the last floor they stood on. The entry Debug row selects its lower floor through the session hook.
+  bounds: { x0: WELL.x0 - 8, x1: STAIR.x1 + 20, z0: STREET.z0 + 100, z1: PLAZA.z1 + 8, floor: Y0 - 100 },
 
   style: 'jiehua',
 };

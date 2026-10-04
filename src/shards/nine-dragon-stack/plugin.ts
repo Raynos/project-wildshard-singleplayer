@@ -12,7 +12,6 @@ import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { STRINGS } from './strings';
 import { ndEntriesEnabled } from './debug';
-import { setEntryDecksFloor } from './world/entryFloor';
 
 
 /** `entries`: the SF51-g landing decks at road height (pause ▸ Settings ▸ Debug ▸ Nine Dragon entries, default off) */
@@ -34,7 +33,7 @@ export class NdPlugin extends ShardPlugin {
     await installAudio(ctx);
     ctx.rows.weapon(JIAN_ROW);
     ctx.rows.tool(FEI_ZHUA_ROW);
-    const shell = ctx.game.runtime;
+    const shell = this.shell;
     if (shell === undefined) throw new Error('Nine Dragon equipment requires the game session');
     shell.buildEquipment = (targets, nolock, viewmodel) => {
       const world = shell.world;
@@ -49,6 +48,7 @@ export class NdPlugin extends ShardPlugin {
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
     equipment.add(new FeiZhua(ctx), { locked: false });
   }
+  private shell: ShardContext['game']['runtime'];
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {
     super();
@@ -58,7 +58,8 @@ export class NdPlugin extends ShardPlugin {
     ctx.strings(STRINGS);
     ctx.playground(GRAPPLE_PLAYGROUND);
     const entries = ndEntriesEnabled(ctx);
-    setEntryDecksFloor(entries); // every boot sets it (only this shard's bounds read it)
+    this.shell = ctx.game.runtime;
+    if (entries && this.shell !== undefined) this.shell.hooks.levelBounds = (bounds) => bounds === undefined ? undefined : { ...bounds, floor: -20 };
     const { world, camera } = await this.build(ctx, entries);
     if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     const rt = installWorld(ctx, world, camera, entries);

@@ -5,6 +5,7 @@ import type { LevelContext } from '../../../src/engine/level/context';
 import type { LevelDriver } from '../../../src/engine/level/load';
 import { shardContext, type GameServices } from '../../../src/game/shard/context';
 import { toLevelSpec } from '../../../src/game/shard/spec';
+import { resolveLevelBounds, type ShardPlayHooks } from '../../../src/game/shard/runtime';
 import manifest from '../../../src/shards/nine-dragon-stack/manifest';
 import { NdPlugin } from '../../../src/shards/nine-dragon-stack/plugin';
 import { ndRuntime } from '../../../src/shards/nine-dragon-stack/runtime/state';
@@ -23,7 +24,7 @@ const loaded = new Set<App>();
 const built: boolean[] = [];
 afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); });
 
-function setup(entries: 'off' | 'on' = 'off'): { app: App; world: NineDragonWorld; plugin: NdPlugin; context: (ctx: LevelContext) => ReturnType<typeof shardContext>; fake: FakeGame } {
+function setup(entries: 'off' | 'on' = 'off'): { app: App; world: NineDragonWorld; plugin: NdPlugin; context: (ctx: LevelContext) => ReturnType<typeof shardContext>; fake: FakeGame; hooks: ShardPlayHooks } {
   const app = new App(), fake = new FakeGame();
   app.registryValue = new WorldRegistry();
   app.render = fake.asGame(); app.scene = fake.scene;
@@ -36,9 +37,10 @@ function setup(entries: 'off' | 'on' = 'off'): { app: App; world: NineDragonWorl
   const world: NineDragonWorld = { root: new Group(), shared: new Shared(), ctx: { hooks: [] },
     update: vi.fn<() => void>(), cull: vi.fn<() => void>(), culler: new InstanceCuller() };
   const plugin = new NdPlugin((_ctx, decks) => { built.push(decks); return Promise.resolve({ world, camera: fake.camera }); });
-  const game: GameServices = { shard: manifest, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
+  const hooks: ShardPlayHooks = {};
+  const game: GameServices = { shard: manifest, rows: new Map(), bag: { tab: () => noop, fragment: () => noop }, runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks, viewer: () => fake.camera.position, horizonVeil: null } };
   loaded.add(app);
-  return { app, world, plugin, fake, context: (ctx) => shardContext(ctx, manifest, game) };
+  return { app, world, plugin, fake, hooks, context: (ctx) => shardContext(ctx, manifest, game) };
 }
 
 describe('Nine Dragon world hook', () => {
@@ -78,7 +80,7 @@ describe('Nine Dragon world hook', () => {
     expect(ndRuntime()).not.toBe(runtime);
   });
 
-  it('SF51-g: Debug ▸ Nine Dragon entries adds the four road-height decks and drops the fall floor under them (every boot sets it)', async () => {
+  it('SF51-g: entry bounds belong to each session, leaving OFF and concurrent manifests unchanged', async () => {
     const off = setup();
     built.length = 0;
     await off.app.loadLevel(toLevelSpec(manifest), { world: (ctx) => off.plugin.world(off.context(ctx)) });
@@ -92,7 +94,10 @@ describe('Nine Dragon world hook', () => {
     expect(on.app.registry.pieces).toHaveLength(4);
     expect(floors?.colliders).toEqual([...fragmentColliders().floors, ...entryDeckColliders()]); expect(floors?.floor).toBe(withDecks);
     expect(withDecks(0, 240)).toBe(0); expect(withDecks(5, 0)).toBe(Y0);
-    expect(toLevelSpec(manifest).bounds?.floor).toBeLessThan(-1.2);
+    expect(toLevelSpec(manifest).bounds?.floor).toBe(Y0 - 100);
+    expect(resolveLevelBounds(toLevelSpec(manifest).bounds, on.hooks)?.floor).toBe(-20);
+    expect(resolveLevelBounds(toLevelSpec(manifest).bounds, off.hooks)?.floor).toBe(Y0 - 100);
+    expect(off.hooks.levelBounds).toBeUndefined();
     await on.app.unloadLevel();
   });
 

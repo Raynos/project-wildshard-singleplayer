@@ -16,8 +16,8 @@ export const SKY_REACH: ShardManifest = {
   // A built world (G23, structures only): every island and bridge is a registry piece (world/build.ts); no terrain mesh or
   // collider, the analytic floor is y -1000. The void under the islands is the cloud sea; `world.killY` ends a fall.
   ground: { structures: true, paths: 'plugin' },
-  // SF49-g (G99): the whole 500 m cell, its soft-respawn floor under the four road-level entry landings (world/ramps.ts)
-  spawn: { x: SPAWN.x, y: DECK + 1, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 },
+  // Shipping bounds stay unchanged; the entry Debug row overrides them through the session hook.
+  spawn: { x: SPAWN.x, y: DECK + 1, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -120, x1: 120, z0: -240, z1: 60, floor: DECK - 18 },
   world: { killY: DECK - 24 },
   horizon: { rings: [], cloudSea: false }, boundary: { visible: false },
   minimap: { palette: SKY_REACH_MINIMAP }, // the islands over the cloud sea, the bridges, the places (look/minimap.ts)
