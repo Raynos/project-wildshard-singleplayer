@@ -99,6 +99,9 @@
     "./shardfile/scriptComposition": "./shardfile/scriptComposition.ts",
     "./shardfile/groupBrains": "./shardfile/groupBrains.ts",
     "./shardfile/groupRuntime": "./shardfile/groupRuntime.ts",
-    "./grid/pageBoot": "./grid/pageBoot.ts"
+    "./grid/pageBoot": "./grid/pageBoot.ts",
+    "./shardfile/admissionLimits": "./shardfile/admissionLimits.ts",
+    "./shardfile/preflight": "./shardfile/preflight.ts",
+    "./shardfile/assetGraph": "./shardfile/assetGraph.ts"
   }
 }
