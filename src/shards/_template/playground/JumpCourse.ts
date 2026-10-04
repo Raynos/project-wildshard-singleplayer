@@ -1,6 +1,7 @@
 import type { Playground, PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
-import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import { Group, Vector3 } from 'three';
 import { STRINGS } from '../strings';
+import { jumpCoursePads } from './JumpPads';
 import { ownPrimitives } from '../world/resources';
 
 export class JumpCourse implements Playground {
@@ -8,9 +9,10 @@ export class JumpCourse implements Playground {
   readonly root = new Group(); readonly map: Playground['map'] = { bounds: { x0: -5, x1: 5, z0: -12, z1: 3 }, shapes: [0, 1, 2].map((i) => ({ kind: 'rect', x0: -1.5, x1: 1.5, z0: -i * 4 - 1.5, z1: -i * 4 + 1.5, fill: '#888888' })), markers: () => [] };
   entered = false; private readonly host: PlaygroundHost; private readonly saved = new Vector3(); private yaw = 0;
   constructor(host: PlaygroundHost) { this.host = host;
-    for (let i = 0; i < 3; i++) { const z = -i * 4, y = 3000 + i * 0.3, pad = new Mesh(new BoxGeometry(3, 0.3, 3), new MeshStandardMaterial({ color: 0x888888, flatShading: true })); pad.position.set(0, y, z); this.root.add(pad);
+    this.root.add(...jumpCoursePads(3000).children);
+    for (const [i, pad] of this.root.children.entries()) { const { x, y, z } = pad.position;
       const piece = host.registry.add({ id: `template.jump.${i}`, name: STRINGS.jump, category: 'ground', file: 'src/shards/_template/playground/JumpCourse.ts', object: pad,
-        colliders: [{ kind: 'box', x: 0, y, z, hx: 1.5, hy: 0.15, hz: 1.5 }], active: () => this.entered });
+        colliders: [{ kind: 'box', x, y, z, hx: 1.5, hy: 0.15, hz: 1.5 }], active: () => this.entered });
       host.game.levelScope.onDispose(() => { const at = host.registry.pieces.indexOf(piece); if (at !== -1) host.registry.pieces.splice(at, 1); }); }
     host.game.scene.add(this.root); this.root.visible = false;
     ownPrimitives(this.root, host.game.levelScope);

@@ -5934,6 +5934,24 @@
         "from": "@wildshard/engine/physics/CharacterMotor"
       },
       {
+        "name": "installDeclaredPropColliders",
+        "kind": "function",
+        "doc": "Install bounded box/stair descriptors with stable owner IDs. A physics getter reconnects ports after snapshot restore.",
+        "from": "@wildshard/engine/physics/declaredProps"
+      },
+      {
+        "name": "PropColliderPort",
+        "kind": "interface",
+        "doc": "Authoritative active-state ports for static declared props; scripts call them on the fixed-step host.",
+        "from": "@wildshard/engine/physics/declaredProps"
+      },
+      {
+        "name": "PropColliderState",
+        "kind": "interface",
+        "doc": "Stable Rapier handles carried by the simulation adapter; activation is saved in the physics snapshot.",
+        "from": "@wildshard/engine/physics/declaredProps"
+      },
+      {
         "name": "GROUP",
         "kind": "const",
         "doc": "Collision groups (project/archive/2026-09-23-physics.md §Architecture): who can touch whom. Rapier packs a collider's groups in one",
@@ -9394,6 +9412,24 @@
         "from": "@wildshard/engine/world/dayCycle"
       },
       {
+        "name": "DeclaredProps",
+        "kind": "interface",
+        "doc": "Admitted prop bindings; the game validates hashes and tile relationships before handing bytes to this renderer.",
+        "from": "@wildshard/engine/world/declaredProps"
+      },
+      {
+        "name": "installDeclaredProps",
+        "kind": "function",
+        "doc": "Parse only admitted memory, apply a resolved family and texture catalogue, and dispose everything with the level.",
+        "from": "@wildshard/engine/world/declaredProps"
+      },
+      {
+        "name": "InstalledProps",
+        "kind": "interface",
+        "doc": "Level-owned roots and stable panel/model ports. Visibility/pose commands act on the returned roots.",
+        "from": "@wildshard/engine/world/declaredProps"
+      },
+      {
         "name": "FaunaCell",
         "kind": "interface",
         "doc": "One cell of the layout — returned by `layoutFaunaCells` for tests / the dev overlay.",
@@ -12510,6 +12546,30 @@
         "from": "@wildshard/game/shardfile/product"
       },
       {
+        "name": "propColliderDescriptors",
+        "kind": "function",
+        "doc": "Remove absent optional fields before handing admitted shapes to the engine's exact collider descriptor port.",
+        "from": "@wildshard/game/shardfile/props"
+      },
+      {
+        "name": "PropsSchema",
+        "kind": "const",
+        "doc": "Declared self-contained GLBs: merged tile meshes, EXT_mesh_gpu_instancing lists, far proxy and script-addressable panels.",
+        "from": "@wildshard/game/shardfile/props"
+      },
+      {
+        "name": "ShardProps",
+        "kind": "type",
+        "doc": "Validated data for the props renderer; no callbacks, URLs or generator code enter this section.",
+        "from": "@wildshard/game/shardfile/props"
+      },
+      {
+        "name": "validatePropsReferences",
+        "kind": "function",
+        "doc": "Check every render binding against ordinary admitted file, tile and library rows before allocating content.",
+        "from": "@wildshard/game/shardfile/props"
+      },
+      {
         "name": "parseQuestData",
         "kind": "function",
         "doc": "Compile TypeScript-authored rows to validated serialisable quest/dialogue data.",
@@ -14164,6 +14224,48 @@
         "from": "@wildshard/sdk/author"
       },
       {
+        "name": "GlbPrimitive",
+        "kind": "interface",
+        "doc": "A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets.",
+        "from": "@wildshard/sdk/bake/glb"
+      },
+      {
+        "name": "propBounds",
+        "kind": "function",
+        "doc": "Collect world-space bounds without changing or flattening the generator's hierarchy.",
+        "from": "@wildshard/sdk/bake/glb"
+      },
+      {
+        "name": "staticGlb",
+        "kind": "function",
+        "doc": "A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader.",
+        "from": "@wildshard/sdk/bake/glb"
+      },
+      {
+        "name": "BakedProps",
+        "kind": "interface",
+        "doc": "Content-addressed GLBs and tile rows, including actual budget numbers and an independent far proxy.",
+        "from": "@wildshard/sdk/bake/props"
+      },
+      {
+        "name": "bakeProps",
+        "kind": "function",
+        "doc": "Merge props into the canonical 8×8 / 4×4 grid, instance L0 scatter, and refuse every over-budget output.",
+        "from": "@wildshard/sdk/bake/props"
+      },
+      {
+        "name": "PropsBakeSource",
+        "kind": "interface",
+        "doc": "Trusted static content. Named panels remain separate, and coarse/far replacements are optional build-time inputs.",
+        "from": "@wildshard/sdk/bake/props"
+      },
+      {
+        "name": "PropScatter",
+        "kind": "interface",
+        "doc": "A reusable scatter shape and its world-local positive TRS matrices; generators run only at build time.",
+        "from": "@wildshard/sdk/bake/props"
+      },
+      {
         "name": "BakedTerrain",
         "kind": "interface",
         "doc": "Immutable wire files plus the ordinary shardfile rows and a validated terrain section.",
@@ -14186,6 +14288,12 @@
         "kind": "interface",
         "doc": "An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together.",
         "from": "@wildshard/sdk/bake/terrain"
+      },
+      {
+        "name": "bakeColourTexture",
+        "kind": "function",
+        "doc": "Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC.",
+        "from": "@wildshard/sdk/bake/texture"
       },
       {
         "name": "LedgerFact",

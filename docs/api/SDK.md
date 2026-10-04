@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-43 members; 0 without a doc line (—).
+51 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -17,10 +17,18 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `AudioDataSchema` | const | @wildshard/sdk/audio | Compile cue mappings, wind ambience and silent/default score declarations. |
 | `parseAudioData` | function | @wildshard/sdk/audio | Validate the thin audio section before compiling a shardfile. |
 | `emptyShardfile` | function | @wildshard/sdk/author | Start an author project with a valid empty world; add baked content before shipping a playable shard. |
+| `GlbPrimitive` | interface | @wildshard/sdk/bake/glb | A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets. |
+| `propBounds` | function | @wildshard/sdk/bake/glb | Collect world-space bounds without changing or flattening the generator's hierarchy. |
+| `staticGlb` | function | @wildshard/sdk/bake/glb | A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader. |
+| `BakedProps` | interface | @wildshard/sdk/bake/props | Content-addressed GLBs and tile rows, including actual budget numbers and an independent far proxy. |
+| `bakeProps` | function | @wildshard/sdk/bake/props | Merge props into the canonical 8×8 / 4×4 grid, instance L0 scatter, and refuse every over-budget output. |
+| `PropsBakeSource` | interface | @wildshard/sdk/bake/props | Trusted static content. Named panels remain separate, and coarse/far replacements are optional build-time inputs. |
+| `PropScatter` | interface | @wildshard/sdk/bake/props | A reusable scatter shape and its world-local positive TRS matrices; generators run only at build time. |
 | `BakedTerrain` | interface | @wildshard/sdk/bake/terrain | Immutable wire files plus the ordinary shardfile rows and a validated terrain section. |
 | `bakeTerrain` | function | @wildshard/sdk/bake/terrain | Bake a shared 257² lattice into 64 L0 and 16 L1 tiles, with an independent whole-sim collision file. |
 | `TerrainBakeSource` | interface | @wildshard/sdk/bake/terrain | Trusted generator inputs. These closures run only while baking and never enter shard.json or the client. |
 | `TerrainOverride` | interface | @wildshard/sdk/bake/terrain | An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together. |
+| `bakeColourTexture` | function | @wildshard/sdk/bake/texture | Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC. |
 | `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |
 | `LedgerFactSchema` | const | @wildshard/sdk/ledger | Compile a host-witnessed fact with placement identity and provenance. |
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |

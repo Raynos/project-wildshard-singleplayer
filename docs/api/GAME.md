@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-306 members; 112 without a doc line (—).
+310 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -267,6 +267,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ProductCache` | interface | @wildshard/game/shardfile/product | Storage is injected so offline admission uses the same path in browsers and tests. |
 | `ProductOptions` | interface | @wildshard/game/shardfile/product | Loading is explicit about connectivity and first-party provenance, never inferred from an author field. |
 | `ProductVersions` | interface | @wildshard/game/shardfile/product | Version readers are trusted client migrations; content cannot register its own compatibility rule. |
+| `propColliderDescriptors` | function | @wildshard/game/shardfile/props | Remove absent optional fields before handing admitted shapes to the engine's exact collider descriptor port. |
+| `PropsSchema` | const | @wildshard/game/shardfile/props | Declared self-contained GLBs: merged tile meshes, EXT_mesh_gpu_instancing lists, far proxy and script-addressable panels. |
+| `ShardProps` | type | @wildshard/game/shardfile/props | Validated data for the props renderer; no callbacks, URLs or generator code enter this section. |
+| `validatePropsReferences` | function | @wildshard/game/shardfile/props | Check every render binding against ordinary admitted file, tile and library rows before allocating content. |
 | `parseQuestData` | function | @wildshard/game/shardfile/quests | Compile TypeScript-authored rows to validated serialisable quest/dialogue data. |
 | `QuestData` | type | @wildshard/game/shardfile/quests | Plain quest graphs, declared flags/triggers and finite dialogue trees; hooks name platform-resolved script ports. |
 | `questDataRules` | function | @wildshard/game/shardfile/quests | Reject dangling flags, repeated identities, unreachable dialogue nodes and cycles before installing authored data. |

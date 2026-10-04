@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1822 members; 831 without a doc line (—).
+1828 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -994,6 +994,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `MotorOptions` | interface | @wildshard/engine/physics/CharacterMotor | — |
 | `MoveResult` | interface | @wildshard/engine/physics/CharacterMotor | — |
 | `rideable` | function | @wildshard/engine/physics/CharacterMotor | — |
+| `installDeclaredPropColliders` | function | @wildshard/engine/physics/declaredProps | Install bounded box/stair descriptors with stable owner IDs. A physics getter reconnects ports after snapshot restore. |
+| `PropColliderPort` | interface | @wildshard/engine/physics/declaredProps | Authoritative active-state ports for static declared props; scripts call them on the fixed-step host. |
+| `PropColliderState` | interface | @wildshard/engine/physics/declaredProps | Stable Rapier handles carried by the simulation adapter; activation is saved in the physics snapshot. |
 | `GROUP` | const | @wildshard/engine/physics/groups | Collision groups (project/archive/2026-09-23-physics.md §Architecture): who can touch whom. Rapier packs a collider's groups in one |
 | `GroupName` | type | @wildshard/engine/physics/groups | — |
 | `groups` | function | @wildshard/engine/physics/groups | The packed `collisionGroups` / `solverGroups` value for a collider of this kind. |
@@ -1570,6 +1573,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ScheduleSeg` | interface | @wildshard/engine/world/dayCycle | — |
 | `smooth` | function | @wildshard/engine/world/dayCycle | — |
 | `TimePick` | type | @wildshard/engine/world/dayCycle | — |
+| `DeclaredProps` | interface | @wildshard/engine/world/declaredProps | Admitted prop bindings; the game validates hashes and tile relationships before handing bytes to this renderer. |
+| `installDeclaredProps` | function | @wildshard/engine/world/declaredProps | Parse only admitted memory, apply a resolved family and texture catalogue, and dispose everything with the level. |
+| `InstalledProps` | interface | @wildshard/engine/world/declaredProps | Level-owned roots and stable panel/model ports. Visibility/pose commands act on the returned roots. |
 | `FaunaCell` | interface | @wildshard/engine/world/faunaLayout | One cell of the layout — returned by `layoutFaunaCells` for tests / the dev overlay. |
 | `FaunaGroup` | interface | @wildshard/engine/world/faunaLayout | Fauna layout — MANY SMALL GROUPS SPREAD OVER THE WHOLE SHARD, instead of a few big herds. |
 | `FaunaLayoutOpts` | interface | @wildshard/engine/world/faunaLayout | — |

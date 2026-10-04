@@ -8,7 +8,9 @@ import { STRINGS } from '../strings';
 import { ownPrimitives } from '../world/resources';
 
 const cube = (w: number, h: number, d: number, color = 0x888888): Mesh => new Mesh(new BoxGeometry(w, h, d), new MeshStandardMaterial({ color, flatShading: true }));
-export function buildWorld(ctx: ShardContext, propCount: number): { door: Interactable; doorAt: Vector3 } {
+/** The world's build-time ports, also used by the trusted baker fixture; no session is needed to construct shapes. */
+export type WorldBuildPorts = Pick<ShardContext, 'root' | 'piece' | 'scope'> & { app: Pick<ShardContext['app'], 'rng'>; manifest: { ground: { terrain?: { heightAt: (x: number, z: number) => number } } } };
+export function buildWorld(ctx: WorldBuildPorts, propCount: number): { door: Interactable; doorAt: Vector3 } {
   const y = ctx.manifest.ground.terrain?.heightAt(HUT.x, HUT.z) ?? 0;
   const hut = new Group(); hut.position.set(HUT.x, y, HUT.z);
   const roof = cube(6, 0.3, 6); roof.position.y = 3; hut.add(roof);

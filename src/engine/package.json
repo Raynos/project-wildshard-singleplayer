@@ -304,6 +304,8 @@
     "./physics/terrainTiles": "./physics/terrainTiles.ts",
     "./ai/phases": "./ai/phases.ts",
     "./audio/declared": "./audio/declared.ts",
-    "./world/water/declared": "./world/water/declared.ts"
+    "./world/water/declared": "./world/water/declared.ts",
+    "./world/declaredProps": "./world/declaredProps.ts",
+    "./physics/declaredProps": "./physics/declaredProps.ts"
   }
 }

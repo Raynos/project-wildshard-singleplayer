@@ -13,7 +13,10 @@
     "./quests": "./quests.ts",
     "./audio": "./audio.ts",
     "./rows": "./rows.ts",
-    "./plumbing": "./plumbing.ts"
+    "./plumbing": "./plumbing.ts",
+    "./bake/props": "./bake/props.ts",
+    "./bake/glb": "./bake/glb.ts",
+    "./bake/texture": "./bake/texture.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -30,7 +33,9 @@
   },
   "dependencies": {
     "valibot": "1.5.0",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "three": "^0.186.0",
+    "@types/three": "^0.186.0"
   },
   "publishConfig": {
     "exports": {
@@ -77,6 +82,18 @@
       "./plumbing": {
         "types": "./dist/types/sdk/plumbing.d.ts",
         "default": "./dist/plumbing.js"
+      },
+      "./bake/props": {
+        "types": "./dist/types/sdk/bake/props.d.ts",
+        "default": "./dist/bake/props.js"
+      },
+      "./bake/glb": {
+        "types": "./dist/types/sdk/bake/glb.d.ts",
+        "default": "./dist/bake/glb.js"
+      },
+      "./bake/texture": {
+        "types": "./dist/types/sdk/bake/texture.d.ts",
+        "default": "./dist/bake/texture.js"
       }
     }
   }
