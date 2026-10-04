@@ -13,6 +13,7 @@ it('keeps empty projects compatible and emits an explicit empty commons wire map
 
 it('requires exactly one declared byte count per unique commons hash', () => {
   const data = source(); data.requires.commons = [hash, other]; data.requires.commonsWire = { [hash]: 123, [other]: 456 };
+  data.library = [`commons:${hash}`, `commons:${other}`];
   expect(parseShardfile(data).requires.commonsWire).toEqual(data.requires.commonsWire);
   for (const requires of [
     { ...data.requires, commonsWire: undefined }, { ...data.requires, commonsWire: {} },

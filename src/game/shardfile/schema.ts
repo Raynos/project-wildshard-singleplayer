@@ -1,6 +1,9 @@
 import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { isJsonData } from './json';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
+import { preflightShardfile } from './preflight';
+import { preflightAssetGraph } from './assetGraph';
 import { SHARDFILE_VERSION } from './version';
 import { UiSchema, uiRules } from './ui';
 import { ScriptBindingsSchema, scriptBindingRules } from './scripts';
@@ -32,9 +35,11 @@ import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const positive = v.pipe(natural, v.minValue(1));
 const finite = v.pipe(v.number(), v.finite());
-const name = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u));
+const name = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(limits.idCharacters));
 const hash = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const ref = v.pipe(v.string(), v.regex(/^(?:commons:)?[a-f0-9]{64}$/u));
+const references = v.pipe(v.array(ref), v.maxLength(limits.files + limits.commons));
+const names = v.pipe(v.array(name), v.maxLength(limits.files));
 const vec3 = v.tuple([finite, finite, finite]);
 const channel = v.pipe(finite, v.minValue(0), v.maxValue(1));
 const colour = v.tuple([channel, channel, channel]);
@@ -45,28 +50,29 @@ const key = v.strictObject({ time: channel, sky: v.strictObject({ zenith: colour
 const day = v.strictObject({ minutes: v.pipe(finite, v.minValue(1), v.maxValue(1440)), start: channel, maxElevation: v.pipe(finite, v.minValue(0), v.maxValue(90)), azimuth: v.pipe(finite, v.minValue(-180), v.maxValue(180)) });
 /** A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). */
 export const LOOK_LUT_BYTES = 33 ** 3 * 4;
-const tile = v.strictObject({ lod: v.picklist([0, 1]), x: natural, z: natural, bounds, geometricError: v.pipe(finite, v.minValue(0)), files: v.array(ref), ...costs });
-const file = v.strictObject({ hash, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'binary']), ...costs, dependencies: v.array(ref), critical: v.boolean() });
+const tile = v.strictObject({ lod: v.picklist([0, 1]), x: natural, z: natural, bounds, geometricError: v.pipe(finite, v.minValue(0)), files: references, ...costs });
+const file = v.strictObject({ hash, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'binary']), ...costs, dependencies: references, critical: v.boolean() });
+const tileCount = (2 * CHUNK_HALF / CONTENT_CAPS.l0.size) ** 2 + (2 * CHUNK_HALF / CONTENT_CAPS.l1.size) ** 2;
 const rawSchema = v.strictObject({
   version: v.literal(SHARDFILE_VERSION),
   accent: AccentSchema,
-  identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), revision: positive, seed: natural }),
-  requires: v.strictObject({ sdk: v.literal(0), capabilities: v.array(name), commons: v.array(hash), commonsWire: v.optional(v.record(hash, natural), {}) }),
+  identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), revision: positive, seed: natural }),
+  requires: v.strictObject({ sdk: v.literal(0), capabilities: names, commons: v.pipe(v.array(hash), v.maxLength(limits.commons)), commonsWire: v.optional(v.record(hash, natural), {}) }),
   budgets: v.strictObject({ library: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.compressed)) }), sim: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.compressed)) }), overlap: v.pipe(natural, v.maxValue(CONTENT_CAPS.overlap)) }),
-  look: v.strictObject({ families: v.array(name), materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
-  sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: v.array(ref), bindings: v.optional(ScriptBindingsSchema, []) }),
+  look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
+  sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: references, bindings: v.optional(ScriptBindingsSchema, []) }),
   state: StateSchema,
   migrations: v.optional(MigrationsSchema, []),
   authorCaps: v.strictObject({ players: v.pipe(positive, v.maxValue(32)), speed: v.pipe(finite, v.minValue(0), v.maxValue(15)) }),
   serverBudget: v.strictObject({ tickMicros: v.pipe(positive, v.maxValue(16_666)), memory: v.pipe(positive, v.maxValue(CONTENT_CAPS.sim.resident)), entities: v.pipe(natural, v.maxValue(10_000)), commandsPerTick: v.pipe(natural, v.maxValue(1024)) }),
   edge: EdgeProfilesSchema,
   entryways: EntrywaysSchema,
-  files: v.array(file), tiles: v.array(tile), library: v.array(ref), critical: v.array(ref),
-  far: v.nullable(v.strictObject({ files: v.array(ref), bounds, ...costs })),
+  files: v.pipe(v.array(file), v.maxLength(limits.files)), tiles: v.pipe(v.array(tile), v.maxLength(tileCount)), library: references, critical: references,
+  far: v.nullable(v.strictObject({ files: references, bounds, ...costs })),
   ui: v.optional(UiSchema, []),
   rows: v.optional(RowsSchema, { strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [] }),
   terrain: v.optional(v.nullable(TerrainSchema), null),
-  water: v.optional(WaterSchema, []),
+  water: v.optional(v.pipe(WaterSchema, v.maxLength(limits.waterBodies)), []),
   creatures: v.optional(CreaturesSchema, { brains: [], groups: [], spawns: [] }),
   encounters: v.optional(EncountersSchema, []),
   quests: v.optional(QuestDataSchema, { flags: [], quests: [], triggers: [], dialogue: [] }),
@@ -165,7 +171,8 @@ export function shardfileRules(s: Shardfile): string[] {
   return [...new Set(errors)];
 }
 /** Strict schema for the public SDK format; rejects unknown fields and invalid references. */
-export const ShardfileSchema = v.pipe(v.unknown(), v.check(isJsonData, 'shardfile carries JSON data only; executable behaviour must be admitted WASM'), v.check((input) => !isJsonData(input) || (typeof input === 'object' && input !== null && 'entryways' in input && input.entryways !== undefined), 'illegal shard: four midpoint entryways are required'), rawSchema,
+export const ShardfileSchema = v.pipe(v.unknown(), v.check((input) => { try { preflightShardfile(input); return true; } catch { return false; } }, 'shardfile manifest admission limits'), v.check(isJsonData, 'shardfile carries JSON data only; executable behaviour must be admitted WASM'), v.check((input) => !isJsonData(input) || (typeof input === 'object' && input !== null && 'entryways' in input && input.entryways !== undefined), 'illegal shard: four midpoint entryways are required'), rawSchema,
+  v.rawCheck(({ dataset, addIssue }) => { if (dataset.typed) { try { preflightAssetGraph(dataset.value); } catch (error) { addIssue({ message: error instanceof Error ? error.message : 'shardfile asset graph admission' }); } } }),
   v.check((s) => entrywayRules(s).length === 0, 'illegal shard: entryway openings must meet road height y=0'), v.check((s) => shardfileRules(s).length === 0, 'shardfile semantic rules'));
 /** Parse untrusted JSON as a validated shardfile, or throw a Valibot error. */
 export function parseShardfile(input: unknown): Shardfile { return v.parse(ShardfileSchema, input); }

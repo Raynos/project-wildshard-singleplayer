@@ -92,6 +92,17 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |
 | `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts", cost?}`; a bounded relative TypeScript entry resolved only through the trusted registry. Optional measured cost carries decimal-MB WebContent, GL and engine-base totals plus revision, device and evidence provenance. |
 
+Manifest admission runs before schema/reference traversal and immutable asset reads.
+The canonical UTF-8 JSON source is at most 2,000,000 bytes, with at most 4,096
+file rows, 1,024 commons references, 128 state fields per scope and 64 water
+bodies. Identifiers are at most 128 characters and free text at most 4,096.
+Distinct declared wire bytes, including commons, total at most 256,000,000;
+the same hash is counted once and conflicting size declarations are refused.
+These bounds supplement the per-bundle content budgets and exact byte checks.
+`@wildshard/sdk/admission` publishes `SHARDFILE_ADMISSION_LIMITS` and
+`preflightShardfile` for checking author output before opening assets; full
+`parseShardfile` and product validation still follow.
+
 HUD accent (`@wildshard/sdk/accent`) is one required palette ID: `ember`, `coral`,
 `tangerine`, `apricot`, `marigold`, `citron`, `lime`, `moss`, `jade`, `mint`, `teal`,
 `azure`, `cornflower`, `periwinkle`, `iris`, `lilac`, `orchid`, `pink`, `rose`, or

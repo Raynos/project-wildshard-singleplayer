@@ -1,11 +1,13 @@
 import * as v from 'valibot';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 
 const positive = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(Number.MAX_SAFE_INTEGER));
 const finite = v.pipe(v.number(), v.finite());
-const field = v.strictObject({ id: v.pipe(positive, v.maxValue(0x7fffffff)), name: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)),
+const field = v.strictObject({ id: v.pipe(positive, v.maxValue(0x7fffffff)), name: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(limits.idCharacters)),
   type: v.picklist(['bool', 'i32', 'f64', 'string']), privacy: v.picklist(['public', 'owner', 'host']),
-  default: v.union([v.boolean(), finite, v.string()]), min: v.optional(finite), max: v.optional(finite) });
-const declaration = v.strictObject({ version: positive, sharedOwner: v.literal('host'), playerKey: v.literal('actorId'), shared: v.array(field), player: v.array(field) });
+  default: v.union([v.boolean(), finite, v.pipe(v.string(), v.maxLength(limits.textCharacters))]), min: v.optional(finite), max: v.optional(finite) });
+const fieldList = v.pipe(v.array(field), v.maxLength(limits.stateFields));
+const declaration = v.strictObject({ version: positive, sharedOwner: v.literal('host'), playerKey: v.literal('actorId'), shared: fieldList, player: fieldList });
 type State = v.InferOutput<typeof declaration>;
 /** Portable state declarations have the same typed defaults, bounds, identity and capacity rules as current full-format admission. */
 export function stateRules(state: State): string[] {
