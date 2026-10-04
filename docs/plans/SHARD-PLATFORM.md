@@ -1,129 +1,101 @@
-# Plan: SHARD-PLATFORM — the 80/20 split: shards become data and approved systems (E431)
+# Plan: SHARD-PLATFORM — MMO-compatible shardfiles in the singleplayer game (E431, E435)
 
-**State:** `in progress` 2026-10-03 — **P0 done** (Jake's Q4: "start P0"): SP0–SP5 built; SP5's lint half landed with `wildshard/no-runtime-generator`, `sim-no-render` over each shard's `data/` and the push gate's share table. Next (E435, first-principles session with Jake): he picked **package-first** (Q5); clean-room audits of this plan (Claude + Codex) and research on server authority and a TS-like → WASM behaviour language are running, then P1–P6 are re-planned and go to the council round (§9). Owned by the shard-platform agent, working the plan with Jake (2026-10-03). Jake's picks (ask tool, 10-03): Q1 Thin Ice **starts as code** with the 20 % allowance (SP31); Q2 our own material-graph compiler (WebGL patches + TSL, SP18); Q3 only ordinary bosses move to phase tables; O1 the cell is 250 m below / 250 m above; Driftwood and Sky Reach exempt from edge roads until P5; WebGPU: no port, SP32 spike. Requirements and background: [`docs/design/mmo/`](../design/mmo/MMO-REQUIREMENTS.md).
+**State:** `draft` 2026-10-04 — **rewritten from Jake's E435 grill** (47 answers, §10) and the clean-room audits
+(the [Wildshard MMO Review](../reviews/wildshard-mmo-review.md)). **P0 done** (SP0–SP5); its guards are made honest
+in F0. Next: **up to six council rounds** on this rewrite (G44); the plan goes `ready`, and F0 starts, after them.
+Owned by the shard-platform agent, working the plan with Jake. Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md).
 
 ## 0. Read this first
 
-Jake, E431 (2026-10-03): *"high level the vision is the MMO. … Since the MMO is hard we started with single player.
-But the sandbox MMO including an API with user generated shards has lots of constraints. … a high level plan to get
-to the 80/20 split. The 80/20 split can be 80% data and approved systems (logic system, stacks, graphs, wasm
-plugins). The remaining 20% is custom runtime per shard so we don't have to rewrite everything in one go. The
-remaining 20% is part of the transition plan to not break the existing 6 shards."*
+Jake, E431 (2026-10-03): *"high level the vision is the MMO. … a high level plan to get to the 80/20 split. The 80/20
+split can be 80% data and approved systems … The remaining 20% is custom runtime per shard so we don't have to rewrite
+everything in one go."*
 
-**Background:** the vision is [VISION](../design/mmo/VISION.md); the thinking behind this plan (code vs data, WASM, the
-lock-ins, the guardrails G-1…G-6, the worked Driftwood example) is [SHARD-PLATFORM-PLAN](../design/mmo/SHARD-PLATFORM-PLAN.md);
-terms are in [GLOSSARY](../design/mmo/GLOSSARY.md).
+Jake, E435 (2026-10-03), the scope (G41): *"This plan and goal is purely to make shardfiles that are MMO & multiplayer
+compatible, I do not want to build any multiplayer code, I want to refactor the singleplayer game to be about running a
+singleplayer three.js game that contains shardfiles that are MMO/multiplayer compatible."*
 
-**The goal.** Each of the six shards (Driftwood Isle, Pine Hollow, Nalati Grasslands, Nine Dragon Stack, Signal
-Dunes, Sky Reach) ends at **≥ 80 % data and approved systems, ≤ 20 % custom runtime TypeScript**, and stays playable
-and live at every step. A new shard is born on the format with no custom runtime. This is the first milestone of the
-MMO (MMO-REQUIREMENTS §5); multiplayer, upload and the grid come after and are not in this plan.
+**The goal.** The singleplayer game becomes a three.js game that runs **shardfiles**: validated, self-contained build
+products that a future MMO server could load unchanged. A shardfile is compatible when its simulation steps headless in
+Node, gives bit-identical results in Node and WebKit, separates authoritative server scripts from presentation client
+scripts, and grants rewards only through a ledger interface (G45). Singleplayer runs all of it locally.
 
-**Three words:**
-- **Data:** JSON-serialisable rows and layouts with a schema (items, species, loot, spawns, quests, interactables,
-  places, budgets, strings), and **baked assets** that build-time **generators** produce (GLB, KTX2, heightmaps,
-  instance lists). Generator code runs on the author's machine; it never ships, so it counts as data.
-- **Approved systems:** engine and kit code every shard may use, driven only by data: **devices** with parameters
-  (water, scatter, movers, zones, spawners…), the **logic system** that wires them, **archetype brains** and **boss
-  phase tables**, **look stacks** and **material graphs**, and **WASM plugins** behind a data-only host API.
-- **Custom runtime:** a shard's own TypeScript that ships and runs. After this plan it lives only in
-  `src/shards/<slug>/runtime/` (plus the plugin glue), under a ratchet that only falls.
+**This plan builds:** the shardfile format; the singleplayer runtime that loads and streams shardfiles; a seamless
+**singleplayer grid** of shards joined by the highway and generated no-man's land (G46); the SDK, CLI and local builder
+tools (G47); the platform systems shards build on; and the conversion of the existing shards toward 80/20, then 90/10,
+then 100/0.
 
-**What this plan is not.** No rewrite in one go; no multiplayer, upload or server; no change to how Jake plays (the
-build, the PWA, the phone budgets are untouched). Every step is identical under the parity harness, or a small
-difference batched onto one board per wave, as in GAME-NORMALIZATION.
+**This plan does not build:** servers, rooms, netcode, an upload service, moderation, source storage, remixing or a
+catalogue service (G41, G47). Their decisions (G13, G17, G19, G20, G26, G28) are requirements the format must be
+compatible with. **WorldClaw is out of scope** (G47); it has its own plans.
 
-## 1. The metric
+**The words:**
+- **Shardfile:** the build product: a manifest (`shard.json`), tiles with levels of detail, content rows, baked assets,
+  AssemblyScript modules, declared budgets and state schema. Renderer-neutral (G32). Nobody edits it by hand (G1).
+- **Shard project:** the author's TypeScript source: generators (run on the author's machine; never ship) and
+  AssemblyScript behaviour. `wildshard build` turns it into a shardfile.
+- **Platform systems:** engine and kit code every shard may use through the versioned SDK API: material families, the
+  script host, brains, quests, rigs, the commons, UI kit, audio, physics toys, crowds and so on.
+- **Custom runtime:** a first-party shard's own trusted TypeScript that ships. Transition only, in `runtime/`, measured
+  by T2's two measures.
 
-**Custom share** of a shard = (TS lines under `runtime/` + the plugin glue) ÷ (the shard's TS lines at the baseline,
-§2). The target is **≤ 20 %** for each of the six. Lines that moved to `generators/` (build-time only), to `data/`
-(serialisable rows), or were replaced by an approved system count on the 80 % side.
+## 1. The measures
 
-Enforced from row SP5 on:
-- `lint/shard-platform.json` holds each shard's baseline and current ceiling; the gate prints the share per shard and
-  the ceiling only goes down (the ratchet pattern).
-- **Outside `runtime/`, a shard has no runtime code:** `data/` files export serialisable values only (a JSON
-  round-trip test), `generators/` are imported only by the bake (a `wildshard/no-runtime-generator` rule), and the
-  shard's chunk contains no module from `generators/` (read from Vite's manifest, like `check-chunks`).
-- A shard born after SP5 (and the template) has **no `runtime/` folder**.
+Two measures per first-party shard (Jake, E435, T2), staged **80/20 → 90/10 → 100/0**:
+1. **Public-SDK share:** the share of the shard built the way a player builds a shard (A0): through the shardfile and
+   the public SDK. Code that imports a non-public engine module or runs outside the script sandbox counts as custom.
+2. **Runtime ceiling:** TypeScript lines in the shard's `runtime/` ≤ 20 % of the shard folder's TypeScript lines at the
+   baseline (`lint/shard-platform.json`, `b96fed1a1`). Moving code into a shared non-SDK library lowers neither.
 
-## 2. Where it stands (audit, 2026-10-03, `06de6df0e`)
+And, because a percentage alone was gamed once already (the audits), **milestone booleans** the gate reports: the
+template boots from its shardfile with no trusted shard chunk; its sim steps in Node; the Node-vs-WebKit hash test
+passes; a fresh author outside the repo builds a shard with only the SDK.
 
-Line counts are exact; the buckets are estimates (file headers and exports read, mixed files given to their main
-bucket, ±5 points). **G** generator · **D** data-shaped · **S** a mechanism that should be an approved system ·
-**C** custom · **X** glue.
+## 2. Where it stands (measured, E435 audits)
 
-| Shard | Lines | G | D | S | C | X | Custom today (C+X) | Data side once S is a system (G+D+S) |
-|---|---|---|---|---|---|---|---|---|
-| Driftwood Isle | 18,766 | 44 % | 13 % | 39 % | 2 % | 3 % | **5 %** | 96 % |
-| Pine Hollow | 21,716 | 42 % | 17 % | 27 % | 10 % | 5 % | **15 %** | 86 % |
-| Nalati Grasslands | 33,094 | 33 % | 9 % | 32 % | 22 % | 3 % | **25 %** | 74 % |
-| Nine Dragon Stack | 25,166 | 53 % | 9 % | 11 % | 23 % | 5 % | **28 %** | 73 % |
-| Signal Dunes | 4,826 | 28 % | 10 % | 33 % | 19 % | 9 % | **28 %** | 71 % |
-| Sky Reach | 6,893 | 44 % | 8 % | 33 % | 5 % | 11 % | **16 %** | 85 % |
-| **All six** | **110,461** | **42 %** | **11 %** | **27 %** | **15 %** | **5 %** | **20 %** | **80 %** |
-| template | 554 | 7 % | 28 % | 34 % | 9 % | 22 % | 31 % | — |
+The 10-03 audit table this section used to hold had no committed source; both clean-room audits found its numbers
+wrong or unreproducible (`ctx.app` is 95–97, not 127; `ctx.game.runtime` 32 in the newest two shards, not 61; 3–4
+direct `Weapon` subclasses, not 10; the per-shard "custom today" percentages were estimates). SF2 replaces it with a
+committed measuring script. What holds:
 
-What the numbers say:
-- **The big lever is S (27 %, ~30k lines): the approved systems.** Shards wrote their own water, scatter, sky,
-  ambience, brains, spawners, weather and quest glue because no system existed. Until a system exists, that code can't
-  move to the data side.
-- **G is the bulk (42 %)**: models, world builders, scatter, terrain. Baking is mechanical but touches every shard.
-- **Driftwood, Pine Hollow and Sky Reach are already near or under 20 % custom.** Nalati, Nine Dragon and Signal Dunes
-  need their C to shrink too:
-  - **Nalati:** riding, three boss fights, four custom weapons.
-  - **Nine Dragon:** its Jiehua shader programs and first-person arm rig.
-  - **Signal Dunes:** its sky and sand shaders, and the bullwhip.
-- **Shaders:** about 110 shard files hold GLSL or a `ShaderMaterial`. 46 of them already go through the engine's
-  `patchShader` verb. Look stacks and material graphs must absorb roughly 40 shader-bearing S files before those files
-  count as data.
-
-What the engine already gives (keep as is):
-- **Quests:** `QuestDef` / `QuestStep` / `Cond` are pure data, checked by `validateQuest`.
-- **Interactables:** 10 kinds, pure data, checked by `validateTable`.
-- **Pure-data rows:** `EffectDef`, `DamageRuleDef` and `BossDef` phases.
-- **Saves:** versioned SaveStore with valibot schemas.
-- **Leak test:** scope-owned resources with a load → unload test.
-- **Determinism:** seeded RNG streams and the game clock.
-- **Event bus:** typed `emit` / `ask`.
-- **Budgets:** per manifest, checked by the parity and GPU gates.
-- **Engine constants:** `CHUNK_SIZE = 500` and `ROAD_WIDTH = 15`. Every manifest already declares a 500 × 500 × 500 cell.
-
-What is in the way:
-1. **Rows hold functions:**
-   - `StrikeSpec.weight` (required), `WeightedTable.when` (19 uses), `SpeciesRow.think` / `act`;
-   - `SpeciesLook.build`, `animate`, `postPose`;
-   - `DayCycleSpec` curves, `WeatherProfile` (all functions), `WaterBody` (an interface of functions).
-   No test round-trips a row through JSON, and no content has a schema.
-2. **The shard API is not data:**
-   - `ShardContext` has ~19 members, several of them not data: `app`, `root: THREE.Group`, `piece(Object3D)`,
-     `hud.widget(HTMLElement)` and closures.
-   - `ctx.app` is used 127 times in shards and `ctx.game` 86 times. The newest two shards reach through
-     `ctx.game.runtime` 61 times for what are really missing verbs (toast, spawn, cues, quest flags).
-   - Shards extend engine classes: `Weapon` 10, `Tool` 4, `CreatureBrain` 13, `Boss` / `BossBrain` 6, plus
-     `ShardPlugin` itself.
-3. **The headless sim isn't real yet:**
-   - `sim-no-render` matches `engine/(quests|effects)`, which don't exist, so `engine/quest` is unchecked, and the
-     kit and shards aren't covered at all.
-   - The aim ray comes from the viewmodel camera.
-   - Hit-stop scales the fixed step.
-   - No whole shard runs in plain Node. `FakeGame` still builds a three.js scene under happy-dom.
-4. **No player profile:** save scopes are `global | shard | device | session`. Travel is a page reload with a 60 s
-   handoff.
-5. **The world contract is soft:** `placement.grid` / `size` are set by each manifest and nothing reads them;
-   `entryRoadMask` is a private engine function.
+- **Every shard is 100–107 % custom by today's script**: nothing is sorted into `data/` or `generators/` yet, and the
+  shards grew past their baseline within hours.
+- **The loader instantiates trusted plugins** and hands them `App`, DOM nodes and mutable services
+  (`src/game/shard/pluginLoad.ts`, `ShardContext`). There is no upload security boundary yet; the four layers organise
+  trusted code.
+- **The sim is not headless or deterministic**: the aim ray comes from the viewmodel camera (`combat/Weapon.ts`);
+  hit-stop scales the fixed step (`core/Game.ts`); `ai/reach.ts` pulls in the whole app; `Animal` imports three.js;
+  host `Math.sin` / `cos` / `atan2` differ between V8 and JavaScriptCore (Pine Hollow's combat maths mismatched on up
+  to 42,949 of 200,000 inputs).
+- **The template declares a 200³ cell**, not 500³. Nine Dragon passes the world-contract test against a flat datum it
+  never draws; Sky Reach skips it.
+- **Memory**: one shard alone uses 153–587 MB of phone GPU memory (`src/shards/*/budgetCeilings.ts`); shards are
+  monolithic levels, not tiles. Travel is a page reload (`src/game/travel/travel.ts`).
+- **What the engine already gives, and stays**: data quests (`QuestDef`, `validateQuest`); ten data interactable
+  kinds; versioned saves with valibot; scope-owned resources with a leak test; seeded RNG streams and the game clock;
+  the typed event bus; per-shard budgets in the parity and GPU gates; the four layers and their guards.
 
 ## 3. Shape of the work
 
-Seven phases. Phase 0 is small and safe and can start on Jake's go; phases 1, 2 and 3 can run in parallel lanes;
-phase 5 converts shard by shard as the systems land.
+```
+P0 (done) ─► F0 honest foundations ─► F1 the shardfile ══► M1 the package
+                                                │
+            ┌───────────────────────────────────┼──────────────────────────┐
+            ▼                                   ▼                          ▼
+   F2 the singleplayer grid ══► M2       L  platform systems lane     SDK + UX lane
+   (streaming, seams, one frame,          (director, rigs, brains,    (dev + QR, preview,
+    travel, the crossroads gates)          UI kit, audio, toys,        playtests, starters,
+            ▲                              crowds, interiors …)        quickstart, upgrade)
+            │
+   C  conversion lane: each shard → shardfile, 80/20 (from M1, when its agents are idle)
+```
 
-```
-P0 guardrails + metric ──► P1 bake (G) ──────────────┐
-                       ├─► P2 data (D) ──────────────┼─► P5 per-shard conversion ─► P6 boot from the package
-                       └─► P3 approved systems (S) ──┤        (C → runtime/, ≤ 20 %)
-                           P4 WASM plugins ──────────┘
-```
+- **F0** is small and lands first: the audits' fixes and the determinism blockers.
+- **F1** is deliberately thin (G42): the least that proves the boundary.
+- After M1, **F2, L, SDK and C run in parallel lanes**. The grid opens with three shards (G46), so it waits on C for
+  Driftwood, Pine Hollow and Nalati to stream as tiles.
+- The format freezes only after F2 and the first conversions have pushed on it; until the public grid the API window
+  is about 72 hours (G29).
 
 ## 4. Rows
 
@@ -138,143 +110,150 @@ P0 guardrails + metric ──► P1 bake (G) ───────────�
 | SP4 | **The world contract** (SHARD-PLATFORM-PLAN G-5, MMO W1–W6). Jake 10-03: the 500 m cell splits **250 m below and 250 m above** the highway level (O1); Driftwood (open sea) and Sky Reach (floating islands) are **exempt now and fixed in P5** (SP22, SP23). Built: `CELL_HEIGHT` / `CELL_BELOW` / `CELL_ABOVE` in `@wildshard/engine/data`; `test/world/world-contract.test.ts` holds every level's ground inside the cell and level with the highway across each edge entry (15 m wide, 50 m in); `lint/edge-exemptions.json` may only shrink. Moved: the full walk from each edge (colliders, water, structures) is SP10's validator; `placement` leaving the manifests is SP29 (server-owned fields leave the package) | **done** (this commit): all seven levels pass; the exempt two are listed with their fixing row | M |
 | SP5 | **The metric and the folders**: `generators/`, `data/`, `runtime/` join `lint/shard-layout.json` (AG9) and SHARDS.md; `lint/shard-platform.json` with today's baselines; the gate prints each shard's custom share; `wildshard/no-runtime-generator`; the chunk check for `generators/`; `sim-no-render` widened over each shard's `data/` and simulation folders and the kit's (from SP1) | **done**: part 1 (`94c4a55ed`) the three folders in `lint/shard-layout.json` and SHARDS.md; `check-chunks` refuses generator code in any chunk; `scripts/shard-platform.mjs` prints each shard's custom share against `lint/shard-platform.json` (baselines at `b96fed1a1`, every shard 100 % today: nothing is sorted yet) and `test/shard-platform.test.ts` holds the ceilings; a shard's ceiling is enforced from its conversion row on. Part 2 (this commit): `wildshard/no-runtime-generator` (hard in `.oxlintrc.json`: only generators import a `generators/` module, template specifiers included), `sim-no-render` over `src/shards/*/data/` (`SHARD_SIM_DIRS`; 0 sites, no shard has one yet), and `scripts/vercel-tree-gate.sh` prints the share table. The kit's and the shards' other simulation folders join when P2 creates them | M |
 
-### P1 — Bake the generators (G, 42 %)
+
+### F0 — Honest foundations (the audits' fixes and the determinism blockers)
 
 | Row | What | Done when | Size |
 |---|---|---|---|
-| SP6 | **`pnpm bake`**: runs a shard's `generators/` in Node (the model contract `defineModel` already builds geometry without a renderer), writes content-hashed GLB / KTX2 / instance lists to `public/assets/<slug>/baked/`, a manifest of outputs, `--check` in the push gate. Per-tier outputs where a generator reads the tier. **Pilot: Driftwood's shore boulder, palm and hut** (SHARD-PLATFORM-PLAN's bake spike), loaded back through the existing model registry | The three models load from GLB; parity identical; the bake is reproducible (same bytes twice) | M |
-| SP7 | Bake each shard: models, world builders, scatter (cell instance lists), terrain. One row per shard, in the §5 order; seeded generators keep their seeds; a generator whose output depends on runtime state stays in `runtime/` with a reason | Each shard's G lines are out of its chunk; parity identical; the memory gates hold (baked assets must not raise `gpuMB`) | L |
+| SF1 | **Make P0's guards honest.** Shrink-only lists compare against `HEAD` (`row-functions.json`, `edge-exemptions.json`, the `shard-platform.json` ceilings); an unknown shard or an unlisted row type fails; `ShardManifest` and `ground.terrain` join the row walk; a real JSON round-trip test over every `data/` folder; no `runtime/` folder for the template or a new shard; the world-contract test fails a flat datum that isn't drawn and lists Sky Reach's exemption explicitly; the template declares 500³ | A planted growth, an unlisted row type, a function in `data/`, a template `runtime/` and a fake datum each fail the gate (one fixture per rule) | M |
+| SF2 | **Measure, don't estimate.** `scripts/shard-coupling.mjs` prints each shard's `ctx.app` / `ctx.game` / `ctx.game.runtime` reaches, engine subclasses and non-data `ShardContext` members, committed with a ratchet against `HEAD` | The numbers in §2 come from the script; a rise fails | S |
+| SF3 | **Headless means the whole import graph.** `sim-no-render` follows the import closure from the simulation folders: no three.js beyond the maths types, no `app/runtime`, no DOM | `ai/reach.ts` and `Animal` are fixed or listed; a planted transitive import fails | M |
+| SF4 | **One deterministic maths library** (`sin`, `cos`, `atan2`, `exp`, `pow` …) used by all simulation code; a lint bans host `Math.*` trig in sim folders; a test runs the combat maths in Node and in WebKit (Playwright through `scripts/browser-lane.sh`) and requires identical bits | Pine Hollow's `combatMath` and the shared sim pass the hash test; the parity gate holds | M |
+| SF5 | **The netcode blockers, fixed in singleplayer**: aim from input, not the viewmodel camera; hit-stop visual only; stable entity ids independent of tile and LOD; RNG and clock state export and restore; the sim driven by recorded input commands, so record → replay is exact | A recorded template session replays to the same state hash; parity identical | M |
+| SF6 | **The two measures** (§1) in `scripts/shard-platform.mjs` and the push gate: the public-SDK share and the `runtime/` ceiling, plus the milestone booleans; today's line metric is renamed "legacy TS" | The gate prints both measures and the booleans per shard | S |
 
-### P2 — Content becomes data (D, 11 %)
+### F1 — The shardfile (thin, G42) → **M1 the package**
 
 | Row | What | Done when | Size |
 |---|---|---|---|
-| SP8 | **Schemas** (valibot, already the save library) for every content row type and for `shard.json` / `layout.json`. `manifest.ts` stays the typed source for first-party shards and **emits** `shard.json`; `layout.json` holds places, anchors, spawns, paths, edge entries | `pnpm gen` writes and validates both files for all six; a schema failure fails the gate | M |
-| SP9 | **`data/` per shard**: rows move into `data/` as serialisable values (TS `as const` or JSON); the round-trip test of SP3 covers them | Each shard's D lines live in `data/` | M |
-| SP10 | **`wildshard validate`** v0: schemas, ids and references, static budget caps from one budgets file, the edge-entry walk through the colliders from each midpoint (SP4 checks the ground only), the cell bounds (250 m below and above). Runs in the push gate on every shard and on the template | All six + template pass; one rejection fixture per rule | M |
+| SF7 | **Format v0** (`docs/SHARDFILE.md` + valibot schemas): `shard.json` (identity, the API version it targets, requires, budgets, look), the tile hierarchy (62.5 / 125 / 250 / 500 m, encoded in the manifest), content-addressed files with a dependency graph and declared compressed, decoded and GPU sizes, the state schema, server and client script declarations, the edge profile, privacy classes. Renderer-neutral (G32); unknown keys refused | One rejection fixture per rule; the schema is the SDK's API v0 | M |
+| SF8 | **`@wildshard/sdk` and the `wildshard` CLI**: `new`, `dev` (the real client on the floating cube, hot reload), `build` (generators → bake → shardfile), `validate` (schemas, references, budgets, cell bounds, the edge walk through colliders, a headless Node step of the sim) | A new project builds and validates on a clean machine | M |
+| SF9 | **The auto-baker v0** (G5): terrain and static props cut into tiles with LOD0, LOD1 and a far proxy; KTX2 → ASTC; scatter as instance lists over shared prototypes; a per-tile budget report; hand overrides | The template's world bakes and loads from tiles; parity within the board tolerance | L |
+| SF10 | **Material families v1** (G4 stage 1): two or three engine families (toon, PBR, emissive) with rich parameters, compiled by the engine, precompiled before first use | The template uses only families; no shard shader code in its shardfile | M |
+| SF11 | **The script host v1** (O4: AssemblyScript first): ABI v1 (input record, events, validated effect records); fuel injected at build; a host-set memory cap; snapshot and restore; a trap quarantines the instance; entity scripts; server scripts run in the singleplayer client's local sim lane (G9, G10, G45) | A runaway script is stopped, a hoarding script traps at its cap, and the template's door and boss scripts run identically in Node and WebKit | L |
+| SF12 | **Quests and dialogue as data** (G11): quest graphs and dialogue trees authored in TypeScript, compiled to validated data; script hooks for custom conditions and scenes | The template's quest runs from its shardfile; the journal and markers work unchanged | M |
+| SF13 | **One platform brain + a spawner** (G12, thin): an archetype with parameters over perception and navigation built-ins | The template's grey blobs run on it | M |
+| SF14 | **The ledger interface** (G45, M8): rewards only as ledger facts with idempotent ids; singleplayer implements it locally with the rules a server would apply | A replayed reward fact grants nothing twice; no shard code writes the profile directly | S |
+| SF15 | **The shardfile loader**: the singleplayer client boots a shard from its shardfile with no trusted shard JS chunk; scope-owned; the leak test covers it | `check-chunks` finds no template chunk; load → unload leaves nothing | M |
+| SF16 | **M1 proof.** The template rebuilt as a shardfile with no `runtime/`; it boots in the client, its sim steps in Node, the hash test passes; then a clean-room agent outside the repo builds a small shard with only the SDK, and every gap it hits is logged, not patched during the trial | All four milestone booleans true; the gap log is committed and each gap is a row | M |
 
-### P3 — The approved systems (S, 27 %): the biggest phase
+### F2 — The singleplayer grid → **M2 the crossroads**
 
-Each system is built once in the engine (mechanism) or kit (content), takes only data, has a schema and a contract
-test, and is switched onto its first shard with parity, then the others. Ordered by how many shards need it.
+| Row | What | Done when | Size |
+|---|---|---|---|
+| SF17 | **Grid assembly** (G37, G38, G35): signed cell coordinates, unbounded-ready; a 555 m pitch to start (N = 20 m, tuned by SF22); the engine-owned highway deck; the no-man's land generated at assembly from both neighbours' edge profiles (heights, ground colour, a neutral palette) and blended four ways at crossroads; signposts (shard name, author) | Any two shards meet through a smooth seam with no visible glitch at a crossroads | L |
+| SF18 | **Tile streaming and one memory envelope**: rings (near, neighbour band, far proxy, horizon), parent-first refinement, a lookahead in the direction of travel, decoding in workers, a process-wide residency allocator with per-ring shares | Driving the grid never shows a hole; resident memory stays inside the envelope | L |
+| SF19 | **One frame** (W7f, G27): the camera owns sun, sky, fog and exposure under one world clock; per-shard time overrides blend across edge bands; each shard's style lives in materials and a per-pixel grade; a neutral highway look; no per-shard full-screen pass. A look that changes keeps the old one as a Debug variant and goes to Jake as a board (JAKE.md) | Four looks read as one view at a crossroads; Jake's pick on any changed look | L |
+| SF20 | **Seamless travel** (G33, G39, G40, W7g): no page reload between shards (replaces `travel.ts`); walking and the hoverboard (~15 m/s inside shards, lower if a shard sets it); highway cars at 30 m/s or more on the highway only; auto-path along the highway to a shard's edge entry; simple borders (creatures stay home, no cross-border combat, the highway is safe) | Crossing a border has no hitch and loses nothing; the old travel handoff is deleted | L |
+| SF21 | **The grid's contents** (G46): Driftwood Isle, Pine Hollow and Nalati Grasslands on the grid; Signal Dunes and Sky Reach join only in dev mode; Nine Dragon Stack runs only in DEVSERVER mode; explore mode explores one shard at a time, with the level selector behind the dev toggle | The shipped game opens on the three-shard grid; dev mode shows five; the DEVSERVER runs Nine Dragon | M |
+| SF22 | **The crossroads gates**: a 2 × 2 rig of synthetic tiles at the caps in four looks, plus the grid's real crossroads; a scripted 30 m/s drive through a 5 Mbit/s throttle with 3–10 s stalls. The iOS Simulator first, then one physical-iPhone reading by Jake (E435) | ≤ 0.85 GB peak; 95 % of frames ≤ 33.3 ms; no holes or falls; no shader compile at the first crossroads; no tab kill in three runs | M |
+| SF23 | **The far view** (W8): a baked low-poly proxy per shard for the whole grid, loaded at login; flat impostors only beyond ~2.5 km | Every grid shard is visible from every other at little cost | M |
 
-| Row | System | Replaces (shards) |
+### L — Platform systems lane (from M1; each lands with a schema, a contract test and one shard switched onto it)
+
+| Row | System | Answers |
 |---|---|---|
-| SP11 | **Author API v1**: the verbs the newest shards reach `ctx.game.runtime` for (toast, spawn / retire, cues, quest flags, equipment, impulse, interactables) become data-in / data-out `ShardContext` verbs; ratchet `ctx.app` (127) and `ctx.game` (86) down; no new extension points by subclassing | SD, FR first; all six |
-| SP12 | **The logic system**: events → conditions → actions over variables, timers and state machines; a pure interpreter that returns effects, with fuel and cascade limits; node-safe; quests' flag conditions are its first user | Quest glue (3.7k lines), triggers, hints: all six |
-| SP13 | **Archetype brains + spawners**: melee pack, charger, ranged thrower, grazer / herd, flyer dive, burrower, wisp, ambient critter; spawner homes with respawn; elite tables. A species row names an archetype and parameters (no `think` / `act`) | D, P, N, SD, FR, template |
-| SP14 | **Boss phase tables**: `BossDef` + strike rows + hooks as named effects; the bosses whose fight is ordinary move onto it (Storm Roc, the Matriarch, the template's Big Blob); the unique ones stay in `runtime/` (Q3) | SD, FR, template, D |
-| SP15 | **World devices**: water body (sea, stream, waterfall, pool), scatter / ground-cover and grass streaming, flock / herd / ambient life, movers and rotators (bridge, sails, monorail, gondola), wind / updraft zones, rope / zipline / grapple points, floating platform, particle / fire emitter, trail ribbon, cloth flutter | D, P, N, ND, SD, FR |
-| SP16 | **Sky, weather and ambience as data**: sky dome / painted backdrop / cloud sea, `DayCycle` keys without function curves, weather profiles as data (the rain / snow program in the kit), ambience zones | All six |
-| SP17 | **Look stacks**: the post chain as an ordered list of engine passes with parameters (toon ramp, painterly, PBR grade, Jiehua neon, bloom, haze, LUT, fog, rim / shade floor), from `LookStrategy` code to a `look` block in `shard.json` | All six |
-| SP18 | **Material graphs**: a validated node graph (allowlisted nodes, cost cap) compiled by our own compiler (Q2) to **two targets** (Jake, 10-03): the WebGL renderer's shader patches through the existing `patchShader` registry, and TSL for three.js's WebGPURenderer, so every effect moved to a graph is already WebGPU-ready; a contract test compiles each graph both ways; first targets: sand ripple, facade windows, water, wind sway, the dune shadow | ND, SD, FR, N |
-| SP19 | **Kit content families** for what one shard still hand-builds: the shop / trade panel, loot / trophy display, NPC talker and guide, the GLB preload and material-tweak loaders and rigid-hull creature builder that SD and FR duplicate, the Sabre / Naizagai / Golden Bow / whip as weapon-family profiles | D, P, N, SD, FR |
+| SF24 | The **shard director** and typed events; grid-event subscription hooks in the API from day one | G9, G36 |
+| SF25 | **Client scripts**: presentation only, read but never write shared state | G10 |
+| SF26 | **Standard rigs** (humanoid, quadruped, bird, serpent, insect), the shared clip library and **the commons v0** (cached across shards) | G6, G8 |
+| SF27 | **Brains**: the archetype set, boss phase tables and custom AssemblyScript brains over perception, navigation and strike APIs | G12 |
+| SF28 | **The UI kit** (dialogs, shop, quest panels, counters, markers, timers, scoreboards in platform slots), then the sandboxed panel canvas. HUD changes are announced over herdr and picked by Jake (E332) | G22 |
+| SF29 | **Adaptive audio**: spatial audio, reverb and ambience zones, director-driven music stems | G24 |
+| SF30 | **Physics toys and vehicles**: ropes, boats, carts, gliders, ragdolls, destructibles; deterministic, phone-cheap | G21 |
+| SF31 | **Crowds**: hundreds of creatures or NPCs with LOD AI and animation | G21 |
+| SF32 | **Interiors and verticality**: dungeons, caves and towers inside the cube, with streaming and occlusion for stacked spaces | G21 |
+| SF33 | **Persistence**: per-player progress and author-declared shared world state with reset rules; additive schemas, author migrations tested against saves | G7, G18 |
+| SF34 | **Platform player modes**: glide, swim, climb, drive, grapple, ride; later **author movement modes** in AssemblyScript, predicted, reviewed | G3, G14 |
+| SF35 | **Material graphs** (stage 2), then **restricted shader code** (stage 3), compiled per renderer | G4, G32 |
+| SF36 | **Item definitions** ready for the catalogue: signature items with stats and behaviour, and cosmetic skins (format only; no catalogue service) | G13 |
 
-Most of the S rows can run in parallel lanes. SP11 comes first because every other system's verb hangs off it.
+### SDK + UX lane (from F1)
 
-### P4 — WASM plugins (an approved system; the way down for the 20 %) and the WebGPU spike
+| Row | What | Answers |
+|---|---|---|
+| SF37 | `wildshard dev` with the **phone QR** (the author's phone joins over the LAN) and the **points budget overlay** (one cost score per tile and shard, green / amber / red, raw numbers one tap away) | G2, G30 |
+| SF38 | The **Vercel preview**: a one-click static deploy of the singleplayer client with the author's shardfile to their own free Vercel account, done by Claude Code | G2 |
+| SF39 | **Bot playtests** at validate: every edge entry walked, every quest objective reached, no stuck spots or falls, within budget on the phone tier | G16 |
+| SF40 | **The AI playtester**: `wildshard playtest` sends Opus 5.5 through the real client at phone size, judged with Clef / Jev; fun notes with screenshots and a clip | G31 |
+| SF41 | **Starters**: `npm create wildshard` with three starter shards (adventure, arena, puzzle) | G15 |
+| SF42 | **`/wildshard-quickstart`**: a Claude Code skill that gets a playable shard in about five minutes | G15, G47 |
+| SF43 | **`wildshard upgrade`**: a skill plus codemods that move a shard project to a new API version and re-run its playtests; the window is about 72 hours until the public grid | G29 |
+| SF44 | **SDK docs**: the format, every system, the script ABI and the budgets, generated from the schemas where possible | A1 |
 
-| Row | What | Done when | Size |
-|---|---|---|---|
-| SP20 | **The plugin host**: a language-neutral host ABI (ids, numbers, typed arrays, events in and effects out; no three.js, no DOM), a per-call fuel limit (instrumented module) and memory cap, deterministic (the seeded RNG through the ABI), the same module in Node and the browser, owned by the shard scope. First toolchain: Rust (MMO-REQUIREMENTS O4) | A test plugin runs identically in Node and on the phone tier; a runaway plugin is stopped by fuel; the leak test passes |
-| SP21 | **Pilot**: port one small piece of custom gameplay logic to WASM. Candidate: the Antler King's move policy (`combat/KingGoals.ts` + `combat/combatMath.ts`, ~190 lines, Pine) | Parity identical; frame-time cost measured on the phone tier |
-| SP32 | **WebGPU spike** (Jake, 10-03: WebGPU is three.js's future, but no full port yet): one shard (the template, then Sky Reach) on `WebGPURenderer` through the engine's `Renderer` interface, **default-off behind a Debug row** (RENDERING.md: the one exception to "no phone checks"); its graphs from SP18's TSL target, its other shaders stubbed or ported; measured against WebGL on the M5 lanes (frame, GPU, CPU, draws) and by one physical-iPhone reading (fps hot, memory against 1.0 / 1.8 GB). The full port (~92 shader patches, 114 `ShaderMaterial` sites in 68 files, the post stack: `docs/design/webgpu-port-inventory.md`) becomes its own plan only when one of these holds: three.js fixes its many-draws regression ([#30560](https://github.com/mrdoob/three.js/issues/30560)), three.js deprecates `WebGLRenderer`, or the iPhone reading beats WebGL | A written verdict with the numbers; the Debug row deleted with the losing code once Jake decides | M |
+### C — Conversion lane (from M1, each when its shard's agents are idle; 80/20 by both measures)
 
-### P5 — Convert each shard (C → `runtime/`, ≤ 20 %)
+| Row | Shard | Notes |
+|---|---|---|
+| SF45 | Driftwood Isle | On the grid. Its island is already baked in Blender; the first full conversion |
+| SF46 | Pine Hollow | On the grid. 587 MB of phone GPU today: texture compression and sharing before it fits a crossroads |
+| SF47 | Nalati Grasslands | On the grid. Riding, three bosses, four custom weapons; its painterly look is checked against the one-frame rule (SF19) |
+| SF48 | Signal Dunes | Dev-mode grid shard. Its sky and sand shaders onto families, later graphs |
+| SF49 | Sky Reach | Dev-mode grid shard. Floating islands: its edges get the seam's treatment |
+| SF50 | Nine Dragon Stack | A partial shard: DEVSERVER only (G46). Its neon look and arm rig are checked against SF19 and SF26 |
+| SF51 | Thin Ice | Owned by its own plans; keeps its custom code in `runtime/` under the 20 % ceiling (T4). Nothing here touches WorldClaw (G47) |
 
-One row per shard, in §5's order, each when its shard's agents are idle (no lock this time; HUD files are announced
-over herdr, AGENTS.md E332). A conversion row: bake (SP7), data (SP9), switch to every system that exists, move what
-is left into `runtime/`, prove parity, lower the ceiling.
-
-| Row | Shard | Custom today → target | What must leave the custom side |
-|---|---|---|---|
-| SP22 | Driftwood Isle | 5 % → ≤ 5 % | Nothing: the Drowned Captain stays in `runtime/`. The bake pilot and the first full conversion |
-| SP23 | Sky Reach | 16 % → ≤ 16 % | Its plugin's updraft, winch and roost wiring move onto devices and the logic system |
-| SP24 | Pine Hollow | 15 % → ≤ 15 % | The Lever Rifle and the Antler King stay (the King's policy is the WASM pilot) |
-| SP25 | Signal Dunes | 28 % → ≤ 20 % | The sky and sand-ripple shaders onto the look stack and a material graph (about 40 % of `look/render.ts` bakes); the bullwhip onto a kit weapon family |
-| SP26 | Nalati Grasslands | 25 % → ≤ 20 % | ~1,700 lines: the Sabre, Naizagai and Golden Bow onto kit families, the ghost riders and balbal onto the elite table and brains; riding, the Storm Titan and the Golden King stay |
-| SP27 | Nine Dragon Stack | 28 % → ≤ 20 % | ~2,000 lines: the facade and filament programs onto material graphs and the Jiehua neon look stack; the first-person arm rig onto `#kit/viewmodel`; the movers onto devices. The grapple (Fei Zhua) becomes a device (SP15) |
-| SP28 | template | 31 % → 0 % (no `runtime/`) | The template shows only data and systems; SHARDS.md is rewritten for the format |
-| SP31 | Thin Ice (shard 7, Q1) | ≤ 20 % from its first commit after SP5 | Built as code under WORLDCLAW-SHARD with a `runtime/` folder and a 20 % ceiling; converted last, with whatever systems exist by then |
-
-### P6 — Boot from the package
-
-| Row | What | Done when | Size |
-|---|---|---|---|
-| SP29 | Each shard boots from `shard.json` + `layout.json` + `data/` + baked assets + its `runtime/` chunk; `placement` leaves the manifests for one first-party placement table outside the levels (it stands in for the server, MMO W6); the generated registry lists packages, not TS modules | All six boot this way; parity identical; offline boot still works (the service worker caches the package files) | M |
-| SP30 | **A shard born on the format**: a small shard with no `runtime/` folder, built by a fresh agent from SHARDS.md and the SDK only (the Z3 protocol, now for the format); every gap it hits becomes an approved system, not shard code. Not Thin Ice (Q1: it starts as code) | It ships with a 0 % custom share and zero engine edits on the final run |
+After 80/20, the same rows run again for **90/10** and then **100/0**, each a later stage of this plan or its
+successor.
 
 ## 5. Order and why
 
-Template → **Driftwood** (the bake pilot: its island is already baked in Blender, its interactables are already data,
-and it is 5 % custom) → **Sky Reach** (small, 85 % once systems exist) → **Pine Hollow** → **Signal Dunes** →
-**Nalati** → **Nine Dragon** (the most shader code and its own mechanics, last). The newest shards are still being
-polished under SIGNAL-DUNES and SKY-REACH; their conversion waits until those plans archive.
+1. **F0**, small rows in any order; SF7's spec can start alongside it.
+2. **F1** in order SF7 → SF8 → (SF9, SF10, SF11, SF12, SF13, SF14 in parallel) → SF15 → SF16. **M1** is SF16 passing.
+3. After M1, four lanes in parallel: **F2** (SF17 → SF18 → SF19, SF20, SF23 → SF22; SF21 when the three grid shards
+   stream), **L**, **SDK + UX**, **C** (Driftwood first, then Pine Hollow and Nalati so the grid can open).
+4. **M2** is SF22 passing on the real grid. The format freezes after M2 and the first conversions.
 
-**Estimate (rough, agent-days):**
-
-| Phase | Agent-days |
-|---|---|
-| P0 | ~3 |
-| P1 | ~6 |
-| P2 | ~4 |
-| P3 | ~18–24 |
-| P4 | ~5 |
-| P5 | ~8 |
-| P6 | ~3 |
-| **Total** | **~45–55** |
-
-GAME-NORMALIZATION's 25–34 agent-day estimate ran in about two days of wall clock with parallel lanes; P3's systems
-parallelise the same way.
+No agent-day estimate: the audits showed the last one was anchored on a mechanical refactor. The council rounds size
+the rows.
 
 ## 6. Done when
 
-- The gate prints every first-party shard at **≤ 20 % custom**, and no ceiling has risen.
-- All six boot from their packages with parity identical (or the wave boards accepted), offline boot intact, inside
-  the phone budgets.
-- The template and SP30's shard have no `runtime/` folder.
-- `wildshard validate` passes all of them.
-- The template's simulation runs in plain Node with no renderer (`sim-no-render` over kit and shards at 0).
-- SHARDS.md and ENGINE.md describe the format, the systems and the plugin ABI.
+- **M1**: the template boots from its shardfile with no trusted chunk, its sim steps in Node, the hash test passes,
+  and a fresh author outside the repo built a shard with only the SDK.
+- **M2**: the shipped game opens on the three-shard grid; travel is seamless; the crossroads gates pass on the phone.
+- Every L and SDK row has landed, each with its contract test.
+- Driftwood, Pine Hollow and Nalati pass **80/20 by both measures**; Signal Dunes, Sky Reach and Nine Dragon are on
+  shardfiles; no ceiling has risen.
+- SHARDS.md, ENGINE.md and `docs/SHARDFILE.md` describe the format, the systems and the script ABI.
 
 ## 7. Touches other plans
 
-- **ARCH-GUARDS:** SP1, SP5 and SP11 add or fix guards (the `sim-no-render` path bug, `no-runtime-generator`, the
-  `ctx.app` ratchet); they land as rows there or here, not both.
-- **WORLDCLAW-SHARD / THIN-ICE:** Q1 — Thin Ice starts as code with the 20 % allowance; from SP5 on it keeps its custom code in `runtime/` under its own ceiling, and SP31 converts it last.
-- **ANIMATION-REMASTER:** procedural animation that bakes to clips (Nine Dragon's arms, the King's rig) leaves the
-  custom side.
-- **DRIFTWOOD-REMASTER-V2:** V-B1, the island-wide Blender pass, is a generator change; it lands before or after
-  SP22, never during it.
-- **DEPLOYMENT_ASSET_TRIM:** baked outputs add files; T5's pack layout and cost comparison count them.
-- **NINE-DRAGON-STACK:** its re-plan (E380) should write new strata on the format.
+- **ARCH-GUARDS:** SF1, SF3 and SF6 change guards in `lint/wildshard-plugin.js`; ask arch-guards over herdr first.
+- **WORLDCLAW-SHARD / THIN-ICE:** out of scope (G47). Thin Ice keeps its own plans; only its `runtime/` ceiling is
+  measured here.
+- **EXPLORE-V2:** explore mode becomes one shard at a time behind the dev toggle (G46).
+- **NINE-DRAGON-STACK:** a partial shard, DEVSERVER only (G46); its re-plan should write strata on the format.
+- **DRIFTWOOD-REMASTER-V2 / FINISH-LINE / SIGNAL-DUNES / SKY-REACH:** a shard converts only when its agents are idle.
+- **DECISION-MODELS (archived):** Clef / Jev judge the AI playtester (SF40).
+- **DEPLOYMENT_ASSET_TRIM:** tiles and baked outputs change the pack layout.
+- **HUD (E332):** SF28 and any HUD change go over herdr and to Jake.
 
-## 8. Jake's picks (answered 2026-10-03, ask tool)
+## 8. Jake's picks before the grill (2026-10-03)
 
-| # | Question | Recommended (Jake's answer in §0's State line) |
+| # | Question | Jake's answer |
 |---|---|---|
-| Q1 | Is Thin Ice (shard 7) born on the format, so WorldClaw's build waits for P0–P2 and the systems it needs, or does it start as code with the six's 20 % allowance? | **Born on the format.** Its grey world and layout are data anyway; what it lacks is built as an approved system first. Otherwise the transition grows a seventh shard to convert |
-| Q2 | Material graphs: compile to the WebGL renderer's shader patches, or switch the engine to three.js's WebGPU renderer (which runs TSL node materials, with a WebGL 2 fallback) first? | **Our own compiler onto `patchShader` first.** The renderer switch is a risky, phone-gated change of its own (RENDERING.md: default-off until an iPhone reading backs it) |
-| Q3 | How much parity for a boss moved to a phase table? | **Only ordinary bosses move** (Storm Roc, the Matriarch, the Big Blob); the Drowned Captain, Antler King, Storm Titan and Golden King stay in `runtime/` with their fights untouched |
-| Q4 | Start now with P0 (SP1–SP5), the small, safe guardrails, while the council reviews the rest? | **Yes.** SP1 fixes a real lint hole; SP2–SP5 are cheap now and cost a save migration later |
-| Q5 | First-principles session (E435): which milestone proves the platform, converting the six first or a package that boots with no trusted code? | **Package-first.** Jake: *"Package-First since we already have a template as shard 7 Then the other 6 shards go for the 80/20 split."* The phase order is re-planned after the E435 audits (Claude + Codex, clean room); Fork B (the behaviour language) and Fork C (server authority) wait on their research |
+| Q1 | Thin Ice born on the format or as code? | **As code**, with the 20 % allowance; confirmed in E435 after both audits flagged it (T4) |
+| Q2 | Material graphs onto the WebGL patches or WebGPU first? | Our own compiler first; superseded by G4 and G32 (families → graphs → shader code, renderer-neutral) |
+| Q3 | Which bosses move to phase tables? | Only ordinary bosses (Storm Roc, the Matriarch, the Big Blob); the unique ones stay custom |
+| Q4 | Start P0 now? | **Yes**; P0 is done |
+| Q5 | Which milestone proves the platform? | **Package-first** (E435) |
 
 ## 9. How it runs
 
-- A council round (docs/process/COUNCIL.md, three fresh seats) before the State goes `ready`.
-- No repo lock. Engine and kit rows land behind the parity gate; a shard's conversion waits for its agents to be idle.
-- Each commit is pathspec-only and goes through `scripts/push-main.sh`. A risky render or memory change ships
-  default-off behind a Debug row until a phone reading backs it (RENDERING.md).
-- Every step is identical under the harness, or a small difference batched onto one board per wave (systems,
-  looks, bosses).
+- **Up to six council rounds** on this rewrite before `ready` (G44; COUNCIL.md's cap of four is lifted for this plan).
+- No repo lock. Each row lands behind the parity gate; a shard's conversion waits for its agents to be idle.
+- Commits are pathspec-only through `scripts/push-main.sh`. A risky render or memory change ships default-off behind a
+  Debug row until a phone reading backs it (RENDERING.md). A look change keeps the old look as a Debug variant.
+- Small visual differences are batched onto one board per wave.
 
-## 10. The shardfile: the grill with Jake (E435, in progress)
+
+## 10. The shardfile: the grill with Jake (E435)
 
 Jake, 2026-10-03: *"Grill me, let's brainstorm … everything is on the table, nothing is decided, let's make the perfect
 shardfile plan together, let's fight against the limits of the existing shards, lets make it powerful and super
 creative and fully open for great thing. But still give a stable baseline and development SDK + UX for building
 performant & fun shards."* The evidence behind the earlier calls is the [Wildshard MMO Review](../reviews/wildshard-mmo-review.md).
-Rows P1–P6 above are rewritten from these answers when the grill ends.
+The rows in §4 were rewritten from these answers on 2026-10-04; each row names the answers it builds.
 
 | # | Question | Jake's answer |
 |---|---|---|
@@ -328,36 +307,24 @@ Rows P1–P6 above are rewritten from these answers when the grill ends.
 
 ## Handoff (shard-platform)
 
-Written 2026-10-03 by the shard-platform agent, working the plan with Jake (asks E431, E433). P0 is done.
+Written 2026-10-04 by the shard-platform agent, at the end of the E435 grill with Jake (asks E431, E433, E435).
 
-**Read first:** this plan's §0–§2 and §4 P0; [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md) (the why, Jake's
-decisions in §6, the open ones in §7); [SHARD-PLATFORM-PLAN](../design/mmo/SHARD-PLATFORM-PLAN.md) for the thinking.
-All MMO docs live in `docs/design/mmo/`; never link the private planning repo (E433, JAKE.md).
+**Read first:** §0, §1 and §3 of this plan; §10 (Jake's 47 answers, the source of every row); the
+[Wildshard MMO Review](../reviews/wildshard-mmo-review.md) and its reports in `docs/design/mmo/research/e435/`;
+[MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md) (decisions 1–20). Never link the private planning repo (E433).
 
-**What exists (all on `origin/main`):**
-- SP1: `SIM_DIRS` / `VIEW_PATHS` in `lint/wildshard-plugin.js` (sim-no-render), a folders-exist test in
-  `test/arch-guards.test.ts`, the fixtures in `test/fixtures/lint/cases.json`.
-- SP2: the `profile` scope in `src/engine/saves/store.ts` and `src/engine/native/saves.ts`; `test/engine/saves*.test.ts`.
-- SP3: `scripts/check-row-data.mjs` (+ `.d.mts`), `lint/row-functions.json` (45 fields), `test/row-data.test.ts`.
-- SP4: `CELL_*` in `src/engine/core/config.ts` (exported from `@wildshard/engine/data`), `lint/edge-exemptions.json`,
-  `test/world/world-contract.test.ts`.
-- SP5 part 1: `lint/shard-layout.json` (generators / data / runtime), `scripts/check-chunks.mjs` (+ test),
-  `scripts/shard-platform.mjs` (+ `.d.mts`), `lint/shard-platform.json` (baselines at `b96fed1a1`),
-  `test/shard-platform.test.ts`.
-- SP5 part 2: `wildshard/no-runtime-generator` and `SHARD_SIM_DIRS` in `lint/wildshard-plugin.js` (fixtures in
-  `test/fixtures/lint/cases.json`), the `shard-platform` step in `scripts/vercel-tree-gate.sh`.
+**What exists (on `origin/main`):** P0 (SP0–SP5, listed in its rows); the requirements walk-through (MMO-REQUIREMENTS
+rewritten as needs); the research (Claude + Codex, clean room); this rewrite.
 
 **Next, in order:**
-1. **A council round on P1–P6** (docs/process/COUNCIL.md, three fresh seats). The plan goes `ready`, and P1 starts,
-   only after it.
-2. **The open decisions to put to Jake** (question tool, one recommendation each): MMO-REQUIREMENTS O2 (centre shard
-   or citadel), O3 (who ships a new WASM plugin), O4 (the plugin toolchain), O5 (live-update UX), O6 (one look or
-   one per shard). None blocks P0–P2.
+1. **Council rounds on this rewrite**, up to six (G44, docs/process/COUNCIL.md, three fresh seats a round, at least one
+   Codex and one Claude). Fold each round's findings in; the plan goes `ready` after them.
+2. Then **F0**: SF1–SF6, ARCH-GUARDS asked over herdr before touching `lint/wildshard-plugin.js`.
 
-**Lessons from this session:**
-- Run `scripts/vercel-tree-gate.sh HEAD` on your commit before `scripts/push-main.sh`. A lint change needs the
-  `lint/` files, `test/fixtures/lint/cases.json` and `scripts/README.md` (liveness) checked, not only `src/`.
-- Another agent's push may carry yours, and its gate may not have run on your commit.
-- `lint/wildshard-plugin.js` and the lint fixtures are shared with ARCH-GUARDS work: ask arch-guards over herdr first.
-- Imports are the workspace packages now (`@wildshard/engine`, `@wildshard/engine/data`, `@wildshard/kit` …), not
-  `#engine`.
+**Lessons:**
+- Run `scripts/vercel-tree-gate.sh HEAD` before `scripts/push-main.sh` when a commit touches code; a lint change needs
+  `lint/`, `test/fixtures/lint/cases.json` and `scripts/README.md` (liveness) checked.
+- Imports name the defining module now (E434, no barrels): `@wildshard/engine/core/config`, not a package root.
+- A guard with zero targets proves nothing: give every new rule a fixture that fails and one real site, or say it is
+  vacuous.
+- Numbers in a plan come from a committed script, never from a hand count.
