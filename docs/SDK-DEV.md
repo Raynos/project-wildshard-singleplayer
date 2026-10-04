@@ -25,6 +25,13 @@ runtime stamp. `node scripts/check-devserver.mjs <output>` refuses enabled,
 missing or unsubstituted flags in a production artifact. The revision polling
 endpoint and reload script exist only in the author server's disposable HTML.
 
+`pnpm build`, the clean push gate and Vercel build every folder under
+`src/shards` containing `shard.config.ts` through the workspace's author CLI.
+These product-only builds populate `public/shardfiles/<folder>` before Vite
+copies public files. Both the ordinary production build and the push gate run
+the flag assertion against their compiled output. Unit fixtures deliberately
+forge a true runtime flag under false metadata and must fail that assertion.
+
 The headless loader and collider edge walk extend `wildshard validate` at
 SF8c's remaining composition step. The normal full loader supplies the same
 colliders and simulation systems; validation must not substitute empty

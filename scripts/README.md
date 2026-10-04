@@ -153,6 +153,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [audit-assets.mjs](./audit-assets.mjs)
 - [budget-ceilings.mjs](./budget-ceilings.mjs)
 - [build-sdk.mjs](./build-sdk.mjs)
+- [build-shardfiles.mjs](./build-shardfiles.mjs)
 - [calibrate.mjs](./calibrate.mjs)
 - [compile-script.d.mts](./compile-script.d.mts)
 - [compile-script.mjs](./compile-script.mjs)
@@ -240,6 +241,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [timelapse.sh](./timelapse.sh)
 - [tsconfig.json](./tsconfig.json)
 - [webkit-mem-reading.mjs](./webkit-mem-reading.mjs)
+- [wildshard.d.mts](./wildshard.d.mts)
+- [wildshard.mjs](./wildshard.mjs)
 
 ## Folders
 

@@ -7,7 +7,7 @@
     "gen": "node scripts/gen.mjs",
     "dev": "bash scripts/serve-build.sh",
     "prebuild": "node scripts/check-css.mjs",
-    "build": "pnpm gen && tsc --noEmit && vite build",
+    "build": "pnpm gen && tsc --noEmit && node scripts/build-shardfiles.mjs && vite build && node scripts/check-devserver.mjs dist",
     "build:native": "vite build --mode native",
     "typecheck": "pnpm gen && tsc --noEmit && tsc -b tsconfig.layers.json && tsc --noEmit -p api && tsc --noEmit -p scripts && tsc --noEmit -p drafts && tsc --noEmit -p drafts/tools",
     "build:drafts": "vite build --config drafts/vite.config.ts",

@@ -7,7 +7,7 @@
 #   1. fails if .vercelignore excludes any tracked file under src/ public/ api/ scripts/ (or a top-level file);
 #   2. checks out ONLY the files Vercel would upload (gitignore rules of the commit's own .vercelignore) into a temp dir;
 #   3. runs the CI gates there: check-css, typecheck (app + api), oxlint, node-only bake-check, vitest, vite build.
-# A commit that passed is stamped in .git/vercel-gate-platform-ratchets-v4/ and never re-built.
+# A commit that passed is stamped in .git/vercel-gate-platform-ratchets-v5-devserver/ and never re-built.
 #
 #   scripts/vercel-tree-gate.sh [<commit>]     (default HEAD; .githooks/pre-push runs it on the pushed tip)
 #   escape (rare, logged in the push output only): SKIP_VERCEL_GATE=1 scripts/push-main.sh
@@ -17,7 +17,7 @@ ROOT="$PWD"
 
 sha="$(git rev-parse --verify "${1:-HEAD}^{commit}")" || exit 1
 short="$(git rev-parse --short "$sha")"
-stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate-platform-ratchets-v4"
+stamp_dir="$(git rev-parse --path-format=absolute --git-common-dir)/vercel-gate-platform-ratchets-v5-devserver"
 if [ -f "$stamp_dir/$sha" ]; then echo "vercel-gate: $short already passed"; exit 0; fi
 
 work="$(cd "$(mktemp -d -t vercel-gate)" && pwd -P)" || exit 1 # canonical: /var is a symlink on macOS (E432)
@@ -67,7 +67,9 @@ run ratchet node lint/ratchet.mjs
 run bake-check node scripts/bake-check.mjs --node-only
 run vitest pnpm exec vitest run
 run script-conformance bash scripts/browser-lane.sh --max 5 node scripts/script-conformance.mjs
+run shardfiles node scripts/build-shardfiles.mjs
 run vite-build pnpm exec vite build --outDir "$work/dist" --emptyOutDir
+run assert-devserver node scripts/check-devserver.mjs "$work/dist"
 run check-chunks node scripts/check-chunks.mjs "$work/dist"
 run shard-platform node scripts/shard-platform.mjs --check && sed 's/^/    /' "$work/shard-platform.log" # SHARD-PLATFORM SP5: each shard's custom share
 

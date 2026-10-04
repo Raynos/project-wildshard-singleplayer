@@ -10,7 +10,7 @@ import process from 'node:process';
 
 /** Run the author CLI; returns only after validation/build completes. */
 export async function runCli(args: readonly string[]): Promise<void> {
-  const [command, input, output] = args;
+  const [command, input, output, buildFlag] = args;
   if (input === undefined) throw new Error('usage: wildshard new <project> | build <project> [output] | validate <project|shard.json> | dev <project> [port]');
   if (command === 'new') { newProject(resolve(input), input.split('/').reverse().find((part) => part !== '') ?? ''); return; }
   if (command === 'dev') {
@@ -21,7 +21,8 @@ export async function runCli(args: readonly string[]): Promise<void> {
     console.info(`wildshard dev: ${server.url}`); return;
   }
   if (command === 'build') {
-    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output)); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
+    if (buildFlag !== undefined && buildFlag !== '--product-only') throw new Error('unknown build flag');
+    const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), buildFlag === '--product-only' ? { client: null } : {}); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
   if (command === 'validate') {
     const built = input.endsWith('.json'); const shard = built ? parseShardfile(JSON.parse(readFileSync(input, 'utf8'))) : await readProject(resolve(input));
