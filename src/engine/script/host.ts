@@ -62,6 +62,8 @@ export class ScriptHost {
       enter: () => { this.charge(state, 1); if (++state.depth > SCRIPT_ABI.callDepth) throw new Error('Script call-depth exhausted'); },
       leave: () => { if (--state.depth < 0) throw new Error('Invalid call depth'); },
       fuel: (cost: number) => this.charge(state, cost),
+      finite32: (value: number) => { this.charge(state, 1); if (!Number.isFinite(value)) throw new Error('Non-finite script number'); return value; },
+      finite64: (value: number) => { this.charge(state, 1); if (!Number.isFinite(value)) throw new Error('Non-finite script number'); return value; },
       abort: () => { throw new Error('Script abort'); },
       query: (kind: number, request: number, response: number) => {
         if (!state.busy || !integer(kind, 1, 4)) throw new Error('Query outside a tick');
@@ -109,7 +111,7 @@ export class ScriptHost {
   /** Restore complete state into a new instance without running initialization again. */
   restore(name: string, saved: ScriptSnapshot): void {
     const state = this.modules.get(name); if (!state || this.active) throw new Error('Unknown or active module');
-    if (saved.memory.length % 65536 !== 0 || saved.memory.length < state.admission.initialPages * 65536 || saved.memory.length > state.maximumPages * 65536 || saved.globals.size !== state.admission.globals.length || state.admission.globals.some((n) => !saved.globals.has(n))) throw new Error('Invalid script snapshot');
+    if (saved.memory.length % 65536 !== 0 || saved.memory.length < state.admission.initialPages * 65536 || saved.memory.length > state.maximumPages * 65536 || saved.globals.size !== state.admission.globals.length || state.admission.globals.some((n) => !saved.globals.has(n)) || [...saved.globals.values()].some((v) => typeof v === 'number' && !Number.isFinite(v))) throw new Error('Invalid script snapshot');
     const owned = clone(saved); state.remaining = this.limits.fuelPerCall; state.depth = 0; state.running = this.instantiate(state, owned); state.good = owned;
   }
   /** Resume only by an explicit host action; repeated offenders remain disabled. */

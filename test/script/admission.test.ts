@@ -44,4 +44,9 @@ describe('script admission without execution', () => {
   it('never admits raw compiler output solely because an instrumenter was invoked', () => {
     expect(() => admitScript(instrumentScript(wasm('(module (import "env" "memory" (memory 1 64)) (func (export "on_tick") (loop $s (br $s))))')))).toThrow('ABI export');
   });
+  it('rejects a removed finite guard and non-finite initial global', async () => {
+    const bytes = await compileScript(scriptSource('store<f64>(8192, load<f64>(16384) + 1);'));
+    expect(() => admitScript(tamper(bytes, (t) => t.replace(/\(call \$fimport\$4\s+(\(f64.const [^)]+\))\s*\)/, '$1')))).toThrow('finite');
+    expect(() => admitScript(wasm('(module (global (mut f64) (f64.const nan)))'))).toThrow('Non-finite global');
+  });
 });

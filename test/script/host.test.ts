@@ -35,6 +35,16 @@ describe('bounded atomic script host', () => {
     const host = make(); await install(host, emit(1, '1', 'NaN'), '', '1');
     expect(host.call('policy', 1, [0]).reason).toContain('Non-finite'); expect(host.world.entity(1)?.fields[1]).toBe(0);
   });
+  it('traps an internal NaN before its memory bits can produce finite effects or divergent snapshots', async () => {
+    const host = make();
+    await install(host, `let zero=load<f64>(16384); store<f64>(8192, zero/zero); ${emit(1, '1', '(load<u64>(8192) >> 63) as f64')}`, '', '1');
+    const before = host.snapshot('policy'); expect(host.call('policy', 1, [0]).reason).toContain('Non-finite');
+    expect(host.world.entity(1)?.fields[1]).toBe(0); expect(host.snapshot('policy')).toEqual(before);
+  });
+  it('admits deterministic AssemblyScript libm and bit helpers for finite calculations', async () => {
+    const host = make(); await install(host, emit(1, '1', 'Math.sin(load<f64>(16392)) + 10'), '', '1');
+    expect(host.call('policy', 1, [0, 1]).ok).toBe(true); expect(host.world.entity(1)?.fields[1]).toBeCloseTo(10.841470984807897, 12);
+  });
   it('rejects an out-of-range effect and the entire preceding valid effect', async () => {
     const host = make(); await install(host, emit(1, '1', '50') + emit(1, '1', '101', '0', '0', 1), '', '2');
     expect(host.call('policy', 1, [0]).ok).toBe(false); expect(host.world.entity(1)?.fields[1]).toBe(0);

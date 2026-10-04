@@ -21,6 +21,13 @@ function tree(words, cursor) {
 }
 /** @param {unknown} value @returns {string} */
 function wat(value) { return Array.isArray(value) ? `(${value.map(wat).join(' ')})` : String(value); }
+/** @param {unknown} node @returns {unknown} */
+function finite(node) {
+  if (!Array.isArray(node)) return node;
+  const rewritten = node.map(finite), op = rewritten[0];
+  if (typeof op === 'string' && /^f(?:32|64)\./.test(op) && !/^f(?:32|64)\.(?:store|eq|ne|lt|gt|le|ge)$/.test(op)) return ['call', op.startsWith('f32.') ? '$__finite32' : '$__finite64', rewritten];
+  return rewritten;
+}
 /** @param {unknown} node @param {number} cost */
 function loops(node, cost) {
   if (!Array.isArray(node)) return;
@@ -44,7 +51,8 @@ export function instrumentScript(bytes) {
       const fn = originals[index];
       if (!Array.isArray(fn) || typeof fn[1] !== 'string') throw new Error('Unnamed function');
       const name = fn[1], impl = `$__impl_${index}`;
-      const cost = bytes.length + 128 * originals.length + 1024;
+      const cost = bytes.length * 4 + 128 * originals.length + 1024;
+      for (let i = 2; i < fn.length; i++) fn[i] = finite(fn[i]);
       loops(fn, cost);
       const params = fn.filter((n) => Array.isArray(n) && n[0] === 'param');
       const results = fn.filter((n) => Array.isArray(n) && n[0] === 'result');
@@ -67,6 +75,8 @@ export function instrumentScript(bytes) {
       ['import', '"env"', '"enter"', ['func', '$__meter_enter']],
       ['import', '"env"', '"leave"', ['func', '$__meter_leave']],
       ['import', '"env"', '"fuel"', ['func', '$__meter_fuel', ['param', 'i32']]],
+      ['import', '"env"', '"finite32"', ['func', '$__finite32', ['param', 'f32'], ['result', 'f32']]],
+      ['import', '"env"', '"finite64"', ['func', '$__finite64', ['param', 'f64'], ['result', 'f64']]],
     );
     for (let i = 0; i < module.getNumGlobals(); i++) {
       const global = binaryen.getGlobalInfo(module.getGlobalByIndex(i));
@@ -87,7 +97,7 @@ export async function compileScript(source) {
   const compiler = await import(compilerSpecifier);
   if (!isCompiler(compiler)) throw new Error('Invalid pinned AssemblyScript compiler');
   let bytes = new Uint8Array();
-  const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', '1', '--maximumMemory', '64', '--exportStart', '__start', '-O3'], {
+  const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', '1', '--maximumMemory', '64', '--exportStart', '__start', '--disable', 'bulk-memory', '-O3'], {
     readFile: (name) => name === 'main.ts' ? source : null,
     writeFile: (name, contents) => { if (name === 'main.wasm' && contents instanceof Uint8Array) bytes = contents; },
   });

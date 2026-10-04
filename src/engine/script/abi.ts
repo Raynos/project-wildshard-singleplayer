@@ -7,4 +7,5 @@ export const SCRIPT_EXPORTS: Readonly<Record<string, readonly number[]>> = Objec
 /** Import signatures: parameter types followed by a single result, or zero for void. */
 export const SCRIPT_IMPORTS: Readonly<Record<string, readonly number[]>> = Object.freeze({
   enter: [0], leave: [0], fuel: [0x7f, 0], abort: [0x7f, 0x7f, 0x7f, 0x7f, 0], query: [0x7f, 0x7f, 0x7f, 0x7f],
+  finite32: [0x7d, 0x7d], finite64: [0x7c, 0x7c],
 });

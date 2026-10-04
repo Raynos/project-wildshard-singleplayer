@@ -16,7 +16,8 @@ instances for each entity.
 
 Imports are limited to `env.memory`, `env.abort(i32,i32,i32,i32):void`,
 `env.query(kind:i32,request:i32,response:i32):i32`, and the instrumenter's
-`env.enter():void`, `env.leave():void`, `env.fuel(cost:i32):void`.
+`env.enter():void`, `env.leave():void`, `env.fuel(cost:i32):void`,
+`env.finite32(f32):f32` and `env.finite64(f64):f64`.
 No clock, host transcendental math, entropy, DOM or filesystem is exposed.
 
 The JS instrumenter reads and rewrites Binaryen's IR. Every author function
@@ -40,11 +41,17 @@ V0 caps modules at 256 KiB, functions/types at 512, globals at 128 and locals at
 references are rejected. Allowed features are core numeric instructions,
 mutable globals, sign extension, saturating conversions, and memory copy/fill.
 SIMD, threads/shared memory, GC/reference types, exceptions, tail calls,
-memory64, multiple memories, passive segments and float reinterpretation are
-rejected. Banning float reinterpretation prevents observation of engine-specific
-NaN payloads; finite numbers are required when data crosses the host ABI.
-An AS library function that inspects floating-point bits needs a deterministic
-implementation before this ABI can admit it.
+memory64, multiple memories and passive segments are rejected. Every float
+constant, load, arithmetic/conversion result and integer-to-float reinterpretation
+must immediately pass through the matching finite guard. Admission verifies
+the actual opcode sequence; removing a check is refused before execution.
+Non-finite float globals are refused at admission and snapshot restore.
+The guards each charge one fuel and trap on NaN/infinity before it can enter
+state or effects. This closes both NaN sign/payload inspection and snapshot-bit
+differences; merely banning reinterpretation would not close an integer load
+of a stored NaN. AssemblyScript's deterministic libm and bit helpers remain
+usable for finite computations. Overflow and non-finite intermediate calculations
+trap, even when the author would have later converted them to finite effects.
 
 `@wildshard/engine/script/host` provides `ScriptHost`, with one instance per
 module name and entity handles in IN[3]. A host represents one active cell's

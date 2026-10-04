@@ -46,7 +46,7 @@ function instructions(r: Reader): Instruction[] {
       else if (sub === 10) { if (r.byte() !== 0 || r.byte() !== 0) throw new Error('Multiple memories'); }
       else if (sub === 11) { if (r.byte() !== 0) throw new Error('Multiple memories'); }
       else throw new Error('Unsupported bulk instruction');
-    } else if (![0x00, 0x01, 0x05, 0x0b, 0x0f, 0x1a, 0x1b].includes(op) && !(op >= 0x45 && op <= 0xbb) && !(op >= 0xc0 && op <= 0xc4)) throw new Error('Banned instruction or feature');
+    } else if (![0x00, 0x01, 0x05, 0x0b, 0x0f, 0x1a, 0x1b].includes(op) && !(op >= 0x45 && op <= 0xc4)) throw new Error('Banned instruction or feature');
     out.push({ op, arg });
   }
   return out;
@@ -63,6 +63,7 @@ export function admitScript(bytes: Uint8Array): ScriptAdmission {
   const exports = new Map<string, { kind: number; index: number }>();
   const mutable: number[] = [], bodies: { code: Instruction[]; bytes: number; locals: number }[] = [];
   let imported = 0, initialPages = 0, maximumPages = 0;
+  let declaredDataCount: number | undefined, dataCount = 0;
   while (!r.done()) {
     const id = r.byte(), s = new Reader(r.take(r.uint()));
     if (id === 0) continue;
@@ -70,7 +71,7 @@ export function admitScript(bytes: Uint8Array): ScriptAdmission {
       const count = s.uint(); if (count > SCRIPT_ABI.maxFunctions) throw new Error('Type cap');
       for (let i = 0; i < count; i++) { if (s.byte() !== 0x60) throw new Error('GC type'); const n = s.uint(); if (n > 16) throw new Error('Parameter cap'); const params = Array.from({ length: n }, () => numeric(s)); const results = s.uint(); if (results > 1) throw new Error('Multivalue'); types.push({ params, result: results === 1 ? numeric(s) : undefined }); }
     } else if (id === 2) {
-      const count = s.uint(); if (count > 7) throw new Error('Import cap');
+      const count = s.uint(); if (count > 9) throw new Error('Import cap');
       for (let i = 0; i < count; i++) {
         const mod = s.name(), name = s.name(), kind = s.byte(); if (mod !== 'env' || imports.has(name)) throw new Error('Import outside ABI');
         if (kind === 0) {
@@ -85,17 +86,19 @@ export function admitScript(bytes: Uint8Array): ScriptAdmission {
     } else if (id === 3) { const count = s.uint(); if (count + imported > SCRIPT_ABI.maxFunctions) throw new Error('Function cap'); for (let i = 0; i < count; i++) functions.push(s.uint()); }
     else if (id === 6) {
       const globals = s.uint(); if (globals > SCRIPT_ABI.maxGlobals) throw new Error('Global cap');
-      for (let i = 0; i < globals; i++) { numeric(s); const mut = s.byte(); if (mut === 1) mutable.push(i); const op = s.byte(); if (op === 0x41) s.signed(); else if (op === 0x42) s.signed(10); else if (op === 0x43) s.take(4); else if (op === 0x44) s.take(8); else throw new Error('Global initializer'); if (s.byte() !== 0x0b) throw new Error('Global initializer'); }
+      for (let i = 0; i < globals; i++) { numeric(s); const mut = s.byte(); if (mut === 1) mutable.push(i); const op = s.byte(); if (op === 0x41) s.signed(); else if (op === 0x42) s.signed(10); else if (op === 0x43 || op === 0x44) { const b = s.take(op === 0x43 ? 4 : 8), view = new DataView(b.buffer, b.byteOffset, b.byteLength); if (!Number.isFinite(op === 0x43 ? view.getFloat32(0, true) : view.getFloat64(0, true))) throw new Error('Non-finite global initializer'); } else throw new Error('Global initializer'); if (s.byte() !== 0x0b) throw new Error('Global initializer'); }
     } else if (id === 7) { const n = s.uint(); for (let i = 0; i < n; i++) exports.set(s.name(), { kind: s.byte(), index: s.uint() }); }
     else if (id === 10) {
       const count = s.uint();
       for (let i = 0; i < count; i++) { const b = new Reader(s.take(s.uint())), size = b.bytes.length, groups = b.uint(); let locals = 0; for (let j = 0; j < groups; j++) { locals += b.uint(); numeric(b); } if (locals > SCRIPT_ABI.maxLocals) throw new Error('Local cap'); bodies.push({ code: instructions(b), bytes: size, locals }); }
     } else if (id === 11) {
-      const n = s.uint(); for (let i = 0; i < n; i++) { if (s.uint() !== 0 || s.byte() !== 0x41) throw new Error('Only active memory data'); const offset = s.signed(); if (s.byte() !== 0x0b || offset < 0) throw new Error('Data offset'); const len = s.uint(); if (offset + len > initialPages * 65536) throw new Error('Data cap'); s.take(len); }
-    } else throw new Error('Banned section (start, table, memory, tags or passive data)');
+      const n = s.uint(); dataCount = n; for (let i = 0; i < n; i++) { if (s.uint() !== 0 || s.byte() !== 0x41) throw new Error('Only active memory data'); const offset = s.signed(); if (s.byte() !== 0x0b || offset < 0) throw new Error('Data offset'); const len = s.uint(); if (offset + len > initialPages * 65536) throw new Error('Data cap'); s.take(len); }
+    } else if (id === 12) declaredDataCount = s.uint();
+    else throw new Error('Banned section (start, table, memory, tags or passive data)');
     if (!s.done()) throw new Error('Trailing section bytes');
   }
   const enter = imports.get('enter'), leave = imports.get('leave'), fuel = imports.get('fuel');
+  if (declaredDataCount !== undefined && declaredDataCount !== dataCount) throw new Error('Wrong data count');
   if (enter === undefined || leave === undefined || fuel === undefined || initialPages === 0) throw new Error('Missing instrumentation');
   const wrappers = new Set<number>(), implementations = new Set<number>();
   for (let i = 0; i < bodies.length; i++) {
@@ -120,6 +123,9 @@ export function admitScript(bytes: Uint8Array): ScriptAdmission {
       const instr = body.code[j]; if (!instr) throw new Error('Missing instruction');
       if (instr.op === 0x03 && !charge(body.code, j + 1, fuel, body.bytes)) throw new Error('Missing loop fuel instrumentation');
       if (isCall(instr, fuel) && !charge(body.code, j - 1, fuel, body.bytes)) throw new Error('Invalid fuel charge');
+      const float32 = instr.op === 0x2a || instr.op === 0x43 || (instr.op >= 0x8b && instr.op <= 0x98) || (instr.op >= 0xb2 && instr.op <= 0xb6) || instr.op === 0xbe;
+      const float64 = instr.op === 0x2b || instr.op === 0x44 || (instr.op >= 0x99 && instr.op <= 0xa6) || (instr.op >= 0xb7 && instr.op <= 0xbb) || instr.op === 0xbf;
+      if (float32 || float64) { const check = imports.get(float32 ? 'finite32' : 'finite64'); if (check === undefined || !isCall(body.code[j + 1], check)) throw new Error('Missing finite float instrumentation'); }
       if (instr.op === 0x10 && (instr.arg === enter || instr.arg === leave || ((instr.arg ?? -1) >= imported && !wrappers.has(instr.arg ?? -1)))) throw new Error('Bypassed depth instrumentation');
     }
   }
