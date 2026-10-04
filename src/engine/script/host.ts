@@ -179,7 +179,8 @@ export class ScriptHost {
       if (!integer(count, 0, outputRecords) || count + this.used.effects > this.limits.effects) throw new Error('Effect allowance');
       const view = new Float64Array(currentRunning.memory.buffer, output, count * 5), effects: ScriptEffect[] = [];
       for (let i = 0; i < count; i++) { const at = i * 5; effects.push({ op: view[at] ?? Number.NaN, a: view[at + 1] ?? Number.NaN, b: view[at + 2] ?? Number.NaN, c: view[at + 3] ?? Number.NaN, d: view[at + 4] ?? Number.NaN }); }
-      const tx = this.world.prepare(effects, entity, this.limits.spawns - this.used.spawns, this.limits.events - this.used.events);
+      const eventAllowance = Math.min(this.limits.events - this.used.events, this.limits.events - this.pending.length);
+      const tx = this.world.prepare(effects, entity, this.limits.spawns - this.used.spawns, eventAllowance);
       const good = snapshot(state); tx.commit(); state.good = good;
       this.used.effects += count; this.used.spawns += tx.spawns; this.used.events += tx.events.length; this.pending.push(...tx.events);
       return { ok: true, effects, events: tx.events, fuel: this.limits.fuelPerCall - state.remaining, reason: undefined, disabled: false };

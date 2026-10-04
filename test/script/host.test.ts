@@ -79,6 +79,18 @@ describe('bounded atomic script host', () => {
     expect(host.call('policy', 1, [1], [1, 2, 7, 0, 0, 0]).ok).toBe(false);
     expect(host.beginTick(2)).toEqual([]);
   });
+  it('shares pending queue capacity between native input enqueues and emitted script events', async () => {
+    const host = make();
+    await install(host, `counter++; ${emit(1, '1', 'counter')}${emit(3, '1', '2', '0', '0', 1)}`, 'let counter:i32=0;', '2');
+    for (let i = 0; i < 31; i++) host.enqueue({ type: 1, target: 2, value: i });
+    expect(host.call('policy', 1, [0]).ok).toBe(true);
+    const before = host.snapshot('policy');
+    expect(host.checkpoint().pending).toHaveLength(32);
+    expect(host.call('policy', 1, [0]).reason).toContain('Event allowance');
+    expect(host.checkpoint().pending).toHaveLength(32); expect(host.world.entity(1)?.fields[1]).toBe(1);
+    expect(host.snapshot('policy')).toEqual(before);
+    expect(host.beginTick(1)).toHaveLength(32); expect(host.checkpoint().pending).toEqual([]);
+  });
   it('shares effect allowances across entities and refuses a same-tick reset', async () => {
     const host = make({ limits: { effects: 1 } }); await install(host, emit(1, '1', '10'), '', '1');
     expect(host.call('policy', 1, [0]).ok).toBe(true); expect(host.call('policy', 2, [0]).reason).toContain('Effect allowance');
