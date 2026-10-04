@@ -2,10 +2,9 @@
 import { expect, it } from 'vitest';
 import { app } from '../../src/engine/app/runtime';
 import { Scope } from '../../src/engine/app/scope';
-import { EquipmentService } from '../../src/engine/combat/EquipmentService';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { TouchControls } from '../../src/engine/player/TouchControls';
-import { TemplateWhip } from '../../src/shards/_template/weapons/TemplateWhip';
+import { declaredTemplateItems } from '../fake/declaredTemplateItems';
 import { fakeWorld } from '../fake/world';
 
 it('paints an already active attack relabel, respects an overlay and restores labels/icons on pop', () => {
@@ -14,9 +13,9 @@ it('paints an already active attack relabel, respects an overlay and restores la
   const f = fakeWorld();
   for (const key of ['preUpdate', 'onHoverChange', 'onSwimChange']) Reflect.set(f.player, key, undefined);
   for (const key of ['hover', 'swimming', 'submerged']) Reflect.set(f.player, key, false);
-  const weapons = new EquipmentService(new TemplateWhip(app), { scope });
+  for (const context of INPUT_CONTEXTS) app.input.register(context, scope);
+  const weapons = declaredTemplateItems(app).service;
   try {
-    for (const context of INPUT_CONTEXTS) app.input.register(context, scope);
     app.input.register({ id: 'g5.fan', actions: ['attack', 'heavy', 'lock'], touch: { mode: 'melee', relabel: { r0: { label: 'SWING' }, lock: { label: 'PARRY' } } } }, scope);
     const overlay = new Scope('G5-overlay');
     app.input.register({ id: 'g5.overlay', actions: ['attack'], touch: { relabel: { r0: { label: 'CRACK', icon: '<path d="M0 0L1 1"/>', tone: 'ready' } } } }, overlay);

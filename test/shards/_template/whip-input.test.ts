@@ -1,32 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { App } from '../../../src/engine/app/app';
-import { Scope } from '../../../src/engine/app/scope';
-import { TemplateWhip } from '../../../src/shards/_template/weapons/TemplateWhip';
+import { declaredTemplateItems } from '../../fake/declaredTemplateItems';
 
-describe('template whip light and heavy input', () => {
-  it('binds desktop heavy and releases the touch adsHeld charge exactly once', () => {
-    const app = new App(), scope = new Scope('template-input'), whip = new TemplateWhip(app);
-    const swings: boolean[] = []; whip.onSwing = (heavy) => { swings.push(heavy); }; whip.install({ scope });
+describe('declared template whip light and heavy input', () => {
+  it('binds desktop heavy and releases a fixed-step touch charge exactly once', () => {
+    const f = declaredTemplateItems();
     try {
-      app.input.press('attack'); expect(swings).toEqual([false]);
-      whip.update(0.4); app.input.press('heavy'); expect(swings).toEqual([false, true]);
-      whip.update(0.8); app.input.press('attack');
-      whip.adsHeld = true; whip.update(0.3); expect(whip.charge).toBeCloseTo(0.5);
-      whip.update(0.3); expect(whip.charge).toBe(1); expect(swings).toEqual([false, true, false]);
-      whip.adsHeld = false; whip.update(0.01); whip.update(0.01);
-      expect(swings).toEqual([false, true, false, true]); expect(whip.charge).toBe(0);
-      whip.update(0.8); whip.altHeld = true; app.input.press('attack'); expect(swings.at(-1)).toBe(false);
-    } finally { scope.dispose(); app.engineScope.dispose(); }
+      f.app.input.press('attack'); expect(f.swings).toEqual([]); f.step(); expect(f.swings).toHaveLength(1);
+      f.step(24); f.app.input.press('heavy'); f.step(); expect(f.swings).toHaveLength(2);
+      f.step(48); f.app.input.press('attack'); f.step(); expect(f.swings).toHaveLength(3);
+      f.service.adsHeld = true; f.step(18); expect(f.runtime.snapshot().chargeTime).toBeCloseTo(0.3);
+      f.step(19); expect(f.swings).toHaveLength(3);
+      f.service.adsHeld = false; f.step(2); expect(f.swings).toHaveLength(4);
+      expect(f.runtime.snapshot().chargeTime).toBe(0);
+      f.step(48); f.weapon.altHeld = true; f.app.input.press('attack'); f.step(); expect(f.swings).toHaveLength(5);
+      expect(f.runtime.remainingCooldown).toBeCloseTo(0.4);
+    } finally { f.dispose(); f.app.engineScope.dispose(); }
   });
-
-  it('cancels a charge on holster or scope disposal', () => {
-    const app = new App(), scope = new Scope('template-input-cancel'), whip = new TemplateWhip(app);
-    const swings: boolean[] = []; whip.onSwing = (heavy) => { swings.push(heavy); }; whip.install({ scope });
+  it('cancels a charge when equipment is disabled or the item scope is disposed', () => {
+    const f = declaredTemplateItems();
     try {
-      whip.adsHeld = true; whip.update(0.6); whip.holster = 0.2; whip.update(0.01);
-      whip.adsHeld = false; whip.holster = 0; whip.update(0.01); expect(swings).toEqual([]);
-      whip.adsHeld = true; whip.update(0.6); scope.dispose(); whip.adsHeld = false; whip.update(0.01);
-      expect(swings).toEqual([]); expect(whip.charge).toBe(0);
-    } finally { scope.dispose(); app.engineScope.dispose(); }
+      f.service.adsHeld = true; f.step(40); f.service.enabled = false; f.step();
+      f.service.adsHeld = false; f.service.enabled = true; f.step(); expect(f.swings).toEqual([]);
+      expect(f.runtime.snapshot().held).toBe(false);
+      f.service.adsHeld = true; f.step(40); f.dispose();
+      const before = f.runtime.snapshot(); f.service.adsHeld = false; f.step();
+      expect(f.swings).toEqual([]); expect(f.runtime.snapshot().tick).toBe(before.tick);
+    } finally { f.dispose(); f.app.engineScope.dispose(); }
   });
 });

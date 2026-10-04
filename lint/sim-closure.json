@@ -1,32 +1,3 @@
 {
-  "violations": {
-    "src/game/loot/CoinBurst.ts:import:src/engine/app/runtime.ts": {
-      "count": 1,
-      "row": "SF12"
-    },
-    "src/game/loot/CoinBurst.ts:import:three": {
-      "count": 1,
-      "row": "SF12"
-    },
-    "src/game/loot/tables.ts:import:src/engine/app/runtime.ts": {
-      "count": 1,
-      "row": "SF12"
-    },
-    "src/game/saves.ts:import:src/engine/app/runtime.ts": {
-      "count": 1,
-      "row": "SF12"
-    },
-    "src/shards/_template/combat/encounters.ts:import:src/engine/ui/BossBar.ts": {
-      "count": 1,
-      "row": "SF7f"
-    },
-    "src/shards/_template/quest/install.ts:import:three": {
-      "count": 1,
-      "row": "SF12"
-    },
-    "src/shards/_template/species/greyBlob.ts:import:three": {
-      "count": 1,
-      "row": "SF7c"
-    }
-  }
+  "violations": {}
 }

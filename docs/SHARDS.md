@@ -2,11 +2,20 @@
 
 SDK projects use `shard.config.ts` plus `generators/`, `data/`, `behaviour/`, `quests/`,
 `assets/` and optional trusted transition `runtime/`. A pure shardfile project requires
-`shard.config.ts` and `README.md`; it does not require `plugin.ts`. The template currently
-keeps its legacy manifest/plugin alongside an empty SDK config until SF16 ports its content.
+`shard.config.ts` and `README.md`; it does not require `plugin.ts`. The template is a complete declaration-only SDK project. Its manifest supplies picker
+metadata and points at its built shardfile; there is no template runtime chunk.
 Build output goes in git-ignored `public/shardfiles/`. Placement is platform data in
 `src/game/grid/singleplayer.json`, attached by `scripts/gen-shards.mjs`; source manifests
 and shardfiles carry no placement. SF17a changes the catalogue to the 3 × 3 grid.
+
+To start a shard, copy `src/shards/_template/` to a fresh project folder, install
+`@wildshard/sdk`, and edit the identity in `shard.config.ts`. Run `wildshard build
+<folder>` and `wildshard validate <folder>`. The config imports only SDK modules;
+content-addressed assets are already included. Build-time generators may use author
+tools, while shipped behaviour is admitted AssemblyScript and callback-free data.
+The platform owns placement, cache, residency, physics, input, HUD and the normal
+Game boot. Follow [SHARDFILE.md](SHARDFILE.md) for the data contract; the legacy
+plugin guide below remains for first-party shards undergoing conversion.
 
 Ledger declarations use `@wildshard/sdk/ledger`: validate fact-to-reward mappings with
 `parseLedgerRules`. Authors emit a named outcome; the host assigns its stable instance,
@@ -15,7 +24,7 @@ catalogue rewards at capped tiers and records achievements/titles once per packa
 profile. Grants and fact dedupe share one durable write; failed writes retry the same
 document. Cells never enter a save or fact key. First-party modes resolve one identity
 through `@wildshard/game/grid/instances`; template copies use `template-1` … `template-6`,
-while Select a shard uses `template-solo`. The legacy template switches at SF16.
+while Select a shard uses `template-solo`. The template uses the normal staged Game loader.
 
 Instance-local saves bind through `SaveStore.instance`, or the game’s `instanceSave`
 helper with the session’s stable id and shard. Canonical first-party slug namespaces stay
@@ -46,12 +55,11 @@ recordable command path, gates bindings by active instance, and registers knobs/
 rows through session-owned scoped ports. The template keeps its lantern label, prop count
 and oil Debug choices; the legacy installer switches at SF16.
 
-A shard is one Wildshard level: a folder `src/shards/<slug>/` with a manifest (data) and a plugin (code). The engine,
-the game layer and the kit do the rest. This guide takes you from a copy of the template to a shard that is `live` on
-the title deck.
+A legacy shard is one Wildshard level with a manifest and a plugin. The remaining sections
+document that transition API; new shards follow the SDK flow above.
 
-- **The template** is [`src/shards/_template/`](../src/shards/_template/). It is small, grey and uses every plugin verb
-  once. Copy it; don't start from a real shard.
+- **The template** is [`src/shards/_template/`](../src/shards/_template/). It is the complete grey teaching level
+  authored as shardfile data and admitted behaviour. Copy it; don't start from a real shard.
 - **The API reference** is [ENGINE.md](ENGINE.md). Each step below links to its section.
 - **The rules** are in [AGENTS.md](../AGENTS.md). The ones a shard author hits most are repeated where they apply.
 

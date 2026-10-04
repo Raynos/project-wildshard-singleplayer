@@ -13,7 +13,7 @@ import type { TabFragment, TabSpec } from '../src/engine/ui/tabs';
 import { mountDeclaredUi } from '../src/game/shard/declaredUi';
 import { parseShardfile } from '../src/game/shardfile/schema';
 import { UiSchema, uiRules, type ShardUiDeclaration } from '../src/game/shardfile/ui';
-import { STRINGS } from '../src/shards/_template/strings';
+import { STRINGS } from './fixtures/templateLegacyText';
 
 const dir = 'test/fixtures/shardfile/';
 const fields = v.array(v.object({ name: v.string(), type: v.picklist(['bool', 'i32', 'f64', 'string']) }));

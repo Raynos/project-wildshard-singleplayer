@@ -62,12 +62,7 @@
   "shards": {
     "_template": {
       "name": "Template shard",
-      "ids": [
-        "kit.creature.boar",
-        "template.creature.greyBlob",
-        "weapon.sword-iron",
-        "weapon.template-whip"
-      ],
+      "ids": [],
       "settings": [],
       "assets": []
     },

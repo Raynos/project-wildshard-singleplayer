@@ -1,6 +1,7 @@
 import * as v from 'valibot';
-import { Vector3 } from 'three';
+import { Object3D, Vector3 } from 'three';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
+import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import { scriptItemHook, type ItemTarget } from '@wildshard/engine/combat/items';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
@@ -39,6 +40,8 @@ import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
 import { createShardfileSim, type ShardfileSimulation } from './simulation';
 import type { Shardfile } from './schema';
+
+function isItemModel(value: unknown): value is Object3D { return value instanceof Object3D; }
 
 /** Trusted catalogue dependencies are injected by the normal composition root, never imported upward by the loader. */
 export interface ShardfileClientBindings {
@@ -144,6 +147,29 @@ export class ShardfileClient {
     const health = ctx.app.player;
     if (runtime === undefined || world === null || world === undefined || play === null || play === undefined || items === undefined || tiles === undefined || health === null) throw new Error('Shardfile requires the normal play stage');
     const source = this.source, identity = { instance: this.bindings.instance, shard: source.identity.slug, revision: source.identity.revision };
+    const equipmentHost = ctx.app.equipmentHost;
+    if (equipmentHost === null) throw new Error('Declared items require the normal equipment view host');
+    for (const item of [items.primary, items.secondary, ...items.extras, ...items.tools]) {
+      if (item === null) continue;
+      const model: unknown = Reflect.get(item, 'model');
+      if (isItemModel(model)) {
+        equipmentHost.viewmodel.add(model);
+        ctx.scope.onDispose(() => { model.removeFromParent(); });
+      }
+    }
+    let baseFov = 0;
+    ctx.system({ id: 'shardfile.item-fov', phase: 'update', run: () => {
+      const current = play.weapons.current;
+      if (!source.items.rows.some((row) => row.kind === 'weapon' && row.family === 'kit.melee' && row.id === current.row.id)) return;
+      const camera = world.game.camera;
+      const base = fovForAspect(camera.aspect < 1 ? world.game.level.camera?.portraitFov ?? 72 : 72, camera.aspect);
+      const target = base + (current.model.visible ? world.player.fovKick : 0);
+      if (Math.abs(target - camera.fov) > 0.01) {
+        camera.fov = target; camera.updateProjectionMatrix();
+        if (Math.abs(base - baseFov) > 0.01) world.sky.csm.updateFrustums();
+      }
+      baseFov = base;
+    } });
     const lootRow = source.rows.loot[0], loot = lootRow === undefined ? null : installLoot({ ctx, manifest: ctx.manifest, owned: play.owned, scene: world.game.scene,
       player: world.player, camera: world.game.camera, animals: () => play.animals.animals, menu: play.menu, presentation: declaredLootPresentation(lootRow, (id) => { if (!id.startsWith('cue.')) throw new Error('Unknown registered loot cue'); play.cues.cue(`cue.${id.slice(4)}`); }),
     });
@@ -212,7 +238,10 @@ export class ShardfileClient {
       active: () => ctx.app.state === 'play' && !world.freeCamera, scene, knobs: ctx.tiers.knobs, debugRow: ctx.debugRow,
     });
     installDeclaredTargets(source.targets, { panels: tiles.props?.panels ?? new Map(), colliders: sim.colliders, read, scene, interactables: runtime.interactables, scope: ctx.scope, system: ctx.system });
-    for (const quest of sim.quest.quests) installQuestPresentation(ctx, quest);
+    for (const quest of sim.quest.quests) {
+      const declaration = source.quests.quests.find((row) => row.id === quest.def.id);
+      installQuestPresentation(ctx, quest, declaration?.track === false ? { chip: () => ({ label: '', count: '' }) } : {});
+    }
     runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;
     installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather });

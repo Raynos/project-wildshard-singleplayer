@@ -79,15 +79,18 @@ export async function start(): Promise<void> {
     retried(() => import('./kit/tools/hoverboard')), retried(() => import('./kit/audio/weaponVoices')), retried(() => import('./kit/audio/combatCues')),
     retried(() => import('@wildshard/kit/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
   ]);
-  const { configuredShardfile, installShardfileProduct, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
+  const { configuredShardfile, installShardfileProduct, installManifestShardfile, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
   const source = configuredShardfile(document);
   const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
-  const manifest = source === null ? game.shard : await installShardfileProduct(source, browserShardfileOptions(document.baseURI), {
-    instance: `standalone-${source.identity.slug}`, catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,
+  const bindings: Parameters<typeof installShardfileProduct>[2] = {
+    instance: source === null ? 'template-solo' : `standalone-${source.identity.slug}`, catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,
     icon: (name) => { const id = declaredIcons.find((entry) => entry === name); if (id === undefined) throw new Error(`Unknown catalogue item icon ${name}`); return id; },
     recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
-  });
-  if (source !== null) document.documentElement.classList.remove('title-first');
+  };
+  const manifest = source === null
+    ? await installManifestShardfile(game.shard, browserShardfileOptions(document.baseURI, true), bindings)
+    : await installShardfileProduct(source, browserShardfileOptions(document.baseURI), bindings);
+  if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
   installKitSpecies();
   installKitIcons();
   installKitPickups();

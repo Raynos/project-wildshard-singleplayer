@@ -50,8 +50,10 @@ describe('SF3a headless import closure', () => {
     expect(Object.keys(reviewed)).toEqual(['src/engine/render/families/params.ts']);
     expect(reviewed['src/engine/render/families/params.ts']?.owner).toBe('SF16');
   });
-  it('includes all four temporary template roots and excludes engine views', () => {
-    for (const file of ['combat/encounters.ts', 'species/greyBlob.ts', 'quest/install.ts', 'world/climate.ts']) expect(simRoot(`src/shards/_template/${file}`)).toBe(true);
+  it('guards authored template data and behaviour while excluding build-time views', () => {
+    expect(simRoot('src/shards/_template/data/creatures.ts')).toBe(true);
+    expect(simRoot('src/shards/_template/behaviour/hooks.ts')).toBe(true);
+    expect(simRoot('src/shards/_template/generators/world.ts')).toBe(false);
     expect(simRoot('src/engine/combat/view/melee.ts')).toBe(false);
     expect(simRoot('src/engine/quest/view.ts')).toBe(false);
   });

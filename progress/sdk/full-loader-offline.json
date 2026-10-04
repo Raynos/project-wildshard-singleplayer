@@ -1,0 +1,335 @@
+{
+  "source": "scripts/test-sdk-full-client.mjs",
+  "method": "Muted iPhone 16 Pro Chromium/Metal, normal production SDK Game bundle on prepared SF16 candidate06a2295cb; real capsule crosses two tile boundaries, actual CacheStorage+service-worker offline reload,15 scoped load/unload cycles. Functional accelerated proof, not an fps reading. Product mode uses embedded author declaration; first-party mode removes it and admits the canonical _template manifest descriptor before the normal session.",
+  "product": {
+    "pass": true,
+    "sha": "SF16-candidate-06a2295cb",
+    "first": {
+      "embedded": true,
+      "creatures": 3,
+      "boundViews": 3,
+      "ticks": 706,
+      "position": {
+        "x": 163.84444598242408,
+        "y": 0.13594262810082125,
+        "z": 30.001807511678294
+      },
+      "fuel": 0.9029166666666515,
+      "open": 1,
+      "rings": {
+        "frame": 715,
+        "resident": {
+          "far": 0,
+          "l1": 16,
+          "l0": 27
+        },
+        "inFlight": 0,
+        "queued": 0,
+        "refused": 0,
+        "uploads": 54,
+        "evictions": 0
+      },
+      "workers": true,
+      "allocator": {
+        "l0": 4149328,
+        "l1": 693724,
+        "far": 0,
+        "libraries": 2881462,
+        "sims": 0,
+        "commons": 0,
+        "overlap": 80000000
+      },
+      "errors": []
+    },
+    "coldDownloads": 100,
+    "revisitDownloads": 0,
+    "offlineDownloads": 0,
+    "cacheNames": [
+      "ws-shell-b-mutuzm46-6ed4bf9185",
+      "ws-immutable",
+      "ws-shardfile-products-v0",
+      "ws-content-v0",
+      "ws-static-1c06a747b8"
+    ],
+    "offline": {
+      "restored": {
+        "online": false,
+        "open": 1,
+        "active": false,
+        "lit": true,
+        "fuel": 0.9012499999999846
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "before": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "after": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "disposalErrors": [],
+      "errors": []
+    }
+  },
+  "firstParty": {
+    "pass": true,
+    "sha": "SF16-candidate-06a2295cb",
+    "mode": "first-party",
+    "first": {
+      "embedded": true,
+      "creatures": 3,
+      "boundViews": 3,
+      "ticks": 706,
+      "position": {
+        "x": 163.84444598242408,
+        "y": 0.13594262810082125,
+        "z": 30.001807511678294
+      },
+      "fuel": 0.9029166666666515,
+      "open": 1,
+      "rings": {
+        "frame": 715,
+        "resident": {
+          "far": 0,
+          "l1": 16,
+          "l0": 27
+        },
+        "inFlight": 0,
+        "queued": 0,
+        "refused": 0,
+        "uploads": 54,
+        "evictions": 0
+      },
+      "workers": true,
+      "allocator": {
+        "l0": 4149328,
+        "l1": 693724,
+        "far": 0,
+        "libraries": 2881462,
+        "sims": 0,
+        "commons": 0,
+        "overlap": 80000000
+      },
+      "errors": []
+    },
+    "coldDownloads": 100,
+    "revisitDownloads": 0,
+    "offlineDownloads": 0,
+    "cacheNames": [
+      "ws-shell-b-mutuzm46-6ed4bf9185",
+      "ws-immutable",
+      "ws-shardfile-products-v0",
+      "ws-content-v0",
+      "ws-static-1c06a747b8"
+    ],
+    "offline": {
+      "restored": {
+        "online": false,
+        "open": 1,
+        "active": false,
+        "lit": true,
+        "fuel": 0.9012499999999846
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "before": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "after": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "disposalErrors": [],
+      "errors": []
+    }
+  }
+}

@@ -1,84 +1,23 @@
 # Template shard (`_template`)
 
-Copy this folder to start a shard ([docs/SHARDS.md](../../../docs/SHARDS.md) walks through it). It is small and grey
-on purpose and uses every plugin verb once. It is `hidden`: no title card. Enter it through Debug ▸ Developer tools ▸
-Template shard. The `_` prefix also keeps it out of the layout check.
+Copy this folder to start a shardfile project; see [SHARDS.md](../../../docs/SHARDS.md)
+and [SHARDFILE.md](../../../docs/SHARDFILE.md). Install `@wildshard/sdk`, edit the
+identity in `shard.config.ts`, then run `wildshard build <folder>` and
+`wildshard validate <folder>`. Included immutable assets make the copy buildable.
 
-## What it declares
+`data/` declares terrain, props, exported creature skins, brains, encounters, items,
+water, look, HUD, audio, ledger and interactions. `behaviour/` holds admitted numeric
+AssemblyScript for the door and item hooks; `quests/` declares the adventure. Stable
+state-field IDs and item handles preserve the script ABI across declaration reorder.
+`generators/` and `layout.ts` are build-time source metadata, never client runtime.
 
-| Field | Value |
-|---|---|
-| `status`, `order` | `hidden`, 1000 |
-| `style`, `kitLook` | `greybox`, `toon` |
-| `uses` | all 15 mechanisms, so each one is exercised |
-| `ground` | a 200 × 200 m one-octave heightfield, one trail, a swim pool (`world/pool.ts`) |
-| `loadout` | the kit iron sword, the custom whip (held), the custom lantern, the kit hoverboard |
-| `species` | the kit boar and `greyBlob` |
-| `encounters` | Greyback (an elite boar) and Big Blob (a two-phase boss) |
-| `bag` | MAP · GEAR · PACK · NOTES, a pack of 8 |
-| `hud` | bands 1–3; an oil meter in band 3, a JUMP relabel, a pin over the hut door |
-| `tiers` | `template.propCount` (phone 10, desktop 20); no god rays, no AO |
-| `assets` | none: no ground sets, no KTX2 table, no asset globs, no downloaded art |
-| saves | one shard key, `template.notes` |
+The first-party manifest keeps the canonical `_template` slug, grey picker art and
+`template-solo` save identity, and points at `/shardfiles/_template/shard.json`.
+The existing Game admits the product before its normal world/kit/play stages, sharing
+one player, physics world, fixed-step driver and HUD. There is no custom runtime chunk.
+A copied author project does not need the platform picker manifest or budget metadata.
 
-## Its custom code, and why
-
-Each piece shows one rung of the API. None of it is meant to ship.
-
-| File | Shows |
-|---|---|
-| `plugin.ts` | the three hooks, the declaration merges, `buildEquipment`, every `ctx` verb |
-| `weapons/TemplateWhip.ts` | a custom weapon (`extends Weapon`) from `blocks.viewmodel` + `blocks.melee`; its heavy applies `effect.poison` |
-| `weapons/TemplateLantern.ts` | a Tool in the off hand with its own action, `template.lantern.toggle` |
-| `species/greyBlob.ts` | a species row, a look row with a rig contract, a `CreatureBrain` with two `StrikeSpec`s (point, lane) |
-| `combat/encounters.ts` | an `EliteBrain` and a `BossBrain` with two HP phases, checkpoint and retry |
-| `quest/install.ts` | a two-step quest (reach the hut, beat the blob) with a five-coin reward and a shard-scoped save |
-| `world/build.ts` | registry pieces: a hut with box colliders, a door (piece + interactable), a ramp with stair treads, props |
-| `world/climate.ts` | a `DayCycle` and a `Weather` with two states |
-| `look/render.ts` | an `extend` look that passes the engine chain through, with a gradient dome and linear fog via `patchShader` |
-| `audio/cues.ts` | a cue map that points every cue at kit sounds |
-| `playground/JumpCourse.ts` | a playground: three pads that collide only while it is open |
-| `debug.ts` | one Debug row (`template.oil`) |
-
-## Budgets
-
-Phone 30 fps (9.6 ms CPU), desktop 60 fps (4.8 ms). No `ceilings`: a new shard has none. See `budgets.ts`.
-
-## Look
-
-Grey-box: flat-shaded primitives, a plain gradient sky, linear fog, a neutral grade, no LUT.
-
-## Tests
-
-- `test/shards/_template/contract.test.ts` boots it headless through every stage.
-- The gate's `_template` job boots it on `macos-15`, walks to the hut, kills the blob and runs the leak test
-  (`scripts/test-template-gate.mjs`).
-
-## Declared source (SHARD-PLATFORM SF16 preparation)
-
-`shard.config.ts` assembles the public rows, look, terrain, water, props, items, input/Debug plumbing, HUD, creatures,
-encounters, quest, ledger and audio declarations. `behaviour/door.as` owns the door's shared field; the lantern's
-fuel and light remain owned by the installed item runtime. `data/targets.ts` binds that shared field to the named
-door panel and collider. The legacy `plugin.ts` stays live until SF16's loader switch.
-
-Regenerate the content-addressed source bytes, then build and validate:
-
-```sh
-node scripts/bake/template-props.mjs
-node scripts/bake-template-shardfile.mjs
-node scripts/wildshard.mjs build src/shards/_template /tmp/template-product --product-only
-node scripts/wildshard.mjs validate src/shards/_template
-node scripts/wildshard.mjs validate /tmp/template-product/shard.json
-```
-
-`test/proof/_template/` executes fresh plain Node processes through the strict simulation loader. Its boot, 10,000-tick
-headless, Big Blob replay and ledger tests use admitted source bytes and real Rapier. The 600-tick replay begins with
-mutable script memory/globals, a pending door event, completed quest state, a ledger dedupe receipt, and the actual
-whip/lantern runtime state with burning fuel and a queued refill. It reaches the boss's second phase and victory and
-compares the complete final snapshot hash. These proofs prepare the final switch; the browser look judgement and removal of
-the legacy template chunk belong to SF16's final integration.
-
-## Open work (plan rows; leftovers are never asks, docs/process/ASKS.md)
-
-- E357 Z1 / Z4: the gate's template job green on every push.
-- E357 Z3: a fresh agent builds a fifth shard from this folder and the docs alone.
+Four native proofs under `test/proof/_template/` cover boot, 10,000 fixed ticks,
+checkpoint replay and ledger dedupe. Weapon input/replay and HUD regressions use the
+declared item runtime. The installed-client proof covers real door/lantern input,
+tile driving, cached/offline revisit and scoped unload.

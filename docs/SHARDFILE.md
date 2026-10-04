@@ -232,3 +232,8 @@ The JSON contains one exported `{row, binding}` rig declaration and depends on e
 one admitted GLB. Animation recipe `platform.clips` takes an `attackSpan` in seconds
 (default 1, bounded 0.05–10). The rig, clips and numeric pose layers are validated
 without importing a renderer; the client samples the same exported clips as the skin player.
+
+Quest `track` defaults to true; false leaves the HUD tracker empty while retaining
+quest state, map presentation and completion/reward handling. The teaching template
+keeps its previous untracked adventure. Declared item views mount in the normal
+equipment viewmodel host, including off-hand tools, and leave with the level scope.

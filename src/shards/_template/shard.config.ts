@@ -31,7 +31,7 @@ const tiles = terrain.tiles.map((tile) => {
     bounds: { min: tile.bounds.min.map((value, axis) => Math.min(value, addition.bounds.min[axis] ?? value)), max: tile.bounds.max.map((value, axis) => Math.max(value, addition.bounds.max[axis] ?? value)) },
     compressed: tile.compressed + addition.compressed, decoded: tile.decoded + addition.decoded, gpu: tile.gpu + addition.gpu, triangles: tile.triangles + addition.triangles, draws: tile.draws + addition.draws };
 });
-// The legacy plugin remains the live source until SF16's final loader switch.
+// This declaration is the live source; the manifest supplies only picker metadata.
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
   budgets: { library: { resident: 100_000 + TEMPLATE_SKIN_COST.resident, compressed: 100_000 + TEMPLATE_SKIN_COST.compressed }, sim: { resident: 16_000_000, compressed: 2_000_000 }, overlap: 0 },
