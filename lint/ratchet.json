@@ -93,10 +93,10 @@
     "src/shards/nine-dragon-stack/vm/fpArms.ts": 1,
     "src/shards/nine-dragon-stack/world/build.ts": 18,
     "src/shards/nine-dragon-stack/world/facade/batch.ts": 3,
-    "src/shards/pine-hollow/combat/antlerKing.ts": 2,
     "src/shards/pine-hollow/combat/elites.ts": 4,
     "src/shards/pine-hollow/life/index.ts": 5,
     "src/shards/pine-hollow/quest/nightThralls.ts": 1,
+    "src/shards/pine-hollow/runtime/antlerKing.ts": 2,
     "src/shards/pine-hollow/runtime/audio/ambience.ts": 4
   },
   "wildshard/public-index": {
@@ -202,7 +202,6 @@
     "src/shards/nalati-grasslands/world/KurganDungeon.ts": 1,
     "src/shards/nine-dragon-stack/playground/GrapplePlayground.ts": 1,
     "src/shards/nine-dragon-stack/vm/fpArms.ts": 1,
-    "src/shards/pine-hollow/combat/antlerKing.ts": 1,
     "src/shards/pine-hollow/combat/elites.ts": 1,
     "src/shards/pine-hollow/combat/install.ts": 1,
     "src/shards/pine-hollow/combat/spawns.ts": 1,
@@ -210,6 +209,7 @@
     "src/shards/pine-hollow/life/index.ts": 1,
     "src/shards/pine-hollow/loadout/loadout.ts": 2,
     "src/shards/pine-hollow/quest/index.ts": 1,
+    "src/shards/pine-hollow/runtime/antlerKing.ts": 1,
     "src/shards/pine-hollow/runtime/audio/sfx.ts": 1,
     "src/shards/pine-hollow/weapons/LeverRifle.ts": 1,
     "src/shards/pine-hollow/world/PineWeatherFX.ts": 2,
