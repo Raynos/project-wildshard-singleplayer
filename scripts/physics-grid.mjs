@@ -25,7 +25,7 @@ export async function driveGridSeam(route) {
   input.clear(); player.velocity.set(0, 0, 0);
   player.spawn(route.start.x - origin.x, route.start.z - origin.z, Math.atan2(-route.waypoints[0].x + route.start.x, -route.waypoints[0].z + route.start.z));
   player.setHover(true); player.hoverSpeedLimit = () => Math.min(route.speed, oldLimit());
-  const trace = [], stuck = []; let wi = 0, elapsed = 0, lastProgress = { time: 0, distance: Infinity }, timedOut = false;
+  const trace = [], stuck = []; let wi = 0, elapsed = 0, lastProgress = { time: 0, x: route.start.x, z: route.start.z }, timedOut = false;
   try {
     // Wait for real collider/sim/module admission while stationary inside home. Entered hooks remain the gameplay fence.
     const deadline = performance.now() + 120_000;
@@ -49,8 +49,10 @@ export async function driveGridSeam(route) {
           if (wi >= route.waypoints.length) { finish(); return; }
           if (elapsed > route.timeout) { timedOut = true; finish(); return; }
           const wp = route.waypoints[wi], dx = wp.x - feet.x, dz = wp.z - feet.z, distance = Math.hypot(dx, dz);
-          if (distance < 1) { wi++; input.clear(); lastProgress = { time: elapsed, distance: Infinity }; return; }
-          if (distance < lastProgress.distance - 0.3) lastProgress = { time: elapsed, distance };
+          if (distance < 1) { wi++; input.clear(); lastProgress = { time: elapsed, x: feet.x, z: feet.z }; return; }
+          // A real board brakes before reversing. Its outward motion is not a collision snag;
+          // the route deadline still refuses circling or a turn that never reaches its target.
+          if (Math.hypot(feet.x - lastProgress.x, feet.z - lastProgress.z) > 0.3) lastProgress = { time: elapsed, x: feet.x, z: feet.z };
           else if (elapsed - lastProgress.time > 2) { stuck.push({ waypoint: wi, ...feet, current: state.current }); finish(); return; }
           player.yaw = Math.atan2(-dx, -dz); input.setHeld('move.forward', true);
         } catch (error) { input.clear(); stop(); clearTimeout(wallTimer); reject(error instanceof Error ? error : new Error(String(error))); }

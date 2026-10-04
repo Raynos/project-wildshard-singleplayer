@@ -27,10 +27,11 @@ it('derives a stable adjacent-template seam and refuses an unassembled readout',
   expect(gridSeamRoute({ home: 'home', cells: [...cells, { instance: 'corner', slug: '_template', cell: [-1, -1] }] }, 30).waypoints[0]).toEqual({ x: -325, z: -325 });
 });
 
-it.each([false, true])('drives both directions or reports a stopped frame loop (halted=%s)', async (halted) => {
+it.each([{ halted: false, inertia: false, blocked: false }, { halted: false, inertia: true, blocked: false }, { halted: true, inertia: false, blocked: false }, { halted: false, inertia: false, blocked: true }])('drives both directions including braking, or reports a stopped frame loop (%j)', async ({ halted, inertia, blocked }) => {
   let now = 0, spawns = 0, stopped = false, current: string | null = 'home', origin = 0;
   const position = { x: -230, y: 1, z: 0 }, input = new InputService(() => now), transitions: { from: string | null; to: string | null }[] = [];
   const limit = () => 30;
+  let vx = 0, vz = 0;
   const player = { position, yaw: 0, hover: false, hoverSpeedLimit: limit,
     velocity: { set: () => undefined }, motor: { collider: { isEnabled: () => true } },
     spawn: (x: number, z: number, yaw: number) => { spawns++; Object.assign(position, { x, z }); player.yaw = yaw; },
@@ -44,8 +45,10 @@ it.each([false, true])('drives both directions or reports a stopped frame loop (
       for (let frame = 0; frame < 2000; frame++) {
         if (stopped) break;
         now += 1000 / 60; const move = input.axis2('move');
-        position.x -= Math.sin(player.yaw) * move.y * player.hoverSpeedLimit() / 60;
-        position.z -= Math.cos(player.yaw) * move.y * player.hoverSpeedLimit() / 60;
+        const desiredX = -Math.sin(player.yaw) * move.y * player.hoverSpeedLimit(), desiredZ = -Math.cos(player.yaw) * move.y * player.hoverSpeedLimit();
+        vx = inertia ? vx + Math.max(-5 / 60, Math.min(5 / 60, desiredX - vx)) : desiredX;
+        vz = inertia ? vz + Math.max(-5 / 60, Math.min(5 / 60, desiredZ - vz)) : desiredZ;
+        if (!blocked) { position.x += vx / 60; position.z += vz / 60; }
         const worldX = position.x + origin;
         let next = current;
         if (current === 'home' && worldX < -260) next = null;
@@ -70,6 +73,7 @@ it.each([false, true])('drives both directions or reports a stopped frame loop (
   expect(result.backgroundIssues).toEqual({ 'proxy.only': 'Expected far proxy; no descriptor' });
   expect(gridDriveFailures({ ...result, issues: { peer: 'Collider admission failed' } })).toContain('Grid admission/disposal issues: {"peer":"Collider admission failed"}');
   if (halted) { expect(result.timedOut).toBe(true); expect(gridDriveFailures(result)).toContain('Grid route has no motion samples'); }
+  else if (blocked) { expect(result.stuck).toHaveLength(1); expect(result.complete).toBe(false); }
   else expect(gridDriveFailures(result)).toEqual([]);
   expect(spawns).toBe(1); expect(stopped).toBe(true);
   expect(input.held('move.forward')).toBe(false); expect(player.hoverSpeedLimit).toBe(limit); expect(player.hover).toBe(false);
