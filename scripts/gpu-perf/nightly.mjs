@@ -25,11 +25,21 @@ const started = Date.now(), deadline = started + (memoryOnly ? 40 : 240) * 60_00
 const stamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
 let tree = '', port = '', sha = '', harnessSha = '', active = null;
 let measuredShards = [];
+let flakeWindow = '';
 let memoryProtocol = '';
 /** @type {import('./report.mjs').MemoryReference} */
 let previousMemory = { path: '', sha: null, rejected: [] };
 const control = { abort: false };
 const steps = [], memory = [], measurements = [], artifacts = [], flakes = {};
+/** E388: the M5 ruler budget is derived, never typed in: budgets/ceiling-sources.json's gpuM5Ms for the shard and tier
+ * (E357 S1.6, src/engine/render/budgets.ts: 1000 / fps / variability − the CPU share, ÷ the phone : M5 ratio of
+ * budgets/calibration.json; docs/design/engine-fit-v2/budget-design.md §2 and §6.1). A missing entry fails the run. */
+const RULER_FORMULA = 'budgets/ceiling-sources.json derived.<shard>.<tier>.gpuM5Ms (1000 / fps / variability − cpuMs, ÷ the phone : M5 ratio)';
+const rulerBudget = (root, shard, tier) => {
+  const ms = JSON.parse(readFileSync(join(root, 'budgets/ceiling-sources.json'), 'utf8')).derived?.[shard]?.[tier]?.gpuM5Ms;
+  if (typeof ms !== 'number' || !Number.isFinite(ms) || ms <= 0) throw new Error(`no derived GPU ruler budget for ${shard}/${tier} in budgets/ceiling-sources.json`);
+  return ms;
+};
 const killGroup = (child) => { if (child?.pid) { try { process.kill(-child.pid, 'SIGTERM'); } catch { /* exited */ } } };
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => { control.abort = true; killGroup(active); });
 const run = async (command, argv, options = {}) => {
@@ -135,19 +145,30 @@ try {
       const timing = await step('rulers-scorecard', 'lockf', ['-k', join(homedir(), 'projects/localai/.model.lock'), 'bash', join(tree, 'scripts/gpu-perf/timing.sh'), url, `${stamp}-${sha.slice(0, 7)}`, node], 30);
       artifacts.push({ name: 'rulers-scorecard', text: timing.stdout });
       if (/\b[1-9]\d* of \d+ poses over/.test(timing.stdout)) steps.push({ name: 'Nine Dragon ruler over budget', code: 1, verdict: 'failure' });
-      for (const match of timing.stdout.matchAll(/([^\n]+): GPU ([\d.]+) ms\/frame/g)) measurements.push({ pose: match[1].trim(), gpuMs: Number(match[2]), budgetMs: 1.6, verdict: Number(match[2]) <= 1.6 ? 'success' : 'failure', formula: 'M5 ruler budget 1.6 ms per pose (P)' });
+      const ndBudget = rulerBudget(tree, 'nine-dragon-stack', 'phone');
+      for (const match of timing.stdout.matchAll(/([^\n]+): GPU ([\d.]+) ms\/frame/g)) measurements.push({ pose: match[1].trim(), gpuMs: Number(match[2]), budgetMs: ndBudget, verdict: Number(match[2]) <= ndBudget ? 'success' : 'failure', formula: RULER_FORMULA });
       if (measurements.length === 0) steps.push({ name: 'GPU ruler readings missing', verdict: 'failure', code: 1 });
       for (const [dir, pattern] of [[join(tree, 'progress'), /-gpu-.*\.json$/], [join(tree, 'progress/scorecard'), /^nightly-.*\.(json|md)$/], [join(reports, `${stamp}-parity`), /\.(json|md)$/]]) {
         if (existsSync(dir)) for (const file of readdirSync(dir).filter((name) => pattern.test(name))) {
           const text = readFileSync(join(dir, file), 'utf8'); artifacts.push({ name: file, text });
           if (file.endsWith('.desktop.json')) desktopFrames.push(...desktopProjections(JSON.parse(text), desktopReference));
-          if (file.endsWith('.json') && file.includes('-gpu-')) { const data = JSON.parse(text); if (data.rows?.some((row) => row.gpu > 1.6) || data.errors?.length > 0) steps.push({ name: `${file} ruler over budget/error`, code: 1, verdict: 'failure' }); }
+          if (file.endsWith('.json') && file.includes('-gpu-')) {
+            // the ruler's own shard (pine-hollow-gpu-<tag>.json → pine-hollow, driftwood-gpu-<tag>.json → driftwood-isle) and tier
+            const prefix = file.slice(0, file.indexOf('-gpu-')), shard = shards.find((slug) => slug === prefix || slug.startsWith(`${prefix}-`)) ?? prefix;
+            const data = JSON.parse(text), budget = rulerBudget(tree, shard, data.tier ?? 'phone');
+            if (data.rows?.some((row) => row.gpu > budget) || data.errors?.length > 0) steps.push({ name: `${file} ruler over its ${budget.toFixed(3)} ms budget/error`, code: 1, verdict: 'failure' });
+          }
         }
       }
-      // Gate artifacts are read as data only.
-      const listed = await run(gh, ['run', 'list', '-w', 'gpu-gate.yml', '--limit', '1000', '--json', 'databaseId,createdAt,status'], { max: 2 });
+      // Gate artifacts are read as data only. E388: the tally covers every gpu-gate run since the previous full nightly
+      // (no invented window), and every flaked field is listed with its count (a flake is a band narrower than its noise).
+      const previousNightly = Math.max(0, ...readdirSync(reports).filter((file) => /^\d.*-[0-9a-f]{7}\.json$/.test(file)).flatMap((file) => {
+        try { const at = Date.parse(JSON.parse(readFileSync(join(reports, file), 'utf8')).started); return Number.isFinite(at) && at < started ? [at] : []; } catch { return []; }
+      }));
+      flakeWindow = previousNightly > 0 ? new Date(previousNightly).toISOString() : '';
+      const listed = previousNightly > 0 ? await run(gh, ['run', 'list', '-w', 'gpu-gate.yml', '--limit', '1000', '--json', 'databaseId,createdAt,status'], { max: 2 }) : { code: 0, stdout: '[]', stderr: '' };
       if (listed.code !== 0) steps.push({ name: 'flake tally unavailable', code: listed.code, verdict: 'failure' });
-      else for (const gateRun of JSON.parse(listed.stdout).filter((row) => row.status === 'completed' && Date.parse(row.createdAt) >= started - 7 * 86_400_000)) {
+      else for (const gateRun of JSON.parse(listed.stdout).filter((row) => row.status === 'completed' && Date.parse(row.createdAt) >= previousNightly)) {
         const dir = join(reports, `${stamp}-gate-${gateRun.databaseId}`); mkdirSync(dir);
         const downloaded = await run(gh, ['run', 'download', String(gateRun.databaseId), '-p', 'parity-*', '-D', dir], { max: 2 });
         if (downloaded.code !== 0) { steps.push({ name: `flake artifact ${gateRun.databaseId} unavailable`, code: downloaded.code, verdict: 'failure' }); continue; }
@@ -183,10 +204,10 @@ if (sha) {
   const lines = [description, '', `SHA ${sha}; harness ${harnessSha}`, `Memory reference: ${previousMemory.path || 'none (first complete settled reading)'}; SHA ${previousMemory.sha ?? 'none'}`, ...previousMemory.rejected.map((row) => `Rejected reference ${row.path}: ${row.reason}`), '', '| shard | phase | native median GB | native peak GB | spread GB (min–max) | inspector GB | previous GB | limit GB | verdict | reason |', '|---|---|---:|---:|---|---:|---:|---:|---:|---|---|'];
   for (const row of memory) lines.push(`| ${row.shard} | ${row.phase} | ${row.nativeGB ?? 'missing'} | ${row.nativePeakGB ?? 'missing'} | ${row.settling ? `${row.settling.minGB.toFixed(3)}–${row.settling.maxGB.toFixed(3)} (${row.settling.spreadPercent.toFixed(1)}%)` : 'legacy peak'} | ${row.inspectorGB ?? 'missing'} | ${row.previousGB ?? 'first'} | ${row.limitGB} | ${row.verdict} | ${row.reason} |`);
   lines.push('', 'Memory: the median of three one-second samples after each phase\'s work, their spread beside it; growth against the previous reading is reported, not gated (E388). The only red is the device limit: loading 1.8 / play 1.0 / explorer 1.0 decimal GB.');
-  lines.push('', 'GPU ruler budget: M5 P = 1.6 ms per pose.', ...measurements.map((row) => `${row.pose}: ${row.gpuMs} ms / ${row.budgetMs}: ${row.verdict}`), '', ...steps.map((row) => `${row.name}: ${row.verdict} (exit ${row.code})`));
+  lines.push('', `GPU ruler budget: ${RULER_FORMULA}.`, ...measurements.map((row) => `${row.pose}: ${row.gpuMs} ms / ${row.budgetMs}: ${row.verdict}`), '', ...steps.map((row) => `${row.name}: ${row.verdict} (exit ${row.code})`));
   lines.push('', 'Desktop: projected RTX 3060 drawn-frame interval (informational; includes capture pacing):', ...desktopFrames.map((row) => `${row.shard}/${row.pose}: M5 ${row.m5FrameMs ?? 'missing'} ms / ${desktopReference.k3060} = ${row.projected3060FrameMs ?? 'missing'} ms vs ${row.targetFrameMs.toFixed(2)} ms · ${row.verdict}`), desktopReference.source, desktopReference.assumption);
   const textArtifacts = artifacts.filter((entry) => { if (entry.name === 'rulers-scorecard') return true; return entry.name.endsWith('.md'); });
-  lines.push('', 'Flakes in seven days (≥3 needs lead repair/quarantine):', ...Object.entries(flakes).map(([id, count]) => `${id}: ${count}${count >= 3 ? ' — ACTION' : ''}`), '', ...textArtifacts.map((entry) => `${entry.name}\n\n${entry.text}`));
+  lines.push('', flakeWindow ? `Flaked fields in the gpu-gate runs since the previous full nightly (${flakeWindow}); each is a band narrower than its noise, for the lead to repair or quarantine:` : 'Flake tally: no previous full nightly, so it starts with the next one.', ...Object.entries(flakes).map(([id, count]) => `${id}: ${count}`), '', ...textArtifacts.map((entry) => `${entry.name}\n\n${entry.text}`));
   writeFileSync(join(reports, `${name}.md`), `${lines.join('\n')}\n`);
   if (!plant) { if (!memoryOnly) await status('gpu-perf', verdict, description); await status('gpu-perf/memory', memoryState, `Simulator memory ${memoryState}`); }
   console.log(`${description}\n${join(reports, `${name}.md`)}`);

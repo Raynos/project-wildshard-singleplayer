@@ -3,14 +3,16 @@
 // scripts/pine-hollow-gpu.mjs, read its header for why it is built this way).
 //
 //   node scripts/nine-dragon-gpu.mjs --url=http://localhost:4173 [--poses=A,B,C,D|none] [--domes=all|A1,B2] [--rounds=10]
-//     [--subtract=all|none|a,b] [--gate=1.5] [--debug=key:value,…]
+//     [--subtract=all|none|a,b] [--gate=<ms>] [--debug=key:value,…]
 //
 // --debug: pause ▸ Settings ▸ Debug options set before the load (scripts/debug-settings.mjs), `key:value` pairs: a Debug ▸
 // Performance row measured on, against a run with it off.
 //
-// THE GATE (E283, Jake: the pre-pass baseline was no stable 30 fps either): every pose at or under 1.5 ms on this ruler.
-// Jake's 5cb1ecd reading (gpu~ 18.7 ms p50 where this ruler read 3.15 at the spawn) puts the phone at ~6× the M5 when
-// cool, and it throttles ~2× within minutes; with ~8 ms of the phone's CPU in the 33 ms frame, the GPU gets ~22 ms hot.
+// THE GATE (E283, Jake: the pre-pass baseline was no stable 30 fps either): every pose at or under the derived phone
+// budget on this ruler, budgets/ceiling-sources.json's nine-dragon-stack phone gpuM5Ms (E357 S1.6, E388: 1000 / 30 fps /
+// 1.3 variability − the 9.6 ms CPU share, ÷ the phone : M5 ratio; budget-design.md §6.1). E283's hand-derived 1.5 ms was
+// the same derivation rounded down. Jake's 5cb1ecd reading (gpu~ 18.7 ms p50 where this ruler read 3.15 at the spawn)
+// put the phone at ~6× the M5 when cool, and it throttles ~2× within minutes.
 //
 // Jake's phone frame: an iPhone 17 Pro home-screen PWA, 402×812 CSS px, tier phone → the game's DPR 2 (804×1624).
 // Each pose is one of the four mockup cameras (src/shards/nine-dragon-stack/mockupCameras.ts), posed through a late hook
@@ -41,9 +43,9 @@ const ROUNDS = Number(flag('rounds', '10'));
 const SUB = flag('subtract', 'all');
 const poseKeys = flag('poses', 'A,B,C,D').split(',').filter((k) => k !== '' && k !== 'none');
 const domePick = flag('domes', 'none');
-/** the phone budget (E283): GPU ms per frame on this ruler that holds 30 fps on Jake's HOT iPhone 17 Pro (~6× the M5 cool, ×2
- *  throttled: ~22 ms of GPU inside the 33 ms frame with the phone's ~8 ms of CPU) */
-const GATE = Number(flag('gate', '1.5'));
+/** the phone budget: GPU ms per frame on this ruler that holds 30 fps on Jake's HOT iPhone 17 Pro, derived (see THE GATE) */
+const GATE = Number(flag('gate', String(JSON.parse(readFileSync(join(ROOT, 'budgets/ceiling-sources.json'), 'utf8')).derived['nine-dragon-stack'].phone.gpuM5Ms)));
+if (!Number.isFinite(GATE) || GATE <= 0) throw new Error('no derived GPU budget (budgets/ceiling-sources.json)');
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 
 const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
