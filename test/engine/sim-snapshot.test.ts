@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { createSimHost, type SimHost } from '../../src/engine/sim';
-import { snapshotSimHost, restoreSimHost } from '../../src/engine/sim/snapshot';
+import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { fnv1a32 } from '../../src/engine/core/rng';
 import { tagCollider } from '../../src/engine/physics/surface';
@@ -49,8 +49,8 @@ it.each([2, 7, 20, 93, 187])('snapshots the recorded real fight at tick %i and r
     original.combat.hit({ source: original.player.health, sourceTags: ['dmg.melee', 'cover.checked', 'fixture.pending'], target: target.combatActor(),
       amount: 1, point: target.position, from: original.player.position, dir: new Vector3(0, 0, 1) }); // leave a real combat event pending
     original.events.emit('player.respawned', { at: original.player.position, checkpoint: false });
-    const saved = snapshotSimHost(original), serialized = JSON.stringify(saved);
-    const roundTrip = JSON.parse(serialized) as typeof saved; // exercise transport serialization, including Rapier bytes
+    const saved = snapshotSimHost(original), serialized = serializeSimSnapshot(saved);
+    const roundTrip = decodeSimSnapshot(serialized); // validated transport includes packed Rapier bytes
     restored = restoreSimHost(SIM_LEVEL, { rapier }, roundTrip, install);
     expect(hash(restored)).toBe(hash(original));
     const originalHits = observe(original), restoredHits = observe(restored);
@@ -92,4 +92,61 @@ it('replays moving character contacts and a dynamic Rapier body after restoratio
     expect(restored.physics.world.getRigidBody(body.handle).translation()).toEqual(body.translation());
     expect(hash(restored)).toBe(hash(original));
   } finally { restored?.dispose(); original.dispose(); }
+});
+
+it('packs every byte value canonically, with smaller physics transport and an independent parsed-data decode', () => {
+  const host = createSimHost(SIM_LEVEL, { rapier });
+  try {
+    const saved = snapshotSimHost(host);
+    const packed = serializeSimSnapshot(saved);
+    expect(packed.length).toBeLessThan(JSON.stringify(saved).length);
+    expect(decodeSimSnapshot(packed)).toEqual(saved);
+    const parsed: unknown = JSON.parse(packed);
+    expect(decodeSimSnapshot(parsed)).toEqual(saved);
+    for (const length of [256, 257, 258]) {
+      const bytes = { ...saved, physics: Array.from({ length }, (_value, index) => index % 256) };
+      expect(decodeSimSnapshot(serializeSimSnapshot(bytes))).toEqual(bytes);
+    }
+  } finally { host.dispose(); }
+});
+
+it('refuses unknown fields, incompatible versions, malformed continuations and corrupt packed bytes', () => {
+  const host = createSimHost(SIM_LEVEL, { rapier }); install(host);
+  try {
+    const saved = snapshotSimHost(host);
+    const text = serializeSimSnapshot(saved);
+    const data: unknown = JSON.parse(text);
+    if (data === null || typeof data !== 'object' || !('snapshot' in data) || data.snapshot === null || typeof data.snapshot !== 'object') throw new Error('Missing wire snapshot');
+    const wire = data;
+    const snapshot = data.snapshot;
+    const invalid: unknown[] = [
+      { ...wire, extra: 1 }, { ...wire, version: 2 }, { ...wire, format: 'other' },
+      { ...wire, snapshot: { ...snapshot, extra: 1 } },
+      { ...wire, snapshot: { ...snapshot, version: 2 } },
+      { ...wire, snapshot: { ...snapshot, apiVersion: 2 } },
+      { ...wire, snapshot: { ...snapshot, player: { ...saved.player, extra: 1 } } },
+      { ...wire, snapshot: { ...snapshot, state: { ...saved.state, extra: 1 } } },
+      { ...wire, snapshot: { ...snapshot, player: { ...saved.player, motor: { ...saved.player.motor, extra: 1 } } } },
+      { ...wire, snapshot: { ...snapshot, player: { ...saved.player, position: [0, 1] } } },
+      { ...wire, snapshot: { ...snapshot, adapters: [saved.adapters[0], saved.adapters[0]] } },
+      { ...wire, snapshot: { ...snapshot, physics: { encoding: 'base64', data: '/w==', checksum: 0 } } },
+      { ...wire, snapshot: { ...snapshot, physics: { encoding: 'base64', data: '/x==', checksum: 0 } } },
+      { ...wire, snapshot: { ...snapshot, physics: { encoding: 'base64', data: '/===', checksum: 0 } } },
+      { ...wire, snapshot: { ...snapshot, physics: { encoding: 'base64', data: '', checksum: 0 } } },
+    ];
+    for (const bad of invalid) expect(() => decodeSimSnapshot(bad)).toThrow();
+    for (const bad of [{ ...saved, state: { ...saved.state, tick: -1 } },
+      { ...saved, player: { ...saved.player, yaw: Number.NaN } }, { ...saved, physics: [256] }]) {
+      expect(() => serializeSimSnapshot(bad)).toThrow();
+    }
+    const badHealth = structuredClone(saved);
+    if (badHealth.player.health.kind !== 'record') throw new Error('Missing encoded health record');
+    badHealth.player.health.entries.push(['unknown', { kind: 'value', value: true }]);
+    expect(() => serializeSimSnapshot(badHealth)).toThrow();
+    expect(() => decodeSimSnapshot(JSON.stringify(saved))).toThrow(); // old unchecked decimal-array transport is not this format
+    expect(() => decodeSimSnapshot('{')).toThrow();
+    const cycle: Record<string, unknown> = {}; cycle['self'] = cycle;
+    expect(() => decodeSimSnapshot(cycle)).toThrow('acyclic');
+    expect(snapshotSimHost(host)).toEqual(saved);
+  } finally { host.dispose(); }
 });

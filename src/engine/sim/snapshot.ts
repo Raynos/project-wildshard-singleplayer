@@ -1,4 +1,5 @@
 import { Vector3 } from 'three';
+import { serializeSnapshotData, decodeSnapshotData } from './snapshotData';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel, type SimSlots, type SimValue } from '../sim';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { StrikeRunner, StrikeSpec } from '../ai/strikes';
@@ -39,6 +40,15 @@ export interface SimSnapshot {
   physics: number[]; colliderTags: { handle: number; material: Material; owner: EventValue }[];
   flags: string[]; quests: ReturnType<QuestState['snapshot']>[];
   slots: SimSlots; adapters: { id: string; state: SimValue }[];
+}
+
+/** Serialize a strict, versioned JSON continuation with canonical base64 physics bytes and an integrity checksum. */
+export function serializeSimSnapshot(saved: SimSnapshot): string {
+  return serializeSnapshotData(saved, SIM_API_VERSION);
+}
+/** Decode untrusted packed JSON (text or parsed data); refuse unknown fields, corrupt bytes and other engine versions. */
+export function decodeSimSnapshot(input: unknown): SimSnapshot {
+  return decodeSnapshotData(input, SIM_API_VERSION);
 }
 
 function encode(value: unknown, host: SimHost, parents = new Set<object>()): EventValue {
