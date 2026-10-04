@@ -7,7 +7,7 @@ const { chromium, devices } = await import(`${R}/node_modules/playwright/index.m
 const { saveFixtureCode } = await import(`${R}/scripts/debug-settings.mjs`);
 const flag = (n, d) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3) ?? d;
 const URL_BASE = flag('url', ''), HYBRID = flag('hybrid', 'off'), TIER = flag('tier', 'phone'), REV = flag('rev', 'unknown');
-const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
+const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
 const out = {};
 try {
@@ -22,7 +22,7 @@ try {
     await page.goto(`${URL_BASE}/?chunk=driftwood-isle&skipintro=1&nolock=1&mute=1${phone ? '&touch=1&tier=phone' : '&tier=desktop'}`, { waitUntil: 'commit', timeout: 180_000 });
     await page.waitForFunction(() => Boolean(window.__wildshard?.world) && !document.querySelector('.ws-load'), null, { timeout: 240_000, polling: 200 });
     // a full turn on the spot so every tile in reach uploads (the boot's warm turns cover most of it)
-    await page.evaluate(async () => { const p = window.__wildshard.world.player; for (let k = 0; k < 8; k++) { p.yaw = (p.yaw ?? 0) + Math.PI / 4; await new Promise((r) => { requestAnimationFrame(() => { requestAnimationFrame(r); }); }); } });
+    await page.evaluate(async () => { const p = window.__wildshard.world.player; for (let k = 0; k < 8; k++) { p.yaw = (p.yaw ?? 0) + Math.PI / 4; await new Promise((resolve) => { requestAnimationFrame(() => { requestAnimationFrame(resolve); }); }); } });
     await sleep(6000);
     await cdp.send('HeapProfiler.enable'); await cdp.send('HeapProfiler.collectGarbage'); await sleep(500);
     const h = await cdp.send('Runtime.getHeapUsage');
@@ -46,7 +46,7 @@ const { mkdirSync, writeFileSync } = await import('node:fs');
 mkdirSync(`${R}/progress/shard-platform/mem-trim`, { recursive: true });
 const mean = (rows, key) => rows.reduce((a, r) => a + r[key], 0) / rows.length;
 const file = `${R}/progress/shard-platform/mem-trim/heap-${REV}-${TIER}${HYBRID === 'on' ? '-hybrid' : ''}.json`;
-writeFileSync(file, JSON.stringify({ rev: REV, tier: TIER, hybrid: HYBRID, when: new Date().toISOString(),
+writeFileSync(file, `${JSON.stringify({ rev: REV, tier: TIER, hybrid: HYBRID, when: new Date().toISOString(),
   method: 'Desktop Chromium (Metal), iPhone 16 Pro portrait, muted; playable + a full turn + 6 s, forced GC, CDP Runtime.getHeapUsage (usedSize, backingStorageSize = ArrayBuffers); scene geometry arrays still on the CPU; renderer.info.memory. Row off / on alternated twice.',
-  means: Object.fromEntries(Object.entries(out).map(([row, rows]) => [row, { heapMB: mean(rows, 'heapMB'), arrayBuffersMB: mean(rows, 'arrayBuffersMB'), sceneArraysMB: mean(rows, 'sceneArraysMB') }])), runs: out }, null, 2) + '\n');
+  means: Object.fromEntries(Object.entries(out).map(([row, rows]) => [row, { heapMB: mean(rows, 'heapMB'), arrayBuffersMB: mean(rows, 'arrayBuffersMB'), sceneArraysMB: mean(rows, 'sceneArraysMB') }])), runs: out }, null, 2)}\n`);
 console.log(`Wrote ${file}`);
