@@ -92,7 +92,7 @@ Needs only (Jake, E435): the tools, commands and file layout that meet them are 
 | A2 | Authors may make content with **any tool on their own machine**; only the output ships | MUST | N |
 | A3 | The author's local check runs **the same validation the server runs**, so a shard that passes locally passes on upload | MUST | N |
 | A4 | An author can **play the shard locally in the real client** and see what it costs against the limits | MUST | V |
-| A6 | **The first proof of the platform** (Jake, E435, package-first): a fresh author with only the SDK builds a small, real, playable shard **outside the repo**, and it runs with no trusted code | MUST | N, J |
+| A6 | **The first proof of the platform** (Jake, E435, package-first): a fresh author with only the SDK builds a small, real, playable shard **outside the repo**, and it runs with no trusted code (deferred to SHARD-PLATFORM S19 by G57; M1 proves the template package) | MUST | N, J |
 | A7 | Authors can share their tools and remix public shards, with attribution | SHOULD | N |
 
 ### 3.3 The shard

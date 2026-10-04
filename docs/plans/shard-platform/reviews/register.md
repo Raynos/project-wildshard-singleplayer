@@ -155,3 +155,42 @@ Round 1 (2026-10-04): 103 findings (must-fix 27, should-fix 56, should-add 8, ni
 | R2-D12 | 2 | D | should-fix | §3.3 | Nine Dragon cell unnamed | fixed (round-2 commit) | see R2-C7 |
 
 Round 2 (2026-10-04): 43 findings (must-fix 19, should-fix 20, nit 4); all fixed. Must-fix fell 27 → 19 (many duplicates across seats), should-fix 56 → 20.
+
+| R3-A1 | 3 | A | must-fix | §5, F1 | Wave-1 acceptance needs the host and loader | fixed (round-3 commit) | §5 reordered: SF8a → SF15a-min → SF11a → SF11b; rows proved on fixtures, template at SF16 |
+| R3-A2 | 3 | A | must-fix | SF17a, SF20a | Template ±100 m bounds respawn at grid edges | fixed (round-3 commit) | SF17a legacy bounds yield to the cell in grid mode |
+| R3-A3 | 3 | A | should-fix | SF33, SF18a | Instance saves have no dependency | fixed (round-3 commit) | SF33a right after M1, before F2 |
+| R3-A4 | 3 | A | should-fix | §3.3, §6, SF22 | Two different physical readings named | fixed (round-3 commit) | one reading (SF22a); §3.3, §6, SF18a aligned |
+| R3-A5 | 3 | A | should-fix | §4.1 | Template door unmapped | fixed (round-3 commit) | §4.1 door line; SF16 tests it |
+| R3-A6 | 3 | A | should-fix | SF22a, SF47 | glbytes gives no labelled breakdown | fixed (round-3 commit) | SF22b labelled GL bytes |
+| R3-D1 | 3 | D | should-fix | SF9c | Procedural rigs and clips undefined | fixed (round-3 commit) | SF9c build-time export + clips or pose bindings + video |
+| R3-D2 | 3 | D | should-fix | SF22a, SF47 | glbytes attribution | fixed (round-3 commit) | SF22b |
+| R3-D3 | 3 | D | should-fix | §3.2, SF18d | Critical bundle has no cap | fixed (round-3 commit) | §3.2: ≤ 2 MB wire |
+| R3-D4 | 3 | D | should-fix | SF18a | Physics baseline never enters the grid | fixed (round-3 commit) | SF18a grid-mode harness with seam routes |
+| R3-D5 | 3 | D | should-fix | SF14, SF33 | Standalone vs grid identities | fixed (round-3 commit) | canonical placement instance (home cell; template solo) |
+| R3-C1 | 3 | C | must-fix | SF3a, SF3c, SF4a | F0 can't finish in F0 | fixed (round-3 commit) | template sites owned by F1 rows; SF3c engine + kit; SF4a engine test level |
+| R3-C2 | 3 | C | must-fix | §5, F1 | F1 order can't run | fixed (round-3 commit) | see R3-A1; "no template chunk" at SF16 |
+| R3-C3 | 3 | C | must-fix | SF18a | Motor can't query two worlds | fixed (round-3 commit) | capsule in the current frame's world; deck + strip colliders duplicated into adjacent shard worlds |
+| R3-C4 | 3 | C | must-fix | SF46, M2 | Several runtime/ chunks in one page undefined | fixed (round-3 commit) | runtime hooks only while inside the cell; scope swap at crossing; fixture |
+| R3-C5 | 3 | C | must-fix | SF21a | iOS-kill recovery relies on sessionStorage | fixed (round-3 commit) | grid boots only from a one-shot tap intent; AliveInfo mode |
+| R3-C6 | 3 | C | must-fix | §4.1, SF14 | Water bodies and feats have no row | fixed (round-3 commit) | SF9d; feats via SF14 facts; §4.1 lines |
+| R3-C7 | 3 | C | should-fix | SF27 | farHerd is draw batching, not a brain LOD | fixed (round-3 commit) | removed from SF27; Nalati horses via SF9b in SF48 |
+| R3-C8 | 3 | C | should-fix | SF22a, SF47 | glbytes can't order by MB saved | fixed (round-3 commit) | SF22b |
+| R3-C9 | 3 | C | should-fix | SF22, §6, §3.3 | Phone readings disagree | fixed (round-3 commit) | see R3-A4 |
+| R3-C10 | 3 | C | should-fix | §0, §3.3 | DEVSERVER can't be detected | fixed (round-3 commit) | __DEVSERVER__ build define; gate asserts false in prod; Nine Dragon on by default there |
+| R3-C11 | 3 | C | should-fix | §3.3, SF21a | "Lists" ambiguous | fixed (round-3 commit) | enters vs shows; today's visibility kept |
+| R3-C12 | 3 | C | should-fix | SF14, SF33 | No instance for the single-shard flow | fixed (round-3 commit) | see R3-D5 |
+| R3-C13 | 3 | C | should-fix | SF18d, §3.2 | Critical bundle has no number | fixed (round-3 commit) | see R3-D3 |
+| R3-C14 | 3 | C | should-fix | §3.2, SF8a | validate's neighbours unspecified | fixed (round-3 commit) | three neighbours at caps + commons once |
+| R3-C15 | 3 | C | should-fix | SF9c, SF7c | Exemplars are procedural | fixed (round-3 commit) | see R3-D1; SpeciesLook baked |
+| R3-C16 | 3 | C | should-fix | State, Handoff | Plan state stale; uncommitted WIP unrecorded | fixed (round-3 commit) | State, rows and Handoff updated |
+| R3-C17 | 3 | C | should-fix | SF30, SF49 | Movers list wrong | fixed (round-3 commit) | Driftwood boat added; hover decks to SF34 |
+| R3-C18 | 3 | C | should-add | SF17b | Strip generator in the headless sim | fixed (round-3 commit) | SF17b pure function under @wildshard/engine/sim |
+| R3-C19 | 3 | C | nit | SF1e | Stale mapping | fixed (round-3 commit) | fixed |
+| R3-C20 | 3 | C | nit | SF23 | Sightline ≈ 2.4 km | fixed (round-3 commit) | fixed |
+| R3-C21 | 3 | C | nit | §5 | "freezes" vs v0 | fixed (round-3 commit) | fixed |
+| R3-C22 | 3 | C | nit | MMO-REQ A6 | A6 still says first proof | fixed (round-3 commit) | note added |
+| R3-C23 | 3 | C | nit | SF18a | surface.ts comment false | fixed (round-3 commit) | SF18a corrects it |
+| R3-C24 | 3 | C | nit | SF20d | Where 30 m/s ends | fixed (round-3 commit) | eases across the strip |
+| R3-C25 | 3 | C | nit | SF15a, §3.4 | N−1 over-specified | fixed (round-3 commit) | only the offline-cached case |
+
+Round 3 (2026-10-04): 36 findings (must-fix 8, should-fix 20, should-add 1, nit 7); all fixed. Must-fix 27 → 19 → 8; should-fix 56 → 20 → 20.
