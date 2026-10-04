@@ -90,7 +90,8 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     }
     eligible.set(batch, keep);
   }
-  const scattered = (source.scatter ?? []).flatMap((s) => s.transforms.flatMap((m) => vertices(s.model, m))), panelTriangles = (source.panels ?? []).flatMap((p) => vertices(p.model)), coarse = source.coarse === undefined ? [...base, ...scattered, ...panelTriangles] : vertices(source.coarse);
+  // Hidden panels remain controllable library objects; an unconditional proxy must never make them visible.
+  const scattered = (source.scatter ?? []).flatMap((s) => s.transforms.flatMap((m) => vertices(s.model, m))), panelTriangles = (source.panels ?? []).filter((p) => p.visible !== false).flatMap((p) => vertices(p.model)), coarse = source.coarse === undefined ? [...base, ...scattered, ...panelTriangles] : vertices(source.coarse);
   const panelFiles = (source.panels ?? []).map((entry) => { const g = geometry(vertices(entry.model)), file = save([{ geometry: g, material: mergedMaterial() }], entry.id); g.computeBoundingBox(); library.push(file.hash); section.panels.push({ id: entry.id, file: file.hash, visible: entry.visible ?? true }); return { file, bounds: g.boundingBox }; });
   for (const lod of [0, 1] as const) {
     const size = lod === 0 ? 62.5 : 125, count = 500 / size;
