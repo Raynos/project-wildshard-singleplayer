@@ -7,10 +7,19 @@ import { installDeclaredPlumbing } from '../../src/game/shard/declaredPlumbing';
 import { parsePlumbing } from '../../src/game/shardfile/plumbing';
 import { TEMPLATE_PLUMBING } from '../../src/shards/_template/data/plumbing';
 
+const plumbingFixture = parsePlumbing({ ...TEMPLATE_PLUMBING, debug: [{
+  id: 'template.oil', group: 'tools', label: 'Template lantern oil', choices: [{ value: 'keep', text: 'Keep' }, { value: 'refill', text: 'Refill', scene: 'template.lantern.refill' }],
+  initial: 'keep', note: 'Independent declared Debug adapter fixture.', ask: 'E357', reviewBy: '2026-12-01',
+}] });
+it('the shipped template retires its teaching oil Debug row while preserving the normal lantern control', () => {
+  expect(TEMPLATE_PLUMBING.debug).toEqual([]);
+  expect(TEMPLATE_PLUMBING.input[0]?.actions[0]?.id).toBe('template.lantern.toggle');
+});
+
 function fixture(input = new InputService(() => 0), instance = 'template-1', tier: 'phone' | 'desktop' = 'phone') {
   const scope = new Scope(instance), registrations = new LevelRegistrations(), debug = new Map<string, DebugRowSpec>(), scenes: string[] = [];
   let active = true;
-  const handles = installDeclaredPlumbing(TEMPLATE_PLUMBING, { input, instance, tier, scope, active: () => active,
+  const handles = installDeclaredPlumbing(plumbingFixture, { input, instance, tier, scope, active: () => active,
     scene: (id) => { scenes.push(id); }, knobs: (schema) => { registrations.knobs(schema, scope); },
     debugRow: (row) => { debug.set(row.id, row); scope.onDispose(() => { debug.delete(row.id); }); },
   });
@@ -50,7 +59,7 @@ it('qualifies two instance contexts and selects tier knobs without crossing acti
   two.scope.dispose(); input.press('template.lantern.toggle'); expect(two.scenes).toHaveLength(1); one.scope.dispose();
 });
 it('rejects invalid namespaces, dangling choices and unbounded data before installation', () => {
-  const base = structuredClone(TEMPLATE_PLUMBING), context = base.input[0], debug = base.debug[0];
+  const base = structuredClone(plumbingFixture), context = base.input[0], debug = base.debug[0];
   expect(context).toBeDefined(); expect(debug).toBeDefined();
   if (context === undefined || debug === undefined) throw new Error('fixture declarations missing');
   for (const invalid of [

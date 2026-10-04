@@ -34,12 +34,12 @@
   },
   "budgets": {},
   "debugRows": {
-    "max": 29,
+    "max": 28,
     "raisedBy": [
       "E357",
       "E435"
     ],
-    "review": "SF7h: generic declared-row installer; SF21a: the DEVSERVER grid cell row (src/game/grid/debug.ts); falls back to 26 at SF16 when the template's legacy installDebug is deleted"
+    "review": "SF16 removes template.oil from declared plumbing: 29 to 28. Full inventory and retirement conditions: progress/shard-platform/sf16-debug-rows.md. New independent variants need explicit reviewed capacity."
   },
   "wildshard/no-raw-random-time": {
     "src/engine/audio/audioLog.ts": 1,
