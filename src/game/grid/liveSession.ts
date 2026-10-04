@@ -173,11 +173,11 @@ export class LiveGridSession {
       if (request === null || this.live.current() === home.instance) return request;
       return request.target === page.health || request.source === page.health ? null : request;
     }, scope);
-    // SF20d: 30 m/s on the deck, easing to the shard's 15 over the strip (the cell nearest the feet; the outer ring is deck too)
+    // SF20d: 30 m/s on the deck, easing to the shard's 14 over the strip (the cell nearest the feet; the outer ring is deck too)
     installGridHoverSpeed(traveller, scope, () => {
       const feet = this.live.worldFeet(), p = assembly.pitch;
       const local = { x: feet.x - Math.round(feet.x / p) * p, y: feet.y, z: feet.z - Math.round(feet.z / p) * p };
-      return { local, shardCap: 15, onHighwayDeck: feet.y < 4 };
+      return { local, shardCap: 14, onHighwayDeck: feet.y < 4 };
     });
     // the freeze fence: the home client's existing driver runs only while the traveller is in the home frame (sp-x5's handoff)
     scope.onDispose(gridHomeSim.take((sim) => { this.homeSim = sim; sim.setActive(this.live.current() === home.instance); }));

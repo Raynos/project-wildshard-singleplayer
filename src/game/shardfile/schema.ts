@@ -73,7 +73,7 @@ const rawSchema = v.strictObject({
   items: v.optional(ItemsSchema, { version: 1, rows: [], contexts: [], loadout: { primary: null, secondary: null, tools: [] } }),
   props: v.optional(v.nullable(PropsSchema), null),
   targets: v.optional(TargetsSchema, { panels: [], interactions: [] }),
-  traversal: v.optional(TraversalSchema, { hoverCap: 15 }),
+  traversal: v.optional(TraversalSchema, { hoverCap: 14 }),
   clientScripts: v.optional(ClientScriptsSchema, { divisor: 2, bindings: [] }),
   runtime: v.optional(v.nullable(RuntimeSchema), null),
   spawn: v.optional(v.strictObject({ x: finite, y: finite, z: finite, yaw: finite }), { x: 0, y: 2, z: 0, yaw: 0 }),

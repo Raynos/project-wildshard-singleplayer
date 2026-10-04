@@ -37,28 +37,28 @@ const MOTOR = { radius: 0.3, height: 1.8, step: 0.35, maxClimbDeg: 40, snap: 0.3
 
 describe('grid traversal rules', () => {
   it('eases all four strips continuously from a lowered author cap to the 30 m/s deck', () => {
-    expect(parseTraversal({})).toEqual({ hoverCap: 15 });
-    for (const cap of [0.1, 10, 15]) for (const [x, z] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+    expect(parseTraversal({})).toEqual({ hoverCap: 14 });
+    for (const cap of [0.1, 10, 14]) for (const [x, z] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
       const speeds = Array.from({ length: 41 }, (_, i) => gridHoverSpeed(point(x * (250 + i / 2), z * (250 + i / 2)), cap));
       expect(speeds[0]).toBe(cap); expect(speeds.at(-1)).toBe(30);
       expect(speeds.every((speed, i) => i === 0 || speed >= (speeds[i - 1] ?? 0))).toBe(true);
       expect(gridHoverSpeed(point(x * 260, z * 260), cap)).toBeCloseTo((cap + 30) / 2, 10);
     }
-    expect(gridHoverSpeed(point())).toBe(15); expect(gridZone(point(270))).toBe('highway');
-    for (const cap of [0, 16, Infinity, Number.NaN]) expect(() => parseTraversal({ hoverCap: cap })).toThrow();
+    expect(gridHoverSpeed(point())).toBe(14); expect(gridZone(point(270))).toBe('highway');
+    for (const cap of [0, 15, Infinity, Number.NaN]) expect(() => parseTraversal({ hoverCap: cap })).toThrow();
     expect(() => gridHoverSpeed(point(Infinity))).toThrow();
   });
-  it('drives the actual board at 30 m/s on the deck and at most 15 inside, while standalone keeps 14', async () => {
-    for (const top of [undefined, 15, 30]) {
+  it('drives the actual board at 30 m/s on the deck and at most 14 inside, including standalone', async () => {
+    for (const top of [undefined, 14, 30]) {
       const ph = await physics(), scope = new Scope('board');
       const player = new Player(new PerspectiveCamera(), ph, legacyDouble<HTMLCanvasElement>({}), { waterLine: { update: () => undefined, setHint: () => undefined } });
       try {
         let local = point(top === 30 ? 275 : 0);
-        if (top !== undefined) installGridHoverSpeed(player, scope, () => ({ local, shardCap: 15, onHighwayDeck: true }));
+        if (top !== undefined) installGridHoverSpeed(player, scope, () => ({ local, shardCap: 14, onHighwayDeck: true }));
         player.setHover(true); player.locked = true; player.keys.add('KeyW');
         for (let tick = 0; tick < 600; tick++) { player.input(1 / 60); ph.step(); player.step(1 / 60); }
         expect(Math.hypot(player.velocity.x, player.velocity.z)).toBeCloseTo(top ?? 14, 4);
-        if (top === 30) { local = point(); player.input(1 / 60); ph.step(); player.step(1 / 60); expect(Math.hypot(player.velocity.x, player.velocity.z)).toBeLessThanOrEqual(15); }
+        if (top === 30) { local = point(); player.input(1 / 60); ph.step(); player.step(1 / 60); expect(Math.hypot(player.velocity.x, player.velocity.z)).toBeLessThanOrEqual(14); }
         scope.dispose(); expect(player.hoverSpeedLimit).toBeNull();
       } finally { scope.dispose(); player.motor.dispose(); ph.dispose(); }
     }

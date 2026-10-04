@@ -12,10 +12,10 @@ export function gridZone(local: Readonly<GridPoint>): 'shard' | 'strip' | 'highw
   const distance = Math.max(Math.abs(local.x), Math.abs(local.z));
   return distance <= CHUNK_HALF ? 'shard' : distance < CHUNK_HALF + STRIP ? 'strip' : 'highway';
 }
-/** Smoothly ease a lowered author cap (at most 15 m/s) to 30 m/s over the 20 m strip. */
-export function gridHoverSpeed(local: Readonly<GridPoint>, shardCap = 15): number {
+/** Smoothly ease a lowered author cap (at most 14 m/s) to 30 m/s over the 20 m strip. */
+export function gridHoverSpeed(local: Readonly<GridPoint>, shardCap = 14): number {
   finite(local);
-  if (!Number.isFinite(shardCap) || shardCap <= 0 || shardCap > 15) throw new RangeError('Invalid shard hover cap');
+  if (!Number.isFinite(shardCap) || shardCap <= 0 || shardCap > 14) throw new RangeError('Invalid shard hover cap');
   const t = Math.max(0, Math.min(1, (Math.max(Math.abs(local.x), Math.abs(local.z)) - CHUNK_HALF) / STRIP));
   return shardCap + (30 - shardCap) * t * t * (3 - 2 * t);
 }
