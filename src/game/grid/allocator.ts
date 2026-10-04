@@ -15,7 +15,7 @@ import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost, type ContentCostInput } from '@wildshard/engine/core/contentCost';
 
 /** The cost model's categories; `library` and `sim` map onto its plural fields. */
-export type ResidencyCategory = 'l0' | 'l1' | 'far' | 'library' | 'sim' | 'commons';
+export type ResidencyCategory = 'l0' | 'l1' | 'far' | 'library' | 'sim' | 'commons' | 'product';
 /** One resident thing. `bytes` are its decoded + GPU resident bytes (MB = 10^6). */
 export interface ResidencyClaim {
   readonly id: string; readonly category: ResidencyCategory; readonly bytes: number;
@@ -48,12 +48,12 @@ export interface ResidencyLease {
 export interface ResidencyEntry { readonly id: string; readonly category: ResidencyCategory; readonly bytes: number; readonly owner: string; readonly distance: number; readonly needed: boolean; readonly refs: number; readonly holds: number }
 interface Entry { id: string; category: ResidencyCategory; bytes: number; owner: string; distance: number; needed: boolean; prepare: (() => ResidencyEviction | null) | undefined; refs: number; holds: number; generation: number }
 
-const field = { l0: 'l0', l1: 'l1', far: 'far', library: 'libraries', sim: 'sims', commons: 'commons' } as const;
+const field = { l0: 'l0', l1: 'l1', far: 'far', library: 'libraries', sim: 'sims', commons: 'commons', product: 'products' } as const;
 
 /** One allocator per grid session. `playing` defaults to the §3.2 envelope (1.0 GB, G65). */
 export class ResidencyAllocator {
   private readonly entries_ = new Map<string, Entry>();
-  private readonly totals: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, library: 0, sim: 0, commons: 0 };
+  private readonly totals: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, library: 0, sim: 0, commons: 0, product: 0 };
   private readonly playing: number;
   private generation = 0;
   private evicting = false;
