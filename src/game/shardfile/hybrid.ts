@@ -7,7 +7,7 @@ import { ShardPlugin } from '../shard/plugin';
 import type { ShardManifest } from '../shard/manifest';
 import { bindScopedRuntime } from '../shard/scopedRuntime';
 import { gridCells, pageGridInstance, type GridCellEvents, type GridCellRef } from '../grid/boot';
-import { shardfileSource } from './loader';
+import { browserShardfileOptions, shardfileSource } from './loader';
 import type { ProductOptions } from './product';
 import type { ShardfileClientBindings } from './client';
 import type { Shardfile } from './schema';
@@ -122,14 +122,16 @@ export class HybridShardPlugin extends ShardPlugin {
 }
 
 /** Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. */
-export async function prepareHybridShard(source: Shardfile, options: ProductOptions,
+export async function prepareHybridShard(source: Shardfile, options: ProductOptions | { firstParty: true },
   bindings: Omit<ShardfileClientBindings, 'instance' | 'trustedRuntime'>,
   entries: readonly TrustedRuntimeEntry[]): Promise<HybridShardPlugin> {
   if (source.runtime === null) throw new Error('Hybrid requires a declared runtime entry');
+  const productOptions = 'base' in options ? options : browserShardfileOptions(
+    new URL(`shardfiles/${source.identity.slug}/`, document.baseURI || location.href).href, options.firstParty);
   const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
-  const data = await shardfileSource(source, options, { ...bindings, instance, trustedRuntime: true });
+  const data = await shardfileSource(source, productOptions, { ...bindings, instance, trustedRuntime: true });
   const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
-  const [{ default: Data }, Runtime] = await Promise.all([load(), prepareTrustedRuntime(source.runtime, source.identity.slug, options.firstParty, entries)]);
+  const [{ default: Data }, Runtime] = await Promise.all([load(), prepareTrustedRuntime(source.runtime, source.identity.slug, productOptions.firstParty, entries)]);
   return new HybridShardPlugin(new Data(), Runtime, gridInstance === null ? undefined : { instance, cells: gridCells });
 }
 

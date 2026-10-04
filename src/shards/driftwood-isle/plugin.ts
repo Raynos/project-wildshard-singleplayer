@@ -3,7 +3,6 @@ import type { Vector3 } from 'three';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { prepareHybridShard, type HybridShardPlugin } from '@wildshard/game/shardfile/hybrid';
-import { browserShardfileOptions } from '@wildshard/game/shardfile/loader';
 import type { DriftwoodWorld } from './world/build';
 import type { DriftwoodPlugin as RuntimePlugin } from './runtime/index';
 import source from './shard.config';
@@ -28,8 +27,7 @@ export class DriftwoodPlugin extends ShardPlugin {
 class DriftwoodHybrid extends ShardPlugin {
   private composite: HybridShardPlugin | undefined;
   override async world(ctx: ShardContext): Promise<void> {
-    const options = browserShardfileOptions(new URL('shardfiles/driftwood-isle/', document.baseURI).href, true);
-    this.composite = await prepareHybridShard(source, options, {
+    this.composite = await prepareHybridShard(source, { firstParty: true }, {
       catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
       icon: () => { throw new Error('Transitional Driftwood has no declared item icon'); },
     }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => import('./runtime/index') }]);
