@@ -158,7 +158,10 @@ export class HybridShardPlugin extends ShardPlugin {
 
 /** Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. */
 export async function prepareHybridShard(source: Shardfile, options: ProductOptions | { firstParty: true },
-  bindings: Omit<ShardfileClientBindings, 'instance' | 'trustedRuntime'>,
+  bindings: Omit<ShardfileClientBindings, 'instance' | 'trustedRuntime'> & {
+    /** The game adapter forwards the page owner; the shard need not read or own another service. */
+    readonly residencyContext?: Pick<ShardContext, 'game'>;
+  },
   entries: readonly TrustedRuntimeEntry[],
   debug?: { context: ShardContext; row: Omit<Parameters<ShardContext['debugRow']>[0], 'change'> }): Promise<ShardPlugin> {
   if (source.runtime === null) throw new Error('Hybrid requires a declared runtime entry');
@@ -171,20 +174,26 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
       return new Runtime();
     }
   }
+  const { residencyContext, ...providedBindings } = bindings;
+  const residency = residencyContext?.game.residency;
+  if (residency !== undefined && providedBindings.residency !== undefined && residency !== providedBindings.residency) {
+    throw new Error('Hybrid installation and bindings must share one page residency owner');
+  }
+  const clientBindings = residency === undefined ? providedBindings : { ...providedBindings, residency };
   const productOptions = 'base' in options ? options : browserShardfileOptions(
     new URL(`shardfiles/${source.identity.slug}/`, document.baseURI || location.href).href, options.firstParty);
   const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
   // The data client announces only when it will actually build a simulation. An empty trusted transition runs its
   // legacy gameplay directly and has no handoff; promising one would hold the reveal until its safety ceiling.
-  const onSimulationExpected = (): void => { bindings.onSimulationExpected?.(); if (gridInstance !== null) gridHomeSim.expect(); };
+  const onSimulationExpected = (): void => { clientBindings.onSimulationExpected?.(); if (gridInstance !== null) gridHomeSim.expect(); };
   // in a grid page the restored home simulation goes to the live grid owner (its freeze fence gates the existing driver)
-  const onSimulation: ShardfileClientBindings['onSimulation'] = gridInstance === null ? bindings.onSimulation : (binding) => {
-    bindings.onSimulation?.(binding);
+  const onSimulation: ShardfileClientBindings['onSimulation'] = gridInstance === null ? clientBindings.onSimulation : (binding) => {
+    clientBindings.onSimulation?.(binding);
     gridHomeSim.offer({ setActive: binding.setActive, checkpoint: binding.checkpoint, disposed: () => binding.scope.disposed,
       ...(binding.residency === undefined ? {} : { residency: binding.residency }),
     });
   };
-  const data = await shardfileSource(source, productOptions, { ...bindings, instance, trustedRuntime: true, audioOwner: bindings.audioOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) });
+  const data = await shardfileSource(source, productOptions, { ...clientBindings, instance, trustedRuntime: true, audioOwner: clientBindings.audioOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) });
   const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
   const [{ default: Data }, Runtime] = await Promise.all([load(), prepareTrustedRuntime(source.runtime, source.identity.slug, productOptions.firstParty, entries)]);
   return new HybridShardPlugin(new Data(), Runtime, gridInstance === null ? undefined : { instance, cells: gridCells });
