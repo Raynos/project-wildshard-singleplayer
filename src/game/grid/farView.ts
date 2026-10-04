@@ -1,0 +1,75 @@
+/**
+ * Drawing a far proxy (SHARD-PLATFORM SF23): one mesh, one draw, its 16 regions hidden by a vertex-shader mask when the
+ * render rings refine them (`RingView.mask`, regions x + 4z), and a distance haze of its own toward the shard's haze
+ * colour. The material follows the shard's family: `toon` faceted Lambert (flat normals), `painterly` smooth Lambert,
+ * `pbr` rough standard. The region rides in TEXCOORD_0.x (the baked GLB's only spare channel; `farProxy.ts`).
+ */
+import { BufferAttribute, BufferGeometry, Color, Mesh, MeshLambertMaterial, MeshStandardMaterial, Vector3, type Object3D } from 'three';
+import { patchShader } from '@wildshard/engine/render/shaderPatches';
+import type { FarLookRuntime, FarProxyMesh } from './farProxy';
+
+/** A drawn proxy: the rings' RingView shape plus its mesh. */
+export interface FarProxyView { readonly mesh: Mesh; mask: (excluded: ReadonlySet<number>) => void; shadow: (enabled: boolean) => void; dispose: () => void }
+
+/** The family material with the region mask and haze patched in; `uniforms.farMask` holds 16 flags. */
+export function farProxyMaterial(look: FarLookRuntime): { material: MeshLambertMaterial | MeshStandardMaterial; setMask: (excluded: ReadonlySet<number>) => void } {
+  const material = look.family === 'pbr' ? new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }) : new MeshLambertMaterial({ vertexColors: true, flatShading: look.family === 'toon' });
+  const mask = new Float32Array(16), hazeColour = new Color(...look.haze.colour).convertLinearToSRGB(); // the haze mixes after the output colour-space conversion
+  const uniforms = { farMask: { value: mask }, farHazeColour: { value: hazeColour }, farHaze: { value: new Vector3(look.haze.near, look.haze.far, look.haze.max) } };
+  patchShader(material, 'sf23-far', 0, (shader): void => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform float farMask[16];\nvarying float vFarDepth;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvFarDepth = -mvPosition.z;\nif (farMask[int(uv.x + 0.5)] > 0.5) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec3 farHazeColour;\nuniform vec3 farHaze;\nvarying float vFarDepth;')
+      .replace('#include <fog_fragment>', '#include <fog_fragment>\ngl_FragColor.rgb = mix(gl_FragColor.rgb, farHazeColour, smoothstep(farHaze.x, farHaze.y, vFarDepth) * farHaze.z);');
+  }, { key: `sf23-far-${look.family}` });
+  return { material, setMask: (excluded) => { for (let r = 0; r < 16; r++) mask[r] = excluded.has(r) ? 1 : 0; } };
+}
+
+/** Geometry from a baked mesh (tests, the board) or reuse a GLTF-parsed one: either way the region is uv.x. */
+export function farProxyGeometry(mesh: FarProxyMesh): BufferGeometry {
+  const uv = new Float32Array(mesh.region.length * 2); mesh.region.forEach((r, i) => { uv[i * 2] = r; });
+  return new BufferGeometry().setAttribute('position', new BufferAttribute(mesh.positions, 3)).setAttribute('normal', new BufferAttribute(mesh.normals, 3))
+    .setAttribute('color', new BufferAttribute(mesh.colours, 3)).setAttribute('uv', new BufferAttribute(uv, 2)).setIndex(new BufferAttribute(mesh.index, 1));
+}
+
+/** Install a proxy under a cell root (the rings' upload port). It never casts or receives shadows (§3.2: only near L0). */
+export function installFarProxy(root: Object3D, geometry: BufferGeometry, look: FarLookRuntime): FarProxyView {
+  const { material, setMask } = farProxyMaterial(look), mesh = new Mesh(geometry, material);
+  mesh.name = 'far-proxy'; mesh.castShadow = false; mesh.receiveShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
+  geometry.computeBoundingSphere(); root.add(mesh);
+  let disposed = false;
+  return {
+    mesh,
+    mask: (excluded) => { setMask(excluded); mesh.visible = excluded.size < 16; },
+    shadow: () => undefined,
+    dispose: () => { if (disposed) return; disposed = true; mesh.removeFromParent(); geometry.dispose(); material.dispose(); },
+  };
+}
+
+/** A fetched, parsed proxy waiting for its budgeted upload. */
+export interface FarPrepared { readonly geometry: BufferGeometry; readonly look: FarLookRuntime }
+/**
+ * The rings' ports for level `far` (compose with the tile ports through SF18b's `levelPorts`): `load` fetches and parses
+ * an instance's far.glb off the frame (GLTF parse, region in uv.x) with its far.json look; `upload` only attaches it.
+ */
+export function farRingPorts(options: { root: (instance: string) => Object3D; load: (instance: string) => Promise<FarPrepared> }): {
+  fetch: (tile: { instance: string }, done: (result: FarPrepared | Error) => void) => void;
+  upload: (tile: { instance: string }, data: FarPrepared) => FarProxyView;
+  discard: (tile: { instance: string }, data: FarPrepared) => void;
+} {
+  return {
+    fetch: (tile, done) => {
+      const run = async (): Promise<void> => {
+        let result: FarPrepared | Error;
+        try { result = await options.load(tile.instance); } catch (error) { result = error instanceof Error ? error : new Error(String(error)); }
+        done(result);
+      };
+      void run();
+    },
+    upload: (tile, data) => installFarProxy(options.root(tile.instance), data.geometry, data.look),
+    discard: (_tile, data) => { data.geometry.dispose(); },
+  };
+}
