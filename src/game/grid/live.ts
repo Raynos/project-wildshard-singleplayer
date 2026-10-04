@@ -16,6 +16,9 @@ export interface LiveGridRegion { host: SimHost; dispose: () => void; walls?: Re
 /** Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only. */
 export interface LiveGridAdmission {
   bytes: number; create: (saved: SimSnapshot | undefined) => Promise<LiveGridRegion>;
+  /** Release an unpublished product lease on refusal/cancellation. Idempotent after failed create or region disposal;
+   *  successful publication transfers release to the returned region's dispose. */
+  cancel?: () => void;
   prepareRuntime?: () => Promise<void>;
   /** Trusted factory reads its durable exact/logical continuation after preparing the immutable physics basis. */
   reloadsCheckpoint?: boolean;
@@ -153,9 +156,11 @@ export class LiveGridHost {
   private async settle(request: Promise<void>): Promise<void> { try { await request; } catch { /* The requesting owner receives the admission error. */ } }
   private async admitRegion(cell: GridCell, bundle: ReadinessBundle, ticket: ReadinessTicket, previous: Promise<void>): Promise<void> {
     const instance = cell.instance;
+    let admission: LiveGridAdmission | undefined;
     try {
       await previous; this.assertAlive();
       const admitted = await this.ports.admit(cell);
+      admission = admitted;
       this.assertAlive();
       if (this.ports.continuations === 'durable' && admitted.reloadsCheckpoint !== true && this.ports.read === undefined) throw new Error('Durable-only live regions require a checkpoint reader before allocation');
       // The borrowed home is a resident too; the permanent highway is outside the per-shard count.
@@ -178,7 +183,12 @@ export class LiveGridHost {
         this.readiness.complete(ticket, 'colliders'); this.readiness.complete(ticket, 'sim');
         lease.update({ needed: false, distance: this.distance(cell) });
       } catch (error) { try { region?.dispose(); } finally { lease.release(); } throw error; }
-    } catch (error) { this.readiness.invalidate(instance); this.issues.set(instance, error instanceof Error ? error.message : String(error)); throw error; }
+    } catch (error) {
+      this.readiness.invalidate(instance); this.issues.set(instance, error instanceof Error ? error.message : String(error));
+      try { admission?.cancel?.(); }
+      catch (cleanup) { throw new AggregateError([error, cleanup], 'Live admission and product cancellation failed', { cause: cleanup }); }
+      throw error;
+    }
     finally { this.requests.delete(instance); }
   }
   private distance(cell: GridCell): number { const p = this.worldFeet(); return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
