@@ -1,5 +1,10 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- The fixture serves the committed, content-addressed mover module without a browser server.
+import { readFileSync } from 'node:fs';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Physics } from '../../../src/engine/physics/Physics';
+import { loadRapier } from '../../../src/engine/physics/rapier';
+import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { StrikeRunner, type StrikeContext } from '../../../src/engine/ai/strikes';
 import { App } from '../../../src/engine/app/app';
 import type { Actor } from '../../../src/engine/combat/pipeline';
@@ -19,30 +24,55 @@ import { UPDRAFT_ANGLE, vaneColliders } from '../../../src/shards/far-reach/worl
 import { SKY_GOAT, warmCoat } from '../../../src/shards/far-reach/species/skyGoat';
 import { REWARD } from '../../../src/shards/far-reach/quest/install';
 import { FLAGS } from '../../../src/shards/far-reach/quest/flags';
-import { FakeGame } from '../../fake/FakeGame';
+import { FakeGame, legacyDouble } from '../../fake/FakeGame';
+import { fakeWorld } from '../../fake/world';
+import type { ShardWorld } from '../../../src/game/shard/world';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 
 const noop = (): void => undefined;
+const loaded = new Set<App>();
+afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); vi.unstubAllGlobals(); });
 async function boot(): Promise<{ app: App; plugin: SkyReachPlugin; stages: string[]; active: Set<string>; fake: FakeGame }> {
-  const fake = new FakeGame();
+  const fake = new FakeGame(), surface = fakeWorld();
+  const physics = new Physics(await loadRapier(await (await fetch(wasmInline)).arrayBuffer()));
   const app = new App(), plugin = new SkyReachPlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
   for (const context of INPUT_CONTEXTS) app.input.register(context, app.engineScope);
-  const game: GameServices = { shard: manifest, rows: new Map(), bag };
+  const game: GameServices = { shard: manifest, rows: new Map(), bag, runtime: {
+    world: legacyDouble<ShardWorld>({ ...surface, physics, game: fake.asGame(), chunk: manifest }),
+    step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => surface.player.position, horizonVeil: null,
+  } };
+  const originalFetch = globalThis.fetch;
+  const module = '9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d';
+  vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    if (url.endsWith(`/assets/${module}`)) return Promise.resolve(new Response(Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${module}`))));
+    return originalFetch(input, init);
+  });
   app.registryValue = new WorldRegistry();
   const add = (name: string): (() => void) => { active.add(name); return () => { active.delete(name); }; };
   app.levelAdapters = { inputContext: (def) => { const scope = app.levelScope; if (scope === null) throw new Error('No input scope'); app.input.register(def, scope); app.input.push(def.id, scope); return add(def.id); },
     debugRow: () => add('debug'), playground: () => add('playground'), hud: { widget: () => add('widget'), pin: () => add('pin'), relabel: () => add('relabel'),
       verb: () => add('verb'), disc: () => ({ button: document.createElement('button'), dispose: add('disc') }) } };
   const stage = (id: string): void => { stages.push(id); };
-  const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: () => stage('data'), world: () => stage('world'), kit: () => stage('kit'),
+  const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: (_spec, ctx) => {
+    stage('data'); ctx.scope.onDispose(() => { physics.dispose(); });
+    ctx.system({ id: 'physics.step', phase: 'fixed.step', run: () => { physics.step(); } });
+  }, world: () => stage('world'), kit: () => stage('kit'),
     loadout: (_spec, ctx) => { stage('loadout'); expect(ctx.app.levelRegistrations.list('weapon').map((r) => r.id)).toEqual(['weapon.far-fan']); },
     play: () => stage('play'), finish: () => stage('finish') };
   app.levelDriver = driver;
+  loaded.add(app);
   await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(shardContext(ctx, manifest, game)), kit: (ctx) => plugin.kit(shardContext(ctx, manifest, game)), play: (ctx) => plugin.play(shardContext(ctx, manifest, game)) });
+  fake.onFixed('pre', (dt) => { for (const system of app.systemsByPhase()['fixed.pre']) system.run(dt, fake.clock.elapsedTime); });
+  fake.onFixed('step', (dt) => { for (const system of app.systemsByPhase()['fixed.step']) system.run(dt, fake.clock.elapsedTime); });
+  fake.onFixed('post', (dt) => { for (const system of app.systemsByPhase()['fixed.post']) system.run(dt, fake.clock.elapsedTime); });
   fake.onUpdate((dt, time) => { for (const system of app.systemsByPhase().update) system.run(dt, time); });
   app.setState('play'); return { app, plugin, stages, active, fake };
 }
-const tick = (app: App, dt: number, t: number): void => { for (const system of app.systemsByPhase().update) system.run(dt, t); };
+const tick = (app: App, dt: number, t: number): void => {
+  for (let i = 0; i < Math.round(dt * 60); i++) for (const phase of ['fixed.pre', 'fixed.step', 'fixed.post'] as const) for (const system of app.systemsByPhase()[phase]) system.run(1 / 60, t);
+  for (const system of app.systemsByPhase().update) system.run(dt, t);
+};
 const piece = (app: App, id: string): { active?: () => boolean } | undefined => app.registry.pieces.find((p) => p.id === id);
 
 describe('Sky Reach contract', () => {
