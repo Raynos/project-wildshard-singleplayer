@@ -18,6 +18,7 @@ integers. MB means 1,000,000 bytes. The platform owns caps in
 | `budgets` | Library resident ≤25 MB and wire ≤8 MB; sim resident ≤25 MB and critical wire ≤2 MB; decode/refinement slack ≤80 MB. |
 | `look` | Fixed platform family names; grade exposure/saturation/contrast and optional LUT reference; engine clock with an optional `day`; optional normalised day override; ordered day keys carrying sky gradient, fog, sun and ambient values (below). |
 | `sim` | 60 Hz fixed step; positive script tick divisor dividing 60; command and snapshot schema version 0; script references. |
+| `rows` | Optional/default-empty numeric strikes, weather output tables, day schedules, species/variants, registered look recipes, compendium and loot presentation data. |
 | `state` | Positive state-schema version, `sharedOwner: "host"`, `playerKey: "actorId"`; named shared and per-player fields with bool/i32/f64/string type and matching default. |
 | Field `privacy` | `public` replicates to everyone; `owner` only to the owning actor; `host` never leaves the host. Shared writes always belong to the host regardless of visibility. Names are unique within each state scope. |
 | `authorCaps` | 1–32 players (authors may lower the room cap); in-cell speed 0–15 m/s. Highway speed belongs to the platform. |
@@ -69,6 +70,17 @@ the same shard: existing scope/name/id/type must remain, and old IDs cannot name
 another field. Declaration reordering and new fields are allowed. Outside authors
 must assign an ID to every pre-existing v0 field before rebuilding; an empty
 world has no fields to migrate. This is a provisional v0 refinement before freeze.
+
+Author rows pass an independent JSON-only check before their strict schema: functions,
+accessors, cycles, sparse arrays, nonfinite numbers and other lossy values fail before
+serialization. Strike weights are numbers; weather outputs are state tables; day
+clocks have complete ordered schedules. Species rows carry collision dimensions and
+each variant's health and modifiers. View and animation recipes are registered IDs
+with numeric/text parameters, resolved by the loader's injected catalogue. Compendium
+stamps/stats are constants and loot presentation selects the purse/cue mechanisms.
+`@wildshard/sdk/rows` exposes the schemas and numeric sim catalogue helpers. The fixture
+`rows.json` matches `src/shards/_template/data/rows.ts`; SF16 activates these declarations.
+The legacy row-function ratchet stays until its old types lose their closure fields.
 
 `sim.bindings` optionally binds a declared script module to a positive entity ID,
 `server` or `entity` role, and a nullable host actor ID. Both roles may be actor-bound;

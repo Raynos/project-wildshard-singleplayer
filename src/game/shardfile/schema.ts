@@ -3,6 +3,7 @@ import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF, CONTENT_CAPS } from '@wildshard/eng
 import { SHARDFILE_VERSION } from './version';
 import { UiSchema, uiRules } from './ui';
 import { ScriptBindingsSchema, scriptBindingRules } from './scripts';
+import { RowsSchema } from './rows';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const positive = v.pipe(natural, v.minValue(1));
@@ -38,6 +39,7 @@ const rawSchema = v.strictObject({
   files: v.array(file), tiles: v.array(tile), library: v.array(ref), critical: v.array(ref),
   far: v.nullable(v.strictObject({ files: v.array(ref), bounds, ...costs })),
   ui: v.optional(UiSchema, []),
+  rows: v.optional(RowsSchema, { strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [] }),
 });
 /** A serialisable shardfile v0, independent of renderer and placement. */
 export type Shardfile = v.InferOutput<typeof rawSchema>;

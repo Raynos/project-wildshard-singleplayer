@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-269 members; 112 without a doc line (—).
+282 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -162,6 +162,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `shardContext` | function | @wildshard/game/shard/context | — |
 | `ShardContext` | interface | @wildshard/game/shard/context | — |
 | `installDeclaredEncounters` | function | @wildshard/game/shard/declaredEncounters | Bind the existing declared boss panel; headless hosts omit HUD handles without importing DOM/rendering. |
+| `declaredCompendium` | function | @wildshard/game/shard/declaredRows | Constant stamp/stat data supplies the existing compendium without authored closures. |
+| `declaredDay` | function | @wildshard/game/shard/declaredRows | A complete authored hour schedule runs the existing engine day clock. |
+| `declaredLootPresentation` | function | @wildshard/game/shard/declaredRows | Presentation uses the existing purse and a registered cue; data cannot install callbacks. |
+| `declaredSpeciesLook` | function | @wildshard/game/shard/declaredRows | Registered view recipes receive pure parameters; missing recipes fail before the view boots. |
+| `declaredWeather` | function | @wildshard/game/shard/declaredRows | Expand a table of authored outputs into the existing seeded weather mechanism. |
 | `DeclaredUiPorts` | interface | @wildshard/game/shard/declaredUi | the engine's HUD ports plus the shard's Bag |
 | `mountDeclaredUi` | function | @wildshard/game/shard/declaredUi | SF7f: draw a shardfile's `ui` declarations. Markers, counters, boss panels and relabels go to the engine's shared HUD; |
 | `CabinSite` | interface | @wildshard/game/shard/manifest | — |
@@ -228,6 +233,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `encounterRules` | function | @wildshard/game/shardfile/encounters | Full-loader references: declared actor spawn and the existing SF7f boss panel (if any). |
 | `EncountersSchema` | const | @wildshard/game/shardfile/encounters | Elite/boss phase tables with checkpoints/retry, neutral steering data and declared panel references. |
 | `ShardEncounters` | type | @wildshard/game/shardfile/encounters | Validated data-only encounter tables. |
+| `isJsonData` | function | @wildshard/game/shardfile/json | Refuse values JSON would silently discard or change, without invoking authored accessors. |
 | `LedgerFact` | type | @wildshard/game/shardfile/ledger | One witnessed engine/script outcome, with a stable six-part identity. |
 | `LedgerFactSchema` | const | @wildshard/game/shardfile/ledger | Facts carry host-assigned identity and provenance; cell coordinates never participate. |
 | `LedgerRule` | type | @wildshard/game/shardfile/ledger | Data mapping declared facts to platform-controlled profile rewards. |
@@ -243,6 +249,13 @@ The game layer's public modules (src/game/package.json `exports`).
 | `questDataRules` | function | @wildshard/game/shardfile/quests | Reject dangling flags, repeated identities, unreachable dialogue nodes and cycles before installing authored data. |
 | `QuestDataSchema` | const | @wildshard/game/shardfile/quests | Serialisable quest/dialogue section with semantic validation in the same admission pass. |
 | `assertStateCompatibility` | function | @wildshard/game/shardfile/revision | Preserve saved field identities across validated author revisions; declaration ordering is immaterial. |
+| `parseRows` | function | @wildshard/game/shardfile/rows | Validate rows at the author boundary, before JSON serialization can erase closures. |
+| `rowRules` | function | @wildshard/game/shardfile/rows | Reference, uniqueness and complete clock/weather transition rules for data rows. |
+| `RowsSchema` | const | @wildshard/game/shardfile/rows | The independent JSON check runs before strict row schemas; functions/accessors/cycles never become data. |
+| `scoredStrikes` | function | @wildshard/game/shardfile/rows | Legacy strike scoring is an engine-owned constant adapter over the declared weight. |
+| `ShardRows` | type | @wildshard/game/shardfile/rows | Pure author rows: numeric weights, state output tables, clocks and registered view/presentation recipes. |
+| `simStrikes` | function | @wildshard/game/shardfile/rows | Numeric strike rows feed the authoritative sim without a score callback. |
+| `speciesResolver` | function | @wildshard/game/shardfile/rows | Resolve both species and variant, preserving authored health and gameplay multipliers. |
 | `LOOK_LUT_BYTES` | const | @wildshard/game/shardfile/schema | A colour LUT file's exact wire size: 33³ RGBA8 (the engine's render/lut format). |
 | `parseShardfile` | function | @wildshard/game/shardfile/schema | Parse untrusted JSON as a validated shardfile, or throw a Valibot error. |
 | `Shardfile` | type | @wildshard/game/shardfile/schema | A serialisable shardfile v0, independent of renderer and placement. |

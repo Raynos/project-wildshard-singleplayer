@@ -11850,6 +11850,36 @@
         "from": "@wildshard/game/shard/declaredEncounters"
       },
       {
+        "name": "declaredCompendium",
+        "kind": "function",
+        "doc": "Constant stamp/stat data supplies the existing compendium without authored closures.",
+        "from": "@wildshard/game/shard/declaredRows"
+      },
+      {
+        "name": "declaredDay",
+        "kind": "function",
+        "doc": "A complete authored hour schedule runs the existing engine day clock.",
+        "from": "@wildshard/game/shard/declaredRows"
+      },
+      {
+        "name": "declaredLootPresentation",
+        "kind": "function",
+        "doc": "Presentation uses the existing purse and a registered cue; data cannot install callbacks.",
+        "from": "@wildshard/game/shard/declaredRows"
+      },
+      {
+        "name": "declaredSpeciesLook",
+        "kind": "function",
+        "doc": "Registered view recipes receive pure parameters; missing recipes fail before the view boots.",
+        "from": "@wildshard/game/shard/declaredRows"
+      },
+      {
+        "name": "declaredWeather",
+        "kind": "function",
+        "doc": "Expand a table of authored outputs into the existing seeded weather mechanism.",
+        "from": "@wildshard/game/shard/declaredRows"
+      },
+      {
         "name": "DeclaredUiPorts",
         "kind": "interface",
         "doc": "the engine's HUD ports plus the shard's Bag",
@@ -12246,6 +12276,12 @@
         "from": "@wildshard/game/shardfile/encounters"
       },
       {
+        "name": "isJsonData",
+        "kind": "function",
+        "doc": "Refuse values JSON would silently discard or change, without invoking authored accessors.",
+        "from": "@wildshard/game/shardfile/json"
+      },
+      {
         "name": "LedgerFact",
         "kind": "type",
         "doc": "One witnessed engine/script outcome, with a stable six-part identity.",
@@ -12334,6 +12370,48 @@
         "kind": "function",
         "doc": "Preserve saved field identities across validated author revisions; declaration ordering is immaterial.",
         "from": "@wildshard/game/shardfile/revision"
+      },
+      {
+        "name": "parseRows",
+        "kind": "function",
+        "doc": "Validate rows at the author boundary, before JSON serialization can erase closures.",
+        "from": "@wildshard/game/shardfile/rows"
+      },
+      {
+        "name": "rowRules",
+        "kind": "function",
+        "doc": "Reference, uniqueness and complete clock/weather transition rules for data rows.",
+        "from": "@wildshard/game/shardfile/rows"
+      },
+      {
+        "name": "RowsSchema",
+        "kind": "const",
+        "doc": "The independent JSON check runs before strict row schemas; functions/accessors/cycles never become data.",
+        "from": "@wildshard/game/shardfile/rows"
+      },
+      {
+        "name": "scoredStrikes",
+        "kind": "function",
+        "doc": "Legacy strike scoring is an engine-owned constant adapter over the declared weight.",
+        "from": "@wildshard/game/shardfile/rows"
+      },
+      {
+        "name": "ShardRows",
+        "kind": "type",
+        "doc": "Pure author rows: numeric weights, state output tables, clocks and registered view/presentation recipes.",
+        "from": "@wildshard/game/shardfile/rows"
+      },
+      {
+        "name": "simStrikes",
+        "kind": "function",
+        "doc": "Numeric strike rows feed the authoritative sim without a score callback.",
+        "from": "@wildshard/game/shardfile/rows"
+      },
+      {
+        "name": "speciesResolver",
+        "kind": "function",
+        "doc": "Resolve both species and variant, preserving authored health and gameplay multipliers.",
+        "from": "@wildshard/game/shardfile/rows"
       },
       {
         "name": "LOOK_LUT_BYTES",
@@ -14024,6 +14102,42 @@
         "kind": "const",
         "doc": "Compile declared quest graphs and dialogue trees with bounded, serialisable script hook names.",
         "from": "@wildshard/sdk/quests"
+      },
+      {
+        "name": "isJsonData",
+        "kind": "function",
+        "doc": "Independent data-only check for functions, accessors, cycles and lossy JSON values.",
+        "from": "@wildshard/sdk/rows"
+      },
+      {
+        "name": "parseRows",
+        "kind": "function",
+        "doc": "Parse author rows before JSON serialization can erase invalid closures.",
+        "from": "@wildshard/sdk/rows"
+      },
+      {
+        "name": "RowsSchema",
+        "kind": "const",
+        "doc": "Validate row declarations without renderer or runtime code.",
+        "from": "@wildshard/sdk/rows"
+      },
+      {
+        "name": "ShardRows",
+        "kind": "type",
+        "doc": "Numeric row declarations and registered view/presentation recipes.",
+        "from": "@wildshard/sdk/rows"
+      },
+      {
+        "name": "simStrikes",
+        "kind": "const",
+        "doc": "Numeric strike catalogue suitable for the authoritative sim.",
+        "from": "@wildshard/sdk/rows"
+      },
+      {
+        "name": "speciesResolver",
+        "kind": "const",
+        "doc": "Resolve declared variant health, collision dimensions and motion multipliers.",
+        "from": "@wildshard/sdk/rows"
       },
       {
         "name": "assertStateCompatibility",

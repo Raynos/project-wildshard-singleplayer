@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-34 members; 0 without a doc line (—).
+40 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -36,6 +36,12 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parseQuestData` | function | @wildshard/sdk/quests | Compile TypeScript author data after checking declared flags and graph references. |
 | `QuestData` | type | @wildshard/sdk/quests | Validated quest/dialogue declarations consumed by the platform runtime. |
 | `QuestDataSchema` | const | @wildshard/sdk/quests | Compile declared quest graphs and dialogue trees with bounded, serialisable script hook names. |
+| `isJsonData` | function | @wildshard/sdk/rows | Independent data-only check for functions, accessors, cycles and lossy JSON values. |
+| `parseRows` | function | @wildshard/sdk/rows | Parse author rows before JSON serialization can erase invalid closures. |
+| `RowsSchema` | const | @wildshard/sdk/rows | Validate row declarations without renderer or runtime code. |
+| `ShardRows` | type | @wildshard/sdk/rows | Numeric row declarations and registered view/presentation recipes. |
+| `simStrikes` | const | @wildshard/sdk/rows | Numeric strike catalogue suitable for the authoritative sim. |
+| `speciesResolver` | const | @wildshard/sdk/rows | Resolve declared variant health, collision dimensions and motion multipliers. |
 | `assertStateCompatibility` | function | @wildshard/sdk/shardfile | Refuse saved-state identity changes between two validated revisions of the same shard. |
 | `parseShardfile` | function | @wildshard/sdk/shardfile | Parse untrusted author output using the same contract as the client. |
 | `Shardfile` | type | @wildshard/sdk/shardfile | Author-facing serialisable renderer-neutral shardfile contract. |
