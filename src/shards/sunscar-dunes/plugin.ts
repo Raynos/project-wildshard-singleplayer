@@ -1,3 +1,4 @@
+import { selectDuneRows } from './runtime/brains';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
@@ -73,9 +74,15 @@ export class SignalDunesPlugin extends ShardPlugin {
     await preloadDuneMeshes();
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug)); this.fire = this.places.fire;
   }
+  private brainPolicies: ReturnType<typeof selectDuneRows> = null;
+  /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
+  brainWitness(): { id: string; kind: string; family: string | null }[] {
+    return (this.creatures?.all() ?? []).filter(actor => actor.kind === 'duneRay' || actor.kind === 'duneStrider').map(actor => ({ id: actor.entityId, kind: actor.kind, family: this.brainPolicies?.witness(actor) ?? null }));
+  }
   override kit(ctx: ShardContext): void {
     ctx.rows.weapon(WHIP_ROW);
-    ctx.rows.species([DUNE_RAY, SAND_SKITTERER, DUNE_STRIDER, DUNE_MATRIARCH]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]);
+    this.brainPolicies = selectDuneRows(ctx);
+    ctx.rows.species(this.brainPolicies?.rows ?? [DUNE_RAY, SAND_SKITTERER, DUNE_STRIDER, DUNE_MATRIARCH]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]);
     ctx.rows.encounter([{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }]);
     const rt = ctx.game.runtime;
     if (rt) rt.buildEquipment = (targets) => {
