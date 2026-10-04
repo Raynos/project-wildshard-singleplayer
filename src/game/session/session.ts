@@ -36,6 +36,7 @@ import { showLoadFailure } from '@wildshard/engine/ui/errorScreen';
 import { installWorldRegistry } from '@wildshard/engine/world/registry';
 import { bootPageMode, type PageMode } from '../grid/boot';
 import { installGridDebug } from '../grid/debug';
+import { gridLevel } from '../grid/session';
 
 declare const __BUILD_ID__: string;
 
@@ -114,7 +115,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
   app.levelAdapters.playground = (spec) => registerPlayground(manifest.slug, spec);
   installTemplateDebug(app, app.engineScope);
   try {
-    return await bootLevel(toLevelSpec(manifest), {
+    return await bootLevel(gridLevel(toLevelSpec(manifest)), {
       sequence, scope, progress: () => boot.progress,
       afterData: (spec) => { if (boot.handoff?.arrive) spec.spawn = boot.handoff.arrive; },
       dispose: () => {

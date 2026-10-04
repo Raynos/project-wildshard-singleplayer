@@ -14,6 +14,7 @@ export interface FarProxyView { readonly mesh: Mesh; mask: (excluded: ReadonlySe
 /** The family material with the region mask and haze patched in; `uniforms.farMask` holds 16 flags. */
 export function farProxyMaterial(look: FarLookRuntime): { material: MeshLambertMaterial | MeshStandardMaterial; setMask: (excluded: ReadonlySet<number>) => void } {
   const material = look.family === 'pbr' ? new MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }) : new MeshLambertMaterial({ vertexColors: true, flatShading: look.family === 'toon' });
+  material.fog = false; // its own haze below; a home shard's near fog would hide its neighbours
   const mask = new Float32Array(16), hazeColour = new Color(...look.haze.colour).convertLinearToSRGB(); // the haze mixes after the output colour-space conversion
   const uniforms = { farMask: { value: mask }, farHazeColour: { value: hazeColour }, farHaze: { value: new Vector3(look.haze.near, look.haze.far, look.haze.max) } };
   patchShader(material, 'sf23-far', 0, (shader): void => {

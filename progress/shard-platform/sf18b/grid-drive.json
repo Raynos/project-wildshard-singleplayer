@@ -1,0 +1,258 @@
+{
+  "url": "http://127.0.0.1:4404",
+  "started": "2026-10-04T13:34:56.045Z",
+  "bootSeconds": 8.3,
+  "boot": {
+    "home": "driftwood-isle",
+    "inside": "driftwood-isle",
+    "feet": {
+      "x": 0,
+      "z": -194
+    },
+    "cells": [
+      {
+        "instance": "template-1",
+        "slug": "_template",
+        "cell": [
+          -1,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "pine-hollow",
+        "slug": "pine-hollow",
+        "cell": [
+          0,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-2",
+        "slug": "_template",
+        "cell": [
+          1,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "sunscar-dunes",
+        "slug": "sunscar-dunes",
+        "cell": [
+          -1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "driftwood-isle",
+        "slug": "driftwood-isle",
+        "cell": [
+          0,
+          0
+        ],
+        "shows": "playing"
+      },
+      {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands",
+        "cell": [
+          1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-4",
+        "slug": "_template",
+        "cell": [
+          -1,
+          -1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "far-reach",
+        "slug": "far-reach",
+        "cell": [
+          0,
+          -1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-6",
+        "slug": "_template",
+        "cell": [
+          1,
+          -1
+        ],
+        "shows": "far proxy"
+      }
+    ],
+    "strips": 40,
+    "ringsReady": true,
+    "residentMB": 12.8,
+    "playingMB": 394.21,
+    "rings": {
+      "far": 8,
+      "l1": 0,
+      "l0": 0,
+      "refused": 0
+    }
+  },
+  "loop": {
+    "name": "grid-ring",
+    "stuck": [
+      {
+        "wp": 7,
+        "x": 250.6,
+        "y": 1.25,
+        "z": 0.067
+      }
+    ],
+    "end": {
+      "x": 234.99,
+      "y": 2.024,
+      "z": 0
+    },
+    "maxY": 2.61,
+    "out": 0,
+    "seconds": 170.915
+  },
+  "samples": 680,
+  "holes": 0,
+  "maxResidentMB": 12.8,
+  "maxPlayingMB": 394.21,
+  "insideSeen": [
+    "driftwood-isle",
+    "deck"
+  ],
+  "farMax": 8,
+  "refused": 0,
+  "maxOffset": 280.51,
+  "wall": {
+    "name": "soft-wall",
+    "stuck": [
+      {
+        "wp": 0,
+        "x": 298.352,
+        "y": 0.02,
+        "z": 0.039
+      }
+    ],
+    "end": {
+      "x": 330.036,
+      "y": -0.018,
+      "z": 0
+    },
+    "maxY": 0.024,
+    "out": 0,
+    "seconds": 11.087199999809265,
+    "held": true
+  },
+  "end": {
+    "home": "driftwood-isle",
+    "inside": null,
+    "feet": {
+      "x": 0,
+      "z": 262
+    },
+    "cells": [
+      {
+        "instance": "template-1",
+        "slug": "_template",
+        "cell": [
+          -1,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "pine-hollow",
+        "slug": "pine-hollow",
+        "cell": [
+          0,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-2",
+        "slug": "_template",
+        "cell": [
+          1,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "sunscar-dunes",
+        "slug": "sunscar-dunes",
+        "cell": [
+          -1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "driftwood-isle",
+        "slug": "driftwood-isle",
+        "cell": [
+          0,
+          0
+        ],
+        "shows": "playing"
+      },
+      {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands",
+        "cell": [
+          1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-4",
+        "slug": "_template",
+        "cell": [
+          -1,
+          -1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "far-reach",
+        "slug": "far-reach",
+        "cell": [
+          0,
+          -1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-6",
+        "slug": "_template",
+        "cell": [
+          1,
+          -1
+        ],
+        "shows": "far proxy"
+      }
+    ],
+    "strips": 40,
+    "ringsReady": true,
+    "residentMB": 12.8,
+    "playingMB": 394.21,
+    "rings": {
+      "far": 8,
+      "l1": 0,
+      "l0": 0,
+      "refused": 0
+    }
+  },
+  "errors": []
+}

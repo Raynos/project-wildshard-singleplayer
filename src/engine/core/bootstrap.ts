@@ -95,7 +95,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
     await navmesh;
     withOwner(game.levelScope, () => {
       if (needsTerrainCollider(level)) addTerrain(ph); // a structure-first shard walks on its built floors only
-      addEdgeWalls(ph);
+      if (level.boundary?.walls !== false) addEdgeWalls(ph); // a level inside a platform grid: the platform owns its edge
     });
     p.detail(`${ph.world.colliders.len()} colliders`);
     return ph;

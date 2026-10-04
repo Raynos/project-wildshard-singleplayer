@@ -79,8 +79,11 @@ export interface LevelSpec {
   boot: BootSpec; audio: AudioSpec; loadout: LoadoutSpec;
   species: readonly string[]; spawns: readonly HerdPlan[]; spawnTables?: readonly string[];
   faunaTuning?: Partial<Record<string, Partial<HuntTuning>>>;
-  /** Visual edge dressing only; containment walls remain active when hidden. */
-  boundary?: { visible?: boolean };
+  /**
+   * Edge dressing and containment. `visible` hides the drawing only; `walls: false` leaves out the four chunk-edge walls,
+   * for a level placed inside a larger platform that owns what lies past its edge (absent = walls).
+   */
+  boundary?: { visible?: boolean; walls?: boolean };
   trees?: TreeSpec; forest?: ForestSpec; horizon?: HorizonSpec; horizonStrips?: HorizonStrips;
   minimap: MinimapSpec; hud?: HudSpec; pois?: readonly PoiSpec[];
   groundColor?: (x: number, z: number, h: number, slope: number, terrain: TerrainField, out: RGB) => RGB;

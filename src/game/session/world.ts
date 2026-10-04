@@ -3,6 +3,7 @@ import { type Audio as LevelAudio, Audio } from '@wildshard/engine/audio/Audio';
 import { type Music as LevelMusic, Music } from '@wildshard/engine/audio/Music';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { toLevelSpec } from '../shard/spec';
+import { gridLevel } from '../grid/session';
 import type * as THREE from 'three';
 import type { dataStage } from './data';
 import { asShell } from '@wildshard/engine/app/ownership';
@@ -21,7 +22,7 @@ import { HorizonMatte } from '@wildshard/engine/world/HorizonMatte';
 async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: LevelContext | undefined) {
   const { manifest, boot, session, audioProfile, plan, step } = ctx;
 
-  const world = Object.assign(await bootstrap(step, toLevelSpec({ ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn }), INPUT_CONTEXTS), { chunk: manifest });
+  const world = Object.assign(await bootstrap(step, gridLevel(toLevelSpec({ ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn })), INPUT_CONTEXTS), { chunk: manifest });
   const { game, sky, player, forest, params, chunk, registry } = world;
   app.params = params;
   boot.runtime.world = world; boot.runtime.step = step;

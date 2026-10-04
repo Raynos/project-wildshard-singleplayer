@@ -62,6 +62,8 @@ import { installPlayerDeath } from '@wildshard/engine/ui/playerDeath';
 import { PlayerHurt } from '@wildshard/engine/ui/playerHurt';
 import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
+import { pageMode } from '../grid/boot';
+import { GridSession } from '../grid/session';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
@@ -78,18 +80,22 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   await macrotask();
+  // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
+  const grid = pageMode() === 'grid' ? new GridSession({ scene: game.scene, physics: world.physics, scope: game.levelScope, feet: () => player.position,
+    onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); } }) : null;
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies in Developer mode: full on its first frame (E291); the Memory saver loads them when the room opens (SF22d)
     const practice = isDev() && setting('memorySaver') === 'off' ? arena.preload() : null;
     await (menuLoad ?? startMenuPreload(files, chunk)).wait(p);
     await practice;
+    await grid?.ready(); // the loading screen holds until every visible neighbour is drawn
   });
   const { audio, music } = prepareAudio();
   const arrivalSpawn = boot.handoff?.arrive ?? chunk.spawn;
   const toSpawn = () => { player.spawn(arrivalSpawn.x, arrivalSpawn.z, arrivalSpawn.yaw, arrivalSpawn.y); if (!boot.handoff?.arrive) { const y = boot.runtime.hooks.spawnFloor?.(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
   const respawn = () => { toSpawn(); music.sting('death'); };
   installBounds(app, game.levelScope, game.level.bounds, { player, toSpawn,
-    floorAt: (x, z) => registry.floorAt(x, z), suspended: () => world.freeCamera || world.tour.active || away() });
+    floorAt: (x, z) => registry.floorAt(x, z), suspended: () => world.freeCamera || world.tour.active || away(), grid: () => grid !== null });
   let kills = 0, swimHold = false;
   const owned = new Owned(manifest.slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
   const playerHealth = new PlayerHealth(app.events, {
@@ -526,7 +532,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     windupWarn?.update(dt, game.camera, player.position, player.yaw, animals.isThreat);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
-    hud.setBoundaryWarning(!away() && edge < 14 && hud.entered);
+    hud.setBoundaryWarning(grid === null && !away() && edge < 14 && hud.entered); // in the grid the chunk edge is a seam, not a boundary
     hud.setAimInfo(aimReadout(weapons.aimInfo)); // a boss by its name (PH-C1)
     lockOn.update();
     speedLines.update(dt, player.dashing, meleeLock.lunging);
