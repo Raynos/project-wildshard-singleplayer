@@ -13,3 +13,20 @@ Measured from clean committed source `c73c79a12c2da26824591b7eea735338a3308da2` 
 | sunscar-dunes | 0 | 3704 | 0 | 0.000% | 0 |
 
 Generated output contributes zero to both current buckets. AssemblyScript is authored code and follows the same public-folder/import-closure rules. The historical physical TS-only comparison and immutable baseline remain separately labelled; they are not the current SDK-share measure. Only the template is enforced so far, and its 86.712% share still clears 80%. Sky Reach is the far-reach folder; its current share is 0.763%, while Driftwood is 0.877%. Neither is near conversion.
+
+## G143 public and trusted SDK split
+
+The current authored measure now distinguishes published public SDK modules from
+`@wildshard/sdk/runtime/*`. A trusted import makes its authored file and transitive
+local consumers custom, even outside `runtime/`; those lines also count against
+the runtime ceiling. The SDK implementation itself is not credited as shard-authored
+code. AssemblyScript still counts, and generated/baked output still contributes zero.
+Published commons packs are public in build-time generators, data, quests and the
+configuration source. Generators may use author tools; this exception cannot hide a
+trusted SDK runtime import. Runtime imports of kit or commons code, and trusted SDK
+imports outside runtime, are measured by the layer guard's transition ratchet.
+
+Validation: `pnpm exec vitest run test/shard-platform.test.ts test/sdk-boundary.test.ts`
+passes 15 fixtures, including direct/transitive trusted imports, AssemblyScript,
+published commons authoring and the runtime ceiling. The immutable legacy baseline
+is unchanged. Source commits leave regenerated graph/debt files to the serialized pusher.

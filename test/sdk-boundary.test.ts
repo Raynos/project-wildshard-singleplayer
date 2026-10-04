@@ -25,7 +25,15 @@ it('refuses author imports past the SDK and upward platform imports', () => {
       ['src/shards/example/shard.config.ts', "import { CHUNK_SIZE } from '@wildshard/engine/core/config'; export const n = CHUNK_SIZE;"],
       ['src/shards/example/data/row.ts', "import type { ShardManifest } from '@wildshard/game/shard/manifest'; export type Row = ShardManifest;"],
       ['src/kit/up.ts', "import { SHARDFILE_VERSION } from '@wildshard/sdk/version'; export const v = SHARDFILE_VERSION;"],
+      ['src/shards/example/data/trusted.ts', "import '@wildshard/sdk/runtime/play';"],
+      ['src/shards/example/generators/trusted.ts', "import '@wildshard/sdk/runtime/play';"],
+      ['src/shards/example/runtime/kit.ts', "import '@wildshard/kit/items/declared';"],
+      ['src/shards/example/runtime/commons.ts', "import '@wildshard/commons/creatures';"],
+      ['src/shards/example/behaviour/commons.ts', "import '@wildshard/commons/creatures';"],
       ['src/shards/example/data/good.ts', "import { SHARDFILE_VERSION } from '@wildshard/sdk/version'; export const v = SHARDFILE_VERSION;"],
+      ['src/shards/example/runtime/good.ts', "import '@wildshard/sdk/runtime/play';"],
+      ['src/shards/example/generators/commons.ts', "import '@wildshard/commons/creatures';"],
+
     ];
     for (const [file, code] of cases) {
       if (file === undefined || code === undefined) throw new Error('missing fixture');
@@ -34,6 +42,6 @@ it('refuses author imports past the SDK and upward platform imports', () => {
     const result = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', resolve('.oxlintrc.ratchet.json'), '-f', 'json', 'src'], { cwd: root, encoding: 'utf8' });
     const report = JSON.parse(result.stdout) as { diagnostics: { filename: string; code: string }[] };
     const hits = report.diagnostics.filter((d) => d.code === 'wildshard(layer)').map((d) => d.filename);
-    expect(hits.sort((a, b) => a.localeCompare(b))).toEqual(cases.slice(0, 3).map(([file]) => file).sort((a, b) => String(a).localeCompare(String(b))));
+    expect(hits.sort((a, b) => a.localeCompare(b))).toEqual(cases.slice(0, 8).map(([file]) => file).sort((a, b) => String(a).localeCompare(String(b))));
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

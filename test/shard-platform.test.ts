@@ -39,6 +39,28 @@ describe('SF6 platform measures', () => {
       expect(alpha(root)).toMatchObject({ publicLines: 5, customLines: 0, publicShare: 1 });
     });
   });
+  it('counts trusted SDK imports as custom wherever authored, including local helper closures and AS', () => {
+    fixture((root, put) => {
+      put('src/sdk/package.json', JSON.stringify({ name: '@wildshard/sdk', exports: { './rows': './rows.ts', './runtime/play': './runtime/play.ts' } }));
+      put('src/sdk/runtime/play.ts', 'export const play = 1;\n');
+      put('src/shards/alpha/data/helper.ts', "import '@wildshard/sdk/runtime/play';\nexport const helper = 1;\n");
+      put('src/shards/alpha/data/row.ts', "import './helper';\nexport const row = 1;\n");
+      put('src/shards/alpha/generators/build.ts', "import '@wildshard/sdk/runtime/play';\n");
+      put('src/shards/alpha/behaviour/tick.as', "import '@wildshard/sdk/runtime/play';\nexport function tick(): i32 { return 1; }\n");
+      expect(alpha(root)).toMatchObject({ publicLines: 0, customLines: 7, runtimeLines: 7, trustedRuntimeLines: 7 });
+      expect(checkShares({ baseline: { alpha: 100 }, enforced: { alpha: 0 } }, shardLines(root)).join(',')).toContain('trusted-SDK lines, ceiling 0');
+    });
+  });
+  it('counts published commons packs as public build-time authoring but never as runtime behaviour', () => {
+    fixture((root, put) => {
+      put('src/commons/package.json', JSON.stringify({ name: '@wildshard/commons', exports: { './creatures': './creatures.ts' } }));
+      put('src/commons/creatures.ts', 'export const creature = 1;\n');
+      for (const folder of ['generators', 'data', 'quests']) put(`src/shards/alpha/${folder}/rows.ts`, "import '@wildshard/commons/creatures';\nexport const rows = 1;\n");
+      put('src/shards/alpha/behaviour/tick.ts', "import '@wildshard/commons/creatures';\n");
+      put('src/shards/alpha/runtime/play.ts', "import '@wildshard/commons/creatures';\n");
+      expect(alpha(root)).toMatchObject({ publicLines: 6, customLines: 2, runtimeLines: 1 });
+    });
+  });
   it('includes type imports, transitive imports, cycles, and nonliteral imports in the public closure', () => {
     fixture((root, put) => {
       put('src/engine/private.ts', 'export type Secret = number;\n');

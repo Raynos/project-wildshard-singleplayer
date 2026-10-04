@@ -85,11 +85,11 @@ export function shardLines(root = ROOT) {
   const count = (path) => ignored(path) ? 0 : codeLines(text(path), path);
   const sdk = exists('src/sdk/package.json') ? JSON.parse(text('src/sdk/package.json')) : null;
   const hasSdk = sdk?.name === '@wildshard/sdk';
-  const sdkImport = (spec) => {
-    if (!hasSdk || !/^@wildshard\/sdk(?:\/|$)/u.test(spec ?? '')) return false;
-    const key = spec === '@wildshard/sdk' ? '.' : `.${spec.slice('@wildshard/sdk'.length)}`;
-    const target = sdk.exports?.[key];
-    return typeof target === 'string' && exists(`src/sdk/${target}`);
+  const published = (pkg, spec) => {
+    const name = `@wildshard/${pkg}`, manifest = pkg === 'sdk' ? sdk : exists(`src/${pkg}/package.json`) ? JSON.parse(text(`src/${pkg}/package.json`)) : null;
+    if (manifest?.name !== name || !(spec === name || spec?.startsWith(`${name}/`))) return false;
+    const key = spec === name ? '.' : `.${spec.slice(name.length)}`, target = manifest.exports?.[key];
+    return typeof target === 'string' && exists(`src/${pkg}/${target}`);
   };
   const graph = (path) => {
     if (!graphs.has(path)) graphs.set(path, imports(text(path), path).map((spec) => {
@@ -97,31 +97,33 @@ export function shardLines(root = ROOT) {
       // Local AssemblyScript imports are part of the same authored closure, including extensionless imports.
       const base = spec?.startsWith('.') ? relative(root, resolve(root, path, '..', spec)).replaceAll('\\', '/') : null;
       const assemblyPath = base === null ? null : [base, `${base}.as`, `${base}/index.as`].find((candidate) => candidate.endsWith('.as') && exists(candidate));
-      return { sdk: sdkImport(spec), to: to ?? assemblyPath ?? null };
+      return { sdk: published('sdk', spec), trusted: /^@wildshard\/sdk\/runtime(?:\/|$)/u.test(spec ?? '') || (to ?? '').startsWith('src/sdk/runtime/'), commons: published('commons', spec), to: to ?? assemblyPath ?? null };
     }));
     return graphs.get(path);
   };
   const shardFiles = Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))
     .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))]));
-  const isPublic = (slug, path) => {
-    const prefix = `src/shards/${slug}/`, seen = new Set(), queue = [path];
+  const classify = (slug, path) => {
+    const prefix = `src/shards/${slug}/`, seen = new Set(), queue = [path], generator = path.startsWith(`${prefix}generators/`);
+    let publicCode = true, trusted = false;
     while (queue.length > 0) {
       const current = queue.pop();
       if (seen.has(current)) continue;
       seen.add(current);
-      if (!current.startsWith(prefix)) return false;
-      const local = current.slice(prefix.length);
-      // Author tools are public whatever they import; runtime imports of them are independently forbidden.
-      if (local.startsWith('generators/')) continue;
-      if (!publicFolder.test(local) && local !== 'shard.config.ts') return false;
+      if (!current.startsWith(prefix)) { publicCode = false; continue; }
+      const local = current.slice(prefix.length), author = /^(?:generators|data|quests)\//u.test(local) || local === 'shard.config.ts';
+      if (!generator && !publicFolder.test(local) && !local.startsWith('generators/') && local !== 'shard.config.ts') publicCode = false;
       for (const edge of graph(current)) {
-        if (edge.sdk) continue;
-        if (edge.to === null) return false;
+        if (edge.trusted) { trusted = true; publicCode = false; continue; }
+        if (edge.sdk || (author && edge.commons)) continue;
+        // Generator tools stay public; a trusted SDK runtime import still belongs to the custom bucket.
+        if ((generator || local.startsWith('generators/')) && !edge.to?.startsWith(prefix)) continue;
+        if (edge.to === null) { publicCode = false; continue; }
         queue.push(edge.to);
       }
     }
-    return true;
+    return { publicCode, trusted };
   };
   const kitUsers = new Map();
   for (const [slug, files] of Object.entries(shardFiles)) {
@@ -139,14 +141,16 @@ export function shardLines(root = ROOT) {
   }
   const out = {};
   for (const [slug, files] of Object.entries(shardFiles)) {
-    const row = { publicLines: 0, customLines: 0, runtimeLines: 0, uniqueKitLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 } };
+    const row = { publicLines: 0, customLines: 0, runtimeLines: 0, trustedRuntimeLines: 0, uniqueKitLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 } };
     for (const path of files) {
       const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
       // Keep the historical physical TS-only comparison explicitly separate from the current authored measure.
       if (!path.endsWith('.as')) row.legacy[top === 'generators' || top === 'data' ? top : 'runtime'] += text(path).split('\n').length - 1;
       const lines = count(path);
-      row[isPublic(slug, path) ? 'publicLines' : 'customLines'] += lines;
-      if (top === 'runtime') row.runtimeLines += lines;
+      const category = classify(slug, path);
+      row[category.publicCode ? 'publicLines' : 'customLines'] += lines;
+      if (category.trusted) row.trustedRuntimeLines += lines;
+      if (top === 'runtime' || category.trusted) row.runtimeLines += lines;
     }
     for (const [path, users] of kitUsers) if (users.size === 1 && users.has(slug) && sourceFile.test(path) && !path.endsWith('.d.ts')) row.uniqueKitLines += count(path);
     row.customLines += row.uniqueKitLines;
@@ -168,7 +172,7 @@ export function checkShares(recorded, lines) {
   for (const [slug, ceiling] of Object.entries(recorded.enforced)) {
     const row = lines[slug];
     if (!row) continue;
-    if (row.runtimeLines > ceiling) failures.push(`${slug}: ${row.runtimeLines} runtime/ lines, ceiling ${ceiling}`);
+    if (row.runtimeLines > ceiling) failures.push(`${slug}: ${row.runtimeLines} runtime/ or trusted-SDK lines, ceiling ${ceiling}`);
     if (row.publicShare < 0.8) failures.push(`${slug}: public SDK share ${(row.publicShare * 100).toFixed(1)} %, floor 80 % (unique-kit lines are custom)`);
   }
   return failures;
@@ -177,7 +181,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const recorded = JSON.parse(readFileSync(resolve(ROOT, LIST), 'utf8')), lines = shardLines();
   if (process.argv.includes('--json')) console.log(JSON.stringify(Object.fromEntries(Object.entries(lines).map(([slug, row]) => [slug, { ...row, baseline: recorded.baseline[slug], milestones: milestoneFlags(slug, row) }])), null, 2));
   else {
-    console.log('shard                  public   custom   kit-only  public SDK    runtime/ ceiling    legacy TS');
+    console.log('shard                  public   custom   kit-only  public SDK    runtime+trusted ceiling    legacy TS');
     for (const [slug, row] of Object.entries(lines)) {
       const base = recorded.baseline[slug], ceiling = recorded.enforced[slug] ?? Math.floor(base * 0.2);
       console.log(`${slug.padEnd(22)} ${String(row.publicLines).padStart(6)} ${String(row.customLines).padStart(8)} ${String(row.uniqueKitLines).padStart(10)} ${(row.publicShare * 100).toFixed(1).padStart(9)} %  ${String(row.runtimeLines).padStart(8)} / ${String(ceiling).padEnd(7)} ${(row.legacy.runtime / base * 100).toFixed(1)} %${slug in recorded.enforced ? ' enforced' : ' reported'}`);

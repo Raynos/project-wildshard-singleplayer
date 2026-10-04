@@ -358,6 +358,13 @@ const layerWalk = (kind) => (context) => {
     if (typeof source !== 'string' || source === '') return;
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
+    const shardLocal = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
+    if (kind === 'layer' && shardLocal !== undefined) {
+      const runtime = shardLocal.startsWith('runtime/');
+      if (!runtime && (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sdk/runtime/'))) report(context, node, `Trusted SDK imports belong in runtime/: ${source}`);
+      if (runtime && (target?.name === 'kit' || /^@wildshard\/commons(?:\/|$)/u.test(source) || targetPath.startsWith('src/commons/'))) report(context, node, `Runtime imports cannot use kit or commons code: ${source}`);
+      if (/^@wildshard\/commons(?:\/|$)/u.test(source) && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts' && !runtime) report(context, node, `Commons packs are build-time imports: ${source}`);
+    }
     if (!target) {
       if (kind === 'layer' && targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
       return;

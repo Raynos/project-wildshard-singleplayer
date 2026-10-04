@@ -1,5 +1,5 @@
 export interface ShardLines {
-  publicLines: number; customLines: number; runtimeLines: number; uniqueKitLines: number; publicShare: number;
+  publicLines: number; customLines: number; runtimeLines: number; trustedRuntimeLines: number; uniqueKitLines: number; publicShare: number;
   legacy: { generators: number; data: number; runtime: number };
 }
 export interface ShardPlatformList { baseline: Record<string, number>; enforced: Record<string, number> }
