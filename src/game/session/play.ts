@@ -552,8 +552,12 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     unmark();
   }, 'main.world');
   app.addSystem({ id: 'engine.creatures.update', phase: 'update', after: ['main.world'], before: ['main.equipment'], run: (dt, t) => {
-    animals.update(dt, t, player.position, player.sprinting, viewer(), game.camera);
-    aimList.length = 0; aimList.push(...app.events.ask('combat.aimTargets', animals.animals.filter((a) => a !== player.mountedOn)));
+    const homeActive = grid === null || gridLive === null || gridLive.live.current() === grid.home.instance;
+    aimList.length = 0;
+    if (homeActive) {
+      animals.update(dt, t, player.position, player.sprinting, viewer(), game.camera);
+      aimList.push(...app.events.ask('combat.aimTargets', animals.animals.filter((a) => a !== player.mountedOn)));
+    }
   } }, game.levelScope);
   app.addSystem({ id: 'main.equipment', phase: 'update', after: ['engine.creatures.update'], before: ['engine.audio.listener'], run: (dt, t) => {
     mark('animals');
