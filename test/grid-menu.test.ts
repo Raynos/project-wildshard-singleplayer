@@ -9,7 +9,7 @@ import { GridAssembly } from '../src/game/grid/assembly';
 import { gridIntents } from '../src/game/grid/intent';
 import { DEVSERVER, gridEntryShown, gridMode, selectEnters, selectExplores, type MenuMode } from '../src/game/grid/menu';
 import { GridCellEvents, gridHome } from '../src/game/grid/boot';
-import { devserverCellOn, installGridDebug } from '../src/game/grid/debug';
+import { devserverCellOn, gridMemoryAdmissionOn, installGridDebug } from '../src/game/grid/debug';
 import { levelDebugRows } from '../src/engine/ui/debugOptions';
 import { shards } from '../src/game/shard/list';
 import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
@@ -200,7 +200,7 @@ describe('a DEVSERVER build (§3.3)', () => {
     menu.dispose();
   });
   it('the DEVSERVER cell row: on by default, swapped to the template at the next grid start, gone when uninstalled', () => {
-    installGridDebug(false)(); // a production build installs nothing
+    installGridDebug(false)(); // a production build installs no DEVSERVER cell row
     expect(levelDebugRows().some((entry) => entry.id === 'gridDevserverCell')).toBe(false);
     const remove = installGridDebug(true);
     const row = levelDebugRows().find((entry) => entry.id === 'gridDevserverCell');
@@ -216,6 +216,18 @@ describe('a DEVSERVER build (§3.3)', () => {
     row?.set('on');
     remove();
     expect(levelDebugRows().some((entry) => entry.id === 'gridDevserverCell')).toBe(false);
+  });
+  it('keeps truthful grid memory admission off until its persistent reload row is explicitly enabled', () => {
+    const remove = installGridDebug(false), row = levelDebugRows().find((entry) => entry.id === 'gridMemoryAdmission');
+    try {
+      expect(row?.get()).toBe('off');
+      expect(gridMemoryAdmissionOn()).toBe(false);
+      expect(row?.reload).toBe(true);
+      row?.set('on'); expect(gridMemoryAdmissionOn()).toBe(true);
+      row?.set('invalid'); expect(gridMemoryAdmissionOn()).toBe(true);
+    } finally { row?.set('off'); remove(); }
+    expect(gridMemoryAdmissionOn()).toBe(false);
+    expect(levelDebugRows().some((entry) => entry.id === 'gridMemoryAdmission')).toBe(false);
   });
 });
 
