@@ -20,19 +20,39 @@ export function shardCoupling(root = ROOT) {
   const local = (file) => relative(root, file).replaceAll('\\', '/');
   const declarations = (symbol) => symbol?.declarations ?? [];
   const origin = (symbol, names) => declarations(symbol).some((decl) => CONTEXT_FILES.has(local(decl.getSourceFile().fileName)) && names.includes(decl.parent.name?.text));
+  // Only declared context members (and GameServices.runtime) can affect this measurement.
+  // Resolve their names once instead of asking the checker about every unrelated shard property.
+  const contextMembers = new Set(['runtime']);
+  for (const source of program.getSourceFiles()) if (CONTEXT_FILES.has(local(source.fileName))) {
+    const collect = (node) => {
+      if ((ts.isInterfaceDeclaration(node) || ts.isClassDeclaration(node)) && ['ShardContext', 'LevelContext'].includes(node.name?.text)) {
+        for (const prop of checker.getPropertiesOfType(checker.getTypeAtLocation(node))) if (origin(prop, ['ShardContext', 'LevelContext'])) contextMembers.add(prop.getName());
+      }
+      ts.forEachChild(node, collect);
+    };
+    collect(source);
+  }
+  // JSON closure is conjunctive: reaching a cycle makes the whole reachable type non-data.
+  // Memoize completed classifications only; an in-progress recursive edge must still fail.
+  const dataTypes = new Map();
   const data = (type, seen = new Set()) => {
+    if (dataTypes.has(type)) return dataTypes.get(type);
     if (seen.has(type)) return false; // recursive objects cannot promise a JSON round-trip
-    if (type.isUnion() || type.isIntersection()) return type.types.every((part) => data(part, seen));
-    if (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) return false;
-    if (type.getCallSignatures().length > 0 || type.getConstructSignatures().length > 0 || (type.getSymbol()?.flags ?? 0) & ts.SymbolFlags.Class) return false;
-    if (!(type.flags & ts.TypeFlags.Object)) return !(type.flags & (ts.TypeFlags.ESSymbol | ts.TypeFlags.BigInt | ts.TypeFlags.BigIntLiteral));
-    const next = new Set(seen).add(type);
-    if (checker.isArrayType(type) || checker.isTupleType(type)) return checker.getTypeArguments(type).every((part) => data(part, next));
-    return checker.getIndexInfosOfType(type).every((info) => data(info.type, next)) && checker.getPropertiesOfType(type).every((prop) => {
-      const decl = prop.valueDeclaration ?? prop.declarations?.[0];
-      return decl !== undefined && data(checker.getTypeOfSymbolAtLocation(prop, decl), next);
-    });
+    const inspect = () => {
+      if (type.isUnion() || type.isIntersection()) return type.types.every((part) => data(part, seen));
+      if (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) return false;
+      if (type.getCallSignatures().length > 0 || type.getConstructSignatures().length > 0 || (type.getSymbol()?.flags ?? 0) & ts.SymbolFlags.Class) return false;
+      if (!(type.flags & ts.TypeFlags.Object)) return !(type.flags & (ts.TypeFlags.ESSymbol | ts.TypeFlags.BigInt | ts.TypeFlags.BigIntLiteral));
+      const next = new Set(seen).add(type);
+      if (checker.isArrayType(type) || checker.isTupleType(type)) return checker.getTypeArguments(type).every((part) => data(part, next));
+      return checker.getIndexInfosOfType(type).every((info) => data(info.type, next)) && checker.getPropertiesOfType(type).every((prop) => {
+        const decl = prop.valueDeclaration ?? prop.declarations?.[0];
+        return decl !== undefined && data(checker.getTypeOfSymbolAtLocation(prop, decl), next);
+      });
+    };
+    const result = inspect(); dataTypes.set(type, result); return result;
   };
+  const contextProperties = new Map();
   const engineBase = (type, seen = new Set()) => {
     if (seen.has(type)) return null;
     const next = new Set(seen).add(type), symbol = type.getSymbol();
@@ -56,20 +76,26 @@ export function shardCoupling(root = ROOT) {
     };
     const member = (type, name, node) => {
       const prop = checker.getPropertyOfType(type, name);
-      if (origin(prop, ['ShardContext', 'LevelContext'])) {
-        if (name === 'app' || name === 'game') add(`ctx.${name}`, node);
-        const decl = prop.valueDeclaration ?? prop.declarations?.[0];
-        if (decl && !data(checker.getTypeOfSymbolAtLocation(prop, decl))) add(`context.${name}`, node);
+      if (prop === undefined) return;
+      let classification = contextProperties.get(prop);
+      if (classification === undefined) {
+        const context = origin(prop, ['ShardContext', 'LevelContext']), decl = prop.valueDeclaration ?? prop.declarations?.[0];
+        classification = { context, runtime: name === 'runtime' && origin(prop, ['GameServices']), nonData: context && decl !== undefined && !data(checker.getTypeOfSymbolAtLocation(prop, decl)) };
+        contextProperties.set(prop, classification);
       }
-      if (name === 'runtime' && origin(prop, ['GameServices'])) add('ctx.game.runtime', node);
+      if (classification.context) {
+        if (name === 'app' || name === 'game') add(`ctx.${name}`, node);
+        if (classification.nonData) add(`context.${name}`, node);
+      }
+      if (classification.runtime) add('ctx.game.runtime', node);
     };
     const visit = (node) => {
-      if (ts.isPropertyAccessExpression(node)) member(checker.getTypeAtLocation(node.expression), node.name.text, node);
-      else if (ts.isElementAccessExpression(node) && ts.isStringLiteralLike(node.argumentExpression)) member(checker.getTypeAtLocation(node.expression), node.argumentExpression.text, node);
+      if (ts.isPropertyAccessExpression(node) && contextMembers.has(node.name.text)) member(checker.getTypeAtLocation(node.expression), node.name.text, node);
+      else if (ts.isElementAccessExpression(node) && ts.isStringLiteralLike(node.argumentExpression) && contextMembers.has(node.argumentExpression.text)) member(checker.getTypeAtLocation(node.expression), node.argumentExpression.text, node);
       else if (ts.isVariableDeclaration(node) && ts.isObjectBindingPattern(node.name) && node.initializer) {
         for (const element of node.name.elements) {
           const key = element.propertyName ?? element.name;
-          if (!element.dotDotDotToken && (ts.isIdentifier(key) || ts.isStringLiteralLike(key))) member(checker.getTypeAtLocation(node.initializer), key.text, element);
+          if (!element.dotDotDotToken && (ts.isIdentifier(key) || ts.isStringLiteralLike(key)) && contextMembers.has(key.text)) member(checker.getTypeAtLocation(node.initializer), key.text, element);
         }
       } else if (ts.isClassDeclaration(node) || ts.isClassExpression(node)) {
         for (const clause of node.heritageClauses ?? []) if (clause.token === ts.SyntaxKind.ExtendsKeyword) for (const base of clause.types) {

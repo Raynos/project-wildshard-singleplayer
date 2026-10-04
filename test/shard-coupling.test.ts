@@ -46,6 +46,23 @@ describe('SF2 measured shard coupling', () => {
     expect(compareCoupling(recorded.shards, shardCoupling())).toEqual([]);
     expect(Object.keys(recorded.shards)).toHaveLength(7);
   });
+  it('keeps repeated shared data pure and rejects recursive context types after caching', () => {
+    const root = fixture();
+    writeFileSync(join(root, 'src/game/shard/context.ts'), `interface Shared { value: string }
+interface Recursive { next: Recursive | null }
+export interface ShardContext { data: { left: Shared; right: Shared }; recursive: Recursive }
+`);
+    writeFileSync(join(root, 'src/shards/alpha/plugin.ts'), `import type { ShardContext } from '../../game/shard/context';
+export function use(ctx: ShardContext): void {
+  void ctx.data; void ctx['data']; const { data } = ctx; void data.left.value;
+  void ctx.recursive; void ctx['recursive']; const { recursive } = ctx; void recursive.next;
+  const unrelated = { data: { value: 'pure' }, recursive: () => 1 }; void unrelated.data; unrelated.recursive();
+}
+`);
+    const rows = shardCoupling(root);
+    expect(rows['alpha']?.counts).toEqual({ 'ctx.app': 0, 'ctx.game': 0, 'ctx.game.runtime': 0, engineSubclasses: 0, 'context.recursive': 3 });
+    expect(rows['alpha']?.sites['context.recursive']).toEqual(['src/shards/alpha/plugin.ts:4:8', 'src/shards/alpha/plugin.ts:4:28', 'src/shards/alpha/plugin.ts:4:54']);
+  });
   it('refuses a rise even when code and candidate allowances rise together, with explicit prior measurements', () => {
     const before = { alpha: { counts: { 'ctx.app': 1 }, sites: {} } };
     const raised = { alpha: { counts: { 'ctx.app': 2 }, sites: {} } };
