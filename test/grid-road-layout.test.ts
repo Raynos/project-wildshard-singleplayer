@@ -36,7 +36,7 @@ it('names the shards ahead on green signs from the catalogue, on the traveller\'
   // a roundabout approach lists left, ahead and right
   const approach = layout.signs.filter((s) => s.lines.some((l) => l.arrow === 'ahead'));
   expect(approach.length).toBe(4 * 4 + 8 * 2); // a T has no ahead from its stem
-  for (const sign of approach) expect(sign.lines.map((l) => l.arrow)).toEqual([...sign.lines.map((l) => l.arrow)].sort((a, b) => ['left', 'ahead', 'right'].indexOf(a) - ['left', 'ahead', 'right'].indexOf(b)));
+  for (const sign of approach) expect(sign.lines.map((l) => l.arrow)).toEqual(sign.lines.map((l) => l.arrow).sort((a, b) => ['left', 'ahead', 'right'].indexOf(a) - ['left', 'ahead', 'right'].indexOf(b)));
   // nothing is hard-coded: every name on a sign is a catalogue slug through the given namer
   const slugs = new Set(grid.cells.map((c) => c.slug.toUpperCase()));
   for (const sign of layout.signs) for (const line of sign.lines) for (const name of line.names) expect(slugs.has(name)).toBe(true);
