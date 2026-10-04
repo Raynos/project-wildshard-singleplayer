@@ -1,0 +1,165 @@
+{
+ "clips": [
+  {
+   "kind": "grey-blob",
+   "clip": "idle",
+   "duration": 2,
+   "loop": true,
+   "frames": 120,
+   "worst": 3.993991797707208e-8,
+   "afterWrap": 0.07869672547397522
+  },
+  {
+   "kind": "grey-blob",
+   "clip": "walk",
+   "duration": 1,
+   "loop": true,
+   "frames": 60,
+   "worst": 3.993991797707208e-8,
+   "afterWrap": 0.09440568063917265
+  },
+  {
+   "kind": "grey-blob",
+   "clip": "attack",
+   "duration": 2,
+   "loop": false,
+   "frames": 75,
+   "worst": 3.993991797707208e-8,
+   "afterWrap": 0
+  },
+  {
+   "kind": "grey-blob",
+   "clip": "hit",
+   "duration": 2,
+   "loop": false,
+   "frames": 75,
+   "worst": 8.844107649300563e-8,
+   "afterWrap": 0
+  },
+  {
+   "kind": "grey-blob",
+   "clip": "die",
+   "duration": 2,
+   "loop": false,
+   "frames": 75,
+   "worst": 1.8179416361174816e-8,
+   "afterWrap": 0
+  },
+  {
+   "kind": "boar",
+   "clip": "idle",
+   "duration": 2,
+   "loop": true,
+   "frames": 120,
+   "worst": 5.821542457645634e-8,
+   "afterWrap": 0.2241562430939407
+  },
+  {
+   "kind": "boar",
+   "clip": "walk",
+   "duration": 1,
+   "loop": true,
+   "frames": 60,
+   "worst": 5.3370786951514964e-8,
+   "afterWrap": 0.027579244593385756
+  },
+  {
+   "kind": "boar",
+   "clip": "attack",
+   "duration": 2,
+   "loop": false,
+   "frames": 75,
+   "worst": 1.7510425836492616e-7,
+   "afterWrap": 0
+  },
+  {
+   "kind": "boar",
+   "clip": "hit",
+   "duration": 2,
+   "loop": false,
+   "frames": 75,
+   "worst": 1.140545384201551e-7,
+   "afterWrap": 0
+  },
+  {
+   "kind": "boar",
+   "clip": "die",
+   "duration": 2,
+   "loop": false,
+   "frames": 75,
+   "worst": 1.0855719124541794e-7,
+   "afterWrap": 0
+  },
+  {
+   "kind": "pine-ranger",
+   "clip": "idle",
+   "duration": 2,
+   "loop": true,
+   "frames": 120,
+   "worst": 5.541025693882017e-8,
+   "afterWrap": 0.07553603435910194
+  },
+  {
+   "kind": "pine-ranger",
+   "clip": "walk",
+   "duration": 1,
+   "loop": true,
+   "frames": 60,
+   "worst": 7.689762253805106e-8,
+   "afterWrap": 0.04184528958450241
+  },
+  {
+   "kind": "pine-ranger",
+   "clip": "idle.talk",
+   "duration": 2,
+   "loop": true,
+   "frames": 120,
+   "worst": 8.302050214287009e-8,
+   "afterWrap": 0.6036759013918357
+  },
+  {
+   "kind": "pine-ranger",
+   "clip": "idle.point",
+   "duration": 2,
+   "loop": true,
+   "frames": 120,
+   "worst": 6.215687580078013e-8,
+   "afterWrap": 0.07553603435910194
+  }
+ ],
+ "stills": [
+  {
+   "kind": "grey-blob",
+   "clip": "walk",
+   "t": 0.5,
+   "err": 1.5180029296069097e-8,
+   "diff": {
+    "mean": 0.271,
+    "max": 3,
+    "over8": 0
+   }
+  },
+  {
+   "kind": "boar",
+   "clip": "attack",
+   "t": 0.45,
+   "err": 4.329948765854973e-8,
+   "diff": {
+    "mean": 0.116,
+    "max": 15,
+    "over8": 0.102
+   }
+  },
+  {
+   "kind": "pine-ranger",
+   "clip": "idle.point",
+   "t": 1.5,
+   "err": 6.125898466351283e-8,
+   "diff": {
+    "mean": 0.061,
+    "max": 18,
+    "over8": 0.003
+   }
+  }
+ ]
+}
