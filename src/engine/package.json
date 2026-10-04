@@ -279,6 +279,7 @@
     "./world/wind": "./world/wind.ts",
     "./saves/view/storage": "./saves/view/storage.ts",
     "./script/abi": "./script/abi.ts",
-    "./script/admission": "./script/admission.ts"
+    "./script/admission": "./script/admission.ts",
+    "./core/contentCost": "./core/contentCost.ts"
   }
 }

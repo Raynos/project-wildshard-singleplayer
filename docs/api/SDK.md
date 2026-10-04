@@ -4,10 +4,23 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-5 members; 0 without a doc line (—).
+18 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
+| `assetCost` | function | @wildshard/sdk/assets | Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. |
+| `AssetCost` | interface | @wildshard/sdk/assets | Actual costs derived from a bounded parser, never trusted from the author declaration. |
+| `parseAudio` | function | @wildshard/sdk/assets | Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory. |
+| `parseGlb` | function | @wildshard/sdk/assets | Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. |
+| `parseKtx2` | function | @wildshard/sdk/assets | Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. |
+| `emptyShardfile` | function | @wildshard/sdk/author | Start an author project with a valid empty world; add baked content before shipping a playable shard. |
+| `buildProject` | function | @wildshard/sdk/project | Build a validated deterministic shard.json and its immutable files. |
+| `canonicalJson` | function | @wildshard/sdk/project | Stable JSON encoding: sorted object keys, no timestamps or host paths. |
+| `contentHash` | function | @wildshard/sdk/project | Hash of immutable wire bytes; this is also their output filename. |
+| `newProject` | function | @wildshard/sdk/project | Create the canonical SDK project layout without replacing existing work. |
+| `projectAssets` | function | @wildshard/sdk/project | Read content-addressed source assets inside the project's assets and commons directories. |
+| `readProject` | function | @wildshard/sdk/project | Compile a trusted local TypeScript config; only its serialisable default export enters the product. |
+| `validateProject` | function | @wildshard/sdk/project | Validate graph closure costs, actual assets and the worst resident disc before writing a product. |
 | `parseShardfile` | function | @wildshard/sdk/shardfile | Parse untrusted author output using the same contract as the client. |
 | `Shardfile` | type | @wildshard/sdk/shardfile | Author-facing serialisable renderer-neutral shardfile contract. |
 | `shardfileRules` | function | @wildshard/sdk/shardfile | Inspect semantic author errors using the client contract. |

@@ -58,3 +58,6 @@ src/**/*.generated.*
 
 # Rebuilt SDK projects; source remains in src/shards.
 /public/shardfiles/
+
+# Portable author tools are rebuilt for pack.
+/src/sdk/dist/

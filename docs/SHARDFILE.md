@@ -50,3 +50,23 @@ must update `version`, `requires.sdk`, the sim ABI and affected fields, then reb
 and validate; incompatible state changes require an explicit save migration.
 Version 1 freezes only after SF22c's physical-phone reading. Future rows add content
 schemas and bindings; v0 does not yet claim tiles, quests or scripts are playable.
+
+The author CLI is built with `node scripts/build-sdk.mjs` in this checkout and run
+as `node src/sdk/bin/wildshard.mjs`. Outside projects get `wildshard` from the SDK
+tarball. Commands: `new <fresh-directory>`, `build <project> [output-directory]`,
+`validate <project|shard.json>`. Default output is the project's
+`public/shardfiles/<slug>/`. Source assets live at `assets/<sha256>`; declared
+commons inputs live at `commons/<sha256>` and are copied once into the product.
+The build compiles trusted local `shard.config.ts`, parses its default export,
+verifies wire hashes and parser costs, rejects understated transitive budgets and
+critical wire >2 MB, then writes stable sorted-key JSON and unchanged immutable
+bytes. Configs and generators execute only on the author's machine.
+
+The initial parsers accept GLB 2 with embedded buffers and separate KTX2 textures,
+2D KTX2 within 4096² (RGBA transcode is the conservative GPU bound), and PCM WAV
+within 180 seconds / two channels. Unsupported mesh compression, sparse accessors,
+external GLB URLs, embedded images and non-PCM audio fail explicitly. Subsequent
+asset rows extend supported encodings; they do not bypass these caps. The shared
+model is `@wildshard/engine/core/contentCost`, consumed by the game's
+`@wildshard/game/shardfile/budget`. The validator expands its 5 m search grid's
+radius by the sample spacing's half diagonal, so gaps cannot hide a heavier disc.

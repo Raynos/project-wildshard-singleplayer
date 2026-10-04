@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1660 members; 832 without a doc line (—).
+1662 members; 832 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -541,6 +541,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SEED` | const | @wildshard/engine/core/config | — |
 | `TERRAIN_RES` | const | @wildshard/engine/core/config | — |
 | `TREE_COUNT` | const | @wildshard/engine/core/config | — |
+| `contentCost` | function | @wildshard/engine/core/contentCost | Simulator-measured v1 model, used by validation and the future residency allocator. |
+| `ContentCostInput` | interface | @wildshard/engine/core/contentCost | Shared resident-cost input: dependency-deduplicated category bytes, including persistent CPU and GPU data. |
 | `isDev` | function | @wildshard/engine/core/devMode | — |
 | `onDev` | function | @wildshard/engine/core/devMode | — |
 | `setDev` | function · game only | @wildshard/engine/core/devMode | — |

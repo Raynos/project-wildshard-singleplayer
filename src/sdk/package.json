@@ -4,6 +4,12 @@
   "type": "module",
   "exports": {
     "./version": "./version.ts",
-    "./shardfile": "./shardfile.ts"
+    "./shardfile": "./shardfile.ts",
+    "./author": "./author.ts",
+    "./assets": "./assets.ts",
+    "./project": "./project.ts"
+  },
+  "bin": {
+    "wildshard": "./bin/wildshard.mjs"
   }
 }

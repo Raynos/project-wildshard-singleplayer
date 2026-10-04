@@ -148,6 +148,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [audit-assets.d.mts](./audit-assets.d.mts)
 - [audit-assets.mjs](./audit-assets.mjs)
 - [budget-ceilings.mjs](./budget-ceilings.mjs)
+- [build-sdk.mjs](./build-sdk.mjs)
 - [calibrate.mjs](./calibrate.mjs)
 - [compile-script.d.mts](./compile-script.d.mts)
 - [compile-script.mjs](./compile-script.mjs)

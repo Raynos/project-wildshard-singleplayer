@@ -3208,6 +3208,18 @@
         "from": "@wildshard/engine/core/config"
       },
       {
+        "name": "contentCost",
+        "kind": "function",
+        "doc": "Simulator-measured v1 model, used by validation and the future residency allocator.",
+        "from": "@wildshard/engine/core/contentCost"
+      },
+      {
+        "name": "ContentCostInput",
+        "kind": "interface",
+        "doc": "Shared resident-cost input: dependency-deduplicated category bytes, including persistent CPU and GPU data.",
+        "from": "@wildshard/engine/core/contentCost"
+      },
+      {
         "name": "isDev",
         "kind": "function",
         "doc": "",
@@ -11118,6 +11130,12 @@
         "from": "@wildshard/game/shard/runtime"
       },
       {
+        "name": "worstContentCost",
+        "kind": "function",
+        "doc": "Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps.",
+        "from": "@wildshard/game/shardfile/budget"
+      },
+      {
         "name": "parseShardfile",
         "kind": "function",
         "doc": "Parse untrusted JSON as a validated shardfile, or throw a Valibot error.",
@@ -12513,6 +12531,84 @@
       }
     ],
     "sdk": [
+      {
+        "name": "assetCost",
+        "kind": "function",
+        "doc": "Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run.",
+        "from": "@wildshard/sdk/assets"
+      },
+      {
+        "name": "AssetCost",
+        "kind": "interface",
+        "doc": "Actual costs derived from a bounded parser, never trusted from the author declaration.",
+        "from": "@wildshard/sdk/assets"
+      },
+      {
+        "name": "parseAudio",
+        "kind": "function",
+        "doc": "Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory.",
+        "from": "@wildshard/sdk/assets"
+      },
+      {
+        "name": "parseGlb",
+        "kind": "function",
+        "doc": "Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays.",
+        "from": "@wildshard/sdk/assets"
+      },
+      {
+        "name": "parseKtx2",
+        "kind": "function",
+        "doc": "Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound.",
+        "from": "@wildshard/sdk/assets"
+      },
+      {
+        "name": "emptyShardfile",
+        "kind": "function",
+        "doc": "Start an author project with a valid empty world; add baked content before shipping a playable shard.",
+        "from": "@wildshard/sdk/author"
+      },
+      {
+        "name": "buildProject",
+        "kind": "function",
+        "doc": "Build a validated deterministic shard.json and its immutable files.",
+        "from": "@wildshard/sdk/project"
+      },
+      {
+        "name": "canonicalJson",
+        "kind": "function",
+        "doc": "Stable JSON encoding: sorted object keys, no timestamps or host paths.",
+        "from": "@wildshard/sdk/project"
+      },
+      {
+        "name": "contentHash",
+        "kind": "function",
+        "doc": "Hash of immutable wire bytes; this is also their output filename.",
+        "from": "@wildshard/sdk/project"
+      },
+      {
+        "name": "newProject",
+        "kind": "function",
+        "doc": "Create the canonical SDK project layout without replacing existing work.",
+        "from": "@wildshard/sdk/project"
+      },
+      {
+        "name": "projectAssets",
+        "kind": "function",
+        "doc": "Read content-addressed source assets inside the project's assets and commons directories.",
+        "from": "@wildshard/sdk/project"
+      },
+      {
+        "name": "readProject",
+        "kind": "function",
+        "doc": "Compile a trusted local TypeScript config; only its serialisable default export enters the product.",
+        "from": "@wildshard/sdk/project"
+      },
+      {
+        "name": "validateProject",
+        "kind": "function",
+        "doc": "Validate graph closure costs, actual assets and the worst resident disc before writing a product.",
+        "from": "@wildshard/sdk/project"
+      },
       {
         "name": "parseShardfile",
         "kind": "function",
