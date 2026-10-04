@@ -39,10 +39,13 @@ from this 29 → 28 SF16 decrement.
 | effects.apply | E357 | Baseline effect diagnostic; retained |
 | template.oil | E357 | Retired by SHARD-PLATFORM SF16; no replacement Debug row |
 | driftwoodHybrid | E435 | Variant: SHARD-PLATFORM SF46; retain default-off through conversion parity, remove losing path/row when Jake picks |
+| driftwood.director | E435 | Variant: SHARD-PLATFORM SF24, default-off; retire the row and legacy path at the SF46 conversion |
 | pineLife | E357 | Baseline life/environment inspection; retained |
 | cragView | E357 | Baseline lookout inspection; retained |
 
-Verification: the template's admitted plumbing has zero Debug rows; the global inventory
-is 28 and has no `template.oil`. The historical review note predicting a fall to 26 was
+Verification: the template's admitted plumbing has zero Debug rows; SF16 reduced the global
+inventory to 28 with no `template.oil`. SF24 subsequently added the independently reviewed
+default-off `driftwood.director` row (5ce272552), raising its ceiling to 29; its retirement
+belongs to SF46. The historical review note predicting a fall to 26 was
 stale: independently added grid/measurement/variant rows still exist and are inventoried
 above. This follow-up does not delete unrelated diagnostics to satisfy that old prediction.
