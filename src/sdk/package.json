@@ -26,7 +26,8 @@
     "./migrations": "./migrations.ts",
     "./brains": "./brains.ts",
     "./accent": "./accent.ts",
-    "./groupBrains": "./groupBrains.ts"
+    "./groupBrains": "./groupBrains.ts",
+    "./admission": "./admission.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -147,6 +148,10 @@
       "./groupBrains": {
         "types": "./dist/types/sdk/groupBrains.d.ts",
         "default": "./dist/groupBrains.js"
+      },
+      "./admission": {
+        "types": "./dist/types/sdk/admission.d.ts",
+        "default": "./dist/admission.js"
       }
     }
   }
