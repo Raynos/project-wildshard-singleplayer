@@ -22,7 +22,8 @@
     "./movers": "./movers.ts",
     "./director": "./director.ts",
     "./clientScripts": "./clientScripts.ts",
-    "./migrations": "./migrations.ts"
+    "./migrations": "./migrations.ts",
+    "./brains": "./brains.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -126,6 +127,10 @@
       "./migrations": {
         "types": "./dist/types/sdk/migrations.d.ts",
         "default": "./dist/migrations.js"
+      },
+      "./brains": {
+        "types": "./dist/types/sdk/brains.d.ts",
+        "default": "./dist/brains.js"
       }
     }
   }

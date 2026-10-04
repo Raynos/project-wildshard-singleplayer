@@ -326,6 +326,7 @@
     "./level/installation": "./level/installation.ts",
     "./physics/mover": "./physics/mover.ts",
     "./physics/Physics": "./physics/Physics.ts",
-    "./script/client": "./script/client.ts"
+    "./script/client": "./script/client.ts",
+    "./ai/skirmisher": "./ai/skirmisher.ts"
   }
 }
