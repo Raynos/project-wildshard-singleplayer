@@ -26,6 +26,9 @@ try {
   });
   const ready = () => page.waitForFunction(() => {
     const probe = window.__wildshard;
+    if (probe === undefined && document.documentElement.classList.contains('title-first') && performance.now() > 1500) {
+      throw new Error('Planned resume returned to the renderer-free title');
+    }
     return probe?.shard?.grid?.simulation !== undefined && probe.world?.hud.entered === true && !document.querySelector('.ws-load')
       && !document.querySelector('.ws-grid-reload.opaque') && probe.shard.grid.state().ringsReady;
   }, null, { timeout: 120000 });
@@ -112,6 +115,7 @@ try {
   result.failure = String(error);
   if (page) result.last = await page.evaluate(() => ({ grid: window.__wildshard?.shard?.grid?.state(), drive: window.__reloadDrive,
     url: location.href, entered: window.__wildshard?.world?.hud?.entered,
+    rootClass: document.documentElement.className, title: document.querySelector('.ws-start')?.textContent,
     loading: document.querySelector('.ws-load')?.textContent, fade: document.querySelector('.ws-grid-reload')?.className,
     pending: JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{"keys":{}}').keys['grid.reload.once']?.data })).catch(() => null);
 } finally { await browser.close(); }
