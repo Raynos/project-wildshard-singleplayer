@@ -66,6 +66,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const revision = version(raw), reader = versions.readers.get(revision);
   if (reader === undefined || (revision !== versions.current && !(revision === versions.current - 1 && options.offline && cached?.firstParty === true && options.firstParty))) throw new Error(`Shardfile version ${revision} needs a compatible client`);
   const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
+  if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && version(visited.source) === versions.current) assertStateCompatibility(reader(visited.source), source);
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: MAX_FILE_BYTES }))];
   for (const { ref, cap } of refs) {

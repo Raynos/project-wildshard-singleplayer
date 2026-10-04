@@ -13,7 +13,7 @@ import { emptyLook } from './emptyLook';
 import { shardfileLook } from './look';
 import { EmptyEquipment } from './emptyEquipment';
 import type { ShardContext } from '../shard/context';
-import { admitProduct, browserContentHash, browserProductCache, type ProductOptions } from './product';
+import { admitProduct, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
 import { ClientAssets } from './clientAssets';
 import { ShardfileClient, type ShardfileClientBindings } from './client';
 import { clientGround } from './clientGround';
@@ -24,6 +24,7 @@ import { ResidencyAllocator } from '../grid/allocator';
 export function emptyShardfileSource(input: unknown): ShardManifest {
   if (typeof input === 'object' && input !== null && 'version' in input && input.version !== SHARDFILE_VERSION) throw new Error(`Shardfile version ${String(input.version)} requires a compatible client (this client supports ${SHARDFILE_VERSION})`);
   const source = parseShardfile(input);
+  if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
   // The look (SF10b) is the one content kind bound here: day keys and a LUT, the LUT's file the only file allowed.
   const lut = source.look.grade.lut;
   const lutOnly = source.files.every((f) => f.hash === lut) && source.requires.commons.every((h) => `commons:${h}` === lut);
@@ -60,7 +61,11 @@ function sourceManifest(source: Shardfile): ShardManifest {
 
 /** Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. */
 export async function shardfileSource(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
-  const admitted = await admitProduct(input, options), source = admitted.source, assets = new ClientAssets(source, admitted.assets, options);
+  return clientSource(await admitProduct(input, options), options, bindings);
+}
+
+function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindings: ShardfileClientBindings): ShardManifest {
+  const source = admitted.source, assets = new ClientAssets(source, admitted.assets, options);
   const manifest = sourceManifest(source);
   const clientBindings = { ...bindings, allocator: bindings.allocator ?? new ResidencyAllocator() };
   return { ...manifest, biome: 'Authored world', blurb: source.identity.name,
@@ -75,7 +80,9 @@ export async function shardfileSource(input: unknown, options: ProductOptions, b
 
 /** Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed. */
 export async function installShardfileProduct(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
-  const source = await shardfileSource(input, options, bindings);
+  const admitted = await admitProduct(input, options);
+  if (admitted.source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
+  const source = clientSource(admitted, options, bindings);
   const list = new Map(options.firstParty ? shards().map((manifest) => [manifest.slug.replace(/^_/u, ''), manifest]) : []);
   list.set(source.slug, source); installShards([...list.values()]);
   game.shard = source; _applyChunkConstants(source); configureLevel(toLevelSpec(source)); return source;

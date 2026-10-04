@@ -33,6 +33,7 @@ integers. MB means 1,000,000 bytes. The platform owns caps in
 | `tiles` | L0 62.5 m or L1 125 m; integer x/z address; exact horizontal grid bounds and vertical bounds inside the 500 m cube; nonnegative geometric error; file roots and declared costs. |
 | `library`, `critical`, `far` | Library roots, critical roots, optional whole-shard proxy with bounds and costs. Critical flags match critical roots. |
 | `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |
+| `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts"}`; a bounded relative TypeScript entry resolved only through the trusted registry. |
 
 Declared UI (`@wildshard/game/shardfile/ui`, SF7f) is plain data the platform draws in
 the shared HUD's own style and slots; a shard ships no DOM. Labels are 1–128 characters
@@ -207,4 +208,12 @@ registry owns sim claims and render rings own tile claims. Local instance checkp
 retain admitted script continuation, item fuel/cooldowns/queued commands, quest flags,
 current steps and dialogue. They restore silently before panel/collider bindings,
 without replaying rewards or replacing the Game physics world. A changed revision
-or incompatible continuation starts fresh; revision migrations remain explicit.
+or incompatible continuation starts fresh. SF15a proves same-revision logical restore;
+SF33 owns cross-revision migrations, tested on real saves before the version 1 freeze.
+
+A transitional first-party product may declare `runtime`. Asset admission refuses
+that declaration for external products, including cached ones. The ordinary product
+installer refuses it too: the admitted data plugin must enter the explicit hybrid
+compositor, whose trusted registry matches both shard slug and entry. Content cannot
+select an import URL. Neighbours retain data without running trusted play hooks;
+entering a cell installs those hooks in its child scope and leaving disposes them.
