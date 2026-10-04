@@ -4,5 +4,6 @@ packages:
   - src/engine
   - src/game
   - src/kit
+  - src/sdk
 # `pnpm add <dep>` at the root keeps working without -w
 ignoreWorkspaceRootCheck: true

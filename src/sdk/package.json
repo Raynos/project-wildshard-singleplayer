@@ -1,0 +1,8 @@
+{
+  "name": "@wildshard/sdk",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./version": "./version.ts"
+  }
+}

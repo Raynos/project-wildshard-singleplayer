@@ -12391,6 +12391,14 @@
         "doc": "",
         "from": "@wildshard/kit/weather/rainCurtain"
       }
+    ],
+    "sdk": [
+      {
+        "name": "SHARDFILE_VERSION",
+        "kind": "const",
+        "doc": "The shardfile format and script ABI revision; v0 is provisional until the phone gate.",
+        "from": "@wildshard/sdk/version"
+      }
     ]
   },
   "contexts": {

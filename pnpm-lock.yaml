@@ -50,6 +50,9 @@ importers:
       '@wildshard/kit':
         specifier: workspace:*
         version: link:src/kit
+      '@wildshard/sdk':
+        specifier: workspace:*
+        version: link:src/sdk
       n8ao:
         specifier: ^2.0.1
         version: 2.0.1(postprocessing@6.39.5(three@0.186.0))(three@0.186.0)
@@ -123,6 +126,8 @@ importers:
   src/game: {}
 
   src/kit: {}
+
+  src/sdk: {}
 
 packages:
 

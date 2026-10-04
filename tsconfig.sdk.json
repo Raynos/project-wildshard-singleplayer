@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": ".tsc-layers/sdk",
+    "tsBuildInfoFile": ".tsc-layers/sdk.tsbuildinfo"
+  },
+  "references": [
+    {
+      "path": "./tsconfig.engine.json"
+    },
+    {
+      "path": "./tsconfig.game.json"
+    },
+    {
+      "path": "./tsconfig.kit.json"
+    }
+  ],
+  "include": [
+    "src/sdk",
+    "src/engine/**/*.d.ts",
+    "src/game/**/*.merge.d.ts",
+    "src/kit/**/*.merge.d.ts"
+  ]
+}

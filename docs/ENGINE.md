@@ -1632,6 +1632,14 @@ Debug-row count has its own cap (`debugRows`).
 | `test/engine-docs.test.ts` | `pnpm test` | this file lists every export; SHARDS.md names the layout; every shard has a README |
 | the gate (`.github/workflows/gpu-gate.yml`) | every push | one `macos-15` job per shard, from the registry: boot, walk, combat, the leak test, budgets |
 
+## 25. Author SDK
+
+`@wildshard/sdk` is the fifth workspace layer above the kit. Its public modules are the author boundary:
+`@wildshard/sdk/version` defines `SHARDFILE_VERSION` (currently provisional v0). Public shard project files
+(`shard.config.ts`, `data/`, `behaviour/`, `quests/`) import only the SDK or their own public files.
+Trusted transition code in `runtime/` keeps legacy public engine/game/kit access; build-time generators never ship.
+The SDK cannot import shard content. Each module owns its exports; there is no barrel.
+
 ## Appendix: every export
 
 Generated from `lint/api-surface.json` (each package's exported modules). Each line is one module and the names it exports. The
@@ -1997,5 +2005,11 @@ sections above describe what to use; this list is the complete inventory.
 - `@wildshard/kit/weapons/thrown/Thrown`: `Thrown`, `ThrownProfile`
 - `@wildshard/kit/weapons/ui`: `SWAP_GLYPHS`
 - `@wildshard/kit/weather/rainCurtain`: `rainCurtain`, `RainCurtainSpec`, `RainProgram`
+
+### `@wildshard/sdk` (`src/sdk/package.json`)
+
+1 exports, grouped by the module to import them from.
+
+- `@wildshard/sdk/version`: `SHARDFILE_VERSION`
 
 <!-- exports:end -->
