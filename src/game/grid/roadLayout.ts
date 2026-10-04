@@ -66,7 +66,7 @@ export interface RoadLayout {
 const ARM: Readonly<Record<ArmSide, { readonly x: number; readonly z: number }>> = { east: { x: 1, z: 0 }, west: { x: -1, z: 0 }, north: { x: 0, z: 1 }, south: { x: 0, z: -1 } };
 const SIDES: readonly ArmSide[] = ['east', 'north', 'west', 'south'];
 /** A corridor sign stands this far into a segment; a junction's approach sign this far before it. */
-const CORRIDOR_SIGN = 220, APPROACH_SIGN = 180, SIGN_SIDE = ROAD_HALF + 2.2;
+const CORRIDOR_SIGN = 200, APPROACH_SIGN = 150, SIGN_SIDE = ROAD_HALF + 2.2;
 const round10 = (m: number): number => Math.round(m / 10) * 10;
 
 /** A segment's point at along `s` and across `t` (grid metres). */

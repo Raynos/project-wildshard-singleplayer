@@ -33,8 +33,8 @@ it('names the shards ahead on green signs from the catalogue, on the traveller\'
   // heading north (+z) between template-3 (west, −x) and Driftwood (east, +x): in three's mirrored frame your right hand is
   // west, so the sign stands on the west shoulder and Driftwood's turn-in is on the left
   expect(rightSide(segment, 1)).toBe(-1);
-  const north = layout.signs.find((s) => s.facing.z === -1 && Math.abs(s.at.x - segmentPoint(segment, 0, -9.7).x) < 0.01 && s.at.z < -200 && s.at.z > -230);
-  expect(north?.lines).toEqual([{ arrow: 'right', names: ['_TEMPLATE'], metres: 220 }, { arrow: 'left', names: ['DRIFTWOOD-ISLE'], metres: 220 }]);
+  const north = layout.signs.find((s) => s.facing.z === -1 && Math.abs(s.at.x - segmentPoint(segment, 0, -9.7).x) < 0.01 && s.at.z < -190 && s.at.z > -210);
+  expect(north?.lines).toEqual([{ arrow: 'right', names: ['_TEMPLATE'], metres: 200 }, { arrow: 'left', names: ['DRIFTWOOD-ISLE'], metres: 200 }]);
   // heading east (+x) your right hand is +z (south of the road is −z)
   const east = layout.segments.find((s) => s.id === 'gap.z.0.0');
   if (east === undefined) throw new Error('missing segment');

@@ -49,6 +49,7 @@ import { gridShardfileProduct } from './products';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
 import { installRoadLook, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
+import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
 import { clientRingCatalogue, clientRingPorts, type ClientRingInstance, type PreparedRingTile } from '../shardfile/clientRings';
@@ -84,6 +85,8 @@ export interface GridSessionState {
   readonly strips: number; readonly ringsReady: boolean;
   /** SF17b's boulevard look: segments, junctions, roundabouts, signs, lights and draws */
   readonly road: RoadLookState;
+  /** G85's soft walls: how many edges are closed and which shard's loading panel shows (null: none in range) */
+  readonly softWalls: SoftWallState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   readonly rings: { readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number };
@@ -177,6 +180,7 @@ export class GridSession {
   private readonly walls: ReadinessWalls;
   private live: LiveGridSession | null = null;
   private readonly road: RoadLookState;
+  private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
 
   constructor(host: GridSessionHost) {
     this.host = host;
@@ -203,6 +207,11 @@ export class GridSession {
     const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
     this.road = installRoadLook({ layout, home, scene: host.scene, scope: host.scope, ...(frame === null ? {} : { tag: (mesh: Mesh) => { frame.deck(mesh); } }) });
     installVoidLook({ rail: layout.rail, home, scene: host.scene, scope: host.scope });
+    // G85: a closed neighbour edge shows as a cyan hex shimmer with a loading panel where the traveller would cross
+    this.softWalls = installSoftWallLook({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
+      edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => ({ instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }))),
+      ports: { closed: (id) => this.live === null || !this.live.live.ready(id), feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
+        name: (id) => { const slug = this.assembly.cell(id).slug; return findShard(slug)?.name ?? slug; } } });
     for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // synced open by the live host once a neighbour is ready
     installGridBorders(host.physics, host.scope); // the home cell's creatures stay home (SF20d)
@@ -288,6 +297,7 @@ export class GridSession {
     this.last = at;
     const speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
+    this.softWalls.step();
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
     if (inside === undefined || inside.instance !== active) gridCells.leave();
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
@@ -311,7 +321,7 @@ export class GridSession {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
         shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
-      strips: this.strips.length, road: this.road, ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, softWalls: this.softWalls.state(), ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused },
       frame: this.frame?.state() ?? null,
