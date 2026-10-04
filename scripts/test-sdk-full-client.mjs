@@ -11,7 +11,7 @@ import { saveFixture } from './debug-settings.mjs';
 
 const directory = resolvePath(process.argv.at(2) ?? ''), report = process.argv.at(3), sha = process.argv.at(4) ?? 'installed';
 const mode = process.argv.at(5) ?? 'product';
-assert.ok(mode === 'product' || mode === 'first-party', 'Expected product or first-party boot mode');
+assert.ok(mode === 'product' || mode === 'first-party' || mode === 'dist', 'Expected product, first-party or normal dist boot mode');
 const requests = [], mime = { '.js': 'application/javascript', '.wasm': 'application/wasm', '.html': 'text/html', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2', '.png': 'image/png', '.m4a': 'audio/mp4' };
 const server = createServer((request, response) => {
   const path = new URL(request.url ?? '/', 'http://localhost').pathname;
@@ -44,9 +44,9 @@ try {
     await page.waitForFunction(() => window.__wildshard.app.state === 'play');
     await page.evaluate(() => window.__parity.advance(3));
   };
-  await page.goto(`http://127.0.0.1:${address.port}/?mute=1&nolock=1&skipintro=1${mode === 'first-party' ? '&chunk=_template' : ''}`); await boot();
+  await page.goto(`http://127.0.0.1:${address.port}/?mute=1&nolock=1&skipintro=1${mode === 'product' ? '' : '&chunk=_template'}`); await boot();
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
-  if (mode === 'first-party') assert.equal(await page.evaluate(() => window.__wildshard.shard.slug), '_template', 'Descriptor lost its canonical picker identity');
+  if (mode !== 'product') assert.equal(await page.evaluate(() => window.__wildshard.shard.slug), '_template', 'Descriptor lost its canonical picker identity');
   const first = await page.evaluate(async () => {
     const probe = window.__wildshard, data = probe.shard.shardfile, residency = probe.shard.shardfileResidency;
     if (residency.mode !== 'standalone' || residency.workers || probe.shard.shardfileRings !== undefined) throw new Error('Select a shard entered the grid ring/worker path');
