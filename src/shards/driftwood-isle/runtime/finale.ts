@@ -17,7 +17,7 @@ import type { Adventure, AdventureWorld, AdvAnimal } from '../quest/adventure';
 import { DrownedCaptain, CAPTAIN_DEF } from '../combat/captain';
 import { directorVariant, installDeclaredDirector } from '@wildshard/game/shardfile/directorClient';
 import { director } from '@wildshard/sdk/director';
-import declaration from '../data/director.json';
+import declaration from '../data/director.json' with { type: 'json' };
 
 const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
 const ARENA = 22;
