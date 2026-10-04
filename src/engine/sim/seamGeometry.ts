@@ -1,4 +1,5 @@
 import { edgeSample, edgeSampleLocations } from './edgeProfiles';
+import { seamLatticeRows } from './seamLattice';
 import type { StripCorner, StripMesh, StripProfile } from './strips';
 
 /** Collision and rendering share these ordered triangle ranges; materials never reconstruct seam geometry. */
@@ -68,33 +69,6 @@ function cliffFoot(id: string, side: number, height: number, along: number, corn
   const w = (low + high) / 2; return { u: 7.5 + w, bottom: base(w) };
 }
 
-// Preserve every changing height/colour sample. Only constant along-edge runs can
-// collapse; the two native boundary columns retain every original sample.
-function floorRows(writer: MeshWriter, along: readonly number[], columns: number): readonly number[][] {
-  const rows = along.length;
-  const same = (column: number, a: number, b: number): boolean => {
-    const i = (a * columns + column) * 3, j = (b * columns + column) * 3;
-    return writer.positions[i + 1] === writer.positions[j + 1]
-      && writer.colours[i] === writer.colours[j] && writer.colours[i + 1] === writer.colours[j + 1] && writer.colours[i + 2] === writer.colours[j + 2];
-  };
-  let last = -Infinity;
-  const common = Array.from({ length: rows }, (_unused, row) => row).filter(row => {
-    const at = along[row] ?? 0;
-    // Keep short contact triangles and the dense midpoint approach. A changing
-    // interval keeps both original endpoints and diagonals in every floor band.
-    const keep = row === 0 || row === rows - 1 || Math.abs(at) <= 10 || at - last >= 32;
-    if (keep) last = at;
-    return keep;
-  });
-  const native = Array.from({ length: rows }, (_unused, row) => row);
-  const retained = Array.from({ length: columns }, (_, column) => new Set(column === 0 || column === columns - 1 ? native : common));
-  for (let column = 1; column < columns; column++) for (let row = 0; row < rows - 1; row++) {
-    if (same(column - 1, row, row + 1) && same(column, row, row + 1)) continue;
-    for (const side of [column - 1, column]) { retained[side]?.add(row); retained[side]?.add(row + 1); }
-  }
-  return retained.map(points => [...points].sort((a, b) => a - b));
-}
-
 /** Build the G90 corridor, preserving all native sample locations and using the same triangles for every world and the renderer. */
 export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 'z'; readonly origin: { readonly x: number; readonly z: number }; readonly edges: readonly [SeamEdge, SeamEdge] }): SeamGeometry {
   input.edges.forEach(validateEdge);
@@ -106,7 +80,7 @@ export function seamGeometry(input: { readonly id: string; readonly axis: 'x' | 
     const edge = input.edges[u < 0 ? 0 : 1], sample = edgeSample(edge.profile, v), weight = blend(u);
     writer.vertex(u, weight === 0 ? 0 : bounded(sample.height) * weight, v, neutral.map((c, channel) => c + ((sample.colour[channel] ?? c) - c) * weight));
   }
-  const retained = floorRows(writer, along, count);
+  const retained = seamLatticeRows({ positions: writer.positions, colours: writer.colours, columns: count, along });
   const columns = Array.from({ length: count }, (_, col) => col);
   for (let band = 1; band < columns.length; band++) {
     const col = columns[band], previous = columns[band - 1];
@@ -219,9 +193,20 @@ export function cornerSeamGeometry(input: { readonly id: string; readonly origin
     const weight = blend(x) * blend(z);
     writer.vertex(x, weight === 0 ? 0 : bounded(corner.height) * weight, z, neutral.map((c, i) => c + ((corner.colour[i] ?? c) - c) * weight));
   }
-  for (let row = 1; row < count; row++) for (let col = 1; col < count; col++) {
-    const d = row * count + col, c = d - 1, b = d - count, a = b - 1;
-    writer.indices.push(a, c, b, b, c, d);
+  const retained = seamLatticeRows({ positions: writer.positions, colours: writer.colours, columns: count, along: SEAM_OFFSETS, corner: true });
+  for (let col = 1; col < count; col++) {
+    const left = retained[col - 1], right = retained[col];
+    if (left === undefined || right === undefined) throw new Error('Missing corner column');
+    let l = 0, r = 0;
+    while (l < left.length - 1 || r < right.length - 1) {
+      const a = (left[l] ?? 0) * count + col - 1, b = (right[r] ?? 0) * count + col;
+      const nextLeft = left[l + 1] ?? Infinity, nextRight = right[r + 1] ?? Infinity;
+      if (nextLeft === nextRight) {
+        const c = nextLeft * count + col - 1, d = nextRight * count + col;
+        writer.indices.push(a, c, b, b, c, d); l++; r++;
+      } else if (nextLeft < nextRight) { writer.indices.push(a, nextLeft * count + col - 1, b); l++; }
+      else { writer.indices.push(a, nextRight * count + col, b); r++; }
+    }
   }
   writer.features.push({ kind: 'gradient', firstIndex: 0, indexCount: writer.indices.length, side: 0, from: -27.5, to: 27.5, bottom: -1.5, top: 6 });
   for (const [index, corner] of input.corners.entries()) {
