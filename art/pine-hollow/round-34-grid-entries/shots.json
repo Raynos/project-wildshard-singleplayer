@@ -1,0 +1,96 @@
+{
+ "build": "3127176-muufixqt",
+ "device": "iPhone 16 Pro",
+ "tier": "phone",
+ "shots": [
+  {
+   "edge": "north",
+   "side": "road",
+   "feet": [
+    0,
+    0.02,
+    248
+   ],
+   "yaw": 0,
+   "file": "north-road.jpg"
+  },
+  {
+   "edge": "north",
+   "side": "inside",
+   "feet": [
+    0,
+    1.13,
+    190
+   ],
+   "yaw": 3.1416,
+   "file": "north-inside.jpg"
+  },
+  {
+   "edge": "east",
+   "side": "road",
+   "feet": [
+    248,
+    0.02,
+    0
+   ],
+   "yaw": 1.5708,
+   "file": "east-road.jpg"
+  },
+  {
+   "edge": "east",
+   "side": "inside",
+   "feet": [
+    190,
+    1.68,
+    0
+   ],
+   "yaw": 4.7124,
+   "file": "east-inside.jpg"
+  },
+  {
+   "edge": "south",
+   "side": "road",
+   "feet": [
+    0,
+    0.02,
+    -248
+   ],
+   "yaw": 3.1416,
+   "file": "south-road.jpg"
+  },
+  {
+   "edge": "south",
+   "side": "inside",
+   "feet": [
+    0,
+    1.35,
+    -190
+   ],
+   "yaw": 6.2832,
+   "file": "south-inside.jpg"
+  },
+  {
+   "edge": "west",
+   "side": "road",
+   "feet": [
+    -248,
+    0.02,
+    0
+   ],
+   "yaw": -1.5708,
+   "file": "west-road.jpg"
+  },
+  {
+   "edge": "west",
+   "side": "inside",
+   "feet": [
+    -190,
+    0.04,
+    0
+   ],
+   "yaw": 1.5708,
+   "file": "west-inside.jpg"
+  }
+ ],
+ "errors": []
+}
