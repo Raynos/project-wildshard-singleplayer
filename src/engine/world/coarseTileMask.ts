@@ -3,9 +3,12 @@
  * the coarse tile's props skip those quadrants in the fragment shader, so the proxy keeps its one draw per mesh (instanced
  * meshes stay instanced) and never doubles up with the fine props under it. The patch is shared source with per-tile
  * uniforms, so every coarse tile compiles to one program. The proxy never casts shadows (only near L0 tiles do).
+ * Equal surfaces share one material across tiles (`installDeclaredProps`), so each coarse tile draws with its own variant
+ * (`familyVariant`: the family's patches and key kept) carrying its own mask uniforms; the shared material is never patched.
  */
-import { Mesh, Uniform, Vector2, Vector4, type Object3D } from 'three';
+import { Mesh, Uniform, Vector2, Vector4, type Material, type Object3D } from 'three';
 import { patchShader, PATCH_ORDER } from '../render/shaderPatches';
+import { familyVariant } from '../render/families/registry';
 import { CHUNK_HALF } from '../core/config';
 import type { Scope } from '../app/scope';
 
@@ -23,10 +26,23 @@ export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scop
   if (![x, z].every((n) => Number.isInteger(n) && n >= 0 && n < (CHUNK_HALF * 2) / COARSE_SIZE)) throw new Error('coarse tile mask: tile coordinates are 0..3');
   const origin = new Uniform(new Vector2(-CHUNK_HALF + x * COARSE_SIZE, -CHUNK_HALF + z * COARSE_SIZE)), mask = new Uniform(new Vector4());
   const half = (COARSE_SIZE / 2).toFixed(2);
+  const own = new Map<Material, Material>();
+  const variant = (shared: Material): Material => {
+    const known = own.get(shared); if (known !== undefined) return known;
+    const material = familyVariant(shared, scope);
+    own.set(shared, material);
+    scope.onDispose(() => { material.dispose(); });
+    return material;
+  };
   root.traverse((object) => {
     if (!isMesh(object)) return;
     object.castShadow = false;
-    for (const material of Array.isArray(object.material) ? object.material : [object.material]) patchShader(material, 'engine.coarse-tile-mask', PATCH_ORDER.decorate, (shader) => {
+    const before = object.material;
+    object.material = Array.isArray(before) ? before.map(variant) : variant(before);
+    scope.onDispose(() => { object.material = before; });
+  });
+  for (const material of own.values()) {
+    patchShader(material, 'engine.coarse-tile-mask', PATCH_ORDER.decorate, (shader) => {
       Object.assign(shader.uniforms, { wsCoarseOrigin: origin, wsCoarseMask: mask });
       shader.vertexShader = `varying vec2 wsCoarseXZ;\n${shader.vertexShader}`.replace('#include <project_vertex>', `
         vec4 wsCoarsePosition = vec4(transformed, 1.0);
@@ -46,7 +62,7 @@ export function coarseTileMask(root: Object3D, x: number, z: number, scope: Scop
         #include <clipping_planes_fragment>
       `);
     }, { scope });
-  });
+  }
   return (excluded) => {
     for (const quadrant of excluded) if (!Number.isInteger(quadrant) || quadrant < 0 || quadrant > 3) throw new Error('coarse tile mask: a quadrant is 0..3');
     mask.value.set(Number(excluded.has(0)), Number(excluded.has(1)), Number(excluded.has(2)), Number(excluded.has(3)));
