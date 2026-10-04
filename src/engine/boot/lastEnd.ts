@@ -7,8 +7,8 @@ import { saveStorage } from '../saves/slots';
  * navigated or the page ended abruptly. This module records the observable exit path:
  *
  *   markUnload('build pill tap')   before EVERY navigation / reload the game makes on purpose: localStorage
- *                                  `life.lastUnload` = { reason, t, build, slug, resident }
- *   the alive beat                 every BEAT_MS, sessionStorage `life.alive` = { t, build, slug, resident, vis };
+ *                                  `life.lastUnload` = { reason, t, build, slug, resident, mode }
+ *   the alive beat                 every BEAT_MS, sessionStorage `life.alive` = { t, build, slug, resident, mode, vis };
  *                                  cleared on pagehide (a page that ends normally says so)
  *   lastEnd()                      read once at import (the boot's first module): how the previous page in this tab ended
  *     intentional   a `life.lastUnload` younger than INTENT_MS: the game navigated, and says why
@@ -20,7 +20,7 @@ import { saveStorage } from '../saves/slots';
  * ("Last reload: …", src/engine/ui/Menu.ts) even after a later cold launch. Dependency-free: src/engine/boot/sw.ts and src/entry.ts
  * import it before the game's graph, so its listeners and its timer are the page's, never a shard's.
  *
- *   setAliveSource(() => ({ slug, resident: 'pine-hollow (playing) 178 MB · nalati-grasslands 87 MB' }))   // main.ts
+ *   setAliveSource(() => ({ slug, resident: 'pine-hollow (playing) 178 MB · nalati-grasslands 87 MB', mode: 'shard' }))   // session.ts
  */
 import { inspectPreviousBoot, markBootPlanned, previousBootLine } from './bootTrace';
 
@@ -34,8 +34,10 @@ const INTENT_MS = 10_000;
 /** the alive beat's period */
 const BEAT_MS = 3000;
 
-export interface AliveInfo { slug: string; resident: string }
-interface Stamp { t: number; build: string; slug: string; resident: string }
+/** what the running page is: its level, the resident list and the game's page mode (SF21a: the game's `'grid' | 'shard'`,
+ *  src/game/grid/boot.ts), so the next boot knows which way in ended */
+export interface AliveInfo<M extends string = string> { slug: string; resident: string; mode: M }
+interface Stamp { t: number; build: string; slug: string; resident: string; mode: string }
 interface Unload extends Stamp { reason: string }
 interface Alive extends Stamp { vis: string }
 export interface LastEnd {
@@ -46,6 +48,8 @@ export interface LastEnd {
   at: number;
   /** what was resident then ('' unknown) */
   resident: string;
+  /** the page mode the game reported then (AliveInfo.mode; '' unknown) */
+  mode: string;
   /** the build that page ran */
   build: string;
   /** when the page this describes booted (epoch ms) */
@@ -97,9 +101,9 @@ export class PageLife {
   setAliveSource(fn: () => AliveInfo): void { this.source = fn; this.beat(); }
 
   private stamp(): Stamp {
-    let info: AliveInfo = { slug: '', resident: '' };
+    let info: AliveInfo = { slug: '', resident: '', mode: '' };
     try { if (this.source) info = this.source(); } catch { /* recorded without it */ }
-    return { t: Date.now(), build: build(), slug: info.slug, resident: info.resident };
+    return { t: Date.now(), build: build(), slug: info.slug, resident: info.resident, mode: info.mode };
   }
 
   /** the game is about to navigate / reload on purpose: say why, first (the next boot reads it) */
@@ -127,13 +131,13 @@ export class PageLife {
     try { const e: unknown = performance.getEntriesByType('navigation')[0]; nav = str(e, 'type'); } catch { /* old WebKit */ }
     const base = { bootedAt: now, discarded, nav };
     const ut = num(u, 't');
-    if (u !== null && now - ut < INTENT_MS) return { kind: 'intentional', reason: str(u, 'reason'), at: ut, resident: str(u, 'resident'), build: str(u, 'build'), ...base };
+    if (u !== null && now - ut < INTENT_MS) return { kind: 'intentional', reason: str(u, 'reason'), at: ut, resident: str(u, 'resident'), mode: str(u, 'mode'), build: str(u, 'build'), ...base };
     if (a !== null) {
       const where = str(a, 'vis') === 'hidden' ? 'in the background' : 'on screen';
-      return { kind: 'unexpected', reason: `page ended unexpectedly ${where} (browser or system cause unknown)`, at: num(a, 't'), resident: str(a, 'resident'), build: str(a, 'build'), ...base };
+      return { kind: 'unexpected', reason: `page ended unexpectedly ${where} (browser or system cause unknown)`, at: num(a, 't'), resident: str(a, 'resident'), mode: str(a, 'mode'), build: str(a, 'build'), ...base };
     }
-    if (u !== null) return { kind: 'intentional', reason: `${str(u, 'reason')} (${Math.round((now - ut) / 1000)} s before this load)`, at: ut, resident: str(u, 'resident'), build: str(u, 'build'), ...base };
-    return { kind: 'fresh', reason: 'fresh launch', at: 0, resident: '', build: '', ...base };
+    if (u !== null) return { kind: 'intentional', reason: `${str(u, 'reason')} (${Math.round((now - ut) / 1000)} s before this load)`, at: ut, resident: str(u, 'resident'), mode: str(u, 'mode'), build: str(u, 'build'), ...base };
+    return { kind: 'fresh', reason: 'fresh launch', at: 0, resident: '', mode: '', build: '', ...base };
   }
 
   /** how the previous page in this tab ended (this boot's reading) */
@@ -146,7 +150,7 @@ export class PageLife {
     if (e === null) return null;
     const kind = str(e, 'kind');
     return {
-      kind: kind === 'intentional' || kind === 'unexpected' ? kind : 'fresh', reason: str(e, 'reason'), at: num(e, 'at'), resident: str(e, 'resident'),
+      kind: kind === 'intentional' || kind === 'unexpected' ? kind : 'fresh', reason: str(e, 'reason'), at: num(e, 'at'), resident: str(e, 'resident'), mode: str(e, 'mode'),
       build: str(e, 'build'), bootedAt: num(e, 'bootedAt'), discarded: Reflect.get(e as object, 'discarded') === true, nav: str(e, 'nav'),
     };
   }

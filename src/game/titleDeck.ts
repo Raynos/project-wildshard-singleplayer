@@ -15,6 +15,9 @@ import { listenDom } from '@wildshard/engine/input/dom';
  * under it, ENTER WORLD and EXPLORE WORLD, and the main menu's SETTINGS. A swipe steps one card; the centred card is the
  * selection. Hero art loads for the selected card only; a neighbour's warms when a swipe or a dot press starts toward it.
  *
+ * SF21a (G58): with `onGrid` and src/game/grid/menu.ts `gridEntryShown()`, the main menu's two entries sit above the cards:
+ * Select a shard (this deck, focused first) and EXPERIMENTAL Wildshard (the grid). What ENTER WORLD may enter is §3.3's table.
+ *
  * Cards use the generated, node-safe manifests; world builders remain lazy.
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
@@ -24,7 +27,12 @@ import type { ShardManifest } from './shard/manifest';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
+import { gridEntryShown, menuMode, selectEnters, selectExplores, type MenuMode } from './grid/menu';
 import './summary.css';
+import './grid/menu.css';
+import { lastEnd } from '@wildshard/engine/boot/lastEnd';
+import { dropGridIntent, enterGrid } from './grid/boot';
+import { installGridDebug } from './grid/debug';
 
 
 export type TitleBadge = 'Early access' | 'Experimental' | 'Developer only';
@@ -86,6 +94,11 @@ export interface TitleDeckOptions {
   readonly onSettings: () => void;
   /** a line under the wordmark (the cold launch's "returned to shard select" after an interrupted boot) */
   readonly notice?: string;
+  /** the main menu's second entry, EXPERIMENTAL Wildshard (G58, SF21a): shown beside Select a shard only while
+   *  src/game/grid/menu.ts `gridEntryShown()` holds (Settings ▸ Developer on until SF22's gates pass) */
+  readonly onGrid?: () => void;
+  /** what the menu may show and enter (default: Settings ▸ Developer and the DEVSERVER build, read live) */
+  readonly mode?: () => MenuMode;
 }
 
 export interface TitleDeck {
@@ -109,32 +122,37 @@ function required(root: ParentNode, selector: string): HTMLElement {
   return found;
 }
 
-/** ENTER WORLD's small line for a card */
-function canEnter(card: DeckEntry): boolean {
+/** a card the shipped game shows locked: experimental, hidden or a `_` prototype */
+const restricted = (card: DeckEntry): boolean => card.badge === 'Experimental' || card.badge === 'Developer only' || card.slug.startsWith('_');
+
+/** ENTER WORLD for a card: Select a shard enters what §3.3's table allows in this mode (SF21a: shipped, Developer, DEVSERVER) */
+function canEnter(card: DeckEntry, mode: MenuMode = menuMode()): boolean {
   if (card.draft) return false;
-  return isDev() || (card.badge !== 'Experimental' && card.badge !== 'Developer only' && !card.slug.startsWith('_'));
+  return selectEnters(card.slug, restricted(card), mode);
 }
 
-/** EXPLORE WORLD is a developer tool: only in developer mode, and only for a world that can be entered (Jake, E386) */
-function canExplore(card: DeckEntry): boolean {
-  return isDev() && canEnter(card);
+/** EXPLORE WORLD is a developer tool: only in developer mode (or a DEVSERVER build), and only for a world that can be
+ *  entered (Jake, E386) */
+function canExplore(card: DeckEntry, mode: MenuMode = menuMode()): boolean {
+  return !card.draft && selectExplores(card.slug, restricted(card), mode);
 }
 
 /** the tape over a card's image: a world that can't be entered reads COMING SOON, not EXPERIMENTAL (Jake, E386) */
-function ribbonFor(card: DeckEntry): string {
+function ribbonFor(card: DeckEntry, mode: MenuMode = menuMode()): string {
   if (card.draft) return isDev() ? GAME_STRINGS.drafts.ribbon(card.draft.stage) : GAME_STRINGS.drafts.comingSoon;
-  if (!canEnter(card)) return 'Coming soon';
+  if (!canEnter(card, mode)) return 'Coming soon';
   return card.badge === 'Developer only' ? GAME_STRINGS.developer.ribbon : card.badge ?? '';
 }
 
-function hintFor(card: DeckEntry, active: boolean): string {
+function hintFor(card: DeckEntry, active: boolean, mode: MenuMode = menuMode()): string {
   if (card.draft) return isDev() ? card.draft.stageName : GAME_STRINGS.drafts.notPlayable;
-  if (!canEnter(card)) return '';
+  if (!canEnter(card, mode)) return '';
   if (!active) return `Loads ${card.name}`;
   return card.badge === 'Early access' ? 'Early access' : card.badge === 'Experimental' ? 'Developer only' : 'Play'; // Jake: experimental shards enter only in developer mode
 }
 
 export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
+  const mode = opts.mode ?? menuMode;
   const scope = app.engineScope.child('title-deck');
   const { cards } = opts;
   const entries: readonly DeckEntry[] = [...cards.map(fromShard), ...DRAFT_TITLES.map(fromDraft)];
@@ -146,11 +164,14 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div>
       <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${EYE}</span><span class="ws-menu-explore-text"><b>Explore world</b><small>Fly · inspect</small></span></button></div>
     <div class="ws-menu-deck">
+      ${opts.onGrid !== undefined && gridEntryShown(mode()) ? `<div class="ws-menu-entries" role="group" aria-label="${GAME_STRINGS.grid.menu}">
+        <button class="ws-menu-entry ws-menu-entry-select on" type="button" aria-pressed="true">${GAME_STRINGS.grid.select}</button>
+        <button class="ws-menu-entry ws-menu-entry-grid" type="button" aria-pressed="false">${GAME_STRINGS.grid.entry}</button></div>` : ''}
       <div class="ws-menu-cards"><div class="ws-menu-deck-track">${entries.map((c, i) => {
         const active = i === activeIndex;
         return `
         <button class="ws-menu-card${active ? ' active' : ''}" type="button" data-i="${i}">
-          <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')">${canEnter(c) ? `<i class="ws-menu-card-tag${active ? ' ok' : ''}">${active ? 'Loaded' : 'Load'}</i>` : ''}${ribbonFor(c) ? `<i class="ws-menu-card-exp${c.badge === 'Early access' && canEnter(c) ? ' ws-menu-card-ea' : ''}">${ribbonFor(c)}</i>` : ''}</span>
+          <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')">${canEnter(c, mode()) ? `<i class="ws-menu-card-tag${active ? ' ok' : ''}">${active ? 'Loaded' : 'Load'}</i>` : ''}${ribbonFor(c, mode()) ? `<i class="ws-menu-card-exp${c.badge === 'Early access' && canEnter(c, mode()) ? ' ws-menu-card-ea' : ''}">${ribbonFor(c, mode())}</i>` : ''}</span>
           <b>${c.name}</b><small>${c.label}</small>
         </button>`;
       }).join('')}</div></div>
@@ -208,11 +229,11 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     dots.forEach((d, i) => { d.classList.toggle('on', i === index); });
     hero.style.backgroundImage = `url('${heroUrl(c)}')`;
     hero.classList.add('show');
-    hint.textContent = hintFor(c, index === activeIndex);
-    play.disabled = !canEnter(c) && c.draft === null;
-    explore.disabled = !canExplore(c);
-    explore.classList.toggle('off', !canExplore(c)); // menu.css hides .off
-    required(play, 'b').textContent = c.draft ? (isDev() ? GAME_STRINGS.drafts.draftMode : GAME_STRINGS.drafts.followBuild) : canEnter(c) ? 'Enter world' : 'Coming soon';
+    hint.textContent = hintFor(c, index === activeIndex, mode());
+    play.disabled = !canEnter(c, mode()) && c.draft === null;
+    explore.disabled = !canExplore(c, mode());
+    explore.classList.toggle('off', !canExplore(c, mode())); // menu.css hides .off
+    required(play, 'b').textContent = c.draft ? (isDev() ? GAME_STRINGS.drafts.draftMode : GAME_STRINGS.drafts.followBuild) : canEnter(c, mode()) ? 'Enter world' : 'Coming soon';
     paintSummary(c);
   };
   const select = (raw: number, smooth = true): void => {
@@ -224,7 +245,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     const c = entries[index];
     // A draft opens on the drafts site (J16, J19): FOLLOW THE BUILD shows its teaser, DRAFT MODE its pages (Developer on there).
     if (c?.draft) { window.open(c.draft.url, '_blank', 'noopener'); return; }
-    if (c?.shard && canEnter(c)) opts.onEnter(c.shard);
+    if (c?.shard && canEnter(c, mode())) opts.onEnter(c.shard);
   };
 
   // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
@@ -252,8 +273,15 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   cardEls.forEach((e, i) => { listenDom(scope, e, 'click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
   dots.forEach((d, i) => { listenDom(scope, d, 'click', (ev) => { ev.stopPropagation(); select(i); }); });
   listenDom(scope, required(root, '.ws-menu-play'), 'click', (ev) => { ev.stopPropagation(); activate(); });
-  listenDom(scope, required(root, '.ws-menu-explore'), 'click', (ev) => { ev.stopPropagation(); const c = entries[index]; if (c?.shard && canExplore(c)) opts.onExplore(c.shard); });
+  listenDom(scope, required(root, '.ws-menu-explore'), 'click', (ev) => { ev.stopPropagation(); const c = entries[index]; if (c?.shard && canExplore(c, mode())) opts.onExplore(c.shard); });
   listenDom(scope, required(root, '.ws-menu-settings'), 'click', (ev) => { ev.stopPropagation(); opts.onSettings(); });
+  // the main menu's two entries (G58): Select a shard is this deck, focused first; EXPERIMENTAL Wildshard boots the grid
+  // from a one-shot tap intent (src/game/grid/boot.ts), so its tap is the only way in
+  root.dataset['entry'] = 'select';
+  const selectEntry = root.querySelector<HTMLButtonElement>('.ws-menu-entry-select');
+  const gridEntry = root.querySelector<HTMLButtonElement>('.ws-menu-entry-grid');
+  if (selectEntry !== null) listenDom(scope, selectEntry, 'click', (ev) => { ev.stopPropagation(); selectEntry.focus({ preventScroll: true }); });
+  if (gridEntry !== null) listenDom(scope, gridEntry, 'click', (ev) => { ev.stopPropagation(); if (gridEntryShown(mode())) opts.onGrid?.(); });
 
   // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
   // orientation on screen, loads with the deck. A neighbour's loads when a swipe or a dot press starts toward it, so the
@@ -281,7 +309,21 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     root, cards,
     get index() { return index; },
     select, activate,
-    start: () => { place(index, 0, false); scope.raf(() => { place(index, 0, false); }); },
+    start: () => { place(index, 0, false); scope.raf(() => { place(index, 0, false); }); selectEntry?.focus({ preventScroll: true }); },
     dispose: () => { scope.dispose(); },
   };
+}
+
+/**
+ * The cold title's EXPERIMENTAL Wildshard wiring (SF21a), one call for the composition root (src/entry.ts):
+ *   - a stale one-shot intent is consumed here, so nothing but a new tap boots the grid (R3-C5);
+ *   - the DEVSERVER cell's Debug row is installed (a DEVSERVER build only);
+ *   - when the previous page was the grid and it ended unexpectedly (iOS's memory kill), the title only adds one line.
+ */
+export interface GridTitle { readonly onGrid: () => void; readonly note: string }
+export function installGridTitle(): GridTitle {
+  dropGridIntent();
+  installGridDebug();
+  const end = lastEnd();
+  return { onGrid: enterGrid, note: end.kind === 'unexpected' && end.mode === 'grid' ? GAME_STRINGS.grid.ended : '' };
 }

@@ -12,6 +12,16 @@ export const GAME_STRINGS = {
     followBuild: 'Follow the build',
     draftMode: 'Draft mode',
   },
+  /** the main menu's two entries (SHARD-PLATFORM §3.3, G58; SF21a) */
+  grid: {
+    select: 'Select a shard',
+    entry: 'EXPERIMENTAL Wildshard',
+    menu: 'Main menu',
+    ended: 'EXPERIMENTAL Wildshard ended unexpectedly last time.',
+    devserverCell: (x: number, z: number): string => `EXPERIMENTAL Wildshard (${x < 0 ? '−' : '+'}${Math.abs(x)}, ${z < 0 ? '−' : '+'}${Math.abs(z)})`,
+    template: 'Template',
+    devserverCellNote: 'SF21a (G46): the DEVSERVER cell of EXPERIMENTAL Wildshard, or the template it replaces. Applies at the next grid start.',
+  },
   summary: {
     label: 'Wildshard progress',
     selected: (name: string, earned: number | null): string => `${name.toUpperCase()} · ${earned === null ? 'NOT VISITED' : `${earned} FEATS`}`,

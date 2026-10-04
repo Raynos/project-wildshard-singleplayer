@@ -1,7 +1,7 @@
 {
   "about": "E362 AG7: cross-layer import counts (scripts/check-graph.mjs). A new pair or a rising count fails; lower with --update.",
   "edges": {
-    "game \u2192 engine": 437,
+    "game \u2192 engine": 443,
     "kit \u2192 engine": 196,
     "kit \u2192 game": 2,
     "root \u2192 engine": 17,

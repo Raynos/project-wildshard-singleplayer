@@ -23,7 +23,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import { Scope } from '@wildshard/engine/app/scope';
 import { markBootHandledError } from '@wildshard/engine/boot/bootTrace';
 import { setBootCatalog } from '@wildshard/engine/boot/catalog';
-import { setAliveSource } from '@wildshard/engine/boot/lastEnd';
+import { setAliveSource, type AliveInfo } from '@wildshard/engine/boot/lastEnd';
 import { consumeTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import { reportError } from '@wildshard/engine/core/errorReport';
 import { pageSeed } from '@wildshard/engine/core/rng';
@@ -34,6 +34,8 @@ import { installErrorModal, showError } from '@wildshard/engine/ui/ErrorModal';
 import { registerLevelDebugRow } from '@wildshard/engine/ui/debugOptions';
 import { showLoadFailure } from '@wildshard/engine/ui/errorScreen';
 import { installWorldRegistry } from '@wildshard/engine/world/registry';
+import { bootPageMode, type PageMode } from '../grid/boot';
+import { installGridDebug } from '../grid/debug';
 
 declare const __BUILD_ID__: string;
 
@@ -48,6 +50,10 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts): Prom
     app.rng.seed(pageSeed(manifest.seed, window.__wildshardHarness?.seed));
     const selected = manifest.slug;
     session.arrival = consumeTitleArrival(selected);
+    // SF21a: the one-shot EXPERIMENTAL Wildshard intent, consumed by every boot; grid mode drops the URL to the title's
+    const mode = bootPageMode(selected);
+    setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: '', mode }));
+    installGridDebug();
     if (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true) {
       const home = new URL(location.href);
       if (home.searchParams.has('chunk') || home.searchParams.has('v')) {
@@ -72,7 +78,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts): Prom
       return { cap: 1, levels: [{ id: selected, running: true, textureMB: memoryMB }] };
     };
     app.levelAdapters.residentMemory = memory;
-    setAliveSource(() => ({ slug: selected, resident: `${selected} (playing) ~${Math.round(memory(60_000).levels[0]?.textureMB ?? 0)} MB` }));
+    setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: `${selected} (playing) ~${Math.round(memory(60_000).levels[0]?.textureMB ?? 0)} MB`, mode }));
   } catch (error) {
     markBootHandledError();
     if (!session.fatalShown) showError(error instanceof Error ? `${error.name}: ${error.message}` : String(error), error instanceof Error ? error.stack ?? '' : '');

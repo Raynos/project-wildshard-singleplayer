@@ -1,0 +1,13 @@
+/* SF21a (G58): the main menu's two entries above the deck: Select a shard (this deck) and EXPERIMENTAL Wildshard (the
+   grid, shown with Settings ▸ Developer on until SF22's gates pass). The look borrows SETTINGS' chrome and EXPLORE's amber. */
+.ws-menu .ws-menu-entries { display: flex; gap: 8px; width: min(var(--card-w), calc(100% - 32px)); margin-bottom: 4px; }
+.ws-menu .ws-menu-entry { flex: 1 1 0; min-height: 40px; padding: 6px 10px; appearance: none; -webkit-appearance: none; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--ws-text); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.ws-menu .ws-menu-entry.on { border-color: var(--ws-cyan); color: var(--ws-cyan); background: rgba(143, 227, 255, 0.14); box-shadow: 0 0 18px rgba(143, 227, 255, 0.18); }
+.ws-menu .ws-menu-entry-grid { border-color: var(--ws-amber); color: var(--ws-amber); background: rgba(255, 181, 71, 0.1); }
+.ws-menu .ws-menu-entry:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
+@media (max-width: 700px) {
+  .ws-menu .ws-menu-entry { font-size: 9px; letter-spacing: 0.12em; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .ws-menu .ws-menu-entry { min-height: 30px; padding: 4px 8px; }
+}

@@ -29,7 +29,7 @@ afterEach(() => { vi.useRealTimers(); });
 describe('lastEnd', () => {
   it('a reason written just before the load: intentional, with what was resident', async () => {
     const prev = await boot();
-    prev.setAliveSource(() => ({ slug: 'pine-hollow', resident: 'nalati-grasslands ~87 MB · pine-hollow (playing) ~178 MB' }));
+    prev.setAliveSource(() => ({ slug: 'pine-hollow', resident: 'nalati-grasslands ~87 MB · pine-hollow (playing) ~178 MB', mode: 'shard' }));
     prev.markUnload('build pill tap');
     listeners.get('win:pagehide')?.({}); // the navigation's pagehide takes the alive beat with it
     expect(session.getItem('ws.alive')).toBeNull();
@@ -46,7 +46,7 @@ describe('lastEnd', () => {
 
   it('a stale alive beat and no reason: the page ended unexpectedly (the iOS memory kill)', async () => {
     const prev = await boot();
-    prev.setAliveSource(() => ({ slug: 'nalati-grasslands', resident: 'pine-hollow ~178 MB · nalati-grasslands (playing) ~87 MB' }));
+    prev.setAliveSource(() => ({ slug: 'nalati-grasslands', resident: 'pine-hollow ~178 MB · nalati-grasslands (playing) ~87 MB', mode: 'grid' }));
     vi.advanceTimersByTime(3000); // a beat
     // no pagehide, no reason: the process is gone and the web view loads the page again
     vi.advanceTimersByTime(1000);
@@ -54,11 +54,12 @@ describe('lastEnd', () => {
     expect(e.kind).toBe('unexpected');
     expect(e.reason).toBe('page ended unexpectedly on screen (browser or system cause unknown)');
     expect(e.resident).toBe('pine-hollow ~178 MB · nalati-grasslands (playing) ~87 MB');
+    expect(e.mode).toBe('grid'); // SF21a: the title reads this to add its one-line EXPERIMENTAL Wildshard note
   });
 
   it('a hidden page that dies says so', async () => {
     const prev = await boot();
-    prev.setAliveSource(() => ({ slug: 'pine-hollow', resident: 'pine-hollow (playing) ~178 MB' }));
+    prev.setAliveSource(() => ({ slug: 'pine-hollow', resident: 'pine-hollow (playing) ~178 MB', mode: 'shard' }));
     vi.stubGlobal('document', { visibilityState: 'hidden', addEventListener: () => undefined });
     listeners.get('doc:visibilitychange')?.({});
     expect((await boot()).lastEnd().reason).toContain('in the background');

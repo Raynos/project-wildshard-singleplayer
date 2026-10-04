@@ -5,6 +5,7 @@ import { type TrainingArena as Arena, TrainingArena } from '@wildshard/engine/pr
 import type { DiscSpot } from '@wildshard/engine/ui/hudSlots';
 import { GAME_STRINGS } from '../strings';
 import { buildTitleDeck, titleCards } from '../titleDeck';
+import { enterGrid, pageMode } from '../grid/boot';
 import { travel } from '../travel/travel';
 import type { worldStage } from './world';
 import { withOwner } from '@wildshard/engine/app/ownership';
@@ -80,6 +81,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
       cards, active: chunk.slug,
       onEnter: (c) => { if (c === own) here.enter(); else travel({ to: c.slug, mode: 'enter' }); },
       onExplore: (c) => { if (c !== own) { travel({ to: c.slug, mode: 'explore' }); return; } here.explore(); },
+      onGrid: () => { if (pageMode() === 'grid') here.enter(); else enterGrid(); }, // SF21a: the main menu's second entry
       onSettings: here.settings,
     });
   };
