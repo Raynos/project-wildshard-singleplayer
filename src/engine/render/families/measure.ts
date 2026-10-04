@@ -2,7 +2,8 @@
  * The PBR family's measure layer (SHARD-PLATFORM SF56, G152): a blockout "dev map" look in the spirit of the Source
  * engine's developer measure textures, drawn entirely by the shader (no texture, no memory). Per pixel, while the look is
  * switched on (`setMeasureLook`, one engine-wide uniform a Debug row drives):
- * - the surface takes its role's flat colour (structure orange, trim grey, floor light grey) in place of its vertex colour;
+ * - the surface takes its role's flat colour (structure orange, trim grey, floor light grey) in place of its vertex colour,
+ *   a share of it glowing so a shade side stays readable (the dev textures' flat read);
  * - a 1 m grid and a lighter sub-grid cross it, each line at least a pixel wide and faded by coverage (crisp at 2×, no
  *   moiré far off);
  * - a structure or trim face of at least 1 m × 1 m carries its size in metres ("4×3") as seven-segment glyphs in its
@@ -48,6 +49,7 @@ uniform vec4 famMLine;      // colour, half-width (m)
 uniform vec3 famMAlpha;     // line on a role surface, line on the floor, sub-grid
 uniform float famMSub;      // sub-grid step (m)
 uniform vec4 famMLabel;     // colour, glyph height (m)
+uniform float famMLift;     // the share of the role colour that glows (a flat, readable shade side)
 
 // coverage of lines every pitch (c in metres), at least a pixel wide, dimmed by how thin they are and faded once a pitch
 // shrinks toward a few pixels
@@ -94,6 +96,7 @@ int famMChars( int wq, int hq, out int s[ 9 ] ) {
 `;
 
 const FRAG_MAIN = /* glsl */`#include <color_fragment>
+vec3 famMGlow = vec3( 0.0 );
 {
   float famMCode = floor( vFamMUv.x / ${MEASURE_SLOT.toFixed(1)} );
   int famMRole = int( famMCode ) - ( int( famMCode ) / 4 ) * 4;
@@ -128,7 +131,9 @@ const FRAG_MAIN = /* glsl */`#include <color_fragment>
   famMOut = mix( famMOut, famMLine.rgb, famMMain * famMLineA );
   famMOut = mix( famMOut, famMLabel.rgb, famMInk * 0.92 );
   diffuseColor.rgb = mix( diffuseColor.rgb, famMOut, famMOn );
+  famMGlow = famMOut * famMLift * famMOn;
 }`;
+const FRAG_GLOW = '#include <emissivemap_fragment>\ntotalEmissiveRadiance += famMGlow;';
 
 const linear = (rgb: readonly [number, number, number]): THREE.Color => new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2], THREE.SRGBColorSpace);
 
@@ -144,10 +149,11 @@ export function applyMeasure(m: THREE.MeshStandardMaterial, p: MeasureLayerParam
     famMAlpha: { value: new THREE.Vector3(p.line.alpha, p.line.floorAlpha, p.sub.alpha) },
     famMSub: { value: p.sub.step },
     famMLabel: { value: new THREE.Vector4(label.r, label.g, label.b, p.label.height) },
+    famMLift: { value: p.lift },
   };
   patchShader(m, 'engine.family.measure', PATCH_ORDER.material, (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader.replace('#include <common>', `#include <common>\n${VERT_PARS}`).replace('#include <worldpos_vertex>', VERT_WORLD);
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>\n${FRAG_PARS}`).replace('#include <color_fragment>', FRAG_MAIN);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>\n${FRAG_PARS}`).replace('#include <color_fragment>', FRAG_MAIN).replace('#include <emissivemap_fragment>', FRAG_GLOW);
   }, { key: MEASURE_PROGRAM_KEY });
 }

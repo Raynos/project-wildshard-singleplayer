@@ -162,6 +162,8 @@ export const MeasureLayerSchema = v.strictObject({
   sub: v.optional(v.strictObject({ step: metres(0.5), alpha: unit }), { step: 0.25, alpha: 0.22 }),
   /** the size label: sRGB colour and glyph height (m) */
   label: v.optional(v.strictObject({ colour: srgb, height: metres(2) }), { colour: [1, 1, 1], height: 0.3 }),
+  /** the share of the role colour that glows (unlit), so a face turned from the sun stays readable */
+  lift: v.optional(unit, 0.3),
 });
 /** A measure layer with every default filled. */
 export type MeasureLayerParams = v.InferOutput<typeof MeasureLayerSchema>;
@@ -172,11 +174,11 @@ export const MEASURE_SLOT = 64;
 /**
  * The first-UV pair a measure-layer surface carries at one vertex: `role`, the vertex's metres across (`u`) and up
  * (`up`) its face from the face's bottom-left corner as seen from outside, and the face's size `w` × `h` (m). A size is labelled
- * in half metres up to 31.5 m (larger faces are gridded, not labelled); a face may span at most 62 m.
+ * when it is a whole or half metre up to 31.5 m (other faces are gridded, not labelled: a label never rounds); a face may span at most 62 m.
  */
 export function measureUv(role: MeasureRole, u: number, up: number, w: number, h: number): [number, number] {
   if (!(w > 0 && h > 0 && w <= 62 && h <= 62 && u >= -1e-6 && up >= -1e-6 && u <= w + 1e-6 && up <= h + 1e-6)) throw new Error('measureUv: a face within 62 m, its point on it');
-  const half = (d: number): number => (d <= 31.5 ? Math.round(d * 2) : 0);
+  const half = (d: number): number => (d <= 31.5 && Math.abs(d * 2 - Math.round(d * 2)) < 0.02 ? Math.round(d * 2) : 0);
   return [MEASURE_SLOT * (role + 4 * half(w)) + 1 + u, MEASURE_SLOT * half(h) + 1 + up];
 }
 

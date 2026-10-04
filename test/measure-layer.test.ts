@@ -26,7 +26,8 @@ describe('SF56 measure layer', () => {
       const d = decode(...measureUv(role, u, v, w, h));
       expect(d.role).toBe(role);
       expect(d.u).toBeCloseTo(u, 3); expect(d.v).toBeCloseTo(v, 3);
-      expect(d.w).toBe(w <= 31.5 ? Math.round(w * 2) / 2 : 0); expect(d.h).toBe(Math.round(h * 2) / 2);
+      // a size is labelled only when it is a whole or half metre within 31.5 m: a label never rounds
+      expect(d.w).toBe(w <= 31.5 && Number.isInteger(w * 2) ? w : 0); expect(d.h).toBe(Number.isInteger(h * 2) ? h : 0);
     }
     expect(() => measureUv(1, 7, 0, 6, 3)).toThrow(/62 m/);
   });
@@ -38,9 +39,9 @@ describe('SF56 measure layer', () => {
       expect(d.role).toBe(1);
       const f = faces[face] ?? { w: d.w, h: d.h, maxU: 0, maxV: 0 }; f.maxU = Math.max(f.maxU, d.u); f.maxV = Math.max(f.maxV, d.v); faces[face] = f;
     }
-    // ±x: depth × height; ±y: width × depth; ±z: width × height (0.3 m labels round to 0.5; the shader labels only ≥ 1 m)
+    // ±x: depth × height; ±y: width × depth; ±z: width × height (0.3 m is no half metre: unlabelled; the shader labels only ≥ 1 m)
     expect(faces.map((f) => [f.maxU, f.maxV].map((n) => Math.round(n * 100) / 100))).toEqual([[0.3, 3], [0.3, 3], [6, 0.3], [6, 0.3], [6, 3], [6, 3]]);
-    expect(faces[4]).toMatchObject({ w: 6, h: 3 });
+    expect(faces[4]).toMatchObject({ w: 6, h: 3 }); expect(faces[0]).toMatchObject({ w: 0, h: 3 });
   });
 
   it('compiles to the measure program on the PBR family and switches by one shared uniform', () => {

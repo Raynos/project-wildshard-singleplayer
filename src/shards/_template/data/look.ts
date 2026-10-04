@@ -1,6 +1,10 @@
-/** Neutral teaching look: constant gradient and linear fog preserve the legacy template at each clock time. */
+/**
+ * Neutral teaching look: constant gradient and linear fog preserve the legacy template at each clock time. The one PBR
+ * material (terrain and props) declares SF56's measure layer: the dev-map look (orange structures, grey trim, light grey
+ * floor, a 1 m grid and size labels from the generators' measure UVs), drawn while its Debug row is on.
+ */
 export const TEMPLATE_LOOK = {
-  families: ['toon', 'pbr'], materials: { pbr: { family: 'pbr', vertexColours: true, metalness: 0, faceted: true } }, grade: { exposure: 0, saturation: 1, contrast: 1, lut: null }, clock: 'engine',
+  families: ['toon', 'pbr'], materials: { pbr: { family: 'pbr', vertexColours: true, metalness: 0, faceted: true, measure: {} } }, grade: { exposure: 0, saturation: 1, contrast: 1, lut: null }, clock: 'engine',
   day: { minutes: 12, start: 0.5, maxElevation: 60, azimuth: 35 }, dayOverride: null,
   keys: [{ time: 0, sky: { zenith: [0.35, 0.42, 0.5], horizon: [0.75, 0.75, 0.75] },
     fog: { colour: [0.3968, 0.4287, 0.4621], density: 0, near: 60, far: 180 },
