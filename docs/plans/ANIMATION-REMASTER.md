@@ -1,6 +1,6 @@
 # Animation and rigging remaster — four shards
 
-**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). E357 X4 supplies the engine rig contract, metadata clip aliases and the animation machine; A3–A7 (ask E378) build on it. Waits on Jake's picks for the broad implementation; E336's dummy pilot stays live in `d1cdcee-munun0hj`.
+**State:** `draft` 2026-10-03 — unblocked 2026-10-03 (Jake, E404): the E357 lock ended when GAME-NORMALIZATION was archived (`5390d75f9`). E357 X4 supplies the engine rig contract, metadata clip aliases and the animation machine; A3–A7 (ask E378) build on it. Jake, E423 grill (2026-10-03): "not yet", the shards' looks and content come first; ask again later. E336's dummy pilot stays live in `d1cdcee-munun0hj`.
 
 ## Scope and evidence
 
