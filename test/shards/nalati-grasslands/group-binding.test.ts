@@ -6,8 +6,7 @@ import { app } from '../../../src/engine/app/runtime';
 import { overrideTerrain } from '../../../src/engine/world/Heightfield';
 import { PackBrain } from '../../../src/engine/ai/pack';
 import { HerdBrain } from '../../../src/engine/ai/herd';
-import { Pack } from '../../../src/shards/nalati-grasslands/runtime/packLegacy';
-import { HorseHerd } from '../../../src/shards/nalati-grasslands/runtime/herdLegacy';
+import { Pack, HorseHerd } from '../../../src/shards/nalati-grasslands/runtime/groupRegistry';
 import { Pack as ShippingPack } from '../../fixtures/nalati-group-oracle/pack';
 import { HorseHerd as ShippingHorseHerd } from '../../fixtures/nalati-group-oracle/herd';
 import { Wildlife } from '../../../src/shards/nalati-grasslands/creatures/wildlife';
@@ -18,19 +17,27 @@ const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], 
 afterAll(terrain);
 const packs = Pack.all, herds = HorseHerd.all;
 afterEach(() => { Pack.all = packs; HorseHerd.all = herds; });
-function fixture(on: boolean): { world: ReturnType<typeof manager>; wildlife: Wildlife } {
+function fixture(on?: boolean): { world: ReturnType<typeof manager>; wildlife: Wildlife } {
   app.rng.seed(357); Pack.all = []; HorseHerd.all = [];
   const world = manager(), wildlife = new Wildlife(world.manager, { scene: world.game.scene, sky: world.sky, seed: 357,
     layout: { packs: [{ x: 20, z: 0, variants: ['alpha', 'grey', 'scout'] }],
       herds: [{ x: -20, z: 0, mares: 2, foals: 1, stallion: true }], flocks: [{ x: 0, z: 20, count: 3, dog: false }] } });
-  wildlife.build(on ? declaredGroupFactories({ preyIdentity: prey => wildlife.preyIdentity(prey), resolvePrey: id => wildlife.resolvePrey(id),
+  wildlife.build(on === undefined ? undefined : on ? declaredGroupFactories({ preyIdentity: prey => wildlife.preyIdentity(prey), resolvePrey: id => wildlife.resolvePrey(id),
     resolveActor: id => world.manager.animals.find(actor => actor.entityId === id) ?? null }) : { pack: (members, x, z) => { const policy = new ShippingPack(members, x, z); Pack.register(policy); return policy; },
     herd: members => { const policy = new ShippingHorseHerd(members); HorseHerd.register(policy); return policy; } });
   return { world, wildlife };
 }
 describe('Nalati native world group binding', () => {
+  it('uses declared groups by default after G112 retirement, with the witnessed placement and setup draws', () => {
+    const selected = fixture(true), actors = selected.world.manager.animals.map(actor => actor.snapshot()), rng = app.rng.snapshot();
+    const current = fixture();
+    expect(current.wildlife.packs[0]).toBeInstanceOf(PackBrain); expect(current.wildlife.herds[0]).toBeInstanceOf(HerdBrain);
+    expect(current.world.manager.animals.map(actor => actor.snapshot())).toEqual(actors); expect(app.rng.snapshot()).toEqual(rng);
+    for (const actor of current.wildlife.packs[0]?.members ?? []) expect(Pack.of(actor)).toBe(current.wildlife.packs[0]);
+    for (const actor of current.wildlife.herds[0]?.members ?? []) expect(HorseHerd.of(actor)).toBe(current.wildlife.herds[0]);
+  });
   it('matches the real AnimalManager species dispatch and native predator/foal observations for 10,000 frames', () => {
-    function replay(on: boolean): { digest: string; random: ReturnType<typeof app.rng.snapshot> } {
+    function replay(on?: boolean): { digest: string; random: ReturnType<typeof app.rng.snapshot> } {
       const { world, wildlife } = fixture(on), hash = createHash('sha256');
       const player = { position: world.player.position, forward: new Vector3(0, 0, 1), crouching: false };
       for (let tick = 0; tick < 10000; tick++) {
@@ -45,7 +52,8 @@ describe('Nalati native world group binding', () => {
       }
       return { digest: hash.digest('hex'), random: app.rng.snapshot() };
     }
-    expect(replay(true)).toEqual(replay(false));
+    const shipping = replay(false);
+    expect(replay(true)).toEqual(shipping); expect(replay()).toEqual(shipping);
   });
   it('compares captured shipping controllers and declared policies with identical placement, setup memory and shared RNG', () => {
     const off = fixture(false), actors = off.world.manager.animals.map(actor => actor.snapshot()), rng = app.rng.snapshot();

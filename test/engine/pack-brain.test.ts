@@ -8,7 +8,7 @@ import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { app } from '../../src/engine/app/runtime';
 import { Rng } from '../../src/engine/core/rng';
-import { Pack, type PackController } from '../../src/shards/nalati-grasslands/runtime/packLegacy';
+import { Pack, type PackController } from '../../src/shards/nalati-grasslands/runtime/groupRegistry';
 import { Pack as ShippingPack } from '../fixtures/nalati-group-oracle/pack';
 import { declaredGroupFactories } from '../../src/shards/nalati-grasslands/runtime/groupDeclared';
 import { wildEnv, playerVisibility, downwindOf, hearingRadius } from '../../src/shards/nalati-grasslands/creatures/env';

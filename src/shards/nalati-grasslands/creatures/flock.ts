@@ -18,7 +18,7 @@ import * as THREE from 'three';
 
 
 
-import type { PackPrey } from '../runtime/packLegacy';
+import type { PackPrey } from '../runtime/groupRegistry';
 import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from '../species/sheep';
 import { loadCreatureRig, type RigAsset } from '../species/hulls';
 import { modelsOn } from '../world/glbPaint';

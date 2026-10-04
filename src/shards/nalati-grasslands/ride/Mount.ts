@@ -12,7 +12,7 @@ import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import { inChunk, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { HorseHerd } from '../runtime/herdLegacy';
+import { HorseHerd } from '../runtime/groupRegistry';
 import { HORSE_SPEED } from '../species/horse';
 import { wildEnv } from '../creatures/env';
 import { Bow } from '@wildshard/kit/weapons/bow/family';

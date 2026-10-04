@@ -9,8 +9,8 @@ import * as THREE from 'three';
 
 
 
-import { Pack, type PackController, type PackPrey } from '../runtime/packLegacy';
-import { HorseHerd, type HerdController } from '../runtime/herdLegacy';
+import type { PackController, PackPrey, HerdController } from '../runtime/groupRegistry';
+import { declaredGroupFactories } from '../runtime/groupDeclared';
 import { Flock, SheepPrey, dogWolves } from './flock';
 import { wildEnv } from './env';
 import { Marmots } from './marmots';
@@ -86,12 +86,17 @@ export class Wildlife {
   private _v = new THREE.Vector3();
   private sheepHit: SheepHit | null = null;
   private readonly preyBindings = new Map<string, PackPrey>();
-  private controllers: WildlifeControllers | undefined;
+  private controllers: WildlifeControllers;
 
-  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.rng = new Rng(opts.seed ^ 0x3a17); this.controllers = opts.controllers; }
+  constructor(private readonly animals: AnimalManager, private readonly opts: WildlifeOpts) { this.rng = new Rng(opts.seed ^ 0x3a17); this.controllers = opts.controllers ?? this.declaredControllers(); }
+
+  private declaredControllers(): WildlifeControllers {
+    return declaredGroupFactories({ preyIdentity: prey => this.preyIdentity(prey), resolvePrey: id => this.resolvePrey(id),
+      resolveActor: id => this.animals.animals.find(actor => actor.entityId === id) ?? null });
+  }
 
   build(controllers = this.opts.controllers): this {
-    this.controllers = controllers;
+    this.controllers = controllers ?? this.declaredControllers();
     const layout = this.opts.layout ?? NALATI_WILDLIFE;
     for (const p of layout.packs) this.spawnPack(p.x, p.z, p.variants);
     for (const h of layout.herds) this.spawnHerd(h.x, h.z, h.mares, h.foals, h.stallion);
@@ -136,7 +141,7 @@ export class Wildlife {
       w.herd = herd; this.animals.herds[herd]?.members.push(w);
       members.push(w); this.wolves.push(w);
     }
-    const pack = this.controllers === undefined ? new Pack(members, x, z) : this.controllers.pack(members, x, z);
+    const pack = this.controllers.pack(members, x, z);
     pack.findPrey = (px, pz, r) => this.nearestFoal(px, pz, r);
     this.packs.push(pack);
     return pack;
@@ -161,7 +166,7 @@ export class Wildlife {
       if (mom !== undefined) f.place(mom.position.x + this.rng.range(-2, 2), mom.position.z + this.rng.range(-2, 2), mom.yaw);
     }
     if (stallion) { const s = add('stallion', 4); s.place(x + 16, z + 4, 0); }
-    const h = this.controllers === undefined ? new HorseHerd(members) : this.controllers.herd(members);
+    const h = this.controllers.herd(members);
     h.findWolf = (px, pz, r) => this.nearestWolf(px, pz, r);
     this.herds.push(h);
     return h;

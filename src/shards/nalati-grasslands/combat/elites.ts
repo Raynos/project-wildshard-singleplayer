@@ -26,8 +26,7 @@ import * as THREE from 'three';
 
 
 import type { Wildlife } from '../creatures/wildlife';
-import type { PackController } from '../runtime/packLegacy';
-import type { HerdController } from '../runtime/herdLegacy';
+import type { PackController, HerdController } from '../runtime/groupRegistry';
 
 import type { Ledge } from '../world/Crags';
 

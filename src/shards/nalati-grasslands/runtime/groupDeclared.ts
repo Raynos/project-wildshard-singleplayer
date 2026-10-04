@@ -2,8 +2,8 @@ import { PackBrain } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { groupBrain } from '@wildshard/sdk/groupBrains';
-import { Pack, nativePackPorts, type PackController, type PackPrey } from './packLegacy';
-import { HorseHerd, nativeHerdPorts, type HerdController } from './herdLegacy';
+import { Pack, HorseHerd, type PackController, type PackPrey, type HerdController } from './groupRegistry';
+import { nativePackPorts, nativeHerdPorts } from './groupPorts';
 import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../data/brains';
 
 /** Stable native prey/actor identities for raid, flock and elite continuation; no invented guest control protocol. */
@@ -37,4 +37,17 @@ function declaredHerd(members: Animal[], identity: NativeGroupIdentity): HerdBra
 /** Declared decisions reuse the shipping species, prey, mount, taming, shared-RNG and strike recipes through one registry. */
 export function declaredGroupFactories(identity: NativeGroupIdentity): NativeGroupFactories {
   return { pack: (members, x, z) => declaredPack(members, x, z, identity), herd: members => declaredHerd(members, identity) };
+}
+
+/** Manager-only fallback groups use actor prey identities; flock raids use Wildlife's full world ports. */
+export function memberGroupIdentity(members: readonly Animal[]): NativeGroupIdentity {
+  return {
+    preyIdentity: prey => {
+      const actor = members.find(member => member === prey);
+      if (actor === undefined) throw new Error('Unbound fallback group prey');
+      return `actor:${actor.entityId}`;
+    },
+    resolvePrey: id => members.find(actor => `actor:${actor.entityId}` === id) ?? null,
+    resolveActor: id => members.find(actor => actor.entityId === id) ?? null,
+  };
 }

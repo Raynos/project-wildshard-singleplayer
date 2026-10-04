@@ -12,6 +12,7 @@ import { creature } from '../fake/creature';
 import { fakeWorld } from '../fake/world';
 import { HorseHerd } from '../fixtures/nalati-group-oracle/herd';
 import { Pack } from '../fixtures/nalati-group-oracle/pack';
+import { NALATI_PACK_BRAIN, NALATI_HERD_BRAIN } from '../../src/shards/nalati-grasslands/data/brains';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 // a flat, dry world through the terrain port, not a module mock (E422)
@@ -27,10 +28,8 @@ const tuning = [
   ['S5/S6 captain cuts', `${island}captain.ts`, { SWING_R: 2.3, HIT_R: 2.5, SWING_DMG: 24, WINDUP: [0, 0.7, 0.62, 0.5], COOLDOWN: [0, 1.4, 1.2, 0.8] }],
   ['S7 captain burst', `${island}captain.ts`, { BURST_R: 3, BURST_DMG: 16, UNDER_T: 1.1, SINK_EVERY: [0, 0, 7, 5] }],
   ['S8/S9 boar/bear charge', 'src/engine/entities/AnimalManager.ts', { BOAR_CHARGE: 7.5, CHARGE_HIT_DIST: 1.4, CHARGE_ARC: THREE.MathUtils.degToRad(50), CHARGE_COMMIT: 4.5, CHARGE_COMMIT_TURN: 1.1 }],
-  ['S10 wolf lunge', 'src/shards/nalati-grasslands/runtime/packLegacy.ts', { RUN: 9.5, BITE_R: 1.4, TELEGRAPH: 0.4, DASH_MAX: 1.8, BREAKOFF: 1.1 }],
   ['S11 balbal slam', `${species}balbal.ts`, { ATK_T: 2.9, W_END: 0.52, S_END: 0.58, HIT_R: 3.1, HIT_CONE: 0.96, DAMAGE: 30, KURGAN_DAMAGE: 18, COOLDOWN: 1.4 }],
   ['S12 ghost rider arrow', `${nalati}ghostRiders.ts`, { SPACING: 11, CIRCLE_R: 34, ENGAGE: 70, DISENGAGE: 115, SHOOT: 62, ARROW_SPEED: 34, ARROW_G: 5, ARROW_DMG: 10, RESPAWN: 60 }],
-  ['S18 horse charge', 'src/shards/nalati-grasslands/runtime/herdLegacy.ts', { CHARGE: 12 }],
   ['S19 Golden King cuts', `${nalati}goldenKing.ts`, { STRIKE_DMG: [14, 14, 22, 22], REACH: 3 }],
   ['S20 Golden King sunburst', `${nalati}goldenKing.ts`, { SUNBURST_DMG: 25, RING_SPEED: 8.5, RING_MAX: 17 }],
   ['S21 Golden King beam', `${nalati}goldenKing.ts`, { BEAM_R: 6.2, BEAM_HIT_R: 1.15, BEAM_DMG: 15 }],
@@ -42,6 +41,11 @@ const tuning = [
   ['S36 Antler King stomp', 'src/shards/pine-hollow/runtime/antlerKing.ts', { STOMP_R: 4.4 }],
 ] as const;
 describe('strike tuning from current production declarations', () => {
+  it('S10/S18 read the live declared pack lunge and guarded-herd charge tuning', () => {
+    expect([NALATI_PACK_BRAIN.runSpeed, NALATI_PACK_BRAIN.biteRadius, NALATI_PACK_BRAIN.telegraphSeconds,
+      NALATI_PACK_BRAIN.dashSeconds, NALATI_PACK_BRAIN.breakoffSeconds]).toEqual([9.5, 1.4, 0.4, 1.8, 1.1]);
+    expect(NALATI_HERD_BRAIN.chargeSpeed).toBe(12);
+  });
   it('S8/S9 the charge wind-ups are the species rows\' own (E405: the kit\'s boar 0.55 s, bear 0.65 s)', () => {
     expect(BOAR.chargeWindup).toBe(0.55); expect(BEAR.chargeWindup).toBe(0.65);
   });
