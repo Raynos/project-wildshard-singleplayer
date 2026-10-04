@@ -24,7 +24,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { FEI_ZHUA_ROW } from './row';
 import { GRAPPLE_CONTEXT } from './context';
 import { WELL, Y0 } from '../layout';
-import { ndRuntime } from '../runtime';
+import { ndRuntime } from '../runtime/state';
 import { RIM } from '../world/well-plan';
 import { Filament, Rope } from './line';
 import { Flash, Sparks } from './fx';

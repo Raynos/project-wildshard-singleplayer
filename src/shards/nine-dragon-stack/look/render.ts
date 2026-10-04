@@ -8,7 +8,7 @@ import { Color, Fog, type IUniform, Mesh, type Object3D, type PerspectiveCamera,
 import type { LookComposeContext, LookComposition, LookStrategy } from '@wildshard/engine/render/look';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { installRenderEvents } from './renderEvents';
-import { ndRuntime } from '../runtime';
+import { ndRuntime } from '../runtime/state';
 import { glowUniforms } from './light/glow';
 import { gradeUniforms, loadLut } from './light/grade';
 import { LUT_URL, lightSources } from './light/install';

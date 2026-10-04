@@ -7,7 +7,7 @@ import { shardContext, type GameServices } from '../../../src/game/shard/context
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import manifest from '../../../src/shards/nine-dragon-stack/manifest';
 import { NdPlugin } from '../../../src/shards/nine-dragon-stack/plugin';
-import { ndRuntime } from '../../../src/shards/nine-dragon-stack/runtime';
+import { ndRuntime } from '../../../src/shards/nine-dragon-stack/runtime/state';
 import { Shared } from '../../../src/shards/nine-dragon-stack/look/style';
 import { InstanceCuller } from '../../../src/shards/nine-dragon-stack/world/cull';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from '../../../src/shards/nine-dragon-stack/world/colliders';

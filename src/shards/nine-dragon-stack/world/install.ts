@@ -4,7 +4,7 @@ import type { LevelContext } from '@wildshard/engine/level/context';
 import type { NineDragonWorld } from './build';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './colliders';
 import { crossingColliders } from './well-mid';
-import { NdRuntime, ownNdRuntime } from '../runtime';
+import { NdRuntime, ownNdRuntime } from '../runtime/state';
 
 const FILE = 'src/shards/nine-dragon-stack/world/colliders.ts';
 
