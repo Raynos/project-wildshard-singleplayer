@@ -40,7 +40,8 @@ export class RamGrazerBrain<A extends AnimalSim> {
   private wanderT = 0;
   private ramYaw = 0;
   constructor(actor: A, spec: RamGrazerSpec, strike: StrikeSpec) {
-    const values = Object.values(spec);
+    const values = [spec.grazeSpeed, spec.ramSpeed, spec.noticeRadius, spec.rimMargin, spec.fallDrop,
+      spec.levelTolerance, spec.threatSpeed, spec.wanderMinSeconds, spec.wanderMaxSeconds, spec.rampRate];
     if (values.some(value => !Number.isFinite(value) || value < 0 || value > 600)
       || spec.grazeSpeed > 10 || spec.ramSpeed > 15 || spec.threatSpeed > 15 || spec.wanderMinSeconds <= 0
       || spec.wanderMinSeconds > spec.wanderMaxSeconds || spec.rampRate <= 0 || spec.levelTolerance <= 0
