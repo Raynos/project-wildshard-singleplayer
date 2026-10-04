@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1920 members; 830 without a doc line (—).
+1928 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1392,6 +1392,14 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SimStateAdapter` | interface | @wildshard/engine/sim | Each future brain/script instance registers its own continuation state, never a process singleton. |
 | `SimStrike` | type | @wildshard/engine/sim | Pure strike data. The host supplies the constant selection weight. |
 | `SimValue` | type | @wildshard/engine/sim | Serializable F1 extension values, without callbacks or renderer objects. |
+| `bakedEdgeProfiles` | function | @wildshard/engine/sim/edgeProfiles | Decode only the pure WSTR bake data. Four palette colours correspond to its four splat channels. |
+| `EdgeColour` | type | @wildshard/engine/sim/edgeProfiles | Linear RGB, supplied by the admitted terrain palette rather than a renderer dependency. |
+| `EdgeProfiles` | type | @wildshard/engine/sim/edgeProfiles | Boundary rows run west→east on north/south and south→north on east/west. North is positive z. |
+| `EdgeResolution` | type | @wildshard/engine/sim/edgeProfiles | Native bake rows have 256 samples; tile bakes have 257. Neither is decimated for platform seams. |
+| `edgeSample` | function | @wildshard/engine/sim/edgeProfiles | Linear interpolation matches the boundary's actual mesh segments at the other neighbour's vertices. |
+| `edgeSampleLocations` | function | @wildshard/engine/sim/edgeProfiles | Sorted union preserves both neighbours' exact native vertices when 256 and 257 rows meet. |
+| `nativeEdgeProfiles` | function | @wildshard/engine/sim/edgeProfiles | Copy every boundary vertex from a row-major native lattice, preserving its height and linear colour. |
+| `validateEdgeProfile` | function | @wildshard/engine/sim/edgeProfiles | Validate complete native rows before allocating a platform mesh. |
 | `ReadinessBundle` | interface | @wildshard/engine/sim/readiness | Wire and CPU work needed before a neighbour can own a traveler. Hybrid bytes describe its runtime chunk. |
 | `ReadinessEstimate` | interface | @wildshard/engine/sim/readiness | Separate critical and hybrid lines, conservatively sharing the link in sequence. |
 | `ReadinessLink` | interface | @wildshard/engine/sim/readiness | Platform travel envelope; link rate is bits per second, all time inputs are seconds. |
@@ -1407,12 +1415,12 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SIM_SNAPSHOT_VERSION` | const | @wildshard/engine/sim/snapshot | Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. |
 | `SimSnapshot` | interface | @wildshard/engine/sim/snapshot | Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. |
 | `snapshotSimHost` | function | @wildshard/engine/sim/snapshot | Capture at a fixed-step boundary; pending events are preserved without flushing them. |
-| `generateCrossroads` | function | @wildshard/engine/sim/strips | Four corner samples meet the strips exactly, while both crossing highway lanes remain at road height zero. |
+| `generateCrossroads` | function | @wildshard/engine/sim/strips | B-clamped corners meet every floor endpoint; retaining walls and cliffs return10m around the junction. |
 | `GeneratedStrip` | interface | @wildshard/engine/sim/strips | The highway owns the primary mesh; neighbouring worlds receive exact translated duplicates. |
 | `generatePlatform` | function | @wildshard/engine/sim/strips | Generate every deck corridor and four-way junction, including the explicit empty-neighbour perimeter. |
-| `generateStrip` | function | @wildshard/engine/sim/strips | Both profiles run in positive lateral order (south→north or west→east); no neighbour reversal is implicit. |
+| `generateStrip` | function | @wildshard/engine/sim/strips | Full native profiles run in positive lateral order; mixed rows preserve the sorted union of their vertices. |
 | `PlatformCell` | interface | @wildshard/engine/sim/strips | Declared edge data placed on an integer platform grid; placement never enters a regional simulation. |
-| `STRIP_OFFSETS` | const | @wildshard/engine/sim/strips | The 55 m gap consists of two 20 m strips and a 15 m highway. Entries at 6/10 m are explicit mesh vertices. |
+| `STRIP_OFFSETS` | const | @wildshard/engine/sim/strips | Full G90 gradient lattice, including the explicit 6/10m re-frame lines. |
 | `StripCell` | interface | @wildshard/engine/sim/strips | A regional placement is used only to translate the platform's duplicate collider. |
 | `StripCorner` | interface | @wildshard/engine/sim/strips | Southwest, southeast, northwest and northeast outer corner values, in that order. |
 | `StripMesh` | interface | @wildshard/engine/sim/strips | A triangle mesh is local to its origin. Colour triples use the same vertex ordering. |

@@ -8323,6 +8323,54 @@
         "from": "@wildshard/engine/sim"
       },
       {
+        "name": "bakedEdgeProfiles",
+        "kind": "function",
+        "doc": "Decode only the pure WSTR bake data. Four palette colours correspond to its four splat channels.",
+        "from": "@wildshard/engine/sim/edgeProfiles"
+      },
+      {
+        "name": "EdgeColour",
+        "kind": "type",
+        "doc": "Linear RGB, supplied by the admitted terrain palette rather than a renderer dependency.",
+        "from": "@wildshard/engine/sim/edgeProfiles"
+      },
+      {
+        "name": "EdgeProfiles",
+        "kind": "type",
+        "doc": "Boundary rows run west→east on north/south and south→north on east/west. North is positive z.",
+        "from": "@wildshard/engine/sim/edgeProfiles"
+      },
+      {
+        "name": "EdgeResolution",
+        "kind": "type",
+        "doc": "Native bake rows have 256 samples; tile bakes have 257. Neither is decimated for platform seams.",
+        "from": "@wildshard/engine/sim/edgeProfiles"
+      },
+      {
+        "name": "edgeSample",
+        "kind": "function",
+        "doc": "Linear interpolation matches the boundary's actual mesh segments at the other neighbour's vertices.",
+        "from": "@wildshard/engine/sim/edgeProfiles"
+      },
+      {
+        "name": "edgeSampleLocations",
+        "kind": "function",
+        "doc": "Sorted union preserves both neighbours' exact native vertices when 256 and 257 rows meet.",
+        "from": "@wildshard/engine/sim/edgeProfiles"
+      },
+      {
+        "name": "nativeEdgeProfiles",
+        "kind": "function",
+        "doc": "Copy every boundary vertex from a row-major native lattice, preserving its height and linear colour.",
+        "from": "@wildshard/engine/sim/edgeProfiles"
+      },
+      {
+        "name": "validateEdgeProfile",
+        "kind": "function",
+        "doc": "Validate complete native rows before allocating a platform mesh.",
+        "from": "@wildshard/engine/sim/edgeProfiles"
+      },
+      {
         "name": "ReadinessBundle",
         "kind": "interface",
         "doc": "Wire and CPU work needed before a neighbour can own a traveler. Hybrid bytes describe its runtime chunk.",
@@ -8415,7 +8463,7 @@
       {
         "name": "generateCrossroads",
         "kind": "function",
-        "doc": "Four corner samples meet the strips exactly, while both crossing highway lanes remain at road height zero.",
+        "doc": "B-clamped corners meet every floor endpoint; retaining walls and cliffs return10m around the junction.",
         "from": "@wildshard/engine/sim/strips"
       },
       {
@@ -8433,7 +8481,7 @@
       {
         "name": "generateStrip",
         "kind": "function",
-        "doc": "Both profiles run in positive lateral order (south→north or west→east); no neighbour reversal is implicit.",
+        "doc": "Full native profiles run in positive lateral order; mixed rows preserve the sorted union of their vertices.",
         "from": "@wildshard/engine/sim/strips"
       },
       {
@@ -8445,7 +8493,7 @@
       {
         "name": "STRIP_OFFSETS",
         "kind": "const",
-        "doc": "The 55 m gap consists of two 20 m strips and a 15 m highway. Entries at 6/10 m are explicit mesh vertices.",
+        "doc": "Full G90 gradient lattice, including the explicit 6/10m re-frame lines.",
         "from": "@wildshard/engine/sim/strips"
       },
       {
