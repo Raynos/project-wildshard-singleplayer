@@ -21,7 +21,7 @@ import { patchShader } from '@wildshard/engine/render/shaderPatches';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { FarProxyView } from './farView';
 import type { FarHaze } from './farProxy';
-import { DECK_SLOT, FIRST_NEIGHBOUR_SLOT, LAST_SLOT, MAX_NEIGHBOUR_SLOTS, NEUTRAL_GRADE, frameFog, regionWeights, slotAlpha, type FrameCell, type RegionGrade, type RegionWeights } from './frameModel';
+import { DECK_SLOT, FIRST_NEIGHBOUR_SLOT, HIGHWAY_LOOK, LAST_SLOT, MAX_NEIGHBOUR_SLOTS, NEUTRAL_GRADE, frameFog, regionWeights, slotAlpha, type FrameCell, type RegionGrade, type RegionWeights } from './frameModel';
 
 /** What the frame reads from the page: the scene and camera, the engine's composer and its grade effects (late-bound). */
 export interface GridFrameHost {
@@ -65,14 +65,18 @@ export function gateToHome(blendMode: BlendMode): () => void {
   return () => { Reflect.deleteProperty(blendMode, 'blendFunction'); Reflect.deleteProperty(blendMode, 'getShaderCode'); };
 }
 
-/** The region grade, one small effect at the end of the colour pass: slot → exposure, saturation, contrast; alpha → 1. */
+/** The region grade, one small effect at the end of the colour pass: slot → exposure, saturation, contrast, tint; alpha → 1. */
 export class RegionGradeEffect extends Effect {
   /** x exposure (stops), y saturation, z contrast, per slot (index = slot; home and unused slots stay neutral) */
   readonly grades: Vector3[];
+  /** linear RGB multiplier per slot (white = none) */
+  readonly tints: Vector3[];
   constructor() {
     const grades = Array.from({ length: LAST_SLOT + 1 }, () => new Vector3(NEUTRAL_GRADE.exposure, NEUTRAL_GRADE.saturation, NEUTRAL_GRADE.contrast));
+    const tints = Array.from({ length: LAST_SLOT + 1 }, () => new Vector3(1, 1, 1));
     super('GridRegionGrade', /* glsl */`
       uniform vec3 uGridRegionGrades[${String(LAST_SLOT + 1)}];
+      uniform vec3 uGridRegionTints[${String(LAST_SLOT + 1)}];
       void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
         float slot = floor(texture2D(inputBuffer, uv).a * 16.0 + 0.5);
         vec3 c = inputColor.rgb;
@@ -82,13 +86,17 @@ export class RegionGradeEffect extends Effect {
           float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
           c = max(mix(vec3(l), c, g.y), 0.0);
           c = max((c - 0.214) * g.z + 0.214, 0.0); // pivot: mid grey in linear light
+          c *= uGridRegionTints[int(slot)];
         }
         outputColor = vec4(c, 1.0);
-      }`, { blendFunction: BlendFunction.SRC, uniforms: new Map<string, Uniform>([['uGridRegionGrades', new Uniform(grades)]]) });
-    this.grades = grades;
+      }`, { blendFunction: BlendFunction.SRC, uniforms: new Map<string, Uniform>([['uGridRegionGrades', new Uniform(grades)], ['uGridRegionTints', new Uniform(tints)]]) });
+    this.grades = grades; this.tints = tints;
   }
   /** Set a slot's grade. */
-  set(slot: number, grade: RegionGrade): void { this.grades[slot]?.set(grade.exposure, grade.saturation, grade.contrast); }
+  set(slot: number, grade: RegionGrade): void {
+    this.grades[slot]?.set(grade.exposure, grade.saturation, grade.contrast);
+    const tint = grade.tint ?? [1, 1, 1]; this.tints[slot]?.set(tint[0], tint[1], tint[2]);
+  }
 }
 
 /** The effects of an EffectPass (its list is private in the typings; read at run time and checked). */
@@ -100,9 +108,9 @@ function passEffects(pass: EffectPass): Effect[] | null {
 }
 
 /** A proxy the frame tags: its view and its own declared haze (linear RGB). */
-interface Tagged { readonly view: FarProxyView; readonly haze: FarHaze }
-/** How much of a proxy's own declared haze colour survives in the one frame's air. */
-const OWN_HAZE = 0.25;
+interface Tagged { readonly view: FarProxyView; readonly haze: FarHaze; readonly own: number }
+/** How much of a proxy's own declared haze colour survives in the one frame's air (a shard's band may keep more, G94). */
+export const OWN_HAZE = 0.25;
 
 /** The live one frame. Built by the grid session when the row is on; disposed with the level scope. */
 export class GridFrame {
@@ -132,7 +140,7 @@ export class GridFrame {
     const neighbours = cells.filter((cell) => cell.instance !== home.instance);
     if (neighbours.length > MAX_NEIGHBOUR_SLOTS) throw new RangeError(`A grid frame has ${String(MAX_NEIGHBOUR_SLOTS)} neighbour slots, not ${String(neighbours.length)}`);
     neighbours.forEach((cell, i) => { this.slots.set(cell.instance, FIRST_NEIGHBOUR_SLOT + i); });
-    this.effect.set(DECK_SLOT, NEUTRAL_GRADE);
+    this.effect.set(DECK_SLOT, HIGHWAY_LOOK.grade);
     // the scene fog is the camera's air while the scene draws (the backdrop has written its own by then)
     const prev = host.scene.onBeforeRender.bind(host.scene);
     host.scene.onBeforeRender = (...args) => { this.beforeScene(); prev(...args); };
@@ -151,12 +159,12 @@ export class GridFrame {
     this.grades.set(instance, grade); this.effect.set(slot, grade);
   }
 
-  /** Tag a drawn far proxy: its pixels write its slot and its haze follows the frame's air. Returns the untag. */
-  tag(instance: string, view: FarProxyView, haze: FarHaze): () => void {
+  /** Tag a drawn far proxy: its pixels write its slot and its haze follows the frame's air (keeping `own` of its own). Returns the untag. */
+  tag(instance: string, view: FarProxyView, haze: FarHaze, own: number = OWN_HAZE): () => void {
     const slot = this.slots.get(instance);
     if (slot === undefined) return () => undefined;
     view.frameAlpha(slotAlpha(slot));
-    const entry = { view, haze };
+    const entry = { view, haze, own: Math.min(1, Math.max(0, own)) };
     this.tagged.set(instance, entry);
     return () => { if (this.tagged.get(instance) === entry) this.tagged.delete(instance); };
   }
@@ -210,8 +218,8 @@ export class GridFrame {
     const [r, g, b] = frameFog(this.weights, home, this.hazes);
     this.air.setRGB(r, g, b);
     if (live !== null) { live.copy(this.air); this.written.copy(this.air); }
-    for (const { view, haze } of this.tagged.values()) {
-      this.scratch.setRGB(haze.colour[0], haze.colour[1], haze.colour[2]).lerp(this.air, 1 - OWN_HAZE);
+    for (const { view, haze, own } of this.tagged.values()) {
+      this.scratch.setRGB(haze.colour[0], haze.colour[1], haze.colour[2]).lerp(this.air, 1 - own);
       view.hazeColour(this.scratch);
     }
   }

@@ -24,12 +24,20 @@ export const MAX_NEIGHBOUR_SLOTS = 8;
 /** The last region slot; any alpha above it (or 0, the clear) is the home cell. */
 export const LAST_SLOT = FIRST_NEIGHBOUR_SLOT + MAX_NEIGHBOUR_SLOTS - 1;
 
-/** A region's grade after the camera's tone mapping: exposure in stops, saturation and contrast as factors. */
-export interface RegionGrade { readonly exposure: number; readonly saturation: number; readonly contrast: number }
-/** The grade that changes nothing (the highway's, and any shard that declares none). */
+/**
+ * A region's grade after the camera's tone mapping: exposure in stops, saturation and contrast as factors, and an
+ * optional linear RGB tint multiplied in last (absent: white).
+ */
+export interface RegionGrade { readonly exposure: number; readonly saturation: number; readonly contrast: number; readonly tint?: readonly [number, number, number] | undefined }
+/** The grade that changes nothing (any shard that declares none). */
 export const NEUTRAL_GRADE: RegionGrade = { exposure: 0, saturation: 1, contrast: 1 };
-/** The neutral highway look: no grade, and its air is the home horizon with half its colour taken out. */
-export const HIGHWAY_LOOK = { grade: NEUTRAL_GRADE, fogDesaturate: 0.5 } as const;
+/**
+ * G75 (Jake: "C Identity + neutral road"): the road and strips take a neutral grey-blue grade, a fifth of their colour
+ * out and a cool tint, so every shard's own grade reads against one quiet road.
+ */
+export const HIGHWAY_GRADE: RegionGrade = { exposure: 0, saturation: 0.8, contrast: 1, tint: [0.95, 0.99, 1.07] };
+/** The neutral highway look: its grey-blue grade, and its air is the home horizon with half its colour taken out. */
+export const HIGHWAY_LOOK = { grade: HIGHWAY_GRADE, fogDesaturate: 0.5 } as const;
 
 /** The alpha a slot writes. */
 export function slotAlpha(slot: number): number {

@@ -6,7 +6,15 @@
  */
 import { BufferAttribute, BufferGeometry, Color, Mesh, MeshLambertMaterial, MeshStandardMaterial, Vector3, type Object3D } from 'three';
 import { patchShader } from '@wildshard/engine/render/shaderPatches';
-import type { FarLookRuntime, FarProxyMesh } from './farProxy';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { FAR_EDGE_FLOOR, type FarLookRuntime, type FarProxyMesh } from './farProxy';
+
+/**
+ * SF23 / G90: how far (m) the foot of a proxy's border skirt steps in from the cell edge. The skirt keeps its top on the
+ * edge and its −20 m floor (G121), but leans inward, so a seam's retaining wall (a face in the cell-edge plane, 6 m to H)
+ * draws in front of it instead of sharing its plane. Applied in the vertex shader: the baked GLBs stay as they are.
+ */
+export const FAR_SKIRT_INSET = 3;
 
 /** A drawn proxy: the rings' RingView shape plus its mesh. */
 export interface FarProxyView {
@@ -27,6 +35,8 @@ export function farProxyMaterial(look: FarLookRuntime): { material: MeshLambertM
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float farMask[16];\nvarying float vFarDepth;')
+      // a border skirt's foot: a horizontal normal, at or under the edge floor, on the cell edge; it steps inward
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nif (abs(normal.y) < 0.01 && transformed.y < ${(FAR_EDGE_FLOOR + 0.01).toFixed(2)}) transformed.xz -= sign(transformed.xz) * step(vec2(${(CHUNK_HALF - 0.01).toFixed(2)}), abs(transformed.xz)) * ${FAR_SKIRT_INSET.toFixed(1)};`)
       .replace('#include <project_vertex>', '#include <project_vertex>\nvFarDepth = -mvPosition.z;\nif (farMask[int(uv.x + 0.5)] > 0.5) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform vec3 farHazeColour;\nuniform vec3 farHaze;\nuniform float farFrameAlpha;\nvarying float vFarDepth;')

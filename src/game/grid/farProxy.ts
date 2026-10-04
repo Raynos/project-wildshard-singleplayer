@@ -29,11 +29,24 @@ export interface FarLookSource {
   readonly canopyAt?: (x: number, z: number, h: number, slope: number, splat: readonly [number, number, number, number]) => number;
   readonly water?: { readonly level: number; readonly colour: FarRgb };
   readonly haze: FarHaze;
+  /** its pixels' grade under the one frame (SF19a / SF19b) */
+  readonly grade?: FarGrade;
+  /** a haze band at its border under the one frame (SF19b, G94) */
+  readonly band?: FarBand;
 }
-/** A shard's declared grade for its pixels under SF19a's one frame (after the camera's tone mapping; neutral when absent). */
-export interface FarGrade { readonly exposure: number; readonly saturation: number; readonly contrast: number }
+/**
+ * A shard's declared grade for its pixels under SF19a's one frame (after the camera's tone mapping; neutral when absent):
+ * exposure in stops, saturation and contrast as factors, an optional linear RGB tint.
+ */
+export interface FarGrade { readonly exposure: number; readonly saturation: number; readonly contrast: number; readonly tint?: FarRgb | undefined }
+/**
+ * SF19b (G94 / G95): a shard keeps its own mood inside the one frame without a second sky, through a band of its own
+ * haze rising at its border (a dusk dust haze, a border fog) and how much of its declared haze its proxy keeps against
+ * the camera's air (`own`, 0..1; the frame's default is 0.25).
+ */
+export interface FarBand { readonly colour: FarRgb; readonly height: number; readonly opacity: number; readonly own: number }
 /** What the runtime needs beside the proxy's mesh (stored in `far.json`). */
-export interface FarLookRuntime { readonly family: FarFamily; readonly haze: FarHaze; readonly grade?: FarGrade | undefined }
+export interface FarLookRuntime { readonly family: FarFamily; readonly haze: FarHaze; readonly grade?: FarGrade | undefined; readonly band?: FarBand | undefined }
 /** A baked grid as `terrain.bin` holds it: res² heights over size metres, 4 splat bytes per vertex. */
 export interface FarGrid { readonly res: number; readonly size: number; readonly heights: Float32Array; readonly splat: Uint8Array | null }
 /** An indexed proxy mesh; `region` is per vertex. */
