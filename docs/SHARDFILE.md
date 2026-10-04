@@ -23,6 +23,7 @@ integers. MB means 1,000,000 bytes. The platform owns caps in
 | `creatures`, `encounters` | Optional/default-empty reusable brains, stable spawns and phase tables; each actor has one controller and resolves declared species/variant/strike and boss panel references. |
 | `quests`, `audio`, `ledger` | Optional/default-empty quest graphs/triggers/dialogue, admitted cue/ambience/score declarations, and witnessed fact/reward mappings. |
 | `hooks`, `plumbing`, `spawn` | Optional named numeric field conditions and next-tick scene events; optional scoped input/tier/Debug declarations; cell-local player position and yaw (default 0, 2, 0, 0). |
+| `props`, `items`, `targets` | Optional admitted tile/library GLBs and static collider descriptors; optional/default-empty registered kit item families; named published-state panel/collider bindings and existing interaction prompts. |
 | `state` | Positive state-schema version, `sharedOwner: "host"`, `playerKey: "actorId"`; named shared and per-player fields with bool/i32/f64/string type and matching default. |
 | Field `privacy` | `public` replicates to everyone; `owner` only to the owning actor; `host` never leaves the host. Shared writes always belong to the host regardless of visibility. Names are unique within each state scope. |
 | `authorCaps` | 1–32 players (authors may lower the room cap); in-cell speed 0–15 m/s. Highway speed belongs to the platform. |
@@ -109,6 +110,14 @@ fields. Host-only fields stay private. Scene hooks declare a numeric event type 
 value, delivered to the host-resolved actor on the next script tick. Quests, input
 and Debug choices may refer only to these declared hook names; hooks require a
 script binding. The platform resolves callbacks, and the product contains only data.
+
+`targets.panels` names a prop panel, published `scope`/`fieldId` and typed `equals`
+value, with `visibleWhenMatched`, collider IDs and `activeWhenMatched`. One binding
+owns each panel/collider. The authoritative host updates collision after scripts;
+the renderer reads the same field. `targets.interactions` supplies stable IDs,
+cell-local `at`, reach radius, text label and a declared scene hook to the normal
+interaction list. Item hooks select admitted modules; the trusted host supplies
+their owner actor and merges explicit item handles into its single script lane.
 
 Local references are file hashes; shared references are `commons:<hash>` and must be
 declared in `requires.commons`. Every local dependency resolves. The dependency graph

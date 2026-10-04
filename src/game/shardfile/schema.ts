@@ -13,6 +13,9 @@ import { AudioDataSchema } from './audio';
 import { LedgerRulesSchema } from './ledger';
 import { HooksSchema, hookRules } from './hooks';
 import { PlumbingSchema } from './plumbing';
+import { PropsSchema, validatePropsReferences } from './props';
+import { TargetsSchema, targetRules } from './targets';
+import { ItemsSchema, itemRules } from './items';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs } from './materials';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
@@ -59,6 +62,9 @@ const rawSchema = v.strictObject({
   ledger: v.optional(LedgerRulesSchema, []),
   hooks: v.optional(HooksSchema, { conditions: [], scenes: [] }),
   plumbing: v.optional(v.nullable(PlumbingSchema), null),
+  items: v.optional(ItemsSchema, { version: 1, rows: [], contexts: [], loadout: { primary: null, secondary: null, tools: [] } }),
+  props: v.optional(v.nullable(PropsSchema), null),
+  targets: v.optional(TargetsSchema, { panels: [], interactions: [] }),
   spawn: v.optional(v.strictObject({ x: finite, y: finite, z: finite, yaw: finite }), { x: 0, y: 2, z: 0, yaw: 0 }),
 });
 /** A serialisable shardfile v0, independent of renderer and placement. */
@@ -120,6 +126,12 @@ export function shardfileRules(s: Shardfile): string[] {
   for (const f of s.files) if (f.critical !== s.critical.includes(f.hash)) errors.push('critical flags match roots');
   errors.push(...uiRules(s.ui, s.state));
   errors.push(...hookRules(s.hooks, s.state));
+  errors.push(...targetRules(s.targets, s, s.props));
+  errors.push(...itemRules(s.items, s.sim.scripts));
+  if (s.props !== null) {
+    try { validatePropsReferences(s.props, s); } catch { errors.push('declared prop references'); }
+    if (!materialExists(s.look.materials, s.props.family)) errors.push('declared prop material');
+  }
   if (Math.abs(s.spawn.x) > CHUNK_HALF || Math.abs(s.spawn.z) > CHUNK_HALF || s.spawn.y < -CELL_BELOW || s.spawn.y > CELL_ABOVE) errors.push('player spawn in cell');
   const conditions = new Set(s.hooks.conditions.map((row) => row.id)), scenes = new Set(s.hooks.scenes.map((row) => row.id));
   if (s.quests.triggers.some((row) => row.kind === 'script' && !conditions.has(row.condition)) || s.quests.quests.some((row) => row.onComplete?.scene !== undefined && !scenes.has(row.onComplete.scene)) || s.quests.dialogue.some((row) => row.nodes.some((node) => node.choices.some((choice) => choice.scene !== undefined && !scenes.has(choice.scene))))) errors.push('declared quest script hooks');
