@@ -1,5 +1,5 @@
 import { PINE_BUDGET_INPUTS } from './budgets';
-import { FOREST_AUDIO } from './runtime/audio/profile';
+import { PINE_AUDIO_SAMPLES } from './data/audioSamples';
 import compareRidgeLive from './explore/pine-ridge-live.jpg';
 import compareRidgeTarget from './explore/pine-ridge-target.jpg';
 import compareDenLive from './explore/pine-den-live.jpg';
@@ -53,7 +53,7 @@ export const PINE_HOLLOW: ShardManifest = {
   },
   render: async () => (await import('./look/render')).shardRender(),
   api: 1,
-  audio: { bed: FOREST_AUDIO.bed, samples: FOREST_AUDIO.samples, ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./runtime/audio/files').then((m) => m.createPineAudio()) },
+  audio: { bed: PINE_AUDIO_SAMPLES.bed, samples: { loopGains: PINE_AUDIO_SAMPLES.loopGains }, ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./runtime/audio/files').then((m) => m.createPineAudio()) },
   load: () => import('./plugin'),
   boot: { viewmodelSets: ['walnut', 'brushed-steel', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'gunmetal'], audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
   kitLook: 'pbr',
