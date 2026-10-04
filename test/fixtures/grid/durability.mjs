@@ -12,11 +12,11 @@ import { GridRegionDurability } from '../../../src/game/grid/durability.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 class Storage {
-  data = new Map(); fail = false;
+  data = new Map(); fail = false; failProfile = false;
   get length() { return this.data.size; }
   key(index) { return [...this.data.keys()][index] ?? null; }
   getItem(key) { return this.data.get(key) ?? null; }
-  setItem(key, value) { if (this.fail) throw new Error('Quota'); this.data.set(key, value); }
+  setItem(key, value) { if (this.fail || (this.failProfile && key.endsWith('profile'))) throw new Error('Quota'); this.data.set(key, value); }
   removeItem(key) { this.data.delete(key); }
 }
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -60,6 +60,24 @@ try {
   const document = JSON.parse(local.getItem(key));
   document.keys['platform.region'].data.snapshot = JSON.stringify({ version: 900 }); local.setItem(key, JSON.stringify(document));
   assert.throws(() => new GridRegionDurability(new SaveStore({ local, session: null }), identity, source, []).read());
+
+  const profileLocal = new Storage(), profileStore = new SaveStore({ local: profileLocal, session: null });
+  const profileSave = new GridRegionDurability(profileStore, identity, source, []);
+  const profileSim = createShardfileSim(source, assets, { rapier, quest: profileSave.quest }); profileSave.bind(profileSim.host);
+  try {
+    profileSim.host.step(); profileLocal.failProfile = true;
+    profileSim.host.player.position.set(0, 0, -9); profileSim.host.step();
+    const target = profileSim.host.entities.get('grey-blob:1'); assert.ok(target);
+    profileSim.host.combat.hit({ source: profileSim.host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: target.combatActor(),
+      amount: 1000, point: target.position, from: profileSim.host.player.position, dir: new Vector3(0, 0, 1) }); profileSim.host.step();
+    const pending = snapshotSimHost(profileSim.host);
+    assert.equal(profileSave.checkpoint(pending), false);
+    const cold = new GridRegionDurability(new SaveStore({ local: profileLocal, session: null }), identity, source, []);
+    assert.equal(cold.wallet.coins(), 5); assert.equal(Object.values(cold.ledger.state().facts).length, 0); assert.equal(cold.read(), undefined);
+    profileLocal.failProfile = false; assert.equal(profileSave.checkpoint(pending), true);
+    const durable = new GridRegionDurability(new SaveStore({ local: profileLocal, session: null }), identity, source, []);
+    assert.equal(durable.wallet.coins(), 5); assert.equal(Object.values(durable.ledger.state().facts).length, 1); assert.ok(durable.read());
+  } finally { profileSim.dispose(); }
   console.info(JSON.stringify({ nativeDurability: true, failedRetries: 10, coins: 5, questFacts: 1, achievementGrants: 1,
-    restoredTicks: 120, independentCopies: true, refusesChangedRevision: true, refusesCorruptSnapshot: true }));
+    restoredTicks: 120, independentCopies: true, refusesChangedRevision: true, refusesCorruptSnapshot: true, profileQuotaDeferred: true }));
 } finally { sim.dispose(); }
