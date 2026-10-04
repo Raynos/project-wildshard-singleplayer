@@ -1,4 +1,5 @@
 import { DRIFTWOOD_BUDGET_INPUTS } from './budgets';
+import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
 import { area as BLENDER_AREA } from './world/blenderArea';
 import { DRIFTWOOD_FAUNA_PLANS } from './creatures/tables';
 import exploreWorld from './explore/world-driftwood-isle.webp';
@@ -26,7 +27,7 @@ import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { ShardManifest, OceanDef } from '@wildshard/game/shard/manifest';
 import { lateReads } from './boot/lateReads';
 import { bootSources } from './boot/sources';
-import { DRIFTWOOD_SEA, SHORE_LEVEL, declaredSeaLevel } from './world/sea';
+import { DRIFTWOOD_SEA, SHORE_LEVEL, declaredSeaLevel, droppedTerrain, waterline, worldDrop } from './world/sea';
 import thumbnail from './thumbs/driftwood-isle.jpg';
 import heroPortrait from './thumbs/driftwood-isle-portrait.jpg';
 import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
@@ -41,7 +42,9 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
   ] } satisfies NonNullable<ShardManifest['explore']>;
 
 export const OCEAN: OceanDef = {
-  level: SHORE_LEVEL, // the terrain's waterline; the hybrid world lowers the sea itself (./world/sea.ts, G134)
+  // the island's waterline in world space: the authored +0.8 m, less G164's whole-world drop with the hybrid row ON
+  // (./world/sea.ts); the landscape below is authored round SHORE_LEVEL
+  get level(): number { return waterline(); },
   // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
   shallowColor: [0.0, 0.8, 0.88],
   deepColor: [0.008, 0.15, 0.52],
@@ -85,7 +88,7 @@ export const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
 export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 9 };
 /** Wreck Cove: a bay bitten out of the east shore; the wreck lies half sunk on the reef at its mouth, bow run up the sand, heeled toward the beach (Wreck.ts) */
 export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
-export const WRECK = { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, floorY: 1.45 };
+export const WRECK = { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, get floorY(): number { return 1.45 - worldDrop(); } }; // G164: the hold floor drops with the world
 /** the ring shrine on a knoll in the north-west jungle (rot: its stair faces south-east toward the hut path; its back points at the planet, so the ring frames it from the stair head) */
 export const SHRINE = { x: -98, z: 108, rot: 2.51 };
 /** the tidal creek across the hut → lookout path (a ravine cut below sea level, so the lagoon runs into it) and the rope bridge over it */
@@ -110,6 +113,7 @@ export const PRACTICE_CRAB = { x: -7, z: -143 };
 /** the boar variants the island rolls (E318): the common four, never Pine Hollow's Scarback or Old Ironhide (whose drop is a gun) */
 
 export const DRIFTWOOD_ISLE: ShardManifest = {
+  runtimeCost: DRIFTWOOD_RUNTIME_COST,
   // Migrated verbatim from parity’s camera table; omitted y keeps the existing ground/land placement.
   dev: { poses: () => Promise.resolve(Object.fromEntries([{name:'pier',x:0,z:-194,yaw:Math.PI,pitch:0},{name:'beach',x:-10,z:-150,yaw:4.3,pitch:0},{name:'wreck',x:105,z:0,yaw:-Math.PI/2,pitch:0}].map((probe) => [probe.name, {
     probe, eye: [probe.x, (DRIFTWOOD_ISLE.ground.terrain?.heightAt(probe.x, probe.z) ?? 0) + 1.68, probe.z] as const, yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI,
@@ -174,7 +178,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   // registers them under these ids) — palms as crowns, the decks as planks, the hut / tower / wreck / zipline as timber, the
   // shrine as stone, the sea cave's vault as rock
   minimap: {
-    // SF46 (G134): the level reads the hybrid row (road height ON, OCEAN.level OFF), so the grid's edge reader sees the lowered sea
+    // SF46 (G164): the level reads the hybrid row (road height ON, the authored +0.8 m OFF), so the grid's edge reader sees the lowered sea
     openWater: { get level() { return declaredSeaLevel(); }, deepDepth: OCEAN.deepDepth },
     outside: 'rgb(22,74,128)',
     paths: PATHS,
@@ -196,8 +200,10 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   ],
 
   // the sea is a water body (app.world.water), registered at level.data: the edge step's Boundary and every sea reader ask it
-  ground: { paths: 'plugin', water: [DRIFTWOOD_SEA], terrain: buildTerrain(SEED, {
-    oceanLevel: OCEAN.level,
+  // G164: the field is authored round SHORE_LEVEL and lowered as one with the hybrid row ON (droppedTerrain: heights,
+  // waterline and the bake's datum)
+  ground: { paths: 'plugin', water: [DRIFTWOOD_SEA], terrain: droppedTerrain(buildTerrain(SEED, {
+    oceanLevel: SHORE_LEVEL,
     /**
      * The island: a noise-warped disc centred a little north of the chunk centre. `m` is signed
      * metres inside the shoreline. Out to sea the floor is 2.6 m down and shelves up over the last
@@ -211,7 +217,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
       let R = ISLAND.r + n.get(Math.cos(ang) * 1.7 + 3.3, Math.sin(ang) * 1.7) * 32 + n2.fbm(x * 0.006, z * 0.006, 3) * 22;
       R -= smoothstep(1 - COVE.width, 0.995, Math.cos(ang - COVE.ang)) * COVE.depth; // Wreck Cove bitten out of the east shore
       const m = R - r;
-      const sea = OCEAN.level;
+      const sea = SHORE_LEVEL;
       // the shelf and the beach keep a real slope through the water line (a smoothstep there would flatten
       // the shallows into a 20 m wide foam sheet)
       let h = m < 0
@@ -279,7 +285,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
     cabinSites: [],
     // no `splat`: the low-poly terrain colours by height and slope (E318: the borrowed splat, PBR assets, pine bark, forest
     // block and HDRI name the Pine Hollow path would read are gone — ShardManifest makes them optional)
-  }) },
+  })) },
 
   trees: { factory: 'none', noun: 'trees' }, // no forest trees (palms are their own builder, src/shards/driftwood-isle/world/Palms.ts)
   // ── island fauna (loot-agent): no forest here, so every plan asks for the open (`canopy: false`); the placer treats a

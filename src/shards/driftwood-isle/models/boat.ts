@@ -42,37 +42,14 @@ export const BOAT_CLEATS: readonly { readonly z: number; readonly y: number }[] 
  * swimmer out of the hull; from the pier deck you step over them) and the floor boards as a slab whose top is the
  * floor, widened to the walls' inner faces so the tub is closed. A kinematic body re-poses them every step.
  */
-export function boatColliders(ladder = false): ColliderDesc[] {
+export function boatColliders(): ColliderDesc[] {
   const yTop = 0.8, yBottom = -1.2, wy = (yTop + yBottom) / 2, wh = (yTop - yBottom) / 2, t = 0.08;
   const wall = (x: number, z: number, hx: number, hz: number): ColliderDesc => ({ kind: 'box', x, y: wy, z, hx, hy: wh, hz });
   const floorTop = BOAT_FLOOR, fh = 0.1;
   return [
     wall(-BEAM / 2, 0, t, LENGTH / 2), wall(BEAM / 2, 0, t, LENGTH / 2), wall(0, -LENGTH / 2, BEAM / 2, t), wall(0, LENGTH / 2, BEAM / 2, t),
     { kind: 'box', x: 0, y: floorTop - fh, z: 0, hx: BEAM / 2 - t, hy: fh, hz: LENGTH / 2 - t },
-    ...(ladder ? boatLadderColliders() : []),
   ];
-}
-
-/** The boat's params: `ladder` hangs SF46's boarding ladder over the starboard gunwale (off: the boat exactly as before) */
-export interface BoatParams { readonly ladder: boolean }
-
-/**
- * SHARD-PLATFORM SF46 (G134): the boarding ladder of the boat at anchor in the lowered sea. A wading player stands ~0.9 m
- * deep, 1.66 m under the gunwale (a jump reaches 1.53 m), so the boat carries a ladder hung over its starboard gunwale
- * midships (the side facing the pier). Own space: `z` its middle along the hull, `steps` the step tops over the waterline
- * (each 0.35 m over the last: the player's STEP_UP, so it is walked, never jumped; the lowest sits at the seabed so the
- * swell's heave never lifts it out of reach), `run` how far out each lower step stands, `top` the board over the cap
- * you step from before dropping onto the floor boards.
- */
-export const BOAT_LADDER = { z: -0.45, halfWidth: 0.32, steps: [0.5, 0.15, -0.2, -0.55, -0.9], x0: 1.2, run: 0.28, top: { y: 0.85, x0: 0.8 } } as const;
-
-/** The ladder's collision, own space: each step a solid block down to the walls' foot (a stair the controller climbs),
- *  and the board over the starboard cap */
-export function boatLadderColliders(): ColliderDesc[] {
-  const L = BOAT_LADDER, foot = -1.2, out: ColliderDesc[] = [];
-  L.steps.forEach((top, i) => { const x = L.x0 + (i + 0.5) * L.run; out.push({ kind: 'box', x, y: (top + foot) / 2, z: L.z, hx: L.run / 2, hy: (top - foot) / 2, hz: L.halfWidth }); });
-  out.push({ kind: 'box', x: (L.top.x0 + L.x0) / 2, y: L.top.y - 0.05, z: L.z, hx: (L.x0 - L.top.x0) / 2, hy: 0.05, hz: L.halfWidth });
-  return out;
 }
 
 /**
@@ -87,7 +64,7 @@ export function boatLadderColliders(): ColliderDesc[] {
  * casts but never receives (the E110 fix). The thin gear (oars, lashings, boom, tiller, rigging, coil, lantern) is a third
  * mesh that receives but never casts. ~2.3k triangles, 3 draw calls (+ the mooring lines).
  */
-function buildBoat(ctx: ModelContext, ladder = false): THREE.Group {
+function buildBoat(ctx: ModelContext): THREE.Group {
   // kit: the hull + timbers (casts, receives); rig: the sail (casts only); gear: the thin bits — oars, lashings, boom,
   // tiller, rigging, coil, lantern — which receive but don't cast: at the phone's ~10–15 cm shadow texels a 3–6 cm spar
   // casts a dotted chain of blobs across the floor boards
@@ -286,20 +263,6 @@ function buildBoat(ctx: ModelContext, ladder = false): THREE.Group {
     gear.add(rope(sagLine(V(0, boomEnd.y - 0.04, boomEnd.z - 0.3), V(0.1, 0.72, s86.z), 0.05, 3), 0.016), K.rope, { jitter: 0.04 });
   }
 
-  // ── SF46: the boarding ladder over the starboard gunwale (two stiles on the step line, a tread per step, the board
-  // over the cap and two iron hooks); built last so the boat without it is the same mesh to the vertex ──
-  if (ladder) {
-    const L = BOAT_LADDER, n = L.steps.length, last = L.steps[n - 1] ?? 0;
-    const outerX = (i: number): number => L.x0 + (i + 1) * L.run;
-    for (const sd of [-1, 1]) {
-      const z = L.z + sd * (L.halfWidth - 0.03);
-      kit.add(beam(V(L.x0 + 0.02, L.top.y + 0.08, z), V(outerX(n - 1) - 0.04, last - 0.12, z), 0.07, 0.09), K.post, { jitter: 0.04 });
-      gear.add(beam(V(L.top.x0 + 0.06, L.top.y - 0.16, z), V(L.top.x0 + 0.06, L.top.y + 0.05, z), 0.035, 0.035), K.iron, { jitter: 0.02 });
-    }
-    L.steps.forEach((top, i) => { kit.add(plank(L.run - 0.02, L.halfWidth * 2 - 0.02, 0.06, kit.rng, 0.01).translate(L.x0 + (i + 0.5) * L.run, top - 0.03, L.z), i % 2 === 0 ? K.floorA : K.floorB, { jitter: 0.05 }); });
-    kit.add(plank(L.x0 - L.top.x0 + 0.04, L.halfWidth * 2, 0.07, kit.rng, 0.01).translate((L.top.x0 + L.x0) / 2, L.top.y - 0.035, L.z), K.floorA, { jitter: 0.05 });
-  }
-
   const hullGeo = kit.finish({ ao: { strength: 0.5, downDark: 0.22 } });
   const mesh = new THREE.Mesh(hullGeo, lowPolyMaterial(ctx.sky, 'solid', (m) => { m.side = THREE.FrontSide; }));
   mesh.castShadow = true; mesh.receiveShadow = true;
@@ -314,11 +277,10 @@ function buildBoat(ctx: ModelContext, ladder = false): THREE.Group {
   return group;
 }
 
-export const boat = defineModel<BoatParams>({
+export const boat = defineModel<Record<string, never>>({
   id: 'driftwood-isle/boat', name: 'Sailboat', category: 'buildings', pipeline: 'code',
   file: 'src/shards/driftwood-isle/models/boat.ts', surface: 'planks',
-  defaults: { ladder: false },
-  variants: [{ id: 'anchored', label: 'At anchor (SF46 boarding ladder)', params: { ladder: true } }],
-  build: (ctx, p) => buildBoat(ctx, p.ladder),
-  colliders: (p) => boatColliders(p.ladder),
+  defaults: {},
+  build: (ctx) => buildBoat(ctx),
+  colliders: () => boatColliders(),
 });

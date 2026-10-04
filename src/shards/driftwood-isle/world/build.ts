@@ -31,7 +31,7 @@ import { Cove } from './Cove';
 import { GroundCover } from './GroundCover';
 import { tintTerrain } from './coverTint';
 import type { BlenderIsland } from './BlenderIsland';
-import { ANCHORED_BOAT, CORAL_CLEARANCE, ENTRY_FOOTPRINTS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRect } from './sea';
+import { ENTRY_FOOTPRINTS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRect } from './sea';
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
@@ -42,17 +42,17 @@ export interface DriftwoodWorld {
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
 }
 
-/** SF46 (G134, the hybrid entry only): the sea and its water-tied props lowered to road level, each pier and jetty starting
- *  past its entry's asphalt socket with a ramp up from the sandbar. Absent, the world is the legacy build exactly. */
+/** SF46 (G164, the hybrid entry only): the world built with the whole island lowered (the terrain and everything on it
+ *  follow the manifest's dropped field, ./sea.ts): the sea at road level, each pier and jetty starting past its entry's
+ *  asphalt socket with a ramp up from the socket's road height. Absent, the world is the legacy build exactly. */
 export interface DriftwoodLowered {
   readonly level: number; readonly pierStart: number; readonly seaRamp: number; readonly dry: readonly DryRect[];
   /** how far inside a confining grid cell's edge the sea stops (G149: the shore revetment's inner face) */
   readonly edgeInset: number;
-  /** the boat at anchor here (xz), its anchor line `anchorAhead` m ahead of the bow on the seabed */
-  readonly boat: { readonly x: number; readonly z: number; readonly anchorAhead: number };
 }
-/** G134's lowering: the sea at road level, the decks from 18 m in, a 6 m ramp (1.2 m up: ≈ 11°) */
-export const G134_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: 6, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE, boat: ANCHORED_BOAT };
+/** G164's lowered world: the sea at road level, the decks (1.2 m above it, as they always stood) from 18 m in, a 6 m ramp
+ *  up from road height (1.2 m: ≈ 11°) */
+export const G164_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: 6, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE };
 
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
@@ -75,18 +75,15 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
-  // SF46: lowered, it starts `cut` in (past the entry socket) and ramps up from the sandbar
+  // SF46: lowered, it starts `cut` in (past the entry socket) and ramps up from road height
   const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF + cut, length: ROAD_LENGTH - cut, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT - cut, ...seaRamp }).place(registry, 'pier');
   statics.push(...pier.colliders);
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
   // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
   // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
-  // SF46: lowered, it rides at anchor off the sandbar (heading 0: the bow toward −z, the anchor line ahead of it)
-  const anchor = lowered?.boat, anchorZ = anchor === undefined ? 0 : anchor.z - anchor.anchorAhead;
-  const boat = anchor === undefined
-    ? new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(BOAT_MOOR.x, BOAT_MOOR.z) }).place(registry)
-    : new Boat(sky, { x: anchor.x, z: anchor.z, heading: 0, waterY: sea.level, moorTo: [{ x: anchor.x, z: anchorZ, y: heightAt(anchor.x, anchorZ) }], ladder: true }).place(registry);
+  // SF46 (G164): lowered with everything else, it stays moored by the pier
+  const boat = new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(BOAT_MOOR.x, BOAT_MOOR.z) }).place(registry);
   statics.push(...boat.colliders);
   if (boat.ropes) game.scene.add(boat.ropes);
   await slice();
@@ -128,8 +125,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     perches: [
       ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
       ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
-      // the boat's bow and stern (SF46 lowered: the anchored boat's; the legacy pair stays where it always stood)
-      new THREE.Vector3(anchor?.x ?? -4.2, sea.level + 0.78, (anchor?.z ?? -CHUNK_HALF + 6) - 3.0), new THREE.Vector3(anchor?.x ?? -4.2, sea.level + 0.7, (anchor?.z ?? -CHUNK_HALF + 6) + 3.0),
+      new THREE.Vector3(-4.2, sea.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, sea.level + 0.7, -CHUNK_HALF + 6 + 3.0),
       ...rockSpecs.filter((b) => b.r > 1.8).map((b) => new THREE.Vector3(b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z)),
       ...Gulls.beachPerches(manifest.seed, 10, { x: 0, z: -195, r: 90 }),
     ],
@@ -148,9 +144,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...bridge.colliders);
   await slice();
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
-  // SF46 (lowered): the same scatter, no coral standing out of the lowered sea, the school where it has room
-  const lagoon = Seabed.scatterLagoon(manifest.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }]);
-  const seabed = lowered === undefined ? new Seabed(sky).build(lagoon) : new Seabed(sky).build(Seabed.lowered(lagoon, sea.level), { below: sea.level - CORAL_CLEARANCE });
+  const seabed = new Seabed(sky).build(Seabed.scatterLagoon(manifest.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }]));
   game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish);
   await slice();
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
@@ -165,7 +159,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const palms = new Palms(sky).place(palmSpecs, registry);
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const cover = new GroundCover(sky, { sea: OCEAN.level, palms: palmSpecs }).build(); // the land cover keeps the terrain's waterline (G134)
+  const cover = new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build();
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover'); tintTerrain(world.terrain.mesh); // E156: the ground wears the cover
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
   await macrotask();

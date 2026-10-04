@@ -42,7 +42,8 @@ export interface PierSpec {
   landing?: boolean;
   /** with a landing: the pennant flies from the piling this many metres from the sea end (E308), not the sea-end bollard */
   pennantAt?: number;
-  /** SF46 (G134): the deck ramps up over this many metres from the sand at its sea end (the lowered world's entries) */
+  /** SF46 (G164): the deck ramps up over this many metres from road height (y = 0) at its sea end, where it meets the
+   *  platform's entry socket (the lowered world's entries) */
   seaRamp?: number;
 }
 
@@ -96,7 +97,7 @@ export class Pier {
     // the pennant streams downwind: the world's wind turned into the pier's frame
     const [wx, wz] = PENNANT_WIND, c = Math.cos(yaw), s = Math.sin(yaw);
     const pennantDir: [number, number] = yaw === 0 ? [wx, wz] : [wx * c - wz * s, wx * s + wz * c];
-    const seaRamp = this.spec.seaRamp === undefined ? {} : { seaRamp: { run: this.spec.seaRamp, landY: heightAt(this.spec.x, this.spec.z) + 0.05 - deckY } };
+    const seaRamp = this.spec.seaRamp === undefined ? {} : { seaRamp: { run: this.spec.seaRamp, landY: -deckY } };
     this.params = { length, width, pileDepth: this.spec.pileDepth ?? 8, landing, pennantDir, ...(this.spec.pennantAt === undefined ? {} : { pennantAt: this.spec.pennantAt }), ...seaRamp };
     const pl: Placement<PierParams> = { x: this.spec.x, y: deckY, z: this.spec.z, ...(yaw === 0 ? {} : { yaw }), params: this.params };
     const placed = place(pier, [pl], { ctx: modelContext(this.sky), draw: 'merged', registry,

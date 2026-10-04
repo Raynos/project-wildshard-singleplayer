@@ -31,11 +31,8 @@ export interface BoatSpec {
   heading?: number;
   /** still-water level; the hull floats with its waterline here */
   waterY: number;
-  /** world xz of posts to run mooring lines to (bow → first, stern → second); `y` ties the line there instead of 1.9 m
-   *  over the water (SF46: an anchor on the seabed) */
-  moorTo?: { x: number; z: number; y?: number }[];
-  /** SF46 (G134): hang the boarding ladder over the starboard gunwale (the boat at anchor, boarded from the water) */
-  ladder?: boolean;
+  /** world xz of posts to run mooring lines to (bow → first, stern → second) */
+  moorTo?: { x: number; z: number }[];
 }
 
 const ROPE = new THREE.Color('#d2bd85');
@@ -61,7 +58,7 @@ export class Boat {
 
   private draw(registry: WorldRegistry | null): this {
     const heading = this.spec.heading ?? 0;
-    const placed = place(boat, [{ x: this.spec.x, y: this.spec.waterY, z: this.spec.z, ...(heading === 0 ? {} : { yaw: heading }), ...(this.spec.ladder === true ? { variant: 'anchored' } : {}) }], { ctx: modelContext(this.sky), draw: 'single', registry,
+    const placed = place(boat, [{ x: this.spec.x, y: this.spec.waterY, z: this.spec.z, ...(heading === 0 ? {} : { yaw: heading }) }], { ctx: modelContext(this.sky), draw: 'single', registry,
       piece: { id: 'boat', follows: 'copy', floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
     this.group = placed.object;
     this.placed = placed;
@@ -76,7 +73,7 @@ export class Boat {
       this.spec.moorTo.slice(0, 2).forEach((post, i) => {
         const a = ends[i];
         if (a === undefined) return;
-        const b = new THREE.Vector3(post.x, post.y ?? this.spec.waterY + 1.9, post.z);
+        const b = new THREE.Vector3(post.x, this.spec.waterY + 1.9, post.z);
         const mid = a.clone().lerp(b, 0.5); mid.y -= 0.35; // sag
         const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
         const g = new THREE.TubeGeometry(curve, 8, 0.03, 4, false);
@@ -124,7 +121,7 @@ export class Boat {
   }
 
   /** PHYSICS P4: the boat's collision in its own (the group's LOCAL) frame — the model's colliders; they ride the swell */
-  colliderLocalDescs(): ColliderDesc[] { return boatColliders(this.spec.ladder === true); }
+  colliderLocalDescs(): ColliderDesc[] { return boatColliders(); }
 
   /**
    * PHYSICS P4: this builder's static collision in world space — its walls (the legacy boxes) and the floor
