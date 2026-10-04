@@ -11,7 +11,7 @@ import { projectItemFields } from '../src/game/shardfile/clientItems';
 import { syncTargetColliders } from '../src/game/shardfile/targets';
 import { parseMigrations } from '../src/game/shardfile/migrations';
 import { GridRegionDurability } from '../src/game/grid/durability';
-import { snapshotSimHost, serializeSimSnapshot } from '../src/engine/sim/snapshot';
+import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
 import type { Shardfile } from '../src/game/shardfile/schema';
 import source from '../src/shards/_template/shard.config';
 import { MemoryStorage } from './setup';
@@ -90,14 +90,17 @@ it('migrates a durable regional companion without decoding old physics, retainin
   const identity = { id: 'template-1', shard: source.identity.slug };
   try {
     const old = new GridRegionDurability(store, identity, source, []);
+    const basis = new Uint8Array(snapshotSimHost(first.sim.host).physics); old.setPhysicsBasis(basis);
     first.lane.enqueue({ type: 201, target: first.player, value: 1 }); first.lamp.queue(3); first.step(30);
     for (const flag of source.quests.flags) first.sim.host.flags.set(flag);
     old.wallet.addCoins(9); old.wallet.savePack({ counts: { rope: 3 }, order: ['rope'] });
     const snapshot = snapshotSimHost(first.sim.host), portable = clientStateFromRegion(source, snapshot);
     expect(portable.lane).toBeNull(); expect(portable.version).toBe(2); expect(old.checkpoint(snapshot)).toBe(true);
     const key = 'wildshard.save.v2.template-1', bytes = local.getItem(key); if (bytes === null) throw new Error('Missing regional save');
-    expect(bytes).toContain(JSON.stringify(serializeSimSnapshot(snapshot)));
-    local.setItem(key, bytes.replace(JSON.stringify(serializeSimSnapshot(snapshot)), JSON.stringify('old engine unavailable')));
+    const packed = serializeSimSnapshot(snapshot, basis);
+    expect(old.state()?.mode).toBe('exact'); expect(decodeSimSnapshot(packed, basis)).toEqual(snapshot);
+    expect(bytes).toContain(JSON.stringify(packed));
+    local.setItem(key, bytes.replace(JSON.stringify(packed), JSON.stringify('old engine unavailable')));
     const nextStore = new SaveStore({ local, session: null }), saved = new GridRegionDurability(nextStore, identity, nextSource, []);
     expect(() => saved.read()).toThrow('requires logical'); expect(saved.read(true)).toBeUndefined(); saved.bind(next.sim.host);
     expect(saved.restoreLogical(next.sim, next.items)).toBe(true);
