@@ -1249,8 +1249,6 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `updateGround` | function | @wildshard/engine/render/families/ground | Move some of a ground layer's parameters on a live material (a runtime adapter: Signal Dunes' dusk). Validated; |
 | `applyMeasure` | function | @wildshard/engine/render/families/measure | Add a measure layer to a PBR family material (the PBR compiler calls it; the program becomes the measure program). |
 | `MEASURE_PROGRAM_KEY` | const | @wildshard/engine/render/families/measure | the program-cache key of every PBR material with a measure layer |
-| `measureLookOn` | function | @wildshard/engine/render/families/measure | whether the measure look is on |
-| `setMeasureLook` | function | @wildshard/engine/render/families/measure | Switch the measure look on or off for every measure-layer material (a uniform: no recompile). |
 | `compilePainterly` | function | @wildshard/engine/render/families/painterly | Compile a painterly surface under `look` to a three.js material (WebGL v1 renderer). |
 | `gradeRgb` | function | @wildshard/engine/render/families/painterly | The grade on the CPU, scene-linear → display-linear (the same maths as the shader): to check a colour a look will |
 | `injectPainterly` | function | @wildshard/engine/render/families/painterly | The painterly light model (and, with `graded`, the per-pixel grade) injected into a MeshLambert source. |
@@ -1965,6 +1963,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `WaterBodies` | class | @wildshard/engine/world/water/body | `app.world.water`: the level's registered bodies; each leaves with the scope that added it. |
 | `WaterBody` | interface | @wildshard/engine/world/water/body | A body of water a level registers with the engine (01 §6, §17; 08 §6.1 step 4): the sea (S4.1), a still basin (a |
 | `declaredWaterBody` | function | @wildshard/engine/world/water/declared | Compile validated data into the existing swim/wade port, with no renderer or import-time registration. |
+| `dryEntryContains` | function | @wildshard/engine/world/water/declared | Pure water clipping shared by body admission and the renderer's data adapter. |
+| `DryEntryEdge` | type | @wildshard/engine/world/water/declared | Canonical entryway exclusions; they remove water across the entire platform socket, not an authored sample point. |
 | `WaterDeclaration` | type | @wildshard/engine/world/water/declared | One bounded water region in the shard's local frame; stream point heights describe a sloping rest surface. |
 | `surfaceReflect` | function | @wildshard/engine/world/water/view | the reflect hook of a body drawn with the shared photoreal water (waterSurface.ts): the pond, the creek |
 | `waterView` | const | @wildshard/engine/world/water/view | The World Explorer map's top-down shot (src/engine/explore/MiniMap.ts, EXPLORE-V2 V3): 1 while it renders. Straight down the |

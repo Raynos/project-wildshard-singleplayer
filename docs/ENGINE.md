@@ -2033,7 +2033,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/dataLook`: `DATA_LOOK_DAY`, `dataLook`, `dataLookClock`, `DataLookSpec`, `LookDay`, `LookKey`, `lookSample`, `LookSample`, `sampleLook`
 - `@wildshard/engine/render/families/emissive`: `compileEmissive`, `EMISSIVE_PROGRAM_KEY`, `EmissiveLook`, `EmissiveLookUniforms`, `injectEmissive`
 - `@wildshard/engine/render/families/ground`: `applyGround`, `GROUND_PROGRAM_KEY`, `injectGround`, `updateGround`
-- `@wildshard/engine/render/families/measure`: `applyMeasure`, `MEASURE_PROGRAM_KEY`, `measureLookOn`, `setMeasureLook`
+- `@wildshard/engine/render/families/measure`: `applyMeasure`, `MEASURE_PROGRAM_KEY`
 - `@wildshard/engine/render/families/painterly`: `compilePainterly`, `gradeRgb`, `injectPainterly`, `PAINTERLY_PROGRAM_KEY`, `PainterlyLook`, `PainterlyLookUniforms`, `PainterlyMaterialUniforms`
 - `@wildshard/engine/render/families/params`: `EmissiveLookParams`, `EmissiveLookSchema`, `EmissiveMaterialParams`, `EmissiveMaterialSchema`, `FAMILY_IDS`, `FamilyId`, `FamilyMaterialInput`, `FamilyMaterialParams`, `FamilyMaterialSchema`, `GradeParams`, `GradeSchema`, `GroundLayerParams`, `GroundLayerSchema`, `MEASURE_SLOT`, `MeasureLayerParams`, `MeasureLayerSchema`, `MeasureRole`, `measureUv`, `NeonTubeSchema`, `PainterlyLookParams`, `PainterlyLookSchema`, `PainterlyMaterialParams`, `PainterlyMaterialSchema`, `parseEmissiveLook`, `parseFamilyMaterial`, `parseGroundLayer`, `parsePainterlyLook`, `parseToonLook`, `PbrMaterialParams`, `PbrMaterialSchema`, `Rgb`, `SkyDomeSchema`, `ToonLookParams`, `ToonLookSchema`, `ToonMaterialParams`, `ToonMaterialSchema`
 - `@wildshard/engine/render/families/pbr`: `compilePbr`, `pbrFillers`, `TextureResolver`, `TextureUse`
@@ -2144,7 +2144,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/TreeFactory`: `FadeBand`, `forestFade`, `patchFade`, `patchWind`, `TreeFactory`, `TreeMaterial`, `TreeVariant`, `windUniforms`
 - `@wildshard/engine/world/voxelAO`: `aoTint`, `HemiDir`, `HemiRing`, `hemisphere`, `voxelAO`, `VoxelAOParams`
 - `@wildshard/engine/world/water/body`: `basinBody`, `swellBody`, `WaterBodies`, `WaterBody`
-- `@wildshard/engine/world/water/declared`: `declaredWaterBody`, `WaterDeclaration`
+- `@wildshard/engine/world/water/declared`: `declaredWaterBody`, `dryEntryContains`, `DryEntryEdge`, `WaterDeclaration`
 - `@wildshard/engine/world/water/view`: `surfaceReflect`, `waterView`, `WaterView`
 - `@wildshard/engine/world/waterSurface`: `buildSkyline`, `createWaterMaterial`, `WaterMaterial`, `WaterMaterialOptions`, `waterTexture`, `waterTime`, `waterWeather`
 - `@wildshard/engine/world/waves`: `insideWaterExtent`, `seaDamp`, `WATER_UNBOUNDED`, `waterExtent`, `waveClock`, `waveDisplace`, `waveHeight`, `WAVES`, `WAVES_GLSL`, `WAVES_NORMAL_GLSL`
@@ -2153,7 +2153,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-490 exports, grouped by the module to import them from.
+492 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2175,6 +2175,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/edgeProfiles`: `GridEdgeObservations`, `GridEdgeSource`, `loadGridEdgeProfiles`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
 - `@wildshard/game/grid/live`: `LiveGridAdmission`, `LiveGridFrame`, `LiveGridHome`, `LiveGridHost`, `LiveGridPorts`, `LiveGridRegion`, `LiveGridState`
+- `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preparePageResidency`
 - `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `reframeGridUnit`
 - `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
 - `@wildshard/game/grid/state`: `regionalState`

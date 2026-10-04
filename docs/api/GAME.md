@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-490 members; 113 without a doc line (—).
+492 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -109,6 +109,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `LiveGridPorts` | interface | @wildshard/game/grid/live | One live fixed-step owner supplies movement; region clocks/systems run only after that move. |
 | `LiveGridRegion` | interface | @wildshard/game/grid/live | An owned region has authored colliders and logical player state, but no second traveller capsule. |
 | `LiveGridState` | interface | @wildshard/game/grid/live | Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. |
+| `PageResidencyBoot` | interface | @wildshard/game/grid/pageBoot | The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. |
+| `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |

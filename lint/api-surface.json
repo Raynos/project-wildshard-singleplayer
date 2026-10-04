@@ -7464,18 +7464,6 @@
         "from": "@wildshard/engine/render/families/measure"
       },
       {
-        "name": "measureLookOn",
-        "kind": "function",
-        "doc": "whether the measure look is on",
-        "from": "@wildshard/engine/render/families/measure"
-      },
-      {
-        "name": "setMeasureLook",
-        "kind": "function",
-        "doc": "Switch the measure look on or off for every measure-layer material (a uniform: no recompile).",
-        "from": "@wildshard/engine/render/families/measure"
-      },
-      {
         "name": "compilePainterly",
         "kind": "function",
         "doc": "Compile a painterly surface under `look` to a three.js material (WebGL v1 renderer).",
@@ -11764,6 +11752,18 @@
         "from": "@wildshard/engine/world/water/declared"
       },
       {
+        "name": "dryEntryContains",
+        "kind": "function",
+        "doc": "Pure water clipping shared by body admission and the renderer's data adapter.",
+        "from": "@wildshard/engine/world/water/declared"
+      },
+      {
+        "name": "DryEntryEdge",
+        "kind": "type",
+        "doc": "Canonical entryway exclusions; they remove water across the entire platform socket, not an authored sample point.",
+        "from": "@wildshard/engine/world/water/declared"
+      },
+      {
         "name": "WaterDeclaration",
         "kind": "type",
         "doc": "One bounded water region in the shard's local frame; stream point heights describe a sloping rest surface.",
@@ -12604,6 +12604,18 @@
         "kind": "interface",
         "doc": "Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe.",
         "from": "@wildshard/game/grid/live"
+      },
+      {
+        "name": "PageResidencyBoot",
+        "kind": "interface",
+        "doc": "The composition root passes this selection to hydration and startSession; its grid intent has already been consumed.",
+        "from": "@wildshard/game/grid/pageBoot"
+      },
+      {
+        "name": "preparePageResidency",
+        "kind": "function",
+        "doc": "G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply",
+        "from": "@wildshard/game/grid/pageBoot"
       },
       {
         "name": "gridCanAct",
