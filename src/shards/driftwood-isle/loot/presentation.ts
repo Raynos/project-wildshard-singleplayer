@@ -1,5 +1,5 @@
-import { ShopPanel, OWNED, type CosmeticSlot, type LootPresentation, type Owned } from '#game';
-import { loadAudio, type Audio, type Scope } from '#engine';
+import { ShopPanel, OWNED, type CosmeticSlot, type LootPresentation, type Owned } from '@wildshard/game';
+import { loadAudio, type Audio, type Scope } from '@wildshard/engine';
 import type { Adventure } from '../quest/adventure';
 import { TRADER_NAME } from '../quest/TraderStall';
 import { driftwoodFinds, nextCharmAt, seaChartMarks, seaGlassFound } from './finds';

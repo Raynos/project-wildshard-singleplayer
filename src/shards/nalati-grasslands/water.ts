@@ -10,7 +10,7 @@
  */
 import * as THREE from 'three';
 import { RIVER, BROOK } from './manifest';
-import { setProgramKey, heightAt, attachFogUniforms, type Sky, CHUNK_HALF } from '#engine';
+import { setProgramKey, heightAt, attachFogUniforms, type Sky, CHUNK_HALF } from '@wildshard/engine';
 
 const VERT = /* glsl */`
 attribute float depth;

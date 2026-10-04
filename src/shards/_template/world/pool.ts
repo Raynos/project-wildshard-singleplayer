@@ -1,4 +1,4 @@
-import type { WaterBody } from '#engine';
+import type { WaterBody } from '@wildshard/engine';
 
 export const poolMask = (x: number, z: number): boolean => Math.hypot(x - 25, z - 20) < 5;
 export const POOL: WaterBody = { id: 'template.pool', level: 0,

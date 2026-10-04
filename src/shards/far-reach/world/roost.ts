@@ -1,5 +1,5 @@
 import { BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, SphereGeometry, Vector3 } from 'three';
-import { boxDesc, type ColliderDesc } from '#engine';
+import { boxDesc, type ColliderDesc } from '@wildshard/engine';
 import { ROOST } from '../layout';
 
 /**

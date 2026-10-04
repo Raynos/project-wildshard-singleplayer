@@ -1,5 +1,5 @@
-import type { Audio, CombatCues, Scope } from '#engine';
-import { sharedWeaponVoices } from '#kit';
+import type { Audio, CombatCues, Scope } from '@wildshard/engine';
+import { sharedWeaponVoices } from '@wildshard/kit';
 
 export const CUES = { fire: 'cue.sword.swing', impact: 'cue.sword.hit', heavy: 'cue.sword.heavy', reload: 'cue.reload' } as const;
 /** Every authored equipment cue delegates to a kit sound, retaining its sampled/synth fallback. */

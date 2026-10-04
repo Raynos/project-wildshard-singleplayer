@@ -3,26 +3,6 @@
   "private": true,
   "version": "0.3.0",
   "type": "module",
-  "imports": {
-    "#engine": "./src/engine/index.ts",
-    "#engine/data": "./src/engine/data.ts",
-    "#engine/retry": "./src/engine/retry.ts",
-    "#game": "./src/game/index.ts",
-    "#game/*.jpg": "./src/game/*.jpg",
-    "#game/*.webp": "./src/game/*.webp",
-    "#game/*.css": "./src/game/*.css",
-    "#game/*": "./src/game/*.ts",
-    "#kit": "./src/kit/index.ts",
-    "#kit/data": "./src/kit/data.ts",
-    "#kit/*.jpg": "./src/kit/*.jpg",
-    "#kit/*.webp": "./src/kit/*.webp",
-    "#kit/*.css": "./src/kit/*.css",
-    "#kit/*": "./src/kit/*.ts",
-    "#shards/*.jpg": "./src/shards/*.jpg",
-    "#shards/*.webp": "./src/shards/*.webp",
-    "#shards/*.css": "./src/shards/*.css",
-    "#shards/*": "./src/shards/*.ts"
-  },
   "scripts": {
     "gen": "node scripts/gen.mjs",
     "dev": "bash scripts/serve-build.sh",
@@ -54,6 +34,9 @@
     "native:android": "bash scripts/native-android.sh"
   },
   "dependencies": {
+    "@wildshard/engine": "workspace:*",
+    "@wildshard/game": "workspace:*",
+    "@wildshard/kit": "workspace:*",
     "@capacitor/android": "8.5.2",
     "@capacitor/app": "8.1.1",
     "@capacitor/core": "8.5.2",

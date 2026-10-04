@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { App } from '#engine-internal/app/app';
+import { App } from '../../../src/engine/app/app';
 
 const source = Object.values(import.meta.glob<string>('../../../src/shards/pine-hollow/combat/install.ts', { query: '?raw', import: 'default', eager: true }))[0] ?? '';
 

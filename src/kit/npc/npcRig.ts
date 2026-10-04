@@ -1,4 +1,4 @@
-import { bindRig, type RigContract } from '#engine';
+import { bindRig, type RigContract } from '@wildshard/engine';
 /**
  * E322 F-M3 — the Pine Hollow people's rig (Jake picked B; A, the upper-body-only rig that was in npcModels.ts, went with
  * its Debug row — git 4da54ccc has it). Built at load from the hull like A was, so any head grafted above the neck
@@ -35,7 +35,7 @@ import { bindRig, type RigContract } from '#engine';
  * as in A, which also caught the outside of his right shin.
  */
 import * as THREE from 'three';
-import { smoothstep } from '#engine/data';
+import { smoothstep } from '@wildshard/engine/data';
 /** Authored hull traits; the seed rig contains no shard names or model paths. */
 export interface NpcRigProfile { id: string; lantern: boolean }
 

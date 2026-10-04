@@ -1,4 +1,4 @@
-import { app, registerSpecies, speciesWithLook, type Scope } from '#engine';
+import { app, registerSpecies, speciesWithLook, type Scope } from '@wildshard/engine';
 import { installDriftwoodLootTables } from '../loot/tables';
 import { DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE } from '../creatures/tables';
 import { CRAB, CRAB_LOOK } from './crab';

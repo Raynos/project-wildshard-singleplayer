@@ -14,7 +14,7 @@
  */
 import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Rng, swayByHeight, swayDepthMaterial, lowPolyMaterial, defineModel } from '#engine';
+import { type Rng, swayByHeight, swayDepthMaterial, lowPolyMaterial, defineModel } from '@wildshard/engine';
 import { islandKnobs } from '../tiers';
 
 /** one bush: its radius (0.7–1.5 m), whether it is in flower, and its sway's phase (the world's: from where it stands) */

@@ -11,7 +11,7 @@
  * Every copy's posts collide as the model's own (E346): the square's and the gate bridges' lacquered posts, the stair's
  * post bases with their drum stones.
  */
-import { defineModel, type ModelContext, type ModelPart, type ModelVariant, type ColliderDesc } from '#engine';
+import { defineModel, type ModelContext, type ModelPart, type ModelVariant, type ColliderDesc } from '@wildshard/engine';
 import { type GateSpec, buildGate } from '../world/gate';
 import { Kit } from '../world/kit';
 import { KitX, merge } from '../world/hero/kitx';

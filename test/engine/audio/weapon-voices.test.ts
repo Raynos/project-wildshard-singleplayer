@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Audio } from '#engine-internal/audio/Audio';
-import { bindAudioRandom } from '#engine-internal/audio/util';
-import { Rng } from '#engine-internal/core/rng';
-import { tap } from '#engine-internal/core/harnessTap';
+import { Audio } from '../../../src/engine/audio/Audio';
+import { bindAudioRandom } from '../../../src/engine/audio/util';
+import { Rng } from '../../../src/engine/core/rng';
+import { tap } from '../../../src/engine/core/harnessTap';
 import { sharedWeaponVoices, type WeaponSynth } from '../../../src/kit/audio/weaponVoices';
 import { reload } from '../../../src/kit/weapons/crossbow/sounds';
 import { rifleFire } from '../../../src/kit/weapons/firearm/sounds';

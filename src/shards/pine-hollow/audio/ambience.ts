@@ -1,4 +1,4 @@
-import { resourceScope, audioRandom, AmbienceZones, type ZoneVoice, tap, ambientTick, type Audio, type StepSurface, CABIN_SITES, POND, hasPond, audioLog } from '#engine';
+import { resourceScope, audioRandom, AmbienceZones, type ZoneVoice, tap, ambientTick, type Audio, type StepSurface, CABIN_SITES, POND, hasPond, audioLog } from '@wildshard/engine';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
  * pattern with generated beds (src/shards/pine-hollow/audio/sfx.ts: public/assets/sfx/pine-hollow/, MOSS-SoundEffect v2 vs Stable

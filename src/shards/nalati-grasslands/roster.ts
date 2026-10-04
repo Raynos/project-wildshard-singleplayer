@@ -4,7 +4,7 @@
  * the Model Explorer at boot (src/engine/models/roster.ts) in the shard's painterly creature style; the steppe keeps spawning,
  * drawing and animating every copy as before.
  */
-import { live, type RosterEntry, swimHands } from '#engine';
+import { live, type RosterEntry, swimHands } from '@wildshard/engine';
 import { NALATI_WILDLIFE } from './creatures/wildlife';
 import { CAMP_PEOPLE } from './quest';
 import { aqbars, argymaq, balbalWarrior, ghostRider, goldenKing, horse, kokbori, marmot, qyran, sheep, sheepdog, stormTitan, wolf } from './models/creatures';

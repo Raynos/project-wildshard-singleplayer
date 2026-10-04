@@ -2,7 +2,7 @@
 // by its data-el hooks — the two copies of the markup must not drift apart.
 import { describe, expect, it } from 'vitest';
 import html from '../index.html?raw';
-import { loadShellHtml } from '#engine-internal/boot/shell';
+import { loadShellHtml } from '../src/engine/boot/shell';
 
 const FONT_FILES = import.meta.glob('../public/fonts/*.woff2');
 expect(Object.keys(FONT_FILES).length).toBeGreaterThan(0);

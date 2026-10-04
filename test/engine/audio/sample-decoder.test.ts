@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Audio } from '#engine-internal/audio/Audio';
-import { Scope } from '#engine-internal/app/scope';
-import { setSfxSet } from '#engine-internal/ui/Settings';
-import type { SfxBank } from '#engine-internal/audio/preload';
+import { Audio } from '../../../src/engine/audio/Audio';
+import { Scope } from '../../../src/engine/app/scope';
+import { setSfxSet } from '../../../src/engine/ui/Settings';
+import type { SfxBank } from '../../../src/engine/audio/preload';
 
 
 afterEach(() => { vi.restoreAllMocks(); });

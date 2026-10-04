@@ -1,7 +1,7 @@
-import { app, Scope, WeightedTable } from '#engine';
+import { app, Scope, WeightedTable } from '@wildshard/engine';
 import { describe, expect, it, vi } from 'vitest';
-import { NIGHT_SPAWNS, nightSpawner } from '#shards/nalati-grasslands/combat/spawns';
-import { NALATI_DEFINITIONS, NALATI_SPECIES, NALATI_LOOKS } from '#shards/nalati-grasslands/species/rows';
+import { NIGHT_SPAWNS, nightSpawner } from '../../src/shards/nalati-grasslands/combat/spawns';
+import { NALATI_DEFINITIONS, NALATI_SPECIES, NALATI_LOOKS } from '../../src/shards/nalati-grasslands/species/rows';
 import { manager } from '../fake/manager';
 
 describe('Nalati scoped encounter catalogs', () => {

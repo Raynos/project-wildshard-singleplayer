@@ -6,7 +6,7 @@
  * lies, the bed you stand on inside, its mouths.
  */
 import * as THREE from 'three';
-import { heightAt } from '#engine';
+import { heightAt } from '@wildshard/engine';
 
 export const HOLLOW_LOG = { x: 112, z: -86, yaw: 0.35, len: 11, R: 1.6, r: 1.3 };
 

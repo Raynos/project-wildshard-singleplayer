@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { needsTerrainCollider, resolveTierKnobs } from '#engine';
-import manifest from '#shards/nine-dragon-stack/manifest';
-import { toLevelSpec } from '#game/shard/spec';
+import { needsTerrainCollider, resolveTierKnobs } from '@wildshard/engine';
+import manifest from '../../src/shards/nine-dragon-stack/manifest';
+import { toLevelSpec } from '../../src/game/shard/spec';
 
 describe('level render and ground policy', () => {
   it('resolves engine, kit and level tier knobs in that order', () => {

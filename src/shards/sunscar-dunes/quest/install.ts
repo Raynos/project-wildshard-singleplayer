@@ -1,5 +1,5 @@
-import { QuestState, boxDesc, type QuestMarker } from '#engine';
-import { CoinBurst, installQuestPresentation, purseSave, shardSave, type QuestPresentation, type ShardContext } from '#game';
+import { QuestState, boxDesc, type QuestMarker } from '@wildshard/engine';
+import { CoinBurst, installQuestPresentation, purseSave, shardSave, type QuestPresentation, type ShardContext } from '@wildshard/game';
 import * as v from 'valibot';
 import { Scene, Vector3 } from 'three';
 import { FLAG, type SignalWorld } from '../world/build';

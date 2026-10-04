@@ -1,6 +1,6 @@
-import { heightAt, macrotask, type World } from '#engine';
-import { SWORD_WOOD, SWORD_IRON, Sword, type MeleeProfile } from '#kit';
-import type { ShardRuntime, ShardSword } from '#game';
+import { heightAt, macrotask, type World } from '@wildshard/engine';
+import { SWORD_WOOD, SWORD_IRON, Sword, type MeleeProfile } from '@wildshard/kit';
+import type { ShardRuntime, ShardSword } from '@wildshard/game';
 import { driftwoodWorld } from '../world/build';
 import { IronSwordPickup, ironSwordSite } from '../weapons/IronSword';
 

@@ -2,9 +2,9 @@
 // trailing-* prefix), and their colliders become world-XZ footprints — a yawed box's four corners, a hull's outline, a
 // capsule's crown dot — never anything hand-placed.
 import { describe, expect, test } from 'vitest';
-import { mapLook, mapShapes, mapWants } from '#engine-internal/ui/mapShapes';
-import type { ChunkMapDef } from '#game/shard/manifest';
-import type { Piece } from '#engine-internal/world/registry';
+import { mapLook, mapShapes, mapWants } from '../src/engine/ui/mapShapes';
+import type { ChunkMapDef } from '../src/game/shard/manifest';
+import type { Piece } from '../src/engine/world/registry';
 
 const def: ChunkMapDef = { pieces: [{ ids: ['hut', 'jetty-*'], look: 'timber' }, { ids: ['palms'], look: 'dot' }] };
 const piece = (id: string, colliders: Piece['colliders']): Piece => ({ id, name: id, category: 'buildings', file: 'x', ...(colliders ? { colliders } : {}) });

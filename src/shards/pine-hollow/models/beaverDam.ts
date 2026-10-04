@@ -4,7 +4,7 @@
  * its local X. Placed across the creek on the pond's sill (src/shards/pine-hollow/world/landmarks.ts). LOD0 (with shadow) within 50 m,
  * LOD1 past it; collides as the hull of ≤ 180 of its LOD1's vertices (wood).
  */
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { heroFar, heroHull, heroNear } from '../world/hero';
 
 export const beaverDam = defineModel<Record<string, never>>({

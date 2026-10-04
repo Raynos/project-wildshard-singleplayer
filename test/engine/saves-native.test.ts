@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { isMirroredSave } from '#engine-internal/native/saves';
+import { isMirroredSave } from '../../src/engine/native/saves';
 
 it('mirrors gameplay documents and OTA state, excluding private scopes and aside copies', () => {
   for (const key of ['wildshard.save.v2.global', 'wildshard.save.v2.profile', 'wildshard.save.v2.pine-hollow', 'ws.ota.x']) expect(isMirroredSave(key, ['pine-hollow'])).toBe(true);

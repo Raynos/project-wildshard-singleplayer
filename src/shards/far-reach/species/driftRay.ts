@@ -1,4 +1,4 @@
-import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
+import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '@wildshard/engine';
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
 import { DECK, RAY_HOMES } from '../layout';
 import { STRINGS } from '../strings';

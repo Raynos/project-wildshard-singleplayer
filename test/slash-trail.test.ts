@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Vector3, type BufferGeometry } from 'three';
-import { SlashTrail } from '#engine';
+import { SlashTrail } from '@wildshard/engine';
 import expected from './fixtures/slash-trail-bytes.json';
 
 it('keeps pre-refactor ribbon bytes through wrapping, duplicate samples, expiry and stroke reset',async()=>{

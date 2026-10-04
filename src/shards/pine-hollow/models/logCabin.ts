@@ -20,7 +20,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng, SEED, TIER_CONFIG, heightAt, boxDesc, type ColliderDesc, type Sky, type BoxSpec as Collider, defineModel, type ModelBuild, type ModelContext, UnitParts, flatPositions, mergeOrNull, nearProxy, shadowProxy, twoSidedPositions, type WeldBuild, type WeldPart } from '#engine';
+import { Rng, SEED, TIER_CONFIG, heightAt, boxDesc, type ColliderDesc, type Sky, type BoxSpec as Collider, defineModel, type ModelBuild, type ModelContext, UnitParts, flatPositions, mergeOrNull, nearProxy, shadowProxy, twoSidedPositions, type WeldBuild, type WeldPart } from '@wildshard/engine';
 import type { Cabins, Interactable, Mats, MatKey } from '../world/homestead';
 
 // ───────────────────────────── the log kit ─────────────────────────────

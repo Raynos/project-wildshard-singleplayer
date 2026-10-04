@@ -10,7 +10,7 @@
  * matches too (`ghost` = the Ghost stag, `ironhide` = Old Ironhide — the legendaries from src/engine/entities/species/).
  * Progress / earned state / the worn title live in src/game/Progress.ts.
  */
-import type { IconId } from '#engine';
+import type { IconId } from '@wildshard/engine';
 
 export interface AchievementDef {
   /** unique within the shard, persisted */

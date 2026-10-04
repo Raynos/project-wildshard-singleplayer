@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
-import { StrikeRunner, type StrikePhase, type StrikeSpec } from '#engine-internal/ai/strikes';
-import { fnv1a32 } from '#engine-internal/core/rng';
-import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
+import { StrikeRunner, type StrikePhase, type StrikeSpec } from '../../src/engine/ai/strikes';
+import { fnv1a32 } from '../../src/engine/core/rng';
+import { LaneCharge } from '../../src/shards/pine-hollow/combat/ctx';
 import { creature } from '../fake/creature';
 
 // a flat, dry world through the terrain port, not a module mock (E422)

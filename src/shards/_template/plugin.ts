@@ -1,7 +1,7 @@
-import { ShardPlugin, installLoot, installCompendium, type ShardContext } from '#game';
-import { IRON_SWORD, Sword, SWORD_IRON, BOAR, BOAR_LOOK, STARTER_EFFECTS, installStarterEffects, installSilentScore, installForestAmbience } from '#kit';
+import { ShardPlugin, installLoot, installCompendium, type ShardContext } from '@wildshard/game';
+import { IRON_SWORD, Sword, SWORD_IRON, BOAR, BOAR_LOOK, STARTER_EFFECTS, installStarterEffects, installSilentScore, installForestAmbience } from '@wildshard/kit';
 import { Vector3 } from 'three';
-import type { QuestState, Interactable } from '#engine';
+import type { QuestState, Interactable } from '@wildshard/engine';
 import { STRINGS } from './strings';
 import { buildWorld } from './world/build';
 import { GREY_BLOB, GREY_BLOB_LOOK } from './species/greyBlob';
@@ -17,7 +17,7 @@ import { installClimate } from './world/climate';
 import { GREY_CARD } from './thumbs/card';
 import { installTemplateCues } from './audio/cues';
 
-declare module '#engine' {
+declare module '@wildshard/engine' {
   interface TierKnobMap { 'template.propCount': number }
   interface ActionMap { 'template.lantern.toggle': true }
   interface EquipmentSlotMap { 'template-whip': true }

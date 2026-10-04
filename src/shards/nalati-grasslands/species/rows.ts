@@ -1,4 +1,4 @@
-import { app, registerSpecies, speciesWithLook, type SpeciesDef, type SpeciesRow, type SpeciesLook, type SpeciesVariant, type VariantDef, type Scope } from '#engine';
+import { app, registerSpecies, speciesWithLook, type SpeciesDef, type SpeciesRow, type SpeciesLook, type SpeciesVariant, type VariantDef, type Scope } from '@wildshard/engine';
 import { painterlyAnimalMaterial } from '../look/creatureMaterial';
 import { creatureHull, creatureRigs, type CreatureRigs } from './hulls';
 import { HORSE_SPECIES } from './horse';

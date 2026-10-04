@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NO_AUDIO } from '#engine-internal/audio/levelAudio';
+import { NO_AUDIO } from '../../src/engine/audio/levelAudio';
 
 // E357 G19 (Sky Reach Z3 round 3): a shard with no audio files omits audio.preload and boots on NO_AUDIO
 describe('NO_AUDIO', () => {

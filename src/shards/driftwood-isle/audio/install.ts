@@ -1,6 +1,6 @@
-import { heightAt, loadWorldContent } from '#engine';
-import type { ShardContext } from '#game';
-import { swordEvents } from '#kit';
+import { heightAt, loadWorldContent } from '@wildshard/engine';
+import type { ShardContext } from '@wildshard/game';
+import { swordEvents } from '@wildshard/kit';
 import { OCEAN, SHRINE } from '../manifest';
 import { driftwoodWorld } from '../world/build';
 import { Cove } from '../world/Cove';

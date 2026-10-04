@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { Vector3, type Material } from 'three';
-import { Boundary } from '#engine-internal/world/Boundary';
-import { Horizon } from '#engine-internal/world/Horizon';
-import { configureLevel } from '#engine-internal/level/selection';
-import { toLevelSpec } from '#game/shard/spec';
+import { Boundary } from '../../src/engine/world/Boundary';
+import { Horizon } from '../../src/engine/world/Horizon';
+import { configureLevel } from '../../src/engine/level/selection';
+import { toLevelSpec } from '../../src/game/shard/spec';
 import { SHARDS } from '../../src/shards.generated';
 
 // a flat, dry world through the terrain port, not a module mock (E422)

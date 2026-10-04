@@ -5,7 +5,7 @@ import type { Color, Data3DTexture, Vector3, Vector4 } from 'three';
 import { SQUARE_BOX, WELL_BOX, bakeVolume, type BakeStats } from './lightvol';
 import { type EmitterLike, type WindowLike, gatherPools, isLamp } from './pools';
 import { loadLut } from './grade';
-import { gpuOnlyTexture } from '#engine';
+import { gpuOnlyTexture } from '@wildshard/engine';
 
 export interface LightSettings {
   /** the light volume on / off, its diffuse gain on the wash, the wet stone's glossy sheen of it */

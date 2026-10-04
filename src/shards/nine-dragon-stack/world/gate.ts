@@ -14,7 +14,7 @@ import { Vector3 } from 'three';
 import { E, K, type Kit, type Look } from './kit';
 import type { SignBuilder } from '../look/signs';
 import { type KitX, type XLook, curve } from './hero/kitx';
-import { Rng } from '#engine';
+import { Rng } from '@wildshard/engine';
 import { SURF } from '../look/paint';
 
 export interface GateSpec {

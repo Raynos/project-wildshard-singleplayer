@@ -1,5 +1,5 @@
-import { weaponActionGate, type EquipContext, blendAds, hitscan, stepBrass, brassFloor, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type TexSet, type CrossbowWorld, type CrossbowOptions, type Targets, makeFlashTexture, HitLine, type Sky, SHADOW_LAYER } from '#engine';
-import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold, Firearm, AR15, type FirearmProfile } from '#kit';
+import { weaponActionGate, type EquipContext, blendAds, hitscan, stepBrass, brassFloor, type WeaponState, type AimInfo, app, getSetting, LightPool, Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, rangedFovForAspect as fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type TexSet, type CrossbowWorld, type CrossbowOptions, type Targets, makeFlashTexture, HitLine, type Sky, SHADOW_LAYER } from '@wildshard/engine';
+import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold, Firearm, AR15, type FirearmProfile } from '@wildshard/kit';
 
 
 

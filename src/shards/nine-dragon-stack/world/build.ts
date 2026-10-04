@@ -49,7 +49,7 @@ import { Shared, jiehuaMaterial, neonMaterial, sheetMaterial, skyMaterial, steam
 import { WORDS, buildTowers } from './towers';
 import { chars } from '../util';
 import type { NdTier } from '../tier';
-import { resourceScope, Rng, type Renderer, type ModelDef, type Placement, gpuOnlyAttributes, type HandedBatch, type InstancedCuller, type Placed, place } from '#engine';
+import { resourceScope, Rng, type Renderer, type ModelDef, type Placement, gpuOnlyAttributes, type HandedBatch, type InstancedCuller, type Placed, place } from '@wildshard/engine';
 import { ndModelContext } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
 import { airConBox, galleryPlant } from '../models/wallKit';

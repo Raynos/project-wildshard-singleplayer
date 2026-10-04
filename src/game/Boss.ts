@@ -1,4 +1,4 @@
-import { app, BossBrain, type BossScript, type Renderer, type BossBar, type Player, type Interactable, WeaponPickup } from '#engine';
+import { app, BossBrain, type BossScript, type Renderer, type BossBar, type Player, type Interactable, WeaponPickup } from '@wildshard/engine';
 import { bossesSave, saveSlug } from './saves';
 import * as THREE from 'three';
 
@@ -53,6 +53,7 @@ export interface BossReward {
   trophy?: () => void;
 }
 
+/** a boss's row: its id (saved), name and title, phases, retry card, reward and intro lengths */
 export interface BossDef {
   /** unique per shard; persisted */
   id: string;
@@ -67,7 +68,7 @@ export interface BossDef {
   intro: number; introShort: number;
 }
 
-export type { BossScript, BossState } from '#engine';
+export type { BossScript, BossState } from '@wildshard/engine';
 
 export interface BossHost {
   scene: THREE.Scene;

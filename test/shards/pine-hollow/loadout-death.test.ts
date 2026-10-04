@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '#engine-internal/app/scope';
-import { Events } from '#engine-internal/events/events';
-import { PlayerHealth } from '#engine-internal/combat/health';
-import { installPlayerDeath } from '#engine-internal/ui/playerDeath';
-import { Quiver } from '#shards/pine-hollow/loadout/ammo';
-import { bindLoadoutDeath } from '#shards/pine-hollow/loadout/events';
+import { Scope } from '../../../src/engine/app/scope';
+import { Events } from '../../../src/engine/events/events';
+import { PlayerHealth } from '../../../src/engine/combat/health';
+import { installPlayerDeath } from '../../../src/engine/ui/playerDeath';
+import { Quiver } from '../../../src/shards/pine-hollow/loadout/ammo';
+import { bindLoadoutDeath } from '../../../src/shards/pine-hollow/loadout/events';
 
 describe('Pine death resets ammunition before the shell refill', () => {
   it('refills iron, preserves special pouches and ignores foreign, parked and disposed actors', () => {

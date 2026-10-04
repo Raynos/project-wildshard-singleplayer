@@ -1,5 +1,5 @@
 import { Group, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine';
 import type { SkyHdName } from '../boot/files';
 import { fit, hdMaterial, skyHd } from './meshes';
 

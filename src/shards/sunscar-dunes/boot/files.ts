@@ -1,4 +1,4 @@
-import type { ShardManifest } from '#game';
+import type { ShardManifest } from '@wildshard/game';
 
 /** The generated models (C6): loaded by `world/meshes.ts`, listed here so the boot and the offline cache fetch them. */
 export type DuneMeshName = 'caravan' | 'dry-well' | 'waymark-brazier' | 'dune-strider' | 'dune-matriarch' | 'caravan-scout' | 'whip-glove';

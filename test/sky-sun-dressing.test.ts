@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BufferGeometry, Mesh, PerspectiveCamera, Scene, Sprite, Vector3 } from 'three';
-import { Scope, type LevelSpec, type Renderer, type Sky, type SkyDressing } from '#engine';
-import { SkyBackdropView } from '#engine-internal/world/skyBackdrop';
+import { Scope, type LevelSpec, type Renderer, type Sky, type SkyDressing } from '@wildshard/engine';
+import { SkyBackdropView } from '../src/engine/world/skyBackdrop';
 
 function fixture<T extends object>(fields: Partial<T>): T {
   return new Proxy(fields, { get: (target, key) => Reflect.get(target, key) }) as T;

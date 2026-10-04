@@ -1,7 +1,6 @@
 import * as THREE from 'three';
-import { LowPolyKit, rock, interactParts, pickupModel, registerPickupLook, type PickupLook } from '#engine';
-// by its path: the #game index would pull the game's UI into the node-safe manifests' closure
-import { coinModel } from '#game/loot/coinModel';
+import { LowPolyKit, rock, interactParts, pickupModel, registerPickupLook, type PickupLook } from '@wildshard/engine';
+import { coinModel } from '@wildshard/game';
 
 const M = new THREE.Matrix4();
 const at = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0): THREE.Matrix4 =>

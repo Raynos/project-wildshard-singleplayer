@@ -176,6 +176,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [ktx2-b-check.mjs](./ktx2-b-check.mjs)
 - [ktx2-tables.d.mts](./ktx2-tables.d.mts)
 - [ktx2-tables.mjs](./ktx2-tables.mjs)
+- [link-node-modules.mjs](./link-node-modules.mjs)
 - [load-mem-probe.mjs](./load-mem-probe.mjs)
 - [model-spin.mjs](./model-spin.mjs)
 - [nalati-camp9.mjs](./nalati-camp9.mjs)

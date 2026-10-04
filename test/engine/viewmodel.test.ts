@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, type Material, type WebGLRenderer } from 'three';
-import { ViewmodelRoot } from '#engine-internal/render/viewmodel';
+import { ViewmodelRoot } from '../../src/engine/render/viewmodel';
 import { legacyDouble } from '../fake/FakeGame';
 
 it('mounts a custom model before the world depth, retaining its camera transform and effects order', () => {

@@ -1,7 +1,7 @@
 // src/shards/driftwood-isle/quest/guards.ts — the iron sword stays guarded while a drowned sailor is up, whatever the saved flags say:
 // after a reload (he is placed again) or a night respawn, the rack is his again until he falls.
 import { describe, expect, it } from 'vitest';
-import { ironSwordGuard, SWORD_GUARDED } from '#shards/driftwood-isle/quest/guards';
+import { ironSwordGuard, SWORD_GUARDED } from '../../../src/shards/driftwood-isle/quest/guards';
 
 const sailor = (alive: boolean) => ({ kind: 'sailor', alive });
 const crab = (alive: boolean) => ({ kind: 'crab', alive });

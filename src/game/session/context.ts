@@ -1,4 +1,4 @@
-import type { BootRuntime, CombatCueMap, Audio, StepProgress, SkinDef, Music, TitleArrival, Player, Tool } from '#engine';
+import type { BootRuntime, CombatCueMap, Audio, StepProgress, SkinDef, Music, TitleArrival, Player, Tool } from '@wildshard/engine';
 import type { ItemRow, TravelHandoff, ShardManifest, ShardRuntime } from '../index';
 import type { BagIcons } from '../bag/tabs';
 import type { Scene, PerspectiveCamera } from 'three';

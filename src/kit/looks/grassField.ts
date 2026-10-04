@@ -1,4 +1,4 @@
-import { SEED, CHUNK_HALF, Noise2D, smoothstep, lerp, activeLevel, onLevelChange, type Scope, heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, inChunk } from '#engine';
+import { SEED, CHUNK_HALF, Noise2D, smoothstep, lerp, activeLevel, onLevelChange, type Scope, heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, inChunk } from '@wildshard/engine';
 
 /**
  * The painterly grass *field*: how tall the grass stands, how golden it is and which flowers grow, as pure

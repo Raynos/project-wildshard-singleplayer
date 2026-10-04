@@ -5,7 +5,7 @@
  * caravan tracks (the trails) as a worn line, and the named places as the full map's pins. Node-safe: layout only, no
  * runtime engine import (the manifest imports this).
  */
-import type { MapOverlay, MapPoi, MinimapPalette } from '#engine';
+import type { MapOverlay, MapPoi, MinimapPalette } from '@wildshard/engine';
 import { BASIN, BRAZIERS, CARAVAN, RIDGES, TOWER, WELL } from '../layout';
 import { STRINGS } from '../strings';
 

@@ -1,8 +1,8 @@
-import type { ShardWorld as World, ShardRuntime } from '#game';
+import type { ShardWorld as World, ShardRuntime } from '@wildshard/game';
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { driftwoodLoadoutRows, ironSwordDrop } from '#shards/driftwood-isle/loadout/rows';
-import { ironSwordSite } from '#shards/driftwood-isle/weapons/IronSword';
+import { driftwoodLoadoutRows, ironSwordDrop } from '../../../src/shards/driftwood-isle/loadout/rows';
+import { ironSwordSite } from '../../../src/shards/driftwood-isle/weapons/IronSword';
 
 describe('Driftwood authored loadout (E357 S4.1 step 5)', () => {
   it('retains both profiles and the original pickup strings and saved key; no wreck means no pickup', () => {

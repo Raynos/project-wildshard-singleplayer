@@ -13,7 +13,7 @@
  */
 import * as THREE from 'three';
 import { cabinMats, type Mats } from '../world/homestead';
-import { defineModel, type ColliderSpec, type ModelContext, type ModelPart } from '#engine';
+import { defineModel, type ColliderSpec, type ModelContext, type ModelPart } from '@wildshard/engine';
 
 export interface HollowLogParams {
   /** length (m), outer and bore radius */

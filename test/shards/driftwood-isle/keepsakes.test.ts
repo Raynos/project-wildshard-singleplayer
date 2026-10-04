@@ -1,7 +1,7 @@
 // E314 stage 3 (src/shards/driftwood-isle/loot/perks.ts): what the charms and trophies do, and the chime's count.
 import { describe, expect, it } from 'vitest';
-import { CHARM_DODGE, CLAW_HEAVY, charmsFor, chimeCount, dodgeCooldownScale, dodgeGuard, heavyMult, nightGlow } from '#shards/driftwood-isle/loot/perks';
-import type { OwnedId } from '#game/loot/Owned';
+import { CHARM_DODGE, CLAW_HEAVY, charmsFor, chimeCount, dodgeCooldownScale, dodgeGuard, heavyMult, nightGlow } from '../../../src/shards/driftwood-isle/loot/perks';
+import type { OwnedId } from '../../../src/game/loot/Owned';
 
 const owns = (...ids: OwnedId[]): { has: (id: OwnedId) => boolean } => ({ has: (id) => ids.includes(id) });
 

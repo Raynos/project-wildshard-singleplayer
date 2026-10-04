@@ -11,8 +11,8 @@ import { NALATI_FEATS } from './feats';
  *
  *   menu.setFinds(() => nalatiFinds(adventure.flags));   // main.ts, once the adventure (its saved flags) exists
  */
-import type { FindsView } from '#game';
-import type { IconId, SkinRow } from '#engine';
+import type { FindsView } from '@wildshard/game';
+import type { IconId, SkinRow } from '@wildshard/engine';
 import { NALATI_PLACES } from './quest';
 import { NALATI_SKINS, type NalatiSkinEntry } from './weapons/nalatiSkins';
 import { ELITE_DEFS } from './combat/elites';

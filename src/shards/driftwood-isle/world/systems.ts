@@ -1,5 +1,5 @@
 import type { Vector3 } from 'three';
-import type { ShardContext } from '#game';
+import type { ShardContext } from '@wildshard/game';
 
 /** the world updater the island's work ran inside until E357 S4.1; it still runs the hands, the horizon and the enemies */
 const BEFORE = ['main.world'];

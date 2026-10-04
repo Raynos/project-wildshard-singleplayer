@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { BoxGeometry } from 'three';
-import { mergeAnimalGeometry } from '#engine-internal/models/animalGeometry';
+import { mergeAnimalGeometry } from '../../src/engine/models/animalGeometry';
 
 describe('optional procedural creature geometry groups', () => {
   it.each([0, 1, 2])('accepts one populated group and keeps material slot %i', (material) => {

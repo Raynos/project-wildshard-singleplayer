@@ -1,4 +1,4 @@
-import type { World } from '#engine';
+import type { World } from '@wildshard/engine';
 import type { ShardManifest } from './manifest';
 
 /** Game presentation metadata stays beside the generic engine world. */

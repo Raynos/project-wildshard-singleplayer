@@ -1,4 +1,4 @@
-import type { LookComposeContext } from '#engine';
+import type { LookComposeContext } from '@wildshard/engine';
 import type { NdRenderHandle } from './render';
 import { BLEED } from './render/jiehua';
 

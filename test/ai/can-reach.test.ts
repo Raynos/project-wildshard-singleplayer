@@ -1,15 +1,15 @@
-import { NALATI_STRIKES, sampleArena } from '#shards/nalati-grasslands/combat/strikes';
-import { app, PlayerHealth, Scope } from '#engine';
-import { encounterHit } from '#shards/nalati-grasslands/combat/damage';
+import { NALATI_STRIKES, sampleArena } from '../../src/shards/nalati-grasslands/combat/strikes';
+import { app, PlayerHealth, Scope } from '@wildshard/engine';
+import { encounterHit } from '../../src/shards/nalati-grasslands/combat/damage';
 import * as THREE from 'three';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { Animal } from '#engine-internal/entities/Animal';
-import { AnimalManager } from '#engine-internal/entities/AnimalManager';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { Physics } from '#engine-internal/physics/Physics';
-import { activePhysics, setActivePhysics } from '#engine-internal/physics/active';
-import { groups, type GroupName } from '#engine-internal/physics/groups';
-import { tagCollider, untagCollider, type Material } from '#engine-internal/physics/surface';
+import { Animal } from '../../src/engine/entities/Animal';
+import { AnimalManager } from '../../src/engine/entities/AnimalManager';
+import { loadRapier } from '../../src/engine/physics/rapier';
+import { Physics } from '../../src/engine/physics/Physics';
+import { activePhysics, setActivePhysics } from '../../src/engine/physics/active';
+import { groups, type GroupName } from '../../src/engine/physics/groups';
+import { tagCollider, untagCollider, type Material } from '../../src/engine/physics/surface';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 

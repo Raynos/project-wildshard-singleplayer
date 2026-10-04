@@ -1,12 +1,12 @@
-import { terrainFor } from '#game/shard/manifest';
+import { terrainFor } from '../../../src/game/shard/manifest';
 // E322 F-L6: Pine Hollow's beaver pool (BEAVER_POOL in src/shards/pine-hollow/layout.ts, src/shards/pine-hollow/world/beaverPool.ts). The
 // terrain holds it (a bowl behind the dam, a riffle keeping the pond at its level), its water follows the drain, the
 // creek still never runs uphill, and the dam's two levers stay on dry ground at the full level.
 import { afterEach, describe, expect, it } from 'vitest';
-import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
+import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import {
   BEAVER_DAM, BEAVER_POOL, CREEK, CREEK_BED, POND, beaverPoolLevel, creekBedAt, creekSpan, creekSurfaceAt, inBeaverPool,
-} from '#shards/pine-hollow/layout';
+} from '../../../src/shards/pine-hollow/layout';
 
 const T = terrainFor(PINE_HOLLOW);
 const { dam } = creekSpan();

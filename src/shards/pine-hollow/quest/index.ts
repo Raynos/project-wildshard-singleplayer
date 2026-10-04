@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { saves, jsonSchema, boxInFrame, QuestLine, loadQuest, type NpcDef, type NpcTalk, type SkinDef, type Game, type Sky, type Player, type AnimalManager, type WorldRegistry, type HUD, type Audio, type Music, type FullMap, type FullMapPoi as MapPoi, type TreeInstance, heightAt, Flags, test, type Place, InteractSfx, Interactables, type InteractEvent, place as placeModel, perfLap } from '#engine';
-import type { SkinLocker, ShardContext, Inventory, ItemId, Progress, CompendiumState } from '#game';
+import { saves, jsonSchema, boxInFrame, QuestLine, loadQuest, type NpcDef, type NpcTalk, type SkinDef, type Game, type Sky, type Player, type AnimalManager, type WorldRegistry, type HUD, type Audio, type Music, type FullMap, type FullMapPoi as MapPoi, type TreeInstance, heightAt, Flags, test, type Place, InteractSfx, Interactables, type InteractEvent, place as placeModel, perfLap } from '@wildshard/engine';
+import type { SkinLocker, ShardContext, Inventory, ItemId, Progress, CompendiumState } from '@wildshard/game';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
  * Hollow*, PH-C6 the mill hamlet, PH-C7 night play, PH-C8 collectibles + secrets, PH-C10's event achievements, the C9

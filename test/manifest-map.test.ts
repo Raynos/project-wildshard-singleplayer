@@ -1,8 +1,8 @@
 // E357 F6: all authored manifest data and sampled analytic terrain match the pre-move fixtures.
 import { describe, expect, it } from 'vitest';
-import { exploreArt } from '#engine-internal/level/data';
+import { exploreArt } from '../src/engine/level/data';
 import { SHARDS } from '../src/shards.generated';
-import { formatGrid, terrainFor, type ShardManifest } from '#game/shard/manifest';
+import { formatGrid, terrainFor, type ShardManifest } from '../src/game/shard/manifest';
 
 // Captured before F6 from the four authored definitions; functions remain lazy hooks.
 const ORIGINAL = [

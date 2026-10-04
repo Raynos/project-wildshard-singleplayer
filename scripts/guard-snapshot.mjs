@@ -30,22 +30,23 @@ export function guardSnapshot(root, tree, scratch, selected) {
     sources.set(entry.path, blobs.subarray(end + 1, end + 1 + size));
     cursor = end + 1 + size + 1;
   }
-  const imports = JSON.parse(sources.get('package.json').toString()).imports;
+  // E432: the layers are workspace packages; `@wildshard/<layer>[/<sub>]` is src/<layer>/<the export's file>
+  const exportsOf = (layer) => {
+    const pkg = sources.get(`src/${layer}/package.json`);
+    return pkg ? JSON.parse(pkg.toString()).exports ?? {} : {};
+  };
   const targetOf = (file, source) => {
     let base;
+    const pkg = /^@wildshard\/(engine|game|kit)(?:\/(.+))?$/u.exec(source);
     if (source.startsWith('.')) base = posix.normalize(posix.join(posix.dirname(file), source));
-    else if (source.startsWith('#')) {
-      let target = imports[source];
-      if (!target) for (const key of Object.keys(imports).filter((k) => k.includes('*')).sort((a, b) => b.indexOf('*') - a.indexOf('*'))) {
-        const [prefix, suffix] = key.split('*');
-        if (source.startsWith(prefix) && source.endsWith(suffix)) { target = imports[key].replace('*', source.slice(prefix.length, source.length - suffix.length)); break; }
-      }
-      if (typeof target === 'string') base = posix.normalize(target);
+    else if (pkg) {
+      const target = exportsOf(pkg[1])[pkg[2] ? `./${pkg[2]}` : '.'];
+      if (typeof target === 'string') base = posix.normalize(posix.join('src', pkg[1], target));
     }
     if (!base) return null;
     return [base, `${base}.ts`, `${base}.js`, base.replace(/\.js$/u, '.ts'), `${base}/index.ts`, `${base}/index.js`].find((path) => names.has(path)) ?? null;
   };
-  const needed = new Set(text.filter((entry) => !entry.path.startsWith('src/')).map((entry) => entry.path));
+  const needed = new Set(text.filter((entry) => !entry.path.startsWith('src/') || /^src\/[^/]+\/package\.json$/u.test(entry.path)).map((entry) => entry.path));
   const visit = (file) => {
     if (needed.has(file) || !names.has(file)) return;
     needed.add(file);

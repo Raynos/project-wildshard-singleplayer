@@ -1,7 +1,7 @@
-import { sourceMultiplier, isMesh, type Sky, type Targets, painterlyMaterial } from '#engine';
+import { sourceMultiplier, isMesh, type Sky, type Targets, painterlyMaterial } from '@wildshard/engine';
 import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from './effects';
 import * as THREE from 'three';
-import { Bow, type BowWorld, type BowOptions } from '#kit';
+import { Bow, type BowWorld, type BowOptions } from '@wildshard/kit';
 import { BOW } from './equipment';
 
 

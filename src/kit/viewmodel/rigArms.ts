@@ -1,4 +1,4 @@
-import { app, retainCachedResources, loadRigFile, bindRig, AnimMachine, type ClipChannel, type RigContract, type RigBake, type Sky } from '#engine';
+import { app, retainCachedResources, loadRigFile, bindRig, AnimMachine, type ClipChannel, type RigContract, type RigBake, type Sky } from '@wildshard/engine';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 // rigArms — the first-person arm player shared by the skinned viewmodel rigs (E334).
 //
@@ -16,10 +16,10 @@ import {
   type AnimationAction, type AnimationClip, Group, Matrix4, type Mesh, type Object3D, type Vector2, Vector3,
 } from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import type { SwordArms } from '#kit/weapons/melee/SweptMelee';
-import type { Move } from '#kit/weapons/melee/moves';
+import type { SwordArms } from '../weapons/melee/SweptMelee';
+import type { Move } from '../weapons/melee/moves';
 
-export { ClipChannel } from '#engine';
+export { ClipChannel } from '@wildshard/engine';
 
 /** the viewmodel's vertical field (degrees): the clips' canonical camera */
 export const VM_FOV = 70;
@@ -61,6 +61,7 @@ export interface RigState {
   lookVel: Vector2;
 }
 
+/** first-person arms on a skinned rig, posed by the weapon's moves (walk bob, look lag) */
 export class RigArms {
   readonly root = new Group();
   readonly meta: RigMeta;
@@ -187,6 +188,7 @@ const CLIP: Readonly<Record<Move['name'] | 'charge', string>> = {
  * kept on `root.userData.vmFrame` and read every frame (a capture script can tune it live).
  */
 export interface VmFrame { size: number; pitch: number; yaw: number; roll: number }
+/** a sword viewmodel built on rigged arms (its offset, framing and sky setup) */
 export function swordArmsOf(rig: RigArms, opts: { offset?: Vector3; frame?: Partial<VmFrame>; setup?: (sky: Sky) => void }): SwordArms {
   const off = opts.offset ?? new Vector3();
   const frame: VmFrame = { size: 1, pitch: 0, yaw: 0, roll: 0, ...opts.frame };

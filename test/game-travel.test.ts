@@ -1,10 +1,10 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-import { SaveStore, App, type LevelDriver } from '#engine';
-import { shardContext, toLevelSpec, type GameServices } from '#game';
-import manifest from '#shards/nine-dragon-stack/manifest';
-import { Inventory, ITEMS } from '#game/Inventory';
-import { normalizeItemRow } from '#game/bag/items';
-import { applyTravelCarry, travelService, travelSlot, type TravelSource } from '#game/travel/travel';
+import { SaveStore, App, type LevelDriver } from '@wildshard/engine';
+import { shardContext, toLevelSpec, type GameServices } from '@wildshard/game';
+import manifest from '../src/shards/nine-dragon-stack/manifest';
+import { Inventory, ITEMS } from '../src/game/Inventory';
+import { normalizeItemRow } from '../src/game/bag/items';
+import { applyTravelCarry, travelService, travelSlot, type TravelSource } from '../src/game/travel/travel';
 
 class MemoryStorage {
   private data = new Map<string, string>();

@@ -1,4 +1,4 @@
-import { uiScope, mountUi, type UiHandle, app } from '#engine';
+import { uiScope, mountUi, type UiHandle, app } from '@wildshard/engine';
 /**
  * The Compendium's book — one full-screen overlay, the same DOM for every shard; the skin (CompendiumSkin) adds its
  * modifier class, its tab words, its stamp and its stats row. Pine Hollow's is the leather hunter's journal (board B4 A,

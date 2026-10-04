@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { EquipmentService, Scope, app, type TargetHit } from '#engine';
-import { Melee, Thrown, SWORD_WOOD } from '#kit';
-import { Sabre, PASS_RIGHT, SABRE_PROFILE } from '#shards/nalati-grasslands/weapons/Sabre';
-import { Spear, JAVELIN, SPEAR_PROFILE } from '#shards/nalati-grasslands/weapons/Spear';
-import { Naizagai, NaizagaiPower, NAIZAGAI_PROFILE } from '#shards/nalati-grasslands/weapons/Naizagai';
-import { buildNalatiLoadout } from '#shards/nalati-grasslands/weapons/loadout';
-import { GoldenBow, GoldenBowPower } from '#shards/nalati-grasslands/weapons/GoldenBow';
+import { EquipmentService, Scope, app, type TargetHit } from '@wildshard/engine';
+import { Melee, Thrown, SWORD_WOOD } from '@wildshard/kit';
+import { Sabre, PASS_RIGHT, SABRE_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Sabre';
+import { Spear, JAVELIN, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Spear';
+import { Naizagai, NaizagaiPower, NAIZAGAI_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Naizagai';
+import { buildNalatiLoadout } from '../../src/shards/nalati-grasslands/weapons/loadout';
+import { GoldenBow, GoldenBowPower } from '../../src/shards/nalati-grasslands/weapons/GoldenBow';
 import { fakeWorld } from '../fake/world';
 import { manager } from '../fake/manager';
 

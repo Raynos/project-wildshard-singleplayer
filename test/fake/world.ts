@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import type { Player } from '#engine-internal/player/Player';
-import type { Sky } from '#engine-internal/world/Sky';
-import type { Forest } from '#engine-internal/world/forest/Forest';
-import type { CharacterMotor } from '#engine-internal/physics/CharacterMotor';
+import type { Player } from '../../src/engine/player/Player';
+import type { Sky } from '../../src/engine/world/Sky';
+import type { Forest } from '../../src/engine/world/forest/Forest';
+import type { CharacterMotor } from '../../src/engine/physics/CharacterMotor';
 import type { Collider } from '@dimforge/rapier3d-simd';
-import { WorldRegistry } from '#engine-internal/world/registry';
+import { WorldRegistry } from '../../src/engine/world/registry';
 import { FakeGame, legacyDouble } from './FakeGame';
 
 /** Query-only test double; THREE.Ray supplies box intersections, never a production collision path. */

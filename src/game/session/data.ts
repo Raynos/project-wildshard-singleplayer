@@ -1,5 +1,5 @@
 import { consumeTravelHandoff } from '../index';
-import type { StepRunner } from '#engine';
+import type { StepRunner } from '@wildshard/engine';
 import { prepareShardAssets } from '../shard/load';
 import type { SessionContext } from './context';
 

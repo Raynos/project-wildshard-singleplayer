@@ -1,6 +1,6 @@
-import { BOW, type BowProfile } from '#kit';
+import { BOW, type BowProfile } from '@wildshard/kit';
 
-import { WIND_DIR, windGustAt } from '#engine';
+import { WIND_DIR, windGustAt } from '@wildshard/engine';
 import { POSE, buildLongbow, arrowKind, ARROW_LEN } from './longbowView';
 
 export const pineWind: BowProfile['wind'] = {

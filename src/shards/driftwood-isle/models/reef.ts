@@ -11,7 +11,7 @@
  * shard's, through the model context.
  */
 import * as THREE from 'three';
-import { PATCH_ORDER, patchShader, type Rng, attachFogUniforms, defineModel, type ModelContext, type ModelPart } from '#engine';
+import { PATCH_ORDER, patchShader, type Rng, attachFogUniforms, defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
 
 export interface ReefParams {
   /** size, 1 = the builders' metre scale */

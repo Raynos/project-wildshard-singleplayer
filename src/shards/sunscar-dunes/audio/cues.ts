@@ -1,5 +1,5 @@
-import type { Audio, CombatCues, Scope } from '#engine';
-import { sharedWeaponVoices } from '#kit';
+import type { Audio, CombatCues, Scope } from '@wildshard/engine';
+import { sharedWeaponVoices } from '@wildshard/kit';
 
 /** The bullwhip's cues. Until the locally generated crack lands (README leftovers) they play kit voices. */
 export const CUES = { fire: 'cue.sunscar.whip.crack', heavy: 'cue.sunscar.whip.double', impact: 'cue.sunscar.whip.hit', reload: 'cue.reload' } as const;

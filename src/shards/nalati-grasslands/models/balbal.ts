@@ -13,7 +13,7 @@
  * `balbalGeometry(variant)` (feet at y 0, facing −z, 2.1 m) is B11's rig's body too.
  */
 import * as THREE from 'three';
-import { defineModel, Noise2D, type Sky } from '#engine';
+import { defineModel, Noise2D, type Sky } from '@wildshard/engine';
 import { PaintKit, pole, v3, poiMaterial, mergeVerticesByPos } from '../world/paint';
 import { loadNalatiModel, MODEL_SIZE } from '../world/glbPaint';
 

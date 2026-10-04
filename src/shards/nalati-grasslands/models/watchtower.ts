@@ -7,7 +7,7 @@
  * the way its doorway faces. Collides: the tower's shell as one box (the ruin is open at the top; you can stand in the
  * doorway).
  */
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { MODEL_SIZE } from '../world/glbPaint';
 import { generated } from '../world/painted';
 

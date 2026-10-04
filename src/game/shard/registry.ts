@@ -1,6 +1,6 @@
 /** Generated shard discovery and the legacy active-shard bridge (removed by shard phases). */
 import type { ShardManifest } from './manifest';
-import { configureLevel, _applyChunkConstants, onOwnerDispose } from '#engine';
+import { configureLevel, _applyChunkConstants, onOwnerDispose } from '@wildshard/engine';
 import { toLevelSpec } from './spec';
 import { shards } from './list';
 

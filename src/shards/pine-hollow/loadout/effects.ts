@@ -1,4 +1,4 @@
-import type { EffectDef, SourceMulDef, AmmoRow } from '#engine';
+import type { EffectDef, SourceMulDef, AmmoRow } from '@wildshard/engine';
 
 export const AMMO_ROWS: readonly AmmoRow[] = [
   { id: 'ammo.iron', label: 'Bolts', name: 'Iron bolts', flight: { gravity: 1, drag: 1 }, wet: { gravity: 1.2, drag: 1.9 }, tags: ['ammo.iron'], pouchMax: 30 },

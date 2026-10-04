@@ -1,5 +1,5 @@
 import { ITEMS } from './bag/itemCatalog';
-import { WeightedTable, type WeightedRow, type IconId } from '#engine';
+import { WeightedTable, type WeightedRow, type IconId } from '@wildshard/engine';
 import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from './saves';
 import type { ItemRow } from './bag/items';

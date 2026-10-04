@@ -1,4 +1,4 @@
-import { Weather as EngineWeather, Rng } from '#engine';
+import { Weather as EngineWeather, Rng } from '@wildshard/engine';
 /**
  * Weather — the steppe storm as a seeded state machine (Nalati B10; docs/design/nalati/stealth-and-storms.md "Steppe
  * storms", the plan's Decisions: a storm every 20–30 min of play, lightning CAN hit the player — 60, GET LOW first).

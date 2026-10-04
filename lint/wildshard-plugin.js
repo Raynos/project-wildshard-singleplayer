@@ -18,21 +18,26 @@ import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
-const IMPORTS = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).imports;
-/** Node's package imports: exact keys first, then the longest matching single-star pattern. */
-const aliasTarget = (source) => {
-  if (typeof IMPORTS[source] === 'string') return IMPORTS[source];
-  const patterns = Object.keys(IMPORTS).filter((key) => key.includes('*')).sort((a, b) => {
-    const prefix = b.indexOf('*') - a.indexOf('*');
-    return prefix || b.length - a.length;
-  });
-  for (const key of patterns) {
-    const [prefix, suffix] = key.split('*');
-    if (!source.startsWith(prefix) || !source.endsWith(suffix) || source.length < prefix.length + suffix.length) continue;
-    const target = IMPORTS[key];
-    if (typeof target === 'string') return target.replace('*', source.slice(prefix.length, source.length - suffix.length));
+/** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
+ *  subpath is public (in the package's `exports`) is the `public-index` check's job; a deep one maps to its file so it
+ *  is reported (it does not resolve at build time either). */
+const LAYER_PACKAGE = /^@wildshard\/(engine|game|kit)(?:\/([^?]+))?/u;
+const packageTarget = (source) => {
+  const m = LAYER_PACKAGE.exec(source);
+  if (!m) return null;
+  const [, layer, sub = 'index'] = m;
+  return `src/${layer}/${sub}`;
+};
+/** a package subpath its package.json `exports` lists (the URL-param resolver follows only those) */
+const packageExports = new Map();
+const exported = (source) => {
+  const m = LAYER_PACKAGE.exec(source);
+  if (!m) return false;
+  if (!packageExports.has(m[1])) {
+    const file = new URL(`../src/${m[1]}/package.json`, import.meta.url);
+    packageExports.set(m[1], existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')).exports ?? {} : {});
   }
-  return null;
+  return Object.hasOwn(packageExports.get(m[1]), m[2] ? `./${m[2]}` : '.');
 };
 
 const ALLOWLIST_FILE = new URL('url-params.json', import.meta.url);
@@ -120,7 +125,7 @@ const calleeName = (c) => {
 };
 /** `export const NAME = '…'` in a relative or package-aliased module (resolved .ts / .js / index). */
 export const importedConst = (fromFile, source, name) => {
-  const target = source.startsWith('#') ? aliasTarget(source) : null;
+  const target = exported(source) ? packageTarget(source) : null;
   if (target === null && !source.startsWith('.')) return null;
   const base = target === null ? resolve(dirname(fromFile), source) : resolve(REPO, target);
   const tries = [base, `${base}.ts`, `${base}.js`, base.replace(/\.js$/u, '.ts'), `${base}/index.ts`];
@@ -269,11 +274,8 @@ const pathOf = (context) => {
   return index === -1 ? path : path.slice(index + 1);
 };
 const modulePath = (filename, source) => {
-  const target = source.startsWith('#') ? aliasTarget(source) : null;
-  if (target !== null) return target.replace(/^\.\//u, '');
-  // AG5: `#engine/*` maps nowhere any more; a deep `#engine/x` is still the deep path src/engine/x, so it is reported
-  const deep = /^#(engine|game|kit|shards)\/(.+)$/u.exec(source);
-  if (deep) return `src/${deep[1]}/${deep[2]}`;
+  const target = packageTarget(source);
+  if (target !== null) return target;
   if (!source.startsWith('.')) return source;
   return relative(REPO, resolve(dirname(filename), source)).replaceAll('\\', '/').replace(/^.*\/src\//u, 'src/');
 };
@@ -353,18 +355,14 @@ const layerWalk = (kind) => (context) => {
   }
   const checkImport = (node, source, dynamic = false) => {
     if (typeof source !== 'string' || source === '') return;
-    // E362 AG5: engine internals are reachable from tests only (the vitest alias + tsconfig.json `paths`)
-    if (source.startsWith('#engine-internal')) {
-      if (kind === 'layer') report(context, node, `#engine-internal/* is the tests' alias; src imports #engine or #engine/data: ${source}`);
-      return;
-    }
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
     if (!target) {
       if (kind === 'layer' && targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
       return;
     }
-    const publicPath = !dynamic && (new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath) || /^src\/(?:engine\/(?:data|retry)|kit\/data)(?:\.[jt]s)?$/u.test(targetPath));
+    // public: an entry the layer's package.json `exports` lists (E432), or a relative path to its index
+    const publicPath = !dynamic && (exported(source) || new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath));
     if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
       if (kind === 'layer') report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
     } else if (kind === 'public' && own.name !== target.name && ['engine', 'game', 'kit'].includes(target.name) && !publicPath) {
@@ -469,7 +467,7 @@ const noRawInput = rule('Input listeners belong in the input service (E357)', (c
   const page = (n) => { const u = unwrap(n); return u?.type === 'Identifier' && (u.name === 'window' || u.name === 'document'); };
   return { CallExpression(node) {
     if (calleeName(node.callee) === 'addEventListener' && INPUT_EVENTS.has(stringOf(node.arguments[0]))) report(context, node, 'Use the input service instead of a raw input listener');
-    else if (node.arguments.some(page) && node.arguments.some((a) => INPUT_EVENTS.has(stringOf(a)))) report(context, node, 'A page-wide input listener goes through listenPage (#engine) or the input service');
+    else if (node.arguments.some(page) && node.arguments.some((a) => INPUT_EVENTS.has(stringOf(a)))) report(context, node, 'A page-wide input listener goes through listenPage (@wildshard/engine) or the input service');
   } };
 });
 const noRendererType = rule('Renderer types stay inside rendering (E357)', (context) => {
@@ -481,7 +479,7 @@ const noRawShaderPatch = rule('Shader patches go through the one registry (E357 
   if (pathOf(context).startsWith('src/engine/render/')) return {};
   return { AssignmentExpression(node) {
     const left = unwrap(node.left);
-    if (left?.type === 'MemberExpression' && SHADER_HOOKS.has(propName(left) ?? stringOf(left.property) ?? '')) report(context, node, 'Patch shaders with patchShader / setProgramKey (#engine/render/shaderPatches)');
+    if (left?.type === 'MemberExpression' && SHADER_HOOKS.has(propName(left) ?? stringOf(left.property) ?? '')) report(context, node, 'Patch shaders with patchShader / setProgramKey (@wildshard/engine)');
   } };
 });
 // The engine folders that hold simulation, and the view parts inside them (SHARD-PLATFORM SP1: the old list named
@@ -758,14 +756,14 @@ const SHARD_STEMS = [...new Set(shardWords.slugs.map((s) => s.split('-')[0] ?? '
 const SHARD_IDS = shardWords.words.filter((w) => w.includes('.') && !w.startsWith('weapon.'));
 const SHARD_NAME_TERMS = [...shardWords.slugs, ...shardWords.slugs.map((s) => s.replaceAll('-', ' ')), ...SHARD_DISPLAY, ...shardWords.slugs.map(camelOf), ...SHARD_DISPLAY.map(camelOf), ...SHARD_STEMS, ...SHARD_IDS];
 const SHARD_NAMES = new RegExp(`(?<![A-Za-z0-9])(?:${SHARD_NAME_TERMS.map(escapeRegex).join('|')})(?![A-Za-z0-9])`, 'iu');
-// E362 AG6: the #engine exports for the game and the composition root only (lint/engine-internal.json): the kit and the
+// E362 AG6: the @wildshard/engine exports for the game and the composition root only (lint/engine-internal.json): the kit and the
 // shards reach the engine's session, boot and installers through ShardContext, never by importing them.
 const engineInternalFile = new URL('engine-internal.json', import.meta.url);
 const engineInternal = new Set(existsSync(engineInternalFile) ? Object.keys(JSON.parse(readFileSync(engineInternalFile, 'utf8')).names) : []);
 const engineInternalRule = rule('Game-only engine exports stay out of the kit and the shards (E362 AG6)', (context) => {
   if (!/^src\/(?:kit|shards)\//u.test(pathOf(context))) return {};
   return { ImportDeclaration(node) {
-    if (stringOf(node.source) !== '#engine') return;
+    if (stringOf(node.source) !== '@wildshard/engine') return;
     for (const s of node.specifiers ?? []) {
       const name = s.type === 'ImportSpecifier' ? nameOf(s.imported) : null;
       if (name !== null && engineInternal.has(name)) report(context, s, `${name} is the game's (lint/engine-internal.json): ask for a ShardContext verb instead`);
@@ -778,7 +776,7 @@ const SHARD_SERVICES = new Set(['app', 'saves', 'hudSlots', 'practiceRoom', 'loc
 const shardServices = rule('Shards get engine services through ShardContext (E362 AG12)', (context) => {
   if (!pathOf(context).startsWith('src/shards/')) return {};
   return { ImportDeclaration(node) {
-    if (stringOf(node.source) !== '#engine' || node.importKind === 'type') return;
+    if (stringOf(node.source) !== '@wildshard/engine' || node.importKind === 'type') return;
     for (const s of node.specifiers ?? []) {
       const name = s.type === 'ImportSpecifier' && s.importKind !== 'type' ? nameOf(s.imported) : null;
       if (name !== null && SHARD_SERVICES.has(name)) report(context, s, `${name} is a page service: use the ShardContext (ctx.app, ctx.hud …) instead of importing it`);

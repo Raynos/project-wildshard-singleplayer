@@ -1,6 +1,6 @@
 import { Color, Fog, Mesh, Vector3, type Object3D, type Texture } from 'three';
 import { ToneMappingMode } from 'postprocessing';
-import { DayCycle, loadLUT, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
+import { DayCycle, loadLUT, patchShader, PATCH_ORDER, type LookStrategy } from '@wildshard/engine';
 import { FOG, SKY, SUN_DIR } from './sun';
 import { installPaintedLight } from './light';
 import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';

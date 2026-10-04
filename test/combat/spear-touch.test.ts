@@ -2,10 +2,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-hosted happy-dom test reads the shipped stylesheet to verify the actual cascade.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { EquipmentService, Scope, app } from '#engine';
-import { INPUT_CONTEXTS } from '#game/inputContexts';
-import { TouchControls } from '#engine-internal/player/TouchControls';
-import { Spear } from '#shards/nalati-grasslands/weapons/Spear';
+import { EquipmentService, Scope, app } from '@wildshard/engine';
+import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
+import { TouchControls } from '../../src/engine/player/TouchControls';
+import { Spear } from '../../src/shards/nalati-grasslands/weapons/Spear';
 import { fakeWorld } from '../fake/world';
 
 it('renders the spear touch row with working JUMP and THROW, and no BRACE', () => {

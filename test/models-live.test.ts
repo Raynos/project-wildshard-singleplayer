@@ -3,13 +3,13 @@
 // src/engine/models/live.ts), one catalog entry per model whether or not a copy is alive, and the live system keeps drawing them.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import type { Sky } from '#engine-internal/world/Sky';
-import { defineModel, modelContext } from '#engine-internal/models/model';
-import { listModel, listRoster, live } from '#engine-internal/models/live';
-import { place } from '#engine-internal/models/place';
-import { creature } from '#engine-internal/models/creature';
-import { speciesDef } from '#engine-internal/entities/AnimalFactory'; // (the factory registers every species file)
+import { WorldRegistry } from '../src/engine/world/registry';
+import type { Sky } from '../src/engine/world/Sky';
+import { defineModel, modelContext } from '../src/engine/models/model';
+import { listModel, listRoster, live } from '../src/engine/models/live';
+import { place } from '../src/engine/models/place';
+import { creature } from '../src/engine/models/creature';
+import { speciesDef } from '../src/engine/entities/AnimalFactory'; // (the factory registers every species file)
 import { checkModels } from '../scripts/check-models.mjs';
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ } } as Sky;

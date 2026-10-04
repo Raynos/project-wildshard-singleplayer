@@ -1,4 +1,4 @@
-import { filePolicy, publicBytes, type ChunkFiles, type Tier, type TexMode } from '#engine/data';
+import { filePolicy, publicBytes, type ChunkFiles, type Tier, type TexMode } from '@wildshard/engine/data';
 import { GPU_FILES } from '../ktx2.generated';
 import { pineHeroUrls } from '../world/heroFiles';
 import { pineSkyKeyUrls } from '../look/skyKeys';

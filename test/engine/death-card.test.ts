@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '#engine-internal/app/scope';
-import { Events } from '#engine-internal/events/events';
-import { LevelRegistrations } from '#engine-internal/level/registrations';
-import { respawnWhere } from '#engine-internal/ui/HurtArc';
-import { installPlayerDeath } from '#engine-internal/ui/playerDeath';
-import { PlayerHealth } from '#engine-internal/combat/health';
-import { STRINGS } from '#shards/nine-dragon-stack/strings';
+import { Scope } from '../../src/engine/app/scope';
+import { Events } from '../../src/engine/events/events';
+import { LevelRegistrations } from '../../src/engine/level/registrations';
+import { respawnWhere } from '../../src/engine/ui/HurtArc';
+import { installPlayerDeath } from '../../src/engine/ui/playerDeath';
+import { PlayerHealth } from '../../src/engine/combat/health';
+import { STRINGS } from '../../src/shards/nine-dragon-stack/strings';
 
 describe('death presentation belongs to the current level', () => {
   it('Nine Dragon uses its Lantern Square string, named places win, and parked tables do not leak', () => {

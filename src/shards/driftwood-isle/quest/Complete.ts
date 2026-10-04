@@ -14,7 +14,7 @@
  *     combat (nothing hostile within 25 m). The menu's Achievements tab has a "Driftwood complete" row any time.
  */
 import { SEA_GLASS_COUNT, SHARD_FLAGS, DRIFTWOOD_INTERACT } from './interactables';
-import { ShardComplete, setCompleteEntry, findChunk, travel, type ShardCompleteData, type LiveMarker } from '#game';
+import { ShardComplete, setCompleteEntry, findChunk, travel, type ShardCompleteData, type LiveMarker } from '@wildshard/game';
 import { DRIFTWOOD_PLACES } from './Places';
 import { QUEST_DONE } from './questLine';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';

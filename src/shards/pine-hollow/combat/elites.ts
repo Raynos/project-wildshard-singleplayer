@@ -1,8 +1,8 @@
 import { ironhideGoal, ghostGoal, blackpawGoal, imperialGoal } from './EliteGoals';
 import { PINE_LANES } from './strikes';
-import { app, EliteBrain, inspectBrain, pinBrain, type Rng, type Animal, type AnimalManager, Impacts, heightAt, inChunk } from '#engine';
+import { app, EliteBrain, inspectBrain, pinBrain, type Rng, type Animal, type AnimalManager, Impacts, heightAt, inChunk } from '@wildshard/engine';
 import * as THREE from 'three';
-import { GroundTell, type Elites, type EliteDef, type EliteScript, type ItemId } from '#game';
+import { GroundTell, type Elites, type EliteDef, type EliteScript, type ItemId } from '@wildshard/game';
 import { DEN, BEAR_CAVE } from '../layout';
 import type { SkinId } from '../loadout/skins';
 import { Puffs } from './fxKit';

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { retried } from '#engine-internal/boot/retry';
+import { retried } from '../../src/engine/boot/retry';
 
 afterEach(() => { vi.useRealTimers(); });
 describe('module download retries', () => {

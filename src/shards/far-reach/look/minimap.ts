@@ -5,7 +5,7 @@
  * and stones, and the named places as the full map's pins. Node-safe: layout only, no runtime engine import (the manifest
  * imports this).
  */
-import type { MapOverlay, MapPoi, MinimapPalette } from '#engine';
+import type { MapOverlay, MapPoi, MinimapPalette } from '@wildshard/engine';
 import { CROWN, DAIS, FALLEN_BRIDGE, GROVE, ISLES, KEEPER, MILL, ROOST, RUIN, SPANS, STEP, SUNREST, UPDRAFT, WINDMILL, apothem } from '../layout';
 import { STRINGS } from '../strings';
 

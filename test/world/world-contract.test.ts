@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed exemption list.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { CELL_ABOVE, CELL_BELOW, CELL_HEIGHT, CHUNK_HALF, ROAD_LENGTH, ROAD_WIDTH } from '#engine/data';
+import { CELL_ABOVE, CELL_BELOW, CELL_HEIGHT, CHUNK_HALF, ROAD_LENGTH, ROAD_WIDTH } from '@wildshard/engine/data';
 import { SHARDS } from '../../src/shards.generated';
 
 // SHARD-PLATFORM SP4: the world contract (MMO-REQUIREMENTS W1, W4). Every level fits the 500 × 500 × 500 m cell, and

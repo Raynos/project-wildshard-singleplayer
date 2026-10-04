@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Scope } from '#engine';
-import { createForestAudio, installSilentScore, installForestAmbience } from '#kit';
+import { Scope } from '@wildshard/engine';
+import { createForestAudio, installSilentScore, installForestAmbience } from '@wildshard/kit';
 
 describe('asset-free forest audio profile', () => {
   it('mutes only the score output and restores it on level disposal', () => {

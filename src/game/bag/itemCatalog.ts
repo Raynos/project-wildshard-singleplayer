@@ -1,6 +1,6 @@
 import type { ItemId } from '../Inventory';
 import type { ItemRow } from './items';
-import type { IconId } from '#engine';
+import type { IconId } from '@wildshard/engine';
 
 /** Each shard registers its own catalogue for the level lifetime. */
 export const ITEMS = {} as Record<ItemId, { label: string; icon: IconId; travels: boolean }>;

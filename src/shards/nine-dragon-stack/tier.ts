@@ -1,4 +1,4 @@
-import type { TierOverrides } from '#engine';
+import type { TierOverrides } from '@wildshard/engine';
 
 export type NdTier = keyof TierOverrides;
 export function glyphLayout(tier: NdTier): { cell: number; fontPx: number; spread: number; skeletonSpread: number } {

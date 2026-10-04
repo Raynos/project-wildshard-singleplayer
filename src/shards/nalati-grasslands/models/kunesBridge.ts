@@ -11,7 +11,7 @@
  * boxes; its floor (placement) is the deck.
  */
 import * as THREE from 'three';
-import { defineModel, type ColliderDesc } from '#engine';
+import { defineModel, type ColliderDesc } from '@wildshard/engine';
 import { M, pole, v3, blob, logPainter } from '../world/paint';
 import { slab, type Box } from '../world/solid';
 import { painted, type Paint } from '../world/painted';

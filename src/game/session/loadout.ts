@@ -1,4 +1,4 @@
-import { weaponInputContext, type TrainingArena as Arena, type Weapon, type DiscSpot, type Targets } from '#engine';
+import { weaponInputContext, type TrainingArena as Arena, type Weapon, type DiscSpot, type Targets } from '@wildshard/engine';
 import { GAME_STRINGS } from '../strings';
 import { buildTitleDeck, titleCards, travel } from '../titleDeck';
 import type { worldStage } from './world';

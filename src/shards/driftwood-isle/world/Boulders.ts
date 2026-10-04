@@ -10,7 +10,7 @@
  *   scene.add(rocks.mesh); its registry piece.push(...rocks.colliders);
  */
 import type * as THREE from 'three';
-import { CHUNK_HALF, ROAD_WIDTH, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, heightAt, normalAt, waterLevel, inChunk, place, type Placed } from '#engine';
+import { CHUNK_HALF, ROAD_WIDTH, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, heightAt, normalAt, waterLevel, inChunk, place, type Placed } from '@wildshard/engine';
 import { WRECK } from '../manifest';
 import { shoreBoulder, type ShoreBoulderParams } from '../models/shoreBoulder';
 

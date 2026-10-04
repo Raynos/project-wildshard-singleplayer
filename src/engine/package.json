@@ -1,0 +1,10 @@
+{
+  "name": "@wildshard/engine",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./data": "./data.ts",
+    "./retry": "./retry.ts"
+  }
+}

@@ -14,7 +14,7 @@
  * (see the model).
  */
 import type * as THREE from 'three';
-import { heightAt, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, modelContext, place, type Placed } from '#engine';
+import { heightAt, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, modelContext, place, type Placed } from '@wildshard/engine';
 import { Cove } from './Cove';
 import { lookout, lookoutLayout, lookoutOrigin, type LookoutAnchor, type LookoutParams } from '../models/lookout';
 

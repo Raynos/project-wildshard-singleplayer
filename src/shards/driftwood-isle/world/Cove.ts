@@ -34,7 +34,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { waterfallFor, type WaterfallLike } from './Waterfall';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
 import { reefRock } from '../models/reefRock';
-import { PATCH_ORDER, patchShader, heightAt, attachFogUniforms, SEED, LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight, Rng, type BoxSpec as Collider, type Sky, boxDesc, type ColliderDesc, type WorldRegistry, modelContext, place, type Placed } from '#engine';
+import { PATCH_ORDER, patchShader, heightAt, attachFogUniforms, SEED, LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight, Rng, type BoxSpec as Collider, type Sky, boxDesc, type ColliderDesc, type WorldRegistry, modelContext, place, type Placed } from '@wildshard/engine';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }

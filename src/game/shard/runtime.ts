@@ -2,7 +2,7 @@ import type { SkinLocker } from '../cosmetics/locker';
 import type { BagMenuOptions } from '../bag/tabs';
 import type { ShardWorld } from './world';
 import type { BodyShadow } from '../cosmetics/bodyShadow';
-import type { StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinDef, CombatCues, Targets, FirstHints, MapMark } from '#engine';
+import type { StepRunner, Interactable, Animal, AnimalManager, EquipmentService, WeaponId, Weapon, Audio, StepSurface, Music, HUD, GameMenu, FullMap, SkinDef, CombatCues, Targets, FirstHints, MapMark } from '@wildshard/engine';
 import type { Group, Vector2, Vector3 } from 'three';
 import type { Inventory } from '../Inventory';
 import type { Progress } from '../Progress';
@@ -54,7 +54,7 @@ export interface ShardRuntime {
   horizonVeil: { value: Vector2 } | null;
 }
 
-declare module '#engine' {
+declare module '@wildshard/engine' {
   interface AskMap {
     'feat.toast': [{ id: string; event?: string; allowed: boolean }, { id: string; event?: string; allowed: boolean }];
   }

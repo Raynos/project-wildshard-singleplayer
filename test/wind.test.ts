@@ -1,7 +1,7 @@
 // src/engine/world/wind.ts — the forest's gust field (PH-L6): the CPU mirror of the GLSL `windGustAt` every pine, grass clump
 // and fern samples. A front must be bounded (no NaN / blow-ups into the vertex shaders), smooth, and travel downwind.
 import { describe, expect, it } from 'vitest';
-import { FRONT_LEN, FRONT_SPEED, WIND_DIR, WIND_FIELD_GLSL, windGustAt } from '#engine-internal/world/wind';
+import { FRONT_LEN, FRONT_SPEED, WIND_DIR, WIND_FIELD_GLSL, windGustAt } from '../src/engine/world/wind';
 
 /** the strongest point of the field along the wind line through the origin, searched over one front length */
 function crest(t: number, from: number): number {

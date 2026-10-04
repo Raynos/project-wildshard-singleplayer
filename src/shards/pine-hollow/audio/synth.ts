@@ -1,4 +1,4 @@
-import { Scope, audioRandom, tap, ambientTick, type Audio } from '#engine';
+import { Scope, audioRandom, tap, ambientTick, type Audio } from '@wildshard/engine';
 import { FOREST_AUDIO } from './profile';
 
 const rnd = (a: number, b: number): number => a + audioRandom() * (b - a);

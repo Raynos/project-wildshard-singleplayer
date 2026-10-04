@@ -1,4 +1,4 @@
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { fanModel } from '../weapons/fanModel';
 import { bridgeKit, windmill } from '../world/shapes';
 import { keeper } from '../quest/keeper';

@@ -22,7 +22,7 @@
  * view looks through it; y = its centre).
  */
 import * as THREE from 'three';
-import { PATCH_ORDER, patchShader, SEED, type Rng, attachFogUniforms, LowPolyKit, rock, tris, bakeLight, lowPolyMaterial, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel, type ModelContext } from '#engine';
+import { PATCH_ORDER, patchShader, SEED, type Rng, attachFogUniforms, LowPolyKit, rock, tris, bakeLight, lowPolyMaterial, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel, type ModelContext } from '@wildshard/engine';
 
 /** where a shrine stands: its centre (world xz) and which way its front faces (rot, radians about +Y) */
 export interface ShrineSite { readonly x: number; readonly z: number; readonly rot: number }

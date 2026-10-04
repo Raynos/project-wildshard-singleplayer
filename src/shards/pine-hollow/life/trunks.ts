@@ -8,7 +8,7 @@
  * scaled, moved to its base (Forest.ts composes the instance the same way).
  */
 import type * as THREE from 'three';
-import type { TreeInstance } from '#engine';
+import type { TreeInstance } from '@wildshard/engine';
 
 export interface TrunkSection { x: number; z: number; r: number }
 interface Knot { y: number; cx: number; cz: number; r: number }

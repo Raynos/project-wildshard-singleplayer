@@ -1,8 +1,8 @@
 // E106: Nalati's spruce stipple is placed once per forest mask and a map tile draws only the crowns on it, with the same
 // dots the old per-tile walk of the whole chunk drew.
 import { describe, expect, it } from 'vitest';
-import { Rng, SEED, type MapOverlay } from '#engine';
-import { NALATI_MINIMAP } from '#shards/nalati-grasslands/look/minimap';
+import { Rng, SEED, type MapOverlay } from '@wildshard/engine';
+import { NALATI_MINIMAP } from '../../../src/shards/nalati-grasslands/look/minimap';
 
 type Arc = [number, number, number, string];
 /** a 2D context that only records the filled discs */

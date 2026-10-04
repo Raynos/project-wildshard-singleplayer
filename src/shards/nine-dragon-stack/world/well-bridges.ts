@@ -25,7 +25,7 @@ import { hipRoof } from './square';
 import { WORDS } from './towers';
 import { stand } from './well-galleries';
 import { NEON, clamp } from '../util';
-import { Rng, type ColliderDesc } from '#engine';
+import { Rng, type ColliderDesc } from '@wildshard/engine';
 
 export type BridgeKind = 'stone' | 'timber' | 'steel' | 'covered' | 'gate';
 

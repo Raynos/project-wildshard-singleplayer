@@ -1,4 +1,4 @@
-import type { EquipmentRow } from '#game';
+import type { EquipmentRow } from '@wildshard/game';
 import { SWAP_GLYPHS } from './ui';
 
 export const SWORD: EquipmentRow = {

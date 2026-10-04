@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
-import { app } from '#engine-internal/app/runtime';
-import { buildSavePanel } from '#engine-internal/ui/SavePanel';
+import { app } from '../../src/engine/app/runtime';
+import { buildSavePanel } from '../../src/engine/ui/SavePanel';
 import * as v from 'valibot';
-import { Scope } from '#engine-internal/app/scope';
-import { SaveStore } from '#engine-internal/saves/store';
+import { Scope } from '../../src/engine/app/scope';
+import { SaveStore } from '../../src/engine/saves/store';
 import { MemoryStorage } from '../setup';
 
 afterEach(() => { document.body.replaceChildren(); });

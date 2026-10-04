@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { CROWN, DAIS } from '../layout';
 import { paintIsleMaterial } from './isle';
 import { fit, hdMaterial, skyHd } from './meshes';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine';
 
 /**
  * The storm crown's arena (loop 4; mockup D, `art/far-reach/round-11-review/mockup-D-crown-arena.jpg`): a ring of seven

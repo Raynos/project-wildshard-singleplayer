@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import type { Actor, CombatPipeline, EffectService, EffectTarget, Scope } from '#engine';
+import type { Actor, CombatPipeline, EffectService, EffectTarget, Scope } from '@wildshard/engine';
 
 export interface StatusMovement { effectMoveLocked: boolean; effectMoveScale: number }
 

@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it } from 'vitest';
-import { progressSave } from '#game/saves';
-import { buildTitleDeck, titleCards, type TitleCard } from '#game/titleDeck';
-import { updateSummary } from '#game/summary';
+import { progressSave } from '../src/game/saves';
+import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/titleDeck';
+import { updateSummary } from '../src/game/summary';
 
 function fixture(active: string | null = null, cards: readonly TitleCard[] = titleCards()) {
   const deck = buildTitleDeck({ cards, active, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined });

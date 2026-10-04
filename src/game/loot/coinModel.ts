@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { LowPolyKit } from '#engine';
+import { LowPolyKit } from '@wildshard/engine';
 
 const done = (kit: LowPolyKit): THREE.BufferGeometry => kit.finish({ ao: false });
 

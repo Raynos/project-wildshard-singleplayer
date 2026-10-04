@@ -1,4 +1,4 @@
-# The engine API: `#engine`, `#game`, `#kit`
+# The engine API: `@wildshard/engine`, `@wildshard/game`, `@wildshard/kit`
 
 This is the public API a shard is written against. It covers the three public layers and what each one gives a
 shard. One section per § of [01-architecture](../project/archive/game-normalization/01-architecture.md), in the same order.
@@ -15,19 +15,22 @@ shard. One section per § of [01-architecture](../project/archive/game-normaliza
 
 | Import | File | What it is |
 |---|---|---|
-| `#engine` | `src/engine/index.ts` | The engine: app, scopes, events, saves, input, UI, render, physics, audio, combat, AI |
-| `#engine/retry` | `src/engine/retry.ts` | Pre-entry-safe retry policy; exports only `retried`, without App or Three |
-| `#engine/data` | `src/engine/data.ts` | The node-safe slice of the engine, for manifests and offline tools (B31) |
-| `#game` | `src/game/index.ts` | The Wildshard game: the manifest and plugin types, Bag, coins, loot, compendium, feats, travel |
-| `#kit` | `src/kit/index.ts` | Shared content, used by 2+ shards: weapon families, boar and bear, starter effects, NPC rig, hoverboard |
-| `#kit/data` | `src/kit/data.ts` | The kit's node-safe content rows for manifest closures: `BOAR`, `BOAR_TUNING`, `BEAR`, `SWORD_WOOD` (AG5) |
+| `@wildshard/engine` | `src/engine/index.ts` | The engine: app, scopes, events, saves, input, UI, render, physics, audio, combat, AI |
+| `@wildshard/engine/retry` | `src/engine/retry.ts` | Pre-entry-safe retry policy; exports only `retried`, without App or Three |
+| `@wildshard/engine/data` | `src/engine/data.ts` | The node-safe slice of the engine, for manifests and offline tools (B31) |
+| `@wildshard/game` | `src/game/index.ts` | The Wildshard game: the manifest and plugin types, Bag, coins, loot, compendium, feats, travel |
+| `@wildshard/kit` | `src/kit/index.ts` | Shared content, used by 2+ shards: weapon families, boar and bear, starter effects, NPC rig, hoverboard |
+| `@wildshard/kit/data` | `src/kit/data.ts` | The kit's node-safe content rows for manifest closures: `BOAR`, `BOAR_TUNING`, `BEAR`, `SWORD_WOOD` (AG5) |
 
-Many `#engine` exports are **ports**: legacy classes a shard still needs while the plan runs (`Game`, `World`, `HUD`,
+Many `@wildshard/engine` exports are **ports**: legacy classes a shard still needs while the plan runs (`Game`, `World`, `HUD`,
 `AnimalManager`, `Animal`, `getActiveChunk`). They are listed so the test passes, and each section says which ones are
 ports. Prefer the context verbs (`ctx.*`) and the services on `ctx.app` where both exist.
 
-**No deep paths (AG5).** `#engine/*` does not resolve: a deep path is a build error in TypeScript, Vite and node alike,
-so `#engine` carries everything the layers above use. The names AG5 brought up from deep paths, by area:
+**No deep paths (AG5, E432).** The layers are workspace packages (`pnpm-workspace.yaml`): `@wildshard/engine`,
+`@wildshard/game` and `@wildshard/kit`, each with a `package.json` whose `exports` are its public entries (`.`, plus
+`./data` and `./retry` for the engine, `./data` and `./creatures` for the kit). A deep path
+(`@wildshard/engine/world/Sky`) is `ERR_PACKAGE_PATH_NOT_EXPORTED` in TypeScript, Vite and node alike, so the index
+carries everything the layers above use. The names AG5 brought up from deep paths, by area:
 placement (`place`, `PlaceOptions`, `Draw`, `CullOptions`, `CullView`, `copiesAt`, `copiesNear`, `placedGroups`, `weld`,
 `finishWeld`, `placeSet`, `poseOf`, `SlotGeometry`, `SlotRecorder`, `bakePart`, `supportPoints`, `vertexHull`,
 `loadLodPairInto`, `lodPairOf`, `GlbPart`); models (`creature`, `creatureFactory`, `CreatureParams`, `CREATURE_CLIPS`,
@@ -41,17 +44,17 @@ placement (`place`, `PlaceOptions`, `Draw`, `CullOptions`, `CullView`, `copiesAt
 `DialogueBox`, `RewardCaption`, `Interactables`); pickups and the playgrounds (`ItemPickup` / `WeaponPickup`,
 `PickupTier`, `DevKit`, `devLabel`, `devMaterial`, `PlaygroundChip`, `clock`, `PLAYGROUND_Y`); `Animal` as a value;
 and `perfLap` / `LapSpot`. The composition root (`src/*.ts`, outside the layers) keeps its relative paths
-into the engine so the pre-entry stays small. Tests reach engine internals
-through the vitest-only `#engine-internal/*` alias; `src/` never does.
+into the engine so the pre-entry stays small. Tests reach a layer's internals by
+relative path (`../src/engine/world/Sky`); `src/` never does (`wildshard/public-index`).
 
 ## 0. Conventions
 
 | Rule | What it means for you |
 |---|---|
 | **Layers** | `src/engine/` → `src/game/` → `src/kit/` → `src/shards/<slug>/`. Imports point down the arrow only. A shard never imports another shard |
-| **Public index only** | A shard imports `#engine`, `#engine/data`, `#game`, `#kit` and `#kit/data`, nothing deeper. `#engine/combat/pipeline` does not resolve (AG5: no `#engine/*` in `package.json`), and `wildshard/layer` names it. Inside your own folder, use `./` |
+| **Public index only** | A shard imports `@wildshard/engine`, `@wildshard/engine/data`, `@wildshard/game`, `@wildshard/kit` and `@wildshard/kit/data`, nothing deeper. `@wildshard/engine/combat/pipeline` does not resolve (not in the package's `exports`), and `wildshard/layer` names it. Inside your own folder, use `./` |
 | **Composition root** | `src/entry.ts` and `src/main.ts` sit outside the layers. You never edit them for a shard |
-| **Node-safe manifest** | `manifest.ts` imports only data and types: `#engine/data`, `#game` types and its own data files. Code arrives through lazy thunks (`load`, `render`, `cues`, `roster`, `preload`). `test/manifests-node-safe.test.ts` imports every manifest in bare node |
+| **Node-safe manifest** | `manifest.ts` imports only data and types: `@wildshard/engine/data`, `@wildshard/game` types and its own data files. Code arrives through lazy thunks (`load`, `render`, `cues`, `roster`, `preload`). `test/manifests-node-safe.test.ts` imports every manifest in bare node |
 | **Extractable engine** | `src/engine/**` holds no Wildshard word: no slug, no "shard", no Bag, coin, loot, compendium or feat. The engine says `level` |
 | **Behaviour vs tuning** | Behaviour is a class that extends an engine or kit class. Tuning is a typed data row |
 | **Names** | Events, asks, tags, cues, actions and effect ids are dot-case strings: `'damage.dealt'`, `'creature.greyBlob'`, `'cue.sword.hit'`, `'effect.poison'`. Prefix your own with your shard's short name (`template.*`) |
@@ -63,18 +66,18 @@ through the vitest-only `#engine-internal/*` alias; `src/` never does.
 The template's imports show the rule:
 
 ```ts
-import { ShardPlugin, installLoot, installCompendium, type ShardContext } from '#game';
-import { IRON_SWORD, Sword, SWORD_IRON, BOAR, BOAR_LOOK, STARTER_EFFECTS, installStarterEffects } from '#kit';
-import type { QuestState, Interactable } from '#engine';
+import { ShardPlugin, installLoot, installCompendium, type ShardContext } from '@wildshard/game';
+import { IRON_SWORD, Sword, SWORD_IRON, BOAR, BOAR_LOOK, STARTER_EFFECTS, installStarterEffects } from '@wildshard/kit';
+import type { QuestState, Interactable } from '@wildshard/engine';
 import { STRINGS } from './strings';
 ```
 
-Constants every level shares come from `#engine` / `#engine/data`: `CHUNK_SIZE` (500 m), `CHUNK_HALF`, `CHUNK_DEPTH`,
+Constants every level shares come from `@wildshard/engine` / `@wildshard/engine/data`: `CHUNK_SIZE` (500 m), `CHUNK_HALF`, `CHUNK_DEPTH`,
 `TERRAIN_RES`, `ROAD_LENGTH`, `SEED`. `ENGINE_API`, `GAME_API` and `KIT_API` are each layer's API version (all 1).
 
 ## 1. App, phases, systems, states
 
-There is one `App` per page: `app` (from `#engine`). A shard reaches it as `ctx.app`.
+There is one `App` per page: `app` (from `@wildshard/engine`). A shard reaches it as `ctx.app`.
 
 | Export | What it does |
 |---|---|
@@ -160,20 +163,20 @@ const random = ctx.app.rng.stream('cosmetic');   // prop scatter: may stay unsee
 | `ai.claim`, `ai.mayAttack` | the aggression director's tokens (§18) |
 | `creature.wander-goal` | where a wandering creature heads |
 | `weather.hold`, `weather.damage` | weather overrides and weather damage |
-| `feat.toast` (from `#game`) | whether a feat toast shows |
+| `feat.toast` (from `@wildshard/game`) | whether a feat toast shows |
 
 **Extend the maps by declaration merging.** Your own events, asks, actions and tier knobs are typed this way. From
 the template's `plugin.ts`:
 
 ```ts
-declare module '#engine' {
+declare module '@wildshard/engine' {
   interface TierKnobMap { 'template.propCount': number }
   interface ActionMap { 'template.lantern.toggle': true }
   interface EquipmentSlotMap { 'template-whip': true }
 }
 ```
 
-Every extension point merges through `#engine` (AG5: deep engine paths do not resolve). A merge through a named
+Every extension point merges through `@wildshard/engine` (AG5: deep engine paths do not resolve). A merge through a named
 re-export does not depend on the order TypeScript reads files (checked in AG5); a program sees a merge only when it
 includes the file that declares it, so declare it in a file the shard's code imports.
 
@@ -259,7 +262,7 @@ export function ownPrimitives(root: Object3D, scope: Scope): void {
 | `debug` | the probe behind `ctx.debug.expose` (§23) |
 | `engineScope`, `levelScope` | the engine's scope and the running level's scope |
 | `levelRegistrations` | what the level registered (rows, strings, knobs) |
-| `loadLevel(spec, hooks)`, `unloadLevel()` | run and dispose a level (§5a). `#game` calls them; a shard never does |
+| `loadLevel(spec, hooks)`, `unloadLevel()` | run and dispose a level (§5a). `@wildshard/game` calls them; a shard never does |
 | `setState(s)`, `onEnter`, `onExit`, `addSystem` | §1 |
 | `registerDayCycle(clock, scope)`, `registerTrample(field, scope)` | hand a clock or trample field to the engine for this level |
 
@@ -276,7 +279,7 @@ the update-phase event reports the final mode for that frame, so intermediate ch
 
 ## 5a. LevelSpec and LevelContext: all the engine sees of a level
 
-The engine never reads a manifest. `#game`'s `toLevelSpec(manifest)` turns it into a `LevelSpec`, then calls
+The engine never reads a manifest. `@wildshard/game`'s `toLevelSpec(manifest)` turns it into a `LevelSpec`, then calls
 `app.loadLevel(spec, hooks)`. The hooks wrap your plugin's `world`, `kit` and `play`.
 
 | Export | What it is |
@@ -325,7 +328,7 @@ override kit(ctx: ShardContext): void {
 Every row verb takes one row or a readonly array. A duplicate id throws. `ContentRow` (`{ id }`) and `ContentRowMap`
 are the row types; `EngineRows` is the verb set.
 
-## 6. The shard manifest (`#game`)
+## 6. The shard manifest (`@wildshard/game`)
 
 `ShardManifest` (`src/game/shard/manifest.ts`) is the game's type. `manifest.ts` default-exports one, and
 `scripts/gen-shards.mjs` discovers it by folder. There is no `defineShard` helper: the manifest is a typed constant.
@@ -348,7 +351,7 @@ are the row types; `EngineRows` is the verb set.
 | Field | Meaning |
 |---|---|
 | `style` | an open, opaque string authored by the shard; familiar `pbr`, `toon`, `painterly`, `jiehua`, `greybox` words retain editor completion. Render choices use `render`, `creatures` and `kitLook` |
-| `ground` | `{ terrain?, structures?, paths?, water? }`, at least one of terrain / structures. `terrain` comes from `buildTerrain(seed, spec)` (`#engine/data`). `water` is `WaterBody` rows (§17) |
+| `ground` | `{ terrain?, structures?, paths?, water? }`, at least one of terrain / structures. `terrain` comes from `buildTerrain(seed, spec)` (`@wildshard/engine/data`). `water` is `WaterBody` rows (§17) |
 | `spawn`, `bounds?`, `camera?` | where the player starts; a soft-respawn box; the portrait FOV |
 | `world?` | `{ killY, fallCause? }`: optional creature death plane (§19); the engine reports an out-of-world cause below it |
 | `sky`, `atmosphere`, `grade`, `look?` | pure-data look fields |
@@ -410,7 +413,7 @@ This does not change `bounds` / soft respawn or the creature death plane `world.
 
 **Structures-only ground:** `ground: { structures: true }` needs no `terrain`. The engine draws no terrain mesh
 and creates no terrain collider. Analytic placement readers (`heightAt`, `terrainFor`) return the fixed floor
-**y = −1,000 m** everywhere; this floor is not walkable geometry. `terrainFieldFor(ground, id)` (`#engine/data`)
+**y = −1,000 m** everywhere; this floor is not walkable geometry. `terrainFieldFor(ground, id)` (`@wildshard/engine/data`)
 returns the authored field when present, otherwise this fallback for structures; missing both is an error.
 The fallback has no trails, cabins, pond or stream, an upward normal and a dry water sentinel at **y = −1,001 m**.
 Set `spawn.y` to an authored structure's floor, register its colliders with `ctx.piece`, and set `bounds.floor` /
@@ -433,8 +436,8 @@ export const TEMPLATE: ShardManifest = {
 export default TEMPLATE;
 ```
 
-`#game` also exports `ShardSword` (a legacy `sword` field's viewmodel), `ChunkTerrain` (the built terrain functions),
-and `RGB` / `Vec2` (`#engine/data` has `Vec2`, `TerrainNoise` too).
+`@wildshard/game` also exports `ShardSword` (a legacy `sword` field's viewmodel), `ChunkTerrain` (the built terrain functions),
+and `RGB` / `Vec2` (`@wildshard/engine/data` has `Vec2`, `TerrainNoise` too).
 
 ### 6.1 Authored diagnostic cameras
 
@@ -472,7 +475,7 @@ export class TemplatePlugin extends ShardPlugin {
 export default TemplatePlugin;
 ```
 
-| Export (`#game`) | What it is |
+| Export (`@wildshard/game`) | What it is |
 |---|---|
 | `ShardPlugin` | the base class; each hook may be async |
 | `ShardContext` | `LevelContext` + `manifest`, `game`, `bag`, and `rows` = `EngineRows & GameRows` |
@@ -521,11 +524,11 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 
 ### Pre-entry safe
 
-`#engine/retry` is the public bootstrap index. It exports only `retried` from the import-free retry leaf. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Other runtime loaders can use the same function through `#engine`.
+`@wildshard/engine/retry` is the public bootstrap index. It exports only `retried` from the import-free retry leaf. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Other runtime loaders can use the same function through `@wildshard/engine`.
 
 `retried(load)` retries a rejected async module download after 800 ms and 2500 ms, then preserves the final
 rejection. The entry (including composition-root imports), shard plugin loader and level look loader share this policy. It is an import-free leaf at
-`#engine/retry` for the pre-engine entry, and is public through `#engine` for game and shard loaders.
+`@wildshard/engine/retry` for the pre-engine entry, and is public through `@wildshard/engine` for game and shard loaders.
 
 | Stage | The engine does | You fill |
 |---|---|---|
@@ -561,9 +564,9 @@ export const bootFiles = (): readonly string[] => Object.values(bootSources('pho
 // manifest: boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] }
 ```
 
-Boot helpers on `#engine`: `StepProgress`, `StepRunner`, `macrotask`, `slicer` (yield inside a long build),
+Boot helpers on `@wildshard/engine`: `StepProgress`, `StepRunner`, `macrotask`, `slicer` (yield inside a long build),
 `loadBootRuntime` / `BootRuntime`, `preloadBakedTextures`, `loadBakedSky`, `loadLUT`, `fetchLut`, `LUT_SIZE`,
-`PUBLIC_BYTES`, `markUnload`, `setTitleArrival` / `TitleArrival`, `Ktx2Table`, `LoadFailure`. `#engine/data` has
+`PUBLIC_BYTES`, `markUnload`, `setTitleArrival` / `TitleArrival`, `Ktx2Table`, `LoadFailure`. `@wildshard/engine/data` has
 `filePolicy`, `PUBLIC_BYTES`, `ChunkFiles`, `Tier`, `TexMode` for node-side tools, and for a manifest's creature and
 loot tables (E405 AG5) `CHUNK_SIZE`, `CELL_HEIGHT` / `CELL_BELOW` / `CELL_ABOVE` (the 500 m cell, 250 m each side of the highway level: SHARD-PLATFORM SP4), `TERRAIN_RES`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `Noise2D`, `Rng`, `deriveSpecies`, `WeightedTable`.
 
@@ -601,7 +604,7 @@ const notes = ctx.app.saves.define(NOTES);
 if (!notes.read(ctx.manifest.slug)) notes.write(true, ctx.manifest.slug);
 ```
 
-`#game` defines the shared game keys: `progressSave`, `inventorySave`, `purseSave`, `ownedSave`, `bountySave`,
+`@wildshard/game` defines the shared game keys: `progressSave`, `inventorySave`, `purseSave`, `ownedSave`, `bountySave`,
 `compendiumSave`, `bossesSave`, `elitesSave`. Bind one to your shard with `shardSave(slot, slug)`:
 `shardSave(purseSave, ctx.manifest.slug).write(n)`. `saveSlug(id)` strips a legacy `chunk://local/` id.
 `jsonSlot(key, scope)`, `jsonSchema`, `jsonRecord` and `saveStorage(scope)` cover untyped JSON and the pre-boot keys.
@@ -616,7 +619,7 @@ listeners attach (E362 AG18); `no-raw-input` also refuses the helper form (`scop
 
 | Export | What it is |
 |---|---|
-| `Action` | the action union: the engine's (`move`, `look`, `dodge`, `jump`, `use`, `crouch`, `sprint`, `pause`, `map`, …), `EquipmentAction` (`attack`, `heavy`, `aim`, `reload`, `lock`, `swap.*` …) and everything merged into `ActionMap` (`bag` from `#game`, your own) |
+| `Action` | the action union: the engine's (`move`, `look`, `dodge`, `jump`, `use`, `crouch`, `sprint`, `pause`, `map`, …), `EquipmentAction` (`attack`, `heavy`, `aim`, `reload`, `lock`, `swap.*` …) and everything merged into `ActionMap` (`bag` from `@wildshard/game`, your own) |
 | `ActionMap` | merge your actions into it (§3) |
 | `InputContextDef` | `{ id, actions, blocks?, keys?, keysFrom?, touch?, priority?, enabled? }` |
 | `TouchVerb`, `TouchVerbSpec` | a touch verb button: `{ action, label, icon, hold?, show? }` |
@@ -703,7 +706,7 @@ Bows use manual hold/release draw on both devices; the automatic-shot action has
 | `TabRegistry`, `TabId`, `TabSpec`, `TabFragment` | the Bag / menu tab registry the game builds on; game-owned GEAR / FINDS / PACK / FEATS renderers register TabSpecs and ordered fragments. Menu options carry Settings capabilities rather than Bag kit / skins / tools / pack data |
 | `registerPickupLook`, `PickupLook`, `PickupPart`, `pickupModel`, `interactParts`, `LowPolyKit` | a pickup row's look is registered content (its batched model and the parts drawn up close); `LowPolyKit` builds their flat-shaded geometry (E405) |
 | `registerInteractProps`, `InteractProps`, `ChestLook`, `DoorLook`, `ChestDims` | the props the interaction runtime draws (chest, key, door, lever, plate, barrel, brazier, bench, altar: each part's geometry, and the catalog model it places a kind's rows as) are registered content; the engine keeps the kinds, poses, colliders and prompts (E405 E417; the kit's: `installKitProps`) |
-| `IconId`, `IconMap`, `icon`, `registerIcons`, `iconParts` | the icon registry: the engine's UI glyphs (lock, check, map pins, the Bag's tabs); a content library merges its ids into `IconMap` through `declare module '#engine'` and registers SVGs drawn with `iconParts` (the kit's `installKitIcons`; E405) |
+| `IconId`, `IconMap`, `icon`, `registerIcons`, `iconParts` | the icon registry: the engine's UI glyphs (lock, check, map pins, the Bag's tabs); a content library merges its ids into `IconMap` through `declare module '@wildshard/engine'` and registers SVGs drawn with `iconParts` (the kit's `installKitIcons`; E405) |
 | `BossBar`, `EliteBar` | the shared encounter bars (decision 91: one boss bar look) |
 | `HUD`, `GameMenu`, `GameMenuOptions`, `FullMap`, `FullMapPoi`, `MapQuest`, `MapMark`, `MapPoi`, `MapOverlay`, `MinimapPalette`, `FirstHints`, `Feedback`, `KitEntry` | **ports**: the legacy HUD, menu and map types `runtime.play` hands over |
 
@@ -727,7 +730,7 @@ Appending to `#hud` or `document.body` yourself is a lint error (`wildshard/no-r
 baseline HUD and maps its verbs onto existing controls. **Any HUD change is an E332 HUD change**: it needs Jake's pick
 and a herdr notice (AGENTS.md).
 
-**Bag tabs** (`#game`, `ctx.bag`): `tab({ id, title, icon?, order?, hint? })` adds a tab and
+**Bag tabs** (`@wildshard/game`, `ctx.bag`): `tab({ id, title, icon?, order?, hint? })` adds a tab and
 `fragment(tab, { id, order?, render(host) })` adds content to it. List the tab in `manifest.bag.tabs`. The finds are
 `ctx.bag.fragment('finds', …)`.
 
@@ -838,7 +841,7 @@ acquired through `app.assets`; its lease owns it. No global or hidden module sco
 Direct `Terrain.build(ground, painter, scope)` callers must provide that scope; missing or disposed scopes fail
 before invoking a custom painter.
 
-`#game` re-exports the old names `ShardRender`, `ShardComposeContext`, `ShardComposition` for manifests not yet moved.
+`@wildshard/game` re-exports the old names `ShardRender`, `ShardComposeContext`, `ShardComposition` for manifests not yet moved.
 
 ### 13.2 Shader patches
 
@@ -944,7 +947,7 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 | `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy` | the positional voice engine |
 | `LevelAudioProfile`, `loadAudio` | a level's audio profile and the lazy audio runtime |
 | `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName` | the synth score Music plays: the composition root installs the game's (src/game/audio/theme.ts, E405: the engine holds no theme) |
-| `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (#kit's creature voices) |
+| `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (@wildshard/kit's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
 
 `manifest.audio` is `{ bed?, ambience, score, cues?, preload?, samples?, alertOnlyHostile? }`. The template points every
@@ -993,18 +996,18 @@ rigContract: { skeleton: 'template.greyBlob', sockets: ['body', 'head'], clips: 
 
 | Mechanism | Exports | Example |
 |---|---|---|
-| Terrain | `buildTerrain` (also `#engine/data`), `heightAt`, `terrainNormal`, `terrainWaterLevel`, `Terrain`, `Noise2D`, `smoothstep`, `clamp`, `lerp`, `TerrainNoise` | `buildTerrain(357, { landscape, trails, cabinSites: [] })` |
+| Terrain | `buildTerrain` (also `@wildshard/engine/data`), `heightAt`, `terrainNormal`, `terrainWaterLevel`, `Terrain`, `Noise2D`, `smoothstep`, `clamp`, `lerp`, `TerrainNoise` | `buildTerrain(357, { landscape, trails, cabinSites: [] })` |
 | Sky | `Sky`, `SkyBackdrop*` (§13.1), `compassDir` | the template's backdrop drives `sky.setKeyLight` |
 | Day cycle | `DayCycle`, `DayCycleSpec`, `DayCycleClock`, `DayKeys`, `DayPhase`, `TimePick`, `LightPreset`, `ScheduleSeg`; `app.registerDayCycle(clock, scope)` | `createDay()` in `_template/world/climate.ts` |
 | Weather | `Weather`, `WeatherProfile`, `WeatherNumbers`; asks `weather.hold` / `weather.damage`; kit `rainCurtain` | `new Weather<'clear' \| 'cloudy'>({ states, next, length, … }, ctx.app.rng.stream('gameplay'))` |
-| Water | `WaterBody`, `WaterBodies` (`app.world.water`), `swellBody`, `basinBody` (`#engine/data`), `surfaceReflect`, `WaterView`, `pondGrid`, `waveHeight` | the template's `POOL` row in `ground.water` |
+| Water | `WaterBody`, `WaterBodies` (`app.world.water`), `swellBody`, `basinBody` (`@wildshard/engine/data`), `surfaceReflect`, `WaterView`, `pondGrid`, `waveHeight` | the template's `POOL` row in `ground.water` |
 | Fog | `attachFogUniforms`, `addFogUniforms`, `fogUniforms`; your `FogModel`; weather fog `weatherFog`, `WeatherFog`, `WeatherFogSpec` (E390: a second exponential fog over the level's own, compiled only when the manifest sets `atmosphere.weather: true`; `set(strength 0..1)` each time it changes, cleared when the scope ends; it composes with a backdrop's clock and the underwater blend) | `const storm = weatherFog(ctx.scope, { dist: 0.05, color: 0x8a5238 }); storm.set(eased)` (Signal Dunes' sand storm) |
 | Wind | `wind`, `WIND_DIR`, `windGustAt`, `windUniforms`, `WindField` | grass, trees and arrow drift read it |
 | Placement and models | `defineModel`, `ModelDef`, `modelContext`, `ModelContext`, `ModelPart`, `live`, `listModel`, `RosterEntry`, `twoSidedPositions`, `WeldBuild`, `markGpuOnly` | `defineModel({ id: '_template/lantern', pipeline: 'code', build: () => … })` |
 | Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchFade`, `patchWind`, `TREE_SPECS`, `TreeSpeciesTraits` (a species' planting: scale, growth, girth, spacing, hue), `TreeSetVariant` (a tree set's variant), `SpeciesWeights` (the level's own set and traits: `TreeSpec.setVariants`, `ForestSpec.speciesTraits`; E405), `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `loadBakedCards`, `exportCardTextures` | |
 | Geometry kit | `log`, `beam`, `rope`, `sagLine`, `rock`, `plank`, `tris`, `wobble`, `pole`, `blob`, `lathe`, `revolve`, `revolveUV`, `mergeVerticesByPos`, `voxelAO`, `aoTint`, `hemisphere`, `VoxelAOParams`, `HemiRing`, `HemiDir`, `lin` | |
 | Interactables | `Interactable`, `Interactables`, `InteractEvent`, `Flags`, `Place`, `PoiId` | the template's hut door |
-| Bounds and layout | `installBounds`, `layoutFauna` (`#engine/data`), `CHUNK_*` | |
+| Bounds and layout | `installBounds`, `layoutFauna` (`@wildshard/engine/data`), `CHUNK_*` | |
 | Content loaders | `loadWorldContent`, `loadMeadow`, `loadPBR`, `loadPBRArray`, `loadGLTF`, `loadTexture`, `pbrMaterial`, `PBRSet` | lazy engine content (ports) |
 | Painterly helpers | `painterlyMaterial`, `syncPainterlySun`, `updatePainterly`, `setPainterlyLook`, `painterlyUniforms` | ports of Nalati's material, waiting to move |
 | Light layers | `SHADOW_LAYER`, `World` (a port) | |
@@ -1022,7 +1025,7 @@ abstract class Tool extends Equipment { slot: 'tool' | 'offhand'; actions: reado
 | Export | What it is |
 |---|---|
 | `Equipment`, `Weapon`, `Tool` | the base classes |
-| `EquipmentRow` | `{ id, ui, meta, cues?, hitStop?, tags?, pickup?, rangedFeel?, legacySlot? }`. Also on `#game` |
+| `EquipmentRow` | `{ id, ui, meta, cues?, hitStop?, tags?, pickup?, rangedFeel?, legacySlot? }`. Also on `@wildshard/game` |
 | `EquipmentMeta` | `{ name, icon, blurb, category }`: the Bag builds its entries from it |
 | `WeaponUi` | `{ name, icon, touch, lockOn, melee, tracers, swapIcon, inputContext?, ammo? … }`; `ammo.magazine: true` makes the touch ammo chip a reload button. Its glyph appears below full; a tap uses the reload input action. |
 | `EquipmentId`, `WeaponId`, `ToolId` | `'weapon.*'` / `'tool.*'` ids; `WeaponId` is a legacy slot from `EquipmentSlotMap` |
@@ -1171,11 +1174,11 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 **Arms ports**: `ARM_PAL`, `gloveFist`, `riderArm`, `placeArm`, `forearm` (Nalati's arms, waiting to move);
 `buildHoverboard` (the hoverboard's geometry).
 
-`SlashTrail` (`#engine`) is the shared melee ribbon drawing block. `SlashTrailProfile` supplies capacity, subdivisions, motion threshold and the age/alpha channel. `sample(inner, tip, time)`, `reset()` and `rebuild(time, life, alpha?)` keep caller-owned materials and clocks; `geometry`, `count` and `newest` expose drawing and expiry handles.
+`SlashTrail` (`@wildshard/engine`) is the shared melee ribbon drawing block. `SlashTrailProfile` supplies capacity, subdivisions, motion threshold and the age/alpha channel. `sample(inner, tip, time)`, `reset()` and `rebuild(time, life, alpha?)` keep caller-owned materials and clocks; `geometry`, `count` and `newest` expose drawing and expiry handles.
 
-`GroundTell` (`#game`) supports ring, lane and wedge decals. `GroundTellWedgeStyle` supplies the cone and authored material/fill/alpha uniforms; `wedge(x, z, yaw, reach, fill, alpha, lift?)` uses animal yaw convention and drapes the sector onto terrain. Existing ring/lane shader behavior remains unchanged.
+`GroundTell` (`@wildshard/game`) supports ring, lane and wedge decals. `GroundTellWedgeStyle` supplies the cone and authored material/fill/alpha uniforms; `wedge(x, z, yaw, reach, fill, alpha, lift?)` uses animal yaw convention and drapes the sector onto terrain. Existing ring/lane shader behavior remains unchanged.
 
-`smoothstep` (`#engine/data`) also drives DeathFade and the bow/spear authored curves; the normalized fade uses edges zero and one. Unclamped and early-return curves retain their distinct behavior.
+`smoothstep` (`@wildshard/engine/data`) also drives DeathFade and the bow/spear authored curves; the normalized fade uses edges zero and one. Unclamped and early-return curves retain their distinct behavior.
 
 ## 19. Creatures and AI
 
@@ -1352,7 +1355,7 @@ copied chest point; reach still receives the original feet. Airborne is omitted 
 a jump dodge. This simple non-lane sphere leaves horizontal/vertical movement to the flight brain:
 
 ```ts
-import { type Animal, type ThinkCtx, type StrikeContext, type StrikeSpec, StrikeRunner } from '#engine';
+import { type Animal, type ThinkCtx, type StrikeContext, type StrikeSpec, StrikeRunner } from '@wildshard/engine';
 
 const SWOOP: StrikeSpec = {
   id: 'example.ray.swoop', shape: { kind: 'sphere', radius: 1.6 },
@@ -1423,7 +1426,7 @@ runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
 `setShag`, `isLowPoly`, `registerToonPaint`, `toonPaint`, `paletteColors`, `Paint`, `ToonPaint`, `SpeciesRGB`,
 `setShapeFn`, `Station`, `crestSpikes`, `NO_FUR`, `lookAngles`, `smooth01`, `bump`, `step`, `rigClamp`, `squashBody`.
 
-## 20. The game layer (`#game`)
+## 20. The game layer (`@wildshard/game`)
 
 | Part | Exports | Notes |
 |---|---|---|
@@ -1439,11 +1442,11 @@ runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
 | Cosmetics | `BodyShadow`, `installBodyShadow` | `manifest.bodyShadow` |
 | Template | `installTemplateDebug` | the Debug ▸ Developer tools entry that opens a hidden level |
 
-`CosmeticsLocker<Slot, Row>` (`#game`) owns registered cosmetics, validates saved ownership and slot matches, and provides `own`, `wear`, `toggle`, `wearing`, `entries`, `version` and `onChange`. A `CosmeticProfile` supplies a slot selector, save slot and optional `autoWear` for empty slots. `SkinLocker` is the weapon-material profile (`SkinDef.weapon`), using the existing per-shard `skins` save with manual wear; Nalati supplies its own saved skin rows and auto-wear policy.
+`CosmeticsLocker<Slot, Row>` (`@wildshard/game`) owns registered cosmetics, validates saved ownership and slot matches, and provides `own`, `wear`, `toggle`, `wearing`, `entries`, `version` and `onChange`. A `CosmeticProfile` supplies a slot selector, save slot and optional `autoWear` for empty slots. `SkinLocker` is the weapon-material profile (`SkinDef.weapon`), using the existing per-shard `skins` save with manual wear; Nalati supplies its own saved skin rows and auto-wear policy.
 
 The game's quest wiring sits on the engine's quest core: `QuestState`, `QuestLine`, `lineFor`, `validateQuest`,
 `CHIP_MAX`, `QuestDef`, `QuestStep`, `QuestMarker`, `NpcDef`, `DialogueEntry`, `QuestChip`, `NpcTalk`, `loadQuest`
-(all `#engine`). The template's quest:
+(all `@wildshard/engine`). The template's quest:
 
 ```ts
 const quest = new QuestState({ id: 'template.quest', title: STRINGS.quest, completeFlag: 'template.complete', steps: [
@@ -1453,7 +1456,7 @@ const quest = new QuestState({ id: 'template.quest', title: STRINGS.quest, compl
 quest.onComplete = () => { burst.spawn(player, 5, onCoin, () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); }); };
 ```
 
-**One-call quest presentation (E383).** `installQuestPresentation(ctx, quest, options?)` from `#game` accepts
+**One-call quest presentation (E383).** `installQuestPresentation(ctx, quest, options?)` from `@wildshard/game` accepts
 a `QuestState`, `QuestDef`, or `PresentedQuestDef` whose steps have `title`, `target: { position: Vector3,
 label, short?, npc? }` and the normal `done` flags. It reuses Wendell's `QuestChip`, `DialogueBox`, `NpcTalk`,
 saved discovery and held reward view. One scoped update system drives the objective chip with metres and bearing,
@@ -1488,7 +1491,7 @@ coexist with shard places and loot charts (`setPois` / `setMarks`); quest cards 
 `QuestState.observe({ step?, complete? })` returns a remover and preserves authored `onStep` / `onComplete` callbacks.
 
 ```ts
-import { installQuestPresentation } from '#game';
+import { installQuestPresentation } from '@wildshard/game';
 import { Vector3 } from 'three';
 
 const view = installQuestPresentation(ctx, {
@@ -1500,7 +1503,7 @@ const view = installQuestPresentation(ctx, {
 view.quest.flags.set('template.bell.rung');
 ```
 
-## 21. The kit (`#kit`)
+## 21. The kit (`@wildshard/kit`)
 
 The kit holds content that 2+ shards use (the rule of two). Content one shard uses stays in that shard.
 
@@ -1522,7 +1525,7 @@ The kit holds content that 2+ shards use (the rule of two). Content one shard us
 | `bag` | `KIT_ITEMS` |
 
 Kit species take a plain `{ ...BOAR, variants: [...] }` spread to add a variant (the template's Greyback elite).
-`SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet` are re-exported from `#engine` for the melee family.
+`SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet` are re-exported from `@wildshard/engine` for the melee family.
 
 ## 22. Explore, practice, playgrounds
 
@@ -1581,8 +1584,8 @@ in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that alrea
 
 | Rule | What it refuses | Status |
 |---|---|---|
-| `wildshard/layer` | import direction (engine < game < kit < shards); shard ↔ shard; a file or import outside the four layers; the tests' `#engine-internal/*` alias in `src/` (AG5) | hard (`.oxlintrc.json`, E405 AG28) |
-| `wildshard/public-index` | a cross-layer import skips the public index (`#engine/x/y` no longer resolves at all since AG5; relative ones too); `#engine/data`, `#engine/retry` and `#kit/data` are the sanctioned sub-entries | ratchet (per file) |
+| `wildshard/layer` | import direction (engine < game < kit < shards); shard ↔ shard; a file or import outside the four layers | hard (`.oxlintrc.json`, E405 AG28) |
+| `wildshard/public-index` | a cross-layer import skips the public index (`@wildshard/engine/x/y` does not resolve at all: it is not in the package's `exports`; relative ones too); a subpath the layer's `package.json` `exports` lists (`@wildshard/engine/data`, `@wildshard/engine/retry`, `@wildshard/kit/data`, `@wildshard/kit/creatures`) is a public entry | ratchet (per file) |
 | `wildshard/engine-words` | Wildshard vocabulary (shard names, species, items, the word "shard") in engine code; comments are not counted. A wire contract's field may keep the name `shard` (telemetry tags, reports, the harness probe, a model id) only as a property name or key, only in the files `lint/ratchet.json` `allow['wildshard/engine-words']` lists with the reason (E405, Jake). Engine copy says "level" and the game supplies its word (`s_level_word`) | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
 | `wildshard/shard-names` | the game and the kit name no particular shard: slugs, display names, camelCase forms, distinctive stems and shard-declared ids, from `lint/shard-words.generated.json`; comments and ordinary words (pine, driftwood) pass | hard (`.oxlintrc.json`, E405 LAYER-PURITY) |
 | `wildshard/no-shard-branch` | outside `src/shards/`: a branch on a slug or a style (`slug ===`, `style ===`, `isNalati`, a slug literal in a comparison or `case`) | hard error |
@@ -1590,14 +1593,14 @@ in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that alrea
 | `wildshard/shard-sandbox` | in `src/shards/`: `window` / `globalThis` / `self` reads or writes, window or document input listeners, `setting(key)` for a key you don't own, an `/assets/…` path outside your `assetGlobs` and the shared folders | ratchet (new files at 0) |
 | `wildshard/no-raw-save` | `localStorage` / `sessionStorage` outside the save store | hard error |
 | `wildshard/shard-services` | a shard importing an engine page service (`app`, `saves`, `hudSlots`, `practiceRoom`, `lockOn`) instead of taking it from its ShardContext (AG12) | ratchet (the four original shards' 58 imports may only fall; a new shard starts at 0) |
-| `wildshard/engine-internal` | a kit or shard import of a game-only `#engine` export (`lint/engine-internal.json`: the session, boot, title and installers; marked "game only" in docs/api/ENGINE.md) — a shard asks for a ShardContext verb instead (AG6) | hard error |
+| `wildshard/engine-internal` | a kit or shard import of a game-only `@wildshard/engine` export (`lint/engine-internal.json`: the session, boot, title and installers; marked "game only" in docs/api/ENGINE.md) — a shard asks for a ShardContext verb instead (AG6) | hard error |
 | `wildshard/no-module-mock` | `vi.mock` / `doMock` / `resetModules` / `hoisted` / `importActual` in test/, api-tests/, drafts/test/: a test drives the real module through its seams (a class, a factory, an injected loader or port; E422) | hard error |
 | `wildshard/no-raw-input` | DOM input listeners outside `src/engine/input`, including a helper call given `window` / `document` and an input event (AG18) | hard error |
 | `wildshard/no-raw-shader-patch` | `onBeforeCompile` / `customProgramCacheKey` outside `src/engine/render` | hard error |
 | `wildshard/no-raw-hud` | appending to `#hud` / `document.body` outside the HUD slots | hard error |
 | `wildshard/no-raw-animation-mixer` | `new AnimationMixer` outside `src/engine/anim` | hard error |
 | `wildshard/sim-no-render` | render / DOM imports in the simulation folders | hard error |
-| `wildshard/no-active-chunk` | `getActiveChunk()` outside `#game/shard` | hard error |
+| `wildshard/no-active-chunk` | `getActiveChunk()` outside `src/game/shard/` | hard error |
 | `wildshard/no-inline-ui-string` | player-facing literals in the engine | hard error |
 | `wildshard/no-url-switch` | a query param not on the allowlist | hard error |
 | `wildshard/no-raw-random-time` | `Math.random` / `performance.now` outside rng / clock | ratchet |
@@ -1616,8 +1619,8 @@ Debug-row count has its own cap (`debugRows`).
 | Check | When | What it checks |
 |---|---|---|
 | `scripts/precommit-guards.mjs` (`.githooks/pre-commit`) | every `git commit` | the commit's own files: oxlint, the custom rules against the ratchet, the shard layout when `src/shards/**` is touched, `gen-shards --check` when a manifest is touched |
-| `tsc -b tsconfig.layers.json` (AG4) | `pnpm typecheck` (CI), the push gate | the layers as TypeScript projects (`tsconfig.engine.json` → `.game` → `.kit` → `.shards`, declarations to the gitignored `.tsc-layers/`): an import that reaches up a layer in any syntax (type-only, `import()` types, a JSON file) fails with TS6307. The shard list is the composition root's (`src/shards.generated.ts`, installed by `src/shardList.ts` into `#game/shard/list`); the game sees only `ShardSlug` (`src/game/shard/slugs.generated.ts`); content icons reach the game as data (`BagIcons` from the kit, a compendium skin's `icon`) |
-| `scripts/gen-api.mjs` (AG21) | `pnpm test` | the public surface, generated: every `#engine` / `#game` / `#kit` export and `ShardContext` member with its kind and first doc line in `lint/api-surface.json`, rendered to `docs/api/` (ENGINE, GAME, KIT, SHARD-CONTEXT). `--check` fails when stale, or when more lack a doc line than `lint/api-undocumented.json` allows (647, may only fall) |
+| `tsc -b tsconfig.layers.json` (AG4) | `pnpm typecheck` (CI), the push gate | the layers as TypeScript projects (`tsconfig.engine.json` → `.game` → `.kit` → `.shards`, declarations to the gitignored `.tsc-layers/`): an import that reaches up a layer in any syntax (type-only, `import()` types, a JSON file) fails with TS6307. The shard list is the composition root's (`src/shards.generated.ts`, installed by `src/shardList.ts` into `src/game/shard/list.ts`); the game sees only `ShardSlug` (`src/game/shard/slugs.generated.ts`); content icons reach the game as data (`BagIcons` from the kit, a compendium skin's `icon`) |
+| `scripts/gen-api.mjs` (AG21) | `pnpm test` | the public surface, generated: every `@wildshard/engine` / `@wildshard/game` / `@wildshard/kit` export and `ShardContext` member with its kind and first doc line in `lint/api-surface.json`, rendered to `docs/api/` (ENGINE, GAME, KIT, SHARD-CONTEXT). `--check` fails when stale, or when more lack a doc line than `lint/api-undocumented.json` allows (647, may only fall) |
 | `scripts/check-graph.mjs` (AG7) | pre-commit (`--paths`: the edges the staged files add), `pnpm test` (CI, push gate) | cross-layer import counts per pair in `lint/layer-edges.json` (`shards/pine-hollow → engine 349`): a new pair, a rising count or a two-way pair fails, `--update` lowers; only `src/game/shard/shards.generated.ts` imports a shard (its manifest), and a plugin loads only by `import()` from its own manifest |
 | `scripts/gen-shards.mjs --check` (AG10) | push gate, `pnpm test` (`test/gen-shards.test.ts`) | the manifest contract: `load` is `() => import('./plugin')` and nothing imports `./plugin` statically; the manifest's static closure stays within `lint/manifest-closure-budget.json` (may only fall; `default` for a new shard); every `ShardManifest` field is read by the engine, the game or the tooling |
 | `scripts/check-shards.mjs` (AG9) | pre-commit, `pnpm test` via `check-paths` | the folder layout in `lint/shard-layout.json`: required files, canonical folders, slug = folder name, `manifest.slug` = folder |
@@ -1635,15 +1638,15 @@ sections above describe what to use; this list is the complete inventory.
 
 <!-- exports:start (generated by test/engine-docs.test.ts; do not edit by hand) -->
 
-### `#engine` (`src/engine/index.ts`)
+### `@wildshard/engine` (`src/engine/index.ts`)
 
-903 exports, grouped by the module they come from.
+919 exports, grouped by the module they come from.
 
 - `./core/devMode`: `isDev`, `onDev`, `setDev`
 - `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`, `CHUNK_SIZE`, `CHUNK_DEPTH`, `TERRAIN_RES`, `ROAD_WIDTH`, `_applyChunkConstants`
 - `./world/terrainField`: `buildTerrain`
 - `./world/bounds`: `installBounds`
-- `./level/data`: `ExploreSpec`, `RGB`
+- `./level/data`: `ExploreSpec`, `RGB`, `TerrainField`
 - `./app/app`: `App`, `SystemsByPhase`
 - `./app/systems`: `PHASES`, `inState`, `AppState`, `Phase`, `RunCondition`, `SystemSpec`, `TickRateId`
 - `./app/scope`: `Scope`, `Disposable3`, `PhysicsHandle`, `SoundHandle`, `ScopeCensus`
@@ -1680,7 +1683,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./audio/levelAudio`: `LevelAudioProfile`
 - `./audio/Music`: `MusicState`, `Music`
 - `./physics/query`: `castRay`, `castSegment`, `floorBelow`, `lineOfSight`, `sticksIn`
-- `./combat/Equipment`: `Equipment`, `EquipmentRow`, `EquipmentMeta`, `EquipmentSlotMap`, `EquipmentIconMap`, `EquipmentTouchMap`, `WeaponUi`, `EquipContext`, `BlockSet`, `EquipmentId`, `WeaponId`, `ToolId`
+- `./combat/Equipment`: `Equipment`, `EquipmentRow`, `EquipmentMeta`, `EquipmentSlotMap`, `EquipmentIconMap`, `EquipmentTouchMap`, `WeaponUi`, `EquipContext`, `BlockSet`, `EquipmentId`, `WeaponId`, `ToolId`, `EquipmentCues`
 - `./combat/Weapon`: `Weapon`, `quiverState`, `WeaponState`, `AimInfo`, `WeaponHooks`, `ImpactSurface`
 - `./combat/Tool`: `Tool`, `EquipmentAction`
 - `./combat/EquipmentService`: `EquipmentService`
@@ -1733,7 +1736,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./combat/ammo`: `AmmoId`, `AmmoRow`, `ProjectileModification`
 - `./ai/hfsm`: `Hfsm`, `StateDef`, `StateChange`
 - `./app/scheduler`: `TickScheduler`, `TickBand`, `TickRate`, `TickActor`, `InterruptReason`
-- `./ai/strikes`: `StrikeRunner`, `StrikeSpec`, `StrikeContext`, `StrikeActor`, `StrikePhase`, `UtilityScore`
+- `./ai/strikes`: `StrikeRunner`, `StrikeSpec`, `StrikeContext`, `StrikeActor`, `StrikePhase`, `UtilityScore`, `StrikeShape`
 - `./ai/reach`: `canReach`, `ReachActor`
 - `./ai/director`: `AggressionDirector`, `AggressionService`
 - `./ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossSaved`, `BossPorts`, `BossPresentation`, `BossScript`, `BossState`
@@ -1747,7 +1750,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./world/terrainHeight`: `heightAt`, `terrainNormal`, `terrainWaterLevel`, `setTerrainHeight`
 - `./world/registry`: `boxDesc`, `ColliderDesc`, `WorldRegistry`, `activeRegistry`
 - `./core/tier`: `TIER_CONFIG`, `TIER`, `buildTier`, `practiceFps`
-- `./boot/plan`: `macrotask`, `slicer`, `StepRunner`, `StepProgress`
+- `./boot/plan`: `macrotask`, `slicer`, `StepRunner`, `StepProgress`, `Plan`
 - `./models/weld`: `twoSidedPositions`, `WeldBuild`, `UnitParts`, `flatPositions`, `mergeOrNull`, `nearProxy`, `shadowProxy`, `WeldPart`
 - `./world/interact/types`: `Interactable`, `PoiId`, `Place`, `registerPickupLook`, `registerInteractProps`, `PickupLook`, `PickupPart`, `InteractProps`, `ChestLook`, `DoorLook`, `ChestDims`, `TRANSIENT_PREFIXES`, `InteractTable`, `PickupDef`
 - `./core/bootstrap`: `World`
@@ -1847,7 +1850,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./physics/CharacterMotor`: `CharacterMotor`
 - `./physics/surface`: `tagOf`, `Material`
 - `./physics/terrain`: `TerrainCut`
-- `./player/Hands`: `SwimArms`
+- `./player/Hands`: `SwimArms`, `Hands`
 - `./telemetry/runtime`: `startTelemetry`
 - `./ui/roomMap`: `RoomMap`, `RoomMarker`, `RoomShape`
 - `./world/blenderArea`: `BlenderArea`
@@ -1876,9 +1879,19 @@ sections above describe what to use; this list is the complete inventory.
 - `./world/Heightfield`: `normalAt`, `splatAt`, `trailDistance`, `cabinMask`, `pondMask`, `waterLevel`, `inChunk`, `POND`, `TRAILS`, `CABIN_SITES`, `hasPond`, `streamAt`
 - `./world/HorizonMatte`: `HORIZON_RADIUS`
 - `./world/waterSurface`: `createWaterMaterial`, `waterWeather`
+- `./combat/EquipmentPickup`: `EquipmentPickupSpec`
+- `./boot/extras`: `AudioBanks`, `Preload`
+- `./player/LockOnTarget`: `LockOnSystem`
+- `./player/TouchControls`: `TouchControls`
+- `./ui/Loading`: `Loading`
+- `./ui/Perf`: `Perf`
+- `./ui/WindupWarn`: `WindupWarn`
+- `./world/Boundary`: `Boundary`
+- `./world/Horizon`: `Horizon`
+- `./world/pond`: `Water`
 - `(local)`: `ENGINE_API`
 
-### `#engine/data` (`src/engine/data.ts`)
+### `@wildshard/engine/data` (`src/engine/data.ts`)
 
 36 exports, grouped by the module they come from.
 
@@ -1901,21 +1914,21 @@ sections above describe what to use; this list is the complete inventory.
 - `./world/water/body`: `swellBody`, `basinBody`, `WaterBody`
 - `./world/water/view`: `surfaceReflect`, `WaterView`
 
-### `#engine/retry` (`src/engine/retry.ts`)
+### `@wildshard/engine/retry` (`src/engine/retry.ts`)
 
 1 exports, grouped by the module they come from.
 
 - `./boot/retry`: `retried`
 
-### `#game` (`src/game/index.ts`)
+### `@wildshard/game` (`src/game/index.ts`)
 
-133 exports, grouped by the module they come from.
+140 exports, grouped by the module they come from.
 
 - `./equipmentTypes`: `EquipmentRow`
 - `./shard/plugin`: `ShardPlugin`
 - `./shard/context`: `shardContext`, `ShardContext`, `GameServices`, `GameRows`, `GameRowMap`, `BagVerbs`
 - `./shard/spec`: `toLevelSpec`
-- `./shard/manifest`: `ShardManifest`, `ShardSword`, `ChunkTerrain`, `RGB`, `Vec2`, `FieldModelsContext`
+- `./shard/manifest`: `ShardManifest`, `ShardSword`, `ChunkTerrain`, `RGB`, `Vec2`, `FieldModelsContext`, `OceanDef`, `ChunkHorizon`
 - `./saves`: `progressSave`, `inventorySave`, `purseSave`, `ownedSave`, `bountySave`, `compendiumSave`, `bossesSave`, `elitesSave`, `saveSlug`, `shardSave`
 - `./loot/Owned`: `OwnedId`, `Owned`, `isOwnedId`, `isCosmetic`, `OWNED`
 - `./Inventory`: `ItemId`, `ITEMS`, `isItemId`, `Inventory`
@@ -1949,11 +1962,13 @@ sections above describe what to use; this list is the complete inventory.
 - `./compendium/state`: `CompendiumState`
 - `./compendium/types`: `CompendiumSkin`, `EntryDef`, `EntryStats`, `ShardCompendium`, `TrophySlot`
 - `./shard/list`: `installShards`
+- `./Boss`: `Boss`, `BossDef`, `BossScript`, `BossState`
+- `./loot/coinModel`: `coinModel`
 - `(local)`: `GAME_API`
 
-### `#kit` (`src/kit/index.ts`)
+### `@wildshard/kit` (`src/kit/index.ts`)
 
-144 exports, grouped by the module they come from.
+161 exports, grouped by the module they come from.
 
 - `./weapons/ui`: `SWAP_GLYPHS`
 - `./weapons/equipment`: `SWORD`, `WOODEN_SWORD`, `IRON_SWORD`
@@ -1961,7 +1976,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./weapons/melee/SweptMelee`: `Sword`, `swordEvents`, `buildSword`, `swordMaterial`
 - `./weapons/melee/profiles`: `SWORD_WOOD`, `SWORD_IRON`
 - `./weapons/melee/moves`: `key`, `COMBO`, `HEAVY`, `REST`, `CHARGE`, `SPRINT`, `Move`
-- `#engine`: `SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet`
+- `@wildshard/engine`: `SwordWorld`, `SwordRig`, `SwordArms`, `SwordFraming`, `SwordMoveSet`
 - `./weapons/thrown/Thrown`: `Thrown`, `ThrownProfile`
 - `./weapons/bow/family`: `Bow`, `BowWorld`, `BowOptions`
 - `./weapons/bow/profiles`: `BOW`
@@ -1977,7 +1992,7 @@ sections above describe what to use; this list is the complete inventory.
 - `./looks/fogProgram`: `fogGLSL`
 - `./viewmodel/hunterHands`: `BUCKSKIN`, `HANDS_MATERIAL`, `WeaponHands`, `coatMaterialParams`, `holdDef`, `withHunterPalette`, `blendGrip`, `gripPose`, `HandHold`
 - `./lookApi`: `loadParticles`, `loadGrassField`
-- `./looks/particles`: `Particles`
+- `./looks/particles`: `Particles`, `makeMistTexture`
 - `./effects/starter`: `STARTER_EFFECTS`, `STARTER_CHOICES`, `starterId`, `StarterChoice`
 - `./effects/install`: `installStarterEffects`
 - `./weapons/crossbow/display`: `crossbowDisplayModel`
@@ -1999,10 +2014,13 @@ sections above describe what to use; this list is the complete inventory.
 - `./viewmodel/armClips`: `ARM_CLIPS`, `SWIM_CLIPS`, `armClipNames`
 - `./tools/hoverboard`: `Hoverboard`, `HOVERBOARD_TOOL`
 - `./audio/forest`: `createForestAudio`, `installSilentScore`, `installForestAmbience`
-- `./viewmodel/armRig`: `JointAngles`
+- `./viewmodel/armRig`: `JointAngles`, `LEFT_HAND`, `RIGHT_HAND`, `measure`
+- `./looks/grassField`: `grassBaseHeightAt`, `trailGrass`, `grassToneAt`, `groundColorAt`, `grassBloomAt`, `flowerSpeciesAt`, `flowerPatchAt`
+- `./looks/trample`: `trample`, `TRAMPLE_GLSL`, `grassHeightAt`
+- `./viewmodel/rigArms`: `RigArms`, `swordArmsOf`, `vmScale`
 - `(local)`: `KIT_API`
 
-### `#kit/data` (`src/kit/data.ts`)
+### `@wildshard/kit/data` (`src/kit/data.ts`)
 
 4 exports, grouped by the module they come from.
 

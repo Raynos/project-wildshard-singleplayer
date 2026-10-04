@@ -1,4 +1,4 @@
-import { engineString, type SpeciesDef, type SpeciesRGB as RGB, NO_FUR, eliteThink, eliteAct, eliteDamageMul } from '#engine';
+import { engineString, type SpeciesDef, type SpeciesRGB as RGB, NO_FUR, eliteThink, eliteAct, eliteDamageMul } from '@wildshard/engine';
 
 
 

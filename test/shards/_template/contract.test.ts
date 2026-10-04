@@ -1,18 +1,18 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { App, WorldRegistry, TabRegistry, EffectService, SaveStore, type Actor, type LevelDriver } from '#engine';
-import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } from '#game';
+import { App, WorldRegistry, TabRegistry, EffectService, SaveStore, type Actor, type LevelDriver } from '@wildshard/engine';
+import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } from '@wildshard/game';
 import { Vector3 } from 'three';
-import { STARTER_EFFECTS } from '#kit';
-import { summaryStore } from '#game/summary';
+import { STARTER_EFFECTS } from '@wildshard/kit';
+import { summaryStore } from '../../../src/game/summary';
 import { SHARDS } from '../../../src/shards.generated';
-import { playable } from '#game/shard/registry';
-import manifest from '#shards/_template/manifest';
-import { TemplatePlugin } from '#shards/_template/plugin';
-import { TemplateWhip } from '#shards/_template/weapons/TemplateWhip';
-import { HUT } from '#shards/_template/layout';
+import { playable } from '../../../src/game/shard/registry';
+import manifest from '../../../src/shards/_template/manifest';
+import { TemplatePlugin } from '../../../src/shards/_template/plugin';
+import { TemplateWhip } from '../../../src/shards/_template/weapons/TemplateWhip';
+import { HUT } from '../../../src/shards/_template/layout';
 import { FakeGame } from '../../fake/FakeGame';
-import { INPUT_CONTEXTS } from '#game/inputContexts';
+import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 
 const noop = (): void => undefined;
 async function boot(): Promise<{ app: App; plugin: TemplatePlugin; stages: string[]; active: Set<string>; bag: TabRegistry; fake: FakeGame }> {

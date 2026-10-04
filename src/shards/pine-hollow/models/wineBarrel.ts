@@ -4,7 +4,7 @@
  * the three cabins (only the cabins in detail range), the hamlet's own — so `place` is told the copies are drawn already
  * (`drawnInto`). Each copy collides as its own box, the scan's bounds (`propBox`, E315).
  */
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { propBox, propPart } from '../world/cabinKit';
 
 export const wineBarrel = defineModel<Record<string, never>>({

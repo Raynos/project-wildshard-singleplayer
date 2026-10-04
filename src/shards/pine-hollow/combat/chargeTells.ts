@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { type Game, installRangedFeel, type EquipmentService, type AnimalManager } from '#engine';
+import { type Game, installRangedFeel, type EquipmentService, type AnimalManager } from '@wildshard/engine';
 
 
 

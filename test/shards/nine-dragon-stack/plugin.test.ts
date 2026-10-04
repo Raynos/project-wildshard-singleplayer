@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Group } from 'three';
-import { App, type LevelContext, type LevelDriver } from '#engine';
-import { shardContext, toLevelSpec, type GameServices } from '#game';
-import manifest from '#shards/nine-dragon-stack/manifest';
-import { NdPlugin } from '#shards/nine-dragon-stack/plugin';
-import { ndRuntime } from '#shards/nine-dragon-stack/runtime';
-import { Shared } from '#shards/nine-dragon-stack/look/style';
-import { InstanceCuller } from '#shards/nine-dragon-stack/world/cull';
-import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from '#shards/nine-dragon-stack/world/colliders';
-import type { NineDragonWorld } from '#shards/nine-dragon-stack/world/build';
+import { App, type LevelContext, type LevelDriver } from '@wildshard/engine';
+import { shardContext, toLevelSpec, type GameServices } from '@wildshard/game';
+import manifest from '../../../src/shards/nine-dragon-stack/manifest';
+import { NdPlugin } from '../../../src/shards/nine-dragon-stack/plugin';
+import { ndRuntime } from '../../../src/shards/nine-dragon-stack/runtime';
+import { Shared } from '../../../src/shards/nine-dragon-stack/look/style';
+import { InstanceCuller } from '../../../src/shards/nine-dragon-stack/world/cull';
+import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from '../../../src/shards/nine-dragon-stack/world/colliders';
+import type { NineDragonWorld } from '../../../src/shards/nine-dragon-stack/world/build';
 import { FakeGame } from '../../fake/FakeGame';
-import { WorldRegistry } from '#engine-internal/world/registry';
+import { WorldRegistry } from '../../../src/engine/world/registry';
 
 const noop = (): void => { /* No GPU work in this node contract. */ };
 const loaded = new Set<App>();

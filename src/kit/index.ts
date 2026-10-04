@@ -8,7 +8,7 @@ export { Melee, meleeActor, type MeleeProfile, type ViewmodelFeel } from './weap
 export { Sword, swordEvents, buildSword, swordMaterial } from './weapons/melee/SweptMelee';
 export { SWORD_WOOD, SWORD_IRON } from './weapons/melee/profiles';
 export { key, COMBO, HEAVY, REST, CHARGE, SPRINT } from './weapons/melee/moves';
-export type { SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet } from '#engine';
+export type { SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet } from '@wildshard/engine';
 
 export { Thrown, type ThrownProfile } from './weapons/thrown/Thrown';
 
@@ -68,3 +68,10 @@ export { createForestAudio, installSilentScore, installForestAmbience } from './
 export { carvedTokenGeometry } from './models/pickups';
 export type { JointAngles } from './viewmodel/armRig';
 export type { Move } from './weapons/melee/moves';
+
+// E432: what the shards reached through deep paths (a package's exports are its index; nothing deeper resolves)
+export { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt, flowerSpeciesAt, flowerPatchAt } from './looks/grassField';
+export { makeMistTexture } from './looks/particles';
+export { trample, TRAMPLE_GLSL, grassHeightAt } from './looks/trample';
+export { LEFT_HAND, RIGHT_HAND, measure } from './viewmodel/armRig';
+export { RigArms, swordArmsOf, vmScale } from './viewmodel/rigArms';

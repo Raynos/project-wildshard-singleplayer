@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Bone, BoxGeometry, MeshLambertMaterial, SkinnedMesh, Vector3 } from 'three';
-import type { PeopleRig, PersonKey } from '#shards/nalati-grasslands/campPeopleModels';
-import { buildCampPeople } from '#shards/nalati-grasslands/campPeople';
+import type { PeopleRig, PersonKey } from '../../../src/shards/nalati-grasslands/campPeopleModels';
+import { buildCampPeople } from '../../../src/shards/nalati-grasslands/campPeople';
 import { fakeWorld } from '../../fake/world';
 
 function people(): PeopleRig<PersonKey> {

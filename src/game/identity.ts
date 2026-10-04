@@ -1,4 +1,4 @@
-import type { AppIdentity } from '#engine';
+import type { AppIdentity } from '@wildshard/engine';
 
 /**
  * Wildshard, as the engine sees it (E405 E414): the values the saves, the tools and the first paint already use.

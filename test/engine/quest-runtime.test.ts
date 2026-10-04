@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { QuestLine, Events, Scope } from '#engine';
-import { Flags } from '#engine-internal/world/interact/flags';
-import { WARDENS_HOLLOW } from '#shards/pine-hollow/quest/wardensHollow';
-import { BEATS, beatFlags, type Beat } from '#shards/pine-hollow/quest/beats';
+import { QuestLine, Events, Scope } from '@wildshard/engine';
+import { Flags } from '../../src/engine/world/interact/flags';
+import { WARDENS_HOLLOW } from '../../src/shards/pine-hollow/quest/wardensHollow';
+import { BEATS, beatFlags, type Beat } from '../../src/shards/pine-hollow/quest/beats';
 
 const STEPS: Readonly<Record<Beat, string | null>> = { ranger: null, pond: 'pond', ridge: 'ridge', zip: 'zip', den: 'den', stag: 'stag', king: 'king', dawn: 'dawn', done: null, hamlet: null };
 describe('engine quest core with Pine authored beats', () => {

@@ -1,4 +1,4 @@
-import { resourceScope } from '#engine';
+import { resourceScope } from '@wildshard/engine';
 import { progressSave, saveSlug } from './saves';
 import { updateSummary } from './summary';
 import { findShard } from './shard/registry';

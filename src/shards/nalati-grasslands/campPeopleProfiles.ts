@@ -1,4 +1,4 @@
-import type { NpcFigureMotionProfile } from '#kit';
+import type { NpcFigureMotionProfile } from '@wildshard/kit';
 import { CAMP_PEOPLE } from './quest';
 import { peopleModelUrl, type PersonFrame } from './campPeopleModels';
 

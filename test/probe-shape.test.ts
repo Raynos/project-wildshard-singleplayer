@@ -1,20 +1,20 @@
-import { type EquipmentService, type Weapon, App, Scope, type LevelSpec } from '#engine';
+import { type EquipmentService, type Weapon, App, Scope, type LevelSpec } from '@wildshard/engine';
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { installProbe, programHash, compiledProgramHash, type ProbeWorld, type EngineProbe } from '#engine-internal/debug/probe';
+import { installProbe, programHash, compiledProgramHash, type ProbeWorld, type EngineProbe } from '../src/engine/debug/probe';
 import type { WildshardProbe as ScriptProbe } from '../scripts/types/wildshard-probe';
-import type { Game } from '#engine-internal/core/Game';
-import type { Player } from '#engine-internal/player/Player';
-import type { Physics } from '#engine-internal/physics/Physics';
+import type { Game } from '../src/engine/core/Game';
+import type { Player } from '../src/engine/player/Player';
+import type { Physics } from '../src/engine/physics/Physics';
 import type { World as RapierWorld, RigidBodySet, ColliderSet } from '@dimforge/rapier3d-simd';
-import type { Audio } from '#engine-internal/audio/Audio';
-import type { Music } from '#engine-internal/audio/Music';
-import type { HUD } from '#engine-internal/ui/HUD';
-import type { Animal } from '#engine-internal/entities/Animal';
-import type { AnimalManager } from '#engine-internal/entities/AnimalManager';
-import type { TrainingArena } from '#engine-internal/practice/TrainingArena';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import { ambientTick, tap } from '#engine-internal/core/harnessTap';
+import type { Audio } from '../src/engine/audio/Audio';
+import type { Music } from '../src/engine/audio/Music';
+import type { HUD } from '../src/engine/ui/HUD';
+import type { Animal } from '../src/engine/entities/Animal';
+import type { AnimalManager } from '../src/engine/entities/AnimalManager';
+import type { TrainingArena } from '../src/engine/practice/TrainingArena';
+import { WorldRegistry } from '../src/engine/world/registry';
+import { ambientTick, tap } from '../src/engine/core/harnessTap';
 
 // @vitest-environment happy-dom
 

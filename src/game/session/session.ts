@@ -1,6 +1,6 @@
 import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
-import { retried, type BootRuntime, type LevelContext, type LevelSequence, type SkinDef } from '#engine';
+import { retried, type BootRuntime, type LevelContext, type LevelSequence, type SkinDef } from '@wildshard/engine';
 import { toLevelSpec, shardContext, type ShardManifest, type GameServices, type ShardContext } from '../index';
 import { shards, playable, findChunk } from '../shard/registry';
 import { ART_URL_BYTES } from '../shard/art.generated';

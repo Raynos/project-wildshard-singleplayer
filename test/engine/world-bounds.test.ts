@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { App, Scope } from '#engine';
-import { installBounds } from '#engine-internal/world/bounds';
+import { App, Scope } from '@wildshard/engine';
+import { installBounds } from '../../src/engine/world/bounds';
 
 const area = { x0: -5, x1: 5, z0: -5, z1: 5, floor: 0 };
 describe('authored world bounds', () => {

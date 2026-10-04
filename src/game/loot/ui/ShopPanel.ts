@@ -1,4 +1,4 @@
-import { uiScope, mountUi, type UiHandle, app, icon, type IconId } from '#engine';
+import { uiScope, mountUi, type UiHandle, app, icon, type IconId } from '@wildshard/engine';
 /**
  * ShopPanel — the trader's counter on Driftwood (E314 stage 2, Jake's pick board 5 **C**: one good per card, flipped with
  * ‹ ›, a big BUY button; buy only). DOM in `#hud`, styled by src/game/loot/ui/shop.css (prefix ws-shop-), in the baseline UI

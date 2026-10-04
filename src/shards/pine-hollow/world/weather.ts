@@ -23,8 +23,8 @@
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
 import * as THREE from 'three';
-import { type Game, type Sky, type TreeInstance, type AnimalManager, type Herd, fogUniforms, weatherUniforms, volumetricFog, windBoost, windFieldUniforms as windUniforms, WIND_DIR, setting, onSettingChange, TIER, SEED, practiceRoom, type LevelContext, waterWeather } from '#engine';
-import type { Particles } from '#kit';
+import { type Game, type Sky, type TreeInstance, type AnimalManager, type Herd, fogUniforms, weatherUniforms, volumetricFog, windBoost, windFieldUniforms as windUniforms, WIND_DIR, setting, onSettingChange, TIER, SEED, practiceRoom, type LevelContext, waterWeather } from '@wildshard/engine';
+import type { Particles } from '@wildshard/kit';
 import type { ForestAmbience } from '../audio/ambience';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfile';

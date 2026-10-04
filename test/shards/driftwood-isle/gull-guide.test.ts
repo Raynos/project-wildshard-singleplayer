@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { GUIDE, failed, guided, installGullGuide, nearestUnfound, newGuideClock, progressed, tickGuide } from '#shards/driftwood-isle/quest/gullGuide';
-import type { PlacePoint } from '#game/quest/core';
+import { GUIDE, failed, guided, installGullGuide, nearestUnfound, newGuideClock, progressed, tickGuide } from '../../../src/shards/driftwood-isle/quest/gullGuide';
+import type { PlacePoint } from '../../../src/game/quest/core';
 import * as THREE from 'three';
 
 const PLACES: PlacePoint[] = [

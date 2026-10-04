@@ -12,7 +12,7 @@
  * ovoo's heap as a stone prism, a stump / a pole / a gatepost / the bigger clutter as a box (wood).
  */
 import * as THREE from 'three';
-import { defineModel, type Rng, type ColliderDesc } from '#engine';
+import { defineModel, type Rng, type ColliderDesc } from '@wildshard/engine';
 import { pole, v3, blob, lathe, logPainter, M } from '../world/paint';
 import { painted, type Kit, type Paint } from '../world/painted';
 import { prism, type Box } from '../world/solid';

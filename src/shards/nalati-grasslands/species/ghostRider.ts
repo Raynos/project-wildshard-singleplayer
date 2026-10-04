@@ -1,4 +1,4 @@
-import { engineString, type SpeciesDef, type ThinkCtx, NO_FUR, type Animal, eliteDamageMul } from '#engine';
+import { engineString, type SpeciesDef, type ThinkCtx, NO_FUR, type Animal, eliteDamageMul } from '@wildshard/engine';
 
 import * as THREE from 'three';
 

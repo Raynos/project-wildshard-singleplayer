@@ -1,9 +1,9 @@
 import { Wildlife, type SheepHit } from './creatures/wildlife';
 import { wildEnv } from './creatures/env';
-import type { ShardContext, ShardManifest } from '#game';
+import type { ShardContext, ShardManifest } from '@wildshard/game';
 import { installRide } from './ride/input';
 import { Color, Vector3, type Object3D } from 'three';
-import { type Game, type Sky, type Player, type Forest, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms, wind, type ImpactSurface, type TargetAnimal, type TargetHit, type AnimalManager, loadMeadow, windUniforms, macrotask, heightAt } from '#engine';
+import { type Game, type Sky, type Player, type Forest, syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms, wind, type ImpactSurface, type TargetAnimal, type TargetHit, type AnimalManager, loadMeadow, windUniforms, macrotask, heightAt } from '@wildshard/engine';
 
 
 
@@ -25,7 +25,7 @@ import { nalatiWetAt } from './wet';
 import { wireNightEnemies } from './combat/night';
 import { installStealth, type Stealth } from './stealth';
 import { wireSound, type NalatiSound } from './audio/sound';
-import { loadGrassField } from '#kit';
+import { loadGrassField } from '@wildshard/kit';
 import { wireLookV2 } from './look/index';
 import { reseedGrassV2 } from './look/grass';
 import { wireRide, type Ride } from './ride/ride';

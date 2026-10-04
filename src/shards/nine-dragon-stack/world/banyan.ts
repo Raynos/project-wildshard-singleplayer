@@ -15,7 +15,7 @@ import type { Ctx } from './ctx';
 import { curvedRoof, relief } from './gate';
 import { E, K, type Kit, type Look } from './kit';
 import { BANYAN, Y0 } from '../layout';
-import { Rng } from '#engine';
+import { Rng } from '@wildshard/engine';
 import { SURF } from '../look/paint';
 import { type KitX, curve } from './hero/kitx';
 

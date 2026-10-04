@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import type { ShardManifest } from '#game';
+import type { ShardManifest } from '@wildshard/game';
 import { SHARDS } from '../../src/shards.generated';
-import { toLevelSpec } from '#game/shard/spec';
+import { toLevelSpec } from '../../src/game/shard/spec';
 
 describe('node-safe manifest to engine level boundary', () => {
   it.each(SHARDS)('copies $slug engine data without title metadata or game policy', (manifest) => {

@@ -23,4 +23,4 @@ export const chars = (s: string): string[] => Array.from(s);
 
 export const clamp = (x: number, a: number, b: number): number => (x < a ? a : x > b ? b : x);
 export const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
-export { smoothstep as smooth } from '#engine/data';   // the one smoothstep (E357 X5)
+export { smoothstep as smooth } from '@wildshard/engine/data';   // the one smoothstep (E357 X5)

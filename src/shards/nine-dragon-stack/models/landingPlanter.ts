@@ -9,7 +9,7 @@
 import { Kit } from '../world/kit';
 import { PLANTER, landingPlanter } from '../world/stairstreet-upper';
 import { ndLook, need } from '../world/modelLook';
-import { Rng, defineModel } from '#engine';
+import { Rng, defineModel } from '@wildshard/engine';
 
 const FILE = 'src/shards/nine-dragon-stack/models/landingPlanter.ts';
 

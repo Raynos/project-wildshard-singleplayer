@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Audio } from '#engine-internal/audio/Audio';
-import { Scope } from '#engine-internal/app/scope';
-import { audioRandom, bindAudioRandom } from '#engine-internal/audio/util';
-import { tap } from '#engine-internal/core/harnessTap';
-import { Rng } from '#engine-internal/core/rng';
+import { Audio } from '../../../src/engine/audio/Audio';
+import { Scope } from '../../../src/engine/app/scope';
+import { audioRandom, bindAudioRandom } from '../../../src/engine/audio/util';
+import { tap } from '../../../src/engine/core/harnessTap';
+import { Rng } from '../../../src/engine/core/rng';
 import { installForestVoices } from '../../../src/shards/pine-hollow/audio/synth';
 
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); tap.sound = null; const rng = new Rng(0); bindAudioRandom(() => rng.next()); });

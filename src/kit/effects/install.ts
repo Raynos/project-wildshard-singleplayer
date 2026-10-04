@@ -1,5 +1,5 @@
 import type { Vector3 } from 'three';
-import type { LevelContext, EffectService, Actor } from '#engine';
+import type { LevelContext, EffectService, Actor } from '@wildshard/engine';
 import { bindStarterEffects, type StatusMovement } from './bindings';
 import { starterId, STARTER_CHOICES } from './starter';
 import { StatusIcons } from './view';

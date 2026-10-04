@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { Sword } from '#kit/weapons/melee/SweptMelee';
-import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
-import { Bow } from '#kit/weapons/bow/index';
-import { Rifle } from '#kit/weapons/firearm/Rifle';
-import { Spear } from '#shards/nalati-grasslands/weapons/Spear';
-import { Sabre } from '#shards/nalati-grasslands/weapons/Sabre';
-import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
+import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import { Crossbow } from '../../src/kit/weapons/crossbow/Crossbow';
+import { Bow } from '../../src/kit/weapons/bow/index';
+import { Rifle } from '../../src/kit/weapons/firearm/Rifle';
+import { Spear } from '../../src/shards/nalati-grasslands/weapons/Spear';
+import { Sabre } from '../../src/shards/nalati-grasslands/weapons/Sabre';
+import { LeverRifle } from '../../src/shards/pine-hollow/weapons/LeverRifle';
 
 // Today's public behavior surface: the new equipment class / ids / UI rows are introduced in S1.2.
 describe('all current weapon behaviors expose the shared action surface', () => {

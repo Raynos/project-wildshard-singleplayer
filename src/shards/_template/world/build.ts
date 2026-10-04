@@ -1,5 +1,5 @@
-import { boxDesc, heightAt, type Interactable } from '#engine';
-import type { ShardContext } from '#game';
+import { boxDesc, heightAt, type Interactable } from '@wildshard/engine';
+import type { ShardContext } from '@wildshard/game';
 import { BoxGeometry, CircleGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { HUT } from '../layout';
 import { STRINGS } from '../strings';

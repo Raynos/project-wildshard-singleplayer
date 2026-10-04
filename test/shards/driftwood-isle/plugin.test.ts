@@ -1,11 +1,11 @@
-import { type ShardWorld as World, shardContext, toLevelSpec, type GameServices, type ShardRuntime } from '#game';
+import { type ShardWorld as World, shardContext, toLevelSpec, type GameServices, type ShardRuntime } from '@wildshard/game';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { App, type LevelDriver, type World as EngineWorld } from '#engine';
-import manifest, { OCEAN } from '#shards/driftwood-isle/manifest';
-import { DriftwoodPlugin } from '#shards/driftwood-isle/plugin';
-import { driftwoodWorld, noDriftwoodWorld } from '#shards/driftwood-isle/world/build';
-import { islandSystems } from '#shards/driftwood-isle/world/systems';
+import { App, type LevelDriver, type World as EngineWorld } from '@wildshard/engine';
+import manifest, { OCEAN } from '../../../src/shards/driftwood-isle/manifest';
+import { DriftwoodPlugin } from '../../../src/shards/driftwood-isle/plugin';
+import { driftwoodWorld, noDriftwoodWorld } from '../../../src/shards/driftwood-isle/world/build';
+import { islandSystems } from '../../../src/shards/driftwood-isle/world/systems';
 
 const noop = (): void => { /* no GPU work in this node contract */ };
 const loaded = new Set<App>();

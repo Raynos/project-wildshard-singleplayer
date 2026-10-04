@@ -5,7 +5,7 @@
  * and the bear are shared (src/kit/models/creatures.ts); the Antler King is ./antlerKing.ts, the birds ./birds.ts, the hare
  * ./wildlife.ts.
  */
-import { defineModel, type ModelDef, creature, type CreatureParams } from '#engine';
+import { defineModel, type ModelDef, creature, type CreatureParams } from '@wildshard/engine';
 
 /** the elk: cows, bulls and their rare coats (the royal bull, the pale elk, the imperial bull), and the King's thrall —
  *  the Hunyuan3D-2 hulls (elk-cow / elk-bull[.phone].rigged.glb, src/engine/entities/pineCreatures.ts) on the elk's code rig

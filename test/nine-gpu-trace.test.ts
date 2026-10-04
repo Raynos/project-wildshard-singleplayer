@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Pass } from 'postprocessing';
-import { traceBootPasses } from '#engine-internal/boot/gpuTrace';
+import { traceBootPasses } from '../src/engine/boot/gpuTrace';
 
 
 class ProbePass extends Pass {

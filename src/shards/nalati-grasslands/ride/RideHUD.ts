@@ -1,4 +1,4 @@
-import { uiScope, type LevelContext, type TouchVerbSpec, hudSlots, type DiscOpts } from '#engine';
+import { uiScope, type LevelContext, type TouchVerbSpec, hudSlots, type DiscOpts } from '@wildshard/engine';
 import * as THREE from 'three';
 import './ride.css';
 import type { Mount } from './Mount';

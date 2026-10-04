@@ -24,8 +24,8 @@
  * No lights; the flames are unlit colour that blooms.
  */
 import * as THREE from 'three';
-import { loadFaceHead, type FaceHead } from '#kit';
-import { PATCH_ORDER, patchShader, LowPolyKit, log, rock, plank, lowPolyMaterial, type Sky, type BoxSpec as Collider, attachFogUniforms } from '#engine';
+import { loadFaceHead, type FaceHead } from '@wildshard/kit';
+import { PATCH_ORDER, patchShader, LowPolyKit, log, rock, plank, lowPolyMaterial, type Sky, type BoxSpec as Collider, attachFogUniforms } from '@wildshard/engine';
 
 const C = {
   skin: '#c98d62', skinDark: '#a8704a', beard: '#cfcac0', beardDark: '#a9a39a', hat: '#d8b867', hatDark: '#b8964a', band: '#7a3b2a',

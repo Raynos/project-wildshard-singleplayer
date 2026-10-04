@@ -1,11 +1,11 @@
-import { installPlayerDeath } from '#engine-internal/ui/playerDeath';
+import { installPlayerDeath } from '../../src/engine/ui/playerDeath';
 import * as THREE from 'three';
 import { vi } from 'vitest';
-import { Events } from '#engine-internal/events/events';
-import { Scope } from '#engine-internal/app/scope';
-import { CombatPipeline, type DeathCause } from '#engine-internal/combat/pipeline';
-import { PlayerHealth } from '#engine-internal/combat/health';
-import { PlayerHurt } from '#engine-internal/ui/playerHurt';
+import { Events } from '../../src/engine/events/events';
+import { Scope } from '../../src/engine/app/scope';
+import { CombatPipeline, type DeathCause } from '../../src/engine/combat/pipeline';
+import { PlayerHealth } from '../../src/engine/combat/health';
+import { PlayerHurt } from '../../src/engine/ui/playerHurt';
 import { FakeGame } from './FakeGame';
 
 interface Attacker { kind: string; label: string; position: THREE.Vector3 }

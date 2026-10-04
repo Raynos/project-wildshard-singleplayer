@@ -72,3 +72,8 @@ export type { PlacePoint, Places } from './quest/core';
 export type { QuestDef } from './quest/quest';
 export { installShards } from './shard/list';
 export type { FieldModelsContext } from './shard/manifest';
+
+// E432: what the shards reached through deep paths (a package's exports are its index; nothing deeper resolves)
+export { Boss, type BossDef, type BossScript, type BossState } from './Boss';
+export { coinModel } from './loot/coinModel';
+export type { OceanDef, ChunkHorizon } from './shard/manifest';

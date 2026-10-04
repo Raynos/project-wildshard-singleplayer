@@ -3,14 +3,14 @@
     "id": "layer-down",
     "file": "src/shards/sample/down.ts",
     "rule": "layer",
-    "code": "import { value } from '#engine'; import { thing } from '#game'; import { item } from '#kit';",
+    "code": "import { value } from '@wildshard/engine'; import { thing } from '@wildshard/game'; import { item } from '@wildshard/kit';",
     "count": 0
   },
   {
     "id": "layer-up",
     "file": "src/engine/up.ts",
     "rule": "layer",
-    "code": "import { value } from '#game';",
+    "code": "import { value } from '@wildshard/game';",
     "count": 1
   },
   {
@@ -24,35 +24,35 @@
     "id": "layer-deep",
     "file": "src/kit/deep.ts",
     "rule": "public-index",
-    "code": "import { value } from '#engine/core/clock';",
+    "code": "import { value } from '@wildshard/engine/core/clock';",
     "count": 1
   },
   {
     "id": "layer-internal",
     "file": "src/engine/internal.ts",
     "rule": "layer",
-    "code": "import { value } from '#engine/core/clock';",
+    "code": "import { value } from '@wildshard/engine/core/clock';",
     "count": 0
   },
   {
     "id": "layer-cross",
     "file": "src/shards/sample/cross.ts",
     "rule": "layer",
-    "code": "export { value } from '#shards/other/value';",
+    "code": "export { value } from '../other/value';",
     "count": 1
   },
   {
     "id": "layer-dynamic",
     "file": "src/engine/dynamic.ts",
     "rule": "layer",
-    "code": "void import('#kit/item');",
+    "code": "void import('@wildshard/kit/item');",
     "count": 1
   },
   {
     "id": "layer-unlayered",
     "file": "src/main.ts",
     "rule": "public-index",
-    "code": "import { value } from '#kit/item';",
+    "code": "import { value } from '@wildshard/kit/item';",
     "count": 1
   },
   {
@@ -402,7 +402,7 @@
     "id": "sim-visual",
     "file": "src/engine/quest/visual.ts",
     "rule": "sim-no-render",
-    "code": "import { value } from '#engine/fx/value';",
+    "code": "import { value } from '@wildshard/engine/fx/value';",
     "count": 1
   },
   {
@@ -521,14 +521,14 @@
     "id": "layer-manifest-public",
     "file": "src/shards/sample/pure.ts",
     "rule": "layer",
-    "code": "import { buildTerrain } from '#engine/data';",
+    "code": "import { buildTerrain } from '@wildshard/engine/data';",
     "count": 0
   },
   {
     "id": "layer-public-subpath-not-general",
     "file": "src/shards/sample/dataDeep.ts",
     "rule": "public-index",
-    "code": "import { value } from '#engine/data/private';",
+    "code": "import { value } from '@wildshard/engine/data/private';",
     "count": 1
   },
   {
@@ -563,7 +563,7 @@
     "id": "X4 anim public machine",
     "file": "src/kit/fixture/animMachine.ts",
     "rule": "no-raw-animation-mixer",
-    "code": "import { AnimMachine } from '#engine'; new AnimMachine(def, rig);",
+    "code": "import { AnimMachine } from '@wildshard/engine'; new AnimMachine(def, rig);",
     "count": 0
   },
   {

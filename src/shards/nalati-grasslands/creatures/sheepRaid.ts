@@ -1,4 +1,4 @@
-import { app, type Animal, type AnimalManager, painterlyMaterial, TIER, practiceRoom } from '#engine';
+import { app, type Animal, type AnimalManager, painterlyMaterial, TIER, practiceRoom } from '@wildshard/engine';
 
 import * as THREE from 'three';
 

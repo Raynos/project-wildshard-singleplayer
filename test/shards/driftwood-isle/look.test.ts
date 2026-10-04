@@ -4,11 +4,11 @@
 // cannot drift unseen.
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { installAtmosphere } from '#engine-internal/world/Atmosphere';
-import { fnv1a32 } from '#engine-internal/core/rng';
-import { lowPolyGroundColor } from '#shards/driftwood-isle/look/groundColor';
-import { installRampFog, installToonLighting, resumeRampFog, suspendRampFog, toonUniforms } from '#shards/driftwood-isle/look/toon';
-import { shardRender } from '#shards/driftwood-isle/look/render';
+import { installAtmosphere } from '../../../src/engine/world/Atmosphere';
+import { fnv1a32 } from '../../../src/engine/core/rng';
+import { lowPolyGroundColor } from '../../../src/shards/driftwood-isle/look/groundColor';
+import { installRampFog, installToonLighting, resumeRampFog, suspendRampFog, toonUniforms } from '../../../src/shards/driftwood-isle/look/toon';
+import { shardRender } from '../../../src/shards/driftwood-isle/look/render';
 
 /** [h, slope, x, z, lip, r, g, b] */
 const GROUND: readonly (readonly number[])[] = [

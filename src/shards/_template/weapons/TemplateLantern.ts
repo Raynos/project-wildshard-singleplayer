@@ -1,4 +1,4 @@
-import { Tool } from '#engine';
+import { Tool } from '@wildshard/engine';
 import { Group, Mesh, BoxGeometry, MeshStandardMaterial, PointLight } from 'three';
 import { LANTERN_ROW } from './rows';
 

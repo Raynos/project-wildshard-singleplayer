@@ -5,9 +5,9 @@
 import { describe, expect, it } from 'vitest';
 import { createFindNearestPolyResult, DEFAULT_QUERY_FILTER, findNearestPoly, findRandomPoint, raycast } from 'navcat';
 import type * as THREE from 'three';
-import { parseNavmesh, type Navmesh } from '#engine-internal/physics/navmesh';
-import { Rng } from '#engine-internal/core/rng';
-import { POND } from '#shards/pine-hollow/layout';
+import { parseNavmesh, type Navmesh } from '../src/engine/physics/navmesh';
+import { Rng } from '../src/engine/core/rng';
+import { POND } from '../src/shards/pine-hollow/layout';
 import driftwoodNav from '../public/assets/baked/driftwood-isle/navmesh.bin?inline';
 import pineNav from '../public/assets/baked/pine-hollow/navmesh.bin?inline';
 

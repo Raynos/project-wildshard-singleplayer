@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { CombatCues, Events, Scope } from '#engine';
-import { LONGBOW } from '#shards/pine-hollow/weapons/equipment';
-import { bindLongbowCharge } from '#shards/pine-hollow/loadout/events';
-import { pineCombatCues } from '#shards/pine-hollow/audio/combatCues';
+import { CombatCues, Events, Scope } from '@wildshard/engine';
+import { LONGBOW } from '../../../src/shards/pine-hollow/weapons/equipment';
+import { bindLongbowCharge } from '../../../src/shards/pine-hollow/loadout/events';
+import { pineCombatCues } from '../../../src/shards/pine-hollow/audio/combatCues';
 
 describe('longbow charge audio', () => {
   it('plays one creak per draw, keeps recover feedback and stops on scope disposal', () => {

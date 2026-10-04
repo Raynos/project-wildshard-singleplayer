@@ -1,5 +1,5 @@
 import { BufferGeometry, Color, ConeGeometry, DoubleSide, Float32BufferAttribute, Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine';
 import { paintIsleMaterial } from './isle';
 import { meadowHoles, meadowPaths } from './meadow';
 import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, apothem, knollHeight, type Isle, type Span } from '../layout';

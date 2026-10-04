@@ -1,5 +1,5 @@
-import { EffectService, type EffectDef, type EffectId, type EffectTarget, type Scope, type PlayerHealth, type AttributeSet } from '#engine';
-import type { OwnedId } from '#game';
+import { EffectService, type EffectDef, type EffectId, type EffectTarget, type Scope, type PlayerHealth, type AttributeSet } from '@wildshard/engine';
+import type { OwnedId } from '@wildshard/game';
 
 const permanent = (id: EffectId, modifiers: EffectDef['modifiers'] = [], grants: EffectDef['grants'] = []): EffectDef =>
   ({ id, kind: 'permanent', tags: [], modifiers, grants, stacking: 'none' });

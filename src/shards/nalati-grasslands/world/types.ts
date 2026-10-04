@@ -1,6 +1,6 @@
 /** Shared shapes for the Nalati POI modules (B5). */
 import type * as THREE from 'three';
-import type { Material, ColliderDesc, WorldRegistry, ModelContext, Placed, Sky } from '#engine';
+import type { Material, ColliderDesc, WorldRegistry, ModelContext, Placed, Sky } from '@wildshard/engine';
 import type { Box } from './solid';
 import type { Flutter } from './Flutter';
 import type { Smoke } from './Smoke';

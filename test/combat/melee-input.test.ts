@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { SWORD } from '#kit';
-import { Sword, type SwordArms } from '#kit/weapons/melee/SweptMelee';
-import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '#shards/nalati-grasslands/weapons/Sabre';
-import { setAimTargets } from '#engine-internal/player/AimTargets';
-import { activePhysics, setActivePhysics } from '#engine-internal/physics/active';
+import { SWORD } from '@wildshard/kit';
+import { Sword, type SwordArms } from '../../src/kit/weapons/melee/SweptMelee';
+import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '../../src/shards/nalati-grasslands/weapons/Sabre';
+import { setAimTargets } from '../../src/engine/player/AimTargets';
+import { activePhysics, setActivePhysics } from '../../src/engine/physics/active';
 import { fakeWorld } from '../fake/world';
 
 const previousPhysics = activePhysics();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeSfxSet, sfxFiles } from '#engine-internal/audio/preload';
+import { decodeSfxSet, sfxFiles } from '../../../src/engine/audio/preload';
 import { FOREST_AUDIO } from '../../../src/shards/pine-hollow/audio/profile';
 
 const read = (): Promise<ArrayBuffer> => Promise.resolve(new ArrayBuffer(1));

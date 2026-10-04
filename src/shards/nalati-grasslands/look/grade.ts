@@ -13,8 +13,8 @@
  */
 import type * as THREE from 'three';
 import { Effect, BlendFunction, RenderPass, EffectPass, BloomEffect, type Pass } from 'postprocessing';
-import { TIER_CONFIG, type LookReplaceContext } from '#engine';
-import { smoothstep } from '#engine/data';
+import { TIER_CONFIG, type LookReplaceContext } from '@wildshard/engine';
+import { smoothstep } from '@wildshard/engine/data';
 
 /** the grade's live knobs (shared uniform objects: the grade effect and every inverse read them) */
 export const gradeUniforms = {

@@ -1,6 +1,6 @@
 // src/shards/nalati-grasslands/ride/rideAssist.ts — NALATI-FINISH B1 (N13): the horse keeping to a road with the stick let go, and the rhythm spur.
 import { describe, expect, it } from 'vitest';
-import { RhythmSpur, roadSteer, SPUR_MAX_STREAK, SPUR_BOOST_PER, type RoadXZ } from '#shards/nalati-grasslands/ride/rideAssist';
+import { RhythmSpur, roadSteer, SPUR_MAX_STREAK, SPUR_BOOST_PER, type RoadXZ } from '../../../src/shards/nalati-grasslands/ride/rideAssist';
 
 const angDiff = (a: number, b: number): number => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 // a road north (+z) from the origin, then a bend east (−x is east in Nalati, it does not matter here: +x)

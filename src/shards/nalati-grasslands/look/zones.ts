@@ -9,7 +9,7 @@
  * Terrain.ts bakes the weights into a per-vertex `zone` attribute; terrainSurface.ts grades the ground by it in v2.
  */
 import * as nalatiDef from '../manifest';
-import { smoothstep } from '#engine/data';
+import { smoothstep } from '@wildshard/engine/data';
 
 const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 

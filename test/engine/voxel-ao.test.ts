@@ -6,9 +6,9 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { bakeAO, type AOOptions } from '#engine-internal/world/lowpolyKit';
-import { bakeSmoothAO, type AOOpts } from '#shards/nalati-grasslands/world/paint';
-import { bakeVertexAO } from '#shards/nalati-grasslands/world/glbPaint';
+import { bakeAO, type AOOptions } from '../../src/engine/world/lowpolyKit';
+import { bakeSmoothAO, type AOOpts } from '../../src/shards/nalati-grasslands/world/paint';
+import { bakeVertexAO } from '../../src/shards/nalati-grasslands/world/glbPaint';
 
 const SHADE_TINT = new THREE.Color(0.55, 0.55, 0.78);   // paint.ts's
 

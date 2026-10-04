@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { Events, Scope, PlayerHealth, type PlayerMode } from '#engine';
+import { Events, Scope, PlayerHealth, type PlayerMode } from '@wildshard/engine';
 
 describe('public player movement mode', () => {
   it('reads immediately and publishes only changed frame modes to scoped subscribers', () => {

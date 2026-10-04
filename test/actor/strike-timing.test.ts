@@ -1,12 +1,12 @@
 // S1.3/S2.3: fixed-step windup/contact/recovery contracts move to the engine strike blocks.
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
-import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
-import { AnimalManager } from '#engine-internal/entities/AnimalManager';
-import { Animal } from '#engine-internal/entities/Animal';
-import { AnimalFactory } from '#engine-internal/entities/AnimalFactory';
-import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
+import { LaneCharge } from '../../src/shards/pine-hollow/combat/ctx';
+import { AnimalManager } from '../../src/engine/entities/AnimalManager';
+import { Animal } from '../../src/engine/entities/Animal';
+import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
+import { getActiveChunk, setActiveChunk } from '../../src/game/shard/registry';
 import { fakeWorld } from '../fake/world';
 import { seedRandom } from '../fake/FakeGame';
 

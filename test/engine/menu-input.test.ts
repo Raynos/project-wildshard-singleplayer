@@ -1,11 +1,11 @@
-import { Scope } from '#engine-internal/app/scope';
+import { Scope } from '../../src/engine/app/scope';
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
-import { app } from '#engine';
-import { containMenuInput } from '#engine-internal/input/menuInput';
-import { weaponActionGate } from '#engine-internal/input/weaponActions';
-import type { Weapon } from '#engine-internal/combat/Weapon';
-import { CROSSBOW } from '#shards/pine-hollow/weapons/equipment';
+import { app } from '@wildshard/engine';
+import { containMenuInput } from '../../src/engine/input/menuInput';
+import { weaponActionGate } from '../../src/engine/input/weaponActions';
+import type { Weapon } from '../../src/engine/combat/Weapon';
+import { CROSSBOW } from '../../src/shards/pine-hollow/weapons/equipment';
 import { legacyDouble } from '../fake/FakeGame';
 
 afterEach(() => { document.body.replaceChildren(); app.setState('boot'); });

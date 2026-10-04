@@ -1,12 +1,12 @@
-import type { BagIcons } from '#game';
-import { iconParts, registerIcons } from '#engine';
+import type { BagIcons } from '@wildshard/game';
+import { iconParts, registerIcons } from '@wildshard/engine';
 
 /**
  * The kit's icons (moved from the engine, E405 LAYER-PURITY): the creatures, the pack items, the weapons and the Bag's
  * GEAR / FINDS stickers, drawn in the engine's 64×64 frame (`iconParts`). installKitIcons registers them; a level that
  * needs one names its id.
  */
-declare module '#engine' {
+declare module '@wildshard/engine' {
   interface IconMap {
     deer: true;
     elk: true;

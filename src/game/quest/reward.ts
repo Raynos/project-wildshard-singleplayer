@@ -1,5 +1,5 @@
 import { MathUtils, Vector3 } from 'three';
-import type { Scope } from '#engine';
+import type { Scope } from '@wildshard/engine';
 import { RewardCaption } from './QuestUI';
 
 export interface QuestRewardPlayer {

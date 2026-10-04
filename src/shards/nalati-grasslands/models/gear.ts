@@ -7,14 +7,14 @@
  * normal queue (the viewmodel factories make theirs transparent for the depth-clear trick; src/engine/models/gear.ts says why).
  */
 import * as THREE from 'three';
-import { arrowMaterial, bowSpecimen, buildArrowGeometry, QUIVER_MAX, type BowStyle, buildRifleParts } from '#kit';
+import { arrowMaterial, bowSpecimen, buildArrowGeometry, QUIVER_MAX, type BowStyle, buildRifleParts } from '@wildshard/kit';
 import { buildSabre } from '../weapons/Sabre';
 import { buildJavelin, buildSpear, type SpearParts } from '../weapons/Spear';
 import { meleeMaterial, steelMaterial } from '../weapons/meleeGeo';
 import { goldenBowModel } from '../weapons/GoldenBow';
 import { naizagaiModel } from '../weapons/Naizagai';
 
-import { whiteColors, defineModel, type ModelContext, type ModelDef, type ModelPart, live, type RosterEntry } from '#engine';
+import { whiteColors, defineModel, type ModelContext, type ModelDef, type ModelPart, live, type RosterEntry } from '@wildshard/engine';
 
 const FILE = 'src/shards/nalati-grasslands/models/gear.ts';
 

@@ -14,7 +14,7 @@
  * test so its shadow still falls into view from behind the camera.
  */
 import * as THREE from 'three';
-import { smoothstep } from '#engine';
+import { smoothstep } from '@wildshard/engine';
 
 export interface Inst {
   x: number; y: number; z: number;

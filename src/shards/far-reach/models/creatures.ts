@@ -1,4 +1,4 @@
-import { defineModel, type AnimalSpecies } from '#engine';
+import { defineModel, type AnimalSpecies } from '@wildshard/engine';
 import { Group, Mesh } from 'three';
 import { rocBody } from '../species/stormRoc';
 import { goatBody } from '../species/skyGoat';

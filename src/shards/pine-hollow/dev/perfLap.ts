@@ -1,5 +1,5 @@
-import { type Game, type Player, type AnimalManager, type Music, type HUD, practiceRoom, type Scope, perfLap, type LapSpot } from '#engine';
-import type { Elites } from '#game';
+import { type Game, type Player, type AnimalManager, type Music, type HUD, practiceRoom, type Scope, perfLap, type LapSpot } from '@wildshard/engine';
+import type { Elites } from '@wildshard/game';
 import type { AntlerKing } from '../combat/antlerKing';
 
 /**

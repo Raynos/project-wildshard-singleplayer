@@ -2,8 +2,8 @@
 // and the sky key table.
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { PINE_PHASES, pineMoonAt, pineNightAt, pineSunAt } from '#shards/pine-hollow/look/dayKeys';
-import { PINE_SKY_KEYS } from '#shards/pine-hollow/look/skyKeys';
+import { PINE_PHASES, pineMoonAt, pineNightAt, pineSunAt } from '../../../src/shards/pine-hollow/look/dayKeys';
+import { PINE_SKY_KEYS } from '../../../src/shards/pine-hollow/look/skyKeys';
 
 const DAY = 20 / 24;
 const deg = (r: number): number => (r * 180) / Math.PI;

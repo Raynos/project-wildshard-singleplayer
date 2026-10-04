@@ -1,4 +1,4 @@
-import type { OptionValue, DayCycleSpec } from '#engine';
+import type { OptionValue, DayCycleSpec } from '@wildshard/engine';
 import { MIDDAY_SKY, type SkyPalette } from './stylizedSky';
 import * as THREE from 'three';
 

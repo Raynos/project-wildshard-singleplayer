@@ -1,10 +1,10 @@
-import { ITEMS } from '#game/bag/itemCatalog';
-import { achievementsFor } from '#game/achievements';
+import { ITEMS } from '../../src/game/bag/itemCatalog';
+import { achievementsFor } from '../../src/game/achievements';
 import { describe, expect, it, vi } from 'vitest';
-import { App, type LevelDriver } from '#engine';
-import { ShardPlugin, type ShardContext, type GameServices } from '#game';
-import manifest from '#shards/nine-dragon-stack/manifest';
-import { loadShardPlugin } from '#game/shard/pluginLoad';
+import { App, type LevelDriver } from '@wildshard/engine';
+import { ShardPlugin, type ShardContext, type GameServices } from '@wildshard/game';
+import manifest from '../../src/shards/nine-dragon-stack/manifest';
+import { loadShardPlugin } from '../../src/game/shard/pluginLoad';
 
 const noop = (): void => { /* No rendering in this node contract. */ };
 const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: noop, world: noop, kit: noop, loadout: noop, play: noop, finish: noop };

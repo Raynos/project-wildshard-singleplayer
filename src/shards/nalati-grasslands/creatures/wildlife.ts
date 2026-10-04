@@ -1,4 +1,4 @@
-import { type Sky, heightAt, terrainNormal as normalAt, terrainWaterLevel as waterLevel, Rng, type AnimalManager, type Animal } from '#engine';
+import { type Sky, heightAt, terrainNormal as normalAt, terrainWaterLevel as waterLevel, Rng, type AnimalManager, type Animal } from '@wildshard/engine';
 import * as THREE from 'three';
 
 

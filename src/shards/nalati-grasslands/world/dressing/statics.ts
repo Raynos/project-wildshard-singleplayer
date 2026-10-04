@@ -13,7 +13,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng, heightAt, type Sky, type BoxSpec as Collider, type ColliderDesc } from '#engine';
+import { Rng, heightAt, type Sky, type BoxSpec as Collider, type ColliderDesc } from '@wildshard/engine';
 import { PaintKit, poiMaterial, texturedMaterial } from '../paint';
 import { NalatiSet } from '../painted';
 import { Flutter } from '../Flutter';

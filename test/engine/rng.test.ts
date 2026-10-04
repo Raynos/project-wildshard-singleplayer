@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Rng, RngService, fnv1a32, pageSeed } from '#engine';
+import { Rng, RngService, fnv1a32, pageSeed } from '@wildshard/engine';
 
 // The pre-F8 recurrence, independent of the merged class; its state progression is part of the world data.
 function legacy(seed: number): () => number {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CosmeticsLocker, SkinLocker } from '#game';
-import { NALATI_SKINS, NalatiSkinLocker } from '#shards/nalati-grasslands/weapons/nalatiSkins';
+import { CosmeticsLocker, SkinLocker } from '@wildshard/game';
+import { NALATI_SKINS, NalatiSkinLocker } from '../src/shards/nalati-grasslands/weapons/nalatiSkins';
 import { saveFixture } from './fake/saveFixture';
 
 describe('cosmetic profiles share ownership and wear storage', () => {

@@ -28,6 +28,7 @@ type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBa
 /** Write text only when it changed: an unchanged textContent write still dirties layout. */
 const set = (el: HTMLElement, text: string): void => { if (el.textContent !== text) el.textContent = text; };
 
+/** the loading screen: the download and set-up bars, the boot steps' rows, the tier and the diagnostics */
 export class Loading {
   readonly scope = uiScope('Loading');
   root: HTMLElement;

@@ -1,11 +1,11 @@
 import { afterEach, expect, it } from 'vitest';
 import { Scene, Vector3, Object3D, Quaternion } from 'three';
-import { app } from '#engine';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import { boxInFrame } from '#engine-internal/physics/box';
-import { Interactables } from '#engine-internal/world/interact/Interactables';
-import { Flags } from '#engine-internal/world/interact/flags';
-import type { Sky } from '#engine-internal/world/Sky';
+import { app } from '@wildshard/engine';
+import { WorldRegistry } from '../../src/engine/world/registry';
+import { boxInFrame } from '../../src/engine/physics/box';
+import { Interactables } from '../../src/engine/world/interact/Interactables';
+import { Flags } from '../../src/engine/world/interact/flags';
+import type { Sky } from '../../src/engine/world/Sky';
 
 function fake<T extends object>(fields: Partial<T>): T {
   return new Proxy(fields, { get: (target, key) => {

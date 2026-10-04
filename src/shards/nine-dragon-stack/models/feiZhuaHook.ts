@@ -9,7 +9,7 @@
 import { type BufferGeometry, Color, Float32BufferAttribute, type Material, Matrix4, Mesh, MeshStandardMaterial, type Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { defineModel, type ModelContext, type ModelLod, type ModelPart, gpuOnlyTexture } from '#engine';
+import { defineModel, type ModelContext, type ModelLod, type ModelPart, gpuOnlyTexture } from '@wildshard/engine';
 import { PX_PER_M, SCULPT_PX, simplifiedCopy } from '../world/lod';
 import { type NdLook, ndLook, need } from '../world/modelLook';
 

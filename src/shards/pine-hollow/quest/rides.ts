@@ -12,7 +12,7 @@
  * While either ride runs it owns the player (`player.carried`: the fixed step leaves the body alone).
  */
 import * as THREE from 'three';
-import type { Sky } from '#engine';
+import type { Sky } from '@wildshard/engine';
 import type { Interactable } from '../world/homestead';
 import { POND } from '../layout';
 import { npcMaterial, PartKit } from '../models/people';

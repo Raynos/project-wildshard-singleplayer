@@ -18,7 +18,7 @@
 import * as THREE from 'three';
 import { PaintKit, pole, v3, blob, poiMaterial } from './world/paint';
 import { KOKPAR } from './layout';
-import { practiceRoom, type Sky } from '#engine';
+import { practiceRoom, type Sky } from '@wildshard/engine';
 
 /** a point on the field's oval at angle t, scaled by k (1 = its edge) — Bowl.ts buildKokpar's own `onOval` */
 export function kokparOval(t: number, k: number): { x: number; z: number } {

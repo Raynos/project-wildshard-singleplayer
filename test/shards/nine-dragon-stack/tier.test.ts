@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decalScale, glyphLayout, paintSize, signLayout } from '#shards/nine-dragon-stack/tier';
+import { decalScale, glyphLayout, paintSize, signLayout } from '../../../src/shards/nine-dragon-stack/tier';
 
 describe('Nine Dragon atlas tiers', () => {
   it('preserves both authored layouts without a module-global tier', () => {

@@ -46,6 +46,7 @@ const WINDOW = 20; // paints (~10 s)
 export interface PerfBudget { maxCalls: number; maxTris: number; calls: number; tris: number; over: boolean }
 const k = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
 
+/** the fps / draw-call / triangle panel, with the level's budgets */
 export class Perf {
   readonly scope = uiScope('Perf');
   readonly root: HTMLElement;

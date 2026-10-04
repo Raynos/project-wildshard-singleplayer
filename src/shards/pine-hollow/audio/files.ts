@@ -1,4 +1,4 @@
-import { loadAudio, type LevelAudioProfile } from '#engine';
+import { loadAudio, type LevelAudioProfile } from '@wildshard/engine';
 import { FOREST_AUDIO } from './profile';
 import { pineShotFiles, decodePineShots } from './sfx';
 

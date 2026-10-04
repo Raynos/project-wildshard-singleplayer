@@ -25,7 +25,7 @@
  * scaled down on the phone tier.
  */
 import * as THREE from 'three';
-import { TIER, painterlyMaterial, type Sky, type Forest, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, modelContext, type ModelDef, type Renderer, place, type PlaceOptions, type Placed } from '#engine';
+import { TIER, painterlyMaterial, type Sky, type Forest, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, modelContext, type ModelDef, type Renderer, place, type PlaceOptions, type Placed } from '@wildshard/engine';
 import { Flutter } from '../Flutter';
 import { DressLayer, type Inst } from './layer';
 import { planDressing, type DressPlan } from './place';

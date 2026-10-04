@@ -1,6 +1,6 @@
 import { NALATI_STRIKES, sampleStrike } from './strikes';
 import { registerNalatiDefinition } from '../species/rows';
-import { app, EliteBrain, pinBrain, type Scope, canReach, hasSpecies as hasLegacySpecies, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '#engine';
+import { app, EliteBrain, pinBrain, type Scope, canReach, hasSpecies as hasLegacySpecies, type Game, type Sky, type Player, type AnimalManager, type Animal, speciesDef, type ThinkCtx, type Interactable, heightAt, setEliteBrain, setEliteAct, setEliteDamage, eliteThink, eliteDamageMul, EliteBar, painterlyMaterial } from '@wildshard/engine';
 
 import { encounterHit } from './damage';
 import * as THREE from 'three';
@@ -22,7 +22,7 @@ import { horseSaddle } from '../species/horse';
 import { LEOPARD } from '../species/leopard';
 import { EAGLE } from '../species/eagle';
 import { KOKBORI } from '../species/kokbori';
-import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule } from '#game';
+import { Elites, GroundTell, type EliteDef, type EliteScript, type EliteRule } from '@wildshard/game';
 
 
 import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';

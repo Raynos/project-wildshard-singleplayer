@@ -8,7 +8,7 @@
  *   scene.add(smoke.build(sky));  game.onUpdate((dt) => smoke.update(dt));
  */
 import * as THREE from 'three';
-import { painterlyUniforms, type Sky } from '#engine';
+import { painterlyUniforms, type Sky } from '@wildshard/engine';
 
 interface Emitter { x: number; y: number; z: number; puffs: number; rise: number; s0: number; s1: number; life: number; dense: number }
 

@@ -14,7 +14,7 @@
 // export is a drum track: 36 kick (1 & 3) · 35 four-on-the-floor kick (2 & 4) · 38 tap (2 & 4) · 42 shaker.
 // Mix events automate the layer mixer (0..1) and two bus effects: 'lpf' (music-bus low-pass, Hz) and 'chorus' (wet 0..1).
 
-import type { Arrangement, ChordEv, MixEv, MixKey, NoteEv, Score, Segment } from '#engine';
+import type { Arrangement, ChordEv, MixEv, MixKey, NoteEv, Score, Segment } from '@wildshard/engine';
 
 type ChordName = 'Dmaj7#11' | 'E7' | 'Bm9' | 'A' | 'Dm9' | 'Gm' | 'Am' | 'Bb';
 

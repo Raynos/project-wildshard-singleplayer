@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { type Sky, type ProjectileKind, gloveFist, riderArm, painterlyMaterial } from '#engine';
+import { type Sky, type ProjectileKind, gloveFist, riderArm, painterlyMaterial } from '@wildshard/engine';
 
-import type { BowView, GripPose } from '#kit/weapons/bow/profile';
+import type { BowView, GripPose } from './profile';
 
 
 

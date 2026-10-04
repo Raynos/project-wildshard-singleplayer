@@ -3,16 +3,16 @@ import { saveFixture } from '../../fake/saveFixture';
 // what Mott trades for, nothing he gives goes into it, and the unlocks never ride in a pack slot.
 import { describe, expect, it } from 'vitest';
 import { loadSpecies } from '../../species';
-import { speciesDef } from '#engine-internal/entities/species/registry';
-import { Inventory, harvestOf, type ItemId } from '#game/Inventory';
-import { PINE_PACK_KINDS, PINE_PACK_SLOTS, isPineItem } from '#shards/pine-hollow/items';
-import { Owned } from '#game/loot/Owned';
-import { TRADES, ammoOf, mottLine, tradeState } from '#shards/pine-hollow/quest/trades';
-import { ELITE_TARGETS, contractFor, draw } from '#shards/pine-hollow/quest/contracts';
-import { restoreKept } from '#shards/pine-hollow/loadout/loadout';
-import { finishPick, pineFinishes } from '#shards/pine-hollow/loadout/finishes';
-import { SkinLocker } from '#game';
-import { SKINS, PINE_FINISHES } from '#shards/pine-hollow/loadout/skins';
+import { speciesDef } from '../../../src/engine/entities/species/registry';
+import { Inventory, harvestOf, type ItemId } from '../../../src/game/Inventory';
+import { PINE_PACK_KINDS, PINE_PACK_SLOTS, isPineItem } from '../../../src/shards/pine-hollow/items';
+import { Owned } from '../../../src/game/loot/Owned';
+import { TRADES, ammoOf, mottLine, tradeState } from '../../../src/shards/pine-hollow/quest/trades';
+import { ELITE_TARGETS, contractFor, draw } from '../../../src/shards/pine-hollow/quest/contracts';
+import { restoreKept } from '../../../src/shards/pine-hollow/loadout/loadout';
+import { finishPick, pineFinishes } from '../../../src/shards/pine-hollow/loadout/finishes';
+import { SkinLocker } from '@wildshard/game';
+import { SKINS, PINE_FINISHES } from '../../../src/shards/pine-hollow/loadout/skins';
 
 const PINE = 'chunk://local/pine-hollow';
 const DRIFT = 'chunk://local/driftwood-isle';

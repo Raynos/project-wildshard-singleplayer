@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { SkinDef } from '#engine';
+import type { SkinDef } from '@wildshard/engine';
 
 /** Pine's authored material finishes and legendary sources; application and ownership are generic. */
 export type SkinId = 'ghost-stag' | 'hollow-ash' | 'ironhide' | 'scarback-furnace' | 'blackpaw' | 'imperial' | 'warden';

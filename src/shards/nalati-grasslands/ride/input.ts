@@ -1,4 +1,4 @@
-import type { LevelContext } from '#engine';
+import type { LevelContext } from '@wildshard/engine';
 import type { Ride } from './ride';
 
 /** pause ▸ Settings ▸ Key bindings (E357 J10): the riding rows show on this shard only; mounted, Shift gallops instead of sprinting */

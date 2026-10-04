@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { app, Flags, Scope, practiceRoom, type FullMapPoi, type MapMark, type MapQuest, type SystemSpec, type Interactable } from '#engine';
-import { installQuestPresentation, presentQuest, QuestState, type QuestPresentationContext, type PresentedQuestDef } from '#game';
-import { DRIFTWOOD_QUEST } from '#shards/driftwood-isle/quest/questLine';
+import { app, Flags, Scope, practiceRoom, type FullMapPoi, type MapMark, type MapQuest, type SystemSpec, type Interactable } from '@wildshard/engine';
+import { installQuestPresentation, presentQuest, QuestState, type QuestPresentationContext, type PresentedQuestDef } from '@wildshard/game';
+import { DRIFTWOOD_QUEST } from '../src/shards/driftwood-isle/quest/questLine';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); practiceRoom.open = false; document.body.replaceChildren(); });

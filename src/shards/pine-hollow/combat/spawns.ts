@@ -1,4 +1,4 @@
-import { app, type Animal, type AnimalManager, type SpawnTableRow, type Spawner } from '#engine';
+import { app, type Animal, type AnimalManager, type SpawnTableRow, type Spawner } from '@wildshard/engine';
 import { retire } from './ctx';
 
 /** Each-mode keeps the scheduler's existing species choice and consumes no extra random draw. */

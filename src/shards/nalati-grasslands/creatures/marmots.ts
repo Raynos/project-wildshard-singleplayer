@@ -1,4 +1,4 @@
-import { type Sky, heightAt, terrainNormal as normalAt, Rng, loft, S, mix, speciesSstep as sstep, srgb, type Paint, TickScheduler } from '#engine';
+import { type Sky, heightAt, terrainNormal as normalAt, Rng, loft, S, mix, speciesSstep as sstep, srgb, type Paint, TickScheduler } from '@wildshard/engine';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 

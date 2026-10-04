@@ -1,7 +1,7 @@
 import { saveStorageFixture } from './fake/saveFixture';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ProgressView } from '#engine-internal/boot/plan';
-import { createBootTrace, type BootTrace, type BootTraceTransports } from '#engine-internal/boot/bootTrace';
+import type { ProgressView } from '../src/engine/boot/plan';
+import { createBootTrace, type BootTrace, type BootTraceTransports } from '../src/engine/boot/bootTrace';
 
 const fixtures = saveStorageFixture('device');
 

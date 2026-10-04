@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { afterEach, describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
-import { Scope } from '#engine';
-import { Enemies } from '#shards/driftwood-isle/creatures/Enemies';
-import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
+import { Scope } from '@wildshard/engine';
+import { Enemies } from '../../src/shards/driftwood-isle/creatures/Enemies';
+import { getActiveChunk, setActiveChunk } from '../../src/game/shard/registry';
 import { invokeLegacy } from '../fake/legacyActor';
 import { manager } from '../fake/manager';
 

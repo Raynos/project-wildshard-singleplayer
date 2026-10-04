@@ -1,6 +1,6 @@
 // E321: a practice room's own map (src/engine/ui/roomMap.ts) — the view fits the room, and the painter draws every shape inside it.
 import { describe, expect, it } from 'vitest';
-import { arenaMap, fitRoom, paintRoom, type RoomMap } from '#engine-internal/ui/roomMap';
+import { arenaMap, fitRoom, paintRoom, type RoomMap } from '../src/engine/ui/roomMap';
 
 /** a 2D context that records where it drew (x, y device px) */
 function recorder(): { ctx: CanvasRenderingContext2D; points: [number, number][]; calls: () => number } {

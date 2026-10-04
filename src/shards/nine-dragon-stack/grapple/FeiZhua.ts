@@ -13,8 +13,8 @@
 import {
   AdditiveBlending, Color, ConeGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, Quaternion, RingGeometry, SphereGeometry, TorusGeometry, Vector2, Vector3,
 } from 'three';
-import { Tool, inState, castRay, castSegment, floorBelow, lineOfSight, type EquipmentHost, type EquipContext, type TouchRelabel, type Scope } from '#engine';
-import type { ShardContext } from '#game';
+import { Tool, inState, castRay, castSegment, floorBelow, lineOfSight, type EquipmentHost, type EquipContext, type TouchRelabel, type Scope } from '@wildshard/engine';
+import type { ShardContext } from '@wildshard/game';
 import { FEI_ZHUA_ROW } from './row';
 import { GRAPPLE_CONTEXT } from './context';
 import { WELL, Y0 } from '../layout';

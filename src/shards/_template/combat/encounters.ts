@@ -1,5 +1,5 @@
-import { BossBrain, BossBar, EliteBrain, type Animal, type BossScript } from '#engine';
-import { bossesSave, shardSave, type ShardContext } from '#game';
+import { BossBrain, BossBar, EliteBrain, type Animal, type BossScript } from '@wildshard/engine';
+import { bossesSave, shardSave, type ShardContext } from '@wildshard/game';
 import { Vector3 } from 'three';
 import { BOSS, ELITE } from '../layout';
 import { STRINGS } from '../strings';

@@ -1,8 +1,8 @@
 import { COMPARE } from './explore/compare';
 import exploreHorse from './explore/playground-horse.webp';
 import { NALATI_BUDGET_INPUTS } from './budgets';
-import type { ShardManifest } from '#game/shard/manifest';
-import { basinBody } from '#engine/data';
+import type { ShardManifest } from '@wildshard/game';
+import { basinBody } from '@wildshard/engine/data';
 import { nalatiWetAt } from './wet';
 import { SEED, SPAWN, TERRAIN, groundColor, surfaceAt, loneSpruceMask, edgeBermAt } from './world/terrain';
 import { NALATI_MAP } from './layout';

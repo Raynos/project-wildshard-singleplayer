@@ -2,7 +2,7 @@
 // and every matrix it keeps must be exactly what three's own pass would have computed.
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { AnimalGroup } from '#engine-internal/entities/animalMatrices';
+import { AnimalGroup } from '../src/engine/entities/animalMatrices';
 
 interface Fake { mesh: THREE.Object3D; poseFrozen: boolean; lastHitT: number; bones: THREE.Bone[] }
 

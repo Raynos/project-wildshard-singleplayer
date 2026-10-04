@@ -16,7 +16,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { defineModel, type BoxSpec as Collider } from '#engine';
+import { defineModel, type BoxSpec as Collider } from '@wildshard/engine';
 import { M, pole, v3, lathe, logPainter, woodPole, blob } from '../world/paint';
 import { PC, GRAIN, WOOD, rugGeometry, rugPainter } from '../world/props';
 import { painted, type Kit, type Paint } from '../world/painted';

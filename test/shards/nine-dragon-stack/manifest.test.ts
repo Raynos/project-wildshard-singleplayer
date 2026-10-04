@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { toLevelSpec } from '#game';
+import { toLevelSpec } from '@wildshard/game';
 import { SHARDS } from '../../../src/shards.generated';
-import { playable } from '#game/shard/registry';
-import { PUBLIC_BYTES } from '#game/boot/bytes.generated';
-import { PACKS } from '#game/boot/packs.generated';
-import { gpuUrl } from '#engine-internal/boot/bytes';
-import { chunkFiles } from '#engine-internal/boot/manifest';
-import { initializeTier, TIER } from '#engine-internal/core/tier';
-import manifest from '#shards/nine-dragon-stack/manifest';
+import { playable } from '../../../src/game/shard/registry';
+import { PUBLIC_BYTES } from '../../../src/game/boot/bytes.generated';
+import { PACKS } from '../../../src/game/boot/packs.generated';
+import { gpuUrl } from '../../../src/engine/boot/bytes';
+import { chunkFiles } from '../../../src/engine/boot/manifest';
+import { initializeTier, TIER } from '../../../src/engine/core/tier';
+import manifest from '../../../src/shards/nine-dragon-stack/manifest';
 
 const originalTier = TIER;
 afterEach(() => { initializeTier(originalTier); });

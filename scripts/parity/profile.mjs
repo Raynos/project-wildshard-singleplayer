@@ -4,7 +4,7 @@ import { homedir } from 'node:os';
 
 /** @param {string} root @param {string} path @param {string} spec */
 function imported(root, path, spec) {
-  const alias = /^#(engine|game|kit|shards)(?:\/(.*))?$/.exec(spec);
+  const alias = /^@wildshard\/(engine|game|kit)(?:\/(.*))?$/.exec(spec); // E432: the layers' workspace packages
   const base = spec.startsWith('.') ? posix.join(posix.dirname(path), spec) : alias ? `src/${alias[1]}/${alias[2] || 'index'}` : '';
   return base ? [base, `${base}.ts`, `${base}/index.ts`].find((p) => existsSync(join(root, p))) : undefined;
 }

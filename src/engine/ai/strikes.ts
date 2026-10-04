@@ -7,6 +7,7 @@ export interface StrikeActor {
   startAttack: (seconds: number) => void; cancelAttack: () => void;
   setMotion: (yaw: number, speed: number, turn: number) => void;
 }
+/** where a creature's strike lands, around it: an arc, a lane, a ring or a wedge */
 export type StrikeShape =
   | { kind: 'arc'; radius: number; halfAngle: number; yawOffset?: number }
   | { kind: 'lane'; length: number; width: number }

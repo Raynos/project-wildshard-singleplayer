@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { WRECK } from '../manifest';
-import { lin, type Renderer, type Interactable, type Sky, LightPool, ItemPickup, type PickupTier } from '#engine';
+import { lin, type Renderer, type Interactable, type Sky, LightPool, ItemPickup, type PickupTier } from '@wildshard/engine';
 
 /**
  * IronSword — the iron sword as LOOT on Driftwood Isle ("the whole point of Project Wildshard is that you can find

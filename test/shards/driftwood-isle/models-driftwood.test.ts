@@ -2,19 +2,19 @@
 // (`piece.follows: 'copy'`, the sailboat), and the island's models build in their own space (origin at their foot).
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import type { Sky } from '#engine-internal/world/Sky';
-import { defineModel, modelContext } from '#engine-internal/models/model';
-import { place } from '#engine-internal/models/place';
-import { boat, boatColliders } from '#shards/driftwood-isle/models/boat';
-import { palm } from '#shards/driftwood-isle/models/palm';
-import { hut, hutLayout } from '#shards/driftwood-isle/models/hut';
-import { lookout, lookoutLayout } from '#shards/driftwood-isle/models/lookout';
-import { shipwreck } from '#shards/driftwood-isle/models/shipwreck';
-import { barrel, crate, ropeCoil } from '#shards/driftwood-isle/models/cargo';
-import { driftLog } from '#shards/driftwood-isle/models/driftLog';
-import { reefRock } from '#shards/driftwood-isle/models/reefRock';
-import { ropeBridge, ropeBridgeLayout } from '#shards/driftwood-isle/models/ropeBridge';
+import { WorldRegistry } from '../../../src/engine/world/registry';
+import type { Sky } from '../../../src/engine/world/Sky';
+import { defineModel, modelContext } from '../../../src/engine/models/model';
+import { place } from '../../../src/engine/models/place';
+import { boat, boatColliders } from '../../../src/shards/driftwood-isle/models/boat';
+import { palm } from '../../../src/shards/driftwood-isle/models/palm';
+import { hut, hutLayout } from '../../../src/shards/driftwood-isle/models/hut';
+import { lookout, lookoutLayout } from '../../../src/shards/driftwood-isle/models/lookout';
+import { shipwreck } from '../../../src/shards/driftwood-isle/models/shipwreck';
+import { barrel, crate, ropeCoil } from '../../../src/shards/driftwood-isle/models/cargo';
+import { driftLog } from '../../../src/shards/driftwood-isle/models/driftLog';
+import { reefRock } from '../../../src/shards/driftwood-isle/models/reefRock';
+import { ropeBridge, ropeBridgeLayout } from '../../../src/shards/driftwood-isle/models/ropeBridge';
 
 /** the world side's sources and the shard's setup, as text (the M8 check below) */
 const SOURCES = import.meta.glob<string>(["../../../src/engine/world/*.ts","../../../src/shards/driftwood-isle/world/*.ts","../../../src/main.ts"], { query: '?raw', import: 'default', eager: true });

@@ -1,4 +1,4 @@
-import { Weapon } from '#engine';
+import { Weapon } from '@wildshard/engine';
 
 /** The trigger template is shared; custom actions override readiness, cycling and reload hooks. */
 export abstract class Firearm extends Weapon {

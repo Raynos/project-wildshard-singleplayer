@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, toonPaint, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '#engine';
+import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, toonPaint, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '@wildshard/engine';
 
 /**
  * Bear — black bear (scale 1: ~1.0 m at the shoulder, ~2.0 m nose to rump) and the bigger humped brown /

@@ -1,8 +1,8 @@
 import { saveStorageFixture } from './fake/saveFixture';
 // src/engine/ui/Settings.ts — a page's settings read storage once when built, so each test builds its own (createSettings).
 import { describe, expect, it, vi } from 'vitest';
-import { createSettings, settingParams, settingsReloadUrl, type Settings } from '#engine-internal/ui/Settings';
-import { saveStorage } from '#engine-internal/saves/slots';
+import { createSettings, settingParams, settingsReloadUrl, type Settings } from '../src/engine/ui/Settings';
+import { saveStorage } from '../src/engine/saves/slots';
 
 const fixtures = saveStorageFixture('global');
 

@@ -1,5 +1,5 @@
 import { BUDGET_CEILINGS } from './budgetCeilings';
-import type { LevelSpec } from '#engine';
+import type { LevelSpec } from '@wildshard/engine';
 
 /** 07 §6.5 G: default allocations from budget-design §6.1–6.3, load inputs from §6.6.
  * Counts rederive at all three harness poses when the lead publishes a stable M5 calibration.

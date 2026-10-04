@@ -1,18 +1,18 @@
-import { CROSSBOW_PROFILE } from '#kit/weapons/crossbow/profiles';
+import { CROSSBOW_PROFILE } from '../../src/kit/weapons/crossbow/profiles';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
-import { app } from '#engine-internal/app/runtime';
-import { damageFor } from '#engine-internal/entities/Animal';
-import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
-import type { TargetHit } from '#engine-internal/combat/view/targets';
-import { Projectiles } from '#engine-internal/combat/view/projectile';
-import { boltDamage } from '#shards/pine-hollow/loadout/ammo';
+import { app } from '../../src/engine/app/runtime';
+import { damageFor } from '../../src/engine/entities/Animal';
+import { Crossbow } from '../../src/kit/weapons/crossbow/Crossbow';
+import type { TargetHit } from '../../src/engine/combat/view/targets';
+import { Projectiles } from '../../src/engine/combat/view/projectile';
+import { boltDamage } from '../../src/shards/pine-hollow/loadout/ammo';
 import { legacyActor, invokeLegacy, damageTarget } from '../fake/legacyActor';
 import { legacyHurtFixture } from '../fake/legacyHurt';
 import { fakeWorld } from '../fake/world';
-import { App } from '#engine-internal/app/app';
-import { Scope } from '#engine-internal/app/scope';
-import type { Actor, CombatTag, DamageRequest, DamageDealt } from '#engine-internal/combat/pipeline';
+import { App } from '../../src/engine/app/app';
+import { Scope } from '../../src/engine/app/scope';
+import type { Actor, CombatTag, DamageRequest, DamageDealt } from '../../src/engine/combat/pipeline';
 
 const attacker = (kind = 'boar') => ({ kind, label: kind, position: new THREE.Vector3(2, 0, 0) });
 describe('current executable damage rules (09 §3.6)', () => {

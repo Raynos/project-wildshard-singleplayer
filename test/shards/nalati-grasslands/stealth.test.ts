@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Events, Scope, InputService } from '#engine';
-import { Stealth } from '#shards/nalati-grasslands/stealth';
+import { Events, Scope, InputService } from '@wildshard/engine';
+import { Stealth } from '../../../src/shards/nalati-grasslands/stealth';
 import { fakeWorld } from '../../fake/world';
 
 // the grass under the player, passed to Stealth (no module mock, E422)

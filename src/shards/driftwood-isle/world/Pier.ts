@@ -17,7 +17,7 @@
  * `Boat.moorTo`.
  */
 import type * as THREE from 'three';
-import { type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, heightAt, waterLevel, place, type Placed } from '#engine';
+import { type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, heightAt, waterLevel, place, type Placed } from '@wildshard/engine';
 import { PENNANT_WIND, pier, pierBoxes, pierDeckAt, pierPosts, type PierParams } from '../models/pier';
 
 export interface PierSpec {

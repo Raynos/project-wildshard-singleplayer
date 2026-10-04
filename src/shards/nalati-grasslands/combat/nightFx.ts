@@ -1,4 +1,4 @@
-import { type Game, app, heightAt, ParticlePool, pointScale } from '#engine';
+import { type Game, app, heightAt, ParticlePool, pointScale } from '@wildshard/engine';
 
 import * as THREE from 'three';
 

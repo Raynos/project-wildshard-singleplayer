@@ -1,6 +1,6 @@
 import { DUSK, fillAt, keyAt } from './dusk';
 import { BackSide, ClampToEdgeWrapping, Color, DataTexture, Float32BufferAttribute, Fog, LinearFilter, LinearMipmapLinearFilter, Mesh, MeshStandardMaterial, PlaneGeometry, RedFormat, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, UnsignedByteType, Vector3, type BufferGeometry, type HemisphereLight, type Texture } from 'three';
-import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
+import { DayCycle, patchShader, PATCH_ORDER, type LookStrategy } from '@wildshard/engine';
 import { GROUND_HALF } from '../layout';
 import { WIND } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';

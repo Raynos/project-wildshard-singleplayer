@@ -26,7 +26,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng, Noise2D, smoothstep, clamp, TIER, defineModel, type ModelBuild, type ModelContext, painterlyMaterial } from '#engine';
+import { Rng, Noise2D, smoothstep, clamp, TIER, defineModel, type ModelBuild, type ModelContext, painterlyMaterial } from '@wildshard/engine';
 import { blob, mergeVerticesByPos } from '../world/paint';
 import { loadNalatiModel, type NalatiModel } from '../world/glbPaint';
 

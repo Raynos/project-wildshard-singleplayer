@@ -21,7 +21,7 @@
  * def adds the rise on top of buildTerrain's field (nalati-grasslands.ts TERRAIN), and the one bake —
  * public/assets/baked/nalati-grasslands/terrain.bin and navmesh.bin — carries it.
  */
-import { Noise2D, smoothstep, clamp, CHUNK_HALF, ROAD_WIDTH } from '#engine/data';
+import { Noise2D, smoothstep, clamp, CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/data';
 import { CAMP, PASTURE, riverZAt, riverHalfAt } from './layout';
 
 const bn = new Noise2D(0x4a1a + 313), bn2 = new Noise2D(0x4a1a + 317);

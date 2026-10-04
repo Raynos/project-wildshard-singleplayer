@@ -34,6 +34,7 @@ export interface WeaponUi {
   huntersEye?: boolean;
 }
 export interface EquipmentMeta { name: string; icon: EquipmentIcon; blurb: string; category: string }
+/** a weapon's sound cues: fire, reload, impact, and the optional dry, hit, heavy and charge cues */
 export interface EquipmentCues { fire: CueId; reload: CueId; impact: CueId; dry?: CueId; hit?: CueId; heavy?: CueId; charge?: Readonly<Record<string, CueId>> }
 export interface EquipmentRow { pickup?: EquipmentPickupSpec; rangedFeel?: RangedFeelProfile; cues?: EquipmentCues; hitStop?: HitStopProfile; tags?: readonly CombatTag[]; id: EquipmentId; legacySlot?: WeaponId; ui: WeaponUi; meta: EquipmentMeta }
 export interface EquipmentBlock { dispose: () => void }

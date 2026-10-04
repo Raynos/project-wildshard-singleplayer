@@ -21,7 +21,7 @@ import { NalatiSet } from './world/painted';
 import { Flutter } from './world/Flutter';
 import { Smoke } from './world/Smoke';
 import { inPoiClearing } from './world/clearings';
-import { Noise2D, CHUNK_HALF, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type ModelContext, type Placed, type Sky, heightAt, normalAt, trailDistance } from '#engine';
+import { Noise2D, CHUNK_HALF, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type ModelContext, type Placed, type Sky, heightAt, normalAt, trailDistance } from '@wildshard/engine';
 import { riverMask, rimZAt, RIVER, RIM_Z, outcropAt, BROOK, edgeBermAt } from './manifest';
 import type * as THREE from 'three';
 import { graniteOutcrop, roundedBoulder, type RockTint } from './models/outcrop';

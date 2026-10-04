@@ -1,5 +1,5 @@
 import { BufferGeometry, type Color, Float32BufferAttribute, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from 'three';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine';
 
 /**
  * The weathered-timber kit for Sky Reach's small buildings (E392, round 18; the judge, every loop: "the houses are

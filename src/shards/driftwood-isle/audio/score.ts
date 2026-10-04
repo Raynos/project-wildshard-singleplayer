@@ -1,4 +1,4 @@
-import { loadAudio, type Audio, type Music, type MusicState, type ScoreSource, type Scope, type SlotAudio, type StyleBank, type StemSting, type MusicStyle } from '#engine';
+import { loadAudio, type Audio, type Music, type MusicState, type ScoreSource, type Scope, type SlotAudio, type StyleBank, type StemSting, type MusicStyle } from '@wildshard/engine';
 
 /** The base genre bank's island slot in play; Music owns its common title slot on the menu. */
 export class DriftwoodScore implements ScoreSource {

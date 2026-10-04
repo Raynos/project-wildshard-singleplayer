@@ -1,4 +1,4 @@
-import { filePolicy, publicBytes, type ChunkFiles, type Tier, type TexMode } from '#engine/data';
+import { filePolicy, publicBytes, type ChunkFiles, type Tier, type TexMode } from '@wildshard/engine/data';
 import { GPU_FILES } from '../ktx2.generated';
 
 const models = ['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3', 'watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider'];

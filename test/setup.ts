@@ -25,38 +25,38 @@ vi.stubGlobal('location', new URL('http://localhost:5173/'));
 // the app identity and asset tables first: save keys, the probe's handles and the boot read them (E405 E414 / E415)
 await import('../src/identity');
 await import('../src/shardList');
-const { registerAchievements } = await import('#game/achievements');
-const { PINE_FEATS } = await import('#shards/pine-hollow/feats');
-const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('#shards/driftwood-isle/quest/rows');
+const { registerAchievements } = await import('../src/game/achievements');
+const { PINE_FEATS } = await import('../src/shards/pine-hollow/feats');
+const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('../src/shards/driftwood-isle/quest/rows');
 registerAchievements('pine-hollow', PINE_FEATS);
 registerAchievements('driftwood-isle', DRIFTWOOD_FEATS);
 
 // The composition root owns shared species; the engine has no upward kit import.
-const { registerSpecies, speciesWithLook } = await import('#engine');
-const { installScore } = await import('#engine-internal/audio/score/score');
-const { WILDSHARD_SCORE } = await import('#game/audio/theme');
+const { registerSpecies, speciesWithLook } = await import('@wildshard/engine');
+const { installScore } = await import('../src/engine/audio/score/score');
+const { WILDSHARD_SCORE } = await import('../src/game/audio/theme');
 installScore(WILDSHARD_SCORE);
-const { installKitSpecies, installKitIcons, installKitPickups, installKitProps } = await import('#kit');
+const { installKitSpecies, installKitIcons, installKitPickups, installKitProps } = await import('@wildshard/kit');
 installKitSpecies();
 installKitIcons();
 installKitPickups();
 installKitProps();
-const { installDriftwoodSpecies } = await import('#shards/driftwood-isle/species/install');
+const { installDriftwoodSpecies } = await import('../src/shards/driftwood-isle/species/install');
 installDriftwoodSpecies();
-const { installNalatiSpeciesForTests } = await import('#shards/nalati-grasslands/species/rows');
+const { installNalatiSpeciesForTests } = await import('../src/shards/nalati-grasslands/species/rows');
 installNalatiSpeciesForTests();
 // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
-const { PINE_BOAR } = await import('#shards/pine-hollow/species/rows');
-const { PINE_BOAR_LOOK } = await import('#shards/pine-hollow/species/looks');
+const { PINE_BOAR } = await import('../src/shards/pine-hollow/species/rows');
+const { PINE_BOAR_LOOK } = await import('../src/shards/pine-hollow/species/looks');
 registerSpecies(speciesWithLook(PINE_BOAR, PINE_BOAR_LOOK));
 // and its elk thrall (E405: Pine's, derived from the kit's elk)
-const { pineElk } = await import('#shards/pine-hollow/species/rows');
-const { pineElkLook } = await import('#shards/pine-hollow/species/looks');
+const { pineElk } = await import('../src/shards/pine-hollow/species/rows');
+const { pineElkLook } = await import('../src/shards/pine-hollow/species/looks');
 registerSpecies(speciesWithLook(pineElk(), pineElkLook()));
 // Pure inventory fixtures explicitly install the authored item catalogs.
-const { registerItemRow } = await import('#game/bag/itemCatalog');
-const { KIT_ITEMS } = await import('#kit/bag/items');
-const { PINE_ITEMS } = await import('#shards/pine-hollow/items');
+const { registerItemRow } = await import('../src/game/bag/itemCatalog');
+const { KIT_ITEMS } = await import('../src/kit/bag/items');
+const { PINE_ITEMS } = await import('../src/shards/pine-hollow/items');
 for (const row of [...KIT_ITEMS, ...PINE_ITEMS, ...DRIFTWOOD_ITEMS]) registerItemRow(row);
 
 beforeEach(() => { localStorage.clear(); });

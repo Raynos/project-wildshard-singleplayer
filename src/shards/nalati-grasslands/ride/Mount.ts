@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { app, type Player, type Forest, type Interactable, CharacterMotor, castRay, floorBelow, tagOf, lockOn, type InputService, type EquipmentService, Animal, heightAt, inChunk, waterLevel } from '#engine';
+import { app, type Player, type Forest, type Interactable, CharacterMotor, castRay, floorBelow, tagOf, lockOn, type InputService, type EquipmentService, Animal, heightAt, inChunk, waterLevel } from '@wildshard/engine';
 import { HorseHerd } from '../creatures/herd';
 import { HORSE_SPEED } from '../species/horse';
 import { wildEnv } from '../creatures/env';
-import { Bow } from '#kit';
+import { Bow } from '@wildshard/kit';
 import { Sabre, type MountState } from '../weapons/Sabre';
 import { Spear } from '../weapons/Spear';
 import { RhythmSpur, roadSteer, SPUR_WINDOW, type RoadXZ } from './rideAssist';

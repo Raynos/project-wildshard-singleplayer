@@ -11,7 +11,7 @@
  */
 import * as THREE from 'three';
 import { loadLod, prepModel } from '../world/homestead';
-import { defineModel, type ModelContext, bakePart, supportPoints } from '#engine';
+import { defineModel, type ModelContext, bakePart, supportPoints } from '@wildshard/engine';
 
 /** a copy collides once this much of it shows above the ground (P3); lower ones the capsule's autostep walks over */
 export const ROCK_SOLID_ABOVE = 0.35;

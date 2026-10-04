@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import { Vector3 } from 'three';
-import { Events, Scope, type BossPresentation } from '#engine';
-import { DrownedCaptain } from '#shards/driftwood-isle/combat/captain';
+import { Events, Scope, type BossPresentation } from '@wildshard/engine';
+import { DrownedCaptain } from '../../src/shards/driftwood-isle/combat/captain';
 
 export function captainFixture(): {
   boss: DrownedCaptain; actor: { position: Vector3; mem: Record<string, number>; alive: boolean; hp: number; maxHp: number };

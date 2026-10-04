@@ -1,19 +1,19 @@
 // src/shards/pine-hollow/quest/* (PINE-HOLLOW-REMASTER PH-C1 / C6 / C8): The Warden's Hollow over the shard's flags, the
 // interactables table, the `?quest=` beats, the lodge's rotating contracts + their save, the trader's swaps.
 import { describe, expect, it } from 'vitest';
-import { Flags } from '#engine-internal/world/interact/flags';
-import { flagsRaised } from '#engine-internal/world/interact/types';
-import { validateTable } from '#engine-internal/world/interact/validate';
-import { QuestState, lineFor, validateQuest } from '#game/quest/quest';
-import { ITEMS } from '#game/Inventory';
-import { achievementsFor } from '#game/achievements';
-import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, QUEST_EXTERNAL, ERRAND_EXTERNAL, LANTERN_FLAGS } from '#shards/pine-hollow/quest/wardensHollow';
-import { pineTable, RESIN_COUNT, RESIN_SPOTS, TOKEN_NAMES, type TableSites } from '#shards/pine-hollow/quest/table';
-import { BEATS, beatFlags, isBeat, type Beat } from '#shards/pine-hollow/quest/beats';
+import { Flags } from '../../../src/engine/world/interact/flags';
+import { flagsRaised } from '../../../src/engine/world/interact/types';
+import { validateTable } from '../../../src/engine/world/interact/validate';
+import { QuestState, lineFor, validateQuest } from '../../../src/game/quest/quest';
+import { ITEMS } from '../../../src/game/Inventory';
+import { achievementsFor } from '../../../src/game/achievements';
+import { WARDENS_HOLLOW, RANGER, MILLER, TRADER, QUEST_DONE, QUEST_EXTERNAL, ERRAND_EXTERNAL, LANTERN_FLAGS } from '../../../src/shards/pine-hollow/quest/wardensHollow';
+import { pineTable, RESIN_COUNT, RESIN_SPOTS, TOKEN_NAMES, type TableSites } from '../../../src/shards/pine-hollow/quest/table';
+import { BEATS, beatFlags, isBeat, type Beat } from '../../../src/shards/pine-hollow/quest/beats';
 import {
   newBoard, draw, recordKill, claim, reroll, isFilled, counts, loadBoard, saveBoard, eliteOf, BOARD_STORE, type Board, type KillInfo,
-} from '#shards/pine-hollow/quest/contracts';
-import { TRADES, tradeState, type TradeItem } from '#shards/pine-hollow/quest/trades';
+} from '../../../src/shards/pine-hollow/quest/contracts';
+import { TRADES, tradeState, type TradeItem } from '../../../src/shards/pine-hollow/quest/trades';
 
 const SITES: TableSites = {
   resin: RESIN_SPOTS.map(([x, z]) => ({ x, z })),

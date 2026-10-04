@@ -12,7 +12,7 @@
  * A module of its own so a playground can hand its course over without loading the grapple itself.
  */
 import type { Vector3 } from 'three';
-import type { EquipmentHost } from '#engine';
+import type { EquipmentHost } from '@wildshard/engine';
 
 export interface GrappleCourse {
   readonly name: string;

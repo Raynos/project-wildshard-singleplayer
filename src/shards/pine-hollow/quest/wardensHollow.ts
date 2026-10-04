@@ -18,7 +18,7 @@
  *   dawn    on his death (or the moment the quest reaches this beat after an early kill) the clock runs to dawn, every
  *           lantern on the shard is lit, the dawn sting plays, the reward: the caption, amber resin, the title
  */
-import type { NpcDef, QuestDef } from '#engine';
+import type { NpcDef, QuestDef } from '@wildshard/engine';
 
 export const QUEST_DONE = 'quest:warden-done';
 /** the lanterns' flags (index.ts raises them at the waystone prompts; PineLandmarks.setLit follows them) */

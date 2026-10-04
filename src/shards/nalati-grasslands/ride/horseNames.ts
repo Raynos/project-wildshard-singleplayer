@@ -1,4 +1,4 @@
-import type { Animal } from '#engine';
+import type { Animal } from '@wildshard/engine';
 
 import { horseNamesSave as savedSlot } from './saves';
 

@@ -1,5 +1,5 @@
 import { BUDGET_CEILINGS } from './budgetCeilings';
-import type { LevelSpec } from '#engine';
+import type { LevelSpec } from '@wildshard/engine';
 
 /** E357 S1.6 allocation inputs; all count targets rederive after a stable M5 calibration. */
 export const ND_BUDGET_INPUTS: LevelSpec['budgets'] = {

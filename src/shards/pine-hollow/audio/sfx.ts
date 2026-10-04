@@ -1,4 +1,4 @@
-import { publicBytes, sfxManifests, resourceScope, app, tap, getSfxSet, type Audio, cachedBytes, decodeBytes, audioLog } from '#engine';
+import { publicBytes, sfxManifests, resourceScope, app, tap, getSfxSet, type Audio, cachedBytes, decodeBytes, audioLog } from '@wildshard/engine';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
  * the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium (scripts/music/gen/sfx_merge.py --jobs

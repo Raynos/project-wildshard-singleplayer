@@ -12,7 +12,7 @@
  * lowest line and the neck is at CAPE_H. No colliders.
  */
 import * as THREE from 'three';
-import { LowPolyKit, rock, rope, tris, lowPolyMaterial, swayDepthMaterial, defineModel, type ModelContext, type ModelPart } from '#engine';
+import { LowPolyKit, rock, rope, tris, lowPolyMaterial, swayDepthMaterial, defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
 
 /** the neck's height over the hem (m) */
 export const CAPE_H = 1.0;

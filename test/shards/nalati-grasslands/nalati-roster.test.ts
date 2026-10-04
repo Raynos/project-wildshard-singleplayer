@@ -3,19 +3,19 @@
 // kind the roster doesn't list fails here.
 import { describe, expect, it } from 'vitest';
 import type * as THREE from 'three';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import type { Sky } from '#engine-internal/world/Sky';
-import { modelContext } from '#engine-internal/models/model';
-import { listRoster } from '#engine-internal/models/live';
-import { ROSTER } from '#shards/nalati-grasslands/roster';
-import { GOLDEN_KING } from '#shards/nalati-grasslands/species/goldenKing';
-import { KURGAN_BALBAL } from '#shards/nalati-grasslands/species/kurganBalbal';
-import { BALBAL } from '#shards/nalati-grasslands/species/balbal';
-import { GHOST_RIDER } from '#shards/nalati-grasslands/species/ghostRider';
-import { LEOPARD } from '#shards/nalati-grasslands/species/leopard';
-import { KOKBORI } from '#shards/nalati-grasslands/species/kokbori';
-import { EAGLE } from '#shards/nalati-grasslands/species/eagle';
-import { ARGYMAQ, GHOST_HORSE } from '#shards/nalati-grasslands/combat/elites';
+import { WorldRegistry } from '../../../src/engine/world/registry';
+import type { Sky } from '../../../src/engine/world/Sky';
+import { modelContext } from '../../../src/engine/models/model';
+import { listRoster } from '../../../src/engine/models/live';
+import { ROSTER } from '../../../src/shards/nalati-grasslands/roster';
+import { GOLDEN_KING } from '../../../src/shards/nalati-grasslands/species/goldenKing';
+import { KURGAN_BALBAL } from '../../../src/shards/nalati-grasslands/species/kurganBalbal';
+import { BALBAL } from '../../../src/shards/nalati-grasslands/species/balbal';
+import { GHOST_RIDER } from '../../../src/shards/nalati-grasslands/species/ghostRider';
+import { LEOPARD } from '../../../src/shards/nalati-grasslands/species/leopard';
+import { KOKBORI } from '../../../src/shards/nalati-grasslands/species/kokbori';
+import { EAGLE } from '../../../src/shards/nalati-grasslands/species/eagle';
+import { ARGYMAQ, GHOST_HORSE } from '../../../src/shards/nalati-grasslands/combat/elites';
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ } } as Sky;
 

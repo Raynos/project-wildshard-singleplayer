@@ -1,4 +1,4 @@
-import type { ClipName } from '#engine';
+import type { ClipName } from '@wildshard/engine';
 /** Metadata-only renames shared by the two authored arm rigs. Source track names stay byte-identical. */
 export const ARM_CLIPS: Readonly<Partial<Record<ClipName, string>>> = {
   idle: 'idle', walk: 'walk', 'attack.light': 'light', 'attack.light2': 'light2', 'attack.light3': 'light3',

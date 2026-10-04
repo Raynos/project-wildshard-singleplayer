@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { app, heightAt, terrainWaterLevel as waterLevel, Rng, SEED, worldTime, groups, waveHeight, ParticlePool,
-  type Sky, type AnimalManager, type Animal, type Body, type BodySpec, type Scope } from '#engine';
+  type Sky, type AnimalManager, type Animal, type Body, type BodySpec, type Scope } from '@wildshard/engine';
 import type { PalmSpec } from '../world/Palms';
 import { WRECK } from '../manifest';
 import { enemyCount, DRIFTWOOD_PRACTICE } from './tables';

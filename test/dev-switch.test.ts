@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
-import { app } from '#engine-internal/app/runtime';
-import { withOwner } from '#engine-internal/app/ownership';
-import { isDev, setDev } from '#engine-internal/core/devMode';
+import { app } from '../src/engine/app/runtime';
+import { withOwner } from '../src/engine/app/ownership';
+import { isDev, setDev } from '../src/engine/core/devMode';
 import { devSwitchRows } from '../src/engine/ui/devSwitch';
 
 afterEach(() => { setDev(false); document.body.replaceChildren(); vi.restoreAllMocks(); });

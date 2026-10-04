@@ -1,13 +1,13 @@
 // E314 stage 2 (src/shards/driftwood-isle/loot/shop.ts): the trader's goods, their prices against the island's one full clear, buying, and
 // the effects' numbers; the sea chart's marks; FINDS' places and the map's PLACES tally read the one list.
 import { describe, expect, it } from 'vitest';
-import { FULL_CLEAR, GOODS, buyGood, goodState, goodsTotal, maxHealthOf, swordMul } from '#shards/driftwood-isle/loot/shop';
-import { Owned, OWNED } from '#game/loot/Owned';
-import { Purse } from '#game/loot/Purse';
-import { driftwoodFinds, seaChartMarks } from '#shards/driftwood-isle/loot/finds';
-import { nearScale } from '#game/loot/CoinBurst';
-import { DRIFTWOOD_PLACES } from '#shards/driftwood-isle/quest/Places';
-import { SEA_GLASS_COUNT } from '#shards/driftwood-isle/quest/interactables';
+import { FULL_CLEAR, GOODS, buyGood, goodState, goodsTotal, maxHealthOf, swordMul } from '../../../src/shards/driftwood-isle/loot/shop';
+import { Owned, OWNED } from '../../../src/game/loot/Owned';
+import { Purse } from '../../../src/game/loot/Purse';
+import { driftwoodFinds, seaChartMarks } from '../../../src/shards/driftwood-isle/loot/finds';
+import { nearScale } from '../../../src/game/loot/CoinBurst';
+import { DRIFTWOOD_PLACES } from '../../../src/shards/driftwood-isle/quest/Places';
+import { SEA_GLASS_COUNT } from '../../../src/shards/driftwood-isle/quest/interactables';
 
 const SHARD = 'chunk://local/shop-test';
 const flags = (set: string[]): { has: (f: string) => boolean } => ({ has: (f) => set.includes(f) });

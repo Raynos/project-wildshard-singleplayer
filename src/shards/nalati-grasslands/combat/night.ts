@@ -1,5 +1,5 @@
 import { NALATI_STRIKES, sampleStrike } from './strikes';
-import type { Game, Sky, Player, Forest, TargetHit, DayCycleClock, AnimalManager } from '#engine';
+import type { Game, Sky, Player, Forest, TargetHit, DayCycleClock, AnimalManager } from '@wildshard/engine';
 import { encounterHit } from './damage';
 import type * as THREE from 'three';
 

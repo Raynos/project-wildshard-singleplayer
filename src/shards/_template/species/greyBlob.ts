@@ -1,4 +1,4 @@
-import { CreatureBrain, StrikeRunner, canReach, NO_FUR, type SpeciesRow, type SpeciesLook, type Animal, type ThinkCtx, type StrikeSpec, type StrikeContext } from '#engine';
+import { CreatureBrain, StrikeRunner, canReach, NO_FUR, type SpeciesRow, type SpeciesLook, type Animal, type ThinkCtx, type StrikeSpec, type StrikeContext } from '@wildshard/engine';
 import { SphereGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';
 import { STRINGS } from '../strings';
 

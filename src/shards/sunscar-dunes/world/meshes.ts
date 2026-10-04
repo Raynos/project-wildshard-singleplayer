@@ -1,4 +1,4 @@
-import { loadRigFile, patchShader, PATCH_ORDER } from '#engine';
+import { loadRigFile, patchShader, PATCH_ORDER } from '@wildshard/engine';
 import { FIRE_LIGHTS } from './fireFx';
 import { DUSK } from '../look/dusk';
 import { DUNE_HD, DUNE_MESHES, duneHdUrl, duneMeshUrl, type DuneHdName, type DuneMeshName } from '../boot/files';

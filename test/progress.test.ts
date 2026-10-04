@@ -1,13 +1,13 @@
-import { NALATI_FEATS } from '#shards/nalati-grasslands/feats';
-import { PINE_FEATS } from '#shards/pine-hollow/feats';
+import { NALATI_FEATS } from '../src/shards/nalati-grasslands/feats';
+import { PINE_FEATS } from '../src/shards/pine-hollow/feats';
 // src/game/achievements.ts + src/game/Progress.ts — kills → achievement counts → earned titles → the worn title.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
-import { achievementsFor, registerAchievements, type AchievementDef } from '#game/achievements';
-import { Progress } from '#game/Progress';
-import { hasSpecies, speciesDef } from '#engine-internal/entities/species/registry';
+import { achievementsFor, registerAchievements, type AchievementDef } from '../src/game/achievements';
+import { Progress } from '../src/game/Progress';
+import { hasSpecies, speciesDef } from '../src/engine/entities/species/registry';
 import { SHARDS } from '../src/shards.generated';
-import { playable } from '#game/shard/registry';
+import { playable } from '../src/game/shard/registry';
 
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 

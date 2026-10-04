@@ -1,5 +1,5 @@
 import { INPUT_CONTEXTS } from '../inputContexts';
-import type { Audio as LevelAudio, Music as LevelMusic, LevelContext } from '#engine';
+import type { Audio as LevelAudio, Music as LevelMusic, LevelContext } from '@wildshard/engine';
 import { toLevelSpec } from '../index';
 import type * as THREE from 'three';
 import type { dataStage } from './data';

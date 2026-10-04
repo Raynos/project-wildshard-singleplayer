@@ -1,5 +1,5 @@
 import { pineScore, pineScorePick } from './score';
-import { type Game, type Sky, type Music, type AnimalManager, type Animal, audioLog } from '#engine';
+import { type Game, type Sky, type Music, type AnimalManager, type Animal, audioLog } from '@wildshard/engine';
 import type { ForestAmbience, ZoneSpot } from './ambience';
 import type { Interactable } from '../world/homestead';
 import {

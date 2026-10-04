@@ -3,7 +3,7 @@
  * crags.glb: `scree-a`, `scree-b`, each a LOD0 and a LOD1), lying with the slope below the Ridge's cliffs
  * (src/shards/pine-hollow/world/crags.ts `placeCrags`), drawn in the crags' one BatchedMesh. Ankle-high: walked over, no collider.
  */
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { cragPart, CRAG_LOD } from '../world/cragKit';
 
 export const SCREE_MODULES = ['scree-a', 'scree-b'] as const;

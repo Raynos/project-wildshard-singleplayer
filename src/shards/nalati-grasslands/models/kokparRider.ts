@@ -4,7 +4,7 @@
  * round the kokpar field (src/shards/nalati-grasslands/world/Bowl.ts): one InstancedMesh moved every frame, the gallop bent into the mesh
  * in the vertex shader. The card is the file standing still. Walk-through.
  */
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { generated } from '../world/painted';
 
 export const kokparRider = defineModel<object>({

@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
-import { footPlan, legBones, legPose, LEG_BONE_NAMES, rigLegs, WALK, type LegBuilt } from '#shards/pine-hollow/quest/npcRig';
-import type { NpcKind } from '#shards/pine-hollow/models/people';
+import { footPlan, legBones, legPose, LEG_BONE_NAMES, rigLegs, WALK, type LegBuilt } from '../../../src/shards/pine-hollow/quest/npcRig';
+import type { NpcKind } from '../../../src/shards/pine-hollow/models/people';
 
 const DIR = new URL('../../../public/assets/pine-hollow/npcs/', import.meta.url);
 /** every file the rig loads: npcModels.ts npcModelUrl — the people × the tiers (E343: one face file each, no variants) */

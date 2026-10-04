@@ -1,4 +1,4 @@
-import { app, canReach, type Animal, type CombatTag } from '#engine';
+import { app, canReach, type Animal, type CombatTag } from '@wildshard/engine';
 import { Vector3 } from 'three';
 
 /** Contact uses the shared chest query before preserving the directional feedback point. */

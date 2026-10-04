@@ -10,8 +10,8 @@
  *     holds there, the caption fades in; seven seconds later `seen:reward` completes the quest and the clock runs on.
  */
 import * as THREE from 'three';
-import { BossBar, app } from '#engine';
-import { QuestRewardBeat } from '#game';
+import { BossBar, app } from '@wildshard/engine';
+import { QuestRewardBeat } from '@wildshard/game';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 import { DrownedCaptain, CAPTAIN_DEF } from '../combat/captain';
 

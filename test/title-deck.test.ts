@@ -3,9 +3,9 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SHARDS } from '../src/shards.generated';
-import { findChunk } from '#game/shard/registry';
-import { isDev, setDev } from '#engine';
-import { buildTitleDeck, titleCards } from '#game/titleDeck';
+import { findChunk } from '../src/game/shard/registry';
+import { isDev, setDev } from '@wildshard/engine';
+import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
 
 afterEach(() => { setDev(false); });
 

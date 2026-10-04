@@ -3,8 +3,8 @@
 // URL flag and still key as GpuRecovery / Resume write.
 import { describe, expect, it } from 'vitest';
 import html from '../index.html?raw';
-import { BRAND_KEY, resumeHtml, SHOT_KEY } from '#engine-internal/ui/Resume';
-import { RELOAD_PARAM } from '#engine-internal/core/GpuRecovery';
+import { BRAND_KEY, resumeHtml, SHOT_KEY } from '../src/engine/ui/Resume';
+import { RELOAD_PARAM } from '../src/engine/core/GpuRecovery';
 
 describe('resume screen', () => {
   it('index.html carries resumeHtml() verbatim inside .ws-resume', () => {

@@ -1,6 +1,6 @@
-import { app, resourceScope, type Actor, Flags, heightAt, type WorldRegistry, type Sky, type Interactable, type FullMapPoi as MapPoi, type MapQuest } from '#engine';
+import { app, resourceScope, type Actor, Flags, heightAt, type WorldRegistry, type Sky, type Interactable, type FullMapPoi as MapPoi, type MapQuest } from '@wildshard/engine';
 
-import { elitesSave, type ShardContext, DialogueBox, RewardCaption, NpcTalk, QuestChip, QuestLine, placesWithDiscovery, type LiveMarker, type Places, type QuestState, type ProgressSink } from '#game';
+import { elitesSave, type ShardContext, DialogueBox, RewardCaption, NpcTalk, QuestChip, QuestLine, placesWithDiscovery, type LiveMarker, type Places, type QuestState, type ProgressSink } from '@wildshard/game';
 /**
  * Nalati's adventure layer (NALATI-MERGE Q1–Q5) — the shard's quest line on the shared quest core
  * (src/game/quest/core.ts: the chip, NPC talk, places with saved discovery, chained chapters), wired from main.ts in

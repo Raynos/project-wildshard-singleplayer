@@ -1,5 +1,5 @@
 import { nightSpawner } from './spawns';
-import { GroupBrain, app, pinBrain, type Scope, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt, PATCH_ORDER, patchShader } from '#engine';
+import { GroupBrain, app, pinBrain, type Scope, type Game, type Sky, type Player, type Forest, type TargetAnimal, type TargetHit, Projectiles, type ProjectileKind, setting, type Animal, type AnimalManager, type Spawner, type DayCycleClock, heightAt, PATCH_ORDER, patchShader } from '@wildshard/engine';
 import * as THREE from 'three';
 
 

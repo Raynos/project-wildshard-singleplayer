@@ -1,12 +1,12 @@
 import { describe, expect, it, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { app, PlayerHealth, Scope } from '#engine';
-import { Player } from '#engine-internal/player/Player';
+import { app, PlayerHealth, Scope } from '@wildshard/engine';
+import { Player } from '../../src/engine/player/Player';
 import { legacyDouble } from '../fake/FakeGame';
-import { Physics } from '#engine-internal/physics/Physics';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { groups } from '#engine-internal/physics/groups';
+import { Physics } from '../../src/engine/physics/Physics';
+import { loadRapier } from '../../src/engine/physics/rapier';
+import { groups } from '../../src/engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 // a flat, dry world through the terrain port, not a module mock (E422)

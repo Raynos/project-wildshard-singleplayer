@@ -1,17 +1,17 @@
-import { PINE_LANES, PINE_STRIKES } from '#shards/pine-hollow/combat/strikes';
-import { BOAR } from '#kit/species/boar';
-import { BEAR } from '#kit/species/bear';
+import { PINE_LANES, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
+import { BOAR } from '../../src/kit/species/boar';
+import { BEAR } from '../../src/kit/species/bear';
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
-import { LaneCharge } from '#shards/pine-hollow/combat/ctx';
-import { Animal } from '#engine-internal/entities/Animal';
-import { AnimalFactory } from '#engine-internal/entities/AnimalFactory';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
+import { LaneCharge } from '../../src/shards/pine-hollow/combat/ctx';
+import { Animal } from '../../src/engine/entities/Animal';
+import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
 import { legacyConstants } from '../fake/legacySource';
 import { creature } from '../fake/creature';
 import { fakeWorld } from '../fake/world';
-import { HorseHerd } from '#shards/nalati-grasslands/creatures/herd';
-import { Pack } from '#shards/nalati-grasslands/creatures/pack';
+import { HorseHerd } from '../../src/shards/nalati-grasslands/creatures/herd';
+import { Pack } from '../../src/shards/nalati-grasslands/creatures/pack';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 // a flat, dry world through the terrain port, not a module mock (E422)

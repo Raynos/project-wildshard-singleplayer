@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { Weapon } from '#engine';
-import { WOODEN_SWORD, IRON_SWORD } from '#kit';
-import { JIAN } from '#shards/nine-dragon-stack/weapons/jian';
-import { SABRE, SPEAR, BOW, AR15 } from '#shards/nalati-grasslands/weapons/equipment';
-import { CROSSBOW, LONGBOW, LEVER } from '#shards/pine-hollow/weapons/equipment';
-import { Sword } from '#kit/weapons/melee/SweptMelee';
-import { Bow } from '#kit/weapons/bow/index';
-import { Crossbow } from '#kit/weapons/crossbow/Crossbow';
-import { Rifle } from '#kit/weapons/firearm/Rifle';
-import { Sabre } from '#shards/nalati-grasslands/weapons/Sabre';
-import { Spear } from '#shards/nalati-grasslands/weapons/Spear';
-import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
+import { Weapon } from '@wildshard/engine';
+import { WOODEN_SWORD, IRON_SWORD } from '@wildshard/kit';
+import { JIAN } from '../../src/shards/nine-dragon-stack/weapons/jian';
+import { SABRE, SPEAR, BOW, AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
+import { CROSSBOW, LONGBOW, LEVER } from '../../src/shards/pine-hollow/weapons/equipment';
+import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import { Bow } from '../../src/kit/weapons/bow/index';
+import { Crossbow } from '../../src/kit/weapons/crossbow/Crossbow';
+import { Rifle } from '../../src/kit/weapons/firearm/Rifle';
+import { Sabre } from '../../src/shards/nalati-grasslands/weapons/Sabre';
+import { Spear } from '../../src/shards/nalati-grasslands/weapons/Spear';
+import { LeverRifle } from '../../src/shards/pine-hollow/weapons/LeverRifle';
 
 const rows = [WOODEN_SWORD, IRON_SWORD, JIAN, SABRE, SPEAR, BOW, AR15, CROSSBOW, LONGBOW, LEVER];
 describe('C2 concrete weapon and UI row contracts', () => {

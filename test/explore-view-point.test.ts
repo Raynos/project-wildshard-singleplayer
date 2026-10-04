@@ -4,14 +4,14 @@
 // copy's box in front.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { Physics } from '#engine-internal/physics/Physics';
-import { groups } from '#engine-internal/physics/groups';
-import { boxEntry, firstView, physicsClear, roundBlocker, viewCandidates } from '#engine-internal/explore/viewPoint';
-import { copyInTheWay, type SelectTarget } from '#engine-internal/explore/pick';
-import { WorldRegistry, type RegisteredPick } from '#engine-internal/world/registry';
-import { defineModel, modelContext } from '#engine-internal/models/model';
-import { place } from '#engine-internal/models/place';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { Physics } from '../src/engine/physics/Physics';
+import { groups } from '../src/engine/physics/groups';
+import { boxEntry, firstView, physicsClear, roundBlocker, viewCandidates } from '../src/engine/explore/viewPoint';
+import { copyInTheWay, type SelectTarget } from '../src/engine/explore/pick';
+import { WorldRegistry, type RegisteredPick } from '../src/engine/world/registry';
+import { defineModel, modelContext } from '../src/engine/models/model';
+import { place } from '../src/engine/models/place';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

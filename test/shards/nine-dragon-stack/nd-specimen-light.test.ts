@@ -1,8 +1,8 @@
 // E315: the Model Explorer lights Nine Dragon's specimens like a studio (look/specimenLight.ts) — only while the turntable
 // is up, and puts the city's light back exactly when it closes (the world is never left in the studio's light).
 import { describe, expect, it } from 'vitest';
-import { Shared } from '#shards/nine-dragon-stack/look/style';
-import { SPECIMEN_LIGHT, specimenLight } from '#shards/nine-dragon-stack/look/specimenLight';
+import { Shared } from '../../../src/shards/nine-dragon-stack/look/style';
+import { SPECIMEN_LIGHT, specimenLight } from '../../../src/shards/nine-dragon-stack/look/specimenLight';
 
 describe("Nine Dragon's specimen light (E315)", () => {
   it('keeps the saved city light separate for different level builds', () => {

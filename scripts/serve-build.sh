@@ -131,7 +131,7 @@ if [ $HEAD_ONLY -eq 1 ]; then
   git -C "$REPO" archive "$REV" | tar -x -C "$SRC" || { echo "serve-build.sh: cannot export $REV" >&2; exit 1; }
   # an export has no .git: hand vite.config.ts the commit, so the build id in version.json names it
   export VERCEL_GIT_COMMIT_SHA="$(git -C "$REPO" rev-parse "$REV")"
-  ln -s "$REPO/node_modules" "$SRC/node_modules"
+  node "$REPO/scripts/link-node-modules.mjs" "$REPO" "$SRC" # E432: @wildshard/* → this export, not the working tree
 fi
 mkdir -p "$BASE/$stamp"
 echo "serve-build: building $( [ $HEAD_ONLY -eq 1 ] && echo "$REV $(git -C "$REPO" rev-parse --short "$REV")" || echo "the working tree" ) → $OUT" >&2

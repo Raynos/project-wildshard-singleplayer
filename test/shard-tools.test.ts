@@ -1,13 +1,13 @@
 // PINE-HOLLOW-REMASTER PH-0.3: the house pipelines' per-shard lookups — Driftwood keeps exactly what it had, Pine Hollow
 // gets a Blender area and nothing else yet (no LUT file, no painted horizon, no adventure).
 import { describe, expect, it } from 'vitest';
-import { blenderAreaFor, blenderModelsBase, CELL } from '#engine-internal/world/blenderArea';
-import { area } from '#shards/driftwood-isle/world/blenderArea';
-import { lutUrl } from '#engine-internal/world/lut';
-import { horizonStrips } from '#engine-internal/world/HorizonMatte';
-import { CHUNK_HALF } from '#engine-internal/core/config';
-import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
-import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
+import { blenderAreaFor, blenderModelsBase, CELL } from '../src/engine/world/blenderArea';
+import { area } from '../src/shards/driftwood-isle/world/blenderArea';
+import { lutUrl } from '../src/engine/world/lut';
+import { horizonStrips } from '../src/engine/world/HorizonMatte';
+import { CHUNK_HALF } from '../src/engine/core/config';
+import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
+import { DRIFTWOOD_ISLE } from '../src/shards/driftwood-isle/manifest';
 
 describe('per-shard pipeline lookups (PH-0.3)', () => {
   it('Blender areas: Driftwood unchanged, Pine Hollow provisional, others none', () => {

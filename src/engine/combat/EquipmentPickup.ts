@@ -10,6 +10,7 @@ export interface EquipmentPickup {
   update: (dt: number, t: number) => void;
   dispose: () => void;
 }
+/** how a weapon lies in the world before it is owned: its prompt, its toast and how its pickup is built */
 export interface EquipmentPickupSpec {
   owned: string;
   prompt: string;

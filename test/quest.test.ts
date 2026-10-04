@@ -1,11 +1,11 @@
 // src/game/quest/* — the quest state machine over flags, Driftwood's quest def (validated against the flags the
 // interactables table raises), and the castaway's dialogue selection.
 import { describe, expect, it, vi } from 'vitest';
-import { Flags } from '#engine-internal/world/interact/flags';
-import { flagsRaised } from '#engine-internal/world/interact/types';
-import { DRIFTWOOD_INTERACT, SHARD_FLAGS } from '#shards/driftwood-isle/quest/interactables';
-import { QuestState, lineFor, validateQuest, type QuestDef, type QuestStep } from '#game/quest/quest';
-import { CASTAWAY, DRIFTWOOD_QUEST, QUEST_DONE, QUEST_EXTERNAL } from '#shards/driftwood-isle/quest/questLine';
+import { Flags } from '../src/engine/world/interact/flags';
+import { flagsRaised } from '../src/engine/world/interact/types';
+import { DRIFTWOOD_INTERACT, SHARD_FLAGS } from '../src/shards/driftwood-isle/quest/interactables';
+import { QuestState, lineFor, validateQuest, type QuestDef, type QuestStep } from '../src/game/quest/quest';
+import { CASTAWAY, DRIFTWOOD_QUEST, QUEST_DONE, QUEST_EXTERNAL } from '../src/shards/driftwood-isle/quest/questLine';
 
 const raised = new Set<string>([...DRIFTWOOD_INTERACT.external, ...QUEST_EXTERNAL, ...DRIFTWOOD_INTERACT.rows.flatMap(flagsRaised)]);
 

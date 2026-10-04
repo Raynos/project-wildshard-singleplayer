@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { AppUi } from '#engine-internal/app/ui';
-import { Scope } from '#engine-internal/app/scope';
+import { AppUi } from '../../src/engine/app/ui';
+import { Scope } from '../../src/engine/app/scope';
 
 describe('displayed prompt state', () => {
   it('reads the active resident HUD and forgets an evicted reader', () => {

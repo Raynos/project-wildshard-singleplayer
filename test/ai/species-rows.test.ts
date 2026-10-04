@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { AnimalFactory } from '#engine-internal/entities/AnimalFactory';
-import { speciesDef, rollVariant, type AnimalSpecies } from '#engine-internal/entities/species/registry';
-import { Rng } from '#engine-internal/core/rng';
-import { setLowPoly } from '#engine-internal/entities/species/loft';
-import { SpeciesService, speciesWithLook } from '#engine-internal/entities/species/look';
-import { Scope } from '#engine-internal/app/scope';
-import { BOAR } from '#kit/species/boar';
-import { BEAR } from '#kit/species/bear';
-import { BOAR_LOOK } from '#kit/species/view/boar';
-import { BEAR_LOOK } from '#kit/species/view/bear';
-import { PINE_BOAR, PINE_BEAR } from '#shards/pine-hollow/species/rows';
-import { ISLAND_BOAR, ISLAND_BOARS } from '#shards/driftwood-isle/creatures/species';
+import { AnimalFactory } from '../../src/engine/entities/AnimalFactory';
+import { speciesDef, rollVariant, type AnimalSpecies } from '../../src/engine/entities/species/registry';
+import { Rng } from '../../src/engine/core/rng';
+import { setLowPoly } from '../../src/engine/entities/species/loft';
+import { SpeciesService, speciesWithLook } from '../../src/engine/entities/species/look';
+import { Scope } from '../../src/engine/app/scope';
+import { BOAR } from '../../src/kit/species/boar';
+import { BEAR } from '../../src/kit/species/bear';
+import { BOAR_LOOK } from '../../src/kit/species/view/boar';
+import { BEAR_LOOK } from '../../src/kit/species/view/bear';
+import { PINE_BOAR, PINE_BEAR } from '../../src/shards/pine-hollow/species/rows';
+import { ISLAND_BOAR, ISLAND_BOARS } from '../../src/shards/driftwood-isle/creatures/species';
 
 function fingerprint(model: AnimalSpecies): string {
   let hash = 2166136261;

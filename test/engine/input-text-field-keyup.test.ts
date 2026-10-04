@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, it } from 'vitest';
-import { InputService, Scope } from '#engine';
+import { InputService, Scope } from '@wildshard/engine';
 
 // E355 (E323 audit): hold W, open a text box (the horse's name at the rail), release W while it has focus → the walk
 // must stop. A key typed into a field never presses an action; its release always lands.

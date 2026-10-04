@@ -6,7 +6,7 @@ import type { Emitter } from '../look/emitters';
 import { Dressing } from './facade/grammar';
 import { KitX } from './hero/kitx';
 import type { SignBuilder } from '../look/signs';
-import { Rng, type Placement } from '#engine';
+import { Rng, type Placement } from '@wildshard/engine';
 import { WELL, Y0 } from '../layout';
 
 /** instanced kit pieces (dressing.ts builds their geometry) */

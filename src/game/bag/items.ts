@@ -1,4 +1,4 @@
-import type { IconId } from '#engine';
+import type { IconId } from '@wildshard/engine';
 /** Game-owned item registration contract. No shipped row enables travel yet. */
 export interface ItemRow { id: string; travels?: boolean; label?: string; icon?: IconId }
 export interface RegisteredItemRow extends ItemRow { travels: boolean }

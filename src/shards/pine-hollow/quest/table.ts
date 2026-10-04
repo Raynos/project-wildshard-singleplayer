@@ -14,7 +14,7 @@
  *
  * Placement is world coordinates (`poi: 'world'`); `y` pins heights on the tower (its deck), the rest sit on the floor.
  */
-import type { InteractTable, PickupDef } from '#engine';
+import type { InteractTable, PickupDef } from '@wildshard/engine';
 
 export const RESIN_FLAG = 'resin:';
 export const TOKEN_FLAG = 'token:';

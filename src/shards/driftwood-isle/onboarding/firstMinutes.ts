@@ -1,5 +1,5 @@
-import { lockOn, type FirstHints, type Actor } from '#engine';
-import type { ShardContext } from '#game';
+import { lockOn, type FirstHints, type Actor } from '@wildshard/engine';
+import type { ShardContext } from '@wildshard/game';
 
 /**
  * Driftwood's first three minutes (E308, DRIFTWOOD-TOP10 row 5): WHEN each first-time control hint matters on the island.

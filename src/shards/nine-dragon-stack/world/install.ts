@@ -1,6 +1,6 @@
 // The world hook installs the fragment's pieces and update system; NdRuntime supplies the look and traversal.
 import { Group, type PerspectiveCamera } from 'three';
-import type { LevelContext } from '#engine';
+import type { LevelContext } from '@wildshard/engine';
 import type { NineDragonWorld } from './build';
 import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './colliders';
 import { crossingColliders } from './well-mid';

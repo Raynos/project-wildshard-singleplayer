@@ -1,6 +1,6 @@
-import { ShardPlugin, installLoot, type ShardContext } from '#game';
-import { installSilentScore } from '#kit';
-import { PATCH_ORDER, patchShader, type Animal, type Flags, type QuestState } from '#engine';
+import { ShardPlugin, installLoot, type ShardContext } from '@wildshard/game';
+import { installSilentScore } from '@wildshard/kit';
+import { PATCH_ORDER, patchShader, type Animal, type Flags, type QuestState } from '@wildshard/engine';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from './strings';
 import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, WISP_HOMES, apothem, type Home } from './layout';
@@ -29,7 +29,7 @@ import { ROC_ID, StormRocBoss } from './combat/stormRoc';
 import { BOSS_REWARD, FLAGS, installQuest, vaneFlag } from './quest/install';
 import { installSkyCues } from './audio/cues';
 
-declare module '#engine' {
+declare module '@wildshard/engine' {
   interface ActionMap { 'far.gust': true }
   interface TierKnobMap { 'far.meadowBlades': number }
   interface EquipmentSlotMap { 'far-fan': true }

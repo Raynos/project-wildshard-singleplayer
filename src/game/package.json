@@ -1,0 +1,8 @@
+{
+  "name": "@wildshard/game",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  }
+}

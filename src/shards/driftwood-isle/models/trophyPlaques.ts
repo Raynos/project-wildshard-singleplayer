@@ -14,7 +14,7 @@
  * colliders: they are ~6 cm deep on a wall.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, rock, tris, lowPolyMaterial, defineModel, type ModelContext, SlotGeometry, SlotRecorder } from '#engine';
+import { LowPolyKit, log, rock, tris, lowPolyMaterial, defineModel, type ModelContext, SlotGeometry, SlotRecorder } from '@wildshard/engine';
 
 export type TrophyId = 'bear' | 'boar';
 export const TROPHIES: readonly TrophyId[] = ['bear', 'boar'];

@@ -1,4 +1,4 @@
-import { app, TIER } from '#engine';
+import { app, TIER } from '@wildshard/engine';
 
 /**
  * The Storm Titan's look (NALATI.md B14 "look is a first pass"; mockups art/nalati-grasslands/round-3/2-storm-titan/):

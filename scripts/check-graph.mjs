@@ -31,8 +31,11 @@ export function layerOf(path) {
 /** a specifier → a repo path under src (or null for a package, an asset, or anything outside src) */
 export function resolveSpecifier(from, spec, exists) {
   let base;
-  if (spec === '#engine' || spec === '#game' || spec === '#kit') base = `src/${spec.slice(1)}/index`;
-  else if (/^#(engine|game|kit|shards)\//u.test(spec)) base = `src/${spec.slice(1)}`;
+  const pkg = /^@wildshard\/(engine|game|kit)(?:\/(.+))?$/u.exec(spec); // E432: the layers' workspace packages
+  // the #aliases are how commits before E432 spelled the same edges (the rise check reads the parent commit's graph)
+  const legacy = /^#(engine|game|kit|shards)(?:\/(.+))?$/u.exec(spec);
+  if (pkg) { const [, layer, sub = 'index'] = pkg; base = `src/${layer}/${sub}`; }
+  else if (legacy) { const [, layer, sub = 'index'] = legacy; base = `src/${layer}/${sub}`; }
   else if (spec.startsWith('.')) base = relative(ROOT, resolve(ROOT, dirname(from), spec)).replaceAll('\\', '/');
   else return null;
   if (!base.startsWith('src/')) return null;

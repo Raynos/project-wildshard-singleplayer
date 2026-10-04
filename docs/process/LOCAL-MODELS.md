@@ -50,7 +50,7 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
 - **Where a shard's generated assets go:** its own folders, `public/assets/<slug>/`, `public/assets/music/<slug>/`,
   `public/assets/sfx/<slug>/` (and the folders in its manifest's `assetGlobs`). Its code loads them by those paths;
   an `/assets/…` path outside them fails `wildshard/shard-sandbox`. A model it shows is a `defineModel` row in
-  `src/shards/<slug>/models/` and a `live(model)` entry in its `roster.ts` (`#engine`).
+  `src/shards/<slug>/models/` and a `live(model)` entry in its `roster.ts` (`@wildshard/engine`).
 
 ## Audio engines (Jake, 2026-09-23)
 

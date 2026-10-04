@@ -1,4 +1,4 @@
-import type { RGB, RigAnimCtx, VariantDef } from '#engine';
+import type { RGB, RigAnimCtx, VariantDef } from '@wildshard/engine';
 
 /**
  * The Antler King's thralls (PINE-HOLLOW-REMASTER PH-U9 / PH-M2): moss-grown, glassy-eyed elk and boar he calls from the

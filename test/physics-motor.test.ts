@@ -1,13 +1,13 @@
 // PHYSICS.md P2: the player's body. The bridge's cuboids sit exactly where the old `collide()` boxes were, and the
 // character motor keeps the plan's rules: steps ≤ 0.35 m climbed, 0.4 m not; 30° walked up, 50° not; walls stop it.
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { Physics } from '#engine-internal/physics/Physics';
-import { addPiece } from '#engine-internal/physics/pieces';
-import { boxDesc } from '#engine-internal/world/registry';
-import { CharacterMotor } from '#engine-internal/physics/CharacterMotor';
-import { groups } from '#engine-internal/physics/groups';
-import type { BoxSpec as Collider } from '#engine-internal/physics/box';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { Physics } from '../src/engine/physics/Physics';
+import { addPiece } from '../src/engine/physics/pieces';
+import { boxDesc } from '../src/engine/world/registry';
+import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
+import { groups } from '../src/engine/physics/groups';
+import type { BoxSpec as Collider } from '../src/engine/physics/box';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

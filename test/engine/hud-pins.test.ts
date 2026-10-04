@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { App, Scope, type DiscSpot, type TouchRelabel } from '#engine';
-import { hudAdapters } from '#engine-internal/ui/hudAdapters';
-import type { Game } from '#engine-internal/core/Game';
+import { App, Scope, type DiscSpot, type TouchRelabel } from '@wildshard/engine';
+import { hudAdapters } from '../../src/engine/ui/hudAdapters';
+import type { Game } from '../../src/engine/core/Game';
 import { legacyDouble } from '../fake/FakeGame';
-import manifest from '#shards/nine-dragon-stack/manifest';
-import { toLevelSpec } from '#game/shard/spec';
+import manifest from '../../src/shards/nine-dragon-stack/manifest';
+import { toLevelSpec } from '../../src/game/shard/spec';
 
 afterEach(() => document.body.replaceChildren());
 describe('world pins and scoped touch relabels', () => {

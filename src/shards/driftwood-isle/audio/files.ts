@@ -1,4 +1,4 @@
-import { loadAudio, type LevelAudioProfile } from '#engine';
+import { loadAudio, type LevelAudioProfile } from '@wildshard/engine';
 
 const SET = 'driftwood-isle', BED = 'island';
 const SAMPLES = { loopGains: { island: 0.5 } };

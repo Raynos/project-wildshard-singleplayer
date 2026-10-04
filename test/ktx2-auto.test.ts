@@ -5,18 +5,18 @@ import { saveFixture } from './fake/saveFixture';
  * the background download writes names the set's hash); the explicit picks override. Resolved once per page.
  */
 import { describe, expect, it } from 'vitest';
-import type { ShardManifest } from '#game/shard/manifest';
+import type { ShardManifest } from '../src/game/shard/manifest';
 import { SHARDS } from '../src/shards.generated';
-import { findChunk, playable, setActiveChunk } from '#game/shard/registry';
-import { prepareShardAssets } from '#game/shard/load';
-import { ART_URL_BYTES } from '#game/shard/art.generated';
-import { initializeTier } from '#engine-internal/core/tier';
-import * as sp from '#engine-internal/boot/shardPrefetch';
-import * as gf from '#engine-internal/boot/gpuFiles';
-import { chunkFiles } from '#engine-internal/boot/manifest';
-import { bootParts, packFor } from '#engine-internal/boot/pack';
-import { setBootCatalog } from '#engine-internal/boot/catalog';
-import { OPTION_VALUES, saveSetting } from '#engine-internal/ui/Settings';
+import { findChunk, playable, setActiveChunk } from '../src/game/shard/registry';
+import { prepareShardAssets } from '../src/game/shard/load';
+import { ART_URL_BYTES } from '../src/game/shard/art.generated';
+import { initializeTier } from '../src/engine/core/tier';
+import * as sp from '../src/engine/boot/shardPrefetch';
+import * as gf from '../src/engine/boot/gpuFiles';
+import { chunkFiles } from '../src/engine/boot/manifest';
+import { bootParts, packFor } from '../src/engine/boot/pack';
+import { setBootCatalog } from '../src/engine/boot/catalog';
+import { OPTION_VALUES, saveSetting } from '../src/engine/ui/Settings';
 
 type SP = typeof sp;
 const texPick = (v: string | undefined): (typeof OPTION_VALUES.tex)[number] => OPTION_VALUES.tex.find((x) => x === v) ?? 'auto';

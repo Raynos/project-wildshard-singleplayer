@@ -8,14 +8,14 @@
  *   spine.quest.objective()  spine.markers()        // the map reads the live markers (A5)
  */
 import * as THREE from 'three';
-import { app, boxInFrame } from '#engine';
-import { QuestState, DialogueBox, NpcTalk, presentQuest, type ObjectiveLine, type LiveMarker } from '#game';
+import { app, boxInFrame } from '@wildshard/engine';
+import { QuestState, DialogueBox, NpcTalk, presentQuest, type ObjectiveLine, type LiveMarker } from '@wildshard/game';
 import { CASTAWAY, DRIFTWOOD_QUEST } from './questLine';
 import type { Castaway } from '../npc/Castaway';
 import { castawayRig } from './people';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
-export type { LiveMarker } from '#game';
+export type { LiveMarker } from '@wildshard/game';
 
 export interface Spine {
   quest: QuestState;

@@ -1,8 +1,8 @@
 import type * as THREE from 'three';
-import { type ItemId, GroundTell } from '#game';
+import { type ItemId, GroundTell } from '@wildshard/game';
 import type { SkinId } from '../loadout/skins';
 import type { PhShot } from '../audio/sfx';
-import { StrikeRunner, canReach, inspectBrain, type StrikeSpec, type Animal, type AnimalManager, type Game, type Sky, type Player } from '#engine';
+import { StrikeRunner, canReach, inspectBrain, type StrikeSpec, type Animal, type AnimalManager, type Game, type Sky, type Player } from '@wildshard/engine';
 
 /**
  * What Pine Hollow's fights share (src/shards/pine-hollow/: the elites, the Antler King, the combat feel): the world, the player,

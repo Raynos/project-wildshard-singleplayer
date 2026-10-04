@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
 import { Group, Vector3 } from 'three';
-import { Scope } from '#engine-internal/app/scope';
-import { Events } from '#engine-internal/events/events';
-import { CombatPipeline, type Actor, type DamageDealt } from '#engine-internal/combat/pipeline';
-import { Weapon, type WeaponState } from '#engine-internal/combat/Weapon';
-import { TrainingTarget } from '#engine-internal/practice/TrainingArena';
-import { practiceActor } from '#engine-internal/practice/targets';
-import { melee } from '#engine-internal/combat/blocks/melee';
+import { Scope } from '../../src/engine/app/scope';
+import { Events } from '../../src/engine/events/events';
+import { CombatPipeline, type Actor, type DamageDealt } from '../../src/engine/combat/pipeline';
+import { Weapon, type WeaponState } from '../../src/engine/combat/Weapon';
+import { TrainingTarget } from '../../src/engine/practice/TrainingArena';
+import { practiceActor } from '../../src/engine/practice/targets';
+import { melee } from '../../src/engine/combat/blocks/melee';
 
 /** No kit weapon, creature list or dummy-specific branch: selection and damage use the public ports. */
 class CustomWeapon extends Weapon {

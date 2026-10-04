@@ -9,7 +9,7 @@
  *   scene.add(bushes.mesh);
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, ROAD_WIDTH, Rng, Noise2D, type Sky, type WorldRegistry, modelContext, type Placement, heightAt, normalAt, waterLevel, inChunk, place, type Placed } from '#engine';
+import { CHUNK_HALF, ROAD_WIDTH, Rng, Noise2D, type Sky, type WorldRegistry, modelContext, type Placement, heightAt, normalAt, waterLevel, inChunk, place, type Placed } from '@wildshard/engine';
 import { islandKnobs } from '../tiers';
 import { hibiscusBush, type HibiscusBushParams } from '../models/hibiscusBush';
 

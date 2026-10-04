@@ -13,7 +13,7 @@
  */
 import * as THREE from 'three';
 import { M, poiMaterial } from './paint';
-import { type BoxSpec as Collider, boxDesc, type WorldRegistry, type Placement, place } from '#engine';
+import { type BoxSpec as Collider, boxDesc, type WorldRegistry, type Placement, place } from '@wildshard/engine';
 import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
 import { MODEL_TRIS } from './glbPaint';

@@ -1,4 +1,4 @@
-import { weaponActionGate, type EquipContext, type AmmoRow, type TargetHit, blendAds, Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, rangedFovForAspect as fovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, sstep, type CrossbowWorld, type CrossbowOptions, type Targets, Weapon, quiverState, type ImpactSurface, app, gameplayRandom, type Game, type Sky, type Player, sticksIn, CHUNK_HALF, getSetting } from '#engine';
+import { weaponActionGate, type EquipContext, type AmmoRow, type TargetHit, blendAds, Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, rangedFovForAspect as fovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, sstep, type CrossbowWorld, type CrossbowOptions, type Targets, Weapon, quiverState, type ImpactSurface, app, gameplayRandom, type Game, type Sky, type Player, sticksIn, CHUNK_HALF, getSetting } from '@wildshard/engine';
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../../viewmodel/hunterHands';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from './profiles';
 
@@ -49,7 +49,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
  */
 
 
-export type { ImpactSurface } from '#engine';
+export type { ImpactSurface } from '@wildshard/engine';
 export const MAX_BOLTS = 30;
 /** Stuck bolts are PERMANENT (target practice): no lifetime — only the cap evicts, oldest first. */
 /** how deep the broadhead sits in wood / ground (m); the rest of the bolt stands proud of the surface */

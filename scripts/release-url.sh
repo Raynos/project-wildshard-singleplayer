@@ -15,7 +15,7 @@ NAME="wildshard-$(echo "$TAG" | tr '.' '-')"          # v0.3.0 → wildshard-v0-
 WORK="/tmp/wildshard-release/$NAME-$(date +%s)"
 mkdir -p "$WORK/src"
 git -C "$REPO" archive "$SHA" | tar -x -C "$WORK/src"
-ln -s "$REPO/node_modules" "$WORK/src/node_modules"
+node "$REPO/scripts/link-node-modules.mjs" "$REPO" "$WORK/src" # E432: @wildshard/* → this export
 cd "$WORK/src"
 VERCEL_GIT_COMMIT_SHA="$SHA" npx vite build >"$WORK/build.log" 2>&1 || { tail -30 "$WORK/build.log"; exit 1; }
 find dist/assets -maxdepth 1 -name '*.map' -print0 | xargs -0 rm -f

@@ -1,4 +1,4 @@
-import { synthKit } from '#engine';
+import { synthKit } from '@wildshard/engine';
 
 /**
  * Creature voices, synthesised (moved from the engine's generator, E405 LAYER-PURITY): reusable content any level can

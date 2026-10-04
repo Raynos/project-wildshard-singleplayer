@@ -1,5 +1,5 @@
 import type { PerspectiveCamera } from 'three';
-import type { Scope } from '#engine';
+import type { Scope } from '@wildshard/engine';
 import type { NineDragonWorld } from './world/build';
 import { specimenLight } from './look/specimenLight';
 

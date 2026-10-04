@@ -1,4 +1,4 @@
-import { tap, type ImpactKind } from '#engine';
+import { tap, type ImpactKind } from '@wildshard/engine';
 import type { WeaponSynth } from '../../audio/weaponVoices';
 
 export function swordSwing(audio: WeaponSynth): void {

@@ -1,13 +1,13 @@
 // Explore World (project/archive/2026-09-23-explore-world.md): the parts that are pure data — a note's "go there" URL reopens the viewer
 // on the same view (X6), and the shard's points of interest the mini map pins (X5).
 import { describe, expect, it } from 'vitest';
-import { exploreArt } from '#engine-internal/level/data';
-import { reproUrl } from '#engine-internal/ui/Feedback';
+import { exploreArt } from '../src/engine/level/data';
+import { reproUrl } from '../src/engine/ui/Feedback';
 import { SHARDS } from '../src/shards.generated';
-import { playable, findChunk } from '#game/shard/registry';
-import { CHUNK_HALF } from '#engine-internal/core/config';
-import { registeredModels } from '#engine-internal/explore/registry';
-import { activeRegistry } from '#engine-internal/world/registry';
+import { playable, findChunk } from '../src/game/shard/registry';
+import { CHUNK_HALF } from '../src/engine/core/config';
+import { registeredModels } from '../src/engine/explore/registry';
+import { activeRegistry } from '../src/engine/world/registry';
 
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 

@@ -1,5 +1,5 @@
-import { BossBar, BossBrain, weatherFog, type Animal, type BossScript, type WeatherFog } from '#engine';
-import { CoinBurst, bossesSave, purseSave, shardSave, type ShardContext } from '#game';
+import { BossBar, BossBrain, weatherFog, type Animal, type BossScript, type WeatherFog } from '@wildshard/engine';
+import { CoinBurst, bossesSave, purseSave, shardSave, type ShardContext } from '@wildshard/game';
 import { Color, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
 import { BASIN } from '../layout';
 import { STRINGS } from '../strings';

@@ -1,9 +1,9 @@
 // F8: these phase/clock contracts move to the real engine scheduler, keeping their expectations unchanged.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
-import { FAULT_STREAK, loopState, setLoopState } from '#engine-internal/core/faults';
-import { Game } from '#engine-internal/core/Game';
-import { worldTime } from '#engine-internal/core/time';
+import { FAULT_STREAK, loopState, setLoopState } from '../../src/engine/core/faults';
+import { Game } from '../../src/engine/core/Game';
+import { worldTime } from '../../src/engine/core/time';
 import { FakeGame, seedRandom } from '../fake/FakeGame';
 import { FakePhysics } from '../fake/world';
 

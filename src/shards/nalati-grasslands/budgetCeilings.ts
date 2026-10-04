@@ -1,4 +1,4 @@
-import type { LevelSpec } from '#engine';
+import type { LevelSpec } from '@wildshard/engine';
 
 /** Measured rollout maxima; count targets rederive after calibration; provenance: budgets/ceiling-sources.json. */
 export const BUDGET_CEILINGS = {

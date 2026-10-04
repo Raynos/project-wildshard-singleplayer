@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Texture } from 'three';
-import { App, type LevelAdapters, type LevelContext, type LevelDriver } from '#engine';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import manifest from '#shards/nine-dragon-stack/manifest';
-import { toLevelSpec } from '#game/shard/spec';
+import { App, type LevelAdapters, type LevelContext, type LevelDriver } from '@wildshard/engine';
+import { WorldRegistry } from '../../src/engine/world/registry';
+import manifest from '../../src/shards/nine-dragon-stack/manifest';
+import { toLevelSpec } from '../../src/game/shard/spec';
 
 const noop = (): void => { /* No renderer work in a context contract test. */ };
 const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: noop, world: noop, kit: noop, loadout: noop, play: noop, finish: noop };

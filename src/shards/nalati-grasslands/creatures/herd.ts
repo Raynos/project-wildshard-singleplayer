@@ -1,5 +1,5 @@
 import { NALATI_STRIKES, sampleStrike } from '../combat/strikes';
-import { GroupBrain, app, type Animal, type ThinkCtx, terrainNormal as normalAt, type GroupName } from '#engine';
+import { GroupBrain, app, type Animal, type ThinkCtx, terrainNormal as normalAt, type GroupName } from '@wildshard/engine';
 
 
 import * as THREE from 'three';

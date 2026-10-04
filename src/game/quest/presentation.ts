@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { Flags, practiceRoom, type Scope, type FullMapPoi as MapPoi, type MapQuest, type MapMark, type HudVerbs, type Place, type Events, type SystemSpec } from '#engine';
+import { Flags, practiceRoom, type Scope, type FullMapPoi as MapPoi, type MapQuest, type MapMark, type HudVerbs, type Place, type Events, type SystemSpec } from '@wildshard/engine';
 import { QuestState, type QuestDef, type QuestStep, type NpcDef } from './quest';
 import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from './core';
 import { DialogueBox } from './QuestUI';

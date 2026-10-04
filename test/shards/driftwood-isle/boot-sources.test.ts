@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { chunkFiles } from '#engine-internal/boot/manifest';
-import { bootFetches } from '#engine-internal/boot/prefetch';
-import { registerGpuFiles } from '#engine-internal/boot/gpuFiles';
-import { initializeTier, TIER } from '#engine-internal/core/tier';
-import manifest from '#shards/driftwood-isle/manifest';
-import { GPU_FILES } from '#shards/driftwood-isle/ktx2.generated';
+import { chunkFiles } from '../../../src/engine/boot/manifest';
+import { bootFetches } from '../../../src/engine/boot/prefetch';
+import { registerGpuFiles } from '../../../src/engine/boot/gpuFiles';
+import { initializeTier, TIER } from '../../../src/engine/core/tier';
+import manifest from '../../../src/shards/driftwood-isle/manifest';
+import { GPU_FILES } from '../../../src/shards/driftwood-isle/ktx2.generated';
 
 const original = TIER;
 afterEach(() => { initializeTier(original); });

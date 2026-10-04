@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, SkinnedMesh } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { NpcModels, NPC_KINDS } from '#shards/pine-hollow/quest/npcModels';
-import { makeNpcFigure } from '#shards/pine-hollow/models/people';
-import { installPineQuest, type PineQuestHost } from '#shards/pine-hollow/quest/index';
+import { NpcModels, NPC_KINDS } from '../../../src/shards/pine-hollow/quest/npcModels';
+import { makeNpcFigure } from '../../../src/shards/pine-hollow/models/people';
+import { installPineQuest, type PineQuestHost } from '../../../src/shards/pine-hollow/quest/index';
 import { fakeWorld } from '../../fake/world';
 
 function person(): GLTF {

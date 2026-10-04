@@ -74,7 +74,7 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
 2. **The four gates on a clean export of HEAD — before the push.**
    ```
    D=<scratchpad>/tree-$(git rev-parse --short HEAD); mkdir -p $D   # a fresh dir per HEAD
-   git archive HEAD -- . ':!art' ':!progress' ':!sources' | tar -x -C $D && ln -s $PWD/node_modules $D/node_modules
+   git archive HEAD -- . ':!art' ':!progress' ':!sources' | tar -x -C $D && node scripts/link-node-modules.mjs $PWD $D
    cd $D && PATH=$PWD/node_modules/.bin:$PATH     # the shims resolve through the symlink; never `pnpm exec` here
    node scripts/gen.mjs && tsc --noEmit && oxlint && node scripts/check-css.mjs && vite build   # gen first: src/shards.generated is not in git
    ```

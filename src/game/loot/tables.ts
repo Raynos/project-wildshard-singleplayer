@@ -1,4 +1,4 @@
-import { app, WeightedTable, type Scope, type TableSpec, type TableDrop } from '#engine';
+import { app, WeightedTable, type Scope, type TableSpec, type TableDrop } from '@wildshard/engine';
 
 export interface LootContext { kind: string; variant?: string | undefined; owned?: (id: string) => boolean }
 export interface LootTableRow { id: string; domain: 'coins' | 'trophies'; table: TableSpec<string, LootContext> }

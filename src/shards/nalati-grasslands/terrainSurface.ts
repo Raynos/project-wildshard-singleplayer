@@ -25,7 +25,7 @@ import { TEX_METRES, TEX_MEAN, isPhoneTier, type NalatiTexName } from './look/na
 import { V2_OLIVE_GLSL } from './look/light';
 import { LOOK_BAKE_GLSL, bakeUniforms, PHONE_STATIC_OFF_CSM } from './look/bake';
 import { SNOW_LINE, GLACIER } from './layout';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine';
 
 export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'snow', THREE.Texture>;
 

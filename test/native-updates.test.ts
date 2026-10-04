@@ -6,7 +6,7 @@ import {
   OTA_STORAGE_PREFIX, compareVersions, createNativeUpdater, nativeManifest, readUpdateConfig, verifyUpdate,
   type SignedUpdate, type UpdateAdapter, type UpdateBundle, type UpdateConfig, type UpdateHost, type UpdateManifest,
   type UpdateOptions, type UpdateStorage,
-} from '#engine-internal/native/updates';
+} from '../src/engine/native/updates';
 
 const subtle = crypto.subtle;
 const ORIGIN = 'https://updates.example';

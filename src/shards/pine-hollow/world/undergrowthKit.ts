@@ -7,7 +7,7 @@
  * (`underSpecimen`: the field's shader fades a copy by the player's distance, so a turntable copy would vanish).
  */
 import * as THREE from 'three';
-import type { ModelContext, ModelPart, UnderPlacements } from '#engine';
+import type { ModelContext, ModelPart, UnderPlacements } from '@wildshard/engine';
 import type { UnderKind, UnderKindDraw } from './undergrowth';
 
 export type { UnderKind } from './undergrowth';

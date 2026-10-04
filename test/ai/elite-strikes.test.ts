@@ -1,16 +1,16 @@
-import { app } from '#engine';
-import { EliteBrain } from '#engine-internal/ai/EliteBrain';
-import { canReach } from '#engine-internal/ai/reach';
+import { app } from '@wildshard/engine';
+import { EliteBrain } from '../../src/engine/ai/EliteBrain';
+import { canReach } from '../../src/engine/ai/reach';
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
-import type { Animal } from '#engine-internal/entities/Animal';
-import { wildEnv } from '#shards/nalati-grasslands/creatures/env';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
+import type { Animal } from '../../src/engine/entities/Animal';
+import { wildEnv } from '../../src/shards/nalati-grasslands/creatures/env';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { legacyMethods } from '../fake/legacySource';
 import { creature } from '../fake/creature';
-import { inArc, headingTo, fadeCooldown, behindPlayer, fleeHeading } from '#shards/pine-hollow/combat/combatMath';
-import { blackpawGoal, ghostGoal, ironhideGoal, imperialGoal } from '#shards/pine-hollow/combat/EliteGoals';
+import { inArc, headingTo, fadeCooldown, behindPlayer, fleeHeading } from '../../src/shards/pine-hollow/combat/combatMath';
+import { blackpawGoal, ghostGoal, ironhideGoal, imperialGoal } from '../../src/shards/pine-hollow/combat/EliteGoals';
 
 // a flat, dry world through the terrain port, not a module mock (E422)
 const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });

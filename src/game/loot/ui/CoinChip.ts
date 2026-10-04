@@ -1,4 +1,4 @@
-import { uiScope, mountUi, hudSlots } from '#engine';
+import { uiScope, mountUi, hudSlots } from '@wildshard/engine';
 /**
  * CoinChip — the purse on the HUD (E314 L1, board 1 A): a small "◉ 23" chip under VITALS in the base HUD's language
  * (navy glass, a cyan hairline, the display numerals), and the "+n" that pops over a kill. It has its own anchored spot,

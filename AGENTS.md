@@ -43,8 +43,11 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 
 ## Engine layers → [docs/ENGINE.md](docs/ENGINE.md), [docs/SHARDS.md](docs/SHARDS.md)
 
-- Four layers: `src/engine/` (`#engine`, node-safe `#engine/data`) → `src/game/` (`#game`) → `src/kit/` (`#kit`) →
-  `src/shards/<slug>/`. Imports point down only, from the layer's public index; a shard never imports another shard.
+- Four layers: `src/engine/` (`@wildshard/engine`, node-safe `@wildshard/engine/data`) → `src/game/`
+  (`@wildshard/game`) → `src/kit/` (`@wildshard/kit`) → `src/shards/<slug>/`. Imports point down only, from the layer's
+  public entries; a shard never imports another shard.
+- The three layers are pnpm workspace packages (E432); their `package.json` `exports` are the only importable paths.
+  A clean export of the tree links `node_modules` with `scripts/link-node-modules.mjs`, never a whole-folder symlink.
 - **What each layer knows** (E405): the engine knows rendering, physics, input, audio, boot and levels in general, never
   the game, Wildshard, shards or any content (content arrives as data). The game knows it is Wildshard and that shards
   run arbitrary content, never a particular shard. The kit is reusable content, never a particular shard. Everything

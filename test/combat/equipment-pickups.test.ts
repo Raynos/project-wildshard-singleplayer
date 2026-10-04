@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { Group, Vector3 } from 'three';
 import { describe, expect, it, vi } from 'vitest';
-import { EquipmentService, Scope, Weapon, type EquipmentRow } from '#engine';
+import { EquipmentService, Scope, Weapon, type EquipmentRow } from '@wildshard/engine';
 import type { EquipmentPickup } from '../../src/engine/combat/EquipmentPickup';
-import { SWORD_WOOD, SWORD_IRON } from '#kit';
+import { SWORD_WOOD, SWORD_IRON } from '@wildshard/kit';
 
 class FixtureWeapon extends Weapon {
   readonly model = new Group(); enabled = true; adsHeld = false; holster = 0; aimInfo = null;

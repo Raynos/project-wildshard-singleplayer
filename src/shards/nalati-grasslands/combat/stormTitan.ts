@@ -1,5 +1,5 @@
 import { NALATI_STRIKES, sampleArena } from './strikes';
-import { app, listenPage, type Game, type Player, type TargetAnimal, type TargetHit, wind, type Animal, type AnimalManager, type Interactable, type AimTarget, BossBar, heightAt, terrainNormal as normalAt, setEliteDamage, TIER, PATCH_ORDER, patchShader } from '#engine';
+import { app, listenPage, type Game, type Player, type TargetAnimal, type TargetHit, wind, type Animal, type AnimalManager, type Interactable, type AimTarget, BossBar, heightAt, terrainNormal as normalAt, setEliteDamage, TIER, PATCH_ORDER, patchShader } from '@wildshard/engine';
 import * as THREE from 'three';
 
 
@@ -13,9 +13,8 @@ import type { Sabre } from '../weapons/Sabre';
 import type { NalatiWeather } from '../weather';
 import type { GhostRiders } from './ghostRiders';
 import type { Ride } from '../ride/ride';
-import { Boss, type BossDef, type BossScript } from '#game/Boss';
+import { Boss, type BossDef, type BossScript, GroundTell } from '@wildshard/game';
 
-import { GroundTell } from '#game';
 import { fxMaterial, FX, type FxMaterial } from '../world/KurganDungeon';
 
 
@@ -24,7 +23,7 @@ import { wildEnv } from '../creatures/env';
 import { CAIRN } from '../manifest';
 import { LightningStrip, NaizagaiPower, naizagaiModel } from '../weapons/Naizagai';
 import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
-import { smoothstep } from '#engine/data';
+import { smoothstep } from '@wildshard/engine/data';
 
 
 /**

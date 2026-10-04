@@ -1,1 +1,1 @@
-export { ObjectiveLine, DialogueBox, RewardCaption } from '#engine';
+export { ObjectiveLine, DialogueBox, RewardCaption } from '@wildshard/engine';

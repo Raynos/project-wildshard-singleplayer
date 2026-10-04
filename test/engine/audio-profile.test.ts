@@ -1,18 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { VoicePool } from '#engine-internal/audio/Voices';
-import { panFromYaw } from '#engine-internal/audio/util';
-import { Scope } from '#engine-internal/app/scope';
-import type { SampleLoop } from '#engine-internal/audio/Audio';
-import type { AudioMixer } from '#engine-internal/audio/levelAudio';
-import { AmbienceBeds, PositionalLoops } from '#engine-internal/audio/AmbienceBeds';
-import { CuePlayer, cueFiles, decodeCueSet } from '#engine-internal/audio/Cues';
-import { SetScore, scoreFiles, decodeScore } from '#engine-internal/audio/SetScore';
-import { ndPick, createNdAudio, SCORE_SET } from '#shards/nine-dragon-stack/audio/files';
-import { ndZones } from '#shards/nine-dragon-stack/audio/ambience';
-import { ndCueMap } from '#shards/nine-dragon-stack/audio/cues';
-import { tap, ambientTick } from '#engine-internal/core/harnessTap';
-import type { MusicState } from '#engine-internal/audio/Music';
+import { VoicePool } from '../../src/engine/audio/Voices';
+import { panFromYaw } from '../../src/engine/audio/util';
+import { Scope } from '../../src/engine/app/scope';
+import type { SampleLoop } from '../../src/engine/audio/Audio';
+import type { AudioMixer } from '../../src/engine/audio/levelAudio';
+import { AmbienceBeds, PositionalLoops } from '../../src/engine/audio/AmbienceBeds';
+import { CuePlayer, cueFiles, decodeCueSet } from '../../src/engine/audio/Cues';
+import { SetScore, scoreFiles, decodeScore } from '../../src/engine/audio/SetScore';
+import { ndPick, createNdAudio, SCORE_SET } from '../../src/shards/nine-dragon-stack/audio/files';
+import { ndZones } from '../../src/shards/nine-dragon-stack/audio/ambience';
+import { ndCueMap } from '../../src/shards/nine-dragon-stack/audio/cues';
+import { tap, ambientTick } from '../../src/engine/core/harnessTap';
+import type { MusicState } from '../../src/engine/audio/Music';
 
 const buffer = (duration = 100): AudioBuffer => ({ duration } as AudioBuffer);
 class Param implements AudioParam {

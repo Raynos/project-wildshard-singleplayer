@@ -51,6 +51,7 @@ export interface ProgressView {
 }
 export type Sink = (view: ProgressView) => void;
 
+/** a boot plan: run its steps in order, with byte and file counters feeding the loading screen */
 export interface Plan<R extends BootStep> {
   step: <K extends R, T>(key: K, work: (p: StepProgress) => T | Promise<T>) => Promise<Plan<Exclude<R, K>> & { readonly value: T }>;
   /** The byte counter for a source; hand it to the code that reads the bytes. */

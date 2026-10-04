@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { blocks, melee, viewmodel, resolveTierKnobs, WorldRegistry, type Action, type TierKnobs, type WeaponId } from '#engine';
+import { blocks, melee, viewmodel, resolveTierKnobs, WorldRegistry, type Action, type TierKnobs, type WeaponId } from '@wildshard/engine';
 
-declare module '#engine' {
+declare module '@wildshard/engine' {
   interface TierKnobMap { 'contract.propCount': number }
   interface ActionMap { 'contract.lantern.toggle': true }
   interface EquipmentSlotMap { 'contract-whip': true }

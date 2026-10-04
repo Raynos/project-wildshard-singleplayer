@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { elitesSave, shardSave } from '#game/saves';
+import { elitesSave, shardSave } from '../src/game/saves';
 
 it('keeps the same elite id independent in Nalati and Pine Hollow', () => {
   const pine = shardSave(elitesSave, 'pine-hollow'), nalati = shardSave(elitesSave, 'nalati-grasslands');

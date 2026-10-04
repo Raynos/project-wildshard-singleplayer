@@ -10,7 +10,7 @@
  *  - the 九龍城 stele: a granite slab on its plinth.
  * Their signs (the shrine's plaque and couplets, the stele's calligraphy) and lanterns are sign and paper-lantern copies.
  */
-import { defineModel, type ModelContext, type ModelPart, type ColliderDesc } from '#engine';
+import { defineModel, type ModelContext, type ModelPart, type ColliderDesc } from '@wildshard/engine';
 import { BANYAN_TREE, buildBanyanTree, kowloonStele, shrine } from '../world/banyan';
 import { canopyGeometries } from '../world/canopy';
 import { Ctx } from '../world/ctx';

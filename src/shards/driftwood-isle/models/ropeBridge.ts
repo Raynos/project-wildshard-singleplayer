@@ -16,7 +16,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng, SEED, type BoxSpec as Collider, type Sky, boxDesc, type ColliderDesc, defineModel } from '#engine';
+import { Rng, SEED, type BoxSpec as Collider, type Sky, boxDesc, type ColliderDesc, defineModel } from '@wildshard/engine';
 
 export interface RopeBridgeSpec { a: [number, number]; b: [number, number]; /** metres the middle hangs below the straight line */ sag?: number; width?: number }
 

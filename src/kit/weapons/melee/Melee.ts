@@ -1,6 +1,6 @@
-import { Weapon, type Actor, type DamageDealt, app, melee, type TargetAnimal, type TargetHit, type Move, type SwordMoveSet, type SwordFraming } from '#engine';
+import { Weapon, type Actor, type DamageDealt, app, melee, type TargetAnimal, type TargetHit, type Move, type SwordMoveSet, type SwordFraming } from '@wildshard/engine';
 import type { Vector3, Quaternion } from 'three';
-import type { EquipmentRow } from '#game';
+import type { EquipmentRow } from '@wildshard/game';
 
 export interface ViewmodelFeel {
   lag: { gain: number; clampYaw: number; clampPitch: number; k: number; c: number; posYaw: number; posPitch: number };

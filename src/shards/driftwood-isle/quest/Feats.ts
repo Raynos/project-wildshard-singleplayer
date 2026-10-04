@@ -9,7 +9,7 @@
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from './interactables';
 import { QUEST_DONE } from './questLine';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
-import type { ProgressSink } from '#game';
+import type { ProgressSink } from '@wildshard/game';
 
 
 export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, progress: ProgressSink): void {

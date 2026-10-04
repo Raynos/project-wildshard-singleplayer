@@ -12,7 +12,7 @@
  * trades, so she has no dialogue.
  */
 import * as THREE from 'three';
-import { modelContext, type Interactable, place } from '#engine';
+import { modelContext, type Interactable, place } from '@wildshard/engine';
 import { trader, tradeCounter, traderOf, traderRigOf } from '../models/trader';
 import type { Trader } from '../npc/Trader';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';

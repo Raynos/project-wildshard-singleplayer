@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { expect, it } from 'vitest';
-import { EquipmentService, Scope, app } from '#engine';
-import { INPUT_CONTEXTS } from '#game/inputContexts';
-import { TouchControls } from '#engine-internal/player/TouchControls';
-import { TemplateWhip } from '#shards/_template/weapons/TemplateWhip';
+import { EquipmentService, Scope, app } from '@wildshard/engine';
+import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
+import { TouchControls } from '../../src/engine/player/TouchControls';
+import { TemplateWhip } from '../../src/shards/_template/weapons/TemplateWhip';
 import { fakeWorld } from '../fake/world';
 
 it('paints an already active attack relabel, respects an overlay and restores labels/icons on pop', () => {

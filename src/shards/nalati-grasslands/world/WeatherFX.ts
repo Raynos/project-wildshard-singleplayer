@@ -1,4 +1,4 @@
-import { rainCurtain } from '#kit';
+import { rainCurtain } from '@wildshard/kit';
 import { RAIN_PROGRAM } from './rainProgram';
 /**
  * WeatherFX — what the steppe storm looks like (Nalati B10): the storm deck and its shelf cloud rolling in from one
@@ -20,7 +20,7 @@ import { RAIN_PROGRAM } from './rainProgram';
  * behind the near ring and the terrain (depth-tested).
  */
 import * as THREE from 'three';
-import { Rng, attachFogUniforms, heightAt, trailDistance, inChunk } from '#engine';
+import { Rng, attachFogUniforms, heightAt, trailDistance, inChunk } from '@wildshard/engine';
 import type { SteppeStorm as Weather, Strike } from './Weather';
 import type { SkyLook } from '../look/skyRig';
 

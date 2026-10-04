@@ -29,7 +29,7 @@
  * `holdBounds` = { x, z, r, yMin, yMax } — a cylinder around the hold (the hold reverb zone).
  */
 import * as THREE from 'three';
-import { SEED, type Rng, LowPolyKit, log, beam, plank, rope, sagLine, tris, bakeLight, lowPolyMaterial, type BakedLight, swayDepthMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel } from '#engine';
+import { SEED, type Rng, LowPolyKit, log, beam, plank, rope, sagLine, tris, bakeLight, lowPolyMaterial, type BakedLight, swayDepthMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel } from '@wildshard/engine';
 import { addBarrel, addCoil, addCrate } from './cargo';
 
 /** a world-height plane over the hull-aligned horizontal local (lx, lz): y = a + bx·lx + bz·lz */

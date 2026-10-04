@@ -3,7 +3,7 @@
  * `once` memo every Pine Hollow model shares (the loaded photoscans, TRELLIS props, crag kit). Keyed by the shard's Sky,
  * so a shard reloaded after a switch gets a fresh one.
  */
-import { modelContext, type ModelContext, type Sky, type Renderer } from '#engine';
+import { modelContext, type ModelContext, type Sky, type Renderer } from '@wildshard/engine';
 
 const bySky = new WeakMap<Sky, ModelContext>();
 

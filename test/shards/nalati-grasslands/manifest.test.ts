@@ -1,11 +1,11 @@
 import { expect, it } from 'vitest';
-import { NALATI_GRASSLANDS as def } from '#shards/nalati-grasslands/manifest';
-import { bootSources, bootFiles } from '#shards/nalati-grasslands/boot/files';
-import { BOOT_STEPS } from '#shards/nalati-grasslands/boot/steps';
-import { GPU_FILES } from '#shards/nalati-grasslands/ktx2.generated';
-import { filePolicy } from '#engine/data';
+import { NALATI_GRASSLANDS as def } from '../../../src/shards/nalati-grasslands/manifest';
+import { bootSources, bootFiles } from '../../../src/shards/nalati-grasslands/boot/files';
+import { BOOT_STEPS } from '../../../src/shards/nalati-grasslands/boot/steps';
+import { GPU_FILES } from '../../../src/shards/nalati-grasslands/ktx2.generated';
+import { filePolicy } from '@wildshard/engine/data';
 import before from './manifest-before.json';
-import { COMPARE } from '#shards/nalati-grasslands/explore/compare';
+import { COMPARE } from '../../../src/shards/nalati-grasslands/explore/compare';
 
 it.each(['phone', 'desktop'] as const)('preserves frozen %s image and KTX2 boot lists', (tier) => {
   for (const tex of ['img', 'ktx2'] as const) { const frozen = before.sources[tier][tex], gpu = filePolicy(tier, tex, GPU_FILES).gpu; expect(bootSources(tier, tex)).toEqual({ ...frozen, props: frozen.props.map(gpu) }); }

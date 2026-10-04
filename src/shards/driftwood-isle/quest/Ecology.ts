@@ -12,7 +12,7 @@
  * Per frame it does nothing but compare a timer; the queue is a plain array touched on kills and once a second.
  */
 import type { AdvAnimal, AdventureWorld } from './adventure';
-import { app } from '#engine';
+import { app } from '@wildshard/engine';
 
 export interface RespawnRule { delay: [number, number]; night?: boolean }
 

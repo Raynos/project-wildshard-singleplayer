@@ -20,7 +20,7 @@ import explorePractice from './explore/practice-nine-dragon-stack.webp';
  * calls +Z north, so the minimap's north is the clean room's south (cosmetic; the fragment has no map yet).
  */
 import { TERRAIN } from './terrain';
-import type { ShardManifest } from '#game/shard/manifest';
+import type { ShardManifest } from '@wildshard/game';
 import { ND_BUDGET_INPUTS } from './budgets';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from './layout';
 import thumbnail from './thumbs/nine-dragon-stack.jpg';

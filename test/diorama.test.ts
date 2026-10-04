@@ -3,7 +3,7 @@
 // wholly outside is left out.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { cutPlanes, dioramaVolume, outside } from '#engine-internal/explore/diorama';
+import { cutPlanes, dioramaVolume, outside } from '../src/engine/explore/diorama';
 
 const bounds = new THREE.Box3(new THREE.Vector3(-20, 2, -10), new THREE.Vector3(20, 14, 10)); // a 40 × 20 m set, 12 m tall
 const flat = (): number => 0;

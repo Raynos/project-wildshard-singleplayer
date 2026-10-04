@@ -1,7 +1,7 @@
 import { GoldenBow, type GoldenBowPower } from './GoldenBow';
-import { Bow, BOW as BOW_PROFILE } from '#kit';
+import { Bow, BOW as BOW_PROFILE } from '@wildshard/kit';
 import { Naizagai, type NaizagaiPower } from './Naizagai';
-import type { Game, Sky, Player, Forest, Targets, Weapon, WeaponId, EquipmentService } from '#engine';
+import type { Game, Sky, Player, Forest, Targets, Weapon, WeaponId, EquipmentService } from '@wildshard/engine';
 
 
 

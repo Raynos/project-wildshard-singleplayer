@@ -1,4 +1,4 @@
-import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, srgb, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, NO_FUR, smooth01, bump, rigClamp as clamp } from '#engine';
+import { engineString, type Rng, type SpeciesDef, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, srgb, paletteColors, paintNoise, type Paint, type SpeciesRGB as RGB, NO_FUR, smooth01, bump, rigClamp as clamp } from '@wildshard/engine';
 
 import * as THREE from 'three';
 

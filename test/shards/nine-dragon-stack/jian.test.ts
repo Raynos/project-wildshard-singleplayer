@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SWORD_WOOD } from '#kit';
-import type { ShardSword } from '#game';
-import { JIAN_ROW, jianViewmodel } from '#shards/nine-dragon-stack/vm/jianRow';
+import { SWORD_WOOD } from '@wildshard/kit';
+import type { ShardSword } from '@wildshard/game';
+import { JIAN_ROW, jianViewmodel } from '../../../src/shards/nine-dragon-stack/vm/jianRow';
 
 afterEach(() => { vi.restoreAllMocks(); });
 describe('Nine Dragon authored Jian row', () => {

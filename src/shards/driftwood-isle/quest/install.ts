@@ -1,5 +1,5 @@
-import { installLoot, onCreatureDeath, type ShardContext } from '#game';
-import { Sword } from '#kit';
+import { installLoot, onCreatureDeath, type ShardContext } from '@wildshard/game';
+import { Sword } from '@wildshard/kit';
 import { driftwoodWorld } from '../world/build';
 import { placeDriftwoodPlaces } from '../world/places';
 import { installAdventure, type Adventure } from './adventure';

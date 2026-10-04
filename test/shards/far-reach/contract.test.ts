@@ -1,18 +1,18 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { App, WorldRegistry, TabRegistry, StrikeRunner, type Actor, type LevelDriver, type StrikeContext } from '#engine';
-import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } from '#game';
+import { App, WorldRegistry, TabRegistry, StrikeRunner, type Actor, type LevelDriver, type StrikeContext } from '@wildshard/engine';
+import { shardContext, toLevelSpec, purseSave, shardSave, type GameServices } from '@wildshard/game';
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
-import manifest from '#shards/far-reach/manifest';
-import { SkyReachPlugin } from '#shards/far-reach/plugin';
-import { WarFan, GUST, inCone } from '#shards/far-reach/weapons/WarFan';
-import { DIVE } from '#shards/far-reach/species/driftRay';
-import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE, apothem } from '#shards/far-reach/layout';
-import { UPDRAFT_ANGLE, vaneColliders } from '#shards/far-reach/world/build';
-import { SKY_GOAT, warmCoat } from '#shards/far-reach/species/skyGoat';
-import { FLAGS, REWARD } from '#shards/far-reach/quest/install';
+import manifest from '../../../src/shards/far-reach/manifest';
+import { SkyReachPlugin } from '../../../src/shards/far-reach/plugin';
+import { WarFan, GUST, inCone } from '../../../src/shards/far-reach/weapons/WarFan';
+import { DIVE } from '../../../src/shards/far-reach/species/driftRay';
+import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE, apothem } from '../../../src/shards/far-reach/layout';
+import { UPDRAFT_ANGLE, vaneColliders } from '../../../src/shards/far-reach/world/build';
+import { SKY_GOAT, warmCoat } from '../../../src/shards/far-reach/species/skyGoat';
+import { FLAGS, REWARD } from '../../../src/shards/far-reach/quest/install';
 import { FakeGame } from '../../fake/FakeGame';
-import { INPUT_CONTEXTS } from '#game/inputContexts';
+import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 
 const noop = (): void => undefined;
 async function boot(): Promise<{ app: App; plugin: SkyReachPlugin; stages: string[]; active: Set<string>; fake: FakeGame }> {

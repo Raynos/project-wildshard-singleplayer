@@ -1,5 +1,5 @@
-import type { ShardContext } from '#game';
-import { loadAudio, jsonSlot, type Audio, type Music, type MusicState, type ScoreSource, type Scope, type SlotAudio, type StyleBank, type StemSting, type BossPhase, type MusicStyle } from '#engine';
+import type { ShardContext } from '@wildshard/game';
+import { loadAudio, jsonSlot, type Audio, type Music, type MusicState, type ScoreSource, type Scope, type SlotAudio, type StyleBank, type StemSting, type BossPhase, type MusicStyle } from '@wildshard/engine';
 
 export type PineScene = 'day' | 'night' | 'boss';
 export const PINE_SCORE_PICKS = ['auto', 'night', 'boss', 'boss-2', 'boss-3', 'dawn'] as const;

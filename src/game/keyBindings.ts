@@ -1,4 +1,4 @@
-import { app, type Action } from '#engine';
+import { app, type Action } from '@wildshard/engine';
 
 type Scope = Parameters<typeof app.input.bindings.describe>[1];
 type Table = Parameters<typeof app.input.bindings.describe>[0];

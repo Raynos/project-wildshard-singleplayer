@@ -19,8 +19,8 @@
  *    body, seamless across the atlas's charts (the charts' gutters are dilated so mip levels don't bleed).
  */
 import * as THREE from 'three';
-import { variantDef, type SpeciesRGB as RGB, type BoneDef, type VariantDef } from '#engine';
-import { smoothstep } from '#engine/data';
+import { variantDef, type SpeciesRGB as RGB, type BoneDef, type VariantDef } from '@wildshard/engine';
+import { smoothstep } from '@wildshard/engine/data';
 
 export interface CoatSpec {
   /** the species default palette (the variant's `tint` overrides keys of it) */

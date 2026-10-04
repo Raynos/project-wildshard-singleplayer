@@ -1,6 +1,6 @@
-import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand, Noise2D, HuntTuning, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant, WorldRegistry, Sky, Forest, SwordArms, SwordFraming, SwordMoveSet, SwordRig, SwimArms, RosterEntry, Renderer } from '#engine';
+import type { MinimapPalette, LookReplaceContext, TreeFactory, Ktx2Table, LevelSpec, EngineMechanism, TierOverrides, BootSpec, LoadoutSpec, LookStrategy, ExploreSpec, WaterBody, HudBand, Noise2D, HuntTuning, SpeciesWeights, TreeSpeciesTraits, TreeSetVariant, WorldRegistry, Sky, Forest, SwordArms, SwordFraming, SwordMoveSet, SwordRig, SwimArms, RosterEntry, Renderer } from '@wildshard/engine';
 import type { ShardSlug } from './slugs.generated';
-import { terrainFieldFor } from '#engine/data';
+import { terrainFieldFor } from '@wildshard/engine/data';
 import type { ShardPlugin } from './plugin';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
@@ -278,7 +278,7 @@ export interface ChunkAtmosphere {
   /** metres; fog is densest below this */
   edgeHaze?: boolean;
   wetSurfaces?: boolean;
-  /** compile the weather fog (`weatherFog` from #engine, E390): a storm the shard eases in and out */
+  /** compile the weather fog (`weatherFog` from @wildshard/engine, E390): a storm the shard eases in and out */
   weather?: boolean;
   fogHeight: number;
   fogHeightFalloff: number;
@@ -413,7 +413,7 @@ export const hitDamage = (def: { fight?: { maxHitDamage?: number | undefined; ca
   def.fight?.maxHitDamage === undefined || (kind !== undefined && def.fight.capExempt?.includes(kind) === true) ? damage : Math.min(damage, def.fight.maxHitDamage);
 
 /** Compatibility names for manifests not yet migrated to the engine look contract. */
-export type { EngineEffects, LookComposeContext as ShardComposeContext, LookComposition as ShardComposition, LookStrategy as ShardRender } from '#engine';
+export type { EngineEffects, LookComposeContext as ShardComposeContext, LookComposition as ShardComposition, LookStrategy as ShardRender } from '@wildshard/engine';
 
 export interface ShardManifest {
   next?: string;
@@ -590,7 +590,7 @@ export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: 
 export type { ShardSlug } from './slugs.generated';
 
 /** Explore entry art is owned by its shard and imported without world code. */
-export type { ExploreSpec } from '#engine';
+export type { ExploreSpec } from '@wildshard/engine';
 
 export function formatGrid(grid: readonly [number, number]): string {
   const signed = (n: number): string => n < 0 ? `−${-n}` : `+${n}`;

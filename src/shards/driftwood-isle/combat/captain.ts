@@ -1,4 +1,4 @@
-import { BossBrain, type BossDef, type BossPorts, type BossPresentation, type BossScript, type Events } from '#engine';
+import { BossBrain, type BossDef, type BossPorts, type BossPresentation, type BossScript, type Events } from '@wildshard/engine';
 import { Vector3 } from 'three';
 
 export const CAPTAIN_DEF: BossDef = {

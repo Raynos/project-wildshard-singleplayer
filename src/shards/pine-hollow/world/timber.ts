@@ -9,7 +9,7 @@
  * drops with distance — the old PineLandmarks.update, as data.
  */
 import * as THREE from 'three';
-import { SEED, Rng, TIER_CONFIG, type ColliderDesc, type ModelContext } from '#engine';
+import { SEED, Rng, TIER_CONFIG, type ColliderDesc, type ModelContext } from '@wildshard/engine';
 import { cabinMats, type Mats, type MatKey } from './homestead';
 import { finishParts, logGeo, boxUV } from '../models/logCabin';
 

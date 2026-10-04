@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Tool, app, isMesh, buildHoverboard, type Player, type EquipContext } from '#engine';
+import { Tool, app, isMesh, buildHoverboard, type Player, type EquipContext } from '@wildshard/engine';
 
 export class Hoverboard extends Tool {
   readonly id = 'tool.hoverboard' as const;

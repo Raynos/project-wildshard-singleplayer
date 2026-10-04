@@ -5,7 +5,7 @@
  * porch and furniture), where it stands; `place` welds it with the hamlet's other four into one set, dropped with distance
  * (`ModelDef.weld`, src/shards/pine-hollow/world/cabins.ts, E347). The Explorer's specimen is the building built alone.
  */
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { buildingSpecimen, builtBuilding } from './logCabin';
 
 export const traderStall = defineModel<Record<string, never>>({

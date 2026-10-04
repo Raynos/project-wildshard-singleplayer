@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { SpeciesService, type SpeciesLook } from '#engine-internal/entities/species/look';
-import { registeredSpecies, registerSpecies } from '#engine-internal/entities/species/registry';
-import { AnimalFactory, DEFAULT_CREATURE_RENDER } from '#engine-internal/entities/AnimalFactory';
-import { Scope } from '#engine-internal/app/scope';
-import { app } from '#engine-internal/app/runtime';
-import { BOAR } from '#kit';
+import { SpeciesService, type SpeciesLook } from '../../src/engine/entities/species/look';
+import { registeredSpecies, registerSpecies } from '../../src/engine/entities/species/registry';
+import { AnimalFactory, DEFAULT_CREATURE_RENDER } from '../../src/engine/entities/AnimalFactory';
+import { Scope } from '../../src/engine/app/scope';
+import { app } from '../../src/engine/app/runtime';
+import { BOAR } from '@wildshard/kit';
 import { fakeWorld } from '../fake/world';
 
 const look = (): SpeciesLook => ({ ...registeredSpecies('boar'), id: 'test.look.ray', species: 'test.ray', kind: 'boar', variants: {}, rig: 'custom', preload: () => Promise.resolve() });

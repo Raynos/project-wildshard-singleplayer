@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
-import { UiLayers } from '#engine-internal/ui/layers';
-import { Scope } from '#engine-internal/app/scope';
-import { BagRegistry } from '#game/bag/registry';
+import { UiLayers } from '../../src/engine/ui/layers';
+import { Scope } from '../../src/engine/app/scope';
+import { BagRegistry } from '../../src/game/bag/registry';
 
 describe('scoped overlay stack', () => {
   it('sends back only to the highest layer, restoring lower input on disposal', () => {

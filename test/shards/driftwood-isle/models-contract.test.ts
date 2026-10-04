@@ -5,15 +5,15 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '#engine-internal/core/rng';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import type { Sky } from '#engine-internal/world/Sky';
-import { rockGeometry, SHORE_ROCK } from '#shards/driftwood-isle/world/rockKit';
-import { defineModel, definedModels, modelContext, type Placement } from '#engine-internal/models/model';
-import { cullPlaced, place, placedCopies } from '#engine-internal/models/place';
-import { placeCollider, poseOf } from '#engine-internal/models/colliders';
-import { placeSet } from '#engine-internal/models/sets';
-import { shoreBoulder, type ShoreBoulderParams } from '#shards/driftwood-isle/models/shoreBoulder';
+import { Rng } from '../../../src/engine/core/rng';
+import { WorldRegistry } from '../../../src/engine/world/registry';
+import type { Sky } from '../../../src/engine/world/Sky';
+import { rockGeometry, SHORE_ROCK } from '../../../src/shards/driftwood-isle/world/rockKit';
+import { defineModel, definedModels, modelContext, type Placement } from '../../../src/engine/models/model';
+import { cullPlaced, place, placedCopies } from '../../../src/engine/models/place';
+import { placeCollider, poseOf } from '../../../src/engine/models/colliders';
+import { placeSet } from '../../../src/engine/models/sets';
+import { shoreBoulder, type ShoreBoulderParams } from '../../../src/shards/driftwood-isle/models/shoreBoulder';
 import { checkModels } from '../../../scripts/check-models.mjs';
 
 // a stand-in sky: the low-poly material only asks it to prepare the material (no renderer in a test)
@@ -261,7 +261,7 @@ describe('the model contract', () => {
       'src/shards/pine-hollow/world/x.ts': "import { yurt } from '../../nalati-grasslands/models/yurt';",
       'src/shards/pine-hollow/models/helper.ts': 'export const k = 1;',
       'src/shards/pine-hollow/models/stone.ts': "export const s = defineModel({ id: 'nalati-grasslands/stone' });",
-      'src/engine/models/leak.ts': "import { x } from '#shards/driftwood-isle';",
+      'src/engine/models/leak.ts': "import { x } from '../../shards/driftwood-isle';",
     }).violations;
     expect(bad).toHaveLength(5);
   });

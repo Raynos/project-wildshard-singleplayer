@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { App, Scope } from '#engine-internal/index';
+import { App, Scope } from '../../src/engine/index';
 
 describe('app states', () => {
   it('exits the previous state, changes state, enters the next, then queues the transition event', () => {

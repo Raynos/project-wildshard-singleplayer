@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { Physics } from '#engine-internal/physics/Physics';
-import { CharacterMotor } from '#engine-internal/physics/CharacterMotor';
-import { groups } from '#engine-internal/physics/groups';
-import { addTrainingTarget, trainingTargetRaycast } from '#engine-internal/physics/trainingTargets';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { Physics } from '../src/engine/physics/Physics';
+import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
+import { groups } from '../src/engine/physics/groups';
+import { addTrainingTarget, trainingTargetRaycast } from '../src/engine/physics/trainingTargets';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

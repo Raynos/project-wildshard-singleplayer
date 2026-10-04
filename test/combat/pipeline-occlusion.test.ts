@@ -1,10 +1,10 @@
 import { Vector3 } from 'three';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { App } from '#engine-internal/app/app';
-import type { CombatTag, DamageRequest } from '#engine-internal/combat/pipeline';
-import { Physics } from '#engine-internal/physics/Physics';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { groups, type GroupName } from '#engine-internal/physics/groups';
+import { App } from '../../src/engine/app/app';
+import type { CombatTag, DamageRequest } from '../../src/engine/combat/pipeline';
+import { Physics } from '../../src/engine/physics/Physics';
+import { loadRapier } from '../../src/engine/physics/rapier';
+import { groups, type GroupName } from '../../src/engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import { legacyHurtFixture } from '../fake/legacyHurt';
 

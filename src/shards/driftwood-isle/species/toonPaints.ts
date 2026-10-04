@@ -1,5 +1,5 @@
 import type { Color } from 'three';
-import { mix, registerToonPaint, srgb, speciesSstep as sstep, type Paint, type Scope, type VariantDef } from '#engine';
+import { mix, registerToonPaint, srgb, speciesSstep as sstep, type Paint, type Scope, type VariantDef } from '@wildshard/engine';
 
 /**
  * The island's toon palettes for the shared procedural species (B50, moved verbatim from the engine's

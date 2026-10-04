@@ -5,7 +5,7 @@ import { registerCompendium } from '../compendium/registry';
 import type { ShardCompendium } from '../compendium/types';
 import type { ShardRuntime } from './runtime';
 import { normalizeItemRow, type ItemRow } from '../bag/items';
-import type { ContentRow, SkinDef, EngineRows, LevelContext } from '#engine';
+import type { ContentRow, SkinDef, EngineRows, LevelContext } from '@wildshard/engine';
 import type { ShardManifest } from './manifest';
 
 export type { BagTabId, BagTabSpec, BagFragment } from '../bag/registry';

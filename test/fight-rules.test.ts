@@ -1,18 +1,18 @@
 // E297 (DRIFTWOOD-TOP10 row 1): one set of fight rules for every enemy on Driftwood — at most 2 attack at once (attack
 // tokens), engaged boars circle back and charge again instead of fleeing (reengage). Each shard may declare its own cap.
-import { BOAR } from '#kit/species/boar';
-import { BEAR } from '#kit/species/bear';
+import { BOAR } from '../src/kit/species/boar';
+import { BEAR } from '../src/kit/species/bear';
 import { describe, expect, it } from 'vitest';
-import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, BACKOFF_PAST, type ReengageIn } from '#engine-internal/entities/fightRules';
+import { AttackTokens, reengage, backoffPoint, aroundPoint, BREAK_OFF_HP, BACKOFF_PAST, type ReengageIn } from '../src/engine/entities/fightRules';
 import { SHARDS } from '../src/shards.generated';
-import { AggressionDirector } from '#engine-internal/ai/director';
-import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
+import { AggressionDirector } from '../src/engine/ai/director';
+import { DRIFTWOOD_ISLE } from '../src/shards/driftwood-isle/manifest';
 import * as THREE from 'three';
-import { clearBody } from '#engine-internal/entities/AnimalManager';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { Physics } from '#engine-internal/physics/Physics';
-import { CharacterMotor } from '#engine-internal/physics/CharacterMotor';
-import { groups } from '#engine-internal/physics/groups';
+import { clearBody } from '../src/engine/entities/AnimalManager';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { Physics } from '../src/engine/physics/Physics';
+import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
+import { groups } from '../src/engine/physics/groups';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 describe('AttackTokens (E297: at most 2 attackers)', () => {

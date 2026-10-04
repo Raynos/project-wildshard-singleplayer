@@ -1,5 +1,5 @@
 import { BackSide, ClampToEdgeWrapping, Color, DataTexture, LinearFilter, Mesh, RepeatWrapping, RGBAFormat, ShaderMaterial, SphereGeometry, SRGBColorSpace, UnsignedByteType, type Texture } from 'three';
-import { TIER } from '#engine';
+import { TIER } from '@wildshard/engine';
 import { PANO_URL } from '../boot/files';
 import { loadPainted } from './image';
 import { SUN_DIR } from './sun';

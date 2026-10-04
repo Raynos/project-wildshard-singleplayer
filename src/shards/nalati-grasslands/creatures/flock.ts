@@ -1,4 +1,4 @@
-import { GroupBrain, app, type Sky, heightAt, terrainNormal as normalAt, Rng, attachFogUniforms, type Animal, type ThinkCtx, TIER, TickScheduler, PATCH_ORDER, patchShader } from '#engine';
+import { GroupBrain, app, type Sky, heightAt, terrainNormal as normalAt, Rng, attachFogUniforms, type Animal, type ThinkCtx, TIER, TickScheduler, PATCH_ORDER, patchShader } from '@wildshard/engine';
 
 
 import * as THREE from 'three';

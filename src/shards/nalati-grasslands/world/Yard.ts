@@ -9,7 +9,7 @@
  *   wearDisc(x, z, r) / wearPath(ax, az, bx, bz, w)                // the shapes, combine with Math.max
  */
 import * as THREE from 'three';
-import { Noise2D, smoothstep, painterlyMaterial, type Sky } from '#engine';
+import { Noise2D, smoothstep, painterlyMaterial, type Sky } from '@wildshard/engine';
 import { loadNalatiTexture, TEX_METRES } from '../look/nalatiTextures';
 import type { Ground } from './types';
 

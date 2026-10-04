@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { AggressionDirector, AggressionService } from '#engine-internal/ai/director';
-import { Scope } from '#engine-internal/app/scope';
-import { Events } from '#engine-internal/events/events';
+import { AggressionDirector, AggressionService } from '../../src/engine/ai/director';
+import { Scope } from '../../src/engine/app/scope';
+import { Events } from '../../src/engine/events/events';
 
 describe('aggression policy', () => {
   it('permits exactly two concurrent attackers and returns completed tokens', () => {

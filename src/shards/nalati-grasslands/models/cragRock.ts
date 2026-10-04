@@ -16,7 +16,7 @@
 import * as THREE from 'three';
 import { loadNalatiTextures, TEX_METRES, TEX_MEAN, isPhoneTier } from '../look/nalatiTextures';
 import { SNOW_LINE } from '../manifest';
-import { PATCH_ORDER, patchShader, Rng, defineModel, painterlyMaterial, type Sky } from '#engine';
+import { PATCH_ORDER, patchShader, Rng, defineModel, painterlyMaterial, type Sky } from '@wildshard/engine';
 
 // ── the rock pieces ─────────────────────────────────────────────────────────────────────────────────────────────
 

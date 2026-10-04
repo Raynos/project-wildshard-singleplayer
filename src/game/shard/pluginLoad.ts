@@ -1,4 +1,4 @@
-import { LevelLoadError, type App, type LevelContext } from '#engine';
+import { LevelLoadError, type App, type LevelContext } from '@wildshard/engine';
 import { shardContext, type GameServices, type ShardContext } from './context';
 import { runShardLoad, ShardLoadError, type ShardLoadServices } from './load';
 import type { ShardManifest } from './manifest';

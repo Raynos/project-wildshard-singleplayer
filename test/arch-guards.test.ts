@@ -110,7 +110,7 @@ describe('AG9 shard layout', () => {
 describe('AG20 staged content isolation', () => {
   function repo(): { root: string; git: (...args: string[]) => void; run: () => ReturnType<typeof spawnSync> } {
     const root = temp();
-    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
+    const files = ['package.json', 'tsconfig.json', '.oxlintrc.json', '.oxlintrc.ratchet.json', 'lint/wildshard-plugin.js', 'lint/engine-words.json', 'lint/url-params.json', 'lint/shard-words.generated.json', 'lint/shard-layout.json', 'scripts/precommit-guards.mjs', 'scripts/link-node-modules.mjs', 'scripts/guard-counts.mjs', 'scripts/guard-snapshot.mjs', 'scripts/check-shards.mjs', 'scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'];
     for (const file of files) { mkdirSync(dirname(join(root, file)), { recursive: true }); copyFileSync(file, join(root, file)); }
     put(root, 'lint/ratchet.json', '{}'); put(root, 'src/engine/example.ts', 'export const value = 1;');
     symlinkSync(resolve('node_modules'), join(root, 'node_modules'));
@@ -177,7 +177,7 @@ describe('AG7 layer graph', () => {
   });
   it('counts cross-layer edges once per file and target, and fails a new pair, a rise and a two-way pair', () => {
     const files: Record<string, string> = {
-      'src/kit/a.ts': "import { x } from '#engine'; import type { Y } from '#engine'; import './b';",
+      'src/kit/a.ts': "import { x } from '@wildshard/engine'; import type { Y } from '@wildshard/engine'; import './b';",
       'src/kit/b.ts': '',
       'src/engine/index.ts': "export const x = 1; export type Y = 1;",
     };

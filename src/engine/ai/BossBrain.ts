@@ -3,6 +3,7 @@ import type { Events } from '../events/events';
 import type { Vector3 } from 'three';
 import { Hfsm } from './hfsm';
 
+/** a boss fight's state: dormant, armed, the intro, the fight, a beat between phases, victory */
 export type BossState = 'dormant' | 'armed' | 'intro' | 'fight' | 'beat' | 'victory';
 export interface BossSaved { defeated: boolean; rewardTaken: boolean; kills: number }
 export interface BossPhaseDef { at: number; caption: string; name: string }
@@ -31,6 +32,7 @@ export interface BossPresentation {
 }
 const BEAT = 1.5, SKIP_HOLD = 0.6;
 
+/** what one boss fight does in each state; BossBrain runs it */
 export interface BossScript {
   /** the player (feet) is past the threshold: inside the sealed volume */
   inArena: (p: Vector3) => boolean;

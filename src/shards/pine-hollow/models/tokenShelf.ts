@@ -8,8 +8,8 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { LowPolyKit, lowPolyMaterial, plank, defineModel } from '#engine';
-import { carvedTokenGeometry as carvedToken } from '#kit';
+import { LowPolyKit, lowPolyMaterial, plank, defineModel } from '@wildshard/engine';
+import { carvedTokenGeometry as carvedToken } from '@wildshard/kit';
 
 const TOKENS = 8, SCALE = 0.6, PITCH = 0.185, LEAN = -0.14;
 

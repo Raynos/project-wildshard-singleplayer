@@ -4,7 +4,7 @@
  * pinned up. Stands by the hunting lodge's porch steps (src/shards/pine-hollow/world/landmarks.ts `contractBoardSite`). LOD0 (with
  * shadow) within 40 m, LOD1 past it; collides as the hull of ≤ 180 of its LOD1's vertices (wood).
  */
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { heroFar, heroHull, heroNear } from '../world/hero';
 
 export const contractBoard = defineModel<Record<string, never>>({

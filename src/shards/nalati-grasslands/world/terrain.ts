@@ -1,4 +1,4 @@
-import { Noise2D, smoothstep, clamp, lerp, CHUNK_HALF, buildTerrain } from '#engine/data';
+import { Noise2D, smoothstep, clamp, lerp, CHUNK_HALF, buildTerrain } from '@wildshard/engine/data';
 import {
   RIVER_LEVEL, riverZAt, riverHalfAt, BRIDGE_XZ, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,
   WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, snowValleyX, snowValleyHalf, snowValleyFloor, GLACIER, MELT_STREAM,
@@ -6,7 +6,7 @@ import {
   EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL,
 } from '../layout';
 import { edgeRise } from '../edge';
-import type { ChunkTerrain, RGB, Vec2 } from '#game';
+import type { ChunkTerrain, RGB, Vec2 } from '@wildshard/game';
 
 export const SEED = 0x4a1a;
 

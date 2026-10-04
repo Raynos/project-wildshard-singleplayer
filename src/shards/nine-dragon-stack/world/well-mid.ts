@@ -13,7 +13,7 @@ import { WELL, Y0 } from '../layout';
 import { dragonHook } from './props';
 import { NEONS, WORDS } from './towers';
 import { NEON } from '../util';
-import { Rng, type ColliderDesc } from '#engine';
+import { Rng, type ColliderDesc } from '@wildshard/engine';
 import { SURF } from '../look/paint';
 import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';

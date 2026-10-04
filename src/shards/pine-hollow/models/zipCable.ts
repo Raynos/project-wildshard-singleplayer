@@ -4,7 +4,7 @@
  * (the top end) to `span` (the bottom end, relative). Placed once between the two anchors (src/shards/pine-hollow/world/landmarks.ts).
  */
 import * as THREE from 'three';
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { timberMats } from '../world/timber';
 
 export interface ZipCableParams {

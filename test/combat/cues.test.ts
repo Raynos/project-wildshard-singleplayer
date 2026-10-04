@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Vector3, Group } from 'three';
-import { CombatCues, resolveHitStop } from '#engine-internal/combat/cues';
-import { sharedCombatCues } from '#kit/audio/combatCues';
-import { driftwoodCombatCues } from '#shards/driftwood-isle/audio/combatCues';
-import { pineCombatCues } from '#shards/pine-hollow/audio/combatCues';
-import { ndCueMap } from '#shards/nine-dragon-stack/audio/cues';
-import { tap } from '#engine-internal/core/harnessTap';
-import { PINE_BOLT_HIT_STOP, CROSSBOW, LEVER, LONGBOW } from '#shards/pine-hollow/weapons/equipment';
-import { Weapon, type WeaponState } from '#engine-internal/combat/Weapon';
-import { EquipmentService } from '#engine-internal/combat/EquipmentService';
-import { Events } from '#engine-internal/events/events';
-import { Scope } from '#engine-internal/app/scope';
-import type { CueOpts } from '#engine-internal/audio/Cues';
+import { CombatCues, resolveHitStop } from '../../src/engine/combat/cues';
+import { sharedCombatCues } from '../../src/kit/audio/combatCues';
+import { driftwoodCombatCues } from '../../src/shards/driftwood-isle/audio/combatCues';
+import { pineCombatCues } from '../../src/shards/pine-hollow/audio/combatCues';
+import { ndCueMap } from '../../src/shards/nine-dragon-stack/audio/cues';
+import { tap } from '../../src/engine/core/harnessTap';
+import { PINE_BOLT_HIT_STOP, CROSSBOW, LEVER, LONGBOW } from '../../src/shards/pine-hollow/weapons/equipment';
+import { Weapon, type WeaponState } from '../../src/engine/combat/Weapon';
+import { EquipmentService } from '../../src/engine/combat/EquipmentService';
+import { Events } from '../../src/engine/events/events';
+import { Scope } from '../../src/engine/app/scope';
+import type { CueOpts } from '../../src/engine/audio/Cues';
 
 describe('combat cues preserve existing sound boundaries', () => {
   it('a resident cue map overrides fallback exactly once and leaves no route after disposal', () => {

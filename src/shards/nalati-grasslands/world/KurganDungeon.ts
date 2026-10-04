@@ -1,4 +1,4 @@
-import { app, fxMaterial, annulus, FX, type FxMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, type Material, type Rng, HeightPatch } from '#engine';
+import { app, fxMaterial, annulus, FX, type FxMaterial, type BoxSpec as Collider, boxDesc, type ColliderDesc, type WorldRegistry, type Material, type Rng, HeightPatch } from '@wildshard/engine';
 /**
  * KurganDungeon — the INSIDE of the great kurgan (plan row B13; design docs/design/nalati/elites-and-bosses.md §2 "The Golden
  * King fight"; mockups art/nalati-grasslands/round-2/5-bosses/boss-1…4). A timber-lined dromos (the entrance corridor, the
@@ -76,7 +76,7 @@ const FALLEN = [
   { a: [3.6, 2.2], b: [7.2, 4.4], r: 0.3 },
 ] as const;
 
-export { fxMaterial, annulus, FX, type FxMaterial, type FxMode } from '#engine';
+export { fxMaterial, annulus, FX, type FxMaterial, type FxMode } from '@wildshard/engine';
 
 const C = {
   larch: new THREE.Color('#6f5238'), larchDark: new THREE.Color('#4c3826'), larchOld: new THREE.Color('#6b5f52'),

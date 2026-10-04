@@ -1,4 +1,4 @@
-import { listenDom, app, isDev } from '#engine';
+import { listenDom, app, isDev } from '@wildshard/engine';
 /**
  * The title screen's shard deck — ONE implementation for both ways in (E318, Jake: "lol wtf why do we have two title
  * screens, one only please"): the cold launch (src/engine/ui/StartTitle.ts, renderer-free, before any shard loads) and pause ▸

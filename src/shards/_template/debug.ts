@@ -1,4 +1,4 @@
-import type { ShardContext } from '#game';
+import type { ShardContext } from '@wildshard/game';
 import type { TemplateLantern } from './weapons/TemplateLantern';
 import { STRINGS } from './strings';
 

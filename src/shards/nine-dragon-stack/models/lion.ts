@@ -6,7 +6,7 @@
  * distance LODs: meshoptimizer copies from 10 m and 30 m whose surface stays under SCULPT_PX of a pixel where they start.
  */
 import type { BufferGeometry } from 'three';
-import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '#engine';
+import { defineModel, type ModelContext, type ModelLod, type ModelPart } from '@wildshard/engine';
 import { loadGlb } from '../world/hero/glb';
 import { K } from '../world/kit';
 import { PX_PER_M, SCULPT_PX, simplifiedCopy } from '../world/lod';

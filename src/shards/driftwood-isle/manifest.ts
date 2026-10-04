@@ -20,8 +20,8 @@ import compareOverlookTarget from './explore/compare/driftwood-overlook-target.j
  * Build order (docs/tasks/ASKS.md D12): water + pier → boat → beach → the island piece by piece.
  * The landscape below is the sea floor; the island rises out of it as the pieces land.
  */
-import { smoothstep, clamp, CHUNK_HALF, ROAD_LENGTH, buildTerrain, swellBody } from '#engine/data';
-import type { ShardManifest, OceanDef } from '#game/shard/manifest';
+import { smoothstep, clamp, CHUNK_HALF, ROAD_LENGTH, buildTerrain, swellBody } from '@wildshard/engine/data';
+import type { ShardManifest, OceanDef } from '@wildshard/game';
 import { lateReads } from './boot/lateReads';
 import { bootSources } from './boot/sources';
 import thumbnail from './thumbs/driftwood-isle.jpg';

@@ -21,7 +21,7 @@
  *    shoulders and back, her legs darker), and the sheen and rim take the coat's own hue (BEAR_FIX_FUR) instead of a pale
  *    pink-white.
  */
-import type { SpeciesRGB as RGB } from '#engine';
+import type { SpeciesRGB as RGB } from '@wildshard/engine';
 
 /** one hull's flap: the rump's back plane z(y) = z0 + (y - y0) · slope, pressed above yMin; `bulge` (m) rounds the
  *  pressed patch out into a dome (0 at its rim), so it reads as the rump's curve, not a flat plate */

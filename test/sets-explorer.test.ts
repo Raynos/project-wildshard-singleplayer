@@ -3,11 +3,11 @@
 // measured by the objects that draw it (each once), and `placeSet` hands the explorer what draws each member.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { WorldRegistry, type RegisteredSet } from '#engine-internal/world/registry';
-import { defineModel, modelContext } from '#engine-internal/models/model';
-import { place } from '#engine-internal/models/place';
-import { placeSet } from '#engine-internal/models/sets';
-import { bandWindow, boxEdges, copyBoxes, drawnRoots, lensReset, lensShift, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setsOf, setTotals, type NdcWindow } from '#engine-internal/explore/setView';
+import { WorldRegistry, type RegisteredSet } from '../src/engine/world/registry';
+import { defineModel, modelContext } from '../src/engine/models/model';
+import { place } from '../src/engine/models/place';
+import { placeSet } from '../src/engine/models/sets';
+import { bandWindow, boxEdges, copyBoxes, drawnRoots, lensReset, lensShift, fitOrbit, liftOf, measureDrawn, memberFacts, orderSets, pendingOf, poseOrbit, regionOf, setsOf, setTotals, type NdcWindow } from '../src/engine/explore/setView';
 
 const ctx = modelContext(null);
 const mat = new THREE.MeshBasicMaterial();

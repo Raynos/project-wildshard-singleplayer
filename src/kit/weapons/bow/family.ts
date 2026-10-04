@@ -1,6 +1,6 @@
-import { smoothstep as sstep } from '#engine/data';
-import { weaponActionGate, type EquipContext, Weapon, quiverState, app, gameplayRandom, type Game, type Sky, type Player, type Forest, getSetting, rangedFovForAspect as fovForAspect, FOV_HIP, isMesh, type Targets, type TargetHit, Projectiles, type WindField, DropArc, placeArm } from '#engine';
-import type { EquipmentRow } from '#game';
+import { smoothstep as sstep } from '@wildshard/engine/data';
+import { weaponActionGate, type EquipContext, Weapon, quiverState, app, gameplayRandom, type Game, type Sky, type Player, type Forest, getSetting, rangedFovForAspect as fovForAspect, FOV_HIP, isMesh, type Targets, type TargetHit, Projectiles, type WindField, DropArc, placeArm } from '@wildshard/engine';
+import type { EquipmentRow } from '@wildshard/game';
 
 
 import * as THREE from 'three';

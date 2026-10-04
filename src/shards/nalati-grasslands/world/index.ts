@@ -25,7 +25,7 @@
  * mesh + the balbal InstancedMeshes.
  */
 import * as THREE from 'three';
-import { app, heightAt, type Sky, type WorldRegistry, modelContext, type ModelContext, type Placed } from '#engine';
+import { app, heightAt, type Sky, type WorldRegistry, modelContext, type ModelContext, type Placed } from '@wildshard/engine';
 import { Flutter } from './Flutter';
 import { Smoke } from './Smoke';
 import { buildNomadCamp } from './NomadCamp';

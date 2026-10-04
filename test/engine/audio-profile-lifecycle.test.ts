@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { App, type LevelDriver } from '#engine';
-import { Audio } from '#engine-internal/audio/Audio';
-import { Music } from '#engine-internal/audio/Music';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import { shardContext, toLevelSpec, type GameServices } from '#game';
-import manifest from '#shards/nine-dragon-stack/manifest';
-import { installAudio } from '#shards/nine-dragon-stack/audio/ambience';
+import { App, type LevelDriver } from '@wildshard/engine';
+import { Audio } from '../../src/engine/audio/Audio';
+import { Music } from '../../src/engine/audio/Music';
+import { WorldRegistry } from '../../src/engine/world/registry';
+import { shardContext, toLevelSpec, type GameServices } from '@wildshard/game';
+import manifest from '../../src/shards/nine-dragon-stack/manifest';
+import { installAudio } from '../../src/shards/nine-dragon-stack/audio/ambience';
 
 const noop = (): void => { /* Test only the kit service registration. */ };
 describe('plugin audio lifecycle', () => {

@@ -6,7 +6,7 @@
  * that carries a TRELLIS lion keeps only its cap block) and build.ts registers them there (`place` with `drawnInto`).
  * Built here alone, its foot on the origin, for the Model Explorer.
  */
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { Kit } from '../world/kit';
 import { lotusBud } from '../world/square';
 import { ndLook, need } from '../world/modelLook';

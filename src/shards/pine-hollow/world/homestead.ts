@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { loadPBR, loadGLTF, pbrMaterial, Rng, SEED, heightAt, attachFogUniforms, boxDesc, TIER_CONFIG, macrotask, LightPool, twoSidedPositions, type Interactable, type PBRSet, type Sky, type BoxSpec as Collider, type ColliderDesc, type WeldBuild, PATCH_ORDER, patchShader } from '#engine';
+import { loadPBR, loadGLTF, pbrMaterial, Rng, SEED, heightAt, attachFogUniforms, boxDesc, TIER_CONFIG, macrotask, LightPool, twoSidedPositions, type Interactable, type PBRSet, type Sky, type BoxSpec as Collider, type ColliderDesc, type WeldBuild, PATCH_ORDER, patchShader } from '@wildshard/engine';
 import { CABIN_SITES } from '../layout';
 import {
   CABIN_SPECS, CabinBuilder, PROP_KINDS, mergeParts,
@@ -32,7 +32,7 @@ import {
  */
 
 /** `weak`: shown only when no other prompt is in reach (the saddle's Dismount: it hid the Wind Cairn's tie, E288) */
-export type { Interactable } from '#engine';
+export type { Interactable } from '@wildshard/engine';
 
 export type { CabinSpec } from '../models/logCabin';
 

@@ -1,5 +1,5 @@
 import { Group, Mesh, MeshStandardMaterial, Vector3, type BufferGeometry } from 'three';
-import type { NpcDef } from '#engine';
+import type { NpcDef } from '@wildshard/engine';
 import { duneMesh, fit, without } from '../world/meshes';
 import { SPAWN } from '../layout';
 import { STRINGS } from '../strings';

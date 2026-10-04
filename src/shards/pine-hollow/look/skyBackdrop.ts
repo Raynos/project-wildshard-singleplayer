@@ -1,4 +1,4 @@
-import { type Sky, type SkyBackdropContext, type SkyBackdropTargets as PineTargets, type SkyBackdropPost as PinePost, loadBakedSky, DayCycle, setting, type OptionValue } from '#engine';
+import { type Sky, type SkyBackdropContext, type SkyBackdropTargets as PineTargets, type SkyBackdropPost as PinePost, loadBakedSky, DayCycle, setting, type OptionValue } from '@wildshard/engine';
 /**
  * Pine Hollow's day / night clock (PINE-HOLLOW-REMASTER PH-L2; Jake's PH-U7: "the full cycle, 20 + 4 min, dawn / day /
  * golden hour / night, like Driftwood, in photoreal"; picked over the pre-remaster fixed sunset: "A + a brighter night").
@@ -68,7 +68,7 @@ const tmpC = new THREE.Color();
 interface Resident { tex: THREE.DataTexture; horizon: THREE.Color; used: number }
 
 /** the knobs the clock turns — Sky hands them over (no Sky import: Sky imports this) */
-export type { SkyBackdropTargets as PineTargets, SkyBackdropPost as PinePost } from '#engine';
+export type { SkyBackdropTargets as PineTargets, SkyBackdropPost as PinePost } from '@wildshard/engine';
 /**
  * The weather's hook on the clock (PH-L10, src/shards/pine-hollow/world/weather.ts writes it every frame): multipliers laid over the keyed
  * presets after they are blended — the presets' own numbers are never edited. Identity ({ overcast 0, fog × 1 }) is the

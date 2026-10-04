@@ -125,6 +125,7 @@ export function aimPoint(t: AimTarget, out: THREE.Vector3): THREE.Vector3 {
 
 interface Cand { t: AimTarget; yaw: number; pitch: number; angle: number; dist: number }
 
+/** lock-on: picks, holds, switches and breaks the locked target, and tells the HUD and the camera */
 export class LockOnSystem {
   /** hooks (main.ts): the lock chime, the switch ping, the unlock / break tone, the "nothing there" tick */
   onLock?: () => void; onSwitch?: () => void; onUnlock?: () => void; onNone?: () => void;

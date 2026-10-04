@@ -1,12 +1,12 @@
-import { terrainFor, hitDamage } from '#game/shard/manifest';
+import { terrainFor, hitDamage } from '../src/game/shard/manifest';
 // E294: Driftwood caps every enemy hit at 20 of the player's 100 health (ShardManifest.maxHitDamage → hitDamage), so any common
 // enemy needs ~5 hits to kill you; the other shards stay uncapped. And the brown bear lives off the quest paths.
 import { describe, expect, it } from 'vitest';
 import { loadSpecies } from './species';
 import { SHARDS } from '../src/shards.generated';
-import { playable, findChunk } from '#game/shard/registry';
-import { DRIFTWOOD_ISLE, PATHS, WRECK, SHRINE, HUT, LOOKOUT, OCEAN } from '#shards/driftwood-isle/manifest';
-import { speciesDef, variantMods } from '#engine-internal/entities/species/registry';
+import { playable, findChunk } from '../src/game/shard/registry';
+import { DRIFTWOOD_ISLE, PATHS, WRECK, SHRINE, HUT, LOOKOUT, OCEAN } from '../src/shards/driftwood-isle/manifest';
+import { speciesDef, variantMods } from '../src/engine/entities/species/registry';
 
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 

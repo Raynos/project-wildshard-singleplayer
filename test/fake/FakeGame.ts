@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import type { Game, FixedPhase } from '#engine-internal/core/Game';
-import { FIXED_STEP } from '#engine-internal/core/fixedStep';
-import { makeSystem, setLoopState, systemFault, type GameSystem } from '#engine-internal/core/faults';
-import { worldTime } from '#engine-internal/core/time';
-import { ViewmodelRoot } from '#engine-internal/render/viewmodel';
+import type { Game, FixedPhase } from '../../src/engine/core/Game';
+import { FIXED_STEP } from '../../src/engine/core/fixedStep';
+import { makeSystem, setLoopState, systemFault, type GameSystem } from '../../src/engine/core/faults';
+import { worldTime } from '../../src/engine/core/time';
+import { ViewmodelRoot } from '../../src/engine/render/viewmodel';
 
 type Tick = (dt: number) => void;
 type Update = (dt: number, t: number) => void;

@@ -1,5 +1,5 @@
-import type { ShardManifest } from '#game';
-import { live } from '#engine';
+import type { ShardManifest } from '@wildshard/game';
+import { live } from '@wildshard/engine';
 import { brazierModel, caravanModel, matriarchModel, rayModel, scoutModel, skittererModel, striderModel, towerModel, wellModel, whipModel } from './models/gear';
 import { preloadDuneMeshes } from './world/meshes';
 

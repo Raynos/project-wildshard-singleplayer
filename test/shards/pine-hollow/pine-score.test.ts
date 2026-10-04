@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Scope, type MusicState, type SlotAudio } from '#engine';
-import { PineScore } from '#shards/pine-hollow/audio/score';
+import { Scope, type MusicState, type SlotAudio } from '@wildshard/engine';
+import { PineScore } from '../../../src/shards/pine-hollow/audio/score';
 
 const pcm = new Float32Array(48000);
 const buffer: AudioBuffer = { duration: 1, length: 48000, numberOfChannels: 1, sampleRate: 48000,

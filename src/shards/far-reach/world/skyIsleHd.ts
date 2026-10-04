@@ -1,7 +1,7 @@
 import { Box3, Color, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, Quaternion, Raycaster, Vector3, type BufferAttribute, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
 import type { SkyHdName } from '../boot/files';
 import type { Isle } from '../layout';
-import { PATCH_ORDER, patchShader } from '#engine';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine';
 import { hdMaterial, skyHd } from './meshes';
 import type { SkyIsle } from './skyIsles';
 import { SKY, SUN_DIR } from '../look/sun';

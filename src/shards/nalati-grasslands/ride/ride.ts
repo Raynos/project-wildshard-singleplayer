@@ -1,8 +1,8 @@
-import { type LevelContext, type Player, type Forest, type AnimalManager, type AnimalSoundId as AnimalSound, type Animal, heightAt, type Interactable, practiceRoom } from '#engine';
+import { type LevelContext, type Player, type Forest, type AnimalManager, type AnimalSoundId as AnimalSound, type Animal, heightAt, type Interactable, practiceRoom } from '@wildshard/engine';
 import * as THREE from 'three';
 import type { Wildlife } from '../creatures/wildlife';
 import { Mount } from './Mount';
-import { Bow } from '#kit';
+import { Bow } from '@wildshard/kit';
 import { Taming } from './Taming';
 import { RideHUD } from './RideHUD';
 import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/layout';

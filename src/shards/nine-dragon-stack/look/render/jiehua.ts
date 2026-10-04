@@ -11,7 +11,7 @@ import { FOG_GLSL, NOISE_GLSL, type Shared } from '../style';
 import { GLOW_COMP_GLSL, type glowUniforms } from '../light/glow';
 import { GRADE_GLSL, type gradeUniforms } from '../light/grade';
 import { VM_SLICE } from './bleed';
-import type { Renderer } from '#engine';
+import type { Renderer } from '@wildshard/engine';
 
 /** the neon lab's final bleed look (round-7-lab-neon README §3), as the clean room ran it (post.ts BLEED); round 14: the
  *  shadow lift toward ink-blue 0.35 → 0.12 (the mockups' darks are warm: style-A's mean is r > g > b, ours was blue) */

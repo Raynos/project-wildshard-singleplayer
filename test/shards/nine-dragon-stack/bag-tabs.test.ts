@@ -1,18 +1,18 @@
-import { NALATI_FEATS } from '#shards/nalati-grasslands/feats';
-import { registerAchievements } from '#game/achievements';
+import { NALATI_FEATS } from '../../../src/shards/nalati-grasslands/feats';
+import { registerAchievements } from '../../../src/game/achievements';
 /**
  * E314: every shard's BAG tabs (src/game/bag/bag.ts `bagTabs`, read by src/engine/ui/Menu.ts syncTabs) — Driftwood's five, Pine
  * Hollow's five (its journal is its FINDS, pick C), Nalati's four (no PACK, pick C), Nine Dragon's MAP · GEAR (pick A) —
  * and Nine Dragon's GEAR: the Neon Jian by name, the Fei Zhua as a card, no iron sword anywhere in its kit.
  */
 import { describe, expect, it } from 'vitest';
-import { bagTabs } from '#game/bag/bag';
-import { icon } from '#engine-internal/ui/icons';
-import { Inventory } from '#game/Inventory';
-import { Progress } from '#game/Progress';
-import { FEI_ZHUA_ROW } from '#shards/nine-dragon-stack/grapple/row';
-import { JIAN_ROW } from '#shards/nine-dragon-stack/vm/jianRow';
-import { ROSTER as NINE_ROSTER } from '#shards/nine-dragon-stack/roster';
+import { bagTabs } from '../../../src/game/bag/bag';
+import { icon } from '../../../src/engine/ui/icons';
+import { Inventory } from '../../../src/game/Inventory';
+import { Progress } from '../../../src/game/Progress';
+import { FEI_ZHUA_ROW } from '../../../src/shards/nine-dragon-stack/grapple/row';
+import { JIAN_ROW } from '../../../src/shards/nine-dragon-stack/vm/jianRow';
+import { ROSTER as NINE_ROSTER } from '../../../src/shards/nine-dragon-stack/roster';
 
 const DRIFT = 'chunk://local/driftwood-isle', PINE = 'chunk://local/pine-hollow', NALATI = 'chunk://local/nalati-grasslands', NINE = 'chunk://local/nine-dragon-stack';
 /** which shards install a FINDS view at boot: Driftwood's loot (src/game/loot/install.ts), Pine Hollow's hunter's journal

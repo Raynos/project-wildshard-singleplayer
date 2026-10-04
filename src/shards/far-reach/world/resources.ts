@@ -1,5 +1,5 @@
 import { InstancedMesh, Mesh, type Object3D } from 'three';
-import type { Scope } from '#engine';
+import type { Scope } from '@wildshard/engine';
 
 /** Code-built meshes own their buffers and materials in the level scope. */
 export function ownPrimitives(root: Object3D, scope: Scope): void {

@@ -25,7 +25,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng, Noise2D, smoothstep, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, type ModelContext, heightAt, trailDistance, place, type Placed } from '#engine';
+import { Rng, Noise2D, smoothstep, type BoxSpec as Collider, type ColliderDesc, type WorldRegistry, type Sky, type ModelContext, heightAt, trailDistance, place, type Placed } from '@wildshard/engine';
 import { inPoiClearing } from './world/clearings';
 import { isPhoneTier } from './look/nalatiTextures';
 import { zoneAt, glacierMask, brookMask, LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER } from './manifest';

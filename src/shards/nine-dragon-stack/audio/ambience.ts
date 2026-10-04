@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
-import type { ShardContext } from '#game';
-import { loadAudio, tap, ambientTick, castRay, type ZoneWeights } from '#engine';
+import type { ShardContext } from '@wildshard/game';
+import { loadAudio, tap, ambientTick, castRay, type ZoneWeights } from '@wildshard/engine';
 import { lanternAudioPositions } from '../look/lanterns';
 import { PLAZA, STREET, STAIR, WELL } from '../layout';
 import { ndCueMap, bindTraversalCue } from './cues';

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { declaredProbePoses } from '../scripts/parity/poses.mjs';
-import { toLevelSpec } from '#game/shard/spec';
-import driftwood from '#shards/driftwood-isle/manifest';
-import pine from '#shards/pine-hollow/manifest';
-import nalati from '#shards/nalati-grasslands/manifest';
-import nine from '#shards/nine-dragon-stack/manifest';
+import { toLevelSpec } from '../src/game/shard/spec';
+import driftwood from '../src/shards/driftwood-isle/manifest';
+import pine from '../src/shards/pine-hollow/manifest';
+import nalati from '../src/shards/nalati-grasslands/manifest';
+import nine from '../src/shards/nine-dragon-stack/manifest';
 
 // Exact pre-G16 parity rows: no degree round-trip and no newly authored Y coordinates.
 const previous = [

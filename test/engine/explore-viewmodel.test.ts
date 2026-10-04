@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Vector3, type Object3D } from 'three';
-import { Explore, type ExploreMode } from '#engine-internal/explore/Explore';
-import { app } from '#engine-internal/app/runtime';
-import { Scope } from '#engine-internal/app/scope';
-import type { Game } from '#engine-internal/core/Game';
-import type { World } from '#engine-internal/core/bootstrap';
+import { Explore, type ExploreMode } from '../../src/engine/explore/Explore';
+import { app } from '../../src/engine/app/runtime';
+import { Scope } from '../../src/engine/app/scope';
+import type { Game } from '../../src/engine/core/Game';
+import type { World } from '../../src/engine/core/bootstrap';
 import { FakeGame, legacyDouble } from '../fake/FakeGame';
 
 

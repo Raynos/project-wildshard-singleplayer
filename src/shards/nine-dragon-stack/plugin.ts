@@ -1,9 +1,9 @@
-import { Sword } from '#kit';
+import { Sword } from '@wildshard/kit';
 import { JIAN_ROW } from './vm/jianRow';
 import { FEI_ZHUA_ROW } from './grapple/row';
 import { FeiZhua } from './grapple/FeiZhua';
 import { GRAPPLE_PLAYGROUND } from './playground/registration';
-import { ShardPlugin, type ShardContext } from '#game';
+import { ShardPlugin, type ShardContext } from '@wildshard/game';
 import type { PerspectiveCamera } from 'three';
 import { type NineDragonWorld, buildNineDragonWorld } from './world/build';
 import { installWorld } from './world/install';

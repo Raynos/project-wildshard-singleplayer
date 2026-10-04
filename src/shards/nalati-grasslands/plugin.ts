@@ -1,9 +1,9 @@
 import { NALATI_SPECIES, NALATI_LOOKS } from './species/rows';
 import { STRINGS } from './strings';
 import { NALATI_FEATS } from './feats';
-import { renderFinds, ShardPlugin, type ShardContext, type ShardRuntime } from '#game';
-import { loadMeadow, loadWorldContent, heightAt, macrotask, setting, onSettingChange, pathRampDescs, type DamageRequest } from '#engine';
-import { Rifle, loadParticles, loadGrassField } from '#kit';
+import { renderFinds, ShardPlugin, type ShardContext, type ShardRuntime } from '@wildshard/game';
+import { loadMeadow, loadWorldContent, heightAt, macrotask, setting, onSettingChange, pathRampDescs, type DamageRequest } from '@wildshard/engine';
+import { Rifle, loadParticles, loadGrassField } from '@wildshard/kit';
 import { NALATI_GRASS_LAYOUT } from './look/grassFieldLayout';
 import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './runtime';

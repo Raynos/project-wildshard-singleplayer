@@ -9,7 +9,7 @@
  *
  *   placePineHollowSets(registry);   // main.ts, once the quest has placed its props
  */
-import { copiesNear, placedGroups, type Placed, placeSet, type WorldRegistry } from '#engine';
+import { copiesNear, placedGroups, type Placed, placeSet, type WorldRegistry } from '@wildshard/engine';
 import { PINE_HOLLOW_POIS } from '../layout';
 
 /** the quest's named places that are not discovery places (the stag's lead ends on the west road) */

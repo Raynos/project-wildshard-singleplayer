@@ -11,6 +11,7 @@ export type RGB = [number, number, number];
 export interface CabinSite { x: number; z: number; rot: number }
 export interface PondDef { x: number; z: number; r: number }
 export interface TerrainNoise { n: Noise2D; n2: Noise2D }
+/** a level's terrain as functions: height, normal, ground-layer weights, trails, pads, pond and water */
 export interface TerrainField {
   heightAt: (x: number, z: number) => number;
   normalAt: (x: number, z: number, eps?: number) => [number, number, number];

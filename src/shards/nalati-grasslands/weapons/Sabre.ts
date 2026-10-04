@@ -1,7 +1,7 @@
 import { SABRE } from './equipment';
 import * as THREE from 'three';
-import { Sword, SWORD_WOOD, type MeleeProfile, type SwordWorld, type SwordRig, type SwordMoveSet, key, type Move } from '#kit';
-import { app, type Targets, forearm, lin } from '#engine';
+import { Sword, SWORD_WOOD, type MeleeProfile, type SwordWorld, type SwordRig, type SwordMoveSet, key, type Move } from '@wildshard/kit';
+import { app, type Targets, forearm, lin } from '@wildshard/engine';
 import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
 
 

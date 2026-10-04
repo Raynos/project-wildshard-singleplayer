@@ -25,7 +25,7 @@ import { Pass } from 'postprocessing';
 import { NOISE_GLSL, STONES_GLSL } from '../style';
 import { FLAG_GLSL } from '../paint';
 import { VM_SLICE } from './bleed';
-import type { Renderer } from '#engine';
+import type { Renderer } from '@wildshard/engine';
 
 const VS = /* glsl */ `
 varying vec2 vUv;

@@ -1,15 +1,15 @@
 import { AMMO_ROWS } from './effects';
-import { saves, listenPage, type CombatCues, type EquipmentService, type Scope, app, type Sky, fixIBL, VIEWMODEL_GROUP, worldHit, type HUD, type Audio } from '#engine';
+import { saves, listenPage, type CombatCues, type EquipmentService, type Scope, app, type Sky, fixIBL, VIEWMODEL_GROUP, worldHit, type HUD, type Audio } from '@wildshard/engine';
 import { pineCombatCues } from '../audio/combatCues';
 import * as valibot from 'valibot';
 import * as THREE from 'three';
 
 
-import { sharedWeaponVoices, MAX_BOLTS, PLAIN_BOLT, type BoltMod, type Crossbow, type Bow } from '#kit';
+import { sharedWeaponVoices, MAX_BOLTS, PLAIN_BOLT, type BoltMod, type Crossbow, type Bow } from '@wildshard/kit';
 import { bindLongbowCharge } from './events';
 import type { LeverRifle } from '../weapons/LeverRifle';
-import { QUIVER_MAX } from '#shards/pine-hollow/weapons/Longbow';
-import type { Inventory, Owned } from '#game';
+import { QUIVER_MAX } from '../weapons/Longbow';
+import type { Inventory, Owned } from '@wildshard/game';
 import type { PineHollowSfx } from '../audio/sfx';
 import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, type AmmoKind, type BoltKind } from './ammo';
 

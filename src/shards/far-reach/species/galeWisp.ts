@@ -1,4 +1,4 @@
-import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
+import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '@wildshard/engine';
 import { IcosahedronGeometry, OctahedronGeometry, TorusGeometry, Vector3 } from 'three';
 import { KEEPER } from '../layout';
 import { STRINGS } from '../strings';

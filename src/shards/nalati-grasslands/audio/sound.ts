@@ -1,6 +1,6 @@
 import type { Wildlife } from '../creatures/wildlife';
-import type { ShardContext } from '#game';
-import { CombatCues, type Scope, panFromYaw, audioRandom, loadAudio, wind, type Audio, type Music, type Player, type AnimalManager, type HoofSurface, type ImpactKind } from '#engine';
+import type { ShardContext } from '@wildshard/game';
+import { CombatCues, type Scope, panFromYaw, audioRandom, loadAudio, wind, type Audio, type Music, type Player, type AnimalManager, type HoofSurface, type ImpactKind } from '@wildshard/engine';
 import { createSteppeScore, type SteppeScene } from './SteppeScore';
 /**
  * Nalati's sound (row B16, the audio half): the steppe's creatures, hooves on the ground they cross, the stampede, the
@@ -28,7 +28,7 @@ import { installSteppeVoices, STEPPE_BED, type SteppeCall, type SteppeVoices } f
 import type { Nalati } from '../index';
 import type { NalatiWeather } from '../weather';
 import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt, TERRAIN } from '../manifest';
-import { smoothstep } from '#engine/data';
+import { smoothstep } from '@wildshard/engine/data';
 
 const surfaceOf = (surface: string | undefined): ImpactKind => surface === 'wood' || surface === 'flesh' ? surface : 'ground';
 

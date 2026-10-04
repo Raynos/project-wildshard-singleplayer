@@ -1,4 +1,4 @@
-import { wind } from '#engine';
+import { wind } from '@wildshard/engine';
 import { POSE, buildRecurve, arrowKind, ARROW_LEN } from './recurve';
 import type { BowProfile } from './profile';
 

@@ -1,4 +1,4 @@
-import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type BoneDef, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
+import { CreatureBrain, StrikeRunner, NO_FUR, type Animal, type AnimalSpecies, type BoneDef, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '@wildshard/engine';
 import { BoxGeometry, Color, ConeGeometry, Float32BufferAttribute, IcosahedronGeometry, Uint16BufferAttribute, Vector3, type BufferGeometry } from 'three';
 import { bindRigid, fit, skyHd, skyMesh, type SkyHd } from '../world/meshes';
 import { CROWN, DAIS, ROC } from '../layout';

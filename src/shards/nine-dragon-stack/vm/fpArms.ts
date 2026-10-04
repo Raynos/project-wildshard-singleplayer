@@ -30,10 +30,9 @@ import { type Capsule, Talisman, Tassel, penetration } from './cloth';
 import { CLS, Geo, v3 } from './geo';
 import { buildHalo } from './jian';
 import { type Decals, type VmUniforms, decalAtlas, inkHullMaterial, vmMaterial, vmUniforms, weaveTexture } from './materials';
-import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure } from '#kit/viewmodel/armRig';
+import { type JointAngles, LEFT_HAND, RIGHT_HAND, measure, ARM_CLIPS, armClipNames } from '@wildshard/kit';
 import { Trail, type TrailLook } from './trail';
-import { app, loadRigFile, bindRig, AnimMachine, type RigContract, type RigBake, type ClipChannel as Channel, phoneUrl, ktx2Texture } from '#engine';
-import { ARM_CLIPS, armClipNames } from '#kit';
+import { app, loadRigFile, bindRig, AnimMachine, type RigContract, type RigBake, type ClipChannel as Channel, phoneUrl, ktx2Texture } from '@wildshard/engine';
 import type { NdTier } from '../tier';
 
 export const ASSET_BASE = '/assets/nine-dragon/viewmodel/';

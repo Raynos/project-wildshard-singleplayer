@@ -21,7 +21,7 @@ import { guardBoot } from './engine/boot/stuck';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from './engine/boot/bootTrace';
 import { setting } from './engine/ui/Settings';
 import { Scope } from './engine/app/scope';
-import { retried } from '#engine/retry';
+import { retried } from '@wildshard/engine/retry';
 import { bootRoute } from './bootRoute';
 
 const entryScope = new Scope('entry');
@@ -45,7 +45,7 @@ if (rescueBoot) {
 /** resolves once the title or the selected shard's entry has been evaluated */
 export const entered: Promise<unknown> = setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly ? (async () => {
   await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
-  const [{ showStartTitle }, { buildTitleDeck, titleCards, travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('#game/titleDeck')]));
+  const [{ showStartTitle }, { buildTitleDeck, titleCards, travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/titleDeck')]));
   // the composition root wires the game's deck into the engine's title (E405)
   showStartTitle(({ settings, notice }) => buildTitleDeck({
     cards: titleCards(), active: null,
@@ -64,9 +64,9 @@ guardBoot(entered);
 
 /** Composition root: select authored content and inject reusable kit recipes. */
 export async function start(): Promise<void> {
-  await retried(() => import('./shardList')); // the shard list before #game reads it (AG4)
+  await retried(() => import('./shardList')); // the shard list before @wildshard/game reads it (AG4)
   const [{ game }, kit, { loadBootRuntime }, { sharedCombatCues }] = await Promise.all([
-    retried(() => import('#game')), retried(() => import('#kit')), retried(() => import('#engine')), retried(() => import('#kit/audio/combatCues')),
+    retried(() => import('@wildshard/game')), retried(() => import('@wildshard/kit')), retried(() => import('@wildshard/engine')), retried(() => import('./kit/audio/combatCues')),
   ]);
   const manifest = game.shard;
   kit.installKitSpecies();
@@ -74,7 +74,7 @@ export async function start(): Promise<void> {
   kit.installKitPickups();
   kit.installKitProps();
   const engine = await retried(loadBootRuntime);
-  const { startSession } = await retried(() => import('#game/session/session'));
+  const { startSession } = await retried(() => import('./game/session/session'));
   await startSession(manifest, engine, {
     items: kit.KIT_ITEMS,
     tools: [kit.HOVERBOARD_TOOL],

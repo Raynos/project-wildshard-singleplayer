@@ -1,15 +1,15 @@
-import { horsePlayground } from '#shards/nalati-grasslands/playground/registration';
-import { GRAPPLE_PLAYGROUND } from '#shards/nine-dragon-stack/playground/registration';
+import { horsePlayground } from '../src/shards/nalati-grasslands/playground/registration';
+import { GRAPPLE_PLAYGROUND } from '../src/shards/nine-dragon-stack/playground/registration';
 // E307: the feature playgrounds — which shard lists which, and the two dev levels' geometry against the verbs they are for:
 // every grapple zip is inside the Fei Zhua's reach, lands on its pad (the PAST side of the ring, never short in the pit)
 // and flies clear of every other box; the horse track's bends are wider than a gallop's turn and inside the field.
 import { afterAll, describe, expect, it } from 'vitest';
-import { registerPlayground, PLAYGROUND_CARDS, asPlaygroundId, playgroundsFor } from '#engine-internal/practice/playground/catalog';
-import { COLUMN, HOOKS, PADS, RING_UP, ROOM, coursePad, padLabelAt, type CourseHook, type CoursePad } from '#shards/nine-dragon-stack/playground/grappleCourse';
-import { FIELD, HORSE_START, JUMPS, LAP_M, OVAL, POST_OFF, RIDER_START, ovalLine } from '#shards/nalati-grasslands/playground/horseCourse';
-import { practiceRoom } from '#engine-internal/core/practiceRoom';
-import { placesWithDiscovery } from '#game/quest/core';
-import { Flags } from '#engine-internal/world/interact/flags';
+import { registerPlayground, PLAYGROUND_CARDS, asPlaygroundId, playgroundsFor } from '../src/engine/practice/playground/catalog';
+import { COLUMN, HOOKS, PADS, RING_UP, ROOM, coursePad, padLabelAt, type CourseHook, type CoursePad } from '../src/shards/nine-dragon-stack/playground/grappleCourse';
+import { FIELD, HORSE_START, JUMPS, LAP_M, OVAL, POST_OFF, RIDER_START, ovalLine } from '../src/shards/nalati-grasslands/playground/horseCourse';
+import { practiceRoom } from '../src/engine/core/practiceRoom';
+import { placesWithDiscovery } from '../src/game/quest/core';
+import { Flags } from '../src/engine/world/interact/flags';
 
 const unregister = registerPlayground('nine-dragon-stack', GRAPPLE_PLAYGROUND);
 afterAll(unregister);

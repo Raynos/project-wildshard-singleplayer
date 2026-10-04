@@ -5,8 +5,8 @@
  * bars, the plateau brook, the spruce floor from the chunk's own forest mask — then the spruce stipple and the roads. The
  * map-01 places (NALATI_MAP.pois) are the full map's pins (named once explored, "?" before); no pines or cabins.
  */
-import { smoothstep, Rng, SEED } from '#engine/data';
-import type { MinimapPalette, MapPoi, MapOverlay } from '#engine';
+import { smoothstep, Rng, SEED } from '@wildshard/engine/data';
+import type { MinimapPalette, MapPoi, MapOverlay } from '@wildshard/engine';
 import { NALATI_MAP, SNOW_LINE } from '../layout';
 import { riverMask } from '../world/terrain';
 import { nalatiWetAt } from '../wet';

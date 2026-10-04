@@ -8,8 +8,8 @@
 // Sword model space: origin at the middle of the grip, +Y up the blade, +X across the edges, +Z the flat toward the eye.
 // The jian's parts are built with the guard at y 0 (blade up to TIP_Y, grip down to −0.39): they are lifted by GRIP_MID.
 import { type BufferGeometry, MathUtils, Matrix4, Quaternion, Vector3 } from 'three';
-import type { ShardSword } from '#game';
-import { CHARGE, COMBO, HEAVY, SPRINT, key } from '#kit';
+import type { ShardSword } from '@wildshard/game';
+import { CHARGE, COMBO, HEAVY, SPRINT, key } from '@wildshard/kit';
 import { Kit } from './kit';
 import { KitX, merge } from './hero/kitx';
 import { glbBox, guardMatrix, loadGlb } from './hero/glb';

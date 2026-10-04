@@ -27,7 +27,7 @@
  *                                                                        // trophy in front of you
  */
 import * as THREE from 'three';
-import { app, type Audio, modelContext, practiceRoom, type Sky, type WorldRegistry, type Renderer, InteractSfx, place, ItemPickup, type PickupTier } from '#engine';
+import { app, type Audio, modelContext, practiceRoom, type Sky, type WorldRegistry, type Renderer, InteractSfx, place, ItemPickup, type PickupTier } from '@wildshard/engine';
 import { islandTrophies } from './tables';
 import { seaGlassChime, SeaGlassChime } from '../models/seaGlassChime';
 import { buildTrophy, trophyPlaques, TrophyPlaques } from '../models/trophyPlaques';
@@ -35,7 +35,7 @@ import { buildCaptainHat } from '../models/captainHat';
 import { buildSailclothCape } from '../models/sailclothCape';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../quest/interactables';
 import type { Adventure } from '../quest/adventure';
-import type { BodyShadow, ShardContext, Owned } from '#game';
+import type { BodyShadow, ShardContext, Owned } from '@wildshard/game';
 import { seaGlassFound } from './finds';
 import { charmsFor, chimeCount, dodgeCooldownScale, heavyMult, nightGlow } from './perks';
 

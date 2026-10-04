@@ -1,4 +1,4 @@
-import { type ProjectileModification, Weather, type WeatherProfile, Rng } from '#engine';
+import { type ProjectileModification, Weather, type WeatherProfile, Rng } from '@wildshard/engine';
 import { WET_GRAVITY, WET_DRAG } from '../loadout/ammo';
 
 export type PineWeatherState = 'clear' | 'overcast' | 'rain' | 'clearing';

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   KING_PHASE_AT, kingPhaseAt, ringCatches, inLane, inArc, behindPlayer, fleeHeading, fadeCooldown, bugleHour, burnTick,
   boltHitStop, wallPush, headingTo, wrapAngle,
-} from '#shards/pine-hollow/combat/combatMath';
+} from '../../../src/shards/pine-hollow/combat/combatMath';
 
 // Pine Hollow's fight rules (src/shards/pine-hollow/combat/combatMath.ts: PH-C2 the Antler King, PH-C3 the elites, PH-F1 the feel)
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { FlightMotion } from '#engine-internal/ai/flight';
+import { FlightMotion } from '../../src/engine/ai/flight';
 import { creature } from '../fake/creature';
 
 describe('species flight body', () => {

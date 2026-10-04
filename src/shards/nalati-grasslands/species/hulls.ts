@@ -1,4 +1,4 @@
-import { loadRigFile, retainCachedResources, variantDef, type BoneDef } from '#engine';
+import { loadRigFile, retainCachedResources, variantDef, type BoneDef } from '@wildshard/engine';
 
 /**
  * glbCreatures — the generated creature hulls, pre-skinned to the procedural species' skeletons, so the species' own

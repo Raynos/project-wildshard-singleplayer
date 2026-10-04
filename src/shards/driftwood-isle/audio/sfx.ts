@@ -1,5 +1,5 @@
-import { Scope, tap, ambientTick, audioRandom, panFromYaw, impact, type Audio, type VoiceTable } from '#engine';
-import { vocal, windup } from '#kit';
+import { Scope, tap, ambientTick, audioRandom, panFromYaw, impact, type Audio, type VoiceTable } from '@wildshard/engine';
+import { vocal, windup } from '@wildshard/kit';
 import type { Vector3 } from 'three';
 import type { Surface } from './surface';
 /**

@@ -1,8 +1,9 @@
 // E362 AG20: inspect the commit's index tree, never the shared working copy.
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { linkNodeModules } from './link-node-modules.mjs';
 import { pathToFileURL } from 'node:url';
 import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { checkShardLayout, shardEntries } from './check-shards.mjs';
@@ -32,7 +33,7 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const tree = run(root, 'git', ['write-tree']).trim();
     const manifest = changed.some((p) => /^src\/shards\/[^/]+\/manifest\.ts$/u.test(p));
     const snapshot = guardSnapshot(root, tree, scratch, paths);
-    symlinkSync(resolve(root, 'node_modules'), join(scratch, 'node_modules'));
+    linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
     const baseline = JSON.parse(readFileSync(join(scratch, 'lint/ratchet.json'), 'utf8'));
     const configFile = join(scratch, '.oxlintrc.json'), hard = hardRules(configFile);
     const config = readLintConfig(configFile);

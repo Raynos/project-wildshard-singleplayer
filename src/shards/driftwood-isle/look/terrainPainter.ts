@@ -4,7 +4,7 @@
  * for the wet sand and the seabed is the manifest's `OCEAN.level`.
  */
 import * as THREE from 'three';
-import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES, attachFogUniforms, macrotask, type PainterField, type Terrain, type TerrainPainter, PATCH_ORDER, patchShader } from '#engine';
+import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES, attachFogUniforms, macrotask, type PainterField, type Terrain, type TerrainPainter, PATCH_ORDER, patchShader } from '@wildshard/engine';
 import { OCEAN } from '../manifest';
 import { LP, hash2, lowPolyGroundColor } from './groundColor';
 

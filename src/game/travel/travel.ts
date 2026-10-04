@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { app, markUnload, setTitleArrival, type SaveSlot } from '#engine';
+import { app, markUnload, setTitleArrival, type SaveSlot } from '@wildshard/engine';
 import { chunkUrl, findShard, shards } from '../shard/registry';
 import type { ShardSlug } from '../shard/slugs.generated';
 import type { SpawnPose } from '../shard/manifest';

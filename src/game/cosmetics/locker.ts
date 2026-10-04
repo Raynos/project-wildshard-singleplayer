@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { saves, type SaveSlot, type SkinDef, type WeaponId } from '#engine';
+import { saves, type SaveSlot, type SkinDef, type WeaponId } from '@wildshard/engine';
 
 export interface CosmeticState { owned: string[]; worn: Record<string, string> }
 export interface CosmeticDef<Slot extends string> { id: string; slot: Slot }

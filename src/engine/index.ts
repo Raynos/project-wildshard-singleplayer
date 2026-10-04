@@ -343,7 +343,7 @@ export { WIND_GLSL } from './world/steppeWind';
 export { WAVES_GLSL, WAVES_NORMAL_GLSL, seaDamp, waveClock } from './world/waves';
 export { patchSway, patchWindField, swayByHeight, swayDepthMaterial, updateWind, windBoost, windUniforms as windFieldUniforms } from './world/wind';
 
-// E362 AG5: the rest of what the layers above reached through deep paths (the #engine/* wildcard is gone)
+// E362 AG5: the rest of what the layers above reached through deep paths (a deep path does not resolve)
 export { audioLog } from './audio/audioLog';
 export { InteractSfx } from './audio/interactSfx';
 export { cachedBytes, decodeBytes } from './audio/preload';
@@ -375,3 +375,19 @@ export { normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, inCh
 export { HORIZON_RADIUS } from './world/HorizonMatte';
 export { Interactables } from './world/interact/Interactables';
 export { createWaterMaterial, waterWeather } from './world/waterSurface';
+// E432: types the layers above infer (declaration emit names them through the package's exports, so they are public)
+export type { StrikeShape } from './ai/strikes';
+export type { EquipmentCues } from './combat/Equipment';
+export type { EquipmentPickupSpec } from './combat/EquipmentPickup';
+export type { AudioBanks, Preload } from './boot/extras';
+export type { Plan } from './boot/plan';
+export type { TerrainField } from './level/data';
+export type { Hands } from './player/Hands';
+export type { LockOnSystem } from './player/LockOnTarget';
+export type { TouchControls } from './player/TouchControls';
+export type { Loading } from './ui/Loading';
+export type { Perf } from './ui/Perf';
+export type { WindupWarn } from './ui/WindupWarn';
+export type { Boundary } from './world/Boundary';
+export type { Horizon } from './world/Horizon';
+export type { Water } from './world/pond';

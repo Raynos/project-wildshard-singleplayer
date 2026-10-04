@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { LastPlace, placeAt, placeName, yawToward, type PlaceArea } from '#game/LastPlace';
-import { deathCause, deathLine, respawnWhere } from '#engine-internal/ui/HurtArc';
-import { DRIFTWOOD_PLACES } from '#shards/driftwood-isle/quest/Places';
-import { app, Scope } from '#engine';
-import { STRINGS as PINE } from '#shards/pine-hollow/strings';
+import { LastPlace, placeAt, placeName, yawToward, type PlaceArea } from '../src/game/LastPlace';
+import { deathCause, deathLine, respawnWhere } from '../src/engine/ui/HurtArc';
+import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/quest/Places';
+import { app, Scope } from '@wildshard/engine';
+import { STRINGS as PINE } from '../src/shards/pine-hollow/strings';
 
 // the level registers how its creatures kill (ctx.strings 'death.verb.<kind>'; E405)
 app.levelRegistrations.strings(PINE, new Scope('test.death-verbs'));

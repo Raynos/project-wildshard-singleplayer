@@ -27,7 +27,7 @@ import * as THREE from 'three';
 import { OCEAN } from '../manifest';
 import { islandKnobs } from '../tiers';
 import { toonUniforms } from '../look/toon';
-import { PATCH_ORDER, patchShader, CHUNK_HALF, CHUNK_SIZE, attachFogUniforms, type Sky, WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock, heightAt, inChunk, HORIZON_RADIUS } from '#engine';
+import { PATCH_ORDER, patchShader, CHUNK_HALF, CHUNK_SIZE, attachFogUniforms, type Sky, WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock, heightAt, inChunk, HORIZON_RADIUS } from '@wildshard/engine';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 

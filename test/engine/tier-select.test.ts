@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { selectTier, parseTierPick, mobileDevice, type TierPick } from '#engine-internal/render/tierSelect';
-import { gpuClass, GPU_CLASSES } from '#engine-internal/render/gpuClasses';
-import { desktopFloor, DESKTOP_REFERENCE } from '#engine-internal/render/desktopReference';
+import { selectTier, parseTierPick, mobileDevice, type TierPick } from '../../src/engine/render/tierSelect';
+import { gpuClass, GPU_CLASSES } from '../../src/engine/render/gpuClasses';
+import { desktopFloor, DESKTOP_REFERENCE } from '../../src/engine/render/desktopReference';
 
 const cached: TierPick = { v: 1, renderer: 'unknown', tier: 'desktop', via: 'bench', score: 800, at: 123 };
 function fixture(renderer = 'unknown', score = 800) {

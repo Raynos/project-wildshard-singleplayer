@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BoxGeometry, MeshBasicMaterial, Texture, WebGLRenderTarget } from 'three';
-import { Scope, AssetService } from '#engine-internal/index';
+import { Scope, AssetService } from '../../src/engine/index';
 import { disposalErrorMessages } from '../../src/engine/app/scope';
 
 const originalRaf = globalThis.requestAnimationFrame;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EncounterService, type EventMap } from '#engine';
+import { EncounterService, type EventMap } from '@wildshard/engine';
 import { captainFixture } from '../../fake/captain';
 
 describe('Captain terminal attempts', () => {

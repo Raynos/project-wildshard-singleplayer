@@ -5,8 +5,8 @@ import { legacyDouble } from '../fake/FakeGame';
 import { baselineCeilings } from '../../scripts/parity/budgetCeilings.mjs';
 import { budgetChecks, budgetLines, budgetViews } from '../../scripts/parity/budgets.mjs';
 import { compare } from '../../scripts/parity/compare.mjs';
-import { parseCalibration } from '#engine-internal/render/calibration';
-import { syntheticNavigation } from '#engine-internal/calibrate/js';
+import { parseCalibration } from '../../src/engine/render/calibration';
+import { syntheticNavigation } from '../../src/engine/calibrate/js';
 import { createFindNearestPolyResult, DEFAULT_QUERY_FILTER, findNearestPoly } from 'navcat';
 import rawSweep from '../../budgets/calibration/m5-2026-10-01T08-07-18-573Z.json?raw';
 

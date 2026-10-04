@@ -1,15 +1,15 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
-import { App, Scope, type LevelContext, type InputContextDef } from '#engine';
+import { App, Scope, type LevelContext, type InputContextDef } from '@wildshard/engine';
 import * as THREE from 'three';
-import { BindingTable } from '#engine-internal/input/bindingTable';
-import { INPUT_CONTEXTS } from '#game/inputContexts';
-import { KEY_BINDINGS } from '#game/keyBindings';
-import { installRide } from '#shards/nalati-grasslands/ride/input';
-import type { Ride } from '#shards/nalati-grasslands/ride/ride';
-import { Mount } from '#shards/nalati-grasslands/ride/Mount';
-import type { RideHUD } from '#shards/nalati-grasslands/ride/RideHUD';
-import type { Taming } from '#shards/nalati-grasslands/ride/Taming';
+import { BindingTable } from '../../../src/engine/input/bindingTable';
+import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
+import { KEY_BINDINGS } from '../../../src/game/keyBindings';
+import { installRide } from '../../../src/shards/nalati-grasslands/ride/input';
+import type { Ride } from '../../../src/shards/nalati-grasslands/ride/ride';
+import { Mount } from '../../../src/shards/nalati-grasslands/ride/Mount';
+import type { RideHUD } from '../../../src/shards/nalati-grasslands/ride/RideHUD';
+import type { Taming } from '../../../src/shards/nalati-grasslands/ride/Taming';
 import { legacyDouble } from '../../fake/FakeGame';
 import { damageTarget } from '../../fake/legacyActor';
 import { fakeWorld } from '../../fake/world';

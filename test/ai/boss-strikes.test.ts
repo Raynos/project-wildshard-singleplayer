@@ -1,13 +1,13 @@
-import { app } from '#engine';
+import { app } from '@wildshard/engine';
 import * as THREE from 'three';
 import { describe, expect, it, vi, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
-import { GoldenKingFight } from '#shards/nalati-grasslands/combat/goldenKing';
-import { StormTitan, StormTitanFight } from '#shards/nalati-grasslands/combat/stormTitan';
-import { AntlerKingFight } from '#shards/pine-hollow/combat/antlerKing';
-import { DUNGEON } from '#shards/nalati-grasslands/world/KurganDungeon';
-import { KINGS_CLEARING } from '#shards/pine-hollow/layout';
-import { CAIRN } from '#shards/nalati-grasslands/layout';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
+import { GoldenKingFight } from '../../src/shards/nalati-grasslands/combat/goldenKing';
+import { StormTitan, StormTitanFight } from '../../src/shards/nalati-grasslands/combat/stormTitan';
+import { AntlerKingFight } from '../../src/shards/pine-hollow/combat/antlerKing';
+import { DUNGEON } from '../../src/shards/nalati-grasslands/world/KurganDungeon';
+import { KINGS_CLEARING } from '../../src/shards/pine-hollow/layout';
+import { CAIRN } from '../../src/shards/nalati-grasslands/layout';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 import { creature } from '../fake/creature';
 

@@ -1,11 +1,11 @@
-import { type SkinLocker, type Inventory, Elites, GroundTell, type EliteRule } from '#game';
-import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight, canReach, type AnimalManager, type Animal, CameraFX, type HUD, type Audio, type Music, EliteBar, applySkin, type SkinDef, perfLap } from '#engine';
+import { type SkinLocker, type Inventory, Elites, GroundTell, type EliteRule } from '@wildshard/game';
+import { app, type Game, type Sky, type Player, type EquipmentService, type Weapon, lineOfSight, canReach, type AnimalManager, type Animal, CameraFX, type HUD, type Audio, type Music, EliteBar, applySkin, type SkinDef, perfLap } from '@wildshard/engine';
 import * as THREE from 'three';
 
 
 
 
-import { Crossbow, MAX_BOLTS, crossbowDisplayModel } from '#kit';
+import { Crossbow, MAX_BOLTS, crossbowDisplayModel } from '@wildshard/kit';
 import { SKINS, type SkinId } from '../loadout/skins';
 import type { PineHollowSfx } from '../audio/sfx';
 import type { Interactable } from '../world/homestead';

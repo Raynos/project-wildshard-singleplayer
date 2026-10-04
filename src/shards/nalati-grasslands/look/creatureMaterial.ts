@@ -1,4 +1,4 @@
-import { type Sky, painterlyMaterial } from '#engine';
+import { type Sky, painterlyMaterial } from '@wildshard/engine';
 import type * as THREE from 'three';
 
 

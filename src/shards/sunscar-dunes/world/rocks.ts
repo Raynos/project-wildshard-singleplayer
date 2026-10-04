@@ -1,5 +1,5 @@
 import { Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
-import { Rng, boxDesc, rock, type ColliderDesc } from '#engine';
+import { Rng, boxDesc, rock, type ColliderDesc } from '@wildshard/engine';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL } from '../layout';
 
 /** The rock counts (instanced: one draw each, never multi-draw); the shrubs and grass are `dressing.ts`. */

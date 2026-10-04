@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { afterEach, describe, expect, it, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
-import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
-import { activePhysics, setActivePhysics } from '#engine-internal/physics/active';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
+import { getActiveChunk, setActiveChunk } from '../../src/game/shard/registry';
+import { activePhysics, setActivePhysics } from '../../src/engine/physics/active';
 import { manager } from '../fake/manager';
 import { creature } from '../fake/creature';
 

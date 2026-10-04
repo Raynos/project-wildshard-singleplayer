@@ -1,7 +1,7 @@
 import { SkinLocker } from '../cosmetics/locker';
 import { BagMenu } from '../bag/tabs';
 import { equipmentEntry, toolEntries } from '../bag/equipment';
-import type { WeaponId, SkinDef, DeathCause, AimTarget, Feedback, Explore, ExploreMode, Playground, PlaygroundId, Bucket } from '#engine';
+import type { WeaponId, SkinDef, DeathCause, AimTarget, Feedback, Explore, ExploreMode, Playground, PlaygroundId, Bucket } from '@wildshard/engine';
 import { installBodyShadow, isOwnedId, bindTravelInventory, applyTravelCarry } from '../index';
 import * as THREE from 'three';
 import { BagButton } from '../bag/BagButton';

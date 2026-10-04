@@ -1,4 +1,4 @@
-import { loadAudio, type SetScore, type ScoreSource, type LevelAudioProfile, type MusicState } from '#engine';
+import { loadAudio, type SetScore, type ScoreSource, type LevelAudioProfile, type MusicState } from '@wildshard/engine';
 
 export const SCORE_SET = { dir: '/assets/music/nine-dragon-stack/', manifestKey: 'nine-dragon-stack' };
 export const SFX_SET = 'nine-dragon-stack';

@@ -1,4 +1,4 @@
-import { DayCycle, type DayCycleSpec, type OptionValue } from '#engine';
+import { DayCycle, type DayCycleSpec, type OptionValue } from '@wildshard/engine';
 import * as THREE from 'three';
 import type { SkyKeyName } from './skyKeys';
 

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { App } from '#engine';
-import { Game } from '#engine-internal/core/Game';
+import { App } from '@wildshard/engine';
+import { Game } from '../../src/engine/core/Game';
 
 it('runs no fixed phase while paused, including a forced redraw, and resumes the accumulator unchanged', () => {
   const runFixed: unknown = Reflect.get(Game.prototype, 'runFixed');

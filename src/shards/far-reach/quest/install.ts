@@ -1,5 +1,5 @@
-import { Flags, QuestState, type QuestMarker } from '#engine';
-import { CoinBurst, installQuestPresentation, purseSave, shardSave, type QuestPresentation, type ShardContext } from '#game';
+import { Flags, QuestState, type QuestMarker } from '@wildshard/engine';
+import { CoinBurst, installQuestPresentation, purseSave, shardSave, type QuestPresentation, type ShardContext } from '@wildshard/game';
 import * as v from 'valibot';
 import { Scene, Vector3 } from 'three';
 import { CROWN, DECK, GROVE, HIGH, KEEPER, ROOST, RUIN, STEP, SUNREST, VANES, WINCH, WINDMILL } from '../layout';

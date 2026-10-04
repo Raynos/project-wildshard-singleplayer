@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { deriveBudget, type BudgetInputs, type Calibration } from '#engine-internal/render/budgets';
-import { slope } from '#engine-internal/calibrate/math';
+import { deriveBudget, type BudgetInputs, type Calibration } from '../../src/engine/render/budgets';
+import { slope } from '../../src/engine/calibrate/math';
 
 const calibration: Calibration = { schema: 1, measuredAt: '2026-10-01', device: 'fixture', source: 'fixture', phone: { ratio: 10, source: 'E283', assumption: 'fixture assumption' }, combine: 'serial', costs: {
   drawCpuMs: 0.004, triangleGpuMs: { static: 0.000001, skinned: 0.000002, wind: 0.000003 }, fragmentGpuMs: { flat: 1e-7, toon: 2e-7, pbr: 3e-7, alphaTest: 4e-7, blend: 5e-7 }, passGpuMs: {}, linkMs: 0.2, rigCpuMs: 0.01, bodyCpuMs: 0.02, agentCpuMs: 0.04,

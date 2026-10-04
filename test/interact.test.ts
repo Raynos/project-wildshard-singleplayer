@@ -1,11 +1,11 @@
 // src/world/interact/* — the interactables kit's data side: the flag store, conditions, and the table validator run
 // against Driftwood Isle's own table (the shape a chunk upload would be checked against).
 import { describe, expect, it } from 'vitest';
-import { Flags, test as holds } from '#engine-internal/world/interact/flags';
-import { validateTable } from '#engine-internal/world/interact/validate';
-import { flagsRaised, flagsRead, type InteractTable } from '#engine-internal/world/interact/types';
-import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from '#shards/driftwood-isle/quest/interactables';
-import { ITEMS } from '#game/Inventory';
+import { Flags, test as holds } from '../src/engine/world/interact/flags';
+import { validateTable } from '../src/engine/world/interact/validate';
+import { flagsRaised, flagsRead, type InteractTable } from '../src/engine/world/interact/types';
+import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SHARD_FLAGS } from '../src/shards/driftwood-isle/quest/interactables';
+import { ITEMS } from '../src/game/Inventory';
 
 const items = Object.keys(ITEMS);
 

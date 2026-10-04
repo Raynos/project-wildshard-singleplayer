@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
-import { Scope, TabRegistry, type TabSpec, type TabFragment, type KitEntry } from '#engine';
-import { BagMenu, bagMenu } from '#game/bag/tabs';
-import { Inventory } from '#game/Inventory';
-import { Progress } from '#game/Progress';
-import type { FindsView } from '#game/bag/bag';
+import { Scope, TabRegistry, type TabSpec, type TabFragment, type KitEntry } from '@wildshard/engine';
+import { BagMenu, bagMenu } from '../../src/game/bag/tabs';
+import { Inventory } from '../../src/game/Inventory';
+import { Progress } from '../../src/game/Progress';
+import type { FindsView } from '../../src/game/bag/bag';
 
 function host() {
   const scope = new Scope('bag-test'), tabs = new TabRegistry(), panels = new Map<string, HTMLElement>();

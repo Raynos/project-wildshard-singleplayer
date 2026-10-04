@@ -1,6 +1,6 @@
-import { GroundTell, type GroundTellWedgeStyle } from '#game';
+import { GroundTell, type GroundTellWedgeStyle } from '@wildshard/game';
 import { nightSpawner } from './spawns';
-import { app, type Animal, type AnimalManager, type DayCycleClock, type Scope, type Spawner, heightAt, setting } from '#engine';
+import { app, type Animal, type AnimalManager, type DayCycleClock, type Scope, type Spawner, heightAt, setting } from '@wildshard/engine';
 import { balbalPiercing } from '../weapons/effects';
 
 import * as THREE from 'three';

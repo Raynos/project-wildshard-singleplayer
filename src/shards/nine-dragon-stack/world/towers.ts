@@ -15,7 +15,7 @@ import { WORDS } from './words';
 import { SQ_DEPTH, buildStairStreet } from './stairstreet';
 import { buildStairUpper } from './stairstreet-upper';
 import { NEON, chars } from '../util';
-import { Rng } from '#engine';
+import { Rng } from '@wildshard/engine';
 
 export { WORDS } from './words';
 export const NEONS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, NEON.red, NEON.magenta, NEON.cyan, 0xff7a2a, 0xa8ff5a] as const;

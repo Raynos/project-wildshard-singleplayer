@@ -1,4 +1,4 @@
-import type { Key, Move } from '#engine';
+import type { Key, Move } from '@wildshard/engine';
 import * as THREE from 'three';
 
 /**
@@ -17,7 +17,7 @@ import * as THREE from 'three';
  * swing chains here), `total` (back at rest). The hit test is the blade itself, swept through the active window (Sword.ts).
  */
 
-export type { Key, Trail, Move } from '#engine';
+export type { Key, Trail, Move } from '@wildshard/engine';
 
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const _q2 = new THREE.Quaternion();

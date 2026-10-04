@@ -34,7 +34,7 @@ import { kokparRider } from '../models/kokparRider';
 import { herdHorse } from '../models/herdHorse';
 import { snowLotus } from '../models/snowLotus';
 import { glacierSnout, snoutGeometry, snoutAt } from '../models/glacierSnout';
-import { PATCH_ORDER, patchShader, painterlyMaterial, painterlyUniforms, type Sky, Rng, TIER, place as placeModel } from '#engine';
+import { PATCH_ORDER, patchShader, painterlyMaterial, painterlyUniforms, type Sky, Rng, TIER, place as placeModel } from '@wildshard/engine';
 
 const PHONE = TIER === 'phone';
 

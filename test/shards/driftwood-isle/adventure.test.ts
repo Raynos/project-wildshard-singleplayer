@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Events, Scope, type Actor, type DamageRequest, type LevelContext } from '#engine';
+import { Events, Scope, type Actor, type DamageRequest, type LevelContext } from '@wildshard/engine';
 import { Vector3 } from 'three';
-import { DEATH_ORDER, onCreatureDeath } from '#game/loot/deaths';
+import { DEATH_ORDER, onCreatureDeath } from '../../../src/game/loot/deaths';
 
 const actor = (): Actor => ({ id: 'creature.crab', tags: ['actor.creature', 'creature.crab'], state: [],
   attributes: { health: 0, maxHealth: 25 }, alive: false, applyDamage: () => false });

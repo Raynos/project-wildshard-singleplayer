@@ -1,5 +1,5 @@
-import { faceHead, loadFaceHead, type FaceHead } from '#kit';
-import { CreatureBrain, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '#engine';
+import { faceHead, loadFaceHead, type FaceHead } from '@wildshard/kit';
+import { CreatureBrain, type Rng, type SpeciesRow, type SpeciesLook, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx, loft, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paletteColors, type Paint, type SpeciesRGB as RGB, type Animal, NO_FUR, lookAngles, smooth01, bump, step, rigClamp as clamp, squashBody } from '@wildshard/engine';
 import { DRIFTWOOD_STRIKES, driftwoodContact } from '../combat/strikes';
 import * as THREE from 'three';
 

@@ -23,7 +23,7 @@ describe('shard generation', () => {
       writeFileSync(join(root, 'src/shards/cold/manifest.ts'), "import { bytes } from './bytes.generated'; export default { slug: 'cold', name: 'Cold', bytes }; ");
       // Nothing *.generated exists yet, and budget inputs must not be loaded during discovery.
       expect(() => execFileSync(process.execPath, [join(root, 'scripts/gen-shards.mjs')], { cwd: root, stdio: 'pipe' })).not.toThrow();
-      expect(readFileSync(join(root, 'src/shards.generated.ts'), 'utf8')).toContain("#shards/cold/manifest");
+      expect(readFileSync(join(root, 'src/shards.generated.ts'), 'utf8')).toContain("./shards/cold/manifest");
       expect(readFileSync(join(root, 'lint/shard-words.generated.json'), 'utf8')).toContain('"cold"');
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
@@ -73,7 +73,7 @@ describe('shard generation', () => {
       genShards(root);
       const out = join(root, 'src/shards.generated.ts');
       const source = readFileSync(out, 'utf8');
-      expect(source).toContain("from '#shards/new-shard/manifest'");
+      expect(source).toContain("from './shards/new-shard/manifest'");
       expect(readFileSync(join(root, 'src/game/shard/slugs.generated.ts'), 'utf8')).toContain('"_template" | "new-shard"');
       expect(source).not.toContain('ktx2');
       expect(source).not.toContain('not-a-shard');

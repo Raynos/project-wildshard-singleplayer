@@ -8,7 +8,7 @@
 // (well-bridges.ts). Neon blade signs hang out into the canyon and face the rim; lanterns, laundry, people everywhere.
 // The regions are built by their own files so each can be owned on its own (well-plan.ts: the shared plan):
 // well-rim.ts (the rim + the near galleries), well-mid.ts (the run north + every crossing), well-lower.ts (below SPLIT).
-import type { ColliderDesc } from '#engine';
+import type { ColliderDesc } from '@wildshard/engine';
 import type { Ctx } from './ctx';
 import { WELL, Y0 } from '../layout';
 import { buildRim } from './well-rim';

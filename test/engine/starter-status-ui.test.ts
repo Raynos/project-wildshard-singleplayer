@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { App, Scope, EffectService, PlayerHealth, type DebugRowSpec } from '#engine';
-import { STARTER_EFFECTS } from '#kit/effects/starter';
-import { installStarterEffects } from '#kit/effects/install';
-import { DialogueBox } from '#engine-internal/quest/view/ui';
-import { Flags } from '#engine-internal/world/interact/flags';
-import { NpcTalk } from '#engine-internal/quest/view';
-import { BoardPanel, TradePanel, CountChip } from '#shards/pine-hollow/quest/ui';
-import { newBoard } from '#shards/pine-hollow/quest/contracts';
+import { App, Scope, EffectService, PlayerHealth, type DebugRowSpec } from '@wildshard/engine';
+import { STARTER_EFFECTS } from '../../src/kit/effects/starter';
+import { installStarterEffects } from '../../src/kit/effects/install';
+import { DialogueBox } from '../../src/engine/quest/view/ui';
+import { Flags } from '../../src/engine/world/interact/flags';
+import { NpcTalk } from '../../src/engine/quest/view';
+import { BoardPanel, TradePanel, CountChip } from '../../src/shards/pine-hollow/quest/ui';
+import { newBoard } from '../../src/shards/pine-hollow/quest/contracts';
 
 afterEach(() => document.body.replaceChildren());
 describe('scoped status and quest UI', () => {

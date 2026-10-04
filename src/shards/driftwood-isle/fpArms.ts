@@ -1,5 +1,5 @@
-import { type RigContract, type RigBake, PATCH_ORDER, patchShader, type Sky, attachFogUniforms, type SwimArms } from '#engine';
-import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from '#kit';
+import { type RigContract, type RigBake, PATCH_ORDER, patchShader, type Sky, attachFogUniforms, type SwimArms } from '@wildshard/engine';
+import { ARM_CLIPS, SWIM_CLIPS, armClipNames, RigArms, swordArmsOf, vmScale } from '@wildshard/kit';
 // Driftwood Isle's first-person arms (E334, DRIFTWOOD-TOP10 row 12; Jake's picks 2026-09-30: board 2 A "castaway",
 // board 3 A "breaststroke" — art/driftwood-fp/round-1-remaster/): sun-browned hands with fingers round a hemp-cord grip,
 // patched linen sleeves rolled to mid-forearm, the off hand in frame, both swords on the same arms, and the same arms
@@ -13,8 +13,7 @@ import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from '#kit';
 // island (sky.setupMaterial: the CSM shadows and the fog). ~9.5 k triangles of arms + ~0.8 k of sword, two draws + the
 // engine's trail.
 import { Color, MeshStandardMaterial, type Object3D, type PerspectiveCamera, Quaternion, Vector2, Vector3 } from 'three';
-import type { ShardSword } from '#game';
-import { RigArms, swordArmsOf, vmScale } from '#kit/viewmodel/rigArms';
+import type { ShardSword } from '@wildshard/game';
 
 const CLIPS = { ...ARM_CLIPS, ...SWIM_CLIPS };
 export const FP_ARMS_CONTRACT: RigContract = { skeleton: 'driftwood-fp', clips: armClipNames(CLIPS), sockets: ['R_weapon', 'L_hand'] };

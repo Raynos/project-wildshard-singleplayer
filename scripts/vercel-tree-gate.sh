@@ -40,7 +40,7 @@ grep -vxFf "$work/ignored" "$work/all" > "$work/keep"
 mkdir -p "$work/tree"
 GIT_INDEX_FILE="$work/index" git read-tree "$sha" || fail "read-tree"
 tr '\n' '\0' < "$work/keep" | GIT_INDEX_FILE="$work/index" git checkout-index -z --stdin --prefix="$work/tree/" || fail "checkout-index"
-ln -s "$ROOT/node_modules" "$work/tree/node_modules"
+node "$ROOT/scripts/link-node-modules.mjs" "$ROOT" "$work/tree" || fail "link node_modules" # E432: @wildshard/* → this tree
 
 # ── 3. the CI gates, in the Vercel tree ──
 cd "$work/tree" || exit 1

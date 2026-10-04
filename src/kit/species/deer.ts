@@ -1,6 +1,6 @@
 // The red deer, a kit creature (moved from the engine's species folder, E405 LAYER-PURITY); installKitSpecies registers it.
 import * as THREE from 'three';
-import { loft, tube, skinPlain, S, boneIndex, srgb, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint, type RGB, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesDef } from '#engine';
+import { loft, tube, skinPlain, S, boneIndex, srgb, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, toonPaint, paletteColors, type Paint, type RGB, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesDef } from '@wildshard/engine';
 
 /**
  * Deer — red-deer proportions: 0.92 m at the spine, long neck, stags carry a 6-point rack.

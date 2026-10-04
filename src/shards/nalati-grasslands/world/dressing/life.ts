@@ -16,8 +16,8 @@
  *   life.update(dt, camera, playerPos);
  */
 import * as THREE from 'three';
-import { Rng, clamp, smoothstep, TIER, heightAt, wind, painterlyMaterial, painterlyUniforms, type Sky } from '#engine';
-import { grassBaseHeightAt } from '#kit/looks/grassField';
+import { Rng, clamp, smoothstep, TIER, heightAt, wind, painterlyMaterial, painterlyUniforms, type Sky } from '@wildshard/engine';
+import { grassBaseHeightAt } from '@wildshard/kit';
 import { BUTTERFLIES, BUTTERFLY_HUES, FLY_SCALE, halfBirdGeo, RAPTORS, wingGeo } from '../../models/ambientLife';
 
 const PHONE = TIER === 'phone';

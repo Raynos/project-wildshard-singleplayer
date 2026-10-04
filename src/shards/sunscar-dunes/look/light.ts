@@ -1,5 +1,5 @@
 import { Mesh, MeshStandardMaterial, type Object3D } from 'three';
-import { patchShader, PATCH_ORDER, type Scope } from '#engine';
+import { patchShader, PATCH_ORDER, type Scope } from '@wildshard/engine';
 
 /**
  * The style bible's rim and shade floor ("Last Light"): a prop or creature keeps an orange edge where its silhouette

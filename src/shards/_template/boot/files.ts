@@ -1,4 +1,4 @@
-import type { ShardManifest } from '#game';
+import type { ShardManifest } from '@wildshard/game';
 
 /** Only the engine's shared physics runtime is downloaded; this shard owns no assets. */
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = () => ({

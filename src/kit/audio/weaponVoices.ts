@@ -1,4 +1,4 @@
-import type { Audio } from '#engine';
+import type { Audio } from '@wildshard/engine';
 import { crossbowFire, dryFire, boltImpact, reload } from '../weapons/crossbow/sounds';
 import { rifleFire, rifleReload } from '../weapons/firearm/sounds';
 import { swordSwing, swordHeavy, swordHit } from '../weapons/melee/sounds';

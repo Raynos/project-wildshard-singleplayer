@@ -8,7 +8,7 @@
  * poses them there; a glowing part is drawn unlit, as in the world.
  */
 import * as THREE from 'three';
-import { defineModel, interactParts, pickupModel as pickup, registerInteractProps, type ChestLook, type DoorLook, type InteractProps } from '#engine';
+import { defineModel, interactParts, pickupModel as pickup, registerInteractProps, type ChestLook, type DoorLook, type InteractProps } from '@wildshard/engine';
 import * as Mdl from '../props/interact';
 
 const { lit, glow } = interactParts;

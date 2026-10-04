@@ -26,7 +26,7 @@ import { K, Kit, type Look } from './kit';
 import { SURF } from '../look/paint';
 import { PLAZA, STAIR, Y0 } from '../layout';
 import { MIN, NEON } from '../util';
-import { Rng, type ColliderDesc } from '#engine';
+import { Rng, type ColliderDesc } from '@wildshard/engine';
 
 // ── the plan: three flights of 20 steps, two 4 m landings, the top landing ──
 

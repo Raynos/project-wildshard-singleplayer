@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { EffectService, Scope, Events, CombatPipeline, PlayerHealth, type Actor } from '#engine';
-import { STARTER_EFFECTS, starterId } from '#kit/effects/starter';
-import { bindStarterEffects } from '#kit/effects/bindings';
+import { EffectService, Scope, Events, CombatPipeline, PlayerHealth, type Actor } from '@wildshard/engine';
+import { STARTER_EFFECTS, starterId } from '../../src/kit/effects/starter';
+import { bindStarterEffects } from '../../src/kit/effects/bindings';
 
 function setup() {
   const scope = new Scope('starter-test'), events = new Events(), combat = new CombatPipeline(events, scope);

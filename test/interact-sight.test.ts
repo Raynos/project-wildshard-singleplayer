@@ -2,15 +2,15 @@
 // can SEE through the Rapier world. A wall between eye and target hides it; the target's own box does not.
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { Physics } from '#engine-internal/physics/Physics';
-import { addPiece } from '#engine-internal/physics/pieces';
-import { boxDesc } from '#engine-internal/world/registry';
-import { groups } from '#engine-internal/physics/groups';
-import { tagCollider } from '#engine-internal/physics/surface';
-import { canSee, pickInteractable, setSight } from '#engine-internal/world/interact/Interactables';
-import type { Interactable } from '#engine-internal/world/interact/types';
-import type { BoxSpec as Collider } from '#engine-internal/physics/box';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { Physics } from '../src/engine/physics/Physics';
+import { addPiece } from '../src/engine/physics/pieces';
+import { boxDesc } from '../src/engine/world/registry';
+import { groups } from '../src/engine/physics/groups';
+import { tagCollider } from '../src/engine/physics/surface';
+import { canSee, pickInteractable, setSight } from '../src/engine/world/interact/Interactables';
+import type { Interactable } from '../src/engine/world/interact/types';
+import type { BoxSpec as Collider } from '../src/engine/physics/box';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

@@ -107,6 +107,7 @@ function swapCardArt(blobs: ReadonlyMap<string, string>): void {
   }
 }
 
+/** a boot preload in flight: `wait` reports progress into a boot step and resolves with what it loaded */
 export interface Preload<T> { wait: (p: StepProgress) => Promise<T> }
 
 /** pictures already in memory (E155: a shard built later in the page, or rebuilt, finds the cards' art decoded) */
@@ -155,6 +156,7 @@ export function startMenuPreload(files: ChunkFiles, def: BootLevel): Preload<voi
 /** audio files this page already read to the end once */
 const downloaded = new Set<string>();
 
+/** a level's decoded audio: its music bank, its SFX bank and its own audio profile's bank */
 export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; profile?: LevelAudioBank }
 
 /** Nine Dragon's phone boot: count/cache every file, then decode the selected banks after the world starts. */

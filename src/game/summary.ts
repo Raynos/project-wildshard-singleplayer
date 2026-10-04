@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { app, type SaveStore } from '#engine';
+import { app, type SaveStore } from '@wildshard/engine';
 import { progressSave } from './saves';
 import { shards as installedShards } from './shard/registry';
 import type { ShardSlug } from './shard/slugs.generated';

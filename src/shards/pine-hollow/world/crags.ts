@@ -40,7 +40,7 @@ import { CRAG_LOD, useCragKit } from './cragKit';
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
-import { PATCH_ORDER, patchShader, setProgramKey, type ColliderDesc, type WorldRegistry, type TerrainCut, attachFogUniforms, loadPBR, type PBRSet, TIER, Rng, CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES, type Sky, type ModelDef, type Placement, heightAt, normalAt, trailDistance, cabinMask, inChunk, place, type Placed } from '#engine';
+import { PATCH_ORDER, patchShader, setProgramKey, type ColliderDesc, type WorldRegistry, type TerrainCut, attachFogUniforms, loadPBR, type PBRSet, TIER, Rng, CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES, type Sky, type ModelDef, type Placement, heightAt, normalAt, trailDistance, cabinMask, inChunk, place, type Placed } from '@wildshard/engine';
 
 const CRAG_DIR = PINE_CRAG_DIR; // the files: pineHero.ts `PINE_CRAG_URLS` (the boot manifest lists them with the landmarks' props)
 

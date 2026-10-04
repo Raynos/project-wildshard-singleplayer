@@ -1,4 +1,4 @@
-import { loadAudio, type LevelAudioProfile, type CueBank } from '#engine';
+import { loadAudio, type LevelAudioProfile, type CueBank } from '@wildshard/engine';
 
 const SCORE = { dir: '/assets/music/nalati/', manifestKey: 'nalati' };
 const SFX = 'nalati-grasslands';

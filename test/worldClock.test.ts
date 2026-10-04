@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { steppeClock } from '#shards/nalati-grasslands/look/dayKeys';
-import { phaseOfHour } from '#engine-internal/world/dayCycle';
+import { steppeClock } from '../src/shards/nalati-grasslands/look/dayKeys';
+import { phaseOfHour } from '../src/engine/world/dayCycle';
 
 describe('WorldClock over DayClock (NALATI-MERGE F8)', () => {
   it('Settings ▸ Time of day parks the clock at a pick and "live" lets it run on', () => {

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { expect, it } from 'vitest';
-import { rainCurtain } from '#kit';
-import { RAIN_PROGRAM as PINE_RAIN } from '#shards/pine-hollow/world/rainProgram';
-import { RAIN_PROGRAM as STEPPE_RAIN } from '#shards/nalati-grasslands/world/rainProgram';
+import { rainCurtain } from '@wildshard/kit';
+import { RAIN_PROGRAM as PINE_RAIN } from '../../src/shards/pine-hollow/world/rainProgram';
+import { RAIN_PROGRAM as STEPPE_RAIN } from '../../src/shards/nalati-grasslands/world/rainProgram';
 import frozen from './fixtures/rain-curtain-e357.json';
 
 const hash = async (bytes: string | Uint8Array): Promise<string> => {

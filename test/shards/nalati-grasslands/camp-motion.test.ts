@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { stepNpcFigure, npcFigurePose, fitNpcFigure, mergeNpcFigures, type NpcFigureState } from '#kit';
-import { CAMP_MOTION } from '#shards/nalati-grasslands/campPeopleProfiles';
+import { stepNpcFigure, npcFigurePose, fitNpcFigure, mergeNpcFigures, type NpcFigureState } from '@wildshard/kit';
+import { CAMP_MOTION } from '../../../src/shards/nalati-grasslands/campPeopleProfiles';
 import before from './camp-motion-before.json';
 
 const frame = { height: 1.75, neck: new THREE.Vector3(0, 1.45, 0.01), shoulder: new THREE.Vector3(-0.21, 1.34, 0) };

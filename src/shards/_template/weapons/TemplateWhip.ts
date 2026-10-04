@@ -1,4 +1,4 @@
-import { Weapon, blocks, type Actor, type Targets, type TargetAnimal, type WeaponState, type App, type EquipContext } from '#engine';
+import { Weapon, blocks, type Actor, type Targets, type TargetAnimal, type WeaponState, type App, type EquipContext } from '@wildshard/engine';
 import { Group, Mesh, CylinderGeometry, MeshStandardMaterial, Vector2, Vector3 } from 'three';
 import { WHIP_ROW } from './rows';
 /** A custom lane weapon composes the same public viewmodel and contact blocks as kit families. */

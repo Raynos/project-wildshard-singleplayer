@@ -1,4 +1,4 @@
-import { app, type ColliderDesc, type Animal, heightAt, practiceFps, type RoomMap, type RoomMarker, type RoomShape, DevKit, devLabel, devMaterial, PlaygroundChip, clock, PLAYGROUND_Y, type Playground, type PlaygroundHost } from '#engine';
+import { app, type ColliderDesc, type Animal, heightAt, practiceFps, type RoomMap, type RoomMarker, type RoomShape, DevKit, devLabel, devMaterial, PlaygroundChip, clock, PLAYGROUND_Y, type Playground, type PlaygroundHost } from '@wildshard/engine';
 import type { Ride } from '../ride/ride';
 /**
  * Nalati ▸ Horse playground (E307, Jake: "a naive, playable mini level in Explore mode for running around on a horse, to

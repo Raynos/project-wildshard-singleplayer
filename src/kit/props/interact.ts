@@ -1,7 +1,7 @@
 /**
  * The interactables' props (E405 E417: content, the kit's; moved from the engine, which keeps the runtime and asks for
  * these through `registerInteractProps`, installed by `installKitProps`). Every part is a non-indexed, vertex-coloured,
- * flat-normal geometry built with LowPolyKit (#engine) in a local frame: origin on the floor under the part's pivot,
+ * flat-normal geometry built with LowPolyKit (@wildshard/engine) in a local frame: origin on the floor under the part's pivot,
  * +Z = the front, +Y up. The runtime (src/engine/world/interact/Interactables.ts) adds each geometry once to one of two BatchedMeshes (lit: the shared
  * `lowPolyMaterial`; glow: unlit, for keys, flames and the pickups content registers) and poses instances.
  *
@@ -9,7 +9,7 @@
  * at its root, a plank door about +Y at its hinge edge, a grate / sluice slides along +Y.
  */
 import * as THREE from 'three';
-import { LowPolyKit, log, beam, plank, rock, rope, type ChestDims } from '#engine';
+import { LowPolyKit, log, beam, plank, rock, rope, type ChestDims } from '@wildshard/engine';
 
 const C = {
   wood: '#8a6440', woodDark: '#5f432a', woodLight: '#a88157', iron: '#3b3d42', ironLight: '#62656d', brass: '#d8a640',

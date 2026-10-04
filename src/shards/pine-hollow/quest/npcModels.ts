@@ -1,4 +1,4 @@
-import { loadRigFile, TIER, type Sky } from '#engine';
+import { loadRigFile, TIER, type Sky } from '@wildshard/engine';
 /**
  * The hamlet's people, generated (PINE-HOLLOW-REMASTER PH-M4): Hale the ranger (board B3 pick A, "the old warden"), Mott
  * the trader, Brandt the miller — photoreal codex references (A-pose, art/pine-hollow/round-11-npcs/) → Hunyuan3D-2 full +

@@ -16,7 +16,7 @@
  * Always on (E318: the decided Debug row "Ground tint" is gone).
  */
 import * as THREE from 'three';
-import { PATCH_ORDER, patchShader, CHUNK_HALF, CHUNK_SIZE } from '#engine';
+import { PATCH_ORDER, patchShader, CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine';
 
 /** metres per grid cell */
 const STEP = 4;

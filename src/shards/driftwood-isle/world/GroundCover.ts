@@ -58,7 +58,7 @@ import { rockGeometry } from './rockKit';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter, triAreas } from './coverTint';
 import { driftLog, driftLogBox } from '../models/driftLog';
-import { PATCH_ORDER, patchShader, attachFogUniforms, SEED, Rng, LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part, windFieldUniforms as windUniforms, TIER, type BlenderArea, type Sky, modelContext, heightAt, normalAt, trailDistance, place, type Placed } from '#engine';
+import { PATCH_ORDER, patchShader, attachFogUniforms, SEED, Rng, LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part, windFieldUniforms as windUniforms, TIER, type BlenderArea, type Sky, modelContext, heightAt, normalAt, trailDistance, place, type Placed } from '@wildshard/engine';
 
 export interface GroundCoverOpts {
   sea: number;

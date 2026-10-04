@@ -37,9 +37,10 @@ import { saveFixtureCode, debugSettings } from './debug-settings.mjs';
 // progress/scorecard/<tag>/ (the goldens when --goldens: progress/scorecard/baseline/).
 import { readShards } from './shards.mjs';
 import { spawn, execSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync, copyFileSync, symlinkSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { resolve as resolvePath, join } from 'node:path';
+import { resolve as resolvePath, join, dirname } from 'node:path';
+import { linkNodeModules } from './link-node-modules.mjs';
 import { createServer } from 'node:net';
 
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
@@ -1060,7 +1061,7 @@ function exportTree(ref) {
     execSync(`git archive ${sha} | tar -x -C "${dir}"`, { cwd: ROOT, stdio: 'inherit', shell: '/bin/bash' });
     const nm = [join(ROOT, 'node_modules'), resolvePath(ROOT, '../../../node_modules')].find((p) => existsSync(join(p, 'vite')));
     if (!nm) { console.error('no node_modules with vite next to this checkout'); process.exit(2); }
-    if (!existsSync(join(dir, 'node_modules'))) symlinkSync(nm, join(dir, 'node_modules'));
+    linkNodeModules(dirname(nm), dir); // E432: @wildshard/* → this export
     console.error('> vite build');
     execSync(`node "${join(dir, 'node_modules/vite/bin/vite.js')}" build`, { cwd: dir, stdio: ['ignore', 'ignore', 'inherit'] });
   } else console.error(`> reusing ${dir}/dist`);

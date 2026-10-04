@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { loadWorldContent, loadAudio, heightAt, Flags, type WorldRegistry, type Sky, type Interactables, type InteractEvent, type Interactable, type PoiId, type Place, type Audio, type FullMapPoi as MapPoi, type MapQuest, type Scope, type Actor } from '#engine';
-import { ITEMS, type ItemId, type ProgressSink, type ShardContext } from '#game';
+import { loadWorldContent, loadAudio, heightAt, Flags, type WorldRegistry, type Sky, type Interactables, type InteractEvent, type Interactable, type PoiId, type Place, type Audio, type FullMapPoi as MapPoi, type MapQuest, type Scope, type Actor } from '@wildshard/engine';
+import { ITEMS, type ItemId, type ProgressSink, type ShardContext } from '@wildshard/game';
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../manifest';
 import { Cove } from '../world/Cove';
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from './interactables';

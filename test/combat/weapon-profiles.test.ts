@@ -1,16 +1,16 @@
-import { BOW } from '#kit/weapons/bow/profiles';
-import { LONGBOW } from '#shards/pine-hollow/weapons/longbowProfile';
-import { CROSSBOW_PROFILE } from '#kit/weapons/crossbow/profiles';
-import { AR15 } from '#kit/weapons/firearm/profiles';
-import { LEVER_PROFILE } from '#shards/pine-hollow/weapons/LeverRifle';
-import { SWORD_WOOD, SWORD_IRON } from '#kit';
-import { JIAN_ROW } from '#shards/nine-dragon-stack/vm/jianRow';
+import { BOW } from '../../src/kit/weapons/bow/profiles';
+import { LONGBOW } from '../../src/shards/pine-hollow/weapons/longbowProfile';
+import { CROSSBOW_PROFILE } from '../../src/kit/weapons/crossbow/profiles';
+import { AR15 } from '../../src/kit/weapons/firearm/profiles';
+import { LEVER_PROFILE } from '../../src/shards/pine-hollow/weapons/LeverRifle';
+import { SWORD_WOOD, SWORD_IRON } from '@wildshard/kit';
+import { JIAN_ROW } from '../../src/shards/nine-dragon-stack/vm/jianRow';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { arrowKind as bowArrow } from '#kit/weapons/bow/index';
-import { arrowKind as longbowArrow } from '#shards/pine-hollow/weapons/Longbow';
-import * as draw from '#kit/weapons/bow/draw';
-import { boltFlight, boltDamage } from '#shards/pine-hollow/loadout/ammo';
+import { arrowKind as bowArrow } from '../../src/kit/weapons/bow/index';
+import { arrowKind as longbowArrow } from '../../src/shards/pine-hollow/weapons/Longbow';
+import * as draw from '../../src/kit/weapons/bow/draw';
+import { boltFlight, boltDamage } from '../../src/shards/pine-hollow/loadout/ammo';
 import { legacyConstants } from '../fake/legacySource';
 import { fakeWorld } from '../fake/world';
 

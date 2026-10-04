@@ -13,10 +13,10 @@
  * remap of the painted ground is `V2_OLIVE_GLSL` (terrainSurface.ts takes it in v2).
  */
 import * as THREE from 'three';
-import { type Sky, syncPainterlySun } from '#engine';
+import { type Sky, syncPainterlySun } from '@wildshard/engine';
 import type { SkyLook } from './skyRig';
 import { gradeUniforms } from './grade';
-import { smoothstep } from '#engine/data';
+import { smoothstep } from '@wildshard/engine/data';
 
 const D2R = Math.PI / 180;
 /** the cheat: degrees further round (compass, clockwise) and higher than the sun */

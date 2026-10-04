@@ -8,7 +8,7 @@
  */
 import type * as THREE from 'three';
 import { ZIPLINE } from '../layout';
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { Timber, V, timberFacts, timberMats } from '../world/timber';
 
 type V3 = THREE.Vector3;

@@ -13,7 +13,7 @@
  * Pure geometry on a flat xyz array (no three.js loader): scripts/img2mesh/birds/birds_fix_preview.mjs runs them in Node.
  */
 import * as THREE from 'three';
-import { smoothstep } from '#engine/data';
+import { smoothstep } from '@wildshard/engine/data';
 
 type V3 = readonly [number, number, number];
 /** the sidecar fields these read (birds.json, per mesh) */

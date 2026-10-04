@@ -1,4 +1,4 @@
-import { engineString, type SpeciesDef, NO_FUR } from '#engine';
+import { engineString, type SpeciesDef, NO_FUR } from '@wildshard/engine';
 
 
 

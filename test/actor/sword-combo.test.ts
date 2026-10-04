@@ -1,13 +1,13 @@
-import { SWORD } from '#kit';
+import { SWORD } from '@wildshard/kit';
 // @vitest-environment happy-dom
 // S1.2: these contracts move from Sword's viewmodel-owning class to the renderer-free Melee family.
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Sword, type SwordArms } from '#kit/weapons/melee/SweptMelee';
-import { COMBO, type Move } from '#kit/weapons/melee/moves';
-import { setAimTargets } from '#engine-internal/player/AimTargets';
-import type { TargetAnimal, Targets } from '#engine-internal/combat/types';
-import { setActivePhysics } from '#engine-internal/physics/active';
+import { Sword, type SwordArms } from '../../src/kit/weapons/melee/SweptMelee';
+import { COMBO, type Move } from '../../src/kit/weapons/melee/moves';
+import { setAimTargets } from '../../src/engine/player/AimTargets';
+import type { TargetAnimal, Targets } from '../../src/engine/combat/types';
+import { setActivePhysics } from '../../src/engine/physics/active';
 import { fakeWorld } from '../fake/world';
 import { seedRandom } from '../fake/FakeGame';
 

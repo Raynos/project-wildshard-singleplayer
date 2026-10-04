@@ -3,9 +3,9 @@
 // and every entry is a defined model in a known tab; shared/… models are the ones several shards list.
 import { describe, expect, it } from 'vitest';
 import { SHARDS } from '../src/shards.generated';
-import type { ShardManifest } from '#game/shard/manifest';
-import type { RosterEntry } from '#engine-internal/models/live';
-import { definedModels } from '#engine-internal/models/model';
+import type { ShardManifest } from '../src/game/shard/manifest';
+import type { RosterEntry } from '../src/engine/models/live';
+import { definedModels } from '../src/engine/models/model';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node test verifies roster sources are committed in the checkout.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node test verifies source existence in clean git archives too.

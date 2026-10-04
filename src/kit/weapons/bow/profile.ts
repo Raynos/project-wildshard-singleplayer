@@ -1,6 +1,6 @@
 import type * as THREE from 'three';
-import type { EquipmentRow } from '#game';
-import type { Sky, ProjectileKind, WindField } from '#engine';
+import type { EquipmentRow } from '@wildshard/game';
+import type { Sky, ProjectileKind, WindField } from '@wildshard/engine';
 
 
 export interface GripPose { pos: THREE.Vector3; aim: THREE.Vector3; cant: number; pitch: number }

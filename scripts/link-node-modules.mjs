@@ -1,0 +1,47 @@
+#!/usr/bin/env node
+// E432: give a clean export of the repo (a `git archive` tree) the checkout's node_modules — every entry linked back to
+// the checkout's, except the workspace packages (@wildshard/engine, game, kit), which link to the export's own
+// src/<layer>. A plain `ln -s <repo>/node_modules <tree>/node_modules` would resolve @wildshard/* through the checkout's
+// links to the checkout's working tree, so the export would build (and gate) whatever is uncommitted there.
+//
+//   node scripts/link-node-modules.mjs <repo> <tree>          (the shell scripts)
+//   import { linkNodeModules } from './link-node-modules.mjs'  (the node ones)
+import { existsSync, lstatSync, mkdirSync, readdirSync, readlinkSync, symlinkSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+/** the scopes whose packages live in the repo itself (pnpm-workspace.yaml) */
+const WORKSPACE_SCOPES = new Set(['@wildshard']);
+
+/**
+ * link `<tree>/node_modules` to `<repo>/node_modules`, the workspace packages to the tree's own sources
+ * @param {string} repo the checkout whose node_modules is installed
+ * @param {string} tree the export (a git archive of some commit)
+ */
+export function linkNodeModules(repo, tree) {
+  const from = resolve(repo, 'node_modules'), to = resolve(tree, 'node_modules');
+  if (!existsSync(from)) return; // nothing installed (a test's throwaway repo): the tree resolves no packages, as before
+  if (existsSync(to)) {
+    if (lstatSync(to).isSymbolicLink()) throw new Error(`link-node-modules: ${to} is a whole-folder link; remove it first`);
+    return; // already linked by an earlier run
+  }
+  mkdirSync(to, { recursive: true });
+  for (const name of readdirSync(from)) {
+    if (!WORKSPACE_SCOPES.has(name)) { symlinkSync(join(from, name), join(to, name)); continue; }
+    mkdirSync(join(to, name));
+    for (const pkg of readdirSync(join(from, name))) {
+      const link = join(from, name, pkg);
+      // the checkout's link points into the checkout (../../src/engine); the export's points at the same path in the tree
+      const target = resolve(dirname(link), readlinkSync(link));
+      const inRepo = relative(resolve(repo), target);
+      if (inRepo.startsWith('..')) throw new Error(`link-node-modules: ${link} points outside the repo (${target})`);
+      symlinkSync(join(resolve(tree), inRepo), join(to, name, pkg));
+    }
+  }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  const [repo, tree] = process.argv.slice(2);
+  if (!repo || !tree) { console.error('usage: node scripts/link-node-modules.mjs <repo> <tree>'); process.exit(2); }
+  linkNodeModules(repo, tree);
+}

@@ -118,6 +118,7 @@ export function buildSwimGloves(sky: Sky, look: SwimStyle): [THREE.Group, THREE.
   return [buildArm(1), buildArm(-1)];
 }
 
+/** the first-person swimming hands: two gloved forearms doing a looping breaststroke at the water line */
 export class Hands {
   readonly group = new THREE.Group();
   visible = false;

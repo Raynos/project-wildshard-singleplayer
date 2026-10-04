@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay } from '#shards/pine-hollow/life/lifeMath';
-import { trunkSpine } from '#shards/pine-hollow/life/trunks';
+import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay } from '../../../src/shards/pine-hollow/life/lifeMath';
+import { trunkSpine } from '../../../src/shards/pine-hollow/life/trunks';
 
 describe('Pine Hollow life (PH-M5 / F2)', () => {
   it('an fx-held hare retains the original view and distance culling boundaries', () => {

@@ -14,7 +14,7 @@
  */
 import * as THREE from 'three';
 import { NightBrain } from './nightBrain';
-import { type Animal, type AnimalManager, variantDef, heightAt, TIER } from '#engine';
+import { type Animal, type AnimalManager, variantDef, heightAt, TIER } from '@wildshard/engine';
 import { OLD_GROWTH, KINGS_CLEARING, HAMLET_SITES, POND } from '../layout';
 import { Puffs } from '../combat/fxKit';
 import { own, release, retire } from '../combat/ctx';

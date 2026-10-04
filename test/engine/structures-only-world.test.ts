@@ -1,14 +1,14 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { DataTexture } from 'three';
-import { App, type LevelDriver, needsTerrainCollider } from '#engine';
-import { terrainFieldFor } from '#engine/data';
-import { configureLevel } from '#engine-internal/level/selection';
-import * as heightfield from '#engine-internal/world/Heightfield';
-import { terrainHeight, terrainNormal, terrainWaterLevel } from '#engine-internal/world/terrainHeight';
-import { Terrain } from '#engine-internal/world/Terrain';
-import { toLevelSpec } from '#game/shard/spec';
-import { terrainFor, type ShardManifest } from '#game/shard/manifest';
-import { TEMPLATE } from '#shards/_template/manifest';
+import { App, type LevelDriver, needsTerrainCollider } from '@wildshard/engine';
+import { terrainFieldFor } from '@wildshard/engine/data';
+import { configureLevel } from '../../src/engine/level/selection';
+import * as heightfield from '../../src/engine/world/Heightfield';
+import { terrainHeight, terrainNormal, terrainWaterLevel } from '../../src/engine/world/terrainHeight';
+import { Terrain } from '../../src/engine/world/Terrain';
+import { toLevelSpec } from '../../src/game/shard/spec';
+import { terrainFor, type ShardManifest } from '../../src/game/shard/manifest';
+import { TEMPLATE } from '../../src/shards/_template/manifest';
 
 const FIXTURE: ShardManifest = { ...TEMPLATE, ground: { structures: true },
   spawn: { x: 0, y: 2, z: 0, yaw: 0 }, uses: [], spawns: [], treeCount: 0 };

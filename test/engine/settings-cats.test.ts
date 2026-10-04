@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
-import { Scope } from '#engine-internal/app/scope';
-import { SETTINGS_CATS, SETTINGS_DESK_QUERY, settingsCategories, type SettingsCat } from '#engine-internal/ui/settingsCats';
+import { Scope } from '../../src/engine/app/scope';
+import { SETTINGS_CATS, SETTINGS_DESK_QUERY, settingsCategories, type SettingsCat } from '../../src/engine/ui/settingsCats';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); document.body.replaceChildren(); vi.restoreAllMocks(); });

@@ -74,9 +74,9 @@ export function renderPage(title, intro, rows, withFrom = false) {
 }
 export function pages(surface) {
   return {
-    'docs/api/ENGINE.md': renderPage('#engine', 'The engine\'s public index (src/engine/index.ts). docs/ENGINE.md explains it by area; this is the full list.', surface.indexes.engine),
-    'docs/api/GAME.md': renderPage('#game', 'The game layer\'s public index (src/game/index.ts).', surface.indexes.game),
-    'docs/api/KIT.md': renderPage('#kit', 'The kit\'s public index (src/kit/index.ts): reusable content.', surface.indexes.kit),
+    'docs/api/ENGINE.md': renderPage('@wildshard/engine', 'The engine\'s public index (src/engine/index.ts). docs/ENGINE.md explains it by area; this is the full list.', surface.indexes.engine),
+    'docs/api/GAME.md': renderPage('@wildshard/game', 'The game layer\'s public index (src/game/index.ts).', surface.indexes.game),
+    'docs/api/KIT.md': renderPage('@wildshard/kit', 'The kit\'s public index (src/kit/index.ts): reusable content.', surface.indexes.kit),
     'docs/api/SHARD-CONTEXT.md': renderPage('ShardContext', 'What a shard\'s plugin receives (src/game/shard/context.ts, over the engine\'s LevelContext).', surface.contexts.ShardContext, true),
   };
 }

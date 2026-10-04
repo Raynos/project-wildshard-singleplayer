@@ -4,8 +4,8 @@
  * too), the gulls — its people and the gear its player holds. Listed in the Model Explorer at boot (src/engine/models/roster.ts);
  * the island keeps spawning and drawing every copy as before.
  */
-import { live, type RosterEntry } from '#engine';
-import { bear, boar } from '#kit/models/creatures';
+import { live, type RosterEntry } from '@wildshard/engine';
+import { bear, boar } from '@wildshard/kit/creatures'; // the creature rows build from registered species: the roster's own entry
 import { coconutMonkey, drownedCaptain, drownedSailor, gull, reefCrab } from './models/creatures';
 import { castaway } from './models/people';
 import { GEAR } from './models/gear';

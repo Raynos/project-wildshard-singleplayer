@@ -1,4 +1,4 @@
-import { app, type ColliderDesc, practiceFps, type RoomMap, type RoomShape, DevKit, devLabel, PlaygroundChip, clock, PLAYGROUND_Y, type Playground, type PlaygroundHost } from '#engine';
+import { app, type ColliderDesc, practiceFps, type RoomMap, type RoomShape, DevKit, devLabel, PlaygroundChip, clock, PLAYGROUND_Y, type Playground, type PlaygroundHost } from '@wildshard/engine';
 /**
  * Nine Dragon ▸ Grapple playground (E307, Jake: "a really simple developer level … an acrobatic course for the grappling
  * hook, a custom parkour level to get a feel for the grappling hook and how it works"). A closed dev-grid room high over

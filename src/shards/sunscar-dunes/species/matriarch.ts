@@ -1,4 +1,4 @@
-import { CreatureBrain, StrikeRunner, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '#engine';
+import { CreatureBrain, StrikeRunner, type Animal, type SpeciesLook, type SpeciesRow, type StrikeContext, type StrikeSpec, type ThinkCtx } from '@wildshard/engine';
 import { Vector3, type BufferGeometry } from 'three';
 import { mantaBody } from './manta';
 import { BASIN } from '../layout';

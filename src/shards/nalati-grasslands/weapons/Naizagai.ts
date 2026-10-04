@@ -1,8 +1,8 @@
 import { Sabre, SABRE_PROFILE, type SabreOptions } from './Sabre';
-import { app, type SwordWorld, type Targets, type Move, type Player, type AnimalManager, type Animal, heightAt, castRay, floorBelow } from '#engine';
-import { meleeActor } from '#kit';
+import { app, type SwordWorld, type Targets, type Move, type Player, type AnimalManager, type Animal, heightAt, castRay, floorBelow } from '@wildshard/engine';
+import { meleeActor } from '@wildshard/kit';
 import * as THREE from 'three';
-import { GroundTell } from '#game';
+import { GroundTell } from '@wildshard/game';
 import { fxMaterial, FX, annulus, type FxMaterial } from '../world/KurganDungeon';
 
 /**

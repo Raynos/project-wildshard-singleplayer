@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { App, Scope } from '#engine';
-import { TemplateWhip } from '#shards/_template/weapons/TemplateWhip';
+import { App, Scope } from '@wildshard/engine';
+import { TemplateWhip } from '../../../src/shards/_template/weapons/TemplateWhip';
 
 describe('template whip light and heavy input', () => {
   it('binds desktop heavy and releases the touch adsHeld charge exactly once', () => {

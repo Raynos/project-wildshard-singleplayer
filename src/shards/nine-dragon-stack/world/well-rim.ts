@@ -12,7 +12,7 @@ import { relief } from './gate';
 import { placeLion } from './props3d';
 import type { KitX } from './hero/kitx';
 import { NEON } from '../util';
-import { Rng } from '#engine';
+import { Rng } from '@wildshard/engine';
 import { NEONS, WORDS } from './towers';
 import { SURF } from '../look/paint';
 import { FLOOR_H, pentRoof, stand, win } from './well-galleries';

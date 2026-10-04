@@ -4,16 +4,16 @@
 // `creature('antler-king')` gives once his fight has registered his species.
 import { describe, expect, it } from 'vitest';
 import type * as THREE from 'three';
-import type { Sky } from '#engine-internal/world/Sky';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import { definedModels, modelContext } from '#engine-internal/models/model';
-import { listRoster } from '#engine-internal/models/live';
-import { creature } from '#engine-internal/models/creature';
-import { hasSpecies, registerSpecies, speciesDef } from '#engine-internal/entities/AnimalFactory'; // (the factory registers every species file)
-import { PINE_HOLLOW } from '#shards/pine-hollow/manifest';
-import { ROSTER } from '#shards/pine-hollow/roster';
-import { GEAR } from '#shards/pine-hollow/models/gear';
-import { antlerKing, KING_VARIANT } from '#shards/pine-hollow/models/antlerKing';
+import type { Sky } from '../../../src/engine/world/Sky';
+import { WorldRegistry } from '../../../src/engine/world/registry';
+import { definedModels, modelContext } from '../../../src/engine/models/model';
+import { listRoster } from '../../../src/engine/models/live';
+import { creature } from '../../../src/engine/models/creature';
+import { hasSpecies, registerSpecies, speciesDef } from '../../../src/engine/entities/AnimalFactory'; // (the factory registers every species file)
+import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
+import { ROSTER } from '../../../src/shards/pine-hollow/roster';
+import { GEAR } from '../../../src/shards/pine-hollow/models/gear';
+import { antlerKing, KING_VARIANT } from '../../../src/shards/pine-hollow/models/antlerKing';
 
 const sky = { setupMaterial(_m: THREE.Material): void { /* nothing to prepare */ } } as Sky;
 

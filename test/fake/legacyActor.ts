@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Animal } from '#engine-internal/entities/Animal';
-import type { TargetAnimal } from '#engine-internal/combat/types';
+import { Animal } from '../../src/engine/entities/Animal';
+import type { TargetAnimal } from '../../src/engine/combat/types';
 import { legacyDouble } from './FakeGame';
 
 /** Run real legacy methods without constructing their WebGL viewmodel. Missing fields remain loud errors. */

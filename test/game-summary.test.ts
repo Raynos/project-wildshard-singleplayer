@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import { expect, it } from 'vitest';
-import { SaveStore } from '#engine';
-import { buildSummary, summaryStore, summaryView } from '#game/summary';
-import { progressSave } from '#game/saves';
-import { Progress } from '#game/Progress';
+import { SaveStore } from '@wildshard/engine';
+import { buildSummary, summaryStore, summaryView } from '../src/game/summary';
+import { progressSave } from '../src/game/saves';
+import { Progress } from '../src/game/Progress';
 
 class MemoryStorage {
   private data = new Map<string, string>();

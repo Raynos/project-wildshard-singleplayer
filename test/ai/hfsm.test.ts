@@ -1,5 +1,5 @@
 import { describe, expect, it, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { creature } from '../fake/creature';
 
 // a flat, dry world through the terrain port, not a module mock (E422)

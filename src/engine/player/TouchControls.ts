@@ -114,6 +114,7 @@ function el(parent: ParentNode, sel: string): HTMLElement {
   return e;
 }
 
+/** the touch HUD: the move stick, the look surface and the action discs (attack, aim, dodge, jump, lock …) */
 export class TouchControls {
   private touchMode = ''; private touchLockable = false;
   private readonly scope = (app.levelScope ?? app.engineScope).child('touch');

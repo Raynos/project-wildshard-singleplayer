@@ -1,5 +1,5 @@
-import type { ShardContext } from '#game';
-import type { AnimalManager } from '#engine';
+import type { ShardContext } from '@wildshard/game';
+import type { AnimalManager } from '@wildshard/engine';
 import { DRIFTWOOD_SPECIES, DRIFTWOOD_LOOKS } from '../species/install';
 import { registerDriftwoodToonPaints } from '../species/toonPaints';
 import { installDriftwoodLootTables, DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES } from '../loot/tables';

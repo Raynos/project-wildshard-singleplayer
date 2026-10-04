@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, srgb, toonPaint, crestSpikes, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '#engine';
+import { loft, tube, skinPlain, S, boneIndex, mix, speciesSstep as sstep, paintNoise, setShag, isLowPoly, paletteColors, srgb, toonPaint, crestSpikes, type Rng, type AnimalSpecies, type BoneDef, type VariantDef, type SpeciesLook, type Paint, type SpeciesRGB as RGB } from '@wildshard/engine';
 
 /**
  * Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head.

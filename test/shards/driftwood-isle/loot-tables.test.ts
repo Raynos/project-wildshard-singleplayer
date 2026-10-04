@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { app, Scope, WeightedTable } from '#engine';
-import { getLootTable, registerLootTable, rollLoot, type LootTableRow } from '#game';
-import { DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES } from '#shards/driftwood-isle/loot/tables';
+import { app, Scope, WeightedTable } from '@wildshard/engine';
+import { getLootTable, registerLootTable, rollLoot, type LootTableRow } from '@wildshard/game';
+import { DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES } from '../../../src/shards/driftwood-isle/loot/tables';
 
 describe('authored Driftwood rewards', () => {
   it('pays the original six purses and never consumes a random selection draw', () => {

@@ -1,11 +1,11 @@
 // PHYSICS.md P5: the sword's world checks ask the physics world (MeleeSweep → query.ts) — no hit through a wall, and
 // the blade tip's clang is the tip ray's hit, its sound picked by the struck collider's material.
 import { describe, expect, it } from 'vitest';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { Physics } from '#engine-internal/physics/Physics';
-import { groups } from '#engine-internal/physics/groups';
-import { tagCollider, type Material } from '#engine-internal/physics/surface';
-import { bladeBlocked, bladeContact, clangOf } from '#engine-internal/player/MeleeSweep';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { Physics } from '../src/engine/physics/Physics';
+import { groups } from '../src/engine/physics/groups';
+import { tagCollider, type Material } from '../src/engine/physics/surface';
+import { bladeBlocked, bladeContact, clangOf } from '../src/engine/player/MeleeSweep';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 const rapier = async () => loadRapier(await (await fetch(wasmInline)).arrayBuffer());

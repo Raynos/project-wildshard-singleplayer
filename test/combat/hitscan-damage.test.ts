@@ -1,13 +1,13 @@
-import { AR15 } from '#kit/weapons/firearm/profiles';
-import { LEVER_PROFILE, LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
+import { AR15 } from '../../src/kit/weapons/firearm/profiles';
+import { LEVER_PROFILE, LeverRifle } from '../../src/shards/pine-hollow/weapons/LeverRifle';
 import type * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Rifle } from '#kit/weapons/firearm/Rifle';
+import { Rifle } from '../../src/kit/weapons/firearm/Rifle';
 
-import { app } from '#engine-internal/app/runtime';
-import { setSetting } from '#engine-internal/ui/Settings';
-import { setActivePhysics } from '#engine-internal/physics/active';
-import { damageFor } from '#engine-internal/entities/Animal';
+import { app } from '../../src/engine/app/runtime';
+import { setSetting } from '../../src/engine/ui/Settings';
+import { setActivePhysics } from '../../src/engine/physics/active';
+import { damageFor } from '../../src/engine/entities/Animal';
 import { legacyActor, invokeLegacy, damageTarget } from '../fake/legacyActor';
 import { fakeWorld } from '../fake/world';
 

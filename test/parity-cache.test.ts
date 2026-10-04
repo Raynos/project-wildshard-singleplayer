@@ -17,7 +17,7 @@ function fixture() {
   git('init', '-q'); git('config', 'user.email', 'p1@example.invalid'); git('config', 'user.name', 'P1 test');
   put('.vercelignore', '/docs\n/test/parity\n'); put('docs/note.md', 'ignored');
   put('src/engine/shared.ts', 'export const shared=1;'); put('src/engine/only-a.ts', 'export const a=1;');
-  for (const shard of ['a', 'b', 'c', 'd']) put(`src/shards/${shard}/manifest.ts`, `import '#engine/shared';${shard === 'a' ? "import '#engine/only-a';" : ''}`);
+  for (const shard of ['a', 'b', 'c', 'd']) put(`src/shards/${shard}/manifest.ts`, `import '@wildshard/engine/shared';${shard === 'a' ? "import '@wildshard/engine/only-a';" : ''}`);
   put('test/parity/baselines/m5/a.phone.json', '{"sha":"first"}'); put('scripts/parity.mjs', 'harness');
   git('add', '.'); git('commit', '-qm', 'fixture');
   return { root, put, git, close: () => rmSync(root, { recursive: true, force: true }) };

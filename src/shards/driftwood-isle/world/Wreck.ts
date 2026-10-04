@@ -20,7 +20,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { heightAt, SEED, log, plank, rock, rope, lowPolyMaterial, swayDepthMaterial, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, place, type Placed } from '#engine';
+import { heightAt, SEED, log, plank, rock, rope, lowPolyMaterial, swayDepthMaterial, Rng, type BoxSpec as Collider, type Sky, type ColliderDesc, type WorldRegistry, modelContext, type Placement, place, type Placed } from '@wildshard/engine';
 import { rockGeometry, rockMaterial, REEF_ROCK } from './rockKit';
 import { addDriftLog, DRIFT } from './driftLogs';
 import { ShipwreckBuilder, shipwreck, WRECK_COLOURS as C, type CargoCopy, type WreckAnchor, type HoldBounds, type WreckSpec, type WreckAround } from '../models/shipwreck';

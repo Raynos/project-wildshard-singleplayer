@@ -1,4 +1,4 @@
-import type { SpeciesRow, HuntTuning } from '#engine';
+import type { SpeciesRow, HuntTuning } from '@wildshard/engine';
 
 export const BOAR_TUNING: HuntTuning = {
   hp: 100, sightRange: 22, sightRangeGraze: 14, sightCone: 60 * Math.PI / 180,

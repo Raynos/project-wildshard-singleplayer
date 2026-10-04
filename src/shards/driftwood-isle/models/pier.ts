@@ -15,7 +15,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { PATCH_ORDER, patchShader, type BoxSpec as Collider, SEED, type Rng, boxDesc, type ColliderDesc, lowPolyMaterial, patchSway, defineModel, type ModelContext, type ModelPart } from '#engine';
+import { PATCH_ORDER, patchShader, type BoxSpec as Collider, SEED, type Rng, boxDesc, type ColliderDesc, lowPolyMaterial, patchSway, defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
 
 export interface PierLanding {
   /** where the deck starts ramping down (metres from the sea end) */

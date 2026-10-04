@@ -1,4 +1,4 @@
-import { engineString, icon, type IconId, type GameMenu, type TabSpec, type TabFragment, type KitEntry, type SkinRow } from '#engine';
+import { engineString, icon, type IconId, type GameMenu, type TabSpec, type TabFragment, type KitEntry, type SkinRow } from '@wildshard/engine';
 import type { Inventory, ItemId } from '../Inventory';
 import type { Progress } from '../Progress';
 import { completeEntry } from '../complete/ShardComplete';

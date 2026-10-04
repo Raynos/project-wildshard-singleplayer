@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { type Scope, type Animal, painterlyMaterial } from '#engine';
+import { type Scope, type Animal, painterlyMaterial } from '@wildshard/engine';
 import { horseBones } from '../species/horse';
 
 /**

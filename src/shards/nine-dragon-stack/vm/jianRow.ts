@@ -1,6 +1,6 @@
-import { SWORD_WOOD } from '#kit/data';
-import type { MeleeProfile } from '#kit';
-import type { ShardSword } from '#game';
+import { SWORD_WOOD } from '@wildshard/kit/data';
+import type { MeleeProfile } from '@wildshard/kit';
+import type { ShardSword } from '@wildshard/game';
 
 export interface JianRow extends MeleeProfile { viewmodel: () => Promise<ShardSword>; assets: readonly string[] }
 export const JIAN_ROW: JianRow = {

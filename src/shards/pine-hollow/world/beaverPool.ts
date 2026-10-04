@@ -18,12 +18,12 @@
  * bed is the terrain itself, so the drained pool is walked on like any ground (the heightfield collider).
  */
 import * as THREE from 'three';
-import { heightAt, type Sky, createWaterMaterial } from '#engine';
+import { heightAt, type Sky, createWaterMaterial } from '@wildshard/engine';
 import { pondGrid } from './pond';
 import {
   BEAVER_POOL, CREEK, CREEK_WATER, beaverPoolLevel, creekBedAt, creekSpan, inBeaverPool, type XZ,
 } from '../layout';
-import { smoothstep } from '#engine/data';
+import { smoothstep } from '@wildshard/engine/data';
 
 /** seconds from the sluice lifting to the muddy bed */
 export const DRAIN_S = 8;

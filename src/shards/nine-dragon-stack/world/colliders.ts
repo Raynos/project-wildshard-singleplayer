@@ -6,7 +6,7 @@
 // (its stone and the invisible parapet 12 m up so nobody vaults into the shaft) and the props you would walk into — the
 // gates' posts, the banyan's planter, the stalls, the market — are their models' own colliders, which come with their
 // copies (../models/, src/engine/models/place.ts; the balustrade's since E346, models/wellBalustrade.ts).
-import type { ColliderDesc } from '#engine';
+import type { ColliderDesc } from '@wildshard/engine';
 import { PLAZA, STAIR, STREET, WELL, Y0 } from '../layout';
 import { GUARD_Z0, PARAPET } from '../models/wellBalustrade';
 import { stairColliders, stairFloor } from './stairstreet';

@@ -1,6 +1,6 @@
 import { PointLight, type Vector3 } from 'three';
-import type { Flags, Interactable } from '#engine';
-import type { ShardContext } from '#game';
+import type { Flags, Interactable } from '@wildshard/engine';
+import type { ShardContext } from '@wildshard/game';
 import { BRAZIERS, TOWER } from '../layout';
 import { STRINGS } from '../strings';
 import { ownPrimitives } from './resources';

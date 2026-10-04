@@ -5,7 +5,7 @@
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, ROAD_LENGTH, heightAt, macrotask, slicer, loadWorldContent, RopeChain, pathRampDescs, type World, type BoxSpec as Collider } from '#engine';
+import { CHUNK_HALF, ROAD_LENGTH, heightAt, macrotask, slicer, loadWorldContent, RopeChain, pathRampDescs, type World, type BoxSpec as Collider } from '@wildshard/engine';
 import manifest, { OCEAN, HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR, PIER_PENNANT_AT } from '../manifest';
 import { Ocean } from './Ocean';
 import { Pier } from './Pier';

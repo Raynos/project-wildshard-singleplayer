@@ -5,7 +5,7 @@
  * the landmarks' (lamp sites on `sky.lamps`). LOD0 (with shadow) until the nearest is 45 m off, LOD1 past it; a copy
  * collides as the hull of ≤ 180 of its LOD1's vertices.
  */
-import { defineModel } from '#engine';
+import { defineModel } from '@wildshard/engine';
 import { heroFar, heroHull, heroNear } from '../world/hero';
 
 export const waystone = defineModel<Record<string, never>>({

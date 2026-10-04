@@ -1,6 +1,6 @@
 // src/shards/nalati-grasslands/ride/horseNames.ts — NALATI-FINISH B1 (N13): the name you give a horse at the hitching rail, cleaned and saved.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanHorseName, horseKey, saveHorseName, savedHorseName, HORSE_NAME_MAX } from '#shards/nalati-grasslands/ride/horseNames';
+import { cleanHorseName, horseKey, saveHorseName, savedHorseName, HORSE_NAME_MAX } from '../../../src/shards/nalati-grasslands/ride/horseNames';
 
 describe('cleanHorseName', () => {
   it('trims, folds spaces and capitalises each word', () => {

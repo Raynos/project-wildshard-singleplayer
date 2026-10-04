@@ -3,13 +3,13 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Locate the private check export.
 import { cwd } from 'node:process';
 import { describe, expect, it } from 'vitest';
-import manifest from '#shards/sunscar-dunes/manifest';
+import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import { manifestClosure } from '../../../scripts/gen-shards.mjs';
 
 describe('node-safe Signal Dunes manifest', () => {
   it('imports the data entry only and keeps the plugin out of its startup closure', { timeout: 30_000 }, () => {
     const root = cwd();
-    expect(readFileSync(`${root}/src/shards/sunscar-dunes/manifest.ts`, 'utf8')).toContain("import { buildTerrain } from '#engine/data'");
+    expect(readFileSync(`${root}/src/shards/sunscar-dunes/manifest.ts`, 'utf8')).toContain("import { buildTerrain } from '@wildshard/engine/data'");
     const closure = manifestClosure(root)['sunscar-dunes'];
     expect(closure).toContain('src/engine/data.ts');
     expect(closure).not.toContain('src/engine/index.ts');

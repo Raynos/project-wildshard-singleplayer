@@ -5,11 +5,11 @@
  * ones; each card is a separate build by the weapon's own builder on its own materials (src/engine/models/gear.ts says why).
  */
 import * as THREE from 'three';
-import { buildBolt, buildCrossbow, MAX_BOLTS, crossbowDisplayModel } from '#kit';
-import { isMesh, whiteColors, defineModel, type ModelDef, live, type RosterEntry, loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '#engine';
+import { buildBolt, buildCrossbow, MAX_BOLTS, crossbowDisplayModel } from '@wildshard/kit';
+import { isMesh, whiteColors, defineModel, type ModelDef, live, type RosterEntry, loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine';
 import { PINE_FINISHES } from '../loadout/skins';
 import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
-import { arrowMaterial, buildArrowGeometry, longbowSpecimen, QUIVER_MAX } from '#shards/pine-hollow/weapons/Longbow';
+import { arrowMaterial, buildArrowGeometry, longbowSpecimen, QUIVER_MAX } from '../weapons/Longbow';
 import { skinningKnife } from './skinningKnife';
 
 const FILE = 'src/shards/pine-hollow/models/gear.ts';

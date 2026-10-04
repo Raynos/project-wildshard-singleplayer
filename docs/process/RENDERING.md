@@ -23,10 +23,10 @@ Linked from [AGENTS.md](../../AGENTS.md). Moved from AGENTS.md by E423 (2026-10-
 
 - **`src/engine/physics/` owns collision.** It is the only code that imports Rapier. Nothing else hand-rolls a collision test:
   no ray-vs-box maths, no terrain bisection, no push-out loops. Ask the queries: a shard imports `castRay`,
-  `castSegment`, `lineOfSight`, `floorBelow` and `sticksIn` from `#engine`; engine code also has `sweepBall`
+  `castSegment`, `lineOfSight`, `floorBelow` and `sticksIn` from `@wildshard/engine`; engine code also has `sweepBall`
   (`src/engine/physics/query.ts`). Engine code gets the world from `app.physics`; `activePhysics()` is a legacy
   singleton the `wildshard/no-active-singleton` ratchet is retiring. `heightAt()` stays for placement and drawing only.
-- **A new static thing collides by registering.** The builder emits `ColliderDesc`s (`boxDesc` on `#engine`) beside
+- **A new static thing collides by registering.** The builder emits `ColliderDesc`s (`boxDesc` on `@wildshard/engine`) beside
   the geometry it draws:
   - box / capsule / ball / hull;
   - `treads` for any stair: rise ≤ 0.35 m and tread depth ≥ 0.36 m, or the capsule rides the edges;
@@ -39,13 +39,13 @@ Linked from [AGENTS.md](../../AGENTS.md). Moved from AGENTS.md by E423 (2026-10-
   `player.colliders` bridge is retired (F11).
 - **The player walks on colliders.** Step 0.35 m, max climb 40° (the user's picks). A walkable surface needs real
   geometry. A path over a crag is graded into the terrain (`TerrainSpec.graded`, never inside the Blender cove's
-  baked area); a steep one gets a walkway from `pathRampDescs` (`#engine`, `src/engine/physics/paths.ts`). After changing a builder's colliders, re-run
+  baked area); a steep one gets a walkway from `pathRampDescs` (`@wildshard/engine`, `src/engine/physics/paths.ts`). After changing a builder's colliders, re-run
   `node scripts/physics-baseline.mjs --no-build --mode=walk` (and `--trails`): 0 stuck is the bar. If structures
   moved, re-bake the navmesh (`node --experimental-transform-types --import ./scripts/bake-loader.mjs
   scripts/bake-navmesh.mjs`; `--check` tells you when it's stale).
 - **Moving things** go in the fixed step: a system in phase `'fixed.pre'`, `'fixed.step'` or `'fixed.post'`
   (`ctx.system` in a shard; 60 Hz, hit-stop slows it), interpolated with `game.alpha`. Dynamic bodies go through
-  `activeBodies` (`#engine`, `src/engine/physics/bodies.ts`), which enforces the per-tier caps (phone 40 awake /
+  `activeBodies` (`@wildshard/engine`, `src/engine/physics/bodies.ts`), which enforces the per-tier caps (phone 40 awake /
   2 ragdolls).
 
 ## Traps that already cost hours

@@ -1,4 +1,4 @@
-import type { Playground, PlaygroundHost } from '#engine';
+import type { Playground, PlaygroundHost } from '@wildshard/engine';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { STRINGS } from '../strings';
 import { ownPrimitives } from '../world/resources';

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { FOG_SLOT, FogPatchRegistry, type FogPatchEntry } from '#engine-internal/render/fogPatches';
+import { FOG_SLOT, FogPatchRegistry, type FogPatchEntry } from '../../src/engine/render/fogPatches';
 
 // each test builds its own registry, not a fresh module (E422)
 

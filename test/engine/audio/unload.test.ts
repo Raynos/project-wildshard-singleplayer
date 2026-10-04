@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Audio } from '#engine-internal/audio/Audio';
-import { Scope } from '#engine-internal/app/scope';
+import { Audio } from '../../../src/engine/audio/Audio';
+import { Scope } from '../../../src/engine/app/scope';
 import { SteppeVoices, STEPPE_BED } from '../../../src/shards/nalati-grasslands/audio/synth';
 
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });

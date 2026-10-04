@@ -6,7 +6,7 @@
 import type * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeVerticesByPos } from './paint';
-import { Noise2D } from '#engine';
+import { Noise2D } from '@wildshard/engine';
 
 export function graniteBlock(w: number, h: number, d: number, seed: number, rough = 0.18, segs = 3): THREE.BufferGeometry {
   const r = Math.min(h * 0.28, Math.min(w, d) * 0.2, 0.9);

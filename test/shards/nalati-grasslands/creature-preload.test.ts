@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Bone, BufferGeometry, Float32BufferAttribute, Group, MeshStandardMaterial, Skeleton, SkinnedMesh, Texture, Uint16BufferAttribute } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { NALATI_DEFINITIONS, NALATI_SPECIES, nalatiLook } from '#shards/nalati-grasslands/species/rows';
-import { CreatureRigs } from '#shards/nalati-grasslands/species/hulls';
-import manifest from '#shards/nalati-grasslands/manifest';
-import { AnimalFactory } from '#engine-internal/entities/AnimalFactory';
-import { app, Scope } from '#engine';
+import { NALATI_DEFINITIONS, NALATI_SPECIES, nalatiLook } from '../../../src/shards/nalati-grasslands/species/rows';
+import { CreatureRigs } from '../../../src/shards/nalati-grasslands/species/hulls';
+import manifest from '../../../src/shards/nalati-grasslands/manifest';
+import { AnimalFactory } from '../../../src/engine/entities/AnimalFactory';
+import { app, Scope } from '@wildshard/engine';
 import { fakeWorld } from '../../fake/world';
 
 function rig(): GLTF {

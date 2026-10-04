@@ -1,4 +1,4 @@
-import { fogGLSL } from '#kit';
+import { fogGLSL } from '@wildshard/kit';
 
 export const RAIN_PROGRAM = {
 vertexShader: /* glsl */`

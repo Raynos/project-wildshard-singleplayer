@@ -8,18 +8,18 @@
  */
 import { describe, expect, it } from 'vitest';
 import { SHARDS } from '../src/shards.generated';
-import { findChunk, playable } from '#game/shard/registry';
-import { prepareShardAssets } from '#game/shard/load';
-import { ART_URL_BYTES } from '#game/shard/art.generated';
-import { PACKS } from '#game/boot/packs.generated';
-import { initializeTier } from '#engine-internal/core/tier';
-import * as sp from '#engine-internal/boot/shardPrefetch';
-import { bootFiles, extraFetches } from '#engine-internal/boot/extras';
-import { bootFetches } from '#engine-internal/boot/prefetch';
-import { packFor } from '#engine-internal/boot/pack';
-import { versionedUrl } from '#engine-internal/boot/bytes';
-import { registerGpuFiles } from '#engine-internal/boot/gpuFiles';
-import { setBootCatalog } from '#engine-internal/boot/catalog';
+import { findChunk, playable } from '../src/game/shard/registry';
+import { prepareShardAssets } from '../src/game/shard/load';
+import { ART_URL_BYTES } from '../src/game/shard/art.generated';
+import { PACKS } from '../src/game/boot/packs.generated';
+import { initializeTier } from '../src/engine/core/tier';
+import * as sp from '../src/engine/boot/shardPrefetch';
+import { bootFiles, extraFetches } from '../src/engine/boot/extras';
+import { bootFetches } from '../src/engine/boot/prefetch';
+import { packFor } from '../src/engine/boot/pack';
+import { versionedUrl } from '../src/engine/boot/bytes';
+import { registerGpuFiles } from '../src/engine/boot/gpuFiles';
+import { setBootCatalog } from '../src/engine/boot/catalog';
 
 /** the page on a tier: the tier picked explicitly (initializeTier's named form, as a baker does), not a module reload (E422) */
 async function load(tier: 'phone' | 'desktop') {
@@ -35,8 +35,8 @@ async function load(tier: 'phone' | 'desktop') {
 describe('shardBootRequests: the boot request list of each shard', () => {
   it.each(['phone', 'desktop'] as const)('counts public artwork and keeps inline artwork out of the %s download list', async (tier) => {
     const { PLAYABLE_SHARDS } = await load(tier);
-    const { PUBLIC_BYTES } = await import('#game/boot/bytes.generated');
-    const { declareTotals } = await import('#engine-internal/boot/bytes');
+    const { PUBLIC_BYTES } = await import('../src/game/boot/bytes.generated');
+    const { declareTotals } = await import('../src/engine/boot/bytes');
     const def = PLAYABLE_SHARDS[0];
     const image = Object.keys(PUBLIC_BYTES).find((path) => path.endsWith('.jpg'));
     if (def?.boot === undefined || image === undefined) throw new Error('needs a registered shard with boot declarations and a public JPEG fixture');
@@ -58,7 +58,7 @@ describe('shardBootRequests: the boot request list of each shard', () => {
 
   it('preserves active profile downloads while preparing the owning prefetch inventory', async () => {
     const { PLAYABLE_SHARDS } = await load('phone');
-    const { prepareBootAudio } = await import('#engine-internal/boot/audioInventory');
+    const { prepareBootAudio } = await import('../src/engine/boot/audioInventory');
     const [{ createPineAudio }, { createNalatiAudio }, { createNdAudio }, { createDriftwoodAudio }] = await Promise.all([
       import('../src/shards/pine-hollow/audio/files'), import('../src/shards/nalati-grasslands/audio/files'),
       import('../src/shards/nine-dragon-stack/audio/files'), import('../src/shards/driftwood-isle/audio/files'),
@@ -149,7 +149,7 @@ describe('lateReads and the ?v= URLs (E160)', () => {
   it('names only files the build ships, tier by tier', async () => {
     for (const tier of ['phone', 'desktop'] as const) {
       const { PLAYABLE_SHARDS } = await load(tier);
-      const { PUBLIC_BYTES } = await import('#game/boot/bytes.generated');
+      const { PUBLIC_BYTES } = await import('../src/game/boot/bytes.generated');
       for (const def of PLAYABLE_SHARDS) {
         const late = sp.lateReads(def);
         for (const u of late) expect(new URL(u, 'http://x').pathname in PUBLIC_BYTES, `${def.slug} ${u}`).toBe(true);
@@ -160,8 +160,8 @@ describe('lateReads and the ?v= URLs (E160)', () => {
   });
   it('versions every unhashed asset and leaves content-named ones alone', async () => {
     await load('desktop');
-    const { ASSET_VERSIONS } = await import('#game/boot/versions.generated');
-    const { PUBLIC_BYTES } = await import('#game/boot/bytes.generated');
+    const { ASSET_VERSIONS } = await import('../src/game/boot/versions.generated');
+    const { PUBLIC_BYTES } = await import('../src/game/boot/bytes.generated');
     for (const p of Object.keys(PUBLIC_BYTES)) {
       const u = versionedUrl(p);
       if (/-[0-9a-f]{8}\.[a-z0-9]+$/.test(p)) expect(u, p).toBe(p);

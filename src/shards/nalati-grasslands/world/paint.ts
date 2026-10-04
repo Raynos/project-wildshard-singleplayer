@@ -18,7 +18,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { loadNalatiTexture, type NalatiTexName } from '../look/nalatiTextures';
-import { voxelAO, aoTint, hemisphere, pole, Rng, Noise2D, smoothstep, painterlyMaterial, type Sky } from '#engine';
+import { voxelAO, aoTint, hemisphere, pole, Rng, Noise2D, smoothstep, painterlyMaterial, type Sky } from '@wildshard/engine';
 
 export type ColorLike = THREE.Color | string | number;
 /** per-face colour from the face centroid + normal, both in the part's LOCAL space (before `matrix`) */
@@ -241,7 +241,7 @@ export function M(x: number, y: number, z: number, yaw = 0, sx = 1, sy = sx, sz 
 }
 
 // the smooth primitives live in the engine geometry kit (E357 X5); re-exported for this shard's builders
-export { pole, blob, mergeVerticesByPos, lathe, revolve, revolveUV } from '#engine';
+export { pole, blob, mergeVerticesByPos, lathe, revolve, revolveUV } from '@wildshard/engine';
 export const v3 = (x: number, y: number, z: number): THREE.Vector3 => new THREE.Vector3(x, y, z);
 
 // ── smooth baked ambient occlusion ──────────────────────────────────────────────────────────────────

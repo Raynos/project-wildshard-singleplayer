@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync, renameSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, renameSync, statSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { linkNodeModules } from '../link-node-modules.mjs';
 import { createServer } from 'node:net';
 
 /** @param {string} root @param {string} sha */
@@ -16,7 +17,7 @@ export function exportTree(root, sha) {
   const tree=join(dir,'tree');mkdirSync(tree);
   const archive=execFileSync('git',['archive',sha,'--',...keep],{cwd:root,maxBuffer:1024**3});
   execFileSync('tar',['-x','-C',tree],{input:archive,maxBuffer:1024**3});
-  symlinkSync(join(root,'node_modules'),join(tree,'node_modules'),'dir');
+  linkNodeModules(root,tree); // E432: @wildshard/* → this export
   return {tree,cleanup:()=>rmSync(dir,{recursive:true,force:true})};
 }
 /** @returns {Promise<number>} */

@@ -1,14 +1,14 @@
 import { saveFixture } from './fake/saveFixture';
 // E314 stage 1 (src/game/loot/): the purse, the owned store, what a kill is worth and where coins drop, FINDS' counts.
 import { describe, expect, it, vi } from 'vitest';
-import { Purse } from '#game/loot/Purse';
-import { Owned } from '#game/loot/Owned';
-import { Bounty, bountyKey } from '#game/loot/Bounty';
-import { MAX_BURST, burstCount, coinShare, coinsFor, coinsOn } from '#game/loot/coins';
-import { DRIFTWOOD_COIN_VALUES } from '#shards/driftwood-isle/loot/tables';
-import { driftwoodFinds, nextCharmAt } from '#shards/driftwood-isle/loot/finds';
-import { DRIFTWOOD_PLACES } from '#shards/driftwood-isle/quest/Places';
-import { DRIFTWOOD_ISLE } from '#shards/driftwood-isle/manifest';
+import { Purse } from '../src/game/loot/Purse';
+import { Owned } from '../src/game/loot/Owned';
+import { Bounty, bountyKey } from '../src/game/loot/Bounty';
+import { MAX_BURST, burstCount, coinShare, coinsFor, coinsOn } from '../src/game/loot/coins';
+import { DRIFTWOOD_COIN_VALUES } from '../src/shards/driftwood-isle/loot/tables';
+import { driftwoodFinds, nextCharmAt } from '../src/shards/driftwood-isle/loot/finds';
+import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/quest/Places';
+import { DRIFTWOOD_ISLE } from '../src/shards/driftwood-isle/manifest';
 import { SHARDS } from '../src/shards.generated';
 
 const DRIFT = 'chunk://local/driftwood-isle';

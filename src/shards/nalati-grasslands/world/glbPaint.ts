@@ -27,7 +27,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { voxelAO, hemisphere, TIER, painterlyMaterial, painterlyKnobs, type Sky, setting } from '#engine';
+import { voxelAO, hemisphere, TIER, painterlyMaterial, painterlyKnobs, type Sky, setting } from '@wildshard/engine';
 
 export type NalatiModelName =
   | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'

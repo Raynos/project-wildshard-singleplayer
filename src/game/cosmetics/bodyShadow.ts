@@ -24,7 +24,7 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { SHADOW_LAYER } from '#engine';
+import { SHADOW_LAYER } from '@wildshard/engine';
 import { shadowOnlyMaterial, Wardrobe } from './cosmetics';
 
 /** what the body reads of the player (Player.ts satisfies it) */

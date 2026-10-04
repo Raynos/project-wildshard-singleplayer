@@ -1,4 +1,4 @@
-import { AmbienceZones, Rng, app, fnv1a32, tap, ambientTick, type Audio, type SampleLoop } from '#engine';
+import { AmbienceZones, Rng, app, fnv1a32, tap, ambientTick, type Audio, type SampleLoop } from '@wildshard/engine';
 /**
  * SteppeAmbience — Nalati's zoned soundscape (NALATI-MERGE A4), the IslandAmbience pattern for the steppe.
  *

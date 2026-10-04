@@ -1,4 +1,4 @@
-import { uiScope, mountUi, type UiHandle, app, type Scope } from '#engine';
+import { uiScope, mountUi, type UiHandle, app, type Scope } from '@wildshard/engine';
 import './ride.css';
 import { cleanHorseName, HORSE_NAME_MAX } from './horseNames';
 

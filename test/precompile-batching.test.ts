@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BatchedMesh, BoxGeometry, Color, Group, Mesh, MeshStandardMaterial, Scene } from 'three';
-import { sceneJobs, shadowJobs } from '#engine-internal/boot/precompile';
+import { sceneJobs, shadowJobs } from '../src/engine/boot/precompile';
 
 
 function fixture(): Scene {

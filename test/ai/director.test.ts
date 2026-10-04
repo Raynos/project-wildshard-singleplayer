@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, afterAll } from 'vitest';
-import { overrideTerrain } from '#engine-internal/world/Heightfield';
-import { getActiveChunk, setActiveChunk } from '#game/shard/registry';
+import { overrideTerrain } from '../../src/engine/world/Heightfield';
+import { getActiveChunk, setActiveChunk } from '../../src/game/shard/registry';
 import { manager } from '../fake/manager';
 import { creature } from '../fake/creature';
-import { Pack } from '#shards/nalati-grasslands/creatures/pack';
-import { wildEnv } from '#shards/nalati-grasslands/creatures/env';
+import { Pack } from '../../src/shards/nalati-grasslands/creatures/pack';
+import { wildEnv } from '../../src/shards/nalati-grasslands/creatures/env';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
 
 // a flat, dry world through the terrain port, not a module mock (E422)

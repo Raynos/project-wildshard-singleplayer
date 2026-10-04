@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { PerspectiveCamera } from 'three';
-import { App, Scope } from '#engine';
-import { Shared } from '#shards/nine-dragon-stack/look/style';
-import { JiehuaEffect, BLEED } from '#shards/nine-dragon-stack/look/render/jiehua';
-import { glowUniforms } from '#shards/nine-dragon-stack/look/light/glow';
-import { gradeUniforms } from '#shards/nine-dragon-stack/look/light/grade';
-import { installRenderEvents } from '#shards/nine-dragon-stack/look/renderEvents';
+import { App, Scope } from '@wildshard/engine';
+import { Shared } from '../../../src/shards/nine-dragon-stack/look/style';
+import { JiehuaEffect, BLEED } from '../../../src/shards/nine-dragon-stack/look/render/jiehua';
+import { glowUniforms } from '../../../src/shards/nine-dragon-stack/look/light/glow';
+import { gradeUniforms } from '../../../src/shards/nine-dragon-stack/look/light/grade';
+import { installRenderEvents } from '../../../src/shards/nine-dragon-stack/look/renderEvents';
 
 describe('scoped Nine Dragon render events', () => {
   it('toggles practice and studio effects, restores air and drops listeners on unload', () => {

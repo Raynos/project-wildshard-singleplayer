@@ -1,15 +1,15 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Scope } from '#engine-internal/app/scope';
-import { app } from '#engine-internal/app/runtime';
-import { hudSlots } from '#engine-internal/ui/hudSlots';
-import { HUD, type HUDState } from '#engine-internal/ui/HUD';
-import { INPUT_CONTEXTS } from '#game/inputContexts';
-import { LEVER, CROSSBOW, LONGBOW } from '#shards/pine-hollow/weapons/equipment';
-import { AR15 } from '#shards/nalati-grasslands/weapons/equipment';
-import { SWORD } from '#kit/weapons/equipment';
-import { LeverRifle } from '#shards/pine-hollow/weapons/LeverRifle';
-import { Rifle } from '#kit/weapons/firearm/Rifle';
+import { Scope } from '../../src/engine/app/scope';
+import { app } from '../../src/engine/app/runtime';
+import { hudSlots } from '../../src/engine/ui/hudSlots';
+import { HUD, type HUDState } from '../../src/engine/ui/HUD';
+import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
+import { LEVER, CROSSBOW, LONGBOW } from '../../src/shards/pine-hollow/weapons/equipment';
+import { AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
+import { SWORD } from '../../src/kit/weapons/equipment';
+import { LeverRifle } from '../../src/shards/pine-hollow/weapons/LeverRifle';
+import { Rifle } from '../../src/kit/weapons/firearm/Rifle';
 import { legacyActor } from '../fake/legacyActor';
 
 let scope: Scope;

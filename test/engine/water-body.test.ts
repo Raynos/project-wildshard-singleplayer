@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { WaterBodies, swellBody, basinBody } from '../../src/engine/world/water/body';
 import { waterView } from '../../src/engine/world/water/view';
-import pine from '#shards/pine-hollow/manifest';
-import nalati from '#shards/nalati-grasslands/manifest';
+import pine from '../../src/shards/pine-hollow/manifest';
+import nalati from '../../src/shards/nalati-grasslands/manifest';
 import { Scope } from '../../src/engine/app/scope';
 import { waveHeight } from '../../src/engine/world/waves';
-import { App, type LevelDriver } from '#engine';
-import { WorldRegistry } from '#engine-internal/world/registry';
-import { toLevelSpec } from '#game/shard/spec';
-import manifest from '#shards/nine-dragon-stack/manifest';
+import { App, type LevelDriver } from '@wildshard/engine';
+import { WorldRegistry } from '../../src/engine/world/registry';
+import { toLevelSpec } from '../../src/game/shard/spec';
+import manifest from '../../src/shards/nine-dragon-stack/manifest';
 import { FakeGame } from '../fake/FakeGame';
 
 describe('app.world.water (E357 S4.1)', () => {

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Group } from 'three';
-import { App, type LevelContext, type LevelDriver, type LevelSpec } from '#engine';
-import { WorldRegistry } from '#engine-internal/world/registry';
+import { App, type LevelContext, type LevelDriver, type LevelSpec } from '@wildshard/engine';
+import { WorldRegistry } from '../../src/engine/world/registry';
 import { FakeGame } from '../fake/FakeGame';
-import manifest from '#shards/nine-dragon-stack/manifest';
-import { toLevelSpec } from '#game/shard/spec';
+import manifest from '../../src/shards/nine-dragon-stack/manifest';
+import { toLevelSpec } from '../../src/game/shard/spec';
 
 const noop = (): void => { /* The fake has no renderer work. */ };
 function setup(): { app: App; fake: FakeGame; spec: LevelSpec; log: string[] } {

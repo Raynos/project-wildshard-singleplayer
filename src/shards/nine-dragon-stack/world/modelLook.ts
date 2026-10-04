@@ -4,7 +4,7 @@
 // each phase has made its part (the materials are created at the same points as before, so their order — which three's
 // opaque sort keys on — is unchanged), and places the models; the Model Explorer's specimens read the same look later.
 import type { BufferGeometry, Material, ShaderMaterial } from 'three';
-import { modelContext, type ModelContext, type Renderer } from '#engine';
+import { modelContext, type ModelContext, type Renderer } from '@wildshard/engine';
 import { type SignAtlas, SignBuilder } from '../look/signs';
 import type { NeonSigns } from '../look/neonsigns';
 

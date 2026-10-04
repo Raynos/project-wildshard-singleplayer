@@ -1,5 +1,5 @@
-import { speciesDef, type SpeciesLook } from '#engine';
-import { BOAR_LOOK, BEAR_LOOK } from '#kit';
+import { speciesDef, type SpeciesLook } from '@wildshard/engine';
+import { BOAR_LOOK, BEAR_LOOK } from '@wildshard/kit';
 import { PINE_BOAR, PINE_BEAR } from './rows';
 import { preloadPineCreatures, skinPineHull } from './hulls';
 import { ELK_THRALL_TINT, THRALL_TRAITS, thrallPose } from './thrall';

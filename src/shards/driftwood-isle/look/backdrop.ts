@@ -8,7 +8,7 @@
  * its opacity by night (`fadesPlanet: false`).
  */
 import * as THREE from 'three';
-import { preloadBakedTextures, loadLUT, DayCycle, setting, type OptionValue, type SkyBackdropFactory, type DayCycleClock } from '#engine';
+import { preloadBakedTextures, loadLUT, DayCycle, setting, type OptionValue, type SkyBackdropFactory, type DayCycleClock } from '@wildshard/engine';
 import { DRIFTWOOD_DAY, FIXED_PHASE, clonePreset, type Preset } from './dayKeys';
 import { MIDDAY_SKY, StylizedSky, type SkyPalette } from './stylizedSky';
 import { toonUniforms } from './toon';

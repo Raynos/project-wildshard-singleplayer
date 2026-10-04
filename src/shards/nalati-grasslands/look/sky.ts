@@ -23,7 +23,7 @@
  * — shows through; the painted ranges stay, dark and moonlit.
  */
 import * as THREE from 'three';
-import { fetchImage, ktx2Texture, readTexturePixels, type Renderer } from '#engine';
+import { fetchImage, ktx2Texture, readTexturePixels, type Renderer } from '@wildshard/engine';
 import { nalatiUrl } from './nalatiTextures';
 import { V2_GRADE_GLSL, gradeUniforms } from './grade';
 import { V2_TINT_GLSL, tintUniforms } from './tint';

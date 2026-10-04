@@ -1,6 +1,6 @@
-import { app, engineString, type InputContextDef, type Action } from '#engine';
+import { app, engineString, type InputContextDef, type Action } from '@wildshard/engine';
 
-declare module '#engine' { interface ActionMap { bag: true } }
+declare module '@wildshard/engine' { interface ActionMap { bag: true } }
 
 const movement = ['move', 'look', 'move.forward', 'move.back', 'move.left', 'move.right'] as const;
 const moveKeys = { 'move.forward': ['KeyW'], 'move.back': ['KeyS'], 'move.left': ['KeyA'], 'move.right': ['KeyD'] };

@@ -1,4 +1,4 @@
-import { type RGB, DayCycle, type DayCycleSpec, type ScheduleSeg } from '#engine';
+import { type RGB, DayCycle, type DayCycleSpec, type ScheduleSeg } from '@wildshard/engine';
 import type { SkyKey as SteppeKey } from './skyRig';
 
 export const DEFAULT_SCHEDULE: ScheduleSeg[] = [

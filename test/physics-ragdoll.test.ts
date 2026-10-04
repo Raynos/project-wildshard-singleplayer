@@ -3,12 +3,12 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { loadSpecies } from './species';
-import { speciesDef } from '#engine-internal/entities/species/registry';
-import { Rng } from '#engine-internal/core/rng';
-import { loadRapier } from '#engine-internal/physics/rapier';
-import { Physics } from '#engine-internal/physics/Physics';
-import { groups } from '#engine-internal/physics/groups';
-import { Ragdolls, type Ragdoll, type RagdollBuild } from '#engine-internal/physics/ragdoll';
+import { speciesDef } from '../src/engine/entities/species/registry';
+import { Rng } from '../src/engine/core/rng';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { Physics } from '../src/engine/physics/Physics';
+import { groups } from '../src/engine/physics/groups';
+import { Ragdolls, type Ragdoll, type RagdollBuild } from '../src/engine/physics/ragdoll';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 loadSpecies();

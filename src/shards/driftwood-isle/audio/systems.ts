@@ -1,4 +1,4 @@
-import type { ShardContext } from '#game';
+import type { ShardContext } from '@wildshard/game';
 import type { Camera } from 'three';
 
 interface AudioParts {

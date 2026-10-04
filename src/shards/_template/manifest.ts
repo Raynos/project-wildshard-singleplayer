@@ -1,5 +1,5 @@
-import { buildTerrain } from '#engine/data';
-import type { ShardManifest } from '#game';
+import { buildTerrain } from '@wildshard/engine/data';
+import type { ShardManifest } from '@wildshard/game';
 import { STRINGS } from './strings';
 import { TRAIL } from './layout';
 import { BUDGETS } from './budgets';
@@ -29,7 +29,7 @@ export const TEMPLATE: ShardManifest = {
   tiers: { phone: { 'template.propCount': 10, godRays: false, ao: false }, desktop: { 'template.propCount': 20, godRays: false, ao: false } },
   hud: { bands: ['band.1', 'band.2', 'band.3'] }, bag: { tabs: ['map', 'gear', 'pack', 'notes'], pack: { slots: 8 } }, loot: { coins: true },
   audio: { bed: 'forest', ambience: 'kit.ambience.forest', score: 'template.silent', cues: async () => (await import('./audio/cues')).CUES,
-    preload: async () => (await import('#kit')).createForestAudio() },
+    preload: async () => (await import('@wildshard/kit')).createForestAudio() },
   boot: { files: bootFiles, sources: bootSources, viewmodelSets: [], shaders: { background: false }, audio: () => Promise.resolve([]), precache: [] },
   explore: EXPLORE, roster: async () => (await import('./roster')).ROSTER, load: () => import('./plugin'),
 };

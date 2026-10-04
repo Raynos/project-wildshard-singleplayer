@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { describe, expect, it } from 'vitest';
-import { DummyClips } from '#engine-internal/practice/DummyClips';
-import { DummyMotion, DummyPose } from '#engine-internal/practice/DummyMotion';
-import { DUMMY_VARIANTS } from '#engine-internal/practice/TrainingDummy';
+import { DummyClips } from '../src/engine/practice/DummyClips';
+import { DummyMotion, DummyPose } from '../src/engine/practice/DummyMotion';
+import { DUMMY_VARIANTS } from '../src/engine/practice/TrainingDummy';
 
 async function library(): Promise<THREE.AnimationClip[]> {
   const bytes = new Uint8Array(readFileSync('public/assets/practice/dummies/unimate-motion.glb'));

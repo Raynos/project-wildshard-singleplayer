@@ -21,7 +21,7 @@ is not used.
 
 ```bash
 SP=<scratch dir>
-git archive HEAD | tar -x -C $SP/build && ln -s $PWD/node_modules $SP/build/node_modules
+git archive HEAD | tar -x -C $SP/build && node scripts/link-node-modules.mjs $PWD $SP/build
 (cd $SP/build && npx vite build && npx vite preview --port 5190 --strictPort) &
 node scripts/steam-trailer/cut.mjs $SP/cut <take-204.wav> <sfx best dir>
 node scripts/steam-trailer/capture.mjs $SP/frames --shots driftwood --edl $SP/cut/edl.json   # one process per shard, ≤ 3 browsers

@@ -1,7 +1,7 @@
-import { ShardPlugin, installLoot, type ShardContext } from '#game';
-import { installSilentScore } from '#kit';
+import { ShardPlugin, installLoot, type ShardContext } from '@wildshard/game';
+import { installSilentScore } from '@wildshard/kit';
 import { Vector3 } from 'three';
-import { Flags, type Animal, type QuestState } from '#engine';
+import { Flags, type Animal, type QuestState } from '@wildshard/engine';
 import { STRINGS } from './strings';
 import { buildWorld, FLAG, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
@@ -19,8 +19,8 @@ import { DUNE_STRIDER, DUNE_STRIDER_LOOK } from './species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
 import { installMatriarch, type DuneMatriarch } from './combat/matriarch';
 
-// the slot merges through #engine (AG5: deep engine paths do not resolve); a program sees it only when it includes this file
-declare module '#engine' {
+// the slot merges through @wildshard/engine (deep engine paths do not resolve); a program sees it only when it includes this file
+declare module '@wildshard/engine' {
   interface EquipmentSlotMap { 'sunscar-whip': true }
 }
 

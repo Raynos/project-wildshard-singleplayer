@@ -1,5 +1,5 @@
 import { Color, Fog, Mesh, MeshStandardMaterial, PlaneGeometry, ShaderMaterial, SphereGeometry, DoubleSide, type Object3D } from 'three';
-import { patchShader, PATCH_ORDER, type LookStrategy } from '#engine';
+import { patchShader, PATCH_ORDER, type LookStrategy } from '@wildshard/engine';
 import { createDay } from '../world/climate';
 
 function primitive(object: Object3D): object is Mesh { return object instanceof Mesh; }

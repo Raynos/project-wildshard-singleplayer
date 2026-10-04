@@ -1,4 +1,4 @@
-import { type InputService, type Player, type Animal, type AnimalManager, type Interactable, heightAt } from '#engine';
+import { type InputService, type Player, type Animal, type AnimalManager, type Interactable, heightAt } from '@wildshard/engine';
 import * as THREE from 'three';
 import type { Mount } from './Mount';
 import type { HorseHerd } from '../creatures/herd';

@@ -10,7 +10,7 @@
  *    crook reaching out over the deck's edge (+z here; the copies on a bridge's north edge are turned); its paper
  *    lantern is one of the fragment's paper lanterns.
  */
-import { defineModel, type ModelContext, type ModelPart } from '#engine';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine';
 import { Kit } from '../world/kit';
 import { lampPostStone, lotusPost } from '../world/well-bridges';
 import { ndLook, need } from '../world/modelLook';

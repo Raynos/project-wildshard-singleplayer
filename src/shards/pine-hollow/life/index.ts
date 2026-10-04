@@ -1,6 +1,6 @@
-import { sharedWeaponVoices } from '#kit';
-import type { ShardContext } from '#game';
-import { app, ownAudioSource, TickScheduler, type EquipmentService, tap, ambientTick, type Game, type Sky, type Player, type Audio, type AnimalManager, type Animal, type TreeInstance, Rng, CameraFX, cabinMask, heightAt, inChunk, normalAt, pondMask, streamAt, waterLevel } from '#engine';
+import { sharedWeaponVoices } from '@wildshard/kit';
+import type { ShardContext } from '@wildshard/game';
+import { app, ownAudioSource, TickScheduler, type EquipmentService, tap, ambientTick, type Game, type Sky, type Player, type Audio, type AnimalManager, type Animal, type TreeInstance, Rng, CameraFX, cabinMask, heightAt, inChunk, normalAt, pondMask, streamAt, waterLevel } from '@wildshard/engine';
 /**
  * Pine Hollow's ambient life without wolves (PINE-HOLLOW-REMASTER PH-M5) and the harvest's skinning beat (PH-F2), in one
  * call from main.ts (`installPineLife`, before the boot's precompile: the one draw below is parked in the scene then).
@@ -46,7 +46,7 @@ import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
 import { pineOption } from '../debug/options';
-import { smoothstep } from '#engine/data';
+import { smoothstep } from '@wildshard/engine/data';
 
 export interface PineLifeHost {
   ctx: ShardContext;

@@ -5,12 +5,12 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the real dependency outside the symlinked clean-export tree in this Node test.
 import { createRequire } from 'node:module';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture, DirectionalLight, WebGLRenderTarget, Bone, Skeleton, SkinnedMesh } from 'three';
-import { App, Scope, AssetService } from '#engine';
-import { SceneOwnership } from '#engine-internal/app/sceneOwnership';
-import { enterOwner, withOwner } from '#engine-internal/app/ownership';
-import { scopeRegistrations, registrationTimerIds } from '#engine-internal/app/scope';
-import { Physics } from '#engine-internal/physics/Physics';
-import { loadRapier } from '#engine-internal/physics/rapier';
+import { App, Scope, AssetService } from '@wildshard/engine';
+import { SceneOwnership } from '../../src/engine/app/sceneOwnership';
+import { enterOwner, withOwner } from '../../src/engine/app/ownership';
+import { scopeRegistrations, registrationTimerIds } from '../../src/engine/app/scope';
+import { Physics } from '../../src/engine/physics/Physics';
+import { loadRapier } from '../../src/engine/physics/rapier';
 
 describe('level unload keeps the engine usable', () => {
   it('removes real Rapier handles and scene ownership, releases acquired textures, and runs another engine frame', async () => {

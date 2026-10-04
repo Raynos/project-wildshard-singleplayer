@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { expect, it } from 'vitest';
-import { makeLook, sampleSkyLook, type SkyKey } from '#shards/nalati-grasslands/look/skyRig';
-import { steppeClock, nightKeys, blendSteppeKey } from '#shards/nalati-grasslands/look/dayKeys';
+import { makeLook, sampleSkyLook, type SkyKey } from '../../src/shards/nalati-grasslands/look/skyRig';
+import { steppeClock, nightKeys, blendSteppeKey } from '../../src/shards/nalati-grasslands/look/dayKeys';
 import frozen from './fixtures/elevation-keys-e357.json';
 
 const rgb = (values: number[]): [number, number, number] => {

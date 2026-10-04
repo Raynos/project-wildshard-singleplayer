@@ -18,7 +18,7 @@
  * porch in front of the door).
  */
 import * as THREE from 'three';
-import { SEED, LowPolyKit, log, plank, rope, tris, bakeLight, lowPolyMaterial, type BakedLight, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel } from '#engine';
+import { SEED, LowPolyKit, log, plank, rope, tris, bakeLight, lowPolyMaterial, type BakedLight, type BoxSpec as Collider, boxDesc, type ColliderDesc, defineModel } from '@wildshard/engine';
 
 /** where a hut stands: its centre (world xz) and which way its door faces (rot, radians; 0 = −z) */
 export interface HutSite { readonly x: number; readonly z: number; readonly rot: number }

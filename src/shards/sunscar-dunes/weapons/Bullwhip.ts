@@ -1,4 +1,4 @@
-import { Weapon, blocks, type Actor, type App, type CombatTarget, type EquipContext, type Targets, type WeaponState } from '#engine';
+import { Weapon, blocks, type Actor, type App, type CombatTarget, type EquipContext, type Targets, type WeaponState } from '@wildshard/engine';
 import { CatmullRomCurve3, Mesh, TubeGeometry, Vector2, Vector3 } from 'three';
 import { WHIP_ROW } from './rows';
 import { braidedMaterial, buildWhipModel, type WhipParts } from './whipModel';

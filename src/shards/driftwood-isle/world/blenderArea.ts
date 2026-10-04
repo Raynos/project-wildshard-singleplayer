@@ -1,4 +1,4 @@
-import { CHUNK_HALF, CELL, type BlenderArea } from '#engine/data';
+import { CHUNK_HALF, CELL, type BlenderArea } from '@wildshard/engine/data';
 
 /**
  * Driftwood Isle's Blender area (DRIFTWOOD-REMASTER X2, E52): the spawn cove, the crescent beach, the plank stair and the

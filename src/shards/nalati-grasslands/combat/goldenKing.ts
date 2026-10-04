@@ -1,5 +1,5 @@
 import { NALATI_STRIKES, sampleStrike, sampleArena } from './strikes';
-import { app, listenPage, type Game, type Sky, type Player, type AnimalManager, type Animal, type ThinkCtx, type Interactable, BossBar, canReach, type WorldRegistry } from '#engine';
+import { app, listenPage, type Game, type Sky, type Player, type AnimalManager, type Animal, type ThinkCtx, type Interactable, BossBar, canReach, type WorldRegistry } from '@wildshard/engine';
 import { encounterHit } from './damage';
 import * as THREE from 'three';
 
@@ -8,13 +8,13 @@ import * as THREE from 'three';
 
 
 
-import type { Bow } from '#kit';
+import type { Bow } from '@wildshard/kit';
 
 import type { KurganEntrance } from '../world/KurganField';
 import { GOLDEN_KING, bindGoldenKing } from '../species/goldenKing';
 import { KURGAN_BALBAL } from '../species/kurganBalbal';
 import { KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT, DROMOS_SPAWN, DROMOS_END } from '../world/KurganDungeon';
-import { Boss, type BossDef, type BossScript } from '#game/Boss';
+import { Boss, type BossDef, type BossScript } from '@wildshard/game';
 
 import { GoldenBowPower, goldenBowModel } from '../weapons/GoldenBow';
 

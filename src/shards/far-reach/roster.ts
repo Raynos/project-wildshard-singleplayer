@@ -1,5 +1,5 @@
-import type { ShardManifest } from '#game';
-import { live } from '#engine';
+import type { ShardManifest } from '@wildshard/game';
+import { live } from '@wildshard/engine';
 import { bridgeEntry, fanEntry, keeperEntry, windmillEntry } from './models/gear';
 import { goatEntry, rayEntry, rocEntry, vaneEntry } from './models/creatures';
 

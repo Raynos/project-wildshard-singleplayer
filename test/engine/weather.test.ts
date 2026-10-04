@@ -1,9 +1,9 @@
 import { expect, it } from 'vitest';
-import { PineWeather } from '#shards/pine-hollow/world/weatherProfile';
-import { SteppeStorm } from '#shards/nalati-grasslands/world/Weather';
-import { Weather } from '#engine-internal/world/weather';
-import { Scope } from '#engine-internal/app/scope';
-import { Events } from '#engine-internal/events/events';
+import { PineWeather } from '../../src/shards/pine-hollow/world/weatherProfile';
+import { SteppeStorm } from '../../src/shards/nalati-grasslands/world/Weather';
+import { Weather } from '../../src/engine/world/weather';
+import { Scope } from '../../src/engine/app/scope';
+import { Events } from '../../src/engine/events/events';
 import frozen from './fixtures/weather-e357.json';
 
 /** Recorded from original152c5409 classes, including RNG-shared Nalati lightning/gust state. */

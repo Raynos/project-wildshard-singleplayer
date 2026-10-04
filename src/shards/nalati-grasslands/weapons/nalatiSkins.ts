@@ -1,8 +1,8 @@
-import { CosmeticsLocker } from '#game';
-import { EffectService, type EffectTarget, type Animal } from '#engine';
+import { CosmeticsLocker } from '@wildshard/game';
+import { EffectService, type EffectTarget, type Animal } from '@wildshard/engine';
 import { nalatiSkinEffect } from './effects';
 import * as THREE from 'three';
-import type { Bow } from '#kit';
+import type { Bow } from '@wildshard/kit';
 import type { Sabre } from './Sabre';
 import { horseBones } from '../species/horse';
 import { skyMarkedAtlas } from '../species/coats';
