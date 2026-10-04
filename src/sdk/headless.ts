@@ -17,13 +17,20 @@ export class HeadlessSimulation {
   /** Admit content, start the fixed platform worker, and optionally resume an exact committed same-engine checkpoint. */
   static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string): Promise<HeadlessSimulation> {
     validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'));
-  const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, 'dist/client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, '../../public/assets/physics/rapier.wasm')].find(existsSync);
-  if (binary === undefined) throw new Error('SDK physics binary missing; build/pack the SDK before headless validation');
+    const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, 'dist/client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, '../../public/assets/physics/rapier.wasm')].find(existsSync);
+    if (binary === undefined) throw new Error('SDK physics binary missing; build/pack the SDK before headless validation');
     const admitted = new Map<string, Uint8Array>();
     for (const ref of [...shard.files.map(file => file.hash), ...shard.requires.commons.map(hash => `commons:${hash}`)]) {
       const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted worker bytes'); admitted.set(ref, bytes);
     }
-    const runner = new TickWorkerHost(pathToFileURL(resolve(import.meta.dirname, 'headlessWorker.js')), { shard, assets: admitted, binary, ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget);
+    const bundled = resolve(import.meta.dirname, 'headlessWorker.js');
+    const source = resolve(import.meta.dirname, 'headlessWorker.ts');
+    const loader = resolve(import.meta.dirname, '../../scripts/sim-node-loader.mjs');
+    const distributed = existsSync(bundled);
+    if (!distributed && (!existsSync(source) || !existsSync(loader))) throw new Error('SDK headless worker missing; build/pack the SDK or use its complete workspace checkout');
+    // Source-checkout workers need their own Node hooks; parent Vitest/Vite transforms never cross the isolate boundary.
+    const execArgv = distributed ? [] : ['--experimental-transform-types', '--import', pathToFileURL(loader).href];
+    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget, execArgv);
     try { await runner.initialized(); return new HeadlessSimulation(runner); } catch (error) { await runner.dispose(); throw error; }
   }
   /** Last committed state is detached; callers cannot change the checkpoint used after a refused or unfinished tick. */
