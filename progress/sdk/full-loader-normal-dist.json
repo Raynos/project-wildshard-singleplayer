@@ -1,0 +1,177 @@
+{
+  "pass": true,
+  "sha": "23bdb5f3dbfd067bae933488270ee3886c74c9c7",
+  "mode": "dist",
+  "first": {
+    "embedded": true,
+    "creatures": 3,
+    "boundViews": 3,
+    "ticks": 706,
+    "position": {
+      "x": 163.84444598242408,
+      "y": 0.13594262810082125,
+      "z": 30.001807511678294
+    },
+    "fuel": 0.9029166666666515,
+    "open": 1,
+    "fine": [
+      "0/4/2",
+      "0/5/2",
+      "0/6/2",
+      "0/4/3",
+      "0/5/3",
+      "0/6/3",
+      "0/4/4",
+      "0/5/4",
+      "0/6/4",
+      "0/4/5",
+      "0/5/5",
+      "0/6/5",
+      "0/4/6",
+      "0/5/6",
+      "0/6/6",
+      "0/7/4",
+      "0/7/3",
+      "0/7/5",
+      "0/7/2",
+      "0/7/6"
+    ],
+    "workers": false,
+    "allocator": {
+      "l0": 0,
+      "l1": 0,
+      "far": 0,
+      "libraries": 2881462,
+      "sims": 0,
+      "commons": 0,
+      "overlap": 80000000
+    },
+    "errors": []
+  },
+  "coldDownloads": 100,
+  "revisitDownloads": 0,
+  "offlineDownloads": 0,
+  "cacheNames": [
+    "ws-shell-23bdb5f-mutxbqtf-79773cc9d7",
+    "ws-immutable",
+    "ws-shardfile-products-v0",
+    "ws-content-v0",
+    "ws-static-1c06a747b8"
+  ],
+  "offline": {
+    "restored": {
+      "online": false,
+      "open": 1,
+      "active": false,
+      "lit": true,
+      "fuel": 0.9012499999999846
+    },
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "before": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "disposalErrors": [],
+    "errors": []
+  },
+  "source": "scripts/test-sdk-full-client.mjs",
+  "method": "Clean serve-build --rev 23bdb5f3d distribution, normal descriptor URL boot; deterministic real player drive, cache revisit, offline reload and normal load-unload census. Standalone non-ring client; no decode workers."
+}
