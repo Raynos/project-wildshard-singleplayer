@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./grazers": "./grazers.ts",
     "./version": "./version.ts",
     "./shardfile": "./shardfile.ts",
     "./author": "./author.ts",
@@ -51,6 +52,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./grazers": {
+        "types": "./dist/types/sdk/grazers.d.ts",
+        "default": "./dist/grazers.js"
+      },
       "./version": {
         "types": "./dist/types/sdk/version.d.ts",
         "default": "./dist/version.js"
