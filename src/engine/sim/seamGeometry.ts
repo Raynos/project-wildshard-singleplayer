@@ -14,9 +14,23 @@ export interface SeamTurnIn { readonly at: 0; readonly widths: readonly [number,
 export interface SeamGeometry { readonly mesh: StripMesh; readonly features: readonly SeamFeature[]; readonly turnIn: SeamTurnIn }
 /** Every gradient has a vertex at most 2 m apart; the 6/10 m re-frame lines remain explicit vertices. */
 export const SEAM_OFFSETS: readonly number[] = Object.freeze([...Array.from({ length: 11 }, (_, i) => -27.5 + i * 2), ...Array.from({ length: 11 }, (_, i) => 7.5 + i * 2)]);
+/**
+ * The §3.2 shore rule (G134 / G149): an edge whose observed sea is at exactly 0 over seabed below 0 keeps the strip at 0 to
+ * the cell edge and gets a low rip-rap revetment there. A sample counts as seabed when it is more than this below 0
+ * (the entry rule's 2 cm road tolerance).
+ */
+export const SHORE_DEPTH = 0.02;
+/**
+ * The revetment's inner (sea-side) face, in metres into the cell from the cell edge. The shard's sea is clipped here: no
+ * water nearer the cell edge than this, so its edge hides under the revetment's crest (+0.6 m, above the +0.4 m swell).
+ * The platform builds the revetment from it and the shard's water reads it (G149, one shared constant).
+ */
+export const SHORE_REVETMENT_INNER_FACE = 0.8;
 const neutral = [0.25, 0.25, 0.25] as const;
 const smooth = (t: number): number => t * t * (3 - 2 * t);
 const bounded = (h: number): number => Math.max(-1.5, Math.min(6, h));
+/** A corner's floor height: B, held at 0 or above for a shore corner (the §3.2 shore rule: B = max(0, clamp(H, −1.5, 6))). */
+const cornerFloor = (corner: StripCorner): number => (corner.shore === true ? Math.max(0, bounded(corner.height)) : bounded(corner.height));
 const blend = (u: number): number => smooth(Math.max(0, Math.min(1, (Math.abs(u) - 11.5) / 16)));
 const tan85 = Math.tan(85 * Math.PI / 180);
 // G101: single jump + autostep stays below this obstacle; double jump clears it.
@@ -191,7 +205,7 @@ export function cornerSeamGeometry(input: { readonly id: string; readonly origin
     const corner = input.corners[(z < 0 ? 0 : 2) + (x < 0 ? 0 : 1)];
     if (corner === undefined) throw new Error('Missing seam corner');
     const weight = blend(x) * blend(z);
-    writer.vertex(x, weight === 0 ? 0 : bounded(corner.height) * weight, z, neutral.map((c, i) => c + ((corner.colour[i] ?? c) - c) * weight));
+    writer.vertex(x, weight === 0 ? 0 : cornerFloor(corner) * weight, z, neutral.map((c, i) => c + ((corner.colour[i] ?? c) - c) * weight));
   }
   const retained = seamLatticeRows({ positions: writer.positions, colours: writer.colours, columns: count, along: SEAM_OFFSETS, corner: true });
   for (let col = 1; col < count; col++) {
@@ -216,13 +230,15 @@ export function cornerSeamGeometry(input: { readonly id: string; readonly origin
       const start = writer.positions.length / 3, before = writer.features.length;
       const from = along * 27.5, to = along * 17.5;
       const feature = (kind: SeamFeatureKind, bottom: number, top: number): Omit<SeamFeature, 'firstIndex' | 'indexCount'> => ({ kind, side: across, from: Math.min(from, to), to: Math.max(from, to), bottom, top });
-      const h = corner.height, a = bounded(h), b = bounded(h) * blend(to);
+      // G149: a shore corner's field stays at 0 (cornerFloor) and needs neither the drop face nor the road wall: the
+      // strips' revetments close the shoreline and no cyan drop wall crosses it
+      const h = corner.height, a = cornerFloor(corner), b = a * blend(to), shore = corner.shore === true;
       if (h > 14) {
         const fa = cliffFoot(input.id, across, h, from), fb = cliffFoot(input.id, across, h, to, blend(to));
         writer.quad([[across * fa.u, fa.bottom, from], [across * fb.u, fb.bottom, to], [across * 27.5, h, from], [across * 27.5, h, to]], feature('cliff', Math.min(fa.bottom, fb.bottom), h));
         writer.quad([[across * (fa.u - 4), bounded(h) * blend(fa.u - 4), from], [across * (fb.u - 4), bounded(h) * blend(fb.u - 4) * blend(to), to], [across * fa.u, fa.bottom, from], [across * fb.u, fb.bottom, to]], feature('talus', Math.min(a, b), Math.max(fa.bottom, fb.bottom)));
-      } else if (h > 6 || h < -1.5) writer.quad([[across * 27.5, a, from], [across * 27.5, b, to], [across * 27.5, h, from], [across * 27.5, h, to]], feature(h > 6 ? 'retaining-wall' : 'parapet', Math.min(h, a, b), Math.max(h, a, b)));
-      if (h > 14 || h < -1.5) {
+      } else if (h > 6 || (h < -1.5 && !shore)) writer.quad([[across * 27.5, a, from], [across * 27.5, b, to], [across * 27.5, h, from], [across * 27.5, h, to]], feature(h > 6 ? 'retaining-wall' : 'parapet', Math.min(h, a, b), Math.max(h, a, b)));
+      if (h > 14 || (h < -1.5 && !shore)) {
         writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), 0, roadWallTop, 0.25, feature('road-wall', 0, roadWallTop));
         writer.box(across * 7.5, Math.min(from, to), Math.max(from, to), roadWallTop, guardRailTop, 0.15, feature('guard-rail', roadWallTop, guardRailTop));
       }

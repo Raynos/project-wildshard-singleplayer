@@ -1,10 +1,11 @@
 import { validateEdgeProfile } from './edgeProfiles';
-import { seamGeometry, cornerSeamGeometry, SEAM_OFFSETS, type SeamEdge, type SeamFeature, type SeamTurnIn } from './seamGeometry';
+import { seamGeometry, cornerSeamGeometry, SEAM_OFFSETS, SHORE_DEPTH, type SeamEdge, type SeamFeature, type SeamTurnIn } from './seamGeometry';
 
 /** Deterministic platform seam data, independent of rendering, devices and physics wrappers. */
 export interface StripProfile { readonly heights: readonly number[]; readonly colours: readonly (readonly number[])[]; readonly roadHeight: number }
 /** Southwest, southeast, northwest and northeast outer corner values, in that order. */
-export interface StripCorner { readonly height: number; readonly colour: readonly [number, number, number] }
+/** `shore` (G149, the §3.2 shore rule): the corner is seabed below 0 under a sea at exactly 0, so its field never descends. */
+export interface StripCorner { readonly height: number; readonly colour: readonly [number, number, number]; readonly shore?: boolean }
 /** A regional placement is used only to translate the platform's duplicate collider. */
 export interface StripCell { readonly instance: string; readonly origin: { readonly x: number; readonly z: number } }
 /** A triangle mesh is local to its origin. Colour triples use the same vertex ordering. */
@@ -79,7 +80,9 @@ export function generatePlatform(cells: readonly PlatformCell[], empty: StripPro
     const a = cell?.edges[horizontal] ?? empty, b = cell?.edges[vertical] ?? empty, i = vertical === 'east' ? a.heights.length - 1 : 0, j = horizontal === 'north' ? b.heights.length - 1 : 0;
     const height = a.heights[i] ?? 0, otherHeight = b.heights[j] ?? 0, colour = a.colours[i], otherColour = b.colours[j];
     if (colour === undefined || otherColour === undefined || Math.abs(height - otherHeight) > 0.02 || colour.some((c, k) => Math.abs(c - (otherColour[k] ?? Infinity)) > 1e-6)) throw new RangeError('Authored corner edges disagree');
-    return { height, colour: [colour[0] ?? 0, colour[1] ?? 0, colour[2] ?? 0] };
+    // G149: a corner of a shore edge (a sea at exactly 0 over seabed) keeps the strips' floor at 0 round the junction
+    const sea = cell?.observations?.[horizontal].waterSurface === 0 || cell?.observations?.[vertical].waterSurface === 0;
+    return { height, colour: [colour[0] ?? 0, colour[1] ?? 0, colour[2] ?? 0], ...(sea && height < -SHORE_DEPTH ? { shore: true } : {}) };
   };
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ - 1; z <= maxZ; z++) {
     const sw = get(x, z), se = get(x + 1, z), nw = get(x, z + 1), ne = get(x + 1, z + 1);
