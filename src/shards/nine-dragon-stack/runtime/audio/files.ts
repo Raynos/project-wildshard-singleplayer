@@ -39,5 +39,5 @@ export function ndPick(scene: NdScene, state: MusicState | undefined): readonly 
 }
 export async function ndScore(onReady: () => void): Promise<SetScore<NdScene> & ScoreSource> {
   const [{ SetScore }, { cachedBytes, decodeBytes }] = await Promise.all([import('@wildshard/engine/audio/SetScore'), import('@wildshard/engine/audio/preload')]);
-  return new SetScore<NdScene>({ ...SCORE_SET, scene: { well: 0 }, pick: ndPick, read: cachedBytes, decode: decodeBytes, onReady, waitForBank: true });
+  return new SetScore<NdScene>({ ...SCORE_SET, minFade: PROFILE.minFade, synthLead: PROFILE.synthLead, scene: { well: 0 }, pick: ndPick, read: cachedBytes, decode: decodeBytes, onReady, waitForBank: true });
 }

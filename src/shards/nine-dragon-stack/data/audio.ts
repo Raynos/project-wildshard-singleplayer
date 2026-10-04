@@ -3,7 +3,7 @@ import { ND_SAMPLES } from './audioSamples';
 
 /** Today's market/Well beds, enclosed blend regions, lantern hum limits and ordered cue aliases. */
 export const ND_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default', samples: ND_SAMPLES,
-  music: { id: 'score.nd', base: 'nd-market', slots: ['nd-market', 'nd-well', 'nd-fight'], bootSlots: ['title', 'nd-market'], synthLead: 'pluck', minFade: 0,
+  music: { id: 'score.nd', base: 'nd-market', slots: ['nd-market', 'nd-well', 'nd-fight'], bootSlots: ['title', 'nd-market'], synthLead: 'pluck', minFade: 6,
     source: { dir: '/assets/music/nine-dragon-stack/', manifestKey: 'nine-dragon-stack' }, sets: {}, selectMode: 'first', selection: [
       { slots: ['nd-fight', 'nd-market'], when: [{ field: 'mode', op: 'equals', value: 'combat' }] },
       { slots: ['nd-well', 'nd-market'], when: [{ field: 'well', op: 'greater', value: 0.5 }] },

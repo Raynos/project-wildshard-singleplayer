@@ -76,10 +76,14 @@ export interface SetScoreOptions<Scene> extends ScoreSet {
   pick: (scene: Scene, state: MusicState | undefined) => readonly string[];
   read: AudioRead; decode: AudioDecode; onReady: () => void;
   waitForBank?: boolean;
+  /** Admitted minimum crossfade and fallback synth lead; omission keeps Music's existing defaults. */
+  minFade?: number; synthLead?: 'pluck' | 'marimba';
 }
 /** One score set; only the playing and wanted slots retain PCM across scene changes. */
 export class SetScore<Scene> implements ScoreSource {
   readonly scene: Scene;
+  readonly minFade?: number;
+  readonly synthLead?: 'pluck' | 'marimba';
   readonly slots: readonly string[];
   stings = new Map<StemSting, AudioBuffer>();
   private readonly residentSlots = new Map<string, SlotAudio>();
@@ -92,6 +96,8 @@ export class SetScore<Scene> implements ScoreSource {
   readonly log: { slot: string; ms: number }[] = [];
   constructor(options: SetScoreOptions<Scene>) {
     this.options = options;
+    if (options.minFade !== undefined) this.minFade = options.minFade;
+    if (options.synthLead !== undefined) this.synthLead = options.synthLead;
     this.waitingBoot = options.waitForBank ?? false;
     this.scene = options.scene;
     this.slots = Object.keys(scoreManifest(options)?.slots ?? {});

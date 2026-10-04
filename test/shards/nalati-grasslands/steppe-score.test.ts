@@ -28,6 +28,7 @@ describe('SteppeScore', () => {
 
   test('the fallback chain: king > storm > night > the zone > grass', () => {
     const s = createSteppeScore(() => Promise.resolve(new ArrayBuffer(8)), () => Promise.resolve(buf(22)), () => undefined);
+    expect(s.minFade).toBe(6); expect(s.synthLead).toBe('pluck');
     expect(s.target()).toBe('steppe-grass');
     s.scene.zone = 'sky'; expect(s.target()).toBe('steppe-sky');
     s.scene.zone = 'snow'; expect(s.target()).toBe('steppe-grass'); // no snow theme in this build

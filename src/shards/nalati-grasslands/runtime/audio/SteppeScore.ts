@@ -39,5 +39,5 @@ export function steppePick(scene: SteppeScene): readonly string[] {
   return selectScoreSlots(PROFILE.selection, PROFILE.selectMode, { boss: scene.boss, storm: scene.storm, night: scene.night, zone: scene.zone });
 }
 export function createSteppeScore(read: AudioRead, decode: AudioDecode, onReady: () => void): SetScore<SteppeScene> {
-  return new SetScore<SteppeScene>({ ...SET, scene: { zone: 'grass', night: false, storm: false, boss: null }, pick: steppePick, read, decode, onReady });
+  return new SetScore<SteppeScene>({ ...SET, minFade: PROFILE.minFade, synthLead: PROFILE.synthLead, scene: { zone: 'grass', night: false, storm: false, boss: null }, pick: steppePick, read, decode, onReady });
 }

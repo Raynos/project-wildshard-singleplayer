@@ -25,6 +25,7 @@ const sources = new WeakMap<Music, PineScore>();
 /** Scene, genre, phase and reward policy for the existing Pine recordings. */
 export class PineScore implements ScoreSource {
   readonly base = PROFILE.base;
+  readonly synthLead = PROFILE.synthLead;
   readonly slots = PROFILE.slots;
   readonly minFade = PROFILE.minFade;
   readonly stings = new Map<StemSting, AudioBuffer>();
