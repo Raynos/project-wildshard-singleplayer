@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./ai/orbitDiver": "./ai/orbitDiver.ts",
+    "./ai/patrolDiver": "./ai/patrolDiver.ts",
+    "./ai/burstFlyer": "./ai/burstFlyer.ts",
     "./ai/challengeGrazer": "./ai/challengeGrazer.ts",
     "./ai/ramGrazer": "./ai/ramGrazer.ts",
     "./ai/BossBrain": "./ai/BossBrain.ts",

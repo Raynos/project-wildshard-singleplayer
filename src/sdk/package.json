@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./flyers": "./flyers.ts",
     "./grazers": "./grazers.ts",
     "./version": "./version.ts",
     "./shardfile": "./shardfile.ts",
@@ -53,6 +54,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./flyers": {
+        "types": "./dist/types/sdk/flyers.d.ts",
+        "default": "./dist/flyers.js"
+      },
       "./grazers": {
         "types": "./dist/types/sdk/grazers.d.ts",
         "default": "./dist/grazers.js"

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./shardfile/flyers": "./shardfile/flyers.ts",
     "./shardfile/grazers": "./shardfile/grazers.ts",
     "./newGame": "./newGame.ts",
     "./shard/runtimeVariant": "./shard/runtimeVariant.ts",
