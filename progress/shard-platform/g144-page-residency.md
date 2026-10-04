@@ -25,7 +25,7 @@ The optional loader/handoff, runtime-cost schema and fallback data-home tile met
 
 ## Truthful measured home cost
 
-Provenance: [SF22a measurement](../../memory/sf22a-2026-10-04.json), revision `91f97bdfc`. The label is Simulator
+Provenance: [SF22a measurement](../memory/sf22a-2026-10-04.json), revision `91f97bdfc`. The label is Simulator
 Safari WebContent plus the desktop labelled GL census; it is not a physical-phone reading.
 
 Driftwood records 613 MB WebContent, 272 MB GL and 299 MB engine base. The game helper computes
