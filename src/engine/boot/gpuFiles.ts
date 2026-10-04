@@ -45,7 +45,9 @@ export function registerGpuFiles(table: Ktx2Table): void {
 export type TexMode = 'ktx2' | 'img';
 
 /** the one level selected for this page (core/config's PAGE_LEVEL: captured by the registry's first apply) */
-const buildSlug = (): string => PAGE_LEVEL;
+/** the level a build's texture policy is for (setTexturePolicy); the page's level when unset */
+let policyLevel: string | undefined;
+const buildSlug = (): string => policyLevel ?? PAGE_LEVEL;
 /** a page that may load KTX2 in some build (Debug ▸ GPU textures is not Images): its model / texture caches are per shard
  *  (KTX2 drops a texture's mips once uploaded — another renderer could not upload a cached copy; E155) */
 export const MAY_KTX2 = setting('tex') !== 'img';
@@ -57,7 +59,8 @@ export function setAutoKtx2Check(fn: (slug: string) => boolean): void { autoRead
 let resolved: { mode: TexMode; why: string } | null = null;
 let texturePolicy: TexMode | undefined;
 /** The composition root installs tier data before this build resolves its file list. */
-export function setTexturePolicy(mode: TexMode | undefined): void { texturePolicy = mode; resolved = null; }
+/** a build's texture policy (its tier's `textures`) and the level it is for (the page's level when omitted); the mode resolves afresh */
+export function setTexturePolicy(mode: TexMode | undefined, level?: string): void { texturePolicy = mode; policyLevel = level; resolved = null; }
 let resolving = false;
 /** the mode this page loads with, and why (fixed on the first call) */
 export function texModeWhy(): { mode: TexMode; why: string } {

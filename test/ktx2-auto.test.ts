@@ -1,68 +1,74 @@
-import { saveStorageFixture, saveFixture } from './fake/saveFixture';
+import { saveFixture } from './fake/saveFixture';
 /**
  * E157 B — "images on the first visit, KTX2 from the next launch" (src/engine/boot/gpuFiles.ts, src/engine/boot/shardPrefetch.ts).
  * Settings ▸ Debug ▸ GPU textures: Auto loads KTX2 only when the shard's whole KTX2 set for the tier is cached (the marker
  * the background download writes names the set's hash); the explicit picks override. Resolved once per page.
  */
-import { describe, expect, it, vi } from 'vitest';
-import type * as ShardPrefetch from '#engine/boot/shardPrefetch';
+import { describe, expect, it } from 'vitest';
 import type { ShardManifest } from '#game/shard/manifest';
+import { SHARDS } from '../src/shards.generated';
+import { findChunk, playable, setActiveChunk } from '#game/shard/registry';
+import { prepareShardAssets } from '#game/shard/load';
+import { ART_URL_BYTES } from '#game/shard/art.generated';
+import { initializeTier } from '#engine/core/tier';
+import * as sp from '#engine/boot/shardPrefetch';
+import * as gf from '#engine/boot/gpuFiles';
+import { chunkFiles } from '#engine/boot/manifest';
+import { bootParts, packFor } from '#engine/boot/pack';
+import { setBootCatalog } from '#engine/boot/catalog';
+import { OPTION_VALUES, saveSetting } from '#engine/ui/Settings';
 
-type SP = typeof ShardPrefetch;
+type SP = typeof sp;
+const texPick = (v: string | undefined): (typeof OPTION_VALUES.tex)[number] => OPTION_VALUES.tex.find((x) => x === v) ?? 'auto';
 
-async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: string; marker?: (sp: SP, PLAYABLE_SHARDS: readonly ShardManifest[]) => [string, string] | null } = {}) {
-  vi.resetModules();
-  const chunk = opts.chunk ?? 'pine-hollow';
-  vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${opts.tier ?? 'phone'}&chunk=${chunk}`));
+/**
+ * A page load on a tier and a shard: the tier picked explicitly (initializeTier's named form), the GPU-textures pick saved
+ * through Settings, the level selected, and the texture mode resolved afresh (setTexturePolicy) — not a module reload (E422).
+ */
+async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: string; marker?: (prefetch: SP, playable: readonly ShardManifest[]) => [string, string] | null } = {}) {
+  const chunk = opts.chunk ?? 'pine-hollow', tier = opts.tier ?? 'phone';
   localStorage.clear();
-  if (opts.tex !== undefined) saveStorageFixture('global').setItem('settings', JSON.stringify({ tex: opts.tex }));
-  const { initializeTier } = await import('#engine/core/tier');
-  await initializeTier();
-  const [{ SHARDS }, { playable }, sp, gf, { chunkFiles }, { packFor, bootParts }] = await Promise.all([
-    import('../src/shards.generated'), import('#game/shard/registry'), import('#engine/boot/shardPrefetch'), import('#engine/boot/gpuFiles'), import('#engine/boot/manifest'), import('#engine/boot/pack'),
-  ]);
-  const { prepareShardAssets } = await import('#game/shard/load');
-  const { registerGpuFiles } = await import('#engine/boot/gpuFiles');
-  await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
+  saveSetting('tex', texPick(opts.tex));
+  initializeTier(tier);
+  await Promise.all(SHARDS.map((m) => prepareShardAssets(m, gf.registerGpuFiles)));
   // E405: the session installs the registry into the engine's boot catalog; so does the test
-  const [{ setBootCatalog }, { findChunk, setActiveChunk }, { ART_URL_BYTES }] = await Promise.all([import('#engine/boot/catalog'), import('#game/shard/registry'), import('#game/shard/art.generated')]);
-  setActiveChunk(chunk); // the running level, as the composition root selects it (the registry no longer does at import)
+  setActiveChunk(chunk); // the running level, as the composition root selects it
   setBootCatalog({ levels: SHARDS, playable: SHARDS.filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   const PLAYABLE_SHARDS = SHARDS.filter(playable);
   const selected = SHARDS.find((manifest) => manifest.slug === chunk);
-  gf.setTexturePolicy(selected?.tiers?.[opts.tier ?? 'phone']?.textures);
+  gf.setTexturePolicy(selected?.tiers?.[tier]?.textures, chunk);
   const m = opts.marker?.(sp, PLAYABLE_SHARDS);
   if (m) saveFixture('device', 'ktx2set', { [m[0].slice('ktx2set:'.length)]: m[1] });
   return { SHARDS, PLAYABLE_SHARDS, sp, gf, chunkFiles, packFor, bootParts, def: PLAYABLE_SHARDS.find((c) => c.slug === chunk) };
 }
-const current = (sp: SP, PLAYABLE_SHARDS: readonly ShardManifest[], slug = 'pine-hollow'): [string, string] | null => {
-  const def = PLAYABLE_SHARDS.find((c) => c.slug === slug);
-  return def ? [sp.ktx2MarkerKey(slug), sp.setHash(sp.ktx2Set(def))] : null;
+const current = (prefetch: SP, shards: readonly ShardManifest[], slug = 'pine-hollow'): [string, string] | null => {
+  const def = shards.find((c) => c.slug === slug);
+  return def ? [prefetch.ktx2MarkerKey(slug), prefetch.setHash(prefetch.ktx2Set(def))] : null;
 };
 
 describe('Auto: images until the shard\'s KTX2 set is cached', () => {
   it('Nine Dragon Auto uses images on phones while the compressed upload crash is isolated', async () => {
     const phone = await load({ chunk: 'nine-dragon-stack', tier: 'phone' });
     expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'img' });
-    const cachedPhone = await load({ chunk: 'nine-dragon-stack', tier: 'phone', marker: (sp, C) => current(sp, C, 'nine-dragon-stack') });
+    const cachedPhone = await load({ chunk: 'nine-dragon-stack', tier: 'phone', marker: (p, C) => current(p, C, 'nine-dragon-stack') });
     expect(cachedPhone.gf.texModeWhy()).toMatchObject({ mode: 'img' });
     const desktop = await load({ chunk: 'nine-dragon-stack', tier: 'desktop' });
     expect(desktop.gf.texMode()).toBe('img');
   });
   it('a first visit (no marker) loads images', async () => {
-    const { gf } = await load();
+    await load();
     expect(gf.texModeWhy().mode).toBe('img');
   });
   it('the marker naming the current set → KTX2 from this load on', async () => {
-    const { gf } = await load({ marker: current });
+    await load({ marker: current });
     expect(gf.texModeWhy()).toMatchObject({ mode: 'ktx2' });
   });
   it('a stale marker (another build\'s set) → images', async () => {
-    const { gf } = await load({ marker: (sp) => [sp.ktx2MarkerKey('pine-hollow'), '1-deadbeef'] });
+    await load({ marker: (p) => [p.ktx2MarkerKey('pine-hollow'), '1-deadbeef'] });
     expect(gf.texMode()).toBe('img');
   });
   it('another shard\'s marker does not count', async () => {
-    const { gf } = await load({ marker: (sp, C) => current(sp, C, 'nalati-grasslands') });
+    await load({ marker: (p, C) => current(p, C, 'nalati-grasslands') });
     expect(gf.texMode()).toBe('img');
   });
   it('the desktop behaves the same (E173): images on the first visit, KTX2 once its own set is cached', async () => {
@@ -77,13 +83,13 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     const phone = await load();
     const def = phone.def;
     if (!def) throw new Error('no def');
-    const phoneMarker = phone.sp.setHash(phone.sp.ktx2Set(def));
-    const desk = await load({ tier: 'desktop', marker: (sp) => [sp.ktx2MarkerKey('pine-hollow'), phoneMarker] });
-    expect(desk.sp.ktx2MarkerKey('pine-hollow')).not.toBe(phone.sp.ktx2MarkerKey('pine-hollow'));
+    const phoneMarker = phone.sp.setHash(phone.sp.ktx2Set(def)), phoneKey = phone.sp.ktx2MarkerKey('pine-hollow');
+    const desk = await load({ tier: 'desktop', marker: (p) => [p.ktx2MarkerKey('pine-hollow'), phoneMarker] });
+    expect(desk.sp.ktx2MarkerKey('pine-hollow')).not.toBe(phoneKey);
     expect(desk.gf.texMode()).toBe('img');
   });
   it('is resolved once: a marker written mid-session changes nothing until the next load', async () => {
-    const { gf, sp, PLAYABLE_SHARDS } = await load();
+    const { PLAYABLE_SHARDS } = await load();
     expect(gf.texMode()).toBe('img');
     const m = current(sp, PLAYABLE_SHARDS);
     if (m) saveFixture('device', 'ktx2set', { [m[0].slice('ktx2set:'.length)]: m[1] });
@@ -93,18 +99,18 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
 
 describe('the explicit picks override Auto', () => {
   it('Images never loads KTX2, even with the set cached', async () => {
-    const { gf } = await load({ tex: 'img', marker: current });
+    await load({ tex: 'img', marker: current });
     expect(gf.texMode()).toBe('img');
   });
   it('KTX2 always loads KTX2, cached or not', async () => {
-    const { gf } = await load({ tex: 'ktx2' });
+    await load({ tex: 'ktx2' });
     expect(gf.texMode()).toBe('ktx2');
   });
 });
 
 describe('the KTX2 sets', () => {
   it.each(['phone', 'desktop'] as const)('every %s shard has the KTX2 stand-ins it declares + the transcoder, or an empty set without GPU assets', async (tier) => {
-    const { SHARDS, sp, chunkFiles } = await load({ tier });
+    await load({ tier });
     // Include experimental and hidden shards: assets and KTX2 mappings are optional for either.
     for (const def of SHARDS) {
       const set = sp.ktx2Set(def);
@@ -124,11 +130,11 @@ describe('the KTX2 sets', () => {
     }
   });
   it.each(['phone', 'desktop'] as const)('the %s images boot declares no KTX2 file, and its lists are what they were before B (the packs do not change)', async (tier) => {
-    const { PLAYABLE_SHARDS, chunkFiles } = await load({ tier });
+    const { PLAYABLE_SHARDS } = await load({ tier });
     for (const def of PLAYABLE_SHARDS) for (const f of Object.values(chunkFiles(def, 'img')).flat()) expect(f.startsWith('/assets/gpu/'), f).toBe(false);
   });
   it('a KTX2 boot streams only the pack parts that carry a file it declares', async () => {
-    const { def, chunkFiles, packFor, bootParts } = await load({ tex: 'ktx2' });
+    const { def } = await load({ tex: 'ktx2' });
     const pack = def ? packFor(def) : null;
     if (!def || !pack) throw new Error('no pack');
     const img = bootParts(pack, chunkFiles(def, 'img')), ktx = bootParts(pack, chunkFiles(def, 'ktx2'));
@@ -138,7 +144,7 @@ describe('the KTX2 sets', () => {
     for (const part of ktx.parts) expect(part.files.some(([p]) => declared.has(p))).toBe(true);
   });
   it('the set hash names the set (order-free) and changes with any file', async () => {
-    const { sp } = await load();
+    await load();
     expect(sp.setHash(['/a', '/b'])).toBe(sp.setHash(['/b', '/a']));
     expect(sp.setHash(['/a', '/b'])).not.toBe(sp.setHash(['/a', '/c']));
   });
@@ -158,7 +164,7 @@ describe('the bake keeps no file a KTX2 set does not read (E173, scripts/bake-kt
   it('every file under /assets/gpu is in some tier\'s KTX2 set (a .gltf stand-in\'s textures with it)', async () => {
     const used = new Set<string>();
     for (const tier of ['phone', 'desktop'] as const) {
-      const { SHARDS, sp } = await load({ tier });
+      await load({ tier });
       for (const def of SHARDS) for (const u of sp.ktx2Set(def)) used.add(u.split('?')[0] ?? u);
     }
     for (const u of used) { // the textures a .gltf adds are .ktx2: visited, never expanded
@@ -173,7 +179,7 @@ describe('the bake keeps no file a KTX2 set does not read (E173, scripts/bake-kt
     expect(GPU.filter((f) => !used.has(f))).toEqual([]);
   });
   it.each(['phone', 'desktop'] as const)('a %s KTX2 boot declares no texture the bake could have stood in for (an ARRAY_ONLY set read by a plain loader)', async (tier) => {
-    const { PLAYABLE_SHARDS, chunkFiles } = await load({ tier, tex: 'ktx2' });
+    const { PLAYABLE_SHARDS } = await load({ tier, tex: 'ktx2' });
     const list = Object.values(LIST)[0]?.[tier];
     const seen = new Set(Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string') : []);
     expect(seen.size).toBeGreaterThan(100);

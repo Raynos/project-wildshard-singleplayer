@@ -145,6 +145,11 @@
       "rules": { "import/no-default-export": "off" } // oxlint loads a JS plugin from its default export
     },
     {
+      // E422: tests drive real modules through their seams; no module mocks or reloads (lint/wildshard-plugin.js)
+      "files": ["test/**", "api-tests/**", "drafts/test/**"],
+      "rules": { "wildshard/no-module-mock": "error" }
+    },
+    {
       // No URL switches, ever (Jake, 2026-09-25): the game reads only the query params on the fixed allowlist in
       // lint/url-params.json; every variant goes in pause ▸ Settings ▸ Debug. See AGENTS.md "No URL switches".
       "files": ["src/**"],

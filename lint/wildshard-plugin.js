@@ -536,6 +536,15 @@ const noGlobalListenerPatch = rule('Legacy global registrations migrate to expli
   } };
 });
 
+// E422: a test drives the real module through its seams (a class, a factory, an injected loader or port), never a
+// replaced or reloaded module: vi.mock / doMock / resetModules / hoisted / importActual are refused in every test folder.
+const MODULE_MOCKS = new Set(['mock', 'doMock', 'unmock', 'doUnmock', 'resetModules', 'hoisted', 'importActual', 'importMock']);
+const noModuleMock = rule('Tests use seams, not module mocks (E422)', (context) => ({ CallExpression(node) {
+  const callee = unwrap(node.callee);
+  if (callee?.type !== 'MemberExpression') return;
+  const object = unwrap(callee.object), name = propName(callee) ?? stringOf(callee.property);
+  if (object?.type === 'Identifier' && object.name === 'vi' && MODULE_MOCKS.has(name)) report(context, node, `vi.${name} replaces or reloads a module: pass the dependency in (a class, a factory, an option) instead (E422)`);
+} }));
 const noRawAnimationMixer = rule('Animation mixers belong in engine/anim (E357 X4)', (context) => {
   if (pathOf(context).startsWith('src/engine/anim/')) return {};
   const names = new Set(['AnimationMixer']);
@@ -759,6 +768,7 @@ const plugin = {
     'no-raw-hud': noRawHud,
     'no-inline-ui-string': noInlineUiString,
     'no-raw-animation-mixer': noRawAnimationMixer,
+    'no-module-mock': noModuleMock,
     'no-level-identity': noLevelIdentity,
     'shard-sandbox': shardSandbox,
     'shard-names': shardNames,

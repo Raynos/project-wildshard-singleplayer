@@ -6,36 +6,35 @@
  * files Rapier / the navmesh fetch themselves. The prefetch list is derived differently (every declared file, minus the
  * packed ones, plus the pack) — these tests hold the two equal, per shard and per tier.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { SHARDS } from '../src/shards.generated';
+import { findChunk, playable } from '#game/shard/registry';
+import { prepareShardAssets } from '#game/shard/load';
+import { ART_URL_BYTES } from '#game/shard/art.generated';
+import { PACKS } from '#game/boot/packs.generated';
+import { initializeTier } from '#engine/core/tier';
+import * as sp from '#engine/boot/shardPrefetch';
+import { bootFiles, extraFetches } from '#engine/boot/extras';
+import { bootFetches } from '#engine/boot/prefetch';
+import { packFor } from '#engine/boot/pack';
+import { versionedUrl } from '#engine/boot/bytes';
+import { registerGpuFiles } from '#engine/boot/gpuFiles';
+import { setBootCatalog } from '#engine/boot/catalog';
 
+/** the page on a tier: the tier picked explicitly (initializeTier's named form, as a baker does), not a module reload (E422) */
 async function load(tier: 'phone' | 'desktop') {
-  vi.resetModules();
-  vi.stubGlobal('location', new URL(`http://localhost:5173/?tier=${tier}`));
-  const { initializeTier } = await import('#engine/core/tier');
-  await initializeTier();
-  const [{ SHARDS }, { playable }, sp, { bootFiles, extraFetches }, { bootFetches }, { packFor }, { versionedUrl }, { PACKS }] = await Promise.all([
-    import('../src/shards.generated'), import('#game/shard/registry'),
-    import('#engine/boot/shardPrefetch'),
-    import('#engine/boot/extras'),
-    import('#engine/boot/prefetch'),
-    import('#engine/boot/pack'),
-    import('#engine/boot/bytes'),
-    import('#game/boot/packs.generated'),
-  ]);
-  const { prepareShardAssets } = await import('#game/shard/load');
-  const { registerGpuFiles } = await import('#engine/boot/gpuFiles');
+  initializeTier(tier);
   await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
   // E405: the session installs the registry into the engine's boot catalog; so does the test
-  const [{ setBootCatalog }, { findChunk }, { ART_URL_BYTES }] = await Promise.all([import('#engine/boot/catalog'), import('#game/shard/registry'), import('#game/shard/art.generated')]);
   setBootCatalog({ levels: SHARDS, playable: SHARDS.filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   const PLAYABLE_SHARDS = SHARDS.filter(playable);
   // The background downloader visits title cards, including experimental shards; hidden teaching shards are excluded.
-  return { PLAYABLE_SHARDS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl, PACKS };
+  return { PLAYABLE_SHARDS };
 }
 
 describe('shardBootRequests: the boot request list of each shard', () => {
   it.each(['phone', 'desktop'] as const)('counts public artwork and keeps inline artwork out of the %s download list', async (tier) => {
-    const { PLAYABLE_SHARDS, bootFiles, sp, packFor, versionedUrl } = await load(tier);
+    const { PLAYABLE_SHARDS } = await load(tier);
     const { PUBLIC_BYTES } = await import('#game/boot/bytes.generated');
     const { declareTotals } = await import('#engine/boot/bytes');
     const def = PLAYABLE_SHARDS[0];
@@ -58,7 +57,7 @@ describe('shardBootRequests: the boot request list of each shard', () => {
   });
 
   it('preserves active profile downloads while preparing the owning prefetch inventory', async () => {
-    const { PLAYABLE_SHARDS, bootFiles } = await load('phone');
+    const { PLAYABLE_SHARDS } = await load('phone');
     const { prepareBootAudio } = await import('#engine/boot/audioInventory');
     const [{ createPineAudio }, { createNalatiAudio }, { createNdAudio }, { createDriftwoodAudio }] = await Promise.all([
       import('../src/shards/pine-hollow/audio/files'), import('../src/shards/nalati-grasslands/audio/files'),
@@ -76,7 +75,7 @@ describe('shardBootRequests: the boot request list of each shard', () => {
   });
   for (const tier of ['phone', 'desktop'] as const) {
     it(`equals main.ts's own composition — ${tier} tier`, async () => {
-      const { PLAYABLE_SHARDS, sp, bootFiles, extraFetches, bootFetches, packFor, versionedUrl } = await load(tier);
+      const { PLAYABLE_SHARDS } = await load(tier);
       for (const def of PLAYABLE_SHARDS) {
         const files = bootFiles(def);
         // Downloadable cards retain the landscape tier rule. SVG data URLs are bundled and never fetched.
@@ -119,27 +118,27 @@ describe('shardBootRequests: the boot request list of each shard', () => {
     const phone = await load('phone');
     // Packs are generated only where assets are authored; asset-free experimental shards boot per file.
     for (const def of phone.PLAYABLE_SHARDS) {
-      const pack = phone.packFor(def);
-      expect(pack, `${def.slug}: phone pack inventory`).toEqual(phone.PACKS[def.slug]?.['phone'] ?? null);
-      if (pack) expect(phone.sp.shardBootRequests(def).slice(0, pack.parts.length)).toEqual(pack.parts.map((part) => part.url));
+      const pack = packFor(def);
+      expect(pack, `${def.slug}: phone pack inventory`).toEqual(PACKS[def.slug]?.['phone'] ?? null);
+      if (pack) expect(sp.shardBootRequests(def).slice(0, pack.parts.length)).toEqual(pack.parts.map((part) => part.url));
     }
     const desktop = await load('desktop');
     for (const def of desktop.PLAYABLE_SHARDS) {
-      const pack = desktop.PACKS[def.slug]?.['desktop'];
-      expect(desktop.packFor(def), `${def.slug}: desktop pack inventory`).toEqual(pack ?? null);
-      expect(desktop.sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe((pack?.parts.length ?? 0) > 0);
+      const pack = PACKS[def.slug]?.['desktop'];
+      expect(packFor(def), `${def.slug}: desktop pack inventory`).toEqual(pack ?? null);
+      expect(sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe((pack?.parts.length ?? 0) > 0);
     }
   });
 });
 
 describe('prefetchVeto: when the background download must not run', () => {
   it('runs by default under a controlling worker', async () => {
-    const { sp } = await load('desktop');
+    await load('desktop');
     expect(sp.prefetchVeto({ controlled: true })).toBeNull();
     expect(sp.prefetchVeto({ off: false, controlled: true, saveData: false })).toBeNull();
   });
   it('is off by the Debug switch, without a worker and on the OS data saver — never by connection type', async () => {
-    const { sp } = await load('desktop');
+    await load('desktop');
     expect(sp.prefetchVeto({ off: true, controlled: true })).toBe('switched off (Settings ▸ Debug)');
     expect(sp.prefetchVeto({ controlled: false })).toBe('no service worker');
     expect(sp.prefetchVeto({ controlled: true, saveData: true })).toBe('Save-Data');
@@ -149,7 +148,7 @@ describe('prefetchVeto: when the background download must not run', () => {
 describe('lateReads and the ?v= URLs (E160)', () => {
   it('names only files the build ships, tier by tier', async () => {
     for (const tier of ['phone', 'desktop'] as const) {
-      const { PLAYABLE_SHARDS, sp, versionedUrl } = await load(tier);
+      const { PLAYABLE_SHARDS } = await load(tier);
       const { PUBLIC_BYTES } = await import('#game/boot/bytes.generated');
       for (const def of PLAYABLE_SHARDS) {
         const late = sp.lateReads(def);
@@ -160,7 +159,7 @@ describe('lateReads and the ?v= URLs (E160)', () => {
     }
   });
   it('versions every unhashed asset and leaves content-named ones alone', async () => {
-    const { versionedUrl } = await load('desktop');
+    await load('desktop');
     const { ASSET_VERSIONS } = await import('#game/boot/versions.generated');
     const { PUBLIC_BYTES } = await import('#game/boot/bytes.generated');
     for (const p of Object.keys(PUBLIC_BYTES)) {

@@ -1,16 +1,16 @@
 import { saveStorageFixture } from './fake/saveFixture';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ProgressView } from '#engine/boot/plan';
+import { createBootTrace, type BootTrace, type BootTraceTransports } from '#engine/boot/bootTrace';
 
 const fixtures = saveStorageFixture('device');
 
-const capture = vi.hoisted(() => vi.fn());
-const inbox = vi.hoisted(() => vi.fn());
-vi.mock('#engine/telemetry/browserErrors', () => ({ deliverBrowserError: capture }));
-vi.mock('#engine/telemetry/bootInbox', () => ({ reportBootInterruption: inbox }));
+// the transports are the trace's inputs; each simulated page load builds a trace over them (no module mocks or reset, E422)
+const capture = vi.fn<BootTraceTransports['deliver']>();
+const inbox = vi.fn<BootTraceTransports['inbox']>();
 
 const listeners = new Map<string, (event: { persisted?: boolean }) => void>();
-const boot = () => { vi.resetModules(); return import('#engine/boot/bootTrace'); };
+const boot = (): Promise<BootTrace> => Promise.resolve(createBootTrace({ deliver: capture, inbox }));
 const progress = (step: ProgressView['step'], setup: number, done = false): ProgressView => ({
   download: 1, setup, done, error: null, step, label: step, detail: '', bytes: null,
   bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, doneCount: 0, rows: [],

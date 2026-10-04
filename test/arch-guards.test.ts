@@ -189,3 +189,14 @@ describe('AG7 layer graph', () => {
     expect(r.status).toBe(0);
   });
 });
+
+describe('E422 no module mocks in tests', () => {
+  it('refuses vi.mock / resetModules / hoisted in a test folder and leaves vi.fn / spyOn alone', () => {
+    const root = temp();
+    put(root, 'test/a.test.ts', "vi.mock('x', () => ({})); vi.resetModules(); vi.hoisted(() => 1); vi.fn(); vi.spyOn(console, 'warn');\n");
+    put(root, '.oxlintrc.json', JSON.stringify({ jsPlugins: [resolve('lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: { 'wildshard/no-module-mock': 'error' } }));
+    const r = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', join(root, '.oxlintrc.json'), '-f', 'json', 'test'], { cwd: root, encoding: 'utf8' });
+    const found = (JSON.parse(r.stdout) as { diagnostics: Diagnostic[] }).diagnostics.filter((d) => d.code === 'wildshard(no-module-mock)');
+    expect(found).toHaveLength(3);
+  });
+});
