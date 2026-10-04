@@ -15,8 +15,8 @@
   },
   "budgets": {
     "library": {
-      "resident": 0,
-      "compressed": 0
+      "compressed": 143748,
+      "resident": 287496
     },
     "sim": {
       "resident": 0,
@@ -6455,7 +6455,9 @@
     }
   ],
   "tiles": [],
-  "library": [],
+  "library": [
+    "9cd85fd3911f11e2cf10d15b81c7ed894999d35ef75a1b05d06d08ee81ed7f86"
+  ],
   "critical": [],
   "far": null,
   "entryways": [

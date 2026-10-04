@@ -1,5 +1,19 @@
 import { parseShardfile, type Shardfile } from './shardfile';
 import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
+import { LOOK_LUT_BYTES } from '@wildshard/game/shardfile/schema';
+
+/** Attach an already declared 33³ LUT to the charged library, accounting for both its CPU and GPU bytes once. */
+export function declareLookLut(shard: Shardfile, hash: string): void {
+  const file = shard.files.find((row) => row.hash === hash);
+  if (file?.kind !== 'binary' || file.compressed !== LOOK_LUT_BYTES || file.decoded < LOOK_LUT_BYTES || file.gpu < LOOK_LUT_BYTES) throw new Error('Look LUT requires its exact binary file and CPU/GPU declaration');
+  const library = new Set<string>(), pending = [...shard.library];
+  while (pending.length > 0) { const ref = pending.pop(); if (ref === undefined || library.has(ref)) continue; library.add(ref); pending.push(...shard.files.find((row) => row.hash === ref)?.dependencies ?? []); }
+  if (!library.has(hash)) {
+    shard.library.push(hash);
+    shard.budgets.library.compressed += file.compressed; shard.budgets.library.resident += file.decoded + file.gpu;
+  }
+  shard.look.grade.lut = hash;
+}
 
 /** Start an author project with a valid empty world; add baked content before shipping a playable shard. */
 export function emptyShardfile(identity: Shardfile['identity']): Shardfile {

@@ -9,6 +9,8 @@ import { sampleLook } from '../src/engine/render/dataLook';
 import type { SkyBackdropContext, SkyBackdropTargets } from '../src/engine/render/look';
 import type { SkyRig } from '../src/engine/world/skyRig';
 import { LUT_SIZE } from '../src/engine/render/lut';
+import { declareLookLut } from '../src/sdk/author';
+import { validateProject, contentHash } from '../src/sdk/project';
 
 const dir = 'test/fixtures/shardfile/look/';
 const raw: unknown = JSON.parse(readFileSync(`${dir}shard.json`, 'utf8'));
@@ -35,6 +37,17 @@ it('the fixture look parses, keeps no shader source and passes the empty loader'
   expect(() => emptyShardfileSource(structuredClone(raw))).not.toThrow();
   const lutBytes = readFileSync(`${dir}${look.grade.lut ?? ''}`);
   expect(lutBytes.length).toBe(LUT_SIZE ** 3 * 4);
+});
+
+it('SDK LUT declaration charges the library once and refuses orphan or understated LUT costs', () => {
+  const source = fixture(), hash = source.look.grade.lut;
+  if (hash === null) throw new Error('fixture LUT');
+  const bytes = readFileSync(`${dir}${hash}`); source.library = []; source.budgets.library = { compressed: 0, resident: 0 };
+  expect(() => validateProject(source, new Map([[hash, bytes]]))).toThrow('charged library');
+  declareLookLut(source, hash); declareLookLut(source, hash);
+  expect(source.library).toEqual([hash]); expect(source.budgets.library).toEqual({ compressed: bytes.length, resident: bytes.length * 2 });
+  expect(contentHash(bytes)).toBe(hash); expect(validateProject(source, new Map([[hash, bytes]]))).toEqual(source);
+  source.budgets.library.resident--; expect(() => validateProject(source, new Map([[hash, bytes]]))).toThrow('budget');
 });
 
 it('the format refuses a texture sky, a misdeclared LUT and content beside the look in the empty loader', () => {

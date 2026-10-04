@@ -20,6 +20,7 @@ import { clientGround } from './clientGround';
 import { shardfileWater } from './water';
 import { clientResidency } from './clientResidency';
 import { firstPartyInstance } from '../grid/instances';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 
 /** Validate before allocating a level. Content bindings belong to the full loader. */
 export function emptyShardfileSource(input: unknown): ShardManifest {
@@ -30,7 +31,7 @@ export function emptyShardfileSource(input: unknown): ShardManifest {
   const lut = source.look.grade.lut;
   const lutOnly = source.files.every((f) => f.hash === lut) && source.requires.commons.every((h) => `commons:${h}` === lut);
   const newContent = source.clientScripts.bindings.length + source.water.length + source.creatures.spawns.length + source.creatures.brains.length + source.encounters.length + source.ledger.length + source.audio.cues.length + source.audio.routing.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0);
-  if (source.items.rows.length + source.items.contexts.length > 0 || source.props !== null || source.targets.panels.length + source.targets.interactions.length > 0 || Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length > 0 || newContent > 0 || source.hooks.conditions.length + source.hooks.scenes.length > 0 || source.plumbing !== null || source.terrain !== null || source.audio.ambience !== null || source.audio.score !== 'silent' || source.audio.music !== undefined || source.audio.samples !== undefined || source.audio.zones !== undefined || Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.ui.length + source.tiles.length + source.library.length + source.requires.capabilities.length + source.sim.scripts.length + source.sim.bindings.length + source.look.families.length > 0 || !lutOnly || source.far !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
+  if (source.items.rows.length + source.items.contexts.length > 0 || source.props !== null || source.targets.panels.length + source.targets.interactions.length > 0 || Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length > 0 || newContent > 0 || source.hooks.conditions.length + source.hooks.scenes.length > 0 || source.plumbing !== null || source.terrain !== null || source.audio.ambience !== null || source.audio.score !== 'silent' || source.audio.music !== undefined || source.audio.samples !== undefined || source.audio.zones !== undefined || Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.ui.length + source.tiles.length + source.library.filter((ref) => ref !== lut).length + source.requires.capabilities.length + source.sim.scripts.length + source.sim.bindings.length + source.look.families.length > 0 || !lutOnly || source.far !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
   return sourceManifest(source);
 }
 
@@ -111,7 +112,7 @@ export async function installManifestShardfile(manifest: ShardManifest, options:
     if (visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
     input = visited.source;
   } else {
-    input = JSON.parse(new TextDecoder().decode(await boundedResponse(await options.fetch(url.href), 4_000_000)));
+    input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await options.fetch(url.href), limits.sourceBytes)));
   }
   const source = parseShardfile(input);
   const { slug: authoredIdentity } = source.identity, expectedIdentity = manifest.slug.replace(/^_/u, '');
