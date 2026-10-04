@@ -133,6 +133,16 @@ describe('world-local grid residency', () => {
     } finally { sim.dispose(); }
     expect(allocator.entries()).toEqual([]);
   });
+  it('retires every world and allocator lease even when one scoped cleanup fails', async () => {
+    const assembly = new GridAssembly({ developer: false, devserver: false }), ids = assembly.cells.slice(0, 2).map((c) => c.instance), allocator = new ResidencyAllocator(), retired: string[] = [];
+    const highway = resident();
+    const sim = new GridSimulation(assembly, { highway: { host: highway.host, dispose: () => { highway.dispose(); retired.push('highway'); } }, allocator, residentBytes: () => 25_000_000,
+      load: (cell) => { const value = resident(); return Promise.resolve({ host: value.host, dispose: () => { value.dispose(); retired.push(cell.instance); if (cell.instance === ids[0]) throw new Error('Owned cleanup failed'); } }); }, save: () => true });
+    await sim.prefetch(ids);
+    expect(() => sim.dispose()).toThrow('Grid simulation disposal failed');
+    expect(retired.sort()).toEqual([...ids, 'highway'].sort()); expect(allocator.entries()).toEqual([]); expect(sim.disposalIssues()).toContain('Owned cleanup failed');
+    sim.dispose();
+  });
   it('walks the shared field across both frame changes at 15 and 30 m/s with no falls or snags', async () => {
     for (const speed of [15, 30]) {
       const assembly = new GridAssembly({ developer: false, devserver: false }), cell = assembly.cells.find((c) => c.cell[0] === 0 && c.cell[1] === 0);

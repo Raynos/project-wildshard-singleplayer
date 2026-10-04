@@ -191,8 +191,11 @@ export class GridSimulation {
   /** Close all worlds owned by this session; async admissions dispose their own late results. */
   dispose(): void {
     if (this.disposed) return; this.disposed = true;
-    for (const cancel of this.cancelFrames) cancel();
-    for (const resident of this.residents.values()) { try { resident.value.dispose(); } finally { resident.lease?.release(); } }
-    this.residents.clear(); this.ports.highway.dispose();
+    const cleanups = [...this.cancelFrames, ...[...this.residents.values()].flatMap((resident) => [() => { resident.value.dispose(); }, () => { resident.lease?.release(); }]), () => { this.ports.highway.dispose(); }];
+    for (const cleanup of cleanups) {
+      try { cleanup(); } catch (error) { this.cleanupIssues.push(error instanceof Error ? error.message : String(error)); }
+    }
+    this.residents.clear(); this.cancelFrames.clear();
+    if (this.cleanupIssues.length > 0) throw new AggregateError(this.cleanupIssues, 'Grid simulation disposal failed');
   }
 }
