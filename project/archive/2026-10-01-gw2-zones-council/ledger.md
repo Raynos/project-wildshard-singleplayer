@@ -22,6 +22,6 @@
 | L8 | The game is played as an iOS home-screen PWA on an iPhone (touch, portrait); phones are the target device | singleplayer `AGENTS.md`, memory |
 | L9 | No URL switches: every variant is a Debug row | singleplayer `AGENTS.md` |
 | L10 | Per-shard looks stay different (Driftwood toon, Nalati painterly, Pine Hollow photoreal PBR, Nine Dragon Jiehua Neon) | memory, VISION open tension |
-| L11 | The vision's fundamentals: 500 × 500 × 200 m shards, a 5 × 5 first grid, a server-owned highway, a hardcoded centre, player-authored shards via Claude Code, uploaded as data, the beacon ritual | [../../vision/VISION.md](https://github.com/Raynos/project-wildshard-meta/blob/main/docs/vision/VISION.md) |
+| L11 | The vision's fundamentals: 500 × 500 × 200 m shards, a 5 × 5 first grid, a server-owned highway, a hardcoded centre, player-authored shards via Claude Code, uploaded as data, the beacon ritual | [VISION.md](../../docs/design/mmo/VISION.md) |
 | L12 | Crafting is out of scope for now | VISION |
 | L13 | The shard inventories are read from code at tag `pre-normalization` (`dcd6a29a`); nothing was played. Seats may challenge a reading with code evidence | the inventories |
