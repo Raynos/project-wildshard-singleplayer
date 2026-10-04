@@ -1,0 +1,165 @@
+{
+ "$doc": "SHARD-PLATFORM SF51-g: Nine Dragon's four road-height landing decks (world/entries.ts, Debug > Nine Dragon entries on) walked edge <-> deck on the live standalone world. The fragment's authored bounds are lifted for the walk, as the grid lifts them. Run: scripts/browser-lane.sh node progress/shard-platform/sf50/entries.mjs --slug=nine-dragon-stack --route=progress/shard-platform/sf51/entries-route.json --device-save=debug.plugin.nine-dragon-stack.nineDragonEntries=on --url=<served devserver build> --out=<dir>",
+ "nine-dragon-stack": [
+  {
+   "name": "south in",
+   "start": {
+    "x": 0,
+    "z": -249,
+    "yaw": 0,
+    "y": 0.05
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -242
+    },
+    {
+     "x": 0,
+     "z": -236.5
+    }
+   ],
+   "notes": "from 1 m inside the south edge midpoint across the 8 x 15 m socket footprint onto the deck, 1 m short of its end wall"
+  },
+  {
+   "name": "south out",
+   "start": {
+    "x": 0,
+    "z": -236.5,
+    "yaw": 0,
+    "y": 0.05
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": -242
+    },
+    {
+     "x": 0,
+     "z": -249
+    }
+   ],
+   "notes": "back out to 1 m inside the south edge"
+  },
+  {
+   "name": "north in",
+   "start": {
+    "x": 0,
+    "z": 249,
+    "yaw": 0,
+    "y": 0.05
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 242
+    },
+    {
+     "x": 0,
+     "z": 236.5
+    }
+   ],
+   "notes": "from 1 m inside the north edge midpoint across the 8 x 15 m socket footprint onto the deck, 1 m short of its end wall"
+  },
+  {
+   "name": "north out",
+   "start": {
+    "x": 0,
+    "z": 236.5,
+    "yaw": 0,
+    "y": 0.05
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 242
+    },
+    {
+     "x": 0,
+     "z": 249
+    }
+   ],
+   "notes": "back out to 1 m inside the north edge"
+  },
+  {
+   "name": "east in",
+   "start": {
+    "x": 249,
+    "z": 0,
+    "yaw": 0,
+    "y": 0.05
+   },
+   "waypoints": [
+    {
+     "x": 242,
+     "z": 0
+    },
+    {
+     "x": 236.5,
+     "z": 0
+    }
+   ],
+   "notes": "from 1 m inside the east edge midpoint across the 8 x 15 m socket footprint onto the deck, 1 m short of its end wall"
+  },
+  {
+   "name": "east out",
+   "start": {
+    "x": 236.5,
+    "z": 0,
+    "yaw": 0,
+    "y": 0.05
+   },
+   "waypoints": [
+    {
+     "x": 242,
+     "z": 0
+    },
+    {
+     "x": 249,
+     "z": 0
+    }
+   ],
+   "notes": "back out to 1 m inside the east edge"
+  },
+  {
+   "name": "west in",
+   "start": {
+    "x": -249,
+    "z": 0,
+    "yaw": 0,
+    "y": 0.05
+   },
+   "waypoints": [
+    {
+     "x": -242,
+     "z": 0
+    },
+    {
+     "x": -236.5,
+     "z": 0
+    }
+   ],
+   "notes": "from 1 m inside the west edge midpoint across the 8 x 15 m socket footprint onto the deck, 1 m short of its end wall"
+  },
+  {
+   "name": "west out",
+   "start": {
+    "x": -236.5,
+    "z": 0,
+    "yaw": 0,
+    "y": 0.05
+   },
+   "waypoints": [
+    {
+     "x": -242,
+     "z": 0
+    },
+    {
+     "x": -249,
+     "z": 0
+    }
+   ],
+   "notes": "back out to 1 m inside the west edge"
+  }
+ ]
+}

@@ -1,0 +1,167 @@
+{
+ "base": "http://127.0.0.1:4404",
+ "slug": "nine-dragon-stack",
+ "settings": {},
+ "deviceSaves": {
+  "debug.plugin.nine-dragon-stack.nineDragonEntries": "on"
+ },
+ "footprints": [
+  {
+   "edge": "north",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "below": 0,
+   "wet": 0,
+   "blockers": []
+  },
+  {
+   "edge": "south",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "below": 0,
+   "wet": 0,
+   "blockers": []
+  },
+  {
+   "edge": "east",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "below": 0,
+   "wet": 0,
+   "blockers": []
+  },
+  {
+   "edge": "west",
+   "rays": 1920,
+   "maxY": 0,
+   "minY": 0,
+   "above": 0,
+   "below": 0,
+   "wet": 0,
+   "blockers": []
+  }
+ ],
+ "legs": [
+  {
+   "name": "south in",
+   "seconds": 2.8,
+   "end": {
+    "x": 0,
+    "y": 0.021,
+    "z": -237.238
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 0.022
+  },
+  {
+   "name": "south out",
+   "seconds": 2.8,
+   "end": {
+    "x": 0,
+    "y": 0.021,
+    "z": -248.261
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 0.022
+  },
+  {
+   "name": "north in",
+   "seconds": 2.8,
+   "end": {
+    "x": 0,
+    "y": 0.02,
+    "z": 237.194
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 0.024
+  },
+  {
+   "name": "north out",
+   "seconds": 2.8,
+   "end": {
+    "x": 0,
+    "y": 0.02,
+    "z": 248.304
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 0.024
+  },
+  {
+   "name": "east in",
+   "seconds": 2.8,
+   "end": {
+    "x": 237.194,
+    "y": 0.02,
+    "z": 0
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 0.024
+  },
+  {
+   "name": "east out",
+   "seconds": 2.8,
+   "end": {
+    "x": 248.282,
+    "y": 0.021,
+    "z": 0.001
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 0.048
+  },
+  {
+   "name": "west in",
+   "seconds": 2.8,
+   "end": {
+    "x": -237.233,
+    "y": 0.02,
+    "z": 0
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 0.023
+  },
+  {
+   "name": "west out",
+   "seconds": 2.8,
+   "end": {
+    "x": -248.304,
+    "y": 0.02,
+    "z": 0
+   },
+   "stuck": [],
+   "airFrames": 0,
+   "swimFrames": 0,
+   "minY": 0.02,
+   "maxY": 0.024
+  }
+ ],
+ "errors": [],
+ "build": "e5a9e93-muufa37e",
+ "boundsLifted": true
+}

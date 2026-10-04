@@ -6,7 +6,8 @@
 // so the walk lifts the bounds system the same way, and only for the walk. Its runtime cells can't be walked in the grid
 // yet (liveSession refuses a runtime-source cell until its hybrid admission, M3), so this standalone walk is the proof.
 // scripts/browser-lane.sh node progress/shard-platform/sf50/entries.mjs --slug=<slug> --route=<file> --url=<served build> --out=<dir>
-//   [--settings=<debug row>=<value>,…]  (pause ▸ Settings ▸ Debug picks, scripts/debug-settings.mjs)
+//   [--settings=<option>=<value>,…]  (core Settings picks, scripts/debug-settings.mjs)
+//   [--device-save=<key>=<value>]…  (an authored Debug row's device slot, e.g. debug.plugin.nine-dragon-stack.nineDragonEntries=on)
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 const ROOT = new URL('../../..', import.meta.url).pathname.replace(/\/$/u, '');
 const { walkPhysicsLeg } = await import(`${ROOT}/scripts/physics-walk.mjs`);
@@ -15,16 +16,18 @@ const { chromium, devices } = await import(`${ROOT}/node_modules/playwright/inde
 const flag = (n, d) => process.argv.slice(2).find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3) ?? d;
 const BASE = flag('url', ''), OUT = flag('out', '.'), SLUG = flag('slug', ''), ROUTE = flag('route', '');
 const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boolean).map((kv) => kv.split('=')));
+const DEVICE = Object.fromEntries(process.argv.slice(2).filter((a) => a.startsWith('--device-save=')).map((a) => { const kv = a.slice(14), i = kv.indexOf('='); return [kv.slice(0, i), kv.slice(i + 1)]; }));
 const route = ROUTE ? JSON.parse(readFileSync(`${ROOT}/${ROUTE}`, 'utf8'))[SLUG] ?? [] : [];
 mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
-const result = { base: BASE, slug: SLUG, settings: SETTINGS, footprints: [], legs: [], errors: [] };
+const result = { base: BASE, slug: SLUG, settings: SETTINGS, deviceSaves: DEVICE, footprints: [], legs: [], errors: [] };
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage();
   page.on('pageerror', (e) => { result.errors.push(e.message.slice(0, 300)); });
   await saveFixture(ctx, { scope: 'global', key: 'settings', data: { tier: 'phone' }, merge: true });
   await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
   if (Object.keys(SETTINGS).length > 0) await debugSettings(ctx, SETTINGS);
+  for (const [key, data] of Object.entries(DEVICE)) await saveFixture(ctx, { scope: 'device', key, data });
   try { result.build = (await (await fetch(`${BASE}/version.json`, { cache: 'no-store' })).json()).build; } catch { /* unknown */ }
   await page.goto(`${BASE}/?chunk=${SLUG}&tier=phone&skipintro=1&nolock=1&sw=0&mute=1`, { waitUntil: 'commit', timeout: 300000 });
   await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__wildshard?.world !== undefined, null, { timeout: 240000, polling: 250 });
