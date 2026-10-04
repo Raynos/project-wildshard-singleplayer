@@ -15,7 +15,9 @@ export interface SaveKeyDef<T> {
   key: string; scope: SaveScope; version: number; schema: v.GenericSchema<unknown, T>; initial: () => T;
   migrate?: Readonly<Record<number, (old: unknown) => unknown>>;
 }
-export interface SaveSlot<T> { /** Validated existing data, without creating or changing a save. */ peek: (namespace?: string) => T | null; read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean; reset: (namespace?: string) => void }
+export interface SaveSlot<T> { /** Validated existing data, without creating or changing a save. */ peek: (namespace?: string) => T | null;
+  /** Storage/admission metadata only; nullable valid values remain distinct from malformed or absent entries. */ status?: (namespace?: string) => 'absent' | 'valid' | 'invalid' | 'future';
+  read: (namespace?: string) => T; write: (value: T, namespace?: string) => boolean; reset: (namespace?: string) => void }
 /** Stable local-state identity; an explicit legacy namespace can be copied without depending on a grid cell. */
 export interface SaveInstance { id: string; legacy?: string }
 /** Instance binding accepts only shard-local definitions; profile/device/session retain their existing scopes. */
@@ -193,7 +195,27 @@ export class SaveStore {
         return result.success ? clone(result.output) : null;
       } catch { return null; }
     };
-    return { peek, read, write, reset: (namespace) => { write(definition.initial(), namespace); } };
+    const status = (namespace?: string): 'absent' | 'valid' | 'invalid' | 'future' => {
+      this.initialize();
+      const raw = this.get(definition.scope, this.name(definition.scope, namespace));
+      if (raw === null) return 'absent';
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        if (!doc(parsed)) return 'invalid';
+        const stored = parsed.keys[definition.key];
+        if (stored === undefined) return 'absent';
+        if (!entry(stored)) return 'invalid';
+        if (stored.v > definition.version) return 'future';
+        let data: unknown = stored.data, version = stored.v;
+        while (version < definition.version) {
+          const migrate = definition.migrate?.[version];
+          if (migrate === undefined) return 'invalid';
+          data = migrate(data); version++;
+        }
+        return v.safeParse(definition.schema, data).success ? 'valid' : 'invalid';
+      } catch { return 'invalid'; }
+    };
+    return { peek, status, read, write, reset: (namespace) => { write(definition.initial(), namespace); } };
   }
   /** Bind local state to an instance; copy legacy keys once missing, preserve target/future entries and retry failed writes. */
   instance<T>(definition: InstanceSaveKeyDef<T>, identity: SaveInstance): InstanceSaveSlot<T> {

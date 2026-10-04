@@ -29,6 +29,18 @@ it('invalid planned records return the menu instead of falling through to the ol
   expect(consumeGridReloadBoot(new SaveStore({ local, session: null }), 1100).kind).toBe('invalid');
   expect(consumeGridReloadBoot(new SaveStore({ local, session: null }), 1101).kind).toBe('none');
 });
+it.each([
+  { v: 1, data: { ...value, unknown: true } },
+  { v: 2, data: value },
+  { v: 1, data: { ...value, roadPose: { x: 'bad', y: 0, z: 0 } } },
+])('present malformed or future transfers refuse boot before repair can resemble an absent record', (entry) => {
+  const local = new MemoryStorage();
+  local.setItem('wildshard.save.v2.global', '{"keys":{}}');
+  local.setItem('wildshard.save.v2.device', JSON.stringify({ keys: { 'grid.reload.once': entry } }));
+  const store = new SaveStore({ local, session: null });
+  expect(gridReloadSlot(store).status?.()).toBe(entry.v === 2 ? 'future' : 'invalid');
+  expect(consumeGridReloadBoot(store, 1100).kind).toBe('invalid');
+});
 it.each([false, true])('planned road boots bypass the public grid gate %s and never emit a home-cell enter', (gates) => {
   expect(gridEntryShown({ developer: false, devserver: false }, gates)).toBe(gates);
   const local = new MemoryStorage(), store = new SaveStore({ local, session: null }); gridReloadSlot(store).write(value);

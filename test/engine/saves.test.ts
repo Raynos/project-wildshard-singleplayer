@@ -13,6 +13,24 @@ const fixture = (): { local: MemoryStorage; session: MemoryStorage; store: SaveS
   return { local, session, store, report };
 };
 describe('SaveStore in node', () => {
+  it('reports admission metadata without repairing malformed bytes or mistaking a valid null for absence', () => {
+    const { store, local } = fixture();
+    local.setItem('wildshard.save.v2.global', '{"keys":{}}');
+    const slot = store.define({ scope: 'device', key: 'once', version: 1, schema: v.nullable(v.number()), initial: () => null });
+    expect(slot.status?.()).toBe('absent');
+    expect(slot.write(null)).toBe(true); expect(slot.status?.()).toBe('valid');
+    for (const [raw, expected] of [
+      ['{"keys":{"once":{"v":1,"data":"bad"}}}', 'invalid'],
+      ['{"keys":{"once":{"v":99,"data":12}}}', 'future'],
+      ['not-json', 'invalid'],
+    ]) {
+      if (raw === undefined) throw new Error('Missing stored fixture');
+      local.setItem('wildshard.save.v2.device', raw);
+      expect(slot.status?.()).toBe(expected);
+      expect(local.getItem('wildshard.save.v2.device')).toBe(raw);
+    }
+  });
+
   it('round-trips hidden shard namespaces and rejects path-like or embedded underscores', () => {
     const first = fixture(), second = fixture();
     const definition = { scope: 'shard', key: 'template.progress', version: 1, schema: v.number(), initial: () => 0 } as const;

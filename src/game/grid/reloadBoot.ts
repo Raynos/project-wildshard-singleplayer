@@ -7,6 +7,8 @@ export type GridReloadBoot = { readonly kind: 'none' | 'invalid' } | { readonly 
 /** The first boot consumes the record durably. A kill during later admission cannot retry the same transfer. */
 export function consumeGridReloadBoot(store: SaveStore, now: number): GridReloadBoot {
   const slot = gridReloadSlot(store);
+  const status = slot.status?.();
+  if (status === 'invalid' || status === 'future') { slot.read(); return { kind: 'invalid' }; }
   if (slot.read() === null) return { kind: 'none' };
   let assembly: GridAssembly | undefined;
   const value = consumeGridReload(slot, (candidate) => {
