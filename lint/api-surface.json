@@ -13188,6 +13188,54 @@
         "from": "@wildshard/game/shardfile/budget"
       },
       {
+        "name": "ClientScriptContent",
+        "kind": "interface",
+        "doc": "Minimal format view for admission and projection, independent of rendering and author callbacks.",
+        "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
+        "name": "clientScriptRules",
+        "kind": "function",
+        "doc": "Refuse hidden fields, undeclared targets, competing writers and modules outside the admitted render library.",
+        "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
+        "name": "ClientScriptsSchema",
+        "kind": "const",
+        "doc": "Presentation bytecode binds visual targets and selected numeric state; it never joins the authoritative script lane.",
+        "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
+        "name": "ClientScriptTarget",
+        "kind": "type",
+        "doc": "A declared visual anchor resolved by trusted composition, never by a bytecode physics query.",
+        "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
+        "name": "createShardfileClientScripts",
+        "kind": "function",
+        "doc": "Construct one isolated presentation lane and copy only the selected public/owner values on each presentation tick.",
+        "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
+        "name": "parseClientScripts",
+        "kind": "function",
+        "doc": "Parse detached strict data before host composition allocates any guest instance.",
+        "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
+        "name": "ShardClientScripts",
+        "kind": "type",
+        "doc": "Renderer-neutral declaration consumed by the client and the frozen-neighbour presentation adapter.",
+        "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
+        "name": "ShardfileClientScriptPorts",
+        "kind": "interface",
+        "doc": "Trusted input ports; the actor comes from the page, and observation never exposes a simulation object to bytecode.",
+        "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
         "name": "creatureRules",
         "kind": "function",
         "doc": "Unique ids and brain references; species and strikes are resolved against the loader's declared catalogues.",
@@ -15506,6 +15554,24 @@
         "kind": "function",
         "doc": "Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC.",
         "from": "@wildshard/sdk/bake/texture"
+      },
+      {
+        "name": "ClientScriptsSchema",
+        "kind": "const",
+        "doc": "Strict presentation-only module/target declarations, with bounded pose and particle recipes.",
+        "from": "@wildshard/sdk/clientScripts"
+      },
+      {
+        "name": "parseClientScripts",
+        "kind": "function",
+        "doc": "Parse bounded visual commands and copied state-read selections.",
+        "from": "@wildshard/sdk/clientScripts"
+      },
+      {
+        "name": "ShardClientScripts",
+        "kind": "type",
+        "doc": "Data-only author contract for isolated client scripts.",
+        "from": "@wildshard/sdk/clientScripts"
       },
       {
         "name": "director",

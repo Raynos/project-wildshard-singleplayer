@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-424 members; 112 without a doc line (—).
+432 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -290,6 +290,14 @@ The game layer's public modules (src/game/package.json `exports`).
 | `AudioDataSchema` | const | @wildshard/game/shardfile/audio | The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. |
 | `parseAudioData` | function | @wildshard/game/shardfile/audio | Compile the TypeScript-authored cue map, ambience and score without executable audio closures. |
 | `worstContentCost` | function | @wildshard/game/shardfile/budget | Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps. |
+| `ClientScriptContent` | interface | @wildshard/game/shardfile/clientScripts | Minimal format view for admission and projection, independent of rendering and author callbacks. |
+| `clientScriptRules` | function | @wildshard/game/shardfile/clientScripts | Refuse hidden fields, undeclared targets, competing writers and modules outside the admitted render library. |
+| `ClientScriptsSchema` | const | @wildshard/game/shardfile/clientScripts | Presentation bytecode binds visual targets and selected numeric state; it never joins the authoritative script lane. |
+| `ClientScriptTarget` | type | @wildshard/game/shardfile/clientScripts | A declared visual anchor resolved by trusted composition, never by a bytecode physics query. |
+| `createShardfileClientScripts` | function | @wildshard/game/shardfile/clientScripts | Construct one isolated presentation lane and copy only the selected public/owner values on each presentation tick. |
+| `parseClientScripts` | function | @wildshard/game/shardfile/clientScripts | Parse detached strict data before host composition allocates any guest instance. |
+| `ShardClientScripts` | type | @wildshard/game/shardfile/clientScripts | Renderer-neutral declaration consumed by the client and the frozen-neighbour presentation adapter. |
+| `ShardfileClientScriptPorts` | interface | @wildshard/game/shardfile/clientScripts | Trusted input ports; the actor comes from the page, and observation never exposes a simulation object to bytecode. |
 | `creatureRules` | function | @wildshard/game/shardfile/creatures | Unique ids and brain references; species and strikes are resolved against the loader's declared catalogues. |
 | `CreaturesSchema` | const | @wildshard/game/shardfile/creatures | Pure-data creature archetypes and stable spawn layouts, expanded before the local sim boots. |
 | `ShardCreatures` | type | @wildshard/game/shardfile/creatures | Validated brain parameters and spawn layout, with no rig or runtime closure. |
