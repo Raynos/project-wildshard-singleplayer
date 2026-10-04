@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // SF0: live drawn-frame baseline, never a deterministic/capture-clock or CPU-throttled run.
-// node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--device=<name>] [--rev=<sha>] [--setting=key=value]
+// node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value]
 // --shards=grid: EXPERIMENTAL Wildshard, entered the way a player does (the title's grid entry tapped, Developer on; no URL
 // switch), measured at the home cell's spawn and the heaviest of its parity cameras plus three highway-deck views.
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
@@ -23,7 +23,7 @@ const frames = Number(flag('frames', '120'));
 const settleMs = Number(flag('settle', '2')) * 1000;
 const device = flag('device', 'frame-floor-iphone-17-pro');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -36,10 +36,17 @@ const picks = Object.fromEntries(settingArgs.map((arg) => {
   return [match[1], match[2]];
 }));
 const settings = { ...picks, tier: surface === 'sim' ? 'phone' : 'desktop', fps: 'auto' };
+const deviceSaveArgs = args.filter((arg) => arg.startsWith('--device-save='));
+const deviceSaves = Object.fromEntries(deviceSaveArgs.map((arg) => {
+  const match = /^--device-save=([a-zA-Z][a-zA-Z0-9._-]*)=(.+)$/u.exec(arg);
+  if (!match) throw new Error('Invalid device save; expected key=value');
+  return [match[1], match[2]];
+}));
 const fixture = (tier) => [
   saveFixtureCode({ scope: 'global', key: 'settings', data: { ...settings, tier }, merge: true }),
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
+  ...Object.entries(deviceSaves).map(([key, data]) => saveFixtureCode({ scope: 'device', key, data })),
 ].join(';');
 const query = (shard) => (shard === 'grid' ? '?mute=1&nolock=1&sw=0' : `?chunk=${encodeURIComponent(shard)}&mute=1&skipintro=1&nolock=1&sw=0`); // the grid starts at the title
 /** Highway-deck views around the grid's home cell (home-frame metres): a neighbour's far proxy across the deck, a crossroads, the north gap. */
@@ -85,9 +92,10 @@ function status() {
 function metadata() {
   const w = window.__wildshard.world, g = w.game, gl = g.renderer.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info');
   const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}');
+  const deviceSaved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}');
   return { renderer: ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER)),
     viewport: [innerWidth, innerHeight], devicePixelRatio, renderScale: g.renderer.getPixelRatio(), canvas: [g.canvas.width, g.canvas.height],
-    settings: saved.keys?.settings?.data, gfx: saved.keys?.gfx?.data, clock: g.app.clock.mode,
+    settings: saved.keys?.settings?.data, gfx: saved.keys?.gfx?.data, deviceSaves: Object.fromEntries(Object.entries(deviceSaved.keys ?? {}).map(([key, value]) => [key, value.data])), clock: g.app.clock.mode,
     spawn: { name: 'spawn', x: w.player.position.x, y: w.player.position.y, z: w.player.position.z, yaw: w.player.yaw, pitch: w.player.pitch }, userAgent: navigator.userAgent };
 }
 async function cameras() {
@@ -183,7 +191,7 @@ async function measureShard(driver, shard, deadline) {
     await waitReady(driver.evaluate);
     await sleep(settleMs);
     const meta = await driver.evaluate(`(${metadata.toString()})()`);
-    if (meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== (surface === 'sim' ? 'phone' : 'desktop') || meta.settings.fps !== 'auto' || Object.entries(picks).some(([key, value]) => meta.settings[key] !== value)) throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
+    if (meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== (surface === 'sim' ? 'phone' : 'desktop') || meta.settings.fps !== 'auto' || Object.entries(picks).some(([key, value]) => meta.settings[key] !== value) || Object.entries(deviceSaves).some(([key, value]) => meta.deviceSaves[key] !== value)) throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
     if (surface === 'sim' && (meta.viewport[0] >= meta.viewport[1] || !meta.userAgent.includes('iPhone'))) throw new Error('Simulator must be portrait iPhone Safari');
     if (surface === 'desktop' && !meta.renderer.includes('ANGLE Metal Renderer')) throw new Error(`Metal required, got ${meta.renderer}`);
     const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' ? GRID_POSES : [])];
@@ -366,7 +374,7 @@ async function main() {
     writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
-      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs];
+      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs];
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
@@ -375,7 +383,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, shards, surface, settings, complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, shards, surface, settings, deviceSaves, complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds only live harness pose pins before the byte-identical clean HEAD modules.'], results });
