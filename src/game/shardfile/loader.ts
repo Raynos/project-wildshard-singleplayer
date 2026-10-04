@@ -29,7 +29,7 @@ export function emptyShardfileSource(input: unknown): ShardManifest {
   // The look (SF10b) is the one content kind bound here: day keys and a LUT, the LUT's file the only file allowed.
   const lut = source.look.grade.lut;
   const lutOnly = source.files.every((f) => f.hash === lut) && source.requires.commons.every((h) => `commons:${h}` === lut);
-  const newContent = source.clientScripts.bindings.length + source.water.length + source.creatures.spawns.length + source.creatures.brains.length + source.encounters.length + source.ledger.length + source.audio.cues.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0);
+  const newContent = source.clientScripts.bindings.length + source.water.length + source.creatures.spawns.length + source.creatures.brains.length + source.encounters.length + source.ledger.length + source.audio.cues.length + source.audio.routing.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0);
   if (source.items.rows.length + source.items.contexts.length > 0 || source.props !== null || source.targets.panels.length + source.targets.interactions.length > 0 || Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length > 0 || newContent > 0 || source.hooks.conditions.length + source.hooks.scenes.length > 0 || source.plumbing !== null || source.terrain !== null || source.audio.ambience !== null || source.audio.score !== 'silent' || Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.ui.length + source.tiles.length + source.library.length + source.requires.capabilities.length + source.sim.scripts.length + source.sim.bindings.length + source.look.families.length > 0 || !lutOnly || source.far !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
   return sourceManifest(source);
 }
@@ -68,6 +68,7 @@ export async function shardfileSource(input: unknown, options: ProductOptions, b
 function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindings: ShardfileClientBindings): ShardManifest {
   const source = admitted.source, assets = new ClientAssets(source, admitted.assets, options);
   if (bindings.trustedRuntime === true && (!options.firstParty || source.runtime === null)) throw new Error('Empty hybrid policy requires a trusted first-party runtime declaration');
+  if (bindings.audioOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime audio ownership requires a trusted first-party runtime declaration');
   const manifest = sourceManifest(source);
   const clientBindings = { ...bindings, allocator: bindings.allocator ?? new ResidencyAllocator() };
   return { ...manifest, biome: 'Authored world', blurb: source.identity.name,

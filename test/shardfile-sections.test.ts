@@ -42,6 +42,8 @@ it('refuses every unbound section in the minimal loader', () => {
   expect(() => emptyShardfileSource(source)).toThrow('full shardfile loader');
   source.water = []; source.audio = TEMPLATE_AUDIO;
   expect(() => emptyShardfileSource(source)).toThrow('full shardfile loader');
+  source.audio = { cues: [], routing: [{ id: 'cue.fixture', when: [], actions: [] }], ambience: null, score: 'silent' };
+  expect(() => emptyShardfileSource(source)).toThrow('full shardfile loader');
   source.audio = { cues: [], routing: [], ambience: null, score: 'silent' }; source.ledger = TEMPLATE_LEDGER;
   expect(() => emptyShardfileSource(source)).toThrow('full shardfile loader');
 });

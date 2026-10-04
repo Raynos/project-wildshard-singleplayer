@@ -154,7 +154,7 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
     bindings.onSimulation?.(binding);
     gridHomeSim.offer({ setActive: binding.setActive, checkpoint: binding.checkpoint, disposed: () => binding.scope.disposed });
   };
-  const data = await shardfileSource(source, productOptions, { ...bindings, instance, trustedRuntime: true, ...(onSimulation === undefined ? {} : { onSimulation }) });
+  const data = await shardfileSource(source, productOptions, { ...bindings, instance, trustedRuntime: true, audioOwner: bindings.audioOwner ?? 'runtime', ...(onSimulation === undefined ? {} : { onSimulation }) });
   const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
   const [{ default: Data }, Runtime] = await Promise.all([load(), prepareTrustedRuntime(source.runtime, source.identity.slug, productOptions.firstParty, entries)]);
   return new HybridShardPlugin(new Data(), Runtime, gridInstance === null ? undefined : { instance, cells: gridCells });

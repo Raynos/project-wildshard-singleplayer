@@ -200,9 +200,11 @@ it('restores non-enumerable and symbol descriptors even when another disposer th
   expect(Object.getOwnPropertyDescriptors(parent)).toEqual(before);
 });
 
-it('the admitted empty hybrid preserves the legacy service census and staged hooks', async () => {
+it('the admitted runtime-owned audio hybrid preserves the legacy service census and staged hooks', async () => {
   const app = new App(), parent = runtime(), calls: string[] = [];
   const source = { ...emptyShardfile({ slug: 'template', name: 'Template', author: 'Fixture', seed: 357, revision: 1 }), runtime: { entry } };
+  source.audio.routing.push({ id: 'cue.fixture', when: [], actions: [{ voice: 'runtime.fixture', when: [], defaults: {}, delay: null }] });
+  source.audio.score = 'default';
   class Runtime extends ShardPlugin {
     override world(): void { calls.push('world'); }
     override kit(ctx: ShardContext): void { calls.push('kit'); const rt = ctx.game.runtime; if (rt !== undefined) rt.hooks.meleeSilent = true; }
@@ -319,4 +321,21 @@ it('keeps gameplay unready until the entered runtime play hook finishes, indepen
     expect(readiness).toEqual([false]); release(); await playing; expect(readiness).toEqual([false, true]);
     cells.leave(); expect(readiness).toEqual([false, true, false]);
   } finally { release(); app.engineScope.dispose(); }
+});
+
+it('keeps declared audio as the data-first hybrid default and refuses runtime ownership without a trusted entry', async () => {
+  const source = emptyShardfile({ slug: 'template', name: 'Template', author: 'Fixture', seed: 357, revision: 1 });
+  source.audio.routing.push({ id: 'cue.fixture', when: [], actions: [] });
+  const options = { base: 'https://fixture.test/', firstParty: true, offline: false,
+    fetch: () => Promise.reject(new Error('Fixture cannot fetch')), hash: () => Promise.reject(new Error('Fixture cannot hash')) };
+  const bindings = { catalogue: [], recipes: new Map(), items: new Map(), voices: () => new Map(), icon: () => { throw new Error('Fixture cannot resolve icons'); } };
+  const { shardfileSource } = await import('../src/game/shardfile/loader');
+  await expect(shardfileSource(source, options, { ...bindings, instance: 'template', audioOwner: 'runtime' })).rejects.toThrow('Runtime audio ownership requires a trusted first-party runtime declaration');
+  const manifest = await shardfileSource(source, options, { ...bindings, instance: 'template' });
+  if (manifest.load === undefined) throw new Error('Missing data plugin');
+  const { default: Data } = await manifest.load();
+  const app = new App(), scope = app.engineScope.child('data'), installation = createLevelInstallation(app, scope, {}, () => ({ set: noop, detail: noop }));
+  const ctx = shardContext(installation.context, template, { shard: template, runtime: runtime(), rows: new Map(), bag: { tab: () => noop, fragment: () => noop } });
+  try { await expect(new Data().world?.(ctx)).rejects.toThrow('normal world stage'); }
+  finally { app.engineScope.dispose(); }
 });
