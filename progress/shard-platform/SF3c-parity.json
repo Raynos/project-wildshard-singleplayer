@@ -1,0 +1,330 @@
+{
+  "row": "SF3c",
+  "ask": "E435",
+  "before": "edbab79731e6a96aa7dd9bf1cc34bee01f280773",
+  "after": "bfed2ceebb6be6a694d697fea25e733dbfbf2449",
+  "method": "Fresh parent and closure-cleanup captures using scripts/parity.mjs capture()/weatherLeak(), compare() with the existing ambient-info.json policy, and masked imageScore(); no baseline edits.",
+  "capture": {
+    "lane": "m5",
+    "tiers": [
+      "phone",
+      "desktop"
+    ],
+    "shards": "all",
+    "accelerated": true,
+    "runs": 1
+  },
+  "ambientInfo": [
+    "steppe.herd",
+    "steppe.eagle",
+    "forest.thrall"
+  ],
+  "pairs": 14,
+  "visuals": 38,
+  "minimumSsim": 0.9939872266034485,
+  "pass": true,
+  "rows": [
+    {
+      "shard": "_template",
+      "tier": "phone",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "current",
+          "ssim": 1,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "_template",
+      "tier": "desktop",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "current",
+          "ssim": 1,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "driftwood-isle",
+      "tier": "phone",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "pier",
+          "ssim": 0.9939872266034485,
+          "pass": true
+        },
+        {
+          "pose": "beach",
+          "ssim": 0.9959983176247567,
+          "pass": true
+        },
+        {
+          "pose": "wreck",
+          "ssim": 0.9999879433251941,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "driftwood-isle",
+      "tier": "desktop",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "pier",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "beach",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "wreck",
+          "ssim": 1,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "far-reach",
+      "tier": "phone",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "spawn",
+          "ssim": 0.999999704589108,
+          "pass": true
+        },
+        {
+          "pose": "hover",
+          "ssim": 0.9999994321709863,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "far-reach",
+      "tier": "desktop",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "spawn",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "hover",
+          "ssim": 1,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "nalati-grasslands",
+      "tier": "phone",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "camp",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "bridge",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "plains",
+          "ssim": 0.9999981401982538,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "nalati-grasslands",
+      "tier": "desktop",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "camp",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "bridge",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "plains",
+          "ssim": 1,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "phone",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "spawn-rail",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "well-edge",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "stair-street",
+          "ssim": 0.9992858194089224,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "desktop",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "spawn-rail",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "well-edge",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "stair-street",
+          "ssim": 1,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "gate",
+          "ssim": 0.9999969377259407,
+          "pass": true
+        },
+        {
+          "pose": "cabin",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "pond",
+          "ssim": 0.9999677845120798,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "pine-hollow",
+      "tier": "desktop",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "gate",
+          "ssim": 1,
+          "pass": true
+        },
+        {
+          "pose": "cabin",
+          "ssim": 0.9999999087436032,
+          "pass": true
+        },
+        {
+          "pose": "pond",
+          "ssim": 0.9999198573732607,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "sunscar-dunes",
+      "tier": "phone",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "spawn",
+          "ssim": 0.9999818443489181,
+          "pass": true
+        },
+        {
+          "pose": "whip",
+          "ssim": 0.9999916275989467,
+          "pass": true
+        },
+        {
+          "pose": "ray",
+          "ssim": 0.9999996886665464,
+          "pass": true
+        },
+        {
+          "pose": "quest",
+          "ssim": 0.9994312197554163,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "shard": "sunscar-dunes",
+      "tier": "desktop",
+      "verdict": "green",
+      "differences": [],
+      "visual": [
+        {
+          "pose": "spawn",
+          "ssim": 0.9999971855774188,
+          "pass": true
+        },
+        {
+          "pose": "whip",
+          "ssim": 0.9999908640890495,
+          "pass": true
+        },
+        {
+          "pose": "ray",
+          "ssim": 0.999947461559662,
+          "pass": true
+        },
+        {
+          "pose": "quest",
+          "ssim": 0.9999974067183051,
+          "pass": true
+        }
+      ]
+    }
+  ]
+}
