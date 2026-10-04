@@ -33,7 +33,7 @@ it('refuses excessive input before inspecting file rows or invoking authored acc
   expect(() => parseShardfile({ ...empty(), files: Array.from({ length: limits.files + 1 }, () => row) })).toThrow('manifest admission limits');
   expect(reads).toBe(0);
   const source = { ...empty(), get files() { reads++; return []; } };
-  expect(() => parseShardfile(source)).toThrow('manifest admission limits'); expect(reads).toBe(0);
+  expect(() => parseShardfile(source)).toThrow('JSON data only'); expect(reads).toBe(0);
 });
 it('enforces declared distinct wire and free text bounds through the author and full-format entrypoints', () => {
   const s = empty(), hash = 'a'.repeat(64);

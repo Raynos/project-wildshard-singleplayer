@@ -20,7 +20,9 @@ it('refuses non-data throughout the author export before invoking an accessor or
   expect(() => parseShardfile(source)).toThrow('JSON data only'); expect(reads).toBe(0);
   const cycle: Record<string, unknown> = {}; cycle['self'] = cycle;
   expect(() => parseShardfile({ ...empty(), hooks: cycle })).toThrow('JSON data only');
-  expect(() => parseShardfile({ ...empty(), toJSON: () => empty() })).toThrow('JSON data only');
+  let serialized = 0;
+  expect(() => parseShardfile({ ...empty(), toJSON: () => { serialized++; return empty(); } })).toThrow('JSON data only');
+  expect(serialized).toBe(0);
 });
 it('refuses TypeScript/callback migrations and hooks while accepting their bounded data arms', () => {
   const source = empty(); source.state.version = 2;
