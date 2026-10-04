@@ -650,7 +650,7 @@ listeners attach (E362 AG18); `no-raw-input` also refuses the helper form (`scop
 
 `ActionCommand` from `input/InputService` covers presses, queues, releases, held controls, axes, physical
 keyboard/mouse transitions, look and clear, with a simulation timestamp in milliseconds and optional canonical
-`AimCommand`. Interact, mount and UI actions use this boundary. Recording saves each outer command once;
+`AimCommand`. Interact, mount and UI actions use this boundary. The weapon strip records `swap.ui` and `swap.weapon.<id>` through the same bindings; its selection remains available during a swap. Recording saves each outer command once;
 actions derived by its callback run again during replay. `captureAim` supplies the live player's eye and heading;
 `commandAim` carries that recorded aim while callbacks execute. `PlayerCommand` and `FightCommand` from
 `input/commands` carry motor/look and weapon actions; camera and viewmodel offsets do not select contacts.
@@ -1620,6 +1620,16 @@ clock, RNG, events, entities, damage pipeline, flags, quest progress and timers.
 registers scoped per-instance behaviour with optional continuation state; `SimSlots` provides typed script
 memory, module globals, quest data and ledger dedupe slots for the F1 adapters. `dispose()` frees the host.
 
+`@wildshard/engine/sim/snapshot` exports `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost(host)`
+and `restoreSimHost(level, { rapier }, saved, install?)`. Capture between fixed steps; the versioned JSON state
+includes entities and strikes, queued events, timers and the accumulator, RNG and clock continuations,
+the complete Rapier world and motor contacts, flags and quest progress, the four `SimSlots`, and each
+registered adapter. Actor and live-position references resolve by stable identity in the restored host.
+Restore boots a fresh matching level and invokes `install` to register its scoped callbacks and adapters;
+authored content and functions stay outside the snapshot. Engine, snapshot and level fingerprints must match.
+Use the returned host for the recorded suffix and dispose it normally. The sim-level fight fixture proves
+identical hashes at five checkpoints after a JSON round trip, including pending damage and moving contacts.
+
 The native Node witness is `node --import ./scripts/sim-node-loader.mjs test/fixtures/sim-level/run.mjs`.
 It boots JSON-round-tripped kit species and iron-sword data, runs 10,000 fixed ticks with real Rapier
 collision, and proves damage and quest completion without a renderer, DOM or active app.
@@ -1700,7 +1710,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1726 exports, grouped by the module to import them from.
+1730 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1908,6 +1918,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `ScriptCall`, `ScriptHost`, `ScriptHostOptions`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
 - `@wildshard/engine/script/queries`: `SCRIPT_QUERY`, `ScriptPhysics`, `scriptPhysicsQueries`
 - `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimCommand`, `SimHost`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
+- `@wildshard/engine/sim/snapshot`: `restoreSimHost`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
 - `@wildshard/engine/ui/authoredDebugRows`: `authoredRows`, `GlobalDebugActionSpec`, `registerGlobalDebugAction`
 - `@wildshard/engine/ui/BossBar`: `BossBar`

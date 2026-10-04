@@ -7507,6 +7507,30 @@
         "from": "@wildshard/engine/sim"
       },
       {
+        "name": "restoreSimHost",
+        "kind": "function",
+        "doc": "Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
+        "name": "SIM_SNAPSHOT_VERSION",
+        "kind": "const",
+        "doc": "Same-engine snapshot format; live callbacks and authored content are installed by the fresh host.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
+        "name": "SimSnapshot",
+        "kind": "interface",
+        "doc": "Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
+        "name": "snapshotSimHost",
+        "kind": "function",
+        "doc": "Capture at a fixed-step boundary; pending events are preserved without flushing them.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
         "name": "ENGINE_STRINGS",
         "kind": "const",
         "doc": "English engine UI strings. Content-owned overrides are installed by the composition root.",

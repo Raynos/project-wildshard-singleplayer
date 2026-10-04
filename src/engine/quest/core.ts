@@ -53,6 +53,7 @@ export function lineFor(npc: NpcDef, flags: { has: (f: string) => boolean }): Di
 }
 
 
+interface QuestSnapshot { version: number; id: string; started: boolean; currentId: string | null }
 export class QuestState {
   onStep?: (step: QuestStep | null, prev: QuestStep | null) => void;
   onComplete?: () => void;
@@ -84,6 +85,12 @@ export class QuestState {
   get current(): QuestStep | null { return this.started ? this.cur : null; }
   /** index of the current step (steps.length when complete, -1 before it starts) */
   get index(): number { return !this.started ? -1 : this.cur ? this.def.steps.indexOf(this.cur) : this.def.steps.length; }
+  snapshot(): QuestSnapshot { return { version: 1, id: this.def.id, started: this.started, currentId: this.cur?.id ?? null }; }
+  restore(state: ReturnType<QuestState['snapshot']>): void {
+    const current = state.currentId === null ? null : this.def.steps.find((step) => step.id === state.currentId);
+    if (state.version !== 1 || state.id !== this.def.id || typeof state.started !== 'boolean' || current === undefined) throw new RangeError('Invalid quest snapshot');
+    this.started = state.started; this.cur = current;
+  }
 
   private compute(): QuestStep | null { return this.def.steps.find((s) => !test(this.flags, s.done)) ?? null; }
 

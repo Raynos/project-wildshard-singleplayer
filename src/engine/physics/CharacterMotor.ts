@@ -61,6 +61,11 @@ export interface MoveResult {
   /** what the feet stand on (null in the air) — its owner tag says which piece */
   groundCollider: Collider | null;
 }
+interface MotorState {
+  version: number; colliderHandle: number; filter: number; ghost: string; enabled: boolean; yaw: number;
+  anchor: Vec3; anchorBodyHandle: number | null; climbAngle: number; slideAngle: number;
+  result: Omit<MoveResult, 'groundCollider'> & { groundColliderHandle: number | null };
+}
 
 export class CharacterMotor {
   readonly collider: Collider;
@@ -86,15 +91,16 @@ export class CharacterMotor {
   private readonly physics: Physics;
   readonly opts: MotorOptions;
 
-  constructor(physics: Physics, opts: MotorOptions) {
+  constructor(physics: Physics, opts: MotorOptions, state?: MotorState) {
     this.physics = physics; this.opts = opts;
     const { R, world } = physics;
     const lying = opts.length !== undefined;
     const half = lying ? Math.max(0.01, (opts.length ?? 0) / 2 - opts.radius) : Math.max(0.01, opts.height / 2 - opts.radius);
     this.halfAxis = half;
     this.lift = lying ? opts.radius : opts.height / 2;
-    this.collider = world.createCollider(R.ColliderDesc.capsule(half, opts.radius).setCollisionGroups(groups(opts.group)));
-    if (lying) { this.layAlong(0); this.collider.setRotation(this.rot); }
+    if (state !== undefined && (state.version !== 1 || !world.colliders.contains(state.colliderHandle))) throw new RangeError('Invalid motor snapshot');
+    this.collider = state === undefined ? world.createCollider(R.ColliderDesc.capsule(half, opts.radius).setCollisionGroups(groups(opts.group))) : world.getCollider(state.colliderHandle);
+    if (lying && state === undefined) { this.layAlong(0); this.collider.setRotation(this.rot); }
     tagCollider(this.collider, 'flesh', opts.owner ?? null);
     this.kcc = world.createCharacterController(0.02);
     this.kcc.setUp({ x: 0, y: 1, z: 0 });
@@ -107,6 +113,25 @@ export class CharacterMotor {
     this.kcc.setCharacterMass(80); // P7: a collider with no rigid body counts as massless, and a massless character pushes nothing
     this.filter = queryGroups(opts.blockedBy, opts.group);
     this.ray = new R.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
+    if (state !== undefined) {
+      this.filter = state.filter; this.ghost = state.ghost; this.enabled = state.enabled; this.yaw = state.yaw;
+      Object.assign(this.anchor, state.anchor);
+      this.anchorBody = state.anchorBodyHandle === null ? null : world.getRigidBody(state.anchorBodyHandle);
+      const result = state.result;
+      this.result.grounded = result.grounded; this.result.groundNormalY = result.groundNormalY;
+      this.result.downhillX = result.downhillX; this.result.downhillZ = result.downhillZ; this.result.horizontalFreedom = result.horizontalFreedom;
+      this.result.groundCollider = result.groundColliderHandle === null ? null : world.getCollider(result.groundColliderHandle);
+      this.kcc.setMaxSlopeClimbAngle(state.climbAngle); this.kcc.setMinSlopeSlideAngle(state.slideAngle);
+    }
+  }
+  /** Collider handles reconnect against the restored Rapier world, never the disposed world's wrappers. */
+  snapshot(): MotorState {
+    const result = this.result;
+    return { version: 1, colliderHandle: this.collider.handle, filter: this.filter, ghost: this.ghost, enabled: this.enabled,
+      yaw: this.yaw, anchor: { ...this.anchor }, anchorBodyHandle: this.anchorBody?.handle ?? null,
+      climbAngle: this.kcc.maxSlopeClimbAngle(), slideAngle: this.kcc.minSlopeSlideAngle(),
+      result: { grounded: result.grounded, groundNormalY: result.groundNormalY, downhillX: result.downhillX, downhillZ: result.downhillZ,
+        horizontalFreedom: result.horizontalFreedom, groundColliderHandle: result.groundCollider?.handle ?? null } };
   }
 
   /** the quaternion for a lying capsule along `yaw` (animal convention: forward = (sin yaw, 0, cos yaw)): Rapier's

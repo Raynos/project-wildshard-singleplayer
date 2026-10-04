@@ -292,6 +292,7 @@
     "./script/queries": "./script/queries.ts",
     "./ui/declared": "./ui/declared.ts",
     "./app/view/scopeEnvironment": "./app/view/scopeEnvironment.ts",
-    "./sim": "./sim.ts"
+    "./sim": "./sim.ts",
+    "./sim/snapshot": "./sim/snapshot.ts"
   }
 }

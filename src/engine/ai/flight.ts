@@ -13,6 +13,7 @@ export interface SpeciesFlight {
 const G = 9.81;
 interface FlightPoint { x: number; y: number; z: number }
 type FloorSampler = (x: number, z: number, fromY: number, maxDrop: number) => number | undefined;
+interface FlightState { version: number; altitude: number; sampleIn: number; floor: number | null; smoothFloor: number | null }
 
 /** Flight owns vertical motion, while the existing body still owns heading and speed. */
 export class FlightMotion {
@@ -27,6 +28,15 @@ export class FlightMotion {
     if (spec.lockRange !== undefined && (!Number.isFinite(spec.lockRange) || spec.lockRange <= 0)) throw new Error('Flight lock range must be finite and positive');
     if (spec.bank !== undefined && !(spec.bank > 0 && spec.bank < Math.PI / 2)) throw new Error('Flight bank must be between 0 and π/2');
     this.altitude = spec.altitude;
+  }
+  snapshot(): FlightState {
+    return { version: 1, altitude: this.altitude, sampleIn: this.sampleIn, floor: this.floor ?? null, smoothFloor: this.smoothFloor ?? null };
+  }
+  restore(state: FlightState): void {
+    if (state.version !== 1 || ![state.altitude, state.sampleIn].every(Number.isFinite)
+      || (state.floor !== null && !Number.isFinite(state.floor)) || (state.smoothFloor !== null && !Number.isFinite(state.smoothFloor))) throw new RangeError('Invalid flight snapshot');
+    this.altitude = state.altitude; this.sampleIn = state.sampleIn;
+    this.floor = state.floor ?? undefined; this.smoothFloor = state.smoothFloor ?? undefined;
   }
   target(altitude: number): void {
     if (!Number.isFinite(altitude)) throw new Error('Flight altitude must be finite');

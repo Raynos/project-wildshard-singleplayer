@@ -2,7 +2,7 @@
  * The physics world (project/archive/2026-09-23-physics.md §Architecture): one Rapier `World` per shard, advanced once per fixed step.
  *
  * `Game` owns the clock (the frame phases, ENGINE-FIT E2): its fixed loop runs `pre → step → post` at 60 Hz, fed the
- * loop's scaled dt, so hit-stop slows the world with everything else and a skipped frame (menu, rotate gate) steps
+ * loop's unscaled dt, so visual hit-stop leaves gameplay time running and a skipped frame (menu, rotate gate) steps
  * nothing. `step()` is registered in the `step` slot; colliders that move are placed in `pre`, and characters move
  * against the stepped world in `post`. Rapier 0.21's World owns its empty SoftBodySet and supplies it to the
  * changed low-level step/remove/debug APIs; gameplay uses only these World wrappers.
@@ -19,9 +19,9 @@ export class Physics {
   stepMs = 0;
 
   readonly R: Rapier;
-  constructor(R: Rapier) {
+  constructor(R: Rapier, snapshot?: Uint8Array) {
     this.R = R;
-    this.world = new R.World({ x: 0, y: -9.81, z: 0 });
+    this.world = snapshot === undefined ? new R.World({ x: 0, y: -9.81, z: 0 }) : R.World.restoreSnapshot(snapshot);
     this.world.timestep = FIXED_STEP;
     const bodies = new Map<number, () => void>(), colliders = new Map<number, () => void>();
     const createBody = this.world.createRigidBody.bind(this.world), removeBody = this.world.removeRigidBody.bind(this.world);
@@ -47,6 +47,9 @@ export class Physics {
       bodies.get(body.handle)?.(); bodies.delete(body.handle); removeBody(body);
     };
   }
+
+  /** Rapier's complete same-version continuation; a fresh Physics instance can consume it. */
+  snapshot(): Uint8Array { return this.world.takeSnapshot(); }
 
   step(): void {
     const t0 = performance.now();

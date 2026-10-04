@@ -38,6 +38,11 @@ export class Flags {
   /** how many flags start with `prefix` */
   count(prefix: string): number { let n = 0; for (const f of this.set_) if (f.startsWith(prefix)) n++; return n; }
   get all(): string[] { return [...this.set_]; }
+  /** Snapshot restore is silent: quest/listener state is restored separately, without replaying transitions. */
+  restore(flags: readonly string[]): void {
+    if (new Set(flags).size !== flags.length) throw new RangeError('Invalid flag snapshot');
+    this.set_ = new Set(flags); this.save();
+  }
 
   set(flag: string, on = true): void {
     if (this.set_.has(flag) === on) return;

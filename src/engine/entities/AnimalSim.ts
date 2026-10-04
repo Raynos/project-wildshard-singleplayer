@@ -32,7 +32,18 @@ export function damageFor(headshot: boolean, dist: number, random: () => number)
   return Math.round(headshot ? body * DAMAGE.headMul : body);
 }
 const STAGGER_PUSH = [0.6, 1.5] as const, STAGGER_STUN = [0.4, 0.8] as const, STAGGER_PUSH_T = 0.25;
-
+interface AnimalSnapshot {
+  version: number; id: string;
+  motion: { hp: number; maxHp: number; yaw: number; speed: number; herd: number; desiredYaw: number; desiredSpeed: number;
+    turnRate: number; lookWeight: number; seed: number; scale: number; strafe: number; desiredStrafe: number; yOffset: number;
+    attackT: number; attackDur: number; flinch: number; flinchRoll: number; flinchPitch: number; stunT: number;
+    pushT: number; pushDist: number; brace: number; deathT: number; deathSide: number; groundY: number;
+    tiltRollT: number; elapsed: number; fallVelocity: number };
+  flags: { alive: boolean; harnessHold: boolean; aggressive: boolean; driven: boolean; levelGround: boolean; scripted: boolean; falling: boolean };
+  kind: string; variant: string; rarity: Rarity; label: string; state: AnimalState; mods: VariantMods; mem: Record<string, number>;
+  position: number[]; lookTarget: number[]; pushDir: number[]; impulse: number[];
+  lastHitT: number | null; attackTurnCap: number | null; flight: ReturnType<FlightMotion['snapshot']> | null;
+}
 const actors = new WeakMap<AnimalSim, Actor>();
 const hitHead = new Vector3();
 
@@ -81,8 +92,40 @@ export class AnimalSim {
   }
   get dims(): AnimalDims { return this.simSpec.dims; }
   /** Full motor/contact continuation; authored ports and rig state remain with the fresh instance. */
-  
-  
+  snapshot(): AnimalSnapshot {
+    return { version: 1, id: this.entityId,
+      motion: { hp: this.hp, maxHp: this.maxHp, yaw: this.yaw, speed: this.speed, herd: this.herd,
+        desiredYaw: this.desiredYaw, desiredSpeed: this.desiredSpeed, turnRate: this.turnRate,
+        lookWeight: this.lookWeight, seed: this.seed, scale: this.scale, strafe: this.strafe,
+        desiredStrafe: this.desiredStrafe, yOffset: this.yOffset, attackT: this.attackT, attackDur: this.attackDur,
+        flinch: this.flinch, flinchRoll: this.flinchRoll, flinchPitch: this.flinchPitch, stunT: this.stunT,
+        pushT: this.pushT, pushDist: this.pushDist, brace: this.brace, deathT: this.deathT,
+        deathSide: this.deathSide, groundY: this.groundY, tiltRollT: this.tiltRollT,
+        elapsed: this.elapsed, fallVelocity: this.fallVelocity },
+      flags: { alive: this.alive, harnessHold: this.harnessHold, aggressive: this.aggressive, driven: this.driven,
+        levelGround: this.levelGround, scripted: this.scripted, falling: this.falling },
+      kind: this.kind, variant: this.variant, rarity: this.rarity, label: this.label, state: this.state,
+      mods: { ...this.mods }, mem: { ...this.mem },
+      position: this.position.toArray(), lookTarget: this.lookTarget.toArray(), pushDir: this.pushDir.toArray(), impulse: this.impulseVelocity.toArray(),
+      lastHitT: this.lastHitT === -Infinity ? null : this.lastHitT,
+      attackTurnCap: this.attackTurnCap === Infinity ? null : this.attackTurnCap,
+      flight: this.flight?.snapshot() ?? null };
+  }
+  restore(saved: ReturnType<AnimalSim['snapshot']>): void {
+    if (saved.version !== 1 || saved.id !== this.entityId || !Object.values(saved.motion).every(Number.isFinite)
+      || !Object.values(saved.flags).every((value) => typeof value === 'boolean')
+      || [saved.position, saved.lookTarget, saved.pushDir, saved.impulse].some((vector) => vector.length !== 3 || !vector.every(Number.isFinite))
+      || (saved.lastHitT !== null && !Number.isFinite(saved.lastHitT))
+      || (saved.attackTurnCap !== null && !Number.isFinite(saved.attackTurnCap))
+      || (saved.flight === null) !== (this.flight === null)) throw new RangeError('Invalid creature snapshot');
+    if (saved.flight !== null) this.flight?.restore(saved.flight);
+    Object.assign(this, saved.motion, saved.flags);
+    this.kind = saved.kind; this.variant = saved.variant; this.rarity = saved.rarity; this.label = saved.label; this.state = saved.state;
+    this.mods = { ...saved.mods }; this.mem = { ...saved.mem };
+    this.position.fromArray(saved.position); this.lookTarget.fromArray(saved.lookTarget);
+    this.pushDir.fromArray(saved.pushDir); this.impulseVelocity.fromArray(saved.impulse);
+    this.lastHitT = saved.lastHitT ?? -Infinity; this.attackTurnCap = saved.attackTurnCap ?? Infinity;
+  }
   get flying(): boolean { return this.flight !== null; }
   get lockable(): boolean { return this.simSpec.lockable ?? this.flying; }
   get lockRange(): number | undefined { return this.simSpec.flight?.lockRange; }

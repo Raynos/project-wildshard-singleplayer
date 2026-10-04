@@ -14,16 +14,16 @@ export type Material = GroundSurface | 'wood' | 'metal' | 'flesh' | 'shell' | 'g
 
 export interface ColliderTag { material: Material; owner: unknown }
 
-// a collider handle is only unique inside its own Rapier world: each resident shard has its own table (E155)
-const tags = new Map<number, ColliderTag>();
+// Rapier's canonical Collider wrappers are world-local; numeric handles repeat in independent hosts.
+let tags = new WeakMap<Collider, ColliderTag>();
 
 export function tagCollider(c: Collider, material: Material, owner: unknown = null): void {
-  tags.set(c.handle, { material, owner });
+  tags.set(c, { material, owner });
 }
 
-export function tagOf(c: Collider): ColliderTag | undefined { return tags.get(c.handle); }
+export function tagOf(c: Collider): ColliderTag | undefined { return tags.get(c); }
 
-export function untagCollider(c: Collider): void { tags.delete(c.handle); }
+export function untagCollider(c: Collider): void { tags.delete(c); }
 
 /** Drop every tag (a shard's world was disposed; handles are reused by the next one). */
-export function clearTags(): void { tags.clear(); }
+export function clearTags(): void { tags = new WeakMap(); }

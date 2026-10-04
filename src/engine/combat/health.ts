@@ -19,6 +19,9 @@ export interface PlayerHealthPorts {
 /** Health is level-owned. A fall deliberately leaves the six-second regeneration clock unchanged. */
 /** what the death fade tells the health model: whether it runs, and its step (bound by the session) */
 export interface HealthLifecycle { fading: () => boolean; updateFade: (dt: number) => void }
+interface HealthSnapshot {
+  version: number; attributes: HealthAttributes; effectTags: CombatTag[]; lastHurt: number; cause: DeathCause | null; previousMode: PlayerMode;
+}
 export class PlayerHealth implements Actor {
   readonly id = 'actor.player';
   readonly tags = ['actor.player'] as const;
@@ -34,6 +37,17 @@ export class PlayerHealth implements Actor {
   get mode(): PlayerMode { return this.ports.mode?.() ?? 'foot'; }
   private readonly ports: PlayerHealthPorts;
   constructor(events: Events, ports: PlayerHealthPorts) { this.events = events; this.ports = ports; this.previousMode = this.mode; }
+  snapshot(): HealthSnapshot {
+    return { version: 1, attributes: { ...this.attributes }, effectTags: [...this.effectTags],
+      lastHurt: this.lastHurt, cause: this.cause === undefined ? null : { ...this.cause }, previousMode: this.previousMode };
+  }
+  restore(state: ReturnType<PlayerHealth['snapshot']>): void {
+    if (state.version !== 1 || !Number.isFinite(state.lastHurt) || !Number.isFinite(state.attributes.health)
+      || !Number.isFinite(state.attributes.maxHealth) || !['foot', 'board', 'swim', 'ride'].includes(state.previousMode)) throw new RangeError('Invalid health snapshot');
+    for (const key of Object.keys(this.attributes)) delete this.attributes[key];
+    Object.assign(this.attributes, state.attributes); this.effectTags = [...state.effectTags];
+    this.lastHurt = state.lastHurt; this.cause = state.cause === null ? undefined : { ...state.cause }; this.previousMode = state.previousMode;
+  }
   /** Add a finite world-space velocity; the motor copies it and decays it at 3.5/s. */
   impulse(worldVelocityMps: Vector3): void {
     if (![worldVelocityMps.x, worldVelocityMps.y, worldVelocityMps.z].every(Number.isFinite)) throw new Error('Player impulse must be finite');

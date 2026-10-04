@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1742 members; 831 without a doc line (—).
+1746 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1256,6 +1256,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SimStateAdapter` | interface | @wildshard/engine/sim | Each future brain/script instance registers its own continuation state, never a process singleton. |
 | `SimStrike` | type | @wildshard/engine/sim | Pure strike data. The host supplies the constant selection weight. |
 | `SimValue` | type | @wildshard/engine/sim | Serializable F1 extension values, without callbacks or renderer objects. |
+| `restoreSimHost` | function | @wildshard/engine/sim/snapshot | Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. |
+| `SIM_SNAPSHOT_VERSION` | const | @wildshard/engine/sim/snapshot | Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. |
+| `SimSnapshot` | interface | @wildshard/engine/sim/snapshot | Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. |
+| `snapshotSimHost` | function | @wildshard/engine/sim/snapshot | Capture at a fixed-step boundary; pending events are preserved without flushing them. |
 | `ENGINE_STRINGS` | const | @wildshard/engine/strings | English engine UI strings. Content-owned overrides are installed by the composition root. |
 | `engineString` | function | @wildshard/engine/strings | — |
 | `EngineStringKey` | type | @wildshard/engine/strings | — |

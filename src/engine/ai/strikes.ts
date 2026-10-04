@@ -34,6 +34,11 @@ export interface StrikeSpec {
 }
 export interface UtilityScore { id: string; score: number }
 export type StrikePhase = 'idle' | 'windup' | 'active' | 'recover' | 'cooldown';
+interface StrikeState {
+  version: number; phase: StrikePhase; currentId: string | null; hit: boolean; elapsed: number; speedMul: number; clock: number;
+  deadlines: { id: string; at: number }[]; scores: UtilityScore[];
+  x0: number; z0: number; x1: number; z1: number; yaw: number; length: number;
+}
 const PHASES = { idle: {}, windup: {}, active: {}, recover: {}, cooldown: {} };
 const distance = (a: BrainPoint, b: BrainPoint): number => Math.hypot(b.x - a.x, b.z - a.z);
 const wrap = (angle: number): number => Math.atan2(Math.sin(angle), Math.cos(angle));
@@ -55,6 +60,25 @@ export class StrikeRunner {
   get spec(): StrikeSpec | null { return this.current; }
   get busy(): boolean { return this.state !== 'idle'; }
   get lastPick(): readonly UtilityScore[] { return this.scores; }
+  snapshot(): StrikeState {
+    return { version: 1, phase: this.state, currentId: this.current?.id ?? null, hit: this.hit, elapsed: this.elapsed,
+      speedMul: this.speedMul, clock: this.clock, deadlines: [...this.deadlines].map(([id, at]) => ({ id, at })),
+      scores: this.scores.map((row) => ({ ...row })), x0: this.x0, z0: this.z0, x1: this.x1, z1: this.z1, yaw: this.yaw, length: this.length };
+  }
+  /** Authored strike functions are supplied by the fresh host, never serialized. */
+  restore(state: StrikeState, specs: readonly StrikeSpec[]): void {
+    const current = state.currentId === null ? null : specs.find((spec) => spec.id === state.currentId);
+    if (state.version !== 1 || !Object.hasOwn(PHASES, state.phase) || current === undefined
+      || (state.phase !== 'idle' && current === null) || typeof state.hit !== 'boolean'
+      || ![state.elapsed, state.speedMul, state.clock, state.x0, state.z0, state.x1, state.z1, state.yaw, state.length].every(Number.isFinite)
+      || state.elapsed < 0 || state.clock < 0 || state.speedMul <= 0
+      || state.deadlines.some((row) => !Number.isFinite(row.at)) || state.scores.some((row) => !Number.isFinite(row.score))) throw new RangeError('Invalid strike snapshot');
+    this.current = current; this.hit = state.hit; this.elapsed = state.elapsed; this.speedMul = state.speedMul; this.clock = state.clock;
+    this.deadlines.clear(); for (const row of state.deadlines) this.deadlines.set(row.id, row.at);
+    this.scores.splice(0, this.scores.length, ...state.scores.map((row) => ({ ...row })));
+    this.x0 = state.x0; this.z0 = state.z0; this.x1 = state.x1; this.z1 = state.z1; this.yaw = state.yaw; this.length = state.length;
+    this.hfsm.transition(state.phase);
+  }
 
   /** Stable list order breaks equal-score ties. Cooling and out-of-range rows are ineligible. */
   pick(specs: readonly StrikeSpec[], ctx: StrikeContext): StrikeSpec | null {
