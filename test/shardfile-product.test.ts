@@ -15,6 +15,7 @@ function cacheFixture(): ProductCache & { products: Map<string, CachedProduct>; 
 function fixture() {
   const cache = cacheFixture(), shard = empty(), bytes = new TextEncoder().encode('{"value":1}'), hash = contentHash(bytes); let fetches = 0;
   shard.files.push({ hash, kind: 'json', compressed: bytes.length, decoded: bytes.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+  shard.library.push(hash); shard.budgets.library = { compressed: bytes.length, resident: bytes.length };
   const options: ProductOptions = { base, cache, offline: false, firstParty: false, hash: (value) => Promise.resolve(contentHash(value)), fetch: (url) => { expect(url).toBe(`${base}${hash}`); fetches++; return Promise.resolve(new Response(Uint8Array.from(bytes))); } };
   return { shard, hash, bytes, cache, options, fetches: () => fetches };
 }

@@ -3,6 +3,9 @@ import { SHARDFILE_VERSION } from './version';
 import { assertStateCompatibility, parseStateLineage } from './revision';
 import { validateShardfileAssets } from './validate';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
+import { preflightShardfile } from './preflight';
+import { preflightAssetGraph } from './assetGraph';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
@@ -60,15 +63,18 @@ export async function browserContentHash(bytes: Uint8Array): Promise<string> {
 export async function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   const base = new URL('.', options.base).href;
   const visited = await options.cache?.product(base);
+  if (visited !== null && visited !== undefined) preflightShardfile(visited);
   const cached = options.offline ? visited : null;
   const raw = cached?.source ?? input;
+  preflightShardfile(raw);
   const versions = options.versions ?? { current: SHARDFILE_VERSION, readers: new Map([[SHARDFILE_VERSION, parseShardfile]]) };
   const revision = version(raw), reader = versions.readers.get(revision);
   if (reader === undefined || (revision !== versions.current && !(revision === versions.current - 1 && options.offline && cached?.firstParty === true && options.firstParty))) throw new Error(`Shardfile version ${revision} needs a compatible client`);
   const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
+  preflightAssetGraph(source);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && version(visited.source) === versions.current) assertStateCompatibility(parseStateLineage(visited.source), source);
-  const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: MAX_FILE_BYTES }))];
+  const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
   for (const { ref, cap } of refs) {
     const hash = ref.replace(/^commons:/u, ''); if (!HASH.test(hash)) throw new Error('Invalid asset address');
     let bytes = await options.cache?.asset(base, hash);
@@ -76,7 +82,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
       bytes = await boundedResponse(await options.fetch(new URL(hash, base).href), cap);
     }
-    if (bytes.length > cap) throw new Error('Cached shardfile wire size exceeds cap');
+    if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
     const owned = Uint8Array.from(bytes), actual = await options.hash(owned);
     if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
     assets.set(ref, owned); hashes.set(owned, actual);
@@ -103,7 +109,8 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'>): Produc
   return {
     product: async (base) => {
       const response = await (await open()).match(productUrl(base)); if (response === undefined) return null;
-      const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(response, 2_000_000)));
+      const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(response, limits.sourceBytes)));
+      preflightShardfile(value);
       if (typeof value !== 'object' || value === null || !('source' in value) || !('firstParty' in value) || typeof value.firstParty !== 'boolean') throw new Error('Invalid visited shardfile cache');
       return { source: value.source, firstParty: value.firstParty };
     },

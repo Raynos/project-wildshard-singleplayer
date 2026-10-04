@@ -31,6 +31,7 @@ it.each([['glb', 'triangle.glb'], ['ktx2', 'pixel.ktx2'], ['audio', 'sample.wav'
 it('checks actual wire hashes and rejects understated decoded costs', () => {
   const bytes = new TextEncoder().encode('{"row":1}'), hash = contentHash(bytes), s = empty();
   s.files.push({ hash, kind: 'json', compressed: bytes.length, decoded: bytes.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+  s.library.push(hash); s.budgets.library = { compressed: bytes.length, resident: bytes.length };
   expect(validateProject(s, new Map([[hash, bytes]]))).toEqual(s);
   expect(() => validateProject(s, new Map([[hash, new Uint8Array(bytes.length)]]))).toThrow('hash');
   s.files[0]?.dependencies.push('b'.repeat(64)); expect(() => validateProject(s, new Map([[hash, bytes]]))).toThrow();
@@ -69,7 +70,7 @@ it('writes commons bytes once under their immutable hash in the built product', 
     const project = join(root, 'example'), bytes = new Uint8Array([1, 2, 3]), hash = contentHash(bytes);
     newProject(project, 'example'); symlinkSync(resolve('node_modules'), join(project, 'node_modules'));
     mkdirSync(join(project, 'commons')); writeFileSync(join(project, 'commons', hash), bytes);
-    writeFileSync(join(project, 'shard.config.ts'), `import { emptyShardfile } from '@wildshard/sdk/author';\nconst shard=emptyShardfile({slug:'example',name:'Example',author:'Local',seed:1,revision:1});\nshard.requires.commons.push('${hash}');\nshard.requires.commonsWire['${hash}']=${bytes.length};\nexport default shard;\n`);
+    writeFileSync(join(project, 'shard.config.ts'), `import { emptyShardfile } from '@wildshard/sdk/author';\nconst shard=emptyShardfile({slug:'example',name:'Example',author:'Local',seed:1,revision:1});\nshard.requires.commons.push('${hash}');\nshard.requires.commonsWire['${hash}']=${bytes.length};\nshard.library.push('commons:${hash}');\nexport default shard;\n`);
     await buildProject(project, join(root, 'product'));
     expect([...readFileSync(join(root, 'product', hash))]).toEqual([...bytes]);
     expect(readdirSync(join(root, 'product')).filter((name) => name === hash)).toHaveLength(1);

@@ -10,10 +10,14 @@ import { validateEntrywayTerrain } from './entryways';
 import { validateEntrywayClearance } from './entryClearance';
 import { validateSocketLandings } from './entryLanding';
 import { clientScriptViewCost } from './clientScripts';
+import { preflightShardfile } from './preflight';
+import { preflightAssetGraph } from './assetGraph';
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
 export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string): Shardfile {
+  preflightShardfile(input);
   const s = parseShardfile(input), files = new Map(s.files.map((f) => [f.hash, f]));
+  preflightAssetGraph(s);
   const closure = (roots: readonly string[]): Set<string> => {
     const found = new Set<string>(), pending = [...roots];
     while (pending.length > 0) {
@@ -34,7 +38,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   let commons = 0;
   const commonsCosts = new Map<string, ReturnType<typeof assetCost>>(), admissions = new Map<string, ScriptAdmission>();
   for (const hash of s.requires.commons) {
-    const bytes = assets.get(`commons:${hash}`); if (bytes === undefined || contentHash(bytes) !== hash) throw new Error('unavailable commons asset');
+    const bytes = assets.get(`commons:${hash}`); if (bytes === undefined || bytes.length !== s.requires.commonsWire[hash] || contentHash(bytes) !== hash) throw new Error('unavailable commons asset or wire size mismatch');
     const kind = bytes[0] === 171 ? 'ktx2' : bytes[0] === 103 ? 'glb' : bytes[0] === 82 ? 'audio' : 'binary';
     const cost = assetCost(kind, bytes); commons += cost.decoded + cost.gpu; commonsCosts.set(`commons:${hash}`, cost);
   }
