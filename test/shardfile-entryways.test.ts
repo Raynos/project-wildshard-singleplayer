@@ -19,8 +19,7 @@ it('authors four 8 m openings at the grid midpoints and road height', () => {
 });
 it.each([6, 0.1, 60, 8 + Number.EPSILON * 8])('refuses a noncanonical %s m entry even over flat ground', (width) => {
   const source = empty();
-  const entries = [];
-  for (const row of source.entryways) entries.push({ ...row, width });
+  const entries = source.entryways.map((row) => ({ ...row, width }));
   expect(() => parseShardfile({ ...source, entryways: entries })).toThrow('illegal shard');
 });
 it('refuses missing, duplicate, extra or non-midpoint openings as an illegal shard', () => {
