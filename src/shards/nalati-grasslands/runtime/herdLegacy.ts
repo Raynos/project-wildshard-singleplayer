@@ -11,8 +11,8 @@ import * as THREE from 'three';
 
 
 
-import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './env';
-import { Pack } from './pack';
+import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from '../creatures/env';
+import { Pack } from './packLegacy';
 
 
 /** the kinds a stampeding horse's body lets through (R3): the player on foot · none */

@@ -6,7 +6,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import * as THREE from 'three';
 import type { Mount } from './Mount';
-import type { HorseHerd } from '../creatures/herd';
+import type { HorseHerd } from '../runtime/herdLegacy';
 import type { RideHUD, TamingView } from './RideHUD';
 import { wildEnv } from '../creatures/env';
 

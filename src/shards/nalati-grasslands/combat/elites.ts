@@ -26,8 +26,8 @@ import * as THREE from 'three';
 
 
 import type { Wildlife } from '../creatures/wildlife';
-import type { Pack } from '../creatures/pack';
-import type { HorseHerd } from '../creatures/herd';
+import type { Pack } from '../runtime/packLegacy';
+import type { HorseHerd } from '../runtime/herdLegacy';
 
 import type { Ledge } from '../world/Crags';
 

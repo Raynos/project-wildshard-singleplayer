@@ -10,7 +10,7 @@ import * as THREE from 'three';
 
 import type { Wildlife } from './wildlife';
 import type { SheepPrey, Flock } from './flock';
-import { Pack } from './pack';
+import { Pack } from '../runtime/packLegacy';
 import { legacyRaidTick, type RaidClockPorts } from './raidClock';
 import { installRaidDirector } from './raidDirector';
 import { HORSE_SPEED, horseBones } from '../species/horse';

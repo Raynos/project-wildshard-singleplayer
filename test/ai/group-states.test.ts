@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
-import { Pack } from '../../src/shards/nalati-grasslands/creatures/pack';
-import { HorseHerd } from '../../src/shards/nalati-grasslands/creatures/herd';
+import { Pack } from '../../src/shards/nalati-grasslands/runtime/packLegacy';
+import { HorseHerd } from '../../src/shards/nalati-grasslands/runtime/herdLegacy';
 import { Flock } from '../../src/shards/nalati-grasslands/creatures/flock';
 import { wildEnv } from '../../src/shards/nalati-grasslands/creatures/env';
 import { speciesDef } from '../../src/engine/entities/species/registry';

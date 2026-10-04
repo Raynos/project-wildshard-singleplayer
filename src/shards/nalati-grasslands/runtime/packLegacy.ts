@@ -10,7 +10,7 @@ import * as THREE from 'three';
 
 
 
-import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './env';
+import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from '../creatures/env';
 
 /**
  * Pack — one wolf pack's shared hunt (docs/design/nalati/wolves-horses-taming.md "Steppe wolves"). The wolves are

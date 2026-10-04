@@ -11,14 +11,14 @@ import * as THREE from 'three';
 
 
 
-import { thinkHorse, actHorse, horseDamageMul } from '../creatures/herd';
+import { thinkHorse, actHorse, horseDamageMul } from '../runtime/herdLegacy';
 
 import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from './shape';
 import { wildEnv } from '../creatures/env';
 
 /**
  * Wild steppe horse (Nalati, row B4) — a stocky Kazakh horse, 1.42 m at the withers: bay / chestnut / black / dun / grey
- * mares, 0.6-scale foals, and the black stallion with the long mane. Herd AI: `src/shards/nalati-grasslands/creatures/herd.ts` (lead mare, boids,
+ * mares, 0.6-scale foals, and the black stallion with the long mane. Herd AI: `src/shards/nalati-grasslands/runtime/herdLegacy.ts` (lead mare, boids,
  * flight / stampede, the stallion's guard states). Painterly: smooth lofts, vertex colour, one draw call.
  *
  * ── The horse rig, for riding (B7) and taming (B8) ─────────────────────────────────────────────────────────────────

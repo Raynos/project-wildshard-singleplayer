@@ -11,11 +11,11 @@ import * as THREE from 'three';
 
 
 import { tuft, hash01, type V3, type Skin } from './shape';
-import { thinkWolf, actWolf } from '../creatures/pack';
+import { thinkWolf, actWolf } from '../runtime/packLegacy';
 
 /**
  * Steppe wolf (Nalati, row B4) — grey-tawny, a dark saddle over a buff coat, cream mask / throat / belly, a thick ruff on
- * the neck, amber eyes, a bushy black-tipped tail. 0.78 m at the shoulder. Pack hunter: the AI is `src/shards/nalati-grasslands/creatures/pack.ts`
+ * the neck, amber eyes, a bushy black-tipped tail. 0.78 m at the shoulder. Pack hunter: the AI is `src/shards/nalati-grasslands/runtime/packLegacy.ts`
  * (roles alpha / flankers / lunger / scout; roam → scent → shadow → encircle → lunge → howl regroup → break).
  *
  * The same canid build makes the camp's sheepdog (`species/sheepdog.ts`, trait `dog`): a black-and-white collie.

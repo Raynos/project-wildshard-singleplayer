@@ -9,8 +9,8 @@ import * as THREE from 'three';
 
 
 
-import { Pack } from './pack';
-import { HorseHerd } from './herd';
+import { Pack } from '../runtime/packLegacy';
+import { HorseHerd } from '../runtime/herdLegacy';
 import { Flock, dogWolves } from './flock';
 import { wildEnv } from './env';
 import { Marmots } from './marmots';
