@@ -23,17 +23,19 @@ export const MigrationsSchema = v.pipe(v.array(v.strictObject({ from: positive, 
   fields: v.pipe(v.array(operation), v.maxLength(256)), asHook: v.optional(v.null(), null) })), v.maxLength(64),
   v.check((rows) => new Set(rows.map((row) => row.from)).size === rows.length && rows.every((row) => row.to === row.from + 1), 'Unique consecutive migration versions'),
   v.check((rows) => rows.every((row) => {
-    const keys = row.fields.map((field) => `${field.scope}/${field.op === 'default' ? field.field.id : field.id}`);
+    const identity = (field: v.InferOutput<typeof operation>) => `${field.scope}/${field.op === 'default' ? field.field.id : field.id}`;
+    const keys = row.fields.map((field) => `${identity(field)}/${field.op}`);
     return new Set(keys).size === keys.length && row.fields.every((field) => field.op !== 'map'
-      || new Set(field.values.map((value) => JSON.stringify(value.from))).size === field.values.length);
-  }), 'Unique migration fields and value sources'));
+      || new Set(field.values.map((value) => JSON.stringify(value.from))).size === field.values.length)
+      && row.fields.every((field) => (field.op !== 'drop' && field.op !== 'default') || row.fields.filter((other) => identity(other) === identity(field)).length === 1);
+  }), 'Unique migration edits and value sources; drop/default cannot combine with other edits'));
 /** Author migration rows accepted by both build-time admission and browser loading. */
 export type DeclaredMigrations = v.InferOutput<typeof MigrationsSchema>;
 /** Target declarations supply additive defaults and constrain every migrated value. */
 export interface MigrationFieldDeclaration {
   id: number; name: string; type: 'bool' | 'i32' | 'f64' | 'string'; default: number | boolean | string; min?: number | undefined; max?: number | undefined;
 }
-/** Parse author data and reject ambiguous steps, repeated field edits and duplicate enum/value sources. */
+/** Parse author data; rename and map may compose, while repeated or conflicting edits and duplicate value sources are refused. */
 export function parseMigrations(input: unknown): DeclaredMigrations {
   return v.parse(MigrationsSchema, input);
 }

@@ -40,3 +40,13 @@ it('admits explicit declaration changes without guessing saved enum values, and 
   expect(() => migrateLogicalState(old, target, drop)).toThrow('reused');
   expect(() => migrateLogicalState(old, { ...target, shared: target.shared.filter((field) => field.id !== 7), player: [{ id: 7, name: 'recycled', type: 'bool', default: false }, ...target.player] }, drop)).toThrow('reused');
 });
+it('composes a rename and enum map for one stable field in one version step, refusing conflicting edits', () => {
+  const rows = parseMigrations([{ from: 1, to: 2, fields: [{ op: 'rename', scope: 'shared', id: 8, name: 'quest.result' },
+    { op: 'map', scope: 'shared', id: 8, type: 'string', values: [{ from: 2, to: 'complete' }], fallback: 'reject' }] }]);
+  const next = { ...target, shared: [{ id: 7, name: 'door.open', type: 'bool' as const, default: false }, { id: 8, name: 'quest.result', type: 'string' as const, default: 'fresh' }] };
+  expect(migrateLogicalState(old, next, rows).shared[1]?.value).toBe('complete');
+  expect(() => assertMigrationCompatibility({ ...target, version: 1, shared: target.shared.filter((field) => field.id !== 9) }, next, rows)).not.toThrow();
+  const row = rows[0]; if (row === undefined) throw new Error('Missing migration row');
+  expect(() => parseMigrations([{ ...row, fields: [...row.fields, { op: 'drop', scope: 'shared', id: 8 }] }])).toThrow();
+  expect(() => parseMigrations([{ ...row, fields: [...row.fields, { op: 'rename', scope: 'shared', id: 8, name: 'ambiguous' }] }])).toThrow();
+});
