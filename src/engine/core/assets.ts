@@ -7,6 +7,7 @@ import { initKtx2, ktx2Layers, ktx2Texture, releaseAfterUpload } from './ktx2';
 import { TIER_CONFIG } from './tier';
 import type { Renderer } from '../render/renderer';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
+import { memorySaverOn, releaseOnUpload } from '../render/memorySaver';
 
 const gltfLoader = new GLTFLoader();
 const hdrLoader = new HDRLoader();
@@ -30,6 +31,27 @@ export function loadImage(url: string, maxSize = TIER_CONFIG.maxTexture): Promis
   return p;
 }
 
+/**
+ * SF22d, the Memory saver (render/memorySaver.ts): every texture of one file and colour space shares one source, so three
+ * uploads it once (rock_ground's terrain slab and cabin rubble were two GL textures) and the decoded image goes once that
+ * source is on the GPU: the cache lets go of it when the last source made from it has uploaded (a later ask decodes again).
+ */
+const sharedSources = new Map<string, { source: THREE.TextureSource<unknown>; flipY: boolean }>();
+const imageUsers = new Map<string, number>();
+const sourceKey = (url: string, srgb: boolean): string => `${url}|${srgb ? 'srgb' : 'linear'}`;
+function shareSource(t: THREE.Texture, url: string, srgb: boolean, image: ImageBitmap | HTMLImageElement): void {
+  sharedSources.set(sourceKey(url, srgb), { source: t.source, flipY: t.flipY });
+  imageUsers.set(url, (imageUsers.get(url) ?? 0) + 1);
+  const done = (): void => {
+    const left = (imageUsers.get(url) ?? 1) - 1;
+    if (left > 0) { imageUsers.set(url, left); return; }
+    imageUsers.delete(url);
+    images.delete(url);
+    if (typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) image.close();
+  };
+  releaseOnUpload(t.source, done);
+}
+
 export async function loadTexture(url: string, srgb = false, repeat = 1): Promise<THREE.Texture> {
   const k = await ktx2Texture(tierUrl(url), TIER_CONFIG.maxTexture); // E157: the KTX2 stand-in, when the build has one and KTX2 is on (src/engine/core/ktx2.ts)
   if (k) {
@@ -40,9 +62,18 @@ export async function loadTexture(url: string, srgb = false, repeat = 1): Promis
     k.needsUpdate = true;
     return labelAsset(k, 'engine/loadTexture', url);
   }
-  const image = await loadImage(url);
-  const t = new THREE.Texture(image);
-  t.flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap); // bitmaps are flipped at decode
+  const shared = memorySaverOn() ? sharedSources.get(sourceKey(url, srgb)) : undefined;
+  let t: THREE.Texture;
+  if (shared === undefined) {
+    const image = await loadImage(url);
+    t = new THREE.Texture(image);
+    t.flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap); // bitmaps are flipped at decode
+    if (memorySaverOn()) shareSource(t, url, srgb, image);
+  } else {
+    t = new THREE.Texture();
+    t.source = shared.source;
+    t.flipY = shared.flipY;
+  }
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(repeat, repeat);
   t.anisotropy = maxAniso;

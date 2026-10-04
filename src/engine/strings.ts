@@ -3,6 +3,8 @@ export const ENGINE_STRINGS = {
   "s_crossroads_check": "Memory check",
   "s_crossroads_run": "Run",
   "s_crossroads_note": "E435: Runs three memory checks and saves the results automatically.",
+  "s_memory_saver": "Memory saver",
+  "s_memory_saver_note": "SF22d · E435: frees image and mesh copies once on the GPU, loads the practice dummies when the room opens, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. Reloads",
   "s_script_failure": "⟦0⟧: ⟦1⟧: ⟦2⟧⟦3⟧",
   "s_script_disabled": " (disabled)",
   "s_out_of_world": "Out of world",

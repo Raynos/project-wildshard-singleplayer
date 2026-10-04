@@ -24,6 +24,33 @@ export function shadowBytes(size: number, cascades: number, ghosts: number): num
 /** the phone rig's maps (Sky.ts PHONE_SHADOW: 3 cascades at 2048²; shadowFade.ts: a ghost for each but the last) */
 export const PHONE_RIG_MAPS = { size: 2048, cascades: 3, ghosts: 2 } as const;
 
+/** the targets whose colour texture is gone (a second detach would free a deleted texture) */
+const depthOnly = new WeakSet<THREE.WebGLRenderTarget>();
+
+/**
+ * Detach a shadow map's colour texture from its framebuffer and free it: the depth texture is all the shaders read. For
+ * this rig's maps and, with the Memory saver (SF22d, render/memorySaver.ts), for a map three made itself. Call it once
+ * the target is set up (initRenderTarget, or after its first shadow draw).
+ */
+export function dropShadowColour(renderer: Renderer, rt: THREE.WebGLRenderTarget): void {
+  if (depthOnly.has(rt)) return;
+  const gl = renderer.getContext();
+  if (!(gl instanceof WebGL2RenderingContext)) return;
+  const rtProps: unknown = renderer.properties.get(rt), texProps: unknown = renderer.properties.get(rt.texture);
+  const fb: unknown = typeof rtProps === 'object' && rtProps !== null ? Reflect.get(rtProps, '__webglFramebuffer') : null;
+  const tex: unknown = typeof texProps === 'object' && texProps !== null ? Reflect.get(texProps, '__webglTexture') : null;
+  if (!(fb instanceof WebGLFramebuffer) || !(tex instanceof WebGLTexture)) return;
+  depthOnly.add(rt);
+  const state = renderer.state;
+  state.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0);
+  const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+  if (!ok) gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0); // keep three's shape
+  state.bindFramebuffer(gl.FRAMEBUFFER, null);
+  if (ok) gl.deleteTexture(tex);
+  else console.warn('[sky] E174: a depth-only shadow framebuffer is incomplete here: the colour texture stays');
+}
+
 export class ShadowMaps {
   /** the lights whose map this module made (a light missing here holds three's own map, or none yet) */
   private readonly made = new Set<THREE.DirectionalLight>();
@@ -80,20 +107,5 @@ export class ShadowMaps {
   }
 
   /** detach the render target's colour texture from its framebuffer and free it: the depth texture is all the shaders read */
-  private dropColour(rt: THREE.WebGLRenderTarget): void {
-    const gl = this.renderer.getContext();
-    if (!(gl instanceof WebGL2RenderingContext)) return;
-    const rtProps: unknown = this.renderer.properties.get(rt), texProps: unknown = this.renderer.properties.get(rt.texture);
-    const fb: unknown = typeof rtProps === 'object' && rtProps !== null ? Reflect.get(rtProps, '__webglFramebuffer') : null;
-    const tex: unknown = typeof texProps === 'object' && texProps !== null ? Reflect.get(texProps, '__webglTexture') : null;
-    if (!(fb instanceof WebGLFramebuffer) || !(tex instanceof WebGLTexture)) return;
-    const state = this.renderer.state;
-    state.bindFramebuffer(gl.FRAMEBUFFER, fb);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0);
-    const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
-    if (!ok) gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0); // keep three's shape
-    state.bindFramebuffer(gl.FRAMEBUFFER, null);
-    if (ok) gl.deleteTexture(tex);
-    else console.warn('[sky] E174: a depth-only shadow framebuffer is incomplete here: the colour texture stays');
-  }
+  private dropColour(rt: THREE.WebGLRenderTarget): void { dropShadowColour(this.renderer, rt); }
 }

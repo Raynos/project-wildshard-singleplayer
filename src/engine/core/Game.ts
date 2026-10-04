@@ -31,6 +31,8 @@ import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
+import { dropOutputDepth, halfLuminance, installMemorySaver, memorySaverOn, shadowLights } from '../render/memorySaver';
+import { dropShadowColour } from '../world/shadowVariants';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
 import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import { cullPlaced } from '../models/place';
@@ -315,6 +317,7 @@ export class Game {
       draw(camera, scene, geometry, material, object, group);
     };
     this.uploads.attach(this.renderer);
+    installMemorySaver(this.renderer); // SF22d: Debug ▸ Memory saver (off: nothing installed)
     // shadow-only casters (shadowLayer.ts): the shadow pass tests layers against the view camera, so the view camera sees
     // SHADOW_LAYER while — and only while — the shadow maps draw. Before this the cabins' depth proxies (PLAY-PERF lever
     // 12, 46868b5) were never drawn: the cabins cast no wall / roof shadow at all.
@@ -323,6 +326,7 @@ export class Game {
       const mask = camera.layers.mask;
       camera.layers.enable(SHADOW_LAYER);
       try { renderShadows(lights, scene, camera); } finally { camera.layers.mask = mask; }
+      if (memorySaverOn()) shadowLights(lights, (rt) => { dropShadowColour(this.renderer, rt); }); // SF22d: three's maps keep their depth only
     };
     this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / viewportHeight(), 0.08, 2600);
     this.viewmodel = new ViewmodelRoot();
@@ -483,6 +487,7 @@ export class Game {
       });
       if (knobs.skipRaysOffscreen === true) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc); // the disc off screen = no rays to draw (E142, E189)
       const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
+      if (memorySaverOn()) halfLuminance(bloom); // SF22d
       const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
       const grade = new HueSaturationEffect({ saturation: G.saturation });
@@ -532,6 +537,7 @@ export class Game {
     // the depth slices: every depth reader reads the scene target's own depth texture (the world + the weapon, no copy)
     const sceneDepth = composer.inputBuffer.depthTexture;
     if (slices && sceneDepth !== null) for (const p of composer.passes) if (p !== this.renderPass) p.setDepthTexture(sceneDepth);
+    if (memorySaverOn()) dropOutputDepth(composer, this.renderPass); // SF22d: one composer depth buffer
     this._composer = composer;
   }
 

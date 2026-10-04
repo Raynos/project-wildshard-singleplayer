@@ -52,7 +52,7 @@ import { GameMenu } from '@wildshard/engine/ui/Menu';
 import { Minimap } from '@wildshard/engine/ui/Minimap';
 import { Perf } from '@wildshard/engine/ui/Perf';
 import { rotateGated } from '@wildshard/engine/ui/RotateGate';
-import { getNumber, onNumber } from '@wildshard/engine/ui/Settings';
+import { getNumber, onNumber, setting } from '@wildshard/engine/ui/Settings';
 import { SpeedLines } from '@wildshard/engine/ui/SpeedLines';
 import { WeaponStrip } from '@wildshard/engine/ui/WeaponStrip';
 import { WindupWarn } from '@wildshard/engine/ui/WindupWarn';
@@ -79,7 +79,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const keepAlive = new KeepAlive();
   await macrotask();
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
-    const practice = isDev() ? arena.preload() : null; // + the practice room's dummies in Developer mode: full on its first frame (E291)
+    // + the practice room's dummies in Developer mode: full on its first frame (E291); the Memory saver loads them when the room opens (SF22d)
+    const practice = isDev() && setting('memorySaver') === 'off' ? arena.preload() : null;
     await (menuLoad ?? startMenuPreload(files, chunk)).wait(p);
     await practice;
   });
@@ -400,7 +401,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     const t2 = performance.now();
     recordBootCheckpoint('explore:constructed');
     explore.open(mode, opts);
-    if (isDev()) void arena.preload(); // the hub's Practice card (Developer mode): its dummies load now, not when it opens (E291)
+    if (isDev() && setting('memorySaver') === 'off') void arena.preload(); // the hub's Practice card (Developer mode): its dummies load now, not when it opens (E291; not with the Memory saver, SF22d)
     console.info(`[explore] open: import ${Math.round(t1 - t0)} ms · build ${Math.round(t2 - t1)} ms · open ${Math.round(performance.now() - t2)} ms`);
   };
   const exploreParam = params.get('explore');

@@ -124,6 +124,7 @@ export const OPTION_VALUES = {
   aimRing: ['off', 'on'],                              // the aim-assist bubble drawn on screen (src/engine/player/AimAssist.ts) — live
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
   ghosts: ['auto', 'line', 'off'],                     // Nalati's ghost riders: at night / a line at any hour / never — a reload
+  memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload
   clockSpeed: ['1', '10', '60'],                       // Nalati's day clock speed — live                                  // the learned LUT (src/engine/world/lut.ts); off = the captures scripts/fit-lut.py fits from — a reload
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
@@ -144,7 +145,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   calibrate: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY, learnedLut: DEBUG_ONLY,
   creatures: DEBUG_ONLY,
-  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY,
+  aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, memorySaver: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
@@ -208,6 +209,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     loadProfile: option('loadProfile'), bootPack: option('bootPack'), learnedLut: option('learnedLut'),
     creatures: option('creatures'),
     aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
+    memorySaver: option('memorySaver'),
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};

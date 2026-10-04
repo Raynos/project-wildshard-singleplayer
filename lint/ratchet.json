@@ -34,7 +34,7 @@
   },
   "budgets": {},
   "debugRows": {
-    "max": 26,
+    "max": 27,
     "raisedBy": [
       "E357",
       "E435"
