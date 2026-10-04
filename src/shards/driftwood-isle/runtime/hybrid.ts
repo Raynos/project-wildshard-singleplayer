@@ -1,10 +1,14 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installDeclaredMovers } from '@wildshard/game/shardfile/moverRuntime';
+import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import RuntimePlugin from './index';
-import { buildDriftwoodWorld } from '../world/build';
+import { buildDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { driftwoodMoverViews } from './movers';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { declaredCreatureRows } from './brains';
+
+// The static transitional world belongs to the resident, not a single entered play scope.
+const residentWorld = new HybridResidentWorld<DriftwoodWorld>();
 
 /** SF30 activation is confined to SF46's default-off hybrid path; the ordinary entry keeps the exact legacy world. */
 class DriftwoodMoverPlugin extends RuntimePlugin {
@@ -12,9 +16,9 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
   constructor() {
     const binding: { context?: ShardContext } = {};
     super(async (world, viewer) => {
-      const built = await buildDriftwoodWorld(world, viewer);
       const context = binding.context;
       if (context === undefined) throw new Error('Declared Driftwood movers require their scoped world hook');
+      const built = await residentWorld.load(context, () => buildDriftwoodWorld(world, viewer));
       const options = driftwoodMoverViews(built);
       if (options === null) throw new Error('Declared Driftwood movers require the bridge and moored boat');
       await installDeclaredMovers(context, world, options);
