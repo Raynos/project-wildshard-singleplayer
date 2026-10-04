@@ -101,7 +101,10 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     player.spawn(arrivalSpawn.x, arrivalSpawn.z, arrivalSpawn.yaw, arrivalSpawn.y); if (!boot.handoff?.arrive) { const y = boot.runtime.hooks.spawnFloor?.(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; }
   };
   const respawn = () => { toSpawn(); music.sting('death'); };
-  installBounds(app, game.levelScope, game.level.bounds, { player, toSpawn,
+  // in the grid every frame has fall recovery (a level without authored bounds, Driftwood, gets the grid's fall floor; the horizontal check is the grid's)
+  const GRID_FALL_FLOOR = -60;
+  const bounds = game.level.bounds ?? (grid === null ? undefined : { x0: -Infinity, x1: Infinity, z0: -Infinity, z1: Infinity, floor: GRID_FALL_FLOOR });
+  installBounds(app, game.levelScope, bounds, { player, toSpawn,
     floorAt: (x, z) => ((gridLive?.spawn() ?? null) === null ? registry.floorAt(x, z) : floorBelow(world.physics, x, z, player.position.y + 0.6, 1.2)),
     suspended: () => world.freeCamera || world.tour.active || away(), grid: () => grid !== null, frame: () => gridLive?.frame() });
   let kills = 0, swimHold = false;

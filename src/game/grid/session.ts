@@ -71,7 +71,7 @@ export interface GridSessionHost {
   readonly renderer?: Renderer;
 }
 /** What each cell shows today, for the readout and the report. */
-export type GridCellShows = 'playing' | 'far proxy' | 'loading';
+export type GridCellShows = 'playing' | 'frozen' | 'far proxy' | 'loading';
 /** The session's readout (tests, harness, the board). */
 export interface GridSessionState {
   readonly home: string; readonly inside: string | null; readonly feet: { x: number; z: number };
@@ -296,7 +296,7 @@ export class GridSession {
     return {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
-        shows: cell.instance === (this.live?.live.current() ?? this.home.instance) ? 'playing' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
+        shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
       strips: this.strips.length, ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused },
