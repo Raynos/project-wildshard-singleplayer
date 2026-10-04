@@ -18,7 +18,9 @@ const out = resolve(flag('out', `/private/tmp/claude-501/sp-builders/sp-x4/sf27-
 mkdirSync(out, { recursive: true });
 const shards = flag('shards', 'driftwood-isle').split(',');
 const variants = flag('hybrid', 'off,on').split(',');
+const tiers = flag('tiers', 'phone,desktop').split(',');
 if (variants.some(value => !['off', 'on'].includes(value))) throw new Error('--hybrid must list off/on variants');
+if (tiers.some(value => !['phone', 'desktop'].includes(value))) throw new Error('--tiers must list phone/desktop');
 const pool = browserPool(ROOT, 1, 'metal'), records = {}, reports = [];
 const start = Date.now();
 // Activation is independently asserted above; the intentional implementation change is receipt metadata.
@@ -68,7 +70,7 @@ try {
           return context;
         },
       };
-      for (const setting of ['off']) for (const shard of shards) for (const tier of ['phone', 'desktop']) {
+      for (const setting of ['off']) for (const shard of shards) for (const tier of tiers) {
         const folder = join(out, `${label}-${hybrid}-${setting}-${shard}-${tier}`); mkdirSync(folder, { recursive: true });
         const opts = { shard, tier, lane: 'm5', sha, root: ROOT, out: folder, timeout: 240, full: true, only: undefined, offline: false, accelerated: true, settings: { memorySaver: setting } };
         groupActivation = null;
@@ -96,7 +98,7 @@ try {
   }
   const browser = await pool.browser(0), context = await browser.newContext(), scorePage = await context.newPage();
   try {
-    for (const hybrid of variants) for (const setting of ['off']) for (const shard of shards) for (const tier of ['phone', 'desktop']) {
+    for (const hybrid of variants) for (const setting of ['off']) for (const shard of shards) for (const tier of tiers) {
       const key = `${hybrid}/${setting}/${shard}/${tier}`;
       const baseline = await aggregate(scorePage, [gameplayRecord(records[`parent/${key}`])], { sha: parent, browser: browser.version() });
       const record = records[`current/${key}`], images = [];
@@ -112,7 +114,7 @@ try {
       console.log(`SF27 ${key}: ${result.verdict}, images ${images.map((i) => `${i.name}=${i.ssim}`).join(', ')}`);
     }
   } finally { await context.close(); }
-  const record = { row: 'SF27', parent, current, hybridDebugFixtures: variants, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
+  const record = { row: 'SF27', parent, current, tiers, hybridDebugFixtures: variants, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
     method: 'Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.',
     ambientInfo: ['forest.thrall'], reports };
   writeFileSync(join(out, 'SF27-parity.json'), JSON.stringify(record, null, 2) + '\n');
