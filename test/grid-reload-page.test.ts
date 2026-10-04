@@ -18,11 +18,11 @@ it.each([false, true])('the installed page exit retries real storage and validat
   let instance: string | null = 'driftwood-isle', feet = { x: 0, y: 0, z: 0 }, held = false, durable = false;
   const checkpoint = vi.fn(() => durable);
   let readStatus: (() => 'saving' | 'failed' | null) | undefined;
-  const steps: (() => void)[] = [];
+  const steps: (() => void)[] = [], refusals: unknown[] = [];
   const host: GridReloadHost = { scope, assembly, store, homeSlug: 'driftwood-isle', grounded: () => true,
     live: { frame: () => instance, worldFeet: () => feet, roadPoint: () => ({ x: 277.5, z: island ? 277.5 : 0, yaw: 1 }),
       checkpointInstance: checkpoint, bindReloadStatus: (read) => { readStatus = read; }, live: { ready: () => true } },
-    hold: (value) => { held = value; }, onFixed: (run) => { steps.push(run); }, report: (error) => { throw error; },
+    hold: (value) => { held = value; }, onFixed: (run) => { steps.push(run); }, report: (error) => { refusals.push(error); },
     capture: () => ({ heading: 1, mount: null, loadout: { selected: null, tools: [] },
       clock: { version: 1, elapsed: 10, wall: 10, frames: 600, paused: false, captureFps: null, scale: 1 } }) };
   try {
@@ -33,6 +33,7 @@ it.each([false, true])('the installed page exit retries real storage and validat
     expect(held).toBe(true); expect(readStatus?.()).toBe('saving');
     await vi.advanceTimersByTimeAsync(0);
     expect(readStatus?.()).toBe('failed'); expect(navigate).not.toHaveBeenCalled();
+    expect(refusals).toEqual([new Error('Source checkpoint is not durable')]);
     expect(gridReloadSlot(store).read()).toBeNull();
     durable = true;
     for (let tick = 0; tick < 60; tick++) for (const run of steps) run();

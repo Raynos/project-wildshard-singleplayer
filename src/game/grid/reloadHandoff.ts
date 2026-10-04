@@ -64,23 +64,27 @@ export interface GridReloadExitPorts {
 export class GridReloadExit {
   private phase: 'idle' | 'saving' | 'failed' | 'navigating' = 'idle';
   private cancelled = false;
+  private failure: string | null = null;
   private readonly ports: GridReloadExitPorts;
   constructor(ports: GridReloadExitPorts) { this.ports = ports; }
   state(): 'idle' | 'saving' | 'failed' | 'navigating' { return this.phase; }
+  /** Refusal evidence for the existing diagnostic port; failed writes still hold the traveller. */
+  issue(): string | null { return this.failure; }
   private isCancelled(): boolean { return this.cancelled; }
   /** Caller validates road contact and captures state before invoking this transaction. */
   async start(value: GridReloadHandoff | (() => Promise<GridReloadHandoff>)): Promise<boolean> {
     if (this.cancelled || this.phase === 'saving' || this.phase === 'navigating') return false;
-    this.phase = 'saving'; this.ports.hold(true);
+    this.phase = 'saving'; this.failure = null; this.ports.hold(true);
     try {
-      if (this.ports.admit?.() === false) { this.phase = 'failed'; return false; }
+      if (this.ports.admit?.() === false) { this.failure = 'Fresh grid memory admission refused'; this.phase = 'failed'; return false; }
       const admitted = typeof value === 'function' ? await value() : value;
       if (this.isCancelled()) return false;
       const parsed = v.parse(GridReloadHandoffSchema, admitted);
-      if (!this.ports.checkpoint() || !this.ports.slot.write(parsed)) { this.phase = 'failed'; return false; }
+      if (!this.ports.checkpoint()) { this.failure = 'Source checkpoint is not durable'; this.phase = 'failed'; return false; }
+      if (!this.ports.slot.write(parsed)) { this.failure = 'Planned road transfer write failed'; this.phase = 'failed'; return false; }
       await this.ports.fade();
     }
-    catch { this.phase = 'failed'; return false; }
+    catch (error) { this.failure = error instanceof Error ? error.message : String(error); this.phase = 'failed'; return false; }
     if (this.isCancelled()) return false;
     this.phase = 'navigating'; this.ports.navigate(); return true;
   }

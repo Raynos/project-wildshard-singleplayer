@@ -40,7 +40,10 @@ export class RoadReload {
     if (source === null || active === null) return;
     try {
       const value = this.ports.capture(source);
-      void active.start(value instanceof Promise ? () => value : value).catch(this.ports.report);
+      void active.start(value instanceof Promise ? () => value : value).then((success) => {
+        if (!success && active.state() === 'failed') this.ports.report(new Error(active.issue() ?? 'Planned grid reload refused'));
+        return success;
+      }).catch(this.ports.report);
     }
     catch (error) { this.ports.report(error); }
   }

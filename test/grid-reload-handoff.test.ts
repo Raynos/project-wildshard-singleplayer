@@ -128,3 +128,17 @@ it('holds while metadata admission is pending and refuses a late completion afte
   expect(exit.cancel()).toBe(true); finish?.(handoff()); expect(await done).toBe(false);
   expect(checkpoints).toBe(0); expect(slot.read()).toBeNull(); expect(navigated).toBe(false);
 });
+
+it('keeps distinct durable refusal evidence and clears it only when a retry succeeds', async () => {
+  const storage = new Storage(), slot = gridReloadSlot(new SaveStore({ local: storage, session: null }));
+  let durable = false, held = false, navigations = 0;
+  const exit = new GridReloadExit({ checkpoint: () => durable, slot, hold: (value) => { held = value; },
+    fade: () => Promise.resolve(), navigate: () => { navigations++; } });
+  expect(await exit.start(() => Promise.reject(new Error('Revision admission refused')))).toBe(false);
+  expect(exit.issue()).toBe('Revision admission refused'); expect(held).toBe(true);
+  expect(await exit.start(handoff())).toBe(false); expect(exit.issue()).toBe('Source checkpoint is not durable');
+  durable = true; storage.fail = true;
+  expect(await exit.start(handoff())).toBe(false); expect(exit.issue()).toBe('Planned road transfer write failed');
+  expect(navigations).toBe(0); storage.fail = false;
+  expect(await exit.start(handoff())).toBe(true); expect(exit.issue()).toBeNull(); expect(navigations).toBe(1);
+});
