@@ -117,7 +117,10 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   });
   app.registerPlayer(playerHealth, game.levelScope);
   // the grid client step 2: the live crossing (LiveGridHost + GridCrossing in the page's one fixed step; G68's safe zone)
+  // durability (sp-x1): the page save store, the home's legacy flush (the shard runtime's checkpoint; progress and the pack
+  // write on change) and the admitted ledger catalogue (none admitted yet, as every client binding today)
   gridLive = grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
+    saves: app.saves, checkpoint: () => boot.runtime.hooks.checkpoint?.() ?? true, catalogue: [],
     setPhysics: (physics) => { world.physics = physics; app.physics = physics; },
     onFixedPre: (fn) => { game.onFixed('pre', fn, 'game.grid.live.pre'); }, onFixedPost: (fn) => { game.onFixed('post', fn, 'game.grid.live.post'); },
     onInput: (fn) => { game.onInput(fn, 'game.grid.origin.restore'); }, onUpdate: (fn) => { game.onUpdate(fn, 'game.grid.origin'); } }) ?? null;
