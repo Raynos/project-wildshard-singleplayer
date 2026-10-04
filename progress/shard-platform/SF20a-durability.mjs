@@ -14,6 +14,7 @@ if (!url || !sha) throw new Error('Supply --url=<build> and --sha=<commit>');
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const result = { sha, surface: 'Chromium emulating iPhone 16 Pro portrait', started: new Date().toISOString(), phases: [], errors: [] };
 const started = Date.now();
+let page;
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], viewport: devices['iPhone 16 Pro'].screen });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
@@ -21,7 +22,7 @@ try {
   await context.addInitScript(() => {
     window.__wildshardHarness = { seed: 357, capture: null, resources: () => window.__parityResources() };
   });
-  const page = await context.newPage();
+  page = await context.newPage();
   page.on('pageerror', (error) => { result.errors.push(error.message); });
   page.on('console', (message) => { if (message.type() === 'error') result.errors.push(message.text()); });
 
@@ -45,7 +46,7 @@ try {
     try {
       await new Promise((resolve, reject) => {
         let stop = () => undefined;
-        const timer = setTimeout(() => { stop(); reject(new Error(`Drive stalled at waypoint ${index}`)); }, 120000);
+        const timer = setTimeout(() => { stop(); reject(new Error(`Drive stalled at waypoint ${index}: ${JSON.stringify(probe.shard.grid.state().live)}`)); }, 120000);
         stop = game.watchFrames(() => {
           const grid = probe.shard.grid.state(), current = grid.live.live.current;
           if (current !== previous) { transitions.push(current); previous = current; }
@@ -100,7 +101,13 @@ try {
   result.pass = result.restored.complete === true && result.restored.questComplete === true && result.restored.blobAlive === false
     && result.afterReload.coins === 5 && result.afterReturn.coins === 5 && result.afterReturn.facts === 1 && result.sibling.coins === 0
     && result.errors.length === 0 && result.leak.disposalErrors.length === 0 && result.leak.scope.colliders === 0 && result.leak.scope.bodies === 0;
-} catch (error) { result.failure = String(error.stack ?? error); result.pass = false; }
+} catch (error) {
+  result.failure = String(error.stack ?? error); result.pass = false;
+  if (page !== undefined) {
+    result.lastState = await page.evaluate(() => window.__wildshard?.shard?.grid?.state()).catch(() => null);
+    await page.screenshot({ path: output.replace(/\.json$/, '-failure.jpg'), type: 'jpeg', quality: 60 }).catch(() => undefined);
+  }
+}
 finally { await browser.close(); }
 result.seconds = (Date.now() - started) / 1000;
 writeFileSync(output, `${JSON.stringify(result, null, 2)}\n`);
