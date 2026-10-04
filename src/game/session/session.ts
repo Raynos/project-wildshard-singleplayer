@@ -92,6 +92,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     markBootHandledError();
     if (plannedGridReload() !== null) {
       // The transfer was consumed before hydration; returning to the bare title cannot repeat a failed resume.
+      console.warn('[grid reload] refused during session boot', error);
       location.replace(new URL('/', location.origin).href); return;
     }
     if (!session.fatalShown) showError(error instanceof Error ? `${error.name}: ${error.message}` : String(error), error instanceof Error ? error.stack ?? '' : '');
