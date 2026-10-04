@@ -308,6 +308,12 @@
         "from": "@wildshard/engine/ai/platform"
       },
       {
+        "name": "preparePlatformBrains",
+        "kind": "function",
+        "doc": "Validate and construct all pursuit policies without registering fixed-step work or consuming random state.",
+        "from": "@wildshard/engine/ai/platform"
+      },
+      {
         "name": "canReach",
         "kind": "function",
         "doc": "Same chest/aim-point/slack query in every level, evaluated at the contact frame.",

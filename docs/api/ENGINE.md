@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1939 members; 830 without a doc line (—).
+1940 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -59,6 +59,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PlatformBrainSpec` | interface | @wildshard/engine/ai/platform | One reusable pursuit archetype; all tuning is authored data, never a shard callback. |
 | `PlatformSpawn` | interface | @wildshard/engine/ai/platform | Stable spawn identities produce the exact same entity set when a fresh sim restores a snapshot. |
 | `PlatformSpecies` | type | @wildshard/engine/ai/platform | Catalogue lookup may resolve variant-specific health/modifiers before a spawn is constructed. |
+| `preparePlatformBrains` | function | @wildshard/engine/ai/platform | Validate and construct all pursuit policies without registering fixed-step work or consuming random state. |
 | `canReach` | function | @wildshard/engine/ai/reach | Same chest/aim-point/slack query in every level, evaluated at the contact frame. |
 | `ReachActor` | interface | @wildshard/engine/ai/reach | — |
 | `BRAIN_FIELD` | const | @wildshard/engine/ai/scriptBrain | Numeric motion intentions; the guest cannot write positions, spawn actors or deal damage. |
