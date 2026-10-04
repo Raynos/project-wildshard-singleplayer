@@ -21,7 +21,8 @@
     "./traversal": "./traversal.ts",
     "./movers": "./movers.ts",
     "./director": "./director.ts",
-    "./clientScripts": "./clientScripts.ts"
+    "./clientScripts": "./clientScripts.ts",
+    "./migrations": "./migrations.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -121,6 +122,10 @@
       "./clientScripts": {
         "types": "./dist/types/sdk/clientScripts.d.ts",
         "default": "./dist/clientScripts.js"
+      },
+      "./migrations": {
+        "types": "./dist/types/sdk/migrations.d.ts",
+        "default": "./dist/migrations.js"
       }
     }
   }

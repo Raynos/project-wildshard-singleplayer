@@ -89,6 +89,7 @@
     "./shardfile/director": "./shardfile/director.ts",
     "./shardfile/directorRuntime": "./shardfile/directorRuntime.ts",
     "./shardfile/directorClient": "./shardfile/directorClient.ts",
-    "./shardfile/clientScripts": "./shardfile/clientScripts.ts"
+    "./shardfile/clientScripts": "./shardfile/clientScripts.ts",
+    "./shardfile/migrations": "./shardfile/migrations.ts"
   }
 }

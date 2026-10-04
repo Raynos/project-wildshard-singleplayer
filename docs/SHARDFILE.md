@@ -33,6 +33,7 @@ projects and the template explicitly declare four 6 m openings.
 | `hooks`, `plumbing`, `spawn` | Optional named numeric field conditions and next-tick scene events; optional scoped input/tier/Debug declarations; cell-local player position and yaw (default 0, 2, 0, 0). |
 | `props`, `items`, `targets` | Optional admitted tile/library GLBs and static collider descriptors; optional/default-empty registered kit item families; named published-state panel/collider bindings and existing interaction prompts. |
 | `state` | Positive state-schema version, `sharedOwner: "host"`, `playerKey: "actorId"`; named shared and per-player fields with bool/i32/f64/string type and matching default. |
+| `migrations` | Optional/default-empty sequential state-version rows: bounded declarative default/rename/drop/value-map operations addressed by stable scope/field IDs. Author hooks remain reserved and null. |
 | Field `privacy` | `public` replicates to everyone; `owner` only to the owning actor; `host` never leaves the host. Shared writes always belong to the host regardless of visibility. Names are unique within each state scope. |
 | `authorCaps` | 1–32 players (authors may lower the room cap); in-cell speed 0–15 m/s. Highway speed belongs to the platform. |
 | `serverBudget` | Positive tick budget ≤16,666 μs, positive memory ≤25 MB, ≤10,000 entities, ≤1,024 commands per tick. These are author declarations, not a server implementation. |
@@ -94,6 +95,17 @@ the same shard: existing scope/name/id/type must remain, and old IDs cannot name
 another field. Declaration reordering and new fields are allowed. Outside authors
 must assign an ID to every pre-existing v0 field before rebuilding; an empty
 world has no fields to migrate. This is a provisional v0 refinement before freeze.
+
+`@wildshard/sdk/migrations` exposes `MigrationsSchema`, `parseMigrations` and
+`DeclaredMigrations`. Each row has `{from, to: from+1, fields, asHook: null}`;
+admission rejects future target versions, duplicate version steps and ambiguous
+field edits. At most 64 rows contain at most 256 edits each. `default` supplies a
+typed field value; `rename` preserves the stable ID; `drop` explicitly removes it;
+`map` supplies bounded typed value mappings and a `keep` or `reject` fallback.
+Rename and map may compose for one ID in the same row. No author code, old Wasm
+memory or old physics snapshot is executed for a revision migration. The loader
+restores portable declared state into fresh revision execution; additive fields
+take their defaults. Same-revision full execution continuation is unchanged.
 
 Author rows pass an independent JSON-only check before their strict schema: functions,
 accessors, cycles, sparse arrays, nonfinite numbers and other lossy values fail before

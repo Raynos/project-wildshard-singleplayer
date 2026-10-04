@@ -20,6 +20,7 @@ import { TraversalSchema } from './traversal';
 import { RuntimeSchema } from './runtime';
 import { ClientScriptsSchema, clientScriptRules } from './clientScripts';
 import { EntrywaysSchema, entrywayRules } from './entryways';
+import { MigrationsSchema, migrationRules } from './migrations';
 import { skinLookRules } from './skins';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs } from './materials';
 
@@ -51,6 +52,7 @@ const rawSchema = v.strictObject({
   look: v.strictObject({ families: v.array(name), materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
   sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: v.array(ref), bindings: v.optional(ScriptBindingsSchema, []) }),
   state: v.strictObject({ version: positive, sharedOwner: v.literal('host'), playerKey: v.literal('actorId'), shared: v.array(field), player: v.array(field) }),
+  migrations: v.optional(MigrationsSchema, []),
   authorCaps: v.strictObject({ players: v.pipe(positive, v.maxValue(32)), speed: v.pipe(finite, v.minValue(0), v.maxValue(15)) }),
   serverBudget: v.strictObject({ tickMicros: v.pipe(positive, v.maxValue(16_666)), memory: v.pipe(positive, v.maxValue(CONTENT_CAPS.sim.resident)), entities: v.pipe(natural, v.maxValue(10_000)), commandsPerTick: v.pipe(natural, v.maxValue(1024)) }),
   edge: v.strictObject({ north: edge, east: edge, south: edge, west: edge }),
@@ -83,6 +85,7 @@ export type Shardfile = v.InferOutput<typeof rawSchema>;
 export function shardfileRules(s: Shardfile): string[] {
   const errors: string[] = [];
   errors.push(...entrywayRules(s));
+  errors.push(...migrationRules(s.migrations, s.state.version));
   const files = new Map(s.files.map((f) => [f.hash, f]));
   if (files.size !== s.files.length) errors.push('unique file hashes');
   const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...(s.far?.files ?? []), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
