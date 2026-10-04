@@ -3,6 +3,7 @@ import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeSpec, type StrikeContext } from './strikes';
+import { readStrikeState } from './strikeState';
 
 /** Home-circle grazing, timed threat and utility-selected charge/close-strike tuning. */
 export interface ChallengeGrazerSpec {
@@ -21,11 +22,7 @@ const finite = v.pipe(v.number(), v.finite());
 const nonnegative = v.pipe(finite, v.minValue(0));
 const continuation = v.strictObject({ contract: v.string(), state: v.picklist(['graze', 'notice', 'fight']),
   clock: nonnegative, homeX: finite, homeZ: finite,
-  strikes: v.strictObject({ version: v.literal(1), phase: v.picklist(['idle', 'windup', 'active', 'recover', 'cooldown']),
-    currentId: v.nullable(v.string()), hit: v.boolean(), elapsed: nonnegative, speedMul: v.pipe(finite, v.minValue(Number.MIN_VALUE)), clock: nonnegative,
-    deadlines: v.pipe(v.array(v.strictObject({ id: v.string(), at: finite })), v.maxLength(2)),
-    scores: v.pipe(v.array(v.strictObject({ id: v.string(), score: finite })), v.maxLength(2)),
-    x0: finite, z0: finite, x1: finite, z1: finite, yaw: finite, length: finite }),
+  strikes: v.unknown(),
 });
 
 /** Renderer-free challenge and strike policy; motion, strike clocks and mutable home survive exact replay. */
@@ -70,8 +67,8 @@ export class ChallengeGrazerBrain<A extends AnimalSim> {
     if (typeof saved !== 'string') throw new Error('Invalid challenge grazer continuation');
     const parsed: unknown = JSON.parse(saved), value = v.parse(continuation, parsed);
     if (value.contract !== this.contract) throw new Error('Incompatible challenge grazer continuation');
-    new StrikeRunner().restore(value.strikes, [this.charge, this.close]);
-    this.strikes.restore(value.strikes, [this.charge, this.close]);
+    const strikes = readStrikeState(value.strikes, [this.charge, this.close]);
+    this.strikes.restore(strikes, [this.charge, this.close]);
     this.phase = value.state; this.clock = value.clock; this.homeX = value.homeX; this.homeZ = value.homeZ;
   }
   private context(c: ChallengeGrazerPorts<A>): StrikeContext {

@@ -4,6 +4,7 @@ import type { Rng } from '../core/rng';
 import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeSpec, type StrikeContext } from './strikes';
+import { readStrikeState } from './strikeState';
 
 /** Rim-aware grazing, threat and committed ram policy; the host owns the floor and ballistic body. */
 export interface RamGrazerSpec {
@@ -17,15 +18,10 @@ export interface RamGrazerPorts<A extends AnimalSim> {
   reach: (actor: A) => boolean; claim: (actor: A) => boolean; hurt: (damage: number) => void;
 }
 const finite = v.pipe(v.number(), v.finite());
-const nonnegative = v.pipe(finite, v.minValue(0));
 const continuation = v.strictObject({
   contract: v.string(), state: v.picklist(['graze', 'threat', 'ram', 'fall']),
   wanderYaw: finite, wanderT: finite, ramYaw: finite,
-  strikes: v.strictObject({ version: v.literal(1), phase: v.picklist(['idle', 'windup', 'active', 'recover', 'cooldown']),
-    currentId: v.nullable(v.string()), hit: v.boolean(), elapsed: nonnegative, speedMul: v.pipe(finite, v.minValue(Number.MIN_VALUE)), clock: nonnegative,
-    deadlines: v.pipe(v.array(v.strictObject({ id: v.string(), at: finite })), v.maxLength(1)),
-    scores: v.pipe(v.array(v.strictObject({ id: v.string(), score: finite })), v.maxLength(1)),
-    x0: finite, z0: finite, x1: finite, z1: finite, yaw: finite, length: finite }),
+  strikes: v.unknown(),
 });
 
 /** Renderer-free ram decisions and strike clock with lossless, policy-fenced continuation. */
@@ -65,9 +61,9 @@ export class RamGrazerBrain<A extends AnimalSim> {
     if (typeof saved !== 'string') throw new Error('Invalid ram grazer continuation');
     const parsed: unknown = JSON.parse(saved), value = v.parse(continuation, parsed);
     if (value.contract !== this.contract) throw new Error('Incompatible ram grazer continuation');
-    if ((value.state === 'ram') !== (value.strikes.phase !== 'idle')) throw new Error('Invalid ram grazer strike phase');
-    new StrikeRunner().restore(value.strikes, [this.strike]);
-    this.strikes.restore(value.strikes, [this.strike]);
+    const strikes = readStrikeState(value.strikes, [this.strike]);
+    if ((value.state === 'ram') !== (strikes.phase !== 'idle')) throw new Error('Invalid ram grazer strike phase');
+    this.strikes.restore(strikes, [this.strike]);
     this.phase = value.state; this.wanderYaw = value.wanderYaw; this.wanderT = value.wanderT; this.ramYaw = value.ramYaw;
   }
   private context(c: RamGrazerPorts<A>): StrikeContext {
