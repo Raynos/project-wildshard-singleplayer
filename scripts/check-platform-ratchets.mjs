@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json'];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json'];
 
 /** Explicit file inputs work in an index export and in a post-commit export with no .git. */
 export function comparePlatformList(list, baselineFile, candidateFile) {
@@ -29,6 +29,16 @@ export function comparePlatformList(list, baselineFile, candidateFile) {
     for (const [slug, ceiling] of Object.entries(after.enforced)) {
       if (!Object.hasOwn(after.baseline, slug)) failures.push(`${list}: unknown enforced shard ${slug}`);
       if (!Number.isSafeInteger(ceiling) || ceiling < 0 || ceiling > Math.floor(after.baseline[slug] * 0.2)) failures.push(`${list}: ${slug} ceiling exceeds 20 % of its baseline`);
+    }
+  } else if (list === 'lint/sim-closure.json') {
+    for (const [site, item] of Object.entries(after.violations)) {
+      const previous = before.violations[site];
+      if (!previous) failures.push(`${list}: new sim site ${site}`);
+      else {
+        if (item.count > previous.count) failures.push(`${list}: ${site} count rose ${previous.count} → ${item.count}`);
+        if (item.row !== previous.row) failures.push(`${list}: ${site} owner changed ${previous.row} → ${item.row}`);
+      }
+      if (!Number.isSafeInteger(item.count) || item.count <= 0) failures.push(`${list}: invalid count for ${site}`);
     }
   } else throw new Error(`Unknown platform list ${list}`);
   return failures;

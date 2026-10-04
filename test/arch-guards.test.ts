@@ -9,7 +9,7 @@ import { dirname, join, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Subprocesses use the same Node executable as Vitest.
 import { env, execPath } from 'node:process';
 import { afterAll, describe, expect, it } from 'vitest';
-import { comparePlatformList } from '../scripts/check-platform-ratchets.mjs';
+import { comparePlatformList, PLATFORM_LISTS } from '../scripts/check-platform-ratchets.mjs';
 import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
 import { checkShardLayout, checkShards, shardEntries, type ShardLayout } from '../scripts/check-shards.mjs';
 import { genShardWords, shardWordData } from '../scripts/gen-shard-words.mjs';
@@ -139,7 +139,7 @@ describe('AG20 staged content isolation', () => {
   });
   it('rejects matching code and allowance growth after commit using explicit predecessor files', () => {
     const f = repo(), previous = temp();
-    const lists = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json'];
+    const lists = PLATFORM_LISTS;
     for (const file of lists) put(previous, file, readFileSync(join(f.root, file), 'utf8'));
     const file = lists[0]; if (file === undefined) throw new Error('Missing fixture list');
     const doc = JSON.parse(readFileSync(join(f.root, file), 'utf8')) as { fields: string[] };
@@ -281,6 +281,16 @@ describe('SF1b historical platform allowances', () => {
       { ...before, enforced: { alpha: 21 } }, { ...before, baseline: { alpha: 101 } },
       { ...before, baseline: { alpha: 100, unknown: 10 } }, { ...before, enforced: { alpha: 19, unknown: 1 } },
     ]) expect(compare('lint/shard-platform.json', before, after).length).toBeGreaterThan(0);
+  });
+  it('holds sim site counts and owners against explicit predecessor files', () => {
+    const before = { violations: { site: { count: 2, row: 'SF3c' } } };
+    expect(compare('lint/sim-closure.json', before, { violations: {} })).toEqual([]);
+    expect(compare('lint/sim-closure.json', before, { violations: { site: { count: 1, row: 'SF3c' } } })).toEqual([]);
+    for (const after of [
+      { violations: { site: { count: 3, row: 'SF3c' } } },
+      { violations: { site: { count: 2, row: 'SF3b' } } },
+      { violations: { added: { count: 1, row: 'SF3c' } } },
+    ]) expect(compare('lint/sim-closure.json', before, after).length).toBeGreaterThan(0);
   });
   it('admits Thin Ice only with a first-commit 20 % ceiling', () => {
     const before = { baseline: {}, enforced: {} };
