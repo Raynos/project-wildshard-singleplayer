@@ -23,7 +23,7 @@ import { familyCompileJobs, familyMaterial } from '@wildshard/engine/render/fami
 import { staticGlb } from '../../src/sdk/bake/glb';
 import { boat } from '../../src/shards/driftwood-isle/models/boat';
 import { TRAIL } from '../../src/shards/_template/layout';
-import { poolMask } from '../../src/shards/_template/world/pool';
+import { poolMask } from '../../src/shards/_template/generators/world';
 import source from '../../src/shards/_template/shard.config';
 
 const W = 600, H = 800;

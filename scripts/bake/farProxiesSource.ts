@@ -12,7 +12,7 @@ import type { Shardfile } from '../../src/game/shardfile/schema';
 import { parseGlb } from '../../src/sdk/assets';
 import { staticGlb } from '../../src/sdk/bake/glb';
 import { canonicalJson, contentHash } from '../../src/sdk/project';
-import { farLook as template } from '../../src/shards/_template/look/far';
+import { farLook as template } from '../../src/shards/_template/generators/farLook';
 import { farLook as driftwood } from '../../src/shards/driftwood-isle/look/far';
 import { farLook as farReach } from '../../src/shards/far-reach/look/far';
 import { farLook as nalati } from '../../src/shards/nalati-grasslands/look/far';
