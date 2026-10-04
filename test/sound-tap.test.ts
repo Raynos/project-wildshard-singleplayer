@@ -4,11 +4,11 @@ import { isArrowFunction, isBlock, isCallExpression, isExpressionStatement, isIf
 
 const sources = import.meta.glob<string>('../src/**/*.ts', { eager: true, query: '?raw', import: 'default' });
 const schedulers: Readonly<Record<string, readonly string[]>> = {
-  'src/shards/driftwood-isle/audio/sfx.ts': ['scheduleSurf', 'scheduleGust'],
+  'src/shards/driftwood-isle/runtime/audio/sfx.ts': ['scheduleSurf', 'scheduleGust'],
   'src/engine/audio/Audio.ts': ['scheduleBubble'],
   'src/shards/pine-hollow/audio/synth.ts': ['scheduleGust', 'scheduleBird'],
   'src/shards/nalati-grasslands/audio/synth.ts': ['scheduleLark', 'scheduleCricket', 'scheduleCrackle'],
-  'src/shards/driftwood-isle/audio/ambience.ts': ['scheduleBird', 'scheduleDrip', 'scheduleSwell'],
+  'src/shards/driftwood-isle/runtime/audio/ambience.ts': ['scheduleBird', 'scheduleDrip', 'scheduleSwell'],
   'src/shards/pine-hollow/audio/ambience.ts': ['scheduleThrall'],
 };
 
@@ -31,7 +31,7 @@ describe('every sound source is observed', () => {
       '../src/engine/audio/AmbienceBeds.ts', '../src/engine/audio/Audio.ts', '../src/engine/audio/Music.ts',
       '../src/engine/audio/Stems.ts', '../src/engine/audio/Voices.ts', '../src/engine/audio/ambience.ts',
       '../src/engine/audio/synth.ts',
-      '../src/shards/driftwood-isle/audio/ambience.ts', '../src/shards/driftwood-isle/audio/shrineHum.ts',
+      '../src/shards/driftwood-isle/runtime/audio/ambience.ts', '../src/shards/driftwood-isle/runtime/audio/shrineHum.ts',
       '../src/shards/nalati-grasslands/audio/synth.ts',
       '../src/shards/pine-hollow/life/index.ts',
     ].sort()); // S3.5 merges three independent players; every remaining source still requires its content tap.

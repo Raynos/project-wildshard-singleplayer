@@ -5,7 +5,7 @@ import type { ScoreSource } from '@wildshard/engine/audio/SetScore';
 import type { SlotAudio, StyleBank, StemSting } from '@wildshard/engine/audio/Stems';
 import type { MusicStyle } from '@wildshard/engine/ui/Settings';
 import { selectScoreSlots } from '@wildshard/engine/audio/scoreSelection';
-import source from '../shard.config';
+import source from '../../shard.config';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 
 const PROFILE = requireAudioProfile(source.audio.music, 'score.driftwood');

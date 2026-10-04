@@ -116,7 +116,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
     mockup: '', frame: probe.name,
   }]))) },
   audio: { bed: 'island', samples: { loopGains: { island: 0.5 } }, ambience: 'ambience.driftwood', score: 'score.driftwood',
-    preload: () => import('./audio/files').then((m) => m.createDriftwoodAudio()) },
+    preload: () => import('./runtime/audio/files').then((m) => m.createDriftwoodAudio()) },
   budgets: DRIFTWOOD_BUDGET_INPUTS,
   uses: ['dayCycle'],
   api: 1,
@@ -130,7 +130,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   debugOptions: [],
   assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**'],
   ktx2: () => import('./ktx2.generated'),
-  boot: { audio: async () => (await import('./audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], files: (tier) => Object.values(bootSources(tier)).flat(), sources: bootSources, lateReads }, // what its boot reads (./boot/sources.ts: no props of its own); the island's late reads (./boot/lateReads.ts)
+  boot: { audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], files: (tier) => Object.values(bootSources(tier)).flat(), sources: bootSources, lateReads }, // what its boot reads (./boot/sources.ts: no props of its own); the island's late reads (./boot/lateReads.ts)
   load: () => import('./plugin'), // E357 S4.1: the world build (./world/build.ts); the rest still runs in main.ts until S4.2–S4.4
   order: 1,
   // the phone's picture cuts (E189): the viewmodels in near depth slices, no god-ray pass while the sun is off screen,
@@ -147,6 +147,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   label: '(−1, +6)',
   seed: SEED,
   treeCount: 0,
+  accent: 'marigold', // G104: the HUD accent inside its grid cell
   biome: 'Low-poly island, open ocean', // the title card's one-line blurb (E318: a player's words, not the grid)
   blurb: 'A small low-poly island in a bright ocean, in the spirit of Wind Waker. A pier, a moored sailboat, a hut on the plateau, a ring shrine in the jungle and a wreck in the cove — island boar hunted with a wooden sword.',
   card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },

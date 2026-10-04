@@ -38,7 +38,7 @@ import { IslandBed, ISLAND_BED } from './sfx';
  * idle send is at gain 0 (the browser stops processing a convolver whose input is silent past its tail).
  */
 import type { Camera } from 'three';
-import source from '../shard.config';
+import source from '../../shard.config';
 import { requireAudioProfile, requireAudioZone, requireAudioLevel } from '@wildshard/engine/audio/audioProfiles';
 
 export type Zone = 'sea' | 'beach' | 'palms' | 'jungle' | 'cove' | 'lookout' | 'hold' | 'cave' | 'shrine';

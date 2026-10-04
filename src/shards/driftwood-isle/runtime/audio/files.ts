@@ -1,6 +1,6 @@
 import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 
-import source from '../shard.config';
+import source from '../../shard.config';
 
 const samplesProfile = source.audio.samples, musicProfile = source.audio.music;
 if (samplesProfile === undefined || musicProfile === undefined) throw new Error('Driftwood requires its declared audio profiles');

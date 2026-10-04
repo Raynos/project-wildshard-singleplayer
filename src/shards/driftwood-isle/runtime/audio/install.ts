@@ -1,9 +1,9 @@
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { swordEvents } from '@wildshard/kit/weapons/melee/SweptMelee';
-import { OCEAN, SHRINE } from '../manifest';
-import { driftwoodWorld } from '../world/build';
-import { Cove } from '../world/Cove';
+import { OCEAN, SHRINE } from '../../manifest';
+import { driftwoodWorld } from '../../world/build';
+import { Cove } from '../../world/Cove';
 import { IslandSfx } from './sfx';
 import { SurfaceMap } from './surface';
 import { IslandAmbience } from './ambience';

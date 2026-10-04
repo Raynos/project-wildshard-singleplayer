@@ -3,8 +3,8 @@ import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
-import { driftwoodCueMap } from '../../../src/shards/driftwood-isle/audio/cues';
-import { driftwoodCombatCues } from '../../../src/shards/driftwood-isle/audio/combatCues';
+import { driftwoodCueMap } from '../../../src/shards/driftwood-isle/runtime/audio/cues';
+import { driftwoodCombatCues } from '../../../src/shards/driftwood-isle/runtime/audio/combatCues';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 
 // Captured from the pre-conversion routers at 4b50e4c40, using the same engine option objects.

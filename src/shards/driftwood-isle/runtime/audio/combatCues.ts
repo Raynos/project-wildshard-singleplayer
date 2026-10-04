@@ -1,6 +1,6 @@
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
-import source from '../shard.config';
+import source from '../../shard.config';
 import type { IslandSfx } from './sfx';
 
 /** The rich sword-event layer keeps its bank calls and sound-log ids at their original boundaries. */

@@ -2,7 +2,7 @@ import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CueMap } from '@wildshard/engine/audio/Cues';
 import type { CombatCueOpts } from '@wildshard/engine/combat/cues';
 import type { Vector3 } from 'three';
-import source from '../shard.config';
+import source from '../../shard.config';
 import type { IslandSfx } from './sfx';
 
 /** Routing adds no sound taps or random draws: each admitted voice calls the original island recipe once. */

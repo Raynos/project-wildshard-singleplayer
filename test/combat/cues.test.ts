@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Vector3, Group } from 'three';
 import { CombatCues, resolveHitStop } from '../../src/engine/combat/cues';
 import { sharedCombatCues } from '../../src/kit/audio/combatCues';
-import { driftwoodCombatCues } from '../../src/shards/driftwood-isle/audio/combatCues';
+import { driftwoodCombatCues } from '../../src/shards/driftwood-isle/runtime/audio/combatCues';
 import { pineCombatCues } from '../../src/shards/pine-hollow/audio/combatCues';
 import { ndCueMap } from '../../src/shards/nine-dragon-stack/audio/cues';
 import { tap } from '../../src/engine/core/harnessTap';
