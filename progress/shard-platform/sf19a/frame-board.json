@@ -1,0 +1,112 @@
+{
+  "url": "http://127.0.0.1:4401",
+  "started": "2026-10-04T14:05:29.080Z",
+  "runs": {
+    "off": {
+      "errors": [],
+      "shots": {
+        "crossroads": {
+          "frame": null,
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:playing",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "corner": {
+          "frame": null,
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:playing",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        }
+      }
+    },
+    "on": {
+      "errors": [],
+      "shots": {
+        "crossroads": {
+          "frame": {
+            "gated": 4,
+            "installed": true,
+            "highway": 1,
+            "weights": {},
+            "air": [
+              0.523,
+              0.693,
+              0.843
+            ],
+            "slots": {
+              "template-1": 2,
+              "pine-hollow": 3,
+              "template-2": 4,
+              "sunscar-dunes": 5,
+              "nalati-grasslands": 6,
+              "template-4": 7,
+              "far-reach": 8,
+              "template-6": 9
+            }
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:playing",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "corner": {
+          "frame": {
+            "gated": 4,
+            "installed": true,
+            "highway": 1,
+            "weights": {},
+            "air": [
+              0.523,
+              0.693,
+              0.843
+            ],
+            "slots": {
+              "template-1": 2,
+              "pine-hollow": 3,
+              "template-2": 4,
+              "sunscar-dunes": 5,
+              "nalati-grasslands": 6,
+              "template-4": 7,
+              "far-reach": 8,
+              "template-6": 9
+            }
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:playing",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        }
+      }
+    }
+  }
+}
