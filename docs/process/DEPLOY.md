@@ -10,6 +10,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup. No credentials belong in Git.
+- **Push / PR CI runs vitest once, in 3 parallel shard jobs** (E429): `build-and-deploy` runs typecheck, lint,
+  `pnpm run test:checks` (the node checks of `pnpm test`) and the builds; `vitest` (matrix 1–3) runs
+  `vitest run --shard=i/3 --coverage`; `coverage` merges the shards with `scripts/coverage-merge.mjs` (the same numbers
+  as one unsharded run) and runs `scripts/coverage-ratchet.mjs`. Releases keep the plain `pnpm test`.
 - **GitHub drops the :17 schedule** under load, with no error (2026-10-02/03: one run every 4–6 h). A launchd agent on
   Jake's Mac is the backstop (E403): `scripts/deploy-backstop/backstop.sh` runs at :47 every second hour and dispatches
   the deploy when no scheduled run started in the last 119 minutes. `scripts/deploy-backstop/install.sh` (re)installs

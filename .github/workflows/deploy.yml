@@ -120,25 +120,18 @@ jobs:
         if: steps.live.outputs.skip != 'true'
         run: pnpm run lint
 
+      # A release runs the whole `pnpm test` here. Push / PR CI runs its node checks here and the vitest suite once, in
+      # the 3 `vitest` shard jobs below, whose coverage the `coverage` job merges and ratchets (E429).
       - name: Test
         if: steps.live.outputs.skip != 'true'
         run: |
-          pnpm test
+          if [ "$DEPLOY" = true ]; then pnpm test; else pnpm run test:checks; fi
           pnpm exec vite build
           node scripts/check-chunks.mjs dist
-
-      - name: Coverage ratchet
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
-        run: pnpm run test:coverage
 
       - name: CSS check
         if: steps.live.outputs.skip != 'true'
         run: node scripts/check-css.mjs
-
-      # Push/PR CI still verifies the web bundle; scheduled deploys build it with vercel build below.
-      - name: Web build gate
-        if: env.DEPLOY != 'true'
-        run: pnpm exec vite build
 
       - name: Native web build
         if: steps.live.outputs.skip != 'true'
@@ -177,3 +170,73 @@ jobs:
           node "$RUNNER_TEMP/deploy-version.mjs" verify
           code=$(curl -sS -o /dev/null -w '%{http_code}' -H 'x-review-password: invalid' https://wildshard-singleplayer.vercel.app/api/inbox)
           test "$code" = 401 || { echo "::error::/api/inbox returned HTTP $code, expected 401"; exit 1; }
+
+  # Push / PR CI runs the vitest suite once, split over 3 parallel jobs (E429, Jake 2026-10-03: "Split 3 ways"). Each
+  # shard writes its istanbul coverage; the `coverage` job merges them (scripts/coverage-merge.mjs measures what one
+  # unsharded run measures) and runs the coverage ratchet. A red shard, merge or ratchet fails the run, and deploy-pin's
+  # newest-ci-green only takes a push run whose every job passed.
+  vitest:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      # links the @wildshard/* workspace packages (E432), so it stays before vitest
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Vitest shard ${{ matrix.shard }}/3
+        run: |
+          pnpm gen
+          pnpm exec vitest run --shard=${{ matrix.shard }}/3 --coverage --coverage.reporter=json --reporter=dot
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage-${{ matrix.shard }}
+          path: coverage/coverage-final.json
+          retention-days: 1
+          if-no-files-found: error
+
+  coverage:
+    needs: vitest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # the merge and the ratchet are dependency-free node scripts: no install
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            /scripts/coverage-merge.mjs
+            /scripts/coverage-ratchet.mjs
+            /test/coverage-ratchet.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vitest-coverage-*
+          path: shards
+      - name: Merge coverage and ratchet
+        run: |
+          node scripts/coverage-merge.mjs --out coverage/coverage-summary.json shards/vitest-coverage-1/coverage-final.json shards/vitest-coverage-2/coverage-final.json shards/vitest-coverage-3/coverage-final.json
+          node scripts/coverage-ratchet.mjs
