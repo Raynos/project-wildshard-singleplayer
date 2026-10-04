@@ -1,0 +1,435 @@
+{
+  "purpose": "REHEARSAL; incomplete M3 and sampling, cannot close SF57 or establish retained WebKit memory",
+  "engineBase": 300000000,
+  "formula": "(WebContent + labelled GL - engineBase) / accounted <= 1.11; raw ratio informational",
+  "graderRevision": "0af5f676aaf346db7dfdcb3fda4bc79ca8563bde",
+  "layouts": [
+    {
+      "layout": "shipped",
+      "sha": "07209c6260fd4e8160625295199f8672df10e8b2",
+      "seconds": 1800.004,
+      "circuits": 2,
+      "evictions": 22,
+      "grade": {
+        "memoryPass": false,
+        "gatePass": false,
+        "peakBytes": 1248122805,
+        "loadingPeakBytes": 1086924757,
+        "phoneEstimateBytes": 1747371927,
+        "baselines": [
+          {
+            "cycle": 0,
+            "start": 1791145211.702,
+            "end": 1791145221.752,
+            "samples": 10,
+            "bytes": 1039090985
+          },
+          {
+            "cycle": 1,
+            "start": 1791145858.339,
+            "end": 1791145868.356,
+            "samples": 10,
+            "bytes": 1051003521
+          },
+          {
+            "cycle": 2,
+            "start": 1791146503.573,
+            "end": 1791146513.573,
+            "samples": 9,
+            "bytes": 1051694601
+          }
+        ],
+        "baselineDeltaBytes": [
+          -12603616,
+          -691080,
+          0
+        ],
+        "loops": [
+          {
+            "cycle": 0,
+            "peakBytes": 1248122805,
+            "troughBytes": 1037649697
+          },
+          {
+            "cycle": 1,
+            "peakBytes": 1112090125,
+            "troughBytes": 1049269905
+          },
+          {
+            "cycle": 2,
+            "peakBytes": 1123103197,
+            "troughBytes": 1051619845
+          }
+        ],
+        "recovery": true,
+        "calibration": false,
+        "ratios": [
+          {
+            "cycle": 1,
+            "raw": 10.12234923432534,
+            "adjusted": 7.233010892805548
+          },
+          {
+            "cycle": 2,
+            "raw": 10.129005114128864,
+            "adjusted": 7.239666772609072
+          }
+        ],
+        "missingGlSamples": 10,
+        "sampling": false,
+        "leakZero": true,
+        "admitted": [
+          "template-1",
+          "template-2",
+          "template-3",
+          "template-4",
+          "template-5",
+          "template-6"
+        ],
+        "refused": [
+          "pine-hollow",
+          "driftwood-isle",
+          "nalati-grasslands"
+        ],
+        "attemptedEveryCell": true,
+        "crossroads": 16,
+        "rehearsal": true,
+        "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+      },
+      "missing": [
+        {
+          "phase": "loading",
+          "t": "2026-10-04T20:19:47.062420+00:00",
+          "nearestGlSeconds": 2.4760000705718994
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-04T20:19:48.063205+00:00",
+          "nearestGlSeconds": 3.2350001335144043
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-04T20:19:49.079235+00:00",
+          "nearestGlSeconds": 2.2190001010894775
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T20:27:54.364174+00:00",
+          "nearestGlSeconds": 1.5600001811981201
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T20:30:49.563196+00:00",
+          "nearestGlSeconds": 1.7049999237060547
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T20:30:50.573082+00:00",
+          "nearestGlSeconds": 2.509999990463257
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T20:30:51.575642+00:00",
+          "nearestGlSeconds": 1.5079998970031738
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T20:41:35.455509+00:00",
+          "nearestGlSeconds": 1.7860000133514404
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T20:41:36.457070+00:00",
+          "nearestGlSeconds": 1.8880000114440918
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T20:49:33.111143+00:00",
+          "nearestGlSeconds": 1.5179998874664307
+        }
+      ],
+      "artifacts": [
+        {
+          "file": "shipped-native.jsonl.br",
+          "rawBytes": 439349,
+          "rawSha256": "5148d9a4a0c0f54d286433736506d95972c11120a4978da2cc4f1f1ff596a6b7"
+        },
+        {
+          "file": "shipped-gl.jsonl.br",
+          "rawBytes": 252342074,
+          "rawSha256": "66079438356ca6840eb22e64fd7ff2778d8f71dfc19f408405513f6cdfdc4008"
+        }
+      ],
+      "originalReceipt": "shipped-original.json",
+      "errors": [],
+      "nativeSummary": {
+        "type": "summary",
+        "t": "2026-10-04T20:50:43.692754+00:00",
+        "phases": {
+          "loading": {
+            "samples": 22,
+            "seconds": 21.1,
+            "gamePid": 95315,
+            "gameHighGB": 0.768,
+            "gameSampledGB": 0.76,
+            "allWebContentGB": 0.811,
+            "gpuProcessGB": 0.252
+          },
+          "baseline-0": {
+            "samples": 20,
+            "seconds": 19.1,
+            "gamePid": 95315,
+            "gameHighGB": 0.757,
+            "gameSampledGB": 0.708,
+            "allWebContentGB": 0.797,
+            "gpuProcessGB": 0.281
+          },
+          "drive": {
+            "samples": 1755,
+            "seconds": 1799.3,
+            "gamePid": 95315,
+            "gameHighGB": 0.899,
+            "gameSampledGB": 0.805,
+            "allWebContentGB": 0.939,
+            "gpuProcessGB": 0.285
+          },
+          "settle-1": {
+            "samples": 16,
+            "seconds": 15.1,
+            "gamePid": 95315,
+            "gameHighGB": 0.705,
+            "gameSampledGB": 0.705,
+            "allWebContentGB": 0.745,
+            "gpuProcessGB": 0.28
+          },
+          "settle-2": {
+            "samples": 16,
+            "seconds": 15.1,
+            "gamePid": 95315,
+            "gameHighGB": 0.707,
+            "gameSampledGB": 0.706,
+            "allWebContentGB": 0.746,
+            "gpuProcessGB": 0.281
+          },
+          "unloaded": {
+            "samples": 21,
+            "seconds": 20.2,
+            "gamePid": 95315,
+            "gameHighGB": 0.708,
+            "gameSampledGB": 0.708,
+            "allWebContentGB": 0.748,
+            "gpuProcessGB": 0.275
+          }
+        },
+        "lost": []
+      },
+      "attribution": "No heap snapshots / Rapier memory readings were captured. Refusals, missing GL readings and unaccounted transitional home prevent a WebKit-retention attribution."
+    },
+    {
+      "layout": "dev",
+      "sha": "07209c6260fd4e8160625295199f8672df10e8b2",
+      "seconds": 1800.015,
+      "circuits": 2,
+      "evictions": 0,
+      "grade": {
+        "memoryPass": false,
+        "gatePass": false,
+        "peakBytes": 1470283393,
+        "loadingPeakBytes": 1128902249,
+        "phoneEstimateBytes": 2058396750.1999998,
+        "baselines": [
+          {
+            "cycle": 0,
+            "start": 1791147098.978,
+            "end": 1791147109.037,
+            "samples": 10,
+            "bytes": 1109509893
+          },
+          {
+            "cycle": 1,
+            "start": 1791147728.5,
+            "end": 1791147738.533,
+            "samples": 10,
+            "bytes": 1130923301
+          },
+          {
+            "cycle": 2,
+            "start": 1791148355.6829998,
+            "end": 1791148365.6829998,
+            "samples": 10,
+            "bytes": 1137985685
+          }
+        ],
+        "baselineDeltaBytes": [
+          -28475792,
+          -7062384,
+          0
+        ],
+        "loops": [
+          {
+            "cycle": 0,
+            "peakBytes": 1470283393,
+            "troughBytes": 1107595561
+          },
+          {
+            "cycle": 1,
+            "peakBytes": 1158906857,
+            "troughBytes": 1130670449
+          },
+          {
+            "cycle": 2,
+            "peakBytes": 1190315865,
+            "troughBytes": 1137978593
+          }
+        ],
+        "recovery": false,
+        "calibration": false,
+        "ratios": [
+          {
+            "cycle": 1,
+            "raw": 10.944772099099971,
+            "adjusted": 8.041452637181845
+          },
+          {
+            "cycle": 2,
+            "raw": 11.013119955482434,
+            "adjusted": 8.10980049356431
+          }
+        ],
+        "missingGlSamples": 7,
+        "sampling": false,
+        "leakZero": true,
+        "admitted": [
+          "template-1",
+          "template-2",
+          "template-4"
+        ],
+        "refused": [
+          "pine-hollow",
+          "sunscar-dunes",
+          "driftwood-isle",
+          "nalati-grasslands",
+          "far-reach",
+          "nine-dragon-stack"
+        ],
+        "attemptedEveryCell": true,
+        "crossroads": 16,
+        "rehearsal": true,
+        "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+      },
+      "missing": [
+        {
+          "phase": "loading",
+          "t": "2026-10-04T20:51:12.833640+00:00",
+          "nearestGlSeconds": 1.6449999809265137
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-04T20:51:13.841798+00:00",
+          "nearestGlSeconds": 2.6530001163482666
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-04T20:51:14.859579+00:00",
+          "nearestGlSeconds": 3.503000020980835
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-04T20:51:15.864085+00:00",
+          "nearestGlSeconds": 2.497999906539917
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T20:57:59.283331+00:00",
+          "nearestGlSeconds": 1.5199999809265137
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T20:59:15.955883+00:00",
+          "nearestGlSeconds": 1.7849998474121094
+        },
+        {
+          "phase": "drive",
+          "t": "2026-10-04T21:18:51.114535+00:00",
+          "nearestGlSeconds": 1.5649998188018799
+        }
+      ],
+      "artifacts": [
+        {
+          "file": "dev-native.jsonl.br",
+          "rawBytes": 440175,
+          "rawSha256": "d1ecd8d22ad63dace7f6bbb4d11abbfdbe48868577f8998af43991f25eef4047"
+        },
+        {
+          "file": "dev-gl.jsonl.br",
+          "rawBytes": 243864282,
+          "rawSha256": "6f5e543142517b14b87fac795e90593bfdb233c50af5babd8f4a711920b0ae3f"
+        }
+      ],
+      "originalReceipt": "dev-original.json",
+      "errors": [],
+      "nativeSummary": {
+        "type": "summary",
+        "t": "2026-10-04T21:22:11.848854+00:00",
+        "phases": {
+          "loading": {
+            "samples": 23,
+            "seconds": 22.2,
+            "gamePid": 59740,
+            "gameHighGB": 0.766,
+            "gameSampledGB": 0.755,
+            "allWebContentGB": 0.799,
+            "gpuProcessGB": 0.287
+          },
+          "baseline-0": {
+            "samples": 20,
+            "seconds": 19.2,
+            "gamePid": 59740,
+            "gameHighGB": 0.755,
+            "gameSampledGB": 0.739,
+            "allWebContentGB": 0.794,
+            "gpuProcessGB": 0.294
+          },
+          "drive": {
+            "samples": 1746,
+            "seconds": 1799.6,
+            "gamePid": 59740,
+            "gameHighGB": 1.068,
+            "gameSampledGB": 0.895,
+            "allWebContentGB": 1.108,
+            "gpuProcessGB": 0.31
+          },
+          "settle-1": {
+            "samples": 19,
+            "seconds": 18.2,
+            "gamePid": 59740,
+            "gameHighGB": 0.731,
+            "gameSampledGB": 0.731,
+            "allWebContentGB": 0.77,
+            "gpuProcessGB": 0.304
+          },
+          "settle-2": {
+            "samples": 20,
+            "seconds": 19.2,
+            "gamePid": 59740,
+            "gameHighGB": 0.738,
+            "gameSampledGB": 0.738,
+            "allWebContentGB": 0.777,
+            "gpuProcessGB": 0.307
+          },
+          "unloaded": {
+            "samples": 21,
+            "seconds": 20.1,
+            "gamePid": 59740,
+            "gameHighGB": 0.743,
+            "gameSampledGB": 0.743,
+            "allWebContentGB": 0.783,
+            "gpuProcessGB": 0.302
+          }
+        },
+        "lost": []
+      },
+      "attribution": "No heap snapshots / Rapier memory readings were captured. Refusals, missing GL readings and unaccounted transitional home prevent a WebKit-retention attribution."
+    }
+  ]
+}
