@@ -1,4 +1,5 @@
 import type { AnimalSim } from '../entities/AnimalSim';
+import type { SimValue } from '../sim';
 import type { Rng } from '../core/rng';
 
 /** Parameters for a circling melee archetype with idle wandering and subordinate scattering. */
@@ -25,12 +26,17 @@ const ST_IDLE = 0, ST_ENGAGE = 1, ST_ATTACK = 2, ST_FLEE = 3;
 export class SkirmisherBrain<A extends AnimalSim> {
   private readonly actor: A;
   private readonly spec: SkirmisherSpec;
+  private readonly contract: string;
   constructor(actor: A, spec: SkirmisherSpec) {
     const numbers = [spec.awareRadius, spec.shyRadius, spec.disengageRadius, spec.holdRadius, spec.attackRadius, spec.attackDuration, spec.attackCooldown, spec.alertCooldown, spec.fleeSpeed];
     if (numbers.some(n => !Number.isFinite(n) || n < 0 || n > 600) || spec.shyRadius > spec.awareRadius || spec.awareRadius > spec.disengageRadius || spec.attackRadius > spec.awareRadius || spec.attackDuration <= 0 || spec.fleeSpeed > 15
       || [spec.subordinateVariant, spec.leaderVariant, spec.noticeCue].some(value => value.length === 0 || value.length > 128)) throw new Error('Invalid skirmisher parameters');
-    this.actor = actor; this.spec = { ...spec };
+    this.actor = actor; this.spec = { ...spec }; this.contract = JSON.stringify({ version: 1, spec: this.spec });
   }
+  /** Actor/RNG snapshots own mutable state; this adapter fences the admitted policy on restore. */
+  snapshot(): SimValue { return this.contract; }
+  /** Reject a changed policy before accepting an actor continuation; never replay decisions during restore. */
+  restore(saved: SimValue): void { if (saved !== this.contract) throw new Error('Incompatible skirmisher continuation'); }
   /** One caller-owned AI tick; strike clocks and collision motors remain separate fixed-step authorities. */
   think(c: SkirmisherPorts<A>): void {
     if (!Number.isFinite(c.dt) || c.dt <= 0 || c.dt > 1) throw new Error('Invalid skirmisher step');

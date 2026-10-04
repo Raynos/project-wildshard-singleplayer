@@ -24,7 +24,7 @@ function installHeadless(host: SimHost): void {
     brain.think({ dt: 0.1, player: host.player.position, calm: false, rng: host.rng.stream('ai'), herd: null,
       sound: () => undefined, steer: (a, yaw, speed, turn) => { a.setMotion(yaw, speed, turn); },
       confine: () => undefined, claim: () => true, mayAttack: () => true });
-  });
+  }, { snapshot: () => brain.snapshot(), restore: value => { brain.restore(value); } });
 }
 function replay(platform: boolean, scenario: 'approach' | 'tokens' | 'scatter'): object {
   let brain: SkirmisherBrain<Animal> | undefined;
@@ -64,6 +64,7 @@ describe('data-selected circling melee archetype', () => {
     expect(() => new SkirmisherBrain(f.animal, { ...CRAB_BRAIN, attackCooldown: Number.NaN })).toThrow('parameters');
     const data = { ...CRAB_BRAIN, awareRadius: 9 }, brain = new SkirmisherBrain(f.animal, data);
     data.awareRadius = 0; f.ctx.player.z = 8; brain.think(f.ctx);
+    expect(() => new SkirmisherBrain(f.animal, data).restore(brain.snapshot())).toThrow('Incompatible');
     expect(f.animal.mem['st']).toBe(1);
   });
 });
