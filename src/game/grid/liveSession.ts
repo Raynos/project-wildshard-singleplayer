@@ -23,6 +23,8 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
+import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
+import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { createSimHost, SIM_API_VERSION, type SimLevel } from '@wildshard/engine/sim';
@@ -36,6 +38,8 @@ import type { ResidencyAllocator } from './allocator';
 import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from './live';
 import { installGridCrossing, type GridCrossingSession, type GridCrossingState } from './crossing';
 import type { GridLoadout } from './wallet';
+import { installGridHoverSpeed } from './rules';
+import { gridHomeSim, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
 import { admitProduct, boundedResponse, type AdmittedProduct } from '../shardfile/product';
 import { browserShardfileOptions } from '../shardfile/loader';
@@ -44,7 +48,10 @@ import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '
 /** The page traveller the live host rebinds (the existing Player; never a second capsule). */
 export interface LiveTraveller {
   readonly position: Vector3; readonly yaw: number; readonly motor: CharacterMotor; readonly camera: PerspectiveCamera;
-  bindFrame: (physics: Physics, motor: CharacterMotor) => void;
+  /** `queries`: the frame's own ground, water and surfaces (null: the home level's, sp-x2's frame-query primitive) */
+  bindFrame: (physics: Physics, motor: CharacterMotor, queries: PlayerFrameQueries | null) => void;
+  /** the board's live speed cap (SF20d `installGridHoverSpeed` owns it while the grid runs) */
+  hoverSpeedLimit: (() => number) | null;
 }
 /** What the live wiring reads from the page once the player's health and equipment exist. */
 export interface LiveGridPage {
@@ -68,7 +75,15 @@ export interface LiveGridSessionPorts {
   readonly rimEdges: (origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
 }
 /** The readout: the live host's crossing telemetry, the crossing coordinator and the safe-zone state. */
-export interface LiveGridSessionState { readonly live: LiveGridState; readonly crossing: GridCrossingState; readonly stowed: boolean; readonly renderOrigin: { x: number; z: number } }
+export interface LiveGridSessionState {
+  readonly live: LiveGridState; readonly crossing: GridCrossingState; readonly stowed: boolean; readonly renderOrigin: { x: number; z: number };
+  /** the board's cap now (m/s; null off the board's grid rule) and whether the home client's simulation runs (null: no handoff) */
+  readonly hoverCap: number | null; readonly homeActive: boolean | null;
+}
+/** The highway's own surfaces: the deck and strips at road level, no water (G72: the outer ring is land). */
+const HIGHWAY_QUERIES: PlayerFrameQueries = { heightAt: () => 0, waterSurfaceAt: () => null, platforms: [] };
+/** A spawn in the active frame's local coordinates (fall recovery and respawn in a region that is not the home). */
+export interface LiveGridSpawn { readonly x: number; readonly y: number | undefined; readonly z: number; readonly yaw: number }
 
 /** The platform travel envelope at the deck's 30 m/s; a shardfile's critical bundle is its declared compressed sim. */
 const LINK: ReadinessLink = { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 10 };
@@ -125,6 +140,9 @@ export class LiveGridSession {
   private readonly offset = new Vector3();
   private readonly applied = new Vector3();
   private readonly loadout: GridLoadout;
+  /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
+  private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries }>();
+  private homeSim: GridHomeSimulation | null = null;
 
   constructor(ports: LiveGridSessionPorts, page: LiveGridPage) {
     this.ports = ports; this.page = page;
@@ -160,6 +178,15 @@ export class LiveGridSession {
       if (request === null || this.live.current() === home.instance) return request;
       return request.target === page.health || request.source === page.health ? null : request;
     }, scope);
+    // SF20d: 30 m/s on the deck, easing to the shard's 15 over the strip (the cell nearest the feet; the outer ring is deck too)
+    installGridHoverSpeed(traveller, scope, () => {
+      const feet = this.live.worldFeet(), p = assembly.pitch;
+      const local = { x: feet.x - Math.round(feet.x / p) * p, y: feet.y, z: feet.z - Math.round(feet.z / p) * p };
+      return { local, shardCap: 15, onHighwayDeck: feet.y < 4 };
+    });
+    // the freeze fence: the home client's existing driver runs only while the traveller is in the home frame (sp-x5's handoff)
+    scope.onDispose(gridHomeSim.take((sim) => { this.homeSim = sim; sim.setActive(this.live.current() === home.instance); }));
+    scope.onDispose(() => { this.homeSim?.setActive(true); this.homeSim = null; });
     page.onFixedPre(() => { if (scope.disposed) return; this.live.beforeFixed(); this.crossing.step(this.live.worldFeet()); });
     page.onFixedPost(() => { if (!scope.disposed) this.live.afterPlayerStep(); });
     page.onInput(() => { traveller.camera.position.sub(this.applied); this.applied.set(0, 0, 0); });
@@ -190,19 +217,41 @@ export class LiveGridSession {
         const host = restoreSimHost(authored, { rapier }, saved, (restored) => { sim = bindShardfileSim(restored, source, assets, { rapier, restoring: true, quest }); });
         host.detachPlayerMotor(); // the restored world carries its strip duplicates already
       } else for (const mesh of duplicates) installStripCollider(sim.host.physics, mesh, sim.host.scope);
-      const region = sim;
-      return Promise.resolve({ host: region.host, dispose: () => { region.dispose(); } });
+      const region = sim, start = region.host.level.player, bytes = source.terrain === null ? undefined : assets.get(source.terrain.collider);
+      const terrain = bytes === undefined ? undefined : decodeTerrainTile(bytes), water = region.water;
+      this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
+        queries: { heightAt: terrain === undefined ? () => 0 : (x, z) => terrainTileHeight(terrain, x, z), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] } });
+      return Promise.resolve({ host: region.host, dispose: () => { this.regions.delete(cell.instance); region.dispose(); } });
     } };
   }
 
   /** The fixed-boundary rebind: the page's stepped world, the player's motor and the render origin. */
   private bind(frame: LiveGridFrame): void {
-    this.page.traveller.bindFrame(frame.physics, frame.motor);
+    const home = frame.instance === this.ports.home.instance;
+    this.page.traveller.bindFrame(frame.physics, frame.motor, home ? null : frame.instance === null ? HIGHWAY_QUERIES : this.regions.get(frame.instance)?.queries ?? HIGHWAY_QUERIES);
     this.page.setPhysics(frame.physics);
     this.offset.set(frame.origin.x - this.ports.home.origin.x, 0, frame.origin.z - this.ports.home.origin.z);
+    if (this.homeSim?.disposed() === true) this.homeSim = null;
+    this.homeSim?.setActive(home);
   }
 
+  /**
+   * Where fall recovery and respawn put the traveller when it is not in the home frame (null: the home's own spawn): an
+   * admitted region's authored start, or on the highway the deck under the feet (road level).
+   */
+  spawn(): LiveGridSpawn | null {
+    const current = this.live.current();
+    if (current === this.ports.home.instance) return null;
+    const p = this.page.traveller.position;
+    if (current === null) return { x: p.x, y: 0.5, z: p.z, yaw: this.page.traveller.yaw };
+    return this.regions.get(current)?.spawn ?? { x: 0, y: undefined, z: 0, yaw: 0 };
+  }
+  /** The active frame's identity (the home instance, a region, or null for the highway). */
+  frame(): string | null { return this.live.current(); }
+
   state(): LiveGridSessionState {
-    return { live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z } };
+    const cap = this.page.traveller.hoverSpeedLimit?.();
+    return { live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z },
+      hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
   }
 }

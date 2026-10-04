@@ -72,6 +72,27 @@ export class GridCellEvents {
 /** this page's cell events (grid mode only ever enters cells) */
 export const gridCells = new GridCellEvents();
 
+/** The home cell's restored simulation as its client hands it over (sp-x5's `onSimulation`, SF15a): the existing driver's gate and its durable save. */
+export interface GridHomeSimulation { readonly setActive: (active: boolean) => void; readonly checkpoint: () => boolean; readonly disposed: () => boolean }
+/**
+ * The seam between the home cell's client (its shardfile simulation, when one runs: Driftwood's hybrid boot) and the live
+ * grid owner. The client offers its handoff once; the grid's live session takes it and gates the existing home driver
+ * while the traveller is in another region (the freeze fence). A late taker hears the current offer.
+ */
+export class GridHomeHandoff {
+  private current: GridHomeSimulation | null = null;
+  private readonly takers = new Set<(sim: GridHomeSimulation) => void>();
+  get simulation(): GridHomeSimulation | null { return this.current !== null && !this.current.disposed() ? this.current : null; }
+  offer(sim: GridHomeSimulation): void { this.current = sim; for (const fn of this.takers) fn(sim); }
+  take(fn: (sim: GridHomeSimulation) => void): () => void {
+    this.takers.add(fn);
+    const now = this.simulation; if (now !== null) fn(now);
+    return () => { this.takers.delete(fn); };
+  }
+}
+/** this page's home handoff (only a grid page's home client offers one) */
+export const gridHomeSim = new GridHomeHandoff();
+
 let mode: PageMode = 'shard';
 /** this page's mode, decided once at boot */
 export function pageMode(): PageMode { return mode; }

@@ -6,7 +6,7 @@ import type { ShardRuntime } from '../shard/runtime';
 import { ShardPlugin } from '../shard/plugin';
 import type { ShardManifest } from '../shard/manifest';
 import { bindScopedRuntime } from '../shard/scopedRuntime';
-import { gridCells, pageGridInstance, type GridCellEvents, type GridCellRef } from '../grid/boot';
+import { gridCells, gridHomeSim, pageGridInstance, type GridCellEvents, type GridCellRef } from '../grid/boot';
 import { browserShardfileOptions, shardfileSource } from './loader';
 import type { ProductOptions } from './product';
 import type { ShardfileClientBindings } from './client';
@@ -148,7 +148,12 @@ export async function prepareHybridShard(source: Shardfile, options: ProductOpti
   const productOptions = 'base' in options ? options : browserShardfileOptions(
     new URL(`shardfiles/${source.identity.slug}/`, document.baseURI || location.href).href, options.firstParty);
   const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
-  const data = await shardfileSource(source, productOptions, { ...bindings, instance, trustedRuntime: true });
+  // in a grid page the restored home simulation goes to the live grid owner (its freeze fence gates the existing driver)
+  const onSimulation: ShardfileClientBindings['onSimulation'] = gridInstance === null ? bindings.onSimulation : (binding) => {
+    bindings.onSimulation?.(binding);
+    gridHomeSim.offer({ setActive: binding.setActive, checkpoint: binding.checkpoint, disposed: () => binding.scope.disposed });
+  };
+  const data = await shardfileSource(source, productOptions, { ...bindings, instance, trustedRuntime: true, ...(onSimulation === undefined ? {} : { onSimulation }) });
   const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
   const [{ default: Data }, Runtime] = await Promise.all([load(), prepareTrustedRuntime(source.runtime, source.identity.slug, productOptions.firstParty, entries)]);
   return new HybridShardPlugin(new Data(), Runtime, gridInstance === null ? undefined : { instance, cells: gridCells });

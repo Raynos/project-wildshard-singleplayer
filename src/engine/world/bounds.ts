@@ -14,15 +14,19 @@ export interface BoundsHost {
   toSpawn: () => void;
   /** Grid traversal owns horizontal cell/strip limits; authored vertical fall recovery remains active. */
   grid?: () => boolean;
+  /** The physics frame the player's coordinates are local to (a grid re-frame); a change drops the soft respawn. */
+  frame?: () => unknown;
 }
 
 /** An authored play area keeps the last grounded registry floor as its soft respawn. */
 export function installBounds(app: App, scope: Scope, bounds: Bounds | undefined, host: BoundsHost): void {
   if (bounds === undefined) return;
   const safe = { x: 0, y: 0, z: 0, set: false };
-  let since = 0;
+  let since = 0, frame = host.frame?.();
   app.addSystem({ id: 'engine.world.bounds', phase: 'update', when: inState('play'), run: (dt) => {
     if (host.suspended()) return;
+    const now = host.frame?.();
+    if (now !== frame) { frame = now; safe.set = false; since = 0; }
     const { player } = host, p = player.position;
     const horizontal = host.grid?.() !== true && (p.x < bounds.x0 || p.x > bounds.x1 || p.z < bounds.z0 || p.z > bounds.z1);
     if (p.y < bounds.floor || horizontal) {

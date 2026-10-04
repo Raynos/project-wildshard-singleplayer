@@ -64,6 +64,7 @@ import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
 import { pageMode } from '../grid/boot';
 import { GridSession } from '../grid/session';
+import type { LiveGridSession } from '../grid/liveSession';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
@@ -93,10 +94,16 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   });
   const { audio, music } = prepareAudio();
   const arrivalSpawn = boot.handoff?.arrive ?? chunk.spawn;
-  const toSpawn = () => { player.spawn(arrivalSpawn.x, arrivalSpawn.z, arrivalSpawn.yaw, arrivalSpawn.y); if (!boot.handoff?.arrive) { const y = boot.runtime.hooks.spawnFloor?.(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
+  let gridLive: LiveGridSession | null = null; // the grid's live crossing (attached below, once the player's health exists)
+  const toSpawn = () => {
+    const region = gridLive?.spawn() ?? null; // off the home frame: the active region's start, or the deck under the feet
+    if (region !== null) { player.spawn(region.x, region.z, region.yaw, region.y); return; }
+    player.spawn(arrivalSpawn.x, arrivalSpawn.z, arrivalSpawn.yaw, arrivalSpawn.y); if (!boot.handoff?.arrive) { const y = boot.runtime.hooks.spawnFloor?.(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; }
+  };
   const respawn = () => { toSpawn(); music.sting('death'); };
   installBounds(app, game.levelScope, game.level.bounds, { player, toSpawn,
-    floorAt: (x, z) => registry.floorAt(x, z), suspended: () => world.freeCamera || world.tour.active || away(), grid: () => grid !== null });
+    floorAt: (x, z) => ((gridLive?.spawn() ?? null) === null ? registry.floorAt(x, z) : floorBelow(world.physics, x, z, player.position.y + 0.6, 1.2)),
+    suspended: () => world.freeCamera || world.tour.active || away(), grid: () => grid !== null, frame: () => gridLive?.frame() });
   let kills = 0, swimHold = false;
   const owned = new Owned(manifest.slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
   const playerHealth = new PlayerHealth(app.events, {
@@ -107,10 +114,10 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   });
   app.registerPlayer(playerHealth, game.levelScope);
   // the grid client step 2: the live crossing (LiveGridHost + GridCrossing in the page's one fixed step; G68's safe zone)
-  grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
+  gridLive = grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
     setPhysics: (physics) => { world.physics = physics; app.physics = physics; },
     onFixedPre: (fn) => { game.onFixed('pre', fn, 'game.grid.live.pre'); }, onFixedPost: (fn) => { game.onFixed('post', fn, 'game.grid.live.post'); },
-    onInput: (fn) => { game.onInput(fn, 'game.grid.origin.restore'); }, onUpdate: (fn) => { game.onUpdate(fn, 'game.grid.origin'); } });
+    onInput: (fn) => { game.onInput(fn, 'game.grid.origin.restore'); }, onUpdate: (fn) => { game.onUpdate(fn, 'game.grid.origin'); } }) ?? null;
   const effects = new EffectService(app.levelRegistrations.list('effect'), game.levelScope, app.events);
   app.registerEffects(effects, game.levelScope);
   playerHealth.attributes.incomingCap = chunk.fight?.maxHitDamage ?? Infinity;
