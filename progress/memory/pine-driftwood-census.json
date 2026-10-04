@@ -1,0 +1,969 @@
+{
+ "tool": "SF22b census (scripts/parity/glbytes.mjs GL_INIT) + a scratch probe: labelled GL bytes after visiting every capture pose, post-GC JS retention of every labelled source, renderer/GPU process phys_footprint; drop experiments run in-page, not committed",
+ "date": "2026-10-04",
+ "build": "6844a30-mutlzuxg",
+ "device": "Chromium (Metal), iPhone 16 Pro context, phone tier, render scale 2",
+ "units": "decimal MB",
+ "modes": {
+  "ktx2": "Settings tex=ktx2: the phone steady state once the shard KTX2 set is cached",
+  "img": "Settings tex=img: a cold first boot (auto picks img until the set is cached)"
+ },
+ "pineHollow": {
+  "ktx2": {
+   "glMB": 360.29,
+   "resources": 1319,
+   "unlabelled": 0,
+   "reconciled": true,
+   "categoriesMB": {
+    "texture": 231.04,
+    "geometry": 48,
+    "render target: post / screen": 47.21,
+    "render target: PMREM environment": 22.02,
+    "render target: shadow map": 8.39,
+    "geometry: instance data": 3.2,
+    "texture: bone": 0.42
+   },
+   "textureFormatsMB": {
+    "0x881a": 38.48,
+    "0x93d0": 44.48,
+    "0x93b0": 38.54,
+    "0x8c43": 56.63,
+    "0x8058": 46.98,
+    "0x9274": 5.42,
+    "0x822b": 0.13,
+    "0x8814": 0.78,
+    "0x8236": 0.02,
+    "0x822f": 0,
+    "0x1908": 0
+   },
+   "jsRetainedMB": {
+    "kinds": {
+     "array": 91.37,
+     "canvas": 31.66,
+     "bitmap": 41.94,
+     "image": 0.36
+    },
+    "sceneGeometry": 73.42,
+    "sceneInstanced": 3.21
+   },
+   "process": {
+    "rendererMB": 1083.8,
+    "gpuProcMB": 1157.3,
+    "v8HeapMB": 94.2,
+    "arrayBuffersMB": 164.5
+   },
+   "wasmMB": [
+    {
+     "tag": "instantiate:12273",
+     "mb": 1
+    },
+    {
+     "tag": "streaming",
+     "mb": 13.1
+    }
+   ],
+   "draws": 94,
+   "triangles": 966940,
+   "shadows": [
+    "1024x1024"
+   ],
+   "topTextures": [
+    {
+     "mb": 16.78,
+     "n": 1,
+     "dims": "2048x1024",
+     "fmt": "0x881a",
+     "asset": "generated/Scene/Mesh[0]/uniform/tA/hdri/qwantani_late_afternoon_puresky_2k.key.jpg + gain.png"
+    },
+    {
+     "mb": 16.78,
+     "n": 1,
+     "dims": "2048x1024",
+     "fmt": "0x881a",
+     "asset": "generated/Scene/Mesh[0]/uniform/tB/hdri/qwantani_mid_morning_puresky_2k.key.jpg + gain.png"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024x4",
+     "fmt": "0x93d0",
+     "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024x4",
+     "fmt": "0x93b0",
+     "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8c43",
+     "asset": "/assets/practice/dummies/straw-cloth.glb/TrainingDummyRig/TrainingDummy/map/Image_0"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8058",
+     "asset": "/assets/practice/dummies/straw-cloth.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8c43",
+     "asset": "/assets/practice/dummies/wood-steel.glb/TrainingDummyRig/TrainingDummy/map/Image_0"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8058",
+     "asset": "/assets/practice/dummies/wood-steel.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8c43",
+     "asset": "/assets/practice/dummies/wood-wood.glb/TrainingDummyRig/TrainingDummy/map/Image_0"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8058",
+     "asset": "/assets/practice/dummies/wood-wood.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1"
+    },
+    {
+     "mb": 4.54,
+     "n": 4,
+     "dims": "1024x512 512x512 1x1",
+     "fmt": "0x8c43 0x93d0",
+     "asset": "generated/Group/Mesh[2]/map"
+    },
+    {
+     "mb": 4.38,
+     "n": 1,
+     "dims": "804x1362",
+     "fmt": "0x8058",
+     "asset": "generated/Group/Mesh[0]/uniform/e0WeightMap/SMAA.Weights"
+    },
+    {
+     "mb": 3.23,
+     "n": 4,
+     "dims": "1024x256 512x512 128x128",
+     "fmt": "0x8c43 0x93d0",
+     "asset": "generated/Group/Mesh[1]/map"
+    },
+    {
+     "mb": 3.15,
+     "n": 3,
+     "dims": "1024x256 512x512",
+     "fmt": "0x8058 0x93b0",
+     "asset": "generated/Group/Mesh[1]/normalMap"
+    },
+    {
+     "mb": 2.97,
+     "n": 3,
+     "dims": "1024x256 512x512",
+     "fmt": "0x8058 0x9274",
+     "asset": "generated/Group/Mesh[1]/aoMap"
+    },
+    {
+     "mb": 2.8,
+     "n": 2,
+     "dims": "1024x1024",
+     "fmt": "0x93d0",
+     "asset": "/assets/gpu/tex/rock_ground/diffuse-b70ecc3e.ktx2"
+    },
+    {
+     "mb": 2.8,
+     "n": 2,
+     "dims": "1024x1024",
+     "fmt": "0x93b0",
+     "asset": "/assets/gpu/tex/rock_ground/nor_gl-3f4f4d29.ktx2"
+    },
+    {
+     "mb": 2.8,
+     "n": 1,
+     "dims": "512x1024",
+     "fmt": "0x8c43",
+     "asset": "src/shards/pine-hollow/models/fern.ts#Fern/map"
+    },
+    {
+     "mb": 2.19,
+     "n": 1,
+     "dims": "402x681",
+     "fmt": "0x881a",
+     "asset": "generated/Group/Mesh[2]/uniform/e1TScatter"
+    },
+    {
+     "mb": 2.19,
+     "n": 1,
+     "dims": "402x681",
+     "fmt": "0x881a",
+     "asset": "generated/Group/Mesh[2]/uniform/e3Map/Upsampling.Mipmap0"
+    }
+   ],
+   "topGeometry": [
+    {
+     "mb": 7.92,
+     "n": 18,
+     "model": "engine/scene generated/Scene/animals"
+    },
+    {
+     "mb": 7.1,
+     "n": 47,
+     "model": "engine/scene generated/Scene/Group[19]/cabin-cluster"
+    },
+    {
+     "mb": 5.98,
+     "n": 5,
+     "model": "pine-crags-crag-cliff src/shards/pine-hollow/models/cragCliff.ts#Ridge crag"
+    },
+    {
+     "mb": 3.62,
+     "n": 25,
+     "model": "pine-hollow/forest-tree src/shards/pine-hollow/models/forestTree.ts#Forest tree"
+    },
+    {
+     "mb": 1.58,
+     "n": 6,
+     "model": "engine/scene generated/Group/Mesh[0]/index"
+    },
+    {
+     "mb": 1.05,
+     "n": 1,
+     "model": "engine/scene generated/Group/Mesh[0]/splat"
+    },
+    {
+     "mb": 1.02,
+     "n": 1,
+     "model": "engine/scene generated/Scene/Group[15]/Mesh[0]/instanceMatrix"
+    },
+    {
+     "mb": 0.88,
+     "n": 5,
+     "model": "engine/scene generated/Group/pond"
+    },
+    {
+     "mb": 0.86,
+     "n": 9,
+     "model": "engine/scene generated/Group/Mesh[0]/position"
+    },
+    {
+     "mb": 0.86,
+     "n": 8,
+     "model": "engine/scene generated/Group/Mesh[0]/normal"
+    },
+    {
+     "mb": 0.86,
+     "n": 16,
+     "model": "engine/scene generated/Group/pine-hollow"
+    },
+    {
+     "mb": 0.58,
+     "n": 10,
+     "model": "engine/scene generated/Group/Lantern_01"
+    },
+    {
+     "mb": 0.57,
+     "n": 9,
+     "model": "engine/scene generated/Group/Mesh[0]/uv"
+    },
+    {
+     "mb": 0.5,
+     "n": 15,
+     "model": "pine-lookout src/shards/pine-hollow/models/fireLookout.ts#Fire lookout"
+    },
+    {
+     "mb": 0.49,
+     "n": 8,
+     "model": "engine/scene generated/Scene/pine-wildlife"
+    }
+   ],
+   "renderTargets": [
+    {
+     "mb": 26.28,
+     "n": 4,
+     "dims": "804x1362",
+     "fmt": "0x881a 0x8cac",
+     "target": "EffectComposer.Buffer"
+    },
+    {
+     "mb": 22.02,
+     "n": 4,
+     "dims": "768x1024",
+     "fmt": "0x881a",
+     "target": "PMREM.cubeUv"
+    },
+    {
+     "mb": 8.76,
+     "n": 1,
+     "dims": "804x1362",
+     "fmt": "0x881a",
+     "target": "LuminancePass.Target"
+    },
+    {
+     "mb": 8.39,
+     "n": 2,
+     "dims": "1024x1024",
+     "fmt": "0x8058 0x81a6",
+     "target": "generated/render-target/1024x1024"
+    },
+    {
+     "mb": 4.38,
+     "n": 1,
+     "dims": "804x1362",
+     "fmt": "0x8058",
+     "target": "SMAA.Edges"
+    },
+    {
+     "mb": 4.19,
+     "n": 1,
+     "dims": "1024x512",
+     "fmt": "0x881a",
+     "target": "generated/render-target/1024x512"
+    },
+    {
+     "mb": 2.19,
+     "n": 1,
+     "dims": "402x681",
+     "fmt": "0x881a",
+     "target": "Downsampling.Mipmap0"
+    },
+    {
+     "mb": 0.55,
+     "n": 1,
+     "dims": "201x341",
+     "fmt": "0x881a",
+     "target": "Downsampling.Mipmap1"
+    },
+    {
+     "mb": 0.55,
+     "n": 1,
+     "dims": "201x341",
+     "fmt": "0x881a",
+     "target": "Upsampling.Mipmap1"
+    },
+    {
+     "mb": 0.14,
+     "n": 1,
+     "dims": "101x171",
+     "fmt": "0x881a",
+     "target": "Downsampling.Mipmap2"
+    },
+    {
+     "mb": 0.14,
+     "n": 1,
+     "dims": "101x171",
+     "fmt": "0x881a",
+     "target": "Upsampling.Mipmap2"
+    },
+    {
+     "mb": 0.04,
+     "n": 1,
+     "dims": "51x86",
+     "fmt": "0x881a",
+     "target": "Downsampling.Mipmap3"
+    }
+   ]
+  },
+  "img": {
+   "glMB": 659.82,
+   "categoriesMB": {
+    "texture": 530.58,
+    "geometry": 48,
+    "render target: post / screen": 47.21,
+    "render target: PMREM environment": 22.02,
+    "render target: shadow map": 8.39,
+    "geometry: instance data": 3.2,
+    "texture: bone": 0.42
+   },
+   "textureFormatsMB": {
+    "0x8c43": 240.13,
+    "0x8058": 251.46,
+    "0x881a": 38.48,
+    "0x822b": 0.13,
+    "0x8814": 0.78,
+    "0x8236": 0.02,
+    "0x822f": 0,
+    "0x1908": 0
+   },
+   "jsRetainedMB": {
+    "kinds": {
+     "array": 87.35,
+     "bitmap": 243.53,
+     "canvas": 31.66,
+     "image": 9.01
+    },
+    "sceneGeometry": 73.42,
+    "sceneInstanced": 3.21
+   },
+   "process": {
+    "rendererMB": 1068.3,
+    "gpuProcMB": 1485.6,
+    "v8HeapMB": 94.6,
+    "arrayBuffersMB": 160
+   }
+  },
+  "experiments": {
+   "ktx2_dropAllTexturesAndGeometry": {
+    "dropped": {
+     "geometryArraysMB": 26.4,
+     "textureSourcesMB": 58
+    },
+    "before": {
+     "rendererMB": 1083.8,
+     "gpuProcMB": 1157.3,
+     "v8HeapMB": 94.2,
+     "arrayBuffersMB": 164.5
+    },
+    "after": {
+     "rendererMB": 928.3,
+     "gpuProcMB": 1193.1,
+     "v8HeapMB": 109.7,
+     "arrayBuffersMB": 122.1
+    },
+    "errors": []
+   },
+   "ktx2_dropGeometryKeepPosition": {
+    "dropped": {
+     "geometryArraysMB": 13.8,
+     "textureSourcesMB": 0
+    },
+    "before": {
+     "rendererMB": 1082.2,
+     "gpuProcMB": 1149.7,
+     "v8HeapMB": 101.3,
+     "arrayBuffersMB": 164.6
+    },
+    "after": {
+     "rendererMB": 998.7,
+     "gpuProcMB": 1173.8,
+     "v8HeapMB": 110.2,
+     "arrayBuffersMB": 152
+    },
+    "errors": []
+   },
+   "img_dropGeometryAll": {
+    "dropped": {
+     "geometryArraysMB": 42.9,
+     "textureSourcesMB": 0
+    },
+    "before": {
+     "rendererMB": 1074.1,
+     "gpuProcMB": 1484.9,
+     "v8HeapMB": 105.8,
+     "arrayBuffersMB": 160
+    },
+    "after": {
+     "rendererMB": 1037.3,
+     "gpuProcMB": 1488.1,
+     "v8HeapMB": 100.1,
+     "arrayBuffersMB": 119
+    },
+    "errors": []
+   },
+   "img_dropTextureSources": {
+    "dropped": {
+     "geometryArraysMB": 0,
+     "textureSourcesMB": 260
+    },
+    "before": {
+     "rendererMB": 1068.3,
+     "gpuProcMB": 1485.6,
+     "v8HeapMB": 94.6,
+     "arrayBuffersMB": 160
+    },
+    "after": {
+     "rendererMB": 814.8,
+     "gpuProcMB": 1488.7,
+     "v8HeapMB": 108.9,
+     "arrayBuffersMB": 146.2
+    },
+    "errors": []
+   }
+  }
+ },
+ "driftwoodIsle": {
+  "ktx2": {
+   "glMB": 318.53,
+   "resources": 1444,
+   "unlabelled": 0,
+   "reconciled": true,
+   "categoriesMB": {
+    "geometry": 172.93,
+    "texture": 45.12,
+    "render target: shadow map": 41.94,
+    "render target: post / screen": 38.64,
+    "render target: PMREM environment": 11.16,
+    "geometry: instance data": 8.65,
+    "texture: bone": 0.08
+   },
+   "textureFormatsMB": {
+    "0x8c43": 16.95,
+    "0x8058": 17.4,
+    "0x93d0": 5.77,
+    "0x881a": 2.19,
+    "0x93b0": 1.75,
+    "0x822f": 1.05,
+    "0x8814": 0.1,
+    "0x8236": 0,
+    "0x1908": 0
+   },
+   "jsRetainedMB": {
+    "kinds": {
+     "array": 204.4,
+     "bitmap": 25.17,
+     "canvas": 0.49
+    },
+    "sceneGeometry": 201.14,
+    "sceneInstanced": 14.09
+   },
+   "process": {
+    "rendererMB": 698.4,
+    "gpuProcMB": 1261.2,
+    "v8HeapMB": 48.9,
+    "arrayBuffersMB": 236.9
+   },
+   "wasmMB": [
+    {
+     "tag": "instantiate:12273",
+     "mb": 1
+    },
+    {
+     "tag": "streaming",
+     "mb": 8.9
+    },
+    {
+     "tag": "instantiate:31519",
+     "mb": 1.3
+    }
+   ],
+   "draws": 193,
+   "triangles": 1015433,
+   "shadows": [
+    "2048x2048",
+    "2048x2048",
+    "2048x2048",
+    "2048x2048 sun-shadow-fade-0",
+    "2048x2048 sun-shadow-fade-1"
+   ],
+   "topTextures": [
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8c43",
+     "asset": "/assets/practice/dummies/straw-cloth.glb/TrainingDummyRig/TrainingDummy/map/Image_0"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8058",
+     "asset": "/assets/practice/dummies/straw-cloth.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8c43",
+     "asset": "/assets/practice/dummies/wood-steel.glb/TrainingDummyRig/TrainingDummy/map/Image_0"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8058",
+     "asset": "/assets/practice/dummies/wood-steel.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8c43",
+     "asset": "/assets/practice/dummies/wood-wood.glb/TrainingDummyRig/TrainingDummy/map/Image_0"
+    },
+    {
+     "mb": 5.59,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x8058",
+     "asset": "/assets/practice/dummies/wood-wood.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1"
+    },
+    {
+     "mb": 2.8,
+     "n": 1,
+     "dims": "4096x512",
+     "fmt": "0x93d0",
+     "asset": "/assets/gpu/horizon/driftwood-isle-day-2ca8c3a2.ktx2"
+    },
+    {
+     "mb": 2.8,
+     "n": 1,
+     "dims": "4096x512",
+     "fmt": "0x93d0",
+     "asset": "/assets/gpu/horizon/driftwood-isle-night-f949f086.ktx2"
+    },
+    {
+     "mb": 2.19,
+     "n": 1,
+     "dims": "402x681",
+     "fmt": "0x881a",
+     "asset": "generated/Group/Mesh[2]/uniform/e0Map/Upsampling.Mipmap0"
+    },
+    {
+     "mb": 1.4,
+     "n": 1,
+     "dims": "1024x1024",
+     "fmt": "0x93b0",
+     "asset": "/assets/gpu/models/driftwood-blender/lm-ao.phone-9f6766dc.ktx2"
+    },
+    {
+     "mb": 1.06,
+     "n": 2,
+     "dims": "512x512 984x1",
+     "fmt": "0x822f 0x8814",
+     "asset": "generated/texture"
+    },
+    {
+     "mb": 0.35,
+     "n": 1,
+     "dims": "512x512",
+     "fmt": "0x93b0",
+     "asset": "/assets/gpu/models/driftwood-blender/lm-bounce.phone-582c92be.ktx2"
+    },
+    {
+     "mb": 0.35,
+     "n": 1,
+     "dims": "256x256",
+     "fmt": "0x8058",
+     "asset": "generated/Group/Sprite[4]/map"
+    },
+    {
+     "mb": 0.17,
+     "n": 1,
+     "dims": "512x256",
+     "fmt": "0x93d0",
+     "asset": "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2"
+    },
+    {
+     "mb": 0.17,
+     "n": 2,
+     "dims": "128x128",
+     "fmt": "0x8058 0x8c43",
+     "asset": "generated/Group/Sprite[5]/map"
+    },
+    {
+     "mb": 0.14,
+     "n": 1,
+     "dims": "33x33x33",
+     "fmt": "0x8058",
+     "asset": "generated/Group/Mesh[2]/uniform/e6Lut/driftwood-isle-lut"
+    },
+    {
+     "mb": 0.09,
+     "n": 1,
+     "dims": "128x128",
+     "fmt": "0x8c43",
+     "asset": "generated/Group/Mesh[3]/map"
+    },
+    {
+     "mb": 0.02,
+     "n": 1,
+     "dims": "64x64",
+     "fmt": "0x8058",
+     "asset": "generated/Group/Points[4]/map"
+    },
+    {
+     "mb": 0.01,
+     "n": 1,
+     "dims": "32x32",
+     "fmt": "0x8058",
+     "asset": "generated/Group/Points[1]/map"
+    },
+    {
+     "mb": 0.01,
+     "n": 1,
+     "dims": "32x32",
+     "fmt": "0x8058",
+     "asset": "generated/Group/Points[2]/map"
+    }
+   ],
+   "topGeometry": [
+    {
+     "mb": 103.71,
+     "n": 772,
+     "model": "engine/scene generated/Scene/blender-island"
+    },
+    {
+     "mb": 11.92,
+     "n": 78,
+     "model": "engine/scene generated/Scene/ground-cover"
+    },
+    {
+     "mb": 8.47,
+     "n": 4,
+     "model": "palms src/shards/driftwood-isle/models/palm.ts#Coconut palm"
+    },
+    {
+     "mb": 8.35,
+     "n": 5,
+     "model": "bushes src/shards/driftwood-isle/models/hibiscusBush.ts#Hibiscus bush"
+    },
+    {
+     "mb": 6.47,
+     "n": 3,
+     "model": "rocks src/shards/driftwood-isle/models/shoreBoulder.ts#Shore boulder"
+    },
+    {
+     "mb": 4.5,
+     "n": 3,
+     "model": "cove-small-rocks src/shards/driftwood-isle/models/smallRock.ts#Small rock"
+    },
+    {
+     "mb": 2.78,
+     "n": 2,
+     "model": "trailside src/shards/driftwood-isle/world/Trailside.ts#Trailside"
+    },
+    {
+     "mb": 2.49,
+     "n": 5,
+     "model": "shrine src/shards/driftwood-isle/models/shrine.ts#Ring shrine"
+    },
+    {
+     "mb": 2.31,
+     "n": 23,
+     "model": "cove src/shards/driftwood-isle/world/Cove.ts#Wreck cove"
+    },
+    {
+     "mb": 1.97,
+     "n": 3,
+     "model": "engine/scene generated/Group/seabed"
+    },
+    {
+     "mb": 1.44,
+     "n": 3,
+     "model": "engine/scene generated/Group/driftwood-isle"
+    },
+    {
+     "mb": 1.3,
+     "n": 3,
+     "model": "engine/scene generated/Group/Mesh[1]/index"
+    },
+    {
+     "mb": 1.29,
+     "n": 1,
+     "model": "engine/scene generated/Group/mesh-shadow-pieces-0"
+    },
+    {
+     "mb": 1.22,
+     "n": 4,
+     "model": "engine/scene generated/Group/island-casters-6"
+    },
+    {
+     "mb": 1.15,
+     "n": 7,
+     "model": "engine/scene generated/Group/island-cover-big-16"
+    }
+   ],
+   "renderTargets": [
+    {
+     "mb": 41.94,
+     "n": 5,
+     "dims": "2048x2048",
+     "fmt": "0x81a5",
+     "target": "generated/render-target/2048x2048"
+    },
+    {
+     "mb": 26.28,
+     "n": 4,
+     "dims": "804x1362",
+     "fmt": "0x881a",
+     "target": "EffectComposer.Buffer"
+    },
+    {
+     "mb": 11.16,
+     "n": 5,
+     "dims": "768x1024 336x256",
+     "fmt": "0x881a",
+     "target": "PMREM.cubeUv"
+    },
+    {
+     "mb": 8.76,
+     "n": 1,
+     "dims": "804x1362",
+     "fmt": "0x881a",
+     "target": "LuminancePass.Target"
+    },
+    {
+     "mb": 2.19,
+     "n": 1,
+     "dims": "402x681",
+     "fmt": "0x881a",
+     "target": "Downsampling.Mipmap0"
+    },
+    {
+     "mb": 0.55,
+     "n": 1,
+     "dims": "201x341",
+     "fmt": "0x881a",
+     "target": "Downsampling.Mipmap1"
+    },
+    {
+     "mb": 0.55,
+     "n": 1,
+     "dims": "201x341",
+     "fmt": "0x881a",
+     "target": "Upsampling.Mipmap1"
+    },
+    {
+     "mb": 0.14,
+     "n": 1,
+     "dims": "101x171",
+     "fmt": "0x881a",
+     "target": "Downsampling.Mipmap2"
+    },
+    {
+     "mb": 0.14,
+     "n": 1,
+     "dims": "101x171",
+     "fmt": "0x881a",
+     "target": "Upsampling.Mipmap2"
+    },
+    {
+     "mb": 0.04,
+     "n": 1,
+     "dims": "51x86",
+     "fmt": "0x881a",
+     "target": "Downsampling.Mipmap3"
+    }
+   ]
+  },
+  "img": {
+   "glMB": 341.08,
+   "categoriesMB": {
+    "geometry": 172.93,
+    "texture": 67.67,
+    "render target: shadow map": 41.94,
+    "render target: post / screen": 38.64,
+    "render target: PMREM environment": 11.16,
+    "geometry: instance data": 8.65,
+    "texture: bone": 0.08
+   },
+   "textureFormatsMB": {
+    "0x8c43": 40.02,
+    "0x8058": 24.39,
+    "0x881a": 2.19,
+    "0x822f": 1.05,
+    "0x8814": 0.1,
+    "0x8236": 0,
+    "0x1908": 0
+   },
+   "jsRetainedMB": {
+    "kinds": {
+     "array": 202.83,
+     "bitmap": 29.88,
+     "canvas": 0.49,
+     "image": 22.02
+    },
+    "sceneGeometry": 201.14,
+    "sceneInstanced": 14.09
+   },
+   "process": {
+    "rendererMB": 674.6,
+    "gpuProcMB": 1241.3,
+    "v8HeapMB": 48.9,
+    "arrayBuffersMB": 234.8
+   }
+  },
+  "experiments": {
+   "ktx2_dropAllTexturesAndGeometry": {
+    "dropped": {
+     "geometryArraysMB": 138,
+     "textureSourcesMB": 25.3
+    },
+    "before": {
+     "rendererMB": 698.4,
+     "gpuProcMB": 1261.2,
+     "v8HeapMB": 48.9,
+     "arrayBuffersMB": 236.9
+    },
+    "after": {
+     "rendererMB": 532.8,
+     "gpuProcMB": 1264.5,
+     "v8HeapMB": 49.5,
+     "arrayBuffersMB": 98.8
+    },
+    "errors": [
+     "post-drop visit: visit timeout"
+    ]
+   },
+   "ktx2_dropGeometryKeepPosition": {
+    "dropped": {
+     "geometryArraysMB": 82.4,
+     "textureSourcesMB": 0
+    },
+    "before": {
+     "rendererMB": 719.2,
+     "gpuProcMB": 1270.9,
+     "v8HeapMB": 53.9,
+     "arrayBuffersMB": 236.9
+    },
+    "after": {
+     "rendererMB": 626.2,
+     "gpuProcMB": 1275.6,
+     "v8HeapMB": 50.1,
+     "arrayBuffersMB": 154.5
+    },
+    "errors": []
+   },
+   "img_dropGeometryAll": {
+    "dropped": {
+     "geometryArraysMB": 138,
+     "textureSourcesMB": 0
+    },
+    "before": {
+     "rendererMB": 690.2,
+     "gpuProcMB": 1192.7,
+     "v8HeapMB": 53.3,
+     "arrayBuffersMB": 234.8
+    },
+    "after": {
+     "rendererMB": 537.9,
+     "gpuProcMB": 1241,
+     "v8HeapMB": 49.5,
+     "arrayBuffersMB": 96.9
+    },
+    "errors": [
+     "post-drop visit: visit timeout"
+    ]
+   },
+   "img_dropTextureSources": {
+    "dropped": {
+     "geometryArraysMB": 0,
+     "textureSourcesMB": 47.7
+    },
+    "before": {
+     "rendererMB": 674.6,
+     "gpuProcMB": 1241.3,
+     "v8HeapMB": 48.9,
+     "arrayBuffersMB": 234.8
+    },
+    "after": {
+     "rendererMB": 646.4,
+     "gpuProcMB": 1246.3,
+     "v8HeapMB": 49,
+     "arrayBuffersMB": 234.8
+    },
+    "errors": []
+   }
+  }
+ }
+}
