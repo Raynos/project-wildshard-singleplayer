@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
-import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
+import { decodeTerrainTile } from '@wildshard/engine/world/terrainTileData';
+import { clipEntryPolygon, entryFootprints } from './entryGeometry';
 
 const finite = v.pipe(v.number(), v.finite());
 const points = { north: [0, 0, 250], south: [0, 0, -250], east: [250, 0, 0], west: [-250, 0, 0] } as const;
@@ -25,16 +26,25 @@ export function entrywayRules(source: { entryways: ShardEntryways; edge: Record<
   return source.entryways.some((row) => source.edge[row.edge].roadHeight !== 0 || !flatOpening(source.edge[row.edge].heights, row.width))
     ? ['illegal shard: entryway opening must meet road height y=0 across its width'] : [];
 }
-/** Verify critical baked collision bytes instead of trusting a forged zero-height declaration. */
+/** Verify every native collision triangle across the full 8×15 m approach before platform floors exist. */
 export function validateEntrywayTerrain(source: { entryways: ShardEntryways; terrain: { collider: string } | null }, assets: ReadonlyMap<string, Uint8Array>): void {
+  // The ordinary non-terrain loader supplies its full-cell implicit y=0 ground, independently of entry sockets.
   if (source.terrain === null) return;
   const bytes = assets.get(source.terrain.collider); if (bytes === undefined) throw new Error('Missing entryway terrain');
   const terrain = decodeTerrainTile(bytes);
-  for (const entry of source.entryways) {
-    const heights = Array.from({ length: terrain.resolution }, (_, i) => {
-      const along = -250 + i * 500 / (terrain.resolution - 1);
-      return terrainTileHeight(terrain, entry.edge === 'east' ? 250 : entry.edge === 'west' ? -250 : along, entry.edge === 'north' ? 250 : entry.edge === 'south' ? -250 : along);
-    });
-    if (!flatOpening(heights, entry.width)) throw new Error('illegal shard: baked entryway does not meet road height y=0');
+  const n = terrain.resolution - 1, stride = terrain.size / n;
+  for (const rect of entryFootprints(source.entryways)) {
+    if (rect.minX < terrain.x || rect.maxX > terrain.x + terrain.size || rect.minZ < terrain.z || rect.maxZ > terrain.z + terrain.size) throw new Error('illegal shard: missing entryway ground footprint');
+    const vertex = (x: number, z: number) => {
+      const y = terrain.heights[z * terrain.resolution + x]; if (y === undefined) throw new Error('Missing terrain sample');
+      return { x: terrain.x + x * stride, y, z: terrain.z + z * stride };
+    };
+    const x0 = Math.max(0, Math.floor((rect.minX - terrain.x) / stride)), x1 = Math.min(n - 1, Math.floor((rect.maxX - terrain.x) / stride));
+    const z0 = Math.max(0, Math.floor((rect.minZ - terrain.z) / stride)), z1 = Math.min(n - 1, Math.floor((rect.maxZ - terrain.z) / stride));
+    for (let z = z0; z <= z1; z++) for (let x = x0; x <= x1; x++) {
+      const a = vertex(x, z), b = vertex(x + 1, z), c = vertex(x, z + 1), d = vertex(x + 1, z + 1);
+      // Same diagonal as the baked Rapier heightfield, including fractional rectangle boundaries.
+      for (const triangle of [[a, b, c], [d, c, b]]) if (clipEntryPolygon(triangle, rect).some((p) => p.y !== 0)) throw new Error('illegal shard: baked entryway footprint must be flat at road height y=0');
+    }
   }
 }

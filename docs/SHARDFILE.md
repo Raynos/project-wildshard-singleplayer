@@ -28,8 +28,13 @@ integers. MB means 1,000,000 bytes. The platform owns caps in
 Every shard occupies a 500×500×500 m cube. Validation reports “illegal shard”
 for a missing, duplicate, displaced or elevated midpoint entryway. North is +z;
 south is −z. Boundary samples must be flat at y=0 across the opening's full width,
-and admission checks the critical baked collider bytes as well. An author cannot
-forge a zero-height edge row to hide a raised collision surface. Empty author
+and admission clips the critical baked collider's native triangles against each
+full 8×15 m approach. Every point must lie at y=0; an interior trench, raised
+patch or missing ground fails before platform socket floors exist. An author cannot
+forge a zero-height edge row to hide a raised collision surface. Non-terrain
+data products use the loader's existing full-cell implicit flat ground. A transitional
+trusted runtime with `terrain:null` still needs a separate proof of its legacy ground;
+the cartridge check cannot infer that geometry from its runtime selector. Empty author
 projects and the template explicitly declare four 8 m openings. Canonical
 `ENTRY_WIDTH = 8` and `ENTRY_ASPHALT = 15` live in the engine core config;
 entry width is independent from the boulevard width.
