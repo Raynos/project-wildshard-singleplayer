@@ -19,7 +19,7 @@ export async function gridReloadRevision(assembly: GridAssembly, instance: strin
     const bytes = await boundedResponse(response, 2_000_000);
     const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
     const source = parseShardfile(input);
-    if (!new Set([cell.slug]).has(source.identity.slug)) throw new Error('Planned reload source identity changed');
+    if (!new Set([cell.slug.replace(/^_/u, '')]).has(source.identity.slug)) throw new Error('Planned reload source identity changed');
     return source.identity.revision;
   } finally {
     scope.dispose();
