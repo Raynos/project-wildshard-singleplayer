@@ -98,18 +98,24 @@ export function shardfileRules(s: Shardfile): string[] {
   const refs = [...s.files.flatMap((f) => f.dependencies), ...s.tiles.flatMap((t) => t.files), ...s.library, ...s.critical, ...s.sim.scripts, ...(s.far?.files ?? []), ...(s.look.grade.lut === null ? [] : [s.look.grade.lut])];
   for (const r of refs) if (r.startsWith('commons:') ? !s.requires.commons.includes(r.slice(8)) : !files.has(r)) errors.push(`undeclared reference ${r}`);
   const visited = new Set<string>(), active = new Set<string>();
-  const visit = (id: string): void => {
-    if (active.has(id)) { errors.push('acyclic dependencies'); return; }
-    if (visited.has(id)) return;
-    visited.add(id); active.add(id);
-    for (const d of files.get(id)?.dependencies ?? []) if (!d.startsWith('commons:')) visit(d);
-    active.delete(id);
-  };
-  for (const id of files.keys()) visit(id);
+  for (const root of files.keys()) {
+    const pending = [{ id: root, leaving: false }];
+    while (pending.length > 0) {
+      const frame = pending.pop(); if (frame === undefined) continue;
+      if (frame.leaving) { active.delete(frame.id); continue; }
+      if (active.has(frame.id)) { errors.push('acyclic dependencies'); continue; }
+      if (visited.has(frame.id)) continue;
+      visited.add(frame.id); active.add(frame.id); pending.push({ id: frame.id, leaving: true });
+      for (const id of files.get(frame.id)?.dependencies ?? []) if (!id.startsWith('commons:')) pending.push({ id, leaving: false });
+    }
+  }
   errors.push(...stateRules(s.state));
   const materialRefs = materialTextureRefs(s.look.materials), libraryClosure = new Set<string>();
-  const includeLibrary = (id: string): void => { if (libraryClosure.has(id)) return; libraryClosure.add(id); for (const dependency of files.get(id)?.dependencies ?? []) includeLibrary(dependency); };
-  for (const root of s.library) includeLibrary(root);
+  const libraryPending = [...s.library];
+  while (libraryPending.length > 0) {
+    const id = libraryPending.pop(); if (id === undefined || libraryClosure.has(id)) continue;
+    libraryClosure.add(id); libraryPending.push(...files.get(id)?.dependencies ?? []);
+  }
   if (materialRefs.some((id) => !/^(?:commons:)?[a-f0-9]{64}$/u.test(id) || !libraryClosure.has(id) || (id.startsWith('commons:') ? !s.requires.commons.includes(id.slice(8)) : files.get(id)?.kind !== 'ktx2'))) errors.push('admitted material texture library references');
   const lut = s.look.grade.lut === null || s.look.grade.lut.startsWith('commons:') ? null : files.get(s.look.grade.lut);
   if (lut !== undefined && lut !== null && (lut.kind !== 'binary' || lut.compressed !== LOOK_LUT_BYTES)) errors.push('look LUT is a 33³ RGBA8 binary file');
