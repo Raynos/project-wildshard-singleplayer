@@ -1,6 +1,6 @@
 # Plan: SHARD-PLATFORM — MMO-compatible shardfiles in the singleplayer game (E431, E435)
 
-**State:** `in progress` 2026-10-04 — rewritten from Jake's E435 grill (§10, G1–G107) and the clean-room audits ([Wildshard MMO Review](../reviews/wildshard-mmo-review.md)); **the four-round council has ended** (217 findings, all fixed or decided; register in [`shard-platform/reviews/`](shard-platform/reviews/register.md)). **Two parts** (G57): Part A, the core (milestones M1 the package, M2 the grid, M3 the seven at 80/20), then Part B, stretch goals. The grid is a second main-menu entry, **EXPERIMENTAL Wildshard**, beside Select a shard (G58; Developer-only until SF22's gates, G61). **By effort (Jake asked for effort, not rows; 2026-10-04): Part A ≈ 40 % (±5), the whole plan with Part B ≈ 25 %.** M1 ≈ 90 %, M2 ≈ 45 %, M3 ≈ 5 % (`scripts/shard-platform.mjs`: ≈ 89k custom lines left: Nalati 26.6k, Nine Dragon 20.3k, Pine Hollow 18.7k, Driftwood 15.3k, Sky Reach 7.5k (really ≈ 0.3 %, not 30 %: generated movers counted as public, fix in flight), Signal Dunes 3.7k; each port is sized L but is far more, and the SF24–SF38 system rows generalise across six shards). Basis: ≈ 125 agent-days done, ≈ 185 left re-weighted (plan sizes say ≈ 115). **M1:** SF16's switch is on origin (`ed790a281`); not met yet (E437 audit): the Debug-row ratchet didn't fall (29), check-chunks lacks the "no template chunk" rule, gridReady is false, and the template in Select a shard runs the grid's rings (sp-x5 fixing); the floor runs now. **M2:** the grid session boots (deck, strips, 8 far neighbours, soft walls, rings, one allocator: `7614e613a`); crossing into a neighbour waits on the live grid host (sp-x2); SF19a one frame (Opus) under way. **M3:** SF46 step 1 built, Driftwood's hybrid boot default-off behind a Debug row until its parity is green (sp-x1); SF30 Sky movers walk 0 stuck, Driftwood's wait; SF24 director (sp-x4). Built by Codex and Opus lanes the coordinator dispatches (§9). Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md).
+**State:** `in progress` 2026-10-04 — rewritten from Jake's E435 grill (§10, G1–G108) and the clean-room audits ([Wildshard MMO Review](../reviews/wildshard-mmo-review.md)); **the four-round council has ended** (217 findings, all fixed or decided; register in [`shard-platform/reviews/`](shard-platform/reviews/register.md)). **Two parts** (G57): Part A, the core (milestones M1 the package, M2 the grid, M3 the seven at 80/20), then Part B, stretch goals. The grid is the main menu's **INFINITE WILDSHARD** card beside **SHARD SELECT** (G58, G79, G88; Developer-only until SF22's gates, G63). **By effort (Jake asked for effort, not rows; 2026-10-04): Part A ≈ 40 % (±5), the whole plan with Part B ≈ 25 %; to be re-estimated (Jake's plan-status agent is running a consistency pass).** M1 ≈ 90 %, M2 ≈ 45 %, M3 ≈ 5 % (`scripts/shard-platform.mjs`: ≈ 89k custom lines left: Nalati 26.6k, Nine Dragon 20.3k, Pine Hollow 18.7k, Driftwood 15.3k, Sky Reach 7.5k (really ≈ 0.3 %, not 30 %: generated movers counted as public, fix in flight), Signal Dunes 3.7k; each port is sized L but is far more, and the SF24–SF38 system rows generalise across six shards). Basis: ≈ 125 agent-days done, ≈ 185 left re-weighted (plan sizes say ≈ 115). **M1:** SF16's switch is on origin (`ed790a281`); not met yet (E437 audit): the Debug-row ratchet didn't fall (29), check-chunks lacks the "no template chunk" rule, gridReady is false, and the template in Select a shard runs the grid's rings (sp-x5 fixing); the floor runs now. **M2:** the grid session boots (deck, strips, 8 far neighbours, soft walls, rings, one allocator: `7614e613a`); crossing into a neighbour waits on the live grid host (sp-x2); SF19a one frame (Opus) under way. **M3:** SF46 step 1 built, Driftwood's hybrid boot default-off behind a Debug row until its parity is green (sp-x1); SF30 Sky movers walk 0 stuck, Driftwood's wait; SF24 director (sp-x4). Built by Codex and Opus lanes the coordinator dispatches (§9). Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md).
 
 **Reviews:** [Wildshard MMO Review](../reviews/wildshard-mmo-review.md) (the clean-room audits, E435); [SHARD-PLATFORM mockups](../reviews/shard-platform-mockups.md) (Jake's E438 picks G72–G99, boards in `art/`).
 
@@ -661,23 +661,87 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G105 | Crossing | **A: a centred card on entry** (Jake: *"A Centred card on entry"*): the title card shows centred only on entering a shard; nothing extra on the road |
 | G106 | Shard select | **A: the carousel restyled** (Jake: *"A Carousel restyled"*): today's carousel restyled in the new menu's style: one big card plus a thumbnail strip, DEVELOPER tags, a COMING SOON lock (SF21a) |
 | G107 | The minimap | **Terrain faded, only on the road** (Jake: *"A terrain faded. But only on the road. Inside the shard it's the shard + the road + the name on the other side. Only when you leave the shard onto the no man's land does it start showing both or four shards at the roundabout on the minimap"*): inside a shard the minimap shows that shard, the road and the neighbour's NAME across the road (no neighbour terrain); on the road / no-man's land it shows the neighbours' terrain faded (~50 %) on both sides, and all four at a roundabout |
+| G108 | Decided by the coordinator while Jake was away (G56), for Jake to review | **C1** the blocked-edge collider top is 2.0 m (road-wall 0–1.85, guard-rail 1.85–2.0): a single jump (apex ≈ 1.18 m + 0.35 autostep) can't clear it, a double jump (2.86–3.03 m) can (G101); the hoverboard jump (≈ 3.45 m) also clears it. **C2** a > 14 m step on a stretch shorter than 30 m gets the retaining face + road wall + rail, never a cliff across a midpoint entry (a G90 gap). **C3** cells whose shard isn't a shardfile yet show its far proxy behind a soft wall (only Driftwood and the template copies can be entered until M3). **C4** the Memory saver keeps its half-resolution bloom luminance pass (≈ 6.6 MB on the phone; a slight look change, default-off row). **C5** Driftwood's hybrid boot stays default-off until SF46 is grid-ready and Jake has played it. **C6** profiles accept 256 or 257 boundary samples (legacy / modern bakes), never 129; terrain-null grid products get a native ground row through a grid-only port. **C7** the SAVES cards read "QUESTS n DONE" until a manifest quests field gives totals (a format follow-up) |
 
 ## Handoff (shard-platform)
 
-Written 2026-10-04 by the shard-platform coordinator (herdr pane `wildshard-new`), building Part A autonomously per Jake's
-goal (four-round council done (G59), keep the frame floor, no questions (G56)). Ask E435.
+Written 2026-10-04 ~12:40 by the shard-platform coordinator (herdr pane `wildshard-new`) as a **complete resume record**:
+Jake is away for 24–48 h and wants the build to continue from disk across compactions. Ask E435 (+ E437 audits, E438
+mockups, E439 New game).
 
-**Lanes now:** Codex sp-x1 SF46 (hybrid parity red: shadows + unload leak; the row stays off); sp-x2 the live grid host
-(the live player as a SimHost, neighbour sims, the crossing in the page, telemetry); sp-x3 the Pine pond walk proof
-after Hale moved (`c5fcea94c`); sp-x4 SF24 director (SF30 Driftwood waits on SF46); sp-x5 the SF16 switch. Opus:
-sf22d-nan (the final parity re-run), sf19a (one frame).
+**1. The goal, verbatim (Jake's /goal):** *"- Finish the plan (SHARD PLATFORM) - Run the 8 council rounds as discussed -
+Autonomously build the plan to completion - At all moments the game must be at 60-120 fps on desktop/laptop and at 30-60
+fps on iOS simulator I'm going to bed, you are in charge. No ask user tools, only autonomous planning & building."* The
+council ran four rounds (G59: *"4 round council approach is better then 8 rounds"*) and is finished. Standing rules:
+- **No questions** (G56): a decision that is Jake's goes into §10 as "decided by the coordinator, for Jake to review"
+  (G61, G108), and the safe default ships default-off behind a Debug row.
+- **Routing (G53):** UI, visual, HUD, rendering, shader, art and shard look/content go to Opus 5.5 subagents (≤ 3 live,
+  90 min, SUBAGENTS.md). All other code, tooling, tests, SDK, validation, bake and determinism go to the Codex
+  GPT-6.1 Sol high panes sp-x1…sp-x5.
+- **Budget (G54):** run `openusage` before dispatches; both lanes may burn to 100 %; never spend Codex credits or
+  rate-limit resets.
+- **The frame floor (G55, §9.4):** desktop ≥ 60 fps / p95 ≤ 17.5 ms, Simulator ≥ 30 fps / p95 ≤ 35 ms, measured in a
+  quiet window (no gates or browsers; check `ps` for orphan vitest/serve processes first) after every live-path change:
+  `node scripts/frame-floor.mjs --rev=<sha> --shards=driftwood-isle,pine-hollow,_template,grid --surface=both`; with
+  device saves (`--device-save=debug.plugin.<slug>.<row>=on`) for default-off rows.
+- **Pushing:** one serialized pusher, `scripts/push-main.sh`. SF6b regenerates generated files from the clean tree and
+  stops on any graph/debt increase; the coordinator writes a receipt `{ "approver": "wildshard-new", "increases": [...] }`
+  and reruns with `GENERATED_APPROVAL_FILE=<file>`. Builders commit source only. Commit small, early and often (Jake).
+- Anything touching a live boot path ships default-off behind a Debug row until its parity is green (SF46's lesson);
+  revert only by explicit SHA; keep every shared-tree save compiling.
 
-**Next:** after sp-x5's switch, one quiet window: the coordinator runs the Select a shard floor (driftwood-isle,
-pine-hollow, _template, both surfaces) and the grid floor; re-run `progress/shard-platform/sf16/run.sh`. Then the grid
-crossing (sp-x2 + an Opus grid-client for session.ts), the grid look leftovers (Driftwood's sea at 0.8 m over the deck at
-0; the east sandbar's 1.25 m step; shard edge profiles for the seams, SF17b), SF19b, and the M3 conversions.
+**2. Where it stands (origin ≈ `b407faf3f`).** By effort Part A ≈ 40 % (being re-estimated), whole plan ≈ 25 %.
+- **Frame floor:** green on `8de907da2` for Driftwood / Pine / template / grid, and with the directors + hybrid ON
+  (Driftwood / Nalati / Pine), on both surfaces.
+- **M1:** the template boots from its shardfile (`ed790a281`); the audit fixes are in (`6cf45753d` the ratchet to 28,
+  `3d06668e4` the chunk guard, `a3bcb5f57` grid-ready, `007bb58ed` the plain client); the look board matches (FOV 86.8,
+  world SSIM 0.96–0.99, draws at today's level after `ba2ee6258`). Remaining: the refreshed board at HEAD.
+- **M2:** INFINITE WILDSHARD boots a real grid. Round trip Driftwood ↔ template-4 proven in the browser (grid-client3
+  `0d4614f9d` … `8dda94b5e`). Grid physics green at 15 / 30 m/s (`b9b3bb61c`). Durability (quest, coins, facts survive
+  reload) green; the unload leak is being closed (sp-x1 `18bb0983f`, `855db3066`). Boulevard, roundabouts, VR void + rail,
+  soft wall (sf17b-look `b52bb2333` … `178b2f348`). G90 seam generator + native 256/257 edges (`7230afe81`,
+  `291f58930`, ground port `7a6385f00`). New main menu + carousel (`7b7681ac1` … `1ab84ccf7`). SAVES / New game
+  (`a8f90b5ee` … `b6f00241b`; API `ecec2e370`). Client scripts + alive neighbours (`5ab6a3c08`, `c3ae95b87`, `ee4b5dc0d`).
+- **M3:** Driftwood hybrid (default-off, OFF / ON parity green: `5d4a4ee5c`, `a5ec78c13`); SF30 movers (Sky Reach +
+  Driftwood ON, `8777cf8be`); SF24 directors for three shards (default-off shared row, `ee2a46de3`); SF27 brains in
+  progress; SF33 / SF33b done (`a971f080c`); G93 / G99 entryways enforced (`be7a8afeb`).
 
-**Lessons:** a serialized pusher per gap; floors in quiet windows only (orphan Vitest workers once ate 3.7 cores, so
-check `ps` first); revert only by explicit SHA; a change that touches a live boot path ships default-off behind a Debug
-row until its parity is green (SF46); keep every shared-tree save compiling; regenerate generated API files from a clean
-export.
+**3. Lanes now.**
+- **sp-x1:** SF20a's final unload proof (0 colliders), then SF46 toward grid-ready.
+- **sp-x2:** the G90 async profile loader + groundResolution port, then the generator follow-ups (corner B, 10 m returns).
+- **sp-x3:** SF29 audio as data (`85d0b2ad8`; Driftwood first).
+- **sp-x4:** SF27 brains (`bc9c3309e`, `f40ec9d2d`, `8081e7d6f`, `15e6861ba`; next guardian / perchHunter exports, then
+  the hybrid sailor / monkey binding).
+- **sp-x5:** the format owner (SF25 / G93 / G99 / SF33 / G90 done); next the native-edge follow-ups and the format fields
+  the Opus agents ask for (grid observations, quest totals).
+- **Opus live:** sf17b-look2 (seam materials, Driftwood's dike, the G101 rail at 2.0 m, the G103 15 m asphalt entry, road
+  respawn, rounded outer corners); grid-hud (G98 reveal, G82 / G105 entry card, G78 safe zone + G104 cyan chip + per-shard
+  accent, G107 minimap, G97 FOV + speed lines; E332 notice given).
+
+**4. The ordered NEXT queue.**
+1. Close M2: sp-x1 unload proof; grid-hud; sf17b-look2; the grid floor in a quiet window; `physics-baseline --mode=grid`
+   rerun; the refreshed M1 board.
+2. **G103 + G93 for all seven shards:** each shard declares four midpoint entryways at y = 0 and renders 15 m of the
+   platform's asphalt into each (edgeEntries.ts' flat cut becomes road asphalt); `validate` checks it.
+3. **SF28 UI kit (G87, G104):** big cards + a shard accent; the 20-colour palette in shard.config (Driftwood MARIGOLD,
+   Pine MOSS, Nalati EMBER, Dunes ORCHID, Sky Reach PINK, Nine Dragon IRIS, template SAND); HUD CYAN #8fe3ff reserved for
+   the road (`validate` refuses it for shards).
+4. **M3 conversions:** SF46 Driftwood (hybrid → grid-ready; dike G91; entries G93 / G103), SF47 Pine, SF48 Nalati
+   (painterly kept, G96), SF50 Signal Dunes (haze band, G94), SF49 Sky Reach (four switchback ramps to road-level
+   landings, G99 / G102; railing + wall on the cloud edge), SF51 Nine Dragon (dusk + border fog, G95). Each runs parity
+   OFF / ON and the floor.
+5. The used-today systems still open: SF27, SF29 (in progress), SF34 player modes, SF36 items, SF26 commons, SF38 points
+   overlay, SF45 docs.
+6. **SF19b** each shard's look under one frame (boards for Jake); **SF22** the crossroads gates at ≤ 1.0 GB (G65);
+   **SF22c** = Jake's normal grid playtest (G71).
+7. The E437 audit leftovers: §2 "Where it stands" is stale; SP3 shipped only the ratchet; SF14 was marked done early.
+
+**5. Open questions for Jake** (none block; the defaults are G108 C1–C7): the hoverboard clears the 2.0 m rail (C1);
+short cliff runs (C2); quest totals on the SAVES cards (C7). The double jump exists (`Player.ts` jumpsLeft), so G101 needs no
+question.
+
+**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §9 (how it is built), §10 (G1–G108,
+Jake's words verbatim) and this Handoff → `docs/plans/shard-platform/reviews/register.md` →
+`docs/reviews/shard-platform-mockups.md` + `art/README.md` (the boards Jake picked) → `herdr agent list` (the Codex panes) →
+`git log --oneline -30` → `node scripts/asks.mjs`. The coordinator's scratch helpers (`setrows.py`, `donecells.py`,
+which append evidence and never overwrite acceptance) are in its session scratchpad and are optional.
