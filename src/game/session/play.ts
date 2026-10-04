@@ -63,7 +63,9 @@ import { installPlayerDeath } from '@wildshard/engine/ui/playerDeath';
 import { PlayerHurt } from '@wildshard/engine/ui/playerHurt';
 import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
-import { pageMode } from '../grid/boot';
+import { gridCells, pageMode } from '../grid/boot';
+import { firstPartyInstance } from '../grid/instances';
+import { installSavesSettings } from '../savesSettings';
 import { GridSession } from '../grid/session';
 import type { LiveGridSession } from '../grid/liveSession';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
@@ -153,6 +155,10 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     ...boot.runtime.menu,
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
+  // pause ▸ Settings ▸ SAVES (SF33b, G83): a card per shard save, NEW GAME's before → after sheet; HERE is the grid cell you stand in, else this shard's copy
+  const homeInstance = ((): string => { try { return firstPartyInstance(manifest.slug); } catch { return manifest.slug; } })();
+  installSavesSettings(menu, { scope: game.levelScope, grid: grid !== null,
+    here: () => { const cell = gridCells.cell; return grid === null ? { id: homeInstance, shard: manifest.slug } : cell === null ? null : { id: cell.instance, shard: cell.slug }; } });
   describeKeyBindings(game.levelScope); // pause ▸ Settings ▸ Key bindings: the plain-named table (E357 J10)
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }, 'main.6'); // E132: this shard's time played (the complete card shows it), in the world only
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); }); // in a practice room: its own map (E321)

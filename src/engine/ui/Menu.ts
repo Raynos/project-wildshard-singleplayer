@@ -107,6 +107,9 @@ export class GameMenu {
   /** pause ▸ Settings's categories: a rail + one pane on a desktop (J10 layout A), one column on a phone */
   private cats: SettingsCats | undefined;
   private gated: { el: HTMLElement; when: When }[] = [];
+  /** the Settings card (its title, then every section) and the sections the game added to it (`addSettingsSection`) */
+  private settingsCard: HTMLElement | undefined;
+  private readonly sectionRefresh = new Set<() => void>();
 
   private opts: GameMenuOptions;
   constructor(opts: GameMenuOptions) {
@@ -360,7 +363,7 @@ export class GameMenu {
       gameplay: engineString('s_31bcb8940fff'), save: SAVE_STRINGS.title, review: engineString('s_aff0766a5290'), debug: engineString('s_1a03bd2fd107') };
     const cats = settingsCategories(panel, this.scope, catLabel, () => { this.syncCats(); }); this.cats = cats;
     // E178: no full-width RESUME / EXIT TO MAIN MENU on top of the panel any more — they are the header bar's two buttons
-    const p = el('ws-gmenu-card', engineString('s_e68f72548349'));
+    const p = el('ws-gmenu-card', engineString('s_e68f72548349')); this.settingsCard = p;
     const dbg = foldCard('debug', engineString('s_1a03bd2fd107'), engineString('s_8c4422087396')); // E177: folded until it is asked for
     // developer mode only (E140, the user's 7a): the Settings ▸ Developer switch shows / hides it live
     dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; cats.sync(); });
@@ -461,6 +464,27 @@ export class GameMenu {
     this.controlsPanel = buildControlsPanel(app.levelScope ?? app.engineScope); cats.pane.append(this.controlsPanel); cats.tag('keys', this.controlsPanel);
     cats.sync();
   }
+  /** A section the game adds to pause ▸ Settings: its label and rows join the Settings card under category `cat` (on a
+   *  desktop they show with that category; on a phone in the one column). `first` puts them right under the card's title
+   *  (SAVES, G83); `refresh` runs on every open, before the rows are shown. Returns the disposer; the menu's scope disposes it too. */
+  addSettingsSection(cat: SettingsCat, els: readonly HTMLElement[], opts: { first?: boolean; refresh?: () => void } = {}): () => void {
+    const card = this.settingsCard, cats = this.cats;
+    if (card === undefined || cats === undefined) throw new Error('GameMenu: Settings is not built');
+    if (opts.first === true) card.firstElementChild?.after(...els); else card.append(...els);
+    cats.tag(cat, ...els);
+    const refresh = opts.refresh;
+    if (refresh !== undefined) this.sectionRefresh.add(refresh);
+    let live = true;
+    const remove = (): void => {
+      if (!live) return; live = false;
+      for (const e of els) { e.hidden = true; e.remove(); }
+      if (refresh !== undefined) this.sectionRefresh.delete(refresh);
+      cats.sync();
+    };
+    this.scope.onDispose(remove);
+    if (this._open) this.applies(); else cats.sync();
+    return remove;
+  }
   /** layout A on a desktop: the sheet goes wide for Settings, and the footer says click (J10) */
   private syncCats(): void {
     const wide = this.cats?.desk === true && this._tab === 'settings';
@@ -471,6 +495,7 @@ export class GameMenu {
   private applies(): void {
     this.savePanel?.refresh();
     this.controlsPanel?.refresh();
+    for (const refresh of this.sectionRefresh) refresh();
     const c: SettingsCtx = { ...this.opts.settings(), chunk: activeLevel() };
     for (const g of this.gated) g.el.hidden = !g.when(c);
     this.cats?.sync();
