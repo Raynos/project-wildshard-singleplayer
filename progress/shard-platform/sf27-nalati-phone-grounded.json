@@ -1,0 +1,396 @@
+{
+  "row": "SF27",
+  "parent": "931b845b8e67d1fa8bd669e41992eb5bf27fa281",
+  "current": "7382928dd4e5a8d267d1215f55c3ed2a406d62b9",
+  "tiers": [
+    "phone"
+  ],
+  "hybridDebugFixtures": [
+    "off",
+    "on"
+  ],
+  "when": "2026-10-04T19:54:08.402Z",
+  "elapsedSeconds": 228.19,
+  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+  "ambientInfo": [
+    "forest.thrall"
+  ],
+  "command": "node progress/shard-platform/SF27-parity.mjs --current=7382928dd --parent=f8f340796^ --shards=nalati-grasslands --hybrid=off,on --tiers=phone --out=<owned scratch>",
+  "harnessFix": {
+    "grounding": "603f8eaf4",
+    "builtFloorSafety": "007543ff9",
+    "activationMetadata": "6d0260fd0",
+    "tiers": "18601989c",
+    "regression": "test/parity-combat-pose.test.ts: real Player/Rapier old under-floor fall, corrected landscape grounding and built-floor datum preservation"
+  },
+  "diagnosis": {
+    "originalFullProfile": {
+      "fullDraws": 14,
+      "launches": 14,
+      "hits": 0,
+      "playerFirstY": -23.78158753530335,
+      "playerLastY": -5368.9565856100735
+    },
+    "walkOnlyControl": {
+      "hits": 2,
+      "killed": true
+    },
+    "cause": "The harness copied wolf height to a firing position 12m away under different terrain. Touch draw and arrow launch worked; no gameplay fix."
+  },
+  "reports": [
+    {
+      "hybrid": "off",
+      "setting": "off",
+      "shard": "nalati-grasslands",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "camp",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.271,
+          "note": null
+        },
+        {
+          "name": "bridge",
+          "ssim": 0.9999977581146736,
+          "full": 0.9999977880583061,
+          "masked": 0.013,
+          "note": null
+        },
+        {
+          "name": "plains",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.112,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot",
+          "baseline": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 2,
+            "hitWithinS": 4.5999999999997385,
+            "killed": true,
+            "killWithinS": 7.666666666666231,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "now": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 2,
+            "hitWithinS": 4.5999999999997385,
+            "killed": true,
+            "killWithinS": 7.666666666666231,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "class": "D",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        }
+      ],
+      "parent": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "saved": "off",
+          "packs": [
+            {
+              "memberCount": 5,
+              "membersSha256": "98007f0d5187e53a8e2ee5aaa7ab7f18c749288f260d0b160b84ad0839e8246c",
+              "declared": false
+            },
+            {
+              "memberCount": 3,
+              "membersSha256": "61b4b7c3bc6627dc65a0c0ad07996da43749e9c5c63e22e97ad407b394039b36",
+              "declared": false
+            }
+          ],
+          "herds": [
+            {
+              "memberCount": 15,
+              "membersSha256": "0867e39ad7a0238abbc933b07e4c47ed23071e7e1e8a1a0ec25945e7bee988d2",
+              "declared": false
+            },
+            {
+              "memberCount": 10,
+              "membersSha256": "32ffc88ab7791a14a8726906eea0c11b163293143e3660d8dd65f73ad50d70a6",
+              "declared": false
+            }
+          ]
+        },
+        "walk": {
+          "stuck": 0,
+          "legCount": 28,
+          "endpointsSha256": "86e93e146ec6beef524edf581425ca8686e480075a7d14f7bba616e4098e3ca5"
+        },
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 2,
+          "hitWithinS": 4.5999999999997385,
+          "killed": true,
+          "killWithinS": 7.666666666666231,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      },
+      "current": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "saved": "off",
+          "packs": [
+            {
+              "memberCount": 5,
+              "membersSha256": "98007f0d5187e53a8e2ee5aaa7ab7f18c749288f260d0b160b84ad0839e8246c",
+              "declared": false
+            },
+            {
+              "memberCount": 3,
+              "membersSha256": "61b4b7c3bc6627dc65a0c0ad07996da43749e9c5c63e22e97ad407b394039b36",
+              "declared": false
+            }
+          ],
+          "herds": [
+            {
+              "memberCount": 15,
+              "membersSha256": "0867e39ad7a0238abbc933b07e4c47ed23071e7e1e8a1a0ec25945e7bee988d2",
+              "declared": false
+            },
+            {
+              "memberCount": 10,
+              "membersSha256": "32ffc88ab7791a14a8726906eea0c11b163293143e3660d8dd65f73ad50d70a6",
+              "declared": false
+            }
+          ]
+        },
+        "walk": {
+          "stuck": 0,
+          "legCount": 28,
+          "endpointsSha256": "86e93e146ec6beef524edf581425ca8686e480075a7d14f7bba616e4098e3ca5"
+        },
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 2,
+          "hitWithinS": 4.5999999999997385,
+          "killed": true,
+          "killWithinS": 7.666666666666231,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      }
+    },
+    {
+      "hybrid": "on",
+      "setting": "off",
+      "shard": "nalati-grasslands",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "camp",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.271,
+          "note": null
+        },
+        {
+          "name": "bridge",
+          "ssim": 0.9999977581146736,
+          "full": 0.9999977880583061,
+          "masked": 0.013,
+          "note": null
+        },
+        {
+          "name": "plains",
+          "ssim": 0.9999996164231326,
+          "full": 0.9999996595021028,
+          "masked": 0.112,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": [
+        {
+          "field": "leak.disposalErrors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "no disposal failures",
+          "verdict": "green"
+        },
+        {
+          "field": "boot.errors",
+          "baseline": [],
+          "now": [],
+          "class": "D",
+          "band": "[]",
+          "verdict": "green"
+        },
+        {
+          "field": "walk.stuck",
+          "baseline": 0,
+          "now": 0,
+          "class": "D",
+          "band": "0",
+          "verdict": "green"
+        },
+        {
+          "field": "combat.shot",
+          "baseline": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 2,
+            "hitWithinS": 4.5999999999997385,
+            "killed": true,
+            "killWithinS": 7.666666666666231,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "now": {
+            "weapon": "bow",
+            "target": "wolf",
+            "hits": 2,
+            "hitWithinS": 4.5999999999997385,
+            "killed": true,
+            "killWithinS": 7.666666666666231,
+            "hitLimit": 20,
+            "killLimit": 20
+          },
+          "class": "D",
+          "band": "hit and kill within limits",
+          "verdict": "green"
+        }
+      ],
+      "parent": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "saved": "on",
+          "packs": [
+            {
+              "memberCount": 5,
+              "membersSha256": "98007f0d5187e53a8e2ee5aaa7ab7f18c749288f260d0b160b84ad0839e8246c",
+              "declared": false
+            },
+            {
+              "memberCount": 3,
+              "membersSha256": "61b4b7c3bc6627dc65a0c0ad07996da43749e9c5c63e22e97ad407b394039b36",
+              "declared": false
+            }
+          ],
+          "herds": [
+            {
+              "memberCount": 15,
+              "membersSha256": "0867e39ad7a0238abbc933b07e4c47ed23071e7e1e8a1a0ec25945e7bee988d2",
+              "declared": false
+            },
+            {
+              "memberCount": 10,
+              "membersSha256": "32ffc88ab7791a14a8726906eea0c11b163293143e3660d8dd65f73ad50d70a6",
+              "declared": false
+            }
+          ]
+        },
+        "walk": {
+          "stuck": 0,
+          "legCount": 28,
+          "endpointsSha256": "86e93e146ec6beef524edf581425ca8686e480075a7d14f7bba616e4098e3ca5"
+        },
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 2,
+          "hitWithinS": 4.5999999999997385,
+          "killed": true,
+          "killWithinS": 7.666666666666231,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      },
+      "current": {
+        "activation": {
+          "deviceKey": "debug.plugin.nalati-grasslands.shardDirectors",
+          "saved": "on",
+          "packs": [
+            {
+              "memberCount": 5,
+              "membersSha256": "98007f0d5187e53a8e2ee5aaa7ab7f18c749288f260d0b160b84ad0839e8246c",
+              "declared": true
+            },
+            {
+              "memberCount": 3,
+              "membersSha256": "61b4b7c3bc6627dc65a0c0ad07996da43749e9c5c63e22e97ad407b394039b36",
+              "declared": true
+            }
+          ],
+          "herds": [
+            {
+              "memberCount": 15,
+              "membersSha256": "0867e39ad7a0238abbc933b07e4c47ed23071e7e1e8a1a0ec25945e7bee988d2",
+              "declared": true
+            },
+            {
+              "memberCount": 10,
+              "membersSha256": "32ffc88ab7791a14a8726906eea0c11b163293143e3660d8dd65f73ad50d70a6",
+              "declared": true
+            }
+          ]
+        },
+        "walk": {
+          "stuck": 0,
+          "legCount": 28,
+          "endpointsSha256": "86e93e146ec6beef524edf581425ca8686e480075a7d14f7bba616e4098e3ca5"
+        },
+        "shot": {
+          "weapon": "bow",
+          "target": "wolf",
+          "hits": 2,
+          "hitWithinS": 4.5999999999997385,
+          "killed": true,
+          "killWithinS": 7.666666666666231,
+          "hitLimit": 20,
+          "killLimit": 20
+        },
+        "bootErrors": [],
+        "disposalErrors": []
+      }
+    }
+  ]
+}
