@@ -4,6 +4,13 @@ import { SaveStore } from '../src/engine/saves/store';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { GridReloadExit, GridReloadHandoffSchema, consumeGridReload, gridReloadSlot, validGridReload, type GridReloadHandoff } from '../src/game/grid/reloadHandoff';
 import { GridWallet } from '../src/game/grid/wallet';
+import { Ledger } from '../src/game/ledger';
+import { TEMPLATE_LEDGER } from '../src/shards/_template/data/ledger';
+import type { LedgerFact } from '../src/game/shardfile/ledger';
+import { ItemRuntime } from '../src/engine/combat/items';
+import { PlayerHealth } from '../src/engine/combat/health';
+import { Events } from '../src/engine/events/events';
+import { Vector3 } from 'three';
 import { MemoryStorage } from './setup';
 
 class Storage extends MemoryStorage {
@@ -72,15 +79,34 @@ it('refuses a restore when one-use deletion fails and cancels a U-turn before na
 });
 it('preserves the instance wallet across 50 fresh-document transfers without copying or regranting', async () => {
   const local = new Storage(), placement = { id: cell.instance, shard: cell.slug };
-  const initial = new GridWallet(new SaveStore({ local, session: null }), placement); initial.addCoins(7); expect(initial.flush()).toBe(true);
+  const ledger = (store: SaveStore): Ledger => new Ledger(store, [placement], [{ shard: cell.slug, revision: 1, rules: TEMPLATE_LEDGER }], []);
+  const fact: LedgerFact = { instance: cell.instance, shard: cell.slug, revision: 1, entity: 'actor.player', tick: 100, ordinal: 0,
+    name: 'template.quest', origin: { kind: 'engine', source: 'quest.complete' } };
+  const lantern = (): ItemRuntime => new ItemRuntime({ id: 'tool.template-lantern', kind: 'tool', action: 'template.light', fuelSeconds: 100, intensity: 1 }, {
+    actor: new PlayerHealth(new Events(), { now: () => 0, position: () => new Vector3(), dodging: () => false, dodgeGuard: () => false }),
+    combat: { hit: () => null }, targets: () => [], hook: null, effect: () => undefined,
+  });
+  const firstStore = new SaveStore({ local, session: null }), initial = new GridWallet(firstStore, placement), firstItem = lantern();
+  firstItem.queue(3); firstItem.step(0, 1 / 60); firstItem.step(1, 1);
+  const fuel = firstItem.remainingFuel;
+  initial.addCoins(7); initial.savePack({ counts: { 'shard-token': 3 }, order: ['shard-token'] });
+  expect(initial.checkpoint(firstItem.spec.id, new Map([[firstItem.spec.id, firstItem]]))).toBe(true);
+  expect(ledger(firstStore).record(fact).status).toBe('granted');
   for (let n = 0; n < 50; n++) {
     const store = new SaveStore({ local, session: null }), wallet = new GridWallet(store, placement);
-    const exit = new GridReloadExit({ checkpoint: () => wallet.flush(), slot: gridReloadSlot(store), hold: () => undefined,
+    const item = lantern(), runtimes = new Map([[item.spec.id, item]]), selected = wallet.restore(runtimes);
+    const receipt = ledger(store);
+    expect(selected).toBe(firstItem.spec.id); expect(item.remainingFuel).toBe(fuel); expect(item.lightOn).toBe(true);
+    const exit = new GridReloadExit({ checkpoint: () => wallet.checkpoint(selected, runtimes) && receipt.flush(), slot: gridReloadSlot(store), hold: () => undefined,
       fade: () => Promise.resolve(), navigate: () => undefined });
     expect(await exit.start(handoff())).toBe(true);
     const reopened = new SaveStore({ local, session: null });
     expect(consumeGridReload(gridReloadSlot(reopened), valid)).toEqual(handoff());
     expect(new GridWallet(reopened, placement).coins()).toBe(7);
+    expect(new GridWallet(reopened, placement).pack()).toEqual({ counts: { 'shard-token': 3 }, order: ['shard-token'] });
+    expect(ledger(reopened).record(fact).status).toBe('duplicate');
+    expect(Object.keys(ledger(reopened).state().facts)).toHaveLength(1);
+    expect(Object.values(ledger(reopened).state().achievements)[0]?.count).toBe(1);
   }
 });
 it('holds while metadata admission is pending and refuses a late completion after disposal', async () => {
