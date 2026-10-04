@@ -338,9 +338,15 @@
         "from": "@wildshard/engine/ai/scriptBrain"
       },
       {
+        "name": "ScriptBrainDriver",
+        "kind": "class",
+        "doc": "Role-specific brain driver; it never installs modules or starts a host tick.",
+        "from": "@wildshard/engine/ai/scriptBrain"
+      },
+      {
         "name": "ScriptBrainLane",
         "kind": "class",
-        "doc": "Bounded author policy applied through trusted actor ports after a successful atomic script call.",
+        "doc": "Standalone bounded author policy; composed levels use ScriptBrainDriver with their single ScriptComposition host.",
         "from": "@wildshard/engine/ai/scriptBrain"
       },
       {
@@ -8209,6 +8215,36 @@
         "from": "@wildshard/engine/script/client"
       },
       {
+        "name": "ScheduledScriptBinding",
+        "kind": "interface",
+        "doc": "Per-binding cadence shares the single host's global fixed-tick allowances.",
+        "from": "@wildshard/engine/script/composition"
+      },
+      {
+        "name": "ScriptComposition",
+        "kind": "class",
+        "doc": "Role-specific worlds share module memory, quarantine, fuel, effects, events and queries under one host.",
+        "from": "@wildshard/engine/script/composition"
+      },
+      {
+        "name": "ScriptCompositionOptions",
+        "kind": "interface",
+        "doc": "Exactly one level-wide host installs the union of admitted modules once.",
+        "from": "@wildshard/engine/script/composition"
+      },
+      {
+        "name": "ScriptRole",
+        "kind": "interface",
+        "doc": "A trusted role owns its entity handles, effect validation, query provenance and complete world continuation.",
+        "from": "@wildshard/engine/script/composition"
+      },
+      {
+        "name": "ScriptSchedule",
+        "kind": "interface",
+        "doc": "Input is prepared before the tick starts; committed requests are handled only after successful validation.",
+        "from": "@wildshard/engine/script/composition"
+      },
+      {
         "name": "EffectRules",
         "kind": "interface",
         "doc": "Content supplies legal field ranges, archetypes and event ids as data.",
@@ -8269,6 +8305,12 @@
         "from": "@wildshard/engine/script/host"
       },
       {
+        "name": "ScriptEventDelivery",
+        "kind": "interface",
+        "doc": "Trusted schedulers retain events for sleeping bindings and consume request-only outputs without redelivery.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
         "name": "ScriptHost",
         "kind": "class",
         "doc": "One module instance per host; every call carries its current entity handle in IN[3].",
@@ -8317,15 +8359,33 @@
         "from": "@wildshard/engine/script/lane"
       },
       {
+        "name": "ScriptDriver",
+        "kind": "class",
+        "doc": "Declared numeric state is validated in its own trusted role, separate from creature motion intentions.",
+        "from": "@wildshard/engine/script/lane"
+      },
+      {
+        "name": "ScriptDriverOptions",
+        "kind": "type",
+        "doc": "Numeric-state scheduler dependencies; construction never installs a module or starts a host tick.",
+        "from": "@wildshard/engine/script/lane"
+      },
+      {
         "name": "ScriptLane",
         "kind": "class",
-        "doc": "Singleplayer runs server and entity scripts through this same session-local authoritative lane.",
+        "doc": "Standalone numeric lane; composed levels use ScriptDriver under their single ScriptComposition host.",
         "from": "@wildshard/engine/script/lane"
       },
       {
         "name": "ScriptLaneOptions",
         "kind": "interface",
         "doc": "Explicit dependencies for one local authoritative script lane.",
+        "from": "@wildshard/engine/script/lane"
+      },
+      {
+        "name": "ScriptLanePort",
+        "kind": "interface",
+        "doc": "Numeric-state facade for a standalone lane or a level-wide composed host; no concrete implementation cast is required.",
         "from": "@wildshard/engine/script/lane"
       },
       {
@@ -12486,6 +12546,12 @@
         "from": "@wildshard/game/grid/wallet"
       },
       {
+        "name": "stowGridMount",
+        "kind": "function",
+        "doc": "Retire a shard-owned ride through its original owner; the platform hoverboard is a separate traveller mode.",
+        "from": "@wildshard/game/grid/wallet"
+      },
+      {
         "name": "instanceSave",
         "kind": "function",
         "doc": "Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent.",
@@ -14325,6 +14391,12 @@
         "name": "numericScriptState",
         "kind": "function",
         "doc": "Translate only numeric fields; string values never become forged numeric ids. Stable ids determine input order.",
+        "from": "@wildshard/game/shardfile/scripts"
+      },
+      {
+        "name": "prepareShardfileScriptOptions",
+        "kind": "function",
+        "doc": "Prepare declared state and admitted modules without allocating a host or executing author initialization.",
         "from": "@wildshard/game/shardfile/scripts"
       },
       {

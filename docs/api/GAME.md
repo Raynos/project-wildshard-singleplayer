@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-469 members; 113 without a doc line (—).
+471 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -130,6 +130,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GridWallet` | class | @wildshard/game/grid/wallet | A shard's money, bag and item continuation stay bound to its stable instance in either entry mode. |
 | `installGridLoadout` | function | @wildshard/game/grid/wallet | Restore one instance's held selection and bind reversible border stow to the existing equipment and scope. |
 | `stowGridEquipment` | function | @wildshard/game/grid/wallet | At the cell edge cancel local input immediately; ownership, ammo, fuel and selection stay in the source shard. |
+| `stowGridMount` | function | @wildshard/game/grid/wallet | Retire a shard-owned ride through its original owner; the platform hoverboard is a separate traveller mode. |
 | `instanceSave` | function | @wildshard/game/instanceSaves | Bind shard-local state, migrating a slug only for its canonical first-party instance. Template copies start independent. |
 | `instanceSaveIdentity` | function | @wildshard/game/instanceSaves | Resolve exactly the same durable namespace and legacy alias for reading, previewing and resetting either entry mode. |
 | `LocalSaveInstance` | interface | @wildshard/game/instanceSaves | Stable placement identity passed by the session, independent of cell or launch mode. |
@@ -437,6 +438,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardfileSchema` | const | @wildshard/game/shardfile/schema | Strict schema for the public SDK format; rejects unknown fields and invalid references. |
 | `createShardfileScriptLane` | function | @wildshard/game/shardfile/scripts | Create the local authoritative lane explicitly; its constructor admits every module before execution. |
 | `numericScriptState` | function | @wildshard/game/shardfile/scripts | Translate only numeric fields; string values never become forged numeric ids. Stable ids determine input order. |
+| `prepareShardfileScriptOptions` | function | @wildshard/game/shardfile/scripts | Prepare declared state and admitted modules without allocating a host or executing author initialization. |
 | `scriptBindingRules` | function | @wildshard/game/shardfile/scripts | Reference/identity checks; both actor-bound server logic and actor-free director logic run authoritatively. |
 | `ScriptBindingsSchema` | const | @wildshard/game/shardfile/scripts | Numeric entity handles and an optional host-verified actor id bind an admitted module to local sim work. |
 | `ShardScriptBindings` | type | @wildshard/game/shardfile/scripts | A validated v0 script binding list. |

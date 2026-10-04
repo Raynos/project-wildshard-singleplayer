@@ -1807,7 +1807,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1938 exports, grouped by the module to import them from.
+1948 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1821,7 +1821,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ai/phases`: `EncounterPhase`, `PhaseEncounter`, `PhaseEncounterPorts`, `PhaseEncounterSpec`, `silentBossPresentation`
 - `@wildshard/engine/ai/platform`: `BrainNavigation`, `BrainTarget`, `buildPlatformSpawns`, `installPlatformBrains`, `PlatformBrain`, `PlatformBrainPorts`, `PlatformBrainSpec`, `PlatformSpawn`, `PlatformSpecies`, `preparePlatformBrains`
 - `@wildshard/engine/ai/reach`: `canReach`, `ReachActor`
-- `@wildshard/engine/ai/scriptBrain`: `BRAIN_FIELD`, `ScriptBrainBinding`, `ScriptBrainLane`, `ScriptBrainOptions`, `ScriptBrainPorts`
+- `@wildshard/engine/ai/scriptBrain`: `BRAIN_FIELD`, `ScriptBrainBinding`, `ScriptBrainDriver`, `ScriptBrainLane`, `ScriptBrainOptions`, `ScriptBrainPorts`
 - `@wildshard/engine/ai/skirmisher`: `SkirmisherBrain`, `SkirmisherPorts`, `SkirmisherSpec`
 - `@wildshard/engine/ai/species`: `deriveSpecies`, `SpeciesRow`, `SpeciesVariant`
 - `@wildshard/engine/ai/strikes`: `BrainPoint`, `StrikeActor`, `StrikeContext`, `StrikePhase`, `StrikeRunner`, `StrikeShape`, `StrikeSpec`, `UtilityScore`
@@ -2042,9 +2042,10 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/script/abi`: `SCRIPT_ABI`, `SCRIPT_EXPORTS`, `SCRIPT_IMPORTS`
 - `@wildshard/engine/script/admission`: `admitScript`, `ScriptAdmission`
 - `@wildshard/engine/script/client`: `CLIENT_SCRIPT_LIMITS`, `CLIENT_SCRIPT_OP`, `ClientParticleRequest`, `ClientScriptBinding`, `ClientScriptEmitter`, `ClientScriptFrame`, `ClientScriptLane`, `ClientScriptObservation`, `ClientScriptOptions`
+- `@wildshard/engine/script/composition`: `ScheduledScriptBinding`, `ScriptComposition`, `ScriptCompositionOptions`, `ScriptRole`, `ScriptSchedule`
 - `@wildshard/engine/script/effects`: `EffectRules`, `EffectTransaction`, `SCRIPT_OP`, `ScriptEffect`, `ScriptEntity`, `ScriptEvent`, `ScriptWorld`
-- `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `SCRIPT_PARAMETER_QUERY`, `ScriptCall`, `ScriptHost`, `ScriptHostOptions`, `ScriptHostState`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
-- `@wildshard/engine/script/lane`: `installScriptLane`, `ScriptBinding`, `ScriptLane`, `ScriptLaneOptions`, `ScriptModule`
+- `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `SCRIPT_PARAMETER_QUERY`, `ScriptCall`, `ScriptEventDelivery`, `ScriptHost`, `ScriptHostOptions`, `ScriptHostState`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
+- `@wildshard/engine/script/lane`: `installScriptLane`, `ScriptBinding`, `ScriptDriver`, `ScriptDriverOptions`, `ScriptLane`, `ScriptLaneOptions`, `ScriptLanePort`, `ScriptModule`
 - `@wildshard/engine/script/queries`: `SCRIPT_QUERY`, `ScriptPhysics`, `scriptPhysicsQueries`
 - `@wildshard/engine/script/state`: `DeclaredScriptWorld`, `SCRIPT_STATE_OP`, `ScriptStateDeclaration`, `ScriptStateField`, `ScriptWorldState`
 - `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimCommand`, `SimExternalPlayer`, `SimHost`, `SimHostPorts`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
@@ -2139,7 +2140,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-469 exports, grouped by the module to import them from.
+471 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2164,7 +2165,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `reframeGridUnit`
 - `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
 - `@wildshard/game/grid/state`: `regionalState`
-- `@wildshard/game/grid/wallet`: `GridLoadout`, `GridWallet`, `installGridLoadout`, `stowGridEquipment`
+- `@wildshard/game/grid/wallet`: `GridLoadout`, `GridWallet`, `installGridLoadout`, `stowGridEquipment`, `stowGridMount`
 - `@wildshard/game/instanceSaves`: `instanceSave`, `instanceSaveIdentity`, `LocalSaveInstance`
 - `@wildshard/game/Inventory`: `harvestOf`, `Inventory`, `ItemId`, `PACK_SLOTS`
 - `@wildshard/game/ledger`: `installLedgerEmitter`, `Ledger`, `LedgerCatalogueItem`, `LedgerEmitter`, `ledgerFactId`, `LedgerInstance`, `LedgerReceipt`
@@ -2222,7 +2223,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/rows`: `parseRows`, `rowRules`, `RowsSchema`, `scoredStrikes`, `ShardRows`, `simStrikes`, `speciesResolver`
 - `@wildshard/game/shardfile/runtime`: `prepareTrustedRuntime`, `RuntimeDeclaration`, `RuntimeSchema`, `TrustedRuntimeEntry`
 - `@wildshard/game/shardfile/schema`: `LOOK_LUT_BYTES`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
-- `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
+- `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `prepareShardfileScriptOptions`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
 - `@wildshard/game/shardfile/simulation`: `bindShardfileSim`, `createShardfileSim`, `numericScriptEntityId`, `ShardfileSimPorts`, `ShardfileSimulation`
 - `@wildshard/game/shardfile/skinLayers`: `skinLayerDecoded`, `SkinPoseLayer`, `SkinPoseLayerSchema`, `validateSkinLayers`
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`

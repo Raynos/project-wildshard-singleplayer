@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1955 members; 830 without a doc line (—).
+1965 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -64,7 +64,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ReachActor` | interface | @wildshard/engine/ai/reach | — |
 | `BRAIN_FIELD` | const | @wildshard/engine/ai/scriptBrain | Numeric motion intentions; the guest cannot write positions, spawn actors or deal damage. |
 | `ScriptBrainBinding` | interface | @wildshard/engine/ai/scriptBrain | One trusted actor binding, with admitted motion bounds and a finite catalogue of strike requests. |
-| `ScriptBrainLane` | class | @wildshard/engine/ai/scriptBrain | Bounded author policy applied through trusted actor ports after a successful atomic script call. |
+| `ScriptBrainDriver` | class | @wildshard/engine/ai/scriptBrain | Role-specific brain driver; it never installs modules or starts a host tick. |
+| `ScriptBrainLane` | class | @wildshard/engine/ai/scriptBrain | Standalone bounded author policy; composed levels use ScriptBrainDriver with their single ScriptComposition host. |
 | `ScriptBrainOptions` | interface | @wildshard/engine/ai/scriptBrain | Each lane shares the engine's per-tick module, fuel, query, effect and memory allowances. |
 | `ScriptBrainPorts` | interface | @wildshard/engine/ai/scriptBrain | Read-only observations and authoritative strike execution are supplied by the owning simulation. |
 | `SkirmisherBrain` | class | @wildshard/engine/ai/skirmisher | Renderer-free decisions; every timer, random continuation and remembered goal lives in the actor snapshot. |
@@ -1373,6 +1374,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ClientScriptLane` | class | @wildshard/engine/script/client | Bounded presentation lane with private Wasm memory and private visual output; a frozen sim is never stepped or mutated. |
 | `ClientScriptObservation` | interface | @wildshard/engine/script/client | A copied, read-only observation supplied by the platform; frozen describes the authoritative sim, not this lane. |
 | `ClientScriptOptions` | interface | @wildshard/engine/script/client | Explicit module installation. The lane has no reference to physics, a save store or an authoritative script world. |
+| `ScheduledScriptBinding` | interface | @wildshard/engine/script/composition | Per-binding cadence shares the single host's global fixed-tick allowances. |
+| `ScriptComposition` | class | @wildshard/engine/script/composition | Role-specific worlds share module memory, quarantine, fuel, effects, events and queries under one host. |
+| `ScriptCompositionOptions` | interface | @wildshard/engine/script/composition | Exactly one level-wide host installs the union of admitted modules once. |
+| `ScriptRole` | interface | @wildshard/engine/script/composition | A trusted role owns its entity handles, effect validation, query provenance and complete world continuation. |
+| `ScriptSchedule` | interface | @wildshard/engine/script/composition | Input is prepared before the tick starts; committed requests are handled only after successful validation. |
 | `EffectRules` | interface | @wildshard/engine/script/effects | Content supplies legal field ranges, archetypes and event ids as data. |
 | `EffectTransaction` | interface | @wildshard/engine/script/effects | Complete transaction result; publication is a single host-owned state replacement. |
 | `SCRIPT_OP` | const | @wildshard/engine/script/effects | V0 numeric effect operations; all records contain [op,a,b,c,d] f64 values. |
@@ -1383,6 +1389,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SCRIPT_LIMITS` | const | @wildshard/engine/script/host | Conservative defaults; all are hard platform ceilings and may only be lowered by a host. |
 | `SCRIPT_PARAMETER_QUERY` | const | @wildshard/engine/script/host | Read-only declared numeric parameters; the host supplies the trusted calling entity to the query adapter. |
 | `ScriptCall` | interface | @wildshard/engine/script/host | Results expose validated requests only after the atomic world-state transaction succeeds. |
+| `ScriptEventDelivery` | interface | @wildshard/engine/script/host | Trusted schedulers retain events for sleeping bindings and consume request-only outputs without redelivery. |
 | `ScriptHost` | class | @wildshard/engine/script/host | One module instance per host; every call carries its current entity handle in IN[3]. |
 | `ScriptHostOptions` | interface | @wildshard/engine/script/host | Host dependencies are explicitly installed; no import creates an instance or changes a service. |
 | `ScriptHostState` | interface | @wildshard/engine/script/host | JSON-compatible complete continuation; counters, pending events and quarantine history affect replay. |
@@ -1391,8 +1398,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ScriptSnapshot` | interface | @wildshard/engine/script/host | A complete linear-memory + mutable-global snapshot, never a live view of Wasm state. |
 | `installScriptLane` | function | @wildshard/engine/script/lane | Install fixed-step work and a same-engine continuation adapter, scoped to the real headless/client sim host. |
 | `ScriptBinding` | interface | @wildshard/engine/script/lane | A content binding; the actor id is supplied by the trusted host, never an effect or script input. |
-| `ScriptLane` | class | @wildshard/engine/script/lane | Singleplayer runs server and entity scripts through this same session-local authoritative lane. |
+| `ScriptDriver` | class | @wildshard/engine/script/lane | Declared numeric state is validated in its own trusted role, separate from creature motion intentions. |
+| `ScriptDriverOptions` | type | @wildshard/engine/script/lane | Numeric-state scheduler dependencies; construction never installs a module or starts a host tick. |
+| `ScriptLane` | class | @wildshard/engine/script/lane | Standalone numeric lane; composed levels use ScriptDriver under their single ScriptComposition host. |
 | `ScriptLaneOptions` | interface | @wildshard/engine/script/lane | Explicit dependencies for one local authoritative script lane. |
+| `ScriptLanePort` | interface | @wildshard/engine/script/lane | Numeric-state facade for a standalone lane or a level-wide composed host; no concrete implementation cast is required. |
 | `ScriptModule` | interface | @wildshard/engine/script/lane | Admitted bytecode and its stable module identity and initialization seed. |
 | `SCRIPT_QUERY` | const | @wildshard/engine/script/queries | Query opcodes: ray, axis-aligned overlap, nearest walkable point, bounded path. |
 | `ScriptPhysics` | interface | @wildshard/engine/script/queries | Read-only physics and navigation inputs; collider owners map to stable numeric entity handles. |
