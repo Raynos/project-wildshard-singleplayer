@@ -135,7 +135,7 @@ it('drives at 30 m/s: the link cannot keep up with L0, coarse levels hold, still
 
 it('the same path gives the same residency trace', () => {
   expect(drive(30).trace).toEqual(drive(30).trace);
-});
+}, 60_000); // Two complete fixed-step drives with per-frame coverage checks exceed 20 s on the CI coverage runner.
 
 it('under a tight envelope the allocator refuses and evicts cache, and holes still never show', () => {
   const run = drive(30, { playing: 700_000_000 });
