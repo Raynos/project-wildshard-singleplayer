@@ -37,7 +37,7 @@ export function emptyShardfileSource(input: unknown): ShardManifest {
 function sourceManifest(source: Shardfile): ShardManifest {
   const card = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/%3E';
   return {
-    api: 1, slug: parseShardSlug(source.identity.slug), name: source.identity.name, seed: source.identity.seed,
+    api: 1, accent: source.accent, slug: parseShardSlug(source.identity.slug), name: source.identity.name, seed: source.identity.seed,
     order: 0, status: 'live', label: '(0, 0)', biome: 'Empty world', blurb: 'An empty shardfile world.',
     card: { thumb: card, portrait: card, landscape: card }, style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom',
     treeCount: 0, trees: { factory: 'none', noun: 'trees' }, ground: { structures: true, paths: 'plugin' }, horizon: { rings: [], cloudSea: false },

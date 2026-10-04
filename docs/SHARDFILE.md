@@ -21,6 +21,7 @@ projects and the template explicitly declare four 6 m openings.
 | Section | Contract |
 |---|---|
 | `identity` | Kebab/dot slug, nonempty display name and author (128 characters max), positive revision, unsigned seed. No grid coordinates. |
+| `accent` | Required lowercase ID from the platform’s 20-colour palette; road/safe-zone cyan is reserved. |
 | `requires` | SDK revision 0; capability names; declared SHA-256 commons hashes. |
 | `budgets` | Library resident ≤25 MB and wire ≤8 MB; sim resident ≤25 MB and critical wire ≤2 MB; decode/refinement slack ≤80 MB. |
 | `look` | Fixed platform family names; grade exposure/saturation/contrast and optional LUT reference; engine clock with an optional `day`; optional normalised day override; ordered day keys carrying sky gradient, fog, sun and ambient values (below). |
@@ -44,6 +45,14 @@ projects and the template explicitly declare four 6 m openings.
 | `library`, `critical`, `far` | Library roots, critical roots, optional whole-shard proxy with bounds and costs. Critical flags match critical roots. |
 | `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |
 | `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts"}`; a bounded relative TypeScript entry resolved only through the trusted registry. |
+
+HUD accent (`@wildshard/sdk/accent`) is one required palette ID: `ember`, `coral`,
+`tangerine`, `apricot`, `marigold`, `citron`, `lime`, `moss`, `jade`, `mint`, `teal`,
+`azure`, `cornflower`, `periwinkle`, `iris`, `lilac`, `orchid`, `pink`, `rose`, or
+`sand`. Missing IDs, unknown IDs and raw colours fail validation. The road and
+safe zone keep HUD cyan `#8fe3ff`; `cyan`, `road`, `hud-cyan` and that hex are
+explicitly refused. New author projects and the template declare `sand`.
+Admitted shardfile metadata carries the accent into the existing manifest.
 
 Declared UI (`@wildshard/game/shardfile/ui`, SF7f) is plain data the platform draws in
 the shared HUD's own style and slots; a shard ships no DOM. Labels are 1–128 characters

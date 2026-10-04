@@ -93,6 +93,7 @@
     "./shardfile/clientScripts": "./shardfile/clientScripts.ts",
     "./shardfile/migrations": "./shardfile/migrations.ts",
     "./shardfile/brains": "./shardfile/brains.ts",
-    "./shardfile/brainRuntime": "./shardfile/brainRuntime.ts"
+    "./shardfile/brainRuntime": "./shardfile/brainRuntime.ts",
+    "./shardfile/accent": "./shardfile/accent.ts"
   }
 }

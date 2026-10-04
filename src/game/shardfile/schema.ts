@@ -22,6 +22,7 @@ import { ClientScriptsSchema, clientScriptRules } from './clientScripts';
 import { EdgeProfilesSchema } from './edgeProfiles';
 import { EntrywaysSchema, entrywayRules } from './entryways';
 import { StateSchema, stateRules } from './state';
+import { AccentSchema } from './accent';
 import { MigrationsSchema, migrationRules } from './migrations';
 import { skinLookRules } from './skins';
 import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs } from './materials';
@@ -46,6 +47,7 @@ const tile = v.strictObject({ lod: v.picklist([0, 1]), x: natural, z: natural, b
 const file = v.strictObject({ hash, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'binary']), ...costs, dependencies: v.array(ref), critical: v.boolean() });
 const rawSchema = v.strictObject({
   version: v.literal(SHARDFILE_VERSION),
+  accent: AccentSchema,
   identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), revision: positive, seed: natural }),
   requires: v.strictObject({ sdk: v.literal(0), capabilities: v.array(name), commons: v.array(hash) }),
   budgets: v.strictObject({ library: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.compressed)) }), sim: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.compressed)) }), overlap: v.pipe(natural, v.maxValue(CONTENT_CAPS.overlap)) }),
