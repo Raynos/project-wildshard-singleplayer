@@ -43,3 +43,14 @@ it('retains an exact authored fade width and refuses an inconsistent outer radiu
   expect(parseAudioData({ ...audio(), zones: { ...zones, zones: [row] } }).zones?.zones[0]?.fade).toBe(30);
   expect(() => parseAudioData({ ...audio(), zones: { ...zones, zones: [{ ...row, fade: 29 }] } })).toThrow();
 });
+
+it('bounds rectangular blends, positional loops and explicit sample exclusions', () => {
+  const zones = audio().zones; if (zones === undefined) throw new Error('Missing zones');
+  const row = { id: 'market', zone: 'market', x0: 0, x1: 22, z0: -26, z1: 20 };
+  const valid = { ...zones, blendMetres: 6, rectangles: [row], beds: [{ id: 'bed.market', zone: 'market' }], positional: { sample: 'hum.lantern', max: 4, reach: 14 } };
+  expect(parseAudioData({ ...audio(), zones: valid }).zones).toEqual(valid);
+  expect(() => parseAudioData({ ...audio(), zones: { ...valid, rectangles: [{ ...row, x1: -1 }] } })).toThrow();
+  expect(() => parseAudioData({ ...audio(), zones: { ...valid, rectangles: [row, row] } })).toThrow();
+  expect(() => parseAudioData({ ...audio(), zones: { ...valid, positional: { ...valid.positional, max: 33 } } })).toThrow();
+  expect(() => parseAudioData({ ...audio(), samples: { set: 'fixture', bed: 'forest', loopGains: {}, omitSlots: ['island', 'island'] } })).toThrow();
+});

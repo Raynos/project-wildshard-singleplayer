@@ -1,7 +1,7 @@
 import type { ScoreSelection } from './scoreSelection';
 
 /** Same-byte platform sample catalogue; gains apply to admitted named loops. */
-export interface AudioSampleProfile { set: string; bed: string; loopGains: Readonly<Record<string, number>> }
+export interface AudioSampleProfile { set: string; bed: string; loopGains: Readonly<Record<string, number>>; omitLoops?: readonly string[] | undefined; omitShots?: readonly string[] | undefined; omitSlots?: readonly string[] | undefined }
 /** Existing music catalogue and bounded scene selection; stem decoding and bar-grid playback remain engine-owned. */
 export interface AudioMusicProfile {
   id: string; base: string; slots: readonly string[]; bootSlots: readonly string[]; synthLead: 'pluck' | 'marimba'; minFade: number;
@@ -13,7 +13,11 @@ export interface AudioZone { id: string; x: number; z: number; inner: number; ou
 /** Mixer timing, bed levels, room sends and named zones consumed by a trusted catalogue recipe. */
 export interface AudioZoneProfile {
   id: string; smoothSeconds: number; tickHz: number; silentSeconds: number; holdSeconds: number;
-  levels: Readonly<Record<string, number>>; wet: Readonly<Record<string, number>>; zones: readonly AudioZone[];
+  levels: Readonly<Record<string, number>>;
+  /** Rectangle-distance blend regions and admitted bed/sample names, for enclosed scenes. */
+  blendMetres?: number | undefined; rectangles?: readonly { id: string; zone: string; x0: number; x1: number; z0: number; z1: number }[] | undefined;
+  beds?: readonly { id: string; zone: string }[] | undefined; positional?: { sample: string; max: number; reach: number } | undefined;
+  wet: Readonly<Record<string, number>>; zones: readonly AudioZone[];
 }
 
 /** Refuse a missing required recipe before its runtime graph can start. */
