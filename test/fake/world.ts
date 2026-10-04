@@ -35,7 +35,7 @@ export function fakeWorld(): {
   const game = new FakeGame();
   // Cast only at the legacy constructor boundary: these doubles deliberately implement a small surface.
   const player: Player = legacyDouble<Player>({
-    sampleAimCommand: () => Player.prototype.sampleAimCommand.call(player), crouching: false,
+    sampleAimCommand: () => Player.prototype.sampleAimCommand.call(player), inputService: null, crouching: false,
     position: new THREE.Vector3(), yaw: 0, pitch: 0, locked: true, fovKick: 0,
     sprinting: false, speedFactor: 0, bobTime: 0, dashing: false, swinging: false,
     motor: legacyDouble<CharacterMotor>({ collider: legacyDouble<Collider>({}) }), dashTo: (): boolean => false,
