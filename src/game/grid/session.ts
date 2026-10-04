@@ -30,6 +30,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { app } from '@wildshard/engine/app/runtime';
 import { harnessPins } from '@wildshard/engine/app/identity';
 import type { Physics } from '@wildshard/engine/physics/Physics';
+import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import { installGridBorders } from '@wildshard/engine/physics/gridBorders';
@@ -258,6 +259,8 @@ export class GridSession {
         status: () => { if (++polled % 4 === 0) status = crossingSaveStatus(this.live?.state().crossing); return status; },
         text: (shown) => (shown === 'saving' ? GAME_STRINGS.grid.saving : GAME_STRINGS.grid.saveFailed) } });
     for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
+    // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.
+    installEntrySockets(host.physics, host.scope, this.neighbours.map((cell) => ({ x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z })));
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // synced open by the live host once a neighbour is ready
     installGridBorders(host.physics, host.scope); // the home cell's creatures stay home (SF20d)
     // G72, one landmass: the home level's open water stays inside its own cell (its sea surface and its swell body)

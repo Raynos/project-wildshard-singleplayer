@@ -12,6 +12,7 @@ import { markBootContextLost, markBootHandledError } from '@wildshard/engine/boo
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { bootstrap } from '@wildshard/engine/core/bootstrap';
 import { TIER } from '@wildshard/engine/core/tier';
+import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { showError } from '@wildshard/engine/ui/ErrorModal';
 import { Boundary } from '@wildshard/engine/world/Boundary';
@@ -24,6 +25,7 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
 
   const world = Object.assign(await bootstrap(step, gridLevel(toLevelSpec({ ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn })), INPUT_CONTEXTS), { chunk: manifest });
   const { game, sky, player, forest, params, chunk, registry } = world;
+  installEntrySockets(world.physics, game.levelScope, [{ x: 0, z: 0 }]);
   app.params = params;
   boot.runtime.world = world; boot.runtime.step = step;
   if (level !== undefined) game.scene.add(level.root);
