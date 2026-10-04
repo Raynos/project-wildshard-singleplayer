@@ -32,12 +32,13 @@ import { installGridBorders } from '@wildshard/engine/physics/gridBorders';
 import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripMesh } from '@wildshard/engine/sim/strips';
 import { GridAssembly, type GridCell } from './assembly';
 import { gridMode } from './menu';
-import { devserverCellOn } from './debug';
+import { devserverCellOn, gridOneFrameOn, installGridFrameRow } from './debug';
 import { gridCells, pageGridInstance, pageMode } from './boot';
 import { ResidencyAllocator } from './allocator';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
 import { farRingPorts, type FarPrepared } from './farView';
 import type { FarLookRuntime } from './farProxy';
+import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 
 /** In grid mode the level's own chunk-edge walls and veil yield to the platform (the standalone path is unchanged). */
 export function gridLevel(spec: LevelSpec): LevelSpec {
@@ -53,6 +54,8 @@ export interface GridSessionHost {
   readonly feet: () => { readonly x: number; readonly y: number; readonly z: number };
   /** Register once per fixed step (the page's one fixed step; never a second loop). */
   readonly onFixed: (fn: (dt: number) => void) => void;
+  /** SF19a's one frame: the camera, composer and grade effects, and the page's late phase (absent: never built) */
+  readonly frame?: GridFrameHost & { readonly onLate: (fn: () => void) => void };
 }
 /** What each cell shows today, for the readout and the report. */
 export type GridCellShows = 'playing' | 'far proxy' | 'loading';
@@ -64,6 +67,8 @@ export interface GridSessionState {
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 850 MB envelope) */
   readonly residentMB: number; readonly playingMB: number;
   readonly rings: { readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number };
+  /** SF19a's one frame (null with its Debug row off) */
+  readonly frame: GridFrameState | null;
 }
 
 const FALLBACK = (): never => { throw new Error('Grid neighbours have no streamed tiles yet (their far proxy is the fallback)'); };
@@ -86,7 +91,8 @@ async function loadFar(slug: string): Promise<{ prepared: FarPrepared; bytes: nu
 const num = v.pipe(v.number(), v.finite());
 /** The part of `far.json` the client reads: the resident cost and the look (the bake writes more). */
 const FarRow = v.object({ far: v.object({ gpu: num, decoded: num }),
-  look: v.object({ family: v.picklist(['toon', 'painterly', 'pbr']), haze: v.object({ colour: v.tuple([num, num, num]), near: num, far: num, max: num }) }) });
+  look: v.object({ family: v.picklist(['toon', 'painterly', 'pbr']), haze: v.object({ colour: v.tuple([num, num, num]), near: num, far: num, max: num }),
+    grade: v.optional(v.object({ exposure: num, saturation: num, contrast: num })) }) });
 function farLook(row: unknown): FarLookRuntime { return v.parse(FarRow, row).look; }
 function farBytes(row: unknown): number { const { far } = v.parse(FarRow, row); return Math.round(far.gpu + far.decoded); }
 
@@ -141,6 +147,7 @@ export class GridSession {
   private readonly host: GridSessionHost;
   private last: { x: number; z: number } | null = null;
   private velocity = { x: 0, z: 0 };
+  private readonly frame: GridFrame | null;
 
   constructor(host: GridSessionHost) {
     this.host = host;
@@ -155,6 +162,13 @@ export class GridSession {
       edges: { north: empty, east: empty, south: empty, west: empty } }));
     this.strips = generatePlatform(cells, empty);
     const deck = deckMesh(this.strips, home);
+    // SF19a: one frame for the grid, behind its Debug row (default off; applies at the next grid start)
+    host.scope.onDispose(installGridFrameRow());
+    const frameHost = host.frame;
+    this.frame = frameHost !== undefined && gridOneFrameOn() ? new GridFrame({ host: frameHost, scope: host.scope, home, half: CHUNK_HALF, band: (this.assembly.pitch - 2 * CHUNK_HALF) / 2,
+      cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, origin: { x: cell.origin.x, z: cell.origin.z } })) }) : null;
+    const frame = this.frame;
+    if (frame !== null && frameHost !== undefined) { frame.deck(deck); frameHost.onLate(() => { frame.frame(); }); }
     host.scene.add(deck);
     for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
     new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // never synced open: no neighbour sim is resident in the page yet
@@ -167,9 +181,14 @@ export class GridSession {
     }
     const far = farRingPorts({
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
-      load: async (id) => { const { prepared, bytes } = await loadFar(this.assembly.cell(id).slug); this.costs.set(id, bytes); return prepared; },
+      load: async (id) => { const { prepared, bytes } = await loadFar(this.assembly.cell(id).slug); this.costs.set(id, bytes); frame?.declare(id, prepared.look); return prepared; },
     });
-    this.rings = new RenderRings(this.neighbours, this.allocator, (id, level) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : null), levelPorts<FarPrepared, never>(far, noTiles));
+    const farPorts = frame === null ? far : { ...far, upload: (tile: { instance: string }, data: FarPrepared) => {
+      const view = far.upload(tile, data), untag = frame.tag(tile.instance, view, data.look.haze), dispose = view.dispose;
+      view.dispose = () => { untag(); dispose(); };
+      return view;
+    } };
+    this.rings = new RenderRings(this.neighbours, this.allocator, (id, level) => (level === 'far' ? this.costs.get(id) ?? 1_600_000 : null), levelPorts<FarPrepared, never>(farPorts, noTiles));
     host.scope.onDispose(() => {
       this.rings.dispose(); deck.removeFromParent(); deck.geometry.dispose();
       const material = deck.material; if (!Array.isArray(material)) material.dispose();
@@ -216,6 +235,7 @@ export class GridSession {
       strips: this.strips.length, ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused },
+      frame: this.frame?.state() ?? null,
     };
   }
 }

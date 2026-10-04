@@ -21,6 +21,10 @@ export const GAME_STRINGS = {
     devserverCell: (x: number, z: number): string => `EXPERIMENTAL Wildshard (${x < 0 ? '−' : '+'}${Math.abs(x)}, ${z < 0 ? '−' : '+'}${Math.abs(z)})`,
     template: 'Template',
     devserverCellNote: 'SF21a (G46): the DEVSERVER cell of EXPERIMENTAL Wildshard, or the template it replaces. Applies at the next grid start.',
+    oneFrame: 'Grid one frame',
+    oneFrameNote: 'SF19a: one sky, sun, exposure and air for the whole grid, each pixel graded by its own region. Applies at the next grid start.',
+    off: 'Off',
+    on: 'On',
   },
   summary: {
     label: 'Wildshard progress',

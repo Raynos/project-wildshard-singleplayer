@@ -17,7 +17,7 @@ const ROW_ID = 'gridDevserverCell';
 interface GlobalRowSpec extends Pick<DebugRow, 'id' | 'group' | 'label' | 'note' | 'ask' | 'reviewBy'> {
   choices: readonly { value: string; text: string }[]; initial: string; change: (value: string) => void; reload?: boolean;
 }
-const saved = (): ReturnType<typeof jsonSlot> => jsonSlot(`debug.global.${ROW_ID}`, 'device');
+const saved = (id: string = ROW_ID): ReturnType<typeof jsonSlot> => jsonSlot(`debug.global.${id}`, 'device');
 
 /** the row's value: true keeps the `devserver` cell in the grid (the default) */
 export function devserverCellOn(devserver: boolean = DEVSERVER): boolean {
@@ -25,9 +25,20 @@ export function devserverCellOn(devserver: boolean = DEVSERVER): boolean {
   try { return saved().read() !== 'off'; } catch { return true; }
 }
 
+/**
+ * SF19a's "Grid one frame" row: the camera owns the grid's sky, sun, exposure and air, and each pixel keeps its own
+ * region's grade (`frame.ts`). Default off until a device reading (RENDERING.md); it shows inside the grid only and
+ * applies at the next grid start, like every grid row. Select a shard never reads it.
+ */
+const FRAME_ROW = 'gridOneFrame';
+/** the one-frame row's value (off by default) */
+export function gridOneFrameOn(): boolean {
+  try { return saved(FRAME_ROW).read() === 'on'; } catch { return false; }
+}
+
 /** A game-wide row over a device save: shown wherever Settings ▸ Debug opens, until the returned function removes it. */
 function globalRow(spec: GlobalRowSpec): () => void {
-  const slot = saved();
+  const slot = saved(spec.id);
   const read = (): string => { const value = slot.read(); return typeof value === 'string' && spec.choices.some((choice) => choice.value === value) ? value : spec.initial; };
   const listeners = new Set<() => void>();
   let live = true;
@@ -41,6 +52,15 @@ function globalRow(spec: GlobalRowSpec): () => void {
   return () => { live = false; authoredRows.delete(row); listeners.clear(); };
 }
 const grid = { debugRow: globalRow };
+
+/** Install the one-frame row (the grid session calls it once and disposes it with the level scope). */
+export function installGridFrameRow(): () => void {
+  const strings = GAME_STRINGS.grid;
+  return grid.debugRow({
+    id: FRAME_ROW, group: 'look', label: strings.oneFrame, choices: [{ value: 'off', text: strings.off }, { value: 'on', text: strings.on }], initial: 'off',
+    change: () => undefined, note: strings.oneFrameNote, ask: 'E435', reviewBy: '2026-12-30',
+  });
+}
 
 /** Install the row (a DEVSERVER build only); the title and the session each call it once and dispose it with their scope. */
 export function installGridDebug(devserver: boolean = DEVSERVER): () => void {

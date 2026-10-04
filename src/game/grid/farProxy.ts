@@ -30,8 +30,10 @@ export interface FarLookSource {
   readonly water?: { readonly level: number; readonly colour: FarRgb };
   readonly haze: FarHaze;
 }
+/** A shard's declared grade for its pixels under SF19a's one frame (after the camera's tone mapping; neutral when absent). */
+export interface FarGrade { readonly exposure: number; readonly saturation: number; readonly contrast: number }
 /** What the runtime needs beside the proxy's mesh (stored in `far.json`). */
-export interface FarLookRuntime { readonly family: FarFamily; readonly haze: FarHaze }
+export interface FarLookRuntime { readonly family: FarFamily; readonly haze: FarHaze; readonly grade?: FarGrade | undefined }
 /** A baked grid as `terrain.bin` holds it: res² heights over size metres, 4 splat bytes per vertex. */
 export interface FarGrid { readonly res: number; readonly size: number; readonly heights: Float32Array; readonly splat: Uint8Array | null }
 /** An indexed proxy mesh; `region` is per vertex. */
