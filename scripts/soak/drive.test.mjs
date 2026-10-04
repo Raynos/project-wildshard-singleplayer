@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { installSoakDrive } from './drive.mjs';
 
-test('SF57 counts a real interior event, not admission at the strip or a proxy, and stops after 30 real minutes', () => {
+void test('SF57 counts a real interior event, not admission at the strip or a proxy, and stops after 30 real minutes', () => {
   const oldWindow = globalThis.window, oldPerformance = globalThis.performance;
   let clock = 0, frame, stopped = 0, clears = 0;
   const grid = { inside: null, live: { live: { current: 'template-1', residents: ['template-1'], worldFeet: { x: 0, z: -255 }, issues: {} } } };
