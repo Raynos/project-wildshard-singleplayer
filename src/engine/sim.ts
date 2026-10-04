@@ -201,6 +201,8 @@ export class SimHost {
     this.player.position.copy(position); this.player.yaw = yaw;
     this.stepSystems(); this.events.flush('fixed.post');
   }
+  /** Preflight a fixed-step registration without installing a callback or consuming any simulation state. */
+  hasStep(id: string): boolean { return this.callbacks.has(id); }
   /** Scoped fixed-step work; removing a registration also releases its future snapshot adapter. */
   onStep(id: string, run: (dt: number, host: SimHost) => void, adapter?: SimStateAdapter): () => void {
     if (this.disposed || this.callbacks.has(id)) throw new Error(`Invalid simulation registration ${id}`);
