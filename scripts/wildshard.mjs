@@ -13,7 +13,7 @@ export async function runWildshard(args) {
       if (id === 'vite') return { id: import.meta.resolve('vite'), external: true };
       return null;
     } }], build: { write: false, minify: false, lib: { entry: resolve(import.meta.dirname, '../src/sdk/cli.ts'), formats: ['es'], fileName: 'cli' }, rolldownOptions: { platform: 'node', external: [/^node:/u] } } });
-    const output = Array.isArray(result) ? result[0] : result;
+    const output = Array.isArray(result) ? result.at(0) : result;
     if (output === undefined || !('output' in output)) throw new Error('Author CLI build produced no output');
     const chunks = output.output.filter((chunk) => chunk.type === 'chunk');
     if (chunks.length !== 1) throw new Error('Author CLI must bundle to one module');
