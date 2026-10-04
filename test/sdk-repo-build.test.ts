@@ -41,4 +41,5 @@ it('builds the template through the real workspace author CLI with deterministic
     writeFileSync(join(output, 'shard.json'), JSON.stringify(shard));
     expect(() => execFileSync(execPath, ['scripts/wildshard.mjs', 'validate', join(output, 'shard.json')], { encoding: 'utf8', stdio: 'pipe' })).toThrow('Submerged edge entry north');
   } finally { rmSync(output, { recursive: true, force: true }); }
-}, 30000);
+// The full parallel gate takes about45s for these real CLI builds/entry walks; this is a test-wrapper limit, not an admission deadline.
+}, 120_000);
