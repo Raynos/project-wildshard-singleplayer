@@ -1,0 +1,477 @@
+{
+  "url": "http://127.0.0.1:4400",
+  "started": "2026-10-04T21:43:00.736Z",
+  "runs": {
+    "off": {
+      "errors": [],
+      "shots": {
+        "in-driftwood": {
+          "feet": {
+            "x": -200,
+            "z": 6
+          },
+          "eye": [
+            -200,
+            1.7,
+            6
+          ],
+          "frame": null,
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:playing",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "in-dunes": {
+          "feet": {
+            "x": -345,
+            "z": 6
+          },
+          "eye": [
+            -345,
+            1.69,
+            6
+          ],
+          "frame": null,
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "nalati-from-road": {
+          "feet": {
+            "x": 277.5,
+            "z": 40
+          },
+          "eye": [
+            277.5,
+            1.7,
+            40
+          ],
+          "frame": null,
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "in-nalati": {
+          "feet": {
+            "x": 345,
+            "z": 6
+          },
+          "eye": [
+            345,
+            1.67,
+            6
+          ],
+          "frame": null,
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "road": {
+          "feet": {
+            "x": -277.5,
+            "z": 40
+          },
+          "eye": [
+            -277.5,
+            1.7,
+            40
+          ],
+          "frame": null,
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        }
+      }
+    },
+    "on": {
+      "errors": [],
+      "shots": {
+        "in-driftwood": {
+          "feet": {
+            "x": -200,
+            "z": 6
+          },
+          "eye": [
+            -200,
+            1.7,
+            6
+          ],
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": "driftwood-isle",
+            "highway": 0,
+            "weights": {
+              "driftwood-isle": 1
+            },
+            "air": [
+              0.36,
+              0.7,
+              1
+            ],
+            "grade": [
+              0,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:playing",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "in-dunes": {
+          "feet": {
+            "x": -345,
+            "z": 6
+          },
+          "eye": [
+            -345,
+            1.69,
+            6
+          ],
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": "sunscar-dunes",
+            "highway": 0,
+            "weights": {
+              "sunscar-dunes": 1
+            },
+            "air": [
+              0.78,
+              0.5,
+              0.36
+            ],
+            "grade": [
+              -0.2,
+              1.1,
+              1.05,
+              1.08,
+              0.94,
+              0.8
+            ]
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "nalati-from-road": {
+          "feet": {
+            "x": 277.5,
+            "z": 40
+          },
+          "eye": [
+            277.5,
+            1.7,
+            40
+          ],
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": null,
+            "highway": 1,
+            "weights": {},
+            "air": [
+              0.523,
+              0.693,
+              0.843
+            ],
+            "grade": [
+              0,
+              0.8,
+              1,
+              0.95,
+              0.99,
+              1.07
+            ]
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "in-nalati": {
+          "feet": {
+            "x": 345,
+            "z": 6
+          },
+          "eye": [
+            345,
+            1.69,
+            6
+          ],
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": "nalati-grasslands",
+            "highway": 0,
+            "weights": {
+              "nalati-grasslands": 1
+            },
+            "air": [
+              0.62,
+              0.78,
+              0.98
+            ],
+            "grade": [
+              0,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "road": {
+          "feet": {
+            "x": -277.5,
+            "z": 40
+          },
+          "eye": [
+            -277.5,
+            1.7,
+            40
+          ],
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": null,
+            "highway": 1,
+            "weights": {},
+            "air": [
+              0.523,
+              0.693,
+              0.843
+            ],
+            "grade": [
+              0,
+              0.8,
+              1,
+              0.95,
+              0.99,
+              1.07
+            ]
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "cross-road": {
+          "feet": {
+            "x": -295,
+            "z": 6
+          },
+          "eye": [
+            -295,
+            1.7,
+            6
+          ],
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": null,
+            "highway": 1,
+            "weights": {},
+            "air": [
+              0.523,
+              0.693,
+              0.843
+            ],
+            "grade": [
+              0,
+              0.8,
+              1,
+              0.95,
+              0.99,
+              1.07
+            ]
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "cross-line": {
+          "feet": {
+            "x": -305,
+            "z": 6
+          },
+          "eye": [
+            -305,
+            1.7,
+            6
+          ],
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": null,
+            "highway": 0.5,
+            "weights": {
+              "sunscar-dunes": 0.5
+            },
+            "air": [
+              0.652,
+              0.597,
+              0.602
+            ],
+            "grade": [
+              -0.1,
+              0.95,
+              1.025,
+              1.015,
+              0.965,
+              0.935
+            ]
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        },
+        "cross-dunes": {
+          "feet": {
+            "x": -315,
+            "z": 6
+          },
+          "eye": [
+            -315,
+            1.69,
+            6
+          ],
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": "sunscar-dunes",
+            "highway": 0,
+            "weights": {
+              "sunscar-dunes": 1
+            },
+            "air": [
+              0.78,
+              0.5,
+              0.36
+            ],
+            "grade": [
+              -0.2,
+              1.1,
+              1.05,
+              1.08,
+              0.94,
+              0.8
+            ]
+          },
+          "cells": [
+            "_template:far proxy",
+            "pine-hollow:far proxy",
+            "_template:far proxy",
+            "sunscar-dunes:far proxy",
+            "driftwood-isle:frozen",
+            "nalati-grasslands:far proxy",
+            "_template:far proxy",
+            "far-reach:far proxy",
+            "_template:far proxy"
+          ]
+        }
+      }
+    }
+  }
+}
