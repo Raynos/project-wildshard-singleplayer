@@ -11,6 +11,11 @@ export const SCRIPT_LIMITS: Readonly<ScriptLimits> = Object.freeze({ instances: 
 export type ScriptQuery = (kind: number, input: readonly number[], entity: number) => readonly number[];
 /** A complete linear-memory + mutable-global snapshot, never a live view of Wasm state. */
 export interface ScriptSnapshot { memory: Uint8Array; globals: ReadonlyMap<string, number | bigint> }
+/** JSON-compatible complete continuation; counters, pending events and quarantine history affect replay. */
+export interface ScriptHostState {
+  tick: number; used: { effects: number; spawns: number; events: number; queries: number; fuel: number }; pending: readonly ScriptEvent[];
+  modules: readonly { name: string; memory: readonly number[]; globals: readonly { name: string; type: 'number' | 'bigint'; value: string }[]; failures: number; disabled: boolean }[];
+}
 /** Results expose validated requests only after the atomic world-state transaction succeeds. */
 export interface ScriptCall { ok: boolean; effects: readonly ScriptEffect[]; events: readonly ScriptEvent[]; fuel: number; reason: string | undefined; disabled: boolean }
 /** Host dependencies are explicitly installed; no import creates an instance or changes a service. */
@@ -109,6 +114,36 @@ export class ScriptHost {
   }
   /** Snapshot copies are safe to retain for deterministic replay. */
   snapshot(name: string): ScriptSnapshot { const state = this.modules.get(name); if (!state) throw new Error('Unknown module'); return clone(state.good); }
+  /** Capture at a fixed-step boundary; module memory and globals are detached copies. */
+  checkpoint(): ScriptHostState {
+    if (this.active) throw new Error('Active script checkpoint');
+    return { tick: this.tick, used: { ...this.used }, pending: this.pending.map((e) => ({ ...e })), modules: [...this.modules].map(([name, state]) => ({
+      name, memory: Array.from(state.good.memory), globals: [...state.good.globals].map(([key, value]) => ({ name: key, type: typeof value === 'bigint' ? 'bigint' as const : 'number' as const, value: String(value) })), failures: state.failures, disabled: state.disabled,
+    })) };
+  }
+  /** Restore all instances before publishing; no initialization, query or author function is run. */
+  restoreState(saved: ScriptHostState): void {
+    if (this.active || !integer(saved.tick, -1, Number.MAX_SAFE_INTEGER) || saved.modules.length !== this.modules.size
+      || new Set(saved.modules.map((m) => m.name)).size !== saved.modules.length || Object.values(saved.used).some((n) => !integer(n, 0, Number.MAX_SAFE_INTEGER))
+      || saved.pending.length > this.limits.events || saved.pending.some((e) => !integer(e.type, 1, 0x7fffffff) || !integer(e.target, 1, 0x7fffffff) || !Number.isFinite(e.value))) throw new Error('Invalid host checkpoint');
+    const staged: { state: ModuleState; good: ScriptSnapshot; running: Running; failures: number; disabled: boolean }[] = [];
+    for (const entry of saved.modules) {
+      const state = this.modules.get(entry.name);
+      if (!state || !integer(entry.failures, 0, Number.MAX_SAFE_INTEGER) || entry.disabled !== (entry.failures >= this.limits.failures)
+        || entry.memory.length < state.admission.initialPages * 65536 || entry.memory.length > state.maximumPages * 65536 || entry.memory.length % 65536 !== 0
+        || entry.memory.some((n) => !integer(n, 0, 255)) || entry.globals.length !== state.admission.globals.length || new Set(entry.globals.map((g) => g.name)).size !== entry.globals.length) throw new Error('Invalid module checkpoint');
+      const globals = new Map<string, number | bigint>();
+      for (const global of entry.globals) {
+        const value = global.type === 'bigint' ? BigInt(global.value) : Number(global.value);
+        if (!state.admission.globals.includes(global.name) || (typeof value === 'number' && !Number.isFinite(value))) throw new Error('Invalid saved global');
+        globals.set(global.name, value);
+      }
+      const good = { memory: Uint8Array.from(entry.memory), globals };
+      staged.push({ state, good, running: this.instantiate(state, good), failures: entry.failures, disabled: entry.disabled });
+    }
+    for (const entry of staged) { entry.state.good = entry.good; entry.state.running = entry.running; entry.state.failures = entry.failures; entry.state.disabled = entry.disabled; entry.state.depth = 0; entry.state.busy = false; }
+    this.tick = saved.tick; this.used = { ...saved.used }; this.pending = saved.pending.map((e) => ({ ...e }));
+  }
   /** Restore complete state into a new instance without running initialization again. */
   restore(name: string, saved: ScriptSnapshot): void {
     const state = this.modules.get(name); if (!state || this.active) throw new Error('Unknown or active module');

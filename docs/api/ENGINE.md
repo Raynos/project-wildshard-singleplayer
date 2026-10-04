@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1746 members; 831 without a doc line (—).
+1757 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1240,12 +1240,23 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ScriptCall` | interface | @wildshard/engine/script/host | Results expose validated requests only after the atomic world-state transaction succeeds. |
 | `ScriptHost` | class | @wildshard/engine/script/host | One module instance per host; every call carries its current entity handle in IN[3]. |
 | `ScriptHostOptions` | interface | @wildshard/engine/script/host | Host dependencies are explicitly installed; no import creates an instance or changes a service. |
+| `ScriptHostState` | interface | @wildshard/engine/script/host | JSON-compatible complete continuation; counters, pending events and quarantine history affect replay. |
 | `ScriptLimits` | interface | @wildshard/engine/script/host | Per-level tick allowances shared by every module and entity, not reset by individual calls. |
 | `ScriptQuery` | type | @wildshard/engine/script/host | Deterministic, read-only query input/output; replies may be recorded for replay/conformance. |
 | `ScriptSnapshot` | interface | @wildshard/engine/script/host | A complete linear-memory + mutable-global snapshot, never a live view of Wasm state. |
+| `installScriptLane` | function | @wildshard/engine/script/lane | Install fixed-step work and a same-engine continuation adapter, scoped to the real headless/client sim host. |
+| `ScriptBinding` | interface | @wildshard/engine/script/lane | A content binding; the actor id is supplied by the trusted host, never an effect or script input. |
+| `ScriptLane` | class | @wildshard/engine/script/lane | Singleplayer runs server and entity scripts through this same session-local authoritative lane. |
+| `ScriptLaneOptions` | interface | @wildshard/engine/script/lane | Explicit dependencies for one local authoritative script lane. |
+| `ScriptModule` | interface | @wildshard/engine/script/lane | Admitted bytecode and its stable module identity and initialization seed. |
 | `SCRIPT_QUERY` | const | @wildshard/engine/script/queries | Query opcodes: ray, axis-aligned overlap, nearest walkable point, bounded path. |
 | `ScriptPhysics` | interface | @wildshard/engine/script/queries | Read-only physics and navigation inputs; collider owners map to stable numeric entity handles. |
 | `scriptPhysicsQueries` | function | @wildshard/engine/script/queries | Deterministic ordering/truncation over the engine's collision/navigation queries, with no direct Rapier import. |
+| `DeclaredScriptWorld` | class | @wildshard/engine/script/state | Numeric effect world extended with declared shared and actor-scoped state, committed as one batch. |
+| `SCRIPT_STATE_OP` | const | @wildshard/engine/script/state | Server-script state effects. Player writes always use the invoking entity's host-bound actor id. |
+| `ScriptStateDeclaration` | interface | @wildshard/engine/script/state | Shared fields belong to the host; player fields have one independent record per stable actor id. |
+| `ScriptStateField` | interface | @wildshard/engine/script/state | Numeric declared fields; bool uses 0/1. Strings are outside the numeric v0 script ABI. |
+| `ScriptWorldState` | interface | @wildshard/engine/script/state | A complete JSON-compatible state checkpoint, including quarantined entities and actor-scoped records. |
 | `createSimHost` | function | @wildshard/engine/sim | Embed a level with an initialized Rapier module. Loading WASM belongs to the Node/client composition root. |
 | `SIM_API_VERSION` | const | @wildshard/engine/sim | The embedded simulation contract. Versions change when level or command semantics change. |
 | `SimCommand` | interface | @wildshard/engine/sim | Resolved world-space movement and an optional targeted attack for one fixed tick. |

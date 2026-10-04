@@ -1710,7 +1710,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1730 exports, grouped by the module to import them from.
+1741 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1915,8 +1915,10 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/engine/script/abi`: `SCRIPT_ABI`, `SCRIPT_EXPORTS`, `SCRIPT_IMPORTS`
 - `@wildshard/engine/script/admission`: `admitScript`, `ScriptAdmission`
 - `@wildshard/engine/script/effects`: `EffectRules`, `EffectTransaction`, `SCRIPT_OP`, `ScriptEffect`, `ScriptEntity`, `ScriptEvent`, `ScriptWorld`
-- `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `ScriptCall`, `ScriptHost`, `ScriptHostOptions`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
+- `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `ScriptCall`, `ScriptHost`, `ScriptHostOptions`, `ScriptHostState`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
+- `@wildshard/engine/script/lane`: `installScriptLane`, `ScriptBinding`, `ScriptLane`, `ScriptLaneOptions`, `ScriptModule`
 - `@wildshard/engine/script/queries`: `SCRIPT_QUERY`, `ScriptPhysics`, `scriptPhysicsQueries`
+- `@wildshard/engine/script/state`: `DeclaredScriptWorld`, `SCRIPT_STATE_OP`, `ScriptStateDeclaration`, `ScriptStateField`, `ScriptWorldState`
 - `@wildshard/engine/sim`: `createSimHost`, `SIM_API_VERSION`, `SimCommand`, `SimHost`, `SimLevel`, `SimSlots`, `SimSpawn`, `SimStateAdapter`, `SimStrike`, `SimValue`
 - `@wildshard/engine/sim/snapshot`: `restoreSimHost`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
@@ -2001,7 +2003,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-220 exports, grouped by the module to import them from.
+228 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2039,6 +2041,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/game/shardfile/budget`: `worstContentCost`
 - `@wildshard/game/shardfile/loader`: `configuredShardfile`, `emptyShardfileSource`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`
 - `@wildshard/game/shardfile/schema`: `LOOK_LUT_BYTES`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
+- `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
 - `@wildshard/game/shardfile/version`: `SHARDFILE_VERSION`
 - `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
@@ -2103,3 +2106,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 - `@wildshard/sdk/version`: `SHARDFILE_VERSION`
 
 <!-- exports:end -->
+
+### Declared script state and the local lane (SF11c)
+
+`@wildshard/engine/script/state` validates atomic shared/player effects over explicit stable field ids, with actor identity supplied by the host. `@wildshard/engine/script/lane` installs local authoritative server/entity work through the scoped sim step and captures complete continuations, including pending events and quarantine history. `@wildshard/game/shardfile/scripts` validates binding references and translates typed numeric state into the engine lane. See [SCRIPT-ABI.md](SCRIPT-ABI.md) for inputs, restore and the Node/WebKit conformance gate.

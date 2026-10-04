@@ -100,4 +100,28 @@ freezes and becomes noninteractive. Only development hosts report its entity
 and module name through the diagnostic callback. Explicit `resume` is required
 to retry; disabled modules cannot resume. Snapshots are copies, and `restore`
 validates their capacity and complete global names before replacing an instance.
-Entity/state bindings and WebKit script conformance are SF11c.
+`DeclaredScriptWorld` adds shared (`5`) and player (`6`) field effects with
+`[stableFieldId,value,0,0]`. Only declared bool (0/1), i32 and finite f64 fields
+participate in the numeric ABI; strings remain format fields but have no numeric
+script binding. IDs are explicit, preserved across revisions and sorted when
+forming inputs. Actor ids come from host bindings; a player effect cannot name
+another actor. The full batch stages entity, shared and private state together.
+Public views omit host-only fields and never expose another actor's player state.
+
+`ScriptLane` runs server and entity bindings locally, one instance per module,
+in module-name/entity-handle order at the declared divisor of 60 Hz. Its input
+slots are tick, dt, actor command, entity, actor token, role (server=0/entity=1),
+shared count, player count, then shared/player numeric values sorted by field id.
+At most 24 numeric fields fit the 32-slot input record. `installScriptLane`
+registers the work through `SimHost.onStep` and a scoped snapshot adapter.
+The lane snapshot includes memory, all globals, shared/player/entity state,
+queued events, tick allowances, failure counts and disabled state. Restore
+creates fresh instances without executing author initialization.
+
+Run `scripts/browser-lane.sh --max 5 node scripts/script-conformance.mjs` for
+the cross-engine gate (also a push/PR CI job). Node and Playwright WebKit run
+the same admitted bytes with identical ABI inputs and recorded query replies;
+every effect, fuel total and complete restored state must match exactly. The
+fixture exercises AssemblyScript libm, f32 narrowing, i64 globals, memory
+growth, all four query kinds and separate actor state. Physics itself is outside
+this cross-engine contract.

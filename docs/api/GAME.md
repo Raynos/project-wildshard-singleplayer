@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-220 members; 112 without a doc line (—).
+228 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -213,6 +213,14 @@ The game layer's public modules (src/game/package.json `exports`).
 | `Shardfile` | type | @wildshard/game/shardfile/schema | A serialisable shardfile v0, independent of renderer and placement. |
 | `shardfileRules` | function | @wildshard/game/shardfile/schema | Semantic format violations, including reference integrity and the acyclic dependency graph. |
 | `ShardfileSchema` | const | @wildshard/game/shardfile/schema | Strict schema for the public SDK format; rejects unknown fields and invalid references. |
+| `createShardfileScriptLane` | function | @wildshard/game/shardfile/scripts | Create the local authoritative lane explicitly; its constructor admits every module before execution. |
+| `numericScriptState` | function | @wildshard/game/shardfile/scripts | Translate only numeric fields; string values never become forged numeric ids. Stable ids determine input order. |
+| `scriptBindingRules` | function | @wildshard/game/shardfile/scripts | Reference/identity checks; both actor-bound server logic and actor-free director logic run authoritatively. |
+| `ScriptBindingsSchema` | const | @wildshard/game/shardfile/scripts | Numeric entity handles and an optional host-verified actor id bind an admitted module to local sim work. |
+| `ShardScriptBindings` | type | @wildshard/game/shardfile/scripts | A validated v0 script binding list. |
+| `ShardScriptContent` | interface | @wildshard/game/shardfile/scripts | Content slice consumed by the full loader; assets are already hash-verified and schema-validated. |
+| `ShardScriptField` | interface | @wildshard/game/shardfile/scripts | Format-owned field ids/defaults, with optional authored lower-only bounds. |
+| `ShardScriptPorts` | interface | @wildshard/game/shardfile/scripts | Loader-provided identities and query ports: the actor mapping comes from the session, not the shardfile. |
 | `ShardUi` | type | @wildshard/game/shardfile/ui | a validated `ui` section |
 | `ShardUiDeclaration` | type | @wildshard/game/shardfile/ui | one validated UI declaration |
 | `UI_DECLARATIONS_MAX` | const | @wildshard/game/shardfile/ui | The most declarations one shardfile's `ui` section may hold. |

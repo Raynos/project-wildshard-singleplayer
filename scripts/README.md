@@ -219,6 +219,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [precommit-guards.mjs](./precommit-guards.mjs)
 - [progress-video.sh](./progress-video.sh)
 - [release-url.sh](./release-url.sh)
+- [script-conformance.mjs](./script-conformance.mjs)
 - [shard-coupling.d.mts](./shard-coupling.d.mts)
 - [shard-coupling.mjs](./shard-coupling.mjs)
 - [shard-platform.d.mts](./shard-platform.d.mts)

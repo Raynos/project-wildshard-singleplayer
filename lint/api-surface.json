@@ -7411,6 +7411,12 @@
         "from": "@wildshard/engine/script/host"
       },
       {
+        "name": "ScriptHostState",
+        "kind": "interface",
+        "doc": "JSON-compatible complete continuation; counters, pending events and quarantine history affect replay.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
         "name": "ScriptLimits",
         "kind": "interface",
         "doc": "Per-level tick allowances shared by every module and entity, not reset by individual calls.",
@@ -7429,6 +7435,36 @@
         "from": "@wildshard/engine/script/host"
       },
       {
+        "name": "installScriptLane",
+        "kind": "function",
+        "doc": "Install fixed-step work and a same-engine continuation adapter, scoped to the real headless/client sim host.",
+        "from": "@wildshard/engine/script/lane"
+      },
+      {
+        "name": "ScriptBinding",
+        "kind": "interface",
+        "doc": "A content binding; the actor id is supplied by the trusted host, never an effect or script input.",
+        "from": "@wildshard/engine/script/lane"
+      },
+      {
+        "name": "ScriptLane",
+        "kind": "class",
+        "doc": "Singleplayer runs server and entity scripts through this same session-local authoritative lane.",
+        "from": "@wildshard/engine/script/lane"
+      },
+      {
+        "name": "ScriptLaneOptions",
+        "kind": "interface",
+        "doc": "Explicit dependencies for one local authoritative script lane.",
+        "from": "@wildshard/engine/script/lane"
+      },
+      {
+        "name": "ScriptModule",
+        "kind": "interface",
+        "doc": "Admitted bytecode and its stable module identity and initialization seed.",
+        "from": "@wildshard/engine/script/lane"
+      },
+      {
         "name": "SCRIPT_QUERY",
         "kind": "const",
         "doc": "Query opcodes: ray, axis-aligned overlap, nearest walkable point, bounded path.",
@@ -7445,6 +7481,36 @@
         "kind": "function",
         "doc": "Deterministic ordering/truncation over the engine's collision/navigation queries, with no direct Rapier import.",
         "from": "@wildshard/engine/script/queries"
+      },
+      {
+        "name": "DeclaredScriptWorld",
+        "kind": "class",
+        "doc": "Numeric effect world extended with declared shared and actor-scoped state, committed as one batch.",
+        "from": "@wildshard/engine/script/state"
+      },
+      {
+        "name": "SCRIPT_STATE_OP",
+        "kind": "const",
+        "doc": "Server-script state effects. Player writes always use the invoking entity's host-bound actor id.",
+        "from": "@wildshard/engine/script/state"
+      },
+      {
+        "name": "ScriptStateDeclaration",
+        "kind": "interface",
+        "doc": "Shared fields belong to the host; player fields have one independent record per stable actor id.",
+        "from": "@wildshard/engine/script/state"
+      },
+      {
+        "name": "ScriptStateField",
+        "kind": "interface",
+        "doc": "Numeric declared fields; bool uses 0/1. Strings are outside the numeric v0 script ABI.",
+        "from": "@wildshard/engine/script/state"
+      },
+      {
+        "name": "ScriptWorldState",
+        "kind": "interface",
+        "doc": "A complete JSON-compatible state checkpoint, including quarantined entities and actor-scoped records.",
+        "from": "@wildshard/engine/script/state"
       },
       {
         "name": "createSimHost",
@@ -11728,6 +11794,54 @@
         "kind": "const",
         "doc": "Strict schema for the public SDK format; rejects unknown fields and invalid references.",
         "from": "@wildshard/game/shardfile/schema"
+      },
+      {
+        "name": "createShardfileScriptLane",
+        "kind": "function",
+        "doc": "Create the local authoritative lane explicitly; its constructor admits every module before execution.",
+        "from": "@wildshard/game/shardfile/scripts"
+      },
+      {
+        "name": "numericScriptState",
+        "kind": "function",
+        "doc": "Translate only numeric fields; string values never become forged numeric ids. Stable ids determine input order.",
+        "from": "@wildshard/game/shardfile/scripts"
+      },
+      {
+        "name": "scriptBindingRules",
+        "kind": "function",
+        "doc": "Reference/identity checks; both actor-bound server logic and actor-free director logic run authoritatively.",
+        "from": "@wildshard/game/shardfile/scripts"
+      },
+      {
+        "name": "ScriptBindingsSchema",
+        "kind": "const",
+        "doc": "Numeric entity handles and an optional host-verified actor id bind an admitted module to local sim work.",
+        "from": "@wildshard/game/shardfile/scripts"
+      },
+      {
+        "name": "ShardScriptBindings",
+        "kind": "type",
+        "doc": "A validated v0 script binding list.",
+        "from": "@wildshard/game/shardfile/scripts"
+      },
+      {
+        "name": "ShardScriptContent",
+        "kind": "interface",
+        "doc": "Content slice consumed by the full loader; assets are already hash-verified and schema-validated.",
+        "from": "@wildshard/game/shardfile/scripts"
+      },
+      {
+        "name": "ShardScriptField",
+        "kind": "interface",
+        "doc": "Format-owned field ids/defaults, with optional authored lower-only bounds.",
+        "from": "@wildshard/game/shardfile/scripts"
+      },
+      {
+        "name": "ShardScriptPorts",
+        "kind": "interface",
+        "doc": "Loader-provided identities and query ports: the actor mapping comes from the session, not the shardfile.",
+        "from": "@wildshard/game/shardfile/scripts"
       },
       {
         "name": "ShardUi",

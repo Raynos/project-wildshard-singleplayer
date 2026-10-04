@@ -33,6 +33,11 @@ export class ScriptWorld {
   entity(handle: number): ScriptEntity | undefined { const e = this.entities.get(handle); return e ? copy(e) : undefined; }
   /** Snapshot of host-owned entity state, ordered by numeric handle. */
   state(): readonly ScriptEntity[] { return [...this.entities.values()].sort((a, b) => a.id - b.id).map(copy); }
+  /** Restore validated host-owned state without publishing a partially checked entity list. */
+  restore(entities: readonly ScriptEntity[]): void {
+    const checked = new ScriptWorld(this.rules, entities);
+    this.entities = checked.entities; this.next = checked.next;
+  }
   /** Quarantine or explicitly resume an entity after a failed script call. */
   freeze(handle: number, frozen: boolean): void { const e = this.entities.get(handle); if (e) this.entities.set(handle, { ...e, frozen, interactive: !frozen }); }
   private field(key: number, value: number): void {
