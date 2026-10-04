@@ -1,6 +1,6 @@
 # Plan: SHARD-PLATFORM — the 80/20 split: shards become data and approved systems (E431)
 
-**State:** `in progress` 2026-10-03 — P0 only (SP1–SP5, Jake's Q4: "start P0"), building now (wildshard-new; SP1, SP2, SP4 done, SP3's ratchet and SP5 part 1 done; SP5's lint half waits on the arch-guards packages commit); P1–P6 stay a draft until a council round (§9). Jake's picks (ask tool, 10-03): Q1 Thin Ice **starts as code** with the 20 % allowance (a seventh shard to convert, SP31); Q2 our own material-graph compiler onto `patchShader`; Q3 only the ordinary bosses move to phase tables; WebGPU (10-03): no port yet, SP18 compiles to WebGL and TSL, SP32 is a measured spike. Requirements: [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md). SP0 done (`4a95c2454`).
+**State:** `in progress` 2026-10-03 — P0 (Jake's Q4: "start P0"): SP0–SP4 done, SP5 part 1 done (`94c4a55ed`); left in P0: SP5's lint half and the gate's share table, unblocked since the @wildshard packages landed (`76675135b`). P1–P6 stay a draft until a council round (§9). Unowned from the end of the 10-03 session: start at the Handoff. Jake's picks (ask tool, 10-03): Q1 Thin Ice **starts as code** with the 20 % allowance (SP31); Q2 our own material-graph compiler (WebGL patches + TSL, SP18); Q3 only ordinary bosses move to phase tables; O1 the cell is 250 m below / 250 m above; Driftwood and Sky Reach exempt from edge roads until P5; WebGPU: no port, SP32 spike. Requirements and background: [`docs/design/mmo/`](../design/mmo/MMO-REQUIREMENTS.md).
 
 ## 0. Read this first
 
@@ -135,7 +135,7 @@ P0 guardrails + metric ──► P1 bake (G) ───────────�
 | SP1 | **Fix `sim-no-render`'s scope**: the rule named `engine/quests` and `engine/effects`, which never existed, so `engine/quest` went unchecked. Now `ai`, `combat`, `events`, `quest`, `saves` less their `view` parts, all at 0; a test fails when a listed folder doesn't exist (the hole ARCH-GUARDS AG24 missed). Widening it over kit and shard code moves to SP5: it needs the `data/` and simulation folders to know what is simulation | **done** (this commit): a planted renderer import in `engine/quest` now fails; the quest and event code passes at 0 | S |
 | SP2 | **Reserve the `profile` save scope** (SHARD-PLATFORM-PLAN G-6): the scope exists in `SaveStore`, no key uses it yet; the travel handoff names it as its future home | **done** (this commit): `SaveScope` has `profile` (own document, exported / imported like `global`, mirrored in the native shells); no level namespace may take a scope's name | S |
 | SP3 | **Rows are serialisable** (SHARD-PLATFORM-PLAN G-2): a test round-trips every registered row (items, effects, damage rules, strikes, loot, spawns, species, bosses, interactables, quests, day keys) through JSON. Function-valued fields become **named ids** into an engine registry (`weight: 2` or `{ fn: 'weight.distance' }`; `when: { flag: … }`); a ratchet counts the function fields left (StrikeSpec.weight, WeightedTable.when ×19, think / act, curves, WeatherProfile) | **ratchet done** (this commit): `scripts/check-row-data.mjs` walks 44 content row types with the TypeScript compiler; **45 function fields** today (SpeciesLook 9, DayCycleSpec 7, WeatherProfile 4, NpcRow 4, LevelAudioProfile 4, BowProfile 3, the tables' `when` 3, think / act, StrikeSpec.weight …) in `lint/row-functions.json`, which may only shrink; `test/row-data.test.ts` fails a new field and locks the pure-data rows (effects, damage rules, bosses, encounters, interactables, quests). Turning the 45 into named ids is P2 / P3 work, field by field | M |
-| SP4 | **The world contract** (SHARD-PLATFORM-PLAN G-5, MMO W1–W6). Jake 10-03: the 500 m cell splits **250 m below and 250 m above** the highway level (O1); Driftwood (open sea) and Sky Reach (floating islands) are **exempt now and fixed in P5** (SP22, SP23). Built: `CELL_HEIGHT` / `CELL_BELOW` / `CELL_ABOVE` in `#engine/data`; `test/world/world-contract.test.ts` holds every level's ground inside the cell and level with the highway across each edge entry (15 m wide, 50 m in); `lint/edge-exemptions.json` may only shrink. Moved: the full walk from each edge (colliders, water, structures) is SP10's validator; `placement` leaving the manifests is SP29 (server-owned fields leave the package) | **done** (this commit): all seven levels pass; the exempt two are listed with their fixing row | M |
+| SP4 | **The world contract** (SHARD-PLATFORM-PLAN G-5, MMO W1–W6). Jake 10-03: the 500 m cell splits **250 m below and 250 m above** the highway level (O1); Driftwood (open sea) and Sky Reach (floating islands) are **exempt now and fixed in P5** (SP22, SP23). Built: `CELL_HEIGHT` / `CELL_BELOW` / `CELL_ABOVE` in `@wildshard/engine/data`; `test/world/world-contract.test.ts` holds every level's ground inside the cell and level with the highway across each edge entry (15 m wide, 50 m in); `lint/edge-exemptions.json` may only shrink. Moved: the full walk from each edge (colliders, water, structures) is SP10's validator; `placement` leaving the manifests is SP29 (server-owned fields leave the package) | **done** (this commit): all seven levels pass; the exempt two are listed with their fixing row | M |
 | SP5 | **The metric and the folders**: `generators/`, `data/`, `runtime/` join `lint/shard-layout.json` (AG9) and SHARDS.md; `lint/shard-platform.json` with today's baselines; the gate prints each shard's custom share; `wildshard/no-runtime-generator`; the chunk check for `generators/`; `sim-no-render` widened over each shard's `data/` and simulation folders and the kit's (from SP1) | **part 1 done** (this commit): the three folders in `lint/shard-layout.json` and SHARDS.md; `check-chunks` refuses generator code in any chunk; `scripts/shard-platform.mjs` prints each shard's custom share against `lint/shard-platform.json` (baselines at `b96fed1a1`, every shard 100 % today: nothing is sorted yet) and `test/shard-platform.test.ts` holds the ceilings. A shard's ceiling is enforced from its conversion row on, so shard work isn't frozen meanwhile. **Left:** `wildshard/no-runtime-generator` and `sim-no-render` over `data/` (waiting on the arch-guards @wildshard packages commit, which holds `lint/wildshard-plugin.js`), and the table printed by the push gate | M |
 
 ### P1 — Bake the generators (G, 42 %)
@@ -266,3 +266,43 @@ parallelise the same way.
   default-off behind a Debug row until a phone reading backs it (RENDERING.md).
 - Every step is identical under the harness, or a small difference batched onto one board per wave (systems,
   looks, bosses).
+
+## Handoff (shard-platform)
+
+Written 2026-10-03 at `15efd13ef` by the session that wrote the plan (herdr wildshard-new; asks E431, E433).
+
+**Read first:** this plan's §0–§2 and §4 P0; [MMO-REQUIREMENTS](../design/mmo/MMO-REQUIREMENTS.md) (the why, Jake's
+decisions in §6, the open ones in §7); [SHARD-PLATFORM-PLAN](../design/mmo/SHARD-PLATFORM-PLAN.md) for the thinking.
+All MMO docs live in `docs/design/mmo/`; never link the private planning repo (E433, JAKE.md).
+
+**What exists (all on `origin/main`):**
+- SP1: `SIM_DIRS` / `VIEW_PATHS` in `lint/wildshard-plugin.js` (sim-no-render), a folders-exist test in
+  `test/arch-guards.test.ts`, the fixtures in `test/fixtures/lint/cases.json`.
+- SP2: the `profile` scope in `src/engine/saves/store.ts` and `src/engine/native/saves.ts`; `test/engine/saves*.test.ts`.
+- SP3: `scripts/check-row-data.mjs` (+ `.d.mts`), `lint/row-functions.json` (45 fields), `test/row-data.test.ts`.
+- SP4: `CELL_*` in `src/engine/core/config.ts` (exported from `@wildshard/engine/data`), `lint/edge-exemptions.json`,
+  `test/world/world-contract.test.ts`.
+- SP5 part 1: `lint/shard-layout.json` (generators / data / runtime), `scripts/check-chunks.mjs` (+ test),
+  `scripts/shard-platform.mjs` (+ `.d.mts`), `lint/shard-platform.json` (baselines at `b96fed1a1`),
+  `test/shard-platform.test.ts`.
+
+**Next, in order:**
+1. **SP5's lint half.** In `lint/wildshard-plugin.js`, add a `no-runtime-generator` rule: a file under
+   `src/shards/<slug>/` outside `generators/` may not import from `src/shards/<slug>/generators/`. Register it in the
+   plugin's `rules`, make it hard in `.oxlintrc.json`, and add fixture cases (one refused, generator → generator
+   allowed). Widen `sim-no-render` to `src/shards/*/data/` (0 sites today: no shard has a `data/` folder). Add
+   `node scripts/shard-platform.mjs --check` as a step in `scripts/vercel-tree-gate.sh` so the gate prints the table.
+   Then tick SP5 and P0 in the State line.
+2. **A council round on P1–P6** (docs/process/COUNCIL.md, three fresh seats). The plan goes `ready`, and P1 starts,
+   only after it.
+3. **The open decisions to put to Jake** (question tool, one recommendation each): MMO-REQUIREMENTS O2 (centre shard
+   or citadel), O3 (who ships a new WASM plugin), O4 (the plugin toolchain), O5 (live-update UX), O6 (one look or
+   one per shard). None blocks P0–P2.
+
+**Lessons from this session:**
+- Run `scripts/vercel-tree-gate.sh HEAD` on your commit before `scripts/push-main.sh`. A lint change needs the
+  `lint/` files, `test/fixtures/lint/cases.json` and `scripts/README.md` (liveness) checked, not only `src/`.
+- Another agent's push may carry yours, and its gate may not have run on your commit.
+- `lint/wildshard-plugin.js` and the lint fixtures are shared with ARCH-GUARDS work: ask arch-guards over herdr first.
+- Imports are the workspace packages now (`@wildshard/engine`, `@wildshard/engine/data`, `@wildshard/kit` …), not
+  `#engine`.
