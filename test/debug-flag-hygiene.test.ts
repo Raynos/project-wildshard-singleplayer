@@ -27,7 +27,7 @@ describe('Debug flag ownership and review dates', () => {
       for (const id of ids) expect(askExists(root, id)).toBe(true);
       for (const row of debugFlags(root)) expect(ids).toContain(row.ask);
     }
-  }, 30_000); // walks every Debug row's source and ask file: over 5 s on a loaded machine (assertions unchanged)
+  }, 120_000); // walks every Debug row's source and ask file: over 30 s on the CI coverage runner (assertions unchanged)
   it('rejects unknown owners and malformed dates; an overdue row passes and is listed', () => {
     const options = { today: '2026-10-01', max: 1, raisedBy: [], askExists: (id: string) => id === 'E357' };
     const row = { id: 'test', ask: 'E357', reviewBy: '2026-09-30' };
