@@ -16,6 +16,7 @@ import { BufferAttribute, BufferGeometry, Mesh, type Material, type Object3D } f
 import type { Scope } from '../app/scope';
 import { gpuOnlyAttributes } from '../core/gpuOnly';
 import { decodeTerrainTile, type TerrainTileData } from './terrainTileData';
+import { keepShadowWhole } from './shadowChunks';
 
 /** the coarse (L1) tile a quadrant mask applies to: 17 × 17 samples over 125 m, four 8 × 8-cell quadrants */
 const COARSE = { resolution: 17, size: 125, half: 8 } as const;
@@ -93,6 +94,8 @@ export function installTerrainTile(bytes: Uint8Array | TerrainTileData, ports: {
   const mesh = new Mesh(geometry, ports.material);
   mesh.name = `terrain:${data.x},${data.z}`; mesh.position.set(data.x, 0, data.z); mesh.receiveShadow = true; mesh.castShadow = ports.shadow;
   mesh.matrixAutoUpdate = false; mesh.updateMatrix();
+  // a tile is already one shadow-culling piece, and the caller's shadow disc switches its castShadow: never split it (SF16)
+  keepShadowWhole(mesh);
   if (coarse) coarseTiles.set(mesh, { indices: index, resolution: r });
   ports.root.add(mesh); ports.scope.onDispose(() => { mesh.removeFromParent(); coarseTiles.delete(mesh); });
   return mesh;

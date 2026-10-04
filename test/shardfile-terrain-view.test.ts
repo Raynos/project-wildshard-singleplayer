@@ -3,10 +3,11 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Content hashes for the admitted-asset reader.
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { Box3, Group, Mesh, MeshStandardMaterial, Raycaster, Vector3, type Object3D } from 'three';
+import { Box3, Group, Mesh, MeshStandardMaterial, Raycaster, Scene, Vector3, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { encodeTerrainTile, terrainTileHeight } from '../src/engine/world/terrainTileData';
 import { installTerrainTile, maskTerrainTile } from '../src/engine/world/terrainTileView';
+import { chunkShadowCasters } from '../src/engine/world/shadowChunks';
 import { addBakedTerrainCollider } from '../src/engine/physics/terrainTiles';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
@@ -90,6 +91,19 @@ describe('terrain tile view (SF15a)', () => {
     expect(() => { maskTerrainTile(mesh, new Set([4])); }).toThrow();
     expect(() => installTerrainTile(encodeTerrainTile({ resolution: 2, x: 0, z: 0, size: 1, heights: new Float32Array(4) }), { root, scope, material, shadow: false })).toThrow();
     scope.dispose(); expect(() => installTerrainTile(new Uint8Array(), { root, scope, material, shadow: false })).toThrow();
+  });
+
+  it('an L0 tile casts whole: the E153 shadow splitter leaves it alone, so the shadow disc stays its switch (SF16)', () => {
+    const r = 33, size = 62.5, scope = new Scope('whole'), scene = new Scene(), material = scope.own(new MeshStandardMaterial());
+    const bytes = encodeTerrainTile({ resolution: r, x: -250, z: -250, size, heights: rough(r, 3), colours: new Float32Array(r * r * 3).fill(0.4) });
+    const tile = installTerrainTile(bytes, { root: scene, scope, material, shadow: true });
+    // the same size of mesh outside a terrain tile is split (2,048 triangles, 44 m radius): the opt-out is what spares the tile
+    const plain = new Mesh(tile.geometry.clone(), material); scene.add(plain); plain.castShadow = true;
+    const cut = chunkShadowCasters(scene);
+    expect(cut.meshes).toBe(1); expect(plain.castShadow).toBe(false);
+    expect(tile.children).toHaveLength(0); expect(tile.castShadow).toBe(true);
+    tile.castShadow = false; let casting = 0; tile.traverse((o) => { if (isMesh(o) && o.castShadow) casting++; }); expect(casting).toBe(0);
+    plain.geometry.dispose(); scope.dispose();
   });
 });
 

@@ -25,6 +25,15 @@ const MAX_CELLS = 64; // per mesh: the cell grows with the mesh (every piece is 
 
 interface ChunkUserData { shadowChunked?: boolean }
 
+/**
+ * Meshes that are already a caster-sized piece and switch their own `castShadow` (SHARD-PLATFORM SF16): a baked 62.5 m
+ * terrain tile whose casting the 80 m shadow disc turns on and off. Split, it drew 36–64 always-casting pieces per tile
+ * (the disc's switch reached only the silent parent): 160–270 shadow draws a frame on the M1 template, 85 % of its calls.
+ */
+const whole = new WeakSet<THREE.Object3D>();
+/** Keep `mesh` out of `chunkShadowCasters`: it casts whole, and its own `castShadow` stays the switch. */
+export function keepShadowWhole(mesh: THREE.Mesh): void { whole.add(mesh); }
+
 export interface ShadowChunkReport { meshes: number; pieces: number; tris: number }
 
 export function chunkShadowCasters(scene: THREE.Scene): ShadowChunkReport {
@@ -45,7 +54,7 @@ function triangles(g: THREE.BufferGeometry): number {
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
 
 function eligible(o: THREE.Object3D): o is THREE.Mesh {
-  if (!isMesh(o) || !o.castShadow) return false;
+  if (!isMesh(o) || !o.castShadow || whole.has(o)) return false;
   if ('isInstancedMesh' in o || 'isSkinnedMesh' in o || 'isBatchedMesh' in o) return false;
   const mesh = o;
   if ((mesh.userData as ChunkUserData).shadowChunked === true || Array.isArray(mesh.material)) return false;
