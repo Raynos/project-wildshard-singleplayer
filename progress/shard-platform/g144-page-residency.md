@@ -1,7 +1,8 @@
 # G144 early page residency — source receipt
 
-E435, sp-x2, 2026-10-04. Source is landed locally; the serialized push and browser proofs wait for the SF57 quiet
-window to finish. **Grid memory admission remains default OFF.** This receipt does not claim a measured memory pass.
+E435, sp-x2, 2026-10-04. Early-owner source is on origin; the platform wiring and latest focused proof await the
+coordinator's serialized carrier. **Grid memory admission remains default OFF.** This receipt does not claim a measured
+memory pass.
 
 ## One owner before allocation
 
@@ -53,20 +54,39 @@ These files passed individually during the quiet window; they are not a combined
 Scoped typed lint passed for each source step and the final root/hybrid candidate. Source precommit retained all hard
 rules. The root-to-game public `grid/pageBoot` edge is coordinator-approved for the serialized generated receipt.
 
-## Still open
+## Platform render admission
 
 Platform render admission primitive `282bb652a` now defines a pure `{id, jsBytes, gpuBytes}` byte plan and reserves it
 through the same allocator before a renderer's builder runs. The builder receives a child scope; its resource disposal
 precedes lease release. `pnpm exec vitest run test/grid-render-residency.test.ts`: 6/6 in 720 ms, scoped typed lint green.
 These cover the actual measured-home envelope, preallocation refusal, normal teardown, partial-build rollback,
 independent duplicate allocation, stale scope calls, teardown during eviction and combined construction/cleanup errors.
-The paired renderer lane still needs to produce the exact retained JS/GPU byte plans and inject the adapter into
-seam/road/void/grain/cull construction. No renderer look changed in this primitive.
+The paired renderer lane delivered exact retained JS/GPU plans in `67f5c34a8`; `0716f3640` wires the adapter through
+`installPlatformRoad` on the same page allocator. Row OFF retains the unmetered build. The six plans cover asphalt,
+junctions, signs, void, deck/grain and curtain, with scoped release after disposal. No renderer look changed.
 
-After quiet release, run the clean carrier gate, then enter Infinite Wildshard with the new row ON and verify the
+`pnpm exec vitest run test/grid-road-bytes.test.ts`: **4/4 in 8.43 s** before the upload-copy trim; **4/4 in 13.56 s**
+again against `2fc43c18a`'s trimmed builders and the merged fixture. Typed lint and diff checks pass. The original exact
+plan-versus-built-byte, unchanged geometry and partial rollback cases are retained. The fourth case preadmits the measured
+Driftwood home (966,000,001 modeled playing bytes), refuses `road.deck` before its builder runs, keeps the same home claim,
+then releases all partially built road claims on scope disposal. `5902fd9ce` added that case; `34d8ec01c` restored it after
+the overlapping renderer private commit omitted it.
+
+The pre-trim renderer plans totaled about 34.8 MB retained JS and 36.5 MB GPU. They exceeded the current home's remaining
+envelope before far/native neighbours. The upload-copy trim now has exact post-upload byte checks, but the real-platform
+admission fixture still refuses the deck under the unchanged measured home metadata. Updated runtime measurements and a
+full metered browser proof are required before enabling the row; estimates of memory cuts are not substituted for evidence.
+
+The reveal timing proof is complete on clean `0716f3640`: hybrid ON released on the path-end frame at 7,021.8 ms,
+without a ceiling fallback and with zero page errors. See [the reveal receipt](sf21a/reveal-readiness.md). Browser and
+preview were closed before the heavy platform tests.
+
+## Still open
+
+After the coordinator's clean carrier gate and updated memory evidence, enter Infinite Wildshard with the row ON and verify the
 measured home is admitted, one allocator is shared and refusal telemetry stays safe. Keep the row OFF if admission
 fails; route the measured limitation to Jake rather than increasing a budget. Review platform road/native residency
 costs as part of the remaining real-total admission proof; this source receipt alone does not prove those allocations.
 
-The separate reveal-readiness fix also needs its post-fix hybrid-ON browser capture. No browsers, builds, full gates or
-pushes were started by this lane during the SF57 soak.
+No browsers, builds, full gates or pushes were started by this lane during the SF57 soak. The post-soak reveal browser
+ran only after the coordinator's GO. The coordinator remains the serialized pusher.
