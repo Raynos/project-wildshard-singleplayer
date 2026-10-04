@@ -27,6 +27,16 @@ const row = (name: string, ...moduleIds: string[]): { name: string; moduleIds: s
 const base = { 'entry.js': row('entry', 'src/entry.ts'), 'engine.js': row('engine', 'src/main.ts', 'src/shards/alpha/manifest.ts', 'src/shards/alpha/data.ts') };
 
 describe('chunk isolation gate', () => {
+  it('allows template picker metadata but refuses template gameplay in cold or lazy chunks', () => {
+    const metadata = row('template-metadata', 'src/shards/_template/manifest.ts', 'src/shards/_template/data/spawn.ts');
+    expect(check({ ...base, 'template.js': metadata }).status).toBe(0);
+    for (const id of ['src/shards/_template/plugin.ts', 'src/shards/_template/runtime/new.ts', 'src/shards/_template/data/creatures.ts']) {
+      for (const imports of [[], ['template.js']]) {
+        const result = check({ ...base, 'template.js': row('template', id) }, imports);
+        expect(result.status).toBe(1); expect(result.output).toContain('SF16 requires no template runtime chunk');
+      }
+    }
+  });
   it('rejects generator code in any chunk (SHARD-PLATFORM SP5)', () => {
     const result = check({ ...base, 'alpha.js': row('shard-alpha', 'src/shards/alpha/plugin.ts', 'src/shards/alpha/generators/palm.ts') });
     expect(result.status).toBe(1); expect(result.output).toContain('generators run at bake time');
