@@ -54,6 +54,30 @@ Grey-box: flat-shaded primitives, a plain gradient sky, linear fog, a neutral gr
 - The gate's `_template` job boots it on `macos-15`, walks to the hut, kills the blob and runs the leak test
   (`scripts/test-template-gate.mjs`).
 
+## Declared source (SHARD-PLATFORM SF16 preparation)
+
+`shard.config.ts` assembles the public rows, look, terrain, water, props, items, input/Debug plumbing, HUD, creatures,
+encounters, quest, ledger and audio declarations. `behaviour/door.as` owns the door's shared field; the lantern's
+fuel and light remain owned by the installed item runtime. `data/targets.ts` binds that shared field to the named
+door panel and collider. The legacy `plugin.ts` stays live until SF16's loader switch.
+
+Regenerate the content-addressed source bytes, then build and validate:
+
+```sh
+node scripts/bake/template-props.mjs
+node scripts/bake-template-shardfile.mjs
+node scripts/wildshard.mjs build src/shards/_template /tmp/template-product --product-only
+node scripts/wildshard.mjs validate src/shards/_template
+node scripts/wildshard.mjs validate /tmp/template-product/shard.json
+```
+
+`test/proof/_template/` executes fresh plain Node processes through the strict simulation loader. Its boot, 10,000-tick
+headless, Big Blob replay and ledger tests use admitted source bytes and real Rapier. The 600-tick replay begins with
+mutable script memory/globals, a pending door event, completed quest state, a ledger dedupe receipt, and the actual
+whip/lantern runtime state with burning fuel and a queued refill. It reaches the boss's second phase and victory and
+compares the complete final snapshot hash. These proofs prepare the final switch; the browser look judgement and removal of
+the legacy template chunk belong to SF16's final integration.
+
 ## Open work (plan rows; leftovers are never asks, docs/process/ASKS.md)
 
 - E357 Z1 / Z4: the gate's template job green on every push.

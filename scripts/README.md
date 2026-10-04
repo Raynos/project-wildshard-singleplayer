@@ -18,6 +18,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-packs.mjs](./bake-packs.mjs)
 - [bake-sky-keys.mjs](./bake-sky-keys.mjs)
 - [bake-sky.mjs](./bake-sky.mjs)
+- [bake-template-shardfile.mjs](./bake-template-shardfile.mjs)
 - [bake-textures.mjs](./bake-textures.mjs)
 - [king-rig-bake.mjs](./king-rig-bake.mjs)
 - [simplify-models.mjs](./simplify-models.mjs)
