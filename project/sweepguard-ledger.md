@@ -48,3 +48,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-10-01 11:33 · wK:p1 · `(a bypass in another checkout, outside this repo; command redacted, E433)`
 - 2026-10-04 07:07 · wT:p1 · `cd /Users/raynos/projects/games/wildshard-singleplayer; export GIT_INDEX_FILE=/private/tmp/claude-501/sp-builders/sf21a/index; cat > /private/tmp/claude-501/sp-builders/sf21a/msg.txt <<'EOF' SHARD-PLA`
 - 2026-10-04 12:13 · wT:p1 · `cd /Users/raynos/projects/games/wildshard-singleplayer; export GIT_INDEX_FILE=/private/tmp/claude-501/sp-builders/grid-hud2/index; SKIP_SWEEPGUARD=1 git commit -q -m "SHARD-PLATFORM SF28: declare each`
+- 2026-10-04 14:20 · wT:p1 · `export GIT_INDEX_FILE=/private/tmp/claude-501/sp-builders/sf56-devlook/idx && SKIP_SWEEPGUARD=1 git commit -q -F - <<'EOF' 2>&1 | tail -25 SHARD-PLATFORM SF56: the PBR family's measure layer (dev-map `
