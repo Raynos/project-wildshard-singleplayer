@@ -20,6 +20,7 @@ const INDEXES: readonly (readonly [string, string])[] = [
   ['#engine/retry', 'src/engine/retry.ts'],
   ['#game', 'src/game/index.ts'],
   ['#kit', 'src/kit/index.ts'],
+  ['#kit/data', 'src/kit/data.ts'],
 ];
 
 const read = (path: string): string => readFileSync(resolve(ROOT, path), 'utf8');

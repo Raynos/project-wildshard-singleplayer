@@ -1,6 +1,9 @@
 /** Node-safe public API for authored manifests and offline asset tools. */
-export { CHUNK_HALF } from './core/config';
-export { smoothstep, clamp, lerp } from './core/noise';
+export { CHUNK_HALF, ROAD_LENGTH, SEED } from './core/config';
+export { Noise2D, smoothstep, clamp, lerp } from './core/noise';
+export { Rng } from './core/rng';
+export { deriveSpecies } from './ai/species';
+export { WeightedTable } from './ai/weighted';
 export { buildTerrain } from './world/terrainField';
 export { terrainFieldFor } from './world/groundField';
 export { layoutFauna } from './world/faunaLayout';

@@ -1,6 +1,7 @@
 import type { ShardManifest } from '#game';
 import { ISLAND_BOARS } from './species';
-import { WeightedTable, type SpawnTableRow, type SpawnContext } from '#engine';
+import { WeightedTable } from '#engine/data';
+import type { SpawnTableRow, SpawnContext } from '#engine';
 
 /** Counts consume one draw per tidepool/grove, in the original placement order. */
 export const DRIFTWOOD_ENEMIES: SpawnTableRow = {

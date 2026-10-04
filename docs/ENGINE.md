@@ -20,6 +20,7 @@ shard. One section per § of [01-architecture](../project/archive/game-normaliza
 | `#engine/data` | `src/engine/data.ts` | The node-safe slice of the engine, for manifests and offline tools (B31) |
 | `#game` | `src/game/index.ts` | The Wildshard game: the manifest and plugin types, Bag, coins, loot, compendium, feats, travel |
 | `#kit` | `src/kit/index.ts` | Shared content, used by 2+ shards: weapon families, boar and bear, starter effects, NPC rig, hoverboard |
+| `#kit/data` | `src/kit/data.ts` | The kit's node-safe content rows for manifest closures: `BOAR`, `BOAR_TUNING`, `BEAR`, `SWORD_WOOD` (AG5) |
 
 Many `#engine` exports are **ports**: legacy classes a shard still needs while the plan runs (`Game`, `World`, `HUD`,
 `AnimalManager`, `Animal`, `getActiveChunk`). They are listed so the test passes, and each section says which ones are
@@ -30,7 +31,7 @@ ports. Prefer the context verbs (`ctx.*`) and the services on `ctx.app` where bo
 | Rule | What it means for you |
 |---|---|
 | **Layers** | `src/engine/` → `src/game/` → `src/kit/` → `src/shards/<slug>/`. Imports point down the arrow only. A shard never imports another shard |
-| **Public index only** | A shard imports `#engine`, `#engine/data`, `#game` and `#kit`, nothing deeper. `#engine/combat/pipeline` is a `wildshard/layer` error. Inside your own folder, use `./` |
+| **Public index only** | A shard imports `#engine`, `#engine/data`, `#game`, `#kit` and `#kit/data`, nothing deeper. `#engine/combat/pipeline` is a `wildshard/layer` error. Inside your own folder, use `./` |
 | **Composition root** | `src/entry.ts` and `src/main.ts` sit outside the layers. You never edit them for a shard |
 | **Node-safe manifest** | `manifest.ts` imports only data and types: `#engine/data`, `#game` types and its own data files. Code arrives through lazy thunks (`load`, `render`, `cues`, `roster`, `preload`). `test/manifests-node-safe.test.ts` imports every manifest in bare node |
 | **Extractable engine** | `src/engine/**` holds no Wildshard word: no slug, no "shard", no Bag, coin, loot, compendium or feat. The engine says `level` |
@@ -546,7 +547,8 @@ export const bootFiles = (): readonly string[] => Object.values(bootSources('pho
 Boot helpers on `#engine`: `StepProgress`, `StepRunner`, `macrotask`, `slicer` (yield inside a long build),
 `loadBootRuntime` / `BootRuntime`, `preloadBakedTextures`, `loadBakedSky`, `loadLUT`, `fetchLut`, `LUT_SIZE`,
 `PUBLIC_BYTES`, `markUnload`, `setTitleArrival` / `TitleArrival`, `Ktx2Table`, `LoadFailure`. `#engine/data` has
-`filePolicy`, `PUBLIC_BYTES`, `ChunkFiles`, `Tier`, `TexMode` for node-side tools.
+`filePolicy`, `PUBLIC_BYTES`, `ChunkFiles`, `Tier`, `TexMode` for node-side tools, and for a manifest's creature and
+loot tables (E405 AG5) `ROAD_LENGTH`, `SEED`, `Noise2D`, `Rng`, `deriveSpecies`, `WeightedTable`.
 
 ## 9. Saves
 
@@ -1838,10 +1840,13 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine/data` (`src/engine/data.ts`)
 
-24 exports, grouped by the module they come from.
+30 exports, grouped by the module they come from.
 
-- `./core/config`: `CHUNK_HALF`
-- `./core/noise`: `smoothstep`, `clamp`, `lerp`
+- `./core/config`: `CHUNK_HALF`, `ROAD_LENGTH`, `SEED`
+- `./core/noise`: `Noise2D`, `smoothstep`, `clamp`, `lerp`
+- `./core/rng`: `Rng`
+- `./ai/species`: `deriveSpecies`
+- `./ai/weighted`: `WeightedTable`
 - `./world/terrainField`: `buildTerrain`
 - `./world/groundField`: `terrainFieldFor`
 - `./world/faunaLayout`: `layoutFauna`
@@ -1956,5 +1961,13 @@ sections above describe what to use; this list is the complete inventory.
 - `./audio/forest`: `createForestAudio`, `installSilentScore`, `installForestAmbience`
 - `./viewmodel/armRig`: `JointAngles`
 - `(local)`: `KIT_API`
+
+### `#kit/data` (`src/kit/data.ts`)
+
+4 exports, grouped by the module they come from.
+
+- `./species/boar`: `BOAR`, `BOAR_TUNING`
+- `./species/bear`: `BEAR`
+- `./weapons/melee/profiles`: `SWORD_WOOD`
 
 <!-- exports:end -->

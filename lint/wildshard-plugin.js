@@ -356,7 +356,7 @@ const layerWalk = (kind) => (context) => {
       if (kind === 'layer' && targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
       return;
     }
-    const publicPath = !dynamic && (new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath) || /^src\/engine\/(?:data|retry)(?:\.[jt]s)?$/u.test(targetPath));
+    const publicPath = !dynamic && (new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath) || /^src\/(?:engine\/(?:data|retry)|kit\/data)(?:\.[jt]s)?$/u.test(targetPath));
     if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
       if (kind === 'layer') report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
     } else if (kind === 'public' && own.name !== target.name && ['engine', 'game', 'kit'].includes(target.name) && !publicPath) {

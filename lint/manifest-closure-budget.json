@@ -2,16 +2,18 @@
   "about": "E362 AG10: the most files a shard manifest's static closure (cold boot) may pull, from scripts/gen-shards.mjs manifestClosure. Recorded 2026-10-03; numbers may only fall. A new shard gets default (the template's size plus room for its data).",
   "budgets": {
     "default": 40,
-    "_template": 23,
-    "driftwood-isle": 273,
+    "_template": 24,
+    "driftwood-isle": 45,
     "far-reach": 16,
-    "nalati-grasslands": 226,
-    "nine-dragon-stack": 271,
-    "pine-hollow": 42,
-    "sunscar-dunes": 32
+    "nalati-grasslands": 44,
+    "nine-dragon-stack": 43,
+    "pine-hollow": 43,
+    "sunscar-dunes": 33
   },
   "raised": {
-    "driftwood-isle 271 → 272, nine-dragon-stack 269 → 270": "E417 (2026-10-03): the engine's one props file became the kit's props + models files; same code, one more module, because these manifests import the whole #kit index at cold boot (the real cost: ~200 kit files)",
-    "+1 each for driftwood-isle, nalati-grasslands, nine-dragon-stack (E414)": "src/engine/app/identity.ts: the saves need the app identity's save prefix, and these manifests' engine imports reach the save store"
+    "_template 23 \u2192 24, pine-hollow 42 \u2192 43, sunscar-dunes 32 \u2192 33": "E405 AG5 (2026-10-03): #engine/data also carries Rng (src/engine/core/rng.ts) so the creature tables' manifests leave the engine index; one file for the manifests that import #engine/data"
+  },
+  "lowered": {
+    "driftwood-isle 273 \u2192 45, nalati-grasslands 226 \u2192 44, nine-dragon-stack 271 \u2192 43": "E405 AG5 (2026-10-03): the manifests' closure files import their rows from the node-safe #engine/data and #kit/data entries, not the engine and kit indexes"
   }
 }

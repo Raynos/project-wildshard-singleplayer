@@ -1,4 +1,4 @@
-import { Noise2D, smoothstep, clamp, lerp, CHUNK_HALF, buildTerrain } from '#engine';
+import { Noise2D, smoothstep, clamp, lerp, CHUNK_HALF, buildTerrain } from '#engine/data';
 import {
   RIVER_LEVEL, riverZAt, riverHalfAt, BRIDGE_XZ, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,
   WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, snowValleyX, snowValleyHalf, snowValleyFloor, GLACIER, MELT_STREAM,

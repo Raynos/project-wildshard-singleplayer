@@ -1,4 +1,4 @@
-import { CHUNK_HALF, ROAD_LENGTH, buildTerrain } from '#engine';
+import { CHUNK_HALF, ROAD_LENGTH, buildTerrain } from '#engine/data';
 
 /** Flat placement datum below the structure world; it is neither drawn nor registered as a heightfield. */
 export const TERRAIN = buildTerrain(0x9d2a, {

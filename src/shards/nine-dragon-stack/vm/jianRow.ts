@@ -1,4 +1,5 @@
-import { SWORD_WOOD, type MeleeProfile } from '#kit';
+import { SWORD_WOOD } from '#kit/data';
+import type { MeleeProfile } from '#kit';
 import type { ShardSword } from '#game';
 
 export interface JianRow extends MeleeProfile { viewmodel: () => Promise<ShardSword>; assets: readonly string[] }
