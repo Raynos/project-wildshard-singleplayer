@@ -19,7 +19,8 @@ const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: ()
 afterAll(restoreTerrain);
 const island = 'src/shards/driftwood-isle/species/', species = 'src/shards/nalati-grasslands/species/', nalati = 'src/shards/nalati-grasslands/combat/', pine = 'src/shards/pine-hollow/combat/';
 const tuning = [
-  ['S1 crab snap', `${island}crab.ts`, { SNAP_R: 1.6, SNAP_DAMAGE: 10, WINDUP: 0.5, SNAP_DUR: 0.78, HOLD_R: 3.6 }],
+  ['S1 crab snap', `${island}crab.ts`, { SNAP_R: 1.6, SNAP_DAMAGE: 10, WINDUP: 0.5, SNAP_DUR: 0.78 }],
+  ['S1 crab holding ring', 'src/shards/driftwood-isle/runtime/crabDecision.ts', { HOLD_R: 3.6 }],
   ['S2 monkey bite', `${island}monkey.ts`, { BITE_R: 1.3, BITE_DAMAGE: 6, BITE_DUR: 0.9 }],
   ['S3 monkey coconut release', `${island}monkey.ts`, { THROW_R: 14, THROW_DUR: 1, THROW_RELEASE: 0.62 }],
   ['S4 sailor swing', `${island}sailor.ts`, { SWING_R: 1.8, HIT_R: 1.9, SWING_DAMAGE: 14, WINDUP: 0.6, SWING_DUR: 0.9 }],
