@@ -1,0 +1,87 @@
+{
+  "rev": "f3de4c716",
+  "tier": "phone",
+  "hybrid": "off",
+  "when": "2026-10-04T23:07:29.823Z",
+  "method": "Desktop Chromium (Metal), iPhone 16 Pro portrait, muted; playable + a full turn + 6 s, forced GC, CDP Runtime.getHeapUsage (usedSize, backingStorageSize = ArrayBuffers); scene geometry arrays still on the CPU; renderer.info.memory. Row off / on alternated twice.",
+  "means": {
+    "off": {
+      "heapMB": 42.717315673828125,
+      "arrayBuffersMB": 213.96199321746826,
+      "sceneArraysMB": 1223.4274244308472,
+      "islandGpuMB": 113.5362901687622,
+      "calls": 122,
+      "triangles": 812325
+    },
+    "on": {
+      "heapMB": 42.777408599853516,
+      "arrayBuffersMB": 141.5259861946106,
+      "sceneArraysMB": 766.0203552246094,
+      "islandGpuMB": 113.5362901687622,
+      "calls": 122,
+      "triangles": 812325
+    }
+  },
+  "runs": {
+    "off": [
+      {
+        "row": "off",
+        "heapMB": 42.708885192871094,
+        "arrayBuffersMB": 213.96199321746826,
+        "islandGpuMB": 113.5362901687622,
+        "islandMeshes": 155,
+        "calls": 122,
+        "triangles": 812325,
+        "sceneArraysMB": 1223.4274244308472,
+        "releasedApproxMB": 0,
+        "geometries": 484,
+        "textures": 85,
+        "version": null
+      },
+      {
+        "row": "off",
+        "heapMB": 42.725746154785156,
+        "arrayBuffersMB": 213.96199321746826,
+        "islandGpuMB": 113.5362901687622,
+        "islandMeshes": 155,
+        "calls": 122,
+        "triangles": 812325,
+        "sceneArraysMB": 1223.4274244308472,
+        "releasedApproxMB": 0,
+        "geometries": 484,
+        "textures": 85,
+        "version": null
+      }
+    ],
+    "on": [
+      {
+        "row": "on",
+        "heapMB": 42.77360916137695,
+        "arrayBuffersMB": 141.5259828567505,
+        "islandGpuMB": 113.5362901687622,
+        "islandMeshes": 155,
+        "calls": 122,
+        "triangles": 812325,
+        "sceneArraysMB": 766.0203552246094,
+        "releasedApproxMB": 490.46289825439453,
+        "geometries": 484,
+        "textures": 85,
+        "version": null
+      },
+      {
+        "row": "on",
+        "heapMB": 42.78120803833008,
+        "arrayBuffersMB": 141.5259895324707,
+        "islandGpuMB": 113.5362901687622,
+        "islandMeshes": 155,
+        "calls": 122,
+        "triangles": 812325,
+        "sceneArraysMB": 766.0203552246094,
+        "releasedApproxMB": 490.46289825439453,
+        "geometries": 484,
+        "textures": 85,
+        "version": null
+      }
+    ]
+  }
+}
