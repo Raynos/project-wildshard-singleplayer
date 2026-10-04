@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // SF0: live drawn-frame baseline, never a deterministic/capture-clock or CPU-throttled run.
 // node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--device=<name>] [--rev=<sha>] [--setting=key=value]
+// --shards=grid: EXPERIMENTAL Wildshard, entered the way a player does (the title's grid entry tapped, Developer on; no URL
+// switch), measured at the home cell's spawn and the heaviest of its parity cameras plus three highway-deck views.
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
 // exit 3 = incomplete measurement. --regrade=<baseline> reapplies current floor policy without rerendering.
 // Results: progress/frame-floor/<measured-short-sha>.json.
@@ -12,7 +14,7 @@ import { saveFixtureCode } from './debug-settings.mjs';
 
 const ROOT = resolvePath(import.meta.dirname, '..');
 const SCRIPT = import.meta.filename;
-const ALL = ['_template', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack'];
+const ALL = ['_template', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'grid'];
 const args = process.argv.slice(2);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const shards = flag('shards', ALL.join(',')).split(',');
@@ -39,7 +41,9 @@ const fixture = (tier) => [
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
 ].join(';');
-const query = (shard) => `?chunk=${encodeURIComponent(shard)}&mute=1&skipintro=1&nolock=1&sw=0`;
+const query = (shard) => (shard === 'grid' ? '?mute=1&nolock=1&sw=0' : `?chunk=${encodeURIComponent(shard)}&mute=1&skipintro=1&nolock=1&sw=0`); // the grid starts at the title
+/** Highway-deck views around the grid's home cell (home-frame metres): a neighbour's far proxy across the deck, a crossroads, the north gap. */
+const GRID_POSES = [{ name: 'grid-deck-east', x: 277.5, y: 1.7, z: -40, yaw: 0, pitch: -0.08 }, { name: 'grid-crossroads', x: 240, y: 6, z: 240, yaw: -Math.PI * 0.75, pitch: -0.12 }, { name: 'grid-deck-north', x: 0, y: 3, z: 262, yaw: Math.PI, pitch: -0.05 }];
 const errorText = (e) => e instanceof Error ? e.message : String(e);
 
 // Jake's SF0 clarification (2026-10-04): allow vsync quantization, retain the original strict verdict.
@@ -153,17 +157,36 @@ async function waitReady(evaluate) {
   }
   throw new Error('Game loading did not finish within 90 seconds');
 }
+/** The title's EXPERIMENTAL Wildshard tap (shown with Developer on), then the grid page: its session readout and the world entered. */
+async function enterGrid(driver) {
+  const start = Date.now();
+  while (!(await driver.evaluate("Boolean(document.querySelector('.ws-menu-entry-grid'))").catch(() => false))) {
+    if (Date.now() - start > 90000) throw new Error('The title never showed EXPERIMENTAL Wildshard');
+    await sleep(300);
+  }
+  await sleep(800);
+  await driver.evaluate("(setTimeout(() => { document.querySelector('.ws-menu-entry-grid').click(); }, 100), true)"); // the tap navigates: return first
+  await driver.followed();
+  while (Date.now() - start < 240000) {
+    const state = await driver.evaluate(`(() => { const s = (${status.toString()})(); return { ...s, grid: window.__wildshard?.shard?.grid !== undefined }; })()`).catch(() => null); // mid-navigation
+    if (state?.error) throw new Error(state.error);
+    if (state?.ready && state.grid) { await driver.evaluate('(window.__wildshard.world.hud.enterNow(), true)'); return; }
+    await sleep(300);
+  }
+  throw new Error('The grid did not finish loading within 240 seconds');
+}
 async function measureShard(driver, shard, deadline) {
   const start = Date.now(), floorMs = surface === 'sim' ? 33.3 : 16.7;
   try {
     await driver.load(shard);
+    if (shard === 'grid') await enterGrid(driver);
     await waitReady(driver.evaluate);
     await sleep(settleMs);
     const meta = await driver.evaluate(`(${metadata.toString()})()`);
     if (meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== (surface === 'sim' ? 'phone' : 'desktop') || meta.settings.fps !== 'auto' || Object.entries(picks).some(([key, value]) => meta.settings[key] !== value)) throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
     if (surface === 'sim' && (meta.viewport[0] >= meta.viewport[1] || !meta.userAgent.includes('iPhone'))) throw new Error('Simulator must be portrait iPhone Safari');
     if (surface === 'desktop' && !meta.renderer.includes('ANGLE Metal Renderer')) throw new Error(`Metal required, got ${meta.renderer}`);
-    const declared = await driver.evaluate(`(${cameras.toString()})()`);
+    const declared = [...await driver.evaluate(`(${cameras.toString()})()`), ...(shard === 'grid' ? GRID_POSES : [])];
     const candidates = declared.length > 0 ? declared : [{ ...meta.spawn, name: 'spawn-reverse', yaw: meta.spawn.yaw + Math.PI }];
     const scan = [];
     for (const pose of candidates) {
@@ -249,7 +272,7 @@ async function worker() {
       let errors = [];
       driver = {
         load: async (shard) => { errors = []; page = await context.newPage(); page.on('pageerror', (e) => errors.push(e.message.slice(0, 240))); page.on('console', (message) => { if (message.type() === 'error' && message.text().includes('[faults]')) errors.push(message.text().slice(0, 1000)); }); await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' }); },
-        evaluate: evaluator((expr) => page.evaluate(expr)), errors: () => errors,
+        evaluate: evaluator((expr) => page.evaluate(expr)), errors: () => errors, followed: () => page.waitForURL((u) => !u.search.includes('mute=1') || u.search.includes('chunk='), { timeout: 60000 }).catch(() => undefined),
         unload: async () => { await page?.close(); },
       };
     } else {
@@ -293,6 +316,8 @@ async function worker() {
           await connect(gameUrl);
         },
         evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), unload: () => { inspector?.close(); inspector = undefined; },
+        // the tap's fresh document (same helper page, so the pins stay): reconnect to whatever page the helper path now holds
+        followed: async () => { await sleep(1500); await connect(`${base}frame-floor-safari.html`); },
       };
     }
     for (const shard of shards) rows.push(await measureShard(driver, shard, deadline));
