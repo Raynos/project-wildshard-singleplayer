@@ -71,3 +71,21 @@ it('bounds streaming bytes even when Content-Length is absent or false', async (
   await expect(boundedResponse(new Response(new Uint8Array(3), { headers: { 'content-length': '4' } }), 3)).rejects.toThrow('wire size');
   expect(await boundedResponse(new Response(new Uint8Array(3)), 3)).toHaveLength(3);
 });
+it('admits a visited product revision only with explicit migrations and preserves the cached predecessor on refusal', async () => {
+  const f = fixture();
+  f.shard.state.shared.push({ id: 7, name: 'door.open', type: 'bool', privacy: 'public', default: false });
+  await admitProduct(f.shard, f.options);
+  const next = structuredClone(f.shard); next.identity.revision++; next.state.version++;
+  const field = next.state.shared[0]; if (field === undefined) throw new Error('Missing state field'); field.name = 'gate.open';
+  await expect(admitProduct(next, f.options)).rejects.toThrow('explicit');
+  expect(f.cache.products.get(base)?.source).toEqual(f.shard);
+  Object.assign(next, { migrations: [{ from: 1, to: 2, fields: [{ op: 'rename', scope: 'shared', id: 7, name: 'gate.open' }] }] });
+  const admitted = await admitProduct(next, f.options);
+  expect(admitted.source.state.shared[0]?.name).toBe('gate.open');
+  expect(f.fetches()).toBe(1);
+  const visited = structuredClone(f.cache.products.get(base));
+  const recycling = structuredClone(next); recycling.identity.revision++; recycling.state.version++;
+  Object.assign(recycling, { migrations: [{ from: 2, to: 3, fields: [{ op: 'drop', scope: 'shared', id: 7 }] }] });
+  await expect(admitProduct(recycling, f.options)).rejects.toThrow('reused');
+  expect(f.cache.products.get(base)).toEqual(visited);
+});

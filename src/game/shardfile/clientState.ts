@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type { ShardfileSimulation } from './simulation';
 import type { DeclaredItems } from './items';
 import type { Shardfile } from './schema';
-import { LogicalStateSchema, migrateLogicalState, type DeclaredMigrations } from './migrations';
+import { LogicalStateSchema, migrateLogicalState } from './migrations';
 import { logicalStateFromLane, restoreLogicalLane } from './logicalState';
 import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
@@ -90,10 +90,10 @@ function apply(sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoin
   }
   sim.quest.restore(state.dialogue); sim.host.state.tick = state.tick;
 }
-function applyMigrated(source: Shardfile & { migrations?: DeclaredMigrations }, sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
+function applyMigrated(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
   // All historical version-1 client checkpoints predate authored state-version migrations and used state version 1.
   const logical = state.version === 2 ? state.state : logicalStateFromLane(1, state.lane);
-  const migrated = migrateLogicalState(logical, source.state, source.migrations ?? []);
+  const migrated = migrateLogicalState(logical, source.state, source.migrations);
   restoreLogicalLane(sim.lane, migrated);
   for (const [id, runtime] of items) {
     const saved = state.items[id]; if (saved === undefined) continue;
@@ -116,7 +116,7 @@ function applyMigrated(source: Shardfile & { migrations?: DeclaredMigrations }, 
   sim.quest.restore(dialogue); sim.host.state.tick = state.tick;
 }
 /** Refuse incompatible/corrupt progress atomically. Silent quest restore never repeats profile rewards or scene events. */
-export function restoreClientState(source: Shardfile & { migrations?: DeclaredMigrations }, sim: ShardfileSimulation, items: Runtimes, input: unknown): boolean {
+export function restoreClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, input: unknown): boolean {
   const result = v.safeParse(ClientCheckpointSchema, input); if (!result.success || result.output.revision > source.identity.revision
     || !v.safeParse(v.literal(source.identity.slug), sim.host.level.id).success
     || (result.output.version === 2 && !v.safeParse(v.literal(source.identity.slug), result.output.shard).success)) return false;
