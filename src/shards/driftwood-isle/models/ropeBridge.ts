@@ -88,7 +88,7 @@ class RopeBridgeBuilder {
     this.len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     this.dir.set((b[0] - a[0]) / this.len, (b[1] - a[1]) / this.len);
     const side = new THREE.Vector2(-this.dir.y, this.dir.x);
-    const hw = this.width / 2, yaw = Math.atan2(this.dir.x, this.dir.y);
+    const hw = this.width / 2;
     const at = (t: number, s: number, dy: number) => new THREE.Vector3(a[0] + this.dir.x * this.len * t + side.x * s, this.deckY(t) + dy, a[1] + this.dir.y * this.len * t + side.y * s);
     this.mesh = new THREE.Group();
     this.mesh.name = 'rope-bridge';
@@ -115,9 +115,16 @@ class RopeBridgeBuilder {
     this.mesh.add(posts);
 
     // ── the deck at rest: one segment per chord of the sag, its top face on the catenary ──
-    this.segs = ropeBridgeSegments(this.spec, this.ground);
-    const n = this.segs.length;
+    const n = Math.max(6, Math.round(this.len / SEG_LEN));
+    const yaw = Math.atan2(this.dir.x, this.dir.y);
+    const e = new THREE.Euler(0, 0, 0, 'YXZ'), up = new THREE.Vector3();
+    const top = (t: number) => this.deckY(t) + 0.03;
     for (let i = 0; i < n; i++) {
+      const t0 = i / n, t1 = (i + 1) / n, y0 = top(t0), y1 = top(t1), run = this.len / n;
+      _q.setFromEuler(e.set(-Math.atan2(y1 - y0, run), yaw, 0));
+      up.set(0, 1, 0).applyQuaternion(_q);
+      const sm = (t0 + t1) / 2 * this.len;
+      this.segs.push({ x: a[0] + this.dir.x * sm - up.x * SEG_HY, y: (y0 + y1) / 2 - up.y * SEG_HY, z: a[1] + this.dir.y * sm - up.z * SEG_HY, rot: { x: _q.x, y: _q.y, z: _q.z, w: _q.w }, hz: Math.hypot(run, y1 - y0) / 2 });
       const h = new THREE.Object3D();
       h.matrixAutoUpdate = false;
       this.mesh.add(h); this.holders.push(h);
