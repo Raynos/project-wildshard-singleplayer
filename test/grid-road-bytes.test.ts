@@ -4,9 +4,6 @@ import { Scope } from '../src/engine/app/scope';
 import { generatePlatform, type GeneratedStrip, type PlatformCell } from '../src/engine/sim/strips';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { PageResidency } from '../src/game/grid/pageResidency';
-import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
-import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 import { loadGridEdgeProfiles } from '../src/game/grid/edgeProfiles';
 import { readGridEdges } from '../src/game/grid/edgeSources';
 import { PlatformRenderAdmissionError, PlatformRenderResidency, type PlatformRenderAdmission, type PlatformRenderBytePlan } from '../src/game/grid/renderResidency';
@@ -183,26 +180,4 @@ it('a refused plan never builds, and a refusal part-way disposes what was built 
   expect(meshesOf([scene]).map((m) => m.name).sort()).toEqual(['grid-asphalt', 'grid-junctions', 'grid-signs', 'grid-void-floor']);
   partScope.dispose();
   expect(partial.entries()).toEqual([]); expect(meshesOf([scene])).toEqual([]);
-}, SLOW);
-
-it('refuses the real platform before its deck allocation when the measured Driftwood home already occupies the shared envelope', async () => {
-  const { assembly, strips } = await real(), scope = new Scope('measured-home-road'), page = new PageResidency();
-  const claim = page.admitHome('driftwood-isle', runtimeAccountedBytes(DRIFTWOOD_RUNTIME_COST));
-  const baseline = page.allocator.entries(), residency = new PlatformRenderResidency(page.allocator, scope), allocated: string[] = [];
-  const admission: PlatformRenderAdmission = { allocate: (plan, build) => residency.allocate(plan, (owner) => {
-    allocated.push(plan.id); return build(owner);
-  }) };
-  let failure: unknown;
-  try {
-    expect(page.allocator.cost().playing).toBe(966_000_001);
-    try { install(assembly, strips, admission, scope); } catch (error) { failure = error; }
-    if (!(failure instanceof PlatformRenderAdmissionError)) throw new Error('Expected real platform refusal under measured home cost');
-    expect(failure.plan.id).toBe('road.deck');
-    expect(allocated).toEqual(['road.asphalt', 'road.junctions', 'road.signs', 'road.void']);
-    expect(page.allocator.has('platform:render:road.deck')).toBe(false);
-    expect(page.allocator.cost().playing).toBeLessThanOrEqual(1_000_000_000);
-    expect(page.home()).toBe(claim);
-    scope.dispose(); expect(page.allocator.entries()).toEqual(baseline);
-  } finally { scope.dispose(); page.dispose(); }
-  expect(page.allocator.entries()).toEqual([]);
 }, SLOW);

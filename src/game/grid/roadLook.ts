@@ -12,8 +12,8 @@ import {
   MeshLambertMaterial, type Object3D, Quaternion, RepeatWrapping, SRGBColorSpace, Vector3,
 } from 'three';
 import type { GridCell } from './assembly';
-import { rgbaTextureBytes, uniformPart, type SolidPart } from './roadSolid';
-import { bytePlan, cullInto, meshBytes, type CullSource, type RoadCuller } from './roadCull';
+import { gpuOnlyTextureBytes, uniformPart, type SolidPart } from './roadSolid';
+import { bytePlan, cullInto, gpuOnlyRoad, meshBytes, type CullSource, type RoadCuller } from './roadCull';
 import type { PlatformRenderAdmission, PlatformRenderBytePlan } from './renderResidency';
 import {
   ENTRY_ASPHALT, GAP_HALF, RING_ISLAND, RING_OUTER, ROAD_HALF, SEGMENT_HALF, TURN_IN_HALF, segmentPoint,
@@ -390,11 +390,12 @@ function texturedSources(layout: RoadLayout, home: GridCell): TexturedSource[] {
   ];
 }
 function texturedPlan(source: TexturedSource, cull: RoadCuller | undefined): PlatformRenderBytePlan {
-  return bytePlan(source.id, meshBytes([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch }), rgbaTextureBytes(source.width, source.height));
+  return bytePlan(source.id, meshBytes([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch }, true), gpuOnlyTextureBytes(source.width, source.height));
 }
 /**
- * G144's preflight for the boulevard: per textured mesh (asphalt, junctions, signs) the exact retained bytes its build will
- * allocate (vertex buffers, the culled index buffers, the canvas and its mips), from the same meshers and the atlas layout,
+ * G144's preflight for the boulevard: per textured mesh (asphalt, junctions, signs) the exact retained bytes its admitted
+ * build will hold once uploaded (vertex buffers and every canvas mip on the GPU, only the indices and a one-pixel canvas on
+ * the JS side, `gpuOnlyRoad`), from the same meshers and the atlas layout,
  * without building a geometry or painting a canvas. The kerbs, islands and streetlights belong to the deck's plan.
  */
 export function roadLookPlans(layout: RoadLayout, home: GridCell, cull?: RoadCuller): PlatformRenderBytePlan[] {
@@ -424,6 +425,7 @@ export function installRoadLook(input: RoadLookInput): RoadLookState {
       mesh.name = source.name; if (source.overlay) mesh.receiveShadow = true;
       mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix(); group.add(mesh);
       if (cull !== undefined) cullInto(cull, mesh); else hook?.(mesh);
+      if (admission !== undefined) gpuOnlyRoad(mesh, [map]); // G144: admitted, its vertex arrays and canvas go on upload (nothing repaints it)
       return mesh;
     };
     if (admission === undefined) build(scope); else admission.allocate(texturedPlan(source, cull), build);

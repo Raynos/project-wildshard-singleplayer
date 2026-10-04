@@ -137,6 +137,11 @@ export function mipTexels(width: number, height: number): number {
 export function rgbaTextureBytes(width: number, height: number, layers = 1): { readonly jsBytes: number; readonly gpuBytes: number } {
   return { jsBytes: width * height * 4 * layers, gpuBytes: mipTexels(width, height) * 4 * layers };
 }
+/** G144: the same texture once `gpuOnlyTexture` let its source go on upload: a canvas shrinks to one RGBA pixel, a data
+ *  array empties; the GPU copy is unchanged. */
+export function gpuOnlyTextureBytes(width: number, height: number, layers = 1, source: 'canvas' | 'data' = 'canvas'): { readonly jsBytes: number; readonly gpuBytes: number } {
+  return { jsBytes: source === 'canvas' ? 4 : 0, gpuBytes: rgbaTextureBytes(width, height, layers).gpuBytes };
+}
 
 /** A solid part as `solidGeometry` will store it (Float32 positions, its one grain layer and unlit flag), for the cull count. */
 export function solidSource(part: SolidPart): { vertices: number; position: (k: number) => number; indices: ArrayLike<number>; layer: number; unlit: number } {

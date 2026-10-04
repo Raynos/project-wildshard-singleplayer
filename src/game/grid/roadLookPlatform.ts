@@ -21,8 +21,8 @@ import type { PlatformRenderAdmission, PlatformRenderBytePlan } from './renderRe
 import { installRoadLook, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
 import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSource, stone, strata, type SeamCurtain, type SeamLookState, type SeamPiece } from './seamLook';
-import { bytePlan, cullInto, meshBytes, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
-import { GRAIN_LAYERS, GRAIN_SIZE, grainArray, rgbaTextureBytes, SOLID_FLOATS, solidGeometry, solidMaterial, solidSource, type SolidPart } from './roadSolid';
+import { bytePlan, cullInto, gpuOnlyRoad, meshBytes, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
+import { GRAIN_LAYERS, GRAIN_SIZE, gpuOnlyTextureBytes, grainArray, SOLID_FLOATS, solidGeometry, solidMaterial, solidSource, type SolidPart } from './roadSolid';
 
 /** What the road system reads and where it draws. */
 export interface PlatformRoadInput {
@@ -43,13 +43,14 @@ export interface PlatformRoadInput {
 /** The readouts and the roots the road budget measures. */
 export interface PlatformRoad { readonly road: RoadLookState; readonly seams: SeamLookState; readonly roots: readonly Object3D[] }
 
-/** G144's preflight for the deck: the merged solid parts after clip and far LOD, and the grain array (data + every mip of every layer). */
+/** G144's preflight for the deck: the merged solid parts after clip and far LOD, and the grain array (every mip of every
+ *  layer); admitted, the vertex buffers and the grain data keep no JS copy once uploaded (`gpuOnlyRoad`). */
 export function deckPlan(parts: readonly SolidPart[], pitch: number): PlatformRenderBytePlan {
-  return bytePlan('road.deck', meshBytes(parts.map(solidSource), SOLID_FLOATS, { pitch, lod: ROAD_LOD }), rgbaTextureBytes(GRAIN_SIZE, GRAIN_SIZE, GRAIN_LAYERS.length));
+  return bytePlan('road.deck', meshBytes(parts.map(solidSource), SOLID_FLOATS, { pitch, lod: ROAD_LOD }, true), gpuOnlyTextureBytes(GRAIN_SIZE, GRAIN_SIZE, GRAIN_LAYERS.length, 'data'));
 }
-/** G144's preflight for the curtain: its positions and index after clip (no LOD, no texture). */
+/** G144's preflight for the curtain: its positions and index after clip (no LOD, no texture), positions GPU-only. */
 export function curtainPlan(curtain: SeamCurtain, pitch: number): PlatformRenderBytePlan {
-  return bytePlan('road.curtain', meshBytes([curtainSource(curtain)], CURTAIN_FLOATS, { pitch }));
+  return bytePlan('road.curtain', meshBytes([curtainSource(curtain)], CURTAIN_FLOATS, { pitch }, true));
 }
 
 /** Install the platform's road system; everything disposes with `scope` (or, admitted, with each allocation's child scope). */
@@ -70,12 +71,14 @@ export function installPlatformRoad(input: PlatformRoadInput): PlatformRoad {
     owner.onDispose(() => { deck.removeFromParent(); deck.geometry.dispose(); material.dispose(); grain.dispose(); });
     deck.name = 'grid-deck'; deck.receiveShadow = true;
     deck.castShadow = false; deck.matrixAutoUpdate = false; deck.updateMatrix(); scene.add(deck); cullInto(culler, deck, ROAD_LOD); meshes.push(deck);
+    if (admission !== undefined) gpuOnlyRoad(deck, [grain]); // G144: admitted, its JS copies go on upload (the plan counts them gone)
   });
   admit(() => curtainPlan(seams.curtain, pitch), (owner) => {
     const material = curtainMaterial(home), curtain = new Mesh(curtainGeometry(seams.curtain), material);
     owner.onDispose(() => { curtain.removeFromParent(); curtain.geometry.dispose(); material.dispose(); });
     curtain.name = 'grid-seam-curtain'; curtain.receiveShadow = false;
     curtain.castShadow = false; curtain.matrixAutoUpdate = false; curtain.updateMatrix(); scene.add(curtain); cullInto(culler, curtain); meshes.push(curtain);
+    if (admission !== undefined) gpuOnlyRoad(curtain, []);
   });
   const roots = [...meshes, scene.getObjectByName('grid-boulevard'), scene.getObjectByName('grid-void')].filter((o): o is Object3D => o !== undefined);
   return { road, seams: seams.state, roots };

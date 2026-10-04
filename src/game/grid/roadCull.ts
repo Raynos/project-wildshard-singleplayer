@@ -13,7 +13,8 @@
  * Pure three.js (no DOM), so Node tests pin the per-view numbers.
  */
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { BufferAttribute, type BufferGeometry, type Camera, DoubleSide, DynamicDrawUsage, Frustum, InstancedMesh, type Material, Matrix4, Mesh, type Object3D, Sphere, Vector3 } from 'three';
+import { gpuOnlyAttributes, gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
+import { BufferAttribute, type BufferGeometry, type Camera, DoubleSide, DynamicDrawUsage, Frustum, InstancedMesh, type Material, Matrix4, Mesh, type Object3D, Sphere, type Texture, Vector3 } from 'three';
 import type { PlatformRenderBytePlan } from './renderResidency';
 
 /** One bin: its sphere (in the mesh's local frame) and its run of the sorted source index. */
@@ -217,17 +218,29 @@ export interface RenderBytes { readonly jsBytes: number; readonly gpuBytes: numb
 /**
  * The retained bytes of a road mesh of `floats` Float32 values per vertex and a Uint32 index: culled, its clipped vertex
  * buffers (CPU + GPU), the dynamic drawn index (CPU + GPU, the source's length) and the sorted source (CPU only); unculled,
- * its vertex buffers and index as built.
+ * its vertex buffers and index as built. `gpuOnly` (an admitted mesh, `gpuOnlyRoad`): the vertex buffers hold no CPU copy
+ * once uploaded, so only the indices count on the JS side.
  */
-export function meshBytes(sources: readonly CullSource[], floats: number, cull?: { readonly pitch: number; readonly lod?: readonly CullLod[] }): RenderBytes {
+export function meshBytes(sources: readonly CullSource[], floats: number, cull?: { readonly pitch: number; readonly lod?: readonly CullLod[] }, gpuOnly = false): RenderBytes {
   if (cull === undefined) {
     let vertices = 0, indices = 0;
     for (const run of sources) { vertices += run.vertices; indices += run.indices.length; }
-    const bytes = vertices * floats * 4 + indices * 4;
-    return { jsBytes: bytes, gpuBytes: bytes };
+    const vertexBytes = vertices * floats * 4, indexBytes = indices * 4;
+    return { jsBytes: (gpuOnly ? 0 : vertexBytes) + indexBytes, gpuBytes: vertexBytes + indexBytes };
   }
   const counts = cullCounts(sources, cull.pitch, cull.lod), vertexBytes = counts.clipped * floats * 4, indexBytes = counts.source * 4;
-  return { jsBytes: vertexBytes + 2 * indexBytes, gpuBytes: vertexBytes + indexBytes };
+  return { jsBytes: (gpuOnly ? 0 : vertexBytes) + 2 * indexBytes, gpuBytes: vertexBytes + indexBytes };
+}
+
+/**
+ * G144: an admitted road mesh keeps no CPU copy of what only the GPU reads. Every static vertex attribute (position too: the
+ * cull reads its bins and sorted source, never the vertices, and nothing raycasts the road) and each texture's source (a
+ * canvas painted once, the grain array) go the moment they upload; the dynamic drawn index and the cull's sorted source
+ * stay. Call it right after `cullInto`, before the first draw. A lost context reloads the page (`markGpuOnly`).
+ */
+export function gpuOnlyRoad(mesh: Mesh, textures: readonly Texture[]): void {
+  gpuOnlyAttributes(mesh.geometry, 'grid.road', []);
+  for (const t of textures) gpuOnlyTexture(t, 'grid.road');
 }
 /** Sum retained bytes into one admission plan. */
 export function bytePlan(id: string, ...parts: readonly RenderBytes[]): PlatformRenderBytePlan {
