@@ -35,7 +35,7 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
-import { steppeVoices } from '../audio/synth';
+import { steppeVoices } from '../runtime/audio/synth';
 import { SteppeStorm as Weather, type Exposed, type LightningPlayer } from './Weather';
 import { STORM_PHASES } from './weatherProfile';
 import { WeatherFX } from './WeatherFX';

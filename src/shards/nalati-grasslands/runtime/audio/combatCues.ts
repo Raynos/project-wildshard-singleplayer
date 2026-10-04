@@ -1,7 +1,7 @@
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueMap, CombatCueOpts } from '@wildshard/engine/combat/cues';
 import type { SteppeVoices } from './synth';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 type Voices = Pick<SteppeVoices, 'bowTwang' | 'bowDraw' | 'bowFullDraw' | 'bowLetDown' | 'javelinThrow' | 'sabreSwing' | 'arrowImpact' | 'javelinImpact' | 'sabreHit'>;
 const surfaceOf = (surface: string | undefined): 'wood' | 'flesh' | 'ground' => surface === 'wood' || surface === 'flesh' ? surface : 'ground';

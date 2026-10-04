@@ -30,7 +30,7 @@ import { Vector3 } from 'three';
 import { steppeVoices } from './synth';
 import type { SteppeZone } from './SteppeScore';
 import { requireAudioProfile, requireAudioLevel } from '@wildshard/engine/audio/audioProfiles';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.nalati');
 

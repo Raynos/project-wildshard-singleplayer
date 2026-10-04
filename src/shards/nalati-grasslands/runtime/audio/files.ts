@@ -2,7 +2,7 @@ import type { CueBank } from '@wildshard/engine/audio/Cues';
 import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 const MUSIC = requireAudioProfile(source.audio.music, 'score.nalati');
 const SCORE = requireAudioProfile(MUSIC.source ?? undefined, 'nalati.music.source');

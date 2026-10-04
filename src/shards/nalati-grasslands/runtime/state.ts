@@ -36,7 +36,7 @@ import type { NalatiLoadout } from '../weapons/loadout';
 import { nalatiWetAt } from '../wet';
 import { wireNightEnemies } from '../combat/night';
 import { installStealth, type Stealth } from '../stealth';
-import { wireSound, type NalatiSound } from '../audio/sound';
+import { wireSound, type NalatiSound } from './audio/sound';
 import { loadGrassField } from '@wildshard/kit/lookApi';
 import { wireLookV2 } from '../look/index';
 import { reseedGrassV2 } from '../look/grass';

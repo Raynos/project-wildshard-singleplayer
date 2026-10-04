@@ -1,4 +1,4 @@
-// src/shards/nalati-grasslands/audio/SteppeScore.ts — Nalati's own score behind src/engine/audio/Music.ts (NALATI-MERGE A2 / A3).
+// src/shards/nalati-grasslands/runtime/audio/SteppeScore.ts — Nalati's own score behind src/engine/audio/Music.ts (NALATI-MERGE A2 / A3).
 //
 //   public/assets/music/nalati/music.json   { style: 'nalati', credit, slots: { steppe-grass | steppe-sky | steppe-snow |
 //                                           steppe-night | steppe-storm | steppe-king: { calm, tension, bpm, … } }, stings }
@@ -19,7 +19,7 @@ import { SetScore, decodeScore, scoreFiles, scoreManifest, type AudioRead, type 
 import type { MusicManifest } from '@wildshard/engine/audio/Stems';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import { selectScoreSlots } from '@wildshard/engine/audio/scoreSelection';
-import source from '../shard.config';
+import source from '../../shard.config';
 
 const PROFILE = requireAudioProfile(source.audio.music, 'score.nalati');
 /** NALATI-MERGE A2: Nalati's own score (public/assets/music/nalati/music.json — one Kazakh-folk score whatever the style):

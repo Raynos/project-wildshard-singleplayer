@@ -1,5 +1,5 @@
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
-import source from '../shard.config';
+import source from '../../shard.config';
 import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { Audio, HoofSurface, ImpactKind } from '@wildshard/engine/audio/Audio';

@@ -1,4 +1,4 @@
-import type { Wildlife } from '../creatures/wildlife';
+import type { Wildlife } from '../../creatures/wildlife';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio, HoofSurface, ImpactKind } from '@wildshard/engine/audio/Audio';
@@ -24,7 +24,7 @@ import { createSteppeScore, type SteppeScene } from './SteppeScore';
  *   app.debug.snapshot()['nalati.sound']()  // the scoped live reader: counts, voices, ambience and score
  *
  * NALATI-MERGE A1 / A2 / A4: the bow's draw creak / full-draw click / let-down (Bow.onDrawStart / onFullDraw / onLetDown);
- * the zoned sample beds (src/shards/nalati-grasslands/audio/SteppeAmbience.ts: Nalati Grasslands / Sky Grassland / Snow Lotus Valley, fed from here at
+ * the zoned sample beds (src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts: Nalati Grasslands / Sky Grassland / Snow Lotus Valley, fed from here at
  * 4 Hz) over the synth bed's fallback; the score's scene (the score source: the zone, night, the storm, the Golden King).
  *
  * Pine Hollow and Driftwood never build this: the call table and the synth bed are registered on Nalati's mixer only.
@@ -32,13 +32,13 @@ import { createSteppeScore, type SteppeScene } from './SteppeScore';
 import * as THREE from 'three';
 import { SteppeAmbience } from './SteppeAmbience';
 import { installSteppeVoices, STEPPE_BED, type SteppeCall, type SteppeVoices } from './synth';
-import type { Nalati } from '../runtime/state';
-import type { NalatiWeather } from '../world/installWeather';
-import { MELT_STREAM as BROOK } from '../layout';
+import type { Nalati } from '../state';
+import type { NalatiWeather } from '../../world/installWeather';
+import { MELT_STREAM as BROOK } from '../../layout';
 import { requireAudioProfile, requireAudioZone } from '@wildshard/engine/audio/audioProfiles';
-import source from '../shard.config';
+import source from '../../shard.config';
 
-import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../world/terrain';
+import { RIVER, BRIDGE, riverMask, zoneAt, TERRAIN } from '../../world/terrain';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 import { nalatiCombatCues } from './combatCues';

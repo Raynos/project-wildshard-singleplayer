@@ -7,7 +7,7 @@ const schedulers: Readonly<Record<string, readonly string[]>> = {
   'src/shards/driftwood-isle/runtime/audio/sfx.ts': ['scheduleSurf', 'scheduleGust'],
   'src/engine/audio/Audio.ts': ['scheduleBubble'],
   'src/shards/pine-hollow/runtime/audio/synth.ts': ['scheduleGust', 'scheduleBird'],
-  'src/shards/nalati-grasslands/audio/synth.ts': ['scheduleLark', 'scheduleCricket', 'scheduleCrackle'],
+  'src/shards/nalati-grasslands/runtime/audio/synth.ts': ['scheduleLark', 'scheduleCricket', 'scheduleCrackle'],
   'src/shards/driftwood-isle/runtime/audio/ambience.ts': ['scheduleBird', 'scheduleDrip', 'scheduleSwell'],
   'src/shards/pine-hollow/runtime/audio/ambience.ts': ['scheduleThrall'],
 };
@@ -20,7 +20,7 @@ describe('every sound source is observed', () => {
     const owners: Readonly<Record<string, string>> = {
       '../src/engine/audio/Cues.ts': '../src/shards/nine-dragon-stack/audio/cues.ts',
       '../src/engine/audio/AmbienceBeds.ts': '../src/shards/nine-dragon-stack/audio/ambience.ts',
-      '../src/engine/audio/ambience.ts': '../src/shards/nalati-grasslands/audio/SteppeAmbience.ts',
+      '../src/engine/audio/ambience.ts': '../src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts',
       '../src/engine/audio/synth.ts': '../src/engine/audio/playerVoices.ts',
     };
     for (const [file, text] of files) {
@@ -32,7 +32,7 @@ describe('every sound source is observed', () => {
       '../src/engine/audio/Stems.ts', '../src/engine/audio/Voices.ts', '../src/engine/audio/ambience.ts',
       '../src/engine/audio/synth.ts',
       '../src/shards/driftwood-isle/runtime/audio/ambience.ts', '../src/shards/driftwood-isle/runtime/audio/shrineHum.ts',
-      '../src/shards/nalati-grasslands/audio/synth.ts',
+      '../src/shards/nalati-grasslands/runtime/audio/synth.ts',
       '../src/shards/pine-hollow/life/index.ts',
     ].sort()); // S3.5 merges three independent players; every remaining source still requires its content tap.
   });
@@ -74,7 +74,7 @@ describe('every sound source is observed', () => {
         visit(ast);
         expect(found.sort(), module).toEqual([...methods].sort());
       }
-      for (const file of ['src/shards/nalati-grasslands/audio/SteppeAmbience.ts', 'src/shards/driftwood-isle/world/Gulls.ts']) {
+      for (const file of ['src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts', 'src/shards/driftwood-isle/world/Gulls.ts']) {
         const source = sources[`../${file}`], ast = project.program.getSourceFile(file);
         if (!source || !ast) throw new Error('Missing ambient countdown source');
         const visit = (node: Node): void => {

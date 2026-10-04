@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Audio } from '../../../src/engine/audio/Audio';
 import { Scope } from '../../../src/engine/app/scope';
-import { SteppeVoices, STEPPE_BED } from '../../../src/shards/nalati-grasslands/audio/synth';
+import { SteppeVoices, STEPPE_BED } from '../../../src/shards/nalati-grasslands/runtime/audio/synth';
 
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 describe('mixer level unload', () => {

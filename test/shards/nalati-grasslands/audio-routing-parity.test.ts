@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import type { CombatCueOpts } from '../../../src/engine/combat/cues';
-import { nalatiCombatCues } from '../../../src/shards/nalati-grasslands/audio/combatCues';
+import { nalatiCombatCues } from '../../../src/shards/nalati-grasslands/runtime/audio/combatCues';
 
 // Captured from sound.ts at 12310ead5 before its switch became declared routes.
 it('preserves voice arguments, unbound fallback, silent loose and thrust microtasks across 6480 dispatches', () => {
