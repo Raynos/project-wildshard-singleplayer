@@ -441,6 +441,7 @@ See [ENGINE.md §20](ENGINE.md#20-the-game-layer-game) for options and the compl
 | the layer graph (AG7): no new layer pair or rising count, nothing outside your folder imports your files | pre-commit, `pnpm test` | `node scripts/check-graph.mjs` |
 | `gen-shards --check` | pre-commit when a manifest changes, the gate | `node scripts/gen-shards.mjs --check` |
 | node-safe manifest | `pnpm test` | `pnpm exec vitest run test/manifests-node-safe.test.ts` |
+| the world contract (SHARD-PLATFORM SP4) | `pnpm test` | `pnpm exec vitest run test/world/world-contract.test.ts`: your ground stays inside the 500 m cell (250 m below and above the highway level) and is level with the highway across the 15 m road at each edge midpoint, 50 m in. A level that can't (open sea, floating islands) is listed in `lint/edge-exemptions.json` with the row that fixes it; the list may only shrink |
 | your contract test | `pnpm test` | `pnpm exec vitest run test/shards/<slug>` |
 | the lock | every commit (`commit-msg`) | commit only inside your allowlist |
 | the pre-push gate | every push | `scripts/vercel-tree-gate.sh` runs check-css, gen, tsc, oxlint, the ratchet, vitest and `vite build` on a clean export |

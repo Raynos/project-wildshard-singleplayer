@@ -63,9 +63,9 @@ editor is Claude Code. Unreviewed arbitrary code from strangers. A native-only c
 | Id | Requirement | Level | Src |
 |---|---|---|---|
 | W1 | A shard is **500 × 500 × 500 m**, in its own local coordinates; x and z ∈ [−250, 250] | MUST | J (was 500 × 500 × 200, F) |
-| W2 | The vertical split around the highway level y = 0 is an engine constant, the same for every shard (open decision O1) | MUST | N |
+| W2 | The vertical split around the highway level y = 0 is an engine constant, the same for every shard: **250 m below, 250 m above** (O1) | MUST | J |
 | W3 | Shards sit on a grid, centres 515 m apart, with a **15 m highway** between them owned by the server (no man's land). The first deployment is **5 × 5 = 25** | MUST | F |
-| W4 | **Edge entries:** at each of the four edge midpoints a 15 m road runs at least 50 m in, level with the highway. No wall or cliff may close an edge. The validator proves each entry is **walkable** (ingress, clearance, terrain continuity), not just present | MUST | F, V |
+| W4 | **Edge entries:** at each of the four edge midpoints a 15 m road runs at least 50 m in, level with the highway. No wall or cliff may close an edge. The validator proves each entry is **walkable** (ingress, clearance, terrain continuity), not just present. During the transition Driftwood Isle (open sea) and Sky Reach (floating islands) are exempt; their conversion adds the entries (Jake, 2026-10-03) | MUST | F, V |
 | W5 | The **centre shard** is first-party and changes only with a server release | MUST | F |
 | W6 | **The server places shards.** Authors build in isolation (a floating cube) and never pick their cell. Identity, revision, placement and host are separate fields, and the server owns all four | MUST | F |
 | W7 | Travel between shards over the highway is **seamless**: no page reload, the next shard streams in | SHOULD | V |
@@ -199,7 +199,7 @@ declares a 500 × 500 × 500 cell. The audit of what is missing is in SHARD-PLAT
 
 | # | Decision | Recommended |
 |---|---|---|
-| O1 | The vertical split of the 500 m | **100 m below the highway, 400 m above.** Height is what the shards use (Sky Reach's islands, Nine Dragon's stack); 100 m of depth still fits a mine shard |
+| O1 | The vertical split of the 500 m | **Decided (Jake, 2026-10-03): 250 m below the highway level, 250 m above** (`CELL_BELOW` / `CELL_ABOVE`, SHARD-PLATFORM SP4) |
 | O2 | A hardcoded centre shard, or the one-shot's 9-cell citadel | **One hardcoded centre shard** (the fundamentals): one hub for vendors, the upload ritual and portals; the citadel can come later |
 | O3 | Who may ship a new WASM plugin | **Any author may use approved plugins; a new plugin goes public only after review.** A private shard may test an unreviewed plugin locally |
 | O4 | The first plugin toolchain | **Rust, with a language-neutral host ABI.** The best WASM toolchain, deterministic, and Claude Code writes it well; AssemblyScript or QuickJS for TypeScript authors later on the same ABI |

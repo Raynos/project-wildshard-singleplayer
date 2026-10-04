@@ -565,7 +565,7 @@ Boot helpers on `#engine`: `StepProgress`, `StepRunner`, `macrotask`, `slicer` (
 `loadBootRuntime` / `BootRuntime`, `preloadBakedTextures`, `loadBakedSky`, `loadLUT`, `fetchLut`, `LUT_SIZE`,
 `PUBLIC_BYTES`, `markUnload`, `setTitleArrival` / `TitleArrival`, `Ktx2Table`, `LoadFailure`. `#engine/data` has
 `filePolicy`, `PUBLIC_BYTES`, `ChunkFiles`, `Tier`, `TexMode` for node-side tools, and for a manifest's creature and
-loot tables (E405 AG5) `CHUNK_SIZE`, `TERRAIN_RES`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `Noise2D`, `Rng`, `deriveSpecies`, `WeightedTable`.
+loot tables (E405 AG5) `CHUNK_SIZE`, `CELL_HEIGHT` / `CELL_BELOW` / `CELL_ABOVE` (the 500 m cell, 250 m each side of the highway level: SHARD-PLATFORM SP4), `TERRAIN_RES`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `Noise2D`, `Rng`, `deriveSpecies`, `WeightedTable`.
 
 ## 9. Saves
 
@@ -1880,9 +1880,9 @@ sections above describe what to use; this list is the complete inventory.
 
 ### `#engine/data` (`src/engine/data.ts`)
 
-33 exports, grouped by the module they come from.
+36 exports, grouped by the module they come from.
 
-- `./core/config`: `CHUNK_HALF`, `CHUNK_SIZE`, `TERRAIN_RES`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`
+- `./core/config`: `CHUNK_HALF`, `CHUNK_SIZE`, `CELL_ABOVE`, `CELL_BELOW`, `CELL_HEIGHT`, `TERRAIN_RES`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`
 - `./core/noise`: `Noise2D`, `smoothstep`, `clamp`, `lerp`
 - `./core/rng`: `Rng`
 - `./ai/species`: `deriveSpecies`

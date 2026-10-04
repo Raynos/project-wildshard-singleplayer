@@ -1,5 +1,5 @@
 /** Node-safe public API for authored manifests and offline asset tools. */
-export { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES, ROAD_LENGTH, ROAD_WIDTH, SEED } from './core/config';
+export { CHUNK_HALF, CHUNK_SIZE, CELL_ABOVE, CELL_BELOW, CELL_HEIGHT, TERRAIN_RES, ROAD_LENGTH, ROAD_WIDTH, SEED } from './core/config';
 export { Noise2D, smoothstep, clamp, lerp } from './core/noise';
 export { Rng } from './core/rng';
 export { deriveSpecies } from './ai/species';
