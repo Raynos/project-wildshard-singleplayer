@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { createProbeNav } from '../src/engine/debug/probe';
-import { memoryVerdict, parseMemoryRun, soakVerdict, flakedFields, type SoakSample } from '../scripts/gpu-perf/report.mjs';
+import { memoryVerdict, parseMemoryRun, soakLimits, soakVerdict, flakedFields, type SoakSample } from '../scripts/gpu-perf/report.mjs';
 
 describe('nightly memory gate', () => {
   it('uses decimal phase limits, inclusive boundaries, and the native footprint', () => {
@@ -51,29 +51,47 @@ const samples = (gpuPerSecond = 0): SoakSample[] => Array.from({ length: 41 }, (
   seconds: i * 30, gpuBytes: 100_000_000 + i * 30 * gpuPerSecond, heapBytes: 10_000_000,
   geometries: 100, textures: 100, fps: i > 30 ? 15 : 60,
 }));
+// E388: three clean soaks of the shard set every growth limit (median + 2 × spread); no invented limit remains.
+const clean = [
+  { gpuGrowthBytes: 0, heapGrowthBytes: 10_000, geometryGrowth: 0, textureGrowth: 0 },
+  { gpuGrowthBytes: 2 * 1024 ** 2, heapGrowthBytes: 30_000, geometryGrowth: 1, textureGrowth: 0 },
+  { gpuGrowthBytes: 1024 ** 2, heapGrowthBytes: 20_000, geometryGrowth: 0, textureGrowth: 1 },
+];
 describe('soak growth rules', () => {
+  it('derives each limit from the clean soaks: their median + 2 × their spread', () => {
+    const limits = soakLimits(clean);
+    expect(limits?.['gpuGrowthBytes']).toEqual({ median: 1024 ** 2, spread: 2 * 1024 ** 2, limit: 5 * 1024 ** 2, runs: 3 });
+    expect(limits?.['heapGrowthBytes']?.limit).toBe(60_000);
+    expect(limits?.['textureGrowth']?.limit).toBe(2);
+    expect(soakLimits([])).toBeNull();
+    expect(soakLimits([{ gpuGrowthBytes: 0 }])).toBeNull();
+  });
   it('ignores startup growth and reports fps without gating it', () => {
     const rows = samples(); rows[0] = { seconds: 0, gpuBytes: 0, heapBytes: 0, geometries: 0, textures: 0, fps: 60 };
-    expect(soakVerdict(rows).verdict).toBe('success');
-    expect(soakVerdict(rows).fpsLast).toBe(15);
+    expect(soakVerdict(rows, [], [], clean).verdict).toBe('success');
+    expect(soakVerdict(rows, [], [], clean).fpsLast).toBe(15);
   });
   it('detects the 1 MiB/10 s leak plant with a least-squares window', () => {
-    const result = soakVerdict(samples(1024 ** 2 / 10));
+    const result = soakVerdict(samples(1024 ** 2 / 10), [], [], clean);
     expect(result.gpuGrowthBytes).toBeCloseTo(90 * 1024 ** 2);
-    expect(result.failures).toContain('GPU-byte growth > 8 MiB');
+    expect(result.failures.some((failure) => failure.startsWith('gpuGrowthBytes '))).toBe(true);
+  });
+  it('fails without a clean reference rather than guessing a limit', () => {
+    expect(soakVerdict(samples(), [], []).failures).toEqual(['no clean soak reference for this shard (budgets/soak-reference.json)']);
   });
   it('fails errors, stuck states, missing tail, heap and resource growth', () => {
-    expect(soakVerdict(samples().slice(0, 20)).verdict).toBe('failure');
-    expect(soakVerdict(samples(), ['boom'], [{}]).failures).toContain('stuck states');
+    expect(soakVerdict(samples().slice(0, 20), [], [], clean).verdict).toBe('failure');
+    expect(soakVerdict(samples(), ['boom'], [{}], clean).failures).toContain('stuck states');
     const rows = samples();
     for (const row of rows) row.heapBytes = 10_000_000 + row.seconds * 2000;
     const last = rows.at(-1); if (last) last.textures = 106;
-    expect(soakVerdict(rows).failures).toContain('heap growth > 10%');
-    expect(soakVerdict(rows).failures).toContain('geometry/texture growth > 5%');
+    const failures = soakVerdict(rows, [], [], clean).failures;
+    expect(failures.some((failure) => failure.startsWith('heapGrowthBytes '))).toBe(true);
+    expect(failures.some((failure) => failure.startsWith('textureGrowth 6 > 2 '))).toBe(true);
   });
   it('fails closed on invalid byte or resource measurements', () => {
     const rows = samples(); const first = rows[0]; if (first) first.gpuBytes = Number.NaN;
-    expect(soakVerdict(rows).failures).toContain('invalid sample measurement');
+    expect(soakVerdict(rows, [], [], clean).failures).toContain('invalid sample measurement');
   });
   it('tallies F2 retry fields once per shard and tier', () => {
     expect(flakedFields({ boot: { shard: 'pine-hollow', tier: 'phone' }, flaked: ['poses.cabin.ssim'], fields: [{ field: 'poses.cabin.ssim', verdict: 'flaked' }] })).toEqual(['pine-hollow/phone/poses.cabin.ssim']);

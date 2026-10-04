@@ -16,6 +16,10 @@ const out = resolve(flag('out', join(root, 'progress/soak', `${shard}-${Date.now
 if (!/^_?[a-z0-9-]+$/.test(shard) || !Number.isFinite(minutes) || minutes < 20) throw new Error('--shard and --minutes >= 20 required for the growth window');
 mkdirSync(out, { recursive: true });
 const errors = [], stuck = [], samples = [];
+let sha = '';
+// E388: the growth limits come from this shard's recorded clean soaks (report.mjs soakLimits), not invented numbers.
+const references = JSON.parse(readFileSync(join(root, 'budgets/soak-reference.json'), 'utf8'));
+const reference = Array.isArray(references[shard]) ? references[shard] : undefined;
 const browser = await chromium.launch({ channel: 'chromium', headless: true, args: ['--use-angle=metal', '--mute-audio'] });
 const control = { stop: false, wandering: false };
 for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { control.stop = true; void browser.close(); });
@@ -32,7 +36,8 @@ try {
   // Reuse F2's seeded harness and GL-API allocation instrumentation, never renderer.info as a byte proxy.
   const { installInit } = await import('./parity/init.mjs');
   const version = await (await fetch(new URL('version.json', flag('url', '')))).json();
-  await installInit(context, { lane: 'm5', sha: version.sha ?? version.commit ?? '', browser: browser.version(), capture: null });
+  sha = version.sha ?? version.commit ?? '';
+  await installInit(context, { lane: 'm5', sha, browser: browser.version(), capture: null });
   await debugSettings(page, shard === 'pine-hollow' ? { weather: args.includes('--weather') ? 'rain' : 'clear' } : {});
   const url = new URL(flag('url', ''));
   url.search = new URLSearchParams({ chunk: shard, tier: 'phone', touch: '1', skipintro: '1', nolock: '1', mute: '1', sw: '0', ...(args.includes('--weather') && shard === 'nalati-grasslands' ? { weather: 'storm' } : {}) }).toString();
@@ -111,7 +116,7 @@ try {
   await Promise.race([walkTask, sleep(1000)]);
 } catch (error) { errors.push(String(error)); }
 finally { control.stop = true; await browser.close(); }
-const report = { shard, minutes, samples, errors, stuck, ...soakVerdict(samples, errors, stuck) };
+const report = { shard, sha, minutes, samples, errors, stuck, ...soakVerdict(samples, errors, stuck, reference) };
 writeFileSync(join(out, 'report.json'), JSON.stringify(report, null, 2));
 console.log(JSON.stringify({ shard, verdict: report.verdict, failures: report.failures }));
 process.exitCode = report.verdict === 'success' ? 0 : 1;

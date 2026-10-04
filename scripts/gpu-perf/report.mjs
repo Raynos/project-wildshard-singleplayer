@@ -96,23 +96,55 @@ export function slopeGrowth(samples, key) {
   return denominator > 0 ? points.reduce((sum, point) => sum + (point.seconds - x) * (point[key] - y), 0) / denominator * 900 : null;
 }
 
-export function soakVerdict(samples, errors = [], stuck = []) {
+/** The growths a soak measures over its 5–20 minute window; a clean soak's are recorded in budgets/soak-reference.json. */
+export const SOAK_GROWTHS = ['gpuGrowthBytes', 'heapGrowthBytes', 'geometryGrowth', 'textureGrowth'];
+
+/** E388: a soak's growth limits are derived from clean-build soaks of the same shard (budgets/soak-reference.json, written
+ * by scripts/gpu-perf/soak-reference.mjs), never invented: limit = the recorded median + 2 × the recorded spread
+ * (max − min), the parity harness's band rule for a measured field (03 §8). They replace the old invented limits
+ * (GPU growth 8 MiB, heap growth 10 % of minute 5, geometries / textures × 1.05).
+ * @param {Record<string, number>[] | undefined} runs the shard's clean soaks
+ * @returns {Record<string, { median: number, spread: number, limit: number, runs: number }> | null}
+ */
+export function soakLimits(runs) {
+  if (!Array.isArray(runs) || runs.length === 0) return null;
+  /** @type {Record<string, { median: number, spread: number, limit: number, runs: number }>} */
+  const limits = {};
+  for (const key of SOAK_GROWTHS) {
+    const values = runs.map((run) => run[key]);
+    if (values.some((value) => typeof value !== 'number' || !Number.isFinite(value))) return null;
+    const sorted = values.toSorted((a, b) => a - b), mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    const spread = sorted[sorted.length - 1] - sorted[0];
+    limits[key] = { median, spread, limit: median + 2 * spread, runs: sorted.length };
+  }
+  return limits;
+}
+
+export function soakVerdict(samples, errors, stuck, reference) {
   const window = samples.filter((sample) => sample.seconds >= 300 && sample.seconds <= 1201);
   const first = window[0], last = window.at(-1);
   const gpuGrowthBytes = slopeGrowth(samples, 'gpuBytes');
   const heapGrowthBytes = slopeGrowth(samples, 'heapBytes');
+  const geometryGrowth = first && last ? last.geometries - first.geometries : null;
+  const textureGrowth = first && last ? last.textures - first.textures : null;
+  const growths = { gpuGrowthBytes, heapGrowthBytes, geometryGrowth, textureGrowth };
+  const limits = soakLimits(reference);
   const failures = [];
   if (samples.some((sample) => ['seconds', 'gpuBytes', 'heapBytes', 'geometries', 'textures'].some((key) => !Number.isFinite(sample[key]) || sample[key] < 0))) failures.push('invalid sample measurement');
   if (!first || !last || last.seconds < 1199 || gpuGrowthBytes === null || heapGrowthBytes === null) failures.push('incomplete 5–20 minute window');
   if (errors.length > 0) failures.push('page errors');
   if (stuck.length > 0) failures.push('stuck states');
-  if (gpuGrowthBytes !== null && gpuGrowthBytes > 8 * 1024 ** 2) failures.push('GPU-byte growth > 8 MiB');
-  if (first && heapGrowthBytes !== null && heapGrowthBytes > first.heapBytes * 0.1) failures.push('heap growth > 10%');
-  if (first && last && (last.geometries > first.geometries * 1.05 || last.textures > first.textures * 1.05)) failures.push('geometry/texture growth > 5%');
+  if (!limits) failures.push('no clean soak reference for this shard (budgets/soak-reference.json)');
+  else for (const key of SOAK_GROWTHS) {
+    const value = growths[key], row = limits[key];
+    if (value !== null && value > row.limit) failures.push(`${key} ${value} > ${row.limit} (clean median ${row.median} + 2 × spread ${row.spread}, ${row.runs} runs)`);
+  }
   const median = (values) => { const sorted = values.toSorted((a, b) => a - b); const mid = Math.floor(sorted.length / 2); return sorted.length === 0 ? null : sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2; };
-  return { verdict: failures.length > 0 ? 'failure' : 'success', failures, gpuGrowthBytes, heapGrowthBytes,
-    gpuFormula: 'least-squares bytes/second over 300–1200 seconds × 900; limit 8 MiB',
-    heapFormula: 'least-squares bytes/second over 300–1200 seconds × 900; limit minute-5 heap × 0.10',
+  return { verdict: failures.length > 0 ? 'failure' : 'success', failures, ...growths, limits,
+    gpuFormula: 'least-squares bytes/second over 300–1200 seconds × 900',
+    heapFormula: 'least-squares bytes/second over 300–1200 seconds × 900',
+    limitFormula: 'the clean soaks\' median + 2 × their spread (max − min), budgets/soak-reference.json',
     fpsFirst: median(samples.filter((sample) => sample.seconds <= 300).map((sample) => sample.fps)),
     fpsLast: median(samples.filter((sample) => sample.seconds >= 900).map((sample) => sample.fps)) };
 }
